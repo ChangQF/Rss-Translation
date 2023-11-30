@@ -4,11 +4,25 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>此 Reddit 子版块暂时关闭，以抗议 Reddit 终止第三方应用程序，请参阅 /r/ModCoord 和 /r/Save3rdPartyApps 了解更多信息。</description>
-    <lastBuildDate>Thu, 30 Nov 2023 03:14:40 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 30 Nov 2023 06:17:47 GMT</lastBuildDate>
+    <item>
+      <title>[D] 使用多个库部署 CodeLlama 34Bn 模型的见解</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/187bocu/d_insights_from_deploying_codellama_34bn_model/</link>
+      <description><![CDATA[     &lt; td&gt; 大家好， 我们最近尝试部署 CodeLlama 340 亿模型，并希望分享我们的主要发现对于那些感兴趣的人：  最佳性能：使用 vLLM 的量化 GPTQ、4 位 CodeLlama-Python-34B 模型。 结果：我们平台上使用 Nvidia A100 GPU 的平均最低延迟为 3.51 秒，平均令牌生成率为 58.40/秒，冷启动时间为 21.8 秒。  CodeLlama 34Bn   测试的其他库：HuggingFace Transformer Pipeline、AutoGPTQ、文本生成推理。  渴望听到您在类似部署中的经验和学习！   由   提交/u/Tiny_Cut_8440   [链接] [评论] &lt; /表&gt;]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/187bocu/d_insights_from_deploying_codellama_34bn_model/</guid>
+      <pubDate>Thu, 30 Nov 2023 06:13:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>[D]：了解训练大型模型时的 GPU 内存分配</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1878lat/d_understanding_gpu_memory_allocation_when/</link>
+      <description><![CDATA[TL;DR：为什么 GPU 内存使用量在梯度更新步骤期间会激增（无法解释 10GBs），然后又下降？ 我一直致力于微调 HuggingFace 上提供的一些较大的 LM（例如 Falcon40B 和 Llama-2-70B），到目前为止，我对内存需求的所有估计都没有相加。我可以使用 4 个 A100-80gb GPU，并且相当有信心我应该有足够的 RAM 来使用 LoRA 微调 Falcon40B，但我不断收到 CUDA OOM 错误。我已经找到了让事情运行的方法，但这让我意识到我并不真正理解训练期间如何分配内存。 以下是我对训练模型时内存去向的理解：  设置 -&gt;定义 TOTAL_MEMORY = 0 (MB)，我将在执行增加内存的每个步骤时更新它。 -&gt;通过“观察”来检查内存使用情况nvidia-smi 每 2 秒刷新一次。 -&gt;模型已加载到fp16 -&gt;使用具有 ~7B 参数的 Falcon7B（类似于 6.9，但足够接近） -&gt;在 jupyter 笔记本中的单个 A100-80gb GPU 上运行 加载模型：  用于 torch 等的 CUDA 内核（在我的机器上）我看到每个 GPU 大约 900mb）。总内存 + 900 -&gt; TOTAL_MEMORY=900 模型权重（废话）。假设您使用 float16 加载了一个 7B 参数模型，那么您将看到 2 字节 * 7B 参数 = 14B 字节。 ~= 14GB GPU VRAM。总内存 + 14_000 -&gt; TOTAL_MEMORY=15_000（舍入）  模型应在单个 GPU 上加载。 训练（我正在模拟单个前向并通过单独运行每个部分来向后一步）  数据。我正在传递一小批虚拟输入（随机整数），因此我假设这不会对内存使用量产生实质性贡献。 前向传递。由于某种原因，内存跳跃了大约 1000mb。也许这是由于缓存的中间激活造成的？虽然我觉得应该更大。 TOTAL_MEMORY + 1_000 -&gt; TOTAL_MEMORY = 16_000。 计算交叉熵损失。损失张量将利用一些内存，但这似乎不是一个非常高的数字，所以我认为它没有贡献。 通过调用 `loss.backwards() 计算相对于参数的梯度`。这会导致显着的内存峰值（增加 15_000 MB）。我想这是为模型中每个参数存储梯度值的结果？ TOTAL_MEMORY + 15_000 -&gt; TOTAL_MEMORY = 30_000 通过调用“optimizer.step()”更新模型参数。这会导致另一个内存峰值，GPU 内存使用量增加超过 38_000MB。不太确定为什么。我最好的猜测是，这是 AdamW 开始为每个参数存储 2 x 动量值的地方。如果我们进行数学计算（假设优化器状态值在 fp16 中）----&gt; 2 个字节 * 2 个状态 * 7B = 28B 字节 ~= 28GB。 TOTAL_MEMORY + 38_000 -&gt; TOTAL_MEMORY = 68_000  LoRA 会通过减少优化器步骤中所需的内存量来减少这个数字，但我尚未对此进行任何测试，因此没有任何数字。 我相信这就是所有主要组件。 那么额外的 10GB 从哪里来呢？也许它是“火炬保留了该内存但实际上并未使用它”之一。因此，我通过检查 `torch.cuda.memory_allocated` 和 `torch.cuda.max_memory_allocated` 的输出进行检查，也许那里有东西。 分配的内存（后退一步后）：53gb &lt; p&gt;分配的最大内存：66gb 意味着在某些时候，需要额外的 13 GB，但后来被释放了。 我想问你们的问题是，有人知道这些内存在哪里吗？我在数学中没有发现的额外 10GB 来自哪里？向后传递后释放 13GB 会发生什么？是否有任何我错过的需要记忆的额外步骤？  这已经困扰我一段时间了，我很想获得更好的理解，因此我们将非常感谢您提供的任何专家意见、资源或其他建议！ &amp; #x200b; 编辑：我还知道，当您使用“Trainer”类进行训练时，您可以启用梯度检查点，通过在向后传递期间重新计算一些中间激活来减少内存使用。那么整个过程的哪一部分会减少内存使用量呢？ ​   由   提交 /u/lightSpeedBrick   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1878lat/d_understanding_gpu_memory_allocation_when/</guid>
+      <pubDate>Thu, 30 Nov 2023 03:27:45 GMT</pubDate>
+    </item>
     <item>
       <title>[D] 微调用于图像-图像搜索的 CLIP 模型</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1877c6d/d_fine_tuning_a_clip_model_for_imageimage_search/</link>
-      <description><![CDATA[大家好，我一直在从事图像-图像搜索任务，fashionCLIP 对我来说非常有效，目前我想要获得以下性能我的方法进一步发展，我正在考虑针对这项任务微调 FashionCLIP 模型。为此，我只是生成图像的嵌入，将它们存储在向量索引中，然后计算搜索图像的嵌入与向量索引中的所有嵌入之间的余弦相似度。我并没有真正使用任何零样本应用程序或图像文本比较，我已经看到了我读过的所有 CLIP 模型的微调方法，使用文本图像对进行微调，我不明白应该如何微调为了提高应用程序性能的模型，我应该使用文本图像对吗？或者我应该只微调模型的视觉编码器，如果是这种情况，有人有一些我该怎么做的例子吗？   由   提交 /u/_bmph_   [链接] [评论]]]></description>
+      <description><![CDATA[大家好，我一直在从事图像-图像搜索任务，fashionCLIP 对我来说非常有效，目前我想要获得以下性能我的方法进一步发展，我正在考虑针对这项任务微调 FashionCLIP 模型。为此，我只是生成图像的嵌入，将它们存储在向量索引中，然后计算搜索图像的嵌入与向量索引中的所有嵌入之间的余弦相似度。我并没有真正使用任何零样本应用程序或图像文本比较，我已经看到了我读过的所有 CLIP 模型的微调方法，使用文本图像对进行微调，我不明白我应该如何微调为了提高应用程序性能的模型，我应该使用文本图像对吗？或者我应该只微调模型的视觉编码器，如果是这种情况，有人有一些我该怎么做的例子吗？   由   提交 /u/_bmph_   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1877c6d/d_fine_tuning_a_clip_model_for_imageimage_search/</guid>
       <pubDate>Thu, 30 Nov 2023 02:28:16 GMT</pubDate>
     </item>
@@ -25,13 +39,6 @@
       <description><![CDATA[大家好！  我刚刚上传了 EasyOCR 的 C++ 实现，这是一个著名的 python ocr 库。还清除了一些音频相关项目中的蜘蛛网，请随时留下反馈或贡献！我只实现了最重要的部分，所以当然可以使用一些社区帮助！干杯！  https://github.com/ksasso1028/EasyOCR-cpp   由   提交/u/YamGloomy948   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/18777go/p_easyocr_in_c/</guid>
       <pubDate>Thu, 30 Nov 2023 02:22:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>[D] ICML 位置追踪</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1876x16/d_icml_position_track/</link>
-      <description><![CDATA[我不确定我是否理解正确，但是这篇论文讨论了该领域中值得关注的某些特定子部分就足够了，正确吗？   由   提交 /u/BigDreamx   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1876x16/d_icml_position_track/</guid>
-      <pubDate>Thu, 30 Nov 2023 02:08:59 GMT</pubDate>
     </item>
     <item>
       <title>[R] 通过 Prompt-Tuning 控制从大型语言模型中提取记忆数据</title>
@@ -64,7 +71,7 @@
     <item>
       <title>[R] 通过深度学习发现了数百万种新材料</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/186w67m/r_millions_of_new_materials_discovered_with_deep/</link>
-      <description><![CDATA[帖子：https://deepmind.google/discover/blog/millions-of-new-materials-discovered-with-deep-learning/ 论文：https://www.nature.com/articles/s41586-023-06735-9 摘要： 新型功能材料实现了从清洁能源到信息处理的技术应用的根本性突破。从微芯片到电池和光伏发电，无机晶体的发现一直受到昂贵的试错方法的瓶颈。与此同时，随着数据和计算的增加，语言、视觉和生物学的深度学习模型展示了新兴的预测能力。在这里，我们展示了大规模训练的图网络可以达到前所未有的泛化水平，从而将材料发现的效率提高一个数量级。在持续研究中发现的 48,000 个稳定晶体的基础上，效率的提高使得能够在当前凸包下方发现 220 万个结构，其中许多结构逃过了人类之前的化学直觉。我们的工作代表了人类已知的稳定材料的数量级扩展。最终凸包上的稳定发现将可用于筛选技术应用，正如我们对层状材料和固体电解质候选物的演示一样。在稳定结构中，有 736 个已通过独立实验实现。数以亿计的第一原理计算的规模和多样性也解锁了下游应用的建模能力，特别是导致高度准确和强大的学习原子间势，可用于凝聚相分子动力学模拟和高保真零-离子电导率的射击预测。   由   提交 /u/RobbinDeBank   [链接] [评论]]]></description>
+      <description><![CDATA[帖子：https://deepmind.google/discover/blog/millions-of-new-materials-discovered-with-deep-learning/ 论文：https://www.nature.com/articles/s41586-023-06735-9 摘要： 新型功能材料实现了从清洁能源到信息处理的技术应用的根本性突破。从微芯片到电池和光伏发电，无机晶体的发现一直受到昂贵的试错方法的瓶颈。与此同时，随着数据和计算的增加，语言、视觉和生物学的深度学习模型展示了新兴的预测能力。在这里，我们展示了大规模训练的图网络可以达到前所未有的泛化水平，从而将材料发现的效率提高一个数量级。在持续研究中发现的 48,000 个稳定晶体的基础上，效率的提高使得能够在当前凸壳下方发现 220 万个结构，其中许多结构逃过了人类之前的化学直觉。我们的工作代表了人类已知的稳定材料的数量级扩展。最终凸包上的稳定发现将可用于筛选技术应用，正如我们对层状材料和固体电解质候选物的演示一样。在稳定结构中，有 736 个已通过独立实验实现。数以亿计的第一原理计算的规模和多样性也解锁了下游应用的建模能力，特别是导致高度准确和强大的学习原子间势，可用于凝聚相分子动力学模拟和高保真零-离子电导率的射击预测。   由   提交 /u/RobbinDeBank   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/186w67m/r_millions_of_new_materials_discovered_with_deep/</guid>
       <pubDate>Wed, 29 Nov 2023 18:19:08 GMT</pubDate>
     </item>
@@ -78,16 +85,9 @@
     <item>
       <title>[D] 为我的项目绘制基本事实的注释应用程序推荐</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/186tsfy/d_annotation_apps_recommendation_to_draw_ground/</link>
-      <description><![CDATA[     &lt; /td&gt; 我目前正在为我的特征工程课程做一个项目，该项目的目的是检测田地边界或道路。因此，对于基本事实，我使用了 Matlab 中的图像分割，它具有各种工具，例如洪水填充和其他工具，可以将田野填充为黑色并将道路设置为白色。正如您在第二张图片中看到的那样，这是我绘制的地面，它有很多噪点。我们的教授建议我们使用 iPad 来绘制真实图像。任何人都可以为我推荐绘制相同精确事实但没有噪音的应用程序   由   提交 /u/Certain-Seesaw-2274   [链接] [评论] &lt; /表&gt;]]></description>
+      <description><![CDATA[     &lt; /td&gt; 我目前正在为我的特征工程课程做一个项目，该项目的目的是检测田地边界或道路。因此，对于基本事实，我使用了 Matlab 中的图像分割，它具有各种工具，例如洪水填充等，可以将田野填充为黑色，将道路设置为白色。正如您在第二张图片中看到的那样，这是我绘制的地面，它有很多噪点。我们的教授建议我们使用 iPad 来绘制真实图像。任何人都可以为我推荐绘制相同精确事实但没有噪音的应用程序   由   提交 /u/Certain-Seesaw-2274   [链接] [评论] &lt; /表&gt;]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/186tsfy/d_annotation_apps_recommendation_to_draw_ground/</guid>
       <pubDate>Wed, 29 Nov 2023 16:41:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>[R] Rankitect：在元规模上与世界级工程师对战的架构搜索排名</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/186s7ps/r_rankitect_ranking_architecture_search_battling/</link>
-      <description><![CDATA[   论文&lt; /strong&gt;: https://arxiv.org/abs/2311.08430 摘要:   神经架构搜索（NAS）已经证明了它在计算机视觉方面的功效和排名系统的潜力。然而，之前的工作主要集中在学术问题上，这些问题是在良好控制的固定基线下进行小规模评估的。在行业系统中，例如 Meta 中的排名系统，尚不清楚文献中的 NAS 算法是否能够超越生产基线，因为：（1）规模 - Meta 排名系统为数十亿用户服务，（2）强大的基线 - 基线是生产自深度学习兴起以来，多年来数百到数千名世界级工程师优化了模型，(3) 动态基线 - 工程师可能在 NAS 搜索过程中建立了新的、更强的基线，(4) 效率 - 搜索管道必须产生结果快速与生产生命周期保持一致。在本文中，我们介绍了 Rankitect，一个用于 Meta 排名系统的 NAS 软件框架。 Rankitect 寻求通过从头开始构建低级构建块来构建全新的架构。 Rankitect 实现并改进了最先进 (SOTA) NAS 方法，以在同一搜索空间下进行全面、公平的比较，包括基于采样的 NAS、一次性 NAS 和可微分 NAS (DNAS)。我们通过与 Meta 上的多个生产排名模型进行比较来评估 Rankitect。我们发现 Rankitect 可以从头开始发现新模型，实现归一化熵损失和 FLOP 之间的竞争性权衡。当利用工程师设计的搜索空间时，Rankitect 可以生成比工程师更好的模型，实现积极的离线评估和 Meta 规模的在线 A/B 测试。  https://preview.redd.it/n1l2fhle3b3c1.png?width=1360&amp;format=png&amp; ＆汽车=webp&amp;s=772bbd4885bd87fb14461d76f8aca804b32fe1b8   由   提交 /u/APaperADay   [链接] [评论] &lt; /表&gt;]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/186s7ps/r_rankitect_ranking_architecture_search_battling/</guid>
-      <pubDate>Wed, 29 Nov 2023 15:35:28 GMT</pubDate>
     </item>
     <item>
       <title>[R] 他们说：“这不仅仅是记住训练数据”：从（生产）语言模型中可扩展地提取训练数据</title>
@@ -106,7 +106,7 @@
     <item>
       <title>[D] 简单问题主题</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/17z08pk/d_simple_questions_thread/</link>
-      <description><![CDATA[请在此处发布您的问题，而不是创建新线程。鼓励其他为问题创建新帖子的其他人在此处发帖！ 帖子将保持活跃状态​​，直到下一篇帖子，因此请在标题中的日期之后继续发帖。 感谢大家回答问题在上一个线程中！   由   提交 /u/AutoModerator   [链接] [评论]]]></description>
+      <description><![CDATA[请在此处发布您的问题，而不是创建新线程。鼓励其他为问题创建新帖子的人在此处发帖！ 帖子将一直保持活跃状态​​，直到下一篇帖子，因此请在标题中的日期之后继续发帖。 感谢大家回答问题在上一个线程中！   由   提交 /u/AutoModerator   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/17z08pk/d_simple_questions_thread/</guid>
       <pubDate>Sun, 19 Nov 2023 16:00:20 GMT</pubDate>
     </item>
