@@ -4,30 +4,157 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Wed, 06 Dec 2023 15:15:15 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 06 Dec 2023 18:17:42 GMT</lastBuildDate>
     <item>
-      <title>计算时间序列何时达到 s 特定值</title>
-      <link>https://stats.stackexchange.com/questions/633219/calculate-when-a-time-series-will-reach-s-specific-value</link>
-      <description><![CDATA[我有一个日级粒度的时间序列：
-&lt;前&gt;&lt;代码&gt;日期。价值
-2023-10-01 78945
-2023-10-02 78990
-2023-10-03 79005
-2023-10-04 78999
-...
+      <title>基于分组变量的匹配顺序</title>
+      <link>https://stats.stackexchange.com/questions/633235/matching-order-based-on-grouping-variable</link>
+      <description><![CDATA[我想按一定的顺序进行匹配。
+我知道参数 order，可在包 {MatchIt} 中找到 - 但这指的是倾向得分。
+但是，我想使用名为 set 的分组变量按升序进行匹配。
+因此，匹配从 set 的最小值（1:1）开始，无需替换。
+某些 ID 会产生多个集 值。这就是为什么如果我想在不替换的情况下进行匹配，顺序就很重要。
+数据和设置变量：
+库（钴）
 
-虽然存在一些波动，但总体趋势是增加的，我们希望估计该值何时达到阈值，例如 90000。
-虽然像 Holt-Winters、ARIMA 这样的标准时间序列模型非常适合预测，但我不确定如何使用它们来获得准确的“跑道”。就像在这个例子中一样。
-一种方法是计算增长率并假设线性增长并找到时间，但正确计算增长率也是一个问题。
-所以，我有两个问题：
+lalonde$set[lalonde$treat == 1] &lt;- 样本(c(5, 10, 15, 3), sum(lalonde$treat == 1), 替换 = TRUE)
+lalonde$set[lalonde$treat == 0] &lt;- 样本(c(5, 10, 15, 3), sum(lalonde$treat == 0), 替换 = TRUE)
+lalonde$ID &lt;- seq_len(nrow(lalonde))
+复制 &lt;- 子集(lalonde, ID %in% c(1, 2, 3, 4, 5))
+permute_values &lt;- function() {
+  样本(c(5, 10, 15, 3), 4, 替换 = FALSE)
+}
+复制 &lt;- 复制[rep(seq_len(nrow(copy)),each = 4),]
+copy$设置 &lt;- unlist(lapply(1:(nrow(copy)/4), function(x) permute_values()))
+组合数据 &lt;- rbind(lalonde, 复制)
+unique_data &lt;- unique(combined_data)
 
-是否有标准方法来计算时间序列何时达到特定值？
-如何正确衡量增长率？
+创建倾向得分计算公式
+公式 &lt;- 治疗 ~ 年龄 + 教育 + 已婚 + 无学位 + re74 + re75 + re78
 
-一项附加要求：
-突然的峰值（荒谬的增加和减少）不应突然减少/增加跑道。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633219/calculate-when-a-time-series-will-reach-s-specific-value</guid>
-      <pubDate>Wed, 06 Dec 2023 15:12:05 GMT</pubDate>
+计算变量set内的倾向得分
+data_with_ps &lt;- unique_data %&gt;%
+  group_by(设置) %&gt;%
+  突变（pscore = glm（公式，数据= .[cur_group_rows（），]，
+                      家庭=二项式（链接=“logit”））$fitted.values）
+
+现在我们来进行匹配。
+这是我的做法。
+参数 exact = &quot;set&quot; 不能解决问题，因为某些 ID 会影响分组变量 set 的多个值，而 exact 参数可以解决问题不包括订单。
+库(MatchIt)
+
+data_with_ps_sorted &lt;- data_with_ps[order(data_with_ps$set), ]
+
+m.out &lt;- matchit(公式 = 公式,
+                 数据 = data_with_ps_sorted,
+                 方法=“最近的”，
+                 距离 = data_with_ps_sorted$pscore,
+                 比率 = 1，
+                 卡尺=0.02，
+                 替换=假）
+
+mdata &lt;- match.data(m.out)
+
+如您所见，ID 1 已匹配 3 次，而它可能只出现一次。由于它在 set == 3 中匹配，因此不能在 set == 10 或 15 中再次使用。
+提前致谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/633235/matching-order-based-on-grouping-variable</guid>
+      <pubDate>Wed, 06 Dec 2023 17:54:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>可靠性和重复性</title>
+      <link>https://stats.stackexchange.com/questions/633229/reliability-and-repeatability</link>
+      <description><![CDATA[可靠性和可重复性之间有什么区别，可以使用 Jamovi 中提供的哪些测试？]]></description>
+      <guid>https://stats.stackexchange.com/questions/633229/reliability-and-repeatability</guid>
+      <pubDate>Wed, 06 Dec 2023 16:36:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于从 MCMC 获取的样本</title>
+      <link>https://stats.stackexchange.com/questions/633228/regarding-samples-gotten-from-mcmc</link>
+      <description><![CDATA[在一篇解释MCMC的文章中，我曾经读到过以下的说法。
+&lt;块引用&gt;
+采样方法的思路如下。我们先假设
+我们有一种方法（MCMC）从概率中抽取样本
+分布定义为一个因子。然后，而不是试图处理
+通过涉及后验的棘手计算，我们可以得到
+来自该分布的样本（仅使用未归一化的部分
+定义）并使用这些样本来计算各种准时
+统计数据，例如平均值和方差，甚至近似
+通过核密度估计进行分布。
+
+基于上述解释，我的理解是MCMC从非正态分布中获取样本，但这些样本可以用来计算相应正态分布的函数统计量。我的理解正确吗？如何证明？]]></description>
+      <guid>https://stats.stackexchange.com/questions/633228/regarding-samples-gotten-from-mcmc</guid>
+      <pubDate>Wed, 06 Dec 2023 16:35:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么R包Fect中的F测试是NA？</title>
+      <link>https://stats.stackexchange.com/questions/633227/why-the-f-test-is-na-in-r-package-fect</link>
+      <description><![CDATA[我是 R 中 Fect 包的新学习者，请参阅 https://yiqingxu.org /packages/fect/fect.html。
+我尝试用方法对我的 DiD 进行反事实分析。我使用不平衡面板数据和矩阵补全法，但在测试 Pre-Trend(MC) 时，我在 F 检验中得到 NA？有谁知道原因吗？我应该怎么办？谢谢！
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/633227/why-the-f-test-is-na-in-r-package-fect</guid>
+      <pubDate>Wed, 06 Dec 2023 16:31:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>GPT 等纯解码器模型中使用了哪些嵌入？</title>
+      <link>https://stats.stackexchange.com/questions/633226/what-embeddings-are-used-in-decoder-only-models-like-gpt</link>
+      <description><![CDATA[仅解码器模型不使用编码器。因此，他们没有从中获得嵌入。
+我浏览了这个很好的描述仅解码器基于变压器的模型
+我确实了解培训阶段，但需要特别澄清一件事。
+
+正在使用的词嵌入是什么？
+它是否从 Glove 或 word2vec 等常见的词嵌入开始，然后通过训练进行更新？
+如果是的话，那是怎么做到的？在推理过程中使用的词嵌入是什么？
+
+如果您也能给出一个示例，例如 GPT，那就太好了。]]></description>
+      <guid>https://stats.stackexchange.com/questions/633226/what-embeddings-are-used-in-decoder-only-models-like-gpt</guid>
+      <pubDate>Wed, 06 Dec 2023 16:24:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>独立拉普拉斯变量之和</title>
+      <link>https://stats.stackexchange.com/questions/633223/sum-of-independent-laplacian-variables</link>
+      <description><![CDATA[我有 $N$ 拉普拉斯分布，其中 $mu=0$ 且为正 $b=\sigma^{2}/2$。我还有拉普拉斯分布的主导随机变量（X_s），其中 $\mu=0$ 和 $b=\sigma^ {2}_s/2。 （\sigma^{2}_s&gt;&gt;\sigma^{2}）$。
+我想找到 $$X= \sum_{1}^{N} X_i +X_s$$ 的联合分布
+我的工作：
+我将右边随机变量的CF乘积得到
+$$ \phi_X(t)= \frac{2}{2+\sigma^2_s t^2} (\frac{2}{2+\sigma^2t ^2})^N$$
+该表达式的分母可以简化为
+$$
+(2+\sigma^2_s t^2) (2+\sigma^2t^2)^N=(2+\sigma^2_s t^2)(\sigma^2_s)^N(2/\sigma^2_s + \sigma^2/\sigma^2_s t^2)^N$$
+$$\approx(2+\sigma_s^2 t^2)2^{N}$$
+因此 CF 将是 $X_s$ 的 CF。
+我想获得基于 N 的 X 分布的某种近似形式。在这种方法中，我无法做到。有人可以帮忙吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/633223/sum-of-independent-laplacian-variables</guid>
+      <pubDate>Wed, 06 Dec 2023 15:34:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>两组之间感染率的样本量计算</title>
+      <link>https://stats.stackexchange.com/questions/633222/sample-size-calculation-for-the-rate-of-infections-between-two-groups</link>
+      <description><![CDATA[我正在计算治疗组/未治疗组比较的样本量。
+提供的数据是文献研究的平均感染率（平均值/100年）。
+假设感染呈泊松分布。所以 SD=sqrt(mean)。
+另一种假设是：治疗可以降低感染率。
+我使用 sas 进行所有计算。
+处理能力；
+    两个样本均值测试=diff_satt
+    组均值 = 0.05 | 0.025
+    组TDDEV = 0.224 | 0.158
+    功率 = 0.1 至 0.8 × 0.1
+    总计 = .
+    边=l；
+跑步;
+
+我的假设和程序正确吗？
+BR
+卢卡斯]]></description>
+      <guid>https://stats.stackexchange.com/questions/633222/sample-size-calculation-for-the-rate-of-infections-between-two-groups</guid>
+      <pubDate>Wed, 06 Dec 2023 15:22:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>贝叶斯统计和多项测试</title>
+      <link>https://stats.stackexchange.com/questions/633221/bayesian-stats-and-multiple-tests</link>
+      <description><![CDATA[贝叶斯模型是否会遇到与常客模型相同的问题，即由于 I 类错误，我们无法运行一堆不同的模型？例如，假设我有一个关于飞机的大型数据框、因变量飞行里程、自变量总乘客数和航空公司的分组变量（虚构的示例）。对于常客统计，我真的不应该根据航空公司将数据框分成一堆较小的数据框，并为每个公司运行不同的回归，我应该以公司作为包含变量运行单个回归（否则，我会得到主要的结果） I 类错误增加）。如果我从贝叶斯角度处理相同的问题，是否适用相同的规则？
+由于贝叶斯方法的计算量更大，并且在较大的数据集上需要花费很长时间，因此能够拆分数据帧并运行多个模型，最后结合 CI 的结果将很有帮助。但我对贝叶斯统计数据很陌生，所以我不确定这是否是一件坏事。]]></description>
+      <guid>https://stats.stackexchange.com/questions/633221/bayesian-stats-and-multiple-tests</guid>
+      <pubDate>Wed, 06 Dec 2023 15:19:10 GMT</pubDate>
     </item>
     <item>
       <title>使用系数计算倾向得分</title>
@@ -45,16 +172,17 @@ coefs &lt;- data.frame(
 如何根据 lalonde 数据的系数计算倾向得分？
 我知道包含计算倾向分数的软件包。
 我只是感兴趣如何在给定系数的情况下应用它。
-谢谢]]></description>
+谢谢
+&lt;小时/&gt;
+更新：
+您不需要使用这样的系数。
+相反，您可以直接通过以下方式使用该模型：
+propensity_scores &lt;- 预测（模型名称，类型 = “lp”，newdata = yourdata）
+pscore &lt;- plogis(propensity_scores)
+
+就是这样！]]></description>
       <guid>https://stats.stackexchange.com/questions/633218/calculate-propensity-scores-using-coefficients</guid>
       <pubDate>Wed, 06 Dec 2023 14:59:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>小样本的中值插补或案例删除</title>
-      <link>https://stats.stackexchange.com/questions/633217/median-imputation-or-case-deletion-for-small-samples</link>
-      <description><![CDATA[我陷入了两难的境地。我有来自 4 组动物的不同蛋白质的数据集，其特征有两个因素：年龄（3 或 12 个月）和特定基因的存在（KO 或 WT）。对于每种因素组合（3m、KO；12m KO；3m WT；12m WT），我有 6 次测量（即 6 只动物），但其中一组只有 5 次测量。这使我无法进行对齐排名变换，然后执行非参数因子 (ANOVA) 分析。相反，如果 (a) 我将样本减少到每组 5 个数据点，或者 (b) 如果我用同一组 5 个数据点的中位数替换缺失的数据点，则该分析在技术上有效。我真的不知道哪一个是更好的解决方案。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633217/median-imputation-or-case-deletion-for-small-samples</guid>
-      <pubDate>Wed, 06 Dec 2023 14:50:44 GMT</pubDate>
     </item>
     <item>
       <title>多重共线性和分类变量</title>
@@ -100,322 +228,129 @@ id、拦截、cat_B、y
       <pubDate>Wed, 06 Dec 2023 14:16:12 GMT</pubDate>
     </item>
     <item>
-      <title>完整的案例分析、多重插补或工具变量分析？</title>
-      <link>https://stats.stackexchange.com/questions/633211/complete-case-analysis-multiple-imputation-or-instrumental-variable-analysis</link>
-      <description><![CDATA[我进行了一项小型研究，所有参与者都参加了心理干预，并完成了术前、术后和随访的测量。大约。参加人数 40 人，其中约5家未完成后续措施。
-我怀疑数据是随机丢失的（即参与者忘记了有后续行动，没有检查电子邮件等），但不想排除干预本身存在一些问题的可能性他们没有完成。
-使用多重插补或工具变量分析等方法是否合适，而不是通过使用完整的案例分析来冒引入偏差和进一步减少小样本的风险？
-我对这些方法不太熟悉 - 关于哪种方法可能是“最佳”或替代方案有什么指导吗？
-非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/633211/complete-case-analysis-multiple-imputation-or-instrumental-variable-analysis</guid>
-      <pubDate>Wed, 06 Dec 2023 14:12:07 GMT</pubDate>
+      <title>平均差的 z 分数何时等于 $\delta/\sigma \sqrt{n/2}$？</title>
+      <link>https://stats.stackexchange.com/questions/633169/when-is-the-z-score-for-mean-difference-equal-to-delta-sigma-sqrtn-2</link>
+      <description><![CDATA[我还没有算出代数，但知道如果方差相等，那么总方差就是方差之和或方差的两倍：$2\sigma^ 2 美元。已知均值的标准误为 $\sigma/\sqrt{n}$，则均值差的 z 分数何时等于
+$z=\frac{\delta}{\sigma} \sqrt{\frac{n}{2}}$]]></description>
+      <guid>https://stats.stackexchange.com/questions/633169/when-is-the-z-score-for-mean-difference-equal-to-delta-sigma-sqrtn-2</guid>
+      <pubDate>Wed, 06 Dec 2023 06:15:28 GMT</pubDate>
     </item>
     <item>
-      <title>如何将 glmnet 模型的截距限制为正？</title>
-      <link>https://stats.stackexchange.com/questions/633209/how-can-you-constrain-the-intercept-of-a-glmnet-model-to-be-positive</link>
-      <description><![CDATA[如果我使用 lower.limits = 0 参数，由于某种原因它不适用于拦截。我找不到任何关于为什么或如何执行此操作的文档。有任何想法吗？下面是一个可重现的示例。正如您所看到的，仍然存在负拦截。
-# 加载包
-图书馆（glmnet）
-
-# 生成数据
-设置.种子(12345)
-n &lt;- 1000
-X &lt;- cbind(1, runif(n, 0, 10), runif(n, 10, 20))
-y &lt;- -20 + X %*% c(2, 3, 4) + rnorm(n, 0, 1)
-colnames(X) = c(“截距”, “x1”, “x2”)
-
-# 运行套索模型
-模型 &lt;- glmnet(
-    X，
-    是，
-    alpha = 0.5, # 弹性网
-    标准化 = T,
-    lambda = 10^seq(-10, 2, 长度 = 10),
-    下限 = 0
+      <title>有人认识到两个回归贝塔之间的显着性检验吗？</title>
+      <link>https://stats.stackexchange.com/questions/633162/does-anyone-recognize-this-significance-test-between-two-regression-betas</link>
+      <description><![CDATA[我遇到了以下多元回归模型中两个 beta（预测变量）之间的统计显着性测试。请注意，$R^2$是模型决定系数，$r$是预测变量之间的相关性1 和预测变量 2，$df$ 是模型残差自由度：
+计算行列式：
+$$\text{A} = 1 \times 1 - r \times r$$
+获取“逆矩阵”，据我所知，它有 3 个值 – riv1、riv2、riv12：
+$$\text{riv1} = \dfrac{1}{\text{A}} \\
+\text{riv2} = \dfrac{1}{\text{A}} \\
+\text{riv12} = \dfrac{-1 * r}{\text{A}}
+$$
+使用这些来获取有关 $b_1$ 和 $b_2$ 之间差异的标准错误： 
+$$\text{SE}_{b_1b_2} = \sqrt{\frac{(1 - R^2)}{df \times \left( \text{riv1 } + \text{riv2} - 2 \times \text{riv12}\right)}}$$
+获取 t 统计量：
+$$t = \dfrac{(b_1 - b_2)}{\text{SE}_{b_1b_2}}$$
+问题：有人认识这个测试并能给我指出有关它的资源吗？这似乎是 Wald 测试的某种变体，但我和我的同事以前都没有见过它。&lt; /p&gt;
+请注意，我从自定义 R 函数中获得了此值，并自己将其转换为数学。我不是统计学家，所以我希望尽管其中隐藏着任何错误，但它仍然可以被识别！
+编辑：显然我对矩阵表示法的尝试是错误的，所以我简化了一些。不是正确的符号，但我希望你能明白。还为任何可能想查看 R 计算中发生的情况的 R 用户添加 R 函数，以防有帮助！
+t_test_depmod &lt;-
+  函数（相关性，
+           模型_r_2，
+           df_残渣，
+           系数_1,
+           系数_2) {
+    # 行列式
+    阻止 &lt;- 1 * 1 - (相关性) * (相关性)
+    # 逆矩阵
+    inverse_mat &lt;-
+      数据.帧（
+        riv1 = 1 / 阻止，
+        riv2 = 1 / 阻止，
+        riv12 = -1 * 相关性/威慑力
+      ）
+    # 分解 SE_Diff 方程
+    fp &lt;- (1 - model_r_2)
+    sp &lt;- fp / df_resid
+    tp &lt;- sp * (inverse_mat$riv1 + inverse_mat$riv2 - 2 * inverse_mat$riv12)
+    se_diff &lt;- sqrt(tp)
+    # 获取T统计量
+    tt &lt;-(系数_1 - 系数_2) / se_diff
+    # 获取 P 值
+    p &lt;- 2 * pt(-abs(tt), df_resid)
+    返回（列表（
+      t.统计量 = tt,
+      df = df_残渣，
+      se_diff = se_diff,
+      p = p
+    ））
+  }
+t_test_depmod（
+  相关性 = .323，
+  model_r_2 = .28,
+  df_残渣 = 528,
+  系数_1 = 0.345，
+  系数_2 = 0.28
 ）
-
-# 通过BIC计算lambda
-beta &lt;- as.matrix(model$beta)
-beta[&quot;intercept&quot;, ] &lt;- model$a0 # 添加拦截
-
-＃ 展示
-贝塔
-
-＃ 结果
-                s0 s1 s2 s3 s4 s5 s6 s7 s8 s9
-截距 57.93445 6.057752 -16.678764 -17.897615 -17.954596 -17.957241 -17.957364 -17.957370 -17.957370 -17.957370
-x1 0.00000 1.929682 2.963308 3.018680 3.021269 3.021389 3.021395 3.021395 3.021395 3.021395
-x2 0.00000 2.772042 3.923162 3.984883 3.987769 3.987903 3.987909 3.987909 3.987909 3.987909
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/633209/how-can-you-constrain-the-intercept-of-a-glmnet-model-to-be-positive</guid>
-      <pubDate>Wed, 06 Dec 2023 13:53:59 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/633162/does-anyone-recognize-this-significance-test-between-two-regression-betas</guid>
+      <pubDate>Wed, 06 Dec 2023 04:21:02 GMT</pubDate>
     </item>
     <item>
-      <title>如何从 mgcv 包中的 GAM 模型计算相对风险？ [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/633206/how-to-calculate-relative-risk-from-gam-model-in-mgcv-package</link>
-      <description><![CDATA[我有每日空气污染参数 PM10、PM2.5 CO、NO2、SO2 和 O3。我还有每天的入院人数。考虑到周末和节假日的影响，我想使用广义加性模型（GAM）来探讨每日入院病人量与空气污染参数之间的关系。我想使用 mgcv 包。如何获得每种污染物的总体相对风险和95%CI？
-我不知道它是否正确，但这是我使用的代码：
-install.packages(“mgcv”)
+      <title>线性回归：R 中 LinearHypothesis() 的 p 值</title>
+      <link>https://stats.stackexchange.com/questions/633144/linear-regression-p-value-for-linearhypothesis-in-r</link>
+      <description><![CDATA[让我们从 car 包中的 Davis 数据集开始，并拟合一个简单的回归模型
+数据（戴维斯）
+mod.davis &lt;- lm(权重 ~ repwt, 数据 = Davis)
+摘要(mod.davis)
 
-库（mgcv）
+系数：
+            估计标准。误差t值Pr(&gt;|t|)
+（截距）5.3363 3.0369 1.757 0.0806 。
+重复重量 0.9278 0.0453 20.484 &lt;2e-16 ***
 
-数据=read.csv2(file.choose(),header=TRUE)
+现在我想测试一下
+\begin{align*}
+\beta_0 &amp;= 5 \\
+beta_1 &amp;= 1
+\end{对齐*}
+线性假设(mod.davis, c(“(截距) = 5”, “repwt = 1”))
 
-data$date &lt;- as.Date(data$date, format=&quot;%d.%m.%Y&quot;)
+我得到的是
+ Res.Df RSS Df Sq F 之和 Pr(&gt;F)
+1 183 16549
+2 181 12828 2 3721 26.251 9.764e-11 ***
 
+低 p 值让我很困惑
+confint(mod.davis)
+                 2.5% 97.5%
+（截距）-0.6560394 11.328560
+代表重量 0.8384665 1.017219
 
-数据$weekend &lt;- 因子(data$weekend)
+特别是因为这样一个事实，对于
+\begin{align*}
+\beta_0 &amp;= 0 \\
+beta_1 &amp;= 1
+\end{对齐*}
+线性假设(mod.davis, c(“(截距) = 0”, “repwt = 1”))
 
+  Res.Df RSS Df Sq F 之和 Pr(&gt;F)
+1 183 13074
+2 181 12828 2 245.97 1.7353 0.1793
 
-数据$holiday &lt;- 因子(data$holiday)
-
-模型 &lt;- gam(adm ~ s(PM10, k = 5) + s(PM2.5, k = 5) + s(CO, k = 5) + s(NO2, k = 5) + s(SO2, k = 5) + s(O3, k = 5) + 周末 + 假期，家庭 = quasipoisson(link = &quot;log&quot;)，data = 数据，method = &quot;REML&quot;)
-
-pred &lt;- Predict.gam（模型，类型=“响应”）
-
-相对风险 &lt;- exp(pred$fit)
-
-但是，当我查看结果时，它单独计算 365 天的 RR。
-如何获得如这篇文章中表4的结果？每种污染物只有一次RR计算。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633206/how-to-calculate-relative-risk-from-gam-model-in-mgcv-package</guid>
-      <pubDate>Wed, 06 Dec 2023 13:38:51 GMT</pubDate>
+数据表明 $H_0$ 是正确的。那个怎么样？ $\beta_0 = 5.33$ 是抽样分布的平均值，因此我期望 p 值 $&lt; 0.05$ 而用于测试 $\beta_0=0$。]]></description>
+      <guid>https://stats.stackexchange.com/questions/633144/linear-regression-p-value-for-linearhypothesis-in-r</guid>
+      <pubDate>Tue, 05 Dec 2023 19:54:52 GMT</pubDate>
     </item>
     <item>
-      <title>我可以在没有假设的情况下使用 p 值吗？</title>
-      <link>https://stats.stackexchange.com/questions/633205/can-i-use-p-values-without-hypothesis</link>
-      <description><![CDATA[我一直在写我的硕士论文，其中包括一项调查，其结果已经通过了各种测试。我的论文的不同寻常之处在于我根本没有假设，使其成为描述性统计分析。然而，我提出假设只是为了计算 p 值以测量显着性阈值（1%、5% 和 10%）。与此同时，我的导师提醒我缺乏假设，强调我不应该有任何假设。
-我的问题是，我可以在不使用假设的情况下使用这些信息吗？这意味着在没有假设的情况下，显着性阈值的信息是否有任何价值，我可以重新表述它们，使它们看起来像“声明”吗？而不是假设？我不想浪费所有这些工作和信息，但如果无法使用它们，我对此无能为力。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633205/can-i-use-p-values-without-hypothesis</guid>
-      <pubDate>Wed, 06 Dec 2023 13:35:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的混合效应模型，在重复中进行子采样</title>
-      <link>https://stats.stackexchange.com/questions/633215/mixed-effects-model-in-r-with-subsampling-in-replicates</link>
-      <description><![CDATA[我正在 r 中研究混合效应模型，其中我有 2 次处理、5 次重复和每个位点的二次采样。不过，我无权访问原始子采样数据，我只知道每次重复的平均效应大小、每次重复的子样本数量以及每次重复的汇总方差。
-我正在试验这段代码。考虑到我的实验设计和数据限制，这是否有效？
-模型 &lt;- lmer(EffectSize ~ Treatment + (1 | Replication) + (1 | Replication:Subsampling),
-数据=数据，
-权重 = 1/方差）]]></description>
-      <guid>https://stats.stackexchange.com/questions/633215/mixed-effects-model-in-r-with-subsampling-in-replicates</guid>
-      <pubDate>Wed, 06 Dec 2023 13:28:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>我有 3 个完全连接层的神经网络。除了第 3 个 FC 层之外，手动进行反向传播，所有 FC 层偏差梯度都出现错误 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/633202/i-have-neural-network-of-3-fully-connected-layers-doing-backpropagation-manuall</link>
-      <description><![CDATA[神经网络：
-self.fc1 = nn.Linear(1024, 512)
-self.bn1 = nn.BatchNorm1d(512)
-self.drop1 = nn.Dropout(0.4)
-self.fc2 = nn.Linear(512, 256)
-self.bn2 = nn.BatchNorm1d(256)
-self.drop2 = nn.Dropout(0.4)
-self.fc3 = nn.Linear(256, num_class=10)
+      <title>统计推断问题：“概率（方程）= 1”与“方程成立”相比[重复]</title>
+      <link>https://stats.stackexchange.com/questions/633063/statistics-inference-question-proban-equation-1-compared-with-the-equati</link>
+      <description><![CDATA[当我学习Casella和Berger的教科书统计推断时，我经常看到P（方程）= 1形式的表达式。然而，其他一些教科书或讲义会改为“方程”。例如，在 Jensen 不等式的定义中： 但你可能会发现其他书籍只说 g(X) = a+ bX。
+再举个例子：在完全统计的定义中：
 
-转发函数如下所示：
-def fc1_hook_fn(grad):
-       fc1_x.grad = grad.clone()
-def bn1_hook_fn(grad):
-       bn1_x.grad = grad.clone()
-def relu1_hook_fn(grad):
-       relu1_x.grad = grad.clone()
-def drop1_hook_fn(grad):
-       drop1_x.grad = grad.clone()
-
-fc1_x = self.fc1(x)
-fc1_x.register_hook(fc1_hook_fn)
-
-bn1_x = self.bn1(fc1_x)
-bn1_x.register_hook(bn1_hook_fn)
-
-relu1_x = F.relu(bn1_x)
-relu1_x.register_hook(relu1_hook_fn)
-
-drop1_x,mask1 = self.dropout_layer(relu1_x, 0.4)
-drop1_x.register_hook(drop1_hook_fn)
-
-def fc2_hook_fn(grad):
-       fc2_x.grad = grad.clone()
-
-def bn2_hook_fn(grad):
-       bn2_x.grad = grad.clone()
-
-def relu2_hook_fn(grad):
-       relu2_x.grad = grad.clone()
-
-def drop2_hook_fn(grad):
-       drop2_x.grad = grad.clone()
-
-fc2_x = self.fc2(drop1_x)
-fc2_x.register_hook(fc2_hook_fn)
-
-bn2_x = self.bn2(fc2_x)
-bn2_x.register_hook(bn2_hook_fn)
-
-relu2_x = F.relu(bn2_x)
-relu2_x.register_hook(relu2_hook_fn)
-       
-drop2_x, mask2 = self.dropout_layer(relu2_x, 0.4)
-drop2_x.register_hook(drop2_hook_fn)
-
-def fc3_hook_fn(grad):
-       fc3_x.grad = grad.clone()
-
-fc3_x = self.fc3(drop2_x)
-fc3_x.register_hook(fc3_hook_fn)
- 
-x = F.log_softmax(fc3_x, -1)
-
-然后我应用 log_softmax 和 nll_loss。
-我使用以下几行直接打印权重和偏差梯度
-对于 classifier.named_pa​​rameters() 中的名称、参数：
-        print(f&#39;参数名称是:{name}&#39;)
-        print(f&#39;参数形状为:{param.shape}&#39;)
-        param.register_hook(lambda grad, name=name: print(name, grad)) # 注册一个钩子来打印渐变
-
-现在我将反向传播编写如下，以将权重和偏差梯度与手动计算相匹配。在训练中使用了adam优化器。但据我所知，adam 优化器只是用于更新权重和偏差，与此步骤计算的偏差梯度无关[param.register_hook(lambda grad, name=name: print(name, grad))]。如果我错了，请告诉我。
-# 向后传递
-
-dz3 = softmax(fc3) # fc3 是第 3 个 FC 层的输出
-m = drop2.shape[0]
-
-dz3[距离（米），目标] -= 1
-dz3 /= 米
-dW3 = np.dot(dz3.T, drop2) # drop2 是第二个 dropout 层的输出
-db3 = np.sum(dz3, axis=0, keepdims=True)
-
-
-# 损失与 fc3 输入的导数的导数
-dX3 = np.dot(dz3, fc3_权重)
-dDropout2 = dX3 * (掩码2/0.6)
-dRelu2 = dDropout2 * np.where(bn2 &gt; 0, 1, 0) #bn2 是第二个batchnorm层的输出
-
-def batchnorm_backward(dout, x, gamma, beta, epsilon=1e-05):
-    N, D = x.形状
-    x_minus_mean = x - np.mean(x, 轴=0)
-    print(f&#39;x_minus_mean 形状为：{x_minus_mean.shape}&#39;)
-    var = np.var(x, 轴=0)
-    sqrt_var_plus_eps = np.sqrt(var + epsilon)
-    inv_sqrt_var_plus_eps = 1.0 / sqrt_var_plus_eps
-
-    dx_归一化 = dout * gamma
-    print(f&#39;dx_normalized 形状是:{dx_normalized.shape}&#39;)
-
-    dvar = np.sum(dx_normalized * x_minus_mean, axis=0) * -0.5 * inv_sqrt_var_plus_eps**3
-    dmean = np.sum(dx_normalized * -inv_sqrt_var_plus_eps, axis=0) + dvar * np.sum(-2.0 * x_minus_mean, axis=0) / N
-
-    dx = dx_归一化 * inv_sqrt_var_plus_eps + dvar * 2.0 * x_minus_mean / N + dmean / N
-
-    dgamma = np.sum(dout * (x - np.mean(x, axis=0)) / sqrt_var_plus_eps, axis=0)
-    dbeta = np.sum(dout, 轴=0)
-
-dbn2_x, dbn2_w, dbn2_b = batchnorm_backward(dRelu2, fc2, bn2_weights, bn2_bias, epsilon=1e-5) #fc2 是第二个 FC 层的 O/P
-dW2 = np.dot(dbn2_x.T, drop1) #drop1 是第一个 dropout 层的 O/P
-db2 = np.sum(dbn2_x, axis=0, keepdims=True)
-
-dX2 = np.dot(dbn2_x, fc2_权重)
-
-到目前为止，除了 db2（第二个 FC 层的偏差梯度）值之外，一切都是正确的，我不明白我做错了什么。我在卷积层的 BP 偏差梯度中也面临类似的问题。请有人帮助我可能出错的地方。谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/633202/i-have-neural-network-of-3-fully-connected-layers-doing-backpropagation-manuall</guid>
-      <pubDate>Wed, 06 Dec 2023 13:24:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>当分布具有很长的尾部时，我应该使用基于均值的偏度度量还是基于中位数的偏度度量？</title>
-      <link>https://stats.stackexchange.com/questions/633201/should-i-use-a-mean-based-measure-of-skewness-or-a-median-based-measure-of-skewn</link>
-      <description><![CDATA[我知道基于均值的偏度度量会受到异常值的影响，并且只有一个异常值就可以显着改变均值。但是，如果分布具有很长的尾部，我应该使用基于均值的偏度度量还是基于中值的偏度度量来衡量分布的对称性？
-事实上，我认为长尾可能会通过显着改变均值而产生与异常值类似的效果，但我不确定。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633201/should-i-use-a-mean-based-measure-of-skewness-or-a-median-based-measure-of-skewn</guid>
-      <pubDate>Wed, 06 Dec 2023 13:23:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 RKHS 的概念在核岭回归中有用？</title>
-      <link>https://stats.stackexchange.com/questions/633195/why-is-the-concept-of-rkhs-useful-in-kernel-ridge-regression</link>
-      <description><![CDATA[我看到的核岭回归引入的方式如下。给定数据 $(X,Y)$，您希望拟合 RKHS &lt; 中的函数 $f$ span class=&quot;math-container&quot;&gt;$\mathcal{H}$ 以最小化一些经验损失 $\sum_i L(f(x_i), y_i)$ 加上正则化项 $\lambda ||f||^2$，其中 $|| \c点 || $ 是与 RKHS 相关的规范。
-然后根据“表示定理”得出这样的目标的最小化器是 $\{ k(x_i, \cdot ) \}_i$ 的线性组合，其中 $k$ 是与 RKHS 关联的内核，因此寻找最小值就简化为线性回归。
-我不明白的是，抽象出 RKHS 概念有什么意义？似乎很难知道 RKHS 中的功能实际上“是什么样子”，以及惩罚规范到底会产生什么效果。如果您从“表示定理”开始，似乎更容易理解人们实际上在做什么。形式，因为函数 $k(x_i, \cdot)$ 可以可视化为凹凸函数等。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633195/why-is-the-concept-of-rkhs-useful-in-kernel-ridge-regression</guid>
-      <pubDate>Wed, 06 Dec 2023 12:55:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>Bootstrapping 如何解释统计数据的不确定性？ [复制]</title>
-      <link>https://stats.stackexchange.com/questions/633194/how-can-bootstrapping-explain-the-uncertainty-of-a-statistic</link>
-      <description><![CDATA[我一直在阅读有关引导的内容，以及抽样分布，并发现人们使用这些技术来描述不确定性很奇怪。
-据我了解，抽样分布显示了通过对样本进行放回重新抽样来测量的样本统计数据的不确定性。
-因此，如果您引导样本，您真正得到的是统计数据的统计数据，具有不确定性界限。
-但我们肯定只关心原始统计数据，因为它是总体参数的估计。我们想知道原始统计数据的不确定性界限，因为它告诉我们有关总体的一些信息。那么，为什么我们要关心原始统计量的统计量的不确定性界限呢？
-这如何告诉我们有关总体参数的信息？
-这里已经有一个对此问题的外行答案：
-向外行解释引导为何有效
-我的问题是上述问题的延伸。我想在更深的数学层面上了解它是如何工作的，最好有经验证据。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633194/how-can-bootstrapping-explain-the-uncertainty-of-a-statistic</guid>
-      <pubDate>Wed, 06 Dec 2023 12:53:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>不平衡数据的精确率和召回率的置信区间</title>
-      <link>https://stats.stackexchange.com/questions/633193/confidence-intrervals-of-precision-and-recall-with-unmbalanced-data</link>
-      <description><![CDATA[虚构的示例：有两个模型可以预测一种罕见的癌症（发生率为 80.000 分之一或 0,001%）。为了评估这些模型的性能，我们根据过去两年的标记数据计算这两个模型的精度（和召回率）。从 450 万名患者中，我们知道他们是否患有癌症，并获得每周的血液检查信息。对于阳性病例，我们使用诊断前最接近的血液检查结果作为预测因子，对于阴性病例，我们采用随机一周的结果。模型对患者进行评分，并按从高到低的顺序排列。仅检查前 1000 名。
-一种模型的精度（= 有多少次检查得出阳性病例）高于另一种模型（见图）。为了增强这个结论的强度，我想添加置信区间并测试差异的显着性。
-
-我尝试计算排名前 1000 名的检查精度，并使用以下混淆矩阵：
-
-&lt;表类=“s-表”&gt;
-&lt;标题&gt;
-
-模型 1
-实际+
-实际 -
-
-
-&lt;正文&gt;
-
-预测+
-25
-975
-
-
-预测 -
-53
-4498947
-
-
-
-
-精度 = 2.5%
-95% CI = [2.49%, 2.501%]
-使用：
-$ p \pm z * \sqrt(p(1-p)/n) $
-;其中 p = 0.025； z = 1.96； n = 4.5*10^6
-
-&lt;表类=“s-表”&gt;
-&lt;标题&gt;
-
-模型 2
-实际+
-实际 -
-
-
-&lt;正文&gt;
-
-预测+
-47
-953
-
-
-预测 -
-31
-4498969
-
-
-
-
-精度 = 4.7% [CI: 4.68%,4.72%]
-我仍然有以下问题：
-
-我们是否应该报告置信区间，因为我们研究的是整个患者群体。我选择“是”的理由是（1）数据并不完美，因此计算肯定不准确，（2）我们希望将结果外推到未来的案例，所以这两年的数据只是较大人群的一部分， (3) 并非所有可用的数据点都被使用，在每个案例 104 个可用的每周数据点中，我们只使用一个。这可以看作是一个样本。我反对的理由是（1）所使用的 4,5 个数据点确实构成了一个大样本，因此暗示了估计的可靠性，并且（2）任何计算置信区间的方法都可能变得复杂，这会引入新的不确定性并降低可解释性。 
-如果 CI 有用，上面的计算是否正确？或者样本量应该是1000？还是 bootstrap CI 更好？但由于类别不平衡，我们需要对 1 进行过采样以避免出现没有正例的样本，然后考虑这种过采样。这些结果是不是太复杂而缺乏可信度？
-
-这些问题似乎非常小众且针对具体情况，因此也欢迎任何关于如何以及在哪里进一步寻找答案的建议。]]></description>
-      <guid>https://stats.stackexchange.com/questions/633193/confidence-intrervals-of-precision-and-recall-with-unmbalanced-data</guid>
-      <pubDate>Wed, 06 Dec 2023 12:49:44 GMT</pubDate>
+其他书可能只说 g(T) = 0。
+请问这两种表达方式是否等价？为什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/633063/statistics-inference-question-proban-equation-1-compared-with-the-equati</guid>
+      <pubDate>Tue, 05 Dec 2023 02:10:29 GMT</pubDate>
     </item>
     </channel>
 </rss>
