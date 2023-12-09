@@ -4,19 +4,104 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 09 Dec 2023 15:12:53 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 09 Dec 2023 18:16:18 GMT</lastBuildDate>
+    <item>
+      <title>TensorFlow 的自定义优化器</title>
+      <link>https://stackoverflow.com/questions/77632195/custom-optimizer-for-tensorflow</link>
+      <description><![CDATA[我正在尝试在 TensorFlow 上试验神经网络的自定义优化算法，但由于缺乏有关该主题的信息而陷入困境。我需要的是一些代码，这些代码将在每次迭代时为我提供向量 x （当前点）和向量 g （x 处的梯度），然后我将更新 x，然后使用一些代码来设置更新后的值。这是我目前所拥有的：
+来自tensorflow.python.framework导入操作
+从tensorflow.python.ops导入gen_training_ops
+从tensorflow.python.ops导入math_ops
+从tensorflow.python.training导入优化器
+从tensorflow.python.util.tf_export导入tf_export
+将张量流导入为 tf
+将 numpy 导入为 np
+
+类 TestGD(优化器.优化器):
+  def __init__(自身, rad=0.01,
+               use_locking=False, name=“TestGD”）：
+    super(TestGD, self).__init__(use_locking, 名称)
+    self._radius = rad
+
+  def _create_slots(self, var_list):
+    num_dims = len(var_list)
+    self._beta = (num_dims - 1) / (num_dims + 1)
+    self._B_matrix = np.identity(num_dims)
+
+  def _prepare（自我）：
+    self._radn_t = ops.convert_to_tensor(self._call_if_callable(self._radius), name=“beta”)
+    self._beta_t = ops.convert_to_tensor(self._call_if_callable(self._beta), name=“beta”)
+    self._B_matrix_t = ops.convert_to_tensor(self._call_if_callable(self._B_matrix), name=“B”)
+
+  def _apply_dense（自身，梯度，变量）：
+    返回 self._resource_apply_dense(grad, var)
+
+  def _resource_apply_dense（自身，梯度，变量）：
+    print(grad.shape, &quot;&lt;------------&quot;)
+    #我计划在这里的某个地方实现我的算法
+    var_update = tf.compat.v1.assign_sub(var, 0.01 * grad)
+    返回 tf.group(var_update)
+
+  def _apply_sparse(自我, grad, var):
+    raise NotImplementedError(“不支持稀疏梯度更新。”)
+
+
+# 构建LeNet模型
+模型 = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(6, kernel_size=(5, 5), 激活=&#39;relu&#39;, input_shape=(28, 28, 1)),
+    tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+    tf.keras.layers.Conv2D(16, kernel_size=(5, 5), 激活=&#39;relu&#39;),
+    tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(120, 激活=&#39;relu&#39;),
+    tf.keras.layers.Dense(84, 激活=&#39;relu&#39;),
+    tf.keras.layers.Dense(10, 激活=&#39;softmax&#39;)
+]）
+
+# 使用您的自定义优化器
+#custom_optimizer = SimpleGD(learning_rate=0.001)
+自定义优化器 = TestGD()
+
+# 使用自定义优化器编译模型
+model.compile(优化器=custom_optimizer,
+              损失=&#39;sparse_categorical_crossentropy&#39;,
+              指标=[&#39;准确性&#39;])
+
+# 获取数据集
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0 # 将像素值标准化为 0 到 1 之间
+
+x_train = x_train[..., tf.newaxis].astype(“float32”)
+x_test = x_test[..., tf.newaxis].astype(“float32”)
+
+train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+train_dataset = train_dataset.shuffle(buffer_size=60000).batch(64)
+
+test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+测试数据集 = 测试数据集.batch(64)
+
+＃ 训练
+model.fit(train_dataset, epochs=5)
+
+＃ 评估
+test_loss, test_acc = model.evaluate(test_dataset)
+print(f&quot;测试准确度：{test_acc}&quot;)
+
+问题是，我得到的 grad 和 var 的形状非常奇怪，它们绝对不是向量。我应该怎么做才能将问题减少到 x 和 g 向量以及如何在最小化步骤后正确更新结果？]]></description>
+      <guid>https://stackoverflow.com/questions/77632195/custom-optimizer-for-tensorflow</guid>
+      <pubDate>Sat, 09 Dec 2023 17:23:42 GMT</pubDate>
+    </item>
     <item>
       <title>协助在 Python 代码中集成预训练数据和测试 [关闭]</title>
       <link>https://stackoverflow.com/questions/77630814/assistance-with-integrating-pretrained-data-and-testing-in-python-code</link>
-      <description><![CDATA[Stack Overflow 社区您好，
-我目前正在开发一个 Python 项目，我需要将训练数据和测试数据集成到我的代码中。全局算法已在 C++ 中实现。然而，我对是否将预训练数据放置在正确的位置感到有点迷失。我尝试添加数据，但不确定它是否位于正确的位置。
-此外，我在使用自己的数据集测试代码并分析输出方面面临挑战。如果任何人都可以提供关于正确放置预训练数据的指导或建议，并提供使用自定义数据有效测试代码的见解，我们将不胜感激。
-存储库 (https://github.com/Lecanyu/JigsawNet)]]></description>
+      <description><![CDATA[我正在开发一个 Python 项目，我需要将训练数据和测试数据集成到我的代码中全局算法已在 C++ 中实现。然而，我对是否将预训练数据放置在正确的位置感到有点迷失。我尝试添加数据，但不确定它是否位于正确的位置。
+此外，我在使用自己的数据集测试代码并分析输出方面面临挑战。任何人都可以提供有关预训练数据的正确放置的指导或建议，并提供使用自定义数据有效测试代码的见解吗？
+仓库：https://github.com/Lecanyu/JigsawNet]]></description>
       <guid>https://stackoverflow.com/questions/77630814/assistance-with-integrating-pretrained-data-and-testing-in-python-code</guid>
       <pubDate>Sat, 09 Dec 2023 09:39:44 GMT</pubDate>
     </item>
     <item>
-      <title>如何在wmt数据集中提取人类得分</title>
+      <title>如何在wmt数据集中提取人类得分[关闭]</title>
       <link>https://stackoverflow.com/questions/77630433/how-to-extract-human-score-in-wmt-dataset</link>
       <description><![CDATA[我需要带有人工评分的 WMT 新闻数据。我查看了github链接 https://github.com/wmt-conference/wmt22-news -systems ，有一个 xml 文件夹，其中包含源、参考、翻译数据。还有另一个名为 humaneval 的文件夹，其中提供了人工评分。
 我面临着连接这两个数据的挑战。在 humaneval 数据中提供了 SID 列，但其值与 xml 数据中提供的 source_id 不同。
@@ -25,15 +110,7 @@
       <pubDate>Sat, 09 Dec 2023 07:03:35 GMT</pubDate>
     </item>
     <item>
-      <title>蚁群优化中的搜索空间和解空间是什么？</title>
-      <link>https://stackoverflow.com/questions/77630427/what-is-search-space-and-solution-space-in-ant-colony-optimization</link>
-      <description><![CDATA[什么是蚁群优化中的搜索空间和解空间？
-谁能帮我这个问题，这个问题有数学证明吗？如果你知道，请指导我......我将不胜感激......谢谢！！！（迫切需要答案）]]></description>
-      <guid>https://stackoverflow.com/questions/77630427/what-is-search-space-and-solution-space-in-ant-colony-optimization</guid>
-      <pubDate>Sat, 09 Dec 2023 07:01:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>计算学习问题：3-DNF 约简</title>
+      <title>计算学习问题：3-DNF 约简 [关闭]</title>
       <link>https://stackoverflow.com/questions/77630359/computational-learning-problem-3-dnf-reduction</link>
       <description><![CDATA[我不知道如何解决这个问题。问题陈述是：考虑二元分类问题，其中 X = R
 d 和 Y = {0, 1}。考虑
@@ -51,18 +128,7 @@ F 类）在计算上很难正确学习，除非 NP = RP。具体来说
       <pubDate>Sat, 09 Dec 2023 06:29:12 GMT</pubDate>
     </item>
     <item>
-      <title>tf.image.rgb_to_grayscale 实际上并没有产生灰度图像？</title>
-      <link>https://stackoverflow.com/questions/77630235/tf-image-rgb-to-grayscale-does-not-actually-produce-a-grayscale-image</link>
-      <description><![CDATA[很抱歉问了这么愚蠢的问题。我对这一切都很陌生，以前从未使用过这个功能。我需要为作业执行此操作，并在谷歌上查找是否有人遇到此问题，但我没有看到有人询问此问题。
-为什么 tf.image.rgb_to_grayscale 不生成实际的灰度图像？或者这只是“灰度”？被广泛接受的形象？
-rgb_to_grayscale 不生成灰度图片
-input_images = tf.image.rgb_to_grayscale(target_images)
-这就是我生成输入图像的方法。我不确定我是否使用错误，但张量流网站也没有真正提供有关如何使用此函数的示例。我是否缺少参数或其他东西来将图片实际转换为灰度？]]></description>
-      <guid>https://stackoverflow.com/questions/77630235/tf-image-rgb-to-grayscale-does-not-actually-produce-a-grayscale-image</guid>
-      <pubDate>Sat, 09 Dec 2023 05:25:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>随机森林函数在预测函数中应用时给出错误</title>
+      <title>RandomForest 函数在预测函数中应用时给出错误[关闭]</title>
       <link>https://stackoverflow.com/questions/77629933/randomforest-function-giving-error-when-applied-in-predict-function</link>
       <description><![CDATA[当我使用 randomForest 训练模型，然后尝试按以下方式进行预测时，没有问题：
 rf &lt;- randomForest(price_category~., data=train_set, ntree=300,importance=TRUE)
@@ -75,10 +141,10 @@ test_set$ClassPredicted &lt;- 预测(rf, newdata = test_set, &quot;class&quot;)
 test_set$ClassPredicted &lt;- 预测(rf1, newdata = test_set, &quot;class&quot;)
 
 弹出此错误：
-&lt;块引用&gt;
-predict.randomForest(rf1, newdata = test_set, &quot;response&quot;) 中出现错误，对象中没有森林组件
+predict.randomForest(rf1, newdata = test_set, &quot;response&quot;) 中的错误没有森林
+对象中的组件
 
-谁知道为什么？]]></description>
+为什么会发生这种情况以及如何解决？]]></description>
       <guid>https://stackoverflow.com/questions/77629933/randomforest-function-giving-error-when-applied-in-predict-function</guid>
       <pubDate>Sat, 09 Dec 2023 02:24:34 GMT</pubDate>
     </item>
@@ -184,6 +250,37 @@ dataset_y = ds_mnist .target.astype(&#39;int64&#39;)
 我已经看到 SequentialFeatureSelector 存在一个 get_params() 函数，但我不明白如何解释输出并检索最佳估计器。&lt; /p&gt;]]></description>
       <guid>https://stackoverflow.com/questions/77629138/how-to-extract-best-estimator-of-a-sequentialfeatureselector</guid>
       <pubDate>Fri, 08 Dec 2023 20:58:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 WEKA 检测信用卡欺诈？需要帮助[关闭]</title>
+      <link>https://stackoverflow.com/questions/77629043/how-to-detect-credit-card-fraud-using-weka-help-needed</link>
+      <description><![CDATA[我的计算机科学模块有这项作业。我需要使用 WEKA 来检测哪些用户可能拖欠信用卡到期付款。
+我是 WEKA 的新手，所以有点困难。我收到了一个包含 48 个属性的 CSV，其中包括一个类：defaultnmIndicator 下个月默认的指示器（1=是，0=否）。
+我需要预测，所以我知道我需要一个分类器。其中很多都是灰色的，包括 j48 和后勤。
+例如，当我对整个集合运行线性回归时，相关系数约为 0.48。
+我认为我在这里遗漏了一些非常明显的步骤。我的讲师刚刚建议我们搜索 YouTube，所以您可以想象这有多大帮助？
+尝试的步骤：
+
+我对数据集进行了标准化
+估算缺失数据
+使用完整训练集运行 CorrelationAttributeEval
+尝试添加或删除此列表底部和顶部的属性，但模型没有得到真正的改进。
+前 3 名：
+`排名属性：
+0.32588 43 金融压力指数
+0.26159 22 平均循环信用卡利用率
+0.24705 23 平均活跃信用额度利用率
+
+&lt;小时/&gt;
+底部3
+-0.2096 30 任期最旧信用额度
+-0.22082 自上次错过付款后 29 天
+-0.40432 2 信用评分
+`
+我期望相关系数会更高。
+有什么想法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/77629043/how-to-detect-credit-card-fraud-using-weka-help-needed</guid>
+      <pubDate>Fri, 08 Dec 2023 20:33:44 GMT</pubDate>
     </item>
     <item>
       <title>不确定为什么我在 Snowflake 上使用 Python 进行逻辑回归时会遇到类型错误？</title>
