@@ -4,7 +4,7 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Sat, 16 Dec 2023 00:59:38 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 16 Dec 2023 03:13:46 GMT</lastBuildDate>
     <item>
       <title>用于重复测量设计的基于精度的样本量计算</title>
       <link>https://stats.stackexchange.com/questions/635034/precision-based-sample-size-calculation-for-repeated-measures-design</link>
@@ -56,7 +56,9 @@ $$
 L_{\text{ITC}} = (1 - \alpha) L_{\text{对比度}} + \frac{\alpha}{2} \left[ \text{KL} \left( q^{i2t} \平行 p^{i2t} \right) + \text{KL} \left( q^{t2i} \平行 p^{t2i} \right) \right]
 $$
 在此方程中，LITC-base​是基础图像文本对比损失，$\alpha$是权重因子，DKL表示KL散度，&lt; span class=&quot;math-container&quot;&gt;$q^{i2t}$ 和 $q^{t2i}$ 是预测分布（从图像到分别为文本和文本到图像），以及 $p^{i2t}$ 和 $p^{t2i}$&lt; /span&gt; 是 KL 散度项的目标分布。
-我假设使用 KL 散度的原因是因为使用软标签而不是真实分布的热标签，因此当我们查看损失图时，熵项不会充当背景噪音，但当我查看时在代码中，我注意到他们本身使用了交叉熵，它与论文中提到的不同，尽管熵项在反向传播中完全没有使用，但我认为当我们看到损失曲线时它会引起问题，而且他们使用了 log_softmax 函数，但如果我们计算它等于交叉熵，并且他们在代码中的其他地方使用了交叉熵，所以不确定他们为什么在这里专门使用它。
+
+但是，在实现中，交叉熵使用损失，而不是明确地使用KL散度。KL散度用于与软标签的对比损失。这种方法理论上可以避免损失图中出现大的恒定熵，如图所示，即使在反向传播时不使用熵，也可能会掩盖减少。
+但是，该实现利用了交叉熵损失。这就提出了为什么选择交叉熵而不是论文中指定的 KL 散度的问题，特别是考虑到对解释训练损失曲线的影响，因为由于高熵掩盖了 KL 散度和论文，我们将无法看到 KL 散度的减少明确提到使用软伪标签进行对比学习。这是一个实际的实施决策，还是反映了模型学习过程的更深层次？
 与 torch.no_grad():
             self._momentum_update()
             image_embeds_m = self.visual_encoder_m(图像)
@@ -113,22 +115,6 @@ $$
       <pubDate>Fri, 15 Dec 2023 19:12:47 GMT</pubDate>
     </item>
     <item>
-      <title>临床试验亚组分析结果</title>
-      <link>https://stats.stackexchange.com/questions/635020/results-of-subgroups-analysis-in-clinical-trials</link>
-      <description><![CDATA[亲爱的临床试验参与者，
-我有一个关于如何呈现亚组分析结果以及它们对医生有何帮助的问题。
-在我关注的特定研究领域，我们使用基于简单临床数据（例如基线时的年龄和原始细胞计数）的算术分数来估计第 12 个月时的潜在反应。分数使用以下公式计算：例如评分 = a1 * 年龄 + a2 * 原始细胞计数 + a3 * 变量 3，然后我们根据预定义的截止值将患者分为高风险组、中风险组或低风险组。现在，我有了新数据，想要更深入地探索子组。
-我可以做哪些事情？我正在考虑的事情是：
-
-我可以细化分数计算中使用的系数或截止值
-或创建新的评分系统
-或确定重要变量及其截止值
-
-还有什么有用的吗？哪些信息对医生来说是有趣或有价值的？我计划与医生讨论这个问题，但我想听听您对我可以采取的其他步骤的意见]]></description>
-      <guid>https://stats.stackexchange.com/questions/635020/results-of-subgroups-analysis-in-clinical-trials</guid>
-      <pubDate>Fri, 15 Dec 2023 18:40:43 GMT</pubDate>
-    </item>
-    <item>
       <title>二项分布样本的方差估计器</title>
       <link>https://stats.stackexchange.com/questions/635019/estimator-of-variance-for-a-binomially-distributed-sample</link>
       <description><![CDATA[我想对一些数据进行贝叶斯分析。假设我们有一个样本，我们认为该样本来自二项式总体。我们有 $m$ 个观察值
@@ -136,23 +122,6 @@ $$X_i \sim Bin(n,p) \text{ 对于某些 } i \in \{1,2,\dots,m\}$$
 我选择了之前的测试版本。我不确定如何选择参数以使我的分布更好地符合我的信念。我假设我会取样本均值并将贝塔先验的均值设置为等于该数字。但我不确定如何计算方差。任何人都可以提供建议。]]></description>
       <guid>https://stats.stackexchange.com/questions/635019/estimator-of-variance-for-a-binomially-distributed-sample</guid>
       <pubDate>Fri, 15 Dec 2023 17:55:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>（也许很愚蠢）关于蒙特卡罗模拟的问题[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/634997/perhaps-dumb-question-about-monte-carlo-simulation</link>
-      <description><![CDATA[我正在尝试蒙特卡罗模拟，对该方法对我的特定问题的适用性有疑问。
-在这个问题中，我有一个正态分布的参数 $\phi$ 。然后，我运行多次模拟来随机生成遵循正态分布的 $\phi$ 值（使用 SMath，就像 Mathcad 一样）。到目前为止，一切都很好;然而，我在概念上遇到的问题是下一步。
-为了解决我的问题，我需要获取 $\phi$ 的随机生成值，并使用非线性变换函数计算新参数$N_y$。 $N_y$ 的方程涉及指数和项的平方。然后我使用这个新参数来计算最终答案。如果有帮助的话，那就是土壤的承载力问题，其中沙子的极限承载力 $Q$ 为
-$$\begin{对齐}
-Q &amp;= \frac{B\gamma N_y}{2} \\
-N_y &amp;= (N_q-1)\text{tan}(1.4\phi) \\
-N_q &amp;= \exp(\pi\text{tan}(\phi))\tan^2\left(\frac{\pi}{4} + \frac{\phi}{2}\right),
-\end{对齐}$$
-其中 $B$ 是基础宽度且恒定，$\gamma$ 是土壤单位重量且恒定.
-当我检查结果时，我注意到 $N_y$ 的预期值应该约为 $26.2$（直接使用平均值 $\phi$ 计算时，在本例中为 $33$度）；但是，使用随机生成的 $\phi$ 值时 $N_y$ 的平均值为 $10,000$ 次模拟后，class=&quot;math-container&quot;&gt;$31.3$。当然，这意味着预期结果与蒙特卡罗模拟得到的结果不同。考虑到这一点， $\phi$ 到 $N_y$ 的转换使用了非线性方程因此，这种差异不应是意外的。然而，我不知道这是否意味着蒙特卡罗模拟因此不适用于这个特定问题。我已经看到更简单的点估计方法用于解决相同的问题，并且我注意到这种非线性变换也应该影响结果，但我已经看到了使用该方法的几个已发布的解决方案，所以这让我想知道......
-提前致谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/634997/perhaps-dumb-question-about-monte-carlo-simulation</guid>
-      <pubDate>Fri, 15 Dec 2023 15:00:08 GMT</pubDate>
     </item>
     <item>
       <title>相对差异的置信区间</title>
@@ -187,6 +156,43 @@ $$
 但是这对于我的非线性问题也适用吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/634974/what-is-the-maximum-likelihood-estimator-for-my-nonlinear-problem</guid>
       <pubDate>Fri, 15 Dec 2023 08:33:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>比率的自然对数和双向固定效应模型偏差</title>
+      <link>https://stats.stackexchange.com/questions/634967/natural-log-of-ratios-and-two-way-fixed-effects-model-bias</link>
+      <description><![CDATA[Bartlett 和 Partnoy (BP) (2020) 表明自然对数因变量（即比率）的 OLS 必须在 RHS 上包含 Ln（分母），以避免偏差（请参阅第 24-28 页），除非假设分子和分母具有精确的线性关系，即 &lt; (E1) 中的 span class=&quot;math-container&quot;&gt;$\beta_2 = 1$。这是因为 $Ln(ratio)$，例如 $Ln(\frac{GDP_{it}}{population_ {it}})$ 相当于 $Ln(GDP_{it})-Ln(population_{it})$。因此，任何在 LHS 上具有 $Ln(\frac{GDP_{it}}{population_{it}})$ 的 OLS 模型都隐式假设：
+$$Ln(GDP_{i})= \beta_0 + X_i + 1Ln(population_{i}) + \epsilon_{i}$$
+解决方案是在 RHS 上包含 $Ln(denominator)$，就像在 TWFE 5 中一样。他们不会在面板数据的上下文中讨论这些问题具有双向固定效应 (TWFE)，如 (E1)。
+问题
+在 OLS 背景下是否有任何理由怀疑 BP？ (E1) 和模型 TWFE 5 是否低于正确的模型来识别 TWFE 面板环境中治疗的无偏效应？ TWFE 2 模型确实给出了治疗的有偏系数吗？是否有任何方法文献在 OLS 或 TWFE 上下文中讨论 $Ln(ratio)$ 的问题？
+在模型 TWFE 5 中，$\beta_2$ 并不接近 1，但在中为 $0.92$ OLS 版本没有单位FE的模型。在单位固定效应的背景下，我如何理解 BP 关于 $Ln(\frac{numerator}{denominator})$ 之间线性的观点？
+下面的模型 TWFE 4 方程修正了线性假设的偏差：
+$$
+Ln(\frac{GDP_{it}}{人口_{it}}) = \beta_1 治疗_{it} + \beta_2 Ln(人口_{it}) + \lambda_{t} + \alpha_i + \epsilon_{it}
+\标签{E1}
+$$
+双向固定效应模型：
+&lt;前&gt;&lt;代码&gt;============================================== =================================
+                                     因变量：
+                 -------------------------------------------------- ---------
+                  log_gdp log_gdp_pc (log_gdp-log_pop) log_gdp log_gdp_pc
+                  TWFE 1 TWFE 2 TWFE 3 TWFE 4 TWFE 5
+-------------------------------------------------- --------------------------
+处理 -0.025 -0.025 0.059*** 0.059***
+                            (0.028) (0.028) (0.020) (0.020)
+                                                                            
+log_pop -0.264*** -0.281*** -1.281***
+                  (0.041) (0.042) (0.042)
+                                                                            
+-------------------------------------------------- --------------------------
+TWFE 是 是 是 是 是
+观察次数 1,155 1,155 1,155 1,155 1,155
+R2 0.712 0.508 0.508 0.714 0.750
+=================================================== =========================
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/634967/natural-log-of-ratios-and-two-way-fixed-effects-model-bias</guid>
+      <pubDate>Fri, 15 Dec 2023 03:57:04 GMT</pubDate>
     </item>
     <item>
       <title>混合设计实验：中值缩减还是线性混合模型？</title>
@@ -235,53 +241,45 @@ $$
       <pubDate>Mon, 11 Dec 2023 22:34:43 GMT</pubDate>
     </item>
     <item>
-      <title>适当的统计测试来确定分类数据的内部凝聚力</title>
-      <link>https://stats.stackexchange.com/questions/633558/appropriate-statistical-test-to-determine-internal-cohesion-of-a-categorical-dat</link>
-      <description><![CDATA[我有一个主要由二进制变量组成的数据集，每行代表一名患者，每列代表一种疾病的症状。患者会勾选 1（如果出现症状），否则勾选 0。每个表代表一种疾病，如下所示：
-表 1. 仅疾病 A
+      <title>是否应该使用 Wilcoxon 秩和检验来检验均值差异显着性？</title>
+      <link>https://stats.stackexchange.com/questions/632708/should-the-wilcoxon-rank-sum-test-be-used-for-testing-the-mean-difference-signif</link>
+      <description><![CDATA[我正在寻找论文 DOI:10.3905/jpm.2014.40.3.087 的重复结果（探索宏观经济敏感性：投资如何响应不同的经济环境，Ilmanen Maloney Ross 2014 年《投资组合管理杂志》）。
+例如，我想调查美国国债指数（LUATTRUU指数 - 彭博巴克莱美国国债总回报指数）的每月总回报是否取决于美国通胀读数的大小（CPI YOY指数 - 美国城市CPI消费者同比 NSA »）。
+于是我下载了过去50年的美国CPI YOY月度数据以及同期美国国债指数的月度总回报。
+然后，我将样本分区为“UP”如果美国每月通胀数据高于过去 12 个月的平均水平，则“下降”如果相反的情况发生。
+然后，我计算了每个子样本中美国国债指数的平均月总回报。
+我得到了以下结果。
 
-&lt;表类=“s-表”&gt;
-&lt;标题&gt;
+美国消费者物价指数“上涨” -&gt;美国国债指数月平均总回报率为0.40%
+美国消费物价指数“下跌” -&gt;美国国债指数月平均总回报率为0.65%
 
-症状 1
-症状 2
-......
-症状 N
+因此，数据似乎证实，正如经济理论所暗示的那样，当通胀较高时，债券回报率低于相反情况。
+我想进行统计测试，两次回报的差异是否具有统计显着性。
+但是，由于我使用的是金融时间序列，因此我不确定应该使用哪种统计测试。
+这是我的 R 代码，它以美国 CPI 同比和美国财政部总回报指数的时间序列作为输入：
+CPI_YOY_roll&lt;- rollmean(CPI_YOY,k=12, fill=NA,align=“右”)
+a&lt;-ifelse(CPI_YOY[13:nrow(ds)]&gt;=CPI_YOY_roll[12(nrow(ds)-1)],“向上”,“向下”)
+平均值（na.omit（ifelse（a==“向上”，ds  $treasury_return，NA）））* 100
+平均值(na.omit(ifelse(a==&quot;down&quot;,ds$treasury_return,NA)))*100
 
+例如，Ilmanen Maloney Ross（2014，探索宏观经济敏感性：投资如何响应不同的经济环境，投资组合管理杂志）使用我相同的程序并得到以下结果（使用平均夏普比率而不是平均回报，但概念相同）：
 
-&lt;正文&gt;
-
-0
-1
-....
-1
-
-
-1
-1
-....
-1
-
-
-....
-....
-....
-0
-
-
-0
-1
-...
-1
-
-
-
-
-我想进行一项测试来确定患者是否来自同一人群，即他们的反应差异最小。理想情况下，患者应该对特定疾病有相同的症状，因为疾病通常以症状的形式表现出来，但实际上情况并非如此，因为有些人可能会经历这种情况，而另一些人则不会。
-我正在寻找一个统计测试来显示患者的反应是一致的（反应是同质的），这表明几乎所有人都有相同的症状，如果患者的反应不一致，那么就需要再次调查原因.
-我已经阅读过有关 phi 系数的内容，但它仅适用于两个二元变量，进一步阅读使我进行了卡方检验和多重对应分析，不幸的是，我很困惑这两者中哪一个是最合适的。 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/633558/appropriate-statistical-test-to-determine-internal-cohesion-of-a-categorical-dat</guid>
-      <pubDate>Sun, 10 Dec 2023 21:29:39 GMT</pubDate>
+所以我想测试这些差异是否具有统计显着性！]]></description>
+      <guid>https://stats.stackexchange.com/questions/632708/should-the-wilcoxon-rank-sum-test-be-used-for-testing-the-mean-difference-signif</guid>
+      <pubDate>Thu, 30 Nov 2023 14:52:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>独立但非同分布随机变量的中心极限定理</title>
+      <link>https://stats.stackexchange.com/questions/632592/central-limit-theorem-for-independent-but-non-identically-distributed-random-var</link>
+      <description><![CDATA[我的问题是关于证明Lyapunov CLT（每个均值都是$0$，$\delta = 1$）。它类似于这个问题，但没有对遵循伯努利分布的随机变量进行任何假设。
+这个想法是使用泰勒展开式：
+$\psi_{X_1}(t) = 1 - \frac{1}{2}\mathbb{E}X_1^2t^2 - \frac{i}{6}\ mathbb{E}X_1^3t^3 + o(t^3)$。
+与维基百科条目一样，定义 $s_n^2 = \Sigma_{i = 1}^n\sigma_i^2$。然后 $\psi_{X_1}(\frac{t}{s_n}) = 1 - \frac{1}{2}\mathbb{E}X_1^2\frac{t ^2}{s_n^2} - \frac{i}{6}\mathbb{E}X_1^3\frac{t^3}{s_n^3} + o(\frac{t^3}{s_n^ 3})$.
+如果满足李亚普诺夫条件 ($\delta = 1$)，我会看到 $\lim_{n\ rightarrow\infty}\psi_{X_1}(\frac{t}{s_n}) = 1 - \frac{1}{2}\mathbb{E}X_1^2\frac{t^2}{s_n^2} + o(\frac{t^3}{s_n^3})$。
+定义$S_n = X_1 + \dots + X_n$。如果随机变量是 i.i.d.，则缩放后方差为 $1$、$\psi_{\frac{S_n} {\sqrt{n}}}$ 涉及将泰勒展开式提高到 $n$ 次方。但由于随机变量分布不同，$\psi_{\frac{S_n}{s_n}}$ 是 $n$ 条款。如何操作它以便我可以使用 $e^x = \lim_{n\rightarrow\infty}(1 + \frac{x}{n})^n$&lt; /跨度&gt;？
+（如何将 $s_n^2$ 除法转换为除以 $n$，这是通过在 i.i.d. 情况下对 $\sqrt{n}$ 进行平方来实现的吗？）]]></description>
+      <guid>https://stats.stackexchange.com/questions/632592/central-limit-theorem-for-independent-but-non-identically-distributed-random-var</guid>
+      <pubDate>Wed, 29 Nov 2023 06:56:54 GMT</pubDate>
     </item>
     </channel>
 </rss>
