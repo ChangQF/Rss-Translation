@@ -4,7 +4,177 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sun, 17 Dec 2023 18:15:40 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 17 Dec 2023 21:11:36 GMT</lastBuildDate>
+    <item>
+      <title>在 PC 上训练我的模型，然后在微控制器上使用它</title>
+      <link>https://stackoverflow.com/questions/77675723/train-my-model-on-pc-then-use-it-on-microcontroller</link>
+      <description><![CDATA[如果我想在我的 PC 上训练一个模型（无论是 ML、NN 还是 CNN），因为我有强大的 GPU，是否可以在 Arduino 或 Raspberry Pi Pico 等微控制器上导出或保存这个训练模型以直接使用它？或者我需要从头开始重新训练这些模型？]]></description>
+      <guid>https://stackoverflow.com/questions/77675723/train-my-model-on-pc-then-use-it-on-microcontroller</guid>
+      <pubDate>Sun, 17 Dec 2023 19:33:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>从磁盘加载和使用 PyTorch 模型</title>
+      <link>https://stackoverflow.com/questions/77675553/loading-and-using-a-pytorch-model-from-disk</link>
+      <description><![CDATA[我是 PyTorch 的新手，在第一页上 - https:/ /pytorch.org/tutorials/beginner/basics/quickstart_tutorial.html
+该页面希望我在同一个文件中运行整个代码。即创建模型、训练模型、将其保存到磁盘、从磁盘加载并使用模型进行推理。
+我发现推理代码依赖于训练期间完成的模型定义。我的问题是，我是否需要知道模型定义才能使用预训练模型？这似乎是错误的。我确信事实并非如此。那么，如何使用保存的模型进行推理呢？
+谷歌搜索向我展示了使用 python 的导入函数导入模型的实例。但是，我找不到如何从磁盘加载模型并在不知道模型定义的情况下使用它的示例。请问有什么帮助吗？
+我想将下面代码的模型加载和推理部分保存到另一个文件并运行它。我不知道该怎么做
+导入火炬
+从火炬导入 nn
+从 torch.utils.data 导入 DataLoader
+从 torchvision 导入数据集
+从 torchvision.transforms 导入 ToTensor
+
+# 从开放数据集中下载训练数据。
+训练数据 = 数据集.FashionMNIST(
+    根=“数据”，
+    火车=真，
+    下载=真，
+    变换=ToTensor(),
+）
+
+# 从开放数据集中下载测试数据。
+test_data = 数据集.FashionMNIST(
+    根=“数据”，
+    火车=假，
+    下载=真，
+    变换=ToTensor(),
+）
+
+批量大小 = 64
+
+# 创建数据加载器。
+train_dataloader = DataLoader(training_data,batch_size=batch_size)
+test_dataloader = DataLoader(test_data,batch_size=batch_size)
+
+对于 test_dataloader 中的 X、y：
+    print(f&quot;X 的形状 [N, C, H, W]: {X.shape}&quot;)
+    print(f&quot;y 的形状：{y.shape} {y.dtype}&quot;)
+    休息
+
+
+# 获取 cpu、gpu 或 mps 设备进行训练。
+设备=（
+    “cuda”
+    如果 torch.cuda.is_available()
+    否则“mps”
+    如果 torch.backends.mps.is_available()
+    否则“CPU”
+）
+print(f“使用 {device} 设备”)
+
+# 定义模型
+神经网络类（nn.Module）：
+    def __init__(自身):
+        超级().__init__()
+        self.flatten = nn.Flatten()
+        self. Linear_relu_stack = nn.Sequential(
+            nn.线性(28*28, 512),
+            ReLU(),
+            nn.线性(512, 512),
+            ReLU(),
+            nn.线性(512, 10)
+        ）
+
+    def 前向（自身，x）：
+        x = self.展平(x)
+        logits = self. Linear_relu_stack(x)
+        返回逻辑值
+
+模型 = NeuralNetwork().to(设备)
+print(model)# 获取 cpu、gpu 或 mps 设备进行训练。
+
+loss_fn = nn.CrossEntropyLoss()
+优化器 = torch.optim.SGD(model.parameters(), lr=1e-3)
+
+def train（数据加载器，模型，loss_fn，优化器）：
+    大小 = len(dataloader.dataset)
+    模型.train()
+    对于批处理，枚举（dataloader）中的（X，y）：
+        X, y = X.to(设备), y.to(设备)
+
+        # 计算预测误差
+        预测值=模型(X)
+        损失 = loss_fn(pred, y)
+
+        # 反向传播
+        loss.backward()
+        优化器.step()
+        优化器.zero_grad()
+
+        如果批次 % 100 == 0:
+            损失，当前 = loss.item(), (batch + 1) * len(X)
+            print(f&quot;loss: {loss:&gt;7f} [{current:&gt;5d}/{size:&gt;5d}]&quot;)
+
+
+
+def 测试（数据加载器、模型、loss_fn）：
+    大小 = len(dataloader.dataset)
+    num_batches = len(数据加载器)
+    模型.eval()
+    test_loss, 正确 = 0, 0
+    使用 torch.no_grad()：
+        对于数据加载器中的 X、y：
+            X, y = X.to(设备), y.to(设备)
+            预测值=模型(X)
+            test_loss += loss_fn(pred, y).item()
+            正确 += (pred.argmax(1) == y).type(torch.float).sum().item()
+    test_loss /= num_batches
+    正确/=尺寸
+    print(f&quot;测试误差:\n 准确度:{(100*正确):&gt;0.1f}%, 平均损失:{test_loss:&gt;8f}\n&quot;)
+
+
+
+历元 = 5
+对于范围内的 t（纪元）：
+    print(f&quot;历元 {t+1}\n--------------------------------------------&quot;)
+    火车（train_dataloader，模型，loss_fn，优化器）
+    测试（test_dataloader，模型，loss_fn）
+print(&quot;完成！&quot;)
+
+torch.save(model.state_dict(), &quot;model.pth&quot;)
+print(&quot;将 PyTorch 模型状态保存到 model.pth&quot;)
+
+
+模型 = NeuralNetwork().to(设备)
+model.load_state_dict(torch.load(“model.pth”))
+
+类=[
+    “T 恤/上衣”，
+    “裤子”，
+    “套头衫”，
+    “礼服”，
+    “外套”，
+    “凉鞋”，
+    “衬衫”，
+    “运动鞋”，
+    “袋子”，
+    “踝靴”，
+]
+
+模型.eval()
+x, y = 测试数据[0][0], 测试数据[0][1]
+使用 torch.no_grad()：
+    x = x.to(设备)
+    预测值=模型(x)
+    预测，实际=类[pred[0].argmax(0)]，类[y]
+    print(f&#39;预测：“{预测}”，实际：“{实际}”&#39;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/77675553/loading-and-using-a-pytorch-model-from-disk</guid>
+      <pubDate>Sun, 17 Dec 2023 18:40:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于音频分类的 CNN 模型</title>
+      <link>https://stackoverflow.com/questions/77675519/cnn-model-for-audio-classification</link>
+      <description><![CDATA[我是一名本科生，目前正在做一个项目，我想构建一个可以使用 CNN 识别仪器的系统。但是，我对如何进行学习有一些疑问。
+
+现在，其他研究使用的大多数方法都涉及使用频谱图作为 CNN 模型的输入。如果我使用原始值（即音频特征值数组）作为 CNN 的输入，我的系统性能会受到影响吗？这个办法可行吗？
+我想为我的项目提取多种音频特征，例如 MFCC、梅尔频谱图、频谱质心、频谱通量等。我是否只需要选择一种特征来输入到我的 CNN 模型中，或者将它们组合起来实际上可行并将其作为我对 CNN 的输入？如果后者可行，我该怎么做？是否需要某种特征选择或降维技术（即 PCA/TSNE）？
+]]></description>
+      <guid>https://stackoverflow.com/questions/77675519/cnn-model-for-audio-classification</guid>
+      <pubDate>Sun, 17 Dec 2023 18:32:22 GMT</pubDate>
+    </item>
     <item>
       <title>我不明白如何训练元学习器或它如何预测</title>
       <link>https://stackoverflow.com/questions/77675237/i-dont-understand-how-to-train-a-meta-learner-or-how-it-predicts</link>
@@ -33,7 +203,7 @@ CL 2 概率
 0.7
 
 
-悲伤
+伤心
 否定
 积极
 0.7
@@ -206,7 +376,7 @@ CL 2 概率
     <item>
       <title>我想解决一个机器学习问题，其中多个 Excel 文件中的每个文件代表不同的功能[关闭]</title>
       <link>https://stackoverflow.com/questions/77673612/i-want-to-solve-a-machine-learning-problem-where-each-of-a-number-of-excel-files</link>
-      <description><![CDATA[我有一个机器学习问题，给我 6 个 Excel 文件，每个文件都有不同的特征作为输入，而我有一个包含输出的 Excel 工作表。以前我习惯只有一张包含所有输入和输出的Excel工作表，我很容易解决这个问题，但现在我知道我有多个Excel数据文件，我该如何解决这个问题。我实际上不知道如何开始这个问题，因为这对我来说是全新的。]]></description>
+      <description><![CDATA[我有一个机器学习问题，给我 6 个 Excel 文件，每个文件都有不同的特征作为输入，而我有一个包含输出的 Excel 工作表。以前我习惯只有一张包含所有输入和输出的 Excel 工作表，我很容易解决这个问题，但现在知道我有多个 Excel 数据文件，我该如何解决这个问题。我实际上不知道如何开始这个问题，因为这对我来说是全新的。]]></description>
       <guid>https://stackoverflow.com/questions/77673612/i-want-to-solve-a-machine-learning-problem-where-each-of-a-number-of-excel-files</guid>
       <pubDate>Sun, 17 Dec 2023 07:29:24 GMT</pubDate>
     </item>
@@ -230,182 +400,6 @@ CL 2 概率
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77673297/why-does-the-usage-of-dataloader-for-train-data-change-the-training-of-the-model</guid>
       <pubDate>Sun, 17 Dec 2023 04:17:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>端到端 ML 项目的模型训练器问题 - TypeError：initiate_model_training() 缺少 4 个必需的位置参数</title>
-      <link>https://stackoverflow.com/questions/77673255/model-trainer-issue-on-end-to-end-ml-project-typeerror-initiate-model-trainin</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77673255/model-trainer-issue-on-end-to-end-ml-project-typeerror-initiate-model-trainin</guid>
-      <pubDate>Sun, 17 Dec 2023 03:50:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>keras.models.load_model("") 在 h5f.open() 上给出错误[关闭]</title>
-      <link>https://stackoverflow.com/questions/77673041/keras-models-load-model-gives-error-on-h5f-open</link>
-      <description><![CDATA[当使用keras.models.load时，它会在h5f.open(name, flags, fapl=fapl)上抛出错误，并显示OSError: Unable to打开文件（未找到文件签名）。
-DNN模型文件代码
-随机导入
-将 numpy 导入为 np
-将张量流导入为 tf
-从 keras.layers 导入密集、Dropout
-从 keras.models 导入顺序
-从 keras.regularizers 导入 l1, l2
-从 keras.optimizers 导入 Adam
-
-def set_seeds(种子 = 100):
-    随机种子（种子）
-    np.随机.种子（种子）
-    tf.random.set_seed(种子)
-    
-def CW(df):
-    c0, c1 = np.bincount(df[“dir”])
-    w0 = (1/c0) * (len(df)) / 2
-    w1 = (1/c1) * (len(df)) / 2
-    返回 {0:w0, 1:w1}
-
-优化器 = Adam(lr = 0.0001)
-
-def create_model(hl = 2, hu = 100, dropout = False, 速率 = 0.3, 正则化 = False,
-                 reg = l1(0.0005)，优化器 = 优化器，input_dim = 无）：
-    如果不正则化：
-        reg = 无
-    模型=顺序（）
-    model.add（密集（hu，input_dim = input_dim，activity_regularizer = reg，activation =“relu”））
-    如果辍学：
-        model.add(Dropout(速率, 种子 = 100))
-    对于范围（hl）内的图层：
-        model.add（密集（hu，激活=“relu”，activity_regularizer = reg））
-        如果辍学：
-            model.add(Dropout(速率, 种子 = 100))
-    model.add(Dense(1, 激活 = “sigmoid”))
-    model.compile（损失=“binary_crossentropy”，优化器=优化器，指标=[“准确性”]）
-    返回模型
-
-
-加载模型和参数
-# 加载模型
-导入keras
-model = keras.models.load_model(“C:/Users/Hussein Ali/Desktop/d/DNNModel.py”)
-
-错误：
-&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
-OSError Traceback（最近一次调用最后一次）
-第 3 行 [1] 中的单元格
-      1 # 加载模型
-      2导入keras
-----&gt; 3 模型 = keras.models.load_model(“C:/Users/Hussein Ali/Desktop/d/DNNModel.py”)
-
-文件 C:\anaconda\lib\site-packages\keras\utils\traceback_utils.py:70，位于filter_traceback..error_handler(*args, **kwargs)
-     67、filtered_tb = _process_traceback_frames（e.__traceback__）
-     68 # 要获取完整的堆栈跟踪，请调用：
-     69 # `tf.debugging.disable_traceback_filtering()`
----&gt; 70 从 None 引发 e.with_traceback(filtered_tb)
-     71 最后：
-     72 删除filtered_tb
-
-文件 C:\anaconda\lib\site-packages\h5py\_hl\files.py:533，在 File.__init__(self, name, mode, driver, libver, userblock_size, swmr, rdcc_nslots, rdcc_nbytes, rdcc_w0, track_order, fs_strategy 、fs_persist、fs_threshold、fs_page_size、page_buf_size、min_meta_keep、min_raw_keep、锁定、alignment_threshold、alignment_interval、**kwds）
-    第525章
-    526锁定，page_buf_size，min_meta_keep，min_raw_keep，
-    [第 527 章]
-    [第 528 章]
-    第529章
-    第530章
-    [第 531 章]
-    第532章
---&gt;第533章
-    第535章
-    第536章
-
-文件 C:\anaconda\lib\site-packages\h5py\_hl\files.py:226，在 make_fid（名称、模式、userblock_size、fapl、fcpl、swmr）中
-    224 如果 swmr 和 swmr_support:
-    225 个标志 |= h5f.ACC_SWMR_READ
---&gt; 226 fid = h5f.open（名称，标志，fapl = fapl）
-    227 elif 模式 == &#39;r+&#39;:
-    [第 228 章]
-
-文件 h5py\_objects.pyx:54，在 h5py._objects.with_phil.wrapper() 中
-
-文件 h5py\_objects.pyx:55，在 h5py._objects.with_phil.wrapper() 中
-
-文件 h5py\h5f.pyx:106，在 h5py.h5f.open() 中
-
-OSError：无法打开文件（未找到文件签名）
-]]></description>
-      <guid>https://stackoverflow.com/questions/77673041/keras-models-load-model-gives-error-on-h5f-open</guid>
-      <pubDate>Sun, 17 Dec 2023 01:20:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我使用随机森林回归器得到负 R2 分数？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/77672303/why-im-getting-a-negative-r2-score-with-random-forest-regressor</link>
-      <description><![CDATA[我试图使用 Phyton 中的随机森林模型来预测 MOF 的一些变量（来自一篇科学论文），但 R2 的值为负值（与论文不同，论文为正值）。我实际上不知道问题是否出在我的数据集（涉及将数值分配给字符串）或我的代码中。原始数据集是文学数据集，我的版本是“Dados editados 3”
-数据集链接：https://docs.google.com/spreadsheets/d/17r-hxcuuzEFdfsqcAdHe_9iIp1d51IvL/edit?usp=sharing&amp;ouid=111702212107777597741&amp;rtpof=true&amp;sd=true
-我尝试多次检查代码，但我不知道我做错了什么，因为 RF 模型是一个非常强大的模型。此外，我还使用检测和删除异常值的函数删除数据集的所有 Nan 值。
-代码：
-导入 pandas 作为 pd
-从 sklearn.model_selection 导入 train_test_split
-从 sklearn.model_selection 导入 GridSearchCV
-从 sklearn.preprocessing 导入 MinMaxScaler
-从 sklearn.ensemble 导入 RandomForestRegressor
-从sklearn导入预处理
-从 sklearn 导入指标
-将 numpy 导入为 np
-
-df = pd.read_excel(r&#39;/content/drive/My Drive/Projeto ML/Dados ML.xlsx&#39;,sheet_name =“Dados editados 3”)
-
-df = df.drop(columns = [&#39;酶负载&#39;, &#39;固定率&#39;, &#39;活性保留&#39;] )
-
-df.replace(&#39;-&#39;, np.NaN, inplace = True)
-
-df = df.dropna()
-
-#修改后的函数
-
-def get_outliers(l):
-    #如果保留 0.1 和 0.75，那么几乎不会过滤任何异常值
-    #q1 是 0.25 分位数，q3 是 0.75 分位数
-    q1 = l.分位数(0.25)
-    q3 = l.分位数(0.75)
-    iqr = q3-q1
-    栅栏低 = q1 - 1.5 * iqr
-    栅栏高 = q3 + 1.5 * iqr
-    返回 [~(i&gt;=fenceLow 且 i&lt;=fenceHigh) for i in l]
-
-离群值 = df.apply(get_outliers)
-
-df = df[~离群值.apply(lambda x:any(x), axis=1)]
-
-
-X = df.iloc[:, :-1]
-
-Y = df.iloc[:,-1]
-
-x_train，x_test，y_train，y_test = train_test_split（X，Y，test_size = 0.25，random_state = 42）
-
-缩放器 = 预处理.MinMaxScaler(feature_range = (0.1, 0.9))
-x_train = 缩放器.fit_transform(x_train)
-x_test= 缩放器.fit_transform(x_test)
-
-从 sklearn.model_selection 导入 KFold
-从 sklearn.model_selection 导入 cross_val_score
-从 sklearn.metrics 导入 r2_score
-
-rf = RandomForestRegressor()
-
-rf.fit(x_train, y_train)
-
-y_pred = rf.predict(x_test)
-
-k_folds = KFold(n_splits = 6)
-
-分数 = cross_val_score(rf, x_train, y_train, cv = k_folds, 评分 = “r2”)
-
-print(&quot;简历分数：&quot;, 分数)
-print(&quot;平均简历分数：&quot;, Scores.mean())
-print(&quot;平均值中使用的 CV 分数数量：&quot;, len(scores))
-
-在此处输入图像描述
-有什么建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77672303/why-im-getting-a-negative-r2-score-with-random-forest-regressor</guid>
-      <pubDate>Sat, 16 Dec 2023 19:55:00 GMT</pubDate>
     </item>
     <item>
       <title>我应该应用什么预处理来对雕刻文本执行 OCR？ [关闭]</title>
@@ -535,7 +529,7 @@ ValueError: matmul: 输入操作数 1 的核心维度 0 不匹配，gufunc 签�
       <pubDate>Sat, 16 Dec 2023 13:56:10 GMT</pubDate>
     </item>
     <item>
-      <title>从时态和非时态数据进行预测[关闭]</title>
+      <title>从时间和非时间数据进行预测[关闭]</title>
       <link>https://stackoverflow.com/questions/77667561/making-predictions-from-temporal-and-non-temporal-data</link>
       <description><![CDATA[我正在研究一个回归问题来预测由 2 个参数组成的目标。这两个参数将根据时间 (YYYY-MM-DD HH:MM) 和非时间数据组成的特征进行预测。
 我开始基于“决策树回归”构建 Python 代码算法。尽管数据趋势看起来令人满意，但我的模型似乎产生了与用于训练/测试的数据范围相同的输出。我想知道我的方法好不好。我偶然发现了一些处理相同问题的论文，并使用 CNN-LSTM 模型等进行了解决。这里是我的代码（Google Colab 文件）的链接： https:// drive.google.com/file/d/1ar5Z8kMXx_9slc1e_MMzaAcQAvx5lmzr/view?usp=sharing]]></description>
@@ -543,7 +537,7 @@ ValueError: matmul: 输入操作数 1 的核心维度 0 不匹配，gufunc 签�
       <pubDate>Fri, 15 Dec 2023 16:25:51 GMT</pubDate>
     </item>
     <item>
-      <title>与自然语言处理相关的代码执行错误</title>
+      <title>执行与自然语言处理相关的代码时出错</title>
       <link>https://stackoverflow.com/questions/77653463/error-in-execution-of-code-related-to-natural-language-processing</link>
       <description><![CDATA[此代码显示了图像中给出的错误。我无法理解其中的原因。
 导入系统
@@ -578,7 +572,7 @@ np.随机.种子(0)
 
 错误消息：
 &lt;块引用&gt;
-[nltk data]加载路透社时出错：
+[nltk data] 加载路透社时出错：
 
 我不知道如何在Python中使用导入命令。我尝试了所有可能的方法进行检查，包括删除带有其他新闻门户名称的“路透社”，但没有任何效果。现在，如果有人帮助我正确编写代码的“导入”部分，那就更好了。我认为其他部分没问题，因为没有显示其他消息。]]></description>
       <guid>https://stackoverflow.com/questions/77653463/error-in-execution-of-code-related-to-natural-language-processing</guid>
