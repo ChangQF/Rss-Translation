@@ -4,7 +4,167 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Mon, 18 Dec 2023 09:14:29 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 18 Dec 2023 12:26:12 GMT</lastBuildDate>
+    <item>
+      <title>使用 ROC 曲线进行阈值移动时，分类阈值变化很大</title>
+      <link>https://stats.stackexchange.com/questions/635181/classification-threshold-varies-wildly-when-using-roc-curves-for-threshold-movin</link>
+      <description><![CDATA[我正在尝试进行阈值移动以获得不平衡数据集的适当阈值。我有一个一维时间序列，正在其上应用基于二进制变压器的分类器。我有：
+训练集：
+  样本总数：8133
+  0 的数量：6930 (85.21%)
+  1 的数量：1203 (14.79%)
+
+验证集：
+  样本总数：904
+  0 的数量：770 (85.18%)
+  1 的数量：134 (14.82%)
+
+测试集：
+  样本总数：232
+  0 数量：198 (85.34%)
+  1 的数量：34 (14.66%)
+
+注意：我正在尝试修复验证集的阈值。我见过很多人为此使用测试集，但我认为这会使测试集上的分类器产生偏差。如果我这里有错，请纠正我。
+我使用了 sklearn test_train_split 并使用了 stratify=y 并传递了 random_state 以获得可重现的结果。现在的问题是我得到的“最佳阈值”差异很大。当使用 ROC-AUC 曲线时 - 即使面积大致相同。我正在尝试做两个实验：
+
+使用不同的方法，例如：(a) 正常训练（对频率较低的类别不加权）、(b) 基于 class_weight 的训练、(c) 在训练集上进行 SMOTE
+训练到不同的num_epochs（不同的纪元数）
+
+在（1）中，我得到了截然不同的结果，我无法理解。例如，正常训练给出“最佳阈值”。 0.01，class_weights 方法给出的最佳阈值是 0.45，SMOTE 给出的最佳阈值是 0.02。
+巨大的差异是我无法理解的。需要注意的是，对于 SMOTE，分布如下（仅在训练集上应用 SMOTE）：
+训练集：
+  样本总数：13860
+  0 的数量：6930 (50.00%)
+  1 的数量：6930 (50.00%)
+
+验证集：
+  样本总数：904
+  0 的数量：770 (85.18%)
+  1 的数量：134 (14.82%)
+
+测试集：
+  样本总数：232
+  0 数量：198 (85.34%)
+  1 的数量：34 (14.66%)
+
+即使在历元变化中，当全面使用 class_weights 方法并使用 10、20、40、60、80、100 历元进行训练时，在尝试对验证进行 ROC-AUC 分析时，我会得到很大范围的阈值变化放。一直从 0.002-0.7 - 这很疯狂，我无法真正理解最佳阈值的问题出在哪里。我做事的逻辑有缺陷吗？以下是我正在使用的 ROC-AUC 代码
+defplot_roc_auc_curve(y_true, y_pred_probs, best_threshold):
+    # 计算ROC曲线和ROC AUC
+    fpr、tpr、阈值 = roc_curve(y_true、y_pred_probs)
+    roc_auc = auc(fpr, tpr)
+    
+    # 绘制ROC曲线
+    plt.plot(fpr, tpr, lw=1, label=&#39;ROC (面积 = %0.2f)&#39; % (roc_auc))
+    plt.plot([0, 1], [0, 1], color=&#39;海军蓝&#39;, lw=1, linestyle=&#39;--&#39;)
+    plt.plot(fpr[阈值 == best_threshold], tpr[阈值 == best_threshold], &#39;ko&#39;, label=&#39;最佳阈值&#39;)
+    plt.text(fpr[阈值== best_threshold], tpr[阈值== best_threshold], f&#39;最佳阈值:{best_threshold:.2f}&#39;)
+    plt.xlim([-0.05, 1.05])
+    plt.ylim([-0.05, 1.05])
+    plt.xlabel(&#39;误报率&#39;)
+    plt.ylabel(&#39;真阳性率&#39;)
+    plt.title(&#39;接受者操作特征 (ROC) 曲线&#39;)
+    plt.legend(loc=&quot;右下&quot;)
+    plt.show()
+
+    返回 roc_auc，阈值
+
+def get_best_threshold(y_true, y_pred_probs):
+    fpr、tpr、阈值 = roc_curve(y_true、y_pred_probs)
+    best_threshold = 阈值[np.argmax(np.abs(tpr - fpr))]
+    返回最佳阈值
+
+我附上了一些 ROC-AUC 曲线的屏幕截图，其中包含根据此代码绘制的最佳阈值。请帮助我调试/解释结果。
+
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/635181/classification-threshold-varies-wildly-when-using-roc-curves-for-threshold-movin</guid>
+      <pubDate>Mon, 18 Dec 2023 12:24:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>神经常微分方程和伴随法</title>
+      <link>https://stats.stackexchange.com/questions/635180/neural-ode-and-adjoint-method</link>
+      <description><![CDATA[我正在尝试理解这篇非常有趣的论文NeuralODE。
+我明白了总体思路，他们给出的关于伴随动力学的证明相当简单。
+他们定义了一个网络$f$，由$\theta$参数化：
+$$
+\frac{dz(t)}{dt} = f(z(t), t, \theta)
+$$
+当然，为了训练网络，计算损失相对于参数的梯度非常重要：$$ \frac{\partial L}{\partial \ θ}$$
+但是，我不明白为什么需要计算相对于 $z(t)$ 和 $t$ 还：
+$$ \frac{\partial L}{\partial z(t)}, \frac{\partial L}{\partial t} $$
+我想说，一旦有了第一个梯度，就可以更新神经网络的权重并对其进行正确的训练吗？
+这是否只是因为 torch.autograd.Function （他们在原始实现中使用）需要它来正确构建计算图？还是有其他原因？
+感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/635180/neural-ode-and-adjoint-method</guid>
+      <pubDate>Mon, 18 Dec 2023 12:19:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>当 X ~ N(0,2) 且 Y ~ N(0,1) 时 X > Y 的概率</title>
+      <link>https://stats.stackexchange.com/questions/635178/probability-that-x-y-when-x-n0-2-and-y-n0-1</link>
+      <description><![CDATA[$X$ 和 $Y$ 是自变量 $X$ ~ $N(0,2)$ 和 $Y$ ~ $N(0,1)$。 $X &gt; 的概率是多少？ Y$？我了解 $X - Y$ ~ $N(0,3)$ 的分布假设它们是独立的。那么这应该是合理的：
+$$
+P(X &gt; Y) = P(X - Y &gt; 0)
+$$
+$X - Y$ 的平均值为 $0$ 所以我认为它可能同样可能$X - Y &gt; 0$ 或 $&lt; 0$。但是，我不确定这种方法，特别是如果最后一部分是正确的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/635178/probability-that-x-y-when-x-n0-2-and-y-n0-1</guid>
+      <pubDate>Mon, 18 Dec 2023 11:40:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>小样本的 glmnet 包的 Lasso 模型</title>
+      <link>https://stats.stackexchange.com/questions/635175/lasso-model-by-glmnet-package-in-small-sample-size</link>
+      <description><![CDATA[我想创建一个套索模型，但我无法拥有测试集，因为我的样本量很小，所以我想使用交叉验证来评估模型。
+我已经看到像 cv.glmnet 和 caret 这样的函数被用来制作套索模型。现在我想知道是否可以从 cv.glmnet 获取混淆矩阵，或者我应该使用插入符号而不是 cv.glmnet？或者 cv.glmnet 会用作选择 lambda 的内部 CV 和外部 CV 的插入符吗？了解这个问题对于我确定是否应该使用 cv.glmnet 很重要。]]></description>
+      <guid>https://stats.stackexchange.com/questions/635175/lasso-model-by-glmnet-package-in-small-sample-size</guid>
+      <pubDate>Mon, 18 Dec 2023 10:36:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>形成先前信念的混乱</title>
+      <link>https://stats.stackexchange.com/questions/635174/confusion-forming-prior-beliefs</link>
+      <description><![CDATA[假设，为了方便起见，我有一个数据样本，我认为该数据样本来自二项式分布。假设我的样本中有 100 个观察值。在此实验之前，我创建了 10 个数据样本并记录了它们的汇总统计数据（每个样本有 10 个观察值）。我想用这些旧样本来形成我先前的信念。每个观察的试验次数为 10。
+当我计算出之前 10 个样本的平均值时，我发现它大约等于 4.82。当我计算出平均方差时，我得到的值约为 2.7。
+为了结合起见，我想使用 beta 发行版作为我的先验发行版。我将先验均值和方差设置为等于样本的均值和方差（即平均值）。然后我使用假设正常发布的公式此处。
+现在，我最终得到一个负的 $\alpha$ 值，这当然是不可能的。显然，β 分布的平均值应该在 0 和 1 之间，但由于我对样本平均值的计算而违反了这一点。我哪里出了问题，正确的补救措施是什么？ （我认为我的平均值应该是 0.482，但我无法找出到达这里的理由）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/635174/confusion-forming-prior-beliefs</guid>
+      <pubDate>Mon, 18 Dec 2023 10:26:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>在稀疏矩阵数据的背景下增加隔离森林的子采样大小是否有意义？</title>
+      <link>https://stats.stackexchange.com/questions/635172/does-it-make-sense-to-increase-the-subsampling-size-for-isolation-forest-in-the</link>
+      <description><![CDATA[我目前正在使用稀疏矩阵数据集，并采用隔离森林算法进行异常值检测。考虑到我的数据的性质（高维度和稀疏性），我正在考虑增加隔离森林算法的子采样大小是否可以产生更好的结果。
+
+隔离林的默认子采样大小通常设置为
+256，但是由于数据稀疏，我想知道这是否可能无法捕获
+有效地识别数据集中的细微差别。
+处理稀疏矩阵数据时增加隔离森林的子采样大小是否有意义？
+更大的子样本是否可以更准确地表示数据结构，从而提高异常值检测的准确性？是否存在过度拟合或显着的风险
+计算时间增加？
+有没有既定的最佳
+文献或行业中有关的实践或指南
+隔离森林的子采样大小，特别是在
+稀疏数据？
+
+提前感谢您抽出时间。]]></description>
+      <guid>https://stats.stackexchange.com/questions/635172/does-it-make-sense-to-increase-the-subsampling-size-for-isolation-forest-in-the</guid>
+      <pubDate>Mon, 18 Dec 2023 09:45:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>当 $x$ 是指数幂时求导数 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/635171/finding-the-derivative-of-x-when-it-is-power-of-the-exponential</link>
+      <description><![CDATA[如何求解这个导数，其中 $x$ 是指数幂
+\begin{align}\label{MGF5}
+F(x)=\int^{\infty}_{0} e^{Cx} ~~x^{\frac{A-2}{2}} ~~e^{-\frac{\sqrt{x }}{B}}dx
+\end{对齐}]]></description>
+      <guid>https://stats.stackexchange.com/questions/635171/finding-the-derivative-of-x-when-it-is-power-of-the-exponential</guid>
+      <pubDate>Mon, 18 Dec 2023 09:28:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>重塑 PyTorch Conv2d、ReLU 和 BatchNorm2d 的 6d 输入 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/635170/reshaping-6d-input-for-pytorch-conv2d-relu-and-batchnorm2d</link>
+      <description><![CDATA[我有一个输入，其大小为批次 x 样本（从分布中提取）x 分量（正态分布分量）x 输入通道 x 图像高度 x 图像宽度。
+我需要将其作为输入传递给 PyTorch Conv2d、ReLU 和 BatchNorm2d。这些需要 4d 输入大小。我应该组合哪些维度？结合前三个维度有意义吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/635170/reshaping-6d-input-for-pytorch-conv2d-relu-and-batchnorm2d</guid>
+      <pubDate>Mon, 18 Dec 2023 09:21:06 GMT</pubDate>
+    </item>
     <item>
       <title>使用 Bash 将文件中的子字符串替换为 MacOS [关闭]</title>
       <link>https://stats.stackexchange.com/questions/635167/replace-sub-string-in-file-with-macos-using-bash</link>
@@ -26,39 +186,18 @@ sed -i &#39;&#39; s/730070006F006F0066006500720067006F00610070007000400067006D00
       <pubDate>Mon, 18 Dec 2023 06:52:34 GMT</pubDate>
     </item>
     <item>
-      <title>非贝叶斯方法替代 BSTS 方法</title>
-      <link>https://stats.stackexchange.com/questions/635164/an-alternative-to-bsts-method-with-non-bayesian-method</link>
-      <description><![CDATA[如果我必须选择另一种方法来因果地查找使用频率论方法对时间序列数据进行处理的影响，贝叶斯结构时间序列就是其中之一，但是是否有非贝叶斯方法可以解决这个问题？另外是否有任何 python 或 r 包可以让我做到这一点？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635164/an-alternative-to-bsts-method-with-non-bayesian-method</guid>
-      <pubDate>Mon, 18 Dec 2023 06:41:25 GMT</pubDate>
-    </item>
-    <item>
       <title>异常值对 QQ 图的影响</title>
       <link>https://stats.stackexchange.com/questions/635163/impact-of-outliers-to-qq-plot</link>
       <description><![CDATA[我正在尝试构建 GLM 回归（10k 样本和 50 个维度）。我对因变量进行了分析，因为回归对因变量有正态性假设。
 QQ图（中图）显示y的分布远离正态分布（这是否意味着y存在差距？我没有找到差距在直方图中（上图））。删除 y 的顶部 3% 和底部 3% 后，QQ 图（下图）变成一条直线，暗示着重尾。
-我的问题是： 1.为什么QQ图对极值如此敏感？ 2.由于QQ图对极值或异常值太敏感，删除某些数据后运行QQ图是否有意义？
+我的问题是：1.为什么QQ图对极值如此敏感？ 2.由于QQ图对极值或异常值太敏感，删除某些数据后运行QQ图是否有意义？
 
 上一篇文章没有多大帮助.]]></description>
       <guid>https://stats.stackexchange.com/questions/635163/impact-of-outliers-to-qq-plot</guid>
       <pubDate>Mon, 18 Dec 2023 06:30:06 GMT</pubDate>
     </item>
     <item>
-      <title>多个时间序列过程的重复测量</title>
-      <link>https://stats.stackexchange.com/questions/635162/repeated-measures-of-multiple-time-series-processes</link>
-      <description><![CDATA[我正在努力比较在几个时间序列中观察到的时间过程。问题如下：
-假设有一些半实验条件，多个观测过程同时运行或有很小的滞后（每个周期长度的 1-2%），产生与每个条件相对应的时间序列。响应变量在不同条件下都是相同的，标准化为 z 分数。
-重要的是，重复进行类似的并行观察，但每个块之间的间隙不同且很大（间隙比感兴趣的时间序列长得多）。这样，研究设计就引入了无意义的季节性模式，可能无法仅通过条件同一性对时间序列进行比较。
-为了说明这一点，以下是在 4 个区块中观察到的 3 个条件：
-
-目标是评估不同条件下的时间序列是否由同一过程产生，如果不是，则评估哪些条件共享基础过程。
-作为时间序列分析的新手，我不知道如何解决这个问题。据我了解，这种情况下的拟合方法是多元自回归状态空间（MARSS）模型，可能将条件身份合并为过程（未观察到的）协变量，并将块的身份作为观察协变量（它在我看来，考虑到 MARSS 模型结构，(G)LMM 或 GAMM 中的随机效应是不合适的。
-非常感谢您提前提供的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/635162/repeated-measures-of-multiple-time-series-processes</guid>
-      <pubDate>Mon, 18 Dec 2023 06:03:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>生成正态分布数字 V 的序列，其总和为整数 C，且长度等于 C</title>
+      <title>生成正态分布数字 V 的序列，其总和为整数 C，且其长度等于 C [关闭]</title>
       <link>https://stats.stackexchange.com/questions/635159/generate-a-sequence-of-normally-distributed-numbers-v-that-sum-to-a-whole-numb</link>
       <description><![CDATA[我正在寻求用 Python 解决以下问题。
 我需要生成一个数字序列$V$，它满足以下参数：
@@ -100,128 +239,34 @@ $V$ 的总和等于 $C$。
       <pubDate>Mon, 18 Dec 2023 03:32:33 GMT</pubDate>
     </item>
     <item>
-      <title>计算两个相关变量之间的条件概率[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/635158/calculate-conditional-probability-between-2-correlated-variables</link>
-      <description><![CDATA[假设我有2个强相关变量A和B，我该如何计算
-$$P(B \le b | A = a)$$
-我们可以假设 A 和 B 各自遵循正态分布。]]></description>
-      <guid>https://stats.stackexchange.com/questions/635158/calculate-conditional-probability-between-2-correlated-variables</guid>
-      <pubDate>Mon, 18 Dec 2023 03:13:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>图像分类模型中是否需要全局池化？</title>
-      <link>https://stats.stackexchange.com/questions/635157/is-global-pooling-necessary-in-image-classification-models</link>
-      <description><![CDATA[在许多图像分类模型中，全局池化操作在分类层（即全连接层）之前执行，以降低模型复杂度。全局池化层是图像分类框架中的必要组成部分吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635157/is-global-pooling-necessary-in-image-classification-models</guid>
-      <pubDate>Mon, 18 Dec 2023 02:30:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>对于具有分类变量的模型，每个子模型的 OLS 残差总和为零？</title>
-      <link>https://stats.stackexchange.com/questions/635145/ols-residuals-sum-to-zero-for-each-submodel-for-a-model-with-categorical-variabl</link>
-      <description><![CDATA[据我了解，在 OLS 回归中，整个模型的残差之和必须为零。但是，这个属性是否也保证由分类变量定义的每个子组内的残差之和为零？
-如果我有一个分类变量 $X_2 \in \{0, 1\}$ 和一些连续变量 $ X_1$ 这样我的完整模型是：
-$Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2$
-我的两个子模型是：
-$Y = \beta_0 + \beta_1 X_1$
-$Y = (\beta_0 + \beta_2) + \beta_1 X_1$
-每个子模型的残差之和总是为零吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635145/ols-residuals-sum-to-zero-for-each-submodel-for-a-model-with-categorical-variabl</guid>
-      <pubDate>Sun, 17 Dec 2023 22:42:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>非规范链接的 MLE 与 IRLS 的 GLM 协方差矩阵之间的差异</title>
-      <link>https://stats.stackexchange.com/questions/635130/difference-between-glm-covariance-matrix-from-mle-vs-irls-for-non-canonical-lin</link>
-      <description><![CDATA[有人问Stack Overflow 上的问题，其中他们指出了概率链接二项式模型的参数方差-协方差矩阵的 Minitab 和 R (glm) 结果之间的差异。
-
-Minitab 的算法没有得到很好的描述，但在 glmmTMB 中拟合相同的模型（它使用通用 MLE 而不是 IRLS，并反转根据（自动生成的）梯度的有限差分估计的 Hessian 矩阵MLE）给出了与 Minitab 结果非常接近的答案。
-系数估计值非常相似
-glm() 相反，在 IRLS 算法的最后一步使用基于加权最小二乘解的 QR 分解（请参阅 此处，此处）。
-数据集非常小（根据 4 个观测值估计出 2 个参数），因此我预计任何渐近假设都非常糟糕
-使用规范 logit 链接而不是概率重新拟合同一模型，在 glm (IRLS) 和 glmmTMB (MLE/Hessian) 之间给出非常相似的答案
-
-我知道 Fisher 信息矩阵仅在规范链接的情况下才相当于 Hessian 矩阵（请参阅 此处)；我相信基于这两种方法的优化达到了相同的点，但也许协方差矩阵的估计仍然不同？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635130/difference-between-glm-covariance-matrix-from-mle-vs-irls-for-non-canonical-lin</guid>
-      <pubDate>Sun, 17 Dec 2023 18:09:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>找到偏度和峰度互不依赖的分布。这还有道理吗？</title>
-      <link>https://stats.stackexchange.com/questions/635122/finding-a-distribution-where-skewness-and-kurtosis-do-not-depend-on-each-other</link>
-      <description><![CDATA[我正在模拟非正态数据，以研究这如何影响一些假定正态性的诊断方法。我特别感兴趣的是了解偏度和峰度如何影响结果。
-我已经使用偏态正态分布和伽马分布研究了偏态，但想在此基础上更改峰度。不幸的是，这不适用于这两个分布，因为偏度和峰度取决于相同的参数。
-到目前为止，我发现的最好的结果是“skewt”包中倾斜的学生 t 分布。在 R 中。 https://cran.r-project.org/web /packages/skewt/skewt.pdf
-从表面上看，这似乎符合我的预期：给定一个恒定的偏斜参数，当我改变自由度时，可见的偏斜度不会改变（峰值保持在原位）。然而，它也存在自己的问题，因为我还无法计算给定伽玛值的峰度，并且负峰度不可能实现。
-还有其他我可以使用的发行版吗？我问的还有道理吗？我的一部分认为它没有给出矩的峰度和偏度的定义，但似乎应该可以在仅“提升”时保持给定的偏度。或“沉没”尾巴，就像以前一样。]]></description>
-      <guid>https://stats.stackexchange.com/questions/635122/finding-a-distribution-where-skewness-and-kurtosis-do-not-depend-on-each-other</guid>
-      <pubDate>Sun, 17 Dec 2023 16:03:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>通过嵌入循环和 fft 来快速 Cholesky 分解 Toepllitz 矩阵</title>
-      <link>https://stats.stackexchange.com/questions/635120/fast-cholesky-decomposition-of-a-toepllitz-matrix-via-embedding-in-a-circulant</link>
-      <description><![CDATA[据我了解，通过首先将托普利茨矩阵嵌入循环矩阵然后使用 FFT 可以更有效地计算托普利茨矩阵的 Cholesky 分解，但我在任何地方都找不到这种方法的任何实现，也找不到该方法的描述具体的一系列操作我需要自己实现。帮忙？
-下面是构建 Toeplitz 的代码，以标准方式计算 Cholesky 分解，然后进行循环嵌入：
-&lt;前&gt;&lt;代码&gt;#imports
-将 numpy 导入为 np
-从 scipy.linalg 导入 toeplitz、循环、cholesky
-从 scipy.fftpack 导入 fft, ifft
-
-# 构造托普利茨矩阵
-t = toeplitz(np.array([1., 0.5])) + ( 1e-6 * np.eye(2) )
-打印（t）
-# [[1.000001 0.5]
-# [0.5 1.000001]]
-
-# 以标准方式计算胆汁
-chol_ltri_std = cholesky(t,lower=True)
-打印（chol_ltri_std）
-# [[1.0000005, 0.]
-# [0.49999975, 0.86602613]]
-
-＃ 核实：
-chol_ltri_std @ chol_ltri_std.T # 应该 == t
-
-#嵌入循环中
-c = circulant(np.concatenate([t[0,:],t[0,:-1][::-1]]))
-打印（三）
-# [[1.000001 1.000001 0.5 ]
-# [0.5 1.000001 1.000001]
-# [1.000001 0.5 1.000001]]
-
-#尝试基于 FFT 的胆斯基分解
-特征值 = fft(c)
-sqrt_特征值 = np.sqrt(特征值)
-inverse_fft_real = ifft(sqrt_eigenvalues).real
-
-打印（inverse_fft_real）
-# 产量：
-# [[0.93529519 0.52704649 0.11879779]
-# [0.52704649 0.11879779 0.93529519]
-# [0.93529519 0.11879779 0.52704649]]
-#但是这些值都不匹配 chol_ltri_std 的元素
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/635120/fast-cholesky-decomposition-of-a-toepllitz-matrix-via-embedding-in-a-circulant</guid>
-      <pubDate>Sun, 17 Dec 2023 14:46:15 GMT</pubDate>
-    </item>
-    <item>
       <title>在线性混合模型中，如果因变量对于随机因子是重复的怎么办？</title>
       <link>https://stats.stackexchange.com/questions/635107/in-linear-mixed-model-what-if-the-dependent-variable-is-repetitive-for-a-random</link>
-      <description><![CDATA[我的研究设计是，每个受试者都完成了多次试验来评价他们的幸福感，同时记录脑电图数据。每个科目都有不同的频道。我想要做的是使用每个通道中的脑电图数据特征（如 avg_HFB 和 peri_HFB）来预测快乐评级值。
-所以我有一个线性混合模型，其中主题和频道作为随机因素，频道嵌套在主题中，并且 happy rating(z rating) 作为因变量，如下所示。
+      <description><![CDATA[（一）研究背景：
+我的研究设计包括让每个参与者完成多项试验来评估他们的幸福感，同时记录脑电图数据。每个参与者都有不同的脑电图通道。我的目标是使用每个通道的脑电图数据指标（例如 avg_HFB 和 peri_HFB）来预测幸福感评分。由于参与者在不同时间进行重复测量，我构建了一个以主题和频道作为随机变量的线性混合模型。频道嵌套在主题内，幸福评级（z rating）是因变量，如下：
 zrate ~ avg_HFB * peri_HFB + (1|主题/频道)
-但是，由于实验设计，对于每个受试者，不同通道的因变量是相同的数据集。（这是因为对于一个受试者来说，不同通道的脑电数据对应相同的行为性能。）：
-我在这里放置了草稿和一些示例数据。
+(2)遇到的问题：
+然而，在拟合过程中，我遇到了一个奇异拟合问题，其中 subject:channels 的方差等于 0。
+
+(3) 示例数据：
+这是数据结构和一些示例数据：
 
 
-以子a的部分数据为例，每个通道都会记录该受试者的相同试验。（顺便说一句，不是所有试验，因为某些通道可能会漏记某些试验。）
-所以我猜这就是为什么 subject:channels 的方差为 0 的原因，这会导致奇异拟合。 
-当我仅将主题或频道作为随机因素时，该模型就有效。所以我猜这是因为一个随机因素足以捕获方差。
-我的问题如下：
+大约有 15 名参与者，每个参与者有 1-8 个通道，以及 30-140 次试验。
+（4）我所做的尝试：
 
-关于奇异拟合的解释，我说得对吗？
-如果我是对的，我只将受试者纳入随机效应，那么是否存在数据复制的风险？ （由于渠道不同，每个试验都有多个观察结果）
-最后，对我来说最困惑的问题是，我只是复制了 800 个观测值的数据（原始数据大约有 2600 个观测值），该模型也使用嵌套随机效应。所以如果是如上的原因的话，这个操控应该不能解决我猜的问题，所以我想知道如何解释这个现象。
+在线性混合模型中，如果随机因素仅包含主体或渠道，则模型可以拟合成功。
 
-这是我第一次在平台上提问，所以如果需要任何进一步的细节，请告诉我。
-非常感谢！]]></description>
+
+
+
+通过复制一些参与者的数据（大约 600 个观察值），可以拟合嵌套模型。
+
+
+(5)我的假设：
+我怀疑，在数据结构中，对于同一参与者，每个通道对应于同一组因变量数据（许多试验的幸福评分，尽管并非所有试验都相同）。因此，我假设因变量的变化仅反映在参与者之间。在同一参与者中，渠道之间可能没有差异（尽管数量和具体试验可能有所不同）。如果是这样，将主题或通道作为随机因素应该足以捕获这种可变性。因此，我推测，当受试者和通道都被视为随机因素时，只有受试者方差的原因可能是由于此。
+然而，这只是我的逻辑或直觉推测。我不确定这个推理是否准确，并且它无法解释为什么复制数据可以使模型拟合（因为数据结构保持不变）。
+这是我第一次在这个平台上提问，所以如果需要任何进一步的信息，请告诉我。
+谢谢！]]></description>
       <guid>https://stats.stackexchange.com/questions/635107/in-linear-mixed-model-what-if-the-dependent-variable-is-repetitive-for-a-random</guid>
       <pubDate>Sun, 17 Dec 2023 09:54:37 GMT</pubDate>
     </item>
@@ -251,21 +296,24 @@ g &lt;- glht(M,linfct=mcp(&#39;quality&#39;=&#39;Tukey&#39;))
       <pubDate>Sat, 16 Dec 2023 02:34:53 GMT</pubDate>
     </item>
     <item>
-      <title>证明两个随机变量是独立的</title>
-      <link>https://stats.stackexchange.com/questions/617429/prove-that-two-random-variables-are-independent</link>
-      <description><![CDATA[我正在努力解决以下问题（casella &amp; berger 4.30(b)）：
-$$ \text{假设} \;\;\;Y|X=x \sim 正常(x,x^2) \;\; \text{和} \;\; X\sim 均匀\,(0,1).\\\text{证明} \;\;\frac{Y}{X} \;\text{和}\; X \;\text{独立。} $$
-我的尝试：
-$$ \text{Let} \; u= y/x \;\; \text{和}\;\;v=x. \\
-\text{然后} \;\;x= v,\;y = uv, \;and\;\;J = det\left(\begin{bmatrix} 0 &amp; 1 \\ v &amp; u \\\结束{b矩阵}\right)=-v
-\\ \text{此外，此变换是 1-1 且 }\\\text{映射集合} \;\mathscr X=\{(x,y): 0
-但是，
-$$ \;\;\frac{Y}{X}\,|\,X=x \sim 正常(1,1).\\\text{So}\; \; \frac{Y}{X}\,|\,X=x \;\;\text{不依赖于}\;x。
-\\\text{因此，} \;\;\frac{Y}{X} \;\text{和}\; X \;\text{是独立的。}
-$$
-我不知道为什么我的尝试是错误的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/617429/prove-that-two-random-variables-are-independent</guid>
-      <pubDate>Wed, 31 May 2023 12:49:06 GMT</pubDate>
+      <title>箱线图中未见统计显着差异[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/634996/statistical-significant-difference-not-seen-in-box-plot</link>
+      <description><![CDATA[我对如何解释这些数据有疑问：
+
+当两种方法A和B应用于不同的数据集时，我必须比较它们（假设$ x_1$ 和 $x_2$）。
+
+A 充满噪音且混乱，因此我们的假设是 A 的重复性较差：$\mathbf{ A}(x_1)$ 与 $\mathbf{A}(x_2)$ 显着不同。
+
+我们的方法B总体上给出了更好的结果（参见小提琴图）。但在比较统计分析时，我们发现B比A有更多显着差异（图中用“***”表示）。
+
+
+我是否可以假设 A 不会因为其噪声行为（并且可能样本量较小）而导致显着差异？如果我没有更多数据，有没有办法让审阅者相信我们的方法在不同数据集上更具可重复性？
+顺便说一句，该图在 x 轴上显示了 18 个区域（已处理图像内的文字区域）。 Y轴是每个区域中通过A或B处理图像的数值范围(0-1)结果。每把小提琴都显示了左侧 $x_1$ 和左侧 $x_2$ 的方法。正确的。我很想看到更多的明星“*”在下一个。另外，场景中没有异常值，每个半小提琴包含 5 个样本，这些样本是用于 t 检验的样本。
+我知道我不应该过多关注图来查看 SS 差异，但我可以帮助注意到，即使是小提琴中的样本在顶部子图上也是相似的，而它们在下部子图上分布得更广。&lt; /p&gt;
+
+这里的另一个选择是我只是错误地计算了 t 检验。我正在使用配对样本 t 检验（Matlab ttest(x,y)），因为我们的 $x_1$ 和 $x_2$ 数据集是相同的数据集，但 when 是另一个数据集的简化版本。 x和y是每个半小提琴中的 5 个样本。]]></description>
+      <guid>https://stats.stackexchange.com/questions/634996/statistical-significant-difference-not-seen-in-box-plot</guid>
+      <pubDate>Fri, 15 Dec 2023 14:53:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
