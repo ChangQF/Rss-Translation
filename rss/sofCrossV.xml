@@ -4,7 +4,186 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Tue, 19 Dec 2023 09:13:45 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 19 Dec 2023 12:24:57 GMT</lastBuildDate>
+    <item>
+      <title>微调朴素贝叶斯模型以进行文本分类（多类别结果）</title>
+      <link>https://stats.stackexchange.com/questions/635245/fine-tuning-naive-bayesian-model-for-text-classification-multi-categorical-outc</link>
+      <description><![CDATA[我有一个包含数千个有关美国经济问题的 Reddit 帖子的数据集。我们随机抽取了帖子总数 40% 的样本，其中每个帖子都包含“指责”内容。具有三个可能值“共和党”、“民主党”、“美联储”的指示符。或“两者都不是”它捕获了给定帖子中每个事件中谁受到指责。
+我的目标是使用 40% 的人工注释帖子来预测“责备”的价值。我的数据集中剩余 60% 的帖子中存在变量。我看过一些研究论文使用朴素贝叶斯模型来预测分类变量，但我的案例的结果并不令人印象深刻。具体来说，分类器在预测第 1 类方面表现良好，准确率为 81%，但在其他类别方面表现较差。
+这是我的代码：
+#加载包
+图书馆（tidyverse）
+需要（读xl）
+需要（writexl）
+图书馆（量子）
+库（quanteda.textmodels）
+库（插入符号）
+
+#数据示例：
+dput(reddit_corpus[1:5,c(1,2,3,4,8)])
+
+输出：
+结构(列表(id = c(1933, 7161, 4661, 2885, 5102), 用户名 = c(“the_dog”,
+&quot;Empyrean Cobalt&quot;、&quot;Engineer&quot;、&quot;AuraKUPO&quot;、&quot;kyo_465&quot;), post = c(&quot;认为 jhk AT Pinoy 等都应该感谢 cecas 为他们减轻了压力&quot;,
+“ScamDetector说我希望你们都意识到UOB实际上没有回答Clement的问题点击展开UOB只是使用相同的模板像机器人模式一样回复”，
+“netzach 说这个 Daniels 的家伙点击展开我认为人们并没有完全理解 WP 和 Daniel Goh”，
+“TS仍然是学生，公司必须以现金支付FT CPF，只有sinkies需要从工资中支付一部分CPF”，
+“ponpokku 说至少他们不会像 CECA 那样降级，对当地人不会构成威胁 CECA ish 你必须加倍工作才能 kio 他们的 sai 单击展开我不想雇用那些告诉我有比他们更糟糕的人”
+), date = c(&quot;2021-07-13 00:00:00 UTC&quot;, &quot;2020-09-22 00:00:00 UTC&quot;,
+“2021-08-07 00:00:00 UTC”、“2021-04-07 00:00:00 UTC”、“2021-07-23 00:00:00 UTC”
+), Collective_action = c(0, 0, 0, 0, 0)), row.names = c(NA, -5L
+), class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;))
+
+#构建模型：
+#生成 1109 个数字（2913 的 38%），无需替换
+设置种子(300)
+id_train &lt;- 样本(1:2913, 1109, 替换 = FALSE)
+头（id_train，10）
+
+#获取训练集
+dfmat_training &lt;- dfm_subset(dfmt_sing, id_numeric %in% id_train)
+
+#获取测试集（id_train中没有的文档）
+dfmat_test &lt;- dfm_subset(dfmt_sing, !id_numeric %in% id_train)
+
+#使用textmodel_nb()训练朴素贝叶斯分类器
+tmod_nb &lt;- textmodel_nb(dfmat_training, dfmat_training$responsibility_attribution)
+摘要(tmod_nb)
+
+dfmat_matched &lt;- dfm_match(dfmat_test, features = featnames(dfmat_training))
+
+#检查分类器的工作情况
+实际类 &lt;- dfmat_matched$responsibility_attribution
+Predicted_class &lt;- 预测(tmod_nb, newdata = dfmat_matched)
+tab_class &lt;- 表（实际类，预测类）
+选项卡类
+
+结果
+ 预测类
+实际类 1 2 3 4
+           1 240 6 5 45
+           2 67 2 1 7
+           3 79 0 10 15
+           4 128 6 5 75
+
+#混淆矩阵
+confusionMatrix(tab_class, mode = “一切”, Positive = “pos”)
+
+输出：
+总体统计
+                                          
+               准确度：0.4732
+                 95% 置信区间：(0.4355, 0.5112)
+
+                     类别：1 类别：2 类别：3 类别：4
+灵敏度 0.4669 0.142857 0.47619 0.5282
+特异性 0.6836 0.889217 0.85970 0.7468
+预测值 0.8108 0.025974 0.09615 0.3505
+负预测值 0.3063 0.980456 0.98126 0.8595
+精度 0.8108 0.025974 0.09615 0.3505
+召回率 0.4669 0.142857 0.47619 0.5282
+F1 0.5926 0.043956 0.16000 0.4213
+患病率 0.7438 0.020260 0.03039 0.2055
+检出率 0.3473 0.002894 0.01447 0.1085
+检测率 0.4284 0.111433 0.15051 0.3097
+平衡精度 0.5753 0.516037 0.66795 0.6375
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/635245/fine-tuning-naive-bayesian-model-for-text-classification-multi-categorical-outc</guid>
+      <pubDate>Tue, 19 Dec 2023 10:53:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>glmm 中的残差假设未得到验证！帮助</title>
+      <link>https://stats.stackexchange.com/questions/635244/residuals-assumptions-in-glmm-not-verified-help</link>
+      <description><![CDATA[我正在尝试 GLMM 模型来测试两个分类变量（物种和性别）及其相互作用（性别 + 物种 + 性别*物种 = 固定因素）是否影响某些发声的某些声学参数（响应变量）。我的响应变量是连续的正数值，例如发声的基本频率或持续时间。因此，我正在为我拥有的每个声学参数尝试不同的 glmm。我的模型将 ID 作为随机因素，将发声的背景作为另一个固定变量。对于每个人，我都有不止一个观察结果，这意味着每个人不止一次发声。
+我的响应变量没有正态分布，其中一些非常不对称，其中一个有两个中央驼峰。例如，我尝试过使用基频，进行了对数变换，并使用 gamma、gaussian 或 inverse.gaussian 以及各种链接函数（log、inverse、identity），但是当我检查假设（残差的正态性和同质性）时，这些没有得到验证。
+一般模型设置为：
+full_F &lt;- glmer(Fundam_freq ~ 性别 + 品种 + 性别*品种 +
+             上下文 + (1 | Cat_ID), 数据 = 数据, 系列 = ?(link = &quot;?&quot;))
+
+示例 family=Gamma(link = &quot;log&quot;) 在对响应变量进行对数转换 + 1 后。这里我附上检查残差假设的图像:(
+
+检查假设：
+
+DHARMa::simulateResiduals（fittedModel = full_F，plot = T）
+
+
+
+通过以下方式检查假设：
+
+sjPlot::plot_model(full_F, type = “diag”)
+
+
+
+通过以下方式检查假设：
+
+diagnostics.plot(full_F)
+
+
+您推荐哪些系列和链接功能？在运行 glmm 之前我应该​​做些什么吗？ （显然，我在运行模型之前将性别、品种和背景转化为因素）
+非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/635244/residuals-assumptions-in-glmm-not-verified-help</guid>
+      <pubDate>Tue, 19 Dec 2023 10:47:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>汽车华宇资本D</title>
+      <link>https://stats.stackexchange.com/questions/635243/auto-arima-capital-d</link>
+      <description><![CDATA[我有 3 年长的时间序列，12 月有季节性上升 - 但不太清楚。季节性测试失败。
+我在没有设置任何参数的情况下训练模型两次：
+auto.arima(tsData,trace = TRUE)
+
+ARIMA(2,1,2)(0,0,1)[52] : 2294.794
+最佳模型：ARIMA(2,1,2)(0,0,1)[52]
+
+并将大写 D 设置为 1：
+auto.arima(tsData, D=1, 跟踪 = TRUE)
+ARIMA(1,1,1)(1,1,0)[52] : 1710.966
+最佳模型：ARIMA(1,1,1)(1,1,0)[52]
+
+模型的 AIC 低得多，而且通常看起来更好 - 它反映了季节性下降。
+这个结果背后的解释是什么？为什么 auto.arima 找不到此模型？
+除了总是训练两个模型并选择 AIC 较小的一个之外，还有什么技术可以利用这种效果吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/635243/auto-arima-capital-d</guid>
+      <pubDate>Tue, 19 Dec 2023 10:37:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>当方差分析不显着时是否有趋势检验？</title>
+      <link>https://stats.stackexchange.com/questions/635242/is-there-a-test-for-tendency-when-anova-is-not-significant</link>
+      <description><![CDATA[我有一组数据，我认为显示值略有下降，但各组之间没有统计差异。
+在组间没有明显差异的情况下，是否有测试来检查数据是否确实存在趋势？
+我拥有的数据如下：
+&lt;前&gt;&lt;代码&gt;r0 = c(0.128, 0.131, 0.118)
+r1 = c(0.128, 0.132, 0.118)
+r2 = c(0.126, 0.130, 0.117)
+r3 = c(0.125, 0.128, 0.115)
+df = data.frame(x = c(rep(1,3),rep(2,3),rep(3,3),rep(4,3)), y = c(r0,r1,r2,r3 ））
+
+数据图是这样的：
+
+我认为平均值从第一个点到最后一个点有减少 0.003 个单位的趋势：
+&lt;前&gt;&lt;代码&gt;0.1257 0.1260 0.1243 0.1227
+
+但是 ANOVA 检验当然不显着：
+&lt;前&gt;&lt;代码&gt;&gt; oneway.test(y ~ x, data = df, var.equal = TRUE)
+
+    均值单向分析
+
+数据：y 和 x
+F = 0.1458，数字 df = 3，分型 df = 8，p 值 = 0.9295
+
+有没有一个测试可以告诉我这种趋势是真实的还是只是一厢情愿？
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/635242/is-there-a-test-for-tendency-when-anova-is-not-significant</guid>
+      <pubDate>Tue, 19 Dec 2023 10:25:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>狄利克雷分布中的 $x$ 变量和 $\theta$ 参数是什么？ [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/635239/what-are-the-x-variables-and-theta-parameters-in-the-dirichlet-distribution</link>
+      <description><![CDATA[此处描述了狄利克雷分布密度函数 (https://en.wikipedia.org/wiki/ Dirichlet_distribution) 但它的输入是什么（X 和 $\theta$）？
+我们可以将 X 指定为均匀/高斯分布或 $\theta$ 以便从此类输入导出狄利克雷分布吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/635239/what-are-the-x-variables-and-theta-parameters-in-the-dirichlet-distribution</guid>
+      <pubDate>Tue, 19 Dec 2023 09:47:32 GMT</pubDate>
+    </item>
     <item>
       <title>时间序列预测中的数据泄漏被视为监督学习问题</title>
       <link>https://stats.stackexchange.com/questions/635237/data-leakage-in-time-series-forecasting-framed-as-a-supervised-learning-problem</link>
@@ -40,7 +219,7 @@ $$e_{i+1}\leftarrow e_i-\alpha x_i\langle x_i, e_i\rangle$$
       <pubDate>Tue, 19 Dec 2023 06:24:07 GMT</pubDate>
     </item>
     <item>
-      <title>SVM：直观地说，为什么最小化 w 会产生最大的裕度？</title>
+      <title>SVM：直观地说，为什么最小化 w 会产生最大的裕度？ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/635233/svm-intuitively-why-does-minimizing-w-yield-the-greatest-margin</link>
       <description><![CDATA[我理解数学推导，但它对我来说没有直观意义。为什么具有最小参数的决策边界（给定约束）会产生具有最宽余量的决策边界？
 谢谢]]></description>
@@ -89,7 +268,7 @@ AI无效|
       <pubDate>Tue, 19 Dec 2023 05:15:11 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习模型运行不佳</title>
+      <title>机器学习模型运行不佳[关闭]</title>
       <link>https://stats.stackexchange.com/questions/635230/machine-learning-model-not-running-well</link>
       <description><![CDATA[我是机器学习新手，正在 jupyter 中训练一个模型
 下面是我遵循的逐个单元的框架
@@ -126,92 +305,34 @@ AI无效|
       <pubDate>Tue, 19 Dec 2023 04:02:57 GMT</pubDate>
     </item>
     <item>
-      <title>由已知和未知协方差噪声过程之和得出的协方差参数分布</title>
-      <link>https://stats.stackexchange.com/questions/635226/distribution-of-covariance-parameter-resulting-from-sum-of-known-and-unknown-co</link>
-      <description><![CDATA[假设我有一组 $X$ 的 $N$ 随机 $p$ 维向量由 $\mathbf{x}_i = \boldsymbol{\mu} + \Psi_i^{1/2} 生成\boldsymbol{\xi}_i + \Sigma^{1/2} \boldsymbol{\zeta}_i$，其中 $\boldsymbol{\xi}_i，\ ; \boldsymbol{\zeta}_i \sim \mathcal{N}_p(\mathbf{0}, \mathbb{I})$ 是 $p$-variate 标准正态分布噪声过程，且 $\Psi_i$ 和 $\Sigma$ 为 $p \times p$ 协方差矩阵。请注意哪些项有下标：每个向量都有自己的 $\Psi_i$，但它们都共享相同的 $\Sigma$ ；对于每个向量，任一过程生成的噪声都是不同的。
-如果我们知道所有 $\Psi_i$，但是 $\Sigma$ 和 &lt; span class=&quot;math-container&quot;&gt;$\boldsymbol{\mu}$ 未知，有没有办法找到 $\Sigma | X,$ 给定观测数据的 $\Sigma$ 真实值的密度？
-作为一个起点，在更简单的情况下，只有一个未知的噪声过程和 $\mathbf{x}_i = \Sigma^{1/2} \boldsymbol \zeta_i$，我们有 $\Sigma|X \sim \text{inv-Wish}_{p,N-1}(S^{-1} )$，其中 $S = \sum_{i=1}^N (\mathbf{x}_i - \hat{\boldsymbol{\mu}})( \mathbf{x}_i - \hat{\boldsymbol{\mu}})^T$，其中 $\hat{\boldsymbol{\mu}} = \frac{1}{N}\sum_{i = 1}^N \mathbf{x}_i $ 是均值的 MLE，最终导致多元  $t$ - 均值 $\hat{\boldsymbol{\mu}} - \boldsymbol\mu$ 中的误差分布。
-对于大型$N$，很可能只需从原始表达式中减去平均值，两边平方，取期望值，然后对观察值求和就可以了获取
-$\langle S\rangle = \sum_i\Psi_i + N \Sigma$
-因此
-$\Sigma = \frac{1}{N}\left(\langle S\rangle - \sum_i \Psi\right)$,
-但是这种方法当然会在低$N$的情况下遇到麻烦，这是很有可能的，特别是如果$ \Sigma$ 很小，我们可以得到样本方差小于 $\Psi$ 单独建议的样本方差的采样向量，从而风为 $\Sigma$ 提供一个非肯定的确定答案。
-我的直觉是，在这种情况下，我们真正应该知道的是 $\Sigma$ 可能小于 $\frac{1}{N} \sum_i \Psi_i$，并且可能在其之下实现一个不知情的先验。但我真的希望得到一个在这个限制下严格的结果，并且也正确地插入不同的场景。是否有任何可接受的方法可以将这种未知方差的分布与受其影响的数据和具有已知方差的附加噪声过程分开？
-我应该补充一点，我知道确切地获得什么答案可能取决于不知情的先验者的选择；我上面提到的逆威沙特分布来自于使用 Jeffreys 先验密度 $\Sigma \sim |\Sigma|^{-(p+1)/2}$，但我愿意接受其他针对此问题的合理先验建议。]]></description>
-      <guid>https://stats.stackexchange.com/questions/635226/distribution-of-covariance-parameter-resulting-from-sum-of-known-and-unknown-co</guid>
-      <pubDate>Tue, 19 Dec 2023 00:51:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>解释 AutoGluon 表格分类器的文本特征</title>
-      <link>https://stats.stackexchange.com/questions/635223/explaining-text-features-of-autogluon-tabular-classifier</link>
-      <description><![CDATA[我正在训练 AutoGluon 表格分类器。
-我的所有数据都是表格格式，并且大多数特征都是数字。然而，训练中使用的一些特征是文本特征。是否可以解释文本特征如何影响预测？例如，我感兴趣的是是否有任何特定的单词会导致预测发生这样或那样的变化。我试图使用 SHAP 的 KernelExplainer，但我不确定这是否是正确的方法或如何在这种情况下使用它。
-我最初使用 AutoGluon 的 TabularPredictor.feature_importance，但这只能告诉我哪些特征在最终预测中权重最大。然而，权重最高的特征是文本特征。我无法找出 AutoGluon 在该功能中具体查看什么内容来进行预测，无论是特定单词还是其他单词。]]></description>
-      <guid>https://stats.stackexchange.com/questions/635223/explaining-text-features-of-autogluon-tabular-classifier</guid>
-      <pubDate>Mon, 18 Dec 2023 22:43:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>我可以使用两个变量数据集（日期和利率）通过线性回归来预测未来利率吗？ [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/635222/can-i-use-a-two-variable-data-set-date-and-interest-rate-with-linear-regressio</link>
-      <description><![CDATA[我需要使用机器学习算法和一些数据集来预测相似性分数、分类或未来值的任何内容。我找到了一个数据集，其中日期和利率作为唯一的变量，我想用它来预测未来的利率。我将使用 python 和 pandas。]]></description>
-      <guid>https://stats.stackexchange.com/questions/635222/can-i-use-a-two-variable-data-set-date-and-interest-rate-with-linear-regressio</guid>
-      <pubDate>Mon, 18 Dec 2023 22:32:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>Brier 分数和 AUROC 之间有联系吗？</title>
-      <link>https://stats.stackexchange.com/questions/635221/link-between-brier-score-and-auroc</link>
-      <description><![CDATA[关于Brier Score的维基百科文章提到了双向分解：
-$$ BS = CAL + REL $$（校准和可靠性）
-与：
-$$ REL = \frac{1}{N} \sum_{k=1}^{K} n_k * \hat{o_k} * (1 - \hat{ o_k})$$
-其中可靠性与 AUROC 相关。但尚不完全清楚它们之间的关系。谁能澄清这些数量是如何关联的？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635221/link-between-brier-score-and-auroc</guid>
-      <pubDate>Mon, 18 Dec 2023 22:14:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>ROC 综合生物标志物</title>
-      <link>https://stats.stackexchange.com/questions/635204/integrated-biomarkers-for-roc</link>
-      <description><![CDATA[我正在寻找组合多个定量值的方法，以便构建具有特异性和敏感性的 ROC 曲线。这似乎在多种生物标记论文中很常见，但我找不到任何直接的方法来做到这一点。 CombiROC 似乎就是为此而设计的，但是 Shiny 应用程序不再工作，软件包也没有更新，这让我质疑它的用途。
-我从一组具有二元表现（可能是对照与患病）的患者中获得了给定时间点（无随访）的多个蛋白质浓度。单独使用这些蛋白质，我可以构建 ROC 曲线。我发现有些与我的疾病有关。我想进一步推动我的分析，建立一个模型，在其中我可以组合/整合这些标记中的 2 或 3 个，从而完善诊断并获得更好的 AUC/Spe/Sen 值。
-例如，在某个时刻，A 和 B 都升高可能比仅升高 A 的预后更差。
-到目前为止，这就是我发现的方法：我首先构建一个 glm 模型，从中预测落入该组的机会。最后，我通过绘制预测结果与实际结果来计算 ROC。
-#与临床组一起构建 glm（二元结果）
-组合.glm &lt;- glm(数据集$Group1 ~
-                               数据集$分析物1 +
-                               数据集$Analyte2 +
-                               数据集$分析3，
-                               家庭=“二项式”）
-
-#使用模型预测小组结果
-数据集$prob.Group1=预测(Combined.glm,type=c(“响应”))
-
-#建立ROC
-roc&lt;- roc(数据集$Group1, dataset$prob.Group1)
-
-我想知道这是否是正确的方法，如果不是，应该怎么做？
-谢谢！
-编辑：添加说明并重新措辞]]></description>
-      <guid>https://stats.stackexchange.com/questions/635204/integrated-biomarkers-for-roc</guid>
-      <pubDate>Mon, 18 Dec 2023 16:48:22 GMT</pubDate>
+      <title>glmms 中的哪些系列和链接函数？ [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/635206/which-family-and-link-function-in-glmms</link>
+      <description><![CDATA[我正在尝试 GLMM 模型来测试两个分类变量（物种和性别）及其相互作用（性别 + 物种 + 性别*物种 = 固定因素）是否影响某些发声的某些声学参数（响应变量）。我的响应变量是连续数值，例如发声的基本频率或持续时间。因此，我正在为我拥有的每个声学参数尝试不同的 glmm。
+我的响应变量没有正态分布，它们非常不对称，其中一个有两个中央驼峰。
+例如，我尝试过基频，我做了对数变换，并使用伽马或高斯与各种链接函数（对数，逆），但是当我检查假设（正态性，残差的同质性）时，这些没有得到验证。 
+您推荐哪些系列和链接功能？在运行 glmm 之前我应该​​做些什么（例如日志转换、标准化）？ （显然，我在运行模型之前将分类变量转换为因子）
+非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/635206/which-family-and-link-function-in-glmms</guid>
+      <pubDate>Mon, 18 Dec 2023 17:26:39 GMT</pubDate>
     </item>
     <item>
       <title>如何使用 RNA seq 数据查看单个基因的组间差异</title>
       <link>https://stats.stackexchange.com/questions/635184/how-to-look-at-between-group-differences-for-a-single-gene-using-rna-seq-data</link>
-      <description><![CDATA[我有一个 RNA seq 数据集，但我只对单个基因的表达感兴趣并在组之间进行比较（患者表型）。有人建议我使用方差稳定变换并在组之间进行简单的 t 检验，但我不确定这是否是正确的方法；或者甚至，如果应该这样做的话。
-该数据集由 n=50 名患者的 RNA seq 数据组成。我目前正在使用 DESeq2。]]></description>
+      <description><![CDATA[我有一个 RNA seq 数据集，但我只对单个预先指定基因的表达感兴趣，并在两组（患者表型）之间进行比较。有些人建议（没有参考）我使用方差稳定变换并在两组之间进行简单的 t 检验，但我不确定这是否是正确的方法；或者甚至，如果应该这样做的话。
+关于数据：
+该数据集由 n=54 名患者的 RNA seq 数据的计数矩阵 [14936 x 54] 组成。我目前正在使用 DESeq2。代码如下所示：
+&lt;前&gt;&lt;代码&gt;## DESeq
+temp &lt;- DESeqDataSetFromMatrix(countData = data_combined$Counts,
+                                   colData = data_combined$元数据，
+                                   设计=〜combined_atomy，
+                                   整洁=F)
+
+temp &lt;- DESeq(temp)
+vsd &lt;- vst(temp,blind=FALSE)
+
+此后，我从单个基因 (MUC5AC) 中获取数据，并对两组患者进行 t 检验。]]></description>
       <guid>https://stats.stackexchange.com/questions/635184/how-to-look-at-between-group-differences-for-a-single-gene-using-rna-seq-data</guid>
       <pubDate>Mon, 18 Dec 2023 12:26:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>找到偏度和峰度互不依赖的分布。这还有道理吗？</title>
-      <link>https://stats.stackexchange.com/questions/635122/finding-a-distribution-where-skewness-and-kurtosis-do-not-depend-on-each-other</link>
-      <description><![CDATA[我正在模拟非正态数据，以研究这如何影响一些假定正态性的诊断方法。我特别感兴趣的是了解偏度和峰度如何影响结果。
-我已经使用偏态正态分布和伽马分布研究了偏态，但想在此基础上更改峰度。不幸的是，这不适用于这两个分布，因为偏度和峰度取决于相同的参数。
-到目前为止，我发现的最好的结果是“skewt”包中倾斜的学生 t 分布。在 R 中。 https://cran.r-project.org/web/包/skewt/skewt.pdf
-从表面上看，这似乎符合我的预期：给定一个恒定的偏斜参数，当我改变自由度时，可见的偏斜度不会改变（峰值保持在原位）。然而，它也存在自己的问题，因为我还无法计算给定伽玛值的峰度，并且负峰度不可能实现。
-还有其他我可以使用的发行版吗？我问的还有道理吗？我的一部分认为它没有给出矩的峰度和偏度的定义，但似乎应该可以在仅“提升”时保持给定的偏度。或“沉没”尾巴，就像以前一样。]]></description>
-      <guid>https://stats.stackexchange.com/questions/635122/finding-a-distribution-where-skewness-and-kurtosis-do-not-depend-on-each-other</guid>
-      <pubDate>Sun, 17 Dec 2023 16:03:45 GMT</pubDate>
     </item>
     </channel>
 </rss>
