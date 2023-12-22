@@ -4,9 +4,177 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 22 Dec 2023 12:24:47 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 22 Dec 2023 15:13:47 GMT</lastBuildDate>
     <item>
-      <title>Flask 应用程序返回 None</title>
+      <title>对新数据集进行预测</title>
+      <link>https://stackoverflow.com/questions/77704141/make-prediction-on-new-data-set</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77704141/make-prediction-on-new-data-set</guid>
+      <pubDate>Fri, 22 Dec 2023 14:13:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用变分自动编码器预测向量？</title>
+      <link>https://stackoverflow.com/questions/77703881/how-can-i-predict-a-vector-using-varational-autoencoder</link>
+      <description><![CDATA[我找到了这段代码，但我不明白。我想训练我的模型来找到 Y 的值，但我不会将 Y 作为输入。就像我想让学习 (X,Y)
+但学习后使用X找到Y
+我应该改变什么？
+这是我的代码：
+&lt;前&gt;&lt;代码&gt;# %% [代码]
+从 keras.layers 导入 Lambda、输入、密集、重塑、重复向量、丢弃
+从 keras.models 导入模型
+从 keras.datasets 导入 mnist
+从 keras.losses 导入 mse，binary_crossentropy
+从 keras.utils 导入plot_model
+从 keras 导入后端为 K
+从 keras.constraints 导入 unit_norm, max_norm
+将张量流导入为 tf
+
+从 scipy 导入统计数据
+将 pandas 导入为 pd
+将 numpy 导入为 np
+导入 matplotlib
+将 matplotlib.pyplot 导入为 plt
+导入argparse
+导入操作系统
+从 sklearn.manifold 导入 MDS
+从 sklearn.model_selection 导入 StratifiedKFold
+从 sklearn.metrics 导入mean_squared_error, r2_score
+从 keras.layers 导入输入、密集、扁平化、Lambda、Conv1D、BatchNormalization、MaxPooling1D、激活
+从 keras.models 导入模型
+将 keras.backend 导入为 K
+将 numpy 导入为 np
+
+从 mpl_toolkits.mplot3d 导入 Axes3D
+
+
+
+# 重新参数化技巧
+# 采样 eps = N(0,I)，而不是从 Q(z|X) 采样
+# z = z_mean + sqrt(var)*eps
+def 采样（参数）：
+    “”“通过对各向同性单位高斯进行采样来重新参数化技巧。
+    # 参数：
+        args（张量）：Q(z|X) 的方差均值和对数
+    # 返回：
+        z（张量）：采样的潜在向量
+    ”“”
+
+    z_mean、z_log_var = args
+    批次 = K.shape(z_mean)[0]
+    暗淡 = K.int_shape(z_mean)[1]
+    # 默认情况下，random_normal 的mean=0 和std=1.0
+    epsilon = K.random_normal(shape=(batch, dim))
+    thre = K.random_uniform(shape=(batch,1))
+    返回 z_mean + K.exp(0.5 * z_log_var) * epsilon
+
+
+
+# 加载我的数据
+训练特征 = X
+训练特征.形状
+
+ground_truth_r = Y
+
+np.random.seed(种子=0)
+
+原始尺寸 = 32
+num_train = 训练特征.shape[0]
+
+
+
+
+## 构建 VAE 回归模型
+输入形状_x = (32, )
+输入形状_r = (16, )
+
+中间暗度 = 32
+批量大小 = 64
+潜伏暗度 = 32
+历元 = 100
+
+# VAE模型=编码器+解码器
+# 构建编码器模型
+input_r = 输入（形状=input_shape_r，名称=&#39;ground_truth&#39;）
+input_x = 输入（形状=input_shape_x，名称=&#39;encoder_input&#39;）
+input_x_dropout = Dropout(0.25)(inputs_x)
+
+inter_x1 = 密集（128，激活=&#39;tanh&#39;，名称=&#39;encoder_intermediate&#39;）（inputs_x_dropout）
+inter_x2 = 密集（intermediate_dim，激活=&#39;tanh&#39;，名称=&#39;encoder_intermediate_2&#39;）（inter_x1）
+
+# Y 的后验；概率回归器
+r_mean = 密集(16, name=&#39;r_mean&#39;)(inter_x2)
+r_log_var = 密集(16, name=&#39;r_log_var&#39;)(inter_x2)
+
+# q(z|x)
+z_mean = 密集（latent_dim，名称=&#39;z_mean&#39;）（inter_x2）
+z_log_var = 密集（latent_dim，名称=&#39;z_log_var&#39;）（inter_x2）
+
+# 使用重新参数化技巧将采样作为输入推出
+z = Lambda(采样, output_shape=(latent_dim,), name=&#39;z&#39;)([z_mean, z_log_var])
+r = Lambda(采样, output_shape=(16,), name=&#39;r&#39;)([r_mean, r_log_var])
+
+# 潜在生成器（简化）
+pz_mean = 密集(latent_dim, name=&#39;pz_mean&#39;,kernel_constraint=unit_norm())(r)
+# pz_log_var = Dense(1, name=&#39;pz_log_var&#39;)(r)
+
+# 实例化编码器模型
+编码器 = 模型([inputs_x,inputs_r], [z_mean, z_log_var, z, r_mean, r_log_var, r, pz_mean], name=&#39;编码器&#39;)
+#encoder.summary()
+
+# 构建解码器模型
+Latent_inputs = 输入（形状=（latent_dim，），名称=&#39;z_sampling&#39;）
+inter_y1 = 密集（intermediate_dim，激活=&#39;tanh&#39;）（latent_inputs）
+inter_y2 = 密集（128，激活=&#39;tanh&#39;）（inter_y1）
+输出 = 密集（original_dim）（inter_y2）
+
+# 实例化解码器模型
+解码器=模型（latent_inputs，输出，名称=&#39;解码器&#39;）
+#解码器.summary()
+#plot_model(解码器, to_file=&#39;vae_mlp_decoder.png&#39;, show_shapes=True)
+
+# 实例化VAE模型
+输出 = 解码器(编码器([inputs_x,inputs_r])[2])
+vae = 模型([inputs_x,inputs_r], 输出, name=&#39;vae_mlp&#39;)
+#vae.summary()
+vae.compile（优化器=&#39;adam&#39;，损失=&#39;mean_squared_error&#39;）
+
+历史记录 = vae.fit([X,Y],X, epochs=800, batch_size=100, shuffle=True,validation_data=([XX,YY],XX))
+
+
+
+
+# 保存模型
+编码器.save(“BrmEnco Third.h5”)
+解码器.save(“BrmDeco Third.h5”)
+vae.save(“BrmAuto Third.h5”)
+
+# 可视化学习图、损失和验证指标
+plt.figure(figsize=(8, 4))
+
+# 情节训练&amp;验证损失值
+plt.plot(history.history[&#39;loss&#39;], label=&#39;训练损失&#39;)
+plt.plot(history.history[&#39;val_loss&#39;], label=&#39;验证损失&#39;)
+plt.title(&#39;训练和验证损失&#39;)
+plt.ylabel(&#39;损失&#39;)
+plt.xlabel(&#39;纪元&#39;)
+plt.图例()
+plt.show()
+
+# 绘图精度（如果适用，请取消注释）
+# plt.figure(figsize=(8, 4))
+# plt.plot(history.history[&#39;准确性&#39;])
+# plt.plot(history.history[&#39;val_accuracy&#39;])
+# plt.title(&#39;模型准确率&#39;)
+# plt.ylabel(&#39;准确率&#39;)
+# plt.xlabel(&#39;纪元&#39;)
+# plt.legend([&#39;训练&#39;, &#39;验证&#39;], loc=&#39;右下&#39;)
+# plt.show()
+]]></description>
+      <guid>https://stackoverflow.com/questions/77703881/how-can-i-predict-a-vector-using-varational-autoencoder</guid>
+      <pubDate>Fri, 22 Dec 2023 13:21:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Flask 应用程序返回 None [关闭]</title>
       <link>https://stackoverflow.com/questions/77703234/flask-application-returns-none</link>
       <description><![CDATA[这是一个根据鸢尾花的属性对鸢尾花进行分类的 Web 应用程序。
 这里是 GitHub 链接 运行代码时，预测路由不会将值推送到输出路径。
@@ -22,7 +190,7 @@ output.html 呈现如下：
     <item>
       <title>ValueError：微调 LLM 时需要解包的值太多（预期为 2）</title>
       <link>https://stackoverflow.com/questions/77702885/valueerror-too-many-values-to-unpack-expected-2-when-fine-tuning-an-llm</link>
-      <description><![CDATA[我对大型语言模型 (LLM) 比较陌生，目前正在学习如何对其进行微调。但是，无论我如何修改数据处理方法，在微调过程中执行 Trainer.train() 时都会遇到一致的错误。错误如下：
+      <description><![CDATA[我正在学习如何微调法学硕士。但是，无论我如何修改数据处理方法，在微调过程中执行 Trainer.train() 时都会遇到一致的错误。错误如下：
 &lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
 ValueError Traceback（最近一次调用最后一次）
 &lt;ipython-input-11-3435b262f1ae&gt;在&lt;细胞系：1&gt;()
@@ -44,9 +212,67 @@ ValueError：需要解压的值太多（预期为 2）
  &#39;attention_mask&#39;: 张量([[1, 1, 1, ... 0, 0]])}
 
 
-有人可以帮我确定问题可能出在哪里吗？任何指导或建议将不胜感激。
-预先感谢您的帮助和时间！
-我一直在搜索各种文章和教程，寻找一种有效处理这种数据格式以进行LLM微调的方法，但到目前为止，我尝试过的方法都没有成功。]]></description>
+我正在使用格式如下的数据集：
+&lt;前&gt;&lt;代码&gt;{
+“id”：“聊天1”，
+“对话”：[
+{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;你好，你好吗？&quot;},
+{“角色”：“助理”，“内容”：“我做得很好。今天我能为您提供什么帮助吗？”},
+{“角色”：“用户”，“内容”：“我想展示聊天模板的工作原理！”}
+]
+}
+
+这是我的脚本：
+导入json
+从变压器导入 AutoTokenizer、AutoModelForCausalLM、Trainer、TrainingArguments
+从 torch.utils.data 导入数据集
+进口火炬
+
+file_path = &#39;/content/gdrive/MyDrive/kirin.json&#39;
+以 open(file_path, &#39;r&#39;) 作为文件：
+    数据 = json.load(文件)
+
+tokenizer = AutoTokenizer.from_pretrained(“/content/gdrive/MyDrive/ColabNotebooks/Taiwan-LLM-7B-v2.0.1-chat”)
+模型 = AutoModelForCausalLM.from_pretrained(“/content/gdrive/MyDrive/ColabNotebooks/Taiwan-LLM-7B-v2.0.1-chat”)
+
+def format_conversation（对话）：
+    格式化=“”
+    轮流对话[&#39;对话&#39;]：
+        格式化+=转[&#39;角色&#39;]+&quot;:&quot; + 转[&#39;内容&#39;] + &quot;\n&quot;
+    返回格式化的.strip()
+
+formatted_data = [数据中的转换的format_conversation(conv)]
+
+类 ConversationDataset（数据集）：
+    def __init__(自身、转换、分词器、max_length=512):
+        self.tokenizer = 分词器
+        self.inputs = [tokenizer(text, return_tensors=“pt”, max_length=max_length, truncation=True, padding=“max_length”) 用于转换中的文本]
+
+    def __len__(自身):
+        返回 len(self.inputs)
+
+    def __getitem__(self, idx):
+        返回 self.inputs[idx]
+
+数据集 = ConversationDataset(formatted_data, tokenizer)
+
+训练参数 = 训练参数（
+    output_dir=&quot;./llama2-finetuned&quot;,
+    num_train_epochs=3,
+    per_device_train_batch_size=1,
+    保存步骤=10_000,
+    save_total_limit=2,
+）
+
+教练=教练（
+    型号=型号，
+    参数=训练参数，
+    train_dataset=数据集
+）
+训练师.train()
+
+
+]]></description>
       <guid>https://stackoverflow.com/questions/77702885/valueerror-too-many-values-to-unpack-expected-2-when-fine-tuning-an-llm</guid>
       <pubDate>Fri, 22 Dec 2023 09:48:31 GMT</pubDate>
     </item>
@@ -293,26 +519,9 @@ Vue 评论
       <link>https://stackoverflow.com/questions/77701763/can-anyone-suggest-a-better-machine-learning-algorithm</link>
       <description><![CDATA[你能建议一个更好的算法吗？
 我有一个数据集，有 29 个输入和 1 个输出。目前训练数据集由 2242 行组成。
-我尝试了几种算法，最好的算法是高斯过程回归指数 GP2(R^2=0.50) 。你能建议一个更好的算法吗？
-如果需要，我可以与您分享数据集。我感谢任何帮助。]]></description>
+我尝试了几种算法，最好的算法是高斯过程回归指数 GP2(R^2=0.50)。你能提出更好的算法吗？]]></description>
       <guid>https://stackoverflow.com/questions/77701763/can-anyone-suggest-a-better-machine-learning-algorithm</guid>
       <pubDate>Fri, 22 Dec 2023 05:01:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>GPT4/gpt 3.5 turb0 的支持/置信度得分 [关闭]</title>
-      <link>https://stackoverflow.com/questions/77700790/support-confidence-score-for-gpt4-gpt-3-5-turb0</link>
-      <description><![CDATA[计算以下 API 输出的置信度得分的方法或过程：
- openai.ChatCompletion.create
-有没有办法使用azure open ai api接收置信度分数目前没有提供置信度值的open ai api]]></description>
-      <guid>https://stackoverflow.com/questions/77700790/support-confidence-score-for-gpt4-gpt-3-5-turb0</guid>
-      <pubDate>Thu, 21 Dec 2023 22:10:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>人工神经网络实施中的故障排除</title>
-      <link>https://stackoverflow.com/questions/77700758/troubleshooting-issues-in-artificial-neural-network-implementation</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77700758/troubleshooting-issues-in-artificial-neural-network-implementation</guid>
-      <pubDate>Thu, 21 Dec 2023 22:01:55 GMT</pubDate>
     </item>
     <item>
       <title>保存 jit 跟踪时 SwishImplementation 错误</title>
@@ -342,7 +551,7 @@ model.save(&#39;model.pt&#39;)
 AutoModelForCausalLM 和 AutoTokenizer 使用 DialoGPT 生成文本输出。
 无论出于何种原因，即使使用 Huggingface 提供的示例，我也会收到此警告：
 &lt;块引用&gt;
-正在使用仅解码器架构，但检测到右填充！为了正确的生成结果，请在初始化分词器时设置 padding_side=&#39;left&#39;。
+正在使用仅解码器架构，但检测到右填充！为了获得正确的生成结果，请在初始化分词器时设置 padding_side=&#39;left&#39;。
 
 从变压器导入 AutoModelForCausalLM, AutoTokenizer
 进口火炬
@@ -367,7 +576,7 @@ tokenizer = AutoTokenizer.from_pretrained(“microsoft/DialoGPT-medium”)
 
 代码由 微软在 Huggingface 的模型卡上
 我尝试将 padding_side=&#39;left&#39; 添加到标记生成器，但这不会改变任何内容。
-显然（从一些阅读来看）DialoGPT 无论如何都希望在右侧填充？
+显然（从一些阅读来看）DialoGPT 想要在右侧填充？
 我无法弄清楚这一点，当我尝试谷歌搜索时几乎没有结果。
 我能够像这样抑制警告：
 from Transformers.utils 导入日志记录
@@ -386,14 +595,14 @@ from Transformers.utils 导入日志记录
 但是，pyTorch教程中提到的广告，我不明白为什么要使用测试集的洗牌，如下所示：
 test_dataloader = DataLoader(test_data,batch_size=64,shuffle=True)
 
-在什么情况下这会有用？]]></description>
+什么情况下这会有用？]]></description>
       <guid>https://stackoverflow.com/questions/72294686/why-would-you-shuffle-the-test-dataset</guid>
       <pubDate>Wed, 18 May 2022 19:05:02 GMT</pubDate>
     </item>
     <item>
       <title>为什么每个 epoch 之后损失都会突然下降？</title>
       <link>https://stackoverflow.com/questions/57248723/why-there-is-sudden-drop-in-loss-after-every-epoch</link>
-      <description><![CDATA[我在小批量中使用自定义损失函数（三元组损失），在纪元期间，损失逐渐减少，但在每个纪元之后，损失会突然下降（约下降的 10％），然后在期间逐渐减少那个时代（忽略准确性）。正常吗？
+      <description><![CDATA[我正在小批量中使用自定义损失函数（三元组损失），在纪元期间，损失逐渐减少，但在每个纪元之后，损失会突然下降（约下降的 10％），然后在期间逐渐减少那个时代（忽略准确性）。正常吗？
 对此问题的每一个答案和参考都将受到赞赏。
 纪元 1/5
 198/198 [================================] - 3299s 17s/步 - 损失：0.2500 - 加速：0.0014
