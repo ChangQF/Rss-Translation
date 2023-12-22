@@ -4,13 +4,382 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 22 Dec 2023 15:13:47 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 22 Dec 2023 18:17:01 GMT</lastBuildDate>
+    <item>
+      <title>输入数据耗尽，中断张量流训练</title>
+      <link>https://stackoverflow.com/questions/77705086/input-ran-out-of-data-interrupting-training-in-tensorflow</link>
+      <description><![CDATA[我正在从事肿瘤分割工作，图像是 nifti 格式的 3D（MRI 图像）。我创建了一个数据生成器，因为如果我将完整数据集上传到 RAM，它会因 3D 图像而崩溃。该数据集由611张图像组成，尺寸为（240,240,160），计算时的块数为61000和11375
+这是我的数据管道：
+&lt;前&gt;&lt;代码&gt;
+def load_nifti_image(文件路径, patch_size=(48, 48, 32), step_size=(48, 48, 32)):
+    nifti = nib.load(文件路径)
+    体积 = nifti.get_fdata()
+
+    # 从卷创建补丁
+    补丁 = patchify(体积, patch_size, 步骤=step_size)
+
+    # 重塑 patch 相乘 (5, 5, 5) 并添加通道维度（1 表示灰度）
+    补丁 = patchs.reshape(-1, *patches.shape[-3:])
+    补丁= np.expand_dims（补丁，轴=-1）
+
+    返回补丁
+
+＃  -  -  -  -  -  -  -  -  -  -  - -火车 -  -  -  -  -  -  -  -  -  -  - -
+nifti_files = [os.path.join(“/content/drive/MyDrive/Interpolated/train/images”, f) for f in os.listdir(“/content/drive/MyDrive/Interpolated/train/images”) if f.endswith(&#39;.nii.gz&#39;)]
+mask_files = [os.path.join(“/content/drive/MyDrive/Interpolated/train/masks”, f) for f in os.listdir(“/content/drive/MyDrive/Interpolated/train/masks”) if f.endswith(&#39;.nii.gz&#39;)]
+
+ ＃  -  -  -  -  -  -  -  -  -  -  - -验证 -  -  -  -  -  -  -  -  -  -  - -
+nifti_files_val = [os.path.join(&quot;/content/drive/MyDrive/Interpolated/validation/images&quot;, f) for f in os.listdir(&quot;/content/drive/MyDrive/Interpolated/validation/images&quot;) if f.endswith(&#39;.nii.gz&#39;)]
+mask_files_val = [os.path.join(“/content/drive/MyDrive/Interpolated/validation/masks”, f) for f in os.listdir(“/content/drive/MyDrive/Interpolated/validation/masks”) if f.endswith(&#39;.nii.gz&#39;)]
+
+defcalculate_patches(文件路径, patch_size=(48, 48, 32), step_size=(48, 48, 32)):
+    nifti = nib.load(文件路径)
+    体积 = nifti.get_fdata()
+
+    # 计算补丁数量
+    patch_shape = [((i - p) // s) + 1 for i, p, s in zip(volume.shape, patch_size, step_size)]
+    num_patches = np.prod(patches_shape)
+
+    返回 num_patches
+
+num_train_patches = sum(calculate_patches(f) for i, f in enumerate(nifti_files) if print(f“处理文件 {i}...”) 为 None)
+num_val_patches = sum(calculate_patches(f) for i, f in enumerate(nifti_files_val) if print(f“处理文件 {i}...”) 为 None)
+
+def data_generator(image_files, mask_files):
+    对于 zip(image_files, mask_files) 中的 img_file、mask_file：
+        image_patches = load_nifti_image(img_file)
+        mask_patches = load_nifti_image(mask_file)
+
+        对于 zip(image_patches, mask_patches) 中的 img_patch、mask_patch：
+            产量 img_patch, mask_patch
+
+train_generator = data_generator(nifti_files, mask_files)
+val_generator = data_generator(nifti_files_val, mask_files_val)
+
+输出签名 = (
+    tf.TensorSpec(形状=(48, 48, 32, 1), dtype=tf.float64),
+    tf.TensorSpec(形状=(48, 48, 32, 1), dtype=tf.float64)
+）
+
+数据集= tf.data.Dataset.from_generator（lambda：train_generator，output_signature=output_signature）.repeat（）
+dataset_val = tf.data.Dataset.from_generator(lambda: val_generator, output_signature=output_signature).repeat()
+
+数据集=数据集.batch(32)
+dataset_val = dataset_val.batch(32)
+
+test_model.fit（数据集，validation_data=dataset_val，epochs=100，steps_per_epoch=num_train_patches//32，validation_steps=num_val_patches//32）
+
+
+我添加了 .repeat() 希望它能有所帮助，但事实并非如此。
+我还尝试计算补丁的数量并手动插入它们，但它也不起作用。
+这是完整的回溯：
+&lt;前&gt;&lt;代码&gt;
+纪元 1/100
+1906/1906 [================================] - 1963s 1s/步 - 损失：0.6447 - dice_coefficient：0.3553 - val_loss ：0.9113 - val_dice_系数：0.0887
+纪元 2/100
+   1/1906 [......................................] - 预计到达时间：10:17 - 损失：1.0000 - dice_coefficient：1.7961e -05
+
+警告：tensorflow：您的输入数据不足；中断训练。确保您的数据集或生成器可以生成至少“steps_per_epoch * epochs”批次（在本例中为 190600 个批次）。构建数据集时，您可能需要使用 Repeat() 函数。
+警告：tensorflow：您的输入数据不足；中断训练。确保您的数据集或生成器可以生成至少“steps_per_epoch * epochs”批次（在本例中为 355 个批次）。构建数据集时，您可能需要使用 Repeat() 函数。
+
+1906/1906 [================================] - 0s 31us/步 - 损失：1.0000 - dice_coefficient：1.7961e- 05
+
+````
+]]></description>
+      <guid>https://stackoverflow.com/questions/77705086/input-ran-out-of-data-interrupting-training-in-tensorflow</guid>
+      <pubDate>Fri, 22 Dec 2023 17:43:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>在本地计算机上使用 jupyter lab 时卡在 train_data_loader 中</title>
+      <link>https://stackoverflow.com/questions/77704959/stuck-in-the-train-data-loader-while-using-jupyter-lab-on-local-machine</link>
+      <description><![CDATA[已经过去几个小时了，但我的代码根本没有运行，在任务管理器的 CPU 资源中，它显示 python 使用的资源为零。
+在kaggle笔记本中使用相同的代码时，它工作得很好。
+这是什么问题。
+&lt;前&gt;&lt;代码&gt;
+# 训练数据集样本
+对于图像，目标在 (train_data_loader) 中：
+    休息
+images = list(image.to(device) 用于图像中的图像)
+目标 = [{k: v.to(device) for k, v in t.items()} for t in Targets]
+
+对于 random.sample([1,2,3],3) 中的数字：
+  框 = 目标[数字][&#39;框&#39;].cpu().numpy().astype(np.int32)
+  img = 图片[数字].permute(1,2,0).cpu().numpy()
+  标签=目标[数字][&#39;标签&#39;].cpu().numpy().astype(np.int32)
+  图, ax = plt.subplots(1, 1, Figsize=(16, 8))
+
+  对于范围内的 i(len(boxes))：
+      img = cv2.rectangle(img,(boxes[i][0]+paddingSize,boxes[i][1]+paddingSize),(boxes[i][2]+paddingSize,boxes[i][3]+paddingSize ),(255,0,0),2)
+      #print(le.inverse_transform([labels[i]-1])[0])
+      #print(label_to_name(标签[i]), (int(boxes[i][0]), int(boxes[i][1])))
+      img = cv2.putText(img, label_to_name(labels[i]), (int(boxes[i][0]), int(boxes[i][1])), cv2.FONT_HERSHEY_TRIPLEX,1, (255,0 ,0), 2, cv2.LINE_AA)
+
+  ax.set_axis_off()
+  斧头.imshow(img)
+
+训练数据加载器代码：
+# 将数据集拆分为训练集和测试集
+索引 = torch.randperm(len(train_dataset)).tolist()
+# 创建训练并验证数据加载器
+train_data_loader = 数据加载器(
+    训练数据集，
+    批量大小=8，
+    随机播放=真，
+    工人数=12，
+    collat​​e_fn=整理_fn
+）
+
+valid_data_loader = 数据加载器(
+    有效数据集，
+    批量大小=8，
+    随机播放=假，
+    工人数=12，
+    collat​​e_fn=整理_fn
+）
+
+创建数据集的代码
+class MalariaDataset(torch.utils.data.Dataset)：
+    def __init__(自身、数据、变换=无):
+        超级().__init__()
+        ”“”
+        输入
+            数据：数据框
+            转换：撰写或列表
+                Torchvision 图像转换。
+        ”“”
+        self.data = 数据
+        self.transforms = 变换
+        self.label_dict = label_dict
+    def __getitem__(self, idx):
+        img_path = self.data.pathname.unique()[idx]
+        
+        ann_df = self.data[self.data.pathname == img_path]
+        
+        图像 = plt.imread(img_path)*255
+        
+            
+        盒子=[]
+        标签=[]
+        对于 _，ann_df.iterrows() 中的行：
+            x1 = 行[&#39;x1&#39;]
+            y1 = 行[&#39;y1&#39;]
+            x2 = 行[&#39;x2&#39;]
+            y2 = 行[&#39;y2&#39;]
+            标签=行[&#39;类名&#39;]
+            
+            box.append([x1, y1, x2, y2])
+            labels.append(标签)
+            
+        盒子 = np.array(盒子)
+        面积 = (盒子[:, 3] - 盒子[:, 1]) * (盒子[:, 2] - 盒子[:, 0])
+        面积 = torch.as_tensor(面积, dtype=torch.float32)
+        
+        标签 = torch.as_tensor(标签, dtype=torch.int64)
+            
+        
+        目标={}
+        目标[&#39;盒子&#39;] = 盒子
+        目标[&#39;标签&#39;] = 标签
+        目标[&#39;区域&#39;] = 区域
+        如果自我变换：
+            样本={
+                    “图像”：图像，
+                    &#39;bboxes&#39;：目标[&#39;boxes&#39;]，
+                    ‘标签’：标签
+            }
+            样本 = self.transforms(**样本)
+            图像 = 样本[&#39;图像&#39;]
+            
+        
+            target[&#39;boxes&#39;] = torch.tensor(sample[&#39;bboxes&#39;])
+        返回（图像，目标）
+    def __len__(自身):
+        返回 self.data.pathname.unique().shape[0]
+
+
+我尝试使用 Kaggle 笔记本，代码运行良好]]></description>
+      <guid>https://stackoverflow.com/questions/77704959/stuck-in-the-train-data-loader-while-using-jupyter-lab-on-local-machine</guid>
+      <pubDate>Fri, 22 Dec 2023 17:09:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>NLP 模型从未下载过</title>
+      <link>https://stackoverflow.com/questions/77704834/nlp-model-never-downloaded</link>
+      <description><![CDATA[我正在 Mac (M1 Max) 上工作并尝试一些文本增强技术。然而，当我尝试进行一些嵌入时，我的 Python 被卡住了，无法下载任何内容 —— 等待 30 分钟后，它仍然是 0%。您知道为什么会发生这种情况以及如何解决吗？谢谢。
+]]></description>
+      <guid>https://stackoverflow.com/questions/77704834/nlp-model-never-downloaded</guid>
+      <pubDate>Fri, 22 Dec 2023 16:40:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>仅根据读数进行传感器故障检测（气象站传感器）</title>
+      <link>https://stackoverflow.com/questions/77704713/fault-detection-of-sensors-based-on-their-readings-alone-weather-station-sensor</link>
+      <description><![CDATA[需要帮助，尤其是那些了解天气系统/气象学的人。
+如何仅根据读数来检测有故障的天气传感器？
+我正在做一个关于气象站使用的故障传感器的检测和预测的项目，以改进维护和优化调度。
+我见过一些研究使用电池电量、通信状态和温度等操作数据来检测故障。对于工业机器尤其如此。他们使用传感器来读取这些机器的温度、振动、旋转等。他们还具有标记数据，例如机器/设备当前是否正在运行。
+如果我的气象站数据集没有上述数据，我该怎么办？
+由于我们当地气象机构的保密问题，我也没有维护数据。我只能访问历史天气数据，其中包含感测到的实际物理现象的值（温度、湿度等）
+异常检测会起作用，但我在想它是否真的那么准确，因为突然下雨会影响温度、湿度、风速值可能会使模型感到困惑，因为传感器有故障。
+如果我听起来很菜鸟，请原谅我，因为这只是我的第二个机器学习项目。
+数据集看起来像这样（每个站）
+
+&lt;表类=“s-表”&gt;
+&lt;标题&gt;
+
+时间戳
+温度
+潮湿
+
+
+&lt;正文&gt;
+
+12/24/23 00:00:00
+28.4
+10.1
+
+
+12/24/23 00:00:10
+28.5
+10.2
+
+
+12/24/23 00:00:20
+28.3
+11.8
+
+
+
+
+我尝试过异常检测，但还没有产生一个好的模型，因为我仍处于练习阶段。]]></description>
+      <guid>https://stackoverflow.com/questions/77704713/fault-detection-of-sensors-based-on-their-readings-alone-weather-station-sensor</guid>
+      <pubDate>Fri, 22 Dec 2023 16:15:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>Resnet34第一层7x7或3x3</title>
+      <link>https://stackoverflow.com/questions/77704426/resnet34-first-layer-7x7-or-3x3</link>
+      <description><![CDATA[我一直在尝试使用 pytorch 实现 Resnet34，但在查看其他实现时，我发现其中一些具有 3x3 卷积层 + bn + relu 作为第一层。然而，架构图上却写着7x7/2的卷积层。我真的很困惑哪一个是正确的。顺便说一下，我正在 CIFAR10 上进行训练，目前使用 7x7 卷积层经过 100 个周期后获得了 0.9 的准确率。
+谢谢！
+架构图
+self.input_layer = nn.Sequential(
+nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,bias=False),
+nn.BatchNorm2d(64),
+ReLU(),
+nn.MaxPool2d(3, 步长=2, 填充=1)
+）
+
+这是我的第一个卷积层的代码。]]></description>
+      <guid>https://stackoverflow.com/questions/77704426/resnet34-first-layer-7x7-or-3x3</guid>
+      <pubDate>Fri, 22 Dec 2023 15:14:50 GMT</pubDate>
+    </item>
     <item>
       <title>对新数据集进行预测</title>
       <link>https://stackoverflow.com/questions/77704141/make-prediction-on-new-data-set</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77704141/make-prediction-on-new-data-set</guid>
       <pubDate>Fri, 22 Dec 2023 14:13:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>卷积神经网络不学习</title>
+      <link>https://stackoverflow.com/questions/77704108/convolutional-neural-network-not-learning</link>
+      <description><![CDATA[我正在尝试在包含 1500 张图像（15 个类别）的训练集上训练用于图像识别的卷积神经网络。有人告诉我，采用这种架构和从均值为 0、标准差为 0.01 的高斯分布得出的初始权重以及初始偏差值为 0 的情况，在适当的学习率下，它的准确度应该达到 30 左右%。
+但是，它根本没有学到任何东西：准确度与随机分类器相似，并且训练后的权重仍然遵循正态分布。我做错了什么？
+这是神经网络
+class simpleCNN(nn.Module)：
+  def __init__(自身):
+    super(simpleCNN,self).__init__() #初始化模型
+
+    self.conv1=nn.Conv2d(in_channels=1,out_channels=8,kernel_size=3,stride=1) #输出图像大小为(size+2*padding-kernel)/stride --&gt;62*62
+    self.relu1=nn.ReLU()
+    self.maxpool1=nn.MaxPool2d(kernel_size=2,stride=2) #输出图像62/2--&gt;31*31
+
+    self.conv2=nn.Conv2d(in_channels=8,out_channels=16,kernel_size=3,stride=1) #输出图像为29*29
+    self.relu2=nn.ReLU()
+    self.maxpool2=nn.MaxPool2d(kernel_size=2,stride=2) #输出图像为29/2--&gt;14*14（MaxPool2d近似大小与floor）
+
+    self.conv3=nn.Conv2d(in_channels=16,out_channels=32,kernel_size=3,stride=1) #输出图像为12*12
+    self.relu3=nn.ReLU()
+
+    self.fc1=nn.Linear(32*12*12,15) #16 个通道 * 16*16 图像（64*64，步幅为 2 的 2 个 maxpooling），15 个输出特征=15 个类
+    self.softmax = nn.Softmax(dim=1)
+
+  def 前向（自身，x）：
+    x=self.conv1(x)
+    x=self.relu1(x)
+    x=self.maxpool1(x)
+
+    x=self.conv2(x)
+    x=self.relu2(x)
+    x=self.maxpool2(x)
+
+    x=self.conv3(x)
+    x=self.relu3(x)
+
+    x=x.view(-1,32*12*12)
+
+    x=self.fc1(x)
+    x=self.softmax(x)
+
+    返回x
+
+初始化：
+def init_weights(m):
+  如果 isinstance(m,nn.Conv2d) 或 isinstance(m,nn.Linear)：
+    nn.init.normal_(m.weight,0,0.01)
+    nn.init.zeros_(m.bias)
+
+模型 = simpleCNN()
+模型.应用（init_weights）
+
+训练函数：
+loss_function=nn.CrossEntropyLoss()
+优化器=optim.SGD(model.parameters(),lr=0.1,动量=0.9)
+
+def train_one_epoch(epoch_index,loader):
+  运行损失=0
+
+  对于 i，枚举（加载器）中的数据：
+
+    input,labels=data #获取小批量
+    输出=模型（输入）#前向传递
+
+    loss=loss_function(outputs,labels) #计算损失
+    running_loss+=loss.item() #总结到目前为止处理的小批量的损失
+
+    Optimizer.zero_grad() #重置梯度
+    loss.backward() #计算梯度
+    optimizer.step() #更新权重
+
+  return running_loss/(i+1) # 每个小批量的平均损失
+
+
+培训：
+&lt;前&gt;&lt;代码&gt;纪元=20
+
+best_validation_loss=np.inf
+
+对于范围内的纪元（EPOCHS）：
+  print(&#39;纪元{}:&#39;.format(纪元+1))
+
+  模型.train(True)
+  train_loss=train_one_epoch(epoch,train_loader)
+
+  运行验证损失=0.0
+
+  模型.eval()
+
+  with torch.no_grad(): # 禁用梯度计算并减少内存消耗
+    对于 i，枚举中的 vdata（validation_loader）：
+      vinputs,vlabels=vdata
+      v输出=模型（v输入）
+      vloss=loss_function(v输出,v标签)
+      running_validation_loss+=vloss.item()
+  验证损失=运行验证损失/(i+1)
+  print(&#39;LOSS 训练：{} 验证：{}&#39;.format(train_loss,validation_loss))
+
+  if validation_loss
+使用默认初始化，它的效果会好一点，但我应该使用高斯达到 30%。
+您能发现一些可能导致它无法学习的问题吗？我已经尝试过不同的学习率和动力。]]></description>
+      <guid>https://stackoverflow.com/questions/77704108/convolutional-neural-network-not-learning</guid>
+      <pubDate>Fri, 22 Dec 2023 14:06:23 GMT</pubDate>
     </item>
     <item>
       <title>如何使用变分自动编码器预测向量？</title>
@@ -174,23 +543,9 @@ plt.show()
       <pubDate>Fri, 22 Dec 2023 13:21:00 GMT</pubDate>
     </item>
     <item>
-      <title>Flask 应用程序返回 None [关闭]</title>
-      <link>https://stackoverflow.com/questions/77703234/flask-application-returns-none</link>
-      <description><![CDATA[这是一个根据鸢尾花的属性对鸢尾花进行分类的 Web 应用程序。
-这里是 GitHub 链接 运行代码时，预测路由不会将值推送到输出路径。
-帮我解决这个问题
-我尝试在预测函数中调用输出函数，并尝试将其转换为具有相应花的字符串。
-我尝试了一堆 if else 语句来解决该问题，但仍然不起作用。
-output.html 呈现如下：
-你的花没有
-我诚实地尝试了我所知道的一切来解决这个问题，但仍然遇到同样的问题:(]]></description>
-      <guid>https://stackoverflow.com/questions/77703234/flask-application-returns-none</guid>
-      <pubDate>Fri, 22 Dec 2023 10:54:12 GMT</pubDate>
-    </item>
-    <item>
       <title>ValueError：微调 LLM 时需要解包的值太多（预期为 2）</title>
       <link>https://stackoverflow.com/questions/77702885/valueerror-too-many-values-to-unpack-expected-2-when-fine-tuning-an-llm</link>
-      <description><![CDATA[我正在学习如何微调法学硕士。但是，无论我如何修改数据处理方法，在微调过程中执行 Trainer.train() 时都会遇到一致的错误。错误如下：
+      <description><![CDATA[我正在学习如何微调法学硕士。然而，无论我如何修改数据处理方法，在微调过程中执行 Trainer.train() 时，我都会遇到一致的错误。错误如下：
 &lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
 ValueError Traceback（最近一次调用最后一次）
 &lt;ipython-input-11-3435b262f1ae&gt;在&lt;细胞系：1&gt;()
@@ -260,7 +615,7 @@ formatted_data = [数据中的转换的format_conversation(conv)]
     output_dir=&quot;./llama2-finetuned&quot;,
     num_train_epochs=3,
     per_device_train_batch_size=1,
-    保存步骤=10_000,
+    保存步骤=10_000，
     save_total_limit=2,
 ）
 
@@ -321,7 +676,7 @@ final_model.predict(titanic_test_clean)
 打印可能提示问题的有用信息：
 titanic_clean[0] -&gt; &gt;数组([-0.56573646,-0.50244517,1.,0.,0.,
         1., 0.]) # 7 项
-titanic_test_clean[0] -&gt; 泰坦尼克号测试清洁[0] -&gt;数组([ 0.38623105, -0.49741333, 1., 0., 1.,
+titanic_test_clean[0] -&gt; 泰坦尼克号测试清洁[0] -&gt;数组([ 0.38623105, -0.49741333, 1. , 0. , 1. ,
         0.]) # 6 项
 
 根据上面的信息，我认为问题在于 onecodeencoder 的数量不匹配。我怀疑训练集和测试集的分类值数量不同。但他们确实是。
@@ -337,182 +692,11 @@ titanic_test_clean[0] -&gt; 泰坦尼克号测试清洁[0] -&gt;数组([ 0.38623
 我正在从模型工件（存储我们的推理脚本和模型文件的位置）创建 sagemaker 端点
 当我们从实时流中获取它们时，每个帧都会独立调用此端点。
 挑战在于维护变量的缓存/会话状态。当每个帧到达端点时，它没有有关先前运行的结果的信息。为了解决这个问题，我为每次调用下载缓存并将其上传到数据库（dynamo db），这似乎是一种低效的方法。
-我想探索是否有某种方式 - 实例在整个直播流中都处于活动状态，每当实例接收到帧时，都会对其进行处理，缓存将一直存在，直到实例死亡。
+我想探索是否有某种方式 - 实例在整个直播流中处于活动状态，每当实例接收到帧时，都会对其进行处理，缓存将一直存在，直到实例死亡？
 而不是为每个帧单独流调用端点。
 供参考 - 我在推理脚本中使用 pytorch 框架中外部训练的 YOLO 对象检测模型。]]></description>
       <guid>https://stackoverflow.com/questions/77702505/sagemaker-endpoint-for-processing-on-live-stream</guid>
       <pubDate>Fri, 22 Dec 2023 08:28:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么这两类深度神经网络计算layer2_delta的方法不同？</title>
-      <link>https://stackoverflow.com/questions/77702306/why-are-the-methods-of-computing-layer2-delta-different-in-these-two-types-of-de</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77702306/why-are-the-methods-of-computing-layer2-delta-different-in-these-two-types-of-de</guid>
-      <pubDate>Fri, 22 Dec 2023 07:42:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何绘制交叉验证的 AUROC 并找到最佳阈值？</title>
-      <link>https://stackoverflow.com/questions/77702305/how-to-plot-cross-validated-auroc-and-find-the-optimal-threshold</link>
-      <description><![CDATA[在通过交叉验证评估我的机器学习模型时，我遇到了一个问题。我知道如何在交叉验证中绘制 AUROC 和每个折叠的相应阈值，但我不确定是否绘制所有折叠的平均 AUROC 及其相应阈值。
-为此，我在Stack Overflow上探索了相关问题，并找到了相应的解决方案。您可以通过以下链接找到原始问题：[https://stackoverflow.com/questions/57708023/plotting-the-roc-curve-of-k-fold-cross-validation%5C]。尽管我成功生成了平均 ROC，但在准确绘制相应阈值方面遇到了挑战。为了解决这个问题，我根据自己的理解合并了额外的代码，但我不确定这种方法的正确性。
-此外，我观察到使用 np.mean() 计算的平均 AUC 与使用 sklearn.metrics 计算的 AUC 值之间存在差异。因此，我正在寻求关于哪个值更准确以获得精确的 AUC 结果的指导。下面是我调整后的修改代码。
-X，y = make_classification（n_samples = 1000，n_features = 20，n_classes = 2，random_state = 42）
-
-cv = 分层KFold(n_splits=10)
-分类器= SVC（内核=&#39;sigmoid&#39;，概率= True，random_state = 0）
-
-tprs = []
-曲线面积=[]
-最佳阈值 = []
-Mean_fpr = np.linspace(0, 1, 100)
-plt.figure(figsize=(10,10))
-我=0
-对于火车，在 cv.split(X, y) 中测试：
-    probas_ = classifier.fit(X[训练], y[训练]).predict_proba(X[测试])
-    # 计算 ROC 曲线并计算曲线面积
-    fpr, tpr, 阈值 = roc_curve(y[测试], probas_[:, 1])
-
-    # 我添加的代码：
-    最优阈值索引 = np.argmax(tpr-fpr)
-    最优阈值 = 阈值[最优阈值索引]
-    最佳阈值.append(最佳阈值)
-    #
-
-    tprs.append(np.interp(mean_fpr, fpr, tpr))
-    tprs[-1][0] = 0.0
-    roc_auc = auc(fpr, tpr)
-    aucs.append(roc_auc)
-    plt.plot(fpr, tpr, lw=1, alpha=0.3,
-             label=&#39;ROC 折叠 %d (AUC = %0.4f)&#39; % (i, roc_auc))
-
-    我 += 1
-
-
-
-plt.plot([0, 1], [0, 1], 线型=&#39;--&#39;, lw=2, 颜色=&#39;r&#39;,
-         标签=&#39;机会&#39;，alpha=.8)
-
-mean_tpr = np.mean(tprs, 轴=0)
-平均值_tpr[-1] = 1.0
-
-
-mean_auc = auc(mean_fpr,mean_tpr)
-
-# 我添加的代码：
-np_mean_AUC = np.mean(aucs)
-# print(f&quot;np_mean_AUC={np_mean_AUC},mean_auc={mean_auc}&quot;)
-#
-
-std_auc = np.std(aucs)
-
-plt.plot(mean_fpr,mean_tpr,颜色=&#39;b&#39;,
-         标签=r&#39;平均ROC (AUC = %0.4f $\pm$ %0.4f)&#39; % (np_mean_AUC, std_auc),
-         lw=2，阿尔法=.8)
-
-# 我添加的代码：
-mean_optimal_threshold_index = np.argmax(mean_tpr-mean_fpr)
-plt.annotate(f&#39;平均最佳阈值({np.mean(optimal_thresholds):.2f})&#39;,
-                xy=(mean_fpr[平均最佳阈值索引],mean_tpr[平均最佳阈值索引]),
-                xy 文本=(5, -5),
-                textcoords=&#39;偏移点&#39;,
-                arrowprops = dict（facecolor =&#39;红色&#39;，arrowstyle =&#39;楔形，tail_width = 0.7&#39;，shrinkA = 0，shrinkB = 10），
-                颜色=&#39;红色&#39;）
-#
-
-std_tpr = np.std(tprs, 轴=0)
-tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
-tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
-plt.fill_ Between(mean_fpr, tprs_lower, tprs_upper, color=&#39;grey&#39;, alpha=.2,
-                 标签=r&#39;$\pm$ 1 标准。开发。”）
-
-plt.xlim([-0.01, 1.01])
-plt.ylim([-0.01, 1.01])
-plt.xlabel(&#39;误报率&#39;,fontsize=18)
-plt.ylabel(&#39;真阳性率&#39;,fontsize=18)
-plt.title(&#39;SVM的交叉验证ROC&#39;,fontsize=18)
-plt.legend(loc=“右下”, prop={&#39;size&#39;: 15})
-plt.show()
-
-以下是输出：
-在此处输入图像描述
-请告诉我我在代码中所做的更改是否可以准确绘制用于交叉验证的 ROC 曲线以及相应的阈值，以及标记的 AUC 值是否有意义。]]></description>
-      <guid>https://stackoverflow.com/questions/77702305/how-to-plot-cross-validated-auroc-and-find-the-optimal-threshold</guid>
-      <pubDate>Fri, 22 Dec 2023 07:42:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>我们可以使用 Google Vision 从图像创建 Excel 工作表吗</title>
-      <link>https://stackoverflow.com/questions/77702105/can-we-create-an-excel-sheet-from-an-image-using-google-vision</link>
-      <description><![CDATA[我想要转换为 Excel 表格的收据
-上面是一张收据图像，我现在想从此图像创建一个 csv 工作表，我正在使用 google Vision ocr，通过它我获取的文本也没有任何结构，我该怎么办？
-我从 google Vision ocr 获得的输出如下所示
-Workie 塔，SP 365 大楼，
-詹吉尔瓦拉广场
-阿普纳大道酒店对面，
-新帕拉西亚 Janjeerwala 广场附近，
-印多尔, 中央邦 452003
-支票/ACH 号码 2456345
-支票/存款日期
-付款方式
-索赔编号：2349824
-单价
-数量
-56.0 美元
-5.0
-12/01/24
-系统检查
-超出金额
-$234.0
-拒绝数量
-金额被拒绝
-0.00
-5.76 美元
-总优惠券。
-新的
-扩展
-数量
-$434.0
-$434.0
-供应商ID
-汇给
-这是标题，请阅读它
-CPT代码
-彩色显像管描述
-124245283752345
-4
-发票号码：
-kjfbglwknwpr9t9045820989
-今天的日期 12/01/24
-D4532
-护理，在
-家;乙
-CPT评论
-00:00-00:00（08:00 开始）
-申请金额。
-患者编号
-患者姓名
-2345234
-AKJSNDFKJNS
-asdvsfvdfv
-sdfvsf sfvsfv sfvsfv
-$434.0
-发票日期：24 年 12 月 1 日
-开始日期
-结束日期
-12/01/24
-12/02/25
-这只是一些随机数据，这只是
-一些随机数据，这只是一些
-随机数据，这只是一些随机数据
-数据，这只是一些随机数据，
-注意：这只是一些随机数据，这只是一些
-随机数据，这只是一些随机数据，这只是
-一些随机数据，这只是一些随机数据，
-原因代码
-原因代码说明
-Vue 评论
-审稿人意见]]></description>
-      <guid>https://stackoverflow.com/questions/77702105/can-we-create-an-excel-sheet-from-an-image-using-google-vision</guid>
-      <pubDate>Fri, 22 Dec 2023 06:54:52 GMT</pubDate>
     </item>
     <item>
       <title>谁能建议更好的机器学习算法？ [关闭]</title>
@@ -524,112 +708,29 @@ Vue 评论
       <pubDate>Fri, 22 Dec 2023 05:01:47 GMT</pubDate>
     </item>
     <item>
-      <title>保存 jit 跟踪时 SwishImplementation 错误</title>
-      <link>https://stackoverflow.com/questions/74813562/swishimplementation-error-when-saving-jit-trace</link>
-      <description><![CDATA[我正在尝试 jit 跟踪并从分段模型包中保存我的 pytorch 模型。但我收到错误。 &quot;无法导出 Python 函数调用“SwishImplementation”。在导出之前删除对 python 函数的调用。您是否忘记添加@script或@scrript_method注释？如果这是一个 nn.ModuleList，请将其添加到 _ constants _”只有当我使用 effectivenet 主干网时才会发生这种情况。如何让 save() 函数正常工作？我需要能够在 C++ 应用程序中使用该模型。
-导入火炬
-将segmentation_models_pytorch导入为smp
-
-模型 = smp.Unet(&#39;efficientnet-b7&#39;)
-模型.eval()
-
-输入 = torch.randn((1,3,224,224))
-torch_out = 模型（输入）
-
-模型 = torch.jit.trace(模型,输入)
-跟踪输出 = 模型（输入）
-
-model.save(&#39;model.pt&#39;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/74813562/swishimplementation-error-when-saving-jit-trace</guid>
-      <pubDate>Thu, 15 Dec 2022 15:04:50 GMT</pubDate>
+      <title>使用 Camera Flutter 应用程序进行实时绘画识别</title>
+      <link>https://stackoverflow.com/questions/77691918/live-paintings-recognition-with-camera-flutter-app</link>
+      <description><![CDATA[我正在开发一个带有 flutter 的应用程序，我需要实现使用智能手机摄像头实时识别一些绘画作品（从完成的作品集中）并在屏幕上显示一些弹出按钮的可能性，该按钮可能会重定向到网页你描述这幅画的地方。
+在网上搜索了一下，第一个解决方案是使用机器学习实时对象识别模型，但对我来说似乎有点太复杂了。因此，我的问题是：考虑到要识别的绘画作品集很小而且确实有限，是否有更简单的方法？
+一千个感谢
+我查看了这个软件包，但它似乎有点太复杂https://pub.dev/packages/google_mlkit_object_detection ]]></description>
+      <guid>https://stackoverflow.com/questions/77691918/live-paintings-recognition-with-camera-flutter-app</guid>
+      <pubDate>Wed, 20 Dec 2023 13:25:40 GMT</pubDate>
     </item>
     <item>
-      <title>HuggingFace AutoModelForCasualLM “仅解码器架构”警告，即使在设置 padding_side='left' 后也是如此</title>
-      <link>https://stackoverflow.com/questions/74748116/huggingface-automodelforcasuallm-decoder-only-architecture-warning-even-after</link>
-      <description><![CDATA[我正在使用
-AutoModelForCausalLM 和 AutoTokenizer 使用 DialoGPT 生成文本输出。
-无论出于何种原因，即使使用 Huggingface 提供的示例，我也会收到此警告：
-&lt;块引用&gt;
-正在使用仅解码器架构，但检测到右填充！为了获得正确的生成结果，请在初始化分词器时设置 padding_side=&#39;left&#39;。
-
-从变压器导入 AutoModelForCausalLM, AutoTokenizer
-进口火炬
-
-
-tokenizer = AutoTokenizer.from_pretrained(“microsoft/DialoGPT-medium”)
-模型 = AutoModelForCausalLM.from_pretrained(“microsoft/DialoGPT-medium”)
-
-# 我们聊5行吧
-对于范围（5）中的步骤：
-    # 对新的用户输入进行编码，添加 eos_token 并在 Pytorch 中返回一个张量
-    new_user_input_ids = tokenizer.encode(input(“&gt;&gt;用户:”) + tokenizer.eos_token, return_tensors=&#39;pt&#39;)
-
-    # 将新的用户输入标记附加到聊天历史记录中
-    bot_input_ids = torch.cat([chat_history_ids, new_user_input_ids], dim=-1) 如果步骤 &gt; 0 其他 new_user_input_ids
-
-    # 生成响应，同时将总聊天历史记录限制为 1000 个令牌，
-    chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
-
-    # 漂亮地打印机器人最后的输出令牌
-    print(“DialoGPT: {}”.format(tokenizer.decode(chat_history_ids[:, bot_input_ids.shape[-1]:][0],skip_special_tokens=True)))
-
-代码由 微软在 Huggingface 的模型卡上
-我尝试将 padding_side=&#39;left&#39; 添加到标记生成器，但这不会改变任何内容。
-显然（从一些阅读来看）DialoGPT 想要在右侧填充？
-我无法弄清楚这一点，当我尝试谷歌搜索时几乎没有结果。
-我能够像这样抑制警告：
-from Transformers.utils 导入日志记录
-
-记录.set_verbosity_info()
-
-但这似乎不是最好的答案？]]></description>
-      <guid>https://stackoverflow.com/questions/74748116/huggingface-automodelforcasuallm-decoder-only-architecture-warning-even-after</guid>
-      <pubDate>Fri, 09 Dec 2022 20:39:39 GMT</pubDate>
+      <title>如何训练 Yolo 识别训练数据集中没有的类？ [关闭]</title>
+      <link>https://stackoverflow.com/questions/77690929/how-to-train-yolo-to-recognize-classes-that-are-not-in-the-training-dataset</link>
+      <description><![CDATA[我最近开始研究计算机视觉。有一家企业需要摄像头判断员工是否佩戴个人防护用品。不幸的是，绝对不可能在违规者的数据中组装这些摄像机的训练数据集，因为每个人都遵守安全规则。训练后，模型将只能识别穿着个人防护装备（头盔、手套等）的人。如何训练 Yolo 以便她能够识别违规行为？请提出任何解决此问题的方法。
+根据我的想法，第一个是使用隔离森林，但我必须将图像转换为向量空间，或者以某种方式使用 IoU。]]></description>
+      <guid>https://stackoverflow.com/questions/77690929/how-to-train-yolo-to-recognize-classes-that-are-not-in-the-training-dataset</guid>
+      <pubDate>Wed, 20 Dec 2023 10:43:43 GMT</pubDate>
     </item>
     <item>
-      <title>为什么要打乱测试数据集？</title>
-      <link>https://stackoverflow.com/questions/72294686/why-would-you-shuffle-the-test-dataset</link>
-      <description><![CDATA[我完全理解如何使用与测试集分开的训练集。
-我也理解为什么你会打乱训练集中的批次来计算小批量的梯度。
-但是，pyTorch教程中提到的广告，我不明白为什么要使用测试集的洗牌，如下所示：
-test_dataloader = DataLoader(test_data,batch_size=64,shuffle=True)
-
-什么情况下这会有用？]]></description>
-      <guid>https://stackoverflow.com/questions/72294686/why-would-you-shuffle-the-test-dataset</guid>
-      <pubDate>Wed, 18 May 2022 19:05:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么每个 epoch 之后损失都会突然下降？</title>
-      <link>https://stackoverflow.com/questions/57248723/why-there-is-sudden-drop-in-loss-after-every-epoch</link>
-      <description><![CDATA[我正在小批量中使用自定义损失函数（三元组损失），在纪元期间，损失逐渐减少，但在每个纪元之后，损失会突然下降（约下降的 10％），然后在期间逐渐减少那个时代（忽略准确性）。正常吗？
-对此问题的每一个答案和参考都将受到赞赏。
-纪元 1/5
-198/198 [================================] - 3299s 17s/步 - 损失：0.2500 - 加速：0.0014
-纪元 2/5
- 99/198 [==============&gt;.................................] - 预计到达时间：26:16 - 损失：0.1220 - 累积费用：0.0016&lt; /p&gt;]]></description>
-      <guid>https://stackoverflow.com/questions/57248723/why-there-is-sudden-drop-in-loss-after-every-epoch</guid>
-      <pubDate>Mon, 29 Jul 2019 07:09:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 hmmlearn 解决基本的 HMM 问题</title>
-      <link>https://stackoverflow.com/questions/49880279/how-to-solve-basic-hmm-problems-with-hmmlearn</link>
-      <description><![CDATA[存在三个基本的 HMM 问题：
-
-&lt;块引用&gt;
-  问题 1（可能性）：给定 HMM λ = (A,B) 和观测值
-  序列O，确定似然P(O|λ)。
-问题 2（解码）：给定观察序列 O 和 HMM λ =
-  (A,B)，发现最佳隐藏状态序列Q。
-问题 3（学习）：给定一个观察序列 O 和一组
-  HMM 中的状态，学习 HMM 参数 A 和 B。
-
-我对问题## 1和3感兴趣。一般来说，第一个问题可以用前向算法解决，第三个问题可以用鲍姆-韦尔奇算法解决。我应该使用 hmmlearn 中的 fit(X, lengths) 和 score(X, lengths) 方法分别解决第一个问题和第三个问题，对吗？ （文档没有说 score 使用前向算法。）
-我还有一些关于 score 方法的问题。为什么score计算log概率？为什么如果我将多个序列传递给 score 它会返回对数概率之和而不是每个序列的概率？
-我最初的任务如下：我有 100 万个大小相等的短句子（10 个单词）。我想用该数据训练 HMM 模型，并用测试数据（又是 10 个单词的句子）预测模型中每个句子的概率。根据这个概率，我将决定是常用还是不寻常的短语。
-也许 python 有更好的库来解决这些问题？]]></description>
-      <guid>https://stackoverflow.com/questions/49880279/how-to-solve-basic-hmm-problems-with-hmmlearn</guid>
-      <pubDate>Tue, 17 Apr 2018 14:05:10 GMT</pubDate>
+      <title>尝试通过回归来预测算法的运行时间</title>
+      <link>https://stackoverflow.com/questions/65862139/trying-to-predict-running-time-of-algorithms-through-regression</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/65862139/trying-to-predict-running-time-of-algorithms-through-regression</guid>
+      <pubDate>Sat, 23 Jan 2021 17:19:51 GMT</pubDate>
     </item>
     </channel>
 </rss>
