@@ -4,15 +4,154 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 23 Dec 2023 15:12:51 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 23 Dec 2023 18:16:23 GMT</lastBuildDate>
     <item>
-      <title>我正在研究一个示例：简单线性回归薪资数据，其中解释了为什么为 x 列创建新轴以及 np.newaxis 是什么的步骤</title>
+      <title>Python Tensorflow.keras LSTM：类型错误：`generator` 产生了形状为 (36, 36, 147) 的元素，而预期形状为 (36, 147) 的元素</title>
+      <link>https://stackoverflow.com/questions/77708557/python-tensorflow-keras-lstm-typeerror-generator-yielded-an-element-of-shape</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77708557/python-tensorflow-keras-lstm-typeerror-generator-yielded-an-element-of-shape</guid>
+      <pubDate>Sat, 23 Dec 2023 18:05:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 tf.GradientTape 训练训练/有效/测试集？</title>
+      <link>https://stackoverflow.com/questions/77708229/how-to-train-train-valid-test-set-using-tf-gradienttape</link>
+      <description><![CDATA[我想问一下如何使用train/valid/test模型来训练模型。
+我主要模仿这里的代码（https://www.tensorflow.org/guide/ keras/writing_a_training_loop_from_scratch）。
+这是生成数据集和基本内容的代码。
+导入keras
+从 keras 导入层
+将 numpy 导入为 np
+
+输入= keras.Input（形状=（784，），名称=“数字”）
+x1 = 层.Dense(64, 激活=“relu”)(输入)
+x2 = 层.Dense(64, 激活=“relu”)(x1)
+输出=layers.Dense(10,name=“预测”)(x2)
+模型= keras.Model（输入=输入，输出=输出）
+
+# 实例化优化器。
+优化器 = tf.keras.optimizers.SGD(learning_rate=1e-3)
+# 实例化损失函数。
+loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+
+# 准备训练数据集。
+批量大小 = 64
+(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+x_train = np.reshape(x_train, (-1, 784))
+x_test = np.reshape(x_test, (-1, 784))
+
+# 保留 10,000 个样本用于验证。
+x_val = x_train[-10000:]
+y_val = y_train[-10000:]
+x_train = x_train[:-10000]
+y_train = y_train[:-10000]
+
+# 准备训练数据集。
+train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+
+# 准备验证数据集。
+val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val))
+val_dataset = val_dataset.batch(batch_size)
+
+# 获取模型
+输入= keras.Input（形状=（784，），名称=“数字”）
+x = 层.Dense(64, 激活=“relu”, 名称=“dense_1”)(输入)
+x = 层.Dense(64, 激活=“relu”, 名称=“dense_2”)(x)
+输出=layers.Dense(10,name=“预测”)(x)
+模型= keras.Model（输入=输入，输出=输出）
+
+# 实例化优化器来训练模型。
+优化器 = tf.keras.optimizers.SGD(learning_rate=1e-3)
+# 实例化损失函数。
+loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+
+# 准备指标。
+train_acc_metric = keras.metrics.SparseCategoricalAccuracy()
+val_acc_metric = keras.metrics.SparseCategoricalAccuracy()
+
+@tf.函数
+def train_step(x, y):
+    使用 tf.GradientTape() 作为磁带：
+        logits = 模型(x, 训练=True)
+        loss_value = loss_fn(y, logits)
+    grads = Tape.gradient(loss_value, model.trainable_weights)
+    优化器.apply_gradients(zip(grads, model.trainable_weights))
+    train_acc_metric.update_state(y, logits)
+    回波损耗值
+
+@tf.函数
+def test_step(x, y):
+    val_logits = 模型(x, 训练=False)
+    val_acc_metric.update_state(y, val_logits)
+
+这是训练部分。
+导入时间
+
+历元 = 2
+对于范围内的纪元（纪元）：
+    print(&quot;\n纪元%d开始&quot; % (纪元,))
+    开始时间 = 时间.time()
+
+    # 迭代数据集的批次。
+    对于枚举（train_dataset）中的步骤（x_batch_train，y_batch_train）：
+        loss_value = train_step(x_batch_train, y_batch_train)
+
+        # 每 200 个批次记录一次。
+        如果步骤 % 200 == 0:
+            打印（
+                “第 %d 步的训练损失（一批）：%.4f”
+                %（步长，浮点数（损失值））
+            ）
+            print(“到目前为止已看到：%d 个样本” % ((step + 1) * batch_size))
+
+    # 显示每个时期结束时的指标。
+    train_acc = train_acc_metric.result()
+    print(&quot;历元训练 acc: %.4f&quot; % (float(train_acc),))
+
+    # 在每个时期结束时重置训练指标
+    train_acc_metric.reset_states()
+
+    # 在每个时期结束时运行验证循环。
+    对于 val_dataset 中的 x_batch_val、y_batch_val：
+        test_step(x_batch_val, y_batch_val)
+
+    val_acc = val_acc_metric.result()
+    val_acc_metric.reset_states()
+    print(&quot;验证acc: %.4f&quot; % (float(val_acc),))
+    print(&quot;所用时间: %.2fs&quot; % (time.time() - start_time))
+
+
+我的问题是，如果数据集分为 3 个类别：训练、测试、有效，那么每个类别的代码会有什么不同，尤其是测试和有效。
+例如，
+&lt;前&gt;&lt;代码&gt;x_val = x_train[-20000:]
+y_val = y_train[-20000:]
+
+x_test = x_train[-20000:-10000]
+y_test = y_train[-20000:-10000]
+
+x_train = x_train[:-10000]
+y_train = y_train[:-10000]
+
+
+valid 也应该使用 tf.gradienttape 吗？或训练=真？这让我很困惑。
+感谢您的回复。
+谢谢，
+分钟]]></description>
+      <guid>https://stackoverflow.com/questions/77708229/how-to-train-train-valid-test-set-using-tf-gradienttape</guid>
+      <pubDate>Sat, 23 Dec 2023 16:01:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>我正在研究一个示例：简单线性回归薪资数据解释了为什么为 x 列创建新轴的步骤以及什么是 np.newaxis [关闭]</title>
       <link>https://stackoverflow.com/questions/77708064/i-was-working-on-a-examples-simple-linear-regression-salary-data-from-that-expl</link>
-      <description><![CDATA[拆分训练数据和测试数据
+      <description><![CDATA[# 分割训练数据和测试数据
+
 X_train,X_test,y_train,y_test = train_test_split(X,y,train_size=0.7,random_state=100)
-为 x 列创建新轴
+
+# 为 x 列创建新轴
+
 X_train = X_train[:,np.newaxis]
 X_test = X_test[:,np.newaxis]
+
 使用 np.newaxis 添加新轴有助于重塑数据以实现兼容性]]></description>
       <guid>https://stackoverflow.com/questions/77708064/i-was-working-on-a-examples-simple-linear-regression-salary-data-from-that-expl</guid>
       <pubDate>Sat, 23 Dec 2023 15:05:36 GMT</pubDate>
@@ -219,169 +358,6 @@ svm 代码和错误
 那么任何人都可以更正代码，以便我可以将其传递到我的 Svm 模型中，并且我可以进行音频分类吗？]]></description>
       <guid>https://stackoverflow.com/questions/77705514/i-am-not-able-to-pass-an-array-to-svm-model-it-is-showing-an-error-of-setting-an</guid>
       <pubDate>Fri, 22 Dec 2023 19:34:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解决机器学习中的值错误？</title>
-      <link>https://stackoverflow.com/questions/77705470/how-do-i-solve-a-value-error-in-machine-learning</link>
-      <description><![CDATA[我正在尝试使用朴素贝叶斯选择和训练我的模型，并且正在处理糖尿病数据集，但我不断收到如下值错误：
-ValueError Traceback（最近一次调用最后一次）
-〜\ AppData \ Local \ Temp \ ipykernel_15552 \ 3536100043.py 在？（）
-      1 模型 = GaussianNB()
-----&gt; 2 model.fit(X_train, y_train)
-
-〜\ AppData \ Local \ Programs \ Python \ Python311 \ Lib \ site-packages \ sklearn \ naive_bayes.py 在？（自我，X，y，sample_weight）
-    263 返回实例本身。
-    第264章
-    第265章
-    266 y = self._validate_data(y=y)
---&gt; [第 267 章]
-    第268章
-    第269章）
-
-〜\ AppData \ Local \ Programs \ Python \ Python311 \ Lib \ site-packages \ sklearn \ naive_bayes.py 在？（自我，X，y，类，_refit，sample_weight）
-    第424章
-    第425章
-    第426章
-    第427章
---&gt;第428章
-    第429章
-    第430章
-    第431章
-
-〜\ AppData \ Local \ Programs \ Python \ Python311 \ Lib \ site-packages \ sklearn \ base.py 在？（自我，X，y，重置，validate_separately，** check_params）
-    [580] 第580章不在 check_y_params 中：
-    第581章
-    第582章
-    第583章：
---&gt;第584章
-    第585章
-    第586章
-    第587章
-
-〜\ AppData \ Local \ Programs \ Python \ Python311 \ Lib \ site-packages \ sklearn \ utils \ validation.py 在？（X，y，accept_sparse，accept_large_sparse，dtype，order，copy，force_all_finite，ensure_2d，allow_nd，multi_output， Ensure_min_samples、ensure_min_features、y_numeric、估计器）
-   第1102章
-   第1103章 1103
-   第1104章）
-   1105
--&gt;第1106章
-   第1107章
-   第1108章
-   第1109章
-
-〜\ AppData \ Local \ Programs \ Python \ Python311 \ Lib \ site-packages \ sklearn \ utils \ validation.py 在？（数组，accept_sparse，accept_large_sparse，dtype，order，copy，force_all_finite，ensure_2d，allow_nd，ensure_min_samples，ensure_min_features，估计器，输入名称）
-    第876章）
-    第877章
-    第878章：
-    第879章
---&gt;第880章
-    第881章
-    第882章
-    第883章）
-
-〜\ AppData \ Local \ Programs \ Python \ Python311 \ Lib \ site-packages \ sklearn \ utils \ _array_api.py 在？（数组，dtype，顺序，复制，xp）
-    第181章
-    182 xp，_ = get_namespace（数组）
-    183 if xp.__name__ in {“numpy”,“numpy.array_api”}：
-    [第 184 章] 第 184 章
---&gt; array[185] = numpy.asarray(数组, order=order, dtype=dtype)
-    186 return xp.asarray(数组，复制=复制)
-    187 其他：
-    [第 188 章]
-
-〜\ AppData \ Local \ Programs \ Python \ Python311 \ Lib \ site-packages \ pandas \ core \ generic.py？（自我，dtype）
-   1996 def __array__(self, dtype: npt.DTypeLike | None = None) -&gt; np.ndarray：
-   1997 值 = self._values
--&gt; 1998 arr = np.asarray（值，dtype = dtype）
-   1999 如果 (
-   2000 astype_is_view（值.dtype，arr.dtype）
-   2001 和 using_copy_on_write()
-
-ValueError：无法将字符串转换为浮点数：&#39;F&#39;
-
-我尝试再次运行所有代码单元，因为我使用的是 Jupyter Notebook，但结果与我不断得到的结果相同。]]></description>
-      <guid>https://stackoverflow.com/questions/77705470/how-do-i-solve-a-value-error-in-machine-learning</guid>
-      <pubDate>Fri, 22 Dec 2023 19:21:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>输入数据耗尽，中断张量流训练</title>
-      <link>https://stackoverflow.com/questions/77705086/input-ran-out-of-data-interrupting-training-in-tensorflow</link>
-      <description><![CDATA[我正在从事肿瘤分割工作，图像是 nifti 格式的 3D（MRI 图像）。我创建了一个数据生成器，因为如果我将完整数据集上传到 RAM，它会因 3D 图像而崩溃。该数据集由611张图像组成，尺寸为（240,240,160），计算时的块数为61000和11375
-这是我的数据管道：
-def load_nifti_image(文件路径, patch_size=(48, 48, 32), step_size=(48, 48, 32)):
-    nifti = nib.load(文件路径)
-    体积 = nifti.get_fdata()
-
-    # 从卷创建补丁
-    补丁 = patchify(体积, patch_size, 步骤=step_size)
-
-    # 重塑 patch 相乘 (5, 5, 5) 并添加通道维度（1 表示灰度）
-    补丁 = patch.reshape(-1, *patches.shape[-3:])
-    补丁= np.expand_dims（补丁，轴=-1）
-
-    返回补丁
-
-＃  -  -  -  -  -  -  -  -  -  -  - -火车 -  -  -  -  -  -  -  -  -  -  - -
-nifti_files = [os.path.join(“/content/drive/MyDrive/Interpolated/train/images”, f) for f in os.listdir(“/content/drive/MyDrive/Interpolated/train/images”) if f.endswith(&#39;.nii.gz&#39;)]
-mask_files = [os.path.join(“/content/drive/MyDrive/Interpolated/train/masks”, f) for f in os.listdir(“/content/drive/MyDrive/Interpolated/train/masks”) if f.endswith(&#39;.nii.gz&#39;)]
-
- ＃  -  -  -  -  -  -  -  -  -  -  - -验证 -  -  -  -  -  -  -  -  -  -  - -
-nifti_files_val = [os.path.join(&quot;/content/drive/MyDrive/Interpolated/validation/images&quot;, f) for f in os.listdir(&quot;/content/drive/MyDrive/Interpolated/validation/images&quot;) if f.endswith(&#39;.nii.gz&#39;)]
-mask_files_val = [os.path.join(&quot;/content/drive/MyDrive/Interpolated/validation/masks&quot;, f) for f in os.listdir(&quot;/content/drive/MyDrive/Interpolated/validation/masks&quot;) if f.endswith(&#39;.nii.gz&#39;)]
-
-defcalculate_patches(文件路径, patch_size=(48, 48, 32), step_size=(48, 48, 32)):
-    nifti = nib.load(文件路径)
-    体积 = nifti.get_fdata()
-
-    # 计算补丁数量
-    patch_shape = [((i - p) // s) + 1 for i, p, s in zip(volume.shape, patch_size, step_size)]
-    num_patches = np.prod(patches_shape)
-
-    返回 num_patches
-
-num_train_patches = sum(calculate_patches(f) for i, f in enumerate(nifti_files) if print(f“处理文件 {i}...”) 为 None)
-num_val_patches = sum(calculate_patches(f) for i, f in enumerate(nifti_files_val) if print(f“处理文件 {i}...”) 为 None)
-
-def data_generator(image_files, mask_files):
-    对于 zip(image_files, mask_files) 中的 img_file、mask_file：
-        image_patches = load_nifti_image(img_file)
-        mask_patches = load_nifti_image(mask_file)
-
-        对于 zip(image_patches, mask_patches) 中的 img_patch、mask_patch：
-            产量 img_patch, mask_patch
-
-train_generator = data_generator(nifti_files, mask_files)
-val_generator = data_generator(nifti_files_val, mask_files_val)
-
-输出签名 = (
-    tf.TensorSpec(形状=(48, 48, 32, 1), dtype=tf.float64),
-    tf.TensorSpec(形状=(48, 48, 32, 1), dtype=tf.float64)
-）
-
-数据集= tf.data.Dataset.from_generator（lambda：train_generator，output_signature=output_signature）.repeat（）
-dataset_val = tf.data.Dataset.from_generator(lambda: val_generator, output_signature=output_signature).repeat()
-
-数据集=数据集.batch(32)
-dataset_val = dataset_val.batch(32)
-
-test_model.fit（数据集，validation_data=dataset_val，epochs=100，steps_per_epoch=num_train_patches//32，validation_steps=num_val_patches//32）
-
-我添加了 .repeat() 希望它能有所帮助，但事实并非如此。
-我还尝试计算补丁的数量并手动插入它们，但它也不起作用。
-这是完整的回溯：
-纪元 1/100
-1906/1906 [================================] - 1963s 1s/步 - 损失：0.6447 - dice_coefficient：0.3553 - val_loss ：0.9113 - val_dice_系数：0.0887
-纪元 2/100
-   1/1906 [................................] - 预计到达时间：10:17 - 损失：1.0000 - dice_coefficient：1.7961e -05
-
-警告：tensorflow：您的输入数据不足；中断训练。确保您的数据集或生成器可以生成至少“steps_per_epoch * epochs”批次（在本例中为 190600 个批次）。构建数据集时，您可能需要使用 Repeat() 函数。
-警告：tensorflow：您的输入数据不足；中断训练。确保您的数据集或生成器可以生成至少“steps_per_epoch * epochs”批次（在本例中为 355 个批次）。构建数据集时，您可能需要使用 Repeat() 函数。
-
-1906/1906 [================================] - 0s 31us/步 - 损失：1.0000 - dice_coefficient：1.7961e- 05
-
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/77705086/input-ran-out-of-data-interrupting-training-in-tensorflow</guid>
-      <pubDate>Fri, 22 Dec 2023 17:43:32 GMT</pubDate>
     </item>
     <item>
       <title>Resnet34第一层7x7或3x3</title>
