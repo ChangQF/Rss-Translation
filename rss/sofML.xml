@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sun, 24 Dec 2023 01:03:54 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 24 Dec 2023 03:14:38 GMT</lastBuildDate>
     <item>
       <title>如何将 model.safetensor 转换为 pytorch_model.bin？</title>
       <link>https://stackoverflow.com/questions/77708996/how-to-convert-model-safetensor-to-pytorch-model-bin</link>
@@ -41,7 +41,7 @@ model.fit(train_objectives=[(train_dataloader, train_loss)]，epochs=5，evaluat
       <description><![CDATA[假设我有一个图像对的数据集，其中每一对代表给定问题中的一个序列
 例如，下面的一对图像代表 8-MNIST 拼图问题中的一个步骤（其中代表空白的“0”图块与“3”图块一起移动）。
 
-对于每一对，我还有一个表示给定动作的 one-hot 向量，例如对于上面的对，one-hot 将为 [0 0 0 ... 0 1 0] 表示“” 0”瓷砖被推下
+对于每一对，我还有一个表示给定动作的 one-hot 向量，例如对于上面的对，one-hot 将是 [0 0 0 ... 0 1 0] 表示“” 0”瓷砖被推倒了
 是否有一个模型可以从给定的图像和动作的标签中学习，以预测图像的哪一部分将被修改？ （给定示例中图像的“0 3”部分）。
 非常感谢]]></description>
       <guid>https://stackoverflow.com/questions/77708727/what-type-of-ml-model-can-detect-which-part-of-the-image-has-changed-in-a-transi</guid>
@@ -128,8 +128,8 @@ def 预测（）：
 我仔细检查了训练和 API 代码中的图像预处理步骤，以确保一致性。 Flask API 中的预处理与训练过程保持一致。
 
 
-我希望 Flask API 能够根据输入图像提供多样化的预测，与训练期间模型的性能一致。每个输入图像都应该产生与其实际类别相对应的预测。
-无论图像的实际内容如何，​​Flask API 都会一致地为每个输入图像预测相同的类别（“CN - 认知正常”）。这种行为与训练期间模型的准确性不一致。
+我希望 Flask API 能够根据输入图像提供多种预测，与模型在训练期间的性能保持一致。每个输入图像都应该产生与其实际类别相对应的预测。
+无论图像的实际内容如何，​​Flask API 都会为每个输入图像一致地预测相同的类别（“CN - 认知正常”）。这种行为与训练期间模型的准确性不一致。
 TFLite 转换或模型准确性是否存在我可能忽略的潜在问题？]]></description>
       <guid>https://stackoverflow.com/questions/77708650/flask-api-with-tensorflow-lite-model-always-predicts-the-same-class-regardless</guid>
       <pubDate>Sat, 23 Dec 2023 18:35:50 GMT</pubDate>
@@ -356,118 +356,6 @@ df = df.apply(pd.to_numeric, 错误=&#39;忽略&#39;)
       <pubDate>Sat, 23 Dec 2023 08:18:33 GMT</pubDate>
     </item>
     <item>
-      <title>运行时错误：形状“[8192]”对于大小 8256 的输入无效</title>
-      <link>https://stackoverflow.com/questions/77706527/runtimeerror-shape-8192-is-invalid-for-input-of-size-8256</link>
-      <description><![CDATA[导入火炬
-将 torch.nn 导入为 nn
-从 torch.nn 导入功能为 F
-
-批量大小 = 64
-块大小 = 128
-最大迭代数 = 5000
-评估间隔 = 200
-学习率 = 3e-4
-设备 = &#39;cuda&#39; 如果 torch.cuda.is_available() else &#39;cpu&#39;
-评估次数 = 100
-
-火炬.manual_seed(5452)
-
-打开（&#39;DiscordGPT_data.txt&#39;，&#39;r&#39;，encoding=&#39;utf-8&#39;）作为f：
-    文本 = f.read()
-
-字符=排序（列表（集合（文本）））
-vocab_size = len(字符)
-
-stoi = { ch:i for i,ch in enumerate(characters) }
-itos = { i:ch for i,ch in enumerate(characters) }
-编码 = lambda s: [stoi[c] for c in s]
-解码 = lambda l: &#39;&#39;.join(itos[i] for i in l)
-
-数据 = torch.tensor(编码(文本), dtype=torch.long)
-n = int(0.9*len(数据))
-训练数据 = 数据[:n]
-评估数据 = 数据[n:]
-
-def get_batch(分割):
-    数据 = train_data 如果 split == &#39;train&#39; 否则评估_data
-    ix = torch.randint(len(data) - block_size, (batch_size,))
-    x = torch.stack([data[i:i+block_size] for i in ix])
-    y = torch.stack([data[i:i+block_size+1] for i in ix])
-    x, y = x.to(设备), y.to(设备)
-
-    返回 x、y
-
-@torch.no_grad()
-defestimate_loss():
-    输出 = {}
-    模型.eval()
-    对于 [&#39;train&#39;, &#39;val&#39;] 中的分割：
-        损失 = torch.zeros(eval_iters)
-        对于范围内的 k(eval_iters)：
-            X, Y = get_batch(分割)
-            logits，损失 = 模型（X，Y）
-            损失[k] = loss.item()
-        out[split] = 损失.mean()
-    模型.train()
-    返回
-
-类 BigramLangModel(nn.Module):
-
-    def __init__(自身, vocab_size):
-        超级().__init__()
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
-
-    def 前进（自我，idx，目标=无）：
-
-        logits = self.token_embedding_table(idx)
-
-        如果目标为无：
-            损失=无
-        别的：
-            B、T、C = logits.shape
-            logits = logits.view(B*T, C)
-            目标 = 目标.view(B*T)
-            损失 = F.cross_entropy(logits, 目标)
-
-        返回 logits，损失
-    
-    def 生成（自我，idx，max_new_tokens）：
-
-        对于 _ 在范围内（max_new_tokens）：
-            logits，损失 = self(idx)
-            logits = logits[:, -1, :]
-            probs = F.softmax(logits, 暗淡=-1)
-            idx_next = torch.multinomial(probs, num_samples=1)
-            idx = torch.cat((idx, idx_next), 暗淡=1)
-
-        返回idx
-
-模型 = BigramLangModel(vocab_size)
-m = model.to(设备)
-
-优化器 = torch.optim.AdamW(m.parameters(), lr=learning_rate)
-
-对于范围内的迭代器（max_iters）：
-
-    如果 iter % eval_interval == 0:
-        损失=estimate_loss()
-        print(f&quot;step {iter}: train loss {losses[&#39;train&#39;]:.4f}, val loss {losses[&#39;val&#39;]:.4f}&quot;)
-        
-    xb, yb = get_batch(&#39;火车&#39;)
-
-    logits，损失 = 模型（xb，yb）
-    优化器.zero_grad(set_to_none = True)
-    loss.backward()
-    优化器.step()
-
-上下文 = torch.zeros((1,1), dtype = torch.long, 设备 = 设备)
-print(解码(m.generate(上下文, max_new_tokens=500)[0].tolist()))
-
-很好奇哪里出了问题，即使我减少批量和块大小，仍然会出现运行时错误，调整数字并没有真正的帮助。我对 ML/AI 领域还很陌生，因此任何有关如何前进的指示都会有所帮助。这应该是 Nanogpt 的复制品，并试图自己弄清楚。]]></description>
-      <guid>https://stackoverflow.com/questions/77706527/runtimeerror-shape-8192-is-invalid-for-input-of-size-8256</guid>
-      <pubDate>Sat, 23 Dec 2023 03:21:19 GMT</pubDate>
-    </item>
-    <item>
       <title>Resnet34第一层7x7或3x3</title>
       <link>https://stackoverflow.com/questions/77704426/resnet34-first-layer-7x7-or-3x3</link>
       <description><![CDATA[我一直在尝试使用 pytorch 实现 Resnet34，但在查看其他实现时，我发现其中一些具有 3x3 卷积层 + bn + relu 作为第一层。然而，架构图上却写着7x7/2的卷积层。我真的很困惑哪一个是正确的。顺便说一下，我正在 CIFAR10 上进行训练，目前使用 7x7 卷积层经过 100 个周期后获得了 0.9 的准确率。
@@ -490,7 +378,7 @@ nn.MaxPool2d(3, 步长=2, 填充=1)
       <description><![CDATA[在通过交叉验证评估我的机器学习模型时，我遇到了一个问题。我知道如何在交叉验证中绘制 AUROC 和每个折叠的相应阈值，但我不确定是否绘制所有折叠的平均 AUROC 及其相应阈值。
 为此，我在Stack Overflow上探索了相关问题，并找到了相应的解决方案。您可以通过以下链接找到原始问题：[https://stackoverflow.com/questions/57708023/plotting-the-roc-curve-of-k-fold-cross-validation%5C]。尽管我成功生成了平均 ROC，但在准确绘制相应阈值方面遇到了挑战。为了解决这个问题，我根据自己的理解合并了额外的代码，但我不确定这种方法的正确性。
 此外，我观察到使用 np.mean() 计算的平均 AUC 与使用 sklearn.metrics 计算的 AUC 值之间存在差异。因此，我正在寻求关于哪个值更准确以获得精确的 AUC 结果的指导。下面是我调整后的修改代码。
-X，y = make_classification（n_samples = 1000，n_features = 20，n_classes = 2，random_state = 42）
+X, y = make_classification(n_samples=1000, n_features=20, n_classes=2, random_state=42)
 
 cv = 分层KFold(n_splits=10)
 分类器= SVC（内核=&#39;sigmoid&#39;，概率= True，random_state = 0）
@@ -572,6 +460,31 @@ plt.show()
 请告诉我我在代码中所做的更改是否可以准确绘制用于交叉验证的 ROC 曲线以及相应的阈值，以及标记的 AUC 值是否有意义。]]></description>
       <guid>https://stackoverflow.com/questions/77702305/how-to-plot-cross-validated-auroc-and-find-the-optimal-threshold</guid>
       <pubDate>Fri, 22 Dec 2023 07:42:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>TypeError: JoypadSpace.reset() 有一个意外的关键字参数“seed”，当我运行以下代码时，我应该做什么来解决这个问题？</title>
+      <link>https://stackoverflow.com/questions/76509663/typeerror-joypadspace-reset-got-an-unexpected-keyword-argument-seed-when-i</link>
+      <description><![CDATA[当我运行此代码时：
+from nes_py.wrappers import JoypadSpace
+进口健身房
+导入gym_super_mario_bros
+从gym_super_mario_bros.actions导入SIMPLE_MOVMENT
+从gym.wrappers导入GrayScaleObservation
+从 stable_baselines3.common.vec_env 导入 VecFrameStack,DummyVecEnv
+从 matplotlib 导入 pyplot 作为 plt
+
+env =gym_super_mario_bros.make(&#39;SuperMarioBros-v0&#39;,apply_api_compatibility=True,render_mode=“人类”)
+env = JoypadSpace(env, SIMPLE_MOVMENT)
+env = GrayScaleObservation(env,keep_dim=True)
+env = DummyVecEnv([lambda:env])
+env = VecFrameStack(env,4,channels_order=&#39;最后&#39;)
+状态 = env.reset()
+
+我收到以下错误：
+
+我应该如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/76509663/typeerror-joypadspace-reset-got-an-unexpected-keyword-argument-seed-when-i</guid>
+      <pubDate>Mon, 19 Jun 2023 19:47:30 GMT</pubDate>
     </item>
     <item>
       <title>如何动态地将curl变量发送给管道工函数？</title>
