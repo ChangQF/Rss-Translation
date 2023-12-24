@@ -4,7 +4,136 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sun, 24 Dec 2023 09:14:04 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 24 Dec 2023 12:23:05 GMT</lastBuildDate>
+    <item>
+      <title>自定义梯度提升分类器实现。训练无进展</title>
+      <link>https://stackoverflow.com/questions/77710582/custom-gradient-boosting-classifier-implementation-no-training-progress</link>
+      <description><![CDATA[我正在尝试实现 GradientBoostingClassifier
+我从 StatQuest 视频中获取了该算法（梯度提升第 4 部分（共 4 部分）：分类详细信息）并尝试使用 numpy + sklearn.DecisionTreeRegressor 作为基本模型来实现它
+这是我的代码
+从 sklearn.tree 导入 DecisionTreeRegressor
+
+定义 sigmoid(x):
+  如果x&gt; 0:
+    z = np.exp(-x)
+    返回 1/(1+z)
+  别的：
+    z = np.exp(x)
+    返回 z/(1+z)
+
+类 GradientBoostingClassifier()：
+  def __init__(self, n_estimators=20, lr=0.1):
+    self.n_estimators = n_estimators
+    self.lr = lr
+    self.training_history = {
+        “log_loss”：[]，“roc_auc”：[]，“pr_auc”：[]
+    }
+    self.base_learners = []
+
+  def fit(自身, X, y):
+    数据 = X.copy()
+    特征=数据.列
+    # 1. 使用常量值初始化模型：
+    p = y.sum() / len(y)
+    赔率 = p / (1-p)
+    log_odds = np.log(赔率)
+    数据[&#39;cur_log_odds&#39;] = log_odds
+    数据[&#39;预测&#39;] = 数据[&#39;cur_log_odds&#39;].apply(sigmoid)
+
+    self.training_history[&#39;log_loss&#39;].append( log_loss(y, data[&#39;prediction&#39;]) )
+    self.training_history[&#39;roc_auc&#39;].append( roc_auc_score(y, data[&#39;预测&#39;]) )
+    self.training_history[&#39;pr_auc&#39;].append(average_ precision_score(y, data[&#39;prediction&#39;]) )
+
+    # 2. 对于 m = 1 到 M：
+    for _ in tqdm(range(self.n_estimators)):
+      # 2.1 计算所谓的伪残差：
+      数据[&#39;残差&#39;] = (数据[&#39;预测&#39;] - y)
+
+      # 2.2 拟合基学习器回归器来预测伪残差：
+      base_learner = DecisionTreeRegressor（max_深度 = 3，min_samples_split = 2，random_state = 42）
+      base_learner.fit(数据[特征],数据[&#39;残差&#39;])
+      self.base_learners.append(base_learner)
+
+      # 2.3 对于每个叶子计算其输出对数几率
+      # 从回归树中获取叶子数
+      数据[&#39;叶子&#39;] = base_learner.apply(数据[特征])
+
+      # 将输出对数奇数计算为 sum(residuals) / sum(old_prediction * (1 - old_prediction))
+      leafs_output = data.groupby(&#39;leaf&#39;, as_index=False).apply(
+          lambda d: d[&#39;残差&#39;].sum() / (0.00001+(d[&#39;预测&#39;] * (1-d[&#39;预测&#39;]) ).sum())
+      ).rename(columns={无: &#39;lambda_odds&#39;})
+
+      数据 = data.merge(leafs_output, on=&#39;leaf&#39;)
+      # 2.4 更新 current_log_odds = current_log_odds + lr*predicted_log_odds
+      数据[&#39;cur_log_odds&#39;] += self.lr*data[&#39;lambda_odds&#39;]
+      数据 = data.drop(&#39;lambda_odds&#39;, axis=1)
+
+      数据[&#39;预测&#39;] = 数据[&#39;cur_log_odds&#39;].apply(sigmoid)
+
+      self.training_history[&#39;log_loss&#39;].append( log_loss(y, data[&#39;prediction&#39;]) )
+      self.training_history[&#39;roc_auc&#39;].append( roc_auc_score(y, data[&#39;预测&#39;]) )
+      self.training_history[&#39;pr_auc&#39;].append(average_ precision_score(y, data[&#39;prediction&#39;]) )
+
+    返回数据
+
+  def Predict_proba(自身, X):
+    经过
+
+问题是，即使经过 1000 次迭代（n_estimators = 1000），我的 roc_auc 和 pr_auc 分数也接近随机模型给出的分数（roc_auc=0.5，pr_auc=0.29，这是正类的比例）
+你能告诉我我做错了什么吗？
+即使 n_estimators = 10，sklearn GradientBoostingClassifier 实现在同一数据集上也能给出更高的分数]]></description>
+      <guid>https://stackoverflow.com/questions/77710582/custom-gradient-boosting-classifier-implementation-no-training-progress</guid>
+      <pubDate>Sun, 24 Dec 2023 12:11:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>交叉验证期间出错，ValueError：发现未知类别</title>
+      <link>https://stackoverflow.com/questions/77710473/error-during-cross-validation-valueerror-found-unknown-categories</link>
+      <description><![CDATA[我的目标是预测电影的类型。我无法真正更改代码的主要结构，因为它是一个作业。
+您可以在此处找到完整代码：https://github.com/pietrosaveri/ML_movies 
+您可以在此处找到数据集：https://www.kaggle。 com/datasets/akshaypawar7/millions-of-movies
+我正在尝试评估 ML 算法的不同组合，看看哪一种是最好的。
+我相信此错误是由创建新列的 OnceHotEncoder 转换器造成的。还有一个错误：ConvergenceWarning：达到了 max_iter，这意味着 coef_ 没有收敛。
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/linear_model/_sag.py:350：ConvergenceWarning：达到了 max_iter，这意味着 coef_ 达到了不收敛
+  警告.警告(
+/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/model_selection/_validation.py:821：UserWarning：评分失败。这些参数的训练测试分区的分数将设置为 nan。细节：
+回溯（最近一次调用最后一次）：
+  文件“/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/model_selection/_validation.py”，第 810 行，在 _score 中
+    分数=记分器（估计器，X_测试，y_测试）
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  文件“/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/metrics/_scorer.py”，第 266 行，在 __call__ 中
+    返回 self._score（部分（_cached_call，无），估计器，X，y_true，**_kwargs）
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^
+  文件“/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/metrics/_scorer.py”，第 353 行，在 _score 中
+    y_pred = method_caller(估计器, “预测”, X)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  文件“/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/metrics/_scorer.py”，第 86 行，在 _cached_call 中
+    结果，_ = _get_response_values(
+                ^^^^^^^^^^^^^^^^^^^^^^^
+  文件“/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/utils/_response.py”，第 194 行，在 _get_response_values 中
+    y_pred = 预测方法(X)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  文件“/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/pipeline.py”，第 514 行，在预测中
+    Xt = 变换.transform(Xt)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  文件“/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/sklearn/utils/_set_output.py”，第 157 行，包装
+    data_to_wrap = f(self, X, *args, **kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+    引发值错误（消息）
+ValueError: 在转换过程中在第 0 列中发现未知类别 [&#39;fa&#39;, &#39;xx&#39;, &#39;he&#39;]
+
+  警告.警告(
+]]></description>
+      <guid>https://stackoverflow.com/questions/77710473/error-during-cross-validation-valueerror-found-unknown-categories</guid>
+      <pubDate>Sun, 24 Dec 2023 11:29:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>当我尝试运行管道文件时，有关 zenml 中的 mlops 的错误出现 KeyError：“不存在名称为“local”且类型为“orchestrator”的风味。”</title>
+      <link>https://stackoverflow.com/questions/77710193/error-regarding-mlops-in-zenml-when-i-try-to-run-pipeline-file-im-getting-keyer</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77710193/error-regarding-mlops-in-zenml-when-i-try-to-run-pipeline-file-im-getting-keyer</guid>
+      <pubDate>Sun, 24 Dec 2023 09:42:10 GMT</pubDate>
+    </item>
     <item>
       <title>Edge Impulse 物体检测中的多个标签检测，无需相应产品</title>
       <link>https://stackoverflow.com/questions/77710120/multiple-label-detections-in-edge-impulse-object-detection-without-corresponding</link>
@@ -42,59 +171,6 @@ https://github.com/thuml/iTransformer/blob/34d9aa016917dc8c8db59bc00f9 b805ceea4
       <pubDate>Sun, 24 Dec 2023 05:56:12 GMT</pubDate>
     </item>
     <item>
-      <title>导入 defs 时 DLL 加载失败：找不到指定的过程</title>
-      <link>https://stackoverflow.com/questions/77709781/dll-load-failed-while-importing-defs-the-specified-procedure-could-not-be-found</link>
-      <description><![CDATA[我正在使用 Conda env 和 jupyter Notebook 来运行我的 Python 程序。所以我只想保存语义分割的模型，如YouTube教程所示。
-这些是我正在使用的软件包。
-&lt;前&gt;&lt;代码&gt;absl-py：2.0.0
-cv2：无法从提供的列表中确定版本
-numpy：1.26.2
-matplotlib：3.8.0
-补丁：0.2.3
-皮尔：10.0.1
-张量流：2.15.0
-h5py：3.10.0
-喀拉拉邦：2.15.0
-
-我想跑步
-model.save(&#39;models/satellite_standard_unet_100epochs_24Dec2023.hdf5&#39;)
-
-但是当我导入 h5py
-&lt;前&gt;&lt;代码&gt;导入h5py
-
-它抛出一个错误
-单元格输入[89]，第 1 行
-----&gt; 1 导入 h5py
-
-文件 c:\Users\User\anaconda3\envs\road-extract\lib\site-packages\h5py\__init__.py:33
-     30 其他：
-     31 提高
----&gt; 33 从 .导入版本
-     35 如果版本.hdf5_version_tuple！=版本.hdf5_built_version_tuple：
-     36 _warn((“当 h5py 是针对 {1} 构建时，它正在针对 HDF5 {0} 运行，”
-     37 &quot;这可能会导致问题&quot;).format(
-     38 &#39;{0}.{1}.{2}&#39;.format(*version.hdf5_version_tuple),
-     39 &#39;{0}.{1}.{2}&#39;.format(*version.hdf5_built_version_tuple)
-     40））
-
-文件 c:\Users\User\anaconda3\envs\road-extract\lib\site-packages\h5py\version.py:15
-     10“”“”
-     11 h5py 的版本控制模块。
-     12“”“”
-     14 从集合导入namedtuple
----&gt; 15 从 .将 h5 导入为 _h5
-     16导入系统
-     17 导入numpy
-
-文件h5py\h5.pyx:1，在init h5py.h5()中
-
-ImportError: 导入 defs 时 DLL 加载失败: 找不到指定的过程。
-
-这可能是什么原因？]]></description>
-      <guid>https://stackoverflow.com/questions/77709781/dll-load-failed-while-importing-defs-the-specified-procedure-could-not-be-found</guid>
-      <pubDate>Sun, 24 Dec 2023 05:45:40 GMT</pubDate>
-    </item>
-    <item>
       <title>如何将 model.safetensor 转换为 pytorch_model.bin？</title>
       <link>https://stackoverflow.com/questions/77708996/how-to-convert-model-safetensor-to-pytorch-model-bin</link>
       <description><![CDATA[我正在微调预训练的 bert 模型，但遇到了一个奇怪的问题：
@@ -120,7 +196,7 @@ evaluator = evaluation.EmbeddingSimilarityEvaluator.from_input_examples(val_exam
 model.fit(train_objectives=[(train_dataloader, train_loss)]，epochs=5，evaluator=evaluator，show_progress_bar=True，output_path=f&#39;model_FT/{checkpoint}&#39;，save_best_model=True)
 
 我确实在两个不同的环境中尝试了测试，我希望代码能够保存一个“pytorch_model.bin”文件。不是“model.safetensors”。
-编辑：我真的还不知道，但似乎是新版本的 Transformer 库导致了这个问题。我看到使用拥抱脸可以加载安全张量，但使用句子转换器（我需要使用）则不能。]]></description>
+编辑：我真的还不知道，但似乎是新版本的 Transformer 库导致了这个问题。我发现使用拥抱脸可以加载安全张量，但使用句子转换器（我需要使用）则不能。]]></description>
       <guid>https://stackoverflow.com/questions/77708996/how-to-convert-model-safetensor-to-pytorch-model-bin</guid>
       <pubDate>Sat, 23 Dec 2023 20:43:20 GMT</pubDate>
     </item>
@@ -130,7 +206,7 @@ model.fit(train_objectives=[(train_dataloader, train_loss)]，epochs=5，evaluat
       <description><![CDATA[假设我有一个图像对的数据集，其中每一对代表给定问题中的一个序列
 例如，下面的一对图像代表 8-MNIST 拼图问题中的一个步骤（其中代表空白的“0”图块与“3”图块一起移动）。
 
-对于每一对，我还有一个表示给定动作的 one-hot 向量，例如对于上面的对，one-hot 将是 [0 0 0 ... 0 1 0] 表示“” 0”瓷砖被推倒了
+对于每一对，我还有一个表示给定动作的 one-hot 向量，例如对于上面的对，one-hot 将为 [0 0 0 ... 0 1 0] 表示“” 0”瓷砖被推下
 是否有一个模型可以从给定的图像和动作的标签中学习，以预测图像的哪一部分将被修改？ （给定示例中图像的“0 3”部分）。
 非常感谢]]></description>
       <guid>https://stackoverflow.com/questions/77708727/what-type-of-ml-model-can-detect-which-part-of-the-image-has-changed-in-a-transi</guid>
@@ -217,7 +293,7 @@ def 预测（）：
 我仔细检查了训练和 API 代码中的图像预处理步骤，以确保一致性。 Flask API 中的预处理与训练过程保持一致。
 
 
-我希望 Flask API 能够根据输入图像提供多种预测，与模型在训练期间的性能保持一致。每个输入图像都应该产生与其实际类别相对应的预测。
+我希望 Flask API 能够根据输入图像提供多样化的预测，与训练期间模型的性能一致。每个输入图像都应该产生与其实际类别相对应的预测。
 无论图像的实际内容如何，​​Flask API 都会一致地为每个输入图像预测相同的类别（“CN - 认知正常”）。这种行为与训练期间模型的准确性不一致。
 TFLite 转换或模型准确性是否存在我可能忽略的潜在问题？]]></description>
       <guid>https://stackoverflow.com/questions/77708650/flask-api-with-tensorflow-lite-model-always-predicts-the-same-class-regardless</guid>
@@ -229,171 +305,6 @@ TFLite 转换或模型准确性是否存在我可能忽略的潜在问题？]]><
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77708557/python-tensorflow-keras-lstm-typeerror-generator-yielded-an-element-of-shape</guid>
       <pubDate>Sat, 23 Dec 2023 18:05:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 tf.GradientTape 训练训练/有效/测试集？</title>
-      <link>https://stackoverflow.com/questions/77708229/how-to-train-train-valid-test-set-using-tf-gradienttape</link>
-      <description><![CDATA[我想问一下如何使用train/valid/test模型来训练模型。
-我主要模仿这里的代码（https://www.tensorflow.org/guide/ keras/writing_a_training_loop_from_scratch）。
-这是生成数据集和基本内容的代码。
-导入keras
-从 keras 导入层
-将 numpy 导入为 np
-
-输入= keras.Input（形状=（784，），名称=“数字”）
-x1 = 层.Dense(64, 激活=“relu”)(输入)
-x2 = 层.Dense(64, 激活=“relu”)(x1)
-输出=layers.Dense(10,name=“预测”)(x2)
-模型= keras.Model（输入=输入，输出=输出）
-
-# 实例化优化器。
-优化器 = tf.keras.optimizers.SGD(learning_rate=1e-3)
-# 实例化损失函数。
-loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-
-# 准备训练数据集。
-批量大小 = 64
-(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-x_train = np.reshape(x_train, (-1, 784))
-x_test = np.reshape(x_test, (-1, 784))
-
-# 保留 10,000 个样本用于验证。
-x_val = x_train[-10000:]
-y_val = y_train[-10000:]
-x_train = x_train[:-10000]
-y_train = y_train[:-10000]
-
-# 准备训练数据集。
-train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
-
-# 准备验证数据集。
-val_dataset = tf.data.Dataset.from_tensor_slices((x_val, y_val))
-val_dataset = val_dataset.batch(batch_size)
-
-# 获取模型
-输入= keras.Input（形状=（784，），名称=“数字”）
-x = 层.Dense(64, 激活=“relu”, 名称=“dense_1”)(输入)
-x = 层.Dense(64, 激活=“relu”, 名称=“dense_2”)(x)
-输出=layers.Dense(10,name=“预测”)(x)
-模型= keras.Model（输入=输入，输出=输出）
-
-# 实例化优化器来训练模型。
-优化器 = tf.keras.optimizers.SGD(learning_rate=1e-3)
-# 实例化损失函数。
-loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-
-# 准备指标。
-train_acc_metric = keras.metrics.SparseCategoricalAccuracy()
-val_acc_metric = keras.metrics.SparseCategoricalAccuracy()
-
-@tf.函数
-def train_step(x, y):
-    使用 tf.GradientTape() 作为磁带：
-        logits = 模型(x, 训练=True)
-        loss_value = loss_fn(y, logits)
-    grads = Tape.gradient(loss_value, model.trainable_weights)
-    优化器.apply_gradients(zip(grads, model.trainable_weights))
-    train_acc_metric.update_state(y, logits)
-    回波损耗值
-
-@tf.函数
-def test_step(x, y):
-    val_logits = 模型(x, 训练=False)
-    val_acc_metric.update_state(y, val_logits)
-
-这是训练部分。
-导入时间
-
-历元 = 2
-对于范围内的纪元（纪元）：
-    print(&quot;\n纪元%d开始&quot; % (纪元,))
-    开始时间 = 时间.time()
-
-    # 迭代数据集的批次。
-    对于枚举（train_dataset）中的步骤（x_batch_train，y_batch_train）：
-        loss_value = train_step(x_batch_train, y_batch_train)
-
-        # 每 200 个批次记录一次。
-        如果步骤 % 200 == 0:
-            打印（
-                “第 %d 步的训练损失（一批）：%.4f”
-                %（步长，浮点数（损失值））
-            ）
-            print(“到目前为止已看到：%d 个样本” % ((step + 1) * batch_size))
-
-    # 显示每个时期结束时的指标。
-    train_acc = train_acc_metric.result()
-    print(&quot;历元训练 acc: %.4f&quot; % (float(train_acc),))
-
-    # 在每个时期结束时重置训练指标
-    train_acc_metric.reset_states()
-
-    # 在每个时期结束时运行验证循环。
-    对于 val_dataset 中的 x_batch_val、y_batch_val：
-        test_step(x_batch_val, y_batch_val)
-
-    val_acc = val_acc_metric.result()
-    val_acc_metric.reset_states()
-    print(&quot;验证acc: %.4f&quot; % (float(val_acc),))
-    print(&quot;所用时间: %.2fs&quot; % (time.time() - start_time))
-
-
-我的问题是，如果数据集分为 3 个类别：训练、测试、有效，那么每个类别的代码会有什么不同，尤其是测试和有效。
-例如，
-&lt;前&gt;&lt;代码&gt;x_val = x_train[-20000:]
-y_val = y_train[-20000:]
-
-x_test = x_train[-20000:-10000]
-y_test = y_train[-20000:-10000]
-
-x_train = x_train[:-10000]
-y_train = y_train[:-10000]
-
-
-valid 也应该使用 tf.gradienttape 吗？或训练=真？这让我很困惑。
-感谢您的回复。
-谢谢，
-分钟]]></description>
-      <guid>https://stackoverflow.com/questions/77708229/how-to-train-train-valid-test-set-using-tf-gradienttape</guid>
-      <pubDate>Sat, 23 Dec 2023 16:01:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>我正在研究一个示例：简单线性回归薪资数据解释了为什么为 x 列创建新轴的步骤以及什么是 np.newaxis [关闭]</title>
-      <link>https://stackoverflow.com/questions/77708064/i-was-working-on-a-examples-simple-linear-regression-salary-data-from-that-expl</link>
-      <description><![CDATA[# 分割训练数据和测试数据
-
-X_train,X_test,y_train,y_test = train_test_split(X,y,train_size=0.7,random_state=100)
-
-# 为 x 列创建新轴
-
-X_train = X_train[:,np.newaxis]
-X_test = X_test[:,np.newaxis]
-
-使用 np.newaxis 添加新轴有助于重塑数据以实现兼容性]]></description>
-      <guid>https://stackoverflow.com/questions/77708064/i-was-working-on-a-examples-simple-linear-regression-salary-data-from-that-expl</guid>
-      <pubDate>Sat, 23 Dec 2023 15:05:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的 Label Studio 没有找到云源 - 本地存储（不存在）</title>
-      <link>https://stackoverflow.com/questions/77707858/why-my-label-studio-didnt-find-the-cloud-source-local-storage-doesnt-exist</link>
-      <description><![CDATA[我已经从 git 安装了 Label-Studio git 安装，
-并且想要将存储更改为云存储 - 本地存储，路径为 C:\data\media\dataset 数据集图像路径
-所以我从这一步开始 https://labelstud.io/guide/storage#Local -storage 和我的命令是：
- 设置 LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
-
- 设置 LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=C:\\data\\media\\dataset
-
-我添加了set，因为如果没有它，它会出错。
-当我更改本地存储时，它不存在。它警告使用“必须以 LOCAL_FILES_DOCUMENT_ROOT 开头”
-[ErrorDetail(string=&#39;路径 C:\\\\data\\\\media 必须以 LOCAL_FILES_DOCUMENT_ROOT=D:\\ 开头，并且必须是子项，例如：D:\\abc&#39;, code =&#39;无效&#39;）]
-
-[ErrorDetail(string=&#39;路径 LOCAL_FILES_DOCUMENT_ROOT=C:\\\\data\\\\media 不存在&#39;, code=&#39;无效&#39;)]
-
-屏幕截图
-屏幕截图]]></description>
-      <guid>https://stackoverflow.com/questions/77707858/why-my-label-studio-didnt-find-the-cloud-source-local-storage-doesnt-exist</guid>
-      <pubDate>Sat, 23 Dec 2023 13:55:59 GMT</pubDate>
     </item>
     <item>
       <title>如何绘制交叉验证的 AUROC 并找到最佳阈值？</title>
@@ -492,7 +403,7 @@ plt.show()
       <pubDate>Wed, 20 Dec 2023 14:47:19 GMT</pubDate>
     </item>
     <item>
-      <title>TypeError: JoypadSpace.reset() 有一个意外的关键字参数“seed”，当我运行以下代码时，我应该怎么解决这个问题？</title>
+      <title>TypeError: JoypadSpace.reset() 有一个意外的关键字参数“seed”，当我运行以下代码时，我应该做什么来解决这个问题？</title>
       <link>https://stackoverflow.com/questions/76509663/typeerror-joypadspace-reset-got-an-unexpected-keyword-argument-seed-when-i</link>
       <description><![CDATA[当我运行此代码时：
 from nes_py.wrappers import JoypadSpace
@@ -515,6 +426,29 @@ env = VecFrameStack(env,4,channels_order=&#39;最后&#39;)
 我应该如何解决这个问题？]]></description>
       <guid>https://stackoverflow.com/questions/76509663/typeerror-joypadspace-reset-got-an-unexpected-keyword-argument-seed-when-i</guid>
       <pubDate>Mon, 19 Jun 2023 19:47:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>来自 sklearn 的 GridSearchCV</title>
+      <link>https://stackoverflow.com/questions/76011951/gridsearchcv-from-sklearn</link>
+      <description><![CDATA[在使用 sklearn 的岭回归器和 GridSearchCV 构建线性回归时，我收到以下错误：
+&#39;ValueError：估算器 Ridge() 的参数“ridge”无效。有效参数为：[&#39;alpha&#39;、&#39;copy_X&#39;、&#39;fit_intercept&#39;、&#39;max_iter&#39;、&#39;positive&#39;、&#39;random_state&#39;、&#39;solver&#39;、&#39;tol&#39;]。&#39;
+我的代码如下：
+X,y = Train_arr.iloc[:,:-1],Train_arr.iloc[:,-1]
+
+从 sklearn.linear_model 导入 Ridge
+从 sklearn.model_selection 导入 GridSearchCV
+从 sklearn.metrics 导入mean_squared_error
+
+山脊 = 山脊()
+param_grid = {&#39;ridge__aplha&#39;: np.logspace(-10,10,100)}
+
+ridge_regressor = GridSearchCV(ridge, param_grid,scoring=&#39;neg_mean_squared_error&#39;,cv=5, n_jobs =-1)
+ridge_regressor.fit(X,y)
+
+如果有人能强调我哪里出错了，这导致了上述值错误，我将不胜感激。
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/76011951/gridsearchcv-from-sklearn</guid>
+      <pubDate>Fri, 14 Apr 2023 05:52:23 GMT</pubDate>
     </item>
     </channel>
 </rss>
