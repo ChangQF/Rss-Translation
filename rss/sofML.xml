@@ -4,7 +4,285 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Tue, 26 Dec 2023 06:17:39 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 26 Dec 2023 09:13:29 GMT</lastBuildDate>
+    <item>
+      <title>为什么我的 val_loss 曲线看起来这么奇怪？</title>
+      <link>https://stackoverflow.com/questions/77716410/why-does-my-val-loss-curve-look-so-strange</link>
+      <description><![CDATA[类 myResidualBlock1DSample(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, use_1x1conv=False):
+        超级（myResidualBlock1DSample，自我）.__init__（）
+        self.conv1 = nn.Conv1d(in_channels, out_channels//2, kernel_size, stride, padding=1)
+        self.bn1 = nn.BatchNorm1d(out_channels//2)
+        self.relu = nn.ReLU()
+        self.pool1 = nn.MaxPool1d(kernel_size=2, stride=2)
+        self.conv2 = nn.Conv1d(out_channels//2, out_channels, kernel_size, stride, padding=1)
+        self.bn2 = nn.BatchNorm1d(out_channels)
+        self.pool2 = nn.MaxPool1d(kernel_size=2, stride=2)
+        如果使用_1x1conv：
+            self.conv3 = nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=1)
+            self.pool3 = nn.MaxPool1d(kernel_size=4, stride=4)
+        别的：
+            self.conv3 = 无
+            self.pool3 = 无
+
+    def 前向（自身，x）：
+        输出 = self.conv1(x)
+        输出 = self.bn1(输出)
+        输出 = self.relu(输出)
+        输出 = self.pool1(输出)
+        输出 = self.conv2(输出)
+        输出 = self.bn2(输出)
+        输出 = self.pool2(输出)
+        如果 self.conv3：
+            x = self.conv3(x)
+            x = self.pool3(x)
+        输出 += x
+        输出 = self.relu(输出)
+        返回
+
+
+类 myResidualBlock1DUpsample(nn.Module)：
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, use_1x1conv=False):
+        超级（myResidualBlock1DUpsample，自我）.__init__（）
+        self.conv1 = nn.Conv1d(in_channels, in_channels//2, kernel_size, stride, padding=1)
+        self.bn1 = nn.BatchNorm1d(in_channels//2)
+        self.relu = nn.ReLU()
+        self.upsample1 = nn.Upsample(scale_factor=2, mode=&#39;线性&#39;)
+        self.conv2 = nn.Conv1d(in_channels//2, out_channels, kernel_size, stride, padding=1)
+        self.bn2 = nn.BatchNorm1d(out_channels)
+        self.upsample2 = nn.Upsample(scale_factor=2, mode=&#39;线性&#39;)
+        如果使用_1x1conv：
+            self.conv3 = nn.Conv1d(in_channels, out_channels, kernel_size=1, stride=1)
+            self.upsample3 = nn.Upsample(scale_factor=4, mode=&#39;线性&#39;)
+        别的：
+            self.conv3 = 无
+            self.upsample3 = 无
+
+    def 前向（自身，x）：
+        输出 = self.conv1(x)
+        输出 = self.bn1(输出)
+        输出 = self.relu(输出)
+        输出 = self.upsample1(输出)
+        输出 = self.conv2(输出)
+        输出 = self.bn2(输出)
+        输出 = self.upsample2(输出)
+        如果 self.conv3：
+            x = self.conv3(x)
+            x = self.upsample3(x)
+        输出 += x
+        输出 = self.relu(输出)
+        返回
+
+
+类 ResidualAutoencoder1Dv2(nn.Module):
+    def __init__(自身):
+        超级().__init__()
+        #编码器
+        self.res1 = myResidualBlock1DSample(1, 32, use_1x1conv=True)
+        self.res2 = myResidualBlock1DSample(32, 128, use_1x1conv=True)
+        self.res5 = myResidualBlock1DSample(128,512,use_1x1conv=True)
+        self.flatten = nn.Flatten()
+        self.fc1 = nn.Linear(5120, 4096)
+        self.fc2 = nn.Linear(4096, 2048)
+        self.fc3 = nn.Linear(2048, 1024)
+        self.dropout = nn.Dropout(p=0.2)
+        self.fc4 = nn.Linear(1024, 4)
+        self.relu = nn.ReLU()
+        #解码器
+        self.fc5 = nn.Linear(4, 47)
+        self.conv1 = nn.Conv1d(1, 128, kernel_size=3, stride=1)#序列长度变成45
+        self.res3 = myResidualBlock1DUpsample(128, 32, use_1x1conv=True)
+        self.res4 = myResidualBlock1DUpsample(32, 1, use_1x1conv=True)
+        self.fc6 = nn.Linear(720,700)
+
+    def 前向（自身，x）：
+        #编码器
+        x = self.res1(x)
+        x = self.res2(x)
+        x = self.res5(x)
+        x = self.展平(x)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        x = self.relu(x)
+        x = self.fc3(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        编码输出 = self.fc4(x)
+        #解码器
+        x = self.fc5(编码输出)
+        x = x.unsqueeze(1)
+        x = self.conv1(x)
+        x = self.res3(x)
+        x = self.res4(x)
+        解码输出 = self.fc6(x)
+        返回编码输出、解码输出
+
+
+为什么我的损失曲线晃动这么大？事实上，曲线仍然可以下降到低点。我该如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/77716410/why-does-my-val-loss-curve-look-so-strange</guid>
+      <pubDate>Tue, 26 Dec 2023 08:53:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>RocCurveDisplay.from_estimator 无法显示 Roc 曲线图</title>
+      <link>https://stackoverflow.com/questions/77716366/roccurvedisplay-from-estimator-is-not-able-to-display-roc-curve-graph</link>
+      <description><![CDATA[RocCurveDisplay.from_estimator 无法显示图表。
+随机森林：无结果中显示“无”而不是图表
+我不明白这是什么问题？
+我曾尝试尽一切可能，不幸的是我未能查明显示图表的正确代码。任何帮助都将不胜感激。下面是我的代码
+导入 pandas 作为 pd
+从 sklearn.naive_bayes 导入 GaussianNB
+从 sklearn.tree 导入 DecisionTreeClassifier
+从 sklearn.ensemble 导入 RandomForestClassifier
+从 sklearn.model_selection 导入 train_test_split
+从 sklearn.metrics 导入 precision_score, precision_score
+
+df = pd.read_csv(“xyz.csv”)
+
+X_train, X_test, Y_train, Y_test = train_test_split(X,y, test_size=0.3, random_state=56)
+
+分类器 = [
+    [&#39;朴素贝叶斯：&#39;, GaussianNB()],
+    [&#39;决策树：&#39;, DecisionTreeClassifier(random_state=56)],
+    [&#39;随机森林：&#39;, RandomForestClassifier(random_state=56)],
+]
+
+Predictions_df=pd.DataFrame()
+Predictions_df[&#39;action&#39;] = Y_test
+
+# 使用的各个分类器的准确性
+对于名称，分类器中的分类器：
+    分类器 = 分类器
+    classifier.fit (X_train,Y_train.ravel())
+    预测 = classifier.predict(X_test)
+    Predictions_df[name.strip(&quot;:&quot;)] = 预测
+    打印(“\n”)
+    打印（名称，“准确度：”，accuracy_score（Y_test，预测））
+    print(名称,“精度:”, precision_score(Y_test,预测))
+    RocCurveDisplay.from_estimator(分类器, X_test, Y_test)
+    print(name, plt.show()) # 为什么我无法显示 ROC 曲线？
+    打印(“\n”)
+]]></description>
+      <guid>https://stackoverflow.com/questions/77716366/roccurvedisplay-from-estimator-is-not-able-to-display-roc-curve-graph</guid>
+      <pubDate>Tue, 26 Dec 2023 08:39:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>Keras / Tensorflow：类型错误：无法序列化类型为 <class 'ellipsis'> 的对象省略号</title>
+      <link>https://stackoverflow.com/questions/77716307/keras-tensorflow-typeerror-cannot-serialize-object-ellipsis-of-type-class</link>
+      <description><![CDATA[我正在通过《Python 深度学习》一书学习 Tensorflow / Keras。第 8 章解释了如何使用预训练模型。但是，提供的代码无法运行，并且在执行 model.fit 时收到错误消息（我使用的是 Tensorflow 版本 2.15.0）
+该程序使用来自 kaggle 的 dogs-vs-cats 数据集。它创建一个较小的子集并创建训练、验证和测试数据集。这一切都有效，就像本书中其他一些示例所使用的那样。然后，它使用预训练的 VGG16 模型并训练与其连接的密集层（代码如下）。
+问题：
+model.fit(...) 会导致以下错误：
+类型错误：无法序列化  类型的对象省略号。要可序列化，类必须实现 get_config() 方法。
+导入tensorflow为tf
+从张量流导入keras
+
+#使用kaggle API令牌上传kaggle.json文件
+从 google.colab 导入文件
+文件.上传()
+
+!mkdir ~/.kaggle
+!cp kaggle.json ~/.kaggle
+!chmod 600 ~/.kaggle/kaggle.json
+
+!unzip -qq 狗大战猫.zip
+!unzip -qq火车.zip
+
+导入操作系统、shutil、pathlib
+Original_dir = pathlib.Path(“火车”)
+new_base_dir = pathlib.Path(“狗与猫_小”)
+
+def make_subset(子集名称, 开始索引, 结束索引):
+    对于（“猫”，“狗”）中的类别：
+        dir = new_base_dir / 子集名称 / 类别
+        os.makedirs（目录）
+        fnames = [f&quot;{category}.{i}.jpg&quot;;对于范围内的 i(start_index, end_index)]
+        对于 fnames 中的 fname：
+            Shutil.copyfile(src=original_dir / fname, dst=dir / fname)
+
+make_subset(“火车”, start_index=0, end_index=1000)
+make_subset(“验证”, start_index=1000, end_index=1500)
+make_subset(“测试”, start_index=1500, end_index=2500)
+
+导入路径库
+
+base_dir = pathlib.Path(“狗与猫_小”)
+
+train_dataset = keras.utils.image_dataset_from_directory(
+    base_dir /“火车”，
+    图像大小=(180, 180),
+    批量大小=32
+）
+
+validation_dataset = keras.utils.image_dataset_from_directory(
+    base_dir /“验证”，
+    图像大小=(180, 180),
+    批量大小=32
+）
+
+test_dataset = keras.utils.image_dataset_from_directory(
+    base_dir /“测试”，
+    图像大小=(180, 180),
+    批量大小=32
+）
+
+#创建神经网络
+conv_base = keras.applications.vgg16.VGG16(
+  权重=“imagenet”，
+  include_top=False
+）
+conv_base.trainable = False
+
+data_augmentation = keras.Sequential(
+    [
+      keras.layers.RandomFlip(“水平”),
+      keras.layers.RandomRotation(0.1),
+      keras.layers.RandomZoom(0.2)
+    ]
+）
+
+输入 = keras.Input(形状=(180, 180, 3))
+x = 数据增强（输入）
+x = keras.applications.vgg16.preprocess_input(x)
+x = 转换基数(x)
+x = keras.layers.Flatten()(x)
+x = keras.layers.Dense(256)(x)
+x = keras.layers.Dropout(0.5)(x)
+输出 = keras.layers.Dense(1, 激活 =“sigmoid”)(x)
+
+模型= keras.Model（输入，输出）
+
+模型.编译(
+    损失=“binary_crossentropy”，
+    优化器=“rmsprop”，
+    指标=[“准确度”]
+）
+
+回调 = [
+    keras.callbacks.ModelCheckpoint(
+        文件路径=“features_extraction_with_data_augmentation.keras”，
+        save_best_only=真，
+        监视器=“val_loss”
+    ）
+]
+
+历史=模型.fit(
+    训练数据集，
+    纪元=50，
+    验证数据=验证数据集，
+    回调=回调
+）
+]]></description>
+      <guid>https://stackoverflow.com/questions/77716307/keras-tensorflow-typeerror-cannot-serialize-object-ellipsis-of-type-class</guid>
+      <pubDate>Tue, 26 Dec 2023 08:20:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>在本地计算机中设置 UDpipe 服务器</title>
+      <link>https://stackoverflow.com/questions/77715913/setting-up-udpipe-server-in-local-machine</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77715913/setting-up-udpipe-server-in-local-machine</guid>
+      <pubDate>Tue, 26 Dec 2023 06:18:57 GMT</pubDate>
+    </item>
     <item>
       <title>缺失数据的随机森林建模：寻求不需要插补或数据删除的包或方法</title>
       <link>https://stackoverflow.com/questions/77715672/random-forest-modeling-with-missing-data-seeking-packages-or-approaches-that-do</link>
@@ -156,162 +434,6 @@ Tesseract 声称可以手写，可以使用 mingw 在 Linux 和 Windows 上运�
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77714343/cant-pass-in-memory-data-to-automl-in-f-not-understanding-why-it-doesnt-com</guid>
       <pubDate>Mon, 25 Dec 2023 16:43:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>Mediapipe-model-maker安装问题</title>
-      <link>https://stackoverflow.com/questions/77713844/mediapipe-model-maker-installation-issue</link>
-      <description><![CDATA[希望你们一切都好。我正在研究图像分类模型，为此，我正在安装 mediapipe-model-marker，但遇到以下错误。
-这是我的 python 和 pip 版本
-在此处输入图像描述
-这是我用来安装此软件包的 pip 命令。
-pip install mediapipe-model-maker 
-这是错误
-在此处输入图像描述
-我尝试在我的 venv 中下载 medipipe-model-marker 包来使用图像分类模型。
-我希望下载这个包。]]></description>
-      <guid>https://stackoverflow.com/questions/77713844/mediapipe-model-maker-installation-issue</guid>
-      <pubDate>Mon, 25 Dec 2023 13:36:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>SARIMAX 错误：ValueWarning：已提供日期索引，但它没有关联的频率信息，因此在例如预测</title>
-      <link>https://stackoverflow.com/questions/77713776/sarimax-errorvaluewarninga-date-index-has-been-provided-but-it-has-no-associat</link>
-      <description><![CDATA[我有这样的数据
-
-&lt;表类=“s-表”&gt;
-&lt;标题&gt;
-
-时间
-湿度_(%)
-
-
-&lt;正文&gt;
-
-15:21:02
-31.03
-
-
-15:23:05
-30.98
-
-
-
-
-当我运行代码时出现此错误：
-ValueWarning：已提供日期索引，但它没有关联的频率信息，因此在例如预测。
-有熟悉这方面的人可以帮助我吗？
-不知道是什么原因
-我写了这段代码：
-导入 pandas 作为 pd
-将 statsmodels.api 导入为 sm
-
-
-data.set_index(&#39;时间&#39;, inplace=True)
-
-
-# 将数据分为训练集和测试集
-train_data = data.iloc[:-17000] # 使用除最后 8 个样本之外的所有样本进行训练
-test_data = data.iloc[-17000:] # 使用最后8个样本进行测试
-
-# 将 SARIMAX 模型拟合到训练数据
-模型 = sm.tsa.SARIMAX(train_data[&#39;湿度_(%)&#39;], order=(1, 0, 0))
-model_fit = model.fit()
-]]></description>
-      <guid>https://stackoverflow.com/questions/77713776/sarimax-errorvaluewarninga-date-index-has-been-provided-but-it-has-no-associat</guid>
-      <pubDate>Mon, 25 Dec 2023 13:13:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>尝试从 inceptionv3 架构中提取特征时出现图形断开连接错误</title>
-      <link>https://stackoverflow.com/questions/77713548/graph-disconnected-error-when-trying-to-extract-features-from-inceptionv3-archit</link>
-      <description><![CDATA[我正在尝试从架构中间提取一些特征并将其用于另一个模型。
-base_model = InceptionV3(weights=&#39;imagenet&#39;, include_top=False)
-input_tensor = Input(shape=(299, 299, 3)) # InceptionV3 的输入形状
-InceptionA_feature_extractor = models.Model(inputs=input_tensor,outputs=base_model.get_layer(&#39;mixed2&#39;).output)
-
-在尝试执行此操作时，我收到以下错误，可能的原因是什么？
-ValueError：图形已断开连接：无法获取张量 KerasTensor 的值（type_spec=TensorSpec(shape=(None, None, None, 3), dtype=tf.float32, name=&#39;input_6&#39;), name=&#39; input_6&#39;，描述=“由层&#39;input_6&#39;创建”）在层“conv2d_376”。访问以下先前层没有问题：[]
-]]></description>
-      <guid>https://stackoverflow.com/questions/77713548/graph-disconnected-error-when-trying-to-extract-features-from-inceptionv3-archit</guid>
-      <pubDate>Mon, 25 Dec 2023 11:49:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>自定义梯度提升分类器实现。训练无进展</title>
-      <link>https://stackoverflow.com/questions/77710582/custom-gradient-boosting-classifier-implementation-no-training-progress</link>
-      <description><![CDATA[我正在尝试实现一个GradientBoostingClassifier
-我从 StatQuest 视频中获取了该算法（梯度提升第 4 部分（共 4 部分）：分类详细信息）并尝试使用 numpy + sklearn.DecisionTreeRegressor 作为基本模型来实现它。
-这是我的代码：
-从 sklearn.tree 导入 DecisionTreeRegressor
-
-定义 sigmoid(x):
-  如果x&gt; 0:
-    z = np.exp(-x)
-    返回 1/(1+z)
-  别的：
-    z = np.exp(x)
-    返回 z/(1+z)
-
-类 GradientBoostingClassifier()：
-  def __init__(self, n_estimators=20, lr=0.1):
-    self.n_estimators = n_estimators
-    self.lr = lr
-    self.training_history = {
-        “log_loss”：[]，“roc_auc”：[]，“pr_auc”：[]
-    }
-    self.base_learners = []
-
-  def fit(自身, X, y):
-    数据 = X.copy()
-    特征=数据.列
-    # 1. 使用常量值初始化模型：
-    p = y.sum() / len(y)
-    赔率 = p / (1-p)
-    log_odds = np.log(赔率)
-    数据[&#39;cur_log_odds&#39;] = log_odds
-    数据[&#39;预测&#39;] = 数据[&#39;cur_log_odds&#39;].apply(sigmoid)
-
-    self.training_history[&#39;log_loss&#39;].append( log_loss(y, data[&#39;prediction&#39;]) )
-    self.training_history[&#39;roc_auc&#39;].append( roc_auc_score(y, data[&#39;预测&#39;]) )
-    self.training_history[&#39;pr_auc&#39;].append(average_ precision_score(y, data[&#39;prediction&#39;]) )
-
-    # 2. 对于 m = 1 到 M：
-    for _ in tqdm(range(self.n_estimators)):
-      # 2.1 计算所谓的伪残差：
-      数据[&#39;残差&#39;] = (数据[&#39;预测&#39;] - y)
-
-      # 2.2 拟合基学习器回归器来预测伪残差：
-      base_learner = DecisionTreeRegressor（max_深度 = 3，min_samples_split = 2，random_state = 42）
-      base_learner.fit(数据[特征],数据[&#39;残差&#39;])
-      self.base_learners.append(base_learner)
-
-      # 2.3 对于每个叶子计算其输出对数几率
-      # 从回归树中获取叶子数
-      数据[&#39;叶子&#39;] = base_learner.apply(数据[特征])
-
-      # 将输出对数奇数计算为 sum(residuals) / sum(old_prediction * (1 - old_prediction))
-      leafs_output = data.groupby(&#39;leaf&#39;, as_index=False).apply(
-          lambda d: d[&#39;残差&#39;].sum() / (0.00001+(d[&#39;预测&#39;] * (1-d[&#39;预测&#39;]) ).sum())
-      ).rename(columns={无: &#39;lambda_odds&#39;})
-
-      数据 = data.merge(leafs_output, on=&#39;leaf&#39;)
-      # 2.4 更新 current_log_odds = current_log_odds + lr*predicted_log_odds
-      数据[&#39;cur_log_odds&#39;] += self.lr*data[&#39;lambda_odds&#39;]
-      数据 = data.drop(&#39;lambda_odds&#39;, axis=1)
-
-      数据[&#39;预测&#39;] = 数据[&#39;cur_log_odds&#39;].apply(sigmoid)
-
-      self.training_history[&#39;log_loss&#39;].append( log_loss(y, data[&#39;prediction&#39;]) )
-      self.training_history[&#39;roc_auc&#39;].append( roc_auc_score(y, data[&#39;预测&#39;]) )
-      self.training_history[&#39;pr_auc&#39;].append(average_ precision_score(y, data[&#39;prediction&#39;]) )
-
-    返回数据
-
-  def Predict_proba(自身, X):
-    经过
-
-问题是，即使经过 1000 次迭代 (n_estimators = 1000)，我的 roc_auc 和 pr_auc 分数也接近随机模型给出的分数（roc_auc=0.5，pr_auc=0.29，这是正类的比例）。
-我做错了什么？
-即使在 n_estimators = 10 的情况下，sklearn GradientBoostingClassifier 实现在同一数据集上也能给出更高的分数]]></description>
-      <guid>https://stackoverflow.com/questions/77710582/custom-gradient-boosting-classifier-implementation-no-training-progress</guid>
-      <pubDate>Sun, 24 Dec 2023 12:11:08 GMT</pubDate>
     </item>
     <item>
       <title>卷积神经网络不学习</title>
