@@ -4,7 +4,131 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Wed, 27 Dec 2023 06:18:33 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 27 Dec 2023 09:13:33 GMT</lastBuildDate>
+    <item>
+      <title>F1 分数与出版物不符</title>
+      <link>https://stats.stackexchange.com/questions/635688/f1-score-mismatch-with-publication</link>
+      <description><![CDATA[我正在尝试重现 SEP28k 论文中基线模型的结果，但我很难获取详细信息。最引人注目的是，随机预测的 F1 分数与论文不符。以下是数据集类别的统计数据（论文中所述的来自数据集的 1k 个样本）：
+ 块延长 SoundRep WordRep 感叹词
+计数 1000 1000 1000 1000 1000
+独特 2 2 2 2 2
+顶部错误错误错误错误错误错误
+频率 829 834 879 834 636
+
+为每个标签随机选择 True/False 的 F1 分数：
+区块：0.29（纸质版为 0.14）
+延伸率：0.25（纸上为0.13）
+SoundRep：0.23（纸质版为 0.095）
+WordRep：0.22（纸质版为 0.043）
+感叹词：0.38（论文中为0.14）
+
+我使用的评估代码是这样的：
+导入 pandas 作为 pd
+进口火炬
+从 sklearn.metrics 导入 f1_score
+
+STUTTER_LABELS = [&#39;阻止&#39;、&#39;延长&#39;、&#39;SoundRep&#39;、&#39;WordRep&#39;、&#39;感叹词&#39;]
+如果 __name__ == “__main__”：
+    df = pd.read_csv(&#39;SEP-28k_labels.csv&#39;)
+    df = df[STUTTER_LABELS][df[STUTTER_LABELS].values.sum(axis=1) &gt;= 2]
+    df = df.样本(n=1000)
+    打印((df &gt;= 2).describe())
+    
+    标签 = torch.from_numpy(df.values &gt;= 2).long()
+    preds = torch.randint_like(标签, high=2)
+    分数 = [f1_score(labels[:, i], preds[:, i]) for i in range(5)]
+    论文分数 = [0.137, 0.128, 0.095, 0.043, 0.136, 0.46]
+    对于 zip 中的名称、分数、paper_score（STUTTER_LABELS、分数、paper_scores）：
+        print(f&quot;{name}: {score:.2} ({paper_score:.2} in paper)&quot;)
+
+并且 csv 可在 SEP28k github 上获取。
+我尝试过仅使用口吃语音和口吃/流利语音对数据集进行预测，但随机分类器的结果比论文中所说的要高得多。也许原因是我不确定“软预测层”是什么。意思是
+两种模型都有两个输出
+分支：流畅/不流畅预测和软预测
+对于五种事件类型中的每一种
+
+我假设它单独预测每个类别（例如 5 个输出神经元末尾的 sigmoid）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/635688/f1-score-mismatch-with-publication</guid>
+      <pubDate>Wed, 27 Dec 2023 08:37:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>在自然实验中具有重复增益分数的线性混合模型</title>
+      <link>https://stats.stackexchange.com/questions/635687/linear-mixed-models-with-repeated-gain-scores-in-a-natural-experiment</link>
+      <description><![CDATA[背景：我正在处理一个数据集，其中包含来自涉及自然实验的调查问卷的观察数据。人们每周都会被问及是否收到了意外消息 (X)、他们睡了多少觉 (Z) 以及他们的健康状况 (Y)。 Y 和 Z 是在另一次子调查中测量的，因此对于 X 的每个观测值，我将 X 之前和之后最接近的 Y 和 Z 观测值合并起来，以获得前/后测量值。现在，每一行都包含用户 ID、x、z 的值以及相应的 Y 前值和后值。作为用前值调整后值以控制预测值的中心假设不满足（组有在基线时没有被随机化），我选择使用增益/变化/差异分数（https://homes.ori.org/keiths/Tips/Stats_GainScores.html）作为我的回归 Ydiff ~ X*Z 的结果，其中 Ydiff = Post - Pre。
+问题：观察的数量因人而异：有些人确实比其他人参与更多，导致每个人的分数发生多个变化；其他人只有一个可用的更改分数。使用随机截距为每个用户建模潜在的嵌套结构是否有意义？多个变化分数的出现是否可以称为嵌套？我现在真的不知道如何继续这里。谢谢大家！
+数据如下：
+
+&lt;表类=“s-表”&gt;
+&lt;标题&gt;
+
+ID
+x
+z
+预
+帖子
+ydiff
+
+
+&lt;正文&gt;
+
+356
+未收到
+4.2590
+2
+2
+0
+
+
+356
+已收到
+5.6615
+1
+5
+4
+
+
+1088
+已收到
+8.8172
+5
+5
+0
+
+
+1089
+未收到
+5.0027
+1
+3
+2
+
+
+1089
+没有检查
+5.3050
+2
+5
+3
+
+
+
+
+在 R 中重现的代码：
+&lt;前&gt;&lt;代码&gt;n &lt;- 4000
+data_frame &lt;- 变换（
+  数据.帧(
+    ID = 样本(rep(样本(1:2000, 500, 替换 = FALSE), 每个 = 4), n, 替换 = TRUE),
+    x = 样本(c(“已收到”,“未收到”,“未检查”), n, 替换 = TRUE),
+    z = runif(n, 4, 10),
+    前 = 样本(1:5, n, 替换 = TRUE),
+    帖子=样本（1：5，n，替换= TRUE）
+  ),
+  ydiff = 后 - 前
+）
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/635687/linear-mixed-models-with-repeated-gain-scores-in-a-natural-experiment</guid>
+      <pubDate>Wed, 27 Dec 2023 08:17:59 GMT</pubDate>
+    </item>
     <item>
       <title>回归一个二元向量以获得另一个二元向量</title>
       <link>https://stats.stackexchange.com/questions/635685/regression-of-a-binary-vector-to-obtain-another-binary-vector</link>
@@ -132,46 +256,12 @@ sm.qqplot_2samples(arr1, arr2, line=&#39;r&#39;) #很适合
       <pubDate>Tue, 26 Dec 2023 22:05:06 GMT</pubDate>
     </item>
     <item>
-      <title>使用混合（高和低）频率外生变量预测高频数据的方法？</title>
-      <link>https://stats.stackexchange.com/questions/635671/approaches-for-forecasting-higher-frequency-data-with-mixed-high-and-low-freq</link>
-      <description><![CDATA[我有每日频率的 y 数据以及每日、每周和每月间隔的多个 x 变量。我希望根据这些创建多元线性回归。
-我熟悉 MIDAS 方法，但这些方法通常规定使用较高频率的 x 变量和较低频率的 y 变量。
-已经考虑了简单的上/下采样方法，但平均值或线性插值可能会破坏最初尝试回归的目的。
-似乎有一些适用的 R 包（tempdisagg、tsibbledata），还发现了这个和这个，但想知道除了尝试一系列方法并看看哪些方法有效/可行之外，是否有更熟悉此类工作的人可以建议什么往往是事实上的。因为这似乎是一个足够常见的问题，想知道是否有足够常见的方法可以开始。
-主要使用 Python，但似乎 R 可能更适合实际实现。]]></description>
-      <guid>https://stats.stackexchange.com/questions/635671/approaches-for-forecasting-higher-frequency-data-with-mixed-high-and-low-freq</guid>
-      <pubDate>Tue, 26 Dec 2023 21:29:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>dagum 2 型概率分布函数是什么？</title>
-      <link>https://stats.stackexchange.com/questions/635670/what-is-the-dagum-type-2-probability-distribution-function</link>
-      <description><![CDATA[我已经搜索 dagum 2 型概率分布函数几个小时了，但我找到的只是上述分布的累积密度函数，如下所示：
-$$F(x) = \delta + (1+\delta)\left(1+\left(\frac{x}{b}\right)^{ -a}\right)^{-p}$$
-参考：Dagum 发行版指南，第 4 页
-是否有像类型 1 一样的 Dagum 类型 2 和 3 分发的 PDF？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635670/what-is-the-dagum-type-2-probability-distribution-function</guid>
-      <pubDate>Tue, 26 Dec 2023 20:36:12 GMT</pubDate>
-    </item>
-    <item>
       <title>如何解决推荐系统的“冷启动”问题？</title>
       <link>https://stats.stackexchange.com/questions/635667/how-to-solve-the-cold-start-problem-for-recommender-systems</link>
       <description><![CDATA[假设您正在设计一个推荐系统，冷启动问题有哪些方法。例如，如果您有一个新用户或一个新项目，您如何嵌入它？
 如果您学习嵌入，例如使用矩阵分解，则会呈现一个新项目，其中包含电影长度、导演姓名、年份等数据点。您如何从策略上获取更好嵌入所需的数据？]]></description>
       <guid>https://stats.stackexchange.com/questions/635667/how-to-solve-the-cold-start-problem-for-recommender-systems</guid>
       <pubDate>Tue, 26 Dec 2023 19:34:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何从图表中手动计算香农熵？</title>
-      <link>https://stats.stackexchange.com/questions/635666/how-do-you-calculate-shannon-entropy-from-a-chart-by-hand</link>
-      <description><![CDATA[这不是家庭作业。学校要到一月才放学。
-我正在学习如何手动计算香农熵，我对在计算中使用哪些概率有点困惑。例如，当从联合概率图中询问 H(X) 和 H(Y) 时：
-X=1| X = 2 | X=3
-Y=a| .15| .05| .2
-Y=b| .1| .2| .3
-我使用 P(X) 和 P(Y) 还是每个联合概率？
-该公式告诉您将概率代入对数。我不知道是图表概率还是 P(X) 和 P(Y)]]></description>
-      <guid>https://stats.stackexchange.com/questions/635666/how-do-you-calculate-shannon-entropy-from-a-chart-by-hand</guid>
-      <pubDate>Tue, 26 Dec 2023 18:51:25 GMT</pubDate>
     </item>
     <item>
       <title>对于一个定量自变量和多个定量因变量使用什么分析？</title>
@@ -181,6 +271,20 @@ Y=b| .1| .2| .3
 我研究了多元多元线性回归，但这种分析需要多个 IV，这对我的情况没有帮助。]]></description>
       <guid>https://stats.stackexchange.com/questions/635664/what-analysis-to-use-for-one-quantitative-independent-variable-and-multiple-quan</guid>
       <pubDate>Tue, 26 Dec 2023 17:38:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>LSTM 网络中的反向传播 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/635662/backpropagation-in-lstm-network</link>
+      <description><![CDATA[因为我们在 Vanilla RNN 中有消失梯度，而 LSTM 是解决方案，根据一些消息来源，LSTM 也有消失梯度，但它在 LSTM 网络的上下文中不会造成任何问题，因为我们在反向传播期间触及了遗忘门，并且它如果我们有消失梯度并不重要我的问题是我们如何在 LSTM 反向传播中真正达到这个方程？我们有两种方法进行反向传播吗？ （如果我们假设 W 作为串联权重） ]]></description>
+      <guid>https://stats.stackexchange.com/questions/635662/backpropagation-in-lstm-network</guid>
+      <pubDate>Tue, 26 Dec 2023 16:12:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用核密度估计来估计分布之间的距离</title>
+      <link>https://stats.stackexchange.com/questions/635658/the-usage-of-kernel-density-estimate-for-distance-between-distributions</link>
+      <description><![CDATA[Scipy 的 kde 对象允许集成函数乘以另一个 KDE。我认为这意味着用于估计两个分布之间的距离。据我了解，为了保持一致的度量，在积分之前需要平方根，类似于 $$BC(P,Q)= 给出的 Bhattacharyya 系数的定义\int_\chi\sqrt{p(x)q(x)}dx$$。那么，这个输出是什么？我可以用它来测量分布之间的距离吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/635658/the-usage-of-kernel-density-estimate-for-distance-between-distributions</guid>
+      <pubDate>Tue, 26 Dec 2023 14:21:51 GMT</pubDate>
     </item>
     <item>
       <title>当基于树的模型通常比线性模型效果更好时，为什么我们要使用线性模型？</title>
@@ -193,27 +297,6 @@ Y=b| .1| .2| .3
 在某些情况下应该首选线性模型吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/635642/why-do-we-use-linear-models-when-tree-based-models-often-work-better-than-linear</guid>
       <pubDate>Tue, 26 Dec 2023 06:59:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>$\chi^2$-$(x_1-x_2+x_3+x_4)^2-(-x_1+x_2+x_3+x_4)^2$ 与 $x_i \sim N(\mu_i,\sigma_i)$ 的分布</title>
-      <link>https://stats.stackexchange.com/questions/635625/chi2-distribution-of-x-1-x-2x-3x-42-x-1x-2x-3x-42-with-x-i-s</link>
-      <description><![CDATA[给出 4 个独立的正态变量 $x_i \sim \mathcal{N}(\mu_i,\sigma_i)_{i=1,\ldots,4}$，用于定义随机变量
-$$Z\sim (x_1 - x_2 + x_3 + x_4)^2 - (-x_1 + x_2 + x_3 + x_4)^2.\tag{1}$$
-等式(1)中的每个平方项都是独立正态变量的线性组合，因此每个平方都有一个非中心$\chi^2(k,M)$ -具有 $k=1$ 自由度和非中心参数 $M$ 的分布。两个线性组合也是正交的， $\begin{pmatrix} 1 &amp; -1 &amp; 1&amp;1 \end{pmatrix} \cdot \begin{pmatrix} -1 &amp; 1 &amp; 1&amp;1 \end{pmatrix}^T =0$
-，因此不相关；由于它们是不相关的联合随机变量，因此它们是独立的（请参阅此处）。 
-因此等式(1)中的平方线性组合可以写成$\chi^2$-变量的差
-$$Z\sim s \left( \chi^2\left(1,M_1\right)- \chi^2\left(1,M_2\right)\right)\标签{2}$$
-使用非中心参数$M_1=\dfrac{1}{s}\left(\mu_1-\mu_2+\mu_3+\mu_4\right)^2, M_2=\dfrac{ 1}{s}\left(-\mu_1+\mu_2+\mu_3+\mu_4\right)^2$ 和总方差 $s=\sum_{i=1} ^4\sigma^2_i$。
-但是，只有当所有 $\sigma_i$ 相同时，此方法才有效。如何通过不同$\sigma_i$$\chi^2$变量来表达eq.(1) &gt;?
-PDF 图形示例
-所有$\sigma_i$都是相同的。
-$\sigma=(5,5,5,5), \mu=(2,-11,-1,4)$，黑色：eq (1)，红色：eq(2)（两个图几乎重叠）
-
-所有$\sigma_i$都是不同的。
-$\sigma=(5,4,3,2), \mu=(2,-11,-1,4)$，黑色：eq (1)、红色：eq(2)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/635625/chi2-distribution-of-x-1-x-2x-3x-42-x-1x-2x-3x-42-with-x-i-s</guid>
-      <pubDate>Mon, 25 Dec 2023 19:18:05 GMT</pubDate>
     </item>
     <item>
       <title>具有缺失值的向量化线性回归</title>
