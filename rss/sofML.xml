@@ -4,11 +4,208 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Tue, 09 Jan 2024 06:19:37 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jan 2024 09:14:09 GMT</lastBuildDate>
     <item>
-      <title>将 XGBoost 转换为 excel 的 if-then 语句 [关闭]</title>
+      <title>过多的 padding 导致 NN 模型精度下降</title>
+      <link>https://stackoverflow.com/questions/77785503/excessive-padding-causes-accuracy-decrease-to-nn-model</link>
+      <description><![CDATA[我训练了一个简单的神经网络模型来进行二元分类，并能够区分真假新闻
+#创建模型的类
+类 FakeNewsDetectionModelV0(nn.Module):
+     def __init__(自身, input_size):
+        超级().__init__()
+        
+        self.layer_1=nn.Linear(in_features=input_size, out_features=8)
+        self.layer_2=nn.Linear(in_features=8, out_features=1) #从前一层获取5个特征并输出单个特征
+
+     #定义一个forward()用于前向传播
+     def 前向（自身，x，掩码）：
+        
+        # 应用掩码来忽略某些值
+        如果掩码不是 None：
+            x = x * 掩码
+
+        x = self.layer_1(x)
+        x = self.layer_2(x)
+        返回x
+
+
+
+
+我使用 CountVectorizer 将文本转换为列表，然后转换为张量
+从 sklearn.feature_extraction.text 导入 CountVectorizer
+
+矢量化器 = CountVectorizer(min_df=0, 小写=False)
+矢量化器.fit(df[&#39;文本&#39;])
+
+X=vectorizer.fit_transform(df[&#39;text&#39;]).toarray()
+
+问题在于，由于数据集有超过 9000 个条目，因此训练模型的输入大小非常大（大约 120000 个）。因此，当我尝试对单个句子进行预测时，由于大小明显较小，我需要过度填充句子以使其适合模型的输入，这极大地影响了模型的准确性。
+from io 导入 StringIO
+来自 torch.nn.function 导入垫
+导入字符串
+进口再
+从 nltk.tokenize 导入 word_tokenize
+从 nltk.corpus 导入停用词
+导入nltk
+从 keras.preprocessing.text 导入 Tokenizer
+从 keras.preprocessing.sequence 导入 pad_sequences
+
+
+尝试：
+    #nltk.download(&#39;停用词&#39;)
+    nltk.download(&#39;punkt&#39;)
+除了：
+    print(&quot;下载停用词时出错&quot;)
+
+def normalise_text (文本):
+
+  text = text.lower() # 小写
+  text = text.replace(r&quot;\#&quot;,&quot;&quot;) # 替换主题标签
+  text = text.replace(r&quot;http\S+&quot;,&quot;URL&quot;) # 删除 URL 地址
+  text = text.replace(r&quot;@&quot;,&quot;&quot;)
+  text = text.replace(r&quot;[^A-Za-z0-9()!?\&#39;\`\&quot;]&quot;, &quot; &quot;)
+  text = text.replace(&quot;\s{2,}&quot;, &quot;&quot;)
+  文本 = re.sub(r&#39;[^\w\s]&#39;, &#39;&#39;, 文本)
+  返回文本
+
+def fake_news_detection(df, model, model_input_size):
+    预测=[]
+    最大字数 = 10000
+    最大长度 = 模型输入大小
+
+    模型.eval()
+
+    对于 df[&#39;text&#39;][:4000] 中的预测数据：
+        预测数据=标准化文本（预测数据）
+
+        #print([预测数据])
+
+
+
+        # 使用CountVectorizer将文本数据转换为数组
+        矢量化器 = CountVectorizer(min_df=0, 小写=False)
+        Prediction_data_array = Vectorizer.fit_transform([prediction_data]).toarray()
+
+        #tokenizer = Tokenizer(num_words=max_words)
+        #tokenizer.fit_on_texts([预测数据])
+        #sequences = tokenizer.texts_to_sequences([预测数据])
+
+
+        #prediction_data_array = pad_sequences(序列, maxlen=max_length,value=-1.0)
+
+        #print(预测数据数组.形状)
+
+        # 检查转换后数据的形状
+        当前输入大小=预测数据数组.形状[1]
+
+
+        Prediction_data_tensor = torch.tensor(prediction_data_array, dtype=torch.float32)
+
+
+        # 如果形状不匹配，则调整其大小
+        如果当前输入大小！=模型输入大小：
+
+            打印（当前输入大小）
+            填充 = 模型输入大小 - 当前输入大小
+            Prediction_data_tensor = pad(prediction_data_tensor, (0, 填充), &#39;常量&#39;, 值 = 0)
+            mask_tensor = torch.ones_like(prediction_data_tensor)
+            mask_tensor[:, -padding:] = 0 # 将填充区域中的值设置为 0
+            #print(torch.unique(mask_tensor, return_counts=True))
+
+            # 应用掩码来忽略某些值
+            #预测数据张量 = 预测数据张量 * 掩码张量
+
+
+
+        # 假设你的模型将 input_data 作为输入
+        使用 torch.inference_mode()：
+            预测 = torch.round(torch.sigmoid(model(prediction_data_tensor, mask_tensor))).squeeze()
+
+        预测.append(round(预测.item()))
+
+    print(f“我们的数据张量形状是 {prediction_data_tensor.shape}”)
+
+    Predictions_tensor = torch.FloatTensor(预测)
+
+    返回预测张量
+
+有谁知道有什么解决方法可以让我将数据适合我的模型而不降低其准确性分数吗？
+尝试：在对小尺寸数据进行预测时填充向量
+预期：准确的预测类似于我在训练/评估过程中得到的结果
+得到：预测不准确，准确度非常低（大约 43%）]]></description>
+      <guid>https://stackoverflow.com/questions/77785503/excessive-padding-causes-accuracy-decrease-to-nn-model</guid>
+      <pubDate>Tue, 09 Jan 2024 09:03:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>PyTorch 中 NxM 密集层和 M 个独立 Nx1 密集层之间的梯度和优化差异</title>
+      <link>https://stackoverflow.com/questions/77785480/gradient-and-optimization-differences-between-a-nxm-dense-layer-and-m-separate-n</link>
+      <description><![CDATA[我很好奇这两种设计选择如何影响训练过程中的梯度计算和优化过程。
+反向传播过程中每个结构的梯度计算会受到怎样的影响？梯度流回网络的方式有什么不同吗？这些不同的网络结构是否需要或受益于不同的优化算法或学习率？
+我的目标是从梯度计算和优化的角度了解每种模型结构选择的潜在好处和可能的缺点。
+对此问题的任何见解将不胜感激。谢谢。
+我以为“渐变”是一样的，但结果是不同的。]]></description>
+      <guid>https://stackoverflow.com/questions/77785480/gradient-and-optimization-differences-between-a-nxm-dense-layer-and-m-separate-n</guid>
+      <pubDate>Tue, 09 Jan 2024 08:59:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>哪种评估指标最适合不平衡的多标签分类，确保准确的模型评估？</title>
+      <link>https://stackoverflow.com/questions/77785250/which-evaluation-metric-suits-imbalanced-multi-label-classification-best-ensuri</link>
+      <description><![CDATA[如何处理？
+在处理多标签分类中的平均指标时，应优先考虑采用微观平均、宏观平均、加权平均或样本平均等平均技术来综合评估模型的性能]]></description>
+      <guid>https://stackoverflow.com/questions/77785250/which-evaluation-metric-suits-imbalanced-multi-label-classification-best-ensuri</guid>
+      <pubDate>Tue, 09 Jan 2024 08:20:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>计算混淆矩阵的精度和召回率</title>
+      <link>https://stackoverflow.com/questions/77785162/calculate-precision-and-recall-on-confusion-matrix</link>
+      <description><![CDATA[正如主题所说，我必须计算混淆矩阵的精度和召回率。
+
+二元分类器经过训练，可以区分恶意网络流量 $(y=1)$ 与正常流量 $(y=-1)$
+当我运行代码时：
+ precision = 3805 / (3805 + 804) # 计算分类器的精度
+recall = 3805 / (3805 + 14212) # 计算分类器的recall
+
+print(“精度：{:.2f}”.format(精度))
+print(&quot;召回: {:.2f}&quot;.format(recall))
+
+我收到错误：
+精度：0.83
+召回率：0.21
+✘ 精度不正确。你可以从困惑中得到它
+矩阵为 TP/P*。
+有人可以告诉我哪里出了问题吗？]]></description>
+      <guid>https://stackoverflow.com/questions/77785162/calculate-precision-and-recall-on-confusion-matrix</guid>
+      <pubDate>Tue, 09 Jan 2024 08:04:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>Mahout seqdirectory 无法读取输入 csv 文件</title>
+      <link>https://stackoverflow.com/questions/77784930/mahout-seqdirectory-fails-to-read-input-csv-files</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77784930/mahout-seqdirectory-fails-to-read-input-csv-files</guid>
+      <pubDate>Tue, 09 Jan 2024 07:19:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用机器学习技术的预测模型</title>
+      <link>https://stackoverflow.com/questions/77784885/prediction-model-using-machine-learning-techniques</link>
+      <description><![CDATA[我正在集群中运行 DNN 训练作业；这是我使用过的培训作业的链接。
+https://github.com/pytorch/examples/blob /main/imagenet/main.py
+在运行具有不同架构和不同批量大小的作业时，我可以收集执行时间。我在这里提到了一个例子。
+因此，为了预测执行时间，我想使用机器学习技术来制作预测模型。
+所以我想听听您关于收集数据点的建议。如果我收集不同架构的数据点，例如
+模型架构：alexnet | convnext_base | convnext_large | convnext_small | convnext_tiny |密集网络121 |密集网络161 |密集网络169 |密集网络201 |高效网络_b0 |
+高效网络_b1 |高效网络_b2 |高效网络_b3 |高效网络_b4 |高效网络_b5 |高效网_b6 |高效网_b7 |谷歌网 | inception_v3 | mnasnet0_5 | mnasnet0_75 | mnasnet0_75
+mnasnet1_0 | mnasnet1_3 |移动网络_v2 | mobilenet_v3_large | mobilenet_v3_small | regnet_x_16gf | regnet_x_1_6gf | regnet_x_32gf | regnet_x_3_2gf | regnet_x_400mf | regnet_x_800mf |
+regnet_x_8gf | regnet_y_128gf | regnet_y_16gf | regnet_y_1_6gf | regnet_y_32gf | regnet_y_3_2gf | regnet_y_400mf | regnet_y_800mf | regnet_y_8gf |资源网101 |资源网152 |资源网18 |
+资源网34 |资源网50 | resnext101_32x8d | resnext50_32x4d | resnext50_32x4d | shufflenet_v2_x0_5 | shufflenet_v2_x1_0 | shufflenet_v2_x1_5 | shufflenet_v2_x2_0 |挤压网1_0 |挤压网1_1 | vgg11 |
+vgg11_bn | vgg13 | vgg13_bn | vgg16 | vgg16_bn | vgg19 | vgg19_bn | vit_b_16 | vit_b_32 |维生素_l_16 | vit_l_32 | Wide_resnet101_2 | Wide_resnet50_2（默认：resnet18）
+是否可以创建一个预测模型来预测执行时间？]]></description>
+      <guid>https://stackoverflow.com/questions/77784885/prediction-model-using-machine-learning-techniques</guid>
+      <pubDate>Tue, 09 Jan 2024 07:07:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>将 XGBoost 转换为 Excel 的 if-then 语句 [关闭]</title>
       <link>https://stackoverflow.com/questions/77784031/convert-xgboost-to-if-then-statements-for-excel</link>
-      <description><![CDATA[我在 R 中制作了一个 XGBoost 模型。我想将该模型导出到 Excel，但遇到了一些后勤问题。有没有一种有效的方法可以将每个决策树转换为类似于 Excel 格式的 if-then 语句？另外，XGBoost模型中的最终分数是如何计算的。它是每棵树的所有单独分数的总和吗？]]></description>
+      <description><![CDATA[我在 R 中制作了一个 XGBoost 模型。我想将该模型导出到 Excel，但遇到了一些后勤问题。是否有一种有效的方法将每个决策树转换为格式类似于 Excel 的 if-then 语句？另外，XGBoost模型中的最终分数是如何计算的。它是每棵树的所有单独分数的总和吗？]]></description>
       <guid>https://stackoverflow.com/questions/77784031/convert-xgboost-to-if-then-statements-for-excel</guid>
       <pubDate>Tue, 09 Jan 2024 02:13:30 GMT</pubDate>
     </item>
@@ -84,79 +281,14 @@ MediaPipe 对象检测模型的预期行为是无缝处理和训练负样本，�
       <link>https://stackoverflow.com/questions/77783766/understanding-the-large-embedding-size-of-gpt-in-relation-to-the-curse-of-dimens</link>
       <description><![CDATA[我最近了解到，据报道 OpenAI 的 GPT-3 模型的嵌入大小为 12288，与机器学习模型中的典型嵌入相比，这似乎非常大。这提出了几个有趣的问题：
 
-GPT-4 如何有效管理如此大的嵌入大小而不陷入维数灾难？维数灾难通常是指随着维数增加，空间体积增加如此之快，以致可用数据变得稀疏，导致模型可靠性降低的现象。鉴于此，GPT-4 是如何设计来应对与如此高维空间相关的挑战的？
+GPT-4 如何有效管理如此大的嵌入大小而不陷入维数灾难？维数灾难通常是指随着维数增加，空间体积增加如此之快，导致可用数据变得稀疏，导致模型可靠性降低的现象。鉴于此，GPT-4 是如何设计来应对与如此高维空间相关的挑战的？
 
 如此大的嵌入大小有什么实际影响？这包括计算要求、训练数据量、泛化能力以及用于缓解维度问题的任何技术等方面。
 
 
-任何有关大规模语言模型及其高维嵌入处理的见解或相关资源的参考都将不胜感激！]]></description>
+任何有关大规模语言模型及其高维嵌入处理的见解或相关资源的参考，我们将不胜感激！]]></description>
       <guid>https://stackoverflow.com/questions/77783766/understanding-the-large-embedding-size-of-gpt-in-relation-to-the-curse-of-dimens</guid>
       <pubDate>Tue, 09 Jan 2024 00:15:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>张量流中相同训练和验证数据的不同结果</title>
-      <link>https://stackoverflow.com/questions/77783611/different-results-for-the-same-training-and-validation-data-in-tensorflow</link>
-      <description><![CDATA[我使用 model.fit 函数来训练我的神经网络
- 模型 = tf.keras.Sequential()
-        model.add(tf.keras.layers.Dense(单位=50，激活=“relu”，input_shape=(X_train.shape[1],),
-        model.add(tf.keras.layers.Dense(单位=50，激活=“relu”，
-                                        kernel_regularizer=正则化）
-        model.add(tf.keras.layers.Dense(单位=20，激活=“relu”，
-                                        kernel_regularizer=正则化）
-        model.add(tf.keras.layers.Dense(单位=10，激活=“relu”，
-                                        kernel_regularizer=正则化）
-        model.add(tf.keras.layers.Dense(单位=1,激活=“sigmoid”))
-
-        model.compile(优化器=tf.keras.optimizers.AdamW(),
-                  损失=“binary_crossentropy”，
-                  Weighted_metrics=[tf.keras.metrics.BinaryAccuracy(), tf.keras.metrics.FalsePositives()])
-
-        回调 = tf.keras.callbacks.EarlyStopping(monitor=&#39;val_loss&#39;, 耐心=20)
-
-        历史 = model.fit(X_train, Y_train,
-                        纪元=500，
-                        批量大小=批量，
-                        详细=真，
-                        验证数据=（X_train，Y_train），
-                        类别权重=类别权重，
-                        回调=[回调])
-
-它给我的验证和训练指标的结果非常不同，即使它是完全相同的数据。
-
-我的数据非常不平衡，这就是我使用类别权重的原因。然而，它并没有解释为什么对于完全相同的数据，训练和验证指标如此不同。造成这种行为的原因是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/77783611/different-results-for-the-same-training-and-validation-data-in-tensorflow</guid>
-      <pubDate>Mon, 08 Jan 2024 23:15:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>零/一/少样本学习方法：如何在不更新模型参数的情况下学习？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/77782869/zero-one-few-shot-learning-approaches-how-to-learn-without-update-model-parame</link>
-      <description><![CDATA[经过一些研究，检查这个，或这个，对某些内容进行粗俗化的帖子网站上，我在以下问题上没有找到令人满意的答案：*-shot 学习和迁移学习之间有什么区别，形式上。
-设 $f_{\theta}$ 为多层感知器，对一组向量 \textbf{x}_1,\textbf{x}_2,\cdots,\textbf{x}_N\in\mathbb{ 进行操作R}^d 并将它们分类为 $C\in\mathbb{N}$ 类。
-这些$N$向量和$C$类代表学习上下文LC_1（例如对$N=10000$狗和猫进行分类，因此$C$将等于2）。
-假设我们在 LC1 上有完美的分类器 $f_{\theta^{\star}_1}$ （即问题测试集的准确度约为 100%）。
-对我来说，
-
-迁移学习将是：
-
-我有第二个学习上下文 LC_2，它与 LC_2 “接近”。至 LC_1。例如，LC_2 是一组狮子和马。
-因此，类的数量仍然等于 2。因此，为了静态地处理 LC_2，我使用 $f_{\theta^{\star}1}$ （在 LC_1 上训练）并重新训练 $f_{\theta^{\star}1}$ f{\theta^{\star}1}$。一旦执行，我得到$f{\theta^{\star}_2}$。
-因此，我将在 LC_1 上从头开始构建的低级知识转移到了 LC_2。对我来说，我已经进行了迁移学习。
-我们在这一点上同意吗？
-
-（零/一个/几个）-shot（表示为 *-shot）将是（根据我目前的理解）：
-
-现在 LC_2 是一个“扩展” LC_1 ，例如，我仍在尝试对狗和猫进行分类，但我已将“猴子”添加到了 LC_1 中。班级。如何利用 $f_{\theta^{\star}_1}$ 对猴子进行分类？
-我确实有些担心，无法清楚地理解 *-shot 方法的真正含义：
-
-首先，$f_{\theta^{\star}_1}$ 被设计为仅 2 个类，因此根据定义，它在数学上无法推断出超过 3 个类.
-
-其次，在不改变$\theta^{\star}1$的情况下（我读到*-shot学习方法不涉及额外的梯度计算），所以*-shot学习方法使用$ f{\theta^{\star}1}$ 并利用 $f{\theta^{\star}1}$ 内置表示来执行猴子分类，而无需$f{\theta^{\star}_1}$ 定义的任何更改，对我来说毫无意义。
-
-
-利用内置表示来实现“关闭”任务听起来与我相关，但如果没有模型定义更改或梯度更新，我无法清楚理解这些 *-shot 学习方法是如何工作的。只是面对一些关于 *-shot 学习方法的模糊解释，这对我来说还不够令人满意。
-你能帮我吗？ :)]]></description>
-      <guid>https://stackoverflow.com/questions/77782869/zero-one-few-shot-learning-approaches-how-to-learn-without-update-model-parame</guid>
-      <pubDate>Mon, 08 Jan 2024 19:48:17 GMT</pubDate>
     </item>
     <item>
       <title>ValueError：使用 Keras 创建多视图变分自动编码器模型时，层“full_model”的输入 2 与该层不兼容</title>
@@ -164,13 +296,6 @@ GPT-4 如何有效管理如此大的嵌入大小而不陷入维数灾难？维�
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77782475/valueerror-input-2-of-layer-full-model-is-incompatible-with-the-layer-when-cr</guid>
       <pubDate>Mon, 08 Jan 2024 18:18:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>尽管进行了学习率调整和正则化，为什么我的模型对 t1、t2、t3 的实时推理预测仍保持静态？</title>
-      <link>https://stackoverflow.com/questions/77782249/why-does-my-models-live-inference-prediction-for-t1-t2-t3-remain-static-despi</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77782249/why-does-my-models-live-inference-prediction-for-t1-t2-t3-remain-static-despi</guid>
-      <pubDate>Mon, 08 Jan 2024 17:34:24 GMT</pubDate>
     </item>
     <item>
       <title>Python LightGBM错误：joblib.externals.loky.process_executor.TermulatedWorkerError {SIGSEGV(-11)} [重复]</title>
@@ -251,7 +376,7 @@ GridSearch 中的 TermatedWorkerError
 
 如何修复/调试 scikit learn 中抛出的多进程终止工作错误
 
-TermatedWorkerError：托管工作进程执行者意外终止
+TermatedWorkerError：托管工作进程被执行者意外终止
 
 使用 RandomizedSearchCV 时的多个作业问题&lt; /p&gt;
 
@@ -267,296 +392,103 @@ TermatedWorkerError：托管工作进程执行者意外终止
       <pubDate>Mon, 08 Jan 2024 15:54:18 GMT</pubDate>
     </item>
     <item>
-      <title>哪种机器学习模型可用于稀疏时间序列的冷启动预测？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/77781715/which-machine-learning-model-for-cold-start-forecasting-on-sparse-time-series</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77781715/which-machine-learning-model-for-cold-start-forecasting-on-sparse-time-series</guid>
-      <pubDate>Mon, 08 Jan 2024 15:50:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何构建多输出回归模型的目标变量？</title>
-      <link>https://stackoverflow.com/questions/77781440/how-to-structure-the-target-variables-for-a-multi-output-regression-model</link>
-      <description><![CDATA[我想使用 XGBoost 构建一个多输出模型，其中输出是联系客户时预测的销售情况，例如：
+      <title>PyTorch 中具有 NxM 维度的密集层和 M 个独立的 Nx1 密集层之间的梯度和优化差异</title>
+      <link>https://stackoverflow.com/questions/77773439/differences-in-gradient-and-optimization-between-a-dense-layer-with-nxm-dimensio</link>
+      <description><![CDATA[我想知道这两种设计选择将如何影响训练期间的梯度计算和整体优化过程。
 
-output1 是联系后的预测销售额
-output2 是未联系情况下的预测销售额。
+每个结构中反向传播过程中的梯度计算会受到怎样的影响？
+梯度流回网络的方式会有差异吗？
+这些不同的网络结构是否可能需要或受益于不同的优化算法或学习率？
+我的目标是从梯度计算和优化的角度更好地理解每个模型结构选择的含义（潜在的好处和可能的缺点）。
 
-我的数据如下所示：
-
-&lt;表类=“s-表”&gt;
-&lt;标题&gt;
-
-区域
-销售类别
-在线客户
-已联系
-促销
-
-
-&lt;正文&gt;
-
-北
-3
-1
-1
-1000
-
-
-北
-2
-0
-0
-600
-
-
-东
-2
-0
-1
-500
-
-
-
-
-我打算将“Contacted”和“Sales”合并在一起，形成两个目标列，如下所示：
-
-&lt;表类=“s-表”&gt;
-&lt;标题&gt;
-
-区域
-销售类别
-在线客户
-Contacted_Sale
-NonContacted_Sale
-
-
-&lt;正文&gt;
-
-北
-3
-1
-1000
-0
-
-
-北
-2
-0
-0
-600
-
-
-东
-2
-0
-500
-0
-
-
-
-
-这是正确的方法吗？零会扰乱模型训练并降低模型的准确性吗？将模型与一个预测联系销售和一个预测非接触销售分开的更好方法是吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77781440/how-to-structure-the-target-variables-for-a-multi-output-regression-model</guid>
-      <pubDate>Mon, 08 Jan 2024 15:05:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>我使用 XGB 分类器训练了数据集</title>
-      <link>https://stackoverflow.com/questions/77776124/ive-trained-dataset-using-xgb-classifier</link>
-      <description><![CDATA[我从我的队友那里得到了我们项目的这部分代码，我在本地遇到了这个错误，我已经使用 XGB 分类器训练了数据集。
-我的代码是：
-# XGBoost 分类器模型
-从 xgboost 导入 XGBClassifier
-
-# 实例化模型
-xgb = XGBClassifier()
-
-# 拟合模型
-xgb.fit(X_train,y_train)
-
-然后我得到了这个错误：
-&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
-ValueError Traceback（最近一次调用最后一次）
-[70] 中的单元格，第 8 行
-      5 xgb = XGBClassifier()
-      7#拟合模型
-----&gt; 8 xgb.fit(X_train,y_train)
-
-文件 ~/anaconda3/envs/project/lib/python3.10/site-packages/xgboost/core.py:730，在 require_keyword_args..throw_if..inner_f(*args, **kwargs ）
-    728 k, arg in zip(sig.parameters, args)：
-    第729章
---&gt;第730章
-
-文件〜/anaconda3/envs/project/lib/python3.10/site-packages/xgboost/sklearn.py:1471，在XGBClassifier.fit（self，X，y，sample_weight，base_margin，eval_set，eval_metric，early_stopping_rounds，verbose， xgb_model、sample_weight_eval_set、base_margin_eval_set、feature_weights、回调）
-   第1466章
-   第1467章
-   第1468章
-   第1469章
-   第1470章
--&gt;第1471章
-   攀上漂亮女局长之后1472 ”
-   第1473章
-   第1474章
-   第1476章
-   第1478章
-
-ValueError：从“y”的唯一值推断出无效的类。
-
-预期：[0 1]，得到[-1 1]，，我听说 y_train 必须在较新的更新中进行编码，但我对这些事情有点陌生，我也不知道如何做到这一点。]]></description>
-      <guid>https://stackoverflow.com/questions/77776124/ive-trained-dataset-using-xgb-classifier</guid>
-      <pubDate>Mon, 08 Jan 2024 03:09:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>TensorFlow 模型不适用于不同宽高比的图片</title>
-      <link>https://stackoverflow.com/questions/77774178/tensorflow-model-not-working-with-pics-of-different-aspect-ratios</link>
-      <description><![CDATA[在我的模型训练中，我遇到了两个问题：
-
-我的模型只能接受 32x32 图像。
-我的模型给出了类似“Class 99”的输出当给定 32x32 图像时。它将狗、汽车和飞机的 32x32 图片都分类为 99 类，而我需要一个清晰的标签。
-
-这是两个问题的图像和代码。
-99 级
-不同的宽高比
-导入tensorflow为tf
-
-提前停止 = tf.keras.callbacks.EarlyStopping(
-    监视器=“丢失”，
-    最小增量=0，
-    耐心=10，
-    详细=1，
-    模式=“自动”，
-    基线=无，
-    Restore_best_weights=真，
-    从纪元开始=10，
-）
-
-与 tf.device(&#39;GPU:0&#39;):
-    cifar = tf.keras.datasets.cifar100
-    (x_train, y_train), (x_test, y_test) = cifar.load_data()
-    模型 = tf.keras.applications.ResNet50(
-        include_top=真，
-        权重=无，
-        输入形状=(32, 32, 3),
-        班级=100）
-
-    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)
-    model.compile(optimizer=“adam”,loss=loss_fn,metrics=[“accuracy”])
-    model.fit（x_train，y_train，epochs = 100，batch_size = 64，callbacks = [earlystopping]）
-
-我不知道在哪里将训练标签放入我的代码中，而且我也不知道如何使其在不拉伸或挤压的情况下以不同的纵横比工作（按原样处理图像）。]]></description>
-      <guid>https://stackoverflow.com/questions/77774178/tensorflow-model-not-working-with-pics-of-different-aspect-ratios</guid>
-      <pubDate>Sun, 07 Jan 2024 17:51:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>类型错误：无法序列化 <class 'ellipsis'> 类型的对象省略号</title>
-      <link>https://stackoverflow.com/questions/77716307/typeerror-cannot-serialize-object-ellipsis-of-type-class-ellipsis</link>
-      <description><![CDATA[我正在通过《Python 深度学习》一书学习 Tensorflow / Keras。第 8 章解释了如何使用预训练模型。但是，提供的代码无法运行，并且在执行 model.fit 时收到错误消息：
-类型错误：无法序列化  类型的对象省略号。
-要可序列化，类必须实现“get_config()”方法。
-
-我使用的是 Tensorflow 版本 2.15.0
-该程序使用来自 kaggle 的 dogs-vs-cats 数据集。它创建一个较小的子集并创建训练、验证和测试数据集。这一切都有效，就像本书中其他一些示例所使用的那样。然后，它使用预训练的 VGG16 模型并训练与其连接的密集层
-这是我的代码：
-导入tensorflow为tf
-从张量流导入keras
-
-#使用kaggle API令牌上传kaggle.json文件
-从 google.colab 导入文件
-文件.上传()
-
-!mkdir ~/.kaggle
-!cp kaggle.json ~/.kaggle
-!chmod 600 ~/.kaggle/kaggle.json
-
-!unzip -qq 狗大战猫.zip
-!unzip -qq火车.zip
-
-导入操作系统、shutil、pathlib
-Original_dir = pathlib.Path(“火车”)
-new_base_dir = pathlib.Path(“狗与猫_小”)
-
-def make_subset(子集名称, 开始索引, 结束索引):
-    对于（“猫”，“狗”）中的类别：
-        dir = new_base_dir / 子集名称 / 类别
-        os.makedirs（目录）
-        fnames = [f&quot;{category}.{i}.jpg&quot;;对于范围内的 i(start_index, end_index)]
-        对于 fnames 中的 fname：
-            Shutil.copyfile(src=original_dir / fname, dst=dir / fname)
-
-make_subset(“火车”, start_index=0, end_index=1000)
-make_subset(“验证”, start_index=1000, end_index=1500)
-make_subset(“测试”, start_index=1500, end_index=2500)
-
-导入路径库
-
-base_dir = pathlib.Path(“狗与猫_小”)
-
-train_dataset = keras.utils.image_dataset_from_directory(
-    base_dir /“火车”，
-    图像大小=(180, 180),
-    批量大小=32
-）
-
-validation_dataset = keras.utils.image_dataset_from_directory(
-    base_dir /“验证”，
-    图像大小=(180, 180),
-    批量大小=32
-）
-
-test_dataset = keras.utils.image_dataset_from_directory(
-    base_dir /“测试”，
-    图像大小=(180, 180),
-    批量大小=32
-）
-
-#创建神经网络
-conv_base = keras.applications.vgg16.VGG16(
-  权重=“imagenet”，
-  include_top=False
-）
-conv_base.trainable = False
-
-data_augmentation = keras.Sequential(
-    [
-      keras.layers.RandomFlip(“水平”),
-      keras.layers.RandomRotation(0.1),
-      keras.layers.RandomZoom(0.2)
-    ]
-）
-
-输入 = keras.Input(形状=(180, 180, 3))
-x = 数据增强（输入）
-x = keras.applications.vgg16.preprocess_input(x)
-x = 转换基数(x)
-x = keras.layers.Flatten()(x)
-x = keras.layers.Dense(256)(x)
-x = keras.layers.Dropout(0.5)(x)
-输出 = keras.layers.Dense(1, 激活 =“sigmoid”)(x)
-
-模型= keras.Model（输入，输出）
-
-模型.编译(
-    损失=“binary_crossentropy”，
-    优化器=“rmsprop”，
-    指标=[“准确度”]
-）
-
-回调 = [
-    keras.callbacks.ModelCheckpoint(
-        文件路径=“features_extraction_with_data_augmentation.keras”，
-        save_best_only=真，
-        监视器=“val_loss”
-    ）
-]
-
-History = model.fit( # 这里抛出错误
-    训练数据集，
-    纪元=50，
-    验证数据=验证数据集，
-    回调=回调
-）
+对于此事的任何见解将不胜感激。谢谢。
+我还尝试了一个实验，将两个模型的权重初始化为 1。然而，当我比较反向传播后的梯度时，它们是不同的。
+张量([[ 0.0289026424, 0.0164458379, -0.0429413468, -0.0317727998,
+         -0.0011618818、0.0309777111、0.0496413819、-0.0330999792、
+         -0.0217525940, -0.0376570895, 0.0238987785, -0.0303875748,
+          0.0422640890, -0.0327035226, -0.0046056593, 0.0095992200,
+          0.0047464888, -0.0015923150, -0.0349406302, 0.0358588137,
+          0.0109524736、0.0521549769、0.0092769144、0.0338292755、
+          0.0418556146、0.0403830707、0.0027946709、-0.0142157376、
+          0.0573743209、0.0421377942、0.0161724705、0.0135669028、
+          0.0103750098、0.0048434297、-0.0176108982、-0.0011629635、
+          0.0177134797, 0.0047528706, 0.0455351323, -0.0127471210,
+         -0.0103122834, 0.0092379786, -0.0011389051, 0.0214950778,
+          0.0423520021, 0.0157480091, 0.0166458990, -0.0457958765]])
+张量([[ 0.0289026424, 0.0164458416, -0.0429413430, -0.0317727998,
+         -0.0011618854、0.0309777092、0.0496413782、-0.0330999792、
+         -0.0217525922、-0.0376570858、0.0238987822、-0.0303875823、
+          0.0422640815, -0.0327035226, -0.0046056607, 0.0095992228,
+          0.0047464883, -0.0015923139, -0.0349406339, 0.0358588099,
+          0.0109524755、0.0521549769、0.0092769163、0.0338292755、
+          0.0418556109、0.0403830633、0.0027946699、-0.0142157376、
+          0.0573743209、0.0421377942、0.0161724724、0.0135669019、
+          0.0103750126、0.0048434315、-0.0176109001、-0.0011629632、
+          0.0177134816, 0.0047528730, 0.0455351323, -0.0127471173,
+         -0.0103122853, 0.0092379786, -0.0011389013, 0.0214950833,
+          0.0423520021, 0.0157480109, 0.0166459009, -0.0457958728]])
+火炬大小([48])
+第 12 层的渐变大小为 torch.Size([1, 48])
+第 12 层的梯度相同吗？错误的
 ]]></description>
-      <guid>https://stackoverflow.com/questions/77716307/typeerror-cannot-serialize-object-ellipsis-of-type-class-ellipsis</guid>
-      <pubDate>Tue, 26 Dec 2023 08:20:52 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/77773439/differences-in-gradient-and-optimization-between-a-dense-layer-with-nxm-dimensio</guid>
+      <pubDate>Sun, 07 Jan 2024 14:25:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何获得每个标记的困惑度而不是平均困惑度？</title>
+      <link>https://stackoverflow.com/questions/77433100/how-to-get-perplexity-per-token-rather-than-average-perplexity</link>
+      <description><![CDATA[我可以从这里获得整个句子的困惑：
+设备=“cuda”
+从 Transformers 导入 GPT2LMHeadModel、GPT2TokenizerFast
+
+设备=“cuda”；
+model_id =“gpt2”；
+模型 = GPT2LMHeadModel.from_pretrained(model_id).to(device)
+tokenizer = GPT2TokenizerFast.from_pretrained(model_id)
+已发送 = &#39;生日快乐！&#39;
+input_ids = tokenizer(已发送, return_tensors=&#39;pt&#39;)[&#39;input_ids&#39;]
+target_ids = input_ids.clone()
+输出=模型（input_ids.to（设备），标签=target_ids）
+ppl = torch.exp(输出.loss)
+打印（人）
+&gt;&gt;&gt;张量(1499.6934, device=&#39;cuda:0&#39;, grad_fn=)
+
+但是我怎样才能获得每个标记的困惑度值，而不是整个标记序列的平均困惑度呢？本例中的输入句子 &#39;Happybirthday!&#39; 由 3 个标记组成。基于困惑度公式：
+
+这应该产生 3 个值：第一个标记的对数概率，给定第一个标记的第二个标记的对数概率，以及给定第一个标记的第三个标记的对数概率。每个值都应该取幂以获得以下的困惑度值每个令牌。
+我目前有以下内容：
+导入火炬
+从 Transformers 导入 GPT2LMHeadModel、GPT2TokenizerFast
+
+设备=“cuda”；
+model_id =“gpt2”；
+模型 = GPT2LMHeadModel.from_pretrained(model_id).to(device)
+tokenizer = GPT2TokenizerFast.from_pretrained(model_id)
+
+已发送 = &#39;生日快乐！&#39;
+input_ids = tokenizer(已发送, return_tensors=&#39;pt&#39;)[&#39;input_ids&#39;].to(设备)
+target_ids = input_ids.clone()
+
+# 初始化一个空列表来存储每个标记的困惑度
+困惑=[]
+
+# 计算每个 token 的困惑度
+对于范围内的 i(input_ids.shape[1])：
+    输出 = 模型(input_ids[:, :i+1], labels=target_ids[:, :i+1])
+    log_prob = 输出.loss.item()
+    困惑 = torch.exp(torch.tensor(log_prob))
+    perplexities.append(perplexity.item())
+
+# Perplexities 现在是一个包含每个标记的困惑度值的列表
+对于 i，枚举中的令牌（[tokenizer.decode(i) for i in input_ids[0]]）：
+    print(f&quot;令牌：{token}，困惑度：{perplexities[i]}&quot;)
+    &gt;&gt;&gt;&gt;&gt;标记：快乐，困惑：nan
+代币：生日，困惑度：54192.46484375
+令牌：！，困惑度：1499.693359375
+
+但我不确定我做错了什么，因为最后一个标记似乎与整个句子具有相同的复杂性。]]></description>
+      <guid>https://stackoverflow.com/questions/77433100/how-to-get-perplexity-per-token-rather-than-average-perplexity</guid>
+      <pubDate>Mon, 06 Nov 2023 17:30:20 GMT</pubDate>
     </item>
     </channel>
 </rss>
