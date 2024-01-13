@@ -4,7 +4,75 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Sat, 13 Jan 2024 03:14:30 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 13 Jan 2024 06:16:59 GMT</lastBuildDate>
+    <item>
+      <title>OLS（普通最小二乘法）悖论</title>
+      <link>https://stats.stackexchange.com/questions/636758/the-ols-ordinary-least-squares-paradox</link>
+      <description><![CDATA[这是我一直无法理解的回归概念。
+假设我们有一个带有交互项的模型：
+$$y = b_0 + b_1 \cdot \text{{年龄}} + b_2 \cdot \text{{性别}} + b_3 \cdot (\text{{年龄}} \cdot \text{{性别}})$$
+其中性别是二元变量（1 代表男性，0 代表女性）。
+情况 1：当通过 OLS 在整个数据集上拟合该模型时，这实际上会产生 2 个迷你模型：
+
+对于男性（性别 = 1）：
+
+$$y = b_0 + b_1 \cdot \text{{age}} + b_2 + b_3 \cdot \text{{age}}$$
+$$y = (b_0&#39; + b_2&#39;) + (b_1&#39; + b_3&#39;) \cdot \text{{age}}$$
+
+对于女性（性别 = 0）：
+
+$$y = b_0&#39;&#39; + b_1&#39;&#39; \cdot \text{{age}}$$
+情况 2：现在，假设我们从数据中删除所有男性并拟合模型。然后，我们从数据中删除所有女性并再次拟合模型。两个最终模型将是：
+
+对于男性：
+
+$$y = b_{0m} + b_{1m} \cdot \text{{age}}$$
+
+对于女性：
+
+$$y = b_{0f} + b_{1f} \cdot \text{{age}}$$
+对我来说，这个悖论一直试图理解：案例 1 中的男性模型与案例 2 中的男性模型相同，而案例 1 中的女性模型与案例 2 中的女性模型相同。情况2（即参数估计相同）。即：
+$$(b_0&#39; + b_2&#39;) = b_{0m}$$
+$$(b_1&#39; + b_3&#39;) = b_{1m}$$
+$$b_0&#39;&#39; = b_{0f}$$
+$$b_1&#39;&#39; = b_{1f}$$
+$$Var(b_0&#39; + b_2&#39;) = Var(b_{0m})$$
+$$Var(b_1&#39; + b_3&#39;) = Var(b_{1m})$$
+$$Var(b_0&#39;&#39;) = Var(b_{0f})$$
+$$Var(b_1&#39;&#39;) = Var(b_{1f})$$
+我听过许多直观的解释，试图从逻辑上解释为什么这是真的，但我从未对这些解释感到满意。因此，我尝试编写估计方程（基于 OLS 或 MLE）来尝试看看如果情况 1 和情况 2 的估计方程相同，那么情况 1 的参数估计也应该相同和案例2。（悖论）
+我知道在 OLS 中，以下估计方程适用于线性回归（$n$ 是数据点的数量，$p$ 是预测变量的数量）：
+$$\hat{y} = \mathbf{x}^T \hat{\beta}$$
+$$\hat{B} = (X&#39;X)^{-1}X&#39;Y$$
+$$Var(\hat{\beta}) = \hat{\sigma}^2 (X&#39;X)^{-1}$$
+$$\hat{\sigma} = \sqrt{\frac{1}{n - p}\sum_{i=1}^{n}(y_i - \hat{y }_i)^2}$$
+我们可以将此回归模型的可能性写为：
+$$
+L(\beta | y, X) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y_i) - (b_0 + b_1 \cdot \text{{年龄}}_i + b_2 \cdot \text{{性别}}_i + b_3 \cdot (\text{{年龄}}_i \cdot \text{{性别}}_i )))^2}{2\sigma^2}\右)
+$$
+但我仍然不清楚情况 1 的估计值是否与情况 2 的估计值相同。是否有可能仅从估计方程的角度（OLS 或 MLE）看出，是否有可能看到参数估计值和参数估计值的方差将是相同的，无论是根据情况 1 还是情况 2 进行估计？
+
+注释 1：（我的尝试）OLS 的方差推导
+$$ (AB)^T = B^T A^T $$
+$$ (A^{-1})^T = (A^T)^{-1} $$
+$$ (A^T)^T = A $$
+
+
+$$\begin{align*}
+\text{Var}(\hat{B}) &amp;= (X^tX)^{-1} X^t \text{Var}(y) [(X^tX)^{-1} X^t ]^T \\
+&amp;= \hat{\sigma}^2 (X^tX)^{-1} X^t [(X^t)^t ((X^tX)^{-1})^t] \\
+&amp;= \hat{\sigma}^2 (X^tX)^{-1} X X ((X^tX)^t)^{-1} \\
+&amp;= \hat{\sigma}^2 (X^tX)^{-1} X X (X^tX)^{-1} \\
+&amp;= \hat{\sigma}^2 (X^tX)^{-1} (X^tX) (X^tX)^{-1}
+&amp;=\hat{\sigma}^2 (X&#39;X)^{-1}
+\end{对齐*}$$
+
+注 2：在没有交互项的情况下，案例 1（在整个数据集上拟合模型）和案例 2（分别在每个性别上拟合模型）将对斜率和截距产生不同的估计（即悖论不会不会发生）：
+
+$$y = b_0 + b_1 \cdot \text{{age}} + b_2 \cdot \text{{性别}} $$]]></description>
+      <guid>https://stats.stackexchange.com/questions/636758/the-ols-ordinary-least-squares-paradox</guid>
+      <pubDate>Sat, 13 Jan 2024 05:19:04 GMT</pubDate>
+    </item>
     <item>
       <title>为什么似然函数有时有积分？</title>
       <link>https://stats.stackexchange.com/questions/636757/why-do-likelihood-functions-sometimes-have-integrals</link>
@@ -173,19 +241,6 @@ X_n &amp; \text{概率}p_n
       <pubDate>Fri, 12 Jan 2024 22:06:51 GMT</pubDate>
     </item>
     <item>
-      <title>调整 LSTM 的 R2</title>
-      <link>https://stats.stackexchange.com/questions/636740/adjusted-r2-for-lstm</link>
-      <description><![CDATA[背景：我正在解决一个问题，我正在对时间序列数据进行预测。我正在考虑两种方法：
-
-使用 LSTM，使用递归策略预测 n 个样本（例如此处建议：如何让 LSTM 提前预测多个时间步？)
-不要将数据视为时间序列，而是使用自变量构建线性回归模型。
-
-我想使用调整后的 R2 来评估结果（由于在两种类型的模型中使用不同数量的输入）。
-问题：对于 LSTM，假设 Look_back 为 24 并且我仅使用单个时间序列作为输入，自变量的数量（在调整后的 R2 公式中）是多少？我打赌我会使用 24，但想确定一下。]]></description>
-      <guid>https://stats.stackexchange.com/questions/636740/adjusted-r2-for-lstm</guid>
-      <pubDate>Fri, 12 Jan 2024 21:20:40 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在简单的中介分析中进行推理？</title>
       <link>https://stats.stackexchange.com/questions/636737/how-to-perform-inference-in-a-simple-mediation-analysis</link>
       <description><![CDATA[我正在运行一个非常简单版本的中介分析，有五个变量，$y, x, t, z1, z2$。这很简单，因为我只包含中介效应。
@@ -196,20 +251,22 @@ X_n &amp; \text{概率}p_n
       <pubDate>Fri, 12 Jan 2024 20:28:14 GMT</pubDate>
     </item>
     <item>
-      <title>为什么 E(θ / (1 - θ)) 与 E(θ) / (1 - E(θ)) 不同？</title>
-      <link>https://stats.stackexchange.com/questions/636701/why-is-e%ce%b8-1-%ce%b8-different-than-e%ce%b8-1-e%ce%b8</link>
-      <description><![CDATA[我遇到了一个问题：
-&lt;块引用&gt;
+      <title>如何检查自变量是否与 R 中的对数赔率线性相关？</title>
+      <link>https://stats.stackexchange.com/questions/636736/how-to-check-whether-the-independent-variables-are-linearly-related-to-the-log-o</link>
+      <description><![CDATA[我在 R 中使用了这段代码：
+模型 &lt;- glm(MetabolicSyndrome ~ LEO + SBD1, data = Corrected_data_q3, family = “二项式”)
+摘要（模型）
 
-随机变量的成功概率遵循 Beta(5, 3) 分布。
-后验平均值为 θ = 0.625。
-成功的几率定义为 θ / (1 - θ)。
+install.packages(“汽车”)
+图书馆（车）
 
-模拟 θ 后验分布的大量样本，并使用这些样本来近似成功几率 Ε(θ / (1 - θ)) 的后验平均值。
+# 创建部分残差图
+partial_resid_plots &lt;- crPlots(模型)
 
-最初我认为答案应该非常接近 0.625 / (1 - 0.625) = 5 / 3 （大约 1.66）。然而，在使用 1e5 个数据点执行此模拟后，我得到的答案约为 2.5，这是正确的答案。为什么我最初的想法是错误的？也就是说，为什么 E(θ / (1 - θ)) 与 E(θ) / (1 - E(θ)) 不同？]]></description>
-      <guid>https://stats.stackexchange.com/questions/636701/why-is-e%ce%b8-1-%ce%b8-different-than-e%ce%b8-1-e%ce%b8</guid>
-      <pubDate>Fri, 12 Jan 2024 13:22:38 GMT</pubDate>
+我得到了这个输出，但我不确定这是检查这个的正确方法。我不知道如何解释这一点。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/636736/how-to-check-whether-the-independent-variables-are-linearly-related-to-the-log-o</guid>
+      <pubDate>Fri, 12 Jan 2024 20:07:00 GMT</pubDate>
     </item>
     </channel>
 </rss>
