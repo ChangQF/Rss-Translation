@@ -4,7 +4,137 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 13 Jan 2024 06:17:04 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 13 Jan 2024 09:12:57 GMT</lastBuildDate>
+    <item>
+      <title>CNN 模型（在 Matlab 中创建）未经训练</title>
+      <link>https://stackoverflow.com/questions/77810698/the-cnn-model-created-in-matlab-is-not-trained</link>
+      <description><![CDATA[我正在尝试在 Matlab 中训练 CNN 模型来预测样本大小等于 10 的随机向量的平均值。但是，模型的 RMSE 变得太高。
+如果有人能提供建议，我将不胜感激。
+问候，
+莫森
+`clear;clc;关闭全部
+
+随机数(1)
+mkdir(&#39;数字&#39;)
+
+Num_Sample=500；
+N=10；
+X=1:N；
+百分比_训练=70；
+Percent_Val=15；
+Percent_Test=100-(Percent_Train+Percent_Val);
+
+Num_Train=floor(Percent_Train/100*Num_Sample);
+Num_Val=下限(Percent_Val/100*Num_Sample);
+Num_Test=Num_Sample-(Num_Train+Num_Val);
+
+Rand_Ind=randperm(Num_Sample);
+Rand_Ind_Train=Rand_Ind(1,1:Num_Train);
+Rand_Ind_Val=Rand_Ind(1,1+Num_Train:Num_Train+Num_Val);
+Rand_Ind_Test=Rand_Ind(1,1+Num_Train+Num_Val:end);
+
+X0_Train=[];
+X0_Val=[];
+X0_测试=[];
+
+对于 i=1：Num_Sample
+    Y0{i}=2*rand(1,N);
+    Mean_Y(1,i)=平均值(Y0{i});
+
+    Fig_i=图(i);
+    绘图(X,Y0{i},&#39;o&#39;,&#39;线宽&#39;,2);
+    xlim([1,N])
+    ylim([0,2])
+    清除 Y0{i}
+
+    saveas(Fig_i,[&#39;图/Fig_&#39; num2str(i) &#39;.jpg&#39;]);
+    Fig_JPG=imread([&#39;图/Fig_&#39; num2str(i) &#39;.jpg&#39;]);
+    %Fig_JPG_RS=imresize(Fig_JPG,0.5);
+    Fig_JPG_Gray=rgb2gray(Fig_JPG);
+    Fig_JPG_Gray_Double{i}=im2double(Fig_JPG_Gray);
+    关闭所有
+    我
+结尾
+[R_Fig_JPG_Gray C_Fig_JPG_Gray]=大小(Fig_JPG_Gray);
+
+X_Train_0=[];
+对于 i=1:长度(Rand_Ind_Train)
+    X_Train_0=[X_Train_0 Fig_JPG_Gray_Double{Rand_Ind_Train(1,i)}];
+    清除 Fig_JPG_Gray_Double{Rand_Ind_Train(1,i)}
+结尾
+X_Train=reshape(X_Train_0,R_Fig_JPG_Gray,C_Fig_JPG_Gray,1,长度(Rand_Ind_Train));
+
+X_Val_0=[];
+对于 i=1:长度(Rand_Ind_Val)
+    X_Val_0=[X_Val_0 Fig_JPG_Gray_Double{Rand_Ind_Val(1,i)}];
+    清除 Fig_JPG_Gray_Double{Rand_Ind_Val(1,i)}
+结尾
+X_Val=重塑(X_Val_0,R_Fig_JPG_Gray,C_Fig_JPG_Gray,1,长度(Rand_Ind_Val));
+
+X_Test_0=[];
+对于 i=1:长度(Rand_Ind_Test)
+    X_Test_0=[X_Test_0 Fig_JPG_Gray_Double{Rand_Ind_Test(1,i)}];
+    清除 Fig_JPG_Gray_Double{Rand_Ind_Test(1,i)}
+结尾
+X_Test=reshape(X_Test_0,R_Fig_JPG_Gray,C_Fig_JPG_Gray,1,长度(Rand_Ind_Test));
+ 
+Y_Train=[Mean_Y(1,Rand_Ind_Train)]&#39;;
+Y_Val=[Mean_Y(1,Rand_Ind_Val)]&#39;;
+Y_Test=[Mean_Y(1,Rand_Ind_Test)]&#39;;
+
+图1）
+直方图(Mean_Y,N)
+轴紧
+ylabel(&#39;计数&#39;)
+xlabel(&#39;Mean_Y&#39;)
+
+%创建网络层
+层数=[
+    imageInputLayer([R_Fig_JPG_Gray C_Fig_JPG_Gray 1])
+    卷积2dLayer(5,12,&#39;填充&#39;,&#39;相同&#39;)
+    批量归一化层
+    重新定义层
+    maxPooling2dLayer(2,&#39;跨步&#39;,2)
+    卷积2dLayer(3,16,&#39;填充&#39;,&#39;相同&#39;)
+    批量归一化层
+    重新定义层
+    %averagePooling2dLayer(2,&#39;跨步&#39;,2)
+    %卷积2dLayer(3,32,&#39;填充&#39;,&#39;相同&#39;)
+    %batch归一化层
+    %relu层
+    %卷积2dLayer(3,32,&#39;填充&#39;,&#39;相同&#39;)
+    %batch归一化层
+    %relu层
+    dropout层(0.2)
+    全连接层(1)
+    回归层]；
+
+% 训练网络
+miniBatchSize=60；
+验证频率=3； %floor(numel(Y_Train)/miniBatchSize);
+选项=trainingOptions(&#39;sgdm&#39;, ...
+    &#39;MiniBatchSize&#39;,miniBatchSize, ...
+    &#39;最大纪元&#39;,6, ...
+    &#39;初始学习率&#39;,1e-3, ...
+    &#39;LearnRateSchedule&#39;,&#39;分段&#39;, ...
+    &#39;学习率下降因子&#39;,0.1, ...
+    &#39;学习率下降周期&#39;,2, ...
+    “随机播放”、“每个时代”、...
+    &#39;验证数据&#39;,{X_Val,Y_Val}, ...
+    &#39;验证频率&#39;，验证频率，...
+    &#39;情节&#39;，&#39;训练进度&#39;，...
+    &#39;详细&#39;，假）；
+
+% 创建网络
+Net=trainNetwork(X_Train,Y_Train,层数,选项);
+
+% 测试网络
+Y_Sim_Test=预测(Net,X_Test);`
+
+我尝试创建一个 CNN 模型来预测随机向量的平均值。]]></description>
+      <guid>https://stackoverflow.com/questions/77810698/the-cnn-model-created-in-matlab-is-not-trained</guid>
+      <pubDate>Sat, 13 Jan 2024 07:54:32 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用 XGBoost 改进建模？ [关闭]</title>
       <link>https://stackoverflow.com/questions/77809914/how-to-improve-modeling-with-xgboost</link>
@@ -41,7 +171,7 @@ Y = [1,1,1,0,0,0,1,1,1,1,1,0,1,0,0,1]
     <item>
       <title>两步 ML 预测模型（二元然后连续）：第二步是否应该仅针对正因变量进行训练？ [关闭]</title>
       <link>https://stackoverflow.com/questions/77809477/two-step-ml-prediction-model-binary-then-continuous-should-second-step-be-tra</link>
-      <description><![CDATA[我正在创建一个两步 ML 预测模型来预测库存产品的销售情况。我的训练集中有很多销售额要么为 0，要么为负。第一步是一个二元模型，用于预测产品是否应该库存，即预期销量为正 (1) 或不库存，即（销量为负或 0）(0)。
+      <description><![CDATA[我正在创建一个两步 ML 预测模型来预测库存产品的销售情况。我的训练集中有很多销售额要么为 0，要么为负。第一步是一个二元模型，预测产品是否应该库存，即预期销量为正 (1) 或不库存，即（销量为负或 0）(0)。
 第二步是使用连续模型来预测预计将从库存中受益的商品的销售情况。在这种情况下，我应该在第二步中在整个训练集上训练我的模型，还是只训练训练集中 sales&gt;0 的那些行？
 我做了后者，但不确定我是否应该在第二步中使用完整的数据集。]]></description>
       <guid>https://stackoverflow.com/questions/77809477/two-step-ml-prediction-model-binary-then-continuous-should-second-step-be-tra</guid>
@@ -112,7 +242,7 @@ print(“准确度：”, precision_score(y_test, eclf.predict(X_test)))
       <pubDate>Fri, 12 Jan 2024 18:44:56 GMT</pubDate>
     </item>
     <item>
-      <title>图像预处理|预测范围 [0.44 - 0.55] [关闭]</title>
+      <title>图像预处理 |预测范围 [0.44 - 0.55] [关闭]</title>
       <link>https://stackoverflow.com/questions/77808063/image-preprocessing-predict-in-range-0-44-0-55</link>
       <description><![CDATA[我正在尝试解决二元分类任务。我有鳄鱼和短吻鳄的数据集。我有一个形状为 (2894, 2) 的矩阵 x，还有一个带有标签（0 或 1）且形状为 2894 的变量 y。
 模型 = tf.keras.Sequential()[
@@ -197,7 +327,7 @@ model_path = &#39;./param_model/model&#39; + str(params_system) + &#39;_&#39; + 
       <description><![CDATA[我在 MNIST 数据集上使用 tSNE，并得到了非常好的结果（当我可视化该图时，所有 10 个标签都分离得很好）。
 现在，我想对从 tSNE 建模获得的数据应用 KMeans，并再次将其可视化。
 不幸的是，这次我得到了非常糟糕的结果 - 集群看起来非常错误。
-我知道 t-SNE 空间中的点之间的距离和关系不一定会保留原始高维空间中存在的结构，当将 KMeans 等聚类算法直接应用于 t 时，这可能会导致误导性的解释。 -SNE嵌入。
+我知道 t-SNE 空间中的点之间的距离和关系可能不一定保留原始高维空间中存在的结构，当将 KMeans 等聚类算法直接应用于 t 时，这可能会导致误导性的解释。 -SNE嵌入。
 还有什么我可以做得更好的吗？
 代码示例：
 tsne = TSNE(n_components=2, perplexity=15,learning_rate=200, exaggeration=1)
@@ -212,45 +342,6 @@ labels_kmeans = kmeans.fit_predict(x_train)
 ]]></description>
       <guid>https://stackoverflow.com/questions/77805020/applying-kmeans-on-the-mnist-dataset-after-using-tsne</guid>
       <pubDate>Fri, 12 Jan 2024 07:35:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>UserWarning：X 没有有效的功能名称，但 KNeighborsClassifier 配备了功能名称 warnings.warn</title>
-      <link>https://stackoverflow.com/questions/77804804/userwarning-x-does-not-have-valid-feature-names-but-kneighborsclassifier-was-f</link>
-      <description><![CDATA[ ID 曾经_已婚 毕业 性别 职业 支出_分数细分 家庭_身材 年龄 工作_经历
-0 462809 0 0 1 5 2 3 3 4 1
-1 462643 1 1 0 2 0 0 2 18 15
-2 466315 1 1 0 2 2 1 0 44 1
-3 461735 1 1 1 7 1 1 1 44 0
-4 462669 1 1 0 3 1 0 5 20 15
-……………………………………
-8063 464018 0 0 1 9 2 3 6 4 0
-8064 464685 0 0 1 4 2 3 3 15 3
-8065 465406 0 1 0 5 2 3 0 14 1
-8066 467299 0 1 0 5 2 1 3 8 1
-8067 461879 1 1 1 4 0 1 2 17 0
-8068行×10列
-
-data1=data.drop([&quot;ID&quot;,&quot;分段&quot;],axis=1)
-
-从 sklearn.model_selection 导入 train_test_split
-     x_train,x_test,y_train,y_test=train_test_split(data1,data.Segmentation,test_size=0.20,random_state=50)
-
- 从 sklearn.neighbors 导入 KNeighborsClassifier
- knn=KNeighborsClassifier(n_neighbors=17)
- knn.fit(x_train,y_train)
- tahmin=knn.predict(x_test)
-
- knn.score(x_test,y_test)
- #0.4838909541511772
- knn.predict([[1,1,0,2,0,2,18,15]])
-
- UserWarning：X 没有有效的功能名称，但 KNeighborsClassifier 已安装了功能名称
-  #警告.警告(
-数组([1])
-
-当我做出预测时，我并没有预料到这个警告。]]></description>
-      <guid>https://stackoverflow.com/questions/77804804/userwarning-x-does-not-have-valid-feature-names-but-kneighborsclassifier-was-f</guid>
-      <pubDate>Fri, 12 Jan 2024 06:45:16 GMT</pubDate>
     </item>
     <item>
       <title>使用 LOOCV 进行 K 最近邻的问题</title>
@@ -358,7 +449,7 @@ tesc,conf=misc.compute_accuracy(global_model,train_dl_global,get_confusion_matri
 全局测试精度下降并保持不变
 &lt;前&gt;&lt;代码&gt;&gt; 0.11236666666666667
 
-尽管我尝试增加本地训练的纪元，局部准确率提高到 40%，但全局准确率仍然落入与之前相同的值。我的聚合代码中是否有错误的地方？
+虽然我尝试增加本地训练的纪元，局部准确率提高到 40%，但全局准确率仍然落入与之前相同的值。我的聚合代码中是否有错误的地方？
 测试精度应与本地精度保持在同一水平。]]></description>
       <guid>https://stackoverflow.com/questions/77798059/the-accuracy-decreased-after-global-aggregation-in-federated-learning</guid>
       <pubDate>Thu, 11 Jan 2024 06:30:41 GMT</pubDate>
