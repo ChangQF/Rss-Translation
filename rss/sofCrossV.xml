@@ -4,7 +4,59 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Mon, 22 Jan 2024 01:04:36 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 22 Jan 2024 03:16:15 GMT</lastBuildDate>
+    <item>
+      <title>GAM 中“bs=fs”和“by=”术语的概念解释</title>
+      <link>https://stats.stackexchange.com/questions/637423/conceptual-interpretation-of-bs-fs-and-by-term-in-gam</link>
+      <description><![CDATA[我想知道如何解释 bs=fs 和 by= 术语，以及类似编码模型的两个版本在分层广义中可能（概念上）有何不同加法模型。
+例如，如果“调查地点位于相同的栖息地类型”，可以使用s(CYR.std) + s(CYR.std, fSite, bs = &quot;fs&quot;) （相同的沙滩）并且位于世界的相似地区，因此它们可能共享全球（年度）趋势，但与该共享趋势存在一些细微的特定地点偏差”？而 s(CYR.std, by = fSite) + fSite 更像是“调查地点位于不同的栖息地和世界的不同地区，因此我们应该将其建模为没有共同的全球趋势”时间 (s(CYR.std))，因为站点距离很远，可能不会对响应产生相同的一般效果 (?)
+那么，by= 术语是否类似于治疗水平效应（即每个水平都具有彼此独立的影响），而 fs 术语更相似偏离总体趋势？如果这看起来合理，那么类似描述的现实世界场景可能类似于这两个术语都存在的情况；像这样s(CYR.std) + fSeason + s(CYR.std, fSite, bs = &quot;fs&quot;, by = fSeason)？
+# 物种计数
+df &lt;- as.data.frame(rnbinom(1000, mu = 0.6971, 大小 = 1))
+
+df$year &lt;- 代表(2011:2020,each=100)
+df$CYR.std &lt;- df$year - 分钟(df$年)
+df$fCYR &lt;- as.factor(df$年)
+
+df$site &lt;- seq(1, 50, 1)
+df$fSite &lt;- as.factor(df$site)
+
+df$season &lt;-rep(c(&quot;DRY&quot;, &quot;WET&quot;),each=50)
+df$fSeason &lt;- as.factor(df$season)
+
+# 盐度（连续协变量）
+df$sal &lt;- 样本(0.5:40, 1000, 替换 = TRUE)
+
+# 调查区域
+df$区域 &lt;- 3
+
+名称(df)[1] &lt;-“计数”
+
+这两个模型在概念上有什么区别？它们的编码是否不正确？
+m &lt;- bam(count ~ s(CYR.std) + # 总体趋势
+           fSeason + #季节表示固定效应
+           s(CYR.std, fSite, bs = “fs”, by = fSeason) +
+           # 每个站点的共同年度和季节性趋势存在偏差..？
+           s(fCYR, bs = &quot;re&quot;), # 逐年影响（某些年份的平均丰度较高）
+         offset(log(面积)), # 3m^2面积
+         方法=“fREML”，
+         离散=真，
+         家庭= nb（链接=“日志”），
+         数据 = df)
+
+m2 &lt;- bam(count ~ s(CYR.std) +
+           f季节+
+           s(CYR.std, fSite, bs = “fs”) +
+           s(CYR.std, by = fSeason) +
+           s(fCYR, bs = “re”),
+         偏移量（日志（面积）），
+         离散=真，
+         家庭= nb（链接=“日志”），
+         数据 = df)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/637423/conceptual-interpretation-of-bs-fs-and-by-term-in-gam</guid>
+      <pubDate>Mon, 22 Jan 2024 01:58:10 GMT</pubDate>
+    </item>
     <item>
       <title>使用辛格马达拉回归</title>
       <link>https://stats.stackexchange.com/questions/637421/use-of-singh-maddala-regression</link>
@@ -15,7 +67,7 @@ median_y = 中位数(datos[,y])
 fit2 &lt;- vglm(公式, sinmad(lss = FALSE, iscale=median_y)
 ，数据 = datos，跟踪 = FALSE，控制 = vglm.control(maxit=100) )
 
-我不知道我是否能正确做出预测。我使用这段代码来实现结果：
+我不知道我是否能正确做出预测。我不明白 iscale 参数。我不知道是否使用“y”的中位数是正确的选择（我随意放置）。我使用这段代码来实现结果：
 拦截 1：shape.a
 拦截2：scale.b
 拦截3：shape.q
@@ -30,24 +82,11 @@ betas1 &lt;- betas1[!is.na(betas1)]
 scale.b = betas[2] + matriz_datos[,名称(betas1)]%*%betas1
 形状.q = betas[3]
 
-y_pred = (exp( scale.b )* (gamma(1 + 1/exp( shape.a ))) * ( gamma(exp( shape.q ) - 1/exp( shape.a )) ) / gamma(exp ( 形状.q )))
+y_pred = (exp(scale.b)* (gamma(1 + 1/exp(shape.a))) * (gamma(exp(shape.q) - 1/exp(shape.a))) / gamma(exp ( 形状.q )))
 
 而且我不知道我工作的初始参数设置是否正确。]]></description>
       <guid>https://stats.stackexchange.com/questions/637421/use-of-singh-maddala-regression</guid>
       <pubDate>Mon, 22 Jan 2024 00:55:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>假设在午夜前一分钟将编号为 1 到 10 的 10 个筹码放入瓮中，并且编号 1 的筹码很快被取出</title>
-      <link>https://stats.stackexchange.com/questions/637419/suppose-that-ten-chips-numbered-1-through-10-are-put-into-an-urn-at-one-minute</link>
-      <description><![CDATA[问题：“假设在午夜前一分钟将编号为 1 到 10 的 10 个筹码放入瓮中，并且很快将编号 1 的筹码取出。距离午夜还有半分钟，将编号为 11 至 20 的木片添加到瓮中，并迅速取出编号为 2 的木片。然后在午夜前四分之一分钟时，将编号为 21 至 30 的木片添加到瓮中，并快速取出编号为 3 的木片。如果继续向瓮中添加木片的程序，则午夜 (157) 时瓮中将会有多少木片？”
-这个问题来自《数学统计及其应用简介，6e by Larsen and Marx》一书的第 2 章。
-我已经请学校的导师帮助我，但她不知道如何解决（是的）。我还给教授发了电子邮件寻求帮助，但他没有回复我，这个硬件很快就会到期。
-在我看来，瓮的尺寸不断增大，筹码穿过无限远甚至更远的线，但根据下面的链接，它并不那么容易（从来都不是）。
-这是类似问题的答案（链接如下）。我再次发帖，因为答案太技术性，我无法理解。请假装我是七年级学生什么的：
-在有限无限过程的每一步，将 10 个球放入瓮中，然后随机取出一个。还剩多少个球？
-非常感谢您的帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/637419/suppose-that-ten-chips-numbered-1-through-10-are-put-into-an-urn-at-one-minute</guid>
-      <pubDate>Sun, 21 Jan 2024 23:32:44 GMT</pubDate>
     </item>
     <item>
       <title>空间点过程建模（残差分析）</title>
@@ -63,7 +102,7 @@ y_pred = (exp( scale.b )* (gamma(1 + 1/exp( shape.a ))) * ( gamma(exp( shape.q )
 我的数据索引从 0 到 54。使用 6 个主成分解释了 99% 的数据变化，我没想到误差函数会表现出如此清晰的形状？由误差函数得出如下公式：
 $$ y_t(x) = \hat{\mu}(x) + \sum_{k=1}^{10} \hat{\phi}_k(x) \hat {\beta}_{k,t} + \epsilon_t(x) $$
 其中 $$\hat{\phi}_k(x)$$ 是主成分向量，$$\ hat{\beta}_{k,t}$$ 是各自的分数。
-据我了解，如果我进行的 PCA 可以解释 99% 的数据，那么我的数据中的任何函数曲线都可以使用主成分向量和分数来重建。事实上，在我的分析中情况并非如此，我相信这是因为误差函数本身是一条曲线，或者可能是一个 K 高于 10 的主成分向量？
+据我了解，如果我进行的 PCA 可以解释 99% 的数据，那么我的数据中的任何函数曲线都可以使用主成分向量和分数来重建。事实上，在我的分析中情况并非如此，我相信这是因为误差函数本身是一条曲线，或者可能是 K 高于 10 的主成分向量？
 为什么会发生这种情况？即使将 K 增加到 20，也无法消除这种形状的错误。]]></description>
       <guid>https://stats.stackexchange.com/questions/637417/error-function-of-functional-principal-component-regression-is-itself-a-curve-w</guid>
       <pubDate>Sun, 21 Jan 2024 22:52:32 GMT</pubDate>
@@ -92,23 +131,7 @@ $$ y_t(x) = \hat{\mu}(x) + \sum_{k=1}^{10} \hat{\phi}_k(x) \hat {\beta}_{k,t} + 
       <pubDate>Sun, 21 Jan 2024 19:34:24 GMT</pubDate>
     </item>
     <item>
-      <title>经验分布极值处概率质量差异的两样本检验</title>
-      <link>https://stats.stackexchange.com/questions/637404/two-sample-test-of-difference-in-probability-mass-at-the-extremes-of-the-empiric</link>
-      <description><![CDATA[我正在进行一项实验，该实验将在 T1 和 T2 两种处理中生成因变量 (DV)。
-我想要测试的假设之一是，与 T2 相比，T1 中的 DV 分布在极端情况下是否具有更大的质量。
-假设我的 DV（离散变量）是在支持 $[0,100]$ 上分发的，我有兴趣进行测试
-
-$\Pr(X_{T1}\leq 25)&gt;\Pr(X_{T2}\leq 25)$ 和 $\Pr(75\leq X_{T1}\leq 100)&gt;\Pr(75\leq X_{T2}\leq 100)$，联合，
-$\Pr(X_{T1}\leq 25)\neq\Pr(X_{T2}\leq 25)$,
-$\Pr(75\leq X_{T1}\leq 100)\neq\Pr(75\leq X_{T2}\leq 100)$&lt; /里&gt;
-
-$x$ 中的 $Pr(X\leq x)$ 将由经验确定支持DV，而不是形状的分布。在本例中，它是支持度的第一个和第三个四分位数。
-是否有针对（其中一些）的已知测试？如果没有，如何测试这些？]]></description>
-      <guid>https://stats.stackexchange.com/questions/637404/two-sample-test-of-difference-in-probability-mass-at-the-extremes-of-the-empiric</guid>
-      <pubDate>Sun, 21 Jan 2024 18:57:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>排名比较测试？</title>
+      <title>排名比较测试？ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/637401/a-rank-comparison-test</link>
       <description><![CDATA[是否有可以用来执行排名比较测试的测试。
 换句话说，如果我有 2 个变量（例如 X 国所有 10 个地区的收入；以及 Y 国所有 10 个地区的收入），并且我想知道其中一个变量的排名模式是否与另一个。]]></description>
@@ -160,7 +183,7 @@ $$
       <title>研究两个自变量之间关系的相关性度量</title>
       <link>https://stats.stackexchange.com/questions/637391/correlation-metric-for-investigating-relationship-between-two-independent-variab</link>
       <description><![CDATA[我正在从事一项计算机工程研究，其中我正在分析不确定性故障场景中指令的动态执行计数（频率）与相应的数据错误率 (SDC) 之间的关系。每条指令都会注入故障，故障注入过程是不确定的，并且在指令之间均匀分布。
-我有一个表，其中包括当我们注入故障时每条指令的频率及其对应的SDC错误率。实际上，故障注入过程确保所有指令都注入相似数量的故障。
+我有一个表，其中包括当我们注入故障时每条指令的频率及其相应的SDC错误率。实际上，故障注入过程确保所有指令都注入相似数量的故障。
 考虑到该研究的性质，其中故障是非确定性且均匀地注入的，我想知道哪种相关性度量最适合调查频率和 SDC 错误率之间是否存在相关性；因此我们可以得出这样的结论：“保护频繁执行的指令将导致高故障覆盖率，即提高系统的可靠性。”
 我考虑使用斯皮尔曼等级相关系数，因为它的稳健性和对非正态分布数据的适用性。不过，我想向社区寻求建议，看看是否有更适合此特定场景的相关性指标。
 这里是我数据的一小部分
@@ -195,9 +218,10 @@ $$
     <item>
       <title>随机变量函数的泰勒近似</title>
       <link>https://stats.stackexchange.com/questions/637385/taylor-approximation-for-function-of-a-random-variable</link>
-      <description><![CDATA[有一个函数$f$，其定义域是$\mathbb{R}_上的随机变量空间_ +$ 其范围为 $[0,1]$，例如$f$ 将随机变量映射到实数。此外， $f$ 是连续的，相对于一阶随机优势递增，并且具有 $I(\delta_d) = d$ 对于每个 $d \in \mathbb{R}_+$。
-我的问题是，在对 $f(X)$ 进行线性泰勒近似时，其中 $X$&lt; /span&gt; 是一个随机变量，围绕一个确定性结果$d$，什么情况下允许写：
+      <description><![CDATA[有一个函数$f$，其域是$\mathbb{R}_+上的CDF空间$ 其范围为 $[0,1]$，例如$f$ 将 CDF 映射到实数。此外， $f$ 是连续的，相对于一阶随机优势递增，并且具有 $I(\delta_d) = d$ 对于每个 $d \in \mathbb{R}_+$。
+我的问题是，在对 $f(X)$ 进行线性泰勒近似时，其中 $X$&lt; /span&gt; 是一个 CDF，围绕一个确定性的结果 $d$，什么情况下允许写：
 $f(X) \大约 f(d) + f&#39;(d) (E(X) - d)$？
+（这里，滥用符号并让 E(X) 为 CDF 为 X 的随机变量的期望。
 我主要关心的是 $E(X)$ 部分，因为 $f$ 需要概率不是线性的，甚至可能是一个复合函数，例如 $f = \left(E[X^{1/2}] \right)^2$。 ]]></description>
       <guid>https://stats.stackexchange.com/questions/637385/taylor-approximation-for-function-of-a-random-variable</guid>
       <pubDate>Sun, 21 Jan 2024 13:15:57 GMT</pubDate>
@@ -226,9 +250,16 @@ $$
 
 这些事情有任何关联吗？
 
-简而言之，我在这里看到很多帖子讨论卡林-鲁宾定理设置中的足够统计量，但当我阅读它时，MLR 属性似乎是真正重要的标准。&lt; /p&gt;]]></description>
+简而言之，我在这里看到很多帖子谈论卡林-鲁宾定理设置中的足够统计量，但当我阅读它时，MLR 属性似乎是真正重要的标准。&lt; /p&gt;]]></description>
       <guid>https://stats.stackexchange.com/questions/637347/karlin-rubin-theorem-relationship-between-test-statistic-having-the-mlr-propert</guid>
       <pubDate>Sat, 20 Jan 2024 19:47:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>估计缺少信息的抛硬币概率</title>
+      <link>https://stats.stackexchange.com/questions/637338/estimating-coin-flip-probabilities-with-missing-information</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/637338/estimating-coin-flip-probabilities-with-missing-information</guid>
+      <pubDate>Sat, 20 Jan 2024 17:53:04 GMT</pubDate>
     </item>
     <item>
       <title>使用天数计算多项式回归但在绘图上显示月份是否合理？</title>
@@ -276,32 +307,26 @@ lm(公式 = cover ~ poly(天数, 2, raw = T), 数据 = frpd)
       <pubDate>Sat, 20 Jan 2024 05:45:20 GMT</pubDate>
     </item>
     <item>
-      <title>基于多重线性回归模型输出和蒙特卡罗模拟的先验 BPN</title>
-      <link>https://stats.stackexchange.com/questions/637267/prior-bpn-based-on-multi-linear-regression-model-output-and-monte-carlo-simulati</link>
-      <description><![CDATA[在道路事故预测：贝叶斯分层方法中的第286页&lt; /a&gt; 纸。
-本文描述了贝叶斯置信网络 (BPN) 的构建和参数学习，特别关注创建先验 BPN 并将其更新为后验 BPN 所涉及的步骤：
-
-之前的 BPN 构建：
-先前的 BPN 最初是使用回归分析的结果构建的。
-应用Genie 2.0的推理引擎构建网络并计算边际概率分布函数。
-利用回归系数的估计分布和误差项的协方差矩阵进行蒙特卡罗模拟，建立响应变量Y的预测概率密度函数，将其离散为48个状态，然后填充条件概率表之前的 BPN。
-模拟还用于将结果推断到没有观察到的区域。
-
-后 BPN 更新：
-EM算法将先验BPN更新为后验BPN。
-使用开发数据集中的信息将风险指示变量和响应变量的观察结果记录在列联表中。
-参数学习使用贝叶斯推理和 EM 算法，其经验因素几乎不赋予先验信息任何权重。
-仅更新开发数据集中具有可用信息的先前 BPN 的域。
-
-
-&lt;小时/&gt;
-我的问题：
-我们最初是否使用蒙特卡洛模拟来填充“概率”？在条件概率表 (CPT) 中并建立先验 BPN（即，在生成的 Y 响应变量的分布下查找 X 值的所有组合的频率通过蒙特卡洛模拟），然后使用数据集作为证据来更新和学习进一步的参数和概率，从而得到后验 BPN？
-或者
-我们是否从头开始使用数据集来用概率填充 CPT，并通过从蒙特卡罗模拟生成的 Y 分布下从头开始查找数据集中出现的频率来学习参数和概率（即，找到X值组合的频率，从而找到模拟Y下的条件概率，以填充初始CPT“概率”和单元格）？
-非常感谢您的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/637267/prior-bpn-based-on-multi-linear-regression-model-output-and-monte-carlo-simulati</guid>
-      <pubDate>Fri, 19 Jan 2024 20:15:01 GMT</pubDate>
+      <title>对于离散 $X_n$，如果 $X_n \stackrel{d}{\to} U$，则 $P_e \to 1$，其中 $P_e$ 是最佳贝叶斯误差，$U$ 是均匀的</title>
+      <link>https://stats.stackexchange.com/questions/637279/for-discrete-x-n-if-x-n-stackreld-to-u-does-p-e-to-1-where-p-e-is</link>
+      <description><![CDATA[考虑以下设置。令 $ \{X_n\}_{n=1}^\infty \subseteq [-1,1] $ 为离散随机数收敛为分布中的连续均匀随机变量的变量。
+令 $Y_n = X_n +Z_n$ 其中 $Z_n$ 是独立于 $X_n$。
+因为 $X_n$ 是离散的，所以来自观察 $X_n$ 的最大后验估计量-container&quot;&gt;$Y_n$ 由下式给出
+\begin{align}
+\widehat{X}_n = \arg \max_{x} p_{X_n|Y_n}(x|Y_n)
+\end{对齐}
+其中 $p_{X_n|Y_n}$ 是给定 $X_n$ 的条件 pmf =&quot;math-container&quot;&gt;$Y_n$。错误概率定义为
+\begin{align}
+P_{n}^{(e)}= \mathbb{P} [\widehat{X}_n \neq X_n]
+\end{对齐}
+我的问题：我们能否证明 $\lim_{n \to \infty} P_{n}^{(e)} = 1$ ？
+对于上限，我们可以使用次优估计器随机选择 $X_n$ 的支撑点之一，这意味着
+\begin{align}
+P_e \le 1 - \max_{x} p_{X_n}(x)
+\end{对齐}
+显然，上限收敛于 $1$。我想不出一个好的下限。]]></description>
+      <guid>https://stats.stackexchange.com/questions/637279/for-discrete-x-n-if-x-n-stackreld-to-u-does-p-e-to-1-where-p-e-is</guid>
+      <pubDate>Fri, 19 Jan 2024 23:17:01 GMT</pubDate>
     </item>
     </channel>
 </rss>
