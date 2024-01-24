@@ -4,96 +4,120 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Wed, 24 Jan 2024 12:27:19 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jan 2024 15:15:14 GMT</lastBuildDate>
     <item>
-      <title>预测的差异</title>
-      <link>https://stackoverflow.com/questions/77872971/discrepancy-in-predictions</link>
-      <description><![CDATA[我对 TensorFlow 相当陌生，正在尝试弄清楚一些事情。
-Q1：我有一个维度为 44 和 5 的矩阵，代表 5 个特征向量。我定义了两个模型：第一个是基本的神经网络结构，第二个使用卷积层。我对输入层和大小不太了解。因此，我需要一些反馈来确认代码是否正确。
-&lt;前&gt;&lt;代码&gt; X_train = np.random.rand(44, 5)
-    y_train = np.random.rand(44, 1)
-    X_rem = np.random.rand(11, 5)
-    X_train= np.asarray(X_train).astype(np.float32)
-    X_rem= np.asarray(X_rem).astype(np.float32)
-    y_train= np.asarray(y_train).astype(np.float32)
-    train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-    批量大小 = 44
-    train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-    test_dataset = tf.data.Dataset.from_tensor_slices((X_rem, y_rem))
+      <title>功能列“功能”错误的架构不匹配</title>
+      <link>https://stackoverflow.com/questions/77873140/schema-mismatch-for-feature-column-features-error</link>
+      <description><![CDATA[我正在尝试学习 ML.NET/进入机器学习，但我遇到了一个问题。
+我的目标是创建一个训练模型，可用于根据输入进行预测。
+在此处输入图像描述
+ private readonly MLContext _mlContext;
+        // 只读 bir alanın sadece okunabilir olduğunu belirtir。
+        私有只读 PredictionEngine _预测引擎；
+
+        string outputCoulmnName = &quot;功能&quot;;
+        公共决策树控制器（）
+        {
+            _mlContext = 新的 MLContext(种子: 0);
+
+            // 完全模型化。
+
+            var traininData = 新[]
+            {
+                新的 PredictionModel { 特征 1 = 1，特征 2 = 1，预测=“A sınıfı”}，
+                新的 PredictionModel { 特征 1 = 2，特征 2 = 2，预测=“B sınıfı”}，
+                新的 PredictionModel { 特征 1 = 3，特征 2 = 3，预测 = “A sınıfı”}，
+                新的 PredictionModel { 特征 1 = 4，特征 2 = 4，预测 = “B sınıfı”}
+            };
+            // Verileri algoritmaya hazırlama
+            var dataView = _mlContext.Data.LoadFromEnumerable(traininData);
 
 
- 模型 = tf.keras.Sequential([
-        tf.keras.layers.Flatten(input_shape=(5,)),
-        tf.keras.layers.Dense(10, 激活=&#39;relu&#39;),
-        #tf.keras.layers.Dense(5, 激活=&#39;relu&#39;),
-        tf.keras.layers.Dense(1)
-    ]）
 
- 模型 = tf.keras.Sequential([
-        tf.keras.layers.Input(形状=(5,)),
-        tf.keras.layers.Reshape((5, 1)),
-        tf.keras.layers.Conv1D(1, kernel_size=1, 激活=&#39;relu&#39;),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(12, 激活=&#39;线性&#39;),
-        tf.keras.layers.Dense(1)
-    ]）
+            var pipeline = _mlContext.Transforms.Conversion.MapValueToKey(“标签”, “预测”)
+                .Append(_mlContext.Transforms.Concatenate(outputCoulmnName, new string[] { &quot;Feature1&quot;, &quot;Feature2&quot; }))
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey(“预测”, “预测”))
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey(“标签”, “标签”))
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey(“功能”, “功能”));
 
- model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.2),
-                  损失=&#39;mean_absolute_error&#39;,
-                  指标=[&#39;mean_absolute_error&#39;])
+            // DT 是 akışının belirtilmesi
 
-问题2：如果代码正确，我有一个维度为 (44, 5) 的矩阵。那么，为什么输入形状指定为(5,)呢？据我了解，该模型需要以下格式的输入形状（批量大小、高度、宽度）。不过，我以前没有重塑过它们。
-Q3：使用 model1 时，我获得了 model.fit(X_train, y_train, epochs=100)&lt; 的不同结果 (model.predict(X_rem) )&lt; /code&gt; 和 model.fit(train_dataset, epochs=100)  。我从 model.fit(train_dataset, epochs=100) 获得的输出是所有预测的单个值。”
-Q4：如果我使用 model2，我将获得所有预测的单一值。
-我尝试在定义模型之前重塑输入数据。我从未完全理解其背后的概念。]]></description>
-      <guid>https://stackoverflow.com/questions/77872971/discrepancy-in-predictions</guid>
-      <pubDate>Wed, 24 Jan 2024 12:15:16 GMT</pubDate>
+            var trainer = _mlContext.MulticlassClassification.Trainers.SdcaNonCalibrate();
+           
+            // 随机双坐标上升（未校准） = ML.NET kütüphanesinde
+            // 解决算法中的问题
+            var traininPipeline = pipeline.Append(_mlContext.Transforms.Conversion.MapValueToKey(“预测”, “预测”))
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey(“标签”, “标签”))
+                .追加（训练器）
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey(“标签”, “预测”))
+                .Append(_mlContext.Transforms.Conversion.MapValueToKey(“预测”, “预测”));
+
+
+            // 模型hangi verilerle eğitilmesi gerektiğini belirtip eğitilmiş modeli kaydetme işlemi
+
+
+
+            var TrainingModel = traininPipeline.Fit(dataView);
+
+
+
+    公共类预测结果
+    {
+        [列名(“预测标签”)]
+        公共浮动预测 { get;放; }
+    }
+
+
+
+
+公共类预测模型
+    {
+
+        公共 int 特征1 { 得到;放; }
+
+        公共int特征2{获取;放; }
+        公共字符串预测 {get;放; }
+    }
+]]></description>
+      <guid>https://stackoverflow.com/questions/77873140/schema-mismatch-for-feature-column-features-error</guid>
+      <pubDate>Wed, 24 Jan 2024 12:42:19 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 Logistic 回归中分离出重叠变量 - Kernel Trick / SVM 方法有效吗？</title>
+      <title>如何在 Logistic 回归中分离出重叠变量 - Kernel Trick / SVM 方法有效吗？ [关闭]</title>
       <link>https://stackoverflow.com/questions/77872945/how-to-separate-out-overlapping-variables-in-logistic-regression-would-kernel</link>
       <description><![CDATA[KDE 问题图
-大家好，
-这里的数据科学学生 - 尝试运行逻辑回归模型，但在查看密度时注意到我的 y 变量（本例中的转换） - 显示与预测特征（年龄）显着重叠。
+我正在尝试运行逻辑回归模型，但注意到在查看密度时我的 y 变量（本例中的转换）显示与预测特征（年龄）显着重叠。
 我想知道是否可以使用内核技巧来分离年龄变量以更具预测性？
 目前 - 我已经尝试过在训练/测试划分中使用类权重和分层等方法来尝试帮助平衡，但基本上我的每个模型的分数都在 74/26 划分标记附近（或更糟） 每个分类都预测负面结果（占主导地位的 0 结果）
-任何建议表示赞赏，如果这看起来像一个愚蠢的问题/死胡同，我深表歉意！
-亲切的问候，
-本
 我尝试过一些设置，但没有效果...
-from sklearn.model_selection import train_test_split
+从 sklearn.model_selection 导入 train_test_split
 
-将 X 和 y 分成训练集和测试集
-`X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=16, stratify=y)&#39;
-实例化模型（使用默认参数）
-`logreg = LogisticRegression(random_state=16, class_weight={0: 0.74, 1: 0.26})
-#logreg = LogisticRegression(random_state=16, class_weight=&#39;balanced&#39;)&#39;
-“从 sklearn.model_selection 导入 train_test_split”
-将 X 和 y 分成训练集和测试集
-&#39;X_train，X_test，y_train，y_test = train_test_split（X，y，test_size = 0.2，random_state = 16，stratify = y）&#39;
+# 将 X 和 y 分成训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=16, stratify=y)
 
-实例化模型（使用默认参数）
-&#39;logreg = LogisticRegression(random_state=16, class_weight={0: 0.74, 1: 0.2})&#39;
+
+# 实例化模型（使用默认参数）
+logreg = LogisticRegression(random_state=16, class_weight={0: 0.74, 1: 0.26})
+    #logreg = LogisticRegression(random_state=16, class_weight=&#39;平衡&#39;)
+
+从 sklearn.model_selection 导入 train_test_split
+
+# 将 X 和 y 分成训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=16, stratify=y)
+
+
+# 实例化模型（使用默认参数）
+logreg = LogisticRegression(random_state=16, class_weight={0: 0.74, 1: 0.2})
 ]]></description>
       <guid>https://stackoverflow.com/questions/77872945/how-to-separate-out-overlapping-variables-in-logistic-regression-would-kernel</guid>
       <pubDate>Wed, 24 Jan 2024 12:12:03 GMT</pubDate>
     </item>
     <item>
-      <title>RandomForestRegressor 跨时间序列日期生成相同的预测</title>
+      <title>RandomForestRegressor 在时间序列日期中产生相同的预测 [关闭]</title>
       <link>https://stackoverflow.com/questions/77872699/randomforestregressor-producing-identical-predictions-across-time-series-dates</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77872699/randomforestregressor-producing-identical-predictions-across-time-series-dates</guid>
       <pubDate>Wed, 24 Jan 2024 11:34:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>过滤系统中相机识别的合适解决方案[关闭]</title>
-      <link>https://stackoverflow.com/questions/77872631/suitable-solution-for-a-camera-recognition-in-a-filter-system</link>
-      <description><![CDATA[我们是正在开展一个项目的学生，我们将检测过滤系统的某些变化。我们最感兴趣的是看到过滤带或过滤系统其他部件的损坏或磨损。遗憾的是，我们无法提供有关该系统的更多详细信息。
-过滤系统正在用摄像头进行监控，因此我们可以访问它的一些镜头。目前我们可以检索一个多月前的录像。该系统很快就会成为一个封闭的解决方案，几乎没有光，尽管我们可以稍后安装灯或获得能够在黑暗中进行良好记录的摄像机。
-我们应该如何处理该项目以尝试找到正确的解决方案？为了决定解决方案，我们可以获得哪些其他信息可能有用？我们是否已经能够针对该项目研究任何解决方案？
-我们之前曾被建议在这个项目中使用机器学习，尽管我们不知道这是否是最合适的解决方案。鉴于我们可以访问一些镜头，在这个项目中使用机器学习有什么优点吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77872631/suitable-solution-for-a-camera-recognition-in-a-filter-system</guid>
-      <pubDate>Wed, 24 Jan 2024 11:24:53 GMT</pubDate>
     </item>
     <item>
       <title>使用 PyTorch 训练 VGG16 模型进行图像分类</title>
@@ -167,6 +191,18 @@ tokens = tokenizer.tokenize(标题)
 当我打印标记的输出时，大多数单词的输出都是准确的，但是有一些标记代表子单词而不是完整的单词，因为这些单词在一堆标题中存在拼写错误。数据集。我不确定解决这个问题的最佳方法。我应该删除有拼写错误的单词，还是删除包含这些单词的整个标题，或者手动更正每个单词？]]></description>
       <guid>https://stackoverflow.com/questions/77872287/how-to-deal-with-spelling-mistakes-in-a-bunch-of-captions-in-a-dataset</guid>
       <pubDate>Wed, 24 Jan 2024 10:36:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何检测小物体并获取计数[关闭]</title>
+      <link>https://stackoverflow.com/questions/77872182/how-to-detact-small-object-and-get-number-of-count</link>
+      <description><![CDATA[https://i.stack.imgur.com/OrZKq.png 
+我想检测附加图像中的对象。
+并计算对象的数量。
+您有解决这个问题的任何想法吗？
+我已经在 roboflow 中对其进行了标记，下载了学习到的数据并执行了它。
+但我不能]]></description>
+      <guid>https://stackoverflow.com/questions/77872182/how-to-detact-small-object-and-get-number-of-count</guid>
+      <pubDate>Wed, 24 Jan 2024 10:20:31 GMT</pubDate>
     </item>
     <item>
       <title>如何使用 flutterflow 中的自定义小部件通过 google colab 或 google 可教学机器训练的模型进行图像识别</title>
@@ -262,7 +298,7 @@ tokens = tokenizer.tokenize(标题)
               ？ _recognitions!.map((res) {
                   返回文本（
                     &quot;${res[&quot;index&quot;]} ${res[&quot;label&quot;]}: ${res[&quot;confidence&quot;].toStringAsFixed(3)}&quot;,
-                    样式：文本样式（
+                    样式：文本样式(
                       颜色: 颜色.黑色,
                       字体大小：20.0，
                       背景颜色：颜色.白色，
@@ -285,7 +321,7 @@ tokens = tokenizer.tokenize(标题)
       <pubDate>Wed, 24 Jan 2024 09:53:22 GMT</pubDate>
     </item>
     <item>
-      <title>识别 SMOTE 生成的合成样本</title>
+      <title>识别 SMOTE 生成的合成样品</title>
       <link>https://stackoverflow.com/questions/77870847/identify-the-synthetic-samples-generated-by-smote</link>
       <description><![CDATA[我有一个带标签的数据集，X 形状为 7000 x 2400，y 形状为 7000。数据严重不平衡，因此我尝试使用 SMOTE 生成合成样本。不过，我想确定 SMOTE 实际生成的合成样本。
 作为示例，下面是一个代码片段：
@@ -436,89 +472,6 @@ pd.get_dummies(housing_pd_shuffled[&#39;ocean_proximity&#39;]).head()
       <pubDate>Wed, 24 Jan 2024 01:23:03 GMT</pubDate>
     </item>
     <item>
-      <title>Aws SageMaker 实时随机砍伐森林</title>
-      <link>https://stackoverflow.com/questions/77869995/aws-sagemaker-random-cut-forest-real-time</link>
-      <description><![CDATA[我正在尝试了解 Sagemaker 的工作原理。我的 OpenSearch 中有一些数据需要识别异常情况。
-我知道我可以执行以下逻辑：
-
-将我的 OpenSearch 数据导入为 CSV 或使用 SDK；
-使用随机森林砍伐 (RCF) 算法；
-在 SageMaker 中生成端点；
-
-但是，我的 OpenSearch 数据是实时的，我希望实时预测有一个（实时）仪表板，我们可以在其中观察异常行为并可能生成某种警报。
-当 OpenSearch 收到新数据时，是否有可能在 SageMaker 中自动运行查询并将结果显示在像 Grafana 这样的仪表板上？]]></description>
-      <guid>https://stackoverflow.com/questions/77869995/aws-sagemaker-random-cut-forest-real-time</guid>
-      <pubDate>Wed, 24 Jan 2024 00:43:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 python 创建自定义模型类</title>
-      <link>https://stackoverflow.com/questions/77869443/create-custom-model-class-with-python</link>
-      <description><![CDATA[我有一个示例类如下：
-类 MLP(nn.Module)：
-    # 声明一个带有模型参数的层。在这里，我们完全声明两个
-    # 连接层
-    def __init__(自身):
-        # 调用`MLP`父类`Module`的构造函数来执行
-        # 必要的初始化。这样，其他函数参数
-        # 也可以在类实例化时指定，比如模型
-        # 参数，`params`（稍后描述）
-        超级().__init__()
-        self.hidden = nn.Linear(20, 256) # 隐藏层
-        self.out = nn.Linear(256, 10) # 输出层
-
-    # 定义模型的前向传播，即如何返回
-    # 基于输入“X”所需的模型输出
-    def 向前（自身，X）：
-        # 注意这里我们使用 ReLU 中定义的函数版本
-        # nn.功能模块。
-        返回 self.out(torch.relu(self.hidden(X)))
-
-调用类是这样的：
-net = MLP() net(X)
-现在，我需要为 4 层模型创建类似的类和函数：
-图层配置激活功能
-全连接输入大小 128，输出大小 64 ReLU
-全连接输入大小 64，输出大小 32 ReLU
-辍学概率 0.5 -
-全连接输入大小 32，输出大小 1 Sigmoid
-我需要传递以下断言：
-&lt;前&gt;&lt;代码&gt;模型 = Net()
-
-断言 model.fc1.in_features == 128
-断言 model.fc1.out_features == 64
-断言 model.fc2.in_features == 64
-断言 model.fc2.out_features == 32
-断言 model.fc3.in_features == 32
-断言 model.fc3.out_features == 1
-
-x = 火炬.rand(2, 128)
-输出 = model.forward(x)
-断言 output.shape == (2, 1), “Net() 错误！”
-
-这是我到目前为止所拥有的：
-类 Net(nn.Module):
-    def __init__(自身):
-        超级（网络，自我）.__init__()
-                
-        
-        self.fc1 = nn.Linear(128, 64)
-        self.fc2 = nn.Linear(64, 32)
-        self.dropout = nn.Dropout(p=0.5)
-        self.fc3 = nn.Linear(32, 1)
-        
-
-    def 前向（自身，x）：
-        返回 self.fc3(torch.sigmoid(self.dropout(self.fc2(torch.relu(self.fc1(torch.relu(X)))))))
-       
-
-但是我收到错误：
-运行时错误：mat1 和 mat2 形状无法相乘（2x20 和 128x64）
-
-如何解决？]]></description>
-      <guid>https://stackoverflow.com/questions/77869443/create-custom-model-class-with-python</guid>
-      <pubDate>Tue, 23 Jan 2024 21:44:52 GMT</pubDate>
-    </item>
-    <item>
       <title>将 xml 注释与图像链接以创建数据集 [关闭]</title>
       <link>https://stackoverflow.com/questions/77868119/link-xml-annotations-with-images-to-create-dataset</link>
       <description><![CDATA[我在一个文件夹中有一个数据集，该文件夹包含 2 个名为 train 的子文件夹，test 火车内部有两个子文件夹注释（它们是 XML 文件）和图像，它们是没有标签或边界框的数据集的图像，所以我想要将它们链接在一起以获得可以操作和训练模型的数据集
@@ -526,6 +479,20 @@ x = 火炬.rand(2, 128)
 如何将 XML 文件与图像链接并准备好可供使用的数据集？]]></description>
       <guid>https://stackoverflow.com/questions/77868119/link-xml-annotations-with-images-to-create-dataset</guid>
       <pubDate>Tue, 23 Jan 2024 17:15:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>从头开始的神经网络具有良好的输出，但通过迭代训练的错误率很高[关闭]</title>
+      <link>https://stackoverflow.com/questions/77867733/a-neural-network-from-scratch-has-good-output-but-a-high-error-rate-through-iter</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77867733/a-neural-network-from-scratch-has-good-output-but-a-high-error-rate-through-iter</guid>
+      <pubDate>Tue, 23 Jan 2024 16:14:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法在python中安装lap==0.4.0库</title>
+      <link>https://stackoverflow.com/questions/76463707/unable-to-install-lap-0-4-0-library-in-python</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/76463707/unable-to-install-lap-0-4-0-library-in-python</guid>
+      <pubDate>Tue, 13 Jun 2023 09:55:26 GMT</pubDate>
     </item>
     <item>
       <title>如何将保存的模型从sklearn转换为tensorflow/lite</title>
