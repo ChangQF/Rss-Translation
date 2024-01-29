@@ -4,7 +4,139 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Mon, 29 Jan 2024 03:15:09 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 29 Jan 2024 06:17:28 GMT</lastBuildDate>
+    <item>
+      <title>神经网络可以用来追踪铅笔/钢笔草图吗？</title>
+      <link>https://stackoverflow.com/questions/77897604/can-neural-networks-be-used-to-trace-pencil-pen-sketches</link>
+      <description><![CDATA[我正在为即将到来的学校项目挑选主题，并认为训练神经网络将铅笔/钢笔绘图的图像跟踪为干净的数字绘图会很酷。我通过让我的输入文件夹是所有铅笔/钢笔绘图，输出文件夹是所有跟踪的数字绘图，为输入和输出创建了一个图像数据集。问题是，当我测试经过训练的 U-Net 卷积神经网络时，我的结果是空白。换句话说，我训练了一个模型，然后在新的铅笔/钢笔绘图图像上使用 model.predict，结果只是一张空白图像，而不是跟踪图像。我知道这是一个相当具体的问题，但如果有人有任何训练机器学习模型以以类似方式基于训练数据生成图像的经验，任何建议将不胜感激！
+正如我之前提到的，我尝试使用 U-Net 卷积神经网络来解决这个问题，但没有得到任何结果。我的层由一个输入层、两个 Conv2D 层、一个最大池化层、另外两个 Conv2D 层、一个上采样层和另一个 Conv2D 层组成。由于我对图像机器学习相对较新，因此我不确定是否需要添加额外的层才能使模型保留应根据输入和输出生成图像的理解。]]></description>
+      <guid>https://stackoverflow.com/questions/77897604/can-neural-networks-be-used-to-trace-pencil-pen-sketches</guid>
+      <pubDate>Mon, 29 Jan 2024 05:33:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>将 YOLOv8 集成到 Transformer 模型中</title>
+      <link>https://stackoverflow.com/questions/77897573/integrating-yolov8-to-an-transformer-model</link>
+      <description><![CDATA[我是机器学习领域的新手，需要添加 YOLOv8 模型方面的帮助(YOLOv8）到下面的代码，而不是使用 InceptionV3 为我的项目提取图像特征。我需要传递检测到的对象并从 YOLOv8 模型中提取特征，以使用转换器生成标题。
+def CNN_Encoder_Incep():
+    inception_v3 = tf.keras.applications.InceptionV3(
+        include_top=假，
+        权重=&#39;imagenet&#39;
+    ）
+    inception_v3.trainable = False
+
+    输出= inception_v3.output
+    输出 = tf.keras.layers.Reshape(
+        (-1, 输出.形状[-1]))(输出)
+
+    cnn_model = tf.keras.models.Model(inception_v3.输入，输出)
+    返回cnn_model
+
+类 ImageCaptioningModel(tf.keras.Model):
+
+    def __init__(self, cnn_model, 编码器, 解码器, image_aug=None):
+        超级().__init__()
+        self.cnn_model = cnn_model
+        self.encoder = 编码器
+        self.decoder = 解码器
+        self.image_aug = image_aug
+        self.loss_tracker = tf.keras.metrics.Mean(name=&quot;loss&quot;)
+        self.acc_tracker = tf.keras.metrics.Mean(name=&quot;准确度&quot;)
+
+
+    defcalculate_loss(self, y_true, y_pred, mask):
+        损失 = self.loss(y_true, y_pred)
+        mask = tf.cast(mask, dtype=loss.dtype)
+        损失*=掩模
+        返回 tf.reduce_sum(loss) / tf.reduce_sum(mask)
+
+
+    defcalculate_accuracy(self, y_true, y_pred, mask):
+        精度 = tf.equal(y_true, tf.argmax(y_pred, axis=2))
+        准确度 = tf.math.logic_and(掩码, 准确度)
+        准确度 = tf.cast(准确度, dtype=tf.float32)
+        掩码 = tf.cast(掩码, dtype=tf.float32)
+        返回 tf.reduce_sum(accuracy) / tf.reduce_sum(mask)
+
+
+    defcompute_loss_and_acc(self,img_embed,captions,training=True):
+        编码器输出 = self.encoder(img_embed, 训练=True)
+        y_input = 标题[:, :-1]
+        y_true = 标题[:, 1:]
+        掩码=（y_true！= 0）
+        y_pred = self.解码器（
+            y_输入，编码器_输出，训练=真，掩码=掩码
+        ）
+        损失 = self.calculate_loss(y_true, y_pred, mask)
+        acc = self.calculate_accuracy(y_true, y_pred, mask)
+        回波损耗，ACC
+
+
+    def train_step(自身, 批次):
+        imgs、字幕 = 批处理
+
+        如果 self.image_aug：
+            imgs = self.image_aug(imgs)
+
+        img_embed = self.cnn_model(imgs)
+
+        使用 tf.GradientTape() 作为磁带：
+            损失，acc = self.compute_loss_and_acc（
+                img_embed、字幕
+            ）
+
+        训练变量 = (
+            self.encoder.trainable_variables + self.decoder.trainable_variables
+        ）
+        grads = Tape.gradient(损失, train_vars)
+        self.optimizer.apply_gradients(zip(grads, train_vars))
+        self.loss_tracker.update_state(损失)
+        self.acc_tracker.update_state(acc)
+
+        return {“loss”：self.loss_tracker.result()，“acc”：self.acc_tracker.result()}
+
+
+    def test_step（自身，批次）：
+        imgs、字幕 = 批处理
+
+        img_embed = self.cnn_model(imgs)
+
+        损失，acc = self.compute_loss_and_acc（
+            img_embed、字幕、训练=False
+        ）
+
+        self.loss_tracker.update_state(损失)
+        self.acc_tracker.update_state(acc)
+
+        return {“loss”：self.loss_tracker.result()，“acc”：self.acc_tracker.result()}
+
+    @财产
+    定义指标（自身）：
+        返回 [self.loss_tracker, self.acc_tracker]
+
+cnn_model = CNN_Encoder_Incep()
+标题模型 = ImageCaptioningModel(
+    cnn_model=cnn_model，编码器=编码器，解码器=解码器，image_aug=图像增强，
+）
+
+我尝试这样做，但当我尝试将其传递给 cnn_model 变量时，我不断收到多个错误。
+def CNN_Encoder(): yolov8_model = tf.keras.models.load_model(&#39;./content/yolov8n_objdet_oidv7_640x640.pt&#39;) yolov8_model.trainable = False 输出 = yolov8_model.output 输出 = tf.keras.layers.Reshape ((-1，output.shape[-1]))(输出) cnn_model = tf.keras.models.Model(yolov8_model.input，输出) cnn_model_onnx = cnn_model.export(format=&#39;onnx&#39;) return cnn_model]]></description>
+      <guid>https://stackoverflow.com/questions/77897573/integrating-yolov8-to-an-transformer-model</guid>
+      <pubDate>Mon, 29 Jan 2024 05:22:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>即使预测已在我的数据集中，TensorFlow 模型也总是预测错误的答案</title>
+      <link>https://stackoverflow.com/questions/77897418/tensorflow-model-always-predicting-the-wrong-answer-even-when-prediction-is-alre</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77897418/tensorflow-model-always-predicting-the-wrong-answer-even-when-prediction-is-alre</guid>
+      <pubDate>Mon, 29 Jan 2024 04:18:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>基于 Tensorflow 的 MIMO Deep-Wide Neural Network with Transfer Learning：有关将预测精度提高到 60% 以上的任何建议（足球预测）</title>
+      <link>https://stackoverflow.com/questions/77897300/tensorflow-based-mimo-deep-wide-neural-network-with-transfer-learning-any-advic</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77897300/tensorflow-based-mimo-deep-wide-neural-network-with-transfer-learning-any-advic</guid>
+      <pubDate>Mon, 29 Jan 2024 03:26:24 GMT</pubDate>
+    </item>
     <item>
       <title>机器学习、人工智能和数据工程课程材料所需的指导</title>
       <link>https://stackoverflow.com/questions/77896962/guidance-required-with-ml-ai-and-data-engineering-course-material</link>
@@ -209,6 +341,10 @@ print(f&quot;train_dir 中的图像数量: {len(train_dir)}&quot;)
 train_images 中的图像数量：1312 和
 train_dir 中的图像数量：28
 我一直在寻找导致这种数字差异的代码出了什么问题。
+将train_images中的图像移动到train_dir的目的是train_dir将在生成器中使用：
+train_generator = train_datagen.flow_from_directory()
+
+这需要一个目录才能执行此操作。
 关于如何解决这个问题有什么建议吗？]]></description>
       <guid>https://stackoverflow.com/questions/77895090/different-numbers-after-moving-images-into-a-directory</guid>
       <pubDate>Sun, 28 Jan 2024 14:15:59 GMT</pubDate>
@@ -323,13 +459,6 @@ ROC 曲线下面积：0.6000602772754672 使用阈值处理：0.4 ROC 曲线下�
 如果您还可以提供有关我的案例场景的确切步骤的详细说明，我将不胜感激。]]></description>
       <guid>https://stackoverflow.com/questions/77894617/training-custom-dataset-for-tesseract-and-difference-between-versions</guid>
       <pubDate>Sun, 28 Jan 2024 11:33:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 python 中使用 Elastic Net 运行回归不断得到 NAN</title>
-      <link>https://stackoverflow.com/questions/77894355/running-a-regression-using-elastic-net-in-python-keep-getting-nan</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77894355/running-a-regression-using-elastic-net-in-python-keep-getting-nan</guid>
-      <pubDate>Sun, 28 Jan 2024 10:03:08 GMT</pubDate>
     </item>
     <item>
       <title>如何在 google colab 中使用更多 GPU RAM？</title>
@@ -451,67 +580,6 @@ def train(网络, 标准, 优化器, epochs=15):
       <pubDate>Sun, 28 Jan 2024 07:11:15 GMT</pubDate>
     </item>
     <item>
-      <title>运行由 resipy 库组成的代码时出现错误 - from resipy import R2</title>
-      <link>https://stackoverflow.com/questions/77893785/getting-error-while-running-the-code-which-consists-of-resipy-library-from-res</link>
-      <description><![CDATA[无法导入 meshCalc 扩展，请参阅以下错误：
-无法从“resipy.cext”（未知位置）导入名称“meshCalc”
--------------------------------------------------- ------------------------
-ImportError Traceback（最近一次调用最后一次）
-文件〜\ AppData \ Local \ Programs \ Python \ Python312 \ Lib \ site-packages \ resipy \ meshTools.py：38
-     37 尝试：
----&gt; 38 从 resipy.cext 导入 meshCalc 作为 mc
-     39 除了异常 e：
-
-ImportError：无法从“resipy.cext”（未知位置）导入名称“meshCalc”
-
-在处理上述异常的过程中，又出现了一个异常：
-
-异常回溯（最近一次调用最后一次）
-[2] 中的单元格，第 9 行
-      7 导入操作系统
-      8 导入时间
-----&gt; 9 从 resipy 导入 R2
-     11 模型运行次数 = 1
-     12 tic = 时间.time()
-
-文件〜\ AppData \ Local \ Programs \ Python \ Python312 \ Lib \ site-packages \ resipy \ __ init __.py：2
-      1 名称 =“resipy”
-----&gt; 2 从resipy.Project导入ResIPy_version、sysinfo
-      3.从resipy.Project导入项目，R2
-      4.从resipy.Surve导入Survey
-
-文件〜\ AppData \ Local \ Programs \ Python \ Python312 \ Lib \ site-packages \ resipy \ Project.py：40
-     38 从 resipy.parsers 导入 geomParser
-     39 从 resipy.r2in 导入 write2in
----&gt; 40 导入 resipy.meshTools 作为 mt
-     41 从resipy.meshTools导入cropSurface
-     42 从 resipy.template 导入 startAnmt、endAnmt
-
-文件〜\ AppData \ Local \ Programs \ Python \ Python312 \ Lib \ site-packages \ resipy \ meshTools.py：42
-     40 print(&#39;无法导入 meshCalc 扩展，请参阅以下错误：&#39;)
-     41 print(e)# 需要编译meshCalc
----&gt; 42 raise Exception(&#39;无法导入 meshCalc 扩展来解决问题尝试，&#39;\
-     43&#39;更新 ResIPy、更新 Numpy 或重新编译扩展。&#39;)
-     45 # 导入 pyvista（如果可用）
-     46 尝试：
-
-异常：无法导入 meshCalc 扩展来解决问题，请尝试更新 ResIPy、更新 Numpy 或重新编译扩展。
-
-我收到此错误。
-
-我正在尝试运行由 (from resipy import R2) 行组成的代码。我正在尝试执行，但以下软件包出现错误。
-任何帮助将不胜感激！]]></description>
-      <guid>https://stackoverflow.com/questions/77893785/getting-error-while-running-the-code-which-consists-of-resipy-library-from-res</guid>
-      <pubDate>Sun, 28 Jan 2024 06:02:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>编写代码或寻找算法来找到最佳配置</title>
-      <link>https://stackoverflow.com/questions/77893756/writing-code-or-finding-a-algorithm-to-find-a-optimal-configuration</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77893756/writing-code-or-finding-a-algorithm-to-find-a-optimal-configuration</guid>
-      <pubDate>Sun, 28 Jan 2024 05:41:40 GMT</pubDate>
-    </item>
-    <item>
       <title>寻求多特征输入的无代码 ML 解决方案来预测多个二进制输出 [关闭]</title>
       <link>https://stackoverflow.com/questions/77892428/seeking-no-code-ml-solution-for-multi-feature-input-to-predict-multiple-binary-o</link>
       <description><![CDATA[我是 ML 世界的新手，但我一直在使用 Microsoft Azure 环境及其现成的模型训练、测试和部署环境。
@@ -614,14 +682,6 @@ cv2.destroyAllWindows()
 我尝试了这个，但只得到 -1 作为输出，但我的视频既有车头灯又有人物]]></description>
       <guid>https://stackoverflow.com/questions/77891961/i-have-my-custom-trained-model-best-pt-it-detects-two-things-person-and-headl</guid>
       <pubDate>Sat, 27 Jan 2024 16:40:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>安装斗争</title>
-      <link>https://stackoverflow.com/questions/77889759/installation-struggle</link>
-      <description><![CDATA[我们正在使用 Qiskit 工具包进行一个量子计算项目。但我们在导入或安装软件包和库时遇到了困难。在 Qiskit 中我们如何导入库和包？
-澄清如何从外包安装库的疑问。]]></description>
-      <guid>https://stackoverflow.com/questions/77889759/installation-struggle</guid>
-      <pubDate>Sat, 27 Jan 2024 01:36:23 GMT</pubDate>
     </item>
     <item>
       <title>使用随机森林时，scikit 中的“ValueError：max_features 必须位于 (0, n_features] ”</title>
