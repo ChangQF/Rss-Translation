@@ -4,9 +4,28 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Wed, 31 Jan 2024 15:13:29 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 31 Jan 2024 18:14:08 GMT</lastBuildDate>
     <item>
-      <title>Pytorch RuntimeError：函数“NativeBatchNormBackward0”在第 0 个输出中返回了 nan 值</title>
+      <title>高斯过程模型预测所有数据点的相同 STD [关闭]</title>
+      <link>https://stackoverflow.com/questions/77914742/gaussian-process-model-predicts-the-same-std-for-all-datapoints</link>
+      <description><![CDATA[我用 gpytorch 建立了一个 gp 模型。我创建了一个自定义可能性，它使用连续预测来计算可能性。因此，它不直接使用预测，而是使用连续预测之间的差异。
+当我在训练后使用模型进行预测时，它预测了逻辑边界中的所有均值，但预测的标准在所有数据点上完全相同。另外，当我从后部抽取样本时，我观察到非常奇怪、反向和无意义的样本。所以最终，预测方法完全正确，样本不存在，并且所有具有如此高值的数据点的标准差都是相同的。
+这是我迄今为止尝试过的：
+
+不同大小和价值的诱导点
+不同的学习率和迭代次数
+不同内核、双内核等
+不同/固定长度尺度、输出尺度，
+改变先验
+可能性中的不同/固定噪声
+锚定预测
+
+对目前的情况有什么了解吗？]]></description>
+      <guid>https://stackoverflow.com/questions/77914742/gaussian-process-model-predicts-the-same-std-for-all-datapoints</guid>
+      <pubDate>Wed, 31 Jan 2024 16:00:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>Pytorch RuntimeError：函数“NativeBatchNormBackward0”在其第 0 个输出中返回了 nan 值[关闭]</title>
       <link>https://stackoverflow.com/questions/77914164/pytorch-runtimeerror-function-nativebatchnormbackward0-returned-nan-values-in</link>
       <description><![CDATA[我尝试从一篇提供 Tensorflow 代码的论文中实现一个卷积神经网络，并将其转换为 Pytorch。
 使用 torch.autograd.detect_anomaly() 我收到错误：
@@ -15,7 +34,83 @@ RuntimeError：函数“NativeBatchNormBackward0”在第 0 个输出中返回�
 我无法找出此错误背后的原因，因为我在网络上找不到任何有关它的信息。
 所讨论的架构是在 conv1d() 期间 -&gt; BatchNorm1d() -&gt;; ReLU() -&gt;; MaxPool1d() 顺序。如果我注释掉 BatchNorm1d() 层，则不会发生错误。
 我运行一个自定义损失函数，根据三个特征的两个 BCELosses 和一个 MSELoss 计算加权损失。
-损失本身以数字形式返回，并且表现符合预期。]]></description>
+损失本身以数字形式返回，并且表现符合预期。
+这是一个使用第一个卷积层和自定义损失重现代码的示例：
+导入火炬
+将 torch.nn 导入为 nn
+将 numpy 导入为 np
+
+
+类 CustomLoss(torch.nn.Module):
+    def __init__(自身):
+        超级().__init__()
+
+    def 前向（自我，y_pred，y_true，n_splits，weight_prob = 1.0，weight_loc = 1.0，weight_area = 1.0）：
+        y_true = torch.Tensor(y_true)
+        y_pred = torch.Tensor(y_pred)
+
+        pred_prob、pred_loc、pred_area = torch.tensor_split(y_pred、n_splits、dim=1)
+        true_prob、true_loc、true_area = torch.tensor_split(y_true、n_splits、dim=1)
+
+        掩码 = true_prob.eq(1.)
+
+        prob_loss = torch.nn.BCELoss()(true_prob, pred_prob)
+        loc_loss = torch.nn.BCELoss()(
+            torch.masked_select(true_loc, mask), torch.masked_select(pred_loc, mask))
+        面积损失 = torch.nn.MSELoss()(
+            torch.masked_select(true_area, mask), torch.masked_select(pred_area, mask))
+
+        返回 （
+                概率损失 * 权重概率 +
+                loc_loss * 权重_loc +
+                面积损失 * 重量面积
+        ）
+
+
+类 PeakDetection(nn.Module):
+    def __init__(自身):
+        超级().__init__()
+        self.n_splits = 3
+        self.conv_block1 = nn.Sequential(
+            nn.Conv1d(in_channels=1,
+                      输出通道=3，
+                      内核大小=9，
+                      步幅=2，
+                      填充=4),
+            nn.BatchNorm1d(3),
+            ReLU(),
+            nn.MaxPool1d(kernel_size=16)
+        ）
+
+    def 前向（自身，x）：
+        输出 = self.conv_block1(x)
+        输出 = self.CustomActivation(输出)
+        返回输出
+
+    def CustomActivation（自身，输入）：
+        pred, loc, 区域 = torch.tensor_split(输入, self.n_splits, dim=1)
+        pred = torch.sigmoid(pred)
+        loc = torch.sigmoid(loc)
+        return torch.concat([pred,loc,area],dim=1)
+
+
+torch.autograd.detect_anomaly(True)
+# torch.manual_seed(42)
+模型 = PeakDetection()
+
+优化器 = torch.optim.Adam(params=model.parameters(), lr=0.01)
+
+X = np.ones((32, 1, 8192))
+y = np.ones((32, 3, 256))
+
+使用 torch.autograd.detect_anomaly()：
+    y_pred = 模型(火炬.张量(X))
+    损失 = CustomLoss()(y_pred, torch.Tensor(y), n_splits=3)
+    优化器.zero_grad()
+    loss.backward()
+    优化器.step()
+
+manual_seed(42) 总是会产生相关的 NativeBatchNormBackward0 错误。]]></description>
       <guid>https://stackoverflow.com/questions/77914164/pytorch-runtimeerror-function-nativebatchnormbackward0-returned-nan-values-in</guid>
       <pubDate>Wed, 31 Jan 2024 14:33:58 GMT</pubDate>
     </item>
@@ -180,44 +275,6 @@ plt.plot(out.index, out[&#39;count&#39;], )
       <pubDate>Wed, 31 Jan 2024 04:36:18 GMT</pubDate>
     </item>
     <item>
-      <title>系统生物中 ANN 模型预测的令人困惑的 SHAP 分析</title>
-      <link>https://stackoverflow.com/questions/77910332/confusing-shap-analysis-of-ann-model-prediction-in-systems-bio</link>
-      <description><![CDATA[我开发了一个 ANN 模型来根据 Elisa 数据预测蛋白质翻译后修饰模式。为了简单起见，如何、可行性和参数对于我的问题并不重要，并且省略了一些细节。
-对于给定的蛋白质，我将其称为蛋白质 X，它具有泛素作为修饰，但没有磷酸化模式。
-我用各种翻译后修饰模式训练了人工神经网络，但有一个关键信息：我的训练数据不包含任何泛素模式（假设有一个原因）
-因此，当我使用一组抗体进行 ELISA 时，抗体 a 特异性针对泛素模式，抗体 b 特异性针对磷酸化模式。当我使用抗体 a、抗体 b（和其他抗体）预测蛋白质 x 修饰模式时，我们获得了相当好的准确性。
-为了解释模型的工作原理，我运行了 SHAP 分析和二分图来显示特征重要性（抗体）和修改，但得到了令人困惑的结果
-
-对于抗体 a，除泛素外，其他修饰模式的 SHAP 值存在正值和负值，泛素是其特异性的
-
-对于抗体 b，我们还发现了除磷酸化之外的修饰模式的正向和负向 SHAP 值，而蛋白质 x 并不真正具有磷酸化。
-
-
-那么我该如何解释为什么 SHAP 产生这种模式：1）抗体 a 与其靶标泛素没有任何 SHAP 相关性，但对其其他靶标有 SHAP 相关性，2）抗体 b 与其靶标也没有 SHAP 相关性，但与其他抗体有 SHAP 相关性。其他人代替。
-这又是令人困惑的，因为我预计抗体 a 与泛素有 SHAP 相关性，但与其他蛋白没有 SHAP 相关性，然后抗体 b 不应该有任何 SHAP 相关性，因为它的目标是磷酸化，但蛋白 x 没有磷酸化。
-我不太相信或无法将 SHAP 的一些限制联系起来，因为它显示了模型的隐藏模式/关系，而不是我们在“现实生活”中所期望的
-有人可以对这个观察到的 SHAP 分析提供更细致的见解吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77910332/confusing-shap-analysis-of-ann-model-prediction-in-systems-bio</guid>
-      <pubDate>Wed, 31 Jan 2024 01:27:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的机器学习模型总是预测相同的错误答案，即使预测已经在我的数据集中？</title>
-      <link>https://stackoverflow.com/questions/77910272/why-is-my-machine-learning-model-always-predicting-the-same-wrong-answer-even-wh</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77910272/why-is-my-machine-learning-model-always-predicting-the-same-wrong-answer-even-wh</guid>
-      <pubDate>Wed, 31 Jan 2024 01:07:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>在Python中查找特征列的哪些过滤集导致最大目标列</title>
-      <link>https://stackoverflow.com/questions/77910177/find-which-filter-sets-of-feature-columns-leads-to-maximum-target-column-in-pyth</link>
-      <description><![CDATA[我无法找到可以解决我的问题的机器学习模型或分类类型。我本以为这可能相当简单，但也许不是。
-假设我有 10 个特征列和一个二进制目标列。目标列的数据集中应该有大致相等数量的 0 和 1。整组数据并不是强相关的，所以线性回归、逻辑回归、朴素贝叶斯等都没有得出强相关的模型。然而，我所寻找的是哪个数据系列导致目标列的最大平均值。
-例如。对于特征集 A 到 J 如果我按（C = True、D = false、J = true）过滤数据集，则目标 X 的平均值现在为 56%。我正在寻找一种算法，可以找到导致最大目标列均值的方程。
-我觉得这可以通过蛮力来完成（循环遍历所有可能的组合），但我希望有一种方法可以在现有的众多数据科学库之一中做到这一点。]]></description>
-      <guid>https://stackoverflow.com/questions/77910177/find-which-filter-sets-of-feature-columns-leads-to-maximum-target-column-in-pyth</guid>
-      <pubDate>Wed, 31 Jan 2024 00:30:49 GMT</pubDate>
-    </item>
-    <item>
       <title>ValueError：调用层“time_distributed_4”时遇到异常（类型 TimeDistributed）</title>
       <link>https://stackoverflow.com/questions/77909132/valueerror-exception-encountered-when-calling-layer-time-distributed-4-type</link>
       <description><![CDATA[我尝试使用 Kvasir 数据集制作 CNN-LSTM 模型。我使用 image_dataset_from_directory 分割数据集，如下所示：
@@ -312,31 +369,6 @@ ValueError：调用层“time_distributed_4”（类型 TimeDistributed）时遇
       <pubDate>Tue, 30 Jan 2024 20:05:50 GMT</pubDate>
     </item>
     <item>
-      <title>如何在多维复杂数据上训练模型？</title>
-      <link>https://stackoverflow.com/questions/77825016/how-to-train-a-model-on-multidimensional-complex-data</link>
-      <description><![CDATA[我有一个输入数据数组，它们是 5 个不同长度的数组。如何构建正确的张量和形式进行训练？
-&lt;前&gt;&lt;代码&gt;[
-[
-  [ [ 1, 2 ], [ 1, 2 ] ],
-  [ [ 1, 2 ], [ 1, 2 ] ],
-  [ [ 1, 2, 3, 4, 5 ], [ 1, 2, 3, 4, 5 ], [ 1, 2, 3, 4, 5 ],],
-  [ [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]],
-  [ [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]],
-[
-  [ [ 1, 2 ], [ 1, 2 ] ],
-  [ [ 1, 2 ], [ 1, 2 ] ],
-  [ [ 1, 2, 3, 4, 5 ], [ 1, 2, 3, 4, 5 ], [ 1, 2, 3, 4, 5 ],],
-  [ [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]],
-  [ [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
-],
-...
-],
-]
-]]></description>
-      <guid>https://stackoverflow.com/questions/77825016/how-to-train-a-model-on-multidimensional-complex-data</guid>
-      <pubDate>Tue, 16 Jan 2024 10:22:33 GMT</pubDate>
-    </item>
-    <item>
       <title>我使用 XGB 分类器训练了数据集</title>
       <link>https://stackoverflow.com/questions/77776124/ive-trained-dataset-using-xgb-classifier</link>
       <description><![CDATA[我从我的队友那里得到了我们项目的这部分代码，我在本地遇到了这个错误，我已经使用 XGB 分类器训练了数据集。
@@ -383,86 +415,41 @@ ValueError：从“y”的唯一值推断出无效的类。
       <pubDate>Mon, 08 Jan 2024 03:09:32 GMT</pubDate>
     </item>
     <item>
-      <title>ValueError：缓冲区数据类型不匹配，预期为“double_t”，但得到“float” - hdbscanvalidity_index</title>
-      <link>https://stackoverflow.com/questions/76242882/valueerror-buffer-dtype-mismatch-expected-double-t-but-got-float-hdbscan</link>
-      <description><![CDATA[我使用hdbscan包中的有效性索引，它根据以下论文实现DBCV评分：
-https://www.dbs.ifi.lmu.de /~zimek/publications/SDM2014/DBCV.pdf
-我正在做一个人脸聚类项目，使用有效性索引后提示错误。
-这是代码：
-dbcv_score_output = hdbscan.validity.validity_index(feature_vectors, archive_labels)
-dbcv_分数_输出
+      <title>ValidationError：StuffDocumentsChain __root__ 出现 1 个验证错误</title>
+      <link>https://stackoverflow.com/questions/76776695/validationerror-1-validation-error-for-stuffdocumentschain-root</link>
+      <description><![CDATA[我收到此错误ValidationError：在 llm_chain input_variables 中找不到 StuffDocumentsChain __root__ document_variable_name 上下文的 1 个验证错误：[&#39;chat_history&#39;、&#39;user_query&#39;、&#39;relevant_context&#39;] (type=value_error)
+在使用 load_qa_chain 时，我搜索了此错误，但没有找到与此相关的任何内容。谁能告诉我这里缺少什么。
+代码：
+template = &quot;&quot;&quot;您是一个正在与人类对话的聊天机器人。
 
-完整错误：
-hdbscan/validity.py:30: Ru​​ntimeWarning: 电源遇到溢出
-  距离矩阵[距离矩阵！= 0] = (1.0 / 距离矩阵[
+给定长文档和问题的以下提取部分，创建最终答案。
 
--------------------------------------------------- ------------------------
-ValueError Traceback（最近一次调用最后一次）
-文件〜/anaconda3/lib/python3.9/site-packages/hdbscan/validity.py:371，在validation_index（X，标签，指标，d，per_cluster_scores，mst_raw_dist，详细，** kwd_args）
-    第356章 继续
-    第358章
-    [第 359 章]
-    360X，
-   （...）
-    第367章
-    第368章）
-    [第 370 章]
---&gt;第371章
-    [第 372 章]
-    [第 374 章]
+{相关上下文}
 
-文件〜/anaconda3/lib/python3.9/site-packages/hdbscan/validity.py:165，在internal_minimum_spanning_tree(mr_distances)中
-    136 def 内部最小跨度树（mr_distances）：
-    第137章
-    第138章
-    139 个可达距离。给定最小生成树“内部”
-   （...）
-...
-    167 为索引，枚举中的行(min_span_tree[1:], 1)：
+{聊天记录}
+人类：{user_query}
+聊天机器人：“”“”
 
-文件 hdbscan/_hdbscan_linkage.pyx:15，在 hdbscan._hdbscan_linkage.mst_linkage_core()
+提示=提示模板(
+input_variables=[“chat_history”, “user_query”, “relevant_context”],
+模板=模板
+）
 
-ValueError：缓冲区数据类型不匹配，预期为“double_t”，但得到“float”
+内存= ConversationBufferMemory（memory_key =“聊天历史记录”，input_key =“用户查询”）
 
-快速浏览输入及其类型：
+llm = OpenAI()
+llm_chain = LLMChain(
+    llm=llm,
+    提示=提示，
+    内存=内存，
+）
 
-特点：
-dtype=float32
-形状：（70201、320）
-
-
-档案/集群（它是标签编码的）：
-形状：(70201,)
-
-
-当我尝试将功能类型更改为 double/float64 时，它显示了不同类型的错误：
-hdbscan/validity.py:33: RuntimeWarning: true_divide 中遇到无效值
-  结果 /= distance_matrix.shape[0] - 1
--------------------------------------------------- ------------------------
-ValueError Traceback（最近一次调用最后一次）
-文件〜/anaconda3/lib/python3.9/site-packages/hdbscan/validity.py:372，在validation_index（X，标签，指标，d，per_cluster_scores，mst_raw_dist，详细，** kwd_args）
-    第358章
-    [第 359 章]
-    360X，
-   （...）
-    第367章
-    第368章）
-    [第 370 章]
-    第371章
---&gt; [第 372 章]
-    [第 374 章]
-    第376章
-
-文件〜/anaconda3/lib/python3.9/site-packages/numpy/core/_methods.py:40，在_amax（a，轴，out，keepdims，初始，其中）
-     38 def _amax(a, axis=None, out=None, keepdims=False,
-     39 初始=_NoValue，其中=True）：
----&gt; 40 return umr_maximum(a, axis, None, out, keepdims, initial, where)
-
-ValueError：零大小数组到没有标识的缩减操作最大值
-
-我检查了存储库中的所有相关问题和修复，但没有效果。有什么建议或修复吗？]]></description>
-      <guid>https://stackoverflow.com/questions/76242882/valueerror-buffer-dtype-mismatch-expected-double-t-but-got-float-hdbscan</guid>
-      <pubDate>Sat, 13 May 2023 13:04:50 GMT</pubDate>
+链 = load_qa_chain(
+    llm，chain_type =“东西”，内存=内存，提示=提示
+）
+]]></description>
+      <guid>https://stackoverflow.com/questions/76776695/validationerror-1-validation-error-for-stuffdocumentschain-root</guid>
+      <pubDate>Thu, 27 Jul 2023 05:20:25 GMT</pubDate>
     </item>
     <item>
       <title>使用 GridSearchCV 和 f2 分数评估多个模型</title>
@@ -487,66 +474,162 @@ df = pd.DataFrame(分数,列=[&#39;模型&#39;,&#39;best_score&#39;,&#39;best_pa
       <pubDate>Sun, 18 Apr 2021 10:38:43 GMT</pubDate>
     </item>
     <item>
-      <title>声明嵌入层时出现 ResourceExhaustedError (Keras)</title>
-      <link>https://stackoverflow.com/questions/52547568/resourceexhaustederror-when-declaring-embeddings-layer-keras</link>
-      <description><![CDATA[我正在为 NLP 创建一个神经网络，从嵌入层开始（使用预先训练的嵌入）。但是当我在 Keras（Tensorflow 后端）中声明 Embedding 层时，出现 ResourceExhaustedError ：
-ResourceExhaustedError：通过分配器 GPU_0_bfc 在 /job:localhost/replica:0/task:0/device:GPU:0 上分配形状为 [137043,300] 的张量并键入 float 时出现 OOM
- [[{{node embedding_4/random_uniform/RandomUniform}} = RandomUniform[T=DT_INT32，dtype=DT_FLOAT，seed=87654321，seed2=9524682，_device=&quot;/job:localhost/replica:0/task:0/device:GPU :0&quot;](embedding_4/random_uniform/shape)]]
- 提示：如果您想在 OOM 发生时查看分配的张量列表，请将 report_tensor_allocations_upon_oom 添加到 RunOptions 以获取当前分配信息。
+      <title>部署时，SageMaker 无法提取容器的模型数据存档 tar.gz</title>
+      <link>https://stackoverflow.com/questions/65881699/sagemaker-failed-to-extract-model-data-archive-tar-gz-for-container-when-deployi</link>
+      <description><![CDATA[我正在尝试在 Amazon Sagemaker 中部署现有的 Scikit-Learn 模型。所以这个模型不是在 SageMaker 上训练的，而是在我的机器上本地训练的。
+在我的本地（Windows）计算机上，我已将模型保存为 model.joblib 并将模型压缩为 model.tar.gz。
+接下来，我已将此模型上传到我的 S3 存储桶 (&#39;my_bucket&#39;)，路径为 s3://my_bucket/models/model.tar.gz。我可以在 S3 中看到 tar 文件。
+但是当我尝试部署模型时，它不断给出错误消息“无法提取模型数据存档”。
+.tar.gz 是通过在 powershell 命令窗口中运行“tar -czf model.tar.gz model.joblib”在我的本地计算机上生成的。
+上传到S3的代码
+&lt;前&gt;&lt;代码&gt;导入boto3
+s3 = boto3.client(“s3”,
+              Region_name=&#39;eu-central-1&#39;,
+              aws_access_key_id=AWS_KEY_ID,
+              aws_secret_access_key=AWS_SECRET)
+s3.upload_file(文件名=&#39;model.tar.gz&#39;, Bucket=my_bucket, Key=&#39;models/model.tar.gz&#39;)
 
-我已经查过Google：大多数ResourceExhaustedError发生在训练时，并且是因为GPU的RAM不够大。它可以通过减少批量大小来修复。
-但就我而言，我什至没有开始训练！这行是问题所在：
-q1 = 嵌入(nb_words + 1,
-             参数[&#39;embed_dim&#39;].value,
-             权重=[word_embedding_matrix],
-             input_length=param[&#39;sentence_max_len&#39;].value)(问题1)
+用于创建估计器和部署的代码：
+&lt;前&gt;&lt;代码&gt;导入boto3
+从 sagemaker.sklearn.estimator 导入 SKLearnModel
 
-这里，word_embedding_matrix 是一个大小为 (137043, 300) 的矩阵，即预训练的嵌入。
-据我所知，这不会占用大量内存（不像此处）：
-137043 * 300 * 4 字节 = 53 kiB
-这是使用的 GPU：
+...
 
-&lt;前&gt;&lt;代码&gt; +-------------------------------------------------------- ----------------------------------+
- | NVIDIA-SMI 396.26 驱动程序版本：396.26 |
- |------------------------------------------+----------------- ---+----------------------+
- | GPU 名称持久性-M|总线 ID Disp.A |挥发性未校正。 ECC |
- |风扇温度性能功率：使用/上限|内存使用情况 | GPU-Util 计算 M。
- |================================+================== ====+======================|
- | 0 GeForce GTX 108...关闭 | 00000000:02:00.0 关闭 |不适用 |
- | 23% 32C P8 16W / 250W | 6956MiB / 11178MiB | 0% 默认 |
- +--------------------------------------------+----------------- ---+----------------------+
- | 1 个 GeForce GTX 108...关闭 | 00000000:03:00.0 关闭 |不适用 |
- | 23% 30C P8 16W / 250W | 530MiB / 11178MiB | 0% 默认 |
- +--------------------------------------------+----------------- ---+----------------------+
- | 2 GeForce GTX 108...关闭| 00000000:82:00.0 关闭 |不适用 |
- | 23% 34C P8 16W / 250W | 333MiB / 11178MiB | 0% 默认 |
- +--------------------------------------------+----------------- ---+----------------------+
- | 3 GeForce GTX 108...关闭| 00000000:83:00.0 关闭 |不适用 |
- | 24% 46C P2 58W / 250W | 4090MiB / 11178MiB | 23% 默认 |
- +--------------------------------------------+----------------- ---+----------------------+
+model_data = &#39;s3://my_bucket/models/model.tar.gz&#39;
+sklearn_model = SKLearnModel(model_data=model_data,
+                             角色=角色，
+                             Entry_point =“my-script.py”，
+                             Framework_version =“0.23-1”）
+预测器= sklearn_model.deploy（instance_type =“ml.t2.medium”，initial_instance_count = 1）
 
- +------------------------------------------------ ----------------------------+
- |进程：GPU 内存 |
- | GPU PID 类型 进程名称 用法 |
- |=================================================== ===========================|
- | 0 1087 C uwsgi 1331MiB |
- | 0 1088 C uwsgi 1331MiB | 0 1088 C uwsgi 1331MiB
- | 0 1089 C uwsgi 1331MiB | 0 1089 C uwsgi 1331MiB
- | 0 1090 C uwsgi 1331MiB | 0 1090 C uwsgi 1331MiB
- | 0 1091 C uwsgi 1331MiB | 0 1091 C uwsgi 1331MiB
- | 0 4176 C /usr/bin/python3 289MiB | 0 4176 C /usr/bin/python3 289MiB
- | 1 2631 C ...e92/venvs/wordintent_venv/bin/python3.6 207MiB |
- | 1 4176 C /usr/bin/python3 313MiB | 1 4176 C /usr/bin/python3 313MiB
- | 2 4176 C /usr/bin/python3 323MiB | 2 4176 C /usr/bin/python3 323MiB
- | 3 4176 C /usr/bin/python3 347MiB | 3 4176 C /usr/bin/python3 347MiB
- | 3 10113 C 蟒蛇 1695MiB |
- | 3 13614 C python3 1347MiB |
- | 3 14116 C 蟒蛇 689MiB |
- +------------------------------------------------ ----------------------------+
+错误信息：
+&lt;块引用&gt;
+错误消息：UnexpectedStatusException：托管端点错误
+sagemaker-scikit-learn-2021-01-24-17-24-42-204：失败。原因：失败
+提取容器“container_1”的模型数据档案来自网址
+“s3://my_bucket/models/model.tar.gz”。请确保对象
+位于 URL 处的是有效的 tar.gz 存档
 
-有谁知道我为什么会遇到这个异常？]]></description>
-      <guid>https://stackoverflow.com/questions/52547568/resourceexhaustederror-when-declaring-embeddings-layer-keras</guid>
-      <pubDate>Fri, 28 Sep 2018 02:41:56 GMT</pubDate>
+有没有办法查看存档无效的原因？]]></description>
+      <guid>https://stackoverflow.com/questions/65881699/sagemaker-failed-to-extract-model-data-archive-tar-gz-for-container-when-deployi</guid>
+      <pubDate>Mon, 25 Jan 2021 09:03:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>重新训练 Tensorflow 模型</title>
+      <link>https://stackoverflow.com/questions/52769607/retrain-tensorflow-model</link>
+      <description><![CDATA[我有一个使用对象检测 SSD 移动网络训练的张量流模型。
+训练现已完成，我导出了模型推理以进行测试。我的问题是，如果我想稍后使用新的图像数据集重新训练模型，我现在应该在这个阶段做什么以使权重渗透到模型中，以便我可以从那时起重新训练它。我知道有一个冻结脚本，我必须使用它吗？ 
+谢谢
+阿亚德]]></description>
+      <guid>https://stackoverflow.com/questions/52769607/retrain-tensorflow-model</guid>
+      <pubDate>Thu, 11 Oct 2018 22:12:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否可以使用具有流输入和输出的机器学习库？ [关闭]</title>
+      <link>https://stackoverflow.com/questions/50850497/is-it-possible-to-use-a-machine-learning-library-with-streaming-inputs-and-outpu</link>
+      <description><![CDATA[我想将机器学习纳入我一直在从事的项目中，但我还没有看到任何关于我的预期用例的信息。看起来旧的潘多拉魔盒项目做了类似的事情，但是有文本输入和输出。
+我想实时训练一个模型并使用它（然后当它运行良好时将其从测试切换到实时 api 端点。）
+但我发现的每个库的工作方式都类似于“输入数据块，得到答案”
+我希望能够将数据传输到其中：
+而不是给它“5,4,3,4,3,2,3,4,5”，它说“1”或“-1”或“0”
+我想给它“5”然后“4”然后“3”然后“4”等等，每次它响应时。
+我什至不确定“流媒体”是否是正确的词。请帮忙！]]></description>
+      <guid>https://stackoverflow.com/questions/50850497/is-it-possible-to-use-a-machine-learning-library-with-streaming-inputs-and-outpu</guid>
+      <pubDate>Thu, 14 Jun 2018 05:54:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Python 中实现多元线性回归？</title>
+      <link>https://stackoverflow.com/questions/48257144/how-do-i-implement-multiple-linear-regression-in-python</link>
+      <description><![CDATA[我正在尝试从头开始编写一个多元线性回归模型来预测影响 Facebook 上歌曲观看次数的关键因素。关于每首歌曲，我们收集这些信息，即我正在使用的变量：
+
+&lt;前&gt;&lt;代码&gt;df.dtypes
+单击 int64
+Listened_5s int64 已听
+Listened_20s int64 已听
+视图 int64
+已听百分比 float64
+反应总数 int64
+共享歌曲 int64
+评论 int64
+平均听时间 int64
+歌曲长度 int64
+喜欢 int64
+已收听_稍后 int64
+
+我使用视图数作为因变量，并将数据集中的所有其他变量作为独立变量。该模型发布如下：
+
+&lt;前&gt;&lt;代码&gt; #df_x --&gt;自变量的新数据框
+  df_x = df.drop([&#39;视图&#39;], 1)
+
+  #df_y --&gt;因变量视图的新数据框
+  df_y = df.ix[:, [&#39;视图&#39;]]
+
+  名称 = [i 代表列表中的 i(df_x)]
+
+  regr = Linear_model.LinearRegression()
+  x_train，x_test，y_train，y_test = train_test_split（df_x，df_y，test_size = 0.2）
+
+   #将模型拟合到训练数据集
+   regr.fit(x_train,y_train)
+   regr.intercept_
+   print(&#39;系数: \n&#39;, regr.coef_)
+   print(&quot;均方误差(MSE): %.2f&quot;
+         % np.mean((regr.predict(x_test) - y_test) ** 2))
+   print(&#39;方差分数: %.2f&#39; % regr.score(x_test, y_test))
+   regr.coef_[0].tolist()
+
+此处输出：
+ regr.intercept_
+ 数组([-1173904.20950487])
+ 微信：19722838329246.82
+ 方差得分：0.99
+
+看起来出了什么严重错误。
+尝试 OLS 模型：
+ import statsmodels.api as sm
+   从 statsmodels.sandbox.regression.predstd 导入 wls_prediction_std
+   模型=sm.OLS(y_train,x_train)
+   结果=模型.fit()
+   打印(结果.summary())
+
+输出：
+
+&lt;前&gt;&lt;代码&gt; R 平方：0.992
+     F 统计量：6121。
+
+                      coef std err t P&gt;|t| [95.0% 浓度国际]
+
+
+点击 0.3333 0.012 28.257 0.000 0.310 0.356
+Listened_5s -0.4516 0.115 -3.944 0.000 -0.677 -0.227
+已听 20 秒 1.9015 0.138 13.819 0.000 1.631 2.172
+已听百分比 7693.2520 1.44e+04 0.534 0.594 -2.06e+04 3.6e+04
+反应总数 8.6680 3.561 2.434 0.015 1.672 15.664
+共享歌曲 -36.6376 3.688 -9.934 0.000 -43.884 -29.392
+评论 34.9031 5.921 5.895 0.000 23.270 46.536
+平均听时间 1.702e+05 4.22e+04 4.032 0.000 8.72e+04 2.53e+05
+歌曲长度 -6309.8021 5425.543 -1.163 0.245 -1.7e+04 4349.413
+喜欢 4.8448 4.194 1.155 0.249 -3.395 13.085
+稍后收听 -2.3761 0.160 -14.831 0.000 -2.691 -2.061
+
+
+综合巴士：233.399 杜宾-沃森：
+1.983
+概率（综合）： 0.000 Jarque-Bera (JB)：
+2859.005
+偏差：1.621 概率（JB）：
+0.00
+峰度：14.020 条件。不。
+2.73e+07
+
+警告：
+[1] 标准误差假设误差的协方差矩阵已正确指定。
+[2] 条件数很大，2.73e+07。这可能表明存在很强的多重共线性或其他数值问题。
+
+仅通过查看此输出就可以看出出现了严重错误。
+我认为训练/测试集和创建两个不同的数据框 x 和 y 出了问题，但无法弄清楚是什么。这个问题必须可以通过使用多元回归来解决。难道不是线性的吗？您能帮我找出问题所在吗？]]></description>
+      <guid>https://stackoverflow.com/questions/48257144/how-do-i-implement-multiple-linear-regression-in-python</guid>
+      <pubDate>Mon, 15 Jan 2018 04:58:03 GMT</pubDate>
     </item>
     </channel>
 </rss>
