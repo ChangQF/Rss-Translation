@@ -4,7 +4,128 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Thu, 01 Feb 2024 03:15:41 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 01 Feb 2024 06:17:49 GMT</lastBuildDate>
+    <item>
+      <title>对交叉熵损失真的很困惑</title>
+      <link>https://stackoverflow.com/questions/77917816/really-confused-about-cross-entropy-loss</link>
+      <description><![CDATA[我遇到了我的项目面临的关于交叉熵损失的三个详细实现。顺便说一下，needle 是我要构建的东西，所以你可以把它看作像 pytorch 一样的东西。
+那么谁能解释一下为什么？
+第一个版本：
+def softmax_loss(Z, y_one_hot):
+    ”“”返回softmax损失。请注意，出于本次作业的目的，
+    你不需要担心“很好”缩放数值属性
+    log-sum-exp 计算的一部分，但可以直接计算它。
+
+    参数：
+        Z (ndl.Tensor[np.float32]): 形状的 2D 张量
+            (batch_size, num_classes)，包含 logit 预测
+            每堂课。
+        y (ndl.Tensor[np.int8]): 形状的 2D 张量 (batch_size, num_classes)
+            每个示例的真实标签索引处包含 1，并且
+            其他地方为零。
+
+    返回：
+        样本上的平均 softmax 损失。 (ndl.张量[np.float32])
+    ”“”
+    ### 开始你的解决方案
+    # 假设二元选择，之前 y 表示真实标签，例如
+    # [0, 1, 0, 1, 0]
+    # 返回 np.mean(np.log(np.sum(np.exp(Z), axis=1)) - Z[np.arange(y.size), y])
+    #
+    # 然而，这个问题应用了 ndl 并使用 one-hot y 作为张量，例如
+    # [[1, 0],
+    # [0, 1],
+    # [1, 0],
+    # [0, 1],
+    # [1, 0]]
+    # 这种情况下，直接执行矩阵乘法。
+    #
+    # 顺便说一下，如果这里设置axes=1的话，是不会通过测试的。这是因为轴应该是
+    # 这里是一个可迭代对象，如果没有优化， int 绝不是可迭代的，因此我们应用
+    # 元组轴=(1,)。
+    lhs = ndl.log(ndl.exp(Z).sum(axes=(1,))).sum() # 求和到 (B, 1)，然后是标量
+    rhs = (y_one_hot * Z).sum() # EW (B, k) 然后是标量
+    
+    return (lhs - rhs) / Z.shape[0] # 除以批量大小
+    ### 结束你的解决方案
+
+第二个版本：
+def softmax_loss(Z, y):
+    ”“”返回softmax损失。请注意，出于本次作业的目的，
+    你不需要担心“很好”缩放数值属性
+    log-sum-exp 计算的一部分，但可以直接计算它。
+
+    参数：
+        Z (np.ndarray[np.float32]): 形状的 2D numpy 数组
+            (batch_size, num_classes)，包含 logit 预测
+            每堂课。
+        y (np.ndarray[np.uint8]): 形状为 (batch_size, ) 的一维 numpy 数组
+            包含每个示例的真实标签。
+
+    返回：
+        样本上的平均 softmax 损失。
+    ”“”
+    ### 开始你的代码
+    # 例如，假设 exp_logits 和 y 是
+    # [[0.3, 0.2, 0.5] [2, 1, 1, 1]
+    # [0.1, 0.6, 0.3]
+    # [0.4, 0.3, 0.3]
+    # [0.1, 0.7, 0.2]]
+    # 高级索引从行[0, 1, 2, 3]和列[2, 1, 1, 1]获取元素，
+    # 表示真实分类的预测点。
+    lhs = np.log(np.sum(np.exp(Z), axis=1)) # 求和为形状 (B, 1)
+    rhs = Z[np.arange(y.size), y] # 形状 (B, 1)
+    # 这是预测点相减然后求平均值；
+    # 如果先求均值再减，就减一。
+    avg_loss = np.mean(左轴 - 右轴)
+    
+    返回平均损失
+    ### 结束你的代码
+
+第三个版本：
+&lt;前&gt;&lt;代码&gt;
+/* 由于矩阵在 C++ 中表示为数组，因此它将指向每次迭代的开始。 */
+const float *X_batch = &amp;X[iter * batch * n];
+
+/* 要计算 exp_logits，首先初始化形状为 (B, k) = (B, n) * (n, k) 的数组。 */
+float *exp_logits = new float[batch * k];
+mat_mul(X_batch, theta, exp_logits, 批次, n, k); // 实际上在这里记录
+/* 在数组的 from 中对 (B, k) exp_logits 进行一一指数运算。 */
+for (size_t i = 0; i &lt; 批 * k; i++) exp_logits[i] = exp(exp_logits[i]);
+
+/* 对 axis=1 的矩阵求和，即在 &#39;k&#39; 的维度上。 */
+for (size_t i = 0; i &lt; 批次; i++) {
+    浮点总和=0；
+    for (size_t j = 0; j &lt; k; j++) sum += exp_logits[i * k + j];
+    for (size_t j = 0; j &lt; k; j++) exp_logits[i * k + j] /= sum; // grad 实际上在这里
+}
+/* exp_logits 总是在迭代中更新，但是我们需要预先为 y 添加 iter*batch。
+    * 例如，假设 exp_logits 和 y 是
+    * [[0.3, 0.2, 0.5] [[2]
+    * [0.1, 0.6, 0.3] [1]
+    * [0.4, 0.3, 0.3] [1]
+    * [0.1, 0.7, 0.2]] [1]]
+    * 减去后，损失将如下所示
+    * [[0.3, 0.2, -0.5]
+    * [0.1,-0.4,0.3]
+    * [0.4，-0.7，0.3]
+    * [0.1,-0.3,0.2]]
+    */
+for (size_t i = 0; i &lt; 批次; i++) exp_logits[i * k + y[iter * 批次 + i]] -= 1;
+
+我希望有人能好心地提示我一下。]]></description>
+      <guid>https://stackoverflow.com/questions/77917816/really-confused-about-cross-entropy-loss</guid>
+      <pubDate>Thu, 01 Feb 2024 05:04:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>YOLOv1是否需要在每个单元格中训练样本？或者它可以概括来自其他细胞的训练样本吗？</title>
+      <link>https://stackoverflow.com/questions/77917722/does-yolov1-need-training-examples-in-every-cell-or-can-it-generalize-training</link>
+      <description><![CDATA[由于每个特定单元的输出权重不在其他单元之间共享，因此我的理解是 YOLO 网络需要每个单元中每个类的训练示例。这感觉效率很低，尤其是对于拥有很多很多小区的网络。
+当每个班级没有太多训练示例时，人们如何解决这个问题？也许通过使用大量翻译图像来增强训练集？
+YOLO 论文似乎没有提及数据增强。也许他们的训练集非常完整，并且包含每个单元中每个类别的示例。]]></description>
+      <guid>https://stackoverflow.com/questions/77917722/does-yolov1-need-training-examples-in-every-cell-or-can-it-generalize-training</guid>
+      <pubDate>Thu, 01 Feb 2024 04:25:01 GMT</pubDate>
+    </item>
     <item>
       <title>对于独特的时间序列多类分类问题，我应该选择哪种神经网络模型？ [关闭]</title>
       <link>https://stackoverflow.com/questions/77916586/which-neural-network-model-should-i-choose-for-a-unique-timeseries-multiclass-cl</link>
@@ -144,25 +265,6 @@ print(f&#39; 骰子指标: {vmetric}&#39;)
       <pubDate>Wed, 31 Jan 2024 18:44:06 GMT</pubDate>
     </item>
     <item>
-      <title>高斯过程模型预测所有数据点的相同 STD [关闭]</title>
-      <link>https://stackoverflow.com/questions/77914742/gaussian-process-model-predicts-the-same-std-for-all-datapoints</link>
-      <description><![CDATA[我用 gpytorch 建立了一个 gp 模型。我创建了一个自定义可能性，它使用连续预测来计算可能性。因此，它不直接使用预测，而是使用连续预测之间的差异。
-当我在训练后使用模型进行预测时，它预测了逻辑边界中的所有均值，但预测的标准差在所有数据点上完全相同。另外，当我从后部抽取样本时，我观察到非常奇怪、反向和无意义的样本。所以最终，预测方法完全正确，样本不存在，并且所有具有如此高值的数据点的标准差都是相同的。
-这是我迄今为止尝试过的：
-
-不同大小和价值的诱导点
-不同的学习率和迭代次数
-不同内核、双内核等
-不同/固定长度尺度、输出尺度，
-改变先验
-可能性中的不同/固定噪声
-锚定预测
-
-对目前的情况有什么了解吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77914742/gaussian-process-model-predicts-the-same-std-for-all-datapoints</guid>
-      <pubDate>Wed, 31 Jan 2024 16:00:47 GMT</pubDate>
-    </item>
-    <item>
       <title>Pytorch RuntimeError：函数“NativeBatchNormBackward0”在其第 0 个输出中返回了 nan 值[关闭]</title>
       <link>https://stackoverflow.com/questions/77914164/pytorch-runtimeerror-function-nativebatchnormbackward0-returned-nan-values-in</link>
       <description><![CDATA[我尝试从一篇提供 Tensorflow 代码的论文中实现一个卷积神经网络，并将其转换为 Pytorch。
@@ -253,65 +355,11 @@ manual_seed(42) 总是会产生相关的 NativeBatchNormBackward0 错误。]]></
       <pubDate>Wed, 31 Jan 2024 14:33:58 GMT</pubDate>
     </item>
     <item>
-      <title>为什么我不能使用基于流程的并行性有效地并行化我的强化学习程序？</title>
-      <link>https://stackoverflow.com/questions/77913525/why-cant-i-effectively-parallelize-my-reinforcement-learning-programs-using-pro</link>
-      <description><![CDATA[我的目标是使用 Stable_Baselines3 库同时运行多个强化学习程序。我注意到，随着程序数量的增加，程序的迭代速度逐渐降低，这是相当令人惊讶的，因为每个程序应该运行在不同的进程（核心）上。
-这是我的程序：
-from joblib import 并行，延迟
-
-进口健身房
-# 从 sbx 导入 SAC
-进口火炬
-
-从 stable_baselines3 导入 SAC
-定义火车（）：
-
-
-    env =gym.make(“Humanoid-v4”)
-
-    模型 = SAC(“MlpPolicy”, env, verbose=1)
-    model.learn（total_timesteps=7e5，progress_bar=True）
-
-def train_model():
-
-    火车（）
-
-
-
-如果 __name__ == &#39;__main__&#39;:
-    程序数量 = 1
-    并行(n_jobs=10)(延迟(train)() for i in range(num_of_programs))
-
-num_of_programs 用于控制我尝试并行运行的程序数量。
-以下是一些统计数据 -
- 程序数量 迭代速度
-1 1 ~102 次/秒
-2 3 ~60 次/秒
-3 10~20次/秒
-
-我确保请求足够的资源，这样就不存在资源限制。这就是我使用 slurm 请求资源的方式 - srun --time=10:00:00 --nodes=1 --cpus-per-task=16 --mem=32G --partition=gpu --gres =gpu:a100-pcie:1 --pty /usr/bin/bash
-因此我有 16 个 cpu、32G 内存和 40 GB GPU。
-当我从 stable_baselines3 迁移到 sbx 时，我注意到了同样的问题。 stable_baselines3 使用 torch 作为其深度学习库，而后者则使用 JAX。]]></description>
-      <guid>https://stackoverflow.com/questions/77913525/why-cant-i-effectively-parallelize-my-reinforcement-learning-programs-using-pro</guid>
-      <pubDate>Wed, 31 Jan 2024 13:00:25 GMT</pubDate>
-    </item>
-    <item>
       <title>如何解决 PyTorch 编译产生的跨步断言错误？</title>
       <link>https://stackoverflow.com/questions/77913463/how-to-resolve-the-stride-assert-error-produced-by-the-pytorch-compile</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77913463/how-to-resolve-the-stride-assert-error-produced-by-the-pytorch-compile</guid>
       <pubDate>Wed, 31 Jan 2024 12:52:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 Pytorch 在多节点 GPU 上结合模型和数据并行性</title>
-      <link>https://stackoverflow.com/questions/77910976/how-to-combine-model-and-data-parallelism-on-multi-nodes-gpus-using-pytorch</link>
-      <description><![CDATA[我有一个8节点的计算集群，每个节点有4个GPU（总共32个GPU，每个只有16Gb内存）。我在我的项目中使用 Pytorch。我可以在所有 32 个 GPU 上使用 DistributedDataParallel 进行数据并行化，但我正在训练的神经网络模型太大，无法放入一个 GPU 内存中，因此数据并行化在这里没有帮助。我尝试进行模型并行化，将模型切割为 4 个部分，但我只能在一个具有 4 个 GPU 的节点上运行它，并进行数据并行化。但我不知道如何将多节点上的数据和模型并行化结合起来。有谁知道如何做到这一点的任何示例（最小可行示例）或想法？
-目前，我认为推动这一进程的最佳方法是分两步（或两个级别）进行：
-(1) 在一个节点（4个GPU）上进行模型并行化
-（2）使用DistributedDataParallel将步骤一中的模型复制到所有8个节点，进行数据并行化
-您认为上述想法是个好方法吗？有如何执行此操作的示例吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77910976/how-to-combine-model-and-data-parallelism-on-multi-nodes-gpus-using-pytorch</guid>
-      <pubDate>Wed, 31 Jan 2024 05:24:42 GMT</pubDate>
     </item>
     <item>
       <title>在Python中查找特征列的哪些过滤集导致最大目标列</title>
@@ -359,6 +407,14 @@ llm_chain = LLMChain(
 ]]></description>
       <guid>https://stackoverflow.com/questions/76776695/validationerror-1-validation-error-for-stuffdocumentschain-root</guid>
       <pubDate>Thu, 27 Jul 2023 05:20:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>将经过训练的机器学习模型与 React Native 应用程序集成</title>
+      <link>https://stackoverflow.com/questions/74961856/to-integrate-a-trained-machine-learning-model-with-react-native-app</link>
+      <description><![CDATA[我有一个 FYP 项目（Instagram 等社交媒体应用程序），需要我创建一个简单的推荐系统。我已经使用 Python 对余弦相似度数据集进行了训练，但我不知道下一步该做什么。如何将经过训练的机器学习模型集成到 React Native 中，或者是否有更好、更简单的方法来制作推荐系统？
+我尝试阅读文档和观看视频。但我似乎仍然无法掌握一些困难的概念。如果您能在训练我的模型后向我提供有关学习内容的说明或步骤，我将不胜感激。或者，如果我必须使用一些库或软件包等。[不确定这是否是适合此查询的论坛]]]></description>
+      <guid>https://stackoverflow.com/questions/74961856/to-integrate-a-trained-machine-learning-model-with-react-native-app</guid>
+      <pubDate>Fri, 30 Dec 2022 13:02:29 GMT</pubDate>
     </item>
     <item>
       <title>部署时，SageMaker 无法提取容器的模型数据存档 tar.gz</title>
