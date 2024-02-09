@@ -4,7 +4,104 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 09 Feb 2024 00:56:37 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 09 Feb 2024 03:13:57 GMT</lastBuildDate>
+    <item>
+      <title>即使将其设置为可训练，机器学习模型也不会训练权重</title>
+      <link>https://stackoverflow.com/questions/77965679/machine-learning-model-does-not-train-weights-even-after-setting-it-trainable</link>
+      <description><![CDATA[以下是我一直在研究的模型。我一直在尝试使用生成器使用数据集 UCF-101 来训练它，但由于某种原因，即使将 VGG19 预训练的层设置为可训练后，它们仍然不会更新其权重值。我尝试了很多替代方案，但到目前为止没有任何效果。
+我看到所有其他图层权重都在更新，但那些没有。
+我的问题是：
+什么可能导致某些可训练层在反向传播期间无法训练？
+这是我的模型。
+导入tensorflow为tf
+从tensorflow.keras.applications导入VGG19
+从tensorflow.keras.layers导入层
+从tensorflow.keras.layers导入乘法、Conv2D、注意力
+从tensorflow.keras.layers导入（TimeDistributed、LSTM、Dense、Dropout、Flatten、GlobalAveragePooling2D、
+                                     批量归一化）
+从tensorflow.keras.models导入顺序
+
+
+SpatialAttentionLayer 类（图层）：
+    def __init__(self, **kwargs):
+        super(SpatialAttentionLayer, self).__init__(**kwargs)
+
+    def 构建（自身，input_shape）：
+        self.conv2d = Conv2D(filters=512, kernel_size=(7, 7), 激活=&#39;softmax&#39;, padding=&#39;same&#39;)
+
+    def 调用（自身，输入）：
+        注意力 = self.conv2d(输入)
+        return Multiply()([输入，注意力])
+
+
+类 TemporalAttentionLayer(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super(TemporalAttentionLayer, self).__init__(**kwargs)
+
+    def 构建（自身，input_shape）：
+        self.kernel = self.add_weight(name=&#39;kernel&#39;,
+                                      形状=(输入形状[-1], 1),
+                                      初始值设定项=&#39;glorot_uniform&#39;,
+                                      可训练=真）
+
+    def 调用（自身，输入）：
+        Attention_scores = tf.keras.backend.dot(输入，self.kernel)
+        注意分数= tf.keras.backend.squeeze（注意分数，-1）
+        注意分数 = tf.keras.backend.softmax(注意分数)
+        Attention_sequence = 输入 * Attention_scores[..., None]
+        attend_sequence = tf.reduce_sum(attended_sequence, axis=1)
+        返回参加序列
+
+
+# todo：为文档创建模型图
+def ActionDetectionModel（num_frames，frame_width，frame_height，通道，num_classes，lstm_units = 256，
+                         dend_units=1024，dropout_rate=0.5，fine_tune_until=None）：
+    # 加载 VGG19 模型，不包括顶层
+    base_model = VGG19（include_top = False，权重=&#39;imagenet&#39;，input_shape =（frame_width，frame_height，通道））
+
+    对于 base_model.layers 中的图层：
+        可训练层 = False
+    如果fine_tune_until：
+        对于 base_model.layers[-fine_tune_until:] 中的图层：
+            层.可训练= True
+
+    # 定义顺序模型
+    模型=顺序（[
+        # 添加TimeDistributed层通过VGG19处理每一帧
+        TimeDistributed(base_model, input_shape=(num_frames,frame_width,frame_height,channels)),
+
+        #TimeDistributed(SpatialAttentionLayer()),
+        时间分布式(GlobalAveragePooling2D()),
+
+        时间分布(Flatten()),
+
+        # 用于时间处理的 LSTM 层
+        LSTM（lstm_units，return_sequences = True），
+
+        # 添加时间注意力机制
+        时间注意力层（），
+
+        # 用于正则化的批量归一化
+        批量归一化(),
+
+        # 用于进一步处理的密集层
+        密集（dense_units，激活=&#39;relu&#39;），
+        辍学率（辍学率），
+
+        # 最终预测层
+        密集（num_classes，激活=&#39;softmax&#39;）
+    ]）
+
+    返回模型
+
+
+
+有一次，我在模型的开头添加了一个简化的 SpatialAttentionLayer；那时，该模型尚未接受训练。
+我根据 VGG19 更改了模型，认为反向传播期间可能会发生一些事情。
+我已经改变了学习率几次，但这些权重没有改变。有一次，我将整个 VGG19 设置为可训练，但什么也没有。]]></description>
+      <guid>https://stackoverflow.com/questions/77965679/machine-learning-model-does-not-train-weights-even-after-setting-it-trainable</guid>
+      <pubDate>Fri, 09 Feb 2024 02:00:44 GMT</pubDate>
+    </item>
     <item>
       <title>如何找出两个相似图像之间的差异</title>
       <link>https://stackoverflow.com/questions/77965431/how-to-pinpoint-differences-between-two-similar-images</link>
@@ -180,33 +277,6 @@ array([[nan, nan, -inf, -inf],
 帮助]]></description>
       <guid>https://stackoverflow.com/questions/77963476/how-do-i-do-masked-fill-in-mlx</guid>
       <pubDate>Thu, 08 Feb 2024 16:55:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何将 pytorch 模型转换为 ONNX</title>
-      <link>https://stackoverflow.com/questions/77962736/how-to-convert-a-pytorch-model-to-onnx</link>
-      <description><![CDATA[我想将 pytorch 模型转换为 ONNX，因为我需要使用 STM32CubeIDE 将模型移植到嵌入式平台上。
-Python 代码：
-cp = torch.load(&#39;bestmodelw.pth&#39;)
-mymodel.load_state_dict(cp[&#39;state_dict&#39;])
-mymodel.eval()
-
-示例 = torch.randn(1, 4, 128)
-torch.onnx.export（我的模型，
-                  例子，
-                  在nx路径上，
-                  输入名称 = [&#39;输入&#39;],
-                  输出名称 = [&#39;输出&#39;],
-                  导出参数=真，
-                  详细=真实，
-                  opset_版本 = 15)
-
-我获得了一个.onnx文件，但是如果我用Netron打开模型，我可以看到每个卷积层有2个输入（显示图像）。 STM32CubeIDE 不支持具有 2 个输入的卷积层，因此我无法使用此模型。
-有人可以帮我吗？
-STM32CubeIDE 还支持 .h5 文件，因此我尝试将 .onnx 转换为 keras 模型 (.h5)，但出现此错误消息发生：
-KeyError: &#39;ReduceMin&#39;
-]]></description>
-      <guid>https://stackoverflow.com/questions/77962736/how-to-convert-a-pytorch-model-to-onnx</guid>
-      <pubDate>Thu, 08 Feb 2024 15:09:57 GMT</pubDate>
     </item>
     <item>
       <title>无法为 HeteroData 创建 NeighborLoader：“EdgeStorage”对象没有属性“num_nodes”</title>
