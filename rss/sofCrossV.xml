@@ -4,7 +4,79 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Fri, 09 Feb 2024 03:13:51 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 09 Feb 2024 06:17:37 GMT</lastBuildDate>
+    <item>
+      <title>使用贝叶斯定理查找完整条件</title>
+      <link>https://stats.stackexchange.com/questions/638913/using-bayes-theorem-to-find-full-conditionals</link>
+      <description><![CDATA[我想知道贝叶斯定理应该如何解决以下问题：
+$$P(A_{1}|A_{j})=?$$
+其中 $j=2,3,\cdots , n$。
+首先让 $A_{j}&#39;$ 是独立的，其他情况下它们不是独立的。
+示例：
+我正在研究吉布斯采样，我们需要条件， $w$ 表示数据，$A_{1},A_{ 2},A_{3},A_{4}$ 是先验。并且 $A_{2}$ 和 $A_{3}$ 依赖于 $A_{4}$
+所以，当我试图为他们找到条件时。我有点困惑，因为我猜它没有封闭的形式，我正在做一堆操作，我什至不确定我是否正确。所以，我的目标是找到
+$$P(A_{1}|A_{2},A_{3},A_{4},w)=?$$
+$$P(A_{2}|A_{1},A_{3},A_{4},w)=?$$
+$$P(A_{3}|A_{1},A_{2},A_{4},w)=?$$
+$$P(A_{4}|A_{1},A_{2},A_{3},w)=?$$]]></description>
+      <guid>https://stats.stackexchange.com/questions/638913/using-bayes-theorem-to-find-full-conditionals</guid>
+      <pubDate>Fri, 09 Feb 2024 04:57:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>巴耶桑非线性回归中的双峰后验</title>
+      <link>https://stats.stackexchange.com/questions/638912/bimodal-posteriors-in-bayeisan-non-linear-regression</link>
+      <description><![CDATA[我将在序言中感谢您阅读本文，并且任何评论者都应该随意批评您认为天真或无知的建模规范或工作流程的任何方面。
+我正在模拟这个双 S 形曲线过程中的两个组：
+$$ y = \frac{y_{\text{mid}}}{1 + e^{-(a \cdot \text{time} + b)}} + \frac{y_{\text{max}}}{1 + e^{-(c \cdot \text{时间} + d)}}, \quad 0 \leq y \leq 100, \quad \text{时间} \in [0, 300]
+$$
+在brms中使用以下代码：
+ sw_dbl_log &lt;- 函数（a、b、c、d、时间）{
+((50)/(1+exp(-a时间 + b)))+((50)/(1+exp(-c时间 + d)))
+}
+nn = 300
+原始 &lt;- tibble(n = 1:(nn*2),
+组=rep(c(“对照”，“实验”)，每个=nn)，
+a = c(rnorm(nn, 0.1, 0.01),
+rnorm(nn, 0.1, 0.01)),
+b = c(rnorm(nn, 5, 0.01),
+rnorm(nn, 5, 0.01)),
+c = c(rnorm(nn, 0.1, 0.01),
+rnorm(nn, 0.1, 0.002)),
+d = c(rnorm(nn, 5, 0.01),
+rnorm(nn, 25, 0.01))
+) %&gt;%
+tidyr::expand(嵌套(n,组,a,b,c,d),
+时间 = seq(0, 300, by = 10)) %&gt;%
+变异（y = sw_dbl_log（a，b，c，d，时间））
+正如预期的那样，这会为每个组的参数 (a:d) 生成高斯分布，而对照组的时间序列类似于具有一个生长阶段的单个 S 型曲线。正如预期的那样，实验组的时间序列有两个增长阶段。我利用这个规范是因为每个参数都给出了清晰可解释的输出，即 a 和 c 代表增长率，b 代表每个生长阶段的拐点时间点。
+
+我的适配过程如下：
+ 公式 &lt;- bf(y ~ (50/(1+exp(-a时间 + b))) + (50/(1+exp(-c时间 + d））），
+a + b + c + d ~ 0 + 组，
+set_rescor(FALSE),
+nl = TRUE）
+先验1 &lt;- c(
+先验（正常（0.1，0.1），nlpar =“a”，lb = 0），
+先验（正常（5, 2），nlpar =“b”，lb = 0，ub = 10），
+先验（正常（0.1，0.1），nlpar =“c”，lb = 0），
+先验(正常(25, 5), nlpar = “d”, coef = “组实验”),
+先验（正常（5, 2），nlpar =“d”，coef =“GroupControl”）
+）
+拟合 &lt;- brm(公式,
+数据=原始数据，
+先验=先验1，
+控制=列表（adapt_delta = 0.95，max_treedepth = 15），
+迭代= 10000，
+预热= 5000，
+核心 = 3,
+链= 3）
+我在上面的代码中省略了之前的拟合和预测检查，但目视检查看起来不错。
+我目前遇到的这个问题是模型拟合很差，即 Rhat 和 ESS 数字太低，这主要是由于任一组（有时是 Control）参数后验分布的双峰性有时是实验性的，这会导致链不收敛。因此，对于某些拟合，按组（例如“b_a_GroupExperimental”）的 a、b、c、d 的任何或所有后验分布将是双峰的。
+我似乎无法定义为什么模型拟合不佳并导致这种双峰性。我的第一个猜测是先验导致了问题，但是，根据我天真的理解，先验是围绕原始模拟分布非常紧密地指定的，所以我不明白为什么它们可能会导致问题。我必须承认，这个结论可能会暴露我对这个主题的无知，这导致我无法解决适合问题。
+我应该更改先验、模型、规定初始值还是只是运行更多迭代？任何帮助将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/638912/bimodal-posteriors-in-bayeisan-non-linear-regression</guid>
+      <pubDate>Fri, 09 Feb 2024 03:36:53 GMT</pubDate>
+    </item>
     <item>
       <title>MLE 用于具有随机截距和固定斜率为零的混合模型的总体平均值</title>
       <link>https://stats.stackexchange.com/questions/638909/mle-for-overall-mean-of-mixed-model-with-random-intercepts-and-fixed-slopes-of-z</link>
@@ -16,7 +88,7 @@
       <title>使用排名的多元回归？</title>
       <link>https://stats.stackexchange.com/questions/638908/multiple-regression-using-rank</link>
       <description><![CDATA[我喜欢斯皮尔曼相关性如何比较两个变量之间的排名，因为它对异常值的权重较小，但并没有完全排除它们。是否有使用可用于多元回归的等级的等效过程？
-我尝试简单地从低到高对每个变量进行排名，然后使用“排名”执行回归，但生成的模型的 R2 非常低。]]></description>
+我尝试简单地从低到高对每个变量进行排名，然后使用“排名”执行回归，但生成的模型具有非常低的 R2。]]></description>
       <guid>https://stats.stackexchange.com/questions/638908/multiple-regression-using-rank</guid>
       <pubDate>Fri, 09 Feb 2024 01:27:12 GMT</pubDate>
     </item>
@@ -37,7 +109,7 @@
       <pubDate>Thu, 08 Feb 2024 23:43:22 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 dbinom 进行单尾原假设检验？</title>
+      <title>如何使用 dbinom 进行单尾原假设检验？ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/638899/how-do-you-use-a-dbinom-to-conduct-a-one-tailed-null-hypothesis-test</link>
       <description><![CDATA[我不确定我在代码中编写的内容是否真正回答了问题。我是一个完全的初学者，必须自己学习，所以有人可以让我知道我是否走在正确的道路上或者我是否错了？
 &lt;块引用&gt;
@@ -127,69 +199,6 @@ summary(df$权重 * df$成本)
       <pubDate>Thu, 08 Feb 2024 22:00:24 GMT</pubDate>
     </item>
     <item>
-      <title>广义线性模型的预测能力和意义</title>
-      <link>https://stats.stackexchange.com/questions/638893/predictive-capacities-of-generalized-linear-models-and-significance</link>
-      <description><![CDATA[我有以下数据
-&lt;前&gt;&lt;代码&gt;str（数据）
-“数据帧”：768 个观测点。共 5 个变量：
- $ PIANTA：字符“C-1-R1-1” “C-1-R1-1” “C-1-R1-2” “C-1-R1-2” ...
- $ Trattamento：因子 w/ 4 个级别“Controllo”、“Lidar”、..： 1 1 1 1 1 1 1 1 1 1 ...
- $ Blocco ：带 2 个级别“1”、“2”的因子：1 1 1 1 1 1 1 1 1 1 ...
- $ 副本：字符“R1” “R1” “R1” “R1” ...
- $ Risposta ：编号 0 1 0 1 0 3 2 3 2 4 ...
-
-我总共有 768 个观察结果。我想测试治疗 (Trattamento) 是否对我的响应变量 (Risposta) 具有显着影响，并包括阻断因子 (Blocco) 的可能作用。响应变量是数字（范围从 0 到 9），对于超过 400 个观测值假设值为 0。
-因此我选择使用以下 R 代码使用负二项式回归模型：
-&lt;前&gt;&lt;代码&gt;调用：
-glm.nb(公式 = Risposta ~ Trattamento + Blocco, 数据 = 数据,
-    init.theta = 0.545484172，链接 = 日志）
-
-系数：
-                    估计标准。误差z值Pr(&gt;|z|)
-（截距）0.26016 0.13268 1.961 0.049904 *
-特拉塔门托激光雷达 -0.60387 0.17507 -3.449 0.000562 ***
-特拉塔门托雷库佩罗 -0.86591 0.18135 -4.775 1.8e-06 ***
-特拉塔门托标准 -0.35299 0.17027 -2.073 0.038159 *
-块2 -0.03355 0.12671 -0.265 0.791162
----
-西尼夫。代码： 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-（负二项式(0.5455)族的色散参数取为1）
-
-    零偏差：767 自由度上为 677.61
-残余偏差：763 个自由度上为 651.46
-工商局：1916
-
-Fisher 评分迭代次数：1
-
-
-              西塔：0.5455
-          标准。误差：0.0654
-
- 2 x 对数似然：-1903.9550
-
-我发现所有处理对于截距（对照）都很重要，并且块没有显着效果。我想测试模型的预测能力，我使用了以下代码：
-预测 &lt;- 预测(model1, type = “response”)
-
-预测 &lt;- data.frame(Osservato = data$Risposta, Predetto = 预测)
-
-情节（预测$Osservato，预测$Predetto，
-     xlab =“观察到”，ylab =“预测”，
-     主要=“”）
-
-abline(a = 0, b = 1, col = “红色”)
-
-legend(“topleft”, legend = “Linea di riferimento”, col = “red”, lty = 1)
-
-
-我得到了以下预测与观察的图表：
-
-从图中来看，该模型似乎不太适合预测我的响应变量的值。
-鉴于此，并考虑到预测值不是我的研究范围，我仍然可以依赖模型获得的显着性值吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/638893/predictive-capacities-of-generalized-linear-models-and-significance</guid>
-      <pubDate>Thu, 08 Feb 2024 21:15:34 GMT</pubDate>
-    </item>
-    <item>
       <title>具有未知噪声方差的线性回归估计器</title>
       <link>https://stats.stackexchange.com/questions/638891/linear-regression-estimator-with-unknown-noise-variance</link>
       <description><![CDATA[我有一个嘈杂的线性回归模型，$Y = X \beta + \epsilon$，带有噪声$\epsilon $ 从正态分布 $N(O, \sigma)$ 中采样，其中 $\sigma$&lt; /span&gt; 未知，依次从均匀分布 $U(0,\rho)$ 中采样。
@@ -208,7 +217,7 @@ $$y_{ist} = \beta_0 + \beta_1 Post_{ist} + \beta2 Post_{ist} \times Distance_{i}
 $$
 哪里，
 
-$y_{ist}$ 是州  地区 $i$ 的结果变量class=&quot;math-container&quot;&gt;$s$ 和
+$y_{ist}$ 是州 $i$ 的结果变量class=&quot;math-container&quot;&gt;$s$ 和
 年$t$。
 $Post_{ist}$ 是一个二进制虚拟变量，如果是，则等于 1
 治疗完成后一年。该变量变化于
@@ -230,26 +239,6 @@ iv &lt;- feols(y ~ 1 | 地区 + 年 + 州年 | 帖子 +
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/638890/using-instrumental-variable-in-a-difference-in-differences-setup-using-feols</guid>
       <pubDate>Thu, 08 Feb 2024 20:27:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 pnorm 对于 X、sd 和平均值与相应的 z 值给出不同的结果？</title>
-      <link>https://stats.stackexchange.com/questions/638887/why-is-pnorm-giving-different-results-with-x-sd-and-mean-vs-corresponding-z-val</link>
-      <description><![CDATA[我必须计算 $P(X &lt; 6)$ 为 $X \sim N(7,5 ）$。当我在 R 中输入 pnorm(6,mean=7, sd=5) 时，它给出的结果为 [1] 0.4207403，我知道这是不对的（这是一个大学练习题）。我自己计算了 $Z = \frac{X-\mu}{\sigma} = \frac{6-7}{\sqrt5} = -0.45$ 并插入将其作为 pnum(-.45) 放入 R 中进行双重检查。它给了我 [1] 0.3263552 作为结果，这是正确的答案。我检查了文档，并在网上和其他地方进行了一些调查，但无法找出差异来自何处。为什么 pnorm 在这种情况下给出这两个不同的答案？]]></description>
-      <guid>https://stats.stackexchange.com/questions/638887/why-is-pnorm-giving-different-results-with-x-sd-and-mean-vs-corresponding-z-val</guid>
-      <pubDate>Thu, 08 Feb 2024 19:33:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>配对 T 检验的样本量与重复次数</title>
-      <link>https://stats.stackexchange.com/questions/638886/sample-size-vs-replicates-for-paired-t-test</link>
-      <description><![CDATA[我想使用配对 T 测试来比较两种低摩擦涂层在液压激活小部件测试中的性能。除了所应用的涂层之外，小部件是相同的。我测试中的自变量是涂层。因变量是将测试设备移动一定距离所需的液压量。 H_0 表示各组之间所需的液压量没有差异。 H_a 表示在此测试中涂层 B 比涂层 A 需要更大的液压。
-在设计这样的配对 T 检验时，如何确定每组的适当样本数（即小部件）以及每个样本的适当重复次数（即测试）？例如，我可以测试 1 个小部件，每个涂层各 20 次，或者我可以测试 5 个小部件，每种涂层各 2 次，以获得相同数量的数据点。
-编辑 - 上下文的附加信息：
-测量很便宜，但小部件则不然。历史测试是对涂层 A 进行的，我想看看涂层 B 的结果是否有有意义的不同。在此测试中改进的性能是可以接受的，但更差的性能将需要花费巨大的费用对涂层 B 进行额外的测试。
-从历史上看，测量之间存在很大差异 - 因此需要进行多次重复测量。假设历史平均值为 5 ksi，部件与部件之间的 s.dev 为 0.25 ksi，测量之间的偏差约为 0.25（即，测量与测量之间存在高方差，但部件与部件之间没有差异）。
-历史测试表明，至少 1000 万次试验中的重复测试可以被视为独立。
-我正在尝试找出如何最好地确定所需的重复测量次数，以及要测试的每个小部件的数量。]]></description>
-      <guid>https://stats.stackexchange.com/questions/638886/sample-size-vs-replicates-for-paired-t-test</guid>
-      <pubDate>Thu, 08 Feb 2024 19:11:51 GMT</pubDate>
     </item>
     <item>
       <title>使用众数或中位数</title>
@@ -282,17 +271,36 @@ hist(skewed_distribution, main = “倾斜分布”,
       <title>在交叉验证之前对训练集进行 SMOTE 真的那么糟糕吗？</title>
       <link>https://stats.stackexchange.com/questions/638852/is-it-really-so-bad-to-do-smote-on-the-training-set-before-crossvalidation</link>
       <description><![CDATA[我知道这样做会导致数据泄漏，但如果我在测试集上获得更好的性能，这真的很重要吗？
-我尝试使用插入符号和 sampling = “smote” 来分别在每个折叠上使用 SMOTE，但是当分成训练/测试时，我只是没有足够的少数类样本。&lt; /p&gt;
+我尝试使用插入符号和 sampling = “smote” 来分别在每个折叠上使用 SMOTE，但是当分成训练/测试时，我只是在少数类别上没有足够的样本。&lt; /p&gt;
 我只对寻找区分我的两个类的功能感兴趣。]]></description>
       <guid>https://stats.stackexchange.com/questions/638852/is-it-really-so-bad-to-do-smote-on-the-training-set-before-crossvalidation</guid>
       <pubDate>Thu, 08 Feb 2024 14:22:19 GMT</pubDate>
     </item>
     <item>
-      <title>将 ordihulls 添加到 CCA 三块图中</title>
-      <link>https://stats.stackexchange.com/questions/638848/adding-ordihulls-to-a-cca-triplot</link>
-      <description><![CDATA[我最近完成了一项 CCA，由 75 个不同地点的不同矩阵上的 40 种草种和 14 个环境变量组成。我现在想根据物种在 CCA 排序图上的位置对物种进行直观分组。我在 R studio 上使用了“vegan”包，并假设 Ordihull 工具将用于围绕所需组创建“圆圈”。这在 CCA 上可能吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/638848/adding-ordihulls-to-a-cca-triplot</guid>
-      <pubDate>Thu, 08 Feb 2024 13:58:18 GMT</pubDate>
+      <title>使用带有每个比例的解释变量的混合模型分析成分数据（比例总和 = 1）</title>
+      <link>https://stats.stackexchange.com/questions/638714/analyzing-compositional-data-sum-of-proportions-1-using-mixed-models-with-ex</link>
+      <description><![CDATA[我的目的是研究群落中物种的相对丰度与每个物种的功能特征之间的关系。对于每个位置（$&gt;250$），我都有代表各种物种相对丰度的成分数据，总和为 $100 \%$。我还获得了每种位置和物种组合的三个功能性状的值。
+挑战在于考虑到相对丰度数据的组成性质（其中比例不是独立的）来进行分析。如果我理解得很好，到目前为止我遇到的方法都是以聚合的方式处理成分数据（例如，用一些解释变量对社区的整个成分进行建模；例如，用 R 分析成分数据一书，Van den Boogaart &amp; Tolosana-Delgado。2013；第 5 章：成分的线性模型），不允许对每个物种与其性状的相对丰度进行建模。
+如果我的数据不是组合的，如果在 R 中使用带有 glmmTMB 的混合模型，我的模型可能看起来像这样：
+Prop.Abundance ~ Trait1 + Trait2 + Trait3 + (1|物种)，family= beta
+
+我曾考虑将这三个性状的相对丰富度建模为固定效应，同时将物种视为随机效应以解释重复测量。然而，我犹豫是否将位置纳入随机效应，因为它可能会规范同一群落的跨物种值，我认为这没有生物学意义。
+数据集将包含六个变量：位置、物种、相对丰度、性状 1、性状 2 和性状 3。观测数量将等于各个地点的物种数量之和。请注意，并非所有物种都始终存在（导致数据不平衡）。
+有人可以指导我如何进行此类分析（最好使用 R）吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/638714/analyzing-compositional-data-sum-of-proportions-1-using-mixed-models-with-ex</guid>
+      <pubDate>Tue, 06 Feb 2024 21:31:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>在对照组已接受治疗的情况下进行双重差分分析</title>
+      <link>https://stats.stackexchange.com/questions/638427/performing-a-difference-in-difference-analysis-where-the-control-group-is-alread</link>
+      <description><![CDATA[我参与了一个项目，其结果是接受手术的癌症患者的比例。该治疗事件是一项州级政策变更，要求将所有这些癌症患者从 FFS 保险计划转移到 MMC 保险计划（缩写含义与当前问题无关）。
+大约 2/3 的患者居住在已经对癌症患者强制执行 MMC 计划的县（已接受治疗的对照组），而 1/3 的患者居住在在治疗事件后强制执行 MMC 计划的县（治疗组）。
+我们的假设是，在治疗事件后，相对于对照组，治疗组接受手术的人数比例增加更多。
+我的问题是，如果可能的话，如何使用 DiD 概念化这个场景？
+在我研究此类模型的可行性时，我从其他人那里得到了相互矛盾的答案，有些人说它行不通，因为已经接受治疗的群体和新接受治疗的群体不可能在治疗前有平行的趋势。 - 期间，而其他人则表示这并不重要，因为已经接受治疗的对照组可以被视为模型中从未接受治疗的对照组，否则方法相同。
+非常感谢您提供任何其他见解或帮助。]]></description>
+      <guid>https://stats.stackexchange.com/questions/638427/performing-a-difference-in-difference-analysis-where-the-control-group-is-alread</guid>
+      <pubDate>Fri, 02 Feb 2024 20:13:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
