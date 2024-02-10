@@ -4,7 +4,225 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 10 Feb 2024 06:16:25 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 10 Feb 2024 09:13:17 GMT</lastBuildDate>
+    <item>
+      <title>LSTM 模型显示 X 有 6 个特征，但 MinMaxScaler 期望有 7 个特征作为输入</title>
+      <link>https://stackoverflow.com/questions/77972253/lstm-model-shows-x-has-6-features-but-minmaxscaler-is-expecting-7-features-as-i</link>
+      <description><![CDATA[我正在构建一个 LSTM 模型，该模型可以随时间分析六个变量。但是，我的代码抛出错误。您能指导我在哪里更改我的代码吗？我还有一个采用这种格式的 ARIMA 模型。这种格式对于分析风速是否正确？我是数据分析新手，我有一个任务将 ARIMA 模型与 LSTM 模型组装起来。但是，我无法完成这个 LSTM 模型。
+随机导入
+进口警告
+
+将 numpy 导入为 np
+将 pandas 导入为 pd
+从 keras.layers 导入 LSTM，密集
+从 keras.models 导入顺序
+从 keras.optimizers 导入 Adam
+从 sklearn.preprocessing 导入 MinMaxScaler
+
+# 从 CSV 文件加载数据集
+file_path = &#39;孟加拉国天气数据 (1948 - 2013).csv&#39;
+df = pd.read_csv(文件路径)
+
+# 如果有日期列，请确保 DataFrame 按日期排序
+如果 df.columns 中有“日期”：
+    df[&#39;日期&#39;] = pd.to_datetime(df[&#39;日期&#39;])
+    df.sort_values(&#39;日期&#39;, inplace=True)
+
+# 预定义的特征和目标变量
+selected_features = [&#39;最高温度&#39;、&#39;最低温度&#39;、&#39;降雨量&#39;、&#39;相对湿度&#39;、&#39;云量覆盖&#39;、&#39;明亮阳光&#39;]
+目标=&#39;风速&#39;
+
+# 要求用户输入所选特征的值
+用户输入 = {}
+对于 selected_features 中的功能：
+    value = float(input(f&quot;输入 {feature} 值：&quot;))
+    用户输入[特征] = 值
+
+# 要求用户输入年、月、站的值
+user_input[&#39;YEAR&#39;] = int(input(&quot;请输入年份：&quot;))
+user_input[&#39;月份&#39;] = int(input(&quot;请输入月份：&quot;))
+user_input[&#39;车站名称&#39;] = input(&quot;输入车站：&quot;)
+
+# 使用占位符值将“Wind_Speed”列添加到 user_input_df
+user_input_df = pd.DataFrame({**user_input, &#39;Wind_Speed&#39;: [0]})
+
+# 禁用特定警告
+warnings.simplefilter(“忽略”, UserWarning)
+warnings.simplefilter(“忽略”, FutureWarning)
+
+尝试：
+    # 确保 df[target] 有合适的索引
+    如果不是 isinstance(df.index, pd.RangeIndex):
+        df.reset_index(drop=True, inplace=True)
+
+    # 对每个特征使用 MinMaxScaler 进行特征缩放
+    缩放器 = MinMaxScaler()
+
+    scaled_data = scaler.fit_transform(df[selected_features + [目标]])
+
+
+    # 创建用于 LSTM 训练的序列
+    序列长度 = 10
+    x_train, y_train = [], []
+
+    对于范围内的 i（sequence_length，len（scaled_data））：
+        x_train.append(scaled_data[i - 序列长度:i, :-1])
+        y_train.append(scaled_data[i, -1])
+
+    x_train, y_train = np.array(x_train), np.array(y_train)
+
+    # 重塑 LSTM 的输入数据
+    x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], x_train.shape[2]))
+
+    # 构建 LSTM 模型
+    模型=顺序（）
+    model.add(LSTM(单位=100, return_sequences=True, input_shape=(x_train.shape[1], x_train.shape[2])))
+    model.add(LSTM(单位=100，return_sequences=True))
+    model.add(LSTM(单位=50, return_sequences=False))
+    model.add(密集(单位=1))
+
+    # 编译模型
+    model.compile(优化器=Adam(learning_rate=0.001), loss=&#39;mean_squared_error&#39;)
+
+    # 训练模型
+    model.fit(x_train、y_train、epochs=5、batch_size=16、validation_split=0.1)
+
+    # 准备用于预测的输入数据
+    输入=scaled_data[-sequence_length:, :-1]
+    输入 = 缩放器.transform(输入)
+    输入=输入.reshape(1,sequence_length,len(selected_features))
+
+
+    ＃ 作出预测
+    预测 = model.predict(输入)
+    预测 =scaler.inverse_transform(预测.reshape(-1, 1))
+
+
+    # 引入额外的随机性
+    random_perturbation = random.uniform(-2, 0.5) # 根据需要调整范围
+    预测+=随机扰动
+
+    print(f&#39;预测下一个周期的{目标}：{预测[0, 0]}&#39;)
+
+    #MAPE计算
+    random_mape = random.uniform(12, 14)
+    print(f&#39;估计平均绝对百分比误差: {random_mape:.2f}%&#39;)
+
+    # 将用户输入和预测输出合并到一个新的 DataFrame 中
+    output_data = pd.concat([user_input_df, pd.DataFrame({目标: [预测[0, 0]]})], axis=1)
+
+    # 将输入数据和预测输出保存到新的 CSV 文件中
+    输出文件路径 = &#39;LSTM_Predictions_Output.csv&#39;
+    输出数据.to_csv（输出文件路径，索引=False）
+
+    print(f&#39;输入数据和预测输出保存到{output_file_path}&#39;)
+
+
+除了 ValueError 为 e：
+    打印（f&#39;错误：{e}&#39;）
+
+最后：
+    warnings.resetwarnings()
+]]></description>
+      <guid>https://stackoverflow.com/questions/77972253/lstm-model-shows-x-has-6-features-but-minmaxscaler-is-expecting-7-features-as-i</guid>
+      <pubDate>Sat, 10 Feb 2024 07:45:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在训练过程中随机裁剪图像并协调标签？</title>
+      <link>https://stackoverflow.com/questions/77972180/how-to-random-crop-image-and-coordinate-label-during-training</link>
+      <description><![CDATA[我的任务是头影测量地标定位。
+我在此数据框中显示坐标 X1,Y1 的图像路径。
+
+&lt;标题&gt;
+
+文件名
+X1
+Y1
+
+
+&lt;正文&gt;
+
+/Images_data/binary0006.png
+89
+80
+
+
+/Images_data/binary0008.png
+37
+70
+
+
+/Images_data/binary0007.png
+50
+76
+
+
+/Images_data/binary0003.png
+55
+92
+
+
+/Images_data/binary0005.png
+91
+64
+
+
+/Images_data/binary0004.png
+100
+76
+
+
+
+训练时如何裁剪图像并坐标X1,Y1？]]></description>
+      <guid>https://stackoverflow.com/questions/77972180/how-to-random-crop-image-and-coordinate-label-during-training</guid>
+      <pubDate>Sat, 10 Feb 2024 07:13:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>CTkLabel.__init__() 缺少 1 个必需的位置参数：'master'</title>
+      <link>https://stackoverflow.com/questions/77972082/ctklabel-init-missing-1-required-positional-argument-master</link>
+      <description><![CDATA[这是我的代码：-
+我正在尝试运行此代码，但收到了不应出现的错误，因为我没有指定任何主参数，请帮我解决它
+将 tkinter 导入为 tk
+将 customtkinter 导入为 ctk
+
+进口火炬
+将 numpy 导入为 np
+
+导入CV2
+从 PIL 导入图像、ImageTk
+导入VLC
+随机导入
+
+
+应用程序 = tk.Tk()
+app.geometry(“600x600”)
+app.title(“昏昏欲睡的 Boi 4.0”)
+ctk.set_appearance_mode(“深色”)
+
+vidFrame = tk.Frame(高度=480，宽度=600)
+vidFrame.pack()
+vid = ctk.CTkLabel(vidFrame)
+视频.pack()
+
+计数器 = 0
+counterLabel = ctk.CTkLabel(text=counter, height=40, width=120, text_font=(“Arial”, 20), text_color=“white”, fg_color=“teal”)
+counterLabel.pack(pady=10)
+
+def Reset_counter():
+    全局计数器
+    计数器 = 0
+resetButton = ctk.CTkButton(text=“重置计数器”, command=reset_counter, height=40, width=120, text_font=(“Arial”, 20), text_color=“白色”, fg_color=“青色” ）
+
+错误：
+counterLabel = ctk.CTkLabel(text=counter, height=40, width=120, text_font=(“Arial”, 20), text_color=“white”, fg_color=“teal”)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^
+类型错误：CTkLabel.__init__() 缺少 1 个必需的位置参数：&#39;master&#39;
+
+我希望它能够正常运行！
+由于没有名为 master 的位置参数，如果我错了，请告诉我要添加什么参数以及可能的解决方案。]]></description>
+      <guid>https://stackoverflow.com/questions/77972082/ctklabel-init-missing-1-required-positional-argument-master</guid>
+      <pubDate>Sat, 10 Feb 2024 06:30:19 GMT</pubDate>
+    </item>
     <item>
       <title>是否可以训练神经网络对包含特定形状的像素进行分组？</title>
       <link>https://stackoverflow.com/questions/77971748/is-it-possible-to-train-a-neural-network-to-group-pixels-containing-a-particular</link>
@@ -252,146 +470,6 @@ RAG 不适用于结构化数据。大多数有用的数据都是结构化的，�
       <pubDate>Fri, 09 Feb 2024 21:01:59 GMT</pubDate>
     </item>
     <item>
-      <title>R 机器学习中 Ranger 模型的错误</title>
-      <link>https://stackoverflow.com/questions/77970324/an-error-in-ranger-model-in-machine-learning-in-r</link>
-      <description><![CDATA[我正在运行生存模型的机器学习代码。我的 pred_prob 代码有错误。谁能帮我？先感谢您
-我的错误是：
-&lt;代码&gt;&gt; pred_prob &lt;- rowMeans(ranger_predict$train_data[, 1:dim(ranger_predict$train_data)[2]])
-h(simpleError(msg, call)) 中的错误：
-  在为函数“rowMeans”选择方法时评估参数“x”时出错：$ 运算符对于原子向量无效
-
-我的代码是：
-图书馆（护林员）# RSF
-Library(survival) # 包含生存示例，处理生存对象
-Library(caret) # 用于分层交叉验证
-库(dplyr) # 数据操作
-图书馆（佩奇）
-# 加载数据集，其中Time是事件发生的时间，Event是事件发生的时间
-
-库（readxl）
-df2 &lt;- read_excel(“E:/ME/BS DATA/数据 BS.xlsx”)
-
-# 改变状态变量的标签
-df2 &lt;- df2 %&gt;% mutate(status = time_15year-1) # 0 = 审查，1 = 死亡
-# 一些数据包含缺失值，为了简单起见，我省略了对 NA 的观察
-df2 &lt;- na.omit(df2)
-# 缩放至月
-df2$time_15year &lt;- 楼层(df2$time_15year)
-par(“三月”)
-par(mar=c(.01,.01,.01,.01))
-pairs(df2 %&gt;% dplyr::select(time_15year,BS_death), main = “NCCTG 脑中风数据”)
-# 交叉验证，对状态变量进行分层，以确保每个组（此处已审查，已死亡）
-# 均匀分布在交叉验证折叠上
-折叠 &lt;- 2 # 表示 交叉验证
-cvIndex &lt;- createFolds(factor(df2$BS_death), Folds, returnTrain = T)
-#2 模型，训练
-# 创建一些容器来存储结果
-# （对于大模型来说不合理，对于大模型你可能需要将中间结果存储在磁盘上）
-容器模型&lt;-向量（“列表”，长度（cvIndex））
-容器_pred &lt;- 容器_模型
-
-# 定义训练/测试数据
-for (i in 1:length(cvIndex)) {
-  train_data &lt;- df2[cvIndex[[i]], ]
-  # 其余代码
-}
-
-测试数据 &lt;- df2[-cvIndex[[i]],]
-
-train_data &lt;- train_data[complete.cases(train_data), ]
-测试数据 &lt;- 测试数据[完整.案例(测试数据), ]
-
-rangermodel &lt;- ranger(Surv(time_15year, BS_death) ~ 年龄 + 性别 + edu + 地点 + cvahis+ mihis + bphis +heartdis + smok + Pastsmok+ 被动+活动 +waterpip +cvatype, 数据 = train_data)
-
-情节（rangermodel$unique.death.times，rangermodel$survival[1，]）
-ranger_predict &lt;- 预测（rangermodel，数据=测试数据）
-str(ranger_预测)
-ranger_predict &lt;- unlist(ranger_predict)
-pred_prob &lt;- rowMeans(ranger_predict$train_data[, 1:dim(ranger_predict$train_data)[2]])
-pred_prob[pred_prob&gt;中位数(pred_prob)]=1
-pred_prob[pred_prob&lt;=中位数(pred_prob)]=0
-表（pred_prob）
-fusionMatrix(as.factor(testing_data$BS_death), as.factor(pred_prob))
-]]></description>
-      <guid>https://stackoverflow.com/questions/77970324/an-error-in-ranger-model-in-machine-learning-in-r</guid>
-      <pubDate>Fri, 09 Feb 2024 19:06:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>'{{nodeequential_15/conv2d_26/Conv2D}} = Conv2D[T=DT_FLOAT] 的 1 减 3 导致的负维度大小</title>
-      <link>https://stackoverflow.com/questions/77969971/negative-dimension-size-caused-by-subtracting-3-from-1-for-node-sequential-15</link>
-      <description><![CDATA[尝试 model.fit 后：
-hist = model.fit(train, epochs=15,validation_data=val,callbacks=[tensorboard_callback])
-
-我收到错误：
-ValueError Traceback（最近一次调用最后一次）
-单元格位于\[132\]，第 1 行
-\----\&gt; 1 hist = model.fit（train，epochs = 15，validation_data = val，callbacks = \ [tensorboard_callback \]）#mudei epocas pra 3，antesera 20
-
-文件 \~\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\keras\src\utils\traceback_utils.py :70，在filter_traceback中。\.error_handler(\*args, \*\*kwargs)
-67 过滤_tb = \_process_traceback_frames(e.__traceback__)
-68 # 要获取完整的堆栈跟踪，请调用：
-69 # `tf.debugging.disable_traceback_filtering()`
-\---\&gt; 70 从 None 引发 e.with_traceback(filtered_tb)
-71 最后：
-72 删除filtered_tb
-
-文件 \~\\AppData\\Local\\Temp\__autograph_ generated_filea6t43riq.py:15，位于outer_factory.\.inner_factory.\.tf__train_function(iterator)
-13 尝试：
-14 do_return =真
-\---\&gt; 15 retval_ = ag_\_.converted_call(ag_\_.ld(step_function), (ag_\_.ld(self), ag_\_.ld(迭代器)), 无, fscope)
-16 除外：
-17 do_return = 假
-
-ValueError：在用户代码中：
-
-    文件“C:\Users\Eenon\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\keras\src\engine\training.py”，第 1338 行，位于训练函数*
-        返回step_function（自身，迭代器）
-    文件“C:\Users\Eenon\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\keras\src\engine\training.py”，第 1322 行，位于步骤函数 **
-        输出 = model.distribute_strategy.run(run_step, args=(data,))
-    文件“C:\Users\Eenon\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\keras\src\engine\training.py”，第 1303 行，位于运行步骤**
-        输出 = model.train_step(数据)
-    文件“C:\Users\Eenon\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\keras\src\engine\training.py”，第 1080 行，位于训练步骤
-        y_pred = self(x, 训练=True)
-    文件“C：\ Users \ Enenon \ AppData \ Local \ Packages \ PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0 \ LocalCache \ local-packages \ Python310 \ site-packages \ keras \ src \ utils \traceback_utils.py”，第70行，位于错误处理程序
-        从 None 引发 e.with_traceback(filtered_tb)
-    
-    ValueError：调用层“conv2d_26”（类型 Conv2D）时遇到异常。
-    
-    &#39;{{nodeequential_15/conv2d_26/Conv2D}} = Conv2D[T=DT_FLOAT, data_format=“NHWC”, dilations=[1, 1, 1, 1],explicit_paddings=[ 1 减 3 导致的负维度大小], padding=“VALID”, strides=[1, 1, 1, 1], use_cudnn_on_gpu=true](sequential_15/Cast,equential_15/conv2d_26/Conv2D/ReadVariableOp)&#39; 输入形状：[64,64,1, 1]、[3,3,1,32]。
-    
-    调用层“conv2d_26”接收的参数（类型 Conv2D）：
-      • 输入=tf.Tensor(形状=(64, 64, 1, 1), dtype=float32)`
-
-我的代码：
-&lt;前&gt;&lt;代码&gt;模型 = 顺序()
-model.add(Conv2D(32, (3,3), 激活=&#39;relu&#39;, input_shape=(64,64,1)))
-model.add(MaxPooling2D())
-model.add(Conv2D(16, (3,3), 激活=&#39;relu&#39;, input_shape=(64,64,1)))
-model.add(MaxPooling2D())
-模型.add(压平())
-model.add（密集（64，激活=&#39;relu&#39;））
-model.add（密集（3，激活=&#39;sigmoid&#39;））
-
-model.compile(&#39;adam&#39;,loss=&#39;sparse_categorical_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
-logdir=&#39;日志&#39;
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-
-hist = model.fit(train, epochs=15,validation_data=val,callbacks=[tensorboard_callback])
-
-我正在使用 64,64,1 数据集。这是将张量从 64,64 修改为 64,64,1 并从张量创建数据集的代码：
-x = x.reshape(-1, 64, 64, 1)
-标签 = tf.constant(y)
-特征 = tf.constant(x)
-datax = tf.data.Dataset.from_tensor_slices(特征)
-datay = tf.data.Dataset.from_tensor_slices(标签)
-数据 = tf.data.Dataset.zip((datax,datay))
-data_iterator = data.as_numpy_iterator()
-批处理 = data_iterator.next()
-]]></description>
-      <guid>https://stackoverflow.com/questions/77969971/negative-dimension-size-caused-by-subtracting-3-from-1-for-node-sequential-15</guid>
-      <pubDate>Fri, 09 Feb 2024 17:51:53 GMT</pubDate>
-    </item>
-    <item>
       <title>如何创建目标变量[关闭]</title>
       <link>https://stackoverflow.com/questions/77969840/how-to-create-target-variable</link>
       <description><![CDATA[我尝试预测 ncaa 篮球疯狂游行的每个结果。
@@ -447,40 +525,6 @@ data1=data.drop([&quot;ID&quot;,&quot;分段&quot;],axis=1)
       <pubDate>Fri, 12 Jan 2024 06:45:16 GMT</pubDate>
     </item>
     <item>
-      <title>AutoTrain 高级 CLI：错误：无法识别的参数：--fp16 --use-int4 [关闭]</title>
-      <link>https://stackoverflow.com/questions/77664921/autotrain-advanced-cli-error-unrecognized-arguments-fp16-use-int4</link>
-      <description><![CDATA[我目前在使用提供的自动训练工具在 Colab 笔记本中使用 LLM 模型微调数据时遇到问题。错误消息表明 autotrain 无法识别参数“--fp16”和“--use-int4”。我已经检查了文档和语法，但问题仍然存在。您能否提供解决此问题的指导或提供有关任何潜在解决方案的见解？谢谢。
-/usr/local/lib/python3.10/dist-packages/torchvision/io/image.py:13：
- UserWarning：无法加载图像Python扩展：&#39;/usr/local/lib/python3.10/dist-packages/torchvision/image.so：未定义符号：_ZN3c104cuda9SetDeviceEi&#39;如果您不打算使用`torchvision中的图像功能。 io`，你可以忽略这个警告。否则，您的环境可能有问题。在从源代码构建“torchvision”之前，您是否安装了“libjpeg”或“libpng”？ warn( 用法: autotrain  [] AutoTrain 高级 CLI: 错误: 无法识别的参数: --fp16 --use-int4
-
-错误的屏幕截图
-直到昨天，这段代码在这个 https://github.com/huggingface/autotrain-advanced 存储库中给出的 colab 笔记本上运行良好微调LLM，现在出现此错误。]]></description>
-      <guid>https://stackoverflow.com/questions/77664921/autotrain-advanced-cli-error-unrecognized-arguments-fp16-use-int4</guid>
-      <pubDate>Fri, 15 Dec 2023 07:53:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>对 Dataframe 中的某些列进行估算</title>
-      <link>https://stackoverflow.com/questions/52384806/imputer-on-some-columns-in-a-dataframe</link>
-      <description><![CDATA[我正在尝试在名为“年龄”的单个列上使用Imputer来替换缺失值。但是，我收到错误：“预期是二维数组，却得到了一维数组：”
-以下是我的代码
-将 pandas 导入为 pd
-将 numpy 导入为 np
-从 sklearn.preprocessing 导入 Imputer
-
-数据集 = pd.read_csv(“titanic_train.csv”)
-
-dataset.drop(&#39;小屋&#39;, axis=1, inplace=True)
-x = dataset.drop(&#39;幸存&#39;, axis=1)
-y = 数据集[&#39;幸存&#39;]
-
-imputer = Imputer（missing_values =“nan”，策略=“平均值”，轴= 1）
-imputer = imputer.fit(x[&#39;年龄&#39;])
-x[&#39;年龄&#39;] = imputer.transform(x[&#39;年龄&#39;])
-]]></description>
-      <guid>https://stackoverflow.com/questions/52384806/imputer-on-some-columns-in-a-dataframe</guid>
-      <pubDate>Tue, 18 Sep 2018 10:44:49 GMT</pubDate>
-    </item>
-    <item>
       <title>基于机器学习的边缘检测器</title>
       <link>https://stackoverflow.com/questions/43299083/machine-learning-based-edge-detector</link>
       <description><![CDATA[我已阅读以下内容关于使用机器学习进行边缘检测的博客。他们
@@ -493,6 +537,24 @@ x[&#39;年龄&#39;] = imputer.transform(x[&#39;年龄&#39;])
 我们如何注释最重要的边缘和对象边界以供机器学习算法使用？]]></description>
       <guid>https://stackoverflow.com/questions/43299083/machine-learning-based-edge-detector</guid>
       <pubDate>Sat, 08 Apr 2017 18:51:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>r 神经网络包——多输出</title>
+      <link>https://stackoverflow.com/questions/34663573/r-neuralnet-package-multiple-output</link>
+      <description><![CDATA[我目前使用神经网络的方式是它从许多输入点预测一个输出点。更具体地说，我运行以下命令。
+nn &lt;- 神经网络(
+as.公式(a ~ c + d),
+数据 = Z，隐藏 = c（3,2），err.fct =“sse”，act.fct = 自定义，
+线性.输出=真，重复= 5）
+
+这里，如果 Z 是一个由名称为 a、b、c 的列组成的矩阵，它将根据 c 行和 d 行中的对应点预测 a 列中某一行的一个点。 （以垂直维度作为训练样本。）
+假设还有一列 b。我想知道是否有办法从 c 和 d 预测 a 和 b？我已经尝试过
+as.formula(a+b ~ c+d)
+
+但这似乎不起作用。
+有什么想法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/34663573/r-neuralnet-package-multiple-output</guid>
+      <pubDate>Thu, 07 Jan 2016 19:29:54 GMT</pubDate>
     </item>
     <item>
       <title>监督学习，(ii) 无监督学习，(iii) 强化学习</title>
