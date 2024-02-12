@@ -4,16 +4,117 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Mon, 12 Feb 2024 00:57:44 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 12 Feb 2024 03:14:20 GMT</lastBuildDate>
+    <item>
+      <title>为什么重新运行 jupyter 笔记本单元会增加内存使用量？</title>
+      <link>https://stackoverflow.com/questions/77979163/why-does-rerunning-a-jupyter-notebook-cell-increase-memory-usage</link>
+      <description><![CDATA[我不确定这是 Pytorch 还是 jupyter 笔记本问题。
+我正在使用 Pytorch 和 jupyter 笔记本在 CPU 上训练一些神经网络。我可以运行整个 jupyter 笔记本，但是当我重新运行某些单元（例如训练代码）时，我会遇到内存错误或崩溃。
+这是为什么呢？我重新运行的单元格没有在任何地方积累对象。他们只是重新加载数据加载器并重新训练模型。
+额外的内存从哪里来？]]></description>
+      <guid>https://stackoverflow.com/questions/77979163/why-does-rerunning-a-jupyter-notebook-cell-increase-memory-usage</guid>
+      <pubDate>Mon, 12 Feb 2024 03:09:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何为每个患者创建一个单独的图，显示其“订单金额”和“订单数量”与“订单时间”变量的关系？</title>
+      <link>https://stackoverflow.com/questions/77979145/how-do-i-create-a-separate-plot-for-each-patient-showing-their-order-amount-an</link>
+      <description><![CDATA[我现在面临的问题是代码返回一个图，该图显示与用户输入日期匹配的最新数据。我想一起研究数据，因此我想要图中的趋势，而不是最新数据的单个水平线。然而，它不显示与相同“患者ID”相对应的过去数据和最新数据的合并数据。我想创建两个图，其中一个图是“订单金额”与“订单时间”的对比，另一个图是“订单数量”与“订单时间”的对比。 (https://i.stack.imgur.com/hXLgl.jpg)&lt; /p&gt;
+数据按以下方式分组：(https://i.stack.imgur. com/qJHGA.jpg)
+代码想要解决四个主要部分：
+
+将最新数据与输入日期进行匹配，我已经根据输入日期过滤了数据帧。
+
+将之前数据的相同 ID 与最新数据进行匹配，并将数据串在一起：为了实现这一点，我们需要识别每个患者 ID 的最新数据，然后将其与该患者之前的数据合并。相同的患者 ID。
+
+在共享相同“患者 ID”和“订单时间”的两行中选取“订单金额”和“订单数量”值最高的行：将最近的数据与先前的数据合并后，我们可以比较每个患者 ID 的订单金额和订单数量的值，并选择具有最高值的行。 - 我被困在这个阶段:)
+
+
+例如，第 27 行和第 28 行显示第 28 行的“订单金额”和“订单数量”分别为 659.8 和 21，以及 671.677 和 13。在这种情况下，我们将选择第 28 行作为“订单数量”值似乎要低得多，而“订单金额”值似乎彼此接近。在不同的场景中，当第 29 行和第 30 行具有相同的“患者 ID”时，我们会选择第 30 行，因为其“订单金额”值要低得多，并且其“订单数量”值与第 30 行的值相差小于“订单”数量&#39;。第 32 行和第 33 行是替代示例。如果“订单金额”和“订单数量”的值相同，我们可以选择第 32 行作为两者之间的第一行。如果只有一个例外，我们将选择单行。第 31 行就是一个示例。
+(https://i.stack.imgur.com/irDL0.jpg)
+
+将每个患者 ID 的“订单金额”与“订单时间”和“订单数量”与“订单时间”的点绘制在一起。这意味着每个患者 ID 一个图。
+
+导入 pandas 作为 pd
+导入日期时间
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+导入urllib
+将 matplotlib.dates 导入为 mdates
+
+input_date = input(&quot;请输入日期（格式：yyyy/mm/dd）：&quot;)
+input_date = datetime.datetime.strptime(input_date, &quot;%Y/%m/%d&quot;)
+
+df[&#39;订单时间&#39;] = pd.to_datetime(df[&#39;订单时间&#39;])
+
+df[&#39;time_diff&#39;] = (df[&#39;订单时间&#39;] - input_date).dt.days
+
+df_filtered = df[(df[&#39;time_diff&#39;] &gt;= -30) &amp; (df[&#39;time_diff&#39;] &lt;= 30)]
+
+centre_data = df_filtered.sort_values(by=&#39;订单时间&#39;).groupby(&#39;患者 ID&#39;).last()
+
+merged_data = pd.merge（df，recent_data，on =&#39;患者ID&#39;，后缀=（&#39;_prev&#39;，&#39;&#39;））
+
+## 到目前为止似乎还不错，尽管将后缀包含为“_prev”很奇怪。
+
+idx_amount = merged_data.groupby(&#39;患者ID&#39;)[&#39;订单金额&#39;].idxmax()
+idx_quantity = merged_data.groupby(&#39;患者 ID&#39;)[&#39;订单数量&#39;].idxmax()
+
+idx_highest = idx_amount[idx_amount.isin(idx_quantity)]
+
+Filtered_data = merged_data.loc[idx_highest]
+
+defplot_filtered_data（数据）：
+
+    grouped_data = data.groupby(&#39;患者 ID&#39;)
+    
+    对于 grouped_data 中的 Patient_id、group_data：
+        plt.plot(group_data[&#39;订单时间&#39;], group_data[&#39;订单金额&#39;],marker=&#39;o&#39;, label=f&#39;患者{patent_id}&#39;)
+    
+    plt.xlabel(&#39;下单时间&#39;)
+    plt.ylabel(&#39;订单金额&#39;)
+    plt.title(&#39;患者的订单金额与订单时间&#39;)
+    plt.图例()
+    plt.xticks（旋转=45）
+    plt.tight_layout()
+    plt.show()
+
+绘图过滤数据（过滤数据）
+
+
+我知道代码中存在错误，但我的编辑经验很少。有人可以指出我的错误吗？我知道这听起来有点复杂。]]></description>
+      <guid>https://stackoverflow.com/questions/77979145/how-do-i-create-a-separate-plot-for-each-patient-showing-their-order-amount-an</guid>
+      <pubDate>Mon, 12 Feb 2024 02:57:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 model.evaluate() 和 model.predict() 时的准确性不同</title>
+      <link>https://stackoverflow.com/questions/77979085/different-accuracy-when-using-model-evaluate-and-model-predict</link>
+      <description><![CDATA[我正在使用 4 个标签执行多类分类，使用 model.predict() 和 model.evaluate() 时有不同的结果，这里是我的代码：
+test_loss, test_accuracy = model.evaluate(testing_generator)
+
+这段代码的结果是
+测试损失：0.0561
+测试准确率：99.31%
+y_true=testing_generator.classes
+y_pred_probs = model.predict(testing_generator)
+y_pred = np.argmax(y_pred_probs, 轴=1)
+
+准确度=准确度_得分(y_true, y_pred)
+
+这段代码的结果是
+准确率：25.17%
+我使用包含测试图像的相同testing_generator，为什么会发生这种情况？有谁知道怎么解决吗？
+我陷入了这个问题，我希望准确性是相同的值，因为我使用相同的testing_generator]]></description>
+      <guid>https://stackoverflow.com/questions/77979085/different-accuracy-when-using-model-evaluate-and-model-predict</guid>
+      <pubDate>Mon, 12 Feb 2024 02:29:26 GMT</pubDate>
+    </item>
     <item>
       <title>在 qiskit.algorithms.optimizers.ADAM 优化过程中获取中间步骤的方法</title>
       <link>https://stackoverflow.com/questions/77978874/ways-to-get-intermediate-steps-during-optimization-process-in-qiskit-algorithms</link>
       <description><![CDATA[使用 Qiskit 内部 ADAM 优化器时，有什么方法可以获取中间步骤（类似于 Tensorflow 或 Pytorch Adams 优化器中的回调函数）？
+我正在实现变分量子电路 (VQC)，以使用 Qiskit 的 Adam 优化器训练量子机器学习模型。
 我浏览了 ADAM 的文档 Qiskit 中的优化器，但我找不到合适的方法来获取它们。
 我可以使用 Pytorch Adam 优化器获取中间训练信息，但我想知道是否可以使用 Qiskit 来做到这一点。
-我正在使用qiskit v0.45.2。
-由于我是社区新手，如果我的问题不恰当，给您带来的不便，我深表歉意。
-我非常感谢您提供的任何帮助。]]></description>
+我正在使用qiskit v0.45.2。]]></description>
       <guid>https://stackoverflow.com/questions/77978874/ways-to-get-intermediate-steps-during-optimization-process-in-qiskit-algorithms</guid>
       <pubDate>Mon, 12 Feb 2024 00:13:43 GMT</pubDate>
     </item>
@@ -64,103 +165,14 @@ TIA]]></description>
     <item>
       <title>BERT 如何理解 [CLS] 令牌？</title>
       <link>https://stackoverflow.com/questions/77978283/how-does-bert-understand-the-cls-token</link>
-      <description><![CDATA[我已经阅读了论坛上的很多答案和媒体上的文章，但我仍然不完全理解模型如何准确地从我们有分类任务的 [CLS] 标记中识别出来。 [CLS] 标记的处理是在代码的开头部分，还是来自编码器中处理标记的注意层？]]></description>
+      <description><![CDATA[我已经阅读了论坛上的很多答案和媒体上的文章，但我仍然不完全理解模型如何准确地从我们有分类任务的 [CLS] 标记中识别出来。 [CLS] 令牌的处理是在代码的开头部分，还是来自编码器中处理令牌的注意层？]]></description>
       <guid>https://stackoverflow.com/questions/77978283/how-does-bert-understand-the-cls-token</guid>
       <pubDate>Sun, 11 Feb 2024 20:17:52 GMT</pubDate>
     </item>
     <item>
-      <title>MLTextClassifier 遇到问题</title>
-      <link>https://stackoverflow.com/questions/77978258/running-into-a-problem-with-mltextclassifier</link>
-      <description><![CDATA[我正在尝试学习如何通过传递训练数据来创建机器学习模型。我正在使用 MLTextCLassifier 创建文本分类器，但我在第 4 行代码中不断收到错误，告诉我 init 在 macOS13 中已被弃用，初始化时我应该使用 DataSource 而不是 MLDataTable，当它显示不匹配时会出现另一个错误调用实例方法“evaluation”。 初始代码块
-我尝试使用 DataSource 而不是 MLTextClassifier，就像 Xcode 建议的那样。它消除了其他错误，然后出现了一个新错误，指出无法构造 MLTextClassifier，因为它没有可访问的初始值设定项。 在此处输入图片描述
-我有什么遗漏吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77978258/running-into-a-problem-with-mltextclassifier</guid>
-      <pubDate>Sun, 11 Feb 2024 20:11:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>排名之间的注释者间协议</title>
-      <link>https://stackoverflow.com/questions/77977932/inter-annotator-agreement-between-ranking</link>
-      <description><![CDATA[作为实验的一部分，我使用注释器对一组列表进行排名。每个列表包含不等、数量相对较少的项目。注释器根据每个项目的重要性对列表进行了重新排序。也就是说，重要的项目应该排名更高。这项任务是由多个注释者执行的，我想衡量他们之间的一致性。
-我应该使用什么指标或如何制定数据，以便我可以使用常见的一致性指标，例如 Cohen 的 Kappa / Krippendorff Alpha？]]></description>
-      <guid>https://stackoverflow.com/questions/77977932/inter-annotator-agreement-between-ranking</guid>
-      <pubDate>Sun, 11 Feb 2024 18:28:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在tensorflow中的CNN最后一层配置SVM？</title>
-      <link>https://stackoverflow.com/questions/77977404/how-to-configure-svm-in-the-last-layer-of-cnn-in-tensorflow</link>
-      <description><![CDATA[我发现了这篇关于“深度学习”的论文使用支持向量机”。观看 此 youtube 教程后，我尝试在我的模型中实现它，即正在 FER2013 数据集上进行面部表情识别训练。
-型号：
-Kaggle 笔记本
-模型 = keras.Sequential([
-    
-    图层.Reshape((48, 48, 1), input_shape=(2304,)),
-    
-    层.BatchNormalization(),
-    层.Conv2D（过滤器= 64，kernel_size = 3，激活=&#39;relu&#39;），
-    层.AveragePooling2D(pool_size=(2, 2)),
-    层数.Dropout(0.5),
-    
-    层.BatchNormalization(),
-    层.Conv2D（过滤器= 128，kernel_size = 3，激活=&#39;relu&#39;），
-    层.AveragePooling2D(pool_size=(2, 2)),
-    层数.Dropout(0.5),
-    
-    层.BatchNormalization(),
-    层.Conv2D（过滤器= 128，kernel_size = 3，激活=&#39;relu&#39;），
-    层.AveragePooling2D(pool_size=(2, 2)),
-    层数.Dropout(0.5),
-    
-    层.BatchNormalization(),
-    层.Conv2D（过滤器= 512，kernel_size = 3，激活=&#39;relu&#39;），
-    层.AveragePooling2D(pool_size=(2, 2)),
-    层数.Dropout(0.5),
-    
-    层.Flatten(),
-    
-    层.BatchNormalization(),
-    层.Dense(128, 激活=&#39;relu&#39;),
-    层数.Dropout(0.3),
-    
-    层.BatchNormalization(),
-    层.Dense(256, 激活=&#39;relu&#39;),
-    层数.Dropout(0.3),
-    
-    层.Dense(7, kernel_regularizer=tf.keras.regularizers.l2(0.01),激活
-             =&#39;softmax&#39;）
-]）
-
-模型.编译(
-    优化器=&#39;亚当&#39;,
-    损失=&#39;squared_hinge&#39;,
-    指标=[&#39;准确性&#39;],
-）
-
-但这给出了意想不到的结果：
-&lt;前&gt;&lt;代码&gt;纪元 47/50
-202/202 [==============================] - 4s 19ms/步 - 损失：0.3469 - 准确度：0.1308 - val_loss ：0.3508 - val_accuracy：0.1299
-48/50 纪元
-202/202 [================================] - 4s 19ms/步 - 损失：0.3469 - 准确度：0.1326 - val_loss ：0.3508 - val_accuracy：0.1378
-49/50 纪元
-202/202 [================================] - 4s 19ms/步 - 损失：0.3469 - 准确度：0.1617 - val_loss ：0.3508 - val_accuracy：0.2426
-纪元 50/50
-202/202 [================================] - 4s 19ms/步 - 损失：0.3469 - 准确度：0.1594 - val_loss ：0.3508 - val_accuracy：0.1291
-
-
-我做错了什么？如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/77977404/how-to-configure-svm-in-the-last-layer-of-cnn-in-tensorflow</guid>
-      <pubDate>Sun, 11 Feb 2024 15:59:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>Python机器学习pytorch测试/训练epoch结果问题</title>
-      <link>https://stackoverflow.com/questions/77977231/python-machine-learning-pytorch-test-train-epoch-results-problem</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77977231/python-machine-learning-pytorch-test-train-epoch-results-problem</guid>
-      <pubDate>Sun, 11 Feb 2024 15:07:50 GMT</pubDate>
-    </item>
-    <item>
       <title>字符串“loss”被传递给 metric_name() 而不是指标名称</title>
       <link>https://stackoverflow.com/questions/77977110/string-loss-being-passed-to-metric-name-instead-of-metric-name</link>
-      <description><![CDATA[我是 ML 新手，现在只是在学习教程，但收到错误：
+      <description><![CDATA[我正在遵循教程，但收到错误：
 ValueError：无法解释指标标识符：丢失
 在：
 \keras\src\metrics\__init__.py:205，在 get(identifier) 中
@@ -186,8 +198,16 @@ def buildNetwork():
       <pubDate>Sun, 11 Feb 2024 14:32:54 GMT</pubDate>
     </item>
     <item>
-      <title>使用 scikit-learn 估计器作为变压器</title>
-      <link>https://stackoverflow.com/questions/77976770/use-scikit-learn-estimator-as-transformer</link>
+      <title>关于进化图卷积网络的机器学习[关闭]</title>
+      <link>https://stackoverflow.com/questions/77977043/machine-learning-about-evolve-graph-convolution-network</link>
+      <description><![CDATA[如何使用 Jupyter Notebook 的 Evolve Graph 卷积网络代码，使用 Kaggle 上的 Elliptic_Bitcoin_Heist 数据。
+我无法编码。谁能帮我？我已经阅读了该程序 https://github.com/IBM/EvolveGCN.git 但我不知道如何使用它。我尝试在 ubuntu 上运行，但总是出错，我无法安装它。我想用jupyter笔记本编码]]></description>
+      <guid>https://stackoverflow.com/questions/77977043/machine-learning-about-evolve-graph-convolution-network</guid>
+      <pubDate>Sun, 11 Feb 2024 14:10:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>scikit-learn 自定义转换器从底层模型中抛出 NotFittedError</title>
+      <link>https://stackoverflow.com/questions/77976770/scikit-learn-custom-transformer-throws-notfittederror-from-underlying-model</link>
       <description><![CDATA[我想创建自己的 scikit-learn 转换器，用于对包含分类的数字特征进行编码，例如邮政编码或行业代码（NAICS、MCC 等）。在这些类型的代码中有一个结构：例如MCC 3000-3999 是“旅行和娱乐”，它进一步细分为更细粒度的类别，例如“航空公司”、“汽车租赁”等。我们不能将它们用作序数特征，但如果我们将它们视为纯分类特征（例如，通过 One -Hot-Encoding）我们需要选择在代码结构的哪个级别应用特征编码。
 为了解决这个问题，我创建了自己的 scikit-learn 变压器，它是 TargetEncoder 使用决策树。代码如下所示。重要的是要认识到，在模型训练期间，应使用样本外决策树回归分数来避免过度拟合。因此，我实现了自己的 fit_transform 函数来生成这些样本外分数：
 从 sklearn.tree 导入 DecisionTreeRegressor
@@ -247,15 +267,49 @@ transformer = ColumnTransformer([(&#39;taxonomy&#39;, TaxonomyEncoder(), [&#39;m
 变压器.fit(df[[&#39;mcc&#39;]], df[&#39;y&#39;])
 Transformer.transform(df[[&#39;mcc&#39;]])
 ]]></description>
-      <guid>https://stackoverflow.com/questions/77976770/use-scikit-learn-estimator-as-transformer</guid>
+      <guid>https://stackoverflow.com/questions/77976770/scikit-learn-custom-transformer-throws-notfittederror-from-underlying-model</guid>
       <pubDate>Sun, 11 Feb 2024 12:34:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>我在实现 Graycomatrix 方法时收到“JpegImageFile”对象不可下标错误</title>
+      <link>https://stackoverflow.com/questions/77976714/i-am-getting-an-jpegimagefile-object-is-not-subscriptable-error-while-implemen</link>
+      <description><![CDATA[代码
+错误
+我试图获取 2 个图像的 GLCM，每个图像分为 4 个补丁，但发生了此错误。这2张图片都是jpg的。该方法还可以获得补丁之间的相异性和相关性。我从这里获取了代码 https://scikit-image.org/文档/stable/auto_examples/features_detection/plot_glcm.html]]></description>
+      <guid>https://stackoverflow.com/questions/77976714/i-am-getting-an-jpegimagefile-object-is-not-subscriptable-error-while-implemen</guid>
+      <pubDate>Sun, 11 Feb 2024 12:14:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>分类任务问题[关闭]</title>
+      <link>https://stackoverflow.com/questions/77976439/classification-task-issues</link>
+      <description><![CDATA[我有一个关于二元变量分类任务的概念性问题。我可用的数据集如下：
+
+id，设备 ID
+性别，目标变量
+日
+小时
+内容、具有许多唯一值的分类变量
+
+这些数据代表客户进行的网络搜索，并且出现了两个问题：
+
+目标变量高度不平衡，女性较多，男性较少。
+内容变量有许多唯一值。
+
+考虑到我的时间有限，并且模型结果背后的推理比模型本身更重要，任何人都可以提出解决这两个问题的最佳方法吗？
+我正在寻求这两个问题的解决方案，以下是我的考虑：
+
+对内容变量应用诸如单热编码之类的技术会导致维度问题。我可以考虑设置阈值并考虑最常见的值，同时将其他值分类为“其他”。
+应用目标编码会反映出类别不平衡的问题。
+]]></description>
+      <guid>https://stackoverflow.com/questions/77976439/classification-task-issues</guid>
+      <pubDate>Sun, 11 Feb 2024 10:35:58 GMT</pubDate>
     </item>
     <item>
       <title>如何在苹果 M1 Pro 芯片组上的 XGBoost 中启用 GPU</title>
       <link>https://stackoverflow.com/questions/77975756/how-to-enable-gpu-in-xgboost-on-apple-m1-pro-chipset</link>
       <description><![CDATA[我尝试在带有设备 = cuda 的 Windows 上使用 GPU 进行 XGBoost 训练，它有效并且训练时间大大减少，现在我想在我的 Mac M1 Pro 上进行此实验。
 如何在 m1 pro 芯片组上启用 GPU 的 XGBoost。
-我尝试查找无法找到信息的文档。]]></description>
+我尝试查看文档，但找不到信息。]]></description>
       <guid>https://stackoverflow.com/questions/77975756/how-to-enable-gpu-in-xgboost-on-apple-m1-pro-chipset</guid>
       <pubDate>Sun, 11 Feb 2024 05:51:44 GMT</pubDate>
     </item>
@@ -343,40 +397,6 @@ h(simpleError(msg, call)) 中的错误：
 库(ranger) 库(生存) 库(caret) 库(dplyr) 库(pec) df2 &lt;- df2 %&gt;% mutate(status = time_15year-1) # 0 = 审查，1 = 死亡 df2 &lt; ;- na.omit(df2) df2$time_15year &lt;- Floor(df2$time_15year) 对(df2 %&gt;% dplyr::select(time_15year,BS_death), main = &quot;NCCTG 脑卒中数据&quot;) 折叠 &lt; - 2 # 用于交叉验证 cvIndex &lt;- createFolds(factor(df2$BS_death),folds, returnTrain = T)container_model &lt;-vector(“list”,length(cvIndex))container_pred &lt;-container_model for (i in 1:length(cvIndex)) { train_data &lt;- df2[cvIndex[[i]], } testing_data &lt;- df2[-cvIndex[[i]],] train_data &lt;- train_data[complete.cases(train_data) , ] 测试数据 &lt;- 测试数据[完整.案例(测试数据), ] rangermodel &lt;- ranger(Surv(time_15year, BS_death) ~ 年龄 + 性别 + 教育 + 地点 + cvahis+ mihis + bphis +heartdis + smok + Pastsmok+ 被动+活动+waterpip +cvatype，数据= train_data）图（rangermodel$unique.death.times，rangermodel$survival[1，]）ranger_predict &lt;-预测（rangermodel，数据=testing_data）pred_prob &lt;-rowMeans（ranger_predict$train_data[， 1:dim(ranger_predict$train_data)[2]]) pred_prob[pred_prob&gt;median(pred_prob)]=1 pred_prob[pred_prob&lt;=median(pred_prob)]=0 fusionMatrix(as.factor(testing_data$BS_death), as.factor (pred_prob))]]></description>
       <guid>https://stackoverflow.com/questions/77970324/an-error-in-ranger-model-in-machine-learning-in-r</guid>
       <pubDate>Fri, 09 Feb 2024 19:06:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>Word2Vec 和上下文嵌入之间的区别</title>
-      <link>https://stackoverflow.com/questions/76471584/difference-between-word2vec-and-contextual-embedding</link>
-      <description><![CDATA[我试图理解词嵌入和上下文嵌入之间的区别。
-以下是我的理解，如有错误请补充。
-词嵌入算法有一个单词的全局词汇表（字典）。当我们执行 word2vec 时，输入语料库（唯一单词）与全局字典映射，它将返回嵌入。
-上下文嵌入用于通过考虑文档中所有单词的序列来学习序列级语义。
-但我不明白我们在词嵌入中考虑上下文的​​位置。]]></description>
-      <guid>https://stackoverflow.com/questions/76471584/difference-between-word2vec-and-contextual-embedding</guid>
-      <pubDate>Wed, 14 Jun 2023 08:33:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>我们可以在训练和测试数据中建立具有不同输入向量大小的模型吗？</title>
-      <link>https://stackoverflow.com/questions/57290448/can-we-build-a-model-with-different-input-vector-size-in-training-and-testing-da</link>
-      <description><![CDATA[我使用 keras 构建逻辑回归模型。我的输入训练向量的形状是 10。[var1,var2,var3,var4,var5,var6,var7,var8,var9,and var10]
-由于是二元分类，所以目标标签y为0或1。
-有一次，我尝试了模型，我想用大小为 6 的输入向量进行预测？因此，训练和测试或预测数据的向量大小之间存在差异。
-这可能吗？有机器学习算法支持这样的功能吗？
-代码如下：
-
-&lt;前&gt;&lt;代码&gt;
-classifier.add（密集（单位= 50，kernel_initializer =&#39;uniform&#39;，激活=&#39;relu&#39;，input_dim = 5））
-classifier.add(Dense(units = 1, kernel_initializer = &#39;uniform&#39;,activation = &#39;sigmoid&#39;))
-
-
-# 编译人工神经网络
-classifier.compile（优化器=优化器，损失=&#39;binary_crossentropy&#39;，指标=[&#39;准确性&#39;]）
-
-# 拟合数据
-hisroy =classifier.fit(X_train, y_train, batch_size = 5, epochs = 100)
-]]></description>
-      <guid>https://stackoverflow.com/questions/57290448/can-we-build-a-model-with-different-input-vector-size-in-training-and-testing-da</guid>
-      <pubDate>Wed, 31 Jul 2019 12:10:31 GMT</pubDate>
     </item>
     </channel>
 </rss>
