@@ -4,7 +4,132 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Thu, 07 Mar 2024 18:16:40 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 07 Mar 2024 21:12:33 GMT</lastBuildDate>
+    <item>
+      <title>使用 python Flask 机器学习的 chrome 扩展工具中出现 500 Internal Server Error</title>
+      <link>https://stackoverflow.com/questions/78124159/500-internal-server-error-in-a-chrome-extension-tool-using-python-flask-machine</link>
+      <description><![CDATA[我正在尝试为网络钓鱼电子邮件检测系统创建一个 Chrome 扩展工具。该系统使用“提取”按钮来收集发件人、主题和电子邮件正文文本，并使用“扫描”按钮来分析提取的电子邮件正文中的网络钓鱼指标。虽然我可以成功提取信息，但单击“扫描”按钮会导致控制台中显示 500 内部服务器错误。有什么建议可以解决这个问题吗？
+后端.py
+ 导入回溯
+    从烧瓶导入烧瓶，请求，jsonify
+    将 pandas 导入为 pd
+    从 sklearn.feature_extraction.text 导入 TfidfVectorizer
+    从 sklearn.linear_model 导入 LogisticRegression
+    从flask_cors导入CORS
+    导入 json
+    导入日志记录
+    从 http 导入 HTTPStatus
+    
+    
+    应用程序=烧瓶（__名称__）
+    
+    
+    # 加载数据集
+    数据集 = pd.read_csv(“mail_data.csv”)
+    
+    # 用空字符串替换空值
+    mail_data = dataset.where((pd.notnull(dataset)), &#39;&#39;)
+    
+    # 将垃圾邮件标记为0；正品如1
+    mail_data.loc[mail_data[&#39;类别&#39;] == &#39;垃圾邮件&#39;, &#39;类别&#39;,] = 0
+    mail_data.loc[mail_data[&#39;类别&#39;] == &#39;真实&#39;, &#39;类别&#39;,] = 1
+    
+    # 假设您的数据集有一个包含电子邮件内容的“文本”列和一个用于网络钓鱼的“标签”列
+    X = mail_data[&#39;消息&#39;]
+    Y = mail_data[&#39;类别&#39;]
+    
+    ＃ 特征提取
+    feature_extraction = TfidfVectorizer(min_df=1, stop_words=&#39;english&#39;, lowercase=True)
+    X_features = feature_extraction.fit_transform(X)
+    
+    # 将 Y 值转换为整数
+    Y = Y.astype(&#39;int&#39;)
+    
+    # 训练模型
+    模型=逻辑回归()
+    model.fit(X_features, Y)
+    
+    
+    @app.route(&#39;/&#39;, 方法=[&#39;GET&#39;, &#39;POST&#39;])
+    def Predict_phishing():
+        如果 request.method == &#39;POST&#39;:
+            email_content = request.json.get(&#39;email_content&#39;, &#39;&#39;)
+            # 输入数据的特征提取
+    
+            email_content_feature = feature_extraction.transform([email_content])
+            # 使用训练好的模型进行预测
+            预测 = model.predict(email_content_feature)[0]
+    
+            
+    
+            返回 jsonify({&#39;预测&#39;: 预测})
+        # 如果请求方法是GET，则返回一条消息
+        别的：
+            return jsonify({&#39;message&#39;: &#39;请使用POST方法进行预测。&#39;})
+        
+    
+       
+    如果 __name__ == &#39;__main__&#39;:
+        应用程序运行（调试=真）
+
+popup.js
+// 存储电子邮件主题、发件人和消息的变量
+让 emailSubjectSenderMessage = {};
+
+// 向 content.js 发送消息以提取电子邮件内容的函数
+函数提取电子邮件内容（）{
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =&gt; {
+    if (tabs &amp;&amp; tabs.length &gt; 0 &amp;&amp; tabs[0].id) {
+      const activeTab = tabs[0];
+      chrome.tabs.sendMessage(activeTab.id, { action: &#39;extractEmailContent&#39; }, (response) =&gt; {
+        if (chrome.runtime.lastError) {
+          // 处理发送消息时的任何错误
+
+        } 别的 {
+          // 检查响应中是否包含 emailContent
+          if (response &amp;&amp; response.emailContent) {
+            // 提取邮件内容
+            const emailContent = response.emailContent;
+
+            // 提取发件人的电子邮件地址
+            const senderEmail = emailContent.senderEmail;
+
+            // 将电子邮件主题、发件人和消息存储在变量中
+            电子邮件主题发件人消息 = {
+              主题：电子邮件内容.主题，
+              发件人：发件人电子邮件，
+              消息：emailContent.body
+            };
+
+            // 显示提取的内容，包括发件人的电子邮件地址
+            显示电子邮件内容（电子邮件内容，发件人电子邮件）；
+          } 别的 {
+            displayErrorMessage(&#39;此页面上找不到电子邮件数据。&#39;);
+          }
+        }
+      });
+    } 别的 {
+      console.error(&#39;无效的选项卡或选项卡 ID 不可用。&#39;);
+    }
+  });
+}
+
+
+// 显示提取的电子邮件内容的函数
+函数显示电子邮件内容（电子邮件内容，发件人电子邮件）{
+  const emailContentDiv = document.getElementById(&#39;emailContent&#39;);
+  emailContentDiv.innerHTML = `发件人： ${senderEmail}&lt;br&gt;&lt;strong&gt;主题：&lt;/strong&gt; ${emailContent.subject}&lt;br&gt;&lt;strong&gt;消息：&lt;/strong&gt; ${emailContent.body}`;
+}
+
+// 显示错误信息的函数
+函数显示错误消息（消息）{
+  const emailContentDiv = document.getElementById(&#39;emailContent&#39;);
+  emailContentDiv.textContent = 消息；
+}
+]]></description>
+      <guid>https://stackoverflow.com/questions/78124159/500-internal-server-error-in-a-chrome-extension-tool-using-python-flask-machine</guid>
+      <pubDate>Thu, 07 Mar 2024 20:28:12 GMT</pubDate>
+    </item>
     <item>
       <title>机器学习通过 SVC 症状预测疾病</title>
       <link>https://stackoverflow.com/questions/78123509/machine-learning-prediction-of-disease-by-symptoms-with-svc</link>
@@ -198,7 +323,7 @@ Google Colab：高 RAM (51.0 GB)、A100 (16.0 GB) 节点。
       <pubDate>Thu, 07 Mar 2024 16:24:53 GMT</pubDate>
     </item>
     <item>
-      <title>寻求时间有序变量的决策树算法</title>
+      <title>寻求时间有序变量的决策树算法[关闭]</title>
       <link>https://stackoverflow.com/questions/78122700/seeking-a-decision-tree-algorithm-for-temporally-ordered-variables</link>
       <description><![CDATA[我正在寻找一种方法（在 R 或 Python 中）来构建考虑变量时间顺序的决策树。目标是迫使决策树反映变量的顺序性质。一组变量是时间 1 中发生的事件的指示符，第二组变量与时间 2 相关，依此类推。本质上，我的目标是引导算法首先利用与较早时间点相关的变量，然后按顺序利用与较晚时间点相关的变量。该方法促进了逐步的分类过程，其中每个步骤都根据先前步骤的信息细化类别。
 也就是说，算法首先用与第一时间点相关的变量进行分类，然后再对第二时间点进行进一步分类和“清理”。生成的子样本包含与第二个时间点相关的变量，依此类推。以某种方式强制算法首先使用与第一轮相关的变量，然后使用与第二轮相关的变量，依此类推。
@@ -224,7 +349,7 @@ Google Colab：高 RAM (51.0 GB)、A100 (16.0 GB) 节点。
       <pubDate>Thu, 07 Mar 2024 15:19:43 GMT</pubDate>
     </item>
     <item>
-      <title>训练时验证损失没有变化</title>
+      <title>训练时验证损失没有变化[关闭]</title>
       <link>https://stackoverflow.com/questions/78122336/validation-loss-not-varying-while-training</link>
       <description><![CDATA[我正在训练一个简单的神经网络，用于对具有约 2k 个查询的数据集进行查询评级，并且它们的评级以 CSV 的形式给出。我观察到，训练时验证损失没有变化，而且它为所有查询生成相同的输出（4. 最多 6 个小数位的评级相同）。为什么会发生这种情况？
 我尝试更改学习率、层数、训练和测试数据的随机分割以及不同的超参数，但仍然没有变化。我什至尝试使用正则化，它没有改变任何东西。
@@ -362,38 +487,6 @@ TrainOutput(global_step=10,training_loss=2.2117252349853516,metrics={&#39;train_
       <pubDate>Thu, 07 Mar 2024 14:56:29 GMT</pubDate>
     </item>
     <item>
-      <title>分析信用卡欺诈检测模型中的特征重要性[关闭]</title>
-      <link>https://stackoverflow.com/questions/78121363/analyzing-feature-importance-in-credit-card-fraud-detection-models</link>
-      <description><![CDATA[我最近完成了一个信用卡欺诈检测项目，非常感谢社区的反馈。
-数据集概述：
-该项目使用的数据集包含 3075 个条目和 12 列，包括“Merchant_id”、“Transaction_amount”和“isFradulent”等。删除了填充缺失值的“TransactionDate”列。该数据集混合了数值和分类数据，且“isFradulent”类别分布不平衡。
-使用的算法：
-使用了 3 种机器学习算法：
-
-支持向量机(SVM)
-K 最近邻（KNN）
-决策树
-
-为了评估我使用的各个功能的重要性：
-
-相关性分析
-模型中特征的重要性（SVM、KNN、决策树）
-
-为了有效传达功能重要性，使用了以下策略：
-
-混淆矩阵
-学习曲线
-GridSearchCV 结果
-还重点关注准确率、召回率和 F1 分数的清晰解释，以帮助理解。
-
--可以应用哪些附加技术或工具来增强欺诈检测场景中的特征重要性评估？
-- 在解释特征重要性结果时是否有任何常被忽视的陷阱或注意事项？
--就所选算法而言，您是否认为有潜在的改进或突出功能重要性的替代方法？
-我专门寻求见解来完善我的项目的功能重要性分析方面。关于上述问题的任何反馈、建议或建议都非常有价值。]]></description>
-      <guid>https://stackoverflow.com/questions/78121363/analyzing-feature-importance-in-credit-card-fraud-detection-models</guid>
-      <pubDate>Thu, 07 Mar 2024 12:26:26 GMT</pubDate>
-    </item>
-    <item>
       <title>sklearn.multiclass.OneVsRestClassifier 中的回调</title>
       <link>https://stackoverflow.com/questions/78119978/callbacks-in-sklearn-multiclass-onevsrestclassifier</link>
       <description><![CDATA[我想使用回调和 eval_set 等。
@@ -423,15 +516,6 @@ TypeError：OneVsRestClassifier.fit() 得到意外的关键字参数“eval_set�
 ]]></description>
       <guid>https://stackoverflow.com/questions/78119978/callbacks-in-sklearn-multiclass-onevsrestclassifier</guid>
       <pubDate>Thu, 07 Mar 2024 08:59:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用目标列识别机器学习问题[关闭]</title>
-      <link>https://stackoverflow.com/questions/78119976/identify-machine-learning-problem-using-target-column</link>
-      <description><![CDATA[我正在努力使用给定的输入数据和选择的目标列自动定义预测类型。
-如何区分目标列是多类分类还是二类分类或回归？
-我尝试阅读来自 DSML 平台的各种实现的博客，但需要一些清晰度。]]></description>
-      <guid>https://stackoverflow.com/questions/78119976/identify-machine-learning-problem-using-target-column</guid>
-      <pubDate>Thu, 07 Mar 2024 08:59:26 GMT</pubDate>
     </item>
     <item>
       <title>加载图像边界框输出相同大小的错误</title>
@@ -541,6 +625,13 @@ RuntimeError: 堆栈期望每个张量大小相等，但在条目 0 处得到 [1
 运气不好]]></description>
       <guid>https://stackoverflow.com/questions/78118283/loading-image-bounding-boxes-outputs-equal-size-error</guid>
       <pubDate>Thu, 07 Mar 2024 01:30:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>RF 模型的 MLJ.jl 中的数据类型总是错误</title>
+      <link>https://stackoverflow.com/questions/78116043/data-type-is-always-wrong-in-mlj-jl-with-the-rf-model</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78116043/data-type-is-always-wrong-in-mlj-jl-with-the-rf-model</guid>
+      <pubDate>Wed, 06 Mar 2024 16:41:59 GMT</pubDate>
     </item>
     <item>
       <title>使用LSTM模型进行充电数据负荷预测的时间序列交叉验证</title>
