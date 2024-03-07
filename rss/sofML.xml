@@ -4,7 +4,124 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Thu, 07 Mar 2024 00:47:26 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 07 Mar 2024 03:13:12 GMT</lastBuildDate>
+    <item>
+      <title>在支持向量机（SVM）中处理非二进制数据[关闭]</title>
+      <link>https://stackoverflow.com/questions/78118418/handling-non-binary-data-in-support-vector-machine-svm</link>
+      <description><![CDATA[我目前正在使用支持向量机 (SVM) 来执行分类任务，其中我的一些特征应该是二进制的（0 或 1）。但是，由于生成了一些合成数据，我遇到了非二进制值，例如 0.4。我想知道 SVM 如何处理此类非二进制数据。 SVM 是否会自动将 0.4 这样的值解释为 0 或 1？]]></description>
+      <guid>https://stackoverflow.com/questions/78118418/handling-non-binary-data-in-support-vector-machine-svm</guid>
+      <pubDate>Thu, 07 Mar 2024 02:22:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>加载图像边界框输出相同大小的错误</title>
+      <link>https://stackoverflow.com/questions/78118283/loading-image-bounding-boxes-outputs-equal-size-error</link>
+      <description><![CDATA[这是我在这里发表的第一篇文章，如果我需要更多数据或解释，请告诉我。
+我正在尝试为我的数据集创建一个 PyTorch 数据加载器。每个图像都有一定数量的汽车和每个汽车的边界框，但并非所有图像都具有相同数量的边界框。
+您可能无法运行它，但这里有一些信息。
+这是我的数据加载器
+类 AGR_Dataset（数据集）：
+    def __init__(self,annotations_root,img_root,transform=None):
+        ”“”
+        论据：
+            annotations_root（字符串）：带有注释的 csv 文件的路径。
+            img_root（字符串）：包含所有图像的目录。
+            变换（可调用，可选）：要应用的可选变换
+                在样品上。
+        ”“”
+        self.annotations_root = 注释_root
+        self.img_root = img_root
+        self.transform = 变换
+
+    def __len__(自身):
+        返回 len(self.annotations_root)
+    
+    def __getitem__(self, idx):
+        # idx 可能是索引或图像名称，我认为图像 naem
+        如果 torch.is_tensor(idx):
+            idx = idx.tolist()
+        
+        idx_name = os.listdir(self.img_root)[idx]
+        # 打印(idx_name)
+        
+        img_name = os.path.join(self.img_root, idx_name)
+        Comments_data = os.path.join(self.annotations_root, f&quot;{idx_name.removesuffix(&#39;.jpg&#39;)}.txt&quot;)
+        # print(img_name, 注释数据)
+
+        图像 = io.imread(img_name)
+
+        以 open(annotation_data, &#39;r&#39;) 作为文件：
+            行= file.readlines()
+            图像数据 = []
+            img_标签 = []
+            对于行中行：
+                line = line.split(&#39;,&#39;)
+                line = [i.strip() for i in line]
+                line = [float(num) for num in line[0].split()]
+                img_labels.append(int(行[0]))
+                img_data.append(行[1:])
+
+        框 = tv_tensors.BoundingBoxes(img_data, format=&#39;CXCYWH&#39;, canvas_size=(image.shape[0], image.shape[1]))
+
+        # 样本 = {&#39;image&#39;: 图像, &#39;bbox&#39;: 盒子, &#39;labels&#39;: img_labels}
+        样本= {&#39;image&#39;：图像，&#39;bbox&#39;：盒子}
+
+        如果自我变换：
+            样本 = self.transform(样本)
+
+        打印（样本[&#39;图像&#39;].shape）
+        打印（样本[&#39;bbox&#39;].shape）
+        # print(样本[&#39;标签&#39;].shape)
+        返回样品
+
+我运行转换并创建数据加载器
+data_transform = v2.Compose([
+    v2.ToImage(),
+    # v2.调整大小(680),
+    v2.RandomResizedCrop(大小=(680, 680), 抗锯齿=True),
+    # v2.ToDtype(torch.float32,scale=True),
+    v2.ToTensor()
+]）
+
+Transformed_dataset = AGR_Dataset(f&#39;{annotations_path}/test/&#39;,
+                        f&#39;{img_path}/测试/&#39;,
+                        变换=数据变换）
+
+数据加载器=数据加载器(transformed_dataset,batch_size=2,
+                        洗牌=假，num_workers=0）
+
+然后我尝试用它迭代它，并最终使用边界框查看和图像。
+对于 i，枚举中的示例（dataloader）：
+    打印（我，样本）
+    print(i, 样本[&#39;image&#39;].size(), 样本[&#39;bbox&#39;].size())
+
+    如果我==4：
+        休息
+
+批处理大小为 1 时，它运行正常，批处理大小为 2 时，出现此错误
+torch.Size([3, 680, 680])
+火炬.Size([12, 4])
+
+火炬.Size([3, 680, 680])
+火炬.Size([259, 4])
+
+RuntimeError: 堆栈期望每个张量大小相等，但在条目 0 处得到 [12, 4]，在条目 1 处得到 [259, 4]
+
+
+我认为这是由于边界框的数量不相等造成的，但如何克服这个问题？
+我的变换中需要 ToTensor 吗？我开始认为我不这样做，因为 v2 使用 ToImage()，并且 ToTensor 正在被贬值。
+
+如有任何其他意见或帮助，我们将不胜感激。
+我不确定如何创建一个工作示例，我会继续尝试。
+我尝试过的
+我尝试通过注释数据加载器中的 tv_tensors.BoundingBoxes 行来不将边界框加载为张量，但由于某种原因，我的调整大小无法正常工作。
+我刚刚尝试在数据加载器中像这样分割框和图像
+样本 = 图像
+    目标= {&#39;bbox&#39;：盒子，&#39;标签&#39;：img_labels}
+
+运气不好]]></description>
+      <guid>https://stackoverflow.com/questions/78118283/loading-image-bounding-boxes-outputs-equal-size-error</guid>
+      <pubDate>Thu, 07 Mar 2024 01:30:38 GMT</pubDate>
+    </item>
     <item>
       <title>类型错误：fit() 缺少 1 个必需的位置参数 Y</title>
       <link>https://stackoverflow.com/questions/78118068/typeerror-fit-missing-1-required-positional-argument-y</link>
@@ -68,7 +185,7 @@ model.add（密集（5，激活=“softmax”））
       <pubDate>Wed, 06 Mar 2024 19:09:37 GMT</pubDate>
     </item>
     <item>
-      <title>为什么我的训练损失和验证损失非常低，但新数据集的均方误差却很高？</title>
+      <title>为什么我的训练损失和验证损失非常低，但新数据集的均方误差却很高？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78116573/why-my-training-loss-and-validation-loss-very-low-but-the-mse-for-a-new-dataset</link>
       <description><![CDATA[来自tensorflow.keras导入层
 从tensorflow.keras.layers导入Dense
@@ -148,192 +265,12 @@ GPU 50% (40°C)
       <pubDate>Wed, 06 Mar 2024 17:35:37 GMT</pubDate>
     </item>
     <item>
-      <title>在 MLJ 中找不到适合我的数据类型的模型</title>
-      <link>https://stackoverflow.com/questions/78116043/can-not-find-a-model-in-mlj-suitable-for-my-data-type</link>
-      <description><![CDATA[我想在 MLJ 中使用 RandomForestRegressor，但我的数据类型总是出现错误。
-这是我的数据类型：
-# X 的类型
-500×1矩阵{Float64}：
- 0.002
- 0.004
- 0.006
- 0.008
- 0.01
- ⋮
- 0.992
- 0.994
- 0.996
- 0.998
- 1.0
-
-#y 的类型
-500 元素向量{任意}：
- [-26.12471826402402、-0.00019238911241092893、-8.487354458186491e-6、-4.247928689027347e-6、-1.4735850473179823e-6、-5.5989652116 83904e-6]
- [-26.124690243484718、-2.813962224679223e-5、0.00014993993007544892、-3.972667350815584e-5、-4.415345127384285e-5、4.7755059188 858695e-5]
- [-26.124700578434716、0.00020304547366412073、-1.941266595367752e-5、-6.8228290228677935e-6、-2.8075749891054436e-6、-5.95726165 1756696e-7]
- [-26.12470127817773、-0.0002052884039169811、-1.53​​54293043945422e-5、5.457931474439626e-6、-1.0654739228677101e-6、1.3601831927 445573e-6]
- [-26.124689854622336、-0.0001879523626138191、5.983618996563411e-6、-2.412535654516823e-5、1.7942953590588395e-5、-1.3323422657 25206e-5]
- ⋮
- [-26.12470204971627、-0.00020642317364671925、-1.6756339903056805e-5、7.454364967629523e-6、-2.539052483596649e-6、1.8465582632 964939e-6]
- [-26.12469951981032、0.00020256742611590717、-1.9380595701112835e-5、-6.199351626712257e-6、-3.5935735922532075e-6、-1.153947443 044423e-6]
- [-26.124700578434716、0.00020304547366412073、-1.9412665953733033e-5、-6.8228290228677935e-6、-2.8075749891054436e-6、-5.9572616 58418034e-7]
- [-26.124701332004584、-0.00020670402366529395、-1.6873028843567006e-5、7.897781219456945e-6、-3.3466380342517255e-6、1.43543246 5890507e-6]
- [-26.124682551931944、0.0001869595100869592、5.027911548549646e-6、1.9320833163805062e-5、1.57188​​013177878e-5、6.48586574647 5028e-6]
-
-上面的数据可以在DecisionTree.jl中使用，但在MLJ.jl中不起作用。
-这是我的 DecisionTree.jl 代码，它运行良好
-模型 = build_forest(y, X)
-apply_forest（模型，[0.75]）
-
-这是我的 MLJ.jl 代码。
-RandomForest = MLJ.@load RandomForestRegressor pkg = DecisionTree
-myrandforest = 随机森林()
-马赫=机器（myrandforest，X，y）|&gt; MLJ.适合！
-
-和错误消息：
-导入 MLJDecisionTreeInterface ✔
-┌ 警告：数据参数的数量和/或类型与指定模型不匹配
-│ 支持。通过指定“scitype_check_level=0”来抑制此类型检查。
-│
-│ 运行“@doc DecisionTree.RandomForestRegressor”以了解有关模型要求的更多信息。
-│
-│ 通常但非唯一地，监督模型是使用以下语法构建的
-│ `machine(model, X, y)` 或 `machine(model, X, y, w)` 而大多数其他模型是
-│ 用 `machine(model, X)` 构造。这里“X”是特征，“y”是目标，“w”
-│ 样本或类别权重。
-│
-│ 一般来说，`machine(model, data...)`中的数据预计满足
-│
-│ scitype(数据) &lt;: MLJ.fit_data_scitype(模型)
-│
-│ 在本案中：
-│
-│ scitype(数据) = Tuple{AbstractMatrix{连续}, AbstractVector{AbstractVector{连续}}}
-│
-│ fit_data_scitype(model) = Tuple{Table{&lt;:Union{AbstractVector{&lt;:连续}, AbstractVector{&lt;:Count}, AbstractVector{&lt;:OrderedFactor}}}, AbstractVector{连续}}
-└ @ MLJBase ~/.julia/packages/MLJBase/eCnWm/src/machines.jl:231
-错误：ArgumentError：“Matrix{Float64}”不是表；有关将 AbstractVecOrMat 视为表的方法，请参阅“?Tables.table”
-堆栈跟踪：
-  [1] 列(m::Matrix{Float64})
-    @表〜/.julia/packages/Tables/NSGZI/src/matrix.jl:6
-  [2] Tables.Columns(x::Matrix{Float64})
-    @表〜/.julia/packages/Tables/NSGZI/src/Tables.jl:271
-  [3] 矩阵(表::Matrix{Float64};转置::Bool)
-    @表〜/.julia/packages/Tables/NSGZI/src/matrix.jl:85
-  [4] 矩阵(表::矩阵{Float64})
-    @表〜/.julia/packages/Tables/NSGZI/src/matrix.jl:84
-  [5] 重新格式化(::MLJDecisionTreeInterface.RandomForestRegressor, X::Matrix{Float64}, y::Vector{Any})
-    @ MLJDecisionTreeInterface ~/.julia/packages/MLJDecisionTreeInterface/kPIDf/src/MLJDecisionTreeInterface.jl:460
-  [6] fit_only!(mach::Machine{…}; rows::Nothing，verbosity::Int64，force::Bool，composite::Nothing)
-    @ MLJBase ~/.julia/packages/MLJBase/eCnWm/src/machines.jl:659
-  [7] 只适合！
-    @ MLJBase ~/.julia/packages/MLJBase/eCnWm/src/machines.jl:607 [内联]
-  [8] #适合！#63
-    @ MLJBase ~/.julia/packages/MLJBase/eCnWm/src/machines.jl:778 [内联]
-  [9] 适合！
-    @ MLJBase ~/.julia/packages/MLJBase/eCnWm/src/machines.jl:775 [内联]
- [10] |&gt;(x::Machine{MLJDecisionTreeInterface.RandomForestRegressor, true}, f::typeof(StatsAPI.fit!))
-    @基地./operators.jl:917
- [11] Mainf()
-    @主要~/Code/JuliaML/src/dt.jl:53
- [12] 顶级范围
-    @〜/代码/JuliaML/src/dt.jl:58
-某些类型信息被截断。使用 show(err) 查看完整类型。
-
-它不适用于 MLJ.jl。我想使用 RandomForestRegressor 预测一个包含 5 或 6 个浮点数的向量，模型必须是 RF。]]></description>
-      <guid>https://stackoverflow.com/questions/78116043/can-not-find-a-model-in-mlj-suitable-for-my-data-type</guid>
-      <pubDate>Wed, 06 Mar 2024 16:41:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>我在尝试运行高级自动训练时遇到错误[关闭]</title>
-      <link>https://stackoverflow.com/questions/78115600/i-am-getting-an-error-while-trying-to-run-autotrain-advanced</link>
-      <description><![CDATA[我使用 Llama-2-7B-Chat-Hf 模型作为基础，Orca Math Word Problems 作为训练数据。我遇到错误 - UnicodeDecodeError: &#39;utf-8&#39; 编解码器无法解码位置 7 中的字节 0x92: 无效的起始字节。
-如何解决这个问题？
-这是我尝试的图像 - 我尝试构建的图像&lt; /p&gt;
-这是完整的错误：
-回溯（最近一次调用最后一次）：
-  文件“/app/env/lib/python3.10/site-packages/uvicorn/protocols/http/h11_impl.py”，第 428 行，在 run_asgi 中
-    结果=等待应用程序（＃类型：忽略[func-returns-value]
-  文件“/app/env/lib/python3.10/site-packages/uvicorn/middleware/proxy_headers.py”，第 78 行，在 __call__ 中
-    返回等待 self.app（范围，接收，发送）
-  文件“/app/env/lib/python3.10/site-packages/fastapi/applications.py”，第 1106 行，在 __call__ 中
-    等待超级（）.__call__（范围，接收，发送）
-  文件“/app/env/lib/python3.10/site-packages/starlette/applications.py”，第 122 行，在 __call__ 中
-    等待 self.middleware_stack（范围，接收，发送）
-  文件“/app/env/lib/python3.10/site-packages/starlette/middleware/errors.py”，第 184 行，在 __call__ 中
-    提高执行力
-  文件“/app/env/lib/python3.10/site-packages/starlette/middleware/errors.py”，第 162 行，在 __call__ 中
-    等待 self.app（范围，接收，_发送）
-  文件“/app/env/lib/python3.10/site-packages/starlette/middleware/sessions.py”，第 86 行，在 __call__ 中
-    等待 self.app（范围，接收，send_wrapper）
-  文件“/app/env/lib/python3.10/site-packages/starlette/middleware/exceptions.py”，第 79 行，在 __call__ 中
-    提高执行力
-  文件“/app/env/lib/python3.10/site-packages/starlette/middleware/exceptions.py”，第 68 行，在 __call__ 中
-    等待 self.app（范围、接收、发送者）
-  文件“/app/env/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py”，第 20 行，在 __call__ 中
-    提高e
-  文件“/app/env/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py”，第 17 行，在 __call__ 中
-    等待 self.app（范围、接收、发送）
-  文件“/app/env/lib/python3.10/site-packages/starlette/routing.py”，第 718 行，在 __call__ 中
-    等待route.handle（范围，接收，发送）
-  文件“/app/env/lib/python3.10/site-packages/starlette/routing.py”，第 276 行，在句柄中
-    等待 self.app（范围、接收、发送）
-  文件“/app/env/lib/python3.10/site-packages/starlette/routing.py”，第 66 行，在应用程序中
-    响应=等待函数（请求）
-  文件“/app/env/lib/python3.10/site-packages/fastapi/routing.py”，第 274 行，在应用程序中
-    raw_response = 等待 run_endpoint_function(
-  文件“/app/env/lib/python3.10/site-packages/fastapi/routing.py”，第 191 行，在 run_endpoint_function 中
-    返回等待 dependent.call(**值)
-  文件“/app/env/lib/python3.10/site-packages/autotrain/app.py”，第 452 行，handle_form
-    dset = AutoTrainDataset(**dset_args)
-  文件“”，第 13 行，位于 __init__ 中
-  文件“/app/env/lib/python3.10/site-packages/autotrain/dataset.py”，第 204 行，在 __post_init__ 中
-    self.train_df, self.valid_df = self._preprocess_data()
-  文件“/app/env/lib/python3.10/site-packages/autotrain/dataset.py”，第 213 行，位于 _preprocess_data
-    train_df.append(pd.read_csv(文件))
-  文件“/app/env/lib/python3.10/site-packages/pandas/io/parsers/readers.py”，第 1026 行，在 read_csv 中
-    返回_read（文件路径或缓冲区，kwds）
-  文件“/app/env/lib/python3.10/site-packages/pandas/io/parsers/readers.py”，第 620 行，在 _read 中
-    解析器 = TextFileReader(filepath_or_buffer, **kwds)
-  文件“/app/env/lib/python3.10/site-packages/pandas/io/parsers/readers.py”，第 1620 行，位于 __init__ 中
-    self._engine = self._make_engine(f, self.engine)
-  文件“/app/env/lib/python3.10/site-packages/pandas/io/parsers/readers.py”，第 1898 行，在 _make_engine 中
-    返回映射[引擎](f, **self.options)
-  文件“/app/env/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py”，第 93 行，在 __init__ 中
-    self._reader = parsers.TextReader(src, **kwds)
-  文件“parsers.pyx”，第 574 行，位于 pandas._libs.parsers.TextReader.__cinit__ 中
-  文件“parsers.pyx”，第 663 行，位于 pandas._libs.parsers.TextReader._get_header
-  文件“parsers.pyx”，第 874 行，位于 pandas._libs.parsers.TextReader._tokenize_rows 中
-  文件“parsers.pyx”，第 891 行，位于 pandas._libs.parsers.TextReader._check_tokenize_status
-  文件“parsers.pyx”，第 2053 行，位于 pandas._libs.parsers.raise_parser_error
-UnicodeDecodeError：“utf-8”编解码器无法解码位置 7 中的字节 0x92：起始字节无效
-]]></description>
-      <guid>https://stackoverflow.com/questions/78115600/i-am-getting-an-error-while-trying-to-run-autotrain-advanced</guid>
-      <pubDate>Wed, 06 Mar 2024 15:30:30 GMT</pubDate>
-    </item>
-    <item>
       <title>高斯过程数据错误</title>
       <link>https://stackoverflow.com/questions/78115412/gaussian-process-data-errors</link>
       <description><![CDATA[如何在ma​​tlab的fitrgp函数中插入误差数组来进行高斯过程回归？我有一个数组 x、其他数组 y 以及与 y 关联的标准差数组 delta_y。
 只有 x 和 y，我可以使用 gprMdl = fitrgp(x,y)，但是如何添加delta_y作为y的错误栏？]]></description>
       <guid>https://stackoverflow.com/questions/78115412/gaussian-process-data-errors</guid>
       <pubDate>Wed, 06 Mar 2024 15:02:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Python 中生成 CSV 和 Excel 数据库的列名称？</title>
-      <link>https://stackoverflow.com/questions/78114334/how-does-one-generate-column-names-for-csvs-and-excel-databases-in-python</link>
-      <description><![CDATA[有一堆没有列名称的逗号分隔值 (CSV) 和 Excel 数据库，有没有办法使用列值通过 Python 自动生成名称？
-示例：
-输入=[(迈克尔, 18),(安娜, 19),(彼得, 20)
-
-输出：
-姓名、年龄
-迈克尔，18 岁
-安娜，19 岁
-彼得，20 岁
-]]></description>
-      <guid>https://stackoverflow.com/questions/78114334/how-does-one-generate-column-names-for-csvs-and-excel-databases-in-python</guid>
-      <pubDate>Wed, 06 Mar 2024 12:20:25 GMT</pubDate>
     </item>
     <item>
       <title>我的感知器算法总是给我错误的线来分离二维线性可分离数据</title>
@@ -410,7 +347,7 @@ plt.图例()
 在此处输入图像描述
 这是使用不同数据参数和样本大小的另一次运行 (n = 30)
 在此处输入图像描述
-我尝试在每次迭代时打印出更新，它按我的预期工作。我不确定是什么导致我的算法停止，即使仍然存在错误分类的点。我已经被这个问题困扰了几天了。我非常感谢任何意见。]]></description>
+我尝试在每次迭代时打印出更新，它按照我的预期工作。我不确定是什么导致我的算法停止，即使仍然存在错误分类的点。我已经被这个问题困扰了几天了。我非常感谢任何意见。]]></description>
       <guid>https://stackoverflow.com/questions/78112634/my-perceptron-algorithm-keeps-giving-me-the-wrong-line-for-separating-2d-linearl</guid>
       <pubDate>Wed, 06 Mar 2024 07:53:35 GMT</pubDate>
     </item>
@@ -484,6 +421,15 @@ ml-server | 2024-03-06T00：11：11,091 [信息] W-9001-model_1.0-stdout MODEL_L
 ]]></description>
       <guid>https://stackoverflow.com/questions/78111173/torchserve-batch-size-is-always-1-even-config-properties-specify-other-value</guid>
       <pubDate>Wed, 06 Mar 2024 00:19:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 ADBench 中集成其他自定义算法？ [关闭]</title>
+      <link>https://stackoverflow.com/questions/78008005/how-do-i-integrate-other-custom-algorithms-in-adbench</link>
+      <description><![CDATA[我想测试不同的隔离林类型。但是，考虑到拟合/模型和运行文件，我不太明白如何将其集成到 ADB 中。特别是算法的哪一部分应该放入文件中。
+有人可以给我建议或解决方案吗？
+我尝试使用扩展隔离林https://github.com/ sahandha/eif/blob/master/eif_old.py。为此，我使用旧的（非 cython）版本并将其放入模型中。但是，我不确定要在运行和拟合文件中放入什么内容......]]></description>
+      <guid>https://stackoverflow.com/questions/78008005/how-do-i-integrate-other-custom-algorithms-in-adbench</guid>
+      <pubDate>Fri, 16 Feb 2024 14:21:16 GMT</pubDate>
     </item>
     <item>
       <title>使用记分器实现 GridSearchCV 进行留一交叉验证</title>
