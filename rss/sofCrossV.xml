@@ -4,9 +4,325 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Fri, 08 Mar 2024 18:18:25 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 08 Mar 2024 21:12:44 GMT</lastBuildDate>
     <item>
-      <title>是否应该使用整个数据集的迁移学习来调整单个模型？</title>
+      <title>负二项式回归与调查权重的交互作用的事后检验？</title>
+      <link>https://stats.stackexchange.com/questions/642186/post-hoc-tests-of-interaction-for-a-negative-binomial-regression-with-survey-wei</link>
+      <description><![CDATA[我使用 R 包 survey 和函数 svyglm() 运行了带有调查权重的负二项式回归，并观察到了显着的交互效应（woohoo！）。现在我想使用事后测试来了解交互。我尝试使用包 emmeans 但出现错误。有什么想法如何做这种事情（最好是在 R 中，尽管手动/准手动或其他软件系统也很好）？下面是 MWE。
+install.packages(c(“调查”, “emmeans”))
+图书馆（调查）
+图书馆（emmeans）
+
+# 模拟一些数据
+设置.种子(123)
+n &lt;- 200
+df &lt;- data.frame(
+  y = rpois(n, lambda = 2), # 模拟计数数据
+  预测器1 =因子（样本（c（“A”，“B”，“C”），n，替换= TRUE）），
+  预测器2 =因子（样本（c（“X”，“Y”），n，替换= TRUE）），
+  weights = runif(n, 0.5, 2), # 模拟权重
+  cluster = Factor(rep(1:20,each = 10)), # 模拟的簇ID
+  地层 = 因子(rep(1:4,each = 50)) # 模拟地层
+）
+
+# 创建调查设计
+des &lt;- svydesign(ids = ~cluster, 层 = ~strata, 权重 = ~weights, 数据 = df)
+
+# 拟合模型
+模型 &lt;- svyglm(响应 ~ 预测器 1 * 预测器 2, 设计 = 设计, 系列 = quasipoisson())
+
+# 估计交互项的边际均值
+emm_interaction &lt;- emmeans(模型, ~预测器1 * 预测器2)
+
+# 交互项的成对比较
+pairs_interaction &lt;-pairs(emm_interaction)
+
+# 比较总结
+摘要（pairs_interaction）
+
+当我执行 emm_interaction &lt;- emmeans(model, ~ Predictor1 * Predictor2) 时，我收到以下错误消息。
+ref_grid(object, ...) 中的错误：我们无法重建数据。
+需要的变量是：
+    预测器 1 预测器 2
+这些实际上是常数吗？ （通过“params=”指定）
+ 尝试使用 &#39;data = &quot;&lt;数据集名称&gt;&quot;&#39; 重新运行
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/642186/post-hoc-tests-of-interaction-for-a-negative-binomial-regression-with-survey-wei</guid>
+      <pubDate>Fri, 08 Mar 2024 20:37:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么直观上标准差是获得中心极限定理的正确尺度？</title>
+      <link>https://stats.stackexchange.com/questions/642185/why-intuitively-is-standard-deviation-the-correct-thing-to-scale-to-get-central</link>
+      <description><![CDATA[首先我要说的是，我已经知道了所有严格的公式，但让我解释一下为什么我仍然感觉我的理解中缺少一些东西。没有必要 &gt; 对于任何答案，例如i.i.d 之和的方差计算随机变量！这不是这个问题的目的。
+基本上，这可以归结为@whuber的惊人答案中的这个问题https://stats.stackexchange.com/a/ 3904/264044：
+&lt;块引用&gt;
+
+这个总和有什么特别之处？为什么我们没有其他数字数学组合（例如它们的乘积或最大值）的中心极限定理？ （事实证明我们确实如此，但它们并不那么普遍，也不总是有如此清晰、简单的结论，除非它们可以简化为 CLT。） $m_n 的序列$ 和 $s_n$ 并不唯一，但它们几乎是唯一的，因为最终它们必须逼近期望$n$ 票的总和以及总和的标准差分别...
+
+标准差是衡量值分布的一种方法，但它绝不是唯一的方法，也不是最“自然”的方法。无论是历史上还是许多应用程序。 （例如，许多人会选择与中位数的中值绝对偏差之类的值。 ）
+
+为什么 SD 以如此重要的方式出现？
+
+
+
+更严格地说：我们有 $S_n$ i.i.d 总和。 $X_n$。例如，我们可以绘制二项式系数（伯努利/拉德马赫的 i.i.d. 和），并注意到它们似乎具有“相同的形状” --- 事实上，一旦缩放$\tilde S_n:=\frac{S_n-m_n}{s_n}$，就越来越像同一个形状。找到 $m_n$ 很容易：这是一个线性转变，并且期望是线性的，一切都很好。我们假设 $X_n$ 被转换为平均值 $0$。
+但现在我们必须弄清楚是什么$s_n$“保持形状”。我们的想法是“接近某种极限形状”。当然是关于分布收敛的陈述，分布收敛意味着特别是所有时刻都会收敛/稳定到某个值，事实上更一般地说，所有 $\mathbb E[f (\tilde S_n)]$ 应该收敛/稳定到某个值。
+不知何故，在 $f$ 的所有这些选择中，我们选择 $ f(x)=x^2$，并且由于一些代数奇迹，事情完美地进行，我们看到 $s_n$ 必须是（或至少收敛到 $n\to\infty$) 的某个常数倍数 $\sqrt n$ .
+所以基本上，从这个角度来看，我们看到 $s_n$ 在某种意义上是非常基本/普遍的（正是这些价值观使得 $\mathbb E[f(\tilde S_n)]$ 对所有“nice”稳定 $f$)，但只是由于对于一些代数奇迹来说，只有对于 $f(x)=x^2$ ，我们才能显式计算 $s_n$。所以它几乎看起来像“2”。 $s_n \asymp n^{1/2}$ 的性质是偶然的，但“通用性”却是偶然的。另一方面，$s_n$ 的结果告诉我们，这并非偶然——这是完全不可避免的。
+&lt;块引用&gt;
+问题：有人可以阐明为什么 $s_n \asymp n^{1/2}$ 的更深层次原因吗？也许即使可以使用不同的 $f$ 进行计算，并看到仍然 $n^{1/2 }$ 弹出，这会很有洞察力吗？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/642185/why-intuitively-is-standard-deviation-the-correct-thing-to-scale-to-get-central</guid>
+      <pubDate>Fri, 08 Mar 2024 20:24:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>当数据集是配对和未配对的组合时要执行哪种假设检验？</title>
+      <link>https://stats.stackexchange.com/questions/642184/which-hypothesis-testing-to-perform-when-dataset-is-combination-of-paired-and-un</link>
+      <description><![CDATA[我希望得到您的帮助，了解为以下问题选择哪种假设检验方法。
+这是我的数据集的示例。
+12月份，我们收集了超过90公里/小时的车速数据。有约1200辆车。我们实施了一些可能（也可能不会）影响速度的措施。然后在二月份再次收集数据。车辆数量可能会有所不同，可能会添加一些新车辆，也可能会删除一些新车辆。我想了解一下我们采取的措施对速度有没有影响。
+我采取的方法是统计每天车辆超速超过 90 公里/小时的情况。因此，12 月有 31 个数据点，2 月有 20 个数据点。
+我有点困惑数据集是否应该被视为配对或不配对。我们可能会记录相同车辆的速度，也可能不同。请参阅下面的示例。
+如果有任何关于选择哪种方法的建议，我将不胜感激。或者也许我应该采取不同的方法。
+12月份初始数据
+
+转换为
+
+二月份也是如此。
+谢谢
+摩恩]]></description>
+      <guid>https://stats.stackexchange.com/questions/642184/which-hypothesis-testing-to-perform-when-dataset-is-combination-of-paired-and-un</guid>
+      <pubDate>Fri, 08 Mar 2024 20:20:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>回归中的虚拟变量</title>
+      <link>https://stats.stackexchange.com/questions/642183/dummy-variable-in-regression</link>
+      <description><![CDATA[我有一个国家数据集。一个变量被编码为 0、1、2 或 3。对于一个国家，该变量的值为 0、1 和 2（即不存在 3）。我为此变量创建了三个虚拟对象（而不是四个），并使用一个作为省略的类别。我想知道这是否正确？同样，对于另一个变量值为 0 和 1 的国家，这里使用两个虚拟变量合适吗？非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642183/dummy-variable-in-regression</guid>
+      <pubDate>Fri, 08 Mar 2024 20:17:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>构建负二项式分布联合概率的单边假设检验</title>
+      <link>https://stats.stackexchange.com/questions/642182/constructing-a-one-sided-hypothesis-test-for-joint-probabilties-of-negative-bino</link>
+      <description><![CDATA[我正在研究苹果蠹蛾种群/陷阱捕捉模型。最终目标是建立一个假设检验模型，该模型将提供数据是否（在某种显着性水平$\alpha$）支持飞蛾捕获总数一代要高于一定的阈值。与我合作的种植者根据经验，能够设定“最大可容忍阈值”。为捕获总数。他们可能根据经验知道，捕获超过 700 只飞蛾的年份需要使用杀虫剂，而少于该值的年份则不需要。
+首先，我有一个 Johnson-SB 分布模型（通过前几年的数据收集），该模型列出了给定热量积累量（本质上是时间）的总飞蛾捕获量的预期比例。简而言之，我有一个 CDF，它告诉我在某个时间 $x$ 平均而言，我期望捕获 $y$ 占我捕获的飞蛾总数的百分比。然后，我可以将此分布乘以某个最大值，以获得我将在陷阱中观察到的飞蛾的具体数量的期望。例如，如果我要捕获的飞蛾总数为 700 只，那么在时间 $x=150$ 时，我预计会观察到累计捕获的 $y=42$ 飞蛾。这使我能够计算任意热量累积量 $x 的预期累积捕获值 $\overline{y}_x$ $.
+其次，Johnson-SB 模型列出了期望值，而负二项式模型则列出了实际观察到给定数量的累积飞蛾的某个期望值的概率密度。例如，虽然我期望在 $x=150 捕获 $y=42$ 飞蛾$，我实际上可能只捕获$y=30$，或$y=60$ 等，负二项式模型允许我构建给定期望值的 PDF。
+第三，我有一组关于热量积累和累积捕获的 $n$ 观测值，我将其称为 分别为 $X$ 和 $Y$。
+我最初的想法是为集合 $X$ 的真实期望值创建一个联合概率，我将其标记为 $\mu_x$，小于模型预期$\overline{y}_x$：
+$$ \prod\limits_{i=1}^n P[Y_i | \mu_{X_i}\le \overline{y}_{X_i}]$$
+其中，如果真实期望值小于模型期望，则观察 $Y_i$ 的概率是使用上面指定的负二项式分布的 CDF 计算的。这是我的空分布。
+然而，这有一个问题，因为它是联合分布，所以当我添加新的观察结果时，它总是会变小，因为我本质上是在询问越来越具体的场景的概率。因此我需要找到某种方法来标准化这个联合概率。我的想法是创建零分布及其补集的比率，我相信它是：
+$$ \frac{\prod\limits_{i=1}^n P[Y_i | \mu_{X_i}\le \overline{y}_{X_i}]}{\prod\limits_{i=1}^n 1-P[X_i | \mu_{Y_i}\le \overline{y}_{X_i}]}$$
+但我不知道如何通过置信区间或 p 值来评估这个比率。我研究了似然比检验并通读了此 页面和这个文档，但我觉得我我缺乏对它的理解，无法与我一起了解我将如何使用这种方法（如果我应该的话）来解决我的问题。
+您认为我目前用于解决此问题的方法是否正确？如果是，我将如何解释该比率以帮助我的种植者做出明智的管理决策？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642182/constructing-a-one-sided-hypothesis-test-for-joint-probabilties-of-negative-bino</guid>
+      <pubDate>Fri, 08 Mar 2024 19:51:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>负 KL 散度估计</title>
+      <link>https://stats.stackexchange.com/questions/642180/negative-kl-divergence-estimates</link>
+      <description><![CDATA[我正在探索 KL 散度，并发现了一些有关从样本计算它的研究。在 stack-exchange 上，我发现 最小化 KL 散度相当于最小化线性回归中的平方和。
+为了进一步探索这一点，我尝试为波士顿住房数据集实现 OLS 和 Ridge 回归模型，并计算论文中提到的 KL 散度。这给了我无法解释的结果。
+首先，来自连续分布的 Kullback-Leibler 散度估计的估计器的 KL 散度为负。而且，与实际响应的 OLS 拟合相比，它不是负值，而对于地面实况的岭拟合来说，它是负值，这与理论情况相反。（我将负 KL 散度解释为拟合值非常好，以至于估计器只给出负值，如果我有实际的分布而不是其中的样本，则会给出零）。
+有没有明确的解释为什么会发生这种情况？
+PS：为了探索估计器的多维功能，我还传递了整个数据矩阵，并附加了响应/拟合值，而不仅仅是对 KL 散度估计器的响应。
+这使得估计器的其余 4 个实现来自
+根据我的理解，这假设存在一个潜在的概率分布，它生成协变量和响应的所有值，并且我们计算这些分布之间的 KL 散度。我认为这不应该改变任何东西，因为如果我们回到 OLS 和 KL 散度之间的等价性，我想在总和上添加一堆零并不会产生任何影响。
+尽管如此，这个实验导致 GitHub 链接中估计器的所有四个实现都出现了负值。
+因此，回到之前提出的问题，我如何解释 KL 散度的负估计，以及为什么会在这种情况下发生。
+参考文献：
+用 python 编写的估计器
+佩雷斯估计器
+用 python 编码的估计器论文
+一维情况的计算结果
+
+&lt;标题&gt;
+
+估算器
+d_truth_ols
+d_truth_ridge
+d_ols_ridge
+
+
+&lt;正文&gt;
+
+skl_efficient
+0.05405258685484415
+0.08663935806497296
+0.04198067991782772
+
+
+scipy_estimator
+0.802908876382145
+0.7347464259492821
+0.6900877478021367
+
+
+naive_estimator
+0.05405258685484412
+0.08663935806497293
+0.04198067991782768
+
+
+skl_估计器
+0.05405258685484412
+0.08663935806497293
+0.04198067991782768
+
+
+佩雷斯
+-0.06423632396883772
+0.021712462670751664
+0.05954526258402315
+
+
+
+多维情况的计算结果（当我传递整个数据矩阵时）-
+
+&lt;标题&gt;
+
+估算者姓名
+KL（y_Ridge，y_Truth）
+KL（y_OLS，y_Truth）
+KL（y_Ridge，y_OLS）
+KL（y_OLS，y_Ridge）
+
+
+&lt;正文&gt;
+
+skl_估计器
+-0.12739426
+-0.22722966
+-0.24495304
+-0.41479071
+
+
+naive_estimator
+-0.12739426
+-0.22722966
+-0.24495304
+-0.41479071
+
+
+skl_efficient
+-0.12739426
+-0.22722966
+-0.24495304
+-0.41479071
+
+
+scipy_estimator
+7.73544109
+6.74554664
+7.61788232
+6.55798559
+
+
+
+最后，我只是猜测 SciPy 估计器出了问题。
+非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/642180/negative-kl-divergence-estimates</guid>
+      <pubDate>Fri, 08 Mar 2024 19:38:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>估计有限混合系数的 MMD 不是二次的？</title>
+      <link>https://stats.stackexchange.com/questions/642179/mmd-to-estimate-coefficients-of-a-finite-mixture-is-not-quadratic</link>
+      <description><![CDATA[我试图通过匹配 RKHS 嵌入来找到相对快速的密度估计。我对我的发现感到惊讶，并希望进行健全性检查：
+我有一些观察结果 $y_1, ..., y_n \in [a, b]$ 和内核 $k$ 及其 RKHS $\mathcal H$。我的观察结果的内核嵌入可以写成 $\hat \mu = \sum_{i=1}^n \beta_i k(y_i, \cdot)$。我使用带有系数的一般符号 $\beta$ ，以便该方法可以用于“经典”模型。嵌入，还有条件嵌入。
+我想快速估计手头的分布，为此我考虑了 $d$ 已知密度$p_1, ... p_d$，并且我认为 $p:= \sum_{i=1}^d w_i p_i$ 这样对于所有 $i$、$w_i \geq 0$ 和  $\sum_{i=1}^d w_i =1$ 和 $\mu_p$ 其内核嵌入。我可以找到：
+$$\mathbf w^* \in \arg\min \lVert \mu_p -\hat \mu \rVert_\mathcal{H}^2 \text{ 在约束下 } w_i \geq 0 \text{ 和 } \sum_{i=1}^d w_i =1$$
+事实证明，通过引入 $\mu_{p_i}:= \mathbb{E}_{U\sim p_i}[k(U, \cdot)]$ $p_i$ 的内核嵌入，并使用 $\mu_p = \sum_{i=1}^ d w_i \mu_{p_i}$ 我们有：
+$$\left\Vert \mu_p -\hat \mu \right\Vert_\mathcal{H}^2 = \left\Vert \sum_{i=1}^d w_i \ mu_{p_i}\right\Vert_\mathcal{H}^2-2 \sum_{i=1}^d w_i \langle \mu_{p_i} , \hat \mu \rangle_\mathcal{H}+\lVert \帽子 \mu \rVert_\mathcal{H}^2$$
+对于我的最小化问题，我可以忽略最后一项，因为它独立于 $w_i$。
+要计算第二个，我只需要使用复制属性，我发现：
+$$\sum_{i=1}^d w_i \langle \mu_{p_i} , \hat \mu \rangle_\mathcal{H} =\sum_{i=1}^ d w_i \left(\sum_{j=1}^n \beta_j \int k(u, y_j) p_i(u) \,du \right)$$
+我可以预先计算积分，然后它在 $w_i$ 的向量中呈线性，简单！
+现在我遇到的问题是第一个学期。还使用我发现的定义和复制属性：
+$$\left\Vert \sum_{i=1}^d w_i \mu_{p_i}\right\Vert_\mathcal{H}^2 = \sum_{i=1} ^d \sum_{i=1}^d w_i w_j \mathbb{E}_{U\sim p_i, V\sim p_j}[k(U, V)] = \sum_{i=1}^d \sum_ {i=1}^d w_i w_j \int k(u, v) p_i(u) p_j(v) \,du \,dv$$
+该项在 $w_i$ 中是二次项，但是具有条目 $\int k(u, v) p_i 的矩阵(u) p_j(v) \,du \,dv$ 是对称的，但看起来不是正定的？ （至少基于我的数值实验）。这不太好：我曾希望使用“简单”的方法来实现。 $p$ 的表达式将允许我通过二次规划来解决它，并即时获得快速/相对便宜的估计。
+我发现这非常令人惊讶且违反直觉，因此我有两个问题：
+
+我的发现是否正确，还是我的疏忽或错误？
+有没有什么“直观”的东西？解释为什么带有条目 $\int k(u, v) p_i(u) p_j(v) \,du \,dv$ 的矩阵有条件为正确定不是 p.d.，为什么有限混合的 MMD 表现如此糟糕？
+
+提前致谢，干杯！]]></description>
+      <guid>https://stats.stackexchange.com/questions/642179/mmd-to-estimate-coefficients-of-a-finite-mixture-is-not-quadratic</guid>
+      <pubDate>Fri, 08 Mar 2024 19:10:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>从非常高维的高斯采样</title>
+      <link>https://stats.stackexchange.com/questions/642178/sampling-from-a-very-high-dimensional-gaussian</link>
+      <description><![CDATA[我想要一个来自高斯 $N(0,K)$ 的样本，其中 $K$ 是一个核克矩阵，因此 $K=[K_{ij}]$ 与 $K_{ij} = k(x_i,x_j)$ 对于某些正定函数$k$。第一个问题是我有兴趣评估 $x_i,x_j$ 的二维网格非常好，因此 $K$ 非常大，我无法显式计算这个矩阵。一旦我们有了 $K$ 的表示，我们就需要进行 cholesky 分解才能进行采样。我注意到这个问题之前，但答案有点模糊，没有指出任何具体的参考资料。理想情况下，我想在 Python 中执行此操作。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642178/sampling-from-a-very-high-dimensional-gaussian</guid>
+      <pubDate>Fri, 08 Mar 2024 18:59:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>仅训练卷积神经网络最后一层的两种不同场景</title>
+      <link>https://stats.stackexchange.com/questions/642177/two-different-senarios-to-train-only-the-last-layer-of-a-convolutional-neural-ne</link>
+      <description><![CDATA[我有一个已经在数据 A 上训练过的卷积神经网络。该网络由特征提取层和两个分类层组成。我从头开始仅在数据 B 上训练了最后一个分类层（没有在数据 A 上训练初始权重！）。
+为此，我遵循了两种不同的场景，结果截然不同。谁能帮我找出这个巨大的差异吗？
+场景 1 结果
+AUC=0.53 准确度=0.50 精密度=0.58 F1-Score=0.51 灵敏度=0.50 特异性=0.44
+场景 2 结果
+AUC=0.66 准确度=0.63 精密度=0.70 F1-Score=0.64 灵敏度=0.63 特异性=0.56
+场景 1
+#创建网络：
+分类网络=分类器（参数[0]，参数[1]，参数[2]，参数[3]，参数[4]）
+#获取state_dict：
+state_dict=classifying_network.state_dict()
+
+#加载在数据A上训练的最佳权重，用于所有特征提取和两个分类层：
+optimal_weights=torch.load(folder_with_networks+network+&#39;/optimal_weights&#39;)
+#创建新的权重字典，其中包含除最后一层之外的所有层的权重，最后一层是来自状态字典的随机初始值：
+optimal_weights_withfirstclassificationlayer_secondrandom=optimal_weights
+optimal_weights_withfirstclassificationlayer_secondrandom[&#39;classifier.2.weight&#39;]=state_dict[&#39;classifier.2.weight&#39;]
+optimal_weights_withfirstclassificationlayer_secondrandom[&#39;classifier.2.bias&#39;]=state_dict[&#39;classifier.2.bias&#39;]
+#加载权重：
+classification_network.load_state_dict(torch.load(folder_with_networks+network+&#39;/optimal_weights_withfirstclassificationlayer_secondrandom&#39;))
+    
+#在冻结特征提取层和第一个分类层之后训练最后一层
+classification_network.freeze_feature_extraction_first_classification()```
+
+场景2
+#读取之前在数据A上训练的权重：
+optimal_weights=torch.load(folder_with_networks+network+&#39;/optimal_weights&#39;)
+#删除最后一层
+optimal_weights_withfirstclassificationlayer={k:v for k,v in optimization_weights.items() if k !=&#39;classifier.2.weight&#39; and k !=&#39;classifier.2.bias&#39;}
+torch.save(optimal_weights_withfirstclassificationlayer,folder_with_networks+network+&#39;/optimal_weights_withfirstclassificationlayer&#39;)
+
+#创建一个没有最后一层的网络：
+分类网络 = Classifiernolastlayer(参数[0],参数[1],参数[2],参数[3],参数[4])
+#加载上面提到的权重字典
+classification_network.load_state_dict(torch.load(folder_with_networks+network+&#39;/optimal_weights_withfirstclassificationlayer&#39;))
+#添加一个新层
+分类网络.分类器.append(nn.Linear(256,1))
+#在冻结特征提取层和第一个分类层之后训练最后一层
+classification_network.freeze_feature_extraction_first_classification()
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/642177/two-different-senarios-to-train-only-the-last-layer-of-a-convolutional-neural-ne</guid>
+      <pubDate>Fri, 08 Mar 2024 18:55:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>GLMM 伽马分布的效应大小</title>
+      <link>https://stats.stackexchange.com/questions/642176/effect-size-with-glmm-gamma-distribution</link>
+      <description><![CDATA[回应上一个问题提出的关于广义线性混合效应大小的问题由于模型具有二项式分布，因此估计效应大小并不简单。我有一个包含连续预测变量的数据集，其中每个响应变量的 family = gamma (link = “log”)。
+对每个响应进行模型选择后，我确定了一个始终出现在我的最佳模型中的预测变量。是否有一种方法可以直观地表示该预测变量与每个响应变量之间关系的大小，类似于使用 sjPlot::plot_model？尽管我已经利用 ggeffects 以图形方式描述了该模型，但我正在寻求一种简单的方法来展示该预测变量与每个响应之间关系的强度。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642176/effect-size-with-glmm-gamma-distribution</guid>
+      <pubDate>Fri, 08 Mar 2024 18:54:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 R 中跨不同级别重复测量来分析二进制数据</title>
+      <link>https://stats.stackexchange.com/questions/642175/analyzing-binary-data-with-repeated-measures-across-different-levels-in-r</link>
+      <description><![CDATA[我有这个数据框：https://i.stack.imgur.com/EGh1z .png
+它是受试者在 2 个环境条件下对 4 个不同测试的二元记录响应（重复测量）（2x4 因子设计，对两个因素进行重复测量）。
+我正在寻找条件变化可能对受试者的反应产生的任何统计显着差异，并解释不同的测试和重复测量。
+我尝试在 R 中进行 Cochran&#39;s Q 测试。这是我第一次尝试此测试，每个块进行多个观察并没有帮助，而且我经常遇到错误。我想到的另一个解决方案是将响应变量更改为受试者响应为“1”的次数百分比。每个测试有四次重复测量。这样，二元响应将变为数字，我可以进行重复测量方差分析吗？
+我很感激您的想法！]]></description>
+      <guid>https://stats.stackexchange.com/questions/642175/analyzing-binary-data-with-repeated-measures-across-different-levels-in-r</guid>
+      <pubDate>Fri, 08 Mar 2024 18:53:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否应该使用整个数据集的迁移学习来调整单个模型？ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/642173/should-transfer-learning-from-the-whole-data-set-be-used-tuning-individual-model</link>
       <description><![CDATA[我正在使用神经网络进行时间序列的异常检测。我的计划是根据历史（基线）数据训练 CNN 或 LSTM 模型，然后应用它来检测新数据流中的异常。有一个共享相同上下文的大型时间序列数据库。我看到两条路：
 
@@ -21,7 +337,7 @@
       <title>迁移学习期间波动的验证损失和准确性 (ResNet50) - FER+ 数据集</title>
       <link>https://stats.stackexchange.com/questions/642170/fluctuating-validation-loss-accuracy-during-transfer-learning-resnet50-fer</link>
       <description><![CDATA[我正在尝试构建一个用于图像分类的 CNN 模型，更具体地说，使用 FER+ 数据集进行情感分类，但事实证明该模型很难使用。
-我尝试了多种模型变体，从“从头开始”到我当前的最佳解决方案 - 迁移学习。到目前为止，我最好的结果来自于使用 ResNet50 或 MobileNetV2 作为我的基础模型以及我自己的自定义可训练头。更具体地说，我截断了基本模型，只冻结前几个块，同时留下最接近头部的块，可训练。到目前为止，这种特征提取和微调的组合已达到 93-95% 的验证准确率（取决于 ResNet50 还是 MobileNetV2）。
+我尝试了多种模型变体，从“从头开始”到我当前的最佳解决方案 - 迁移学习。到目前为止，我最好的结果来自于使用 ResNet50 或 MobileNetV2 作为我的基本模型以及我自己的自定义可训练头。更具体地说，我截断了基本模型，只冻结前几个块，同时留下最接近头部的块，可训练。到目前为止，这种特征提取和微调的组合已达到 93-95% 的验证准确率（取决于 ResNet50 还是 MobileNetV2）。
 虽然这听起来不错，但在训练时会出现问题，其中验证损失和验证损失会增加。尽管尝试进行正则化、向数据生成器添加更多增强功能并在微调时降低学习率，但准确性仍波动很大。下图是我使用 ResNet50 作为基础模型时的训练结果。此外，在混淆矩阵中，您还可以看到它如何从未从测试集中正确预测任何“厌恶”图像，其中包含“厌恶”类中的 20 个图像。此外，无论我使用 ResNet 还是 MobileNet 作为我的基础模型，我似乎仍然在损失和准确度上得到相同的波动。
 有关我的模型和训练的一些详细信息：
 
@@ -45,8 +361,15 @@
       <link>https://stats.stackexchange.com/questions/642169/i-want-to-create-a-volatility-score-using-5-data-points</link>
       <description><![CDATA[我想使用过去 5 年的活动来衡量客户群的波动性。即 5 年期间按年计算的购买总额。
 我计划使用这个公式来计算方差（即找到平方偏差的平均值）。
+[![方差计算][1]][1]
+我想知道这是否是回答这个问题的正确计算方法 - 哪些客户每年波动性最大。我主要看到与证券/股票相关的波动性，但这是一个不同的用例。这是正确的方法还是有更好的方法？
+编辑：我不确定这是正确的公式。考虑这些例子：
 
-我想知道这是否是回答这个问题的正确计算方法 - 哪些客户每年波动性最大。我主要看到与证券/股票相关的波动性，但这是一个不同的用例。这是正确的方法还是有更好的方法？]]></description>
+记录 1：2020、2020、2080、2020、2020
+记录 2：4、8、26、50、13
+
+我认为记录 1 非常一致，因此它应该具有较低的方差，但方差为 576。记录 2 具有较高的变异性，但方差低于记录 1 (277)。我们有非常大的客户和非常小的客户，我想显示出无论大小的差异。有没有办法做到这一点？
+[1]: https://i.stack.imgur.com/mkRLO.png]]></description>
       <guid>https://stats.stackexchange.com/questions/642169/i-want-to-create-a-volatility-score-using-5-data-points</guid>
       <pubDate>Fri, 08 Mar 2024 17:23:44 GMT</pubDate>
     </item>
@@ -59,198 +382,9 @@ K&#39; = e^K
 $$
 现在我知道如何证明 K&#39; 是一个内核，我可以使用 $e^x$ 围绕 $0$,
 但假设我想找到一个生成 $K&#39;$ 的显式特征图，因为 $\phi(x) $ 生成 $K$。
-我该如何做到这一点，或者是否有可能？我正在考虑内核多项式展开的问题。]]></description>
+我该如何做到这一点，或者甚至可能吗？我正在考虑内核多项式展开的问题。]]></description>
       <guid>https://stats.stackexchange.com/questions/642167/can-i-find-the-explicit-feature-map-that-generates-exponent-of-a-kernel</guid>
       <pubDate>Fri, 08 Mar 2024 17:22:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该测试多少个样本才能 95% 确定不存在错误？</title>
-      <link>https://stats.stackexchange.com/questions/642165/how-many-samples-should-i-test-to-be-95-sure-that-no-error-exists</link>
-      <description><![CDATA[如果我有一百万种产品，我不会容忍其中出现任何错误。我应该测试多少个样本才能 95% 确定不存在错误？
-我是统计学新手。我知道您可能需要一些有关分布的假设。但我对此了解不多。有些人做出相应的假设，并请告诉我们可以测试这些假设的方法 - 比如我如何知道分布（如果需要）0。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642165/how-many-samples-should-i-test-to-be-95-sure-that-no-error-exists</guid>
-      <pubDate>Fri, 08 Mar 2024 16:59:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用样本和总体均值/标准差估计大小为 N 的样本的 p 值，使其服从正态分布</title>
-      <link>https://stats.stackexchange.com/questions/642164/estimate-the-p-value-for-a-sample-of-size-n-to-come-from-a-normal-distribution-b</link>
-      <description><![CDATA[有没有办法检查大小为 N（例如 30）的样本是否来自具有已知总体均值和标准差的正态分布？我想在测试中使用所有可用的信息（样本均值和标准差以及总体均值和标准差）。
-我的理解是t检验使用样本标准差，z检验使用总体标准差。我有两个可用的标准差，但我有限的理解是，在测试中使用更多信息会给出更好的估计。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642164/estimate-the-p-value-for-a-sample-of-size-n-to-come-from-a-normal-distribution-b</guid>
-      <pubDate>Fri, 08 Mar 2024 16:58:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我们最大化可能性（对数之和）而不是简单地最大化概率之和？ [复制]</title>
-      <link>https://stats.stackexchange.com/questions/642158/why-do-we-maximize-likelihood-sum-of-logs-and-not-simply-maximize-sum-of-proba</link>
-      <description><![CDATA[在逻辑回归中，我们找到最大似然估计 - $\max \prod_{i} p(y_i \mid x_i)$。这在实践中意味着最大化对数似然之和。这是有道理的，我了解 MLE。
-但是...简单地最大化可能性有什么问题吗？换句话说，如果我们的模型是某个数据集上的简单逻辑回归 $(x_i\in \mathbb{R}^d,y_i \in \{-1,1\}) $，我问的是下面两个优化问题（带日志和不带日志）的区别：
-$$\max_{W} \sum_{i : y_i = 1} \log \left(\frac{1}{1+\exp(-W^Tx_i) }\right) + \sum_{i : y_i = -1} \log \left(1 - \frac{1}{1+\exp(-W^Tx_i)}\right)$$
-$$\max_{W} \sum_{i : y_i = 1} \left(\frac{1}{1+\exp(-W^Tx_i)}\右) + \sum_{i : y_i = -1} \left(1 - \frac{1}{1+\exp(-W^Tx_i)}\right)$$
-我编写了一些简单的代码来训练具有梯度下降的双参数模型（斜率和截距），并且两种方法都有效......除了两件事：
-
-第一个具有更好的损失曲线，似乎对初始化不太敏感，训练速度更快，等等。
-我知道没有人真正做到第二个
-
-有人可以给出直观的解释和数学的解释吗？我读过各种关于“评分规则”的博客文章（例如，https://yaroslavvb.blogspot.com /2007/06/log-loss-or-hinge-loss.html），但我还是不明白。 log 在这种情况下具有哪些属性可以使其表现更好？我了解对数损失与交叉熵、MLE 等之间的所有联系；我不明白的是为什么第二个选项（无日志）不好。从实际意义上讲，我对日志将损失范围从 $[0,1]$ 扩展到  有一些模糊的直觉$[-\infty, 0]$。我还有一些直觉，认为准确度（或误差）应该以对数尺度来考虑，因为从 80% 到 90% 的准确度与从 90% 到 95% 的相对改进是相同的。不管怎样，抱歉胡言乱语——我想要一些更强烈的直觉和一些正式的数学/统计数据来支持这一点。
-这是对一些非常简单的可分离数据进行第二次（无日志）优化的损失曲线。注意它陷入局部最小值的时间有多长。其他优化只需很少的步骤即可完成。右侧是数据和输出逻辑模型。
- 之前用不同的词问过，但这个问题似乎问的是$p(x_i \mid W)$，意思是生成建模而不是分类。最重要的答案是关于概率之和如何对应于“至少一个事件为真”。而不是“所有事件都是真实的”但这似乎不适用于我的情况。如果不出意外的话，两个损失函数（有/没有对数）的全局最小值都对应于完美分类。
-另外，其中一条评论说“我不喜欢这种帖子，MLE 在统计上是合理的，但可能性之和则不然”。这是公平的，但我的目标是弄清楚如何向初学者解释事情。我只是告诉他们线性回归，我将能够向他们解释为什么一个“明显的事情”是这样的。在分类中是不好的，这只是表达你想要的损失（训练 $p(y=1\mid x)$ 的模型以输出高概率对于正标签和低概率的负标签）。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642158/why-do-we-maximize-likelihood-sum-of-logs-and-not-simply-maximize-sum-of-proba</guid>
-      <pubDate>Fri, 08 Mar 2024 16:06:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否有现场实验统计功效的最佳方法？</title>
-      <link>https://stats.stackexchange.com/questions/642156/is-there-a-best-approach-for-statistical-power-for-field-experiment</link>
-      <description><![CDATA[我正在设置一个现场实验，并希望为分析制定一个可靠的计划，因为这就是我在这个过程中感受到压力的地方。我将部署26对陷阱。 13对将在城市森林中，另一半将在乡村森林中。 13 个城市森林点将彼此不同（13 个当地公园），而乡村森林陷阱将放置在森林内（约 35,000 英亩）。我会使用城市地点作为单独的复制品，并希望对乡村陷阱做同样的事情。如果使用分水岭或其他特征在国家森林中明显间隔开，我是否仍然需要汇集 35,000 英亩森林中的所有陷阱进行分析，因为它们位于同一地点？有更好的方法吗？主要问题涉及配对陷阱，但城市/乡村部分是另一个因素。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642156/is-there-a-best-approach-for-statistical-power-for-field-experiment</guid>
-      <pubDate>Fri, 08 Mar 2024 15:50:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>EM算法中如何定义隐藏数据空间</title>
-      <link>https://stats.stackexchange.com/questions/642154/how-do-you-define-hidden-data-space-in-em-algorithm</link>
-      <description><![CDATA[如何定义EM算法中的隐藏数据空间？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642154/how-do-you-define-hidden-data-space-in-em-algorithm</guid>
-      <pubDate>Fri, 08 Mar 2024 15:35:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>解药数据优化问题</title>
-      <link>https://stats.stackexchange.com/questions/642153/antidote-data-optimization-problem</link>
-      <description><![CDATA[我目前正在阅读论文“Fair clustering through antidote data”查布拉等人。 （2021）。
-他们提出了以下优化问题，其中 $V$ 是“解药数据”，$\mathcal{ F}$ 是公平成本，$\mathcal{C}$ 是聚类目标。
-$$\begin{alignat}{2}
-&amp; \min_{V, \mu} &amp;\qquad&amp;|V| \\
-&amp;英石。 &amp;&amp; \mathcal{F}(\mu,U)\leq\alpha \\
-&amp;&amp;&amp; \mu=\mathcal{C}(U\ \cup\ V)
-\end{alignat}$$
-它们还为上述问题提供了以下松弛，其中 $V_s$ 是 $V$ 的最大大小：
-$$\begin{alignat}{2}
-&amp; \min_{V, \mu} &amp;\qquad&amp;\mathcal{F}(\mu,U) \\
-&amp;英石。 &amp;&amp; |V|\leq |V_s| \\
-&amp;&amp;&amp; \mu=\mathcal{C}(U\ \cup\ V)
-\end{alignat}$$
-直观上，我认为第二个问题更容易解决，但我发现很难准确描述原因。究竟什么更容易/以何种方式缓解第一个问题？以及“成本”是多少？那种放松？
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/642153/antidote-data-optimization-problem</guid>
-      <pubDate>Fri, 08 Mar 2024 15:20:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>glmer 在查看所有变量时出现问题</title>
-      <link>https://stats.stackexchange.com/questions/642151/glmer-problems-in-seeing-all-variables</link>
-      <description><![CDATA[我正在尝试运行二项式 glmm 来了解不同种姓蚂蚁感知的化合物的不同浓度之间的关系。我们有 5 种不同的化合物浓度 (a-e) 和 3 种不同的等级（最小、中值、最大）。我们在 3 个菌落（两个、六个和七个）中进行了测试，看看它们是否对该化合物感兴趣（如果是，则为 1，如果否，则为 0）。我们将 id 列为个人（共有 761 个）。
-我们的数据表是这样设置的：
-
-我们使用了 lme4 和 glmer 命令：
-m &lt;- glmer(Y ~ Conc * (1 + 种姓|殖民地), data = d, family = 二项式) 摘要(m, corr = FALSE)
-当我们运行它时，我们得到的读数是：
- 摘要（m，corr = FALSE）
-    通过最大似然拟合广义线性混合模型
-    （拉普拉斯近似）[glmerMod]
-     族：二项式 ( logit )
-    公式：Y ~ Conc * (1 + 种姓 | 殖民地)
-    数据：d
-
- AIC BIC logLik 偏差 df.resid
- 1067.2 1118.1 -522.6 1045.2 750
-
-缩放残差：
-最小 1Q 中值 3Q 最大
- -1.4844 -0.9855 0.7613 1.0076 1.4478
-
-  随机效果：
-  组名称方差标准差科尔
-   集落（截距） 0.4529 0.6730
-    卡斯特梅德 0.4387 0.6624 -1.00
-    卡斯特明 0.6416 0.8010 -1.00 1.00
-   obs 数量：761，组：Colony，3
-
- 固定效果：
-        估计标准。误差z值Pr(&gt;|z|)
- （截距）-0.09754 0.16571 -0.589 0.5561
- 浓度 -0.05160 0.23068 -0.224 0.8230
- 浓度 0.21758 0.22971 0.947 0.3436
- 浓度 0.07658 0.23022 0.333 0.7394
- 浓度 0.52070 0.23263 2.238 0.0252 *
- ---
- 西尼夫。代码： 0 ‘’ 0.001 ‘’ 0.01 ‘’ 0.05 ‘.’ 0.1 ‘ ’ 1
- 优化器（Nelder_Mead）收敛代码：0（OK）
- 边界（单数）拟合：参见 help(&#39;isSingular&#39;)
-
-我确实认为浓度 E 与其他浓度有显着不同，但是我们没有看到种姓之间的任何相互作用，并且似乎缺少浓度 A。我不确定是否需要添加额外的代码行获得这些交互比较？我还想知道菌落是否对工蚁对不同浓度的偏好产生影响。我们非常确定种姓在感知力（即他们选择的浓度水平）方面发挥着作用，但我觉得也许我们缺少实现这一点的关键代码。如有任何帮助，我们将不胜感激！]]></description>
-      <guid>https://stats.stackexchange.com/questions/642151/glmer-problems-in-seeing-all-variables</guid>
-      <pubDate>Fri, 08 Mar 2024 14:45:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>我可以通过样本方差比较两个估计值吗？</title>
-      <link>https://stats.stackexchange.com/questions/642149/can-i-compare-two-estimates-by-their-sample-variance</link>
-      <description><![CDATA[例如，为了估计总体平均值 $\mu$，我得到了两个样本平均值 $\bar{ x}_1$ 和 $\bar{x}_2$ 来自 $ 的两个（独立）数据集分别为 N_1$ 和 $N_2$ 个观测值。
-由于无法访问数据集，我被告知样本标准差为 $s_1$ 和 $s_2$ 并询问应该选择哪个样本均值。
-我想说这两个估计没有可比性。这是对的吗？ （我的第一个问题）
-我的推理如下。
-$$s^2 = \frac{1}{N-1}\sum_i (x_i - \bar{x})^2$$
-其中 $\bar{x} = \frac{1}{N}\sum_i x_i$。
-期望估计量是无偏的意味着我假设 $x_i=\mu + e_i$ 和 $\mathbb{E }[e]=0$。
-注入模型，$\bar{x} - \mu = \frac{1}{N}\sum_i e_i$，因此 $s^2 = \frac{1}{N-1}\sum_i (\mu+e_i - \bar{x})^2 = \frac{1}{N-1}\sum_i ( e_i + (\mu - \bar{x}))^2$。
-我的结论是，较小的 $s$ 并不意味着较小的 $(\mu-\bar{x})^ 2 美元。
-一个相关问题（我的 1-bis 问题）是否有任何方法可以评估“正确性”？两个估计中的哪个？
-我的第二个问题是我应该怎样做才能从两个数据集的均值和方差中获得更好的估计？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642149/can-i-compare-two-estimates-by-their-sample-variance</guid>
-      <pubDate>Fri, 08 Mar 2024 14:09:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>这个谬误的名称以及如何得出结论</title>
-      <link>https://stats.stackexchange.com/questions/642144/name-of-this-fallacy-and-how-to-reach-conclusion</link>
-      <description><![CDATA[在处理一些人口统计数据时，我陷入了一个无法得出结论的境地（我没有透露实际的数据集以及它涉及的对象，因此我用假设的数据代替它）。
-
-假设我们有两类人； A和B。
-我们有两种意识形态/政治观点：Alpha 和 Beta。
-
-确定或加入的个人会员数量如下：
-$$\begin{array}{c|c|c|}
- &amp; \text{意识形态-阿尔法} &amp; \text{ 意识形态测试版} \\ \hline
-\text{A 组} &amp; 90&amp; 10 \\ \h行
-\text{B 组} &amp; 70&amp; 30 \\ \h行
-\end{数组}$$
-在这种情况下； 新闻来源 1 将数据解释为
-&lt;块引用&gt;
-“B 组中只有30% 的成员代表意识形态-Beta。 B组成员不想要意识形态Beta”
-
-另一个新闻来源 2 将数据解释为
-&lt;块引用&gt;
-“大约75%隶属于Ideology Beta成员，得到B组的支持，因此Ideology Beta包含了所属人员的权利和要求社会类别B组”。
-
-现在，我的问题是；哪一个来源值得信任？使用完全相同的民意调查，两个消息来源产生了截然不同的叙述，这令人难以置信的混乱。这两种计算在技术上都是正确的，并且可能部分地显示了事实的不同方面。但我该如何重建真实的故事或从这些数据中得出结论呢？哪一个来源有偏见？或者两种表述都有偏见？这种偏见的名称或文档是什么？
-额外问题：
-表示此类数据的适当模式应该是什么？
-礼貌：我已从此处复制代码以格式化表格https://math.meta.stackexchange.com/questions/4240/how-do-i-insert-a-table-when-asking-a-question]]></description>
-      <guid>https://stats.stackexchange.com/questions/642144/name-of-this-fallacy-and-how-to-reach-conclusion</guid>
-      <pubDate>Fri, 08 Mar 2024 12:52:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>校准图的 Y 轴：每个 X 的发生率与风险百分比</title>
-      <link>https://stats.stackexchange.com/questions/642112/y-axis-of-calibration-plot-incidence-per-x-vs-percentage-at-risk</link>
-      <description><![CDATA[我正在考虑通过在 x 轴上绘制风险的第 10 个百分位数与每 100,000 的发生率来显示 cox 比例风险模型的校准有多么错误。对于 x 中的每个 bin，我可以绘制预测发生率和观察到发生率的数据点，以比较它们每 100,000 人的发生率。然而，在文献中似乎更常见的是绘制风险百分比（或经历过该事件的百分比），以便您获得一个很好的 45 度角（理想模型）进行比较。
-哪个是更好的选择？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642112/y-axis-of-calibration-plot-incidence-per-x-vs-percentage-at-risk</guid>
-      <pubDate>Fri, 08 Mar 2024 01:18:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>剂量反应函数估计何时比简单回归更有效？</title>
-      <link>https://stats.stackexchange.com/questions/642091/when-does-dose-response-function-estimation-work-better-than-simple-regression</link>
-      <description><![CDATA[最近有人问我，剂量反应函数 (DRF) 估计（如 此链接 和 本文）和统计回归方法。因此，我尝试创建一些玩具综合示例，以展示一些回归方法无法估计治疗影响的情况，而 DRF 估计具有这种能力。但我没能找到。
-特别是，我创建了此笔记本来测试这两者引用了与线性回归 (LR) 进行比较的方法，并发现以下结果：
-
-在无混杂且没有碰撞器的场景中，没有什么比回归更准确
-DRF 估算方法存在偏差/不如我预期的准确
-如果我在分析中包含对撞机，将其混淆为混杂因素，那么 DRF 估计方法（仍然有偏差，但更）比 LR 更稳健
-
-鉴于这些发现，我有几个问题。
-
-如果在没有碰撞器的场景中传统回归方法效果更好，那么使用这些方法有什么意义？ （当然，如果用户认为不会出现这种情况，他/她可以执行分析来删除碰撞器）
-是否存在 DRF 估计方法比回归方法偏差更小的情况？
-
-欢迎下载并使用我的笔记本，其他一些笔记本示例将不胜感激，谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/642091/when-does-dose-response-function-estimation-work-better-than-simple-regression</guid>
-      <pubDate>Thu, 07 Mar 2024 18:31:09 GMT</pubDate>
     </item>
     </channel>
 </rss>
