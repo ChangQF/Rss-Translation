@@ -4,7 +4,312 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 08 Mar 2024 06:17:32 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 08 Mar 2024 09:13:23 GMT</lastBuildDate>
+    <item>
+      <title>cnn 代码有问题，可能是班级老师的问题</title>
+      <link>https://stackoverflow.com/questions/78126559/problem-with-a-cnn-code-maybe-instructor-problem-of-the-class</link>
+      <description><![CDATA[我建立了一个 CNN
+将 numpy 导入为 np
+进口火炬
+将 torch.nn 导入为 nn
+
+CNN 类（nn.Module）：
+ def __init__(自身):
+  超级（CNN，自我）.__init__()
+    自我.n = 10
+    内核大小 = 3
+    填充 = (内核大小 - 1) / 2
+    self.conv1 = nn.Conv2d(in_channels=3,out_channels=self.n,kernel_size=kernel_size,stride = (2,2),padding=padding),
+
+    self.conv2 = nn.Conv2d(in_channels=self.n,out_channels=2*self.n,kernel_size=kernel_size,stride = (2,2),padding=padding),
+        
+    self.conv3 = nn.Conv2d(in_channels=2*self.n,out_channels=4*self.n,kernel_size=kernel_size,stride = (2,2),padding=padding),
+    
+    self.conv4 = nn.Conv2d(in_channels=4*self.n,out_channels=8*self.n,kernel_size=kernel_size,stride = (2,2),padding=padding),
+    
+    self.fc1 = nn.Linear(8 * self.n * 7 * 4, 100)
+    self.fc2 = nn.Linear(100, 2)
+
+ def 转发（自身，inp）：
+   输出 = nn.function.relu(self.conv1(inp))
+   输出 = nn.function.relu(self.conv2(out))
+   输出 = nn.function.relu(self.conv3(out))
+   输出 = nn.function.relu(self.conv4(out))
+
+   出=出。视图(-1, 8 * self.n * 7 * 4)
+   输出 = nn.function.relu(self.fc1(out))
+   输出 = self.fc2(输出)
+    
+   返回
+
+输入数据inp是形状为(N,3,448,224)的张量，输出形状为(N,2)。
+问题是我收到错误：“TypeError: &#39;tuple&#39; object is not callable”
+对于行：” out = nn.function.relu(self.conv1(inp))”
+有什么解决办法吗？
+我尝试将其分离为：
+inp = self.conv1(inp)
+inp = nn.function.relu(inp)
+仍然无法工作...]]></description>
+      <guid>https://stackoverflow.com/questions/78126559/problem-with-a-cnn-code-maybe-instructor-problem-of-the-class</guid>
+      <pubDate>Fri, 08 Mar 2024 09:05:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么 `skorecard.WoeEncoder()` 这么慢，如何让它更快？</title>
+      <link>https://stackoverflow.com/questions/78126501/why-is-skorecard-woeencoder-so-slow-and-how-can-i-make-it-faster</link>
+      <description><![CDATA[我正在使用 WoeEncoder()  从 skorecard Python 库到对预测建模的大量特征进行目标编码，但由于某种原因速度非常慢。
+是否有任何方法可以修改 WoeEncoder() 的代码以保留相同的功能，但只是使其运行速度更快？我需要在 sklearn 管道等中使用它。
+
+可重现的示例显示了巨大的速度差异：
+from skorecard.preprocessing import WoeEncoder # pip install skorecard
+
+随机导入
+将 pandas 导入为 pd
+将 numpy 导入为 np
+
+# 时间安排：
+导入时间
+来自人类友好的导入 format_timespan
+
+def tic():
+    全球圣
+    st = 时间.time()
+    
+def 目录():
+    et = 时间.time()
+    time_elapsed = 轮(et - st, 1)
+    print(&quot;经过的时间:&quot;, format_timespan(time_elapsed))
+
+生成随机分箱数据以进行 WOE 编码：
+X_train_binned = pd.DataFrame(np.random.randint(0,10, size = (20000, 1000))).astype(str)
+X_test_binned = pd.DataFrame(np.random.randint(0,10, size = (20000, 1000))).astype(str)
+
+y_train = np.random.randint(0,2, 大小 = (20000, ))
+
+
+
+&lt;强&gt;1。使用 skorecard.WoeEncoder() ：
+&lt;前&gt;&lt;代码&gt;tic()
+
+祸 = WoeEncoder()
+woe.fit(X_train_binned, y_train) # 快
+X_train_WOE_1 = woe.transform(X_train_binned) # 非常慢
+X_test_WOE_1 = woe.transform(X_test_binned) # 非常慢
+
+目录()
+
+&lt;块引用&gt;
+已用时间：3 分 26.1 秒
+
+
+
+&lt;强&gt;2。使用我自己的函数：
+def woe_mapping_1d(X_train_binned_col, y_train, epsilon = 0.0001):
+    df = pd.DataFrame({&#39;feat&#39;: X_train_binned_col, &#39;target&#39;: y_train}).reset_index(drop = True)
+    df[&#39;non_target&#39;] = np.where(df[&#39;target&#39;] == 1, 0, 1)
+    
+    woe_table = df.groupby(&#39;feat&#39;, as_index = False).agg(target_count = (&#39;target&#39;, &#39;sum&#39;),
+                                                         non_target_count = (&#39;non_target&#39;, &#39;总和&#39;))
+    woe_table[&#39;pct_of_target&#39;] = (woe_table[&#39;target_count&#39;] / df[&#39;target&#39;].sum()) + epsilon
+    woe_table[&#39;pct_of_non_target&#39;] = (woe_table[&#39;non_target_count&#39;] / df[&#39;non_target&#39;].sum()) + epsilon
+    woe_table[&#39;WOE&#39;] = np.log(woe_table[&#39;pct_of_non_target&#39;] / woe_table[&#39;pct_of_target&#39;])
+
+    映射_dict = dict(zip(woe_table[&#39;feat&#39;], woe_table[&#39;WOE&#39;]))
+    返回映射字典
+
+
+def create_woe_mapping_dict(X_train_binned, y_train, epsilon = 0.0001):
+    woe_mapping_dict = {}
+
+    对于 X_train_binned.columns 中的 var：
+        woe_mapping_dict[var] = woe_mapping_1d(X_train_binned_col = X_train_binned[var], y_train = y_train, epsilon = epsilon)
+        
+    返回 woe_mapping_dict
+
+
+def apply_woe_mappings(X_binned, woe_mapping_dict, woe_value_unknown = 0):
+    X_WOE_列表 = []
+    
+    对于 X_binned.columns 中的 var：
+        X_WOE_var = X_binned[var].map(woe_mapping_dict[var]).fillna(woe_value_unknown)
+        X_WOE_list.append(X_WOE_var)
+    
+    X_WOE_df = pd.concat(X_WOE_list, 轴 = 1)
+    返回X_WOE_df
+
+它的运行速度快了约 40 倍，并产生相同的结果：
+&lt;前&gt;&lt;代码&gt;tic()
+
+woe_dict = create_woe_mapping_dict(X_train_binned, y_train)
+
+X_train_WOE_2 = apply_woe_mappings(X_train_binned, woe_dict)
+X_test_WOE_2 = apply_woe_mappings(X_test_binned, woe_dict)
+
+目录()
+
+打印（X_train_WOE_1.等于（X_train_WOE_2））
+打印（X_test_WOE_1.等于（X_test_WOE_2））
+
+&lt;块引用&gt;
+已用时间：5.3 秒
+真的
+真的
+
+
+任何帮助将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78126501/why-is-skorecard-woeencoder-so-slow-and-how-can-i-make-it-faster</guid>
+      <pubDate>Fri, 08 Mar 2024 08:54:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>目标和输入大小不匹配的 ValueError</title>
+      <link>https://stackoverflow.com/questions/78126473/valueerror-with-mismatched-target-and-input-size</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78126473/valueerror-with-mismatched-target-and-input-size</guid>
+      <pubDate>Fri, 08 Mar 2024 08:50:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么LSTM在大时间步长的情况下仍然存在梯度消失的问题？</title>
+      <link>https://stackoverflow.com/questions/78126328/why-does-lstm-still-have-the-problem-of-gradient-vanishing-in-large-time-step-ca</link>
+      <description><![CDATA[我构建了一个 LSTM 模型来预测机械零件的行为。
+输入的大小为 (256, 32)。 256 是时间步数，32 是每个步中的特征数。输出的大小为 2。我有 20,000 组这些输入和输出
+我使用以下模型来训练输入和输出，
+`模型 = keras.Sequential()
+model.add(layers.Input(shape=(None, input_size)))
+model.add(layers.Bi Direction(layers.LSTM(32, return_sequences=True)))
+model.add(layers.Dropout(0.1))
+model.add(layers.Dense(output_size))`
+我使用 mse 作为训练的损失函数，并使用 adam 作为优化器。
+但是，我得到的损失结果如下所示：
+图片
+训练和验证损失收敛到接近 0.5，这是相当大的。
+我认为问题在于时间步长。较长的时间步长会导致梯度消失的问题。因为如果我减少时间步长，使输入的大小为 (64, 32)，那么训练损失和验证损失都会收敛到一个非常小的数字 (10^-2)。
+但我仍然想训练输入大小为 (256, 32) 的数据集。我该怎么办？
+我看到一些博客建议将输入切割成几个部分（例如 4 个 (64, 32) 形成 (256, 32)）并将这些部分连接在一起，并将前一个输出缓存到下一个输入的输入。但我不知道如何提取 LSTM 中的隐藏信息，以便将其输入到下一部分的输入中。您有什么想法或有其他解决方案吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78126328/why-does-lstm-still-have-the-problem-of-gradient-vanishing-in-large-time-step-ca</guid>
+      <pubDate>Fri, 08 Mar 2024 08:19:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>尽管张量是叶子，但神经网络（pytorch）中的损失却没有得到任何结果</title>
+      <link>https://stackoverflow.com/questions/78126160/getting-none-from-loss-in-neural-network-pytorch-despite-tensors-being-leaf</link>
+      <description><![CDATA[我检查了所有的张量和输入参数，它们都是叶子，根据下面的代码，
+def train_step(w1,b1):
+    打印（“w=”，w1）
+    可训练变量 = [w1,b1]
+    优化器 = torch.optim.SGD(trainable_variables, lr=learning_rate)
+    损失=变量（loss2_function（），requires_grad = True）
+    打印(loss.backward())
+    使用 torch.no_grad()：
+        w1 -=(学习率 * w1.grad)
+        b1 -= (学习率 * b1.grad)
+        w1.grad.zero_()
+        b1.grad.zero_()
+    优化器.step()
+    优化器.zero_grad()
+
+我仍然没有得到任何结果，即使学习率、权重和偏差发生变化，网络仍然无法工作，请指导我。]]></description>
+      <guid>https://stackoverflow.com/questions/78126160/getting-none-from-loss-in-neural-network-pytorch-despite-tensors-being-leaf</guid>
+      <pubDate>Fri, 08 Mar 2024 07:42:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>深度学习模型训练</title>
+      <link>https://stackoverflow.com/questions/78126036/deep-learning-model-training</link>
+      <description><![CDATA[我一直在尝试创建一个 CNN 模型来预测头部受伤。我已经确定了数据集的频谱图图像，并创建了指示头部是否受伤的标签文件。
+我拿了两个数据集，都有列：通道、标签和图像路径。标记为1（表示头部受伤）和0（表示未受伤）。从每个数据集中总共识别出 117 个通道图像。在尝试运行 CNN 模型时，我在 Jupyter Notebook 中使用了以下代码：
+导入操作系统
+将 pandas 导入为 pd
+将 numpy 导入为 np
+将张量流导入为 tf
+从 sklearn.model_selection 导入 train_test_split
+从tensorflow.keras.preprocessing.image导入load_img，img_to_array
+从tensorflow.keras.models导入顺序
+从tensorflow.keras.layers导入Conv2D、MaxPooling2D、Flatten、Dense、Dropout
+从tensorflow.keras.optimizers导入Adam
+从tensorflow.keras.preprocessing.image导入ImageDataGenerator
+从tensorflow.keras.utils导入to_categorical
+
+df1 = pd.read_csv(&#39;C:/Users/Lenovo/Desktop/EEG 处理材料/div_attention.cnt 频谱图图像/更新的头部损伤标签.csv&#39;)
+df2 = pd.read_csv(&#39;C:/Users/Lenovo/Desktop/EEG 处理材料/1c_p300 频谱图图像/更新的头部受伤标签 2.csv&#39;)
+
+df = pd.concat([df1, df2], axis=0).reset_index(drop=True)
+
+df[&#39;标签&#39;] = df[&#39;标签&#39;].astype(str)
+
+train_df，test_df = train_test_split（df，test_size = 0.2，random_state = 42）
+
+train_df[&#39;标签&#39;] = train_df[&#39;标签&#39;].astype(str)
+test_df[&#39;标签&#39;] = test_df[&#39;标签&#39;].astype(str)
+
+train_datagen = ImageDataGenerator(重新缩放=1./255)
+test_datagen = ImageDataGenerator（重新缩放=1./255）
+
+train_generator = train_datagen.flow_from_dataframe(
+    数据框=train_df，
+    x_col=&#39;图像路径&#39;,
+    y_col=&#39;标签&#39;,
+    目标大小=(1000, 800),
+    批量大小=32，
+    class_mode=&#39;二进制&#39;）
+
+test_generator = test_datagen.flow_from_dataframe(
+    数据框=test_df，
+    x_col=&#39;图像路径&#39;,
+    y_col=&#39;标签&#39;,
+    目标大小=(1000, 800),
+    批量大小=32，
+    class_mode=&#39;二进制&#39;）
+
+直到这一部分，它给我的输出为：
+找到 186 个经过验证的图像文件名，属于 2 个类别。
+找到 47 个经过验证的图像文件名，属于 2 个类别。
+#创建模型
+从tensorflow.keras.models导入顺序
+从tensorflow.keras.layers导入Conv2D、MaxPooling2D、Flatten、Dense、Dropout
+
+模型=顺序（[
+    Conv2D(32, (3, 3), 激活=&#39;relu&#39;, input_shape=(1000, 800, 3)),
+    最大池化2D(2, 2),
+    Conv2D(64, (3, 3), 激活=&#39;relu&#39;),
+    最大池化2D(2, 2),
+    Conv2D(128, (3, 3), 激活=&#39;relu&#39;),
+    最大池化2D(2, 2),
+    展平（），
+    密集（256，激活=&#39;relu&#39;），
+    辍学（0.5），
+    密集（1，激活=&#39;sigmoid&#39;）
+]）
+
+model.compile(optimizer=&#39;adam&#39;,loss=&#39;binary_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
+
+模型.summary()
+
+输出：
+模型摘要：
+#训练模型
+历史 = model.fit(
+    火车发电机，
+    steps_per_epoch=train_generator.n // train_generator.batch_size,
+    纪元=5，
+    验证数据=测试生成器，
+    validation_steps=test_generator.n // test_generator.batch_size
+）
+
+输出：
+模型训练输出：
+模型训练代码后，我的内核自动死亡，显示 ResourceExhausted 错误，我该如何解决这个问题？我也尝试在 Google colab 中运行，也遇到了类似的错误。]]></description>
+      <guid>https://stackoverflow.com/questions/78126036/deep-learning-model-training</guid>
+      <pubDate>Fri, 08 Mar 2024 07:12:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>物体检测（Opencv）</title>
+      <link>https://stackoverflow.com/questions/78125895/object-detectionopencv</link>
+      <description><![CDATA[我是机器学习和计算机视觉领域的新手，
+我尝试过精简版的 SSD MobileNet 模型来检测对象，但我的主要动机是
+应该检测未经训练的对象，如果该对象在我们的数据集中不可用，那么它应该被检测为未知对象。
+我该怎么做。请帮助我。
+我需要的解决方案是我的模型应该将对象检测为未知对象，而无需机器学习。
+我不想认出这个物体。只是应该检测到它。]]></description>
+      <guid>https://stackoverflow.com/questions/78125895/object-detectionopencv</guid>
+      <pubDate>Fri, 08 Mar 2024 06:34:43 GMT</pubDate>
+    </item>
     <item>
       <title>训练 ViT 训练损失稳定，但验证曲线振荡</title>
       <link>https://stackoverflow.com/questions/78125693/stable-training-loss-but-oscillating-validation-curves-training-vit</link>
@@ -42,7 +347,7 @@ df = pd.DataFrame(data1)
 &lt;小时/&gt;
 我有一个如图所示的数据
 我想要 pd.groupby(&#39;category&#39;)，然后获取前 n 个同一时间的数据（n 可以是 1,2 ..依此类推，我们可以假设 n=1）天基于当前时间组
-如果不需要分组操作，可以通过(data.rolling(window=&#39;1D&#39;,close=&#39;both&#39;,on=&#39;time&#39;).apply(lambda x:x[0]))获取与 pandas，但是，如果需要 groupy，我不知道该怎么做
+如果不需要分组操作，可以通过 (data.rolling(window=&#39;1D&#39;,lined=&#39;both&#39;,on=&#39;time&#39;).apply(lambda x:x[0])) 获取与 pandas，但是，如果需要 groupy，我不知道该怎么做
 总之，我希望在每个组中都能得到它。
 期待您的帮助！！]]></description>
       <guid>https://stackoverflow.com/questions/78125442/how-to-get-data-for-the-same-time-of-the-previous-n-days-base-on-current-time</guid>
@@ -198,282 +503,6 @@ TARGET=mbed TAGS=“CMSIS-NN disco_f746ng”生成_微_语音_mbed_项目
       <pubDate>Fri, 08 Mar 2024 02:44:08 GMT</pubDate>
     </item>
     <item>
-      <title>HOML练习第2章分类中的数据增强</title>
-      <link>https://stackoverflow.com/questions/78124870/homl-excersice-chapter-2-data-augmentation-in-classification</link>
-      <description><![CDATA[问题引用
-&lt;块引用&gt;
-编写一个函数，可以将 MNIST 图像在任何方向（左、右、上、下）移动一个像素。⁠ 然后，对于训练集中的每个图像，创建四个移动副本（每个方向一个）并将它们添加到训练集中。最后，在这个扩展的训练集上训练你的最佳模型，并在测试集上测量其准确性。您应该观察到您的模型现在表现得更好了！这种人工增长训练集的技术称为数据增强或训练集扩展。
-
-我尝试的解决方案：
-来自 scipy.ndimage.interpolation 导入移位
-将 numpy 导入为 np
-从 sklearn.linear_model 导入 SGDClassifier
-从 sklearn.model_selection 导入 cross_val_score
-
-def shift_image(图像, 方向):
-    图像 = image.reshape((28, 28))
-    如果方向==“右”：
-        返回移位（图像，[0, 1]，cval=0）
-    elif 方向==“左”：
-        返回移位（图像，[0，-1]，cval = 0）
-    elif 方向 == “向上”：
-        返回移位（图像，[-1, 0]，cval=0）
-    elif 方向 == “向下”：
-        返回移位（图像，[1, 0]，cval=0）
-
-
-
-移位图像 = []
-
-对于 X_train 中的 img：
-    shift_images.append(shift_image(img, “右”))
-    shift_images.append(shift_image(img, “左”))
-    shift_images.append(shift_image(img, “向上”))
-    shift_images.append(shift_image(img, “向下”))
-
-# 将移位图像列表转换为 numpy 数组
-X_train_shifted = np.array(shifted_images)
-flattened_images = X_train_shifted.reshape((-1, 28 * 28))
-打印（展平图像.形状）
-打印（X_train.shape）
-X_combined = np.concatenate((X_train, flattened_images))
-X_combined.shape
-
-
-
-y_combined = np.concatenate((y_train,y_train,y_train,y_train,y_train))
-
-sgd_clf = SGDClassifier()
-sgd_clf.fit(X_combined,y_combined)
-cross_val_score(sgd_clf,X_combined,y_combined,cv=3,scoring=“准确度”)
-
-交叉验证分数输出：
-数组([0.08093, 0.10234, 0.10207])
-
-为什么我得到的分数比虚拟分类器差？]]></description>
-      <guid>https://stackoverflow.com/questions/78124870/homl-excersice-chapter-2-data-augmentation-in-classification</guid>
-      <pubDate>Thu, 07 Mar 2024 23:31:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>更好的分类模型架构[关闭]</title>
-      <link>https://stackoverflow.com/questions/78124708/a-better-model-architecture-for-classification</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78124708/a-better-model-architecture-for-classification</guid>
-      <pubDate>Thu, 07 Mar 2024 22:40:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>Chrome 扩展工具中的 500 内部服务器错误</title>
-      <link>https://stackoverflow.com/questions/78124159/500-internal-server-error-in-a-chrome-extension-tool</link>
-      <description><![CDATA[我正在尝试为网络钓鱼电子邮件检测系统创建一个 Chrome 扩展工具。该系统使用“提取”按钮来收集发件人、主题和电子邮件正文文本，并使用“扫描”按钮来分析提取的电子邮件正文中的网络钓鱼指标。虽然我可以成功提取信息，但单击“扫描”按钮会导致控制台中显示 500 内部服务器错误。有什么建议可以解决这个问题吗？
-后端.py
-导入回溯
-从烧瓶导入烧瓶，请求，jsonify
-将 pandas 导入为 pd
-从 sklearn.feature_extraction.text 导入 TfidfVectorizer
-从 sklearn.linear_model 导入 LogisticRegression
-从flask_cors导入CORS
-导入 json
-导入日志记录
-从 http 导入 HTTPStatus
-
-
-应用程序=烧瓶（__名称__）
-
-
-# 加载数据集
-数据集 = pd.read_csv(“mail_data.csv”)
-
-# 用空字符串替换空值
-mail_data = dataset.where((pd.notnull(dataset)), &#39;&#39;)
-
-# 将垃圾邮件标记为0；正品如1
-mail_data.loc[mail_data[&#39;类别&#39;] == &#39;垃圾邮件&#39;, &#39;类别&#39;,] = 0
-mail_data.loc[mail_data[&#39;类别&#39;] == &#39;真实&#39;, &#39;类别&#39;,] = 1
-
-# 假设您的数据集有一个包含电子邮件内容的“文本”列和一个用于网络钓鱼的“标签”列
-X = mail_data[&#39;消息&#39;]
-Y = mail_data[&#39;类别&#39;]
-
-＃ 特征提取
-feature_extraction = TfidfVectorizer(min_df=1, stop_words=&#39;english&#39;, lowercase=True)
-X_features = feature_extraction.fit_transform(X)
-
-# 将 Y 值转换为整数
-Y = Y.astype(&#39;int&#39;)
-
-# 训练模型
-模型=逻辑回归()
-model.fit(X_features, Y)
-
-
-@app.route(&#39;/&#39;, 方法=[&#39;GET&#39;, &#39;POST&#39;])
-def Predict_phishing():
-    如果 request.method == &#39;POST&#39;:
-        email_content = request.json.get(&#39;email_content&#39;, &#39;&#39;)
-        # 输入数据的特征提取
-
-        email_content_feature = feature_extraction.transform([email_content])
-        # 使用训练好的模型进行预测
-        预测 = model.predict(email_content_feature)[0]
-
-        
-
-        返回 jsonify({&#39;预测&#39;: 预测})
-    # 如果请求方法是GET，则返回一条消息
-    别的：
-        return jsonify({&#39;message&#39;: &#39;请使用POST方法进行预测。&#39;})
-    
-
-   
-如果 __name__ == &#39;__main__&#39;:
-    应用程序运行（调试=真）
-
-
-popup.js
-// 存储电子邮件主题、发件人和消息的变量
-让 emailSubjectSenderMessage = {};
-
-// 向 content.js 发送消息以提取电子邮件内容的函数
-函数提取电子邮件内容（）{
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =&gt; {
-    if (tabs &amp;&amp; tabs.length &gt; 0 &amp;&amp; tabs[0].id) {
-      const activeTab = tabs[0];
-      chrome.tabs.sendMessage(activeTab.id, { action: &#39;extractEmailContent&#39; }, (response) =&gt; {
-        if (chrome.runtime.lastError) {
-          // 处理发送消息时的任何错误
-
-        } 别的 {
-          // 检查响应中是否包含 emailContent
-          if (response &amp;&amp; response.emailContent) {
-            // 提取邮件内容
-            const emailContent = response.emailContent;
-
-            // 提取发件人的电子邮件地址
-            const senderEmail = emailContent.senderEmail;
-
-            // 将电子邮件主题、发件人和消息存储在变量中
-            电子邮件主题发件人消息 = {
-              主题：电子邮件内容.主题，
-              发件人：发件人电子邮件，
-              消息：emailContent.body
-            };
-
-            // 显示提取的内容，包括发件人的电子邮件地址
-            显示电子邮件内容（电子邮件内容，发件人电子邮件）；
-          } 别的 {
-            displayErrorMessage(&#39;此页面上找不到电子邮件数据。&#39;);
-          }
-        }
-      });
-    } 别的 {
-      console.error(&#39;无效的选项卡或选项卡 ID 不可用。&#39;);
-    }
-  });
-}
-
-
-// 显示提取的电子邮件内容的函数
-函数显示电子邮件内容（电子邮件内容，发件人电子邮件）{
-  const emailContentDiv = document.getElementById(&#39;emailContent&#39;);
-  emailContentDiv.innerHTML = `发件人： ${senderEmail}&lt;br&gt;&lt;strong&gt;主题：&lt;/strong&gt; ${emailContent.subject}&lt;br&gt;&lt;strong&gt;消息：&lt;/strong&gt; ${emailContent.body}`;
-}
-
-// 显示错误信息的函数
-函数显示错误消息（消息）{
-  const emailContentDiv = document.getElementById(&#39;emailContent&#39;);
-  emailContentDiv.textContent = 消息；
-}
-]]></description>
-      <guid>https://stackoverflow.com/questions/78124159/500-internal-server-error-in-a-chrome-extension-tool</guid>
-      <pubDate>Thu, 07 Mar 2024 20:28:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习通过 SVC 症状预测疾病 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78123509/machine-learning-prediction-of-disease-by-symptoms-with-svc</link>
-      <description><![CDATA[我正在尝试创建一种通过症状来预防疾病的功能，但我有什么想法吗？
-它会像：
-症状 = [“皮肤皮疹”、“连续打喷嚏”、“瘙痒”]
-pred（症状，模型）
-
-这是我当前的代码：
-将 pandas 导入为 pd
-从 sklearn.preprocessing 导入 LabelEncoder、StandardScaler
-从 sklearn.model_selection 导入 train_test_split
-从 sklearn.svm 导入 SVC
-从 sklearn.metrics 导入准确度_分数、精度_分数、召回_分数、f1_分数
-
-def load_and_preprocess_data(文件路径):
-    df = pd.read_csv(文件路径)
-
-    # 识别非数字列（不包括“疾病”）
-    non_numeric_cols = df.select_dtypes(include=[&#39;object&#39;]).columns.difference([&#39;Disease&#39;])
-    print(&quot;非数字列（不包括&#39;疾病&#39;）：&quot;, non_numeric_cols)
-
-    df.fillna(0,就地=True)
-
-    如果 df.columns 中有“疾病”：
-        le = 标签编码器()
-        df[&#39;疾病&#39;] = le.fit_transform(df[&#39;疾病&#39;])
-
-    X = df.drop(&#39;疾病&#39;, axis=1)
-    y = df[&#39;疾病&#39;]
-
-    # 特征缩放（如果需要，考虑替代缩放方法）
-    定标器=标准定标器()
-    X = pd.DataFrame(scaler.fit_transform(X))
-
-    返回 X, y
-
-def build_and_train_model(X_train, y_train):
-    # 使用不同的内核进行实验（线性、rbf 等）
-    model = SVC(kernel=&#39;linear&#39;) # 替换为所选内核
-
-    # 训练模型
-    model.fit(X_train, y_train)
-
-    返回模型
-
-def Predict_and_evaluate(模型, X_test, y_test):
-    y_pred = model.predict(X_test)
-    准确度=准确度_得分(y_test, y_pred)
-    精度 = precision_score(y_test, y_pred, 平均值=&#39;加权&#39;)
-    召回率=召回率（y_test，y_pred，平均值=&#39;加权&#39;）
-    f1 = f1_score(y_test, y_pred, 平均值=&#39;加权&#39;)
-
-    print(“准确度：”, 准确度)
-    print(&quot;精度：&quot;, 精度)
-    print(“回忆：”, 回忆)
-    print(&quot;F1-分数：&quot;, f1)
-
-
-def main():
-    文件路径 = &#39;数据集/merged_dataset.csv&#39;
-
-    X, y = load_and_preprocess_data(文件路径)
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    模型 = build_and_train_model(X_train, y_train)
-
-    预测和评估（模型，X_测试，y_测试）
-
-
-如果 __name__ == “__main__”：
-    主要的（）
-
-这就是 csv 的样子：
-疾病、瘙痒、皮疹、结节性皮肤疹、连续打喷嚏
-真菌感染,1,3,4,0,0
-真菌感染,1,3,0,0,6
-过敏,1,3,0,0,0
-... 和更多
-
-是症状的严重程度，如 1,3,4,0,0（0 表示对该疾病不重要）
-所以我必须用我训练的模型通过症状列表来猜测疾病我该怎么办？]]></description>
-      <guid>https://stackoverflow.com/questions/78123509/machine-learning-prediction-of-disease-by-symptoms-with-svc</guid>
-      <pubDate>Thu, 07 Mar 2024 18:09:35 GMT</pubDate>
-    </item>
-    <item>
       <title>如何用奇数样本大小批量训练神经网络？</title>
       <link>https://stackoverflow.com/questions/78119974/how-to-train-nn-in-batches-with-odd-examples-size</link>
       <description><![CDATA[我是神经网络领域的新手，正在使用 pytorch 进行一些训练。
@@ -531,54 +560,6 @@ n_inputs = X.size[1] #2377
       <pubDate>Thu, 07 Mar 2024 08:58:57 GMT</pubDate>
     </item>
     <item>
-      <title>训练有素的多智能体强化学习模型在增加智能体时崩溃 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78119078/trained-multi-agent-rl-model-crashes-when-increasing-agents</link>
-      <description><![CDATA[我正在 Open AI Gym 中制作一个具有稳定基线的自定义 Boid 植绒环境 3。 
-我测试了 boids 的不同初始化位置，但获得了奖励 600200，并且它们按预期移动。
-但是，当我为了一致性而使用模型进行重新训练和测试时，它的表现不佳，并且我的剧集奖励大多为负。虽然我什么也没改变。
-我的模型是训练有素的模型，是侥幸还是过度拟合？因为它对于不同的职位都有足够的表现。
-奖励]]></description>
-      <guid>https://stackoverflow.com/questions/78119078/trained-multi-agent-rl-model-crashes-when-increasing-agents</guid>
-      <pubDate>Thu, 07 Mar 2024 06:04:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用LSTM模型进行充电数据负荷预测的时间序列交叉验证</title>
-      <link>https://stackoverflow.com/questions/78107902/time-series-cross-validation-for-load-forecast-of-charging-data-using-lstm-model</link>
-      <description><![CDATA[我目前正在构建一个 LSTM 模型，以使用包含 24 个特征和 12 个月目标列的数据集来预测电动汽车的消耗量。数据采用时间序列格式，间隔为 15 分钟，我想应用时间序列交叉验证来维护时间依赖性。
-这是我到目前为止为训练和测试拆分编写的代码：
-# 定义用于训练的列
-特征 = [&#39;小时&#39;, &#39;季度小时&#39;, &#39;工作日&#39;, &#39;cal_week&#39;, &#39;月份&#39;, &#39;周末&#39;,
-                  &#39;季节&#39;，&#39;假期&#39;，&#39;下一个假期&#39;，&#39;bridge_day&#39;，&#39;学校假期&#39;，&#39;quarter_sin&#39;，&#39;quarter_cos&#39;，&#39;hour_sin&#39;，&#39;hour_cos&#39;，
-                  &#39;weekday_sin&#39;、&#39;weekday_cos&#39;、&#39;month_sin&#39;、&#39;month_cos&#39;、&#39;cal_week_sin&#39;、&#39;cal_week_cos&#39;、&#39;temp_day_avg&#39;、&#39;humidity_day_avg&#39;、&#39;wind_speed&#39;]
-
-# 提取特征和目标变量
-X = Bosch_data[功能].值
-y = Bosch_data[&#39;aggregate_conspiration_kWh&#39;].values
-
-
-# 定义窗口大小
-validation_window_size = 7 * 24 * 4 # 7天* 24小时* 4个季度/小时（15T）
-test_window_size = 31 * 24 * 4 # 31天* 24小时* 4个季度/小时（15T）
-
-# 将训练集定义为除验证集和测试集之外的所有内容
-train_window_size = len(Bosch_data) - validation_window_size - test_window_size
-
-# 将数据分为训练集、验证集和测试集
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=validation_window_size + 31 * 24 * 4, shuffle=False)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=31 * 24 * 4, shuffle=False)
-
-我有两个具体问题：
-
-扩展窗口交叉验证：如何将扩展窗口交叉验证应用于此训练、验证和测试拆分？
-
-选择时间步长：我的数据集呈现每周模式，我想预测未来 30 天的消耗量。考虑到 15 分钟的时间间隔，在这种情况下我的理想时间步长应该是多少？如果我使用 15 分钟的时间间隔作为一个时间步长，则会出现错误。
-
-
-我愿意接受有关如何解决这些问题并扩展我的时间序列交叉验证代码的建议。]]></description>
-      <guid>https://stackoverflow.com/questions/78107902/time-series-cross-validation-for-load-forecast-of-charging-data-using-lstm-model</guid>
-      <pubDate>Tue, 05 Mar 2024 12:58:27 GMT</pubDate>
-    </item>
-    <item>
       <title>用Python代码编写的RNN反向传播公式[关闭]</title>
       <link>https://stackoverflow.com/questions/78102670/rnn-backpropagation-formula-written-in-python-code</link>
       <description><![CDATA[鉴于常规 RNN 网络反向传播的文本描述，我无法将给定的公式与此处的 python 代码关联起来：
@@ -589,80 +570,9 @@ https://dennybritz.com/posts/ wildml/recurrent-neural-networks-tutorial-part-3/
 f(x) = tanh(x)
 然后：
 df/dx = 1 - tanh^2(x)
-但我没有看到给定的 python 代码对 tanh 函数的任何使用。]]></description>
+但是我没有看到给定的 python 代码对 tanh 函数的任何使用。]]></description>
       <guid>https://stackoverflow.com/questions/78102670/rnn-backpropagation-formula-written-in-python-code</guid>
       <pubDate>Mon, 04 Mar 2024 16:16:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何修复 AttributeError: 'ConfigDict' 对象在 mmdetection 上没有属性 'data'？</title>
-      <link>https://stackoverflow.com/questions/74209071/how-to-fix-attributeerror-configdict-object-has-no-attribute-data-on-mmdete</link>
-      <description><![CDATA[我目前正在尝试为自定义数据集设置毫米检测，并且一直遇到这些错误。我尝试删除代码中的 def 函数，更改文件位置以及上述所有内容。我不知道代码有什么问题以及为什么它不起作用。
-from argparse import ArgumentParser
-从 mmdet.apis 导入 init_detector、inference_detector
-导入MMCV
-从 mmdet.apis 导入（async_inference_ detector、inference_ detector、
-                        init_Detector、show_result_pyplot）
-导入异步
-进口火炬
-从 mmdet.apis 导入 init_detector、async_inference_detector
-从 mmdet.utils.contextmanagers 导入并发
-
-定义数据（）：
-# 新配置继承基本配置以突出显示必要的修改
-    base_ = &#39;configs/mask_rcnn/mask_rcnn_r50_caffe_fpn_1x_coco.py&#39;
-
-# 我们还需要更改 head 中的 num_classes 以匹配数据集的注释
-# dict 是一个 python 字典对象，用于从 PyTorch 保存或加载模型
-    模型=字典（
-        roi_head=字典（
-        # 定义边界框可以绕过的类数
-            bbox_head=dict(num_classes=1),
-            #
-            mask_head=dict(num_classes=1)))
-
-def 数据集():
-    # 修改数据集相关设置
-    dataset_type = &#39;COCO数据集&#39;
-    #定义类
-    类 = (&#39;受电弓&#39;)
-    数据=字典（
-        火车=字典（
-            img_prefix=&#39;测试/&#39;,
-            类=类，
-            ann_file=&#39;train/Pan2_COCO.json&#39;),
-        val=字典(
-            img_prefix=&#39;测试/&#39;,
-            类=类，
-            ann_file=&#39;val/Pan2_COCO.json&#39;),
-        测试=字典（
-            img_prefix=&#39;测试/&#39;,
-            类=类，
-            ann_file=&#39;val/Pan2_COCO.json&#39;))
-定义负载（）：
-# 我们可以使用预训练的Mask RCNN模型来获得更高的性能
-    load_from = &#39;测试/检查点/mask_rcnn_r50_caffe_fpn_mstrain-poly_3x_coco_bbox_mAP-0.408__segm_mAP-0.37_20200504_163245-42aa3d00.pth&#39;
-
-数据（）
-数据集()
-加载（）
-
-错误消息：
-回溯（最近一次调用最后一次）：
-  文件“tools/train.py”，第244行，在&lt;module&gt;中。
-    主要的（）
-  文件“tools/train.py”，第 135 行，在 main 中
-    setup_multi_processes（cfg）
-  文件“/home/dtl-admin/dev/mmdetection/mmdet/utils/setup_env.py”，第 30 行，setup_multi_processes
-    workers_per_gpu = cfg.data.get(&#39;workers_per_gpu&#39;, 1)
-  文件“/home/dtl-admin/miniconda3/envs/mmtest/lib/python3.8/site-packages/mmcv/utils/config.py”，第 519 行，在 __getattr__ 中
-    返回 getattr(self._cfg_dict, 名称)
-  文件“/home/dtl-admin/miniconda3/envs/mmtest/lib/python3.8/site-packages/mmcv/utils/config.py”，第 50 行，在 __getattr__ 中
-    提高前任
-AttributeError：“ConfigDict”对象没有属性“data”
-
-我期待图像检测到类受电弓的输出。但是，无论我尝试什么，我都无法获得任何输出，并且我已尝试更改尽可能多的变量。]]></description>
-      <guid>https://stackoverflow.com/questions/74209071/how-to-fix-attributeerror-configdict-object-has-no-attribute-data-on-mmdete</guid>
-      <pubDate>Wed, 26 Oct 2022 13:58:38 GMT</pubDate>
     </item>
     <item>
       <title>学习一种双线性形式的矩阵函数</title>
