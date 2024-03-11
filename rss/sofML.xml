@@ -4,36 +4,235 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Mon, 11 Mar 2024 12:24:38 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 11 Mar 2024 15:14:37 GMT</lastBuildDate>
+    <item>
+      <title>在 PyTorch Lightning 中实施 SSD</title>
+      <link>https://stackoverflow.com/questions/78141575/implement-ssd-into-pytorch-lightning</link>
+      <description><![CDATA[我不断收到此错误 AssertionError: Expected target boxs to be a tensor of shape [N, 4], got torch.Size([10, 100, 4]). ，这很奇怪因为我制作了形状 N,4 但由于某种原因我的训练批次 10 变成了形状？
+我正在尝试训练图像和注释/地面实况框
+下面是我对数据集的准备。
+from pathlib 导入路径
+从输入导入 Any、Callable、Dict、List、Optional、Tuple
+
+将闪电导入为 L # noqa: N812
+将 numpy 导入为 np
+将 pandas 导入为 pd
+进口火炬
+导入 torch.nn.function 作为 F # noqa: N812
+将 torchvision 导入为电视
+导入 torchvision.transforms 作为 tv
+从 Lightning.pytorch.utilities.types 导入 STEP_OUTPUT，OptimizerLRScheduler
+从 PIL 导入图像
+从 torch.utils.data 导入 DataLoader
+从 torchvision.datasets 导入 VisionDataset
+
+一个=[]
+
+data_folder = Path().parent / “数据”
+
+图像集 = 设置()
+对于 data_folder.glob(“*.png”) 中的图像：
+    image_set.add(images.stem)
+
+盒子集 = 设置（）
+对于data_folder.glob(“*txt”)中的boxes_list：
+    box_set.add(boxes_list.stem)
+
+交集= image_set &amp;盒子集
+
+对于交叉点的茎：
+    image_path = data_folder / (stem + “.png”)
+    box_path = data_folder / (stem + “.txt”)
+
+    a.append((image_path,boxes_path))
+
+图像张量列表 = []
+盒子列表 = []
+自定义数据 = []
+
+对于 a[0:10] 中的 image_path、boxes_path：
+    img = Image.open(图像路径)
+    变换 = tv.Compose([
+        电视.调整大小((300,300)),
+        tv.ToTensor()
+        ]
+    ）
+
+    img_tensor = 变换(img)
+    image_tensor_list.append（img_tensor）
+
+    # 张量转换需要 dtype=float 来处理空 csv
+    框= pd.read_csv(boxes_path,skiprows=[0],sep=&quot;&quot;,names=[&quot;xmin&quot;,&quot;ymin&quot;,&quot;xmax&quot;,&quot;ymax&quot;], dtype=np.float64 ）
+    盒子 = torch.tensor(boxes.values)
+    盒子=盒子.resize_(100,4)
+    标签 = torch.zeros(size=(boxes.shape[0],), dtype=torch.int64)
+    box_list.append({
+        “盒子”：盒子，
+        “标签”：标签
+    })
+
+数据集=列表（zip（image_tensor_list，boxs_list））
+
+类数据集（视觉数据集）：
+    def __init__(
+        自己，
+        根：str，
+        变换：可选[可调用] = 无，
+        变换：可选[可调用] = 无，
+        target_transform：可选[可调用] = 无，
+    ）-&gt;没有任何：
+        super().__init__(根、变换、变换、target_transform,)
+        self.dataset = 数据集
+
+    def __getitem__(self, 索引: int) -&gt;元组[torch.Tensor, dict] |没有任何：
+        返回 self.dataset[索引]
+
+    def __len__(self) -&gt;; __len__(self) -&gt;整数：
+        返回 len(self.dataset)
+
+类分类器（L.LightningModule）：
+    def __init__(自身):
+        超级().__init__()
+
+        self.model = tv.models.detection.ssd300_vgg16(权重=“SSD300_VGG16_Weights.DEFAULT”)
+        对于 self.model.parameters() 中的参数：
+            param.requires_grad = False
+
+    定义前进（
+        self，图像：List [torch.Tensor]，目标：可选[List [Dict [str，torch.Tensor]]] = None
+    ）-&gt; Tuple[Dict[str, torch.Tensor], List[Dict[str, torch.Tensor]]]:
+        返回 self.model(图像、目标)
+
+    def Training_step（自身，批次，batch_idx）：
+        图像、目标 = 批次
+        y_hat = self(图像, [目标])
+        损失 = F.l1_loss(y_hat, 目标)
+        self.log(“train_loss”, loss, on_epoch=True)
+        回波损耗
+
+    def configure_optimizers(self) -&gt;;优化器LRScheduler：
+        返回 torch.optim.Adam(self.parameters())
+
+类数据模块（L.LightningDataModule）：
+    def __init__(自身,batch_size=32):
+        超级().__init__()
+        self.batch_size = 批量大小
+        self.train_dataset = 无
+        self.val_dataset = 无
+
+    #（数据 - 平均值）/std
+    def 设置（自身，阶段：str）：
+        data_root = Path().parent / “数据”
+        变换 = tv.transforms.Compose([
+            电视. 变换. 调整大小((300, 300)),
+            tv.transforms.ToTensor()
+    ]）
+
+        # TODO(ehnjcio): 进行适当的训练、测试、验证分割
+        self.train_dataset = VarroaDataset(根=data_root, 变换=变换)
+        # self.val_dataset = VarroaDataset(根=根, 变换=变换)
+
+    def train_dataloader(自身):
+        返回DataLoader（self.train_dataset，batch_size = self.batch_size，
+                          工人数=0)
+
+模型 = 分类器()
+数据 = 数据模块()
+训练员 = L.Trainer()
+trainer.fit(模型，数据)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78141575/implement-ssd-into-pytorch-lightning</guid>
+      <pubDate>Mon, 11 Mar 2024 14:58:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用稳定基线3进行作业调度</title>
+      <link>https://stackoverflow.com/questions/78141506/job-scheduling-using-stable-baselines3</link>
+      <description><![CDATA[我正在做一个由作业调度问题组成的项目，其中有机器、作业和配方。我在使用稳定基线实现 DQN 时遇到问题。在自定义环境中，我发现 PPO 表现良好，但 DQN 很糟糕。我已经测试过更改超参数。可能是什么问题呢？有什么我错过的吗？
+感谢任何帮助。谨致问候。
+我有一个遵循稳定基线3和健身房（体育馆）界面的自定义环境，但从稳定基线导入的 DQN 模型与 PPO 相比表现非常糟糕。通过将 DQN 和 PPO 与 FIFO（先进先出）和 EDD（最早到期日）等模型进行比较来完成评估。 DQN 的表现甚至比这些传统模型更差。]]></description>
+      <guid>https://stackoverflow.com/questions/78141506/job-scheduling-using-stable-baselines3</guid>
+      <pubDate>Mon, 11 Mar 2024 14:48:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>结合 Savee 和 Crema-d 音频数据集常见情感的 Python 代码 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78141428/python-code-combining-common-emotions-from-savee-and-crema-d-audio-dataset</link>
+      <description><![CDATA[https://www.kaggle.com/datasets/ejlok1/cremad
+https://www.kaggle.com/datasets/ejlok1/萨里视听表达情感保存
+将这些由不同感官组成的数据集中的共同情感结合起来。
+您能分享带有组合声音集的 rar 文件吗？
+如何将这些数据集中的常见声音与机器学习结合起来？
+由于我不懂机器学习，所以尝试使用Python，但没有成功。]]></description>
+      <guid>https://stackoverflow.com/questions/78141428/python-code-combining-common-emotions-from-savee-and-crema-d-audio-dataset</guid>
+      <pubDate>Mon, 11 Mar 2024 14:34:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>在张量流中重命名模型输出名称</title>
+      <link>https://stackoverflow.com/questions/78141102/rename-model-output-names-in-tensorflow</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78141102/rename-model-output-names-in-tensorflow</guid>
+      <pubDate>Mon, 11 Mar 2024 13:47:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 M1 MacBook Pro (Max) 上优化 Tensorflow/Keras 训练？</title>
+      <link>https://stackoverflow.com/questions/78141065/how-to-optimize-tensorflow-keras-trainings-on-a-m1-macbook-pro-max</link>
+      <description><![CDATA[我想知道如何优化配备 32GB RAM 的 M2 MB Pro Max 上的训练时间。有没有办法参数化TF框架？或者我可以插入 NVIDIA CUDA GPU 来加速该过程吗？
+您有什么建议以及如何做？或者您只是在本地开发并在其他地方进行训练？
+我想加快机器上的训练时间。我正在使用 TF 2.15.0 &amp; conda 环境中的 Python 3.11.5。]]></description>
+      <guid>https://stackoverflow.com/questions/78141065/how-to-optimize-tensorflow-keras-trainings-on-a-m1-macbook-pro-max</guid>
+      <pubDate>Mon, 11 Mar 2024 13:42:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>预测分位数与梯度增强回归相交</title>
+      <link>https://stackoverflow.com/questions/78140825/prediction-quantiles-intersect-from-gradient-boosted-regression</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78140825/prediction-quantiles-intersect-from-gradient-boosted-regression</guid>
+      <pubDate>Mon, 11 Mar 2024 13:05:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Power Automate 将我的 Excel 输入连接到 Azure ML Studio API 端点并进行预测</title>
+      <link>https://stackoverflow.com/questions/78140665/using-power-automate-to-connect-my-excel-inputs-to-azure-ml-studio-api-endpoint</link>
+      <description><![CDATA[我正在研究如何使用 Power Automate 配置一个流程，该流程可以将我的 Excel 文件输入与我的 Azure ML Studio API 端点连接起来。理想情况下，当添加或修改 Excel 中的某一列值时，将触发此流程。
+Excel 输入
+基于 iris 数据集，我在 Azure ML Studio 中使用 API 端点创建了一个简单的机器学习模型。该模型需要 4 个输入，并根据这些输入返回预测标签。
+将数据输入到测试端点
+我创建了一个 Excel 文件，其中有 4 列（sepal_length、sepal_width、petal_length、petal_width），每列都包含一个值，如 Excel 输入屏幕截图中所示。
+在 Power Automate 中，我能够使用“列出表中存在的行”操作连接到我的 Excel 文件。在此操作中，我可以找到我的表“Table1”。
+我应该在 Power Automate 中采取哪些后续步骤来连接到 API 并能够接收预测结果？
+这就是我的流程当前的样子。 当前流程
+因此，我在将输入数据转换为可以作为 API 输入提供的格式时遇到了一些困难。下面的屏幕截图显示了我如何使用 Bearer 令牌和特定 URI 连接到我的 API。
+API 连接]]></description>
+      <guid>https://stackoverflow.com/questions/78140665/using-power-automate-to-connect-my-excel-inputs-to-azure-ml-studio-api-endpoint</guid>
+      <pubDate>Mon, 11 Mar 2024 12:36:57 GMT</pubDate>
+    </item>
     <item>
       <title>对模型进行 GAN 训练，根据 4 个人体测量输入（身高、腰部、胸部、臀部）生成 3D 模型</title>
       <link>https://stackoverflow.com/questions/78140368/gan-training-of-a-model-to-generate-3d-models-from-4-anthropometric-inputheight</link>
-      <description><![CDATA[训练循环
-num_epochs = 100
+      <description><![CDATA[# 训练循环
+纪元数 = 100
 对于范围内的纪元（num_epochs）：
-对于 train_dataloader 中的批次：
-真实数据 = 批次
-fake_data = Generator(anthropometric_tensor) # 替换为实际输入
- # 训练鉴别器
-    optim_d.zero_grad()
-    real_labels = torch.ones(real_data.size(0), 1)
-    fake_labels = torch.zeros(fake_data.size(0), 1)
-    loss_real = 标准(鉴别器(real_data), real_labels)
-    loss_fake = 标准(鉴别器(fake_data.detach()), fake_labels)
-    loss_D = loss_real + loss_fake
-    loss_D.backward()
-    优化器_D.step()
+    对于 train_dataloader 中的批次：
+        真实数据 = 批次
+        fake_data = Generator(anthropometric_tensor) # 替换为实际输入
 
-    # 训练生成器
-    Optimizer_G.zero_grad()
-    loss_G = 标准（鉴别器（假数据），真实标签）
-    loss_G.backward()
-    优化器_G.step()
+        # 训练鉴别器
+        optim_d.zero_grad()
+        real_labels = torch.ones(real_data.size(0), 1)
+        fake_labels = torch.zeros(fake_data.size(0), 1)
+        loss_real = 标准(鉴别器(real_data), real_labels)
+        loss_fake = 标准(鉴别器(fake_data.detach()), fake_labels)
+        loss_D = loss_real + loss_fake
+        loss_D.backward()
+        优化器_D.step()
 
-print(f&quot;Epoch [{epoch}/{num_epochs}] Loss_D: {loss_D.item()} Loss_G: {loss_G.item()}&quot;)
+        # 训练生成器
+        Optimizer_G.zero_grad()
+        loss_G = 标准（鉴别器（假数据），真实标签）
+        loss_G.backward()
+        优化器_G.step()
 
+    print(f&quot;Epoch [{epoch}/{num_epochs}] Loss_D: {loss_D.item()} Loss_G: {loss_G.item()}&quot;)
 
-
+我明白了
 运行时错误：形状“[-1, 37500]”对于大小 64 的输入无效
 ]]></description>
       <guid>https://stackoverflow.com/questions/78140368/gan-training-of-a-model-to-generate-3d-models-from-4-anthropometric-inputheight</guid>
@@ -85,7 +284,7 @@ def get_t5_embeddings(文本):
     <item>
       <title>Predict_proba() 给出的概率为 0 和 1，但中间值很少</title>
       <link>https://stackoverflow.com/questions/78139504/predict-proba-giving-probabilities-as-0s-and-1s-but-few-intermediate-values</link>
-      <description><![CDATA[我正在研究乳腺癌检测分类问题。我已经从 Kaggle 下载了数据集：(https://www.kaggle.com /datasets/yasserh/breast-cancer-dataset)
+      <description><![CDATA[我正在研究乳腺癌检测分类问题。我已经从 Kaggle 下载了数据集： https://www.kaggle.com/数据集/yasserh/breast-cancer-dataset
 我想预测：
 a) 肿瘤是良性还是恶性
 和
@@ -175,7 +374,7 @@ titanic_reader = CSV.File(“/home/andrea/dev/julia/titanic.csv”; header = 1);
 │ 性别 │ 多类{2} │ CategoricalValue{String7, UInt32} │
 │ 年龄 │ 连续 │ Float64 │
 │ 幸存下来 │ 多类{2} │ CategoricalValue{String1, UInt32} │
-└──────────┴──────────────┴──────────────────────── ──────────────┘
+└──────────┴──────────────┴────────────────────── ──────────────┘
 
 架构对我来说似乎没问题
 准备建模数据：
@@ -226,33 +425,6 @@ fm_mach = 机器(fm, X_trn, y_trn);
       <pubDate>Mon, 11 Mar 2024 08:07:08 GMT</pubDate>
     </item>
     <item>
-      <title>如何获取在 PyCaret 中创建的模型的列名称</title>
-      <link>https://stackoverflow.com/questions/78139097/how-do-i-get-column-names-of-a-model-created-in-pycaret</link>
-      <description><![CDATA[我正在尝试创建一个 PyCaret 模型
-# 加载数据集
-从 pycaret.datasets 导入 get_data
-保险 = get_data(&#39;保险&#39;)
-
-# 初始化环境
-从 pycaret.regression 导入 *
-
-r1 = 设置（保险，目标 = &#39;费用&#39;，session_id = 123，
-           标准化=真，
-           多项式特征=真，
-           bin_numeric_features= [&#39;年龄&#39;, &#39;bmi&#39;])
-
-我看到现在已创建 55 列。如何获取 PyCaret 模型的列名称]]></description>
-      <guid>https://stackoverflow.com/questions/78139097/how-do-i-get-column-names-of-a-model-created-in-pycaret</guid>
-      <pubDate>Mon, 11 Mar 2024 07:54:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>调用 OnActionReceived 或 RequestDecision 让 Unity ML-Agent 轮流执行，观察次数较少 (0)</title>
-      <link>https://stackoverflow.com/questions/78138694/call-onactionreceived-or-requestdecision-to-make-unity-ml-agents-do-their-turn</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78138694/call-onactionreceived-or-requestdecision-to-make-unity-ml-agents-do-their-turn</guid>
-      <pubDate>Mon, 11 Mar 2024 06:13:00 GMT</pubDate>
-    </item>
-    <item>
       <title>在 MERN Stack 应用程序中集成线性回归：Python 还是 JavaScript？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78138619/integrating-linear-regression-in-mern-stack-application-python-or-javascript</link>
       <description><![CDATA[我使用 MERN 堆栈（MongoDB、Express.js、React、Node.js）开发了一个餐厅管理面板，现在正在寻求实现线性回归来预测销售或根据历史数据预测客户流量。后端完全采用 Node.js，但我正在考虑使用 Python 作为线性回归部分，因为它具有广泛的库和对数据科学的支持（如 NumPy、pandas 和 scikit-learn）。
@@ -273,117 +445,101 @@ r1 = 设置（保险，目标 = &#39;费用&#39;，session_id = 123，
 功能集和易用性：虽然我使用的库提供了线性回归的基本功能，但我发现与我所知道的可用库相比，它们缺乏功能的广度和高级统计分析的易用性。 Python 的生态系统（例如 scikit-learn）。例如，我想要更复杂的方法来处理模型拟合、诊断和验证，以提高预测准确性，这在 Python 库中似乎更容易访问。
 
 
-这些经历让我考虑将 Python 作为实现项目的线性回归部分的替代方案，尽管我最初打算将所有内容保留在 Node.js 环境中。这里的期望不仅是实现更好的性能和可扩展性，还包括访问更丰富的数据分析和机器学习工具集，以增强我的餐厅管理面板中预测的功能和准确性。]]></description>
+这些经历让我考虑将 Python 作为实现项目线性回归部分的替代方案，尽管我最初的目的是将所有内容保留在 Node.js 环境中。这里的期望不仅是实现更好的性能和可扩展性，而且还需要访问一组更丰富的数据分析和机器学习工具，以增强我的餐厅管理面板中预测的功能和准确性。]]></description>
       <guid>https://stackoverflow.com/questions/78138619/integrating-linear-regression-in-mern-stack-application-python-or-javascript</guid>
       <pubDate>Mon, 11 Mar 2024 05:49:33 GMT</pubDate>
     </item>
     <item>
-      <title>是否可以在 OpenCV 中创建大型模型而不需要大量 RAM？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78137426/is-it-possible-to-create-a-large-model-in-opencv-without-needing-insane-amounts</link>
-      <description><![CDATA[我正在尝试在 OpenCV 中创建一个用于人脸检测的模型（特别是性别和年龄）。我拥有的数据集大约有 50,000 张图像。当我尝试使用大量数据训练模型时，内存使用量就会上升。即使在尝试批处理和卸载加载的 cv::mat 图像时，模型的大小也会增加（我猜这是预料之中的）。
-我尝试一次加载和训练一张图像，并且使用此变体我尝试批量训练，但结果仍然相同
-ImageCollection 类只是 SEXAGEBRACKET（标签）到图像文件路径的映射。我使用的模型是 LBPHFaceRecognizer。
-这是我的“负载和训练”函数看起来像：
-void ModelGenerator::LoadImagesAndTrain(const ImageCollection* imageCollection, const cv::Ptr modelToTrain, const bool isUpdatingModel)
-{
-    cv::大小加载图像大小；
-    cv::Mat currLoadedImage；
-    std::vector图像使用；
-    std::vector&lt;int&gt;标签使用；
-    std::multimap*括号ToImageFileNameMap;
+      <title>使用 Keras 绘制梯度下降曲线</title>
+      <link>https://stackoverflow.com/questions/78137739/plotting-of-gradient-descent-curves-by-using-keras</link>
+      <description><![CDATA[我在 Keras 中实现了以下代码，该代码使用加州住房数据集，试图绘制 theta 1 和 theta 2 的值，以及随机梯度下降、批量梯度或小批量的选择如何影响结果： 
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+从 keras.models 导入顺序
+从 keras.layers 导入密集
+从 keras.optimizers 导入 SGD
+从 sklearn.datasets 导入 fetch_california_housing
+从 sklearn.preprocessing 导入 StandardScaler
 
-    if (imageCollection!= NULL &amp;&amp; modelToTrain != NULL)
-    {
-        std::cout &lt;&lt; “提供用于训练的图像数量：” &lt;&lt; imageCollection-&gt;GetNumberOfImages() &lt;&lt; std::endl;
+# 加载加州住房数据集
+加州住房 = fetch_加州住房()
+X, y = california_housing.data, california_housing.target
 
-        括号ToImageFileNameMap = imageCollection-&gt;GetBracketToFileNameMap();
+# 标准化特征
+定标器=标准定标器()
+X_归一化 = 缩放器.fit_transform(X)
 
-        //检查这是否是我们第一次训练模型，所有其他调用都将是更新。
-        if (isUpdatingModel == false)
-        {
-            currLoadedImage = cv::imread(bracketToImageFileNameMap-&gt;begin()-&gt;第二个，cv::IMREAD_GRAYSCALE);
+def build_model():
+    模型=顺序（[
+    密集（64，激活=“relu”，input_shape=（8，）），
+    密集(64，激活=“relu”)，
+    密集(1)
+    ]）
+    #model.compile（优化器=“rmsprop”，损失=“mse”，指标=[“mae”]）
+    返回模型
 
-            imagesToUse.push_back(currLoadedImage);
-            labelsToUse.push_back(bracketToImageFileNameMap-&gt;begin()-&gt;first);
 
-            modelToTrain-&gt;train(imagesToUse, labelsToUse);
+sgd_optimizer = SGD(lr=0.001) # 随机梯度下降
+minibatch_sgd_optimizer = SGD(lr=0.001) # 小批量梯度下降
+batch_sgd_optimizer = SGD(lr=0.001) # 批量梯度下降
 
-            currLoadedImage.release();
-        }
 
-        imagesToUse.clear();
-        labelsToUse.clear();
+# 编译模型
+模型=build_model()
+model.compile(loss=&#39;mse&#39;, 优化器=sgd_optimizer)
 
-        无符号长 i = 1UL；
-        for (std::multimap::iterator it=bracketToImageFileNameMap-&gt;begin(); it!=bracketToImageFileNameMap-&gt;end(); it++)
-        {
-            如果（（i％2000）== 0）
-            {
-                std::cout &lt;&lt; “训练模型......” &lt;&lt; std::endl;
+theta1_sgd、theta2_sgd = []、[]
+theta1_minibatch_sgd、theta2_minibatch_sgd = []、[]
+theta1_batch_sgd、theta2_batch_sgd = []、[]
 
-                modelToTrain-&gt;update(imagesToUse, labelsToUse);
 
-                imagesToUse.clear();
-                labelsToUse.clear();
-            }
+# 执行梯度下降并存储 theta 值的函数
+def Perform_gradient_descent（优化器，batch_size=None）：
+    theta1_列表、theta2_列表 = []、[]
+    损失历史记录 = []
+    for _ in range(5): # 纪元数
+        历史记录=model.fit(X_normalized, y, epochs=1,batch_size=batch_size, verbose=0)
+        loss_history.append(history.history[&#39;loss&#39;][0])
+        weights = model.layers[0].get_weights()[0].flatten() # 获取当前 theta 值
+        theta1_list.append(权重[0])
+        theta2_list.append(权重[1])
+    打印（theta1_列表，“”，theta2_列表）
+    返回loss_history，theta1_list，theta2_list
 
-            std::cout &lt;&lt;它-&gt;第一个&lt;&lt; ”：“ &lt;&lt;它-&gt;第二个&lt;&lt; std::endl;
+# 使用不同的优化器执行梯度下降
+loss_sgd, theta1_sgd, theta2_sgd = Perform_gradient_descent(sgd_optimizer, batch_size=1) # 随机梯度下降
+loss_minibatch_sgd, theta1_minibatch_sgd, theta2_minibatch_sgd = Perform_gradient_descent(minibatch_sgd_optimizer, batch_size=32) # 小批量梯度下降
+loss_batch_sgd, theta1_batch_sgd, theta2_batch_sgd = Perform_gradient_descent(batch_sgd_optimizer, batch_size=len(X_normalized)) # 批量梯度下降
 
-            currLoadedImage = cv::imread(it-&gt;第二个, cv::IMREAD_GRAYSCALE);
+# 绘制损失与纪元数的关系图
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, len(loss_sgd) + 1), loss_sgd, label=&#39;随机梯度下降&#39;)
+plt.plot(range(1, len(loss_minibatch_sgd) + 1), loss_minibatch_sgd, label=&#39;小批量梯度下降&#39;)
+plt.plot(range(1, len(loss_batch_sgd) + 1), loss_batch_sgd, label=&#39;批量梯度下降&#39;)
+plt.xlabel(&#39;历元数&#39;)
+plt.ylabel(&#39;损失&#39;)
+plt.title(&#39;损失与历元数&#39;)
+plt.图例()
+plt.网格（真）
+plt.show()
 
-            imagesToUse.push_back(currLoadedImage);
-            labelsToUse.push_back(it-&gt;first);
+# 绘制梯度下降轨迹
+plt.figure(figsize=(10, 6))
+plt.plot(theta1_sgd,theta2_sgd,label=&#39;随机梯度下降&#39;,marker=&#39;o&#39;)
+plt.plot(theta1_minibatch_sgd, theta2_minibatch_sgd, label=&#39;小批量梯度下降&#39;,marker=&#39;s&#39;)
+plt.plot(theta1_batch_sgd, theta2_batch_sgd, label=&#39;批量梯度下降&#39;,marker=&#39;x&#39;)
+plt.xlabel(&#39;Theta 1&#39;)
+plt.ylabel(&#39;Theta 2&#39;)
+plt.title(&#39;梯度下降轨迹&#39;)
+#plt.xlim(-0.08, -0.05) # 设置 Theta 1 的限制
+#plt.ylim(0.02, 0.03) # 设置 Theta 2 的限制
+plt.图例()
+plt.网格（真）
+plt.show()
 
-            currLoadedImage.release();
-
-            我++;
-        }
-    }
-}
-
-是否可以在 OpenCV 中创建一个非常大的模型（包含 50,000 张图像），而不需要 300GB 的 RAM？]]></description>
-      <guid>https://stackoverflow.com/questions/78137426/is-it-possible-to-create-a-large-model-in-opencv-without-needing-insane-amounts</guid>
-      <pubDate>Sun, 10 Mar 2024 20:41:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>BigQuery ML - 看不见的类别触发分数</title>
-      <link>https://stackoverflow.com/questions/78137175/bigquery-ml-unseen-category-triggers-the-score</link>
-      <description><![CDATA[我一直在研究 bqml 中的随机森林分类器模型，该模型应该检测有风险的信用卡交易，其中一个功能是“ payment_method”，它指示 CC 的类型。
-当我在“现实世界”上测试它时交易时，我注意到它对新类别“ payment_method ”的交易给出了极高的分数，模型尚未接受过该类别的训练，但仍然不应该像模型预测的那样有风险。
-有什么想法为什么会发生这种情况以及我如何确保下次遇到新类别时不会触发高分？
-（顺便说一句，随机森林中 bqml 中的自动编码是标签，如果有影响的话。）
-bqml 模型不应该对未经训练的类别预测出如此高的分数，而应该了解该类别是合法的。]]></description>
-      <guid>https://stackoverflow.com/questions/78137175/bigquery-ml-unseen-category-triggers-the-score</guid>
-      <pubDate>Sun, 10 Mar 2024 19:13:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>尝试从 Mistral7B 微调的 LLM 生成摘要时出现意外的关键字参数“use_dora”</title>
-      <link>https://stackoverflow.com/questions/78122541/unexpected-keyword-argument-use-dora-when-attempting-to-generate-summary-from</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78122541/unexpected-keyword-argument-use-dora-when-attempting-to-generate-summary-from</guid>
-      <pubDate>Thu, 07 Mar 2024 15:29:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>调试 RandomForestRegressor() 在时间序列数据上产生主要恒定的预测结果</title>
-      <link>https://stackoverflow.com/questions/76197241/debugging-randomforestregressor-producing-mainly-constant-forecast-results-ove</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/76197241/debugging-randomforestregressor-producing-mainly-constant-forecast-results-ove</guid>
-      <pubDate>Mon, 08 May 2023 02:56:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>Sagemaker Studio 无法加载</title>
-      <link>https://stackoverflow.com/questions/70587853/sagemaker-studio-does-not-load-up</link>
-      <description><![CDATA[Sagemaker Studio 在前 6 个月里对我来说工作得非常完美。然后我就开始观察这个问题。 错误消息的屏幕截图
-屏幕永远保持在这个阶段。这是我尝试过的：
-
-清除我的缓存，即使使用不同的机器也是如此。所以我认为问题不在于浏览器或我的机器。
-按上面屏幕截图中的“清除工作区”。
-关闭我的 sagemaker 域中的所有应用（不包括“默认”应用）。这最初是有效的，但现在已经完全停止工作了。
-使用前一个域中的部分文件创建了一个新的 sagemaker 域。尽管如此，我在新域中也看到了相同的错误消息。
-
-这严重影响了我的工作，我在互联网上找不到解决方案。]]></description>
-      <guid>https://stackoverflow.com/questions/70587853/sagemaker-studio-does-not-load-up</guid>
-      <pubDate>Wed, 05 Jan 2022 04:37:09 GMT</pubDate>
+但是，我发现的问题是，有时保存 theta 值的列表的值是 Nan，而在其他情况下是正常值。当 epoch 数量增加到 10 以上时，我注意到了这一点，这是为什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78137739/plotting-of-gradient-descent-curves-by-using-keras</guid>
+      <pubDate>Sun, 10 Mar 2024 22:46:54 GMT</pubDate>
     </item>
     <item>
       <title>绘制 scikit-learn (sklearn) SVM 决策边界/曲面</title>
@@ -401,63 +557,6 @@ y = [0,0,0,1,1,2,2]
 提前致谢]]></description>
       <guid>https://stackoverflow.com/questions/51297423/plot-scikit-learn-sklearn-svm-decision-boundary-surface</guid>
       <pubDate>Thu, 12 Jul 2018 04:43:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>n_estimators 总能提高随机森林的性能？</title>
-      <link>https://stackoverflow.com/questions/39508983/n-estimators-always-improves-performance-in-randomforest</link>
-      <description><![CDATA[我通过 n_estimators 的最低值获得最高分。据我了解，更多的树应该总是会提高性能。谁能解释一下这里发生了什么？
-输入：
-# 估计 n_estimators
-
-param_test1 = {&#39;n_estimators&#39;: 范围(20, 800, 30)}
-
-clf = RandomForestClassifier(random_state = 10,
-                         oob_score = 真，
-                         最大深度 = 6,
-                         max_features = &#39;sqrt&#39;)
-
-gsearch1 = GridSearchCV(
-    估计量=clf,
-    param_grid=param_test1,
-    评分=&#39;roc_auc&#39;,
-    iid=假，
-    简历=5)
-
-gsearch1.fit(X, y)
-gsearch1.grid_scores_、gsearch1.best_params_、gsearch1.best_score_
-
-输出：
-([平均值：0.87685，标准差：0.03149，参数：{u&#39;n_estimators&#39;：20}，
-  平均值：0.87551，标准差：0.02979，参数：{u&#39;n_estimators&#39;：50}，
-  平均值：0.87588，标准差：0.02970，参数：{u&#39;n_estimators&#39;：80}，
-  平均值：0.87545，标准差：0.03043，参数：{u&#39;n_estimators&#39;：110}，
-  平均值：0.87593，标准差：0.02979，参数：{u&#39;n_estimators&#39;：140}，
-  平均值：0.87506，标准差：0.02913，参数：{u&#39;n_estimators&#39;：170}，
-  平均值：0.87599，标准差：0.02890，参数：{u&#39;n_estimators&#39;：200}，
-  平均值：0.87559，标准差：0.02875，参数：{u&#39;n_estimators&#39;：230}，
-  平均值：0.87561，标准差：0.02890，参数：{u&#39;n_estimators&#39;：260}，
-  平均值：0.87500，标准差：0.02867，参数：{u&#39;n_estimators&#39;：290}，
-  平均值：0.87476，标准差：0.02848，参数：{u&#39;n_estimators&#39;：320}，
-  平均值：0.87434，标准差：0.02800，参数：{u&#39;n_estimators&#39;：350}，
-  平均值：0.87408，标准差：0.02823，参数：{u&#39;n_estimators&#39;：380}，
-  平均值：0.87461，标准差：0.02789，参数：{u&#39;n_estimators&#39;：410}，
-  平均值：0.87452，标准差：0.02764，参数：{u&#39;n_estimators&#39;：440}，
-  平均值：0.87466，标准差：0.02775，参数：{u&#39;n_estimators&#39;：470}，
-  平均值：0.87498，标准差：0.02805，参数：{u&#39;n_estimators&#39;：500}，
-  平均值：0.87530，标准差：0.02797，参数：{u&#39;n_estimators&#39;：530}，
-  平均值：0.87519，标准差：0.02760，参数：{u&#39;n_estimators&#39;：560}，
-  平均值：0.87498，标准差：0.02789，参数：{u&#39;n_estimators&#39;：590}，
-  平均值：0.87529，标准差：0.02784，参数：{u&#39;n_estimators&#39;：620}，
-  平均值：0.87526，标准差：0.02792，参数：{u&#39;n_estimators&#39;：650}，
-  平均值：0.87553，标准差：0.02807，参数：{u&#39;n_estimators&#39;：680}，
-  平均值：0.87540，标准差：0.02794，参数：{u&#39;n_estimators&#39;：710}，
-  平均值：0.87561，标准差：0.02786，参数：{u&#39;n_estimators&#39;：740}，
-  平均值：0.87554，标准差：0.02814，参数：{u&#39;n_estimators&#39;：770}]，
- {u&#39;n_estimators&#39;：20}，
- 0.87684895838888188)
-]]></description>
-      <guid>https://stackoverflow.com/questions/39508983/n-estimators-always-improves-performance-in-randomforest</guid>
-      <pubDate>Thu, 15 Sep 2016 10:38:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
