@@ -4,48 +4,98 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sun, 10 Mar 2024 21:11:18 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 11 Mar 2024 00:58:06 GMT</lastBuildDate>
     <item>
-      <title>反转函数以获得原始输入值</title>
-      <link>https://stackoverflow.com/questions/78137497/reverse-function-to-obtain-original-input-values</link>
-      <description><![CDATA[我有以下 get_angles 函数，可以从 input_features 创建角度。该函数返回的特征用于训练变分量子电路。
-def get_angles(x):
-    beta0 = 2 * np.arcsin(np.sqrt(x[1] ** 2) / np.sqrt(x[0] ** 2 + x[1] ** 2 + 1e-12))
-    beta1 = 2 * np.arcsin(np.sqrt(x[2] ** 2) / np.sqrt(x[2] ** 2 + x[2] ** 2 + 1e-12))
-    beta2 = 2 * np.arcsin(np.linalg.norm(x[2:]) / np.linalg.norm(x))
-    
-    返回 np.array([beta2, -beta1 / 2, beta1 / 2, -beta0 / 2, beta0 / 2])
+      <title>使用 Keras 绘制梯度下降曲线</title>
+      <link>https://stackoverflow.com/questions/78137739/plotting-of-gradient-descent-curves-by-using-keras</link>
+      <description><![CDATA[我在 Keras 中实现了以下代码，该代码使用加州住房数据集，试图绘制 theta 1 和 theta 2 的值，以及随机梯度下降、批量梯度或小批量的选择如何影响结果： 
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+从 keras.models 导入顺序
+从 keras.layers 导入密集
+从 keras.optimizers 导入 SGD
+从 sklearn.datasets 导入 fetch_california_housing
+从 sklearn.preprocessing 导入 StandardScaler
 
-因此：
-input_features = [10, 20, 30, 40, 50]`
+# 加载加州住房数据集
+加州住房 = fetch_加州住房()
+X, y = california_housing.data, california_housing.target
 
-# 变换特征
-特征 = np.array(get_angles(input_features))
+# 标准化特征
+定标器=标准定标器()
+X_归一化 = 缩放器.fit_transform(X)
+
+def build_model():
+    模型=顺序（[
+    密集（64，激活=“relu”，input_shape=（8，）），
+    密集(64，激活=“relu”)，
+    密集(1)
+    ]）
+    #model.compile（优化器=“rmsprop”，损失=“mse”，指标=[“mae”]）
+    返回模型
 
 
-现在，我想通过获取最终的 features 值并将其转换回 get_angles 中使用的 input_features 值来反转此操作&gt; 功能。有没有办法反转上面定义的 get_angles 函数？
-提前致谢。
-期望通过 get_reverse_angles 函数运行最终的 features 来接收 input_features，我尝试了 get_reverse_angles&lt; 的多种变体/code&gt; 如下所示的功能无效。
-def get_reverse_angles(角度):
-    # 提取角度
-    beta2、neg_beta1、pos_beta1、neg_beta0、pos_beta0 = 角度
-    
-    # 使用三角方程求解 x
-    x0 = np.sqrt(2)
-    x1 = np.sin(beta2 / 2) * np.sqrt(2)
-    x2 = np.sin(pos_beta1 / 2) * np.sqrt(2)
-    x3 = np.sin(pos_beta0 / 2) * np.sqrt(2)
-    x4 = np.sin(neg_beta0 / 2) * np.sqrt(2)
-    
-    # 使用第一个方程计算 x0
-    x0 = np.sqrt(x1 ** 2 + x2 ** 2 + x3 ** 2 + x4 ** 2)
-    
-    # 返回相反操作的值
-    返回 np.array([x0, x1 * x0, x2 * x0, x3 * x0, x4 * x0])
+sgd_optimizer = SGD(lr=0.001) # 随机梯度下降
+minibatch_sgd_optimizer = SGD(lr=0.001) # 小批量梯度下降
+batch_sgd_optimizer = SGD(lr=0.001) # 批量梯度下降
 
-get_reverse_angles 函数返回 [ 1.79350156 2.41835701 0.97063605 1.33346136 -1.33346136]，而不是预期的 [10 20 30 40 50] input_features。]]></description>
-      <guid>https://stackoverflow.com/questions/78137497/reverse-function-to-obtain-original-input-values</guid>
-      <pubDate>Sun, 10 Mar 2024 21:09:43 GMT</pubDate>
+
+# 编译模型
+模型=build_model()
+model.compile(loss=&#39;mse&#39;, 优化器=sgd_optimizer)
+
+theta1_sgd、theta2_sgd = []、[]
+theta1_minibatch_sgd、theta2_minibatch_sgd = []、[]
+theta1_batch_sgd、theta2_batch_sgd = []、[]
+
+
+# 执行梯度下降并存储 theta 值的函数
+def Perform_gradient_descent（优化器，batch_size=None）：
+    theta1_列表、theta2_列表 = []、[]
+    损失历史记录 = []
+    for _ in range(5): # 纪元数
+        历史记录=model.fit(X_normalized, y, epochs=1,batch_size=batch_size, verbose=0)
+        loss_history.append(history.history[&#39;loss&#39;][0])
+        weights = model.layers[0].get_weights()[0].flatten() # 获取当前 theta 值
+        theta1_list.append(权重[0])
+        theta2_list.append(权重[1])
+    打印（theta1_列表，“”，theta2_列表）
+    返回loss_history，theta1_list，theta2_list
+
+# 使用不同的优化器执行梯度下降
+loss_sgd, theta1_sgd, theta2_sgd = Perform_gradient_descent(sgd_optimizer, batch_size=1) # 随机梯度下降
+loss_minibatch_sgd, theta1_minibatch_sgd, theta2_minibatch_sgd = Perform_gradient_descent(minibatch_sgd_optimizer, batch_size=32) # 小批量梯度下降
+loss_batch_sgd, theta1_batch_sgd, theta2_batch_sgd = Perform_gradient_descent(batch_sgd_optimizer, batch_size=len(X_normalized)) # 批量梯度下降
+
+# 绘制损失与纪元数的关系图
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, len(loss_sgd) + 1), loss_sgd, label=&#39;随机梯度下降&#39;)
+plt.plot(range(1, len(loss_minibatch_sgd) + 1), loss_minibatch_sgd, label=&#39;小批量梯度下降&#39;)
+plt.plot(range(1, len(loss_batch_sgd) + 1), loss_batch_sgd, label=&#39;批量梯度下降&#39;)
+plt.xlabel(&#39;历元数&#39;)
+plt.ylabel(&#39;损失&#39;)
+plt.title(&#39;损失与历元数&#39;)
+plt.图例()
+plt.网格（真）
+plt.show()
+
+# 绘制梯度下降轨迹
+plt.figure(figsize=(10, 6))
+plt.plot(theta1_sgd,theta2_sgd,label=&#39;随机梯度下降&#39;,marker=&#39;o&#39;)
+plt.plot(theta1_minibatch_sgd, theta2_minibatch_sgd, label=&#39;小批量梯度下降&#39;,marker=&#39;s&#39;)
+plt.plot(theta1_batch_sgd, theta2_batch_sgd, label=&#39;批量梯度下降&#39;,marker=&#39;x&#39;)
+plt.xlabel(&#39;Theta 1&#39;)
+plt.ylabel(&#39;Theta 2&#39;)
+plt.title(&#39;梯度下降轨迹&#39;)
+#plt.xlim(-0.08, -0.05) # 设置 Theta 1 的限制
+#plt.ylim(0.02, 0.03) # 设置 Theta 2 的限制
+plt.图例()
+plt.网格（真）
+plt.show()
+
+但是，我发现的问题是，有时保存 theta 值的列表的值是 Nan，而在其他情况下是正常值。当 epoch 数量增加到 10 以上时，我注意到了这一点，这是为什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78137739/plotting-of-gradient-descent-curves-by-using-keras</guid>
+      <pubDate>Sun, 10 Mar 2024 22:46:54 GMT</pubDate>
     </item>
     <item>
       <title>每次运行时都会出现不同的 ValueError</title>
@@ -55,7 +105,7 @@ get_reverse_angles 函数返回 [ 1.79350156 2.41835701 0.97063605 1.33346136 -1
       <pubDate>Sun, 10 Mar 2024 18:55:17 GMT</pubDate>
     </item>
     <item>
-      <title>多值多目标分类</title>
+      <title>多值和多目标分类[关闭]</title>
       <link>https://stackoverflow.com/questions/78136790/multi-value-and-multi-target-classification</link>
       <description><![CDATA[首先，我想检查一下我对类、多类、多值和多目标的理解：
 类别
@@ -244,91 +294,6 @@ YOLOV8 训练：我使用 Ultralytics 库对 YOLOV8 模型进行了 10 个 epoch
 我尝试过多种模型，如 Lasso、Gradient Boosting 和 Random Forest。还尝试了不同类型的交叉验证。最好的结果来自具有交叉验证的随机森林，以避免某些空间自相关。尽管如此，该模型预计会比现在更好。我们怀疑它非常重视点之间的距离，但我们不知道如何改变这一点并获得更好的结果。]]></description>
       <guid>https://stackoverflow.com/questions/78136531/is-it-possible-to-weight-some-features-for-a-random-forest-regression</guid>
       <pubDate>Sun, 10 Mar 2024 15:58:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>人脸识别中如何处理规格眩光？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78134869/how-to-handle-specs-glare-in-face-recognition</link>
-      <description><![CDATA[我想构建一个基于 python Flask api 的应用程序，我想发送 2 个人物图像（脸部图像）的路径（url 或本地图像），并且如果两张脸都匹配（两张图片都属于），我希望得到“是”的响应同一个人），如果图像是不同的人，则不会。我为此使用了face_recognition 库。在我介绍戴眼镜的人的照片之前，这个算法一直运行良好。该模型无法识别眼镜中是否有眩光。如何进行？有没有一种预处理方法可以提供帮助？或者我应该搬到另一个图书馆？
-导入face_recognition
-导入CV2
-将 numpy 导入为 np
-从日期时间导入日期时间
-从烧瓶导入烧瓶，请求，jsonify
-导入人脸识别
-导入请求
-从 io 导入 BytesIO
-从日期时间导入日期时间
-从 PIL 导入图像
-应用程序=烧瓶（__名称__）
-
-def preprocess_image(image_path,resize_height=400):
-    if image_path.startswith((&#39;http://&#39;, &#39;https://&#39;)):
-            响应 = requests.get(图像路径)
-            图像 = Image.open(BytesIO(响应.内容))
-    别的：
-        图像 = Image.open(图像路径)
-    exif_data = image.getexif()
-
-    如果 exif_数据：
-        如果 exif_data.get(274) == 6:
-            图像 = 图像.旋转(270)
-    宽度，长度=图像大小
-    比例 = resize_height / 长度
-    new_width = int(宽度 * 比例)
-    打印（图像路径，图像大小，比例，新宽度）
-    
-    new_width = int(宽度 * 比例)
-    resized_image = image.resize((new_width, resize_height))
-
-    rgb_image = resized_image.convert(“RGB”)
-    numpy_image = np.array(rgb_image)
-
-    返回numpy_image
-
-
-@app.route(&#39;/&#39;,methods = [&#39;GET&#39;,&#39;POST&#39;])
-def home():
-    返回“服务器正在运行”
-@app.route(&#39;/compare&#39;,methods = [&#39;GET&#39;,&#39;POST&#39;])
-defface_compare():
-    st = 日期时间.now()
-    数据 = request.get_json()
-    image_path1 = 数据[&#39;img1&#39;]
-    image_path2 = 数据[&#39;img2&#39;]
-
-    已处理图像1 = 预处理图像(图像路径1)
-    已处理图像2 = 预处理图像(图像路径2)
-    
-    面部位置1 = 面部识别.面部位置（处理后的图像1）
-    面部位置2 = 面部识别.面部位置(processed_image2)
-    #show_bounding_box(face_locations1,processed_image1)
-    #show_bounding_box(face_locations2,processed_image2)
-    如果不是face_locations1：
-        return jsonify({&#39;result&#39;: &#39;未找到面 1&#39;, &#39;time&#39;:str(datetime.now()-st)})
-    如果不是face_locations2：
-        return jsonify({&#39;result&#39;: &#39;未找到人脸 2&#39;, &#39;time&#39;:str(datetime.now()-st)})
-
-    face_encoding1=face_recognition.face_encodings(processed_image1,known_face_locations=face_locations1,model=&#39;小&#39;)[0]
-    face_encoding2=face_recognition.face_encodings(processed_image2,known_face_locations=face_locations2,model=&#39;小&#39;)[0]
-    
-    结果=face_recognition.compare_faces([face_encoding1],face_encoding2,公差=0.47)
-    return jsonify({&#39;结果&#39;: str(结果[0]), &#39;时间&#39;:str(datetime.now()-st)})
-
-def show_bounding_box(face_loc, img):
-    边界框 = []
-    对于face_loc中的face_location：
-        上、右、下、左 = 面部位置
-        bounding_boxes.append((左、上、右、下))
-    对于bounding_boxes中的（左，上，右，下）：
-        cv2.矩形(img, (左, 上), (右, 下), (0, 255, 0), 2)
-    cv2.imshow(“带有边界框的面孔”, img)
-    cv2.waitKey(0)
-
-如果 __name__ == &#39;__main__&#39;:
-    app.run（调试=True，线程=True）
-]]></description>
-      <guid>https://stackoverflow.com/questions/78134869/how-to-handle-specs-glare-in-face-recognition</guid>
-      <pubDate>Sun, 10 Mar 2024 06:01:06 GMT</pubDate>
     </item>
     <item>
       <title>如何访问CoNull 2003和OntoNotes数据集？ [关闭]</title>
@@ -540,9 +505,28 @@ rng = 42
       <pubDate>Sun, 25 Feb 2024 18:57:43 GMT</pubDate>
     </item>
     <item>
+      <title>如何使用数据加载器解决这个问题？</title>
+      <link>https://stackoverflow.com/questions/77968976/how-can-i-resolve-this-problem-with-dataloaders</link>
+      <description><![CDATA[我正在构建一些数据加载器来训练和测试机器学习模型。
+我有一个名为“array”的元组列表像这样：
+(Data(x=[468, 2], edge_index=[2, 1322], y=0, edge_weight=[1322]), &#39;morphed_img027485_img054553.png&#39;)
+（数据（x=[468, 2]，edge_index=[2, 1322]，y=0，edge_weight=[1322]），&#39;morphed_img031737_img054553.png&#39;）
+
+我像这样创建数据加载器：
+data_loader = create_dataloader(数组，batch_size=60)
+save_dataloader(data_loader, &#39;DataLoader 名称&#39;)
+
+输出不是我所期望的，但它将所有数据合并到一个 DataBatch 中，如下所示：
+[DataBatch(x=[936, 2]，edge_index=[2, 2644]，y=[2]，edge_weight=[2644]，batch=[936]，ptr=[3])， (&#39;morphed_img031737_img054553.png&#39;, &#39;morphed_img027485_img054553.png&#39;)]
+
+为什么？如何拥有一个数据加载器，将所有数据像在数组中一样分开？]]></description>
+      <guid>https://stackoverflow.com/questions/77968976/how-can-i-resolve-this-problem-with-dataloaders</guid>
+      <pubDate>Fri, 09 Feb 2024 14:52:39 GMT</pubDate>
+    </item>
+    <item>
       <title>sklearn.decomposition.PCA 特征向量的简单图</title>
       <link>https://stackoverflow.com/questions/37976564/simple-plots-of-eigenvectors-for-sklearn-decomposition-pca</link>
-      <description><![CDATA[我正在尝试了解主成分分析的工作原理，并在sklearn.datasets.load_iris数据集上对其进行测试。我了解每个步骤的工作原理（例如标准化数据、协方差、特征分解、排序最高特征值、使用 K 选定的维度将原始数据转换为新轴）。
+      <description><![CDATA[我正在尝试了解主成分分析的工作原理，并在sklearn.datasets.load_iris数据集上对其进行测试。我了解每个步骤的工作原理（例如标准化数据、协方差、特征分解、排序最高特征值、使用 K 选定维度将原始数据转换为新轴）。
 下一步是可视化这些特征向量在数据集上的投影位置（在PC1 vs. PC2 图上，对吗？）。
 有人可以解释如何在降维数据集的 3D 图上绘制 [PC1、PC2、PC3] 特征向量吗？
 另外，我是否正确绘制了这个 2D 版本？我不确定为什么我的第一个特征向量的长度较短。我应该乘以特征值吗？
