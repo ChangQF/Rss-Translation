@@ -4,7 +4,159 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Tue, 12 Mar 2024 18:16:30 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 12 Mar 2024 21:13:08 GMT</lastBuildDate>
+    <item>
+      <title>在 Tensorflow 中，如何使用图像中的对象和相应标签创建数据集</title>
+      <link>https://stackoverflow.com/questions/78149741/in-tensorflow-how-do-i-make-a-dataset-with-objects-corresponding-labels-from-a</link>
+      <description><![CDATA[我有一个符号键，我正在寻找有关提取这些符号及其文本作为数据集标签的方法的建议；稍后用于匹配工程图上的这些符号。
+我只是在寻找正确方向的推动力，我有 Tensorflow 的经验；只要非常确定如何解决这个问题即可。
+简单示例
+https://i.stack.imgur.com/5RBau.png 
+复杂示例
+https://i.stack.imgur.com/pRLWf.png 
+正在寻找正确方向的推动力，感谢大家的帮助！
+我没有尝试太多，因为我很困惑首先要尝试什么，我以前没有使用过这样的文档。]]></description>
+      <guid>https://stackoverflow.com/questions/78149741/in-tensorflow-how-do-i-make-a-dataset-with-objects-corresponding-labels-from-a</guid>
+      <pubDate>Tue, 12 Mar 2024 19:57:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>尝试在 Python 中使用多处理库，但我遇到了它冻结但不抛出错误的问题</title>
+      <link>https://stackoverflow.com/questions/78149659/trying-to-use-the-multiprocessing-library-in-python-but-i-am-running-into-issues</link>
+      <description><![CDATA[所以我在咨询chatgpt后编写了这段代码，它在很大程度上有效：
+将 numpy 导入为 np
+从 sklearn.datasets 导入 make_classification
+从 sklearn.model_selection 导入 train_test_split
+从 sklearn.ensemble 导入 RandomForestClassifier
+从 sklearn.metrics 导入 precision_score
+来自多处理导入池，cpu_count
+
+def评估_子集（模型，评分，X_in，y_in，子集=无）：
+    #model = RandomForestClassifier(n_estimators=100, random_state=42)
+    列表分数 = []
+    对于 skf.split(X_in, y_in) 中的 train_index、test_index：
+        X_train, y_train = X_in.values[train_index], y_in.values[train_index]
+        X_test, y_test = X_in.values[test_index], y_in.values[test_index]
+        model.fit(X_train[:, 子集], y_train)
+        y_pred = model.predict(X_test[:, 子集])
+        list_scores.append(评分(y_test, y_pred))
+    返回 np.mean(list_scores)
+
+def stepwise_add_selection（模型，评分，X_in，y_in，n_processes =无）：
+    如果 n_processes 为 None：
+        n_processes = cpu_count()
+
+    池 = 池（进程=n_进程）
+    剩余特征 = 设置（范围（X_in.shape[1]））
+    选定的特征 = []
+    最佳准确度 = 0
+    而剩余特征：
+        结果=[]
+        对于剩余特征中的特征：
+            子集 = 选定的特征 + [特征]
+            results.append(pool.apply_async(evaluate_subset, args=(模型, 评分, X_in, y_in, 子集)))
+        精度 = [结果中的 res.get()]
+        best_index = np.argmax(精度)
+        print(“当前最佳”)
+        打印（最大（精度））
+        print(&quot;上一个最佳值&quot;)
+        打印（最佳准确度）
+        打印（选定的特征）
+        如果 best_accuracy &lt;最大（精度）：
+            selected_features.append(列表(剩余特征)[(best_index)])
+            最佳准确度 = 准确度[最佳索引]
+        别的：
+            休息
+        
+    池.close()
+    池.join()
+
+    返回selected_features，best_accuracy
+
+
+但是，我正在尝试创建另一个删除功能的贪婪搜索：
+&lt;前&gt;&lt;代码&gt;
+def stepwise_feature_removal（模型，评分，X_in，y_in，n_processes =无）：
+    剩余特征 = 设置（范围（X_train.shape[1]））
+    选定的特征 = 列表（剩余特征）
+    best_accuracy=evaluate_subset（模型，评分，X_in，y_in，selected_features）
+    print(&quot;初始准确度分数：&quot;, best_accuracy)
+    而剩余特征：
+        结果=[]
+        最坏的特征 = 无
+        池 = 池（进程=n_进程）
+        对于剩余特征中的特征：
+            temp_features = 选定的_features[:]
+            temp_features.remove（功能）
+            results.append(pool.apply_async(evaluate_subset, args=(模型, 评分, X_in, y_in, temp_features)))
+        池.close()
+        池.join()
+        精度 = [结果中的 res.get()]
+        best_index = np.argmax(精度)
+        如果准确度[best_index] &gt;最佳准确度：
+            最佳准确度 = 准确度[最佳索引]
+            最坏的特征 = temp_features[最佳索引]
+        print(“当前最佳”)
+        打印（准确度）
+        print(&quot;上一个最佳值&quot;)
+        打印（最佳准确度）
+        print(&quot;已删除的功能：&quot;)
+        打印（最差特征）
+
+        如果最坏的特征不是无：
+            selected_features.remove(worst_feature)
+            剩余特征.删除（最差特征）
+        别的：
+            休息
+
+    返回selected_features，best_accuracy
+
+在功能删除方法中，我遇到的问题是程序停止运行。它并不表明存在错误或任何情况。我添加了 pool.close() 和 pool.join() 但它没有解决问题。
+提前致谢。
+我正在尝试编写一个贪婪特征缩减函数，其工作原理与贪婪特征添加函数类似。不知道为什么会结冰，所以这也会有帮助。
+编辑：我应该澄清当我使用 imblearn 包运行此代码时出现的问题。如果没有 imblearn，可能会发生多处理并且程序会运行。
+def use_pipeline(clf, resample = False):
+    如果重新采样==假：
+        管道 = make_pipeline(MinMaxScaler(), clf)
+    别的：
+        管道= make_pipeline（重新采样，MinMaxScaler（），clf）
+    回水管
+sm = SMOTE（随机状态 = 38）
+pipeline_clf = use_pipeline(clf1, sm)
+stepwise_feature_removal(pipe_clf, matthews_corrcoef, X_train, y_train, 15)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78149659/trying-to-use-the-multiprocessing-library-in-python-but-i-am-running-into-issues</guid>
+      <pubDate>Tue, 12 Mar 2024 19:36:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>Amazon Sagemaker 在后台从 jupyter 笔记本运行代码</title>
+      <link>https://stackoverflow.com/questions/78149372/amazon-sagemaker-run-code-from-jupyter-notebook-in-background</link>
+      <description><![CDATA[我正在 Amazon Sagemkaer 笔记本实例上运行代码（在普通的 jupyter 笔记本中，而不是 jupyterLab）。
+
+如何在后台运行代码并关闭浏览器选项卡？当我关闭 jupyter 笔记本选项卡时，程序停止，我想避免这种情况。我读到我不应该在笔记本本身中进行处理，而应该使用 Sagemaker 处理作业。如何在更高的 i 上运行如下所示的简单代码单元
+
+df_new[&#39;predicted_values&#39;] = df_original.progress_apply(lambda x: LLM_pretrained_model.predict( x[&#39;comment_body&#39;] )
+
+
+12 小时后，内核崩溃，提示我需要再次登录。我怎样才能避免这种情况？由于我的数据量较大，程序至少需要 28 小时才能运行
+
+是否可以从 sagemaker jupyter 笔记本（不是 jupyterLab 笔记本）将代码推送到 GitHub？
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78149372/amazon-sagemaker-run-code-from-jupyter-notebook-in-background</guid>
+      <pubDate>Tue, 12 Mar 2024 18:39:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>结合区块链和机器学习可以实现什么？ [关闭]</title>
+      <link>https://stackoverflow.com/questions/78149327/what-can-i-implement-combining-blockchain-and-machine-learning</link>
+      <description><![CDATA[我想知道我们如何使用区块链和机器学习，也许有人可以给我一个项目的想法，我可以实施它来制作我的研究项目。我想结合机器学习 + 区块链（关于网络安全领域）。如果您能给我一些论文或 github 相关代码的想法，那就太好了。
+对于这个项目我想学习：
+
+区块链基础知识并实现一些区块链
+学习机器学习并以某种方式将机器学习集成到该区块链中
+]]></description>
+      <guid>https://stackoverflow.com/questions/78149327/what-can-i-implement-combining-blockchain-and-machine-learning</guid>
+      <pubDate>Tue, 12 Mar 2024 18:31:34 GMT</pubDate>
+    </item>
     <item>
       <title>多类不平衡数据集预处理问题</title>
       <link>https://stackoverflow.com/questions/78148016/multiclass-imbalance-dataset-preprocessing-problem</link>
@@ -98,7 +250,7 @@ ValueError：X 有 1 个特征，但 DecisionTreeClassifier 期望 416809 个特
       <pubDate>Tue, 12 Mar 2024 11:47:03 GMT</pubDate>
     </item>
     <item>
-      <title>深度学习（LSTM）项目实习生</title>
+      <title>深度学习 (LSTM) 项目实习生 [已关闭]</title>
       <link>https://stackoverflow.com/questions/78146798/project-intern-working-on-deep-learnning-lstm</link>
       <description><![CDATA[我使用深度学习开发了单词预测模型。我已经保存并加载了我的模型，但我想知道如何使用该模型进行预测，而无需下次运行纪元
 我已经开发了下一个单词预测模型，并对它进行了训练，然后保存了它，但现在我想重用该模型，而无需再次运行纪元]]></description>
@@ -137,57 +289,6 @@ keras.wrapper模块在tensorflow 2.15中已被删除，所以找不到它很正�
 我们尝试过，但它没有发生]]></description>
       <guid>https://stackoverflow.com/questions/78145603/modulenotfounderror-no-module-named-tensorflow-keras-wrappers-how-to-solve</guid>
       <pubDate>Tue, 12 Mar 2024 08:26:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>我有从图像中提取的点图。如何确定两个不同图之间的相似性度量？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78145229/i-have-plots-of-points-that-i-extract-from-an-image-how-can-i-determine-a-simil</link>
-      <description><![CDATA[每个点都有 x、y 和大小。
-例如，这些应该会产生类似的结果：
-图 1-A：
-
-图 1-B：
-
-这些不应导致类似的结果：
-图 2-A：
-
-图 3-A：
-
-是否有任何算法或方法来确定图的相似性。
-我尝试为每个图创建一个特征向量，例如每个象限中的点数、最大点大小、两个最大点之间的距离以及进行余弦相似度。但我不断获得不匹配图表的高度相似性。我正在考虑为此创建一个 ML 模型，并正在研究 siamese 模型，但无法让它正确训练。]]></description>
-      <guid>https://stackoverflow.com/questions/78145229/i-have-plots-of-points-that-i-extract-from-an-image-how-can-i-determine-a-simil</guid>
-      <pubDate>Tue, 12 Mar 2024 07:14:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>python darts 中的 RNN 训练指标</title>
-      <link>https://stackoverflow.com/questions/78144820/rnn-training-metrics-in-python-darts</link>
-      <description><![CDATA[我目前正在使用 python darts 训练 RNNModel。为了比较不同的训练模型，我想从 fit 方法中提取 train_loss 和 val_loss 。我该怎么做？我读过一些有关指标集合的内容，但不知道如何使用它。
-这是我当前的代码
-train = # 训练数据为 TimeSeries
-模型 = RNNModel(模型 =“LSTM”, input_chunk_length=self.past_samples)
-模型.fit(火车)
-
-训练过程中损失会显示在控制台中，但我不知道如何访问它。
-到目前为止，我已尝试在线查找任何文档，并向 bing chat 和 ChatGPT 寻求帮助。然而他们告诉我使用不存在的model.history.history[“loss”]]]></description>
-      <guid>https://stackoverflow.com/questions/78144820/rnn-training-metrics-in-python-darts</guid>
-      <pubDate>Tue, 12 Mar 2024 05:29:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：环境类型为 <class '__main__.StockTradingEnvironment'>，而不是 Gymnasium 环境</title>
-      <link>https://stackoverflow.com/questions/78144599/valueerror-the-environment-is-of-type-class-main-stocktradingenvironment</link>
-      <description><![CDATA[运行代码时
-env = DummyVecEnv([lambda: StockTradingEnvironment(stock_data)])，它提供
-ValueError：环境类型为 ，而不是 Gymnasium 环境。在本例中，我们期望安装 OpenAI Gym 并且环境是 OpenAI Gym 环境。
-我已经导入了必要的库，如下所示。
-导入 yfinance 作为 yf
-将 numpy 导入为 np
-将 pandas 导入为 pd
-从 stable_baselines3 导入 DQN
-从 stable_baselines3.common.vec_env 导入 DummyVecEnv
-从健身房进口空间
-
-如何解决这个错误？]]></description>
-      <guid>https://stackoverflow.com/questions/78144599/valueerror-the-environment-is-of-type-class-main-stocktradingenvironment</guid>
-      <pubDate>Tue, 12 Mar 2024 04:03:13 GMT</pubDate>
     </item>
     <item>
       <title>预测分位数与梯度增强回归相交</title>
@@ -254,11 +355,39 @@ image_pred = image.resize((宽度,高度), Image.ANTIALIAS)
       <pubDate>Mon, 11 Mar 2024 10:19:20 GMT</pubDate>
     </item>
     <item>
-      <title>Pytroch 分割模型(.pt) 未转换为 CoreML</title>
-      <link>https://stackoverflow.com/questions/78091161/pytroch-segmentation-model-pt-not-converting-to-coreml</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78091161/pytroch-segmentation-model-pt-not-converting-to-coreml</guid>
-      <pubDate>Sat, 02 Mar 2024 01:26:48 GMT</pubDate>
+      <title>为什么在 Huggingface MT5 模型中执行批量编码时会得到不同的嵌入？</title>
+      <link>https://stackoverflow.com/questions/78139855/why-do-i-get-different-embeddings-when-i-perform-batch-encoding-in-huggingface-m</link>
+      <description><![CDATA[我正在尝试使用 HuggingFace 的 mt5-base 模型对一些文本进行编码。我使用的模型如下所示
+从转换器导入 MT5EncoderModel、AutoTokenizer
+
+模型 = MT5EncoderModel.from_pretrained(“google/mt5-base”)
+tokenizer = AutoTokenizer.from_pretrained(“google/mt5-base”)
+
+def get_t5_embeddings(文本):
+    last_hidden_​​state = model(input_ids=tokenizer(texts, return_tensors=“pt”, padding=True).input_ids).last_hidden_​​state
+    pooled_sentence = torch.max(last_hidden_​​state, 暗淡=1)
+    返回 pooled_sentence[0].detach().numpy()
+
+当我注意到相同的文本与其自身的余弦相似度分数较低时，我正在做一些实验。我做了一些挖掘，意识到如果我批量进行编码，模型会返回非常不同的嵌入。为了验证这一点，我运行了一个小实验，逐步生成 Hello 的嵌入和 10 个 Hello 的列表。并检查列表中 Hello 和第一个 Hello 的嵌入（两者应该相同）。
+对于范围 (1, 10) 内的 i：
+    print(i, (get_t5_embeddings([“你好”])[0] == get_t5_embeddings([“你好”]*i)[0]).sum())
+
+这将返回嵌入中相互匹配的值的数量。
+结果是这样的：
+&lt;前&gt;&lt;代码&gt;1 768
+2 768
+3 768
+4 768
+5 768
+6 768
+7 768
+8 27
+9 27
+
+每次运行它时，如果批量大小超过 768，就会出现不匹配情况。
+为什么我会得到不同的嵌入以及如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78139855/why-do-i-get-different-embeddings-when-i-perform-batch-encoding-in-huggingface-m</guid>
+      <pubDate>Mon, 11 Mar 2024 10:14:53 GMT</pubDate>
     </item>
     <item>
       <title>除了最小-最大归一化和分位数变换之外，是否有任何数据缩放方法可以保持范围在 [0,1] 之间？</title>
@@ -279,17 +408,6 @@ image_pred = image.resize((宽度,高度), Image.ANTIALIAS)
 提前致谢。]]></description>
       <guid>https://stackoverflow.com/questions/68862621/getting-error-524-while-running-jupyter-lab-in-google-cloud-platform</guid>
       <pubDate>Fri, 20 Aug 2021 12:57:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>Killed:9 是什么以及如何在 macOS 终端中修复？</title>
-      <link>https://stackoverflow.com/questions/51833310/what-is-killed9-and-how-to-fix-in-macos-terminal</link>
-      <description><![CDATA[我有一个用于机器学习项目的简单 Python 代码。我有一个比较大的自发演讲数据库。我开始训练我的语音模型。由于它是一个巨大的数据库，我让它在一夜之间工作。早上醒来，我看到了一个神秘的东西
-死亡人数：9
-我的终端中的行。没有其他的。没有其他错误消息或可处理的内容。代码运行良好大约 6 个小时，占整个过程的 75%，所以我真的不明白出了什么问题。
-什么是 Killed:9 以及如何修复它？损失数小时的计算时间是非常令人沮丧的......
-如果有必要的话，我正在使用 macOS Mojave beta。预先感谢您！]]></description>
-      <guid>https://stackoverflow.com/questions/51833310/what-is-killed9-and-how-to-fix-in-macos-terminal</guid>
-      <pubDate>Tue, 14 Aug 2018 03:28:58 GMT</pubDate>
     </item>
     </channel>
 </rss>
