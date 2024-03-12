@@ -4,7 +4,150 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Mon, 11 Mar 2024 21:14:41 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 12 Mar 2024 00:56:54 GMT</lastBuildDate>
+    <item>
+      <title>多级建模，异常大的系数</title>
+      <link>https://stats.stackexchange.com/questions/642357/multilevel-modelling-unusually-large-coefficients</link>
+      <description><![CDATA[我们正在尝试提取每个参与者的斜率和截距以用作分数。我们注意到二次（模型 2）和三次（模型 3）模型中的斜率都异常大；只有线性模型（模型 1）的斜率在通常范围内。通过似然比检验进行模型比较，模型2比模型1拟合得更好，模型3是三者中最好的。
+我们的模型公式如下所示：
+model2 &lt;- lme(DV ~ poly(level1IV, 2)*level2IV, random = ~ 1 + poly(level1IV, 2) | level3IV/level2IV)
+
+我们使用这些代码来提取每个级别的实际（随机+固定效应）斜率和截距3IV。
+model2_ranef &lt;- ranef(model2)$level3IV
+
+model2_overallintercept &lt;- coef(model2)[“（截距）”]
+model2_overallslopes_linear &lt;- coef(model2)[“poly(level1IV, 2)1”]
+model2_overallslopes_quadratic &lt;- coef(model2)[“poly(level1IV, 2)2”]
+
+model2_randintercepts &lt;- model2_ranef[[1]]
+model2_randslopes_线性 &lt;- model2_ranef[[2]]
+model2_randslopes_quadratic &lt;- model2_ranef[[3]]
+
+model2_actualintercepts &lt;- model2_overallintercept + model2_randintercepts
+model2_actualslopes_线性 &lt;- model2_overallslopes_线性 + model2_randslopes_线性
+model2_actualslopes_quadratic &lt;- model2_overallslopes_quadratic + model2_randslopes_quadratic
+
+从二次模型中提取的（异常大的）系数摘录：
+
+从线性模型中提取的（正常范围）系数摘录：
+
+但是，当我们尝试绘制线性和三次模型的预测数据时，绘图看起来很正常：
+data$Predicted &lt;- 预测(model2)
+ggplot(数据，aes(x = 因子(level1IV)，y = 预测，组 = level2IV，形状 = level2IV) +
+stat_summary(fun.y = 均值, geom = “线”) +
+stat_summary(fun.data = Mean.se, geom = &quot;pointrange&quot;) +
+实验室（x =“level1IV”，y =“DV”，颜色=“level2IV”））
+
+观测数据
+
+根据二次模型预测
+
+我们想知道是什么导致了较大的系数，以及为什么我们图中的斜率看起来正常。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642357/multilevel-modelling-unusually-large-coefficients</guid>
+      <pubDate>Tue, 12 Mar 2024 00:50:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 copula 对相关随机变量进行采样</title>
+      <link>https://stats.stackexchange.com/questions/642356/sampling-correlated-random-variables-using-copula</link>
+      <description><![CDATA[我有一个非常小的数据集，它是具有 4 个元素的向量集合（为了简单起见）。 4 个边际分布非常多样化（它们是类高斯分布或类正弦分布）。根据这些数据，我：
+
+（将数据缩放至算术平均值和标准差）计算其协方差矩阵。
+使用所述 cov 矩阵生成 4 维高斯。
+使用标准高斯分布的 cdf（loc=0，scale=1），我将所述高斯分布的边际转换为均匀分布（成对绘制这些边际可以得到联结）
+我使用均匀分布对输入边际分布执行逆采样。
+
+我预计该方法有效，因为 copula 只捕获相关性，而不是边际相关性。虽然生成的分布在边际分布和相关性方面往往与输入的分布非常一致，但配对图分布似乎非常不同。 （见图）
+
+我做事不当吗？有人可以指出吗？
+如果您想了解更多信息，我可以分享代码。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642356/sampling-correlated-random-variables-using-copula</guid>
+      <pubDate>Tue, 12 Mar 2024 00:48:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>python 中的单位根测试</title>
+      <link>https://stats.stackexchange.com/questions/642355/unit-root-testing-in-python</link>
+      <description><![CDATA[我有一个时间序列（如下图所示），我想测试它是否存在单位根。
+
+按照我的理解，具有单位根的时间序列在发生意外变化后会产生持久的影响；而没有单位根的时间序列则呈现均值回归。
+根据这个定义，在我看来（至少在视觉上）我的时间序列在 1 1 1 1 1 1 1 1 1 1 x &lt; 10，因为绘图似乎从 x = 6 左右的意外变化中“恢复”，并在其后保持线性趋势增长。
+对于区间 16 &lt; 也类似。 x &lt; 22，其中时间序列恢复到x = 19变化后的趋势。对我来说，这两个间隔都类似于 这个例子来自维基百科。
+但是，时间序列在其完整的 x 范围 (1 &lt; x &lt; 22) 中似乎并没有摆脱单位根，因为趋势似乎存在变化大约在 x = 13 处。
+所以我尝试使用
+从 statsmodels.tsa.stattools 导入 adfuller, kpss
+
+# ADF测试
+def adf_test(时间序列):
+    结果 = adfuller(time_series, autolag = &quot;AIC&quot;)
+    print(&#39;ADF 测试：&#39;)
+    print(&#39;检验统计量：&#39;, result[0])
+    print(&#39;p 值：&#39;, 结果[1])
+    print(&#39;临界值：&#39;)
+    对于结果[4].items()中的键、值：
+        print(f&#39; {键}: {值}&#39;)
+    如果结果[1] &lt;= 0.05：
+        print(&quot;ADF 检验表明没有单位根&quot;)
+    别的：
+        print(&quot;ADF 测试不拒绝单位根的可能性&quot;)
+ 
+#KPSS测试
+def kpss_test(time_series):
+    结果 = kpss(time_series, 回归=&#39;ct&#39;)
+    print(&#39;KPSS 测试：&#39;)
+    print(&#39;检验统计量：&#39;, result[0])
+    print(&#39;p 值：&#39;, 结果[1])
+    print(&#39;临界值：&#39;)
+    对于结果[3].items()中的键、值：
+        print(f&#39; {键}: {值}&#39;)
+    如果结果[1]&gt; 0.05：
+        print(&quot;KPSS 检验表明没有单位根&quot;)
+    别的：
+        print(&quot;KPSS 检验不拒绝单位根的可能性&quot;)
+
+其中，当输入过滤到区间1 &lt;&lt;的时间序列时， x &lt; 9，输出结果与我的结论相反：
+ADF 测试：
+测试统计量：0.6173049555874962
+p 值：0.9880344900280655
+临界值：
+  1%：-3.5274258688046647
+  5%：-2.903810816326531
+  10%：-2.5893204081632653
+ADF 检验不拒绝单位根的可能性
+
+KPSS测试：
+检验统计量：0.16260745736221355
+p 值：0.03616045219815537
+临界值：
+  10%：0.119
+  5%：0.146
+  2.5%：0.176
+  1%：0.216
+KPSS 检验不拒绝单位根的可能性
+
+事实上，我已经输入了过滤到区间1 &lt;&lt;的时间序列。 x &lt; 4（不包括 x = 6 处的变化）以及 np.arange(0, 1000, 10)（完全线性趋势，没有变化）两者都有函数，结果也表明存在单位根。
+我对单位根的理解是错误的吗？或者也许是我写的 python 函数？
+这与我的时间序列不平稳有关吗？如果是这样，我如何测试“从变化中恢复的能力”（均值回归），尽管它是非平稳的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642355/unit-root-testing-in-python</guid>
+      <pubDate>Tue, 12 Mar 2024 00:03:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>模型在重新训练时是否会获得相同的注意力分数？</title>
+      <link>https://stats.stackexchange.com/questions/642354/does-a-model-learn-the-same-attention-scores-when-retrained</link>
+      <description><![CDATA[如标题所示，当我训练模型时，我是否应该期望模型在其注意力层中学习几乎相同的注意力分数？如果有多个这样的层，也许只在第一个？
+我直观地感觉到，如果注意力正在学习预测中最“重要”的特征，那么它应该学习几乎相同的分数，或者至少为这些特征提供相同的“顺序”。
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/642354/does-a-model-learn-the-same-attention-scores-when-retrained</guid>
+      <pubDate>Tue, 12 Mar 2024 00:02:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>线性回归在中级 DS 面试中仍然有用吗？</title>
+      <link>https://stats.stackexchange.com/questions/642351/is-linear-regression-still-relevant-in-a-mid-level-ds-interview</link>
+      <description><![CDATA[我正在招聘一名具有 2~ 年经验的中级数据科学家。招聘人员将编写 SQL、与利益相关者合作定义业务问题并进行分析（无论是推理问题还是预测建模）。
+我们的面试任务之一是检查一个总共 5 列的表中两个变量之间的关系，并量化其中一个变量对另一个变量的影响，我们主要希望候选人进行 EDA、拟合线性回归模型、生成回归表并解释统计数据。如果他们在 EDA 中表现出色，他们会注意到需要包含另一个协变量，从而拟合多元线性回归，并解释那里的统计数据。
+我注意到，许多拥有 5 年以上数据科学经验和高级项目的人在生成回归表方面确实很困难，我可以通过向他们提供生成表的代码并解释基本统计数据（例如，当我们添加协变量时，为什么该变量的系数会发生变化）。
+我的问题是，您认为线性回归应该是中级数据科学家的基本技能吗？它应该成为面试的一部分吗？关于如何评估统计基础技能，您有更好的建议吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642351/is-linear-regression-still-relevant-in-a-mid-level-ds-interview</guid>
+      <pubDate>Mon, 11 Mar 2024 22:36:59 GMT</pubDate>
+    </item>
     <item>
       <title>拟合数据：“最正态残差”与最大似然</title>
       <link>https://stats.stackexchange.com/questions/642348/fitting-data-most-normal-residuals-vs-maximum-likelihood</link>
@@ -20,20 +163,20 @@
 我时不时地听到一种说法，即最好通过聚合进行预测 数据，因为它更“稳定”或者不确定性较小。
 这是一个例子，尽管我知道我在其他各种情况下也遇到过这种说法。
 &lt;块引用&gt;
-聚集体的波动性更小，更稳定。因此，总体水平上的预测会有较低的预测误差。如果公司可以接受每周粒度，那就是正确的方法。
+聚集体的波动性更小，更稳定。因此，总体水平上的预测会有较低的预测误差。如果公司可以接受每周粒度，那就是正确的选择。
 相反，如果您在每日水平上进行预测然后进行汇总，则每日水平估计中的任何偏差都会在汇总后变得更加复杂。
 如果日常季节性很重要（例如：周末与工作日），那么每日水平预测就变得必要。例如，如果您想预测一个日历月，那么工作日与周末/节假日的数量就变得很重要。
 
-从我的角度来看，（单变量）时间序列数据集是随机过程的一个实例（即随机变量序列）。如果我要在一段时间内进行求和之类的事情 $I$
+从我的角度来看，（单变量）时间序列数据集是随机过程的一个实例（即随机变量序列）。例如，如果我要在一段时间内进行求和之类的事情 $I$
 $$\sum_{t \in I} X_t$$
 我需要考虑变量的更改，其中传播不确定性。
 示例
 恒定随机变量
-从诸如 $$f(X_1, \ldots, X_t) = 0$$ 这样的常量函数可以清楚地看出，概率超过要退化的随机变量的可测量函数的图像（遵循狄拉克 $\delta$ 分布）。这说明当输入随机变量是非简并时，聚合函数的输出不确定性小于输入的不确定性。
+从诸如 $$f(X_1, \ldots, X_t) = 0$$ 这样的常数函数可以清楚地看出，概率超过要退化的随机变量的可测量函数的图像（遵循狄拉克 $\delta$ 分布）。这说明当输入随机变量是非简并时，聚合函数的输出不确定性小于输入的不确定性。
 泊松随机变量之和
-不过有很多反例。例如，独立泊松变量集合的总和本身就是速率参数等于各个速率参数之和的泊松变量。 IE。假设 $$X_i \sim \text{Poisson}(\lambda_i)$$ 对于 $$i \in \{1 , \ldots, n \}$$
+不过有很多反例。例如，独立泊松变量集合的总和本身就是泊松变量，其速率参数等于各个速率参数的总和。 IE。假设 $$X_i \sim \text{Poisson}(\lambda_i)$$ 对于 $$i \in \{1 , \ldots, n \}$$
 然后 $$\sum_{i=1}^n X_i \sim \text{Poisson} \left( \sum_{i=1}^n \lambda_i \right).$$ 
-了解泊松分布的属性后，很明显，泊松变量的总和将比我们开始时使用的任何单个泊松变量具有更大的方差。
+了解泊松分布的属性后，很明显，泊松变量的总和将比我们开始时的任何单个泊松变量具有更大的方差。
 问题
 我是否遗漏了一些东西，或者聚合时间序列并不总是会导致不确定性的减少，从而导致仅仅忽略可量化的不确定性？]]></description>
       <guid>https://stats.stackexchange.com/questions/642346/doesnt-aggregating-time-series-sometimes-throw-away-quantifiable-uncertainty</guid>
@@ -45,14 +188,14 @@ $$\sum_{t \in I} X_t$$
       <description><![CDATA[研究
 我有一个 2x4 因子研究，其中我以 2 种不同的方式呈现 4 个不同的条件，并希望测试每个因子的显着差异。每个参与者都在所有条件下进行评估：参与者从一种演示方法开始，按随机顺序经历所有 4 个条件，然后继续使用另一种演示方法，并再次按随机顺序看到所有 4 个条件。一半从新闻开始。方法 1 和一半从 pres 开始。方法2.
 问题
-根据我迄今为止的研究（我是统计学新手），我可以使用方差分析来测试显着差异。因为我有两个因素，所以我认为双向方差分析是解决问题的方法。但据我了解，带有代表的2路方差分析。测量假设两级因子有两个不同的组（例如此处）。但我没有划分不同的组，因为每个参与者都经历了所有可能的因素组合（每个参与者 8 次测量）。这是否意味着我不能对代表使用双向方差分析。我的研究测量？如果是这样，我应该用什么来代替？]]></description>
+根据我迄今为止的研究（我是统计学新手），我可以使用方差分析来测试显着差异。因为我有两个因素，所以我认为双向方差分析是解决问题的方法。但据我了解，具有代表的2路方差分析。测量假设两级因子有两个不同的组（例如此处）。但我没有划分不同的组，因为每个参与者都经历了所有可能的因素组合（每个参与者 8 次测量）。这是否意味着我不能对代表使用双向方差分析。我的研究测量？如果是这样，我应该用什么来代替？]]></description>
       <guid>https://stats.stackexchange.com/questions/642344/what-kind-of-anova-to-use-in-a-2x4-within-subject-study</guid>
       <pubDate>Mon, 11 Mar 2024 20:06:51 GMT</pubDate>
     </item>
     <item>
       <title>如何计算R中空间面板模型的AIC？</title>
       <link>https://stats.stackexchange.com/questions/642343/how-to-calculate-aic-of-a-spatial-panel-model-in-r</link>
-      <description><![CDATA[对于 Stack Overflow 来说，这可能是一个更好的问题，但我认为这里可能需要一个统计答案：
+      <description><![CDATA[这对于 Stack Overflow 来说可能是一个更好的问题，但我认为这里可能需要一个统计答案：
 我使用splm包在R中构建了一些空间面板模型。这些模型包括以下选项：
 
 随机效应（通过 model = &quot;random&quot;）
@@ -118,72 +261,14 @@ glm(Feat_129227 ~ BW_group + BMI + AGE + WK, 数据 = Full_dataset, 家庭 =??),
       <pubDate>Mon, 11 Mar 2024 19:26:53 GMT</pubDate>
     </item>
     <item>
-      <title>概率如何随长度变化？</title>
+      <title>概率如何随长度变化？ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/642334/how-does-probability-scale-with-length</link>
       <description><![CDATA[假设我们有一个单位长度的概率，即长度为 1 公里的电路段在一年内起火的概率为 0.01%。如果我们将长度加倍到 2 公里，我认为我们可以使用二项式分布来获得新段的点火概率。如何计算非整数倍数的着火风险？例如 1.25 公里路段还是 0.3 公里路段？]]></description>
       <guid>https://stats.stackexchange.com/questions/642334/how-does-probability-scale-with-length</guid>
       <pubDate>Mon, 11 Mar 2024 17:17:49 GMT</pubDate>
     </item>
     <item>
-      <title>单次测量的方差</title>
-      <link>https://stats.stackexchange.com/questions/642331/variance-of-a-single-measurement</link>
-      <description><![CDATA[假设我有一个 $n$ 个数据点的集合：$x_i, y_i, i = 0, 。 ..、n-1$ 和 $x_0 &lt; x_1 &lt; ...&lt; x_{n-1}$。 $x_i$ 是独立数据，$y_i$ 是相关数据（测量值）。 
-在线性回归和平滑样条曲线的背景下，我已经看到了一些参考文献（如下所示），其中 $\sigma_i^2$ 的概念是“与每个测量相关的方差 $y_i$。”
-例如，在 NR p781, eq (15.2.2) 中，讨论线性回归，卡方评价函数给出为：
-$$\chi^2(a, b) = \sum_{i=0}^{n - 1}\left(\frac{y_i - a - bx_i}{\sigma_i } \右）^2$$
-文本中的描述是“我们假设与每个测量$y_i$相关的不确定性$\sigma_i$” span&gt; 已知...”
-同样，在 SS p 177 的 eq (2) 中，讨论平滑样条，最小化条件给出如下：
-$$\sum_{i = 0}^{n - 1}\left(\frac{g(x_i) - y_i}{\delta y_i} \right)^2 \leq新元$
-文本中的描述是“如果可用，应该使用 $\delta y_i$ 纵坐标标准差的估计值 $n$ 数据点，并且必须估计 $\sigma_i$ （或 $\delta y_i$），而不是事先知道或提供它们。
-我的问题是，如何做到这一点？
-我目前正在使用 $\sigma_i = |y_i - \bar{y}|$ 估算值，其中  $\bar{y}$ 是“最近邻居” $y_{i-1}$、$y_i$ 和 $y_{i+1}$，但这感觉不太对劲。如何更正确/准确地估计每个 $y_i$ 的 $\sigma_i$？
-参考文献
-[NR]：威廉等人出版社。 (2007)数值食谱，3e。剑桥大学出版社。
-[SS]：赖因施，克里斯蒂安。 (1967)“通过样条函数进行平滑”，《数值数学》，10，第 177-183 页。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642331/variance-of-a-single-measurement</guid>
-      <pubDate>Mon, 11 Mar 2024 17:10:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>视觉变压器过拟合，多次实验都无法找出原因</title>
-      <link>https://stats.stackexchange.com/questions/642329/vision-transformer-overfitting-cannot-figure-the-reason-why-as-many-experiments</link>
-      <description><![CDATA[我正在修改后的视觉变换器模型上训练大约 1000 个通道的成像数据。
-预处理
-我的样本数量有限，因为我只有 10 个可用图像 (~200x200x1000)，我已将这些图像转换为补丁，生成约 15k 个补丁，每个补丁都有关联的标签和通过上采样的平衡数据集。我还在通道上执行了 PCA 以降低维度。由于我使用的模型不接受小于通道数的补丁大小（例如 8x8x32），因此我对补丁进行了插值（例如 8x8x32 到 32x32x32）。当前集包含 6 个训练、2 个验证和 2 个测试。
-培训
-目前，这些是我迄今为止最好结果的训练和验证曲线。为这些结果生成的补丁大小为 8x8x25，50% 重叠，训练了 100 个周期：
-训练损失
-val 准确度
-val 平衡精度
-val f1
-价值损失
-问题&amp;尝试
-我的问题是，了解如何推进这些结果。该模型似乎是基于验证指标进行训练和学习的。然而，当我将训练时间增加到 200 个 epoch 时，模型似乎始终稳定在 ~0.3-0.4 验证平衡准确度，而训练则稳定在 ~0.9。
-我尝试过的：
-
-不同的补丁大小（4x4、8x8、16x16 等）
-通过 PCA 实现不同的通道大小（8、16、32 等...）
-生成补丁时的不同重叠（20%、50% 等）
-降低学习率
-降低权重衰减
-辍学率增加
-应用提前停止
-平衡数据集
-数据增强
-权重衰减
-
-这些是我尝试过提高性能的一些方法。然而，它反而导致了较差的表现，例如训练早期的稳定和更极端的波动。人们可以肯定地说我的模型过度拟合了。对于我拥有的数据集来说，这个模型是否太复杂了，因为它有大约 22M 参数？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642329/vision-transformer-overfitting-cannot-figure-the-reason-why-as-many-experiments</guid>
-      <pubDate>Mon, 11 Mar 2024 16:49:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>时间序列数据 - 确定最佳平均时间</title>
-      <link>https://stats.stackexchange.com/questions/642326/time-series-data-determining-best-averaging-time</link>
-      <description><![CDATA[我是处理时间序列数据的新手，需要一些指导来确定传感器的最佳平均时间。我有一个每 1 秒输出数据的传感器。我想确定最佳平均时间（例如 10 秒或 30 秒或 1 分钟）以获得稳定的读数并最大限度地减少数据噪声。我读过“艾伦方差”。我想知道是否有更好的统计数据可以使用。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642326/time-series-data-determining-best-averaging-time</guid>
-      <pubDate>Mon, 11 Mar 2024 16:26:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>$(1+X)^N$ 的 PDF，其中 $X \sim \operatorname{uniform}(-0.01, 0.01)$</title>
+      <title>$(1+X)^N$ 的 PDF，其中 $X \sim \operatorname{uniform}(-0.01, 0.01)$ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/642324/pdf-of-1xn-where-x-sim-operatornameuniform-0-01-0-01</link>
       <description><![CDATA[我想用以下代码模拟价格：
 将 numpy 导入为 np
@@ -325,81 +410,25 @@ t 临界二尾 2.042272456]]></description>
       <pubDate>Mon, 11 Mar 2024 16:03:29 GMT</pubDate>
     </item>
     <item>
-      <title>“偏差-方差权衡”和“一致模型选择”之间有什么关系？</title>
-      <link>https://stats.stackexchange.com/questions/642287/whats-the-relationship-between-bias-variance-tradeoff-and-consistent-model-s</link>
-      <description><![CDATA[我对“偏差-方差权衡”和“偏差-方差权衡”之间的关系感到非常困惑。和“一致的模型选择”。根据我目前的解释，处理“偏差-方差权衡”的最终目标是就是要有良好的样本外预测。也就是说，我们要避免过拟合（复杂模型，高方差）和欠拟合（简单模型，高偏差），以便我们的估计模型能够对我们的目标做出良好的预测 $ Y$ 在之前未使用过的全新数据集上使用回归器 $X$。在这个过程中，我们并不关心“真实模型”是什么。 $Y$ 和 $X$ 之间是。
-另一方面，“一致的模型选择”假设 $Y$ 和 $X$ 之间存在真实关系，用 $Y=X^{*&#39;}\beta+\epsilon$ 对于某些 $\beta$，其中 $X^*$ 是 $X$ 的子集。目标是使用某些标准（例如 BIC）找出这个正确的模型（回归量的正确子集），众所周知，随着样本量趋向无穷大，该标准可以找到正确的模型，其概率将达到 1。因此，在更强的假设下，一致模型选择的主题似乎是一个更狭窄的领域，并且具有完全不同的最终目标。
-令我困惑的是，我经常看到 BIC 标准的说明是试图平衡偏差（样本拟合良好）和方差（模型复杂性）。这样的讨论似乎暗示 BIC 是为了改进样本外预测而构建的。就我个人而言，选择正确的模型与良好的样本外预测并没有太大关系。错误的模型在样本外预测方面也可能表现得同样好甚至更好。我的问题是，这些解释正确吗？如果是，那么当我们谈论在一致模型选择的背景下平衡偏差和方差时，我们实际上意味着什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642287/whats-the-relationship-between-bias-variance-tradeoff-and-consistent-model-s</guid>
-      <pubDate>Mon, 11 Mar 2024 09:36:40 GMT</pubDate>
+      <title>GLM 交互作用图的解释</title>
+      <link>https://stats.stackexchange.com/questions/642320/interpretation-of-interaction-plot-from-glm</link>
+      <description><![CDATA[我正在 R 中进行调节分析。我的因变量是比率（Diffcount/totalcount），自变量是指数（连续），调节变量是分类变量（3 个级别）。我使用 MASS 中的 glm.nb 拟合了负二项式回归模型，并使用了如下所示的偏移项：
+glm.nb(Diffcount~Index1*factor3 + offset(log(totalcount)), data = dt)
+
+我使用 interactions 包中的 interact_plot 为该模型生成了交互图。
+我真正困惑的是 y 轴的解释。该值是否代表比率（即 Diffcount/totalcount）、概率或其他内容？谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/642320/interpretation-of-interaction-plot-from-glm</guid>
+      <pubDate>Mon, 11 Mar 2024 15:29:24 GMT</pubDate>
     </item>
     <item>
       <title>溢出效应作为购买力平价（PPP）的检验</title>
       <link>https://stats.stackexchange.com/questions/642279/spillovers-as-test-of-purchasing-power-parity-ppp</link>
-      <description><![CDATA[VAR 的变换系数产生脉冲响应，可用于在 Diebold 和 Yilmaz (DY) 2012 年论文“给予比接受更好”。考虑在记录的即期汇率和价格指数差异的二方程 VAR 中测试相对购买力平价。 DY 溢出的什么值可以解释为相对购买力平价的确认/拒绝？]]></description>
+      <description><![CDATA[VAR 的变换系数产生脉冲响应，可用于在 Diebold 和 Yilmaz (DY) 2012 年论文“给予比接受更好”。
+考虑使用 VAR（向量自回归）模型测试相对购买力平价，该模型由两个因变量（内生变量或建模变量）组成：一阶差分记录即期汇率，例如美元/欧元（等式 1） ，以及两国之间相应的一阶差分记录通货膨胀差异（方程 2），在这两种情况下都取决于各自的过去值和其他内生变量的过去值，直至 p 滞后或 VAR(p)。 
+为了保持相对购买力平价，一阶差分记录通货膨胀差（即两国之间的相对通货膨胀）的同期变化必须被一阶差分记录即期汇率的同期变化完全抵消率。
+是否可以仅通过查看从该 VAR(p) 系统获得的 DY 溢出来收集有关这种抵​​消经济关系有效性的任何信息？如果是这样，从该 VAR(p) 获得的 DY 溢出值的哪些值对应于有效的相对购买力平价关系，即，DY 溢出值的哪些值表明一阶差分记录通货膨胀差值的同期变化完全被一阶差分记录即期汇率的同期变化？]]></description>
       <guid>https://stats.stackexchange.com/questions/642279/spillovers-as-test-of-purchasing-power-parity-ppp</guid>
       <pubDate>Mon, 11 Mar 2024 04:52:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>一阶、二阶、三阶差分背后的直觉。何时使用它们？</title>
-      <link>https://stats.stackexchange.com/questions/642277/intuition-behind-the-first-second-third-order-differencing-when-to-use-them</link>
-      <description><![CDATA[我正在处理时间序列数据，出于好奇，我获取了数据的一阶、二阶和三阶差异。不过我不太清楚它们什么时候用？
-我也想知道差异背后的直觉。第一个顺序很清楚；这就是区别。
-$$\begin{方程} \begin{对齐}
-\Delta X_t &amp;= X_t - X_{t-1}。
-\end{对齐} \end{方程}$$
-此处描述的第二个是给定时间点的序列曲率。
-$$\begin{方程} \begin{对齐}
-\Delta^2 X_t = \Delta (\Delta X_t)
-&amp;= \Delta (X_t-X_{t-1}) \\[6pt]
-&amp;= \Delta X_t - \Delta X_{t-1} \\[6pt]
-&amp;= (X_t-X_{t-1})-(X_{t-1}-X_{t-2}) \\[6pt]
-&amp;= X_t - 2X_{t-1} + X_{t-2}。 \\[6分]
-\end{对齐} \end{方程}$$
-但我实际上不知道第三个差异的含义以及何时使用第一、第二和第三个差异。
-$$\begin{方程} \begin{对齐}
-\Delta^3 X_t = \Delta (\Delta^2 X_t)
-&amp;= \Delta (X_t - 2X_{t-1} + X_{t-2}) \\[6pt]
-&amp;= \Delta X_t - 2\Delta X_{t-1} + \Delta X_{t-2} \\[6pt]
-&amp;= (X_t - X_{t-1}) - 2(X_{t-1} - X_{t-2}) + (X_{t-2} - X_{t-3}) \\[6pt ]
-&amp;= X_t - 3X_{t-1} + 3X_{t-2} - X_{t-3}。 \\[6分]
-\end{对齐} \end{方程}$$]]></description>
-      <guid>https://stats.stackexchange.com/questions/642277/intuition-behind-the-first-second-third-order-differencing-when-to-use-them</guid>
-      <pubDate>Sun, 10 Mar 2024 23:22:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>固定效应回归会由于聚合 FE 较多的共线性而降低估计值，但聚合 FE 较少的情况则不会</title>
-      <link>https://stats.stackexchange.com/questions/642274/fixed-effects-regression-drops-estimates-due-to-collinearity-for-more-aggregated</link>
-      <description><![CDATA[我正在使用带有一些不同设置的 fixest 包在 r 中运行固定效应回归。我无法提供复制错误的数据，因为数据集太大，并且子集会导致其他错误，但一般格式如下：
-库（修复）
-
-fmla1 &lt;- as.formula(“DV ~ 因子(Var):(Var2) + Var2 | 州 + 年份”)
-fmla2 &lt;- as.formula(“DV ~ 因子(Var):(Var2) + Var2 | 年”)
-fmla3 &lt;- as.formula(“DV ~ 因子(Var):(Var2) + Var2 | 状态”)
-fmla4 &lt;- as.formula(&quot;DV ~ 因子(Var):(Var2) + Var2 | 城市 + 年份&quot;)
-fmla5 &lt;- as.formula(&quot;DV ~ 因子(Var):(Var2) + Var2 | city_year&quot;)
-
-reg1 &lt;- feols(数据 = df, fml = fmla1)
-reg2 &lt;- feols(数据 = df, fml = fmla2)
-reg3 &lt;- feols(数据 = df, fml = fmla3)
-reg4 &lt;- feols(数据 = df, fml = fmla4)
-reg5 &lt;- feols(数据 = df, fml = fmla5)
-
-
-其中固定效应变量state是观测状态的一个因子，year是年份的一个因子，city是一个城市的因子，city_year 是城市年固定效应的因子。 Var2是具有三个类别的因子变量，其中参考水平为“a”。 Var 是另一个因子，范围为 -10 到 10 的整数。两者相互作用，无需对 Var 进行基线估计，因为当 Var2 = =“a”，Var 始终为 0。因此，为了避免共线性，我只对交互作用和 Var2 进行估计。
-当我运行这些模型时，前 3 个模型不起作用。我收到如下错误消息：
-由于共线性，变量“Var0:Var2a”已被删除（请参阅 $collin.var）。
-
-
-但是，对于reg4和reg5，不会出现这样的错误。
-我试图了解这是如何发生的，并确定 reg4 和 reg5 的结果是否可信。
-如上所述，对于 Var2 == “a” 的观察结果，Var 是完全共线的。所以我可以看到多重共线性问题是如何引起的。但当使用城市和城市年份固定效应时，它也是共线的，没有任何下降。
-城市和城市年的固定效应明显低于国家固定效应，也就是说城市年和城市年的固定效应将被国家吸收。因此，两个规范下的变量和固定效应之间不应该存在相同的关系吗？对于 Var2 == “a” 的共线情况，没有增加任何变化，这些对只是简单地划分为比州更多的城市，并且全部具有相同的值。
-对于其他上下文，根据 Var2 级别将 Var 级别分配给给定州和年份的所有观测值。例如，在 1880 年，如果 Var2 == &quot;b&quot;，则所有这些观测值的 Var 均为 3。因此 Var 的变化code&gt; 发生在州一级（并且通过扩展统一对待该州内的所有城市）。
-通过此设置，当治疗分配（Var1 的值）发生在州级别时，为什么我可以在城市级别估计具有固定效应的模型，而不是在州级别？如果在存在州 FE 的情况下与 Var2 交互时 Var 会下降，那么假设它是一个子州单位，那么当使用 city 时不应该发生完全相同的情况吗？ 
-如果没有，任何人都可以提出一个例子，说明这种设计会发生并且是合法的吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642274/fixed-effects-regression-drops-estimates-due-to-collinearity-for-more-aggregated</guid>
-      <pubDate>Sun, 10 Mar 2024 21:57:44 GMT</pubDate>
     </item>
     </channel>
 </rss>
