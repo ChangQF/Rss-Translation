@@ -4,7 +4,276 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Wed, 13 Mar 2024 03:15:37 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 13 Mar 2024 06:18:29 GMT</lastBuildDate>
+    <item>
+      <title>提高特殊神经网络的准确性</title>
+      <link>https://stackoverflow.com/questions/78151448/increase-accuracy-in-a-special-neural-network</link>
+      <description><![CDATA[事实上，我正在训练一个神经网络来玩 2048 游戏，并且大部分时间都达到 2048。
+（如果您不了解该游戏，可以此处玩它来了解我在说什么）
+首先，我收集了近 30,000 个游戏的数据集，在 csv 文件中达到 2048 个。每个游戏包含大约 1000 个棋盘游戏状态，可以说我的数据集中有 3000 万个棋盘状态。实际上有 3000 万行，如下图所示。
+
+正如你所见，我每行有 17 列。前 16 列显示每个图块值的 2 的幂（预计 0 表示该图块中没有任何内容）。
+最后一列是它根据这个棋盘游戏移动的方向
+方向帮助-&gt; （0：上，1：右，2：下，3：左）
+例如上图显示了董事会的这种状态：
+&lt;前&gt;&lt;代码&gt; 32 64 128 32
+ 8 32 8 2
+ 8 0 0 0
+ 0 2 0 0
+
+此状态的方向为 0，等于向上
+所以我创建了一个具有 16 个输入的神经网络（当然我将其更改为 16*11 输入并将输入作为 one-hot 编码传递）、一些隐藏层和 4 个输出。
+我在超参数和改变层结构方面进行了很多尝试和错误。
+最后我得到了这样的结果。
+导入 pandas 作为 pd
+从 keras.models 导入顺序
+从 keras.layers 导入密集、批量标准化、激活
+从 keras.optimizers 导入 Adam
+从 keras.callbacks 导入 EarlyStopping
+从 sklearn.preprocessing 导入 OneHotEncoder
+将 numpy 导入为 np
+
+# 加载你的数据集
+数据 = pd.read_csv(&#39;mainDataSet.csv&#39;)
+
+# 分离输入 (X) 和输出 (y)
+X = data.iloc[:, 0:16] # 输入特征
+y = pd.get_dummies(data.iloc[:, -1]) # 将输出转换为 one-hot 编码
+
+# 定义 one-hot 编码的类别（标签从 0 到 10）
+类别 = [i for i in range(11)]
+
+# 对每个输入列应用 one-hot 编码
+X_encoded = pd.concat([pd.get_dummies(pd.Categorical(X[col],categories=categories), prefix=col,
+prefix_sep=&#39;_&#39;) 对于 X] 中的列，轴=1)
+
+
+
+# 定义模型
+模型=顺序（）
+model.add(Dense(16*11, input_dim=16*11,activation=&#39;relu&#39;)) # 默认包含偏差
+model.add(BatchNormalization()) # 添加批量归一化层
+model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
+model.add(BatchNormalization()) # 添加批量归一化层
+model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
+model.add(BatchNormalization()) # 添加批量归一化层
+model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
+model.add(BatchNormalization()) # 添加批量归一化层
+model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
+model.add(BatchNormalization()) # 添加批量归一化层d
+model.add(Dense(4,activation=&#39;softmax&#39;)) # 具有 4 个方向节点的输出层
+
+# 定义提前停止回调，以在验证损失停止改善时停止训练
+Early_stopping = EarlyStopping（监视器=&#39;val_loss&#39;，耐心= 5，restore_best_weights = True）
+
+# 使用 Adam 优化器和默认学习率编译模型
+model.compile(loss=&#39;categorical_crossentropy&#39;, 优化器=&#39;adam&#39;, 指标=[&#39;accuracy&#39;])
+
+# 使用小批量梯度下降和附加回调来训练模型
+model.fit（X_encoded，y，epochs = 100，batch_size = 64，validation_split = 0.2，callbacks =
+[早停]）
+
+model.save(&#39;2048_model.h5&#39;)
+
+最终它给了我 88% 的准确度和 90% 的验证准确度，但这对于我正在做的事情来说还不够。
+那么您建议采取哪些方法来使我的模型在预测方面表现更好？
+或者甚至您可以对我的神经网络进行哪些更改以使其更加高效？
+你知道我是人工智能世界的新手，我可能不知道很多事情。因此，请随意告知您所知道的任何信息来改进此模型。]]></description>
+      <guid>https://stackoverflow.com/questions/78151448/increase-accuracy-in-a-special-neural-network</guid>
+      <pubDate>Wed, 13 Mar 2024 05:36:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>简单的 Pytorch LSTM 模型无法学习反事实创建</title>
+      <link>https://stackoverflow.com/questions/78151232/simple-pytorch-lstm-model-not-learning-for-counterfactual-creation</link>
+      <description><![CDATA[我正在 Pytorch 中构建 LSTM，以创建水流时间序列的反事实预测。为了预测第 i 天的水流 ($\hat{y}_i$)，我的特征集 $X_i$ 包含当天以及过去几天的天气数据。其他模型已经很好地学习了信号（即 LGBM），即使使用惩罚回归，特征集也可以解释水流的大部分变化。
+尽管如此，LSTM 似乎并没有学到太多东西，而是学到了平均值。这与我在学习过程中传递数据的方式有关吗？
+（丢弃超参数，这些超参数是随机初始化的。稍后我将使用 optuna 对其进行优化）
+非常感谢您的帮助！
+代码：
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+
+类 LSTMModel(nn.Module):
+    def __init__(自身、输入大小、隐藏大小、层数、输出大小):
+        super(LSTMModel, self).__init__()
+        self.hidden_​​size = 隐藏大小
+        self.num_layers = num_layers
+        self.lstm = nn.LSTM(input_size,hidden_​​size,num_layers,batch_first=True)
+        self.fc = nn.Linear(隐藏大小, 输出大小)
+
+    def 前向（自身，x）：
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_​​size).to(device)
+        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_​​size).to(device)
+        
+        # print(f“lstm 调用开始处的 x 大小：{x.size()}”)
+
+        out, _ = self.lstm(x, (h0, c0))
+
+        # print(f&quot;前向调用开始时的 x 大小：{x.size()}&quot;)
+        out = self.fc(out[:, -1, :]) # 获取最后一个时间步的输出
+        返回
+
+dta =“../ml_dataset_Jan24.dta”
+
+数据 = pd.read_stata(dta)
+
+data[&#39;datetime&#39;] = data.apply(lambda x: pd.to_datetime(f&quot;{int(x[&#39;年&#39;])}-{int(x[&#39;月&#39;])}-{int(x[&#39;天&#39;])}&quot;，格式=&#39;%Y-%m-%d&#39;)，轴=1)
+data.set_index(&#39;datetime&#39;, drop=True, inplace=True)
+data.drop(columns=[&#39;年&#39;,&#39;月&#39;,&#39;日&#39;], inplace=True)
+
+# 创建特征和目标集
+X_train = data.loc[(data.index&gt;&#39;1990-12-31&#39;) &amp; (data.index&lt;&#39;2006-01-01&#39;), data.columns != &#39;level_cs&#39;].values
+y_train = data.loc[(data.index&gt;&#39;1990-12-31&#39;) &amp; (data.index&lt;&#39;2006-01-01&#39;), &#39;level_cs&#39;].values
+
+
+X_train = np.array(X_train)
+X_train = X_train.reshape(X_train.shape[0], 1, X_train.shape[1])
+y_train = np.array(y_train)
+y_train = y_train.reshape(y_train.shape[0], 1, 1)
+
+
+X = torch.from_numpy(X_train).float()
+y = torch.from_numpy(y_train).float()
+
+
+# 定义超参数
+input_size = 1332 # 特征数量
+隐藏大小 = 128
+层数 = 5
+输出大小 = 1
+
+# 定义训练设备（CPU 或 GPU）
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+
+# 实例化模型
+模型 = LSTMModel(input_size,hidden_​​size,num_layers,output_size).to(device)
+
+# 定义损失函数和优化器
+标准 = nn.MSELoss()
+优化器 = torch.optim.Adam(model.parameters(), lr=0.001)
+
+# 训练模型
+纪元数 = 500
+对于范围内的纪元（num_epochs）：
+    模型.train()
+    优化器.zero_grad()
+
+    # print(f&#39;X 尺寸: &#39;, X.size())
+    输出 = 模型(X.to(设备))
+    损失 = 标准（输出，y.to（设备））
+    loss.backward()
+    优化器.step()
+    
+    print(f&#39;Epoch [{epoch+1}/{num_epochs}], 损失: {loss.item():.4f}&#39;)
+
+# 将模型设置为评估模式
+模型.eval()
+
+# 推论
+# 使用 torch.no_grad():
+# 预测 = 模型(X_test.to(设备))
+
+# print(“样本预测：”, 预测)`
+
+Y_test 预测基本上只是平均值
+我批量传递了数据，Y_train 的时间戳与 X_train 中的时间戳相同，因为我想使用日期“i”中的数据来预测水流“i”。该功能集还包括过去的天气数据，我不确定是否应该如此，或者该数据的重要性是否会被记忆机制保留]]></description>
+      <guid>https://stackoverflow.com/questions/78151232/simple-pytorch-lstm-model-not-learning-for-counterfactual-creation</guid>
+      <pubDate>Wed, 13 Mar 2024 04:21:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>多元回归任务，其中有些变量很容易预测，有些变量很难预测，有些则无法预测</title>
+      <link>https://stackoverflow.com/questions/78151203/multivariate-regression-task-where-some-variables-are-easy-some-hard-and-some-i</link>
+      <description><![CDATA[我正在尝试在 keras 中创建一个多元回归模型，但无论输入是否正确，模型最终都会预测单个值。
+我尝试修复学习率、批量大小和模型架构，但到目前为止我无法修复它。
+经过进一步检查，我知道输出向量中的某些值对于模型来说很难或不可能预测（例如从他喜欢的汽车品牌推断出一个人的身高），但由于问题的性质，我不知道这些难以或不可能预测的变量是哪些。
+我目前正在使用 MSE 损失。我怀疑我必须使用或创建一个自定义损失函数来处理此类问题。
+Chatgpt提出了异方差损失，但我不明白它的意思。]]></description>
+      <guid>https://stackoverflow.com/questions/78151203/multivariate-regression-task-where-some-variables-are-easy-some-hard-and-some-i</guid>
+      <pubDate>Wed, 13 Mar 2024 04:12:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>当我尝试使用数据集包创建数据集时，出现“无法转换，因为列名称不匹配”错误</title>
+      <link>https://stackoverflow.com/questions/78151170/im-getting-couldnt-cast-because-column-names-dont-match-error-while-i-was-t</link>
+      <description><![CDATA[DataFrame 结构
+上图显示了我的数据结构。
+from sklearn.model_selection import train_test_split
+从数据集中导入特征、ClassLabel、值、数据集、DatasetDict
+
+df_train, df_tmp = train_test_split(
+        movie_df,stratify=movie_df[“标签”], test_size=0.2)
+
+df_val, df_test = train_test_split(
+        df_tmp,stratify=df_tmp[“标签”], test_size=0.5)
+
+ds_features = Features({“text”: Value(“string”), “label”: ClassLabel(names=labels)})
+
+数据集 = DatasetDict({
+    “火车”：Dataset.from_pandas(df_train.reset_index(drop=True),features=ds_features),
+    “有效”：Dataset.from_pandas(df_val.reset_index(drop=True),features=ds_features),
+    “测试”：Dataset.from_pandas(df_test.reset_index(drop=True),features=ds_features)})
+
+数据集
+
+这段代码给了我一个值错误，如下所示：
+错误
+错误
+我期待类似的东西，但不具有相同的值：
+DatasetDict({
+    火车：数据集（{
+        特征：[&#39;文本&#39;，&#39;标签&#39;]，
+        行数：13267
+    })
+    有效：数据集（{
+        特征：[&#39;文本&#39;，&#39;标签&#39;]，
+        行数：1658
+    })
+    测试：数据集（{
+        特征：[&#39;文本&#39;，&#39;标签&#39;]，
+        行数：1659
+    })
+})
+
+谁能告诉我我做错了什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78151170/im-getting-couldnt-cast-because-column-names-dont-match-error-while-i-was-t</guid>
+      <pubDate>Wed, 13 Mar 2024 04:00:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>有人有可行的 Atari 突破性深度 Q 学习实现吗？</title>
+      <link>https://stackoverflow.com/questions/78151115/does-anyone-have-an-atari-breakout-deep-q-learning-implementation-that-works</link>
+      <description><![CDATA[我一直在尝试使用 Keras 提供的实现，但收到此错误：
+19 # 由于 Deepmind 辅助函数而使用基线 Atari 环境
+---&gt; 20 env = make_atari(“BreakoutNoFrameskip-v4”)
+21 # 扭曲帧，灰度，放四帧并缩放到更小的比例
+22 env=wrap_deepmind(env,frame_stack=True,scale=True)
+3帧
+/usr/local/lib/python3.10/dist-packages/gym/envs/atari/environment.py 种子（自身，种子）
+185
+186 如果不是 hasattr(roms, self._game):
+--&gt; 187 引发错误。错误（
+188 f&#39;我们无法找到游戏“{self._game}”。注意：Gym 不再分发 ROM。 &#39;
+189 f“如果您拥有将必要的 ROM 用于研究目的的许可证，您可以下载它们”
+错误：我们无法找到“Breakout”游戏。注意：Gym 不再分发 ROM。如果您拥有将必要的 ROM 用于研究目的的许可证，您可以通过 pip installgym[accept-rom-license] 下载它们。否则，您应该尝试导入“Breakout”通过命令ale-import-roms。如果您认为这是一个错误，也许您的“Breakout”副本是错误的。不受支持。要检查是否属于这种情况，请尝试提供环境变量 PYTHONWARNINGS=default::ImportWarning:ale_py.roms。有关更多信息，请参阅：https://github.com/mgbellemare/Arcade-Learning -环境#rom-管理
+任何帮助将不胜感激，谢谢。
+我尝试过许多版本的 Atari 环境（这里括号里的东西
+就这一行 --&gt; env = make_atari(“BreakoutNoFrameskip-v4”).我尝试过不同的版本等。一个有趣的注意事项是，当我使用“ALE/Breakout-v5”时，我遇到了不同的错误。
+NamespaceNotFound Traceback（最近一次调用最后一次）
+ 在&lt;细胞系：81&gt;()
+79
+80 # 由于 Deepmind 辅助函数而使用 Baseline Atari 环境
+---&gt; 81 env = make_atari(“ALE/Breakout-v5”)
+82 # 扭曲帧，灰度，放四帧并缩放到更小的比例
+83 env = wrap_deepmind(env,frame_stack=True,scale=True)
+4帧
+_check_namespace_exists(ns) 中的/usr/local/lib/python3.10/dist-packages/gym/envs/registration.py
+178）
+179
+--&gt; 180 raise error.NamespaceNotFound(f“未找到命名空间 {ns}。{suggestion_msg}”)
+181
+182
+NamespaceNotFound：未找到命名空间 ALE。您是否为 ALE 安装了正确的软件包？
+最终，我非常迷失，如果有人可以链接我可以运行的 Atari Breakout 的功能版本，我将非常感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78151115/does-anyone-have-an-atari-breakout-deep-q-learning-implementation-that-works</guid>
+      <pubDate>Wed, 13 Mar 2024 03:36:22 GMT</pubDate>
+    </item>
     <item>
       <title>使用时间序列数据和离散质量测量进行制造质量预测</title>
       <link>https://stackoverflow.com/questions/78150896/manufacturing-qaulity-prediction-with-timeseries-data-and-discrete-quality-measu</link>
@@ -20,7 +289,7 @@
 我的标签跟踪实验条件。
 就我而言，标签跟踪两种化学物质的组合浓度，这些化学物质产生由 n 个特征测量的输出。
 使用分类标签代替化学物质组合的浓度是最佳做法，还是有更好的方法？
-以下是分类标签与其代表的现实生活条件之间的转换示例。
+以下是分类标签与其代表的现实生活状况之间的转换示例。
 
 &lt;标题&gt;
 
@@ -215,7 +484,7 @@ df_new[&#39;predicted_values&#39;] = df_original.progress_apply(lambda x: LLM_pr
     <item>
       <title>结合区块链和机器学习可以实现什么？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78149327/what-can-i-implement-combining-blockchain-and-machine-learning</link>
-      <description><![CDATA[我想知道我们如何使用区块链和机器学习，也许有人可以给我一个项目的想法，我可以实施它来制作我的学习项目。我想结合机器学习 + 区块链（关于网络安全领域）。如果您能给我一些论文或 github 相关代码的想法，那就太好了。
+      <description><![CDATA[我想知道我们如何使用区块链和机器学习，也许有人可以给我一个项目的想法，我可以实施它来制作我的研究项目。我想结合机器学习 + 区块链（关于网络安全领域）。如果您能给我一些论文或 github 相关代码的想法，那就太好了。
 对于这个项目我想学习：
 
 区块链基础知识并实现一些区块链
@@ -223,98 +492,6 @@ df_new[&#39;predicted_values&#39;] = df_original.progress_apply(lambda x: LLM_pr
 ]]></description>
       <guid>https://stackoverflow.com/questions/78149327/what-can-i-implement-combining-blockchain-and-machine-learning</guid>
       <pubDate>Tue, 12 Mar 2024 18:31:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>多类不平衡数据集预处理问题</title>
-      <link>https://stackoverflow.com/questions/78148016/multiclass-imbalance-dataset-preprocessing-problem</link>
-      <description><![CDATA[在预处理我面临的数据集时
-ValueError：目标是多类，但平均值=&#39;二进制&#39;。请选择其他
-平均设置，[无、&#39;微观&#39;、&#39;宏观&#39;、&#39;加权&#39;]之一。
-
-如何解决？
-https://colab.research.google.com/drive/1O_fxtFLThjgC2KrpDTAzwLGoxGPcRNKj ?usp=共享
-我会请专家去检查一下我在那里犯了什么错误。
-我尝试使用迄今为止学到的知识进行预处理部分。]]></description>
-      <guid>https://stackoverflow.com/questions/78148016/multiclass-imbalance-dataset-preprocessing-problem</guid>
-      <pubDate>Tue, 12 Mar 2024 14:42:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>“list”对象没有属性“lower”无法解决这个问题[关闭]</title>
-      <link>https://stackoverflow.com/questions/78147467/list-object-has-no-attribute-lower-cant-solve-this</link>
-      <description><![CDATA[这是我的代码
-words = [stemmer.stem(w) for w in Words if w != &quot;?&quot;]
-单词=排序（列表（集合（单词）））
-
-之前，我使用了 stemmer.stem(w.lower()) 但遇到了相同的错误，因此将其删除。仍然显示：
-第207行，在stem中
-    字=字.lower()
-           ^^^^^^^^^^
-AttributeError：“列表”对象没有属性“较低”
-
-它是在stem .lower()中实现的，我该怎么办？
-我从代码中删除了.lower()，但stem在内部使用了.lower()，因此无法对此执行任何操作。我该如何修复它？]]></description>
-      <guid>https://stackoverflow.com/questions/78147467/list-object-has-no-attribute-lower-cant-solve-this</guid>
-      <pubDate>Tue, 12 Mar 2024 13:19:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：X 有 1 个特征，但 DecisionTreeClassifier 期望 416809 个特征作为输入</title>
-      <link>https://stackoverflow.com/questions/78146852/valueerror-x-has-1-features-but-decisiontreeclassifier-is-expecting-416809-fea</link>
-      <description><![CDATA[我正在制作一个简单的程序，给出提示后，将预测相关的情绪。我有一个 CSV 文件形式的数据集，其中包含 416809 个项目，其中包含如下示例：
-
-&lt;标题&gt;
-
-id
-文本
-标签
-
-
-&lt;正文&gt;
-
-0
-我只是感到非常无助和心情沉重
-4
-
-
-1
-我很享受能够无精打采地放松身心，坦率地说，在大学结束和世博会结束的最后几周之后，我最近开始发现自己感觉有点无精打采，这从来都不是一件好事
-0
-
-
-
-（标签是 0-5 之间的数字，对应六种情绪之一）
-我的代码如下：
-print(“正在加载模块...”)
-将 pandas 导入为 pd
-从 sklearn.tree 导入 DecisionTreeClassifier
-从 sklearn.preprocessing 导入 LabelEncoder
-
-print(&quot;正在加载数据...&quot;)
-data = pd.read_csv(&#39;data/emotions.csv&#39;) #加载数据集到data变量
-X = data[&quot;text&quot;] #将X值设置为所有指定列的表
-y = data[“label”] #将 y 值设置为答案列
-
-le = LabelEncoder() #对标签进行编码
-le.fit(y)
-编码_y = le.transform(y)
-拟合(X)
-编码_X = le.transform(X)
-
-print(&quot;训练模型...&quot;)
-模型 = DecisionTreeClassifier()
-model.fit([encoded_X],[encoded_y]) #训练模型
-提示=输入（“输入提示：”）
-
-编码提示 = le.transform([提示])
-
-预测 = model.predict([encoded_prompt]) #predict
-
-我在最后一行收到错误：
-ValueError：X 有 1 个特征，但 DecisionTreeClassifier 期望 416809 个特征作为输入。
-
-我期望的是 predictions 变量是一个数字或包含 0-5 之间的单个数字的列表，并让它打印代码中的最后一行。
-如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/78146852/valueerror-x-has-1-features-but-decisiontreeclassifier-is-expecting-416809-fea</guid>
-      <pubDate>Tue, 12 Mar 2024 11:47:03 GMT</pubDate>
     </item>
     <item>
       <title>深度学习 (LSTM) 项目实习生 [已关闭]</title>
@@ -325,75 +502,11 @@ ValueError：X 有 1 个特征，但 DecisionTreeClassifier 期望 416809 个特
       <pubDate>Tue, 12 Mar 2024 11:40:33 GMT</pubDate>
     </item>
     <item>
-      <title>在 TensorFlow 推荐模型中初始化 FactorizedTopK 时出现 ValueError</title>
-      <link>https://stackoverflow.com/questions/78144515/valueerror-when-initializing-factorizedtopk-in-tensorflow-recommenders-model</link>
+      <title>在 SageMaker 上的 TensorFlow Recommenders 中初始化 FactorizedTopK 时出错：“无法将‘计数器’转换为形状”</title>
+      <link>https://stackoverflow.com/questions/78144515/error-initializing-factorizedtopk-in-tensorflow-recommenders-on-sagemaker-cann</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78144515/valueerror-when-initializing-factorizedtopk-in-tensorflow-recommenders-model</guid>
+      <guid>https://stackoverflow.com/questions/78144515/error-initializing-factorizedtopk-in-tensorflow-recommenders-on-sagemaker-cann</guid>
       <pubDate>Tue, 12 Mar 2024 03:28:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>预测分位数与梯度增强回归相交</title>
-      <link>https://stackoverflow.com/questions/78140825/prediction-quantiles-intersect-from-gradient-boosted-regression</link>
-      <description><![CDATA[我正在尝试构建一个回归模型，该模型接收各种类型的产品和市场信息，对数据进行转换，并在一天中定期预测产品的价格。我希望能够预测分位数置信带，以帮助我的团队根据模型的预测做出决策。我遵循了 scikit-learn 文档中的示例&lt; /code&gt;，但我发现这些回归器产生的预测有时会相交，例如有时P50预测大于P75预测或小于P25预测。
-查看此处突出显示的图表中的错误。
-即使使用更宽的频段（包括 P95 和 P05），这个问题仍然存在。尽管数据集比我正在使用的数据集简单得多，但我已经能够毫无问题地重现链接的示例。
-下面的代码代表了该问题的可重现示例，并带有生成的数据集：
-# 导入和定义
-将 pandas 导入为 pd
-将 numpy 导入为 np
-从 sklearn.ensemble 导入 HistGradientBoostingRegressor
-从 sklearn.model_selection 导入 train_test_split
-从 sklearn.datasets 导入 make_regression
-
-X,y = make_regression(
-    n_样本 = 14000,
-    n_特征 = 39,
-    n_targets = 1,
-    随机状态 = 684
-）
-rng = np.random.default_rng()
-bools = rng.integers(低=0，高=2，大小=14000)
-X = pd.concat([pd.DataFrame(X),pd.Series(bools, name=39)], axis=1)
-
-# 进行测试/训练分割和模型字典
-X_train, X_test, y_train, y_test = train_test_split(
-    X、y、test_size=0.1、random_state=59654
-）
-型号={}
-
-for alpha in [0.25, 0.5, 0.75]: # HistGradientBoostingRegressor model - Early_stopping = False 有助于解决问题，但不能解决问题
-    hgbr = HistGradientBoostingRegressor(
-        随机状态=86184，
-        早期停止=假，
-        max_iter=100, # 通常在1000左右，例如减少
-        损失=“分位数”，
-        分位数 = 阿尔法，
-        分类特征 = [39],
-    ）
-
-    # 将最佳模型添加到字典中
-    models[f&quot;P{alpha*100:02.0f}&quot;] = hgbr.fit(X_train, y_train.ravel())
-
-
-任何帮助或建议将不胜感激！]]></description>
-      <guid>https://stackoverflow.com/questions/78140825/prediction-quantiles-intersect-from-gradient-boosted-regression</guid>
-      <pubDate>Mon, 11 Mar 2024 13:05:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>将 Android ML-Kit 鸟类分类器与 Python 结合使用</title>
-      <link>https://stackoverflow.com/questions/78139883/using-android-ml-kit-bird-classifier-with-python</link>
-      <description><![CDATA[我测试了 ML Kit 中的 Android Vision 快速入门应用程序。正如您在图片中看到的，这里可以进行对象跟踪。现在我正在使用 Python 尝试相同的模型 (bird_classifier.tflite)。这非常有效，但是我如何在这里获取边界框呢？无论我做什么，反馈都是：该模型仅包含一个张量。但为什么它可以在 Android 应用程序中运行呢？
-有人可以给我看一个代码示例吗？
-
-image = Image.fromarray(screenshot)
-image_pred = image.resize((宽度,高度), Image.ANTIALIAS)
-结果=分类图像（解释器，image_pred）
-# TrackingID = 结果[i0][0]
-# 分数 = 结果[i0][1]
-# 盒子 = ?
-]]></description>
-      <guid>https://stackoverflow.com/questions/78139883/using-android-ml-kit-bird-classifier-with-python</guid>
-      <pubDate>Mon, 11 Mar 2024 10:19:20 GMT</pubDate>
     </item>
     <item>
       <title>为什么在 Huggingface MT5 模型中执行批量编码时会得到不同的嵌入？</title>
