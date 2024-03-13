@@ -4,9 +4,161 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Wed, 13 Mar 2024 09:14:14 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 13 Mar 2024 12:24:12 GMT</lastBuildDate>
     <item>
-      <title>寻找最佳统计显着性检验来比较两个独立序数模型</title>
+      <title>重现酷图表 - 更好地理解多项逻辑回归中的参考类</title>
+      <link>https://stats.stackexchange.com/questions/642486/reproducing-a-cool-chart-better-understanding-reference-classes-in-mutlinomial</link>
+      <description><![CDATA[我正在尝试重现《经济学人》的出色数据可视化https://www.economist.com/interactive/uk-general-election/build-a-voter
+他们使用了多项式逻辑回归，并创建了“特征贡献”模型。瀑布式图表，用于建立特定人口群体的投票意图。我有一组类似的数据（与政治无关！），并且正在尝试进行类似的分析。下面的例子是一个虚构的、可重现的例子，与经济学家的版本类似。 （非常感谢 chatgpt 快速编写了示例！）
+您能帮我解释模型输出的系数，以便我可以计算“瀑布值”吗？预测变量的每个水平？
+（注意。我的理解是，这是与参考类进行比较来完成的，这就是模型在这里所做的。我喜欢经济学家版本的一点是，它对参考类表现出不可知论，至少在可视化。我预计会发生一些虚拟变量恶作剧，但我无法弄清楚，并且希望有人更聪明地提供帮助！）
+###### 加载包 ######
+需要（tidyverse）
+需要（网络）
+
+###### 创建示例数据集 ######
+
+set.seed(123) # 设置种子以实现可重复性
+
+# 为各方生成不同概率的投票意图的函数
+generate_voting_intention &lt;- 函数（年龄括号，性别）{
+  # 按年龄段定义劳动力的基本概率
+  base_prob_labour &lt;- c(“18-29”=0.45，“30-39”=0.40，“40-49”=0.38，“50-64”=0.36，“65+”=0.35 ）
+  # 按性别调整分娩概率
+  sex_mod_labour &lt;- ifelse(性别 == &quot;女&quot;, 0.05, 0)
+  prob_labour &lt;- base_prob_labour[age_bracket] + 性别_mod_labour
+  
+  # 保守党的基本概率（小于工党的概率以确保工党占多数）
+  base_prob_conservative &lt;-c(“18-29”=0.25，“30-39”=0.30，“40-49”=0.32，“50-64”=0.34，“65+”=0.35 ）
+  # 按性别调整保守概率（本例中没有性别修改）
+  prob_conservative &lt;- base_prob_conservative[age_bracket]
+  
+  # 剩下的概率属于自由民主党
+  prob_lib_dems &lt;- 1 - prob_labour - prob_conservative
+  
+  # 基于计算概率的投票意图样本
+  样本(c(“工党”,“保守党”,“自由民主党”), size = 1, prob = c(prob_labour, prob_conservative, prob_lib_dems))
+}
+
+# 使用指定变量创建数据框
+create_survey_data &lt;- 函数(n) {
+  age_brackets &lt;- c(“18-29”、“30-39”、“40-49”、“50-64”、“65+”)
+  性别 &lt;- c(“男”, “女”)
+  
+  # 每个受访者的年龄和性别样本
+  年龄 &lt;- 样本（age_brackets，n，replace = TRUE）
+  性别 &lt;- 样本（性别，n，替换 = TRUE）
+  
+  # 为每个受访者生成投票意图
+  vote_intention &lt;- mapply（generate_voting_intention，age_bracket = 年龄，gender = 性别）
+  
+  # 合并成数据框
+  数据.帧（
+    年龄=年龄，
+    性别=性别，
+    投票意向 = 投票意向，
+    字符串作为因子 = FALSE
+  ）
+}
+
+# 生成 1000 名受访者的调查数据
+Survey_data &lt;- create_survey_data(1000)
+
+###### 构建投票意图模型 ######
+
+vote_mod&lt;-multinom(VotingIntention~年龄 + 性别, data=survey_data)
+
+tidy_vote_mod&lt;-tidy(vote_mod,指数 = TRUE)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/642486/reproducing-a-cool-chart-better-understanding-reference-classes-in-mutlinomial</guid>
+      <pubDate>Wed, 13 Mar 2024 11:40:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否存在垂直条形图比水平条形图更好的情况？</title>
+      <link>https://stats.stackexchange.com/questions/642485/are-there-situations-where-a-vertical-bar-chart-is-preferable-to-a-horizontal-on</link>
+      <description><![CDATA[我几乎看不出垂直条形图比水平条形图有什么优势。另一方面，垂直条形图如此盛行，这让我怀疑我是否只是缺乏想象力或经验。
+我特别想知道：
+
+如果您有许多类别要绘制，则水平条形图上每个类别的标签更易于阅读（例如，您无需移动头部即可阅读垂直或旋转标签）。在某些情况下这不是真的吗？
+
+如果类别标签很长，则水平条形图比垂直条形图需要更少的换行符。因此，水平条形图可能更容易阅读。再说一遍，是否存在不正确的情况？
+
+
+在这两个例子中，水平条形图可能更优越，但也许还有其他我没有想到的情况，而垂直条形图更有优势。我有兴趣了解这一点。 （这篇博客文章讨论了如果您对一些可视化示例感兴趣并且我之前的示例不清楚，请注意这个问题 - 顺便说一句，我不是 SAS 用户）。
+对我来说，一个实际的利害关系是与工作相关的，即图形生成的自动化。最近我一直在想是否应该将水平条形图设置为默认值（因为它更容易处理标签重叠等问题，这会节省我一些编程时间）。另一方面，我不想生成不正确或误导性的数据可视化，或遇到其他我没有预料到的问题。这就是我的问题。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642485/are-there-situations-where-a-vertical-bar-chart-is-preferable-to-a-horizontal-on</guid>
+      <pubDate>Wed, 13 Mar 2024 11:36:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>Mincer-Zarnowitz for VaR [已关闭]</title>
+      <link>https://stats.stackexchange.com/questions/642484/mincer-zarnowitz-for-var</link>
+      <description><![CDATA[
+
+我的原假设是所有系数都是 o 吗？
+为什么我的系数是负数？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642484/mincer-zarnowitz-for-var</guid>
+      <pubDate>Wed, 13 Mar 2024 11:30:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 lme4 中用非因子分组变量拟合 LMM？</title>
+      <link>https://stats.stackexchange.com/questions/642476/how-can-one-fit-a-lmm-with-non-factor-grouping-variables-in-lme4</link>
+      <description><![CDATA[我了解到 lme4 可用于拟合 LMM，包括：
+$$
+\boldsymbol{\mathcal{Y}} \,|\, \boldsymbol{\mathcal{B}} = \boldsymbol b
+\模拟
+\mathop{\mathcal N_n}
+\左边（
+ \boldsymbol Z \boldsymbol b ，
+\sigma^2 \boldsymbol I_n
+\正确的）， \\
+\boldsymbol{\mathcal{B}}
+\模拟
+\mathop{\mathcal N_q}
+\左边（
+\数学bf 0，
+\boldsymbol \Sigma_{\boldsymbol \theta}
+\正确的）， \\
+\boldsymbol \Sigma_{\boldsymbol \theta}= \sigma^2_\theta \boldsymbol I_q
+$$
+但当 $\boldsymbol Z$ 不是因子变量的独热编码时，我不知道如何实现这一点。
+这种模型可以用lme4拟合吗？如果是这样，怎么办？如果没有，哪些工具可以拟合这样的模型？
+更具体地说，请考虑以下示例：
+库(lme4);设置.种子(1)
+#&gt;加载所需包：Matrix
+#让我们用一个简单的 LMM 来拟合教学评估分数，其中学生、部门和讲解员的随机截距
+#为了衡量他们解释的总方差有多少：
+lme4::lmer(y~(1|dept) +(1|d)+(1|s), InstEval) # 讲解因子水平是全局唯一的，所以这相当于 lme4::lmer(y ~ (1 |dept/d)+(1|s), InstEval)
+#&gt; REML [&#39;lmerMod&#39;] 拟合线性混合模型
+#&gt;公式：y~(1|dept)+(1|d)+(1|s)
+#&gt;数据：InstEval
+#&gt; REML 收敛准则：237774.9
+#&gt;随机效果：
+#&gt;组名称 标准差
+#&gt; s（截距）0.32646
+#&gt; d（截距）0.51727
+#&gt;部门（拦截）0.08197
+#&gt;剩余 1.17774
+#&gt; obs数量：73421，组：s，2972； d，1128； 14 部
+#&gt;固定效果：
+#&gt; （截距）
+#&gt; 3.252
+
+# 然而，现实生活中有些讲解员有不止一个隶属关系
+Z_dept &lt;- 矩阵::t(矩阵::fac2sparse(InstEval$dept))
+Z_dept &lt;- Z_dept + rpois(长度(Z_dep), lambda = 0.1/ncol(Z_dep))
+#&gt; rpois(length(Z_dep), lambda = 0.1/ncol(Z_dep)) 中的错误：找不到对象“Z_dep”
+Z_dept &lt;- Z_dept/rowSums(Z_dept)
+
+# 但是使用（稀疏）矩阵作为分组变量不起作用：
+lme4::lmer(y~(1|Z_dept) +(1|d)+(1|s), InstEval)
+#&gt; model.frame.default 中的错误（data = InstEval，drop.unused.levels = TRUE，：变量“Z_dept”的类型无效（S4）
+
+由 reprex 包 (v2.0.1) 创建于 2024 年 3 月 13 日]]></description>
+      <guid>https://stats.stackexchange.com/questions/642476/how-can-one-fit-a-lmm-with-non-factor-grouping-variables-in-lme4</guid>
+      <pubDate>Wed, 13 Mar 2024 09:28:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>寻找最佳统计显着性检验来比较两个独立序数模型[关闭]</title>
       <link>https://stats.stackexchange.com/questions/642473/finding-the-best-statistical-significant-test-to-compare-two-independent-ordinal</link>
       <description><![CDATA[我正在尝试找到两个模型中能够提供最大性能的模型。为此，可用于比较具有序数数据的两个独立模型的最佳统计显着性检验是什么？
 我发现 Mann-Whitney U 检验适合于此。这是正确的吗？]]></description>
@@ -26,7 +178,7 @@
       <link>https://stats.stackexchange.com/questions/642471/doing-an-independent-study-as-a-high-schooler-but-cant-seem-to-figure-out-the-v</link>
       <description><![CDATA[这是数据库，它是一个相当小的数据库：https://www.theadgalternative.com/world_cup_data .html
 我不明白我的 N、X 和 Y 值是什么，因为没有什么是真正定量的。
-我试图找出在点球大战中获胜与获胜队是否率先射门（WKF）之间是否存在关系。
+我试图找出在点球大战中获胜与获胜队是否率先射门 (WKF) 之间是否存在关系。
 如果解决了这个问题，我还可以使用哪些其他统计方法（除了描述性统计）？]]></description>
       <guid>https://stats.stackexchange.com/questions/642471/doing-an-independent-study-as-a-high-schooler-but-cant-seem-to-figure-out-the-v</guid>
       <pubDate>Wed, 13 Mar 2024 08:38:22 GMT</pubDate>
@@ -106,7 +258,7 @@ vW = Vision.VideoFileWriter(outputVideoFileName, &#39;AudioInputPort&#39;, true,
       <pubDate>Wed, 13 Mar 2024 07:00:22 GMT</pubDate>
     </item>
     <item>
-      <title>对面板数据集执行二元分类有哪些问题？</title>
+      <title>对面板数据集执行二元分类有哪些问题？ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/642464/what-are-the-problems-with-performing-binary-classification-on-a-panel-dataset</link>
       <description><![CDATA[我是一名新手，我试图理解为什么不能在面板数据集上运行如下算法？
 a) 逻辑回归
@@ -116,50 +268,6 @@ d）支持向量机
 请帮我理解。]]></description>
       <guid>https://stats.stackexchange.com/questions/642464/what-are-the-problems-with-performing-binary-classification-on-a-panel-dataset</guid>
       <pubDate>Wed, 13 Mar 2024 05:34:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>线性回归的方差偏差权衡分解</title>
-      <link>https://stats.stackexchange.com/questions/642463/variance-bias-tradeoff-decomposition-of-linear-regression-with-a-twist</link>
-      <description><![CDATA[通常，对于具有固定观测值的线性回归问题，我们的方差和偏差权衡如下：
-$$Var(Y) + 偏差^2 (\hat{\beta_x}) + Var(\hat{\beta_x})$$。
-我的问题是如果$x_i \sim N(0, I_p)$，偏差和方差会发生什么。即 $$E_{x\sim N(0, I_p), y|x \sim N(x^T\theta^*, \sigma^2)} [(x^T\theta - y)^2]$$ 其中目标由 $y_i = x_i^T \theta^* + \epsilon_i$&lt; 给出/span&gt;, $\theta$ 是估计器。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642463/variance-bias-tradeoff-decomposition-of-linear-regression-with-a-twist</guid>
-      <pubDate>Wed, 13 Mar 2024 05:07:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>特征与其自身的形状交互值意味着什么？</title>
-      <link>https://stats.stackexchange.com/questions/642462/what-does-the-shap-interaction-value-of-a-feature-with-itself-mean</link>
-      <description><![CDATA[SHAP 允许我们通过考虑成对特征归因来计算交互效应。这会产生一个归因值矩阵，表示所有特征对对给定模型预测的影响
-$\Phi_{i,j} = \sum_{S \subseteq N \backslash{i,j}} \frac{|S|!(M - |S| - 2)!}{2(M-1)!}\nabla_{i,j}(S)$
-哪里
-$\nabla_{i,j}(S) = [f(S \cup \{i,j\}) - f(S \cup \{j\} )]- [f(S \cup \{i\}) - f(S)] $
-第 i 个和第 j 个之间的 SHAP 相互作用效应均分（即 phiᵢⱼ=phiⱼᵢ），总相互作用效应为 phiᵢⱼ + phiⱼᵢ
-下面这句话是什么意思？
-预测的主要效果可以通过特征的 SHAP 值与 SHAP 交互值之和之间的差值来获得：
-$\Phi_{i,i} = \phi_i - \sum_{j \neq i}\Phi_{i,j}$]]></description>
-      <guid>https://stats.stackexchange.com/questions/642462/what-does-the-shap-interaction-value-of-a-feature-with-itself-mean</guid>
-      <pubDate>Wed, 13 Mar 2024 04:47:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>Beta 回归系数方差的推导</title>
-      <link>https://stats.stackexchange.com/questions/642461/derivation-for-variance-of-beta-regression-coefficients</link>
-      <description><![CDATA[我正在尝试推导 Beta 回归系数的估计方差。我正在努力学习代数。
-这是模型：
-$$y = X\beta + \epsilon$$
-$$\hat{\beta} = (X^TX)^{-1}X^Ty$$
-首先，我们找出期望：
-$$E(\hat{\beta}) = E((X^TX)^{-1}X^Ty) = E((X^TX)^ {-1}X^T(X\beta + \epsilon)) = \beta + (X^TX)^{-1}X^TE(\epsilon)$$
-接下来，我们求出期望平方：
-$$E(\hat{\beta}^2) = E((X^TX)^{-1}X^Ty((X^TX)^{ -1}X^Ty)^T) = E((X^TX)^{-1}X^Tyy^TX(X^TX)^{-1})$$
-替换 $y = X\beta + \epsilon$ 得出：
-$$E(\hat{\beta}^2) = E((X^TX)^{-1}X^T(X\beta + \epsilon) (X\beta + \epsilon)^TX(X^TX)^{-1}) = \beta\beta^T + E((X^TX)^{-1}X^T\epsilon\epsilon^TX (X^TX)^{-1})$$
-假设误差不相关且同方差，则可简化为：
-$$E(\hat{\beta}^2) = \beta\beta^T + \sigma^2(X^TX)^{-1}$$ 
-最后，我们可以计算 Var($\hat{\beta}$) = E($\hat{ \beta}^2$) - E($\hat{\beta}$)^2 :
-$$\text{Var}(\hat{\beta}) = \beta\beta^T + \sigma^2(X^TX)^{-1} - \beta^2 = \sigma^2(X^TX)^{-1}$$
-这是正确的推导吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642461/derivation-for-variance-of-beta-regression-coefficients</guid>
-      <pubDate>Wed, 13 Mar 2024 03:41:17 GMT</pubDate>
     </item>
     <item>
       <title>非负随机变量的期望的性质</title>
@@ -249,25 +357,16 @@ ID
       <pubDate>Wed, 13 Mar 2024 03:20:19 GMT</pubDate>
     </item>
     <item>
-      <title>时间序列数据的 train-val-test 分割</title>
-      <link>https://stats.stackexchange.com/questions/642457/train-val-test-split-for-time-series-data</link>
-      <description><![CDATA[假设我有 100 个时间序列数据观测值 $x_1,...,x_{100}$，并且我想将数据拆分为一个序列集、验证集和测试集。我知道训练集的索引必须小于验证集和测试集，但我对如何处理验证集和测试集感到困惑。
-为了说明这一点，假设我的训练集是 $x_1,...,x_{80}$。
-选项 1：让我的验证集具有比我的测试集更小的索引，例如将索引 81-90 指定给验证集，将索引 91-100 指定给测试集。但在这种情况下，测试集“距离较远”。根据训练数据，我预计这会低估性能。
-选项 2：我可以将测试集放置在验证集之前，在这种情况下，问题是相反的，其中超参数是根据“远离”数据的性能来选择的。从训练数据中。出于某种原因，这听起来比选项 1 好一些。
-选项 3：我可以让验证集和测试集交替观察，因此奇数索引可以进入验证集，而偶数索引可以进入测试集。这听起来不错，但验证集和测试集之间可能存在很多相关性，而且我认为测试集上的性能仍然不会是无偏估计器，这将部分破坏拥有单独测试集的目的。 
-这三种方法中的一种明显优于其他方法吗？还有更好的第四个选择吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642457/train-val-test-split-for-time-series-data</guid>
-      <pubDate>Wed, 13 Mar 2024 03:07:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>生存分析中不同类型事件的总数很重要吗？</title>
-      <link>https://stats.stackexchange.com/questions/642455/survival-analysis-where-the-total-count-of-different-types-of-events-matter</link>
-      <description><![CDATA[我目前正在尝试进行生存分析，其中事件不仅仅是 1/0 的二元变量（即事件是否发生）。但是，我不太确定在这种情况下如何进行。我的“事件”是表示非互斥事件计数的整数。例如，如果发生三种事件（在汽车保险数据中，三种不同的事件将是车轴破裂、后挡风玻璃破碎和头部垫圈吹断），则值将为 3。如果其中任意两个事件发生，则为 2；如果只发生一个，则为 1；如果没有发生，则为 0
-目前，我将任何大于 0 的整数计数解释为发生的事件（传统的 1 或 0）。然而，我想捕捉不同整数计数之间的细微差别（3 与 2 与 1 与 0）。我是否应该为每个计数级别单独应用标准 Cox 比例风险模型？即三种事件全部发生时定义事件为1，两种以上事件发生时定义事件为1，等等。
-非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/642455/survival-analysis-where-the-total-count-of-different-types-of-events-matter</guid>
-      <pubDate>Wed, 13 Mar 2024 02:30:35 GMT</pubDate>
+      <title>当两个主要效应中只有一个显着时，交互作用显着吗？</title>
+      <link>https://stats.stackexchange.com/questions/642450/significant-interaction-when-only-one-of-the-two-main-effects-is-significant</link>
+      <description><![CDATA[我运行了混合效应逻辑回归模型，得到了因子A的主效应显着，而因子B的主效应不显着。但是，因子A和因子B之间的交互作用是显着的。这可能吗？
+这两个因素都有两个水平；我们将因子 A 称为 X 和 Y，将因子 B 称为 W 和 Z。
+在描述性水平上，当因素 A 采取水平 X 时，分数（因变量）会增加，而不是当因素 A 采取水平 Y 时。此外，与情况相比，当因素 A 采取水平 Y 且因素 B 采取水平 W 时，分数会增加其中因子 A 假定水平 Y，因子 B 假定水平 Z。相反，当因子 A 假定水平 X 时，因子 B 假定的水平似乎没有差异。
+逻辑回归模型的结果有意义吗？
+我还有一个问题。我已经执行了偏差表分析（II 型 Wald 卡方检验）[car::Anova(model)]，这里的因子 B 作为主效应似乎很重要。这可能吗？
+我对这些可能很愚蠢的问题感到抱歉，但我对统计世界还很陌生。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642450/significant-interaction-when-only-one-of-the-two-main-effects-is-significant</guid>
+      <pubDate>Tue, 12 Mar 2024 23:17:40 GMT</pubDate>
     </item>
     </channel>
 </rss>
