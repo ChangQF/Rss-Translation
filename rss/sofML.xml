@@ -4,12 +4,127 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 15 Mar 2024 09:13:18 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 15 Mar 2024 12:23:32 GMT</lastBuildDate>
+    <item>
+      <title>如何将多个视频输入组合成 (2+1)D ResNet</title>
+      <link>https://stackoverflow.com/questions/78166723/how-do-i-combine-multiple-video-inputs-into-a-21d-resnet</link>
+      <description><![CDATA[我开发了 (2+1)D ResNet 的 v1，它将每帧的像素数据作为输入，并用于预测该视频中最多 8 个对象的边界框坐标。我当前输入的形状是：
+（batch_size、n_frames、高度、宽度、通道）
+我的输出是这样的：
+&lt;代码&gt;（n_frames，32）
+我使用交并集（IoU）作为损失，并且看到一些相对较差的结果。我想通过增加模型中的特征数量来增加这一点（数据集很小，但将来会增加）。我从视频中提取的特征是：
+
+边缘
+运动向量
+颜色直方图
+光流
+纹理
+
+如何利用这些功能从我的模型中获得更好的预测？
+我的第一步是将像素数据、单个特征和标签放入列表中。然后我创建了训练、测试和验证分组。使用帧生成器类将它们转换为数据集。
+然后我创建了以下架构：
+input_shape =（无、无、高度、宽度、4）
+frames_input=layers.Input(形状=(无，高度，宽度，3))
+Edges_input=layers.Input(形状=(无，高度，宽度，1))
+merged_input=layers.concatenate(\[frames_input, Edges_input\], axis=-1)
+
+# 重塑输入张量以包含不同长度的时间维度
+
+x = 图层.Reshape((-1, 高度, 宽度, 4))(merged_input)
+
+x = Conv2Plus1D(filters=FILTERS, kernel_size=KERNAL_SIZE, padding=&#39;same&#39;)(x)
+x = 层.BatchNormalization()(x)
+x = 层.ReLU()(x)
+x = 调整视频大小(高度 // 2, 宽度 // 2)(x)
+
+# 区块 1
+
+x = add_residual_block(x, 16, (3, 3, 3))
+x = 调整视频大小(高度 // 4, 宽度 // 4)(x)
+
+# 区块 2
+
+x = add_residual_block(x, 32, (3, 3, 3))
+x = 调整视频大小(高度 // 8, 宽度 // 8)(x)
+
+# 区块 3
+
+x = add_residual_block(x, 64, (3, 3, 3))
+x = 调整视频大小(高度 // 16, 宽度 // 16)(x)
+
+# 区块 4
+
+x = add_residual_block(x, 128, (3, 3, 3))
+
+# 应用 TimeDistributed 密集层来输出每帧的边界框坐标
+
+x = TimeDistributed(layers.GlobalAveragePooling2D())(x) # 将空间维度转换为单维度
+x = TimeDistributed(layers.Dense(32))(x)
+
+BoundingBoxV2_model = keras.Model（[frames_input，edges_input]，x）
+
+并像这样构建模型：
+sampled_frames，sampled_edges，sampled_labels = next(iter(train_ds)) BoundingBoxV2_model.build([sampled_frames，sampled_edges])
+当我尝试拟合我的模型时，出现以下错误：
+&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
+ValueError Traceback（最近一次调用最后一次）
+单元格位于\[149\]，第 1 行
+\----\&gt; 1 历史 = BoundingBoxV2_model.fit(x = train_ds,
+2 epoch = EPOCHS,
+3 验证数据 = val_ds)
+
+文件c:\\Users\\Rpiku\\miniconda3\\envs\\rally_stream\\lib\\site-packages\\keras\\utils\\traceback_utils.py:70，位于filter_traceback中。\ .error_handler(\*args, \*\*kwargs)
+67 过滤_tb = \_process_traceback_frames(e.__traceback__)
+68 # 要获取完整的堆栈跟踪，请调用：
+69 # `tf.debugging.disable_traceback_filtering()`
+\---\&gt; 70 从 None 引发 e.with_traceback(filtered_tb)
+71 最后：
+72 删除filtered_tb
+
+文件 \~\\AppData\\Local\\Temp\__autograph_ generated_file3rk3lb1s.py:15，位于outer_factory.\.inner_factory.\.tf__train_function(iterator)
+13 尝试：
+14 do_return =真
+\---\&gt; 15 retval_ = ag_\_.converted_call(ag_\_.ld(step_function), (ag_\_.ld(self), ag_\_.ld(迭代器)), 无, fscope)
+16 除外：
+17 do_return = 假
+
+ValueError：在用户代码中：
+
+    文件“c:\Users\Rpiku\miniconda3\envs\rally_stream\lib\site-packages\keras\engine\training.py”，第 1160 行，在 train_function *
+
+...
+文件“c:\\Users\\Rpiku\\miniconda3\\envs\\rally_stream\\lib\\site-packages\\keras\\engine\\input_spec.py”，第216行，位于assert_input_compatibility中
+引发值错误（
+
+    ValueError：层“model_8”期望 2 个输入，但它收到 1 个输入张量。收到的输入：[]`
+]]></description>
+      <guid>https://stackoverflow.com/questions/78166723/how-do-i-combine-multiple-video-inputs-into-a-21d-resnet</guid>
+      <pubDate>Fri, 15 Mar 2024 11:54:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>无限循环运行并且即使在 40 分钟后也没有获取输出 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78166475/endless-loop-running-and-not-fetching-the-output-even-after-40-minutes</link>
+      <description><![CDATA[代码：
+
+错误：
+
+我尝试通过中断终端来运行，但是超过 20 的评级（这是需要的）不可用。即使跑了一个多小时他们也没有停下来。
+终端运行了更长的时间，没有结束，但是当中断时，它在第 6 行显示一个错误，这完全没问题。
+我想知道这是否是由于我使用的 json 文件大小以及我的系统 RAM 效率低下所致。]]></description>
+      <guid>https://stackoverflow.com/questions/78166475/endless-loop-running-and-not-fetching-the-output-even-after-40-minutes</guid>
+      <pubDate>Fri, 15 Mar 2024 11:10:11 GMT</pubDate>
+    </item>
     <item>
       <title>自动编码器整形问题</title>
       <link>https://stackoverflow.com/questions/78165698/autoencoder-shaping-issue</link>
       <description><![CDATA[我的自动编码器出现问题，因为我错误地调整了输出。目前自动编码器的编码与此类似。
-我收到此错误：ValueError：尺寸必须相等，但 &#39;{{node Mean_absolute_error/sub}} = Sub[T=DT_FLOAT](sequential_8/sequential_7/conv1d_transpose_14/BiasAdd, IteratorGetNext:1) 的尺寸为 2000 和 3750 &#39; 输入形状：[?,2000,3], [?,3750,3]。
+我收到此错误：
+&lt;块引用&gt;
+ValueError：尺寸必须相等，但为 2000 和 3750
+&#39;{{节点mean_absolute_error/sub}} =
+Sub[T=DT_FLOAT](sequential_8/sequential_7/conv1d_transpose_14/BiasAdd,
+IteratorGetNext:1)&#39;，输入形状：[?,2000,3], [?,3750,3]。
+
 如果可能的话，有人可以帮助调整架构吗？我似乎忘记了最初为此调整所做的原始修改。
 导入tensorflow为tf
 从tensorflow.keras.models导入模型
@@ -96,7 +211,7 @@ feature_matrix = np.concatenate([bias_column, feature_matrix], axis = 1) # axis 
       <pubDate>Fri, 15 Mar 2024 08:26:45 GMT</pubDate>
     </item>
     <item>
-      <title>Prometheus 与 AI 集成</title>
+      <title>普罗米修斯与人工智能的集成[关闭]</title>
       <link>https://stackoverflow.com/questions/78165538/prometheus-integration-with-ai</link>
       <description><![CDATA[我们的多租户项目集成了普罗米修斯，我们每天都会收到很多警报。我们需要将这些指标与人工智能模型集成，以便我们可以尝试分析它们并在此基础上采取一些行动。这只是这个项目的开始，我什至没有任何基本的想法。
 我需要一些关于如何开始、学习什么的指导？]]></description>
@@ -137,7 +252,7 @@ valoutputFeature0=outputs.outputFeature0AsTensorBuffer
             val canvas = android.graphics.Canvas(可变)
 
             val h = mutable.height
-            val w = 可变的.width
+            val w = mutable.width
 
             val xPosition = 10 // 根据需要调整该值
             val yPosition = 30 // 根据需要调整该值
@@ -179,13 +294,6 @@ export ONNXRUNTIME_DIR=“/usr/local/include/onnxruntime/include”
 如何解决这个问题？请]]></description>
       <guid>https://stackoverflow.com/questions/78165433/error-while-loading-shared-libraries-libonnxruntime-so-1-7-0-cannot-open-share</guid>
       <pubDate>Fri, 15 Mar 2024 08:04:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>prepare_for_model和encode_plus有什么区别？</title>
-      <link>https://stackoverflow.com/questions/78165325/what-is-the-difference-between-prepare-for-model-and-encode-plus</link>
-      <description><![CDATA[prepare_for_model 之间有什么区别 和 encode_plus？模型需要输入 ID、类型 ID 和注意掩码。那么什么是特殊代币呢？应该使用哪个函数？]]></description>
-      <guid>https://stackoverflow.com/questions/78165325/what-is-the-difference-between-prepare-for-model-and-encode-plus</guid>
-      <pubDate>Fri, 15 Mar 2024 07:38:54 GMT</pubDate>
     </item>
     <item>
       <title>部署机器学习时出错 - Flask 项目</title>
@@ -297,60 +405,9 @@ def video_feed():
   
 
 
-我尝试更改模型并修改代码，但不起作用。最初相机馈送未显示，但现在可以正常工作]]></description>
+我尝试过更改模型和修改代码，但不起作用。最初相机馈送未显示，但现在可以正常工作]]></description>
       <guid>https://stackoverflow.com/questions/78165242/error-while-deploying-machine-learning-flask-project</guid>
       <pubDate>Fri, 15 Mar 2024 07:20:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何将机器学习代码应用于ryu控制器</title>
-      <link>https://stackoverflow.com/questions/78164800/how-apply-machine-learning-code-to-ryu-controller</link>
-      <description><![CDATA[我正在按如下方式设置 SDN
-航站楼 1：
-sudo mn --topo=single,3 --controller=remote,ip=127.0.0.1 --mac --switch=ovsk,protocols=OpenFlow13
-
-航站楼 2：
-ryu-manager ryu.app.simple_switch_13
-
-航站楼 3：
-sudo ovs-vsctl 显示
-sudo ovs-ofctl -O OpenFlow13 转储流 s1
-
-我想添加机器学习来检测 SDN 上的 DDOS 攻击。如何将其添加到 RYU 控制器，以便每次启动 RYU 时该代码都会运行？
-我正在使用预配置的 .ova 机器。]]></description>
-      <guid>https://stackoverflow.com/questions/78164800/how-apply-machine-learning-code-to-ryu-controller</guid>
-      <pubDate>Fri, 15 Mar 2024 05:13:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何组装sklearn的IncrementalPCA（ipca.transform）的输出</title>
-      <link>https://stackoverflow.com/questions/78164669/how-to-assemble-the-output-of-sklearns-incrementalpca-ipca-transform</link>
-      <description><![CDATA[我有一个巨大的 numpy 数组，我需要使用 sklearn 的 IncrementalPCA 对其进行转换。
-该数组是 (22, 258186260)。所以我将它分为两​​个轴，如下面的代码。
-首先）我不确定它是否允许使用第一轴和第二轴划分输入。
-第二）如果正确，如何调整“ipca.transform”的输出
- dset = h5f[&#39;测试&#39;]
-               
-               ds0, ds1 = dset.shape[0], dset.shape[1]
-             
-               n = dset .shape[0] # 数据集中有多少行
-               chunk_size = 2#1000 # 我们一次向 IPCA 提供多少行，n 的除数
-                  
-
-               for i in range(0, n//chunk_size):# forpartial_fit
-               
-                   对于 np.split( dset[i*chunk_size : (i+1)*chunk_size] , 10,axis=1) 中的批次：
-                         pca1.partial_fit（批量）
-
-               my_out_all=[]
-               for i in range(0, n//chunk_size): # 用于变换
-                  
-                   对于 np.split( dset[i*chunk_size : (i+1)*chunk_size], 10,axis=1) 中的批次：
-                         
-                         my_out=pca1.transform(批处理)
-                         
-                         my_out_all.append (my_out) # 如何调整输出
-]]></description>
-      <guid>https://stackoverflow.com/questions/78164669/how-to-assemble-the-output-of-sklearns-incrementalpca-ipca-transform</guid>
-      <pubDate>Fri, 15 Mar 2024 04:26:23 GMT</pubDate>
     </item>
     <item>
       <title>手动执行回归</title>
@@ -362,26 +419,56 @@ sudo ovs-ofctl -O OpenFlow13 转储流 s1
       <pubDate>Fri, 15 Mar 2024 03:43:30 GMT</pubDate>
     </item>
     <item>
-      <title>将低秩近似应用于可学习参数</title>
-      <link>https://stackoverflow.com/questions/78158096/applying-low-rank-approximation-to-learnable-parameters</link>
-      <description><![CDATA[我试图了解将低秩近似应用于类中的可学习参数是否有意义。目标是减少参数数量。
-我有以下自定义模块：
-类 CustomPara(nn.Module):
-    
-    def __init__(self, num_blocks, in_planes, out_planes, kernel_size):
-        super(CustomPara, self).__init__()
-        self.coefficient_shape = (num_blocks,1,1,1,1)
-        块 = [torch.Tensor(out_planes, in_planes, kernel_size, kernel_size) for _ in range(num_blocks)]
-        对于范围内的 i(num_blocks): init.kaiming_normal_(blocks[i])
-        self.blocks = nn.Parameter(torch.stack(blocks)) # 这是我们稍后将冻结的内容
+      <title>使用机器学习预测未来股票价格[关闭]</title>
+      <link>https://stackoverflow.com/questions/78163298/predicting-future-stock-prices-using-machine-learning</link>
+      <description><![CDATA[我正在尝试用 python 训练机器学习模型（xgb）来预测股票价格。我首先获取股票价格，然后计算技术指标以用作特征。然后，我将数据拆分为训练集和测试集，其中特征（modeling_df）为 X，收盘价（closes）为 Y。
+我的问题是，我不确定该模型实际上是根据过去的价格来预测价格，但该模型是通过查看当前时间的特征来预测价格。我还想确保它使用“滚动窗口”，因此，如果有 30 个值，则值 11-20 应基于 0-10，而 21-30 应基于 0- 20.
+如果有人知道神经网络的解决方案是否不同，那么我们也将不胜感激！
+scaled_features = scaler.fit_transform(modeling_df)
 
-    defforward（自身，系数）：
-        Final_blocks = (self.blocks*系数).sum(0)
-        返回final_blocks
+X = 缩放特征
+Y = 关闭
 
-是否可以使用 blocks 参数上的低秩自适应来减少此处可学习参数的数量？]]></description>
-      <guid>https://stackoverflow.com/questions/78158096/applying-low-rank-approximation-to-learnable-parameters</guid>
-      <pubDate>Thu, 14 Mar 2024 04:22:39 GMT</pubDate>
+x_train, x_test, y_train, y_test = train_test_split(X,Y,test_size=0.05,shuffle=False)
+
+然后我使用：
+final_model = xgb.XGBRegressor(**best_params)
+Final_model.fit(x_train,y_train, )
+
+预测 = Final_model.predict(x_test)
+
+然后我使用 matplotlib 显示它。
+我尝试将整个数据集移动 10（和其他值），以尝试预测未来的 10 个数据点，但我不确定如何验证它是否确实有效。
+这是我的图表（数据集没有被移动）。
+烛台 + 蓝线 = 实际价格
+紫色线 = 预测价格
+图表：
+
+这里有一些数据：
+特点和价格（无变化）：
+|时间 |奥格价格|相对强弱指数 |
+|:---- |:------:| -----:|
+| 11:02| 3.61 | 3.61 51.07 | 51.07
+|11:03 | 3.62 | 3.62 57.89|
+|11:04|3.62|60.28|
+|11:05|3.61|62.92|
+预测与原价：
+|时间 |奥格价格|预测|
+|:---- |:------:| -----:|
+| 11:02| 3.6 | 3.61 | 3.61
+|11:03 | 3.61 |3.62 |
+|11:04|3.61|3.62|
+|11:05|3.61|3.61|
+本质上，我想确保我的模型没有使用 11:02-05 的 RSI 来预测 11:05 的值。我希望它使用 11:02-04 的值来预测 11:05 的值，以便它预测未来。]]></description>
+      <guid>https://stackoverflow.com/questions/78163298/predicting-future-stock-prices-using-machine-learning</guid>
+      <pubDate>Thu, 14 Mar 2024 20:30:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>TypeError: ' ' SLiMPerformer 对象不可迭代 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78161397/typeerror-slimperformer-object-is-not-iterable</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78161397/typeerror-slimperformer-object-is-not-iterable</guid>
+      <pubDate>Thu, 14 Mar 2024 14:49:35 GMT</pubDate>
     </item>
     <item>
       <title>在预训练和微调之间使用略有不同的架构</title>
@@ -406,110 +493,65 @@ self.layer4 = self._make_layer(inplanes = outplanes[2],planes=outplanes[3],num_b
       <pubDate>Thu, 14 Mar 2024 00:25:09 GMT</pubDate>
     </item>
     <item>
-      <title>提高特殊神经网络的准确性[关闭]</title>
-      <link>https://stackoverflow.com/questions/78151448/increase-accuracy-in-a-special-neural-network</link>
-      <description><![CDATA[我正在训练一个神经网络来玩 2048 游戏，并且大多数时候都能达到 2048。
-首先，我收集了近 30,000 个游戏的数据集，在 csv 文件中达到 2048 个。每个游戏包含大约 1000 个棋盘游戏状态，可以说我的数据集中有 3000 万个棋盘状态。实际上有 3000 万行，如下图所示。
+      <title>更改源代码后如何运行YOLOv8？</title>
+      <link>https://stackoverflow.com/questions/78153468/how-do-i-run-yolov8-after-changing-the-source-code</link>
+      <description><![CDATA[我需要将 YOLOv8 模型中的默认损失函数（CIOU）更改为 DIOU（或者可能添加自定义函数）。更改后我需要运行模型。
+如何使用更改后的代码运行模型？
+我找到了需要更改代码的必要文件。现在我不清楚运行模型。
+我正在使用 ultralytics 库运行模型，但我认为更改代码后，我无法像那样运行模型。
+我对此很陌生，因此我们将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78153468/how-do-i-run-yolov8-after-changing-the-source-code</guid>
+      <pubDate>Wed, 13 Mar 2024 11:37:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>嵌入后无法将序列数据转换为 3D 张量</title>
+      <link>https://stackoverflow.com/questions/78153453/failed-to-convert-sequence-data-to-a-3d-tensor-after-the-embedding</link>
+      <description><![CDATA[我正在使用序列数据（RNA序列）进行分类任务，所以我想尝试CNN，我只是发现在数据编码（我使用序数编码）之后我必须将输入数据编码转换为3D 张量，我仍然不明白如何做到这一点，因此输入形状将是（batch_size，sequence_lenght，num_features）
+这是我的输入数据代码：
+&lt;块引用&gt;
+使用提供的字符“”填充右侧的序列。至 11420 nt
+pad_list = df[&#39;Seq&#39;].str.ljust(11420,&#39;&#39;)
+减少太长的序列长度
+pad_list = pad_list.map(lambda x: x[0:11420])
+使用序数编码将核苷酸编码为整数
+类别=[“A”、“C”、“G”、“U” 、“T”、“N”、“R”、“K”、“S”、“Y”、“M”、“W”、“D”、“_” ]
+ordi = OrdinalEncoder(handle_unknown=“use_encoded_value”,unknown_value=15)
+ordi.fit(np.array(列表(类别)).reshape(-1, 1))
+pad_list= pad_list.map(lambda seq: ordi.transform(np.array(list(seq)).reshape(-1, 1)))
+#将序列转换为整数列表列表而不是矩阵
+sequence_input= np.array(pad_list.to_list()).reshape((len(pad_list), len(pad_list[0])))`
 
-正如你所见，我每行有 17 列。前 16 列显示每个图块值的 2 的幂（预计 0 表示该图块中没有任何内容）。
-最后一列是它根据这个棋盘游戏移动的方向
-方向帮助-&gt; （0：上，1：右，2：下，3：左）
-
-例如上图显示了董事会的这种状态：
-&lt;前&gt;&lt;代码&gt; 32 64 128 32
- 8 32 8 2
- 8 0 0 0
- 0 2 0 0
-
-该状态的方向为 0，等于向上
-所以我创建了一个具有 16 个输入的神经网络（当然我将其更改为 16*11 输入并将输入作为 one-hot 编码传递）、一些隐藏层和 4 个输出。
-我在超参数和改变层结构方面进行了很多尝试和错误。
-最后我得到了这样的结果。
-导入 pandas 作为 pd
-从 keras.models 导入顺序
-从 keras.layers 导入密集、批量标准化、激活
-从 keras.optimizers 导入 Adam
-从 keras.callbacks 导入 EarlyStopping
-从 sklearn.preprocessing 导入 OneHotEncoder
+我真的尝试使用 cnn 模型查找此类数据的代码，但没有找到好的代码，而且我是这个领域的新手，所以我真的很想了解如何在 cnn 中使用序列数据]]></description>
+      <guid>https://stackoverflow.com/questions/78153453/failed-to-convert-sequence-data-to-a-3d-tensor-after-the-embedding</guid>
+      <pubDate>Wed, 13 Mar 2024 11:35:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>什么是 x_train.reshape() 及其作用？</title>
+      <link>https://stackoverflow.com/questions/61555486/what-is-x-train-reshape-and-what-it-does</link>
+      <description><![CDATA[使用 MNIST 数据集
 将 numpy 导入为 np
+将张量流导入为 tf
+从tensorflow.keras.datasets导入mnist
 
-# 加载你的数据集
-数据 = pd.read_csv(&#39;mainDataSet.csv&#39;)
+# MNIST 数据集参数
+num_classes = 10 # 总类别（0-9 位数）
+num_features = 784 # 数据特征（img 形状：28*28）
 
-# 分离输入 (X) 和输出 (y)
-X = data.iloc[:, 0:16] # 输入特征
-y = pd.get_dummies(data.iloc[:, -1]) # 将输出转换为 one-hot 编码
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-# 定义 one-hot 编码的类别（标签从 0 到 10）
-类别 = [i for i in range(11)]
+# 转换为float32
+x_train, x_test = np.array(x_train, np.float32), np.array(x_test, np.float32)
 
-# 对每个输入列应用 one-hot 编码
-X_encoded = pd.concat([pd.get_dummies(pd.Categorical(X[col],categories=categories), prefix=col,
-prefix_sep=&#39;_&#39;) 对于 X] 中的列，轴=1)
+# 将图像展平为 784 个特征的一维向量 (28*28)
+x_train, x_test = x_train.reshape([-1, num_features]), x_test.reshape([-1, num_features])
 
+# 将图像值从 [0, 255] 标准化为 [0, 1]
+x_train, x_test = x_train / 255., x_test / 255.
 
-
-# 定义模型
-模型=顺序（）
-model.add(Dense(16*11, input_dim=16*11,activation=&#39;relu&#39;)) # 默认包含偏差
-model.add(BatchNormalization()) # 添加批量归一化层
-model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
-model.add(BatchNormalization()) # 添加批量归一化层
-model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
-model.add(BatchNormalization()) # 添加批量归一化层
-model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
-model.add(BatchNormalization()) # 添加批量归一化层
-model.add(Dense(256,activation=&#39;relu&#39;)) # 默认情况下包含偏差
-model.add(BatchNormalization()) # 添加批量归一化层d
-model.add(Dense(4,activation=&#39;softmax&#39;)) # 具有 4 个方向节点的输出层
-
-# 定义提前停止回调，以在验证损失停止改善时停止训练
-Early_stopping = EarlyStopping（监视器=&#39;val_loss&#39;，耐心= 5，restore_best_weights = True）
-
-# 使用 Adam 优化器和默认学习率编译模型
-model.compile(loss=&#39;categorical_crossentropy&#39;, 优化器=&#39;adam&#39;, 指标=[&#39;accuracy&#39;])
-
-# 使用小批量梯度下降和附加回调来训练模型
-model.fit（X_encoded，y，epochs = 100，batch_size = 64，validation_split = 0.2，callbacks =
-[早停]）
-
-model.save(&#39;2048_model.h5&#39;)
-
-最终它给了我 88% 的准确度和 90% 的验证准确度，但这对于我正在做的事情来说还不够。
-您建议采取哪些方法来让我的模型更好地进行预测？
-或者甚至您可以对我的神经网络进行哪些更改以使其更加高效？]]></description>
-      <guid>https://stackoverflow.com/questions/78151448/increase-accuracy-in-a-special-neural-network</guid>
-      <pubDate>Wed, 13 Mar 2024 05:36:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>Amazon Sagemaker 在后台从 jupyter 笔记本运行代码</title>
-      <link>https://stackoverflow.com/questions/78149372/amazon-sagemaker-run-code-from-jupyter-notebook-in-background</link>
-      <description><![CDATA[我正在 Amazon Sagemkaer 笔记本实例上运行代码（在普通的 jupyter 笔记本中，而不是 jupyterLab）。
-
-如何在后台运行代码并关闭浏览器选项卡？当我关闭 jupyter 笔记本选项卡时，程序停止，我想避免这种情况。我读到我不应该在笔记本本身中进行处理，而应该使用 Sagemaker 处理作业。如何在更高的 i 上运行如下所示的简单代码单元
-
-df_new[&#39;predicted_values&#39;] = df_original.progress_apply(lambda x: LLM_pretrained_model.predict( x[&#39;comment_body&#39;] )
-
-
-12 小时后，内核崩溃，提示我需要再次登录。我怎样才能避免这种情况？由于我的数据量较大，程序至少需要 28 小时才能运行
-
-是否可以从 sagemaker jupyter 笔记本（不是 jupyterLab 笔记本）将代码推送到 GitHub？
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78149372/amazon-sagemaker-run-code-from-jupyter-notebook-in-background</guid>
-      <pubDate>Tue, 12 Mar 2024 18:39:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>宏观 VS 微观 VS 加权 VS 样本 F1 分数</title>
-      <link>https://stackoverflow.com/questions/55740220/macro-vs-micro-vs-weighted-vs-samples-f1-score</link>
-      <description><![CDATA[在sklearn.metrics.f1_score中，f1分数有一个名为“average”的参数。宏观、微观、加权和样本是什么意思？请详细说明，因为在文档中没有正确解释。或者简单地回答以下问题：
-
-为什么“样本”是多标签分类的最佳参数？ 
-为什么微观最适合不平衡的数据集？ 
-加权和宏之间有什么区别？
-]]></description>
-      <guid>https://stackoverflow.com/questions/55740220/macro-vs-micro-vs-weighted-vs-samples-f1-score</guid>
-      <pubDate>Thu, 18 Apr 2019 06:26:25 GMT</pubDate>
+在这些代码的第 15 行，即，
+x_train, x_test = x_train.reshape([-1, num_features]), x_test.reshape([-1, num_features])。我无法理解这些重塑在我们的数据集中到底做了什么......？请解释一下。]]></description>
+      <guid>https://stackoverflow.com/questions/61555486/what-is-x-train-reshape-and-what-it-does</guid>
+      <pubDate>Sat, 02 May 2020 06:44:34 GMT</pubDate>
     </item>
     </channel>
 </rss>
