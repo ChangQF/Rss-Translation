@@ -4,7 +4,253 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Fri, 15 Mar 2024 12:23:26 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 15 Mar 2024 15:13:39 GMT</lastBuildDate>
+    <item>
+      <title>通过 LDA 与逻辑回归进行分类。什么时候选择更间接的回归方法？</title>
+      <link>https://stats.stackexchange.com/questions/642702/performing-classification-by-lda-versus-logistic-regression-when-to-choose-the</link>
+      <description><![CDATA[假设我们测量一个依赖于二分类的变量 $X|_\text{class}$，其中分布以该类为条件
+$$X|_\text{class =1} \sim N(\mu_1,\sigma^2)$$
+$$X|_\text{class =2} \sim N(\mu_2,\sigma^2)$$
+对于这种情况，我们可以应用逻辑模型，如下所述：
+
+对于二元分类示例，如何证明 LDA 具有与 Logistic 回归类似的形式？
+推导出逻辑回归公式
+
+这里的问题是哪种方法可以为分类边界创建最低的均方误差
+
+我们可以根据两个总体拟合正态分布，并用它来计算分类边界。
+我们可以执行逻辑回归并用它来计算分类边界。
+
+这些方法不会给出与下面代码所示相同的结果（与拟合逻辑回归模型相比，拟合正态分布更好，与理想边界的偏差更低）。
+问题：显然，逻辑回归并不总是表现最好的。是否有系统/方法来决定使用逻辑回归而不是直接拟合正态分布？
+set.seed(1)
+
+
+样本=函数（）{
+  n = 30
+  x = rnorm(n,0)
+  y = rnorm(n,1)
+  xy = c(x,y)
+  z = 代表(c(0,1), 每个 = n)
+  
+  mod = glm(z ~xy, 族 = 二项式())
+  
+  border1 = Mean(c(x,y)) ### 基于组均值之间的平均值的边界
+  边界2 = exp(mod$系数[1])
+  
+  返回（c（边界1，边界2））
+}
+
+
+b = 复制(10^3, 样本())
+
+绘图（b[1，]，b[2，]）
+mean((b[1,]-0.5)^2) ### 直接分类的错误 = 0.0166966
+Mean((b[2,]-0.5)^2) ### 逻辑回归误差 = 0.02807377
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/642702/performing-classification-by-lda-versus-logistic-regression-when-to-choose-the</guid>
+      <pubDate>Fri, 15 Mar 2024 14:46:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用朴素贝叶斯分类器确定集群的混合</title>
+      <link>https://stats.stackexchange.com/questions/642701/determining-a-mix-of-clusters-by-using-naive-bayes-classifiers</link>
+      <description><![CDATA[我有以下问题，我似乎无法找到简单的答案：鉴于我们有两个组（让我们称它们为 1 和 2），是否可以通过仅训练 1 来确定组的混合百分比2 并获取预测分数？
+例如，我做了两个这样的集群：
+clusterSize = 1000;
+% 簇一
+cluster1 = randn(clu​​sterSize, 2);
+cluster1L = one(clusterSize, 1);
+% 聚类二
+cluster2 = randn(clu​​sterSize, 2) + 5;
+cluster2L = 2 * 个(clusterSize, 1);
+
+然后我可以定义集群 3、4 和 5，这样：
+
+3 是 1 和 2 的 50/50 组合
+4 是 1 和 2 的 25/75 组合
+5 是 1 和 2 的 75/25 组合
+
+为此，代码如下：
+% 簇三
+簇3 = 0.5.*簇1 + 0.5.*簇2;
+cluster3L = 3 * 个(clusterSize, 1);
+% 聚类四
+簇4 = 0.25.*簇1 + 0.75.*簇2;
+cluster4L = 4 * 个(clusterSize, 1);
+% 聚类五
+簇5 = 0.75.*簇1 + 0.25.*簇2;
+cluster5L = 5 * 个(clusterSize, 1);
+
+然后我将此数据作为表格返回：
+&lt;前&gt;&lt;代码&gt;X = [簇1;集群2；集群3；集群4；集群5]；
+Y = 字符串([簇1L;簇2L;簇3L;簇4L;簇5L]);
+数据=表();
+数据.X = X(:,1);
+数据.Y = X(:,2);
+数据.标签 = Y;
+
+我对数据进行标准化并进行 PCA。我只在集群 1 和 2 上进行训练：
+预测器=标准化(Data{:,1:2});
+[coeff, 得分, 潜在, tsquared, 解释] = pca(预测变量);
+TrainingClustersData = 分数(包含(Data.Label,[“1”,“2”]),:);
+TrainingLabels = Data.Label(包含(Data.Label,[“1”,“2”]),:);
+MixedClustersData = 分数(~包含(Data.Label,[“1”,“2”]),:);
+MixedClustersLabels = Data.Label(~contains(Data.Label,[“1”,“2”]),:);
+mdl = fitcnb(TrainingClustersData, TrainingLabels);
+
+这样做，我可以计算簇的后验概率，还可以分散不同的簇以检查它们的位置：
+&lt;前&gt;&lt;代码&gt;xMax = 5;
+x最小值=-5；
+h = 0.05；
+[x1Grid,x2Grid] = meshgrid(xMin:h:xMax,xMin:h:xMax);
+[~,PosteriorRegion] = 预测(mdl,[x1Grid(:),x2Grid(:)]);
+后区域(:,3) = 0;
+h = 分散(x1Grid(:),x2Grid(:),1,PosteriorRegion);
+xlim([x最小x最大])
+ylim([x最小x最大])
+坚持，稍等
+gscatter(分数(:,1), 分数(:,2), Data.Label)
+legend(“位置”,“西北”)
+
+检查绘图，我可以看到簇的距离很大程度上取决于我之前定义的混合，这是合乎逻辑的。
+
+我的问题是，我可以通过这种方法找到这个混合百分比吗？这是可行的吗？可以在可引用的研究中找到吗？对混合数据使用 mdl.predict 可以得到样本属于聚类 1 或 2 的概率（分数），这也是我在本例中所需要的。我想用这个概率作为混合决定。
+我期待任何意见、批评或建议]]></description>
+      <guid>https://stats.stackexchange.com/questions/642701/determining-a-mix-of-clusters-by-using-naive-bayes-classifiers</guid>
+      <pubDate>Fri, 15 Mar 2024 14:39:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>对加权事件应用负二项分布</title>
+      <link>https://stats.stackexchange.com/questions/642700/applying-negative-binomial-distribution-for-weighted-events</link>
+      <description><![CDATA[我正在尝试对销售时的库存寿命进行建模，其中一次给定的销售（例如，价值 10,000 美元的特定产品）可能会用 1 个月前的 5,000 美元的库存来完成，即 3,000 美元价值 3 个月的库存和价值 2,000 美元的 7 个月的库存。我有大约 1,000 种产品的数据，库存期限从 0 到 18 个月不等。如果我不必在分析中包含金额，那么这是一个简单的负二项式建模问题，但我不明白如何通过金额对事件进行加权。
+（加权）数据如下所示：
+
+有什么想法吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642700/applying-negative-binomial-distribution-for-weighted-events</guid>
+      <pubDate>Fri, 15 Mar 2024 14:28:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何从神经网络模型中得出每个预测值的概率得分？</title>
+      <link>https://stats.stackexchange.com/questions/642699/how-to-come-up-with-a-probability-score-for-each-predicted-value-from-a-neural-n</link>
+      <description><![CDATA[我有一些 python 代码，用于创建和训练神经网络模型来预测“成本”列。它接受大量输入并预测成本。现在，我试图将预测成本转换为概率（更具体地说，遇到此错误的概率（预期成本和预测成本之间的相对差异）或更大）。这就是我所做的：
+# Y_Actual 是实际成本（它是一个数组）
+# Predictions_array 是来自神经网络模型的成本预测的数组
+错误列表 = ((abs(Y_实际 - 预测数组)) / Y_实际) * 100
+# 我使用修剪均值和修剪标准差来控制可能的异常值
+误差平均值 = 修剪平均值（误差列表，0.05）
+trimmed_data = stats.trimboth(error_list, 0.05)
+error_sd = np.std(修剪数据)
+prob_score_all = []
+对于 error_list 中的 i：
+    z_score = (i - error_mean) / error_sd
+    desiredProb = 1 - stats.norm.cdf(z_score)
+    prob_score_all.append(desiredProb)
+
+这通常效果很好。也就是说，例如，如果实际成本为 $3 而预测成本为 $15，则这并不是一个非常显着的差异。但分配给它的概率非常小，因为代码确定预测成本与实际成本相差 5 倍。因此，它最终被分配的概率要小得多。另一方面，如果我的实际成本为 $1,000,000 且预测成本为 $700,000，则与前面的示例相比，其概率要大得多。有什么办法可以解决这个问题吗？我知道这看起来像是一个编程问题，但实际上是一个关于如何将机器学习模型的预测值转换为概率的统计问题。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642699/how-to-come-up-with-a-probability-score-for-each-predicted-value-from-a-neural-n</guid>
+      <pubDate>Fri, 15 Mar 2024 14:27:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>多元时间序列数据的 Copula</title>
+      <link>https://stats.stackexchange.com/questions/642698/copula-for-multivariate-time-series-data</link>
+      <description><![CDATA[我的数据包含传感器测量的两个变量（即变量 1 和变量 2）。对于每个变量，测量是在 19 个不同日期的 15 个不同点进行的，因此共有 285 行数据。因此，我相信这是一个多元时间序列数据。
+我想通过应用二元联结函数来构造这两个变量之间的联合分布。但是，由于将 copula 应用于时间序列数据的基本假设是时间序列应该是平稳的，因此作为预处理步骤是否足以使每个点的时间序列分别平稳？我想知道应该执行哪些预处理步骤，因为不同点或不同日期的某一点的数据之间可能存在自相关。这让事情变得更加复杂。]]></description>
+      <guid>https://stats.stackexchange.com/questions/642698/copula-for-multivariate-time-series-data</guid>
+      <pubDate>Fri, 15 Mar 2024 14:20:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>我搞砸了模型选择，但最终得到了一个非常好的模型；我还好吗？</title>
+      <link>https://stats.stackexchange.com/questions/642695/i-screwed-up-model-selection-but-ended-up-with-a-very-good-model-am-i-ok</link>
+      <description><![CDATA[在最近的一次实验中，我犯了一个疏忽：我将数据分为训练集和测试集，并在应用 Boruta（随机森林的特征重要性）在整个数据集上选择特征后，对模型选择和超参数调整进行了交叉验证训练集。
+我想确保我完全掌握与此方法错误相关的风险。在我看来，模型选择在两个方面受到了损害。首先，我认为该错误引入了有利于基于树的方法的选择偏差（导致 XGBoost 成为所选模型），因为最重要的特征集随所选方法的不同而变化。此外，我怀疑由于测试折叠泄漏到特征选择过程中，交叉验证分数存在乐观偏差。
+尽管如此，模型对测试数据的评估（假设它具有足够的代表性和规模）应该不受影响。此外，考虑到梯度提升通常非常适合表格数据集，我怀疑实验结果是否存在任何真正的问题，除了可能忽略了一个性能更高的可解释模型。
+总之，我相信我搞砸了模型选择，但最终还是得到了一个非常好的模型，所以我应该没问题。你觉得怎么样？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642695/i-screwed-up-model-selection-but-ended-up-with-a-very-good-model-am-i-ok</guid>
+      <pubDate>Fri, 15 Mar 2024 13:46:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>改变样本时相关系数的变化</title>
+      <link>https://stats.stackexchange.com/questions/642692/changes-in-the-correlation-coefficient-when-altering-the-sample</link>
+      <description><![CDATA[如果我有两个样本 X 和 Y，每个样本都有 10 个数据点。如果将 X 更改为 X&#39;，其中两个数据点下降 10。为什么相关系数保持不变？我知道它们被减去了一个常数，但这不会削弱或加强相关性吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642692/changes-in-the-correlation-coefficient-when-altering-the-sample</guid>
+      <pubDate>Fri, 15 Mar 2024 13:39:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用小样本计算（偏差校正）几何平均值</title>
+      <link>https://stats.stackexchange.com/questions/642689/how-to-calculate-the-bias-corrected-geometric-mean-with-small-sample-sizes</link>
+      <description><![CDATA[大多数来源都给出了一个简单的方程来计算样本的几何平均值 (GeoMean)。
+GeoMean = exp(m)
+
+其中m是值的自然对数（以e为底）的平均值
+偏差校正方程在：Parkin, T. B. &amp; 中给出。 Robinson, J.A. 对数正态分布变量的中值估计量的统计评估。土壤科学。苏克。是。 J. 57, 317–323 (1993)。
+GeoMean = exp(m - s^2/2n)
+
+这里，m和s是值的自然对数的平均值和标准差，n是值的数量在样本中。对于较大的n（和/或较小的s），该方程接近更简单、更常用的方程。但对于较小的 n 和/或较大的 s，结果可能会相差很大。
+我的问题：
+
+这个偏差校正方程正确吗？我没有在其他地方看到它，并且在谷歌或维基百科中找不到任何提及。应该一直使用它吗？
+如果它是正确且值得推荐的，为什么？偏见从何而来？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/642689/how-to-calculate-the-bias-corrected-geometric-mean-with-small-sample-sizes</guid>
+      <pubDate>Fri, 15 Mar 2024 13:18:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何对两组之间特定重复家族比例的差异进行建模</title>
+      <link>https://stats.stackexchange.com/questions/642688/how-to-model-the-difference-in-proportion-of-specific-repeat-families-between-tw</link>
+      <description><![CDATA[我想问基因组中不同重复家族（LINES、SINES、LTR、其他、DNA）的比例在 guenon 中与外群相比是否有所不同。
+我拥有的数据如下（以简化格式）
+|物种|重复家族|分数|物种类型|
+|--------|-------------|--------|------------|
+|A_lhoesti|DNA|0.0334|guenons|
+|A_lhoesti|LINE|0.187|guenons|
+|A_lhoesti|LTR|0.0908|guenons|
+|r_roxellana|DNA|0.329|外群|
+|r_roxellana|LINE|0.205|外群|
+有 13 个物种组（2 个外群，11 个长尾猴），
+5 个重复家庭类别，
+和 2 个物种类型。
+由于我的响应变量是一个分数，我决定用 beta 回归拟合广义线性模型。
+model&lt;-betareg(fraction ~species_type + Repeat.family +species_type*repeat.family
+
+这是我的输出：
+&lt;前&gt;&lt;代码&gt;调用：
+betareg(公式 = 分数 ~ 物种类型 + 重复.家族 + 物种类型 *
+    重复.家庭，数据=数据2，家庭=二项式）
+
+标准化加权残差2：
+    最小 1Q 中值 3Q 最大
+-2.8986 -0.2285 0.0443 0.2611 3.0030
+
+系数（带有 logit 链接的平均模型）：
+                                        估计标准。误差z值Pr(&gt;|z|)
+(截距) -3.31171 0.05226 -63.367 ＜ 2e-16 ***
+物种类型外组 -0.06573 0.13655 -0.481 0.63028
+重复.familyLINE 1.85460 0.05780 32.088 &lt; 2e-16 ***
+重复家族LTR 0.99006 0.06225 15.906 &lt; 2e-16 ***
+重复.family其他 0.22832 0.07029 3.248 0.00116 **
+重复家族SINE 1.35377 0.05992 22.592 &lt; 2e-16 ***
+物种类型输出组：重复.familyLINE 0.07735 0.15030 0.515 0.60684
+物种类型输出组：重复.familyLTR 0.03029 0.16213 0.187 0.85177
+物种类型输出组：重复.家庭其他 0.01038 0.18348 0.057 0.95488
+物种类型输出组：重复.familySINE 0.08337 0.15552 0.536 0.59191
+
+Phi 系数（具有恒等链接的精度模型）：
+      估计标准。误差z值Pr(&gt;|z|)
+(Φ) 969.1 170.1 5.698 1.21e-08 ***
+---
+西尼夫。代码：0&#39;***&#39;0.001&#39;**&#39;0.01&#39;*&#39;0.05&#39;.&#39; 0.1&#39;&#39;1
+
+估计器类型：ML（最大似然）
+对数似然：11 Df 上的 217.2
+伪 R 平方：0.9558
+迭代次数：82 (BFGS) + 3（Fisher 评分）
+
+但是，我不认为这是对数据进行建模的方法。
+我不确定输出的哪一部分给我提供了长尾猴和外群中每个重复家族的比例之间的差异。
+这是交互术语吗？这是否显示了两组的重复课程比例如何变化？]]></description>
+      <guid>https://stats.stackexchange.com/questions/642688/how-to-model-the-difference-in-proportion-of-specific-repeat-families-between-tw</guid>
+      <pubDate>Fri, 15 Mar 2024 12:27:28 GMT</pubDate>
+    </item>
     <item>
       <title>多个少数类别的多类别分类</title>
       <link>https://stats.stackexchange.com/questions/642687/multiclass-classification-for-multiple-minority-classes</link>
@@ -67,55 +313,12 @@ H。 CatBoost
       <link>https://stats.stackexchange.com/questions/642683/which-error-bars-to-use-when-compairng-only-two-subjects-when-many-replicates</link>
       <description><![CDATA[我想绘制对两个受试者进行的离散时间测量结果，但每个受试者都观察到许多细胞，一式三份。
 我认为实验单位是主题，所以我应该得到每个主题的平均值并绘制它。另一种选择是获取每个单元格三次重复的平均值并绘制它们。
-无论如何，我无法判断是否应该使用标准误差或标准差作为误差条。据我了解，标准差适用于不同的样本，我不清楚每个单元格是否应该算作一个样本。另一方面，我一直读到大多数时候你应该使用标准差作为误差条。]]></description>
+无论如何，我无法判断是否应该使用标准误差或标准差作为误差条。据我了解，标准差适用于不同的样本，我不清楚每个单元格是否应该算作一个样本。另一方面，我一直读到大多数时候你应该使用标准差作为误差条。
+编辑：
+我正在计算每个受试者在每个时间点的标准偏差和标准误差。我没有考虑到观察结果是一式三份的事实。所以基本上我计算了平均值、SD 和 SE，并简单地绘制了这些值。
+我是否应该计算每个一式三份的平均值、SD 和 SE 并绘制它们？也许用黄土画一条穿过它们的平滑线？]]></description>
       <guid>https://stats.stackexchange.com/questions/642683/which-error-bars-to-use-when-compairng-only-two-subjects-when-many-replicates</guid>
       <pubDate>Fri, 15 Mar 2024 10:41:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于偏度和峰度测量的不等式</title>
-      <link>https://stats.stackexchange.com/questions/642679/inequality-regarding-measure-of-skewness-kurtosis</link>
-      <description><![CDATA[偏度和峰度的测量分别为
-$b_1=\frac{m_3^2}{m_2^3}$（偏度）
-和
-$b_2=\frac{m_4}{m_2^2}$（峰度）
-其中 $m_r$ 是 $rth$ 顺序的中心矩。即 $m_r = \frac{\sum_{i=1}^{n}(x_i-\bar{x})^r}{n}$&lt; br/&gt;
-$\bar{x}= \frac{\sum_{i=1}^{n}x_i}{n}$
-证明：
-$b_2 -1\geq b_1$
-我试图通过让 $a_i=(x_i -\bar{x})^2$ 来使用柯西施瓦茨不等式； $b_i =1$
-并得到 $b_2 \geq 1$
-但之后使用 $b_1$ 时，事情变得非常复杂
-任何想法对我来说都是有好处的，可以让证明变得更简单。
-谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/642679/inequality-regarding-measure-of-skewness-kurtosis</guid>
-      <pubDate>Fri, 15 Mar 2024 09:54:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解释费舍尔检验中的群体分层？</title>
-      <link>https://stats.stackexchange.com/questions/642678/how-to-account-for-population-stratification-in-fisher-test</link>
-      <description><![CDATA[执行逻辑回归时，可以通过添加协变量来完成。我怎样才能对 Fisher 测试做同样的事情？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642678/how-to-account-for-population-stratification-in-fisher-test</guid>
-      <pubDate>Fri, 15 Mar 2024 09:45:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>序贯分析——调整效应大小</title>
-      <link>https://stats.stackexchange.com/questions/642677/sequential-analysis-adjusting-effect-size</link>
-      <description><![CDATA[我知道顺序测试有风险，但无论如何我这样做都是有意义的。所以，我想仔细阅读，并正确地做到这一点。
-我的想法（这可能并不新鲜）：
-在我的现实中，假设检验中的真实效果有时会大大超过最小效果大小。因此，为了更有效地利用资源，我打算在内曼-皮尔逊框架中使用高假设效应大小进行测试。然后，只有当我无法显示高效应大小时，我才会将假设的效应大小降低到我在开始实验之前确定的某个水平，并根据需要收集更多数据以实现所需的功效。我重复此操作，直到达到我试图确定的最小效果大小。
-现在，当然，我的测试不再是独立的，因此 I 类和 II 类错误率的通常计算变得无效。我认为假设效应大小的变化至少应该抵消其中的一部分，但我基本上只是猜测 - 而且猜测并不像内曼皮尔逊那样;)
-我发现很难找到这个研究领域的切入点，因为我还不知道术语，所以我不知道要寻找什么。我进行了快速搜索，找到了有关 Wald、Pocock 和 Haybitttle-Peto 的一些一般信息。看来这些策略的开发是为了在效果大小不可知的费舍尔框架中保留 $\alpha$ （如果我没有误解的话）。这和我想象的有点不同。
-那么，我需要查找的内容的名称是什么？有什么好书可以开始读呢？
-（或者，我的想法有根本缺陷吗？）]]></description>
-      <guid>https://stats.stackexchange.com/questions/642677/sequential-analysis-adjusting-effect-size</guid>
-      <pubDate>Fri, 15 Mar 2024 09:43:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>概率分布的最小熵分解</title>
-      <link>https://stats.stackexchange.com/questions/642675/minimum-entropy-decomposition-of-probability-distributions</link>
-      <description><![CDATA[假设您想要将概率分布（PDF）分解为分布的混合，以最小化分量分布的平均熵。我有一个想法，只要混合成分是高斯分布就可以实现这一点。这可以证明吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642675/minimum-entropy-decomposition-of-probability-distributions</guid>
-      <pubDate>Fri, 15 Mar 2024 09:34:13 GMT</pubDate>
     </item>
     <item>
       <title>在 rms 包中使用 psm 的指数生存模型</title>
@@ -165,45 +368,12 @@ pred.med.surv &lt;- QFUN(预测(fit, type = &quot;lp&quot;))
       <pubDate>Fri, 15 Mar 2024 09:11:01 GMT</pubDate>
     </item>
     <item>
-      <title>矛盾的负面边缘</title>
-      <link>https://stats.stackexchange.com/questions/642671/an-contradictory-negative-edge</link>
-      <description><![CDATA[最近我进行了一项实验，探讨压力与走神（MW）之间的关系。当我通过 SPSS 分析数据时，我发现两个变量之间存在意外的负边缘。
-我的实验是受试者内设计，因此每个参与者 (26) 都经历了两次会话（T：压力诱导；C：控制）。一般程序是，参与者在压力诱导/控制课程后将接受情绪评估（测量积极/消极情绪），然后他们将完成一项与 MW 相关的任务，在此期间他们的 MW 内容（例如，你的想法与未来有关吗？ ？）进行了测量。
-问题就在这里。当我进行 rANOVA 时，我发现与对照组相比，压力诱导期间的积极情绪分数和未来分数较低。因此我怀疑压力可能会通过积极情绪影响未来的分数。我试图将积极情绪得分和未来得分的两个差异关联起来以证明我的假设，例如积极得分（T-C）和未来得分（T-C）。不幸的是，它表现出很强的负相关性（r = 0.47，p = 0.02）。
-我的问题是：这种强负边沿是假的吗？我证明假设的方法（相关分析）合理吗？还有其他方法可以用来找到这两个变量之间的真正关系吗？ ]]></description>
-      <guid>https://stats.stackexchange.com/questions/642671/an-contradictory-negative-edge</guid>
-      <pubDate>Fri, 15 Mar 2024 08:47:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何为我的数据拟合曲线？</title>
-      <link>https://stats.stackexchange.com/questions/642670/how-can-i-fit-a-curve-to-my-data</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/642670/how-can-i-fit-a-curve-to-my-data</guid>
-      <pubDate>Fri, 15 Mar 2024 08:24:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>白噪声是否保证 $X_{t-1}$ 与 $u_t$ 不相关？</title>
-      <link>https://stats.stackexchange.com/questions/642662/does-white-noise-guarantee-that-x-t-1-is-uncorrelated-with-u-t</link>
-      <description><![CDATA[我有一个关于时间序列背景下白噪声特性的问题。具体来说，我想知道：
-如果我们假设时间序列模型中的误差项$u_t$是白噪声，这是否可以保证滞后变量$X_{t-1}$ 与当前错误项 $u_t$ 不相关？
-换句话说，误差项的白噪声假设是否意味着 $\text{Cov}(X_{t-1}, u_t) = 0$?]]></description>
-      <guid>https://stats.stackexchange.com/questions/642662/does-white-noise-guarantee-that-x-t-1-is-uncorrelated-with-u-t</guid>
-      <pubDate>Fri, 15 Mar 2024 06:52:29 GMT</pubDate>
-    </item>
-    <item>
       <title>我想使用 t 检验使用线性回归中的 b 值与 b 值 3 来测试鱼的等距生长</title>
       <link>https://stats.stackexchange.com/questions/642650/i-would-like-to-test-for-isometric-growth-in-fish-using-b-value-from-linear-regr</link>
       <description><![CDATA[我有雄鱼的长度/重量数据，并希望通过 b 值与 3 进行回归斜率比较，以测试等长生长。我也尝试使用 hoCoef 函数
 hoCoef(lm1,2,3)]]></description>
       <guid>https://stats.stackexchange.com/questions/642650/i-would-like-to-test-for-isometric-growth-in-fish-using-b-value-from-linear-regr</guid>
       <pubDate>Fri, 15 Mar 2024 03:13:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>研究时间序列需要多少统计学知识？</title>
-      <link>https://stats.stackexchange.com/questions/642647/how-much-statistics-knowledge-is-enough-for-studying-time-series</link>
-      <description><![CDATA[我对研究时间序列（理论和应用）感兴趣，我的背景是数学，我的概率知识足够好，但我没有深入研究统计（只有一门推理课程）；要想很好地掌握时间序列，统计学中的最低先决条件是什么？一般来说，它需要什么数学知识？]]></description>
-      <guid>https://stats.stackexchange.com/questions/642647/how-much-statistics-knowledge-is-enough-for-studying-time-series</guid>
-      <pubDate>Thu, 14 Mar 2024 23:29:53 GMT</pubDate>
     </item>
     <item>
       <title>图模型在实践中的实用性</title>
@@ -222,34 +392,6 @@ hoCoef(lm1,2,3)]]></description>
 但是我们并不关心我们的数据与多元正态分布的接近程度，这在文献中似乎是这样做的。]]></description>
       <guid>https://stats.stackexchange.com/questions/642623/usefullness-of-graphical-models-in-practice</guid>
       <pubDate>Thu, 14 Mar 2024 17:31:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>查询 GLM 数据的正态分布[重复]</title>
-      <link>https://stats.stackexchange.com/questions/642615/query-re-normal-distribution-of-data-for-glm</link>
-      <description><![CDATA[我在独特的测试中根据 3 个因素收集了力测量数据（响应变量）
-
-材料类型（2 项）（我认为这是分类的）
-刀具半径（2 关闭）（假设这是离散的，因为它不连续）
-刀具前角（3 关闭）
-
-每个独特的测试我都会重复 4 到 5 次
-测量的力（全部）中的响应变量数据不遵循正态分布。请参阅图像中响应数据的正态分布图
-
-我读到，使用 GLM 的要求是数据必须呈正态分布。我认为这意味着响应数据，但在一些书籍和参考材料（包括 Anova 上的 Minitab 信息）中读到它意味着残差。
-所以我需要问
-
-当汇集的响应数据不遵循正态分布 IF 时，我可以使用 GLM 来分析数据吗
-因为看起来残差似乎遵循正态分布（下图来自 GLM 分析），请参见下文
-
-
-如果是这种情况，那就意味着我不需要传输数据，这样更好。
-
-我是否需要使用残差或标准化残差，或者这很重要吗？
-
-谢谢
-GTK]]></description>
-      <guid>https://stats.stackexchange.com/questions/642615/query-re-normal-distribution-of-data-for-glm</guid>
-      <pubDate>Thu, 14 Mar 2024 16:29:30 GMT</pubDate>
     </item>
     </channel>
 </rss>
