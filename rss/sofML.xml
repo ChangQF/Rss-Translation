@@ -4,7 +4,153 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Thu, 21 Mar 2024 15:14:26 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 21 Mar 2024 18:17:00 GMT</lastBuildDate>
+    <item>
+      <title>Seq-to-seq LSTM 无法正确学习</title>
+      <link>https://stackoverflow.com/questions/78201576/seq-to-seq-lstm-not-learning-properly</link>
+      <description><![CDATA[我正在尝试使用 Pytorch 中的 LSTM 解决 seq-to-seq 问题。具体来说，我采用 5 个元素的序列来预测接下来的 5 个元素。我关心的是数据转换。我有大小为 [bs, seq_length, features] 的张量，其中 seq_length = 5 和 features = 1。每个特征都是一个介于 0 和 3 之间的整数（两者都包含在内）。
+我认为输入数据必须使用 MinMaxScaler 转换为浮点范围 [0, 1]，以便使 LSTM 学习过程更容易。之后，我应用一个线性层，它将隐藏状态转换为相应的输出，其大小为特征。我在 Pytorch 中对 LSTM 网络的定义：
+类 LSTM(nn.Module):
+    def __init__(自身、input_dim、hidden_​​dim、output_dim、num_layers、dropout_prob):
+        super(LSTM, self).__init__()
+        self.lstm_layer = nn.LSTM(input_dim,hidden_​​dim,num_layers,dropout=dropout_prob)
+        self.output_layer = nn.Linear（hidden_​​dim，output_dim）
+
+    ...
+
+    def 向前（自身，X）：
+        out, (隐藏, 单元格) = self.lstm_layer(X)
+        输出 = self.output_layer(输出)
+        返回
+
+我用来进行训练循环的代码如下：
+def train_loop(t, checkpoint_epoch, dataloader, model, loss_fn, optimizationr):
+    大小 = len(dataloader.dataset)
+    对于批处理，枚举中的 X（数据加载器）：
+        X = X[0].type(torch.float).to(设备)
+
+        # X = torch.Size([batch_size, 10, input_dim])
+        # 将序列拆分为输入和目标
+        输入 = 变换(X[:, :5, :]) # 输入 = [batch_size, 5, input_dim]
+        目标 = 变换(X[:, 5:, :]) # 目标 = [batch_size, 5, input_dim]
+
+        # 预测（前向传递）
+        使用自动转换（）：
+            pred = 模型(输入) # pred = [batch_size, 5, input_dim]
+            损失 = loss_fn(pred, 目标)
+
+        # 反向传播
+        优化器.zero_grad()
+        scaler.scale(loss).backward()
+        缩放器.step（优化器）
+        定标器.update()
+
+        如果批次 % 100 == 0:
+            损失，当前 = loss.item(), 批次 * len(X)
+            #print(f&quot;当前损耗：{loss:&gt;7f}, [{current:&gt;5d}/{size:&gt;5d}]&quot;)
+
+        # 删除变量并清空缓存
+        del X、输入、目标、预测
+        torch.cuda.empty_cache()
+
+    回波损耗
+
+我用于预处理数据的代码：
+def main():
+    代理数量 = 2
+    # 打开HDF5文件
+    将 h5py.File(&#39;dataset_&#39; + str(num_agents) + &#39;UAV.hdf5&#39;, &#39;r&#39;) 作为 f：
+        # 访问数据集
+        数据 = f[&#39;数据&#39;][:]
+        # 转换为 PyTorch 张量
+        data_tensor = torch.tensor(数据)
+
+        大小 = data_tensor.size()
+        序列长度 = 10
+        重塑 = data_tensor.view(-1, 大小[2], 大小[3])
+
+        r_size = reshape.size()
+        重塑 = 重塑[:, :, 1:]
+        reshape_v2 = reshape.view(r_size[0], -1)
+
+        数据集 = create_dataset(reshape_v2.numpy(), seq_length)
+
+        f.close()
+
+    数据集 = TensorDataset(数据集)
+
+    # 将数据集分为训练集和验证集
+    train_size = int(0.8 * len(dataset)) # 80% 用于训练
+    val_size = len(dataset) - train_size # 20% 用于验证
+    train_dataset, val_dataset = random_split(数据集, [train_size, val_size])
+
+    train_dataloader = DataLoader（train_dataset，batch_size = params [&#39;batch_size&#39;]，shuffle = True，pin_memory = True）
+    val_dataloader = DataLoader（val_dataset，batch_size = params [&#39;batch_size&#39;]，shuffle = False，pin_memory = True）
+
+尝试这个，模型没有正确学习，所以我想也许可以直接计算 targets （范围 [0, 1] 内的浮点值）和 pred 之间的损失code&gt; （我认为由于 LSTM 层的 tanh 激活函数，浮点值在 [-1, 1] 范围内），具有不同的尺度可能是错误的。然后，我尝试在前向传递中的线性层之后应用 sigmoid 激活函数，但也没有正确学习。我尝试了许多超参数组合的执行，但没有一个产生“正常”的结果。训练曲线。我还附上了 5000 epoch 的屏幕截图来说明训练过程：
+
+我的问题是：
+
+我的训练过程中似乎存在什么问题？
+我所说的话是否被认为是错误的？
+]]></description>
+      <guid>https://stackoverflow.com/questions/78201576/seq-to-seq-lstm-not-learning-properly</guid>
+      <pubDate>Thu, 21 Mar 2024 16:43:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何以我的 k 折叠分割方式适应 lgb.cv？</title>
+      <link>https://stackoverflow.com/questions/78201471/how-to-adapt-lgb-cv-in-my-k-folds-splitting-way</link>
+      <description><![CDATA[我设计了一个方法，将数据分成5折，然后我想用它来执行5折交叉验证。
+来自 load_data 导入 load_data
+折叠、test_samples、input_shape = load_data()
+
+folds[0].keys()
+# dict_keys([&#39;训练&#39;, &#39;val&#39;, &#39;测试&#39;])
+
+要使用特定的 5 倍来优化 GBM 模型，对于任何优化方法（例如 RandomSearch、GridSearch...），我需要为每个超参数配置训练 5 个模型，然后评估模型性能。
+一种方法是，我使用迭代每次折叠来训练模型
+early_stopping = lgb.early_stopping(stopping_rounds=10)
+模型 = lgb.LGBMClassifier()
+model.fit(X, y, 回调=[early_stopping],...)
+
+我发现它的另一种方式是 lgb.cv，它不允许我的折叠 适合。
+有人知道如何在不使用分割的情况下实现 lgb.cv 吗？
+这是 1 个配置的片段代码
+从 sklearn.metrics 导入 roc_auc_score
+从 sklearn.metrics 导入 precision_score
+from timeit import default_timer 作为计时器
+
+对于 i，折叠枚举（折叠）：
+    print(&#39;折叠&#39;, i+1)
+    训练，验证，测试=折叠[折叠].values()
+    Early_stopping = lgb.early_stopping(stopping_rounds=10)
+    模型 = lgb.LGBMClassifier()
+    
+    开始=定时器()
+    model.fit(训练[&#39;x&#39;], 训练[&#39;y&#39;],
+              回调=[early_stopping],
+              评估集=[
+                  (火车[&#39;x&#39;], 火车[&#39;y&#39;]),
+                  (val[&#39;x&#39;], val[&#39;y&#39;]),
+                  （测试[&#39;x&#39;]，测试[&#39;y&#39;]）]，
+              eval_names=[&#39;训练&#39;, &#39;val&#39;, &#39;测试&#39;],
+              eval_metric=[&#39;auc&#39;, &#39;binary_logloss&#39;],
+              功能名称=功能名称）
+    train_time = 计时器() - 开始
+
+    ＃ 作出预测
+    预测 = model.predict_proba(val[&#39;x&#39;])
+    auc = roc_auc_score(val[&#39;y&#39;], 预测[:, 1])
+    acc = precision_score(val[&#39;y&#39;], np.argmax(预测, axis=1))
+    
+    print(&#39;验证集上的验证准确度为{:.4f}.&#39;.format(acc))
+    print(&#39;验证集上的验证auc为{:.4f}.&#39;.format(auc))
+    print(&#39;训练时间为{:.4f}秒&#39;.format(train_time))
+
+我如何以优化的方式调整它（例如，RandomSearch）？]]></description>
+      <guid>https://stackoverflow.com/questions/78201471/how-to-adapt-lgb-cv-in-my-k-folds-splitting-way</guid>
+      <pubDate>Thu, 21 Mar 2024 16:26:34 GMT</pubDate>
+    </item>
     <item>
       <title>使用 Colab 在 Google Drive 上保存训练数据和模型</title>
       <link>https://stackoverflow.com/questions/78200960/saving-training-data-and-model-on-google-drive-with-colab</link>
@@ -97,43 +243,9 @@ def hessian(self,w,hess_trick=0):
 
         返回 hess + 正则化
 
-通过调试这个函数，我发现存在一个根本性的问题。对于特征数量较小的值（例如小于 200），hessian 的两种实现不相等。当我增加特征数量时，这两个函数似乎是相等的。问题是，当使用牛顿方法来优化对数损失来测试这些实现时，较快的实现会比第一个（但在运行时速度方面较慢）实现更多的迭代收敛。]]></description>
+通过调试这个函数，我发现存在一个根本性的问题。对于特征数量较小的值（例如小于 200），hessian 的两种实现不相等。当我增加特征数量时，这两个函数似乎是相等的。问题在于，当使用牛顿方法来优化对数损失来测试这些实现时，较快的实现会比第一个实现（但在运行时速度方面较慢）实现更多的迭代收敛。]]></description>
       <guid>https://stackoverflow.com/questions/78199806/how-can-i-compute-the-following-hessian-using-numpy-functions-to-speed-up-the-co</guid>
       <pubDate>Thu, 21 Mar 2024 12:02:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>我尝试使用过去的数据进行预测。 jupyter 实验室和机器学习。我是这条路的新手</title>
-      <link>https://stackoverflow.com/questions/78199588/i-try-to-get-predicion-using-past-data-jupyter-lab-and-maching-learning-i-am-n</link>
-      <description><![CDATA[plt.figure(figsize=(15,8))
-sns.heatmap(train_data.corr(), annot=True, cmap=&quot;YlGnBu&quot;)
-当我运行这个时，我收到以下错误
-&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
-ValueError Traceback（最近一次调用最后一次）
-单元格 In[23]，第 2 行
-      1 plt.figure(figsize=(15,8))
-----&gt; 2 sns.heatmap(train_data.corr(), annot=True, cmap=“YlGnBu”)
-
-文件 ~\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\frame.py:11036，在 DataFrame.corr(self, method, min_periods, numeric_only)
-  11034 列 = 数据.列
-  第11035章
-&gt;第11036章
-  第11038章
-  第11039章
-
-文件 ~\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\frame.py:1981，在 DataFrame.to_numpy(self, dtype, copy, na_value) 中
-   1979 如果 dtype 不是 None：
-   第1980章
--&gt;第1981章
-   1982 如果 result.dtype 不是 dtype：
-   第1983章
-
-文件 ~\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\internals\managers.py:1692，在 BlockManager.as_array(self, dtype, copy, na_value) 中
-
-ValueError：无法将字符串转换为浮点数：&#39;HOWARD AVENUE-PARK PLACE&#39;
-&lt;图形尺寸 1500x800，0 轴&gt;
-]]></description>
-      <guid>https://stackoverflow.com/questions/78199588/i-try-to-get-predicion-using-past-data-jupyter-lab-and-maching-learning-i-am-n</guid>
-      <pubDate>Thu, 21 Mar 2024 11:30:18 GMT</pubDate>
     </item>
     <item>
       <title>为什么使用 Tensorflow 时 Python 产生的结果比 kotlin 更准确？</title>
@@ -196,85 +308,125 @@ https://pastebin.com/BACzTkq6
       <pubDate>Thu, 21 Mar 2024 11:18:54 GMT</pubDate>
     </item>
     <item>
-      <title>在 llm_chain input_variables 中找不到 StuffDocumentsChain document_variable_name 上下文的验证错误：['input'] (type=value_error)</title>
-      <link>https://stackoverflow.com/questions/78199098/validation-error-for-stuffdocumentschain-document-variable-name-context-was-not</link>
-      <description><![CDATA[我正在尝试根据路由使用不同的rags在langchain中创建路由链，每个rags都有不同的提示模板，这是我的代码：
-period_template = &quot;&quot;&quot;AAAText
-多曼达：
-{输入}“””
-
-
-ref_template = &quot;&quot;&quot;BBBtext.
-多曼达：
-{输入}“””
-
-list_template = &quot;&quot;&quot;CCCText.
-多曼达：
-{输入}“””
-
-提示信息 = [
-    {
-        “名称”：“期间”，
-        “描述”：“AAA”，
-        “提示模板”：期间模板
-    },
-    {
-        “名称”：“参考”，
-        “描述”：“BBB”，
-        “提示模板”：参考模板
-    },
-    {
-        “名称”：“历史”，
-        “描述”：“CCC”，
-        “提示模板”：列表模板
-    }
-]
-
-目的地链 = {}
-对于提示信息中的 p_info：
-    PROMPT = PromptTemplate(template=p_info[“prompt_template”], input_variables=[“input”])
-    链 = RetrievalQA.from_chain_type(
-        聊天模型，
-        检索器=db.as_retriever(),
-        return_source_documents=真，
-        chain_type_kwargs={“提示”: 提示}
-    ）
-    destination_chains[p_info[“名称”]] = 链
-
-我收到错误：
-&lt;块引用&gt;
-ValidationError：StuffDocumentsChain 出现 1 个验证错误
-root document_variable_name 上下文在 llm_chain input_variables 中找不到：[&#39;input&#39;] (type=value_error)
-
-出了什么问题，如何解决？]]></description>
-      <guid>https://stackoverflow.com/questions/78199098/validation-error-for-stuffdocumentschain-document-variable-name-context-was-not</guid>
-      <pubDate>Thu, 21 Mar 2024 10:16:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>以多个预测值之和为目标构建核岭回归</title>
-      <link>https://stackoverflow.com/questions/78198400/building-kernel-ridge-regression-with-targeting-sum-of-multiple-predicted-values</link>
-      <description><![CDATA[我们可以实现一个代码来实现核岭回归，将一些基于子集的预测值求和为最终目标吗？
-例如，我们知道标准情况将训练：
-特征数据 X（样本数，特征数）-&gt; Y（样本数）
-典型的 sklearn 代码训练 X -&gt; 的直接映射Y，立即接受所有功能。
-我想要做的是训练回归模型，以便：
-对于特征数量 m*n，训练一个映射：
-small_x_i(样本数, 0..m) -&gt; small_y_i（样本数）。
-（small_y_i 不受限制）
-对于 X 的子集，回归也应用 n 次：0..m、m..2m、...、m * (n-1)..m * n
-然后，small_y_i 的总和以最终值 Y(samples) 为目标。
-我之所以尝试这样做，是因为我的问题有一个特定的限制，即我一次可以使用的功能数量是有限的。在整个特征中，有一些组具有相同的概念起源，我需要训练单个回归，以便每组特征的预测值之和最终得到目标值。
-我知道用 sklearn 实现 KRR 的标准案例，但实际上不知道如何实现上面要求的任务。搜索“作为目标的预测值之和”不会给出可引用的线索。]]></description>
-      <guid>https://stackoverflow.com/questions/78198400/building-kernel-ridge-regression-with-targeting-sum-of-multiple-predicted-values</guid>
-      <pubDate>Thu, 21 Mar 2024 08:18:41 GMT</pubDate>
-    </item>
-    <item>
       <title>卷积神经网络可以逆向工程吗？</title>
       <link>https://stackoverflow.com/questions/78197953/can-a-convolutional-neural-network-be-reverse-engineered</link>
       <description><![CDATA[可以对用于目标检测的现代复杂卷积神经网络进行逆向工程来获取原始图像训练数据吗？谢谢。
 我确实尝试在线搜索我的问题，但答案并没有完全回答我的问题]]></description>
       <guid>https://stackoverflow.com/questions/78197953/can-a-convolutional-neural-network-be-reverse-engineered</guid>
       <pubDate>Thu, 21 Mar 2024 06:38:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>PyTorch 矩阵乘法形状错误：“RuntimeError：mat1 和 mat2 形状无法相乘”</title>
+      <link>https://stackoverflow.com/questions/78196998/pytorch-matrix-multiplication-shape-error-runtimeerror-mat1-and-mat2-shapes-c</link>
+      <description><![CDATA[我是 PyTorch 的新手，正在创建一个多输出线性回归模型，根据字母为单词着色。 （这将帮助有字素颜色联觉的人更轻松地阅读。）它接收单词并输出 RGB 值。每个单词都表示为 45 个浮点数 [0,1] 的向量，其中 (0, 1] 代表字母，0 代表该位置不存在字母。每个样本的输出应该是一个向量 [r-value, g -值，b-值]。
+我懂了
+&lt;块引用&gt;
+运行时错误：mat1 和 mat2 形状无法相乘（90x1 和 45x3）
+
+当我尝试在训练循环中运行我的模型时。
+查看现有的 Stack Overflow 帖子，我认为这意味着我需要重塑我的数据，但我不知道如何/在哪里以解决此问题的方式进行此操作。特别是考虑到我不知道那个 90x1 矩阵来自哪里。
+我的模型
+我一开始很简单；在我可以让单个层发挥作用之后，可以出现多个层。
+类 ColorPredictor(torch.nn.Module):
+    #构造函数
+    def __init__(自身):
+        super(ColorPredictor, self).__init__()
+        self.linear = torch.nn.Linear(45, 3, device= device) #编码词向量的长度 &amp; r,g,b 向量的大小
+        
+    ＃ 预言
+    defforward(self, x: torch.Tensor) -&gt;;火炬.张量：
+        y_pred = self.线性(x)
+        返回 y_pred
+
+我如何加载数据
+# 数据集类
+数据类（数据集）：
+    # 构造函数
+    def __init__(自身，输入，输出)：
+        self.x = input # 编码词向量列表
+        self.y = 输出 # 将 r、g、b 值转换为火炬张量的 Pandas 数据帧
+        self.len = len(输入)
+    
+    # 吸气剂
+    def __getitem__(自身，索引)：
+        返回 self.x[索引], self.y[索引]
+    
+    # 获取样本数
+    def __len__(自身):
+        返回 self.len
+
+# 创建训练/测试分割
+train_size = int(0.8 * len(数据))
+train_data = 数据(输入[:train_size], 输出[:train_size])
+test_data = 数据(输入[train_size:], 输出[train_size:])
+
+# 为训练和测试集创建 DataLoaders
+train_loader = DataLoader（数据集= train_data，batch_size = 2）
+test_loader = DataLoader（数据集= test_data，batch_size = 2）
+
+发生错误的测试循环
+对于范围内的纪元（纪元）：
+    ＃ 火车
+    model.train() #训练模式
+    对于 train_loader 中的 x,y：
+        y_pred = model(x) #此处错误
+        损失=标准(y_pred, y)
+        优化器.zero_grad()
+        loss.backward()
+        优化器.step()
+      
+
+错误回溯
+
+
+新尝试：
+将 45x1 输入张量更改为 2x45 输入张量，第二列全为零。这适用于第一次运行 train_loader 循环，但在第二次运行 train_loader 循环期间，我得到另一个矩阵乘法错误，这次是大小为 90x2 和 45x3 的矩阵。]]></description>
+      <guid>https://stackoverflow.com/questions/78196998/pytorch-matrix-multiplication-shape-error-runtimeerror-mat1-and-mat2-shapes-c</guid>
+      <pubDate>Thu, 21 Mar 2024 01:00:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>层顺序从未被调用，因此没有定义的输入</title>
+      <link>https://stackoverflow.com/questions/78196623/the-layer-sequential-has-never-been-called-and-thus-has-no-defined-input</link>
+      <description><![CDATA[我正在 Anaconda 虚拟环境中运行一个简单的脚本
+从 deepface 导入 DeepFace
+
+face_analysis = DeepFace.analyze(img_path = “face3.jpeg”)
+打印（面部分析）
+
+但我不断收到此错误。
+行动：年龄：25%|██████████████████████████▊ | 1/4 [00:02&lt;00:06, 2.08s/it]
+回溯（最近一次调用最后一次）：
+  文件“C:\Users\Ctrend.pk\Cheer-Check\test2.py”，第 9 行，在  中
+    分析 = DeepFace.analyze(img_path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  文件“C:\Users\Ctrend.pk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\deepface\DeepFace.py”，第 222 行，在分析中
+    返回人口统计分析（
+           ^^^^^^^^^^^^^^^^^^^^
+  文件“C:\Users\Ctrend.pk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\deepface\modules\demography.py”，第 157 行，位于分析
+    表观年龄 = modeling.build_model(“年龄”).predict(img_content)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  文件“C:\Users\Ctrend.pk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\deepface\modules\modeling.py”，第 57 行，位于构建模型
+    model_obj[模型名称] = model()
+                            ^^^^^^^
+  文件“C:\Users\Ctrend.pk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\deepface\extendedmodels\Age.py”，第 32 行，位于__在里面__
+    self.model = load_model()
+                 ^^^^^^^^^^^^^
+  文件“C:\Users\Ctrend.pk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\deepface\extendedmodels\Age.py”，第 61 行，位于加载模型
+    年龄模型=模型（输入=模型.输入，输出=基本模型输出）
+                             ^^^^^^^^^^^
+  文件“C:\Users\Ctrend.pk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\keras\src\ops\operation.py”，第 228 行，在输入中
+    返回 self._get_node_attribute_at_index(0, “input_tensors”, “input”)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^
+  文件“C:\Users\Ctrend.pk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\keras\src\ops\operation.py”，第 259 行，在 _get_node_attribute_at_index 中
+    引发值错误（
+ValueError：层equential_1从未被调用，因此没有定义的输入。
+
+Deepface版本：0.0.87
+张量流
+版本：2.16.1
+我认为它获取了年龄，但随后没有继续。我错过了什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78196623/the-layer-sequential-has-never-been-called-and-thus-has-no-defined-input</guid>
+      <pubDate>Wed, 20 Mar 2024 22:50:10 GMT</pubDate>
     </item>
     <item>
       <title>启动 ML 项目指南 [关闭]</title>
@@ -359,39 +511,87 @@ plt.savefig(“regression_test.png”)
       <pubDate>Tue, 19 Mar 2024 20:49:54 GMT</pubDate>
     </item>
     <item>
-      <title>MLJ：选择行和列进行评估训练</title>
-      <link>https://stackoverflow.com/questions/65346104/mlj-selecting-rows-and-columns-for-training-in-evaluate</link>
-      <description><![CDATA[我想实现一个也可以在 MLJ 中运行的内核岭回归。此外，我希望可以选择使用特征向量或预定义的内核矩阵，如 Python sklearn。
-当我运行这段代码时
-const MMI = MLJModelInterface
-MMI.@mlj_model 可变结构 KRRModel &lt;: MLJModelInterface.Deterministic
-        mu::Float64 = 1::(_ &gt; 0)
-        内核::字符串=“线性”
-结尾
-函数 MMI.fit(m::KRRModel,详细程度::Int,K,y)
-    K = MLJBase.矩阵(K)
-    拟合结果 = inv(K+m.mu*I)*y
-    缓存=无
-    报告=无
-    返回（拟合结果、缓存、报告）
-结尾
+      <title>使用 Tensorflow 的 Google Colab Bert 实例化错误</title>
+      <link>https://stackoverflow.com/questions/78176160/google-colab-bert-instantiation-error-using-tensorflow</link>
+      <description><![CDATA[我正在尝试在 Colab 上使用 Tensorflow 构建 Bert 模型。这段代码几周前就可以完美运行。现在，如果我尝试实例化模型，则会收到以下错误：
+初始化 TF 2.0 模型 TFBertModel 时未使用 PyTorch 模型的某些权重：[&#39;cls.predictions.transform.LayerNorm.bias&#39;, &#39;cls.predictions.transform.dense.weight&#39;, &#39;cls .predictions.transform.LayerNorm.weight&#39;、&#39;cls.predictions.bias&#39;、&#39;cls.seq_relationship.bias&#39;、&#39;cls.predictions.transform.dense.bias&#39;、&#39;cls.seq_relationship.weight&#39;]
+- 如果您从在其他任务或其他架构上训练的 PyTorch 模型初始化 TFBertModel（例如，从 BertForPreTraining 模型初始化 TFBertForSequenceClassification 模型），这是预期的。
+- 如果您从希望完全相同的 PyTorch 模型初始化 TFBertModel（例如，从 BertForSequenceClassification 模型初始化 TFBertForSequenceClassification 模型），则不会出现这种情况。
+TFBertModel 的所有权重都是从 PyTorch 模型初始化的。
+如果您的任务与检查点模型训练的任务类似，您就可以使用 TFBertModel 进行预测，而无需进一步训练。
+-------------------------------------------------- ------------------------
+TypeError Traceback（最近一次调用最后一次）
+&lt;ipython-input-14-b0e769ef7​​890&gt;在&lt;细胞系：7&gt;()
+      5 SC_mask_layer = 输入(shape=(max_seq_length,), dtype=tf.int32, name=“attention_mask”)
+      6 SC_bert_model = TFBertModel.from_pretrained(“bert-base-uncased”)
+----&gt; 7 SC_pooler_output = SC_bert_model(SC_input_layer, Attention_mask=SC_mask_layer)[1] # 第二个输出，che è il pooler_output
+      8
+      9 # 辍学层的Aggiungi
 
-   
-数 = 10
-K = 随机数 (N,N)
-K = K*K
-a = 随机数 (N)
-y = K*a + 0.2*randn(N)
-m = KRRModel()
-kregressor = 机器(m,K,y)
-cv = CV(; nfolds=6, shuffle=无, rng=无)
-评估！（kregressor，重采样=cv，测量=rms，详细程度=1）
+36帧
+/usr/local/lib/python3.10/dist-packages/tensorflow/python/framework/type_spec.py 在 type_spec_from_value(value) 中
+   1002 3，“无法将 %r 转换为张量：%s” % (类型(值).__name__, e))
+   1003
+-&gt;第1004章
+   第1005章 1005
+   1006
 
-evaluate! 函数在 K 行的不同子集上评估机器。根据表示定理，核岭回归的非零系数数量等于样本数量。因此，可以使用尺寸减小的矩阵 K[train_rows,train_rows] 代替 K[train_rows,:]。
-为了表示我正在使用内核矩阵，我设置了 m.kernel = &quot;&quot; 。当 m.kernel = &quot;&quot; 时，如何让 evaluate! 选择列和行以形成较小的矩阵？
-这是我第一次使用 MLJ，我希望进行尽可能少的修改。]]></description>
-      <guid>https://stackoverflow.com/questions/65346104/mlj-selecting-rows-and-columns-for-training-in-evaluate</guid>
-      <pubDate>Thu, 17 Dec 2020 18:08:42 GMT</pubDate>
+TypeError：调用层“嵌入”时遇到异常（类型 TFBertEmbeddings）。
+
+无法为名称构建 TypeSpec：“tf.debugging.assert_less_5/assert_less/Assert/Assert”
+op：“断言”
+输入：“tf.debugging.assert_less_5/assert_less/All”
+输入：“tf.debugging.assert_less_5/assert_less/Assert/Assert/data_0”
+输入：“tf.debugging.assert_less_5/assert_less/Assert/Assert/data_1”
+输入：“tf.debugging.assert_less_5/assert_less/Assert/Assert/data_2”
+输入：“占位符”
+输入：“tf.debugging.assert_less_5/assert_less/Assert/Assert/data_4”
+输入：“tf.debugging.assert_less_5/assert_less/y”
+属性{
+  键：“总结”
+  价值 {
+    我：3
+  }
+}
+属性{
+  键：“T”
+  价值 {
+    列表 {
+      类型：DT_STRING
+      类型：DT_STRING
+      类型：DT_STRING
+      类型：DT_INT32
+      类型：DT_STRING
+      类型：DT_INT32
+    }
+  }
+}
+ 不支持的类型。
+
+调用层“embeddings”接收的参数（类型 TFBertEmbeddings）：
+  • input_ids=
+  •position_ids=无
+  • token_type_ids=
+  • input_embeds=无
+  •过去的键值长度=0
+  • 训练=False
+
+模型的代码是：
+SC_input_layer = 输入(shape=(max_seq_length,), dtype=tf.int32, name=“input_ids”)
+SC_mask_layer = 输入(shape=(max_seq_length,), dtype=tf.int32, name=“attention_mask”)
+SC_bert_model = TFBertModel.from_pretrained(“bert-base-uncased”)
+SC_pooler_output = SC_bert_model（SC_input_layer，attention_mask = SC_mask_layer）[1]
+
+# Dropout 层的Aggiungi
+SC_dropout_layer = Dropout(dropout_rate)(SC_pooler_output)
+SC_output_layer = 密集（6，激活=&#39;sigmoid&#39;）（SC_dropout_layer）
+SC_model = 模型(输入=[SC_input_layer, SC_mask_layer], 输出=SC_output_layer)
+
+我发现安装tensorflow 2.10.0可以工作，但是使用Google Colab时我的CUDA版本有问题，并且使用tensorflow 2.10它无法识别GPU。
+该代码几周前就可以工作，有人有解决方案吗？
+编辑：Kaggle 上也出现同样的错误。]]></description>
+      <guid>https://stackoverflow.com/questions/78176160/google-colab-bert-instantiation-error-using-tensorflow</guid>
+      <pubDate>Sun, 17 Mar 2024 17:03:42 GMT</pubDate>
     </item>
     <item>
       <title>Pytorch 几何：张量大小存在问题</title>
@@ -466,33 +666,6 @@ def 进程（自身）：
 如果有人可以帮助我在任何类型的数据上创建图表并将其与 GCNConv 一起使用，我将不胜感激。]]></description>
       <guid>https://stackoverflow.com/questions/63610626/pytorch-geometric-having-issues-with-tensor-sizes</guid>
       <pubDate>Thu, 27 Aug 2020 06:52:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>MLP 回归器比 Kernel Ridge 回归最差</title>
-      <link>https://stackoverflow.com/questions/53005365/mlp-regressor-worst-than-kernel-ridge-regression</link>
-      <description><![CDATA[我正在研究回归问题。我有一个数据集，我在该数据集上完成了特征工程（估算缺失值、box cox 转换倾斜变量等）。
-我使用 cross_val_score 和 5 个数据集分割来训练和测试多个模型。首先，我尝试了 Kernel Ridge Regression、Lasso、Elastic Net、Gradient Boosting 等模型。然后我尝试了 scikit learn 的 MLPRegressor。
-然而，使用均方根误差，“简单”的结果要好得多。模型比 MLP 回归器（例如，Kernel Ridge 的平均得分为 0.1153，MLPRegressor (hidden_​​layer_sizes=(256,)*25) 的平均得分为 0.1461，这是我发现运行不同架构的最佳得分）。
-示例代码：
-KRR = KernelRidge(alpha=0.6, kernel=&#39;多项式&#39;, Degree=2, coef0=2.5)
-
-mlpreg = MLPRegressor(hidden_​​layer_sizes=(256,)*25,activation=&#39;relu&#39;,solver=&#39;adam&#39;,
-                      详细=0)
-
-以及我用于评分的函数：
-def rmsle_crossval(model, train: pd.DataFrame, y_train: List[float]):
-    kf = KFold(n_folds, shuffle=True,
-               random_state=42).get_n_splits(train.values)
-    rmse= np.sqrt(-cross_val_score(模型, train.values, y_train,
-                  评分=“neg_mean_squared_error”，cv = kf))
-    返回（均方根误差）
-
-即使我尝试使用单个隐藏层 1 和与 KRR 相同的参数的 MLPRegressor 以尽可能接近 KRR，我的得分仍为 0.4381。
-你知道为什么会有这样的差异吗？
-编辑：
-数据形状：(1460, 81)]]></description>
-      <guid>https://stackoverflow.com/questions/53005365/mlp-regressor-worst-than-kernel-ridge-regression</guid>
-      <pubDate>Fri, 26 Oct 2018 09:14:38 GMT</pubDate>
     </item>
     </channel>
 </rss>
