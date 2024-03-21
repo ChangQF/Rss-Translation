@@ -4,363 +4,285 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Thu, 21 Mar 2024 12:23:50 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 21 Mar 2024 15:14:20 GMT</lastBuildDate>
     <item>
-      <title>为什么不使用 $L^2$ 范数作为两个概率分布之间的距离（而不是 KL 散度等）</title>
-      <link>https://stats.stackexchange.com/questions/643149/why-not-use-the-l2-norm-as-the-distance-between-two-probability-distributions</link>
-      <description><![CDATA[所以我想知道为什么不直接使用：
-$$dist(p,q)=\bigg(\int_{x \in X} |p(x)-q(x)|^2\bigg)^ {1/2}$$ 而不是常用的 KL 散度（或其他）。
-与其他解决方案相比，它缺少什么？我想到的一个选择是，它不考虑感兴趣的概率分布中样本的“权重”（频率），但肯定可以对此进行调整以解决这一问题。那么，不想使用这个或它的加权改编的主要原因是什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643149/why-not-use-the-l2-norm-as-the-distance-between-two-probability-distributions</guid>
-      <pubDate>Thu, 21 Mar 2024 12:01:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>交互作用项与亚组分析</title>
-      <link>https://stats.stackexchange.com/questions/643147/interaction-term-vs-subgroup-analysis</link>
-      <description><![CDATA[我对交互项和子组分析之间的选择有疑问。
-假设我想研究按性别划分的教育与收入之间的关联。我可以用交互项拟合模型：收入=教育*性别
-或者，分别在男性和女性中拟合一个更简单的模型：收入=教育
-在这两项分析中，我对点估计（优势比）和 95% 置信区间感兴趣。下面是一个假设的例子。在此示例中，有关关联是否因性别而异的统计测试不是感兴趣的结果。两种分析产生了相同的结果。
-但是，我有一个模糊的印象，通常建议添加交互项而不是进行子组分析。
+      <title>当有两个以上的分类预测变量时，II 型与 III 型方差分析如何发挥作用？</title>
+      <link>https://stats.stackexchange.com/questions/643178/how-does-type-ii-vs-type-iii-anova-work-when-there-are-more-than-two-categorical</link>
+      <description><![CDATA[对于具有以下形式的两个分类因素的模型：
+X = A + B
+类型 I（在因子平衡时使用）按顺序计算模型中每一项的 SS，如下所示：
+然后SS(A)
+SS(B|A) = SS(A 和 B) - SS(A) 那么
+SS(AB|A,B) = SS(A,B,AB) – SS(A,B)
+类型 II（当因素不平衡并且没有显着交互作用时使用）：
+SS(A|B) 那么
+SS(B|A) 那么
+SS(AB|A,B) #计算每个主效应的SS时不考虑交互作用。
+类型 III（因素不平衡且交互作用显着时使用）：
+SS(A|B, AB) 那么
+SS(B|A, AB) 那么
+SS(AB|A,B)
+我的问题如下：
 
-如果这是真的，则不清楚此建议背后的原因，因为两种方法具有相同的结果。
-如果为 FALSE，是否意味着这两种方法在获取点估计和置信区间方面是相同的？
-
-如有任何意见，我们将不胜感激！
-库(dplyr)
-设置.种子(42)
-
-n &lt;- 1000
-性别 &lt;- 样本(c(“男”,“女”), n, 替换 = TRUE)
-教育 &lt;- 样本（c（“低”，“高”），n，替换= TRUE，概率= c（0.5，0.5））
-
-收入 &lt;- ifelse(教育 == “低”,
-                 样本(c(“低”,“高”), n, 替换 = TRUE, 概率 = c(0.75, 0.25)),
-                 样本(c(“低”,“高”), n, 替换 = TRUE, 概率 = c(0.25, 0.75)))
-
-数据 &lt;- data.frame(性别 = as.factor(性别)，教育 = 因素(教育，水平 = c(“低”，“高”))，收入 = 因素(收入，水平 = c(“ “低”、“高”）））
-摘要（数据）
-
-
-### 逻辑回归：总体 ###
-# 女性中
-model_overall &lt;- glm(收入 ~ 教育*性别, 数据 = 数据, 家庭 = “二项式”)
-round( exp( coef(model_overall)[“educationHigh”] ), 2 ) # 8.69
-round( exp( confint(model_overall)[“educationHigh”, ] ), 2 ) # 5.84-13.09
-
-# 男性中
-data$sex &lt;- relevel( data$sex, ref = &quot;Male&quot; )
-model_overall &lt;- glm(收入 ~ 教育*性别, 数据 = 数据, 家庭 = “二项式”)
-round( exp( coef(model_overall)[“educationHigh”] ), 2 ) # 6.97
-round( exp( confint(model_overall)[“educationHigh”, ] ), 2 ) # 4.73-10.40
-
-### 亚组分析###
-# 逻辑回归：女性亚组
-model_female &lt;- glm(收入 ~ 教育程度, data = filter(data, sex == “女性”), family = “二项式”)
-round( exp( coef(model_female)[“educationHigh”] ), 2 ) # 8.69
-round( exp( confint(model_female)[“educationHigh”, ] ), 2 ) # 5.84-13.09
-
-# 逻辑回归：男性亚组
-model_male &lt;- glm(收入 ~ 教育程度, data = filter(data, sex == “男性”), family = “二项式”)
-round( exp( coef(model_male)[“educationHigh”] ), 2 ) # 6.97
-round( exp( confint(model_male)[&quot;educationHigh&quot;, ] ), 2 ) # 4.73-10.40
+当有两个以上的分类预测变量（例如， A、B 和 C 或模型中的三向交互？
+当数据不平衡时，您会根据什么决定使用类型 II 而不是类型 III，例如如果三向交互作用显着（无论双向交互作用是否显着），您是否只使用 III 型方差分析？或者即使部分或全部双向交互作用显着但不是显着，您是否仍使用 III 型方差分析？三向互动？
+为了证明 III 类分析相对于具有两个或更多因素的 II 类分析的合理性，交互作用需要有多大程度的显着性。过去，我曾遇到过这样的情况：在双因素模型中，运行 II 型方差分析时交互作用显着，但运行 III 型方差分析时则交互作用不显着（反之亦然）。在这些情况下，哪种类型的方差分析（II 型或 III 型）更可取？
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/643147/interaction-term-vs-subgroup-analysis</guid>
-      <pubDate>Thu, 21 Mar 2024 11:24:18 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/643178/how-does-type-ii-vs-type-iii-anova-work-when-there-are-more-than-two-categorical</guid>
+      <pubDate>Thu, 21 Mar 2024 15:00:03 GMT</pubDate>
     </item>
     <item>
-      <title>包含森林图荟萃分析的中位数和平均值</title>
-      <link>https://stats.stackexchange.com/questions/643145/inclusion-of-median-and-mean-for-forest-plot-metaanalysis</link>
-      <description><![CDATA[我们可以用一些研究的中位数和另外一些研究的平均值制作一个森林图吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643145/inclusion-of-median-and-mean-for-forest-plot-metaanalysis</guid>
-      <pubDate>Thu, 21 Mar 2024 11:05:03 GMT</pubDate>
+      <title>我如何估计这个“先有鸡还是先有蛋”的两步回归</title>
+      <link>https://stats.stackexchange.com/questions/643176/how-do-i-estimate-this-chicken-and-egg-two-step-regression</link>
+      <description><![CDATA[假设我们知道$B_0, B_2, B_4, A_0, A_1, A_3, A_5$。基本上我们知道 $A$ 的奇数下标，$B$ 的偶数下标。我知道 $A_0$ 和 $B_0$。
+$B_{2i+2} - B_{2i} \sim \beta_1 ( A_{2i+1} - A_{2i} )$ 其中 $i \in N$。基本上在这一步中，我估计一个 $\beta_1$，我们希望最小化此回归的均方误差。因变量位于 $B$ 的偶数下标之间（因此因变量已知），自变量位于偶数和奇数之间$A$ 的下标。
+$A_{2i+3} - A_{2i+1} \sim \beta_2 ( B_{2i+2} - B_{2i+1} )$ 其中 $i \in N$。这里我估计了$\beta_2$，并且我还想最小化这个回归的均方误差。类似地，因变量位于 $A$ 的奇数下标之间（因此因变量已知），自变量位于奇数和甚至 $B$ 的下标。
+如上所述，我们知道 $A$ 的奇数下标，以及 $B$ 的偶数下标。我知道 $A_0$ 和 $B_0$。我们缺少一些价值观。我们设置
+$B_1 = B_0 + \beta_1 (A_1 - A_0)$,
+$A_2 = A_1 + \beta_2 (B_2 - B_1)$
+等等
+基本上这是一个先有鸡还是先有蛋的问题。我们不知道所有的 $A$ 和 $B$，但是我们知道有一个递归关系可以用某种方式将它们粘在一起。我想估计 $\beta_1$ 和 $\beta_2$ 以最小化两个回归的均方，但计算协变量都需要 $\beta_1$ 和 $\beta_2$ 。
+有没有办法以封闭的形式编写它，并插入一些现有的模型？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643176/how-do-i-estimate-this-chicken-and-egg-two-step-regression</guid>
+      <pubDate>Thu, 21 Mar 2024 14:53:01 GMT</pubDate>
     </item>
     <item>
-      <title>在模型之间，如何确定要删除哪些变量？</title>
-      <link>https://stats.stackexchange.com/questions/643143/between-models-how-do-i-determine-what-variables-to-drop</link>
-      <description><![CDATA[希望消除我的一些知识差距。
-假设给定一个数据集，我希望比较不同模型实现之间的测试 MSE。例如，在逻辑回归和 LDA 之间，我希望根据测试误差来比较这两种方法之间的性能。
-假设我想删除变量，有没有办法确定为这两个模型删除哪些变量？
-我知道每个预测变量都有与逻辑回归相关的 p 值。但是，如果我要根据逻辑回归中的重要性删除变量，那么使用未删除的任何变量来形成 LDA 模型是否有意义？
-任何弥合这些知识差距的帮助将不胜感激。谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/643143/between-models-how-do-i-determine-what-variables-to-drop</guid>
-      <pubDate>Thu, 21 Mar 2024 10:36:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>处理混合模型中反应时间数据的非正态性</title>
-      <link>https://stats.stackexchange.com/questions/643142/handling-non-normality-of-reaction-time-data-in-mixed-models</link>
-      <description><![CDATA[我正在使用 lme4 中的混合模型检查“相位”对反应时间 (RT) 数据的影响。
-但是，正如 RT 数据所常见的那样，残差是非正态的。
-这是第一个模型，它是线性混合模型方法：
-RT_lme&lt;- lmer(RT ~ Phase.ct + (Phase.ct|Pt_ID) + (Phase.ct|Image),
-数据 = Mooney_data，控制 = lmerControl（优化器 =“bobyqa”））
+      <title>MLE 方差估计量的置信区间（正态分布）</title>
+      <link>https://stats.stackexchange.com/questions/643173/confidence-interval-of-mle-variance-estimator-normal-distribution</link>
+      <description><![CDATA[我可以使用 Fisher 信息来构建 MLE 方差估计器的置信区间吗？
+Fisher 信息应为：
 
-摘要(RT_lme)
-
-固定效果：
-            估计标准。误差df t值Pr(&gt;|t|)
-(截距) 1.44591 0.04533 80.20875 31.897 &lt;2e-16 ***
-相 0.02967 0.01624 72.24639 1.827 0.0718 。
-
-图 1 绘图显示了非正态性问题。
-
-由于我意识到不建议转换 RT 数据，因此我遵循了 Lo &amp; 论文中使用的方法。安德鲁斯（2015）。请参阅此处：https://www.frontiersin.org /期刊/心理学/文章/10.3389/fpsyg.2015.01171/full#h8
-因此，我拟合了以下 2 个广义线性混合模型，它们使用不同的链接函数：
-1.
-RT_lme1&lt;- glmer(RT ~ Phase.ct + (Phase.ct|Pt_ID) + (Phase.ct|Image),
-数据 = Mooney_data,family=Gamma(link=invfn()),control=glmerControl(optimizer=“bobyqa”))
-
-摘要(RT_lme1)
-
-固定效果：
-            估计标准。误差t值Pr(&gt;|z|)
-(截距)-778.393 8.627 -90.225＜ 2e-16 ***
-相 22.547 8.098 2.784 0.00536 **
-
-
-
- RT_lme2&lt;- glmer(RT ~ Phase.ct + (1|Pt_ID),
-
-data = Mooney_data,family=inverse.gaussian(link=invfn()),control=glmerControl(optimizer=“bobyqa”))
-摘要（RT_lme2）
-固定效果：
-估计标准。误差t值Pr(&gt;|z|)
-(截距)-736.62 12.71 -57.953＜ 2e-16 ***
-相.ct 16.61 6.34 2.621 0.00877 **
-
-
-但是，这两个图仍然显示残差是非正态的（示例如下）。我对改变链接函数如何影响模型的了解有限。这是否会减少非正态性？如何选择最佳模型（我想使用 AIC 值，但担心图中的非正态性）？
-
-这是 RT 的直方图：
+估计参数的方差为：
+假设样本量足够大，我可以使用以下公式计算 95% CI 吗？
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/643142/handling-non-normality-of-reaction-time-data-in-mixed-models</guid>
-      <pubDate>Thu, 21 Mar 2024 10:36:16 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/643173/confidence-interval-of-mle-variance-estimator-normal-distribution</guid>
+      <pubDate>Thu, 21 Mar 2024 14:44:29 GMT</pubDate>
     </item>
     <item>
-      <title>为什么将决定系数定义为 1 - RSS/TSS？</title>
-      <link>https://stats.stackexchange.com/questions/643138/why-define-coefficient-of-determination-as-1-rss-tss</link>
-      <description><![CDATA[根据wiki，决定系数的定义为$1 - RSS/TSS$，其中RSS为残差平方和($\sum(y-\hat{y})^2$) 和 TSS 是平方和 ($\sum(y -\bar{y})^2$)，使用 $\hat{y}$ 模型预测和 $\bar{y}$ 样本均值。
-可以证明 $1 - RSS/TSS = ESS/TSS$，其中 ESS 是解释的平方和 ($\sum(\hat{y}-\bar{y})^2$)。需要指出的是，只有在某些情况下，例如带截距的简单线性回归（还有其他情况吗？），这个等式成立。
-右手边（ESS/TSS）显然是正数，但左手边大小不保证是正数。这就是为什么在某些情况下我们会看到负决定系数。然而，我在网上阅读的几乎所有来源都将决定系数定义为 $1 - RSS/TSS$。
-我的问题是，为什么不将决定系数定义为 $ESS/TSS$ 呢？
-这样它总是积极的。
-我的尝试。我猜想替代定义$ESS/TSS$的缺点是它可能大于1。 （正常定义 $1-RSS/TSS$ 的优点是它总是小于 1，因为它是 1 减去一些正数）。所以我计算
-$$
-TSS - ESS = \sum_i (y_i - \bar{y})^2 - \sum_i (\hat{y}_i - \bar{y})^2 \\
-= \sum_i (y_i^2 - 2\bar{y}(y_i - \hat{y}_i) - \hat{y}_i^2)。
-$$
-假设
-
-误差平均值为零（因此样本平均值与预测值的平均值相同）并且
-误差与预测值的相关性为零，
-那么我们有
-$$
-TSS - ESS = \sum_i ((y_i - \hat{y}_i)^2 + 2(\hat{y}_i - \bar{{y}})(y_i - \hat{y}_i))\\
-= RSS + C = RSS，
-$$
-其中项 $C$ 与相关性成正比 $Corr(\hat{y}, \epsilon)$，其中 $\epsilon_i = y_i - \hat{y}_i$。
-假设这两个假设成立，我们似乎总是有 $TSS = ESS + RSS$ 。那么，两个假设 1 和 2 如此强烈以至于它们常常不被满足从而使得 $ESS/TSS &gt; $ESS/TSS &gt; 这是否正确？ 1 美元？？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/643138/why-define-coefficient-of-determination-as-1-rss-tss</guid>
-      <pubDate>Thu, 21 Mar 2024 09:54:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>寻找激活阈值</title>
-      <link>https://stats.stackexchange.com/questions/643132/finding-threshold-of-activation</link>
-      <description><![CDATA[亲爱的交叉验证社区，
-我正在研究一系列二元测量$y$（0和1），以及一个环境变量$ x$（温度）。我认为存在一个类似于“开关温度”的 $\bar x$ 。
-但我不知道如何对这种行为进行建模来推断 $\bar x$。
-$$
-y \sim 0; x &lt; \bar x
-$$
-$$
-y \sim 1; x \geq \bar x
-$$
-也许是逻辑回归？我想在概率贝叶斯框架中进行操作并使用 Stan 进行编码。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643132/finding-threshold-of-activation</guid>
-      <pubDate>Thu, 21 Mar 2024 08:26:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 McNemar 测试来比较二元分类器</title>
-      <link>https://stats.stackexchange.com/questions/643131/using-mcnemar-s-test-to-compare-binary-classifiers</link>
-      <description><![CDATA[我正在评估多个 ML 模型，这些模型使用相同的训练-验证-测试分割在同一数据集上执行相同的二元分类任务。我现在正在比较这些模型，由于分割是相同的，我的研究建议我需要使用配对测试，例如麦克尼马尔测试。现在，如果我正确理解了它，则此测试将着眼于模型如何对测试集中的每个单独条目进行分类，创建一个矩阵，如下所示：
-
-&lt;标题&gt;
-
-
-是
-否
-
-
-&lt;正文&gt;
-
-是
-是/是
-是/否
-
-
-否
-否/是
-否/否
-
-
-
-但是，这不是没有考虑预测是否实际上正确，只是模型预测的结果吗？或者我关于测试在这种情况下如何发挥作用的基本假设是否错误？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643131/using-mcnemar-s-test-to-compare-binary-classifiers</guid>
-      <pubDate>Thu, 21 Mar 2024 08:24:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于通过特征重要性进行特征选择过程的问题</title>
-      <link>https://stats.stackexchange.com/questions/643130/questions-about-the-process-of-feature-selection-through-feature-importance</link>
-      <description><![CDATA[‘形状特征重要性’是通过xgboost得到的，特征重要性最低的变量从50个变量中一一剔除，直到只剩下1个变量。
-根据 AUC 监控性能的结果，我们可以看到性能从剩余 5 个变量开始持续下降。并且当进行10次交叉验证时，与训练集的auc值的差距也大幅缩小。
-因此，当使用 lgbm 和 randomforest 使用相同的方法时，性能从剩余 5 个变量开始持续下降。
-我想知道这意味着什么。可以将其解释为还剩下 5 个非常重要的变量吗？
-如果这五个变量如此重要，以至于当移除这五个变量时模型的auc值逐渐下降，这是否意味着仍然剩下重要的变量？或者是由于与数据数量相比特征数量较少？
-数据数量为10,000。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643130/questions-about-the-process-of-feature-selection-through-feature-importance</guid>
-      <pubDate>Thu, 21 Mar 2024 08:15:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>计算分类预测变量的非标准化贝塔值</title>
-      <link>https://stats.stackexchange.com/questions/643129/calculating-unstandardised-betas-for-categorical-predictors</link>
-      <description><![CDATA[我正在尝试计算线性回归模型中分类变量的非标准化 beta
-y ~ c + βx1
-其中 y（在原始尺度上）的平均值为 1000 毫秒，标准差为 80 毫秒。
-x1 是分类的，具有 0 或 1 两个值。
-标准化贝塔值为 0.14
-有没有办法可以按原始比例导出贝塔值？有我会使用的公式吗？
-我可以找到一些对连续协变量的 beta 转换公式的参考，但不能找到分类协变量的 beta 转换公式。
-谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/643129/calculating-unstandardised-betas-for-categorical-predictors</guid>
-      <pubDate>Thu, 21 Mar 2024 07:56:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>什么是适合 Stack Exchange 上累积声誉的好模型？</title>
-      <link>https://stats.stackexchange.com/questions/643125/what-would-be-a-good-model-to-fit-to-cumulative-reputation-on-stack-exchange</link>
-      <description><![CDATA[我正在尝试对我在一个 Stack Exchange 站点上累积声誉随时间的分布进行建模（也就是说，每当声誉发生变化（主要是通过赞成票或反对票）时，每个数据点都是我的声誉的总和）。
-这是数据的示例（日期是 Unix 时间，即自 1970-01-01 00:00:00 UTC 以来的秒数）：
-reputation_history_typereputation_changecreation_datecumulative_reputation
-           post_upvoted 10 1689366017 10
-           post_upvoted 10 1689376446 20
-           post_upvoted 10 1689504809 30
-           post_upvoted 10 1690366268 40
-           post_upvoted 10 1690472012 50
-
-我对creation_date和累积声誉之间的关系感兴趣。这里给出的其他列只是为了帮助您更好地理解数据类型。
-我因使用广义线性模型而受到批评，因为变量不是独立的。
-此类数据的拟合模型是什么？或者如何找到合适的？
-我正在使用 R。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643125/what-would-be-a-good-model-to-fit-to-cumulative-reputation-on-stack-exchange</guid>
-      <pubDate>Thu, 21 Mar 2024 06:25:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>用矩阵/矢量符号描述单方程误差校正模型？</title>
-      <link>https://stats.stackexchange.com/questions/643116/depicting-a-single-equation-error-correction-model-in-matrix-vector-notation</link>
-      <description><![CDATA[我试图用矩阵/向量表示法表达以下单方程误差校正模型。原模型为：
-$
-\Delta Y = y_{t-1} \delta_0 + \sum_{i=1}^{k}z_{i,t-1} \delta_k + \sum_{i=1}^{p} \Delta z_{ i,t-i} \kappa + t \tau + \epsilon $
-然后采用矩阵表示法：
-$
-\Delta Y = z_{t-1} \delta + W \kappa + t \tau + \epsilon = V \gamma + D \theta + \epsilon
-$
-其中gamma描述了共同的长期趋势和对该趋势的调整速度的线性组合。 kappa 描述了短期动态。
-与：
-$
-\Delta Y$ 为 $ (n \times 1),z_0 = y_{t-1} \
-z_{t-1} = (-z_0; z_{t-1} \dots z_{k;t-1})$ 是 $(1 \times ( k+1)=K), \
-\delta $ 是 $ \left(((k+1)=K) \times 1\right), \
-W = (\Delta z_t, \Delta z_{t-1}, \dots, \Delta z_{t-p}), $ 其中 $ \Delta z_t $ 是 $ (n \times 1), $ 因此 $ W $ 是 $(n \times K(p+1)), $ for t=1, $\dots, n, \
-V = (z_{t-1}; W) $ 为 $ (n \times (K+K(p+1))), \
-\gamma = (\delta, \kappa) $ 是 $ (K+K(p \times 1) \times 1), \
-D = (n \times b) \ \text{包括确定性外生变量}, \
-θ = (1 × b), \
-\epsilon$ 是 $ (n \times 1)。
-$
-这在某种程度上是正确的吗？关于如何改进它有什么建议吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643116/depicting-a-single-equation-error-correction-model-in-matrix-vector-notation</guid>
-      <pubDate>Wed, 20 Mar 2024 23:02:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>广义混合效应逻辑回归模型和奇怪的 p 值（可能是数据分离）？</title>
-      <link>https://stats.stackexchange.com/questions/643106/generalized-mixed-effect-logistic-regression-model-and-strange-p-values-maybe-s</link>
-      <description><![CDATA[我正在 RStudio 中运行混合效应逻辑回归模型（lme4 包中的函数 glmer），其中两个随机截距和三个不同的预测变量作为固定效应。所有独立变量都是分类变量。然而，虽然模型没有表现出任何收敛问题，但还是有一些奇怪的地方。
-分类预测变量之一（年龄）具有三个不同的层（7、8、20）。当这个分类预测变量的水平为 20 时，因变量的所有值都是 1。我比较了对比，虽然 7 和 8 之间有显着差异，但 7 和 20、8 和 20 和 7 之间没有差异+8 vs 20。这听起来很奇怪，因为当 Age=7 时，以及当 Ahe=8 时，都有 0 和 1 输出（由于其他预测变量）。因此，7 和 20 以及 8 和 20 或 7+8 与 20 之间的差异应该比 7 与 8 之间的差异更大。是否有一个命令可以添加到我的模型中来解决该问题？
-我只是使用优化器control = glmerControl(optimizer = &quot;bobyqa&quot;)。我认为这是一种近乎完美的数据分离情况，因为当其中一个预测变量假设特定水平时，因变量始终为 1。
-有哪些可能的解决方案？我读过有关 Firth 惩罚的内容，但我不确定它是否可以应用于混合模型。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643106/generalized-mixed-effect-logistic-regression-model-and-strange-p-values-maybe-s</guid>
-      <pubDate>Wed, 20 Mar 2024 17:37:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>硬币翻转游戏：HH 与 HT 的一系列翻转</title>
-      <link>https://stats.stackexchange.com/questions/643092/coin-flip-game-hh-vs-ht-in-a-sequence-of-flips</link>
-      <description><![CDATA[一个涉及翻转公平的有趣思想实验正在X/Twitter进行：
+      <title>一组可能结果（不是事件）的示例</title>
+      <link>https://stats.stackexchange.com/questions/643172/example-of-a-set-of-possible-outcomes-which-is-not-an-event</link>
+      <description><![CDATA[在此链接的第6张幻灯片上，我发现了以下几行：
 &lt;块引用&gt;
-将一枚均匀的硬币抛掷 100 次，得到一系列正面 (H) 和反面的序列
-（T）。对于翻转序列中的每个 HH，Alice 都会得到一分；为了
-每个 HT，Bob 都会这样做，所以例如对于序列 THHHT Alice 得到 2 分
-鲍勃得 1 分。谁最有可能获胜？
+并非每组可能的结果都被称为事件。相反，我们要求事件集合是一个 $\sigma$-algebra。
 
-答案是鲍勃更有可能获胜，这似乎违反直觉。我当然可以对问题进行暴力破解，以证明“鲍勃”是正确的答案——它似乎确实与鲍勃的方差比爱丽丝更低有关。但我很难理解为什么差异会有所不同。
-库(dplyr)
+但是，我不知道在这里使用 $\sigma$ 代数子集背后的动机是什么，以及为什么不是每组可能的结果都被称为事件。事实上，我想不出任何实验中一组可能的结果不是一个事件。例如，如果我们掷六面骰子，则样本空间（或结果空间，如果您愿意）为 $A=\{1, 2, 3, 4, 5, 6 \}$ 以及通常 $A$ 的任何子集都是一个事件。换句话说，$\mathcal{P}(A)$ 的任何元素都是一个事件。
+如果相反，我将事件空间定义为 $\{\varnothing, \{1, 2\}, \{3, 4, 5, 6\}, \ {1, 2, 3, 4, 5, 6\} \}$，那么这是 $\sigma$ 上的代数子集class=&quot;math-container&quot;&gt;$A$ 但我不确定这样的事件空间是否有效，因为 $A$ 的一些子集，对于例如 $\{1, 3\}$ 没有包含在内，没有特殊原因。
+那么有没有一组可能结果不是事件的例子？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643172/example-of-a-set-of-possible-outcomes-which-is-not-an-event</guid>
+      <pubDate>Thu, 21 Mar 2024 14:38:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>对每个类别进行单独异常值检测的二元分类：可行性和方法？</title>
+      <link>https://stats.stackexchange.com/questions/643171/binary-classification-with-separate-outlier-detection-for-each-class-feasibilit</link>
+      <description><![CDATA[我目前正在研究一个二元分类问题，其中有两个不同的类。然而，我在数据集中遇到了一个挑战，即每个类中异常值的存在方式不同。意思是，我的目标是为每个类别单独执行异常值检测，以寻求优化分类模型的性能。我想知道是否有已建立的方法或已知技术来解决这种情况，其中对每个类单独应用异常值检测。
+有论文吗？ （我没有找到）。
+感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/643171/binary-classification-with-separate-outlier-detection-for-each-class-feasibilit</guid>
+      <pubDate>Thu, 21 Mar 2024 14:30:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>MCMC Metropolis 在单纯形上的采样</title>
+      <link>https://stats.stackexchange.com/questions/643169/mcmc-metropolis-samplings-on-a-simplex</link>
+      <description><![CDATA[我是 MCMC 方法的自学新手。我想使用 Metropolis 采样器对先验于单纯形的参数进行 MCMC 采样（即非负且总和为 1）。起初，我尝试使用正常的提案，但我意识到这是非常低效的。然后我尝试使用狄利克雷作为我的建议。
+def log_likelihood(E, a, y, sigma=0.1):
+    n = 长度（y）
+    mu = E.dot(a)
+    log_likelihood = -(n/2)*np.log(2*np.pi*sigma**2) - (1/(2*sigma**2)) * np.sum((y - mu)**2 ）
+    返回对数似然
 
-sim.flip = 函数(X){
-s2 = 样本(x = c(0,1),大小 = X,替换 = T) %&gt;% as.character() %&gt;% as.matrix()
+def mh(E, 初始丰度, y, iter=10**5):
+    Sample_0 = np.array(初始丰度)
+    样本列表=[]
+    对于范围内的 n（iter）：
+        后验_0 = log_likelihood(E, 样本_0, y)
+        样本_1 = np.random.dirichlet([1,1,1])
+        后验_1 = log_likelihood(E, 样本_1, y)
+        如果后验_1&gt;后验_0：
+            样本_0 = 样本_1
+            接受+=1
+        别的：
+            如果 np.random.rand() &lt; np.exp(posterior_1-posterior_0):
+                样本_0 = 样本_1
+                接受+=1
+    返回 np.array(sample_list)
 
-s3 = s2 %&gt;% 矩阵(ncol = 2,byrow = T)
-s4 = s2[-c(1,X)] %&gt;% 矩阵(ncol = 2,byrow = T)
+我的问题是：
 
-s5=应用(s3,1,函数(X){粘贴(X,崩溃=“”,sep=“”)})
-s6=应用(s4,1,函数(X){粘贴(X,崩溃=“”,sep=“”)})
+这是一种有效的方法吗？或者我可以探索更好的解决方案？
+当我的分布分布在单纯形上的一小部分区域时，效率仍然很低。是否可以将 Dirichlet 提案指定为自适应（相当于使用最后一个样本作为正常提案中的平均值）
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643169/mcmc-metropolis-samplings-on-a-simplex</guid>
+      <pubDate>Thu, 21 Mar 2024 14:23:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>LMM 和 RM-ANOVA 的差异。哪一个更可取？</title>
+      <link>https://stats.stackexchange.com/questions/643167/lmm-and-rm-anova-differences-which-one-is-preferable</link>
+      <description><![CDATA[我进行了一个四阶段实验，其中提取了两组受试者的数据
+根据结果​​变量 Dur 的状态计算每个时间点。所以，这个变量基本上可以分解为四种状态。我想知道的是，两组每个州的因变量值是否不同。
+原始数据如下表所示：
 
-A = 长度(grep(x = s5,模式 = “00”) )+
-长度（grep（x = s6，模式=“00”））
+然后，我根据实验的阶段将数据子集到四个数据帧中，并对单阶段执行线性混合模型，如下所示：
+1_data &lt;- 子集(df2, 相位==“1”)
+2_data &lt;- 子集(df2, 相位==“2”)
+3_data &lt;- 子集(df2, 相位==“3”)
+4_data &lt;- 子集(df2, 相位==“3”)
 
-B = 长度(grep(x = s5,模式 = “01”))+
-长度（grep（x = s6，模式=“01”））
+模型 &lt;- lmer(Dur ~ 1 + Group* state + (1|id), data = 1_data )
+模型 &lt;- lmer(Dur ~ 1 + Group* state + (1|id), data = 2_data )
+模型 &lt;- lmer(Dur ~ 1 + Group* state + (1|id), data = 3_data )
+模型 &lt;- lmer(Dur ~ 1 + Group* state + (1|id), data = 4_data )
 
-返回(数据.frame(A=A,B=B))
+随后，我查看了单个对比，将它们全部绑定在一张表中，并应用 FDR 和 Bonferroni 校正进行多重比较。
+但是，该模型向我发出以下警告：
+边界（奇异）拟合：请参阅 help(&#39;isSingular&#39;)
+我读过其他相关答案，这些答案说发生这种情况是因为随机效应规范太复杂。无论如何，我无法进一步简化模型。
+所以，我的想法是进行 RM-ANOVA，然后通过不配对 t 检验进行事后检验。
+&lt;前&gt;&lt;代码&gt;&gt; res.aov &lt;- anova_test（数据=基线_数据，dv = dur，wid = id，之间=组，内部=状态）
+&gt;获取方差表（res.aov）
+方差分析表（III 类测试）
+
+              效果 DFn DFd F p p&lt;.05 ges
+1组 1.00 40.00 0.130 0.720 0.000123
+2状态 2.87 114.97 5.617 0.001 * 0.119000
+3 主题：状态 2.87 114.97 2.956 0.037 * 0.066000
+
+这样会更好吗？或者，在这种情况下，与 LMM 是一样的吗？正如我已经用 res.aov 面对 anova(model) 的结果一样，它们非常相似，但并不相同。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643167/lmm-and-rm-anova-differences-which-one-is-preferable</guid>
+      <pubDate>Thu, 21 Mar 2024 14:15:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>当 $f(x,y) = \frac{x}{3}e^{-xy}$ 时求 $E[Y]$</title>
+      <link>https://stats.stackexchange.com/questions/643165/find-ey-when-fx-y-fracx3e-xy</link>
+      <description><![CDATA[说实话，我对这个问题总体来说并没有什么问题，但在计算方面。让我解释。
+当 $f(x,y) = \frac{x}{3 时，我们需要找到 $E[Y]$ }e^{-xy}$、$1 和 $y&gt;0$ 。
+因此，首先我通过在 $x$&lt; 的整个域上积分联合 pdf 来计算 $y$ 的边际 pdf /span&gt;，并正常计算$E[Y]$。然而，在计算过程中，在某个时刻我需要计算积分 $\int_{0}^{\infty} \frac{e^{-4y}}{y} \ dy$。
+我不知道如何求解这个积分。以前在其他问题中也遇到过这种积分，不知道怎么解决。在互联网上找到的解决方案超出了我的教学大纲的范围，所以我知道我正在做的事情是错误的，并且有一种方法可以避免这种情况。
+那么，有没有其他方法可以解决这个总和，这样我就不会遇到这个积分，或者即使遇到了，我该如何解决呢？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643165/find-ey-when-fx-y-fracx3e-xy</guid>
+      <pubDate>Thu, 21 Mar 2024 14:07:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Lasso 回归选择的过滤数据集进行偏最小二乘分析是否正确？</title>
+      <link>https://stats.stackexchange.com/questions/643163/is-it-correct-to-use-a-filtered-dataset-selected-by-lasso-regression-for-a-parti</link>
+      <description><![CDATA[我正在执行 Lasso 回归来进行特征选择，在此过程之后，我将数据集减少到 7 个选定的特征。
+我的以下想法是使用偏最小二乘判别分析 (PLS)，但首先我想了解对于 PLS，我是否需要使用 Lasso 所选的特征来过滤完整的数据集。
+例如，一些遵循这种方法来减少变量数量并选择几个变量的论文是多变量分析部分 或统计部分。
+我知道在这两种情况下他们都会执行 LASSO-PLSDA，并且我的问题与 PLS 相关，但是，我认为在深入研究 PLS 的变体之前这是一个很好的开始方式。
+我对这种分析很陌生，因此在得出任何结论之前，我正在阅读以了解每一步。
+执行特征选择任务的正确工作流程是什么？
+我执行此任务的方式正确吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643163/is-it-correct-to-use-a-filtered-dataset-selected-by-lasso-regression-for-a-parti</guid>
+      <pubDate>Thu, 21 Mar 2024 13:47:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 平方和调整 R 平方的 p 值是一回事吗？</title>
+      <link>https://stats.stackexchange.com/questions/643162/is-p-value-of-r-squared-and-adjusted-r-squared-a-thing</link>
+      <description><![CDATA[我目前正在阅读一篇论文，该论文利用多元回归并报告调整后的 $R^2$ 和 p 值，我想知道什么这个 p 值指的是。您可以计算调整后的 $R^2$ 的 p 值吗？它单独报告每个外生变量的 t 统计量的 p 值，因此它不能是 t 统计量。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643162/is-p-value-of-r-squared-and-adjusted-r-squared-a-thing</guid>
+      <pubDate>Thu, 21 Mar 2024 13:32:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>残差中的聚类与拟合诊断图</title>
+      <link>https://stats.stackexchange.com/questions/643161/clusters-in-residuals-v-fitted-diagnostic-plot</link>
+      <description><![CDATA[我在 R 中拟合一个线性模型，其中包含一个（未转换的）响应变量和两个自变量：其中一个是连续变量，另一个是数值变量，但被视为具有四个离散水平的序数变量。当我运行诊断图时，它会得到这些：
+par(mfrow=c(2,2))
+情节（完整模型_修订版）
+
+
+plot(密度(fullmodel_revised[[&#39;residuals&#39;]]))
+hist(数据集$depvariable)
+
+
+
+我知道我的 Q-Q 图表明我的分布有相当轻的尾部。然而，我对残差 v 拟合图中的聚类感到困惑 - 我怀疑这是因为我的协变量之一是具有四个箱的序数变量，但被视为连续变量。否则这些点不会表现出任何图案。想知道这在拟合模型及其预测能力方面是否存在问题？欢迎任何建议，谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643161/clusters-in-residuals-v-fitted-diagnostic-plot</guid>
+      <pubDate>Thu, 21 Mar 2024 13:31:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>接近范围边缘的离散极限值的平均误差线</title>
+      <link>https://stats.stackexchange.com/questions/643159/error-bars-on-average-for-discrete-limited-values-close-to-edge-of-range</link>
+      <description><![CDATA[假设我有只能落入有限范围的离散数据 - 例如，对产品进行评分从 1 到 10。
+我将如何将误差线分配给数据的平均值？
+继续以 1-10 分的分数为例，假设平均值为 1.3，但分数较高的数据中存在一些异常值，因此使用 RMS 之类的内容会让我得出“平均值为 1.3 +” - 0.7”。该范围的下限没有多大意义，因为可能的离散值仅限于 1 --&gt; 2。 0.6 不是有效分数。
+另一方面，如果分布中超过 50% 的条目位于单个 bin（示例中得分为 1 的 bin）中，那么通过计算四分位数范围并尝试计算也不会走得太远。用它来得出误差线的范围。
+我认为可能有一种方法可以将泊松误差分配给每个箱并将这些误差传播到平均值的计算中，但现在我阅读了有关该主题的博客文章（https://www.science20.com/quantum_diaries_survivor/those_deceiving_error_bars-85735），这或多或少让我相信，没有“底层”模型”基于我可以做到这一点（即不知道先验平均分数预计是多少），这也不是要走的路。
+我猜想误差线应该以某种方式不对称，在“极限侧”的有效值范围的边缘结束，但是在这种情况下如何最好地计算误差的大小？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643159/error-bars-on-average-for-discrete-limited-values-close-to-edge-of-range</guid>
+      <pubDate>Thu, 21 Mar 2024 13:25:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>预期标准误差取决于回归中的基本分布</title>
+      <link>https://stats.stackexchange.com/questions/643158/expected-standard-errors-depend-on-the-underlying-distribution-in-regression</link>
+      <description><![CDATA[我正在研究预测变量 ($x$) 的分布对其回归标准误差的影响。因此，我编写了一个小模拟来查看标准错误的行为。我使用不同的分布（正态分布、t 分布、均匀分布和对数正态分布）作为回归模型中的预测变量，并查看不同（小）样本量下标准误差的预期值。我确保它们的均值为 0，方差为 1，以使它们更具可比性。
+set.seed(42)
+N &lt;-c(5:25)
+nreps &lt;- 10000
+RES &lt;- 数字()
+贝塔 &lt;- .3
+
+for(i in 1:length(N)){
+  n &lt;- N[i]
+  输出 &lt;- 矩阵(0, nreps, 4)
+  for(k in 1:nreps){
+    x.norm &lt;- rnorm(n)
+    x.t &lt;- rt(n, df = 10)/sqrt(10/(10-2))
+    x.unif &lt;- runif(n, -sqrt(3), sqrt(3))
+    x.lnorm &lt;- rlnorm(n, -log(2)/2, sqrt(log(2)))-1
+    
+    e &lt;- rnorm(n) * sqrt(1-(beta^2))
+    
+    y.norm &lt;- beta * x.norm + e
+    y.t &lt;- beta * x.t + e
+    y.unif &lt;- beta * x.unif + e
+    y.lnorm &lt;- beta * x.lnorm + e
+    
+    out[k,] &lt;- c(summary(lm(y.norm ~ x.norm))$coef[2,2],
+                 摘要(lm(y.t ~ x.t))$coef[2,2],
+                 摘要(lm(y.unif ~ x.unif))$coef[2,2],
+                 摘要(lm(y.lnorm ~ x.lnorm))$coef[2,2])
+  }
+  RES &lt;- rbind(RES,
+               数据.frame(N = n,
+                          dist = c(“norm”,“t”,“unif”,“lnorm”),
+                          SE = colMeans(out)))
 }
 
-设置.种子(12345)
-sims = sapply(c(1:10000),function(X){sim.flip(X=100)}) %&gt;% unlist() %&gt;% 矩阵(ncol = 2,byrow = T) %&gt;; % as.data.frame()
-colnames(sims) = c(“爱丽丝”,“鲍勃”)
+# 图
+库（ggplot2）
+图书馆（dplyr）
 
-sims$winner = ifelse(sims$Alice &gt; sims$Bob,yes = &quot;Alice&quot;,&quot;Bob&quot;)
-sims$获胜者[sims$Alice == sims$Bob] = “平局”
+RES%&gt;%
+  ggplot(映射 = aes(x = N, y = SE, 颜色 = dist)) +
+  几何点（）+
+  几何线（）
 
-表（模拟$获胜者）
+这是结果图。
 
-爱丽丝·鲍勃·蒂
- 4626 4791 583
-
-# 期望值相同
-平均值（sims$Alice）
-[1]24.7837
-意思是（sims$鲍勃）
-[1]24.7572
-
-# 方差不同
-var(sims$Alice)
-[1] 30.36575
-var(sims$鲍勃)
-[1]6.229471
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/643092/coin-flip-game-hh-vs-ht-in-a-sequence-of-flips</guid>
-      <pubDate>Wed, 20 Mar 2024 17:15:24 GMT</pubDate>
+所以问题是：这些差异从何而来？为什么标准误差收敛不同？为什么某些（lnorm）的标准误差高于其他（unif）？它们是一种计算并预先知道哪个应该如何根据底层分布收敛的方法吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643158/expected-standard-errors-depend-on-the-underlying-distribution-in-regression</guid>
+      <pubDate>Thu, 21 Mar 2024 13:24:35 GMT</pubDate>
     </item>
     <item>
-      <title>在通过回归检验多个假设时，为什么我们使用 F 分布而不是卡方分布？</title>
-      <link>https://stats.stackexchange.com/questions/643089/why-do-we-use-an-f-distribution-instead-of-just-chi-squared-when-testing-multipl</link>
-      <description><![CDATA[使用普通最小二乘法 (OLS) 估计多重回归后，多变量联合显着性的经典检验是使用受限和非受限回归运行 F 检验：
-$$F = \frac{(SSR_r - SSR_{ur})/q}{SSR_{ur}/(n-k-1)} $$&lt; /p&gt;
-（其中 $SSR$ 代表残差平方和，$q$ 是限制，$k$ 是无限制回归中斜率项的数量。Wooldridge 表示法。）
-此测试的信息实际上来自分子，它描述了我们感兴趣的变量正在解释多少变化。
-该分子按 chi-sq 分布。
-为什么不使用卡方分布运行此测试并完全忽略分母？这不是有效的吗？
-如果它是有效的，为什么我们要加上分母来获得 F 分布？这与更大的图景有何关系？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643089/why-do-we-use-an-f-distribution-instead-of-just-chi-squared-when-testing-multipl</guid>
-      <pubDate>Wed, 20 Mar 2024 16:58:56 GMT</pubDate>
+      <title>emmeans 之间的差异可以通过似然比检验来检验吗？</title>
+      <link>https://stats.stackexchange.com/questions/643157/can-differences-between-emmeans-be-tested-with-likelihood-ratio-tests</link>
+      <description><![CDATA[假设（虚构的例子）我们有一个依赖“快乐”的逻辑模型。 (0/1)，以及一个因素“年龄”。 （“年轻”、“中年”、“年老”）作为自变量：
+$logit = b_0 + b_1middle + b_2old$
+对于类别“年轻”，样本中的所有案例都感到快乐，因此每个年轻人的快乐=1（完全分离）。不幸的是，中老年人并不幸福。如果使用似然比检验进行测试，则 regr。对于中老年人的效果，$b_1$和$b_2$都是“高度”的。重要的。 “glm”是指R 中的函数使用 Wald 测试，这对于 $b_1$ 和 $b_2$ 产生非常不显着的结果，因为到“完全”快乐青年类别。使用“Anova()”来自包“car”可以进行 R 似然比检验，并产生非常显着的结果。
+现在假设我还有一个预测变量“性别”在模型中并且想使用“emmeans”获取不同年龄段的 EMM？据我所知，包“emmeans”是在 R 中仅使用 Wald 测试。有没有办法通过 LR 测试来测试 EMM（之间的差异）？感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/643157/can-differences-between-emmeans-be-tested-with-likelihood-ratio-tests</guid>
+      <pubDate>Thu, 21 Mar 2024 13:22:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>$Z_i|\sum_i\beta_iZ_i$ 的条件方差</title>
+      <link>https://stats.stackexchange.com/questions/643156/conditional-variance-of-z-i-sum-i-beta-iz-i</link>
+      <description><![CDATA[假设我有 $K$ i.i.d.标准正态随机变量 $Z_1,...,Z_K$。因此，我知道 $V[Z_i] = 1$ 和 $E[Z_i] = 0$对于所有 $i\in K$。我面临着计算以下条件方差：
+$$ V\left[Z_i| \sum_i\beta_iZ_i\right] \quad\; \text{其中} \quad\; \sum_i\beta_i^2 = 1$$
+其中 $\beta_i &gt;0$ 只是一个非空参数。我可以证明：
+$$ V\left[Z_i| \sum_i\beta_iZ_i\right] = V[Z_i] = 1$$
+任何帮助或建议将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643156/conditional-variance-of-z-i-sum-i-beta-iz-i</guid>
+      <pubDate>Thu, 21 Mar 2024 13:20:31 GMT</pubDate>
     </item>
     </channel>
 </rss>
