@@ -4,9 +4,146 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 22 Mar 2024 09:15:11 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 22 Mar 2024 12:24:05 GMT</lastBuildDate>
     <item>
-      <title>使用 Minkowski 距离查找人脸识别的决策阈值</title>
+      <title>如何使用CapsNet进行回归？</title>
+      <link>https://stackoverflow.com/questions/78206055/how-to-use-capsnet-for-regression</link>
+      <description><![CDATA[我正在尝试训练用于回归任务的 CapsNet 模型。我目前用于分类的代码如下。将激活函数更改为线性是否会采用回归代码，或者我还应该修改自定义胶囊层吗？
+input_shape= (28, 28, 1)
+n_class = len(np.unique(np.argmax(y_train, 1)))
+路线 = 3
+
+x = 层.Input(shape=input_shape)
+
+conv1=layers.Conv2D(filters=256,kernel_size=9,strides=1,padding=&#39;valid&#39;,activation=&#39;relu&#39;,name=&#39;conv1&#39;)(x)
+PrimaryCaps = PrimaryCap(conv1, dim_capsule=8, n_channels=32, kernel_size=9, strides=2, padding=&#39;valid&#39;)
+digitalcaps = CapsuleLayer(num_capsule=n_class, dim_capsule=16, 路由=路由,
+                            名称=&#39;digitcaps&#39;）（primarycaps）
+out_caps = 长度(name=&#39;capsnet&#39;)(digitcaps)
+
+# 解码器
+y = 图层. 输入(形状=(n_class,))
+masked_by_y = Mask()([digitcaps, y])
+masked = Mask()(数字大写字母)
+
+# 训练和预测中的共享解码器模型
+解码器 = models.Sequential(name=&#39;解码器&#39;)
+解码器.add（layers.Dense（512，激活=&#39;relu&#39;，input_dim = 16 * n_class））
+解码器.add（layers.Dense（1024，激活=&#39;relu&#39;））
+解码器.add（layers.Dense（np.prod（input_shape），激活=&#39;sigmoid&#39;））
+解码器.add(layers.Reshape(target_shape=input_shape, name=&#39;out_recon&#39;))
+
+model = models.Model([x, y], [out_caps, 解码器(masked_by_y)])
+#model = models.Model(x, [out_caps, 解码器(屏蔽)])
+
+# 编译模型
+model.compile(optimizer=optimizers.Adam(lr=1e-3),loss=[margin_loss,&#39;mse&#39;],metrics={&#39;capsnet&#39;:&#39;accuracy&#39;})
+模型.summary()
+
+# 没有数据增强的训练：
+model.fit([x_train，y_train]，[y_train，x_train]，batch_size=50，epochs=10，validation_data=[[x_test，y_test]，[y_test，x_test]])
+]]></description>
+      <guid>https://stackoverflow.com/questions/78206055/how-to-use-capsnet-for-regression</guid>
+      <pubDate>Fri, 22 Mar 2024 11:54:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>训练神经网络没有给出预期的结果[关闭]</title>
+      <link>https://stackoverflow.com/questions/78205925/training-the-neural-network-does-not-give-the-expected-result</link>
+      <description><![CDATA[我正在尝试创建一个能够识别 2D 图中峰值的 pytorch 神经网络。之前我能够得到接近我想要的结果，但并不理想，在某些数据上没有给出令人满意的结果。
+旧结果：
+
+
+所以我想为什么不添加更多数据呢？在最初进行训练的 30 个图表的基础上，我又添加了大约 300 个图表。从那时起，我就再也无法得到任何接近我之前得到的结果。
+新结果：
+
+我正在使用的标准、优化器和纪元数，请注意，纪元数乘以图表数量，因此 330 * n_epochs 是真正的纪元数。
+criterion = nn.BCELoss() # 二元分类的二元交叉熵损失
+优化器 = optim.Adam(model.parameters(), lr=0.001)
+纪元 = 1500
+批次大小 = 64
+
+神经网络本身：
+类分类器（nn.Module）：
+    def __init__(自身):
+        超级().__init__()
+        self.layer1 = nn.Linear(BATCH_SIZE, 64)
+        self.act1 = nn.ReLU()
+        self.layer2 = nn.Linear(64, 64)
+        self.act2 = nn.ReLU()
+        # self.layer3 = nn.Linear(128, 64)
+        # self.act3 = nn.ReLU()
+        self.output = nn.Linear(64, 1)
+        self.sigmoid = nn.Sigmoid()
+ 
+    def 前向（自身，x）：
+        x = self.act1(self.layer1(x))
+        x = self.act2(self.layer2(x))
+        # x = self.act3(self.layer3(x))
+        x = self.sigmoid(self.output(x))
+        返回x
+ 
+模型 = 分类器()
+模型 = model.to(torch.float64)
+打印（模型）
+model.to(device) # 设备变量在上面设置为“cuda”如果可用或“cpu”如果不
+模型 = nn.DataParallel(模型)
+next(model.parameters()).device
+
+训练数据示例：
+
+每个批次的结果数组：
+&lt;前&gt;&lt;代码&gt;[1。 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 1. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.
+ 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 1. 0. 0. 0. 0. 0. 0. 0.
+ 0.0.0.0.1.0.0.0.]
+
+也许我使用了错误的方法；对于每个图，我分别训练神经网络 n 个时期。然而，我认为这不是重点，因为无论如何，图表都会被分成批次。另外，我尝试在 300 个图合并为一张图上训练神经网络，但这也没有带来结果。
+此外，训练损失表明神经网络训练得很好，但事实显然并非如此。
+纪元：1400 |列车损耗：3.838743537139037e-245
+
+我开始改变神经网络的其他参数，改变神经元的数量和激活函数的层数、周期和批量大小。但没有任何结果导致我之前收到的结果。我做错了什么？我应该怎样做才能再次接近期望的结果？]]></description>
+      <guid>https://stackoverflow.com/questions/78205925/training-the-neural-network-does-not-give-the-expected-result</guid>
+      <pubDate>Fri, 22 Mar 2024 11:32:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>变压器网络中的位置编码[关闭]</title>
+      <link>https://stackoverflow.com/questions/78205746/position-encoding-in-transformer-networks</link>
+      <description><![CDATA[我目前正在深入研究 Transformer 网络的实现细节，特别是位置编码方面。我遇到了一些让我困惑的概念，非常感谢您的澄清。
+
+交替正弦和余弦函数：在位置编码中，为什么 Transformer 网络利用交替正弦和余弦函数来编码位置信息？使用单个函数不足以达到此目的吗？
+
+除以 10000^(2i/d)：我注意到在 Transformer 网络的许多实现中，在应用三角函数之前，位置值会除以 10000^(2i/d)。这种特殊划分背后的理由是什么？它如何影响编码过程？
+
+将位置值添加到嵌入矩阵：参考“attention is all you need”（注意就是你所需要的）论文中提到需要将位置值添加到嵌入矩阵中。然而，当我用一个简单的例子尝试这个过程时，例如[我是一个男孩]，添加位置值后生成的嵌入值保持不变。例如，[3 1 4 2] 仍为 [5 5 5 5]。
+
+
+有人可以阐明为什么会出现这种情况，并提供如何将位置值添加到嵌入矩阵的更清晰的解释吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78205746/position-encoding-in-transformer-networks</guid>
+      <pubDate>Fri, 22 Mar 2024 11:00:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 混淆矩阵 - 错误：“数据”和“参考”应该是具有相同级别的因素</title>
+      <link>https://stackoverflow.com/questions/78205262/r-confussion-matrix-error-data-and-reference-should-be-factors-with-the-s</link>
+      <description><![CDATA[尽管还有其他针对相同错误消息的报告，但没有一个对我的情况有帮助。
+我已经准备了自己的数据，分割如下，但无法获得混淆矩阵。
+test_index &lt;- createDataPartition(y =workingData$PM10, times = 1, p = 0.5, list = FALSE)
+train_set &lt;-工作数据[-test_index,]
+test_set &lt;-工作数据[test_index,]
+
+train_knn &lt;- train(PM10 ~. , method= &quot;knn&quot; , data = train_set)
+
+y_hatknn &lt;- 预测(train_knn, train_set, type = “raw”)
+
+fusionMatrix(y_hatknn, test_set$PM10)
+
+上面最后一行给出
+错误：“data”和“reference”应该是具有相同级别的因素。
+
+如何解决？]]></description>
+      <guid>https://stackoverflow.com/questions/78205262/r-confussion-matrix-error-data-and-reference-should-be-factors-with-the-s</guid>
+      <pubDate>Fri, 22 Mar 2024 09:39:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Minkowski 距离查找人脸识别的决策阈值 [关闭]</title>
       <link>https://stackoverflow.com/questions/78204941/find-decision-threshold-for-face-recognition-using-minkowski-distance</link>
       <description><![CDATA[假值的明可夫斯基距离
 真实值的明可夫斯基距离
@@ -16,7 +153,7 @@
       <pubDate>Fri, 22 Mar 2024 08:33:18 GMT</pubDate>
     </item>
     <item>
-      <title>结合在不同数据上训练的两个模型</title>
+      <title>结合在不同数据上训练的两个模型[关闭]</title>
       <link>https://stackoverflow.com/questions/78204630/combining-two-models-trained-on-different-data</link>
       <description><![CDATA[我使用相同的深度学习网络训练了 2 个不同的模型，但用于训练模型的数据集不同。
 模型 1：用于检测在数据集 1 上训练的人脸的单类模型
@@ -28,10 +165,10 @@
       <pubDate>Fri, 22 Mar 2024 07:24:15 GMT</pubDate>
     </item>
     <item>
-      <title>使用神经网络进行谓词</title>
+      <title>使用神经网络进行谓词[关闭]</title>
       <link>https://stackoverflow.com/questions/78204356/predicate-using-neural-network</link>
       <description><![CDATA[我有这两列
-日期结果
+日期 结果
 Px110000Dy10.16281
 Px220000Dy20.20151
 Px330000Dy30.2288
@@ -49,7 +186,7 @@ Px10100000Dy100.3508
       <pubDate>Fri, 22 Mar 2024 06:17:15 GMT</pubDate>
     </item>
     <item>
-      <title>为 CNN 注释图像有多大必要？如果可以，最快的方法是什么？</title>
+      <title>为 CNN 注释图像有多大必要？如果是这样，最快的方法是什么？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78204285/how-necessary-is-it-to-annotate-images-for-a-cnn-if-so-whats-the-fastest-meth</link>
       <description><![CDATA[我有一个带有 keras 和 tensorflow 的 CNN，并且很好奇注释图像的必要性。我的数据集由大约 35k 个图像（7 个类别）组成，单手注释每个图像会花费太多时间。如果有必要，注释图像最快的方法是什么？另外，我应该使用什么类型的注释（例如 bboxes）？
 目前我的 CNN 通常具有大约 93^ val 准确度和 97% 训练准确度，但现实生活中的结果和混淆矩阵表明它表现不佳（平均精度约为 40%）。注释值得花时间吗？]]></description>
@@ -57,19 +194,18 @@ Px10100000Dy100.3508
       <pubDate>Fri, 22 Mar 2024 05:54:54 GMT</pubDate>
     </item>
     <item>
-      <title>时间序列滚动窗口功能</title>
+      <title>时间序列滚动窗口功能[关闭]</title>
       <link>https://stackoverflow.com/questions/78204216/time-series-rolling-windows-feature</link>
-      <description><![CDATA[我正在用 Python 创建机器学习模型，但有一些问题。如果我根据我的销售额（目标）列创建滚动平均值特征，是否有必要对其进行移动？
+      <description><![CDATA[如果我根据我的销售额（目标）列创建滚动平均值特征，是否有必要对其进行移动？
 举个例子：
 假设我的数据集中有第 01~10 天。例如，如果我在第 10 天的行中创建 7 天的平均滚动窗口列，它将考虑第 7 天作为该行的值来计算滚动平均值。现在，如果我要预测第 11 天，即明天，我需要这一天的销售值才能获得滚动平均值，这没有意义。
 因此，我认为始终获取最后 7 天而不考虑当前的情况更有意义。
-有人可以帮忙吗？
-我在 Python 上尝试过，但我不明白添加此功能的最常见方法是什么]]></description>
+有人可以帮忙吗？]]></description>
       <guid>https://stackoverflow.com/questions/78204216/time-series-rolling-windows-feature</guid>
       <pubDate>Fri, 22 Mar 2024 05:35:21 GMT</pubDate>
     </item>
     <item>
-      <title>给定标签集之外的短 2-3 个标记文本或用户搜索查询的序列标签 - NER</title>
+      <title>给定标签集之外的短 2-3 个标记文本或用户搜索查询的序列标签 [关闭]</title>
       <link>https://stackoverflow.com/questions/78204207/sequence-labelling-for-short-2-3-token-text-or-user-search-queries-out-of-given</link>
       <description><![CDATA[我正在从事一个 NER 项目，并一直在尝试开发一个可部署的模型。
 我有 3 种不同类型实体的虚拟电子商务数据，每个实体都有大约 1K 个子实体。训练数据（大小约为 200K）是通过 3K 标签的组合综合创建的。
@@ -81,151 +217,123 @@ FLAIR 模型 （F1 得分：60%） 的表现严重低于分类模型（F1 得分
       <pubDate>Fri, 22 Mar 2024 05:30:33 GMT</pubDate>
     </item>
     <item>
-      <title>Apache Spark 在深度学习模型训练阶段的范围</title>
-      <link>https://stackoverflow.com/questions/78204101/apache-sparks-scope-in-deep-learning-model-training-phase</link>
-      <description><![CDATA[我注意到 Apache Spark 被大量用于训练数据准备，但我很好奇它与 PyTorch/TensorFlow 一起在训练阶段的潜在作用，特别是在同时具有 CPU 和 GPU 的环境中。我想知道 Spark 在数据加载或缓存方面是否比 PyTorch/TensorFlow 有任何优势，特别是在分布式训练场景中。
-虽然 PyTorch 和 TensorFlow 都支持分布式训练，但我很想知道 Spark 的功能是否可以提高性能或减少延迟，特别是在处理可能超出 GPU 内存容量的大型数据集时。]]></description>
-      <guid>https://stackoverflow.com/questions/78204101/apache-sparks-scope-in-deep-learning-model-training-phase</guid>
-      <pubDate>Fri, 22 Mar 2024 04:51:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 aws elastic beanstalk 中创建环境时遇到 docker 错误</title>
-      <link>https://stackoverflow.com/questions/78204096/facing-docker-error-while-creating-environment-in-aws-elastic-beanstalk</link>
-      <description><![CDATA[实际上，我正在 Beanstalk 中使用 Docker 部署 ML 模型。首先，我将 Docker 镜像（包含我的 ML 模型）上传到 Docker Hub。然后，我使用 docker-compose.yml 将其部署到 Beanstalk 中。在 Beanstalk 中，我使用 Docker 作为平台，并且我的模型需要 GPU 支持。为此，我使用了深度学习 AMI GPU CUDA 11.5.2 (Amazon Linux 2) 20230104，它是通过 NVIDIA CUDA、cuDNN、NCCL、GPU 驱动程序、Docker、NVIDIA-Docker 和 EFA 支持构建的。但是，当我使用此配置构建环境时，遇到以下错误：
-**[ERROR]** 执行命令 [app-deploy] - [Track pids in healthd] 期间发生错误。停止运行该命令。错误：更新进程 [docker eb-docker-compose-events eb-docker-compose-log eb-docker-events cfn-hup healthd] pid 符号链接失败，出现错误 读取 pid 源文件 /var/pids/docker.pid 失败，出现错误:open /var/pids/docker.pid: 没有这样的文件或目录。
+      <title>在 aws elastic beanstalk 中创建环境时出现 Docker 错误</title>
+      <link>https://stackoverflow.com/questions/78204096/docker-error-while-creating-environment-in-aws-elastic-beanstalk</link>
+      <description><![CDATA[我正在 Beanstalk 中使用 Docker 部署机器学习模型。首先，我将 Docker 镜像（包含我的 ML 模型）上传到 Docker Hub。然后，我使用 docker-compose.yml 将其部署到 Beanstalk 中。在 Beanstalk 中，我使用 Docker 作为平台，并且我的模型需要 GPU 支持。为此，我使用了深度学习 AMI GPU CUDA 11.5.2 (Amazon Linux 2) 20230104，它是通过 NVIDIA CUDA、cuDNN、NCCL、GPU 驱动程序、Docker、NVIDIA-Docker 和 EFA 支持构建的。但是，当我使用此配置构建环境时，遇到以下错误：
+**[ERROR]** 执行命令 [app-deploy] 期间发生错误
+- [跟踪 healthd 中的 pid]。停止运行该命令。错误：更新进程
+[docker eb-docker-compose-events eb-docker-compose-log eb-docker-events cfn-hup healthd]
+pid 符号链接失败，错误读取 pid 源文件 /var/pids/docker.pid 失败
+错误：打开/var/pids/docker.pid：没有这样的文件或目录。
 
-意味着我的环境正在构建，但它给出了错误消息，例如：Env 构建成功，但有一些错误。我在 eb.engine.log 中发现了此错误消息。
+意味着我的环境正在构建，但它给出的错误消息如下：
+Env 构建成功，但有一些错误。
+
+我在 eb.engine.log 中发现了此错误消息。
 此外，我通过 SSH 检查了 EC2 实例，它显示 NVIDIA 驱动程序、NVIDIA CUDA 和 Docker 已安装（使用以下命令验证：nvidia-smi、docker -v）。我尝试了多种不同的深度学习 AMI，但所有这些 AMI 都遇到了同样的问题。另外，在尝试不同的 AMI 时，我注意到一件奇怪的事情：如果我使用默认设置（例如使用默认 Docker AMI 的 Docker 平台）构建环境，它会成功构建，不会出现任何错误。但是，当我在配置中传递不同的 AMI ID 时，无法正确构建环境。
-我是 AWS Elastic Beanstalk 的新手，但我已经彻底准备好官方 Beanstalk 文档。尽管如此，我相信我在环境创建过程中可能会遗漏一些东西。有谁知道如何解决这个错误？]]></description>
-      <guid>https://stackoverflow.com/questions/78204096/facing-docker-error-while-creating-environment-in-aws-elastic-beanstalk</guid>
+如何解决这个错误？]]></description>
+      <guid>https://stackoverflow.com/questions/78204096/docker-error-while-creating-environment-in-aws-elastic-beanstalk</guid>
       <pubDate>Fri, 22 Mar 2024 04:49:51 GMT</pubDate>
     </item>
     <item>
-      <title>如何将我的 fastai resnet50/vision_learner 训练模型导出到 torchserve 中？</title>
-      <link>https://stackoverflow.com/questions/78203794/how-do-i-export-my-fastai-resnet50-vision-learner-trained-model-into-torchserve</link>
-      <description><![CDATA[我的目标是将我用 Fastai 训练的模型部署到 Torchserve 中。我正在关注 本教程，但卡在了他为 pytorch 创建模型类的部分。
-他提到要在 Torchserve 中运行我们的模型，我们需要以下内容：
-
-模型类
-从 pytorch 导出的权重（pth 文件）
-处理程序
-
-其中，我得到两个：重量和处理程序。然而，我陷入困境的是模型类。他创建了一个类文件，但我不知道他从哪里获得DynamicUnet作为该类的基础，也不知道他如何将该类与unet_learner混合以创建自定义PyTorch模型类。你能帮我为在学习器 vision_learner 下训练的模型和 resnet50 的预训练模型建立一个模型类吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78203794/how-do-i-export-my-fastai-resnet50-vision-learner-trained-model-into-torchserve</guid>
-      <pubDate>Fri, 22 Mar 2024 02:55:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该使用什么类型的人工智能模型来生成练习题？</title>
+      <title>我应该使用什么类型的人工智能模型来生成练习题？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78203711/what-type-of-ai-model-should-i-use-to-generate-practice-questions</link>
       <description><![CDATA[我有一组英语多项选择题，我想使用 AI 生成更多问题来测验自己。我知道网上有一些平台可以实现这一点，但我想挑战自己，创建自己的简单人工智能架构。在对它进行一些英语问题训练后，我希望它能够生成新问题来帮助我学习。
-我应该使用哪种机器学习/智能模型作为基线？非常感谢！]]></description>
+我应该使用哪种机器学习/智能模型作为基线？]]></description>
       <guid>https://stackoverflow.com/questions/78203711/what-type-of-ai-model-should-i-use-to-generate-practice-questions</guid>
       <pubDate>Fri, 22 Mar 2024 02:17:43 GMT</pubDate>
     </item>
     <item>
-      <title>人工智能物体检测</title>
-      <link>https://stackoverflow.com/questions/78203585/ai-object-detection</link>
-      <description><![CDATA[我正在尝试使用计算机视觉和人工智能来识别图像中的硬币。
-我使用的货币是波斯尼亚货币，问题是一些硬币的颜色和设计相同，唯一的区别是它们的大小。
-我知道答案可能是否定的，但是有没有办法可以使用它们的大小来区分它们？]]></description>
-      <guid>https://stackoverflow.com/questions/78203585/ai-object-detection</guid>
-      <pubDate>Fri, 22 Mar 2024 01:29:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>lightfm python 依赖项使用</title>
-      <link>https://stackoverflow.com/questions/78203344/lightfm-python-dependency-usage</link>
-      <description><![CDATA[将 numpy 导入为 np
-从 lightfm.datasets 导入 fetch_movielens
-从 lightfm 导入 LightFM
+      <title>Seq2Seq LSTM 无法正确学习</title>
+      <link>https://stackoverflow.com/questions/78201576/seq2seq-lstm-not-learning-properly</link>
+      <description><![CDATA[我正在尝试使用 Pytorch 中的 LSTM 解决 seq-to-seq 问题。具体来说，我采用 5 个元素的序列来预测接下来的 5 个元素。我关心的是数据转换。我有大小为 [bs, seq_length, features] 的张量，其中 seq_length = 10 和 features = 1。每个特征都是一个介于 0 和 3 之间的整数（两者都包含在内）。
+我认为输入数据必须使用 MinMaxScaler 转换为浮点范围 [0, 1]，以便使 LSTM 学习过程更容易。之后，我应用一个线性层，它将隐藏状态转换为相应的输出，其大小为特征。我在 Pytorch 中对 LSTM 网络的定义：
+类 LSTM(nn.Module):
+    def __init__(自身、input_dim、hidden_​​dim、output_dim、num_layers、dropout_prob):
+        super(LSTM, self).__init__()
+        self.lstm_layer = nn.LSTM(input_dim,hidden_​​dim,num_layers,dropout=dropout_prob)
+        self.output_layer = nn.Linear（hidden_​​dim，output_dim）
 
-数据 = fetch_movielens(min_ rating=4.0)
+    ...
 
-打印（repr（数据[&#39;火车&#39;]））
-打印（repr（数据[&#39;测试&#39;]））
+    def 向前（自身，X）：
+        out, (隐藏, 单元格) = self.lstm_layer(X)
+        输出 = self.output_layer(输出)
+        返回
 
-模型 = LightFM(损失=&#39;扭曲&#39;)
+我用来进行训练循环的代码如下：
+def train_loop(t, checkpoint_epoch, dataloader, model, loss_fn, optimizationr):
+    大小 = len(dataloader.dataset)
+    对于批处理，枚举中的 X（数据加载器）：
+        X = X[0].type(torch.float).to(设备)
 
-model.fit(data[&#39;train&#39;], epochs=30, num_threads=2)
+        # X = torch.Size([batch_size, 10, input_dim])
+        # 将序列拆分为输入和目标
+        输入 = 变换(X[:, :5, :]) # 输入 = [batch_size, 5, input_dim]
+        目标 = 变换(X[:, 5:, :]) # 目标 = [batch_size, 5, input_dim]
 
-defsample_recommendation（模型，数据，user_ids）：
-    n_users, n_items = 数据[&#39;train&#39;].shape
-    
-    对于 user_ids 中的 user_id：
-        known_positives = data[&#39;item_labels&#39;][data[&#39;train&#39;].tocsr()[user_id].indices]
-        
-        分数 = model.predict(user_id, np.arange(n_items))
-        
-        # 修复此处的标签索引
-        top_items = 数据[&#39;item_labels&#39;][np.argsort(-scores)]
-        
-        print(&quot;用户 %s&quot; % user_id)
-        print(&quot;已知的积极结果：&quot;)
+        # 预测（前向传递）
+        使用自动转换（）：
+            pred = 模型(输入) # pred = [batch_size, 5, input_dim]
+            损失 = loss_fn(pred, 目标)
 
-        对于known_positives[:3]中的x：
-            打印(“%s”%x)
-            
-        print(&quot;推荐：&quot;)
+        # 反向传播
+        优化器.zero_grad()
+        scaler.scale(loss).backward()
+        缩放器.step（优化器）
+        定标器.update()
 
-        # 打印最推荐的商品
-        对于 top_items[:3] 中的 x：
-            打印(“%s”%x)
-            
-样本推荐（模型，数据，[3,10,56]）
+        如果批次 % 100 == 0:
+            损失，当前 = loss.item(), 批次 * len(X)
+            #print(f&quot;当前损耗:{loss:&gt;7f},[{current:&gt;5d}/{size:&gt;5d}]&quot;)
 
+        # 删除变量并清空缓存
+        del X、输入、目标、预测
+        torch.cuda.empty_cache()
 
-如果我运行我的代码，只输出电影标题的第一个字母，它应该是完整的电影标题，如何修复它？
-我问过ai其中一个chat gpt，他们给出代码建议后，代码仍然不起作用，只显示每部电影的第一个字母。]]></description>
-      <guid>https://stackoverflow.com/questions/78203344/lightfm-python-dependency-usage</guid>
-      <pubDate>Thu, 21 Mar 2024 23:44:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么从 RBF SVM 模型中提取的 Shap 值有时都等于 0？</title>
-      <link>https://stackoverflow.com/questions/78193811/why-are-the-shap-values-extracted-from-a-rbf-svm-model-sometimes-all-equal-to-0</link>
-      <description><![CDATA[1我正在测试分类任务的不同模型。 （据我所知）仅当我从 RBF SVM 模型（图中的示例）提取形状值时（并非总是），才会出现此问题。
-我计划获得形状值图的更经典表示，其中所有点在 y 轴上具有不同的值。在这里，似乎我所有的点都有 0 值
-我的代码有点不同，但它的作用如下：
-explainer = shap.KernelExplainer(model[&#39;model&#39;].predict, shap.kmeans(X_processed, 100))
-shap_values = 解释器.shap_values(X_processed)
+    回波损耗
 
-shap_fig = shap.summary_plot(shap_values=shap_values, features=X_processed, feature_names=feature_names, show=False, max_display=10)
-图, ax = plt.gcf(), plt.gca()
-ax.set_yticklabels(标签，旋转=45，字体大小=11)
-ax.set_xticklabels(np.round(ax.get_xticks(), 2),fontsize=11)
-plt.title(plot_title, 字体大小 = 18)
-Fig.tight_layout(pad=0, w_pad=0, h_pad=0)
-图.show()
+我用于预处理数据的代码：
+def main():
+    代理数量 = 2
+    # 打开HDF5文件
+    将 h5py.File(&#39;dataset_&#39; + str(num_agents) + &#39;UAV.hdf5&#39;, &#39;r&#39;) 作为 f：
+        # 访问数据集
+        数据 = f[&#39;数据&#39;][:]
+        # 转换为 PyTorch 张量
+        data_tensor = torch.tensor(数据)
 
-在本例中，以下是图像形式的结果。仅包含 0 个值的形状值图
-我不明白的是，对于另一个数据集，即使使用 RBF SVM 模型，形状值图也符合预期。
-我已经尝试使用“X_preprocessed”而不是“shap.kmeans(X_processed, 100)”在 shap.KernelExplainer() 中，我在 shap.kmeans() 中尝试了不同的数字作为参数，但结果保持不变。
-有人已经遇到过这种行为吗？或者有什么想法为什么会发生这种情况？]]></description>
-      <guid>https://stackoverflow.com/questions/78193811/why-are-the-shap-values-extracted-from-a-rbf-svm-model-sometimes-all-equal-to-0</guid>
-      <pubDate>Wed, 20 Mar 2024 13:41:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>ViT 模型的 HuggingFace Inference API 问题 - “图像特征提取”错误</title>
-      <link>https://stackoverflow.com/questions/78192634/issue-with-huggingface-inference-api-for-vit-model-image-feature-extraction</link>
-      <description><![CDATA[我的 Vision Transformer (ViT) 模型 rshrott/vit-base-renovation2 的推理 API 遇到问题。
-https://huggingface.co/rshrott/vit-base-renovation2 
-当我尝试使用 API 时，收到以下错误：
-&lt;前&gt;&lt;代码&gt;{
-“错误”：“HfApiJson（反序列化（错误（“未知变体图像特征提取，预期音频分类，音频到音频，音频源分离，自动语音识别，特征提取之一，文本分类、标记分类、问答、翻译、摘要、文本生成、text2text-生成、填充掩模、零样本分类、零样本图像分类、会话、表格问答、图像分类、图像分割、图像到文本、文本到语音、...视觉问答、视频分类、文档问答、图像到图像、深度估计，行：1 ，栏目：318）））”
-}
+        大小 = data_tensor.size()
+        序列长度 = 10
+        重塑 = data_tensor.view(-1, 大小[2], 大小[3])
 
-有趣的是，当我直接在 Python 中使用 Transformer 管道时，模型按预期工作：
-从转换器导入管道
-从 PIL 导入图像
-导入请求
+        r_size = reshape.size()
+        重塑 = 重塑[:, :, 1:]
+        reshape_v2 = reshape.view(r_size[0], -1)
 
-管道=管道（模型=“rshrott/vit-base-renovation2”）
-url = &#39;https://example.com/image.jpeg&#39;
-图像= Image.open(requests.get(url,stream=True).raw)
-preds = 管道(图像)
+        数据集 = create_dataset(reshape_v2.numpy(), seq_length)
 
-此代码运行没有任何问题并返回预期的预测。但是，通过推理 API 使用同一模型时会遇到错误。我怀疑可能存在与预期任务类型相关的配置问题，但我不确定如何解决它。
-为什么会出现此错误以及如何修复它？我已经检查了型号卡和配置，但我似乎无法找到“图像特征提取”的来源或原因。]]></description>
-      <guid>https://stackoverflow.com/questions/78192634/issue-with-huggingface-inference-api-for-vit-model-image-feature-extraction</guid>
-      <pubDate>Wed, 20 Mar 2024 10:44:57 GMT</pubDate>
+        f.close()
+
+    数据集 = TensorDataset(数据集)
+
+    # 将数据集分为训练集和验证集
+    train_size = int(0.8 * len(dataset)) # 80% 用于训练
+    val_size = len(dataset) - train_size # 20% 用于验证
+    train_dataset, val_dataset = random_split(数据集, [train_size, val_size])
+
+    train_dataloader = DataLoader（train_dataset，batch_size = params [&#39;batch_size&#39;]，shuffle = True，pin_memory = True）
+    val_dataloader = DataLoader（val_dataset，batch_size = params [&#39;batch_size&#39;]，shuffle = False，pin_memory = True）
+
+尝试这个，模型没有正确学习，所以我想也许可以直接计算 targets （范围 [0, 1] 内的浮点值）和 pred 之间的损失code&gt; （我认为由于 LSTM 层的 tanh 激活函数，浮点值在 [-1, 1] 范围内），具有不同的尺度可能是错误的。然后，我尝试在前向传递中的线性层之后应用 sigmoid 激活函数，但也没有正确学习。我尝试了许多超参数组合的执行，但没有一个产生“正常”的结果。训练曲线。我还附上了 5000 epoch 的屏幕截图来说明训练过程：
+
+我的问题是：
+
+我的训练过程中似乎存在什么问题？
+我所说的话是否被认为是错误的？
+]]></description>
+      <guid>https://stackoverflow.com/questions/78201576/seq2seq-lstm-not-learning-properly</guid>
+      <pubDate>Thu, 21 Mar 2024 16:43:58 GMT</pubDate>
     </item>
     <item>
       <title>使用遗传算法优化面部情绪识别模型超参数</title>
@@ -306,6 +414,14 @@ print(f&quot;测试准确度: {test_accuracy * 100:.2f}%&quot;)&#39;&#39;&#39;
 ]]></description>
       <guid>https://stackoverflow.com/questions/78157230/optimizing-facial-emotion-recognition-model-hyperparameters-using-genetic-algori</guid>
       <pubDate>Wed, 13 Mar 2024 22:53:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么仅在 CNN 中对通道进行批量归一化</title>
+      <link>https://stackoverflow.com/questions/45799926/why-batch-normalization-over-channels-only-in-cnn</link>
+      <description><![CDATA[我想知道，在卷积神经网络中，批量归一化是否应该分别应用于每个像素，或者我应该取每个通道的像素平均值？
+我在Tensorflow的tf.layers.batch_normalization 建议对通道执行 bn，但如果我没记错的话，我使用了其他方法，效果很好。]]></description>
+      <guid>https://stackoverflow.com/questions/45799926/why-batch-normalization-over-channels-only-in-cnn</guid>
+      <pubDate>Mon, 21 Aug 2017 14:40:57 GMT</pubDate>
     </item>
     </channel>
 </rss>
