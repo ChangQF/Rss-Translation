@@ -4,7 +4,108 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Mon, 25 Mar 2024 00:59:13 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 25 Mar 2024 03:16:30 GMT</lastBuildDate>
+    <item>
+      <title>选择最通用的机器学习模型</title>
+      <link>https://stats.stackexchange.com/questions/643445/select-the-most-general-machine-learning-model</link>
+      <description><![CDATA[例如，假设模型 A 通过交叉验证的平均训练 auc 为 0.82，测试 auc 为 0.79。两个分数之间的差异为0.03。
+假设模型 B 的训练 auc 为 0.79，测试 auc 为 0.78。两个分数之间的差异为0.01。机器学习的目标是泛化。
+据我所知，训练和测试之间的差异越小，机器学习的泛化能力就越好。那么，模型 B 显然比模型 A 的训练和测试之间的差距更小。那么模型 B 是一个更好、更通用的模型吗？或者即使模型 A 的测试 auc 比模型 B 高 0.01，模型 A 仍然是一个优秀模型吗？
+要统计选择模型，请获取两个模型的auc的置信区间并进行比较以选择模型。然而，传统统计学和机器学习的目标是不同的。所以我很困惑该怎么办]]></description>
+      <guid>https://stats.stackexchange.com/questions/643445/select-the-most-general-machine-learning-model</guid>
+      <pubDate>Mon, 25 Mar 2024 03:08:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>调查中 boostrap 和参数方法的误差范围差异</title>
+      <link>https://stats.stackexchange.com/questions/643444/difference-in-margin-of-error-for-boostrap-and-parametric-approaches-in-survey</link>
+      <description><![CDATA[我想知道使用引导程序导出的误差幅度进行简单调查是否合适。我担心这个估计太小了。我已为这两种上下文方法粘贴了下面的代码。
+我对政治观点进行了一项简单的民意调查，样本量约为 450 名受访者。
+我通过从数据帧中采样 3 个值（支持、反对、不知道）之一 5000 次来计算引导 MoE。然后，我计算了第 5、50 和 95 个百分位数中每个值的比例。为了获得保守的 MoE，我取了第 50 和第 5 或第 50 和第 95 之间的最大差异。最终比例最大的值约为2.8%（约68%的受访者支持）。
+当我使用更传统的参数方法时，我会得到更大的误差范围 (4.3%)。这会产生影响，因为如果引导版本不正确，并且我的一些问题接近 50% 支持，我将需要收集更多回复。
+参数化版本和引导版本如此不同是否有原因？举报更合适吗？
+引导 MoE
+将 numpy 导入为 np
+将 pandas 导入为 pd
+
+数据 = df[&#39;q1&#39;][df[&#39;q1&#39;] != &#39;NA&#39;]
+
+print(&#39;样本大小:&#39;,len(数据))
+
+# 初始化一个字典来存储每个值的计数
+value_counts_dict = {value: [] for value in np.unique(data)}
+
+# 自举采样循环
+对于范围（5000）内的 i：
+    # 创建引导样本
+    bs_sample = np.random.choice(数据，大小=len(数据)，替换=True)
+
+    # 计算引导样本中每个唯一条目的出现次数
+    value_counts = {value: np.sum(bs_sample == value) for value in np.unique(data)}
+
+    # 将计数追加到字典中
+    对于值，在 value_counts.items() 中计数：
+        value_counts_dict[值].append(count)
+
+# 从字典创建一个DataFrame
+df_bootstrap = pd.DataFrame(value_counts_dict)
+
+# 计算每列的置信区间
+置信区间 = df_bootstrap.quantile([0.05, 0.5, 0.95])
+
+confidence_intervals_percentage =confidence_intervals.div(confidence_intervals.sum(axis=1), axis=0) * 100
+
+
+# 计算每列第 50 个百分位数以及第 95 个和第 5 个百分位数之间的差异
+Difference_50_95 =confidence_intervals_percentage.loc[0.5] -confidence_intervals_percentage.loc[0.95]
+Difference_50_05 =confidence_intervals_percentage.loc[0.5] -confidence_intervals_percentage.loc[0.05]
+
+# 为每列取两个差值中较大的一个
+max_differences = Difference_50_95.abs().combine(difference_50_05.abs(), max)
+
+# 找到这些最大差异中最大的项（列）
+Maximum_max_difference_item = max_differences.idxmax()
+最大最大差异值 = max_differences.max()
+
+# 添加一个名为“moe”的新行每列的最大最大差异值
+# 在这里，我们实际上想将其添加为反映观察到的最大差异的特定值
+confidence_intervals_percentage.loc[“moe”] = max_differences
+
+（最大最大差异项、最大最大差异值、置信区间百分比）
+
+参数化教育部
+导入 pandas 作为 pd
+将 numpy 导入为 np
+从 scipy.stats 导入规范
+
+# DataFrame 创建示例
+# df = pd.DataFrame({&#39;q1&#39;: [&#39;支持&#39;, &#39;反对&#39;, &#39;没有意见/na&#39;, &#39;NA&#39;, &#39;支持&#39;, &#39;反对&#39;, ...]})
+
+# 计算不包括“NA”的响应总数
+n = len(df[&#39;q1&#39;][df[&#39;q1&#39;] != &#39;NA&#39;])
+
+# 95% 置信度的 Z 分数置信度
+Z =norm.ppf(0.975) # 二尾
+
+# 初始化一个字典来保存每个类别的 MoE
+moe_dict = {}
+
+对于 [&#39;无意见/na&#39;, &#39;反对&#39;, &#39;支持&#39;] 中的类别：
+    # 计算该类别的比例
+    p = len(df[&#39;q1&#39;][df[&#39;q1&#39;] == 类别]) / n
+    
+    # 计算该类别的 MoE
+    MoE = Z * np.sqrt((p * (1 - p)) / n) *100
+    
+    # 将 MoE 存储在字典中
+    moe_dict[类别] = 教育部
+
+# 显示每个类别的 MoE
+对于类别，MoE 在 moe_dict.items() 中：
+    print(f“‘{category}’的误差范围：{MoE:.4f}”)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643444/difference-in-margin-of-error-for-boostrap-and-parametric-approaches-in-survey</guid>
+      <pubDate>Mon, 25 Mar 2024 01:32:13 GMT</pubDate>
+    </item>
     <item>
       <title>MLE(Likelihood)和MAP的概念和表示法</title>
       <link>https://stats.stackexchange.com/questions/643442/the-concept-and-notation-about-mlelikelihood-and-map</link>
@@ -81,7 +182,7 @@ $$\mathbf{y}=W_1(W_0\mathbf{x}+b_0)+b_1$$
     <item>
       <title>为什么最好使用似然比检验来检验预测变量的效果？</title>
       <link>https://stats.stackexchange.com/questions/643440/why-is-it-preferable-to-test-the-effect-of-a-predictor-using-a-likelihood-ratio</link>
-      <description><![CDATA[在他们的精彩著作应用纵向数据分析：对变化和事件发生进行建模 Singer 和 Willett 提倡使用迭代模型比较技术来测试预测变量的效果：从基线模型开始，然后添加预测变量，一次一个，对一系列后续模型，使用似然比检验来确定向模型添加新预测变量是否会显着降低 -2LL 偏差。如果 -2LL 偏差显着减少，则保留新模型，否则保留先前模型。
+      <description><![CDATA[在他们的精彩著作应用纵向数据分析：对变化和事件发生进行建模 Singer 和 Willett 提倡使用迭代模型比较技术来测试预测变量的效果：从基线模型开始，然后添加预测变量，一次一个，对一系列后续模型，使用似然比检验来确定向模型添加新预测变量是否会显着降低 -2LL 偏差。如果 -2LL 偏差显着减小，则保留新模型，否则保留先前模型。
 他们表示，他们推荐这种技术，而不是简单地将打算在单个回归模型中测试的所有预测变量包括在内，并报告置信区间和 p 值。
 我已经接受了他们的建议，但我不太明白为什么（即基于什么理由）他们认为他们的迭代方法优于“全力以赴”的方法。
 我问这个问题的原因是，我已经对几篇论文进行了分析，我的合著者对迭代方法感到非常困惑。可能是我解释得不够好，但我想要一些更可靠的使用它的理由，而不是“因为辛格和威利特这么说”。
@@ -100,7 +201,7 @@ $$\mathbf{y}=W_1(W_0\mathbf{x}+b_0)+b_1$$
       <title>园艺混合效应建模的概念</title>
       <link>https://stats.stackexchange.com/questions/643431/the-concept-of-mixed-effect-modeling-in-gardening</link>
       <description><![CDATA[我有随机因素，例如花卉、分配和园丁。园丁们对花朵进行了评分。
-花在分配中交叉。花嵌套在 Gardener 中，而分配则嵌套在 Gardner 中。
+花在分配中交叉。花嵌套在 Gardener 中，分配嵌套在 Gardner 中。
 我可以单独分析每个概念，还是需要在单个综合模型中估计所有设计级别的差异？所有因素都是随机效应。]]></description>
       <guid>https://stats.stackexchange.com/questions/643431/the-concept-of-mixed-effect-modeling-in-gardening</guid>
       <pubDate>Sun, 24 Mar 2024 21:53:17 GMT</pubDate>
@@ -157,7 +258,7 @@ np.linalg.inv(xtx).dot(xty)
       <pubDate>Sun, 24 Mar 2024 21:26:35 GMT</pubDate>
     </item>
     <item>
-      <title>测试两个平稳 AR 时间序列的无条件方差相等？</title>
+      <title>测试两个平稳 AR 时间序列的无条件方差是否相等？</title>
       <link>https://stats.stackexchange.com/questions/643425/testing-equality-of-unconditional-variance-of-two-stationary-ar-times-series</link>
       <description><![CDATA[假设我有两个固定的 AR 时间序列：
 $$
@@ -176,7 +277,7 @@ $$
 $$
 问：如何正式检验假设 $H_0: \mathrm{Var}(y_{1,t})=\mathrm{Var }(y_{2,t})$？
 我知道，如果我测试的只是 $H_0: \mathrm{Var}(y_{1,t})=5$，我可以进行某种经典的 LR、LM 或 Wald 测试。但我正在尝试测试两个群体的平等。
-我想我正在寻找类似于总体均值或方差相等的双样本 t 检验或 F 检验。但这些都是针对 i.i.d. 的。数据。我这里有自相关。
+我想我正在寻找的是诸如总体均值或方差相等的双样本 t 检验或 F 检验之类的东西。但这些都是针对 i.i.d. 的。数据。我这里有自相关。
 我可以进行引导，从每个总体最有可能的模型中进行采样，重新估计每个模型的模型，计算每个引导样本的无条件方差，查看它们的差异或比率，比较从不等式中产生的结果。 
 但一定有一种更简单、直接的方法。我想我在这里遗漏了一些基本的东西。]]></description>
       <guid>https://stats.stackexchange.com/questions/643425/testing-equality-of-unconditional-variance-of-two-stationary-ar-times-series</guid>
@@ -231,26 +332,6 @@ P（碗1）* P（香草）]]></description>
       <pubDate>Sun, 24 Mar 2024 20:34:31 GMT</pubDate>
     </item>
     <item>
-      <title>时间序列分类模型的似然</title>
-      <link>https://stats.stackexchange.com/questions/643419/likelihood-for-time-series-classification-model</link>
-      <description><![CDATA[假设我有一些时间序列 $x_{1..T}$，我的任务是预测相应的 $y$。但是，我希望模型能够使用 $x$ 的任何前缀进行预测，而不仅仅是完整的时间序列。我想到的似然模型是 $L(\theta) = \Pi_t \space p_{\theta}(y | x_{1..t})$ ，但像这样多次计数 $y$ 似乎是不合法的。这个想法可行吗？如果不行，我该如何解决它？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643419/likelihood-for-time-series-classification-model</guid>
-      <pubDate>Sun, 24 Mar 2024 19:34:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>概率分布的“一类”和“一族”有什么区别？</title>
-      <link>https://stats.stackexchange.com/questions/643417/what-is-the-difference-between-a-class-and-a-family-of-probability-distribut</link>
-      <description><![CDATA[我的研究主题是关于分布理论——研究概率分布及其属性——这是我的导师向我建议的。这不是我感兴趣的研究领域，但无论如何我都会努力去做。我已经在互联网上搜索过，但我仍然对概率分布的类和族之间的差异感到困惑。
-它的内容来自：发行版系列与发行版类别 - 定义
-class - 任何发行版的集合； family - 分布的索引集合
-“索引”是什么意思？在上下文中？ （抱歉，理解不够。）
-根据我的理解，这是否意味着：类只是一个家庭的成员（我认为是这个群体）？
-两者之间的区别是否有正式定义？有没有关于概率分布（理论、模型、方法、推理、应用）的入门教材推荐？
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/643417/what-is-the-difference-between-a-class-and-a-family-of-probability-distribut</guid>
-      <pubDate>Sun, 24 Mar 2024 19:03:10 GMT</pubDate>
-    </item>
-    <item>
       <title>多项式分布方法是负二项式吗？</title>
       <link>https://stats.stackexchange.com/questions/643410/multinomial-distribution-approach-as-negative-binomial</link>
       <description><![CDATA[我被要求解决一个问题，遵循多项分布（如果你认为这是正确的方法，我实际上认为它是）。我粘贴整个问题以防万一我接近，但这是真正困扰我的最后一项。
@@ -281,15 +362,30 @@ prob_two_group &lt;- dmultinom(c(2, 2, 2, 2), n, prob)
       <pubDate>Sun, 24 Mar 2024 16:10:33 GMT</pubDate>
     </item>
     <item>
-      <title>固定效果 - 问题</title>
-      <link>https://stats.stackexchange.com/questions/643407/fixed-effects-issue</link>
-      <description><![CDATA[假设我有一个纵向数据集，其中在不同时间点观察每个国家 $i$ $t$ 。假设我的因变量是虚拟变量，并且我想估计成功的概率，例如 $y_{it}=1$，以一组预测变量为条件。为此，我估计了具有时间固定效应的合并概率模型：
-\begin{方程}
-P(y_{it}=1|x) = \Phi(x_{it} \beta + \delta_t + \delta_r)
-\end{方程}
-在这里，我包括了一整套时间和区域虚拟变量（例如欧洲、亚洲...）、$\delta_t$ 和 $\delta_r$ 分别。然而，在某些国家/地区，因变量始终取零值。因此，最好不要在回归中包含国家虚拟变量 ($\delta_i$)，以控制跨国未观察到的异质性。根据我的笔记，控制未观察到的区域异质性比控制特定国家的异质性更有效。这是因为，对于样本中的某些国家来说，因变量始终为零，导致它们被排除在回归分析之外。为什么这些国家被排除？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643407/fixed-effects-issue</guid>
-      <pubDate>Sun, 24 Mar 2024 15:14:08 GMT</pubDate>
+      <title>推导 AR(1)-GARCH(1,1) 无条件矩</title>
+      <link>https://stats.stackexchange.com/questions/643280/deriving-ar1-garch1-1-unconditional-moments</link>
+      <description><![CDATA[我正在使用 AR(1)-GARCH(1,1) 模型，并尝试导出无条件矩。
+模型
+$$
+\开始{对齐}
+    R_t &amp;= \mu + \rho R_{t-1} + E_t, \label{eq:ar}\\
+    E_t &amp;= \sigma_tD_t,\ \text{其中}\ D_t \sim \mathrm{Dist}(0, 1,\gamma, \kappa), \label{eq:dist}\\
+    \sigma_t^2 &amp;= \omega + a E_{t-1}^2 + b \sigma_{t-1}^2。 \label{eq:garch}
+\结束{对齐}
+$$
+问题
+公式取决于数量，例如
+
+$\mathbb{E}(​​R_{t-1}E_{t-1}^2)$,
+$\mathbb{E}(​​R_{t-1}\sigma_{t-1}^2)$,
+$\mathbb{E}(​​R_{t-1}^2E_{t-1}^2)$,
+$\mathbb{E}(​​R_{t-1}E_{t-1}^2\sigma_{t-1}^2)$, 
+$\mathbb{E}(​​R_{t-1}E_{t-1}^4)$,
+和类似的。
+
+我可以分别处理均值和波动率过程，但这些过程会变得更加复杂。我想获得这些方面的帮助。我应该如何接近他们？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643280/deriving-ar1-garch1-1-unconditional-moments</guid>
+      <pubDate>Fri, 22 Mar 2024 18:33:01 GMT</pubDate>
     </item>
     </channel>
 </rss>
