@@ -4,7 +4,238 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Tue, 26 Mar 2024 09:14:04 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 26 Mar 2024 12:24:46 GMT</lastBuildDate>
+    <item>
+      <title>模型残差中的相关结构：是否存在？</title>
+      <link>https://stats.stackexchange.com/questions/643558/correlation-structure-in-model-residuals-is-there-or-not</link>
+      <description><![CDATA[我最近进行了一些分析，对于社区的反馈我会更有信心。我没有提供 MWE（但如果您觉得有必要，我很乐意这样做），因为我认为这个查询比纯粹的代码更具概念性，但我在下面提供了伪代码来说明我的想法。
+所有代码和模型都是在 R 环境中完成的。我在这里描述的 gls 模型使用 R 中的 piecewiseSEM 集成到路径分析中，这就是为什么我使用 gls 而不是 pgls 模型和最大值似然法。
+背景
+我正在根据一组植物性状 (traits) 和非生物变量 (&lt;代码&gt;非生物），并且在不同的地点。因此，我的数据按不同植物种类 (species) 进行分层结构，嵌套在 site 变量中（在不同地点发现的相同物种）。
+我希望考虑我研究的植物物种之间的系统发育关系（我相信这会影响土壤特征），因此使用了广义最小二乘（gls）模型，并具有基于系统发育的指定相关结构树。
+这给了我以下模型结构：
+gls.mod &lt;- gls(土壤 ~ 性状 + 非生物, corr = Corr(~物种|位点), method = “ML”)
+
+研究残余结构
+根据我之前的经验，相关结构和随机效应是由体验设计定义的。但是，遵循 此参考文献，我希望验证我的模型的残差是否遵循植物物种的系统发育结构。
+为此，我使用了线性回归，并根据植物种类和地点拟合了残差：
+mod1 &lt;- lm(土壤 ~ 性状 + abiot)
+resmod &lt;- lm(残差(mod1) ~ 物种 + 站点
+
+我使用anova检查了resmod的结果，确认species和soil解释了很大一部分模型的剩余变异。
+i）由此，我可以得出结论，我的残差结构确实是由最后两个变量构成的吗？ （当然不是通过系统发育结构本身，而是通过物种？）
+然后，我将我的 gls 模型与以下形式的混合效应线性模型 (lmer) 进行了比较：
+lmer.mod &lt;- lmer(土壤 ~ 物种 + 地点 + (1|地点/物种))
+
+并且发现gls模型的AIC始终高于混合效果模型AIC(lmer.mod) AIC(lmer.mod) &lt; AIC(gls.mod)
+ii）这种比较有意义吗？还是我完全忽略了这些模型背后的要点？
+iii) lmer 模型比 gls 模型表现更好这一事实是否意味着通过允许每个类别的均值变化而不是通过我指定的特定遗传结构可以更好地解释我的残差结构？
+我希望我的观点足够清楚，我很乐意提供任何细节。我对广义最小二乘 (gls) 模型相当陌生，它们背后的数学使我达到了理解的边缘，让我担心会出现一些深刻的错误。
+提前致谢并致以最诚挚的问候，]]></description>
+      <guid>https://stats.stackexchange.com/questions/643558/correlation-structure-in-model-residuals-is-there-or-not</guid>
+      <pubDate>Tue, 26 Mar 2024 12:17:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于语料库搭配的 logdice 关联强度度量的问题</title>
+      <link>https://stats.stackexchange.com/questions/643556/question-about-logdice-association-strength-measure-for-collocation-on-a-corpus</link>
+      <description><![CDATA[我对俄罗斯国家语料库中用于搭配分析的 logDice 关联度量有疑问。
+基本上，俄罗斯国家语料库是一个开放获取语料库，包含俄语的语言学数据，以及新闻数据等子语料库，人们可以在其中运行搭配分析来衡量关键字在其搭配中的强度对。下面是引理“гей”的搭配分析结果。 2011-2021年俄罗斯国家新闻子语料库中5L和5R的搭配窗口大小：
+
+如您所见，它显示了搭配阈值（关键字及其搭配的数量）、关键字频率、搭配频率和 logDice 值（即要衡量的关键字的关联强度度量）在其搭配对中。给定语料库中关键字和搭配的频率，LogDice 衡量关键字出现在其搭配对中的可能性。 logDice (Rychlý, 2008) 的公式如下：
+logDice = 14 + log2(2.fxy/fx+fy)
+地点：
+fxy = 单词 x 和 y 的频率
+fx = 单词 x（关键字）的频率
+fy = 单词 y（搭配）的频率
+俄罗斯国家语料库还允许用户使用 Excel 或 csv 格式下载搭配数据。这是该子语料库的 csv 文件的数据框 (df)，使用 R 读取：
+df &lt;- read.csv2(“kologay.csv”, header=TRUE, sep=“;”)
+
+
+但是，除了 logDice 之外，我们不需要另一列关联度量，因此我将删除它们。根据 logDice 公式，我将使用 logDice 公式约定更改第三、第四和第五列的名称。这是我执行此操作的代码：
+colnames(df)[3] &lt;- “fxy”
+colnames(df)[4] &lt;- “fx”；
+colnames(df)[5] &lt;-“fy”；
+df &lt;- df %&gt;%
+   选择(1:6)
+
+
+但是，我很好奇，因为子语料库中的 csv 数据框提供了一个名为 Dice 而不是 logDice 的列（logDice 是 log2(Dice)），所以我决定自己计算 logDice 度量。所以我使用以下代码继续 df 管道：
+mutate(logDice = 14 + log2((2 * fxy) / (fx + fy)))
+
+它检索我这个数据框：
+
+正如您所看到的，它从子语料库数据中使用骰子表检索到了非常不同的结果。因此，为了确保事情顺利进行，我运行了一个新代码，这次是通过 df 管道使用以下公式 2fx/fx+fy 来测量 Dice 分数（Rychlý，2008）：
+mutate(only_Dice = (2 * fxy) / (fx + fy))
+
+
+这从 dice 和 logDice 列中检索到了完全不同的结果。
+我的问题是：谁错了？我在测量 logDice 时犯了错误吗？或者子语料库是否没有检索到完整的词频数据？我无法得出任何结论，因为每次测量似乎都不同。
+感谢您提前提供的帮助。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643556/question-about-logdice-association-strength-measure-for-collocation-on-a-corpus</guid>
+      <pubDate>Tue, 26 Mar 2024 11:40:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>多变量荟萃分析 - 亚组指标能否反映几个不同的变量和结果类型？</title>
+      <link>https://stats.stackexchange.com/questions/643555/multivariate-meta-analysis-can-subgroup-indicator-reflect-several-different-va</link>
+      <description><![CDATA[我已经看到，在荟萃分析中，可以使用多元模型来获得与一系列单独的荟萃分析相同的估计值，例如
+https://www.metafor-project.org/doku.php/tips： comp_two_independent_estimates
+据我了解，子组被纳入模型中作为分类调节器，以及随机斜率和适当的相关结构，例如对角方差-协方差矩阵，以获得与每个子组上的一系列单独模型相同的估计。
+如果我理解正确的话，这个子组术语基本上是一个识别结果变量的变量；要建模的实际结果变量是任意数值变量。如果我们使用标准荟萃分析方法，该数值变量将是假设呈正态分布的连续变量。
+在链接的教程中，子组似乎反映了单个调节变量（即“分配”）。然而，我想知道折叠一系列变量来创建这个子组变量是否有效，例如疾病类型、疾病阶段和结果类型（例如比例、比值比、风险比等）。要建模的数值结果变量及其方差需要根据结果类型（比例、比率等）进行不同的计算。然后我们可以一次性计算出所有估计值，而不是运行大量单独的模型。我们必须注意，稍后呈现的反向转换可能会根据结果类型而有所不同。
+如果您就这种方法是否有效提供一些建议，我将非常感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643555/multivariate-meta-analysis-can-subgroup-indicator-reflect-several-different-va</guid>
+      <pubDate>Tue, 26 Mar 2024 11:18:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>朴素拜耳分类器 - 我们是否使用依赖结构？</title>
+      <link>https://stats.stackexchange.com/questions/643553/naive-bayer-classifier-do-we-use-dependence-structure</link>
+      <description><![CDATA[如果我们应用朴素拜耳分类器并仅通过使用贝叶斯定理计算的后验概率结合朴素特征独立性假设来预测不可见的观察结果，我们是否会忽略所有类型的依赖结构（例如（co）方差）？或者这是否仍然进入我们的预测？正是这种简化使我们能够将其应用于各种问题，对吗？
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/643553/naive-bayer-classifier-do-we-use-dependence-structure</guid>
+      <pubDate>Tue, 26 Mar 2024 11:01:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>测试随时间测量的两组之间的显着差异</title>
+      <link>https://stats.stackexchange.com/questions/643552/test-for-significant-difference-between-two-groups-measured-across-time</link>
+      <description><![CDATA[我有两组与时间相关的样本，其测量值随时间非线性变化。 A 组有 3 个样本，B 组有 3 个样本。下面是我的数据示例。
+什么测试适合测试 A 组与 B 组是否存在显着差异？
+由于我寻求 A 组和 B 组之间的差异，而不是每组内时间的差异，重复测量方差分析似乎不合适。混合效应模型会假设随时间线性变化，但这并不适用于此。
+绘图 - 数据示例
+
+CSV - 数据示例
+&lt;前&gt;&lt;代码&gt;时间，A1，A2，A3，B1，B2，B3
+5,3.792645248,3.767412383,6.019934357,3.769078828,3.786871737,3.791214992
+15,7.108624225,6.249444518,7.238739905,10.23524606,8.34298326,6.919577624
+30,9.977429073,7.35986553,7.699815947,15.9001795,8.957144807,9.45955481
+45,18.27403355,10.24380397,10.43652988,19.87898547,13.7122255,15.55478974
+60,21.9362587,12.24045884,12.31885174,32.57894138,18.58268892,20.89684399
+120,29.05427975,15.9553454,22.9201366,43.07367874,28.54766295,28.91710726
+240,64.45944021,35.70624466,37.24061192,49.0052434,33.33309831,34.73066486
+360,42.96420598,41.85475335,46.22951279,37.31929087,44.97518965,51.67423842
+1440,54.9920728,57.90045856,48.82031436,48.48340553,44.9722854,51.46751176
+1800,65.36311707,67.55856177,54.93558162,55.45770116,50.27138823,59.34195015
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643552/test-for-significant-difference-between-two-groups-measured-across-time</guid>
+      <pubDate>Tue, 26 Mar 2024 10:57:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>当样本量较小时评估双变量变化（干预前和干预后），仅查看主动干预组？</title>
+      <link>https://stats.stackexchange.com/questions/643551/assessing-bivariate-change-pre-and-post-intervention-when-sample-size-is-smal</link>
+      <description><![CDATA[我有大约 60 人参与的随机对照试验的数据（干预组 30 人，对照组 30 人）。我想评估一个变量 (M) 的变化是否与另一个变量 (Y) 的变化相关，后者是连续变量。理想情况下，我会进行中介分析，看看 M 是否介导了干预对结果 Y 的影响，但我的功效较低。
+因此，我计划仅在干预组内评估 M 变化和 Y 变化之间的关联（即忽略对照组的数据）。为此，我正在考虑：
+
+创建“更改分数”对于 M 和 Y，通过使用每个变量的干预后评分并回归各自的基线评分和协变量（即干预后评分 ~ 干预前评分 + 年龄 + 性别 + 其他基线协变量的残差）。我将为两者使用同一组协变量。
+然后我计划使用回归来评估 M 的变化是否可以预测 Y 的变化。即“Y 的变化” ~“M 的变化”。
+我在后续行动中有大量缺失数据，因此计划解决缺失数据问题。我正在考虑使用多重插补，尽管我不确定是否应用此方法或何时应用，可能是在第 1 阶段。
+
+问题：这听起来是不是一种比中介分析更有效的合理方法？有没有办法使用线性混合模型完成类似的分析，以便我可以使用 MLE 来解决丢失的数据？
+我可能应该提到，在上面的计划中，我使用了两个时间点的数据。然而，对于我的变量 M，我有三个时间点（即 6 个月干预中期的额外测量）。我还计划对几种结果 (Ys) 进行分析，其中一些有 3 个衡量标准（基线、6 个月、12 个月），其他只有两个（基线、12 个月）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643551/assessing-bivariate-change-pre-and-post-intervention-when-sample-size-is-smal</guid>
+      <pubDate>Tue, 26 Mar 2024 10:56:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>将结构破坏测试应用于VEC模型</title>
+      <link>https://stats.stackexchange.com/questions/643550/applying-test-for-structural-break-to-vec-model</link>
+      <description><![CDATA[有谁知道在 VEC 模型中使用哪种测试来进行结构破坏？
+我想使用 CUSUM 和 CUSUM-sq，但 CUSUM-sq 似乎总是返回临界范围之外的结果。
+非常感谢任何帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/643550/applying-test-for-structural-break-to-vec-model</guid>
+      <pubDate>Tue, 26 Mar 2024 10:40:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>如果某些数据超出仪器/测量值，如何比较分布？</title>
+      <link>https://stats.stackexchange.com/questions/643548/how-to-compare-distributions-if-some-data-maxed-out-instrument-measurement</link>
+      <description><![CDATA[我正在比较两个零件设计强度的分布。
+测试设备最大数量为300台。 300台是设备的任意限制，并不代表设计的要求。如果样品经受住了 300 个单位的负载，我将其记录为“通过”。
+我不知道如何统计显示两种设计之间的强度差异。如果一个人达到最大规模，有没有办法比较分布？
+我不知道如何将平均值与没有值的 21/36 新样本进行比较。或者，我可以查看通过率，但这不是很有趣，而且通过标准完全是任意的，与实际的功能需求无关。
+新分布的非正态性也无济于事。
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643548/how-to-compare-distributions-if-some-data-maxed-out-instrument-measurement</guid>
+      <pubDate>Tue, 26 Mar 2024 10:06:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>当 x 变量之间存在强共线性时，搜索哪些 x 变量对 y 影响最大</title>
+      <link>https://stats.stackexchange.com/questions/643546/searching-for-which-x-variables-affect-y-the-most-when-there-is-strong-collinear</link>
+      <description><![CDATA[我有一个包含 33 个观察值和 16 个变量的样本。我的主要目标是找出其中哪些（可能是几个）对您影响最大。 Y 是系统中不需要的错误，x 变量是错误的可能原因。我并不是试图预测错误的大小，而是寻找可能导致错误的原因。
+我正在使用线性回归。我的 python 包告诉我变量之间存在很强的共线性。我通过计算 VIF 数和相关矩阵证实了这一点。但很难选择 16 个变量中的哪一个应该保留，哪个应该删除。
+我知道当 x 变量之间存在很大依赖性时，模型可能会变得更糟。但查看输出，我得到了一些变量，其中系数似乎具有统计显着性 (p &lt; 0.0001)。
+我可以相信这些结果吗？还是因为我知道我有如此强的共线性，所以它们毫无意义？或者我可以说我得到了一些可以使用的结果，尽管共线性如此强？
+OLS 回归结果
+=================================================== ===========================
+部门。变量：justering_tillg R 平方：0.999
+型号：OLS 调整型R 平方：0.998
+方法：最小二乘法 F 统计量：1236。
+日期：2024 年 3 月 26 日，星期二概率（F 统计量）：1.66e-20
+时间：10:30:54 对数似然：-631.43
+观察数量：33 AIC：1299。
+Df 残差：15 BIC：1326。
+Df 型号：17
+协方差类型：非鲁棒
+
+...
+&lt;前&gt;&lt;代码&gt;注释：
+[1] 标准误差假设误差的协方差矩阵已正确指定。
+[2] 条件数很大，1.17e+12。这可能表明有
+强多重共线性或其他数值问题。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643546/searching-for-which-x-variables-affect-y-the-most-when-there-is-strong-collinear</guid>
+      <pubDate>Tue, 26 Mar 2024 09:46:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>值周围的误差线指示标准误差</title>
+      <link>https://stats.stackexchange.com/questions/643545/error-bars-around-values-indicating-standard-error</link>
+      <description><![CDATA[
+
+放置表示标准误差的误差线有什么用？用误差幅度 ($±2SE$) 来解释不是更好吗？ 
+
+在第一个值（时间=0）和分数=0的平均变化周围放置标准误差是否有意义？
+
+
+参考资料：RaymondW. Lam 等人，亮光治疗、氟西汀及其组合对非季节性重度抑郁症患者的疗效：随机临床试验，JAMA 精神病学。 doi:10.1001/jamappsychiatry.2015.2235]]></description>
+      <guid>https://stats.stackexchange.com/questions/643545/error-bars-around-values-indicating-standard-error</guid>
+      <pubDate>Tue, 26 Mar 2024 09:24:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>数据标准化与规范化</title>
+      <link>https://stats.stackexchange.com/questions/643544/standardization-vs-normalization-of-data</link>
+      <description><![CDATA[
+在上面的示例中，我使用了 3 种距离计算方法
+1.计算实际数据的距离
+2.数据标准化并计算距离
+3.使用最小-最大缩放器，然后计算距离
+我有 3 个组合（3*3）维的数据，并且想要计算每个组合的欧几里得距离。
+考虑本例中的组合 2-1 和 3-2，并选择距离最小的最佳组合
+案例1：实际数据&amp;最小-最大缩放
+当根据实际数据计算距离时（未使用标准化）2-1 给出了最佳组合，因为（0.12&lt;0.27）
+类似地，当对数据使用最小-最大缩放时，计算距离给出类似的结果，即 2-1 组合为(0.003965&lt;0.018522)
+案例2：标准化
+在这种情况下，实际数据值根据平均值进行标准化，因此我使用公式进行标准化：x-(mean)/std
+标准化是按列完成的，如果我们计算距离，我们会得到最好的 3-2 组合（2.78&lt;3.73）
+在案例1和案例2中，我得到的组合是不同的
+我应该考虑哪一个？
+我的以下问题
+1.结果发生变化是因为我的样本很小（只使用了3行）？
+2.均值是否影响标准化值？
+3.异常值对标准化技术有影响吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643544/standardization-vs-normalization-of-data</guid>
+      <pubDate>Tue, 26 Mar 2024 09:22:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于DCGAN训练冗余的问题</title>
+      <link>https://stats.stackexchange.com/questions/643542/question-about-the-redundance-in-dcgan-training</link>
+      <description><![CDATA[我不明白DCGAN训练中冗余的必要性。所以一个经典的 DSGAN 训练过程是这样的：
+
+我的问题：
+
+我可以删除步骤 (7)-(8) 并重新使用 (4) 中的假图像来计算生成器损失吗？
+如果可以，我可以进一步重用 $D(G(z))$ 的结果吗？ IE。
+生成假图像 -&gt;使用相同的 $D(G(z))$ 值计算生成器损失和鉴别器损失 -&gt;更新生成器-&gt;更新鉴别器
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643542/question-about-the-redundance-in-dcgan-training</guid>
+      <pubDate>Tue, 26 Mar 2024 09:16:20 GMT</pubDate>
+    </item>
     <item>
       <title>条件独立性的分布</title>
       <link>https://stats.stackexchange.com/questions/643541/distribution-of-conditional-independence</link>
@@ -27,158 +258,11 @@ $p(w|az)=\int_U p(w,u|az) du=\int_U p(w|azu)p(u|az)du=\ int_U p(w|u)p(u|az)du=p(
       <title>$y = ax + b + \epsilon$ 如何得出 $R^2$ 上的概率分布？</title>
       <link>https://stats.stackexchange.com/questions/643539/how-does-y-ax-b-epsilon-induce-a-probability-distribution-on-r2</link>
       <description><![CDATA[这是关于关于统计模型的维基百科文章中给出的示例。在该示例中，声称“$\theta = (b_0, b_1, σ^2)$ 的每个可能值确定 S 上的分布”，但没有给出进一步的解释。我知道 $(b_0, b_1, σ^2)$ 为我们提供了任何给定年龄的身高概率分布，但我不明白如何将其扩展到所有（年龄、身高）对的空间上的概率分布。
-最直接的想法是考虑沿 y 轴对齐的钟形曲线 $y = b_0x + b_1$ 进行跟踪，但这当然不能集成到1 因此不构成 S 上的概率分布。]]></description>
+最直接的想法是考虑沿 y 轴对齐的钟形曲线 $y = b_0x + b_1$ 进行跟踪，但这当然不能集成到1 因此不构成 S 上的概率分布。
+编辑以澄清：
+$R^2$ 上的概率分布是正函数 $p$，使得 $\int_{R^2} p(x,y) dxdy = 1$。给定一个线性模型 $y = b_0 x + b_1 + \epsilon$，其中 $\epsilon \sim N(0, \sigma^2)$，固定的 $(b_0, b_1, \sigma^2)$ 如何诱导这样的函数，如链接文章？]]></description>
       <guid>https://stats.stackexchange.com/questions/643539/how-does-y-ax-b-epsilon-induce-a-probability-distribution-on-r2</guid>
       <pubDate>Tue, 26 Mar 2024 09:04:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>了解企业固定效应 (a_i) 在面板回归中的作用</title>
-      <link>https://stats.stackexchange.com/questions/643538/understanding-the-role-of-firm-fixed-effects-a-i-in-panel-regression</link>
-      <description><![CDATA[我正在寻求有关在以下面板回归方程中使用公司固定效应$a_i$的澄清：
-$$y_{it} = \beta_{i}x_{it} + a_{i} + u_{it}, \quad t = 1, 2, \ldots ，T$$
-根据我的理解，a_i 代表数据集中每个公司的虚拟变量。但是，我很好奇这个术语的本质以及它与在回归中手动包含虚拟变量有何不同。
-如果我要手动计算回归，我会使用每个公司的虚拟变量来进行计算。 Stata 或 R 等统计软件如何处理包含公司固定效应的情况？它使用的方法与手动创建虚拟变量是否不同？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643538/understanding-the-role-of-firm-fixed-effects-a-i-in-panel-regression</guid>
-      <pubDate>Tue, 26 Mar 2024 08:31:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较具有不同预测概率的不公平抛硬币序列</title>
-      <link>https://stats.stackexchange.com/questions/643537/comparing-sequence-of-unfair-coin-flips-with-different-predicted-probabilities</link>
-      <description><![CDATA[假设我们有 $n$ 个独立硬币，每个硬币正面朝上的概率未知且不同。我们有一台神奇的机器，可以猜测每枚硬币正面朝上的概率。对于 $n=5$ 硬币，其猜测可能类似于 0.03, 0.45, 0.17, 0.91, 0.76。然后，我们将每枚硬币翻转一次并记录结果，可能是正面、反面、反面、正面、正面。我们的问题：是否有统计测试可以评估机器的准确性？
-我的第一直觉是像 Pearson 那样的卡方检验，或者可能是 G 检验，其中如果正面朝上，我们的观察值为 1，否则为 0。然而，数据不是分类的，观测值的总和也不是已知的常数。我还考虑了柯尔莫哥洛夫-斯米尔诺夫检验来比较预期与观察到的结果，但概率分布都不是。
-我不确定如何用数学方式表达我的偏好，但我会尝试定性地表达它们：
-
-准确度主要取决于正面比率：例如，当机器对一组硬币的猜测为 0.2 时，如果 5 枚中有 1 枚正面朝上，或者 50 枚中有 11 枚正面朝上，我们就应该认为它是准确的，但是如果 5 个头中有 3 个落地则不准确
-真实概率可能不是从 0 到 1 均匀分布
-可选：准确性应该能够合理地容忍单一的、极不可能发生的事件
-
-很抱歉，如果之前有人问过类似的问题，我对这个网站和统计数据都很陌生，但希望这个问题足够清楚。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643537/comparing-sequence-of-unfair-coin-flips-with-different-predicted-probabilities</guid>
-      <pubDate>Tue, 26 Mar 2024 08:23:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果事件 $A$ 是 $S(A)$ 元素的并集，则 $\min_{Z\in S(A):Z\subset A}P(B\mid Z)\leq P(B\mid A)$ 任何事件 $B$</title>
-      <link>https://stats.stackexchange.com/questions/643536/if-event-a-is-a-union-of-elements-of-sa-then-min-z-in-saz-subset-a</link>
-      <description><![CDATA[令 $A$ 和 $B$ 为概率空间中的事件，并且 $S(A)$ 事件集合，例如 $A$ 是 $S(A)$。那么我如何得出条件概率满足不等式的结论
-$$\min_{Z\in S(A):Z\子集 A}P(B\mid Z)\leq P(B\mid A)$$&lt; /跨度&gt;
-（或者用 $\inf$ 代替 $\min$ 相同，这可能是一个更安全的选择）？估计分数表达式总是很痛苦，而且我没有看到任何直接的技巧。那么也许有一些定性的见解/结果可以帮助我解决这个问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643536/if-event-a-is-a-union-of-elements-of-sa-then-min-z-in-saz-subset-a</guid>
-      <pubDate>Tue, 26 Mar 2024 08:09:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>Hoeffding 的局部最强大排名测试公式</title>
-      <link>https://stats.stackexchange.com/questions/643534/hoeffding-s-formula-for-locally-most-powerful-rank-tests</link>
-      <description><![CDATA[假设我们有 $$H_0: X_1,X_2, 的测试问题。 。 。 ,X_n \\text{是 i.i.d.具有连续 cdf} \ F(x) \ \text{和 pdf} \ f(x)$$ 和 $$H_1: X_1,X_2, 的随机变量。 。 。 ,X_n \ \text{是独立的随机变量} \ X_i \ \text{具有连续的 cdf} \ F_i \ \text{和 pdf} \ f_i, \text{分别}.$$ 那么 Hoeffding 的公式表示 $$\mathbb{P}_{H_1}(\underline{R}=\underline{r})=\mathbb{P}_{H_1}(R_1= r_1,....,R_n=r_n)=\int....\int \prod^n_{i=1}f_i(x_i)dx_i$$，其中积分位于区域 $−\infty &lt; x_{i_1} &lt; x_{i_2} &lt; 。 。 。 &lt; x_{i_n} &lt; \infty$ 使得 $X_i$ 的排名为 $r_i$，即 &lt; span class=&quot;math-container&quot;&gt;$x_i$ 按上述顺序占据 $r^{th}_i$ 位置，$i = 1, 2, . 。 。 ，n$。然后证明就像 $$\mathbb{P}_{H_1}(\underline{R}=\underline{r})=\frac{1}{n!} \int....\int\frac{\prod^n_{i=1}f_{r_i}(x_{r_i})}{\prod^n_{i=1}f(x_i)}n!\prod ^n_{i=1}f(x_i)dx_i=\frac{1}{n!}\mathbb{E}[\prod_{i=1}^n\frac{f_{r_i}(X_{(r_i)) })}{f(X_{(i)})}].$$ 其中期望 $\mathbb{E}$ 是相对于订单统计量的联合分布 $X_{(1)},X_{(2)}, 。 。 。 ,X_{(n)}$ 来自 $F(x)$ 的随机样本。
-$$$$现在，如果我们倒退，则计算 $\frac{1}{n!}\mathbb{ E}[\prod_{i=1}^n\frac{f_{r_i}(X_{(r_i)})}{f(X_{(i)})}]$ 让 $h$ 是一个函数，使得 $h(y_1,....y_n)=\frac{1}{n!}\ prod_{i=1}^n\frac{f_{r_i}(y_{r_i})}{f(y_{i})}$，然后 $$ \frac{1}{n!}\mathbb{E}[\prod_{i=1}^n\frac{f_{r_i}(X_{(r_i)})}{f(X_{(i)}) }]=\mathbb{E}[h(X_{(1)},....,X_{(n)}]$$ 其中期望是相对于订单统计量的联合分布来自 $X_{(1)},X_{(2)}, . . . ,X_{(n)}$ math-container&quot;&gt;$F(x)$。现在 $$\mathbb{E}[h(X_{(1)},....,X_ {(n)}]=\int....\int_S h(y_1,...y_n)n!\prod^n_{i=1}f(y_i)dy_i=\int....\int_S \压裂{1}{n!}\prod_{i=1}^n\压裂{f_{r_i}(y_{r_i})}{f(y_{i})} n!\prod^n_{i=1 }f(y_i)dy_i \\ = \int....\int_S \prod_{i=1}^nf_{r_i}(y_{r_i})\prod^n_{i=1}dy_i=\int.. ..\int_S \prod_{i=1}^nf_i(y_i)\prod^n_{i=1}dy_i=\mathbb{P}_{H_1}(X_1 其中 $S=\{(y_1,....y_n):y_1。所以我想知道我的计算出了什么问题？ $X_{(R_i)}=X_i$ 的概率也是 $1$，因为对于任何 $\omega$，$R_i(\omega)$ 是 $X_i(\omega)$ 所以 $X_{(R_i(\omega))}(\omega)=X_i(\omega)$  所以$X_{(R_i)}=X_i$。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643534/hoeffding-s-formula-for-locally-most-powerful-rank-tests</guid>
-      <pubDate>Tue, 26 Mar 2024 07:07:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解释此逻辑回归分析的结果</title>
-      <link>https://stats.stackexchange.com/questions/643532/how-do-i-interpret-the-results-of-this-logistics-regression-analysis</link>
-      <description><![CDATA[这是逻辑回归分析的结果，表格名称是（不同类别与心血管疾病之间的关联性的逻辑回归分析），我们认为TYG指数是心血管疾病的危险因素，我该怎么办表达此逻辑回归分析的结果，或者以何种方式表达此结果，特别是因为调整后的模型（模型 3）的 OR%95CI 包含 1，并且 OR%95CI 的其余部分大于 1。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643532/how-do-i-interpret-the-results-of-this-logistics-regression-analysis</guid>
-      <pubDate>Tue, 26 Mar 2024 06:19:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>分类解释变量中的小样本与总体样本量</title>
-      <link>https://stats.stackexchange.com/questions/643531/small-sample-in-categorical-explanatory-variable-vs-overall-sample-size</link>
-      <description><![CDATA[在统计模型中，例如回归时，我们必须确保样本量足以估计给定数量的参数。经验法则，例如每个参数 n=10 或功效分析将为我们提供拟合模型所需的总样本量。然而，我想知道这些样本大小估计如何应用于通常被编码为虚拟变量的分类变量，其参数估计值比组数（因子水平）少 1。假设我们的样本量平均每个待估计参数有 30 个数据点（总体比率 = 30:1）。然而，分类变量具有一个因子水平，其因子水平非常“小”。出现的次数，例如4、给出比例=4：1。这远小于总体比率，甚至小于 10:1 的经验法则。我想知道在这种情况下如何最好地进行？如果总体比率足够的话，在一个因素水平上样本量/数量参数比率非常小，那么重要吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643531/small-sample-in-categorical-explanatory-variable-vs-overall-sample-size</guid>
-      <pubDate>Tue, 26 Mar 2024 04:23:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>单身美国人[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/643530/single-americans</link>
-      <description><![CDATA[近年来，16 岁及以上的美国人中约有 22% 是单身。在 210 名 16 岁或以上的美国人的随机样本中，超过 34 人单身的概率是多少？将最终答案至少四舍五入到小数点后 4 位，并将中间 z 值计算结果舍入到美国小数点后 2 位。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643530/single-americans</guid>
-      <pubDate>Tue, 26 Mar 2024 04:15:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>lme 4级模型预测错误？</title>
-      <link>https://stats.stackexchange.com/questions/643529/lme-4-level-model-predictions-error</link>
-      <description><![CDATA[我的数据集有 4 个个体内嵌套级别：IV1、IV2、IV3 和 IV4。最高分组级别（IV4）是每个参与者。
-在此数据集中，所有参与者都完成了任务的两个版本（两个任务中具有相同的 IV1 和 IV2）。任务版本用IV3表示，有两个级别：Task1（编码为0）和Task2（编码为1）。
-我使用以下代码运行了一个传销模型：
-model2 &lt;- lme(DV ~ poly(IV1, 2, raw = TRUE)*IV2*IV3,
-              随机 = ~ 1 + 聚(IV1, 2, 原始 = TRUE)|IV4/IV3/IV2,
-              相关性 = corCAR1(),
-              数据=数据集，
-              控制 = lmeControl(opt = “优化”, maxIter = 3e5))
-
-但是，当我尝试使用以下代码绘制预测值时，Task2 (IV3 = 1) 的平均截距看起来异常大，平均斜率看起来异常平坦。 Task1 (IV3 = 0) 的图表看起来正常。
-数据集$Predicted &lt;- 预测(model2)
-
-ggplot(数据集, aes(x = 因子(IV1), y = 预测,
-                    组 = 交互作用(IV2, IV3),
-                    形状 = IV2，颜色 = IV2，线型 = IV3)) +
-       stat_summary(数据 = 子集(数据集, IV3 == 1),
-                    aes(x = 因子(IV1)，y = 预测，fun.y = 平均值，geom =“线”) +
-       stat_summary(数据 = 子集(数据集, IV3 == 0),
-                    aes(x = 因子(IV1)、y = 预测、fun.y = 平均值、geom =“线”、linetype =“虚线”) +
-       scle_linetype_manual(values = c(“实线”, “虚线”))
-
-任务2 = 实线；任务1 = 虚线
-
-我使用相同的代码来绘制描述性图表（将y = Predicted更改为y = DV），并且效果很好。 在观察到的数据中，两个任务版本之间的 DV 看起来很相似。
-然后，我查看了使用 dataset$Predicted &lt;- Predict(model2) 添加到数据集中的预测值，并得出结论，它们是问题的根源，而不是出现问题ggplot 代码。 IV1 = 25 时的预测值看起来太大，而 IV1 = 100 时的预测值看起来太小。
-这肯定意味着模型有问题。然而，如果是这样的话，我不明白为什么图表上 IV3 = 0（任务 1）的预测值仍然看起来正常并且与我们观察到的数据非常相似。我怀疑两个任务版本之间可能存在很大的共享个​​体差异，这些差异可能会被 corCAR1() 过度校正；所以我删除了一半的参与者，只保留首先完成每个版本的参与者（即不同版本的不同参与者），并将我的模型更改为中间设计（random = ~ 1 + poly(IV1, 2 ，原始 = TRUE)|IV3/IV4/IV2)。然而问题依然存在。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643529/lme-4-level-model-predictions-error</guid>
-      <pubDate>Tue, 26 Mar 2024 01:38:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>分段定义参数先验时的 MAP</title>
-      <link>https://stats.stackexchange.com/questions/643527/map-when-the-prior-of-the-parameter-is-defined-piecewise</link>
-      <description><![CDATA[根据维基百科的定义，$$\hat{\theta}_{MAP} = \underset{\theta}{\mathrm{argmax}} f(x | \theta ) g(\theta)$$
-然后，为了实际获得 theta-hat-MAP，我们可以将上述（或其对数）的导数设置为零并求解 $\hat{\theta}_ {MAP}$ 然后检查二阶导数以确保最大值。
-但是，如果 $g(\theta)$ 是分段定义的，会发生什么？例如， $g(\theta)$ 对于 $\theta \leq 0$ 和 &lt; span class=&quot;math-container&quot;&gt;$\theta\geq 0$。我们应该如何求 $g(\theta)$ 的导数？我们是否将 $g(\theta)$ 的不同定义的导数相加？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643527/map-when-the-prior-of-the-parameter-is-defined-piecewise</guid>
-      <pubDate>Tue, 26 Mar 2024 01:11:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>我的特征在多变量模型与双变量测试中具有相反的影响方向有哪些可能的原因[重复]</title>
-      <link>https://stats.stackexchange.com/questions/643519/what-are-some-possible-reasons-my-feature-has-the-opposite-direction-of-effect-i</link>
-      <description><![CDATA[我正在为我的雇主制定租金模型。为了保持其可解释性，我们使用 OLS。到目前为止，在增加 R 平方和减少 AIC 方面，我在特征工程方面非常幸运。然而，我只是尝试将学士学位持有者的百分比包含在邮政编码中，得到的结果让我犹豫不决。
-在进行双变量回归、查看相关性并进行目视检查时，学士学位对租金有积极影响。然而，在多变量模型中，它会产生严重的负面影响。
-我必须稍微含糊一点，但我们包括的其他变量是房屋本身的内生变量（SF等）、当地房屋价值、十英里半径内的现行租金、最近学校的标准化数学成绩、到最近学校的距离，以及如上所述，邮政编码中拥有学士学位的人的百分比。
-当我取出当地单户住宅的价值时，学士学位效应大小的符号会发生变化，并且变为正值。
-任何人都可以提出一些我可能会看到这种结果的原因吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643519/what-are-some-possible-reasons-my-feature-has-the-opposite-direction-of-effect-i</guid>
-      <pubDate>Mon, 25 Mar 2024 20:53:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>加性相互作用，为什么SI为空</title>
-      <link>https://stats.stackexchange.com/questions/643479/additive-interaction-why-si-was-null</link>
-      <description><![CDATA[我在一篇论文中看到了加性相互作用分析的结果，我不明白这里NA的结果表达式是什么意思，为什么是NA，请你解释一下。
-[![在此处输入图像描述][1]][1]
-原论文描述：未发现TyG之间存在交互作用
-指数类别和子组变量（表 4）。 SI 为
-成瘾互动中的教育水平或婚姻状况
-由于无意义的统计值，分析无效。
-原文链接：https://cardiab.biomedcentral.com/articles/10.1186/s12933-023-01870-z
-[1]: https://i.stack.imgur.com/aLYGr.png]]></description>
-      <guid>https://stats.stackexchange.com/questions/643479/additive-interaction-why-si-was-null</guid>
-      <pubDate>Mon, 25 Mar 2024 12:10:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>后验预测分布的解释</title>
-      <link>https://stats.stackexchange.com/questions/643029/interpretation-of-posterior-predictive-distributions</link>
-      <description><![CDATA[根据我迄今为止收到的评论，问题更新。
-下面的数据、示例和结果都是虚构的，因为我对这些结果的正确解释感兴趣。
-假设我用贝叶斯线性模型研究人体体重和身高之间的关系。假设我绘制后验预测分布，如下图所示。
-
-下面的jbowman说图表上没有分布。
-我认为对于任何给定的体重值，红色条代表 95% 最可信的预测身高值。 我可以说出这些后验预测分布吗？
-还有，我问是否可以说“体重110公斤的人比体重100公斤的人有95%的概率高”？我这样推断是因为 110 公斤和 100 公斤重量的后验预测分布不重叠。
-下面的米尔特医生说我不能。我的问题：为什么？我通过以下方式解释我的误解：
-假设我想预测一个110公斤的人的身高。
-贝叶斯分析的一个特点是我们可以获得可信预测值的整个分布，而不仅仅是点估计。为了获得预测值的分布，我可以使用该步骤的参数值从模型中随机生成模拟数据。我可以通过查看垂直绘制的红色条来想到这一点。
-我的这个推理正确吗？
-如果是这样，再次假设我要预测一个 110 公斤的人的身高。模型可以为此权重值生成的最低高度值高于 1.5 米，这是根据图表上的红色条得出的。
-现在再次假设我想预测一个 100 公斤的人的身高。模型可以为此重量值生成的最大高度值低于 1.5 米，这是根据图表上的红色条得出的。
-似乎 110 公斤的人的预测身高值总是高于 100 公斤的人的预测身高值。 正因为如此，为什么我不能说“体重110公斤的人有95%的概率比体重100公斤的人高”？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643029/interpretation-of-posterior-predictive-distributions</guid>
-      <pubDate>Wed, 20 Mar 2024 04:32:47 GMT</pubDate>
     </item>
     </channel>
 </rss>
