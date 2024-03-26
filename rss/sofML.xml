@@ -4,9 +4,142 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Tue, 26 Mar 2024 06:18:31 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 26 Mar 2024 09:14:10 GMT</lastBuildDate>
     <item>
-      <title>我们如何创建或者什么类型的机器学习或深度学习模型可用于创建用于安排比赛的模型</title>
+      <title>此代码不适用于tensorflow 2.16.0+版本</title>
+      <link>https://stackoverflow.com/questions/78223936/this-code-is-not-working-on-tensorflow-2-16-0-version</link>
+      <description><![CDATA[检查点 = ModelCheckpoint(
+    &#39;./base.model&#39;,
+    监视器=&#39;val_accuracy&#39;,
+    详细=1，
+    save_best_only=真，
+    模式=&#39;最大&#39;,
+    save_weights_only=假,
+    保存频率=1
+）
+提前停止=提前停止(
+    监视器=&#39;val_loss&#39;,
+    最小增量=0.001，
+    耐心=30，
+    详细=1，
+    模式=&#39;自动&#39;
+）
+
+opt1 = tf.keras.optimizers.Adam()
+
+回调= [检查点，提前停止]
+
+这不适用于tensorflow 2.16.1
+但是，正在 google colab 上开发 2.15.0
+我如何修复我的代码或如何安装tensorflow 2.15.0？
+我尝试了pip install tensorflow=2.15.0
+但是，它显示错误]]></description>
+      <guid>https://stackoverflow.com/questions/78223936/this-code-is-not-working-on-tensorflow-2-16-0-version</guid>
+      <pubDate>Tue, 26 Mar 2024 08:41:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法在 LightGBM 中检索 best_iteration</title>
+      <link>https://stackoverflow.com/questions/78223783/cant-retrieve-best-iteration-in-lightgbm</link>
+      <description><![CDATA[这是我的代码：
+def 目标（试验、train_set、valid_set、num_iterations）：
+    
+    参数 = {
+        &#39;目标&#39;：&#39;二进制&#39;，
+        &#39;任务&#39;:&#39;训练&#39;,
+        &#39;提升&#39;：&#39;gbdt&#39;，
+        &#39;度量&#39;：[&#39;auc&#39;]，
+        &#39;n_estimators&#39;：num_iterations，
+        “冗长”：-1，
+        &#39;feature_pre_filter&#39;：假，
+        &#39;学习率&#39;: Trial.suggest_float(&#39;学习率&#39;, 0.01, 0.3),
+        &#39;num_leaves&#39;: Trial.suggest_int(&#39;num_leaves&#39;, 2, 256),
+        &#39;最大深度&#39;: Trial.suggest_int(&#39;最大深度&#39;, 3, 12),
+        &#39;min_data_in_leaf&#39;: Trial.suggest_int(&#39;min_data_in_leaf&#39;, 20, 10000),
+        &#39;lambda_l1&#39;: Trial.suggest_float(&#39;lambda_l1&#39;, 1e-10, 10.0, log=True),
+        &#39;lambda_l2&#39;: Trial.suggest_float(&#39;lambda_l2&#39;, 1e-10, 10.0, log=True),
+        &#39;min_gain_to_split&#39;: Trial.suggest_float(&#39;min_gain_to_split&#39;, 0, 15),
+        &#39;feature_fraction&#39;: Trial.suggest_float(&#39;feature_fraction&#39;, 0.2, 1.0),
+        &#39;bagging_fraction&#39;: Trial.suggest_float(&#39;bagging_fraction&#39;, 0.2, 1.0),
+        &#39;bagging_freq&#39;: Trial.suggest_int(&#39;bagging_freq&#39;, 1, 10),
+    }
+
+    
+    pruning_callback = optuna.integration.LightGBMPruningCallback(Trial, &#39;auc&#39;, valid_name=&#39;valid_set&#39;)
+    
+    最佳评估结果 = {}
+    模型 = lgb.train(
+        参数，
+        训练集=训练集，
+        valid_sets=[训练集, valid_set],
+        valid_names=[&#39;train_set&#39;, &#39;valid_set&#39;],
+        回调=[修剪_回调，
+                   记录评估（最佳评估结果），
+                   提前停止(100)
+                  ]
+    ）
+    Trial.set_user_attr(key=&#39;best_booster&#39;, value=模型)
+    Trial.set_user_attr(key=&#39;best_eval_result&#39;, value=best_eval_result)
+
+    prob_pred = model.predict(feature_test, num_iteration=model.best_iteration)
+    返回 roc_auc_score(label_test, prob_pred, labels=[0,1])
+
+func = lambda 试验：目标（试验=试验，train_set=train_set，valid_set=valid_set，num_iterations=num_iterations）
+
+
+迭代次数 = 1000
+
+研究 = optuna.create_study(
+    修剪器=optuna.pruners.HyperbandPruner(),
+    方向=&#39;最大化&#39;
+）
+
+optuna.logging.set_verbosity(optuna.logging.警告)
+
+def save_best_booster（研究，试用）：
+    如果 Study.best_Trial.number == Trial.number：
+        Study.set_user_attr(key=&#39;best_booster&#39;, value=Trial.user_attrs[&#39;best_booster&#39;])
+        Study.set_user_attr(key=&#39;best_eval_result&#39;, value=Trial.user_attrs[&#39;best_eval_result&#39;])
+
+研究.优化(
+    功能，
+    n_试验=30，
+    show_progress_bar=真，
+    回调=[save_best_booster]
+）
+
+试验 = 研究.best_试验
+
+best_model=study.user_attrs[&#39;best_booster&#39;]
+
+
+训练输出日志确实有一些如下内容：
+提前停止，最佳迭代是：
+[30]train_set的auc：0.982083 valid_set的auc：0.874471
+训练直到 100 轮验证分数没有提高
+
+假设高于 valid_set 的 auc: 0.874471 的 auc 值确实是所有迭代中的最佳值，则 best_iteration 应为 [30]，如上所示。
+但是，我通过调用 best_model.best_iteration 得到了“-1”，如下所示：
+在： print(best_model.best_iteration)
+
+输出：-1
+
+感谢谁能解决我的问题！
+期待您的回复:)]]></description>
+      <guid>https://stackoverflow.com/questions/78223783/cant-retrieve-best-iteration-in-lightgbm</guid>
+      <pubDate>Tue, 26 Mar 2024 08:12:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>有关正确/错误解决方案的 C 代码数据集</title>
+      <link>https://stackoverflow.com/questions/78223653/c-code-dataset-on-correct-incorrect-solutions</link>
+      <description><![CDATA[我正在寻找有关体育编程任务解决方案的公共数据集（例如来自 LeetCode、timus...）。问题是，为了微调我的模型，我需要正确和错误的解决方案。例如，在 Leetcode 上，人们可以找到通过每项任务的所有测试的解决方案（但不确定在未经许可的情况下使用它们是否公平），但根本没有公开开放的不正确解决方案那里。
+所需的编程语言是 C。
+有人可以帮我吗？
+我检查了 HuggingFace 上的所有“代码”数据集，同样什么也没有。]]></description>
+      <guid>https://stackoverflow.com/questions/78223653/c-code-dataset-on-correct-incorrect-solutions</guid>
+      <pubDate>Tue, 26 Mar 2024 07:46:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>我们如何创建或者什么类型的机器学习或深度学习模型可用于创建用于安排比赛的模型[关闭]</title>
       <link>https://stackoverflow.com/questions/78223241/how-can-we-create-or-what-type-of-machine-learning-or-deeplearning-models-be-use</link>
       <description><![CDATA[想要创建一个网球锦标赛时间表
 我还没有尝试过，但想了解启动和训练模型的基本知识。我有一组过去的比赛数据，其中有各种限制，所以我想创建一个可以进行预测的模型。]]></description>
@@ -33,7 +166,7 @@
       <pubDate>Mon, 25 Mar 2024 21:38:40 GMT</pubDate>
     </item>
     <item>
-      <title>这段代码应该做什么？它持续执行并且不会停止</title>
+      <title>这段代码应该做什么？它继续执行并且不会停止[关闭]</title>
       <link>https://stackoverflow.com/questions/78221744/what-does-this-code-is-supposed-to-do-it-keeps-executing-and-does-not-stop</link>
       <description><![CDATA[我正在使用 Google Colab 上的 CelebA 数据集开发生成模型。一切都运行良好，但它要执行这个单元，它会继续执行。我应该在执行时做一些事情吗？为什么一直执行3、4个小时？
 这是代码：
@@ -109,123 +242,9 @@ a_损失= []
 
 这给了我 pytorch_lora_weights.safetensors 文件，我用它来生成我自己的图像。
 pipeline.load_lora_weights（“模型/”，weight_name =“pytorch_lora_weights.safetensors”）
-这种微调 Realistic_Vision_V6.0_B1_noVAE 模型的技术是否正确？或者任何类似稳定扩散的模型？]]></description>
+这种微调 Realistic_Vision_V6.0_B1_noVAE 模型的技术是否正确？或者任何像稳定扩散这样的模型？]]></description>
       <guid>https://stackoverflow.com/questions/78221298/how-can-i-fine-tune-the-any-generative-model-autotrain</guid>
       <pubDate>Mon, 25 Mar 2024 19:17:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>从 9 年的 Java 经验转向 AI/ML 职业道路是一个明智的决定吗？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78220858/is-it-good-decision-to-move-to-ai-ml-career-path-from-9-years-of-java-experience</link>
-      <description><![CDATA[您好，我作为软件开发人员和 API 开发人员拥有 9 年的 Java 经验。
-现在，在这个不断变化的技术时代，每个人都在谈论人工智能。
-那么，将职业道路转向与 AI/ML 相关的方向是个好决定吗？
-搜索了很多youtybe]]></description>
-      <guid>https://stackoverflow.com/questions/78220858/is-it-good-decision-to-move-to-ai-ml-career-path-from-9-years-of-java-experience</guid>
-      <pubDate>Mon, 25 Mar 2024 17:42:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用变压器模型改进列车准点预测：模型设置和性能问题</title>
-      <link>https://stackoverflow.com/questions/78220853/improving-train-punctuality-prediction-using-a-transformer-model-model-setup-an</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78220853/improving-train-punctuality-prediction-using-a-transformer-model-model-setup-an</guid>
-      <pubDate>Mon, 25 Mar 2024 17:41:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>波士顿房价数据集的 ANN 损失并未减少</title>
-      <link>https://stackoverflow.com/questions/78220834/ann-loss-not-reducing-for-boston-house-price-data-set</link>
-      <description><![CDATA[from sklearn.datasets import load_boston
-
-波士顿 = load_boston()
-boston_data = pd.DataFrame(boston.data)
-boston_data.columns=boston.feature_names
-
-boston_data[&#39;PRICE&#39;]=boston.target # 因变量，要预测的值
-
-# 对于当前数据集，进行对数转换以减少异常值，然后对数据集进行归一化
-
-boston_data_log=np.log1p(boston_data)
-boston_data_log=(boston_data_log-boston_data_log.min())/(boston_data_log.max()-boston_data_log.min())
-boston_data_log[&#39;价格&#39;]=boston_data[&#39;价格&#39;]
-
-## 构建人工神经网络
-
-# Log_transformed 和标准化数据集
-
-从 sklearn.model_selection 导入 train_test_split
-x_train,x_test,y_train,y_test=train_test_split(boston_data_log.drop(columns=[&#39;PRICE&#39;]).values,boston_data_log[&#39;PRICE&#39;].values,test_size=0.2)
-
-
-x_train=torch.FloatTensor(x_train)
-x_test=torch.FloatTensor(x_test)
-
-y_train=torch.FloatTensor(y_train)
-y_test=torch.FloatTensor(y_test)
-
-进口火炬
-将 torch.nn 导入为 nn
-导入 torch.nn.function 作为 F
-
-ANN 类（nn.Module）：
-    def __init__(自身,输入层,隐藏层_1,隐藏层_2,隐藏层_3,隐藏层_4,隐藏层_5,输出层):
-        超级().__init__()
-        self.full_connected_1=nn.Linear(input_layer,hidden_​​layer_1)
-        self.full_connected_2=nn.Linear(hidden_​​layer_1,hidden_​​layer_2)
-        self.full_connected_3=nn.Linear(hidden_​​layer_2,hidden_​​layer_3)
-        self.full_connected_4=nn.Linear(hidden_​​layer_3,hidden_​​layer_4)
-        self.full_connected_5=nn.Linear(hidden_​​layer_4,hidden_​​layer_5)
-        self.output_layer=nn.Linear(hidden_​​layer_5,output_layer)
-    defforward_prop（自身，x）：
-        x=F.relu(self.complete_connected_1(x))
-        x=F.relu(self.complete_connected_2(x))
-        x=F.relu(self.complete_connected_3(x))
-        x=F.relu(self.complete_connected_4(x))
-        x=F.relu(self.complete_connected_5(x))
-        x=self.output_layer(x)
-        返回x
-        
-
-火炬.manual_seed(20)
-模型=ANN(x_train.shape[1],200,200,200,200,200,1)
-
-loss_function=nn.MSELoss()
-优化器=torch.optim.Adam(model.parameters(),lr=0.01)
-
-纪元=500
-loss_cumul_list=[]
-循环列表=[]
-对于范围内的 i（纪元）：
-    y_pred=model.forward_prop(x_train)
-    损失=loss_function(y_pred,y_train)
-    loss_cumul_list.append(loss.item())
-    循环列表.append(i+1)
-    优化器.zero_grad()
-    loss.backward()
-    优化器.step()
-
-损失累积列表
-
-预测=[]
-使用 torch.no_grad()：
-    对于 i，枚举（x_test）中的数据：
-        y_pred=model.forward_prop(数据)
-        预测.append(y_pred.item())
-
-从 sklearn.metrics 导入 r2_score,mean_squared_error,mean_absolute_error
-error_r2=r2_score(y_test,预测)
-error_mse=mean_squared_error(y_test,预测)
-error_mae=mean_absolute_error(y_test,预测)
-
-我一直试图使用 Pytorch 在波士顿房价数据集上应用 ANN，但在 50 个 epoch 后，损失并没有进一步减少太多。在网上看到过一些使用张量流的类似笔记本，但模型在那里工作得很好。无法理解这里的问题。
-我一直试图使用 Pytorch 在波士顿房价数据集上应用 ANN，但在 50 个 epoch 后，损失并没有进一步减少太多。在网上看到过一些使用张量流的类似笔记本，但模型在那里工作得很好。无法理解这里的问题。]]></description>
-      <guid>https://stackoverflow.com/questions/78220834/ann-loss-not-reducing-for-boston-house-price-data-set</guid>
-      <pubDate>Mon, 25 Mar 2024 17:39:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 python 中将管道重新编写为类时出错</title>
-      <link>https://stackoverflow.com/questions/78219825/error-when-rewiriting-a-pipeline-as-a-class-in-python</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78219825/error-when-rewiriting-a-pipeline-as-a-class-in-python</guid>
-      <pubDate>Mon, 25 Mar 2024 14:32:03 GMT</pubDate>
     </item>
     <item>
       <title>用于多标签分类的堆叠集成学习</title>
@@ -261,6 +280,59 @@ AttributeError：模块“keras.datasets.mnist”没有属性“train”
 ]]></description>
       <guid>https://stackoverflow.com/questions/78210052/what-did-i-do-to-correct-the-attribute-error-please-help-me</guid>
       <pubDate>Sat, 23 Mar 2024 07:25:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 混淆矩阵 - 错误：“数据”和“参考”应该是具有相同级别的因素</title>
+      <link>https://stackoverflow.com/questions/78205262/r-confussion-matrix-error-data-and-reference-should-be-factors-with-the-s</link>
+      <description><![CDATA[尽管还有其他针对相同错误消息的报告，但没有一个对我的情况有帮助。
+我已经准备了自己的数据，分割如下，但无法获得混淆矩阵。
+test_index &lt;- createDataPartition(y =workingData$PM10, times = 1, p = 0.5, list = FALSE)
+train_set &lt;-工作数据[-test_index,]
+test_set &lt;-工作数据[test_index,]
+
+train_knn &lt;- train(PM10 ~. , method= &quot;knn&quot; , data = train_set)
+
+y_hatknn &lt;- 预测(train_knn, train_set, type = “raw”)
+
+fusionMatrix(y_hatknn, test_set$PM10)
+
+上面最后一行给出
+错误：“data”和“reference”应该是具有相同级别的因素。
+
+我想上传数据进行复制，但可以提供基本的：
+&lt;前&gt;&lt;代码&gt;str（工作数据）
+“数据帧”：3653 obs。 3 个变量：
+&#39; $ 日期 : 数字 2e+07 2e+07 2e+07 2e+07 2e+07 ...
+&#39; $ Rain_mm: 数字 0.1 6.7 0 1.4 0.8 1.8 15.3 0 2.6 3.8 ...
+&#39; $ PM10 : 数字 -1 -1 -1 -1 -1 ...
+
+PM10 是污染 PM10 水平。
+如何解决？
+添加更多信息：
+在原始错误之后：
+&lt;块引用&gt;
+confusionMatrix(y_hatknn, test_set$PM10)
+错误：data 和 reference 应该是具有相同水平的因素。
+
+我尝试将其设置为因素...
+&lt;块引用&gt;
+confusionMatrix(y_hatknn, as.factor(test_set$PM10))
+错误：data 和 reference 应该是具有相同水平的因素。
+
+以预测为因素...
+&lt;块引用&gt;
+confusionMatrix(as.factor(y_hatknn), test_set$PM10)
+错误：data 和 reference 应该是具有相同水平的因子。
+
+以两个参数为因素...
+&lt;块引用&gt;
+confusionMatrix(as.factor(y_hatknn), as.factor(test_set$PM10))
+fusionMatrix.default(as.factor(y_hatknn), as.factor(test_set$PM10)) 中的错误：
+数据的级别不能多于参考
+
+确实需要得到整理，Stack坚持关闭我的帖子，写下gmail中navarrodan007的解决方案]]></description>
+      <guid>https://stackoverflow.com/questions/78205262/r-confussion-matrix-error-data-and-reference-should-be-factors-with-the-s</guid>
+      <pubDate>Fri, 22 Mar 2024 09:39:08 GMT</pubDate>
     </item>
     <item>
       <title>PyTorch 矩阵乘法形状错误：“RuntimeError：mat1 和 mat2 形状无法相乘”</title>
@@ -332,43 +404,6 @@ test_loader = DataLoader（数据集= test_data，batch_size = 2）
       <pubDate>Thu, 21 Mar 2024 01:00:23 GMT</pubDate>
     </item>
     <item>
-      <title>使用 OneClassSVM 绘制 SHAP 绘图需要很长时间</title>
-      <link>https://stackoverflow.com/questions/73279201/shap-plots-taking-ages-with-oneclasssvm</link>
-      <description><![CDATA[我正在尝试解释我的 OneClassSVM 模型，但计算时间非常长。我使用了 36 次折叠的交叉验证，因此希望将所有折叠的结果合并到一个 SHAP 图上，以便我可以充分解释哪些特征对模型贡献最大。
-到目前为止，我认为对我想要解释的数据进行采样会加快处理速度（确实减少了时间），但折叠一次仍然需要大约 8 小时，并且有 36 次折叠。
-请注意，我的训练集约为 2400 个，测试集约为 1400 个，每个集有 88 个特征。
-导入形状
-从 sklearn.svm 导入 OneClassSVM
-将 numpy 导入为 np
-
-# 这些是二维数组，其中每个元素都是用于训练/测试折叠的所选数据的 DataFrame
-shap_train = np.load(&#39;shap_train.npy&#39;,allow_pickle=True)
-shap_test = np.load(&#39;shap_test.npy&#39;,allow_pickle=True)
-
-clf = OneClassSVM(nu=0.35)
-
-折叠 = len(shap_train)
-形状值 = []
-shap_data_test = []
-
-对于范围内的折叠（折叠）：
-        解释器 = shap.Explainer(clf.fit_predict, shap_train[fold])
-        # 采样1/3的数据
-        数据 = shap_test[fold].sample(frac=(1/3))
-        shap_values.append(解释器(数据))
-        shap_data_test.append（数据）
-
-# 存储稍后绘图的 SHAP 值
-np.save(&#39;shap_data.npy&#39;, np.array(shap_values))
-np.save(&#39;shap_data_test.npy&#39;, np.array(shap_data_test))
-
-
-我对需要为所有折叠生成形状值的方法提出了质疑，但我知道某些折叠的性能比其他折叠更好，因此希望全面了解哪些功能贡献最大。
-我将此脚本部署在具有 Intel(R) Xeon(R) CPU E5-2667 v4 @ 3.20GHz 和 64GB RAM 的 Debian 服务器上。]]></description>
-      <guid>https://stackoverflow.com/questions/73279201/shap-plots-taking-ages-with-oneclasssvm</guid>
-      <pubDate>Mon, 08 Aug 2022 14:06:46 GMT</pubDate>
-    </item>
-    <item>
       <title>从“y”的唯一值推断出的类无效。预期：[0 1 2 3 4 5]，得到[1 2 3 4 5 6]</title>
       <link>https://stackoverflow.com/questions/71996617/invalid-classes-inferred-from-unique-values-of-y-expected-0-1-2-3-4-5-got</link>
       <description><![CDATA[我已经使用 XGB 分类器训练了数据集，但在本地出现了此错误。它在 Colab 上有效，而且我的朋友对相同的代码也没有任何问题。
@@ -382,6 +417,13 @@ print(&#39;适合时间：&#39;, time.time() - start_time)
 ]]></description>
       <guid>https://stackoverflow.com/questions/71996617/invalid-classes-inferred-from-unique-values-of-y-expected-0-1-2-3-4-5-got</guid>
       <pubDate>Mon, 25 Apr 2022 08:32:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>尽管验证准确度很高，为什么我的神经网络对属于某一类的测试图像预测出错误的类标签？</title>
+      <link>https://stackoverflow.com/questions/71841718/why-does-my-neural-network-predict-the-incorrect-class-label-for-test-images-bel</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/71841718/why-does-my-neural-network-predict-the-incorrect-class-label-for-test-images-bel</guid>
+      <pubDate>Tue, 12 Apr 2022 11:20:17 GMT</pubDate>
     </item>
     <item>
       <title>在 XGBoost 的 GridSearchCV 中评分</title>
