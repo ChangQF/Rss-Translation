@@ -4,13 +4,144 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Thu, 28 Mar 2024 00:58:23 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 28 Mar 2024 03:14:24 GMT</lastBuildDate>
+    <item>
+      <title>使用 PredictNLS 处理 R 中高于生物阈值的错误传播</title>
+      <link>https://stats.stackexchange.com/questions/643717/handling-error-propagation-above-biological-thresholds-in-r-with-predictnls</link>
+      <description><![CDATA[我正在使用 R 进行非线性回归分析，并且遇到了错误传播问题。具体来说，我使用 predictNLS 来估计预测的错误，但在某些情况下，错误范围超出了生物学上合理的阈值（例如，预测间隔高于 1 或低于 0，这不会影响预测结果）在我的生物学背景下是有意义的）。
+下面是我的代码的可重现示例。它模拟指数关系，拟合非线性最小二乘 (NLS) 模型，然后使用 predictNLS 估计预测误差。我的挑战是处理错误传播导致生物学上不可能的值的情况。
+可重现的示例：
+# 模拟指数关系
+设置.种子(123)
+# 生成 0 到 60 之间的随机 x 值
+x &lt;- runif(100, 0, 60)
+y &lt;- 1 - exp(-0.075 * x) * rnorm(100, 0.7, 0.1)
+
+数据 = data.frame(sr= x, fipar = y)
+
+# 创建一个 nls 模型来拟合数据
+模型 &lt;- nls(fipar ~ 1 - exp(-a * sr), data = data, start = list(a = 0.001))
+
+# 创建观察和预测的数据框
+数据$预测 &lt;- 预测（模型，数据）
+
+库（ggplot2）
+数据%&gt;%
+  ggplot(aes(x = sr, y = fipar)) +
+  几何点（）+
+  geom_line(aes(y = 预测), color = “红色”)
+
+# 使用predictNLS估计误差
+newdat = data.frame(sr = seq(1, 60, 1))
+
+Prediction_se &lt;- PredictNLS（模型，newdata = newdat，间隔=“预测”，类型=“响应”）
+
+Prediction_se$summary$sr &lt;- newdat$sr
+
+Prediction_se$summary %&gt;%
+  ggplot(aes(x = sr, y = Prop.Mean.1)) +
+  ylim(0, 1.2) +
+  几何点（）+
+  geom_ribbon(aes(ymin = `Prop.2.5%`, ymax = `Prop.97.5%`), alpha = 0.2) +
+  geom_hline(yintercept = 1)
+
+
+ 
+我对此的自然反应是简单地替换任何错误值&gt; 1 与 1，但我猜这忽略了一堆统计假设。是否有任何推荐的方法来限制预测区间或调整误差估计以反映生物学限制？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643717/handling-error-propagation-above-biological-thresholds-in-r-with-predictnls</guid>
+      <pubDate>Thu, 28 Mar 2024 02:25:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>假设每个分布均低于已知阈值，则正态分布之和低于阈值的概率</title>
+      <link>https://stats.stackexchange.com/questions/643716/probability-of-sum-of-normal-distributions-under-threshold-given-that-each-dist</link>
+      <description><![CDATA[假设我们有 $k$ 个相互独立的正态随机变量 $M_1,\ldots,M_k$其中 $M_i = \mathcal N(\mu_i, \sigma_i^2)$。我们还有另一个正态随机变量 $R = \mathcal N(\mu, \sigma^2)$ ，它独立于每个 $M_i$。令 $T_1,\ldots,T_k$ 为正实数。那么，下面的条件概率是什么呢？
+$$\mathbb P \left( \sum M_i \leq R \;\middle|\; \bigcap M_i\leq T_i \right)$$&lt; /p&gt;
+这来自我正在从事的系统工程和设计领域的一个项目；不幸的是，我一直无法想出一些优雅的东西。显然数值解是有效的，或者存在一个$k+1$阶积分...]]></description>
+      <guid>https://stats.stackexchange.com/questions/643716/probability-of-sum-of-normal-distributions-under-threshold-given-that-each-dist</guid>
+      <pubDate>Thu, 28 Mar 2024 02:17:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何通过值函数迭代求解随机动态规划问题？</title>
+      <link>https://stats.stackexchange.com/questions/643715/how-to-solve-the-stochastic-dynamic-programming-problem-by-value-function-iterat</link>
+      <description><![CDATA[我正在尝试自己学习价值函数迭代。最近我正在解决以下问题：
+考虑具有生产函数的真实经济周期模型：$y_t=e^{a_t}k_t^{\alpha}$，其中$a_t$ 按照马尔可夫过程 $\pi(a_{t+1}|a_t)$ 随时间波动。家庭的效用函数为 $u(c_t)=\dfrac{c_t^{1-\gamma}}{1-\gamma}$ 其中 $\gamma&gt;0$ 和 $\gamma\neq 1$。
+贝尔曼方程应该是（如果我是正确的）
+\begin{align*}
+    v(k,a)=\max_{k&#39;}\left[\frac{[e^a k^\alpha +(1-\delta)k-k&#39;]^{1-\gamma}}{1-\ gamma}+\beta\sum_{a&#39;}P(a&#39;|a)v(k&#39;,a&#39;)\right]
+\end{对齐*}
+现在让 $\alpha=0.33,\delta=0.05,\beta=0.98,\gamma=2$。 $a_t$ 采用 2 个可能的值，$a_L=-0.3$ 和 $a_H=0.3$，其中条件概率为
+\begin{align*}
+    \Pi=\begin{bmatrix}
+        \pi_{HH}&amp;\pi_{HL}\\
+        \pi_{LH}&amp;\pi_{LL}
+    \end{bmatrix}=\begin{bmatrix}
+        0.7&amp;0.3\\0.4&amp; 0.6
+    \end{b矩阵}
+\end{对齐*}
+我想通过值函数迭代以数值方式求解模型，但我遇到了一个问题：现在值函数取决于 $k$ 和 $a$，$v(k&#39;,a&#39;)$应该如何选择？这是我编写的 r 代码，如果它是一个确定性动态规划问题，生产函数为 $y=Ak^\alpha$ ：
+##Packages
+库（&#39;ggplot2&#39;）
+库（&#39;dplyr&#39;）
+库（&#39;reshape2&#39;）
+
+#给定值
+A＜-1
+α&lt;-0.33
+增量&lt;-0.05
+贝塔&lt;-0.98
+伽玛＜-2
+
+
+g&lt;-函数(kt){
+  A*kt^alpha+(1-delta)*kt
+}
+
+
+kseq&lt;-seq(1,20,length.out=500) # k 的网格作为从 1 到 20 的序列，其间有 500 个点。正如我们在问题 2 中看到的，资本的稳态约为 10，因此我们希望确保 k 的网格覆盖稳态。
+pol&lt;-rep(NA,length(kseq)) # 存储策略函数值的向量
+vseq&lt;-rep(0,length(kseq)) # 初始值函数
+tvtemp&lt;-matrix(NA,nrow=length(kseq),ncol=length(kseq)) # 存储 Tv 值的矩阵
+
+for (h in 1:1000){ # 1000 次迭代
+  for (i in 1:length(kseq)){ #“i”;是 k
+    for (j in 1:length(kseq)){ #&quot;j&quot;;是 k&#39;
+      if (g(kseq[i])-kseq[j]&gt;=0){ # 如果消耗为正
+        tvtemp[i,j]=((g(kseq[i])-kseq[j])^(1-gamma))/(1-gamma)+beta*vseq[j] # 计算 Tv。如果问题是随机的，vseq[j] 应该如何？
+      }
+      else { # 如果消耗为负，我们不希望这样
+        tvtemp[i,j]=-Inf
+      }
+    }
+  }
+  tvseq&lt;-apply(tvtemp,1,max) # 找到Tv序列的最大值
+  kprimepos&lt;-apply(tvtemp,1,which.max) # 找到Tv序列最大值所在的索引
+  for (t in 1:length(kseq)){ # 求策略函数值
+    pol[t]&lt;-nth(kseq,kprimepos[t])
+  }
+  epsilon&lt;-max(abs(tvseq-vseq)) # 让 epsilon 为超范数： epsilon = max |Tv-v|
+  vseq=tvseq # 将值函数向量设置为计算出的 Tv 向量，并再次迭代
+}
+
+epsilon # 1000次迭代后，epsilon = 0.000000001135803
+
+但是，当其中一个变量是随机的时，我不确定如何解决问题。我应该如何修改当前代码？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643715/how-to-solve-the-stochastic-dynamic-programming-problem-by-value-function-iterat</guid>
+      <pubDate>Thu, 28 Mar 2024 02:09:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>Survey R 包允许我进行 beta 回归吗？</title>
+      <link>https://stats.stackexchange.com/questions/643714/does-survey-r-package-allow-me-to-do-beta-regression</link>
+      <description><![CDATA[我有一个复杂的调查数据集，其响应（因变量）范围在 0 和 1 之间，我对数据集应用了多重插补以解释丢失的数据。正式来说，响应是一个百分比，它是两个数字的汇总。但是，我无法恢复这两个数字来采用二项式回归模型。我做了线性回归，但我对结果感觉不太好。
+$Q$：调查包允许我进行 beta 回归吗？如果是的话，有可用的示例代码吗？我知道我可以使用 as.svyrepdesign，但我得到了一个屏蔽调查设计，我不确定除了可能的噪声多重插补之外，as.svyrepdesign 还会带来多少精度损失。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643714/does-survey-r-package-allow-me-to-do-beta-regression</guid>
+      <pubDate>Thu, 28 Mar 2024 01:36:31 GMT</pubDate>
+    </item>
     <item>
       <title>引发路径定义歧义</title>
       <link>https://stats.stackexchange.com/questions/643713/inducing-paths-definition-ambiguity</link>
-      <description><![CDATA[我对因果发现领域相对较新，并且我有一个关于诱导路径定义的澄清问题。在因果关系、预测和搜索（第 173 页）中，作者指出路径 $U$ 是一条诱导路径“当且仅当 $U$ 上的 =&quot;math-container&quot;&gt;$O$（端点除外）是  上的碰撞体$U$，并且 $U$ 上的每个碰撞器都是 $A$ 的祖先&gt; 或 $B$。”
+      <description><![CDATA[我对因果发现领域相对较新，并且我有一个关于诱导路径定义的澄清问题。在因果关系、预测和搜索（第 173 页）中，作者指出路径 $U$ 是一条诱导路径“当且仅当 $U$ 上的 =&quot;math-container&quot;&gt;$O$（端点除外）是  上的碰撞器$U$，并且 $U$ 上的每个碰撞器都是 $A$ 的祖先&gt; 或 $B$。”
 他们给出的一个例子是“$U = \langle A,B,C,D,E,F \rangle$ 是一条经过 $O = \{A,B,D,F\}$”。下面是说明这一点的图的屏幕截图：
-我知道 $B$ 和 $D$ 必须是 $A$ 或 $F$ 以使定义的第二部分起作用，但令我困惑的是，在这个具体示例中， $F$ 有三个边（如果您只考虑 $O$ 中的节点，则有两个边&gt;)，这意味着 $F$ 根据定义是一个碰撞器。这似乎被定义的第一部分明确禁止。有人可以帮我阐明这个想法吗？
+我知道 $B$ 和 $D$ 必须是 $A$ 或 $F$ 以使定义的第二部分起作用，但令我困惑的是，在这个具体示例中， $F$ 具有三个边（如果您只考虑 $O$ 中的节点，则有两个边&gt;)，这意味着 $F$ 根据定义是一个碰撞器。这似乎被定义的第一部分明确禁止。有人可以帮我阐明这个想法吗？
 此外，我还是在这样的论坛上发帖的新手。我不认为这是一个重复的问题，但请告诉我这个问题是否已在其他地方得到回答，而谷歌在我的搜索中没有优先考虑。谢谢！]]></description>
       <guid>https://stats.stackexchange.com/questions/643713/inducing-paths-definition-ambiguity</guid>
       <pubDate>Thu, 28 Mar 2024 00:33:07 GMT</pubDate>
@@ -21,12 +152,12 @@
       <description><![CDATA[人们可能会认为这个问题有一个众所周知的、广泛接受的答案，但我对教科书、博客、维基百科和其他来源的阅读似乎证明并非如此。此外，我不确定我找到的答案是否真的满足执行有效 F 检验所需的条件。
 我不关心通常的 i.i.d。假设，无法真正进行测试，而只能假设（通过适当的实验设计）。
 我担心 F 检验所需的假设。
-最常见的答案是所有因素都应呈正态分布且方差相等。在这种情况下，分母（残差）将呈正态分布（相同均值 -0 零 - 和相同方差的正态分布数据的堆叠）。但这并没有涉及分子，即 k 个因子的 k 均值？为什么该数据在零值下呈正态分布？它们是来自正态数据均值的 k 个抽样分布的 k 个样本，但由于样本大小可能不同，因此它们并非全部来自相同的抽样分布。在这种情况下，他们甚至没有身份？那么常态是如何建立的呢？而且考虑到因素数量通常很小（4、6...），对如此小的样本量进行正态性检验几乎没有用处。
+最常见的答案是所有因素都应呈正态分布且方差相等。在这种情况下，分母（残差）将呈正态分布（相同均值 -0 零 - 和相同方差的正态分布数据的堆叠）。但这并没有涉及分子，即 k 个因子的 k 均值？为什么该数据在零值下呈正态分布？它们是来自正态数据均值的 k 个采样分布的 k 个样本，但由于样本大小可能不同，因此它们并非全部来自相同的采样分布。在这种情况下，他们甚至没有身份？那么常态是如何建立的呢？而且考虑到因素数量通常很小（4、6...），对如此小的样本量进行正态性检验几乎没有用处。
 此外，还有韦尔奇版本的单向方差分析，它不需要同方差。那么在这种情况下，每个因子呈正态分布的事实并不会自动导致残差呈正态分布吗？ （它是正态的混合，具有相同的均值，但方差和大小不同，可能根本不正态）。
 我发现的另一个答案提到了残差的正态性（而不是因子的正态性）。对于不等的方差和大小，这会考虑分母。
 但分子仍然让我困惑。如果因子的大小和方差不等，我们如何确保在零值下，k 均值呈正态分布？就像以前一样，他们甚至看起来都没有身份。 （它们来自不同方差和样本量的抽样分布）？
 或者我们只是忽略分子，因为它（通常但并非总是）样本量很小？
-我确实知道 F 检验对于偏离正态性是稳健的，但是...我对严格的假设感兴趣，需要满足这些假设才能运行“数学上”的测试。有效的 F 检验。令我惊讶的是，似乎没有一个被广泛接受的答案。令人困惑的是，我找到的答案并没有真正解释它们如何确保 F 检验的分子和分母都呈正态分布（这是 F 检验的基本假设，超出了通常的 i.i.d.）]]></description>
+我确实知道 F 检验对于偏离正态性是稳健的，但是......我对严格的假设感兴趣，需要满足这些假设才能运行“数学”测试。有效的 F 检验。令我惊讶的是，似乎没有一个被广泛接受的答案。令人困惑的是，我找到的答案并没有真正解释它们如何确保 F 检验的分子和分母都呈正态分布（这是 F 检验的基本假设，超出了通常的 i.i.d.）]]></description>
       <guid>https://stats.stackexchange.com/questions/643712/necessary-assumptions-for-a-one-way-anova</guid>
       <pubDate>Thu, 28 Mar 2024 00:30:27 GMT</pubDate>
     </item>
@@ -58,7 +189,7 @@
 这些数据提供了与特定大脑区域相关的 10 个不同过程（变量）的分数。让我们采用一组非空数据（多个个体）。将分数进行相关性分析，在给定适当的阈值的情况下，产生一些变量之间的一组链接（即计算图论意义上的图）。然后，计算一些公式（提供我们感兴趣的图的拓扑属性信息）（例如图的连通性、节点的度等）。对于这些计算的结果，旨在进行均值比较检验（有关更多详细信息，请参阅 A. Fornito、A. Zalesky 和 ​​E. Bullmore 所著的《脑网络分析基础》一书）。&lt; /p&gt;
 这里我有两个问题不知道如何解决：
 
-鉴于我没有有关统计数据的一般信息（即标准差、平均值、分布是否正态等），我如何决定必须从两组中计算多少个图表才能运行平均值比较检验置信区间？
+鉴于我没有有关统计数据的一般信息（即标准差、平均值、分布是否正态等），我如何决定必须从两组中计算多少个图表才能运行平均值比较测试置信区间？
 假设$n$是第一个问题的答案，我应该如何计算生成每个图表的个体数量（即随机样本大小） ？
 
 如果有任何想法或建议，或者甚至任何更正，我将不胜感激。谢谢！]]></description>
@@ -66,7 +197,7 @@
       <pubDate>Wed, 27 Mar 2024 23:17:11 GMT</pubDate>
     </item>
     <item>
-      <title>在负二项式、零截断 NB 和具有算术改变结果 (SAS) 的 NB 之间进行选择</title>
+      <title>在负二项式、零截断 NB 和算术改变结果 (SAS) 的 NB 之间进行选择</title>
       <link>https://stats.stackexchange.com/questions/643708/choosing-between-negative-binomial-zero-truncated-nb-and-nb-with-arithmeticall</link>
       <description><![CDATA[我正在使用预测变量“处方数量”和“患者种族”对纵向药物供应天数进行建模。由于异方差残差，我无法使用线性回归（proc reg 或 proc glm），因此我尝试了负二项式回归。药品供应天数过于分散（条件方差远大于均值，negbin 模型中的分散参数置信区间不重叠零）。当我运行负二项式模型时，我得到了符合我的假设的统计显着结果。我使用这两个命令得到了具有相似参数和相同 p 值的结果，完全符合我的假设：
 &lt;前&gt;&lt;代码&gt;*型号 1；
@@ -94,7 +225,7 @@ ods输出参数估计=pe cov=covb;
 &lt;前&gt;&lt;代码&gt;*型号 4；
 proc fmm 数据=数据 cov；
 班级竞赛；
-模型 PillSupplyBeyond30Days = RxTotal race / dist=NEGBIN;
+model PillSupplyBeyond30Days = RxTotal race / dist=NEGBIN;
 ods输出参数估计=pe cov=covb;
 跑步;
 
@@ -113,7 +244,7 @@ ods输出参数估计=pe cov=covb;
     <item>
       <title>层次回归。变化并不显着，但添加的预测变量和第二个模型很显着</title>
       <link>https://stats.stackexchange.com/questions/643705/hierarchical-regression-change-is-not-significant-but-the-added-predictor-and-t</link>
-      <description><![CDATA[我正在构建一个层次回归分析，我想测试变量 X（连续）预测 Y（连续），以及包含变量 Sex（二进制）、A（二进制）、 B（连续）、C（连续）和D（连续）。 58 个观察值（我知道，对于预测变量的数量来说，这只是一个小样本）。
+      <description><![CDATA[我正在构建一个层次回归分析，我想在包含变量 Sex（二进制）、A（二进制）、 B（连续）、C（连续）和D（连续）。 58 个观察值（我知道，对于预测变量的数量来说，这只是一个小样本）。
 为此，我构建了一个模型（模型 1），其中包括性别、A、B、C 和 D。在第二个模型中，我添加了 X 作为附加预测变量。因为对数据的目视检查表明 sex 和 X 可能存在交互作用，这很有趣，所以我还在第二个模型中添加了 sex*X 交互作用。
 下面是 SPSS 的输出。这表明第二个模型并没有显着增加解释方差的比例。然而，方差分析显示第二个模型显着，而第一个模型则不显着。此外，X 和 Sex*X 交互作用都很重要。
 您建议我如何解释和报告这些发现？
@@ -125,10 +256,10 @@ ods输出参数估计=pe cov=covb;
       <pubDate>Wed, 27 Mar 2024 22:17:50 GMT</pubDate>
     </item>
     <item>
-      <title>如何测试两个变量是否与预先指定的系数相关？</title>
+      <title>如何测试两个变量是否与预先指定的系数相关？ [复制]</title>
       <link>https://stats.stackexchange.com/questions/643704/how-can-i-test-if-two-variables-are-correlated-with-each-other-with-a-pre-specif</link>
       <description><![CDATA[如何检验两个变量在 r=1 时相互相关的假设？
-我不是在寻找 Pearson 或 Spearman 测试。如果两个变量相关（无论相关系数如何），则可以得出 p&lt;0.05。]]></description>
+我不是在寻找 Pearson 或 Spearman 测试。如果两个变量相关（无论相关系数如何），则可以得到 p&lt;0.05。]]></description>
       <guid>https://stats.stackexchange.com/questions/643704/how-can-i-test-if-two-variables-are-correlated-with-each-other-with-a-pre-specif</guid>
       <pubDate>Wed, 27 Mar 2024 22:17:04 GMT</pubDate>
     </item>
@@ -153,112 +284,6 @@ DDts=diff(Dts)
 其余部分没有错误。]]></description>
       <guid>https://stats.stackexchange.com/questions/643700/ndiffs-error-in-r</guid>
       <pubDate>Wed, 27 Mar 2024 21:16:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>给定拒绝区域的原假设的条件概率</title>
-      <link>https://stats.stackexchange.com/questions/643698/conditional-probability-of-the-null-hypothesis-given-the-rejection-region</link>
-      <description><![CDATA[让 $X \sim Bin(10,p)$
-我们想测试以下假设：
-$H_{0}：p=0.5 $ 与 $H_{1}：p=0.3$ 对比跨度&gt;
-统计量$T(x)$定义为$T(x)=x$临界（拒绝）区域是 $R=\{x:T(x)\le4\}$
-我想计算给定 $T(x)\in R $ 的原假设的条件概率
-即：$P(H_{0}\mid T(x)\in R)$
-我的第一个解决方案是： $P(H_{0}\mid T(x)\in R)=\frac{\alpha}{ 1-\beta}$
-我的第二个解决方案（根据贝叶斯假设）：
-$P(H_{0}\mid T(x)\in R) = P(H_{0})*L(H_{0}\mid T(x) )\in R)$ ，等于：
-$P(H_{0}\mid T(x)\in R) = P(H_{0})*P(T(x)\in R\mid H_{0})$
-$P(T(x)\in R\mid H_{0})= P_{H_{0}}(X\le4)=0.37695=\alpha$&lt; /跨度&gt;
-而$P(H_{0})$等于：
-$ P(H_{0})= P(H_{0}\mid T(x)\notin R) + P(H_{0}\mid T(x) )\in R)=\frac{1-\alpha}{\beta} +\frac{\alpha}{1-\beta} $
-因此： $P(H_{0}\mid T(x)\in R)=(\frac{1-\alpha}{\beta} +\frac{ \alpha}{1-\beta})*\alpha$
-以上解决方案哪一个是正确的？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643698/conditional-probability-of-the-null-hypothesis-given-the-rejection-region</guid>
-      <pubDate>Wed, 27 Mar 2024 21:12:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>实际数据集的距离矩阵不服从三角不等式，导致协方差矩阵非正定</title>
-      <link>https://stats.stackexchange.com/questions/643696/distance-matrix-of-actual-dataset-doesnt-obey-triangle-inequality-leading-to-n</link>
-      <description><![CDATA[昨天我问了一个问题，为什么我的随机生成的距离矩阵会导致马丁协方差矩阵不是正定的。那里的答案让我注意到这样一个事实：我生成随机生成距离矩阵的简单方法并不能确保此类矩阵遵守三角不等式。事实上，强制执行就解决了问题。
-但是，我现在意识到我的真​​实数据也导致了同样的问题。也就是说，当计算数据集中行之间距离的距离矩阵时，我最终得到一个不遵守三角不等式的距离矩阵。因此，导致 Martén 协方差矩阵不是正定的。
-这是我的实际数据（大约 40,000 行）的一小部分（1000 行），它确实重现了该问题，已上传到 Filebin：
-actualdata.csv
-这是我正在做的事情的说明：
-library(Rfast) # 用于快速计算距离和检查对称性
-Library(fossil) # 用于检查三角形不等式
-
-# 加载实际数据的子集并计算距离矩阵：
-X &lt;- read.csv(“实际数据.csv”)
-d &lt;- Rfast:Dist(X)
-d[d==0] &lt;- 0.000000000001 # 而不是零以避免数字问题
-
-# 计算Marten协方差矩阵：
-西格玛 &lt;- 1
-v &lt;- 3
-p &lt;- 5
-项 1 &lt;- (2**(1-v))/(gamma(v))
-项 2 &lt;- (sqrt(2*v)*(abs(d)/p))**v
-term3 &lt;- besselK(sqrt(2*v)*(abs(d)/p), nu = v)
-m &lt;- (sigma**2)*term1*term2*term3
-
-# 检查协方差矩阵是否平方：
-nrow(m) == ncol(m)
-
-# 检查 Marten 协方差矩阵的特征值：
-g &lt;- 特征值(m, only.values=TRUE, 对称 = TRUE)
-print(min(g$values)) # 应该大于零，但事实并非如此
-print(sum(g$values&lt;0)/length(g$values)) # 因此，这应该为零，但事实并非如此
-
-以下是一组检查 d 是否遵守距离矩阵的所有 4 个属性的检查：
-# 检查我们是否有正确的距离矩阵（警告：三角形不等式检查可能需要一段时间）：
-Rfast::is.symmetry(d) # 对称矩阵？是的
-sum(diag(d)!=0.000000000001)==0 # 对角线值为零？是的
-min(d[row(d) == (col(d) - 1)])&gt;0 # 非对角线正值？是的
-Fossil::tri.ineq(d) # 服从三角不等式？否（警告：这条线非常慢）
-
-问题是：因为这里输入数据集X没有被模拟，所以我无法通过设计强制距离矩阵服从三角不等式。因此我的问题是：在这种情况下，可以采取什么措施来确保生成正定的 Martén 协方差矩阵？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643696/distance-matrix-of-actual-dataset-doesnt-obey-triangle-inequality-leading-to-n</guid>
-      <pubDate>Wed, 27 Mar 2024 21:08:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么chi2和mcnemar之间有如此大的差异？ [复制]</title>
-      <link>https://stats.stackexchange.com/questions/643692/why-is-there-such-a-difference-between-chi2-and-mcnemar</link>
-      <description><![CDATA[使用 R，我运行这两个测试并得到非常不同的结果。有人有任何解释吗？
-提前致谢！
-这是代码：
-response_distribution &lt;-matrix(c(1298, 818, # 条件“高”时“否”和“是”的数量)
-                                  4176, 2682), # “否”的数量和“是”处于“低”状态
-                                nrow = 2, # 条件数
-                                byrow = TRUE, # 按行填充矩阵
-                                dimnames = list(c(&quot;高&quot;, &quot;低&quot;), c(&quot;0&quot;, &quot;1&quot;)))
-
-chisq.test（响应分布）
-mcnemar.test（响应分布）
-
-这是结果：
-&lt;前&gt;&lt;代码&gt;&gt; chisq.test（响应分布）
-
-    皮尔逊卡方检验与耶茨连续性校正
-
-数据：响应分布
-X 平方 = 0.11924，df = 1，p 值 = 0.7299
-
-&gt; mcnemar.test（响应分布）
-
-    具有连续性校正的 McNemar 卡方检验
-
-数据：响应分布
-McNemar 的卡方 = 2256.6，df = 1，p 值 &lt; 2.2e-16
-
-我想做一个 mcnemar（因为受试者是匹配的），但结果与 chi2 如此不同，我对此表示怀疑。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643692/why-is-there-such-a-difference-between-chi2-and-mcnemar</guid>
-      <pubDate>Wed, 27 Mar 2024 20:26:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>加权汇总统计分布的百分位数</title>
-      <link>https://stats.stackexchange.com/questions/643690/percentiles-of-a-distribution-of-weighted-summary-statistics</link>
-      <description><![CDATA[假设我有一个不同的独立概率分布的集合，$\{ P_i(X)\}_{i=1}^N$，每个都有它们的自己的支持$I_i$。我知道给定分布的 $10^{th}$ 百分位给出为 $x_i^{10} | 0.1 = \int_{\inf(I_i)}^{x_i^{10}} P_i(x)dx$ 和 $10^{ 的平均值分布的第 th}$ 个百分位数为 $ y_i = \int_{\inf(I_i)}^{x_i^{10}} xP(x) dx$&lt; /跨度&gt;。然后，我可以获取所有平均 $10^{th}$ 值并创建这些值的分布 $Q(Y) $，此分布的 $10^{th}$ 百分位将为 $y_k$最大的 $k$ 满足 $0.1 \geq \sum_{i=0}^k Q(y_i)$&lt; /跨度&gt;。是否有一种有意义的方法可以将此统计数据与所有分布组合的百分位相关联，即 $P(X) = P_1 * P_2 * \cdots * P_N$。我的直觉告诉我， $y_k$ 将是 $1^{st}$ 的上限&gt; $P$ 的百分位数，但我不知道如何证明这是对还是错。如果这个问题之前的陈述有任何错误，请纠正我的误解。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643690/percentiles-of-a-distribution-of-weighted-summary-statistics</guid>
-      <pubDate>Wed, 27 Mar 2024 20:09:02 GMT</pubDate>
     </item>
     </channel>
 </rss>
