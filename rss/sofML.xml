@@ -4,7 +4,136 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 29 Mar 2024 18:16:33 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 29 Mar 2024 21:12:56 GMT</lastBuildDate>
+    <item>
+      <title>如何在Tensorflow中转换为对数梅尔谱图？</title>
+      <link>https://stackoverflow.com/questions/78245969/how-to-convert-to-log-mel-spectrogram-in-tensorflow</link>
+      <description><![CDATA[我尝试修改我的预处理函数来创建 log-mel-spectrogram，以便我的 CNN 模型可以在其上进行训练。
+我尝试将我的频谱图转换为对数梅尔频谱图，但我无法做到这一点。但是，由于我使用的是tensorflow，所以这个转换过程需要使用tensorflow框架。
+def 预处理（文件路径，标签）：
+    wav = load_wav_16k_mono(文件路径)
+    wav = wav[:8000]
+    Zero_padding = tf.zeros([8000] - tf.shape(wav), dtype=tf.float32)
+    wav = tf.concat([zero_padding, wav],0)
+    
+    频谱图 = tf.signal.stft(wav,frame_length=100,frame_step=20)
+    频谱图 = tf.abs(频谱图)
+    频谱图= tf.expand_dims（频谱图，轴= 2）
+    
+    返回频谱图、标签
+]]></description>
+      <guid>https://stackoverflow.com/questions/78245969/how-to-convert-to-log-mel-spectrogram-in-tensorflow</guid>
+      <pubDate>Fri, 29 Mar 2024 21:10:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>了解 PyTorch 模型中的批处理</title>
+      <link>https://stackoverflow.com/questions/78245568/understanding-batching-in-pytorch-models</link>
+      <description><![CDATA[我有以下模型，它构成了我的整个模型管道中的步骤之一：
+导入火炬
+将 torch.nn 导入为 nn
+
+类 NPB(nn.Module):
+    def __init__(self, d, nhead, num_layers, dropout=0.1):
+        超级（NPB，自我）.__init__()
+            
+        self.te = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer（d_model = d，nhead = nhead，dropout = dropout，batch_first = True），
+            层数=层数，
+        ）
+
+        self.t_emb = nn.Parameter(torch.randn(1, d))
+        
+        self.L = nn.Parameter(torch.randn(1, d))
+
+        self.td = nn.TransformerDecoder(
+            nn.TransformerDecoderLayer(d_model=d, nhead=nhead, dropout=dropout, batch_first=True),
+            层数=层数，
+        ）
+
+        self.ffn = nn.Linear(d, 6)
+    
+    def 向前（自身，t_v，t_i）：
+        打印（“--------------- t_v，t_i -----------------”）
+        打印（&#39;t_v：&#39;，元组（t_v.shape））
+        print(&#39;t_i: &#39;, 元组(t_i.shape))
+
+        打印（“--------------- t_v + t_i + t_emb -----------------”）
+        _x = t_v + t_i + self.t_emb
+        打印（元组（_x.shape））
+
+        print(&quot;---------------- 特 --------------&quot;)
+        _x = self.te(_x)
+        打印（元组（_x.shape））
+        
+        print(&quot;---------------- td ---------------&quot;)
+        _x = self.td(self.L, _x)
+        打印（元组（_x.shape））
+
+        print(&quot;---------------- ffn --------------&quot;)
+        _x = self.ffn(_x)
+        打印（元组（_x.shape））
+
+        返回_x
+
+这里 t_v 和 t_i 是来自早期编码器块的输入。我将它们作为 (4,256) 的形状传递，其中 256 是特征数量，4 是批量大小。 t_emb 是时间嵌入。 L 表示学习矩阵，表示查询的嵌入。我使用以下代码测试了该模块块：
+t_v = torch.randn((4,256))
+t_i = torch.randn((4,256))
+npb = NPB(d=256, nhead=8, num_layers=2)
+npb（t_v，t_i）
+
+输出：
+&lt;前&gt;&lt;代码&gt;================ NPB ===============
+--------------- t_v, t_i -----------------
+电视: (4, 256)
+t_i: (4, 256)
+--------------- t_v + t_i + t_emb -----------------
+(4, 256)
+--------------- 特 ---------------
+(4, 256)
+--------------- TD ---------------
+(1, 256)
+--------------- ffn ---------------
+(1, 6)
+
+我期望输出的形状应为 (4,6)，大小为 6 的批次中每个样本有 6 个值。但输出的大小为(1,6)。经过大量调整后，我尝试将 t_emb 和 L 形状从 (1,d) 更改为 (4,d)&lt; /code&gt;，因为我不希望所有采样共享这些变量（通过广播：
+self.t_emb = nn.Parameter(torch.randn(4, d)) # [n, d] = [4, 256]
+self.L = nn.Parameter(torch.randn(4, d))
+
+这给出了所需的形状输出（4,6：
+&lt;前&gt;&lt;代码&gt;---------------------------- t_v, t_i -----------------
+电视: (4, 256)
+t_i: (4, 256)
+--------------- t_v + t_i + t_emb -----------------
+(4, 256)
+--------------- 特 ---------------
+(4, 256)
+--------------- TD ---------------
+(4, 256)
+--------------- ffn ---------------
+(4, 6)
+
+我有以下疑问：
+Q1. 到底为什么将 L 和 t_emb 形状从 (1,d) 更改为  (4,d) 有效吗？为什么它不能通过广播与(1,d)一起工作？
+Q2.我是否以正确的方式进行批处理，或者输出是人为正确的，而在幕后它所做的事情与我预期的不同（预测大小为 4 的批次中每个样本的 6 个值）？&lt; /p&gt;]]></description>
+      <guid>https://stackoverflow.com/questions/78245568/understanding-batching-in-pytorch-models</guid>
+      <pubDate>Fri, 29 Mar 2024 19:24:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 lambda 函数中对时间戳和输出列表进行加法和减法？</title>
+      <link>https://stackoverflow.com/questions/78245499/how-can-i-do-addition-and-substraction-of-timestamp-and-a-list-of-output-in-a-la</link>
+      <description><![CDATA[RFM = sales_data.groupby([&#39;CLIENT_ID&#39;]).agg({
+    &#39;CLIENT_ID&#39;: lambda x: (last_purchase_date - x.max()).days,
+    &#39;Transaction_ID&#39;: &#39;计数&#39;,
+    &#39;网络&#39;：&#39;总和&#39;
+})
+
+RFM.rename(columns={&#39;CLIENT_ID&#39;: &#39;Recency&#39;, &#39;Transaction_ID&#39;: &#39;Frequency&#39;, &#39;NET&#39;: &#39;MonetaryValue&#39;}, inplace= True)
+显示(RFM)
+
+我不知道如何修复我已经转换的这些东西，但它不起作用。]]></description>
+      <guid>https://stackoverflow.com/questions/78245499/how-can-i-do-addition-and-substraction-of-timestamp-and-a-list-of-output-in-a-la</guid>
+      <pubDate>Fri, 29 Mar 2024 19:08:32 GMT</pubDate>
+    </item>
     <item>
       <title>如何在 python 中模拟 Microsoft Excel 的求解器功能（GRG 非线性）？</title>
       <link>https://stackoverflow.com/questions/78244486/how-can-i-emulate-microsoft-excels-solver-functionality-grg-nonlinear-in-pyth</link>
@@ -89,39 +218,6 @@ TEC 值也会受到地磁风暴的影响，因此接下来我将训练一个机�
 如果可能的话，请为您的话提供参考。]]></description>
       <guid>https://stackoverflow.com/questions/78244042/higher-coefficient-of-determination-values-in-the-testing-phase-compared-to-the</guid>
       <pubDate>Fri, 29 Mar 2024 13:34:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>运行排列重要性时，我们是否会排列测试集中的列？</title>
-      <link>https://stackoverflow.com/questions/78243995/do-we-permute-columns-in-the-test-set-when-running-permutation-importance</link>
-      <description><![CDATA[我一直在查看有关排列重要性的文档和相关教程，但似乎没有人清楚地了解他们实际排列的内容。
-为了澄清，分步过程如下：
-
-将数据集拆分为 X_train、X_val 和 X_test
-
-在 X_train 上训练数据，使用 X_val 例如找到最佳纪元
-
-在 X_test 上运行经过训练的模型，记下我们正在测量的指标
-
-排列 X_test 中的特征，并在此排列后的 X_test 数据集上运行相同的模型
-
-记下相同的指标并比较两者
-
-对每个变量重复此操作，而不更改模型。
-
-
-旁白问题：是否值得重复运行此排列过程，其中 X_train、X_val 和 X_test 随着每次重复而变化。我知道最终的模型会有所不同，但我想广泛了解通用模型（具有固定超参数）在不同数据集上训练时的表现，因为保持 X_test 固定可能会扭曲某些特征的感知重要性。
-提前感谢您。]]></description>
-      <guid>https://stackoverflow.com/questions/78243995/do-we-permute-columns-in-the-test-set-when-running-permutation-importance</guid>
-      <pubDate>Fri, 29 Mar 2024 13:25:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>在没有 model.fit 的情况下通过 Keras 使用权重和偏差</title>
-      <link>https://stackoverflow.com/questions/78243749/using-weights-and-biases-with-keras-without-model-fit</link>
-      <description><![CDATA[我在实施 WandB 来跟踪我的 RL 训练算法时遇到问题。我正在使用 Keras 编写我的训练代码。但是，我不使用 model.fit 函数。相反，我使用 @tf.function 对 Q 网络和策略网络执行更新（我正在使用 DDPG 学习算法）。如果我不使用 model.fit，如何初始化运行并使用跟踪回调，因此我无法将回调作为参数传递。互联网上关于将 Keras 与 WandB 一起使用的每个指南/教程都假设我正在使用 model.fit，但事实并非如此。你能帮忙吗？
-非常感谢您的帮助。
-到目前为止我还没有尝试过任何事情，因为我不知道从哪里开始。我在互联网上找不到任何人有类似的代码或问题。]]></description>
-      <guid>https://stackoverflow.com/questions/78243749/using-weights-and-biases-with-keras-without-model-fit</guid>
-      <pubDate>Fri, 29 Mar 2024 12:28:07 GMT</pubDate>
     </item>
     <item>
       <title>如何在 TensorFlow 中对多个类进行分类</title>
@@ -301,55 +397,28 @@ X_train,X_test,y_train,y_test=train_test_split(X,y,train_size=0.7,stratify=y)
       <pubDate>Thu, 28 Mar 2024 20:51:05 GMT</pubDate>
     </item>
     <item>
-      <title>Bert Istantiation TypeError：“NoneType”对象不可调用 Tensorflow</title>
-      <link>https://stackoverflow.com/questions/78227490/bert-istantiation-typeerror-nonetype-object-is-not-callable-tensorflow</link>
-      <description><![CDATA[我正在尝试使用 TensorFlow 实例化 BERT 模型。这段代码直到几天前都运行正常，但现在我收到了这个错误。我已经使用相同的代码在其他笔记本中的 Kaggle 上实例化 BERT 模型，并且运行良好。谁能给我提示吗？我应该注意，我正在使用 Transformers 版本 4.31.0 来修复另一个错误。我使用的代码是：
-# Creazione del modello BERT per BYTECODE
-BC_input_layer = 输入(shape=(max_seq_length,), dtype=tf.int32, name=“input_ids”)
-BC_bert_model = TFBertModel.from_pretrained(“bert-base-uncased”)
-BC_pooler_output = BC_bert_model(BC_input_layer)[1]
+      <title>“MENACE”井字棋电脑需要多少场比赛才能训练</title>
+      <link>https://stackoverflow.com/questions/78219696/how-many-games-will-a-menace-tic-tac-toe-computer-take-to-train</link>
+      <description><![CDATA[我最近读到了唐纳德·米奇 (Donald Michie) 设计的用火柴盒建造的“计算机”，它可以自学如何玩井字游戏。这是关于它的维基百科文章：
+https://en.m.wikipedia.org/wiki/Matchbox_Educable_Noughts_and_Crosses_Engine 
+我觉得它看起来很有趣，所以我决定用 Python 制作一个数字版本，以供娱乐和练习。它在对抗随机走棋时效果很好（我刚刚根据约 10,000 场比赛生成的数据再次运行了 5353 场比赛，它赢得了 5353 场比赛中的 4757 场），但它仍然经常输给我。
+以下是完美答案应解决的一些问题：
 
-BC_dropout_layer = Dropout(dropout_rate)(BC_pooler_output)
-BC_output_layer = 密集（6，激活=&#39;sigmoid&#39;）（BC_dropout_layer）
+需要玩多少场游戏才能让“火柴盒电脑”与 Michie 设计的电脑完全一样，才能完美地开始玩游戏？
 
-BC_model = 模型（输入=BC_input_layer，输出=BC_output_layer）
+带有实际火柴盒的原始计算机是否达到了完美状态
+玩吗？
 
-错误是
-&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
-TypeError Traceback（最近一次调用最后一次）
-[10] 中的单元格，第 19 行
-     17 SC_input_layer = 输入(shape=(max_seq_length,), dtype=tf.int32, name=“input_ids”)
-     18 SC_mask_layer = 输入(shape=(max_seq_length,), dtype=tf.int32, name=“attention_mask”)
----&gt; 19 SC_bert_model = TFBertModel.from_pretrained(“bert-base-uncased”)
-     20 SC_pooler_output = SC_bert_model(SC_input_layer, Attention_mask=SC_mask_layer)[1] # 第二个输出，che è il pooler_output
-     22 # 辍学层的Aggiungi
+如果仅与计算机进行训练，计算机能否达到完美的发挥
+随机移动？
 
-文件 /opt/conda/lib/python3.10/site-packages/transformers/modeling_tf_utils.py:2894，在 TFPreTrainedModel.from_pretrained(cls、pretrained_model_name_or_path、config、cache_dir、ignore_mismatched_sizes、force_download、local_files_only、token、revision、*model_args、 **夸格斯）
-   第2892章
-   第2893章
--&gt;第2894章
-   第2896章
-   第2897章
 
-文件 /opt/conda/lib/python3.10/site-packages/keras/src/layers/layer.py:224，位于 Layer.__new__..build_wrapper(*args, **kwargs)
-    第221章
-    222 def build_wrapper（*args，**kwargs）：
-    223 with backend.name_scope(obj.name, caller=obj)：
---&gt;第224章
-    225 # 记录构建配置。
-    [第 226 章]
-
-文件 /opt/conda/lib/python3.10/site-packages/transformers/modeling_tf_utils.py:1131，在 TFPreTrainedModel.build(self, input_shape) 中
-   第1129章
-   第1130章
--&gt;攀上漂亮女局长之后1131
-   第1132章
-   第1133章
-
-类型错误：“NoneType”对象不可调用
-]]></description>
-      <guid>https://stackoverflow.com/questions/78227490/bert-istantiation-typeerror-nonetype-object-is-not-callable-tensorflow</guid>
-      <pubDate>Tue, 26 Mar 2024 18:29:11 GMT</pubDate>
+编辑：
+这个问题并不是寻求代码方面的帮助，但下面的评论表明包含代码可能会有所帮助。以下是我创建的 GitHub 存储库的链接，以便我可以在此处共享：
+https://github.com/ACertainArchangel/ Recreation-Of-MENACE-Tic-Tac-Toe..git
+抱歉，我知道这不太好并且不遵守约定；我只写了几个月的代码:)]]></description>
+      <guid>https://stackoverflow.com/questions/78219696/how-many-games-will-a-menace-tic-tac-toe-computer-take-to-train</guid>
+      <pubDate>Mon, 25 Mar 2024 14:12:37 GMT</pubDate>
     </item>
     <item>
       <title>用于多标签分类的堆叠集成学习</title>
@@ -359,13 +428,6 @@ TypeError Traceback（最近一次调用最后一次）
 我的主要疑问是如何堆叠输出（这将成为最终分类器的输入），并且它应该是模型将接收的唯一输入，或者如果我必须输入其他内容。]]></description>
       <guid>https://stackoverflow.com/questions/78214688/stacking-ensamble-learning-for-multilabelclassification</guid>
       <pubDate>Sun, 24 Mar 2024 13:28:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>OCR 结果不一致：训练和测试期间的预测不同</title>
-      <link>https://stackoverflow.com/questions/78202518/inconsistent-ocr-results-different-predictions-during-training-and-testing</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78202518/inconsistent-ocr-results-different-predictions-during-training-and-testing</guid>
-      <pubDate>Thu, 21 Mar 2024 20:02:00 GMT</pubDate>
     </item>
     <item>
       <title>TF2 和 python 中的 BERT 预处理器模型存在问题</title>
