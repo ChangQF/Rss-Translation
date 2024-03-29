@@ -4,9 +4,92 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Fri, 29 Mar 2024 03:14:09 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 29 Mar 2024 06:17:55 GMT</lastBuildDate>
     <item>
-      <title>给定一个变量的两个变量乘积的条件概率密度的计算</title>
+      <title>混合分布的峰度：公式/代码错误？</title>
+      <link>https://stats.stackexchange.com/questions/643808/kurtosis-of-a-mixture-distribution-error-in-formula-code</link>
+      <description><![CDATA[我一直在使用 Fruhwirth-Shnatter (2006) 文本来计算正态混合分布的解析公式。我实现了第四时刻的公式，但是将其转换为超峰度后，我无法通过蒙特卡罗采样获得接近的经验结果。我的代码/公式有什么错误？
+$$E\left((Y - \mu)^4\right) = \sum_{k=1}^{K} \pi_k \left((\mu_k - \mu)^4 + 6(\mu_k - \mu)^2\sigma_k^2 + 3\sigma_k^4\right)$$
+这是我的代码的最小可重现示例。
+将 numpy 导入为 np
+从 scipy.stats 导入峰度
+
+
+get_p2 = lambda p1: 1 - p1
+
+def 模拟(p1, mu1, mu2, sigma1, sigma2, n = 1000):
+    
+    param_draws = np.random.choice([0, 1], p = [p1, get_p2(p1)], 大小 = n)
+    mu_param = np.where(param_draws == 0, mu1, mu2)
+    sigma_param = np.where(param_draws == 0, sigma1, sigma2)
+        
+    返回 np.array([np.random.normal(loc = mu_param[i], scale = sigma_param[i]) for i in range(n)])
+
+def mix_mu(p1, mu1, mu2):
+    返回 p1 * mu1 + get_p2(p1) * mu2
+
+def mix_variance(p1, mu1, mu2, sigma1, sigma2):
+    mu = mix_mu(p1, mu1, mu2)
+    Part_1 = p1 * (np.power(sigma1, 2) + np.power(mu1, 2)) - np.power(mu, 2)
+    Part_2 = get_p2(p1) * (np.power(sigma2, 2) + np.power(mu2, 2)) - np.power(mu, 2)
+    返回第 1 部分 + 第 2 部分
+
+def extra_kurtosis(p1, mu1, mu2, sigma1, sigma2):
+    mu = mix_mu(p1, mu1, mu2)
+    方差 = mix_variance(p1, mu1, mu2, sigma1, sigma2)
+    
+    Part_1 = np.power(mu1 - mu, 4) + (6 * np.power(mu1 - mu, 2) * np.power(sigma1, 2)) + 3 * np.power(sigma1, 4)
+    Part_2 = np.power(mu2 - mu, 4) + (6 * np.power(mu2 - mu, 2) * np.power(sigma2, 2)) + 3 * np.power(sigma2, 4)
+
+    返回 (p1 *part_1 + get_p2(p1) *part_2) / np.power(方差, 2) - 3
+
+
+p1=0.5； mu1 = 0; mu2 = 1;西格玛1 = 2;西格玛2 = 3
+
+X = 模拟(p1, mu1, mu2, sigma1, sigma2, n = 50_000)
+
+analytic_excess_kurtosis = extra_kurtosis(p1, mu1, mu2, sigma1, sigma2)
+经验超额峰度 = 峰度(X)
+
+print(&quot;分析：&quot;, analytic_excess_kurtosis)
+print(“经验：”, Epidical_excess_kurtosis)
+
+mu1 和 mu2 偏离越大，与经验的偏差越大。
+这是怎么回事？这是我的代码中某个地方的简单错误还是其他什么地方？提前致谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643808/kurtosis-of-a-mixture-distribution-error-in-formula-code</guid>
+      <pubDate>Fri, 29 Mar 2024 05:08:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>排除重复测量的随机效应成分</title>
+      <link>https://stats.stackexchange.com/questions/643807/exclude-random-effects-component-for-a-repeated-measure</link>
+      <description><![CDATA[我正在分析护士执照考试的数据集，其中包含 3000 名参与者。 (n)
+这 3000 名参与者是从美国 13 个地点随机招募的。 （组级别变量）
+大约 40% 的受试者有多个观察结果，而其余 60% 的受试者每个有一个观察结果。 （重复测量）
+我的目标是评估特定暴露 (A) 对参与者测试分数的影响，以站点作为分组变量。
+虽然基于SubjectID的(ICC)显示中等相关性(0.5-0.7)，但由于对随着时间的推移预测个人分数缺乏兴趣，我选择不将SubjectID作为随机组件包含在模型中。然而，我将站点作为随机截距和随机斜率包括在内。 （随机成分）
+这是下面我的数据的快照
+ ID 日期/时间 分数(y) 年龄(X1) 比赛 SiteId
+  1 2019-03-20 48 25 西班牙裔 田纳西州
+  1 2019-10-19 70 25 西班牙裔 田纳西州
+  2 2020-11-13 65 32 黑色 IA
+  3 2018-02-18 61 24 白二氧化碳
+  。 。 。 。 。 。
+  。 。 。 。 。 。
+  3000 2021-05-14 80 23 白明尼苏达
+
+如果我不将其作为随机成分，我可以采用什么替代方法来捕获主题相关性。请原谅我对这个话题的无知。预先感谢您的任何建议。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643807/exclude-random-effects-component-for-a-repeated-measure</guid>
+      <pubDate>Fri, 29 Mar 2024 04:50:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>不同列表长度的 Wilcoxon 符号等级测试</title>
+      <link>https://stats.stackexchange.com/questions/643804/wilcoxon-sign-rank-test-with-differing-list-lengths</link>
+      <description><![CDATA[我正在使用两个列表运行 Wilcoxon 符号等级测试。一个包含 5 个元素，另一个包含 6 个元素。它们是在不同条件下从同一地点采集的。我正在尝试计算测试结果，但我知道我需要每个列表具有相同数量的元素。我应该如何解决这个问题？我正在考虑将任务值表示为 NaN 元素。]]></description>
+      <guid>https://stats.stackexchange.com/questions/643804/wilcoxon-sign-rank-test-with-differing-list-lengths</guid>
+      <pubDate>Fri, 29 Mar 2024 03:23:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>给定一个变量的两个变量的乘积的条件概率密度的计算</title>
       <link>https://stats.stackexchange.com/questions/643802/calculation-of-conditional-probability-density-for-the-product-of-two-variables</link>
       <description><![CDATA[我正在尝试计算条件概率密度$f((1 + \epsilon) \cdot X | X)$，其中$X$ 遵循均值 $\mu$ 和方差 $\ 的正态分布sigma_1^2$ 和 $\epsilon$ 服从均值 0 和方差 $\sigma_2 的正态分布^2$，如何计算这个条件概率密度？]]></description>
       <guid>https://stats.stackexchange.com/questions/643802/calculation-of-conditional-probability-density-for-the-product-of-two-variables</guid>
@@ -22,7 +105,7 @@
     <item>
       <title>加权协方差</title>
       <link>https://stats.stackexchange.com/questions/643797/weighted-covariance</link>
-      <description><![CDATA[所以 X 和 Y 是我的随机变量，它们是代表两个不同工厂的实际产量与预测产量比率的观察值的向量。我想通过与观察相对应的每个工厂的员工人数来衡量每个观察。 （每个观察都是每月的条目）。我想找到生产比率的加权协方差，按每个工厂的员工人数加权。
+      <description><![CDATA[所以 X 和 Y 是我的随机变量，它们是代表两个不同工厂的实际产量与预测产量比率的观察值的向量。我想通过与观察相对应的每个工厂的员工人数来衡量每个观察。 （每次观察都是每月的条目）。我想找到生产比率的加权协方差，按每个工厂的员工人数加权。
 有计算加权协方差的公式吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/643797/weighted-covariance</guid>
       <pubDate>Fri, 29 Mar 2024 00:47:40 GMT</pubDate>
@@ -32,7 +115,7 @@
       <link>https://stats.stackexchange.com/questions/643795/multivariate-regression-on-metric-spaces</link>
       <description><![CDATA[我收集了来自大脑不同部位的神经元。将此称为“测试”。设置。
 对于这些神经元，我可以将形态测量（它是度量空间 $X$ 的元素）和电生理学测量（它是 $X$ 中的向量）关联起来。 span class=&quot;math-container&quot;&gt;$\mathbb{R}^n$。
-给定一个不在测试集中的神经元，我想预测它来自大脑的哪个部分。这是一个分类回归问题。假设大脑的不同部分分为三类。然后我想根据已知数据给出一个回归函数 $X \times \mathbb{R}^n \to \{ A, B, C\}$ 。 
+给定一个不在测试集中的神经元，我想预测它来自大脑的哪个部分。这是一个分类回归问题。假设有三个类别对应于大脑的不同部分。然后我想根据已知数据给出一个回归函数 $X \times \mathbb{R}^n \to \{ A, B, C\}$ 。 
 有什么技术可以帮助我解决这个问题？由于 $X$ 是一个度量空间，因此我可以应用（可能是加权的）最近邻等技术。但我不知道如何整合 $X$ 和 $\mathbb{R}^n$&lt; 的数据/span&gt;.
 是否可以定义一个积分度量空间，其中点之间的距离结合了形态变量和电生理学向量的信息？这样做的原则性方法是什么？]]></description>
       <guid>https://stats.stackexchange.com/questions/643795/multivariate-regression-on-metric-spaces</guid>
@@ -56,29 +139,13 @@ ACF 表明不存在依赖性（在 24 个滞后的滞后 1 处有一个小峰值
       <pubDate>Thu, 28 Mar 2024 21:48:21 GMT</pubDate>
     </item>
     <item>
-      <title>当 r 趋向无穷大时，Ripley 的 K 函数有极限吗？</title>
+      <title>当 r 趋于无穷大时，Ripley 的 K 函数有极限吗？</title>
       <link>https://stats.stackexchange.com/questions/643791/limit-of-ripleys-k-function-as-r-goes-to-infinity</link>
-      <description><![CDATA[考虑到空间点过程分析中使用的 Ripley 的 K 函数或密切相关的 L 函数，我想知道当 r 接近无穷大时该函数的极限是什么。我知道随着 r 的增加，该函数没有得到很好的定义，但我一直不知道如何计算这个限制（如果存在）。我的直觉（仅基于直觉）是该函数将继续增加到无穷大。任何意见都会受到赞赏。谢谢。
+      <description><![CDATA[考虑到空间点过程分析中使用的 Ripley 的 K 函数或密切相关的 L 函数，我想知道当 r 接近无穷大时该函数的极限是什么。我知道随着 r 的增加，该函数没有得到很好的定义，但我仍然不知道如何计算这个限制（如果存在）。我的直觉是，该函数将继续增加到无穷大。任何意见都会受到赞赏。谢谢。
 我提供了下面的经验 K 函数的方程，正如它出现在“空间点模式：R 的方法和应用”中所示。作者：巴德利、鲁巴克和特纳。
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/643791/limit-of-ripleys-k-function-as-r-goes-to-infinity</guid>
       <pubDate>Thu, 28 Mar 2024 21:28:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>两个比率的统计检验</title>
-      <link>https://stats.stackexchange.com/questions/643788/statistical-tests-for-two-rates</link>
-      <description><![CDATA[在我正在写的一篇论文中，我比较了两个地点的流感负担。对于每个地点，我都有每 10 万人中出现症状的流感感染率，以及这些比率的 95% 置信区间。什么是良好的统计测试来查看它们是否显着不同？我可以看看置信区间是否重叠吗？我不确定这是否会产生影响，但这两个位置使用不同的监视方法/计算来找到这些比率，但我们可以假设这两种方法都非常好。]]></description>
-      <guid>https://stats.stackexchange.com/questions/643788/statistical-tests-for-two-rates</guid>
-      <pubDate>Thu, 28 Mar 2024 20:21:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何检查列中价格的分布</title>
-      <link>https://stats.stackexchange.com/questions/643786/how-to-check-distribution-of-prices-in-a-column</link>
-      <description><![CDATA[我目前正在致力于使用零售数据开发细分模型。
-在此数据集中，各列代表不同的子类别。这些列中的值表示属于各个子类别的所有产品的价格。
-数据包含大约 500 个子类别，我想检查其中有多少子类别具有良好的价格分布且没有偏度。有人可以详细解释一下如何做到这一点吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643786/how-to-check-distribution-of-prices-in-a-column</guid>
-      <pubDate>Thu, 28 Mar 2024 19:34:12 GMT</pubDate>
     </item>
     <item>
       <title>双盲研究和混杂因素</title>
@@ -107,13 +174,6 @@ ACF 表明不存在依赖性（在 24 个滞后的滞后 1 处有一个小峰值
       <pubDate>Thu, 28 Mar 2024 19:32:13 GMT</pubDate>
     </item>
     <item>
-      <title>这些数据是否真的可以从定量和分类的角度来看待（我收到了矛盾的信息）？</title>
-      <link>https://stats.stackexchange.com/questions/643783/is-it-true-that-this-data-can-be-looked-at-from-both-a-quantitative-as-well-as-a</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/643783/is-it-true-that-this-data-can-be-looked-at-from-both-a-quantitative-as-well-as-a</guid>
-      <pubDate>Thu, 28 Mar 2024 19:14:51 GMT</pubDate>
-    </item>
-    <item>
       <title>性别差异的回归多个因变量</title>
       <link>https://stats.stackexchange.com/questions/643778/regression-in-sex-differences-multiple-dependent-variables</link>
       <description><![CDATA[如果我想检查三个变量中的性别差异，比如说学术成就、学习动机和一个分类变量。我应该如何用 OLS 回归来拟合这些变量？我是否应该对每个因变量进行一次回归分析，并将性别作为预测变量，并可能包括其他人口统计变量作为控制变量？或者我应该在一次分析中完成所有事情？重点是用 OLS 回归检验三个因变量的性别差异。]]></description>
@@ -121,13 +181,11 @@ ACF 表明不存在依赖性（在 24 个滞后的滞后 1 处有一个小峰值
       <pubDate>Thu, 28 Mar 2024 16:35:46 GMT</pubDate>
     </item>
     <item>
-      <title>通过机器学习模型预测最大输出以及相应的特征值[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/643745/predicting-maximum-output-along-with-corresponding-feature-values-through-ml-mod</link>
-      <description><![CDATA[我正在尝试优化系统的效率，我已经训练和测试了多个 ML 模型，例如多项式回归、RFR、XGBOOST 和 MLP。
-我最初的想法是使用贝叶斯优化来最大化目标函数（我尝试使用我的线性回归模型作为目标函数，我不知道它是否是正确的选择，但它不起作用）。现在，在网上冲浪之后，我发现了遗传算法，但我不知道它是否也有效
-是否有可能找到从这些预测模型中给出最大输出的相应特征值？如果是这样，怎么办]]></description>
-      <guid>https://stats.stackexchange.com/questions/643745/predicting-maximum-output-along-with-corresponding-feature-values-through-ml-mod</guid>
-      <pubDate>Thu, 28 Mar 2024 10:09:44 GMT</pubDate>
+      <title>如何找到“最接近”（在数据生成过程的意义上）时间序列？</title>
+      <link>https://stats.stackexchange.com/questions/643764/how-find-the-closest-in-a-sense-of-data-generating-process-time-series</link>
+      <description><![CDATA[假设我们有总体 $m$ 个时间序列，每个时间序列都有 $n$ 个观测值。我们还有另一个具有 $n-k$ 观测值的时间序列 ($k&gt;0$)。给定最短的系列，我想从 $m$ 系列中找到那些具有最接近的数据生成过程（DGP）的系列。这样做的动机是“恢复”。具有较长历史的可用系列中最短系列的历史。我突然想到查看系列之间的相关系数，或者估计一些模型（可能是 AR/ARMA）并查看系数。对于这种练习有任何记录的方法吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643764/how-find-the-closest-in-a-sense-of-data-generating-process-time-series</guid>
+      <pubDate>Thu, 28 Mar 2024 13:40:06 GMT</pubDate>
     </item>
     <item>
       <title>鉴于所有相关性较低，接近回归分析</title>

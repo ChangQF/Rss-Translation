@@ -4,11 +4,211 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 29 Mar 2024 03:14:15 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 29 Mar 2024 06:18:02 GMT</lastBuildDate>
+    <item>
+      <title>在数字分类混合数据帧上应用 RandomForestRegressor 来预测两列标签集时得分较低</title>
+      <link>https://stackoverflow.com/questions/78242202/low-score-when-applying-randomforestregressor-on-a-numeric-categorical-mixed-dat</link>
+      <description><![CDATA[我在 Kaggle 上使用此保险数据集 保险数据集
+尝试构建一个简单的回归器来预测最后两列 [&#39;coverage_level&#39;,&#39;charges&#39;]，同时使用所有其他 10 列作为特征输入到回归器模型中。
+我意识到用作特征的 10 列既是数字类型又是分类类型，因此我使用 LabelEncoder 进行了一些转换：
+df2 = df.copy()
+# 姜
+le = 标签编码器()
+le.fit(df2.gender.drop_duplicates())
+df2.gender = le.transform(df2.gender)
+...其余分类列如“吸烟者”、“地区”等。
+
+然后我在转换后的数据帧上应用了最小最大缩放器：
+inputs = df2[[“年龄”、“性别”、“bmi”、“儿童”、“吸烟者”、“地区”、“医疗历史”、
+         “家庭医疗史”、“运动频率”、“职业”]]
+目标 = df2[[“coverage_level”, “charges”]]
+
+缩放器 = MinMaxScaler()
+scaledInputs = np.array(scaler.fit_transform(输入))
+
+X_train，X_test，y_train，y_test = train_test_split（scaledInputs，目标，test_size = 0.20，random_state = 42）
+
+最后是训练和测试部分：
+rf_model = RandomForestRegressor(n_estimators=10, random_state=42)
+
+# 拟合训练集
+rf_model.fit(X_train, y_train)
+rf_outputs = rf_model.predict(X_test)
+
+rf_mse =mean_squared_error(y_test, rf_outputs)
+rf_score = rf_model.score(X_test, y_test)
+
+但是性能非常低，得分为0.27，mse接近2615601。
+我尝试了一些修复。第一个不是仅缩放输入，而是在馈送之前缩放了两个目标列 [&#39;coverage_level&#39;,&#39;charges&#39;]，但是，它根本没有帮助。第二个修复是使用one-hot编码代替标签编码，但仍然没有增益。
+请提出一些解决此问题的方法。]]></description>
+      <guid>https://stackoverflow.com/questions/78242202/low-score-when-applying-randomforestregressor-on-a-numeric-categorical-mixed-dat</guid>
+      <pubDate>Fri, 29 Mar 2024 05:50:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何解决：InvalidArgumentError：图形执行错误？</title>
+      <link>https://stackoverflow.com/questions/78242076/how-i-resolve-invalidargumenterror-graph-execution-error</link>
+      <description><![CDATA[我是计算机视觉和分类方面的专家，我正在尝试使用 keras VGG16 模型进行迁移学习，但我不断收到此代码下面的错误，任何人都可以帮助我或至少给我一个和平的建议？
+导入tensorflow为tf
+从tensorflow.keras导入模型、层
+将 matplotlib.pyplot 导入为 plt
+从全局导入全局
+导入操作系统
+
+IMG_大小 = 224
+批次大小 = 32
+通道 = 3
+纪元 = 30
+
+数据集 = tf.keras.preprocessing.image_dataset_from_directory(
+    “../笔记本/数据集”，
+    随机播放=真，
+    图像大小=（IMG_SIZE，IMG_SIZE），
+    批量大小=批量大小，
+    
+）
+
+类名 = 数据集.类名
+类名
+
+def preprocess_image(图像):
+    图像 = tf.image.resize(图像, [IMG_SIZE, IMG_SIZE])
+    image /= 255.0 # 标准化为 [0,1] 范围
+    打印（“嗨”）
+    打印（图像）
+    返回图像
+
+# 应用预处理和增强
+数据集 = 数据集. 地图(
+    lambda x, y: (preprocess_image(x), y),
+    num_parallel_calls=tf.data.experimental.AUTOTUNE
+）
+
+def apply_augmentation（图像，标签）：
+    # 随机水平翻转
+    图像 = tf.image.random_flip_left_right(图像)
+    # 随机旋转
+    图像 = tf.image.rot90(图像, tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32))
+    # 随机亮度调节
+    图像 = tf.image.random_brightness(图像, max_delta=0.1)
+    返回图像、标签
+
+数据集 = 数据集. 地图(
+    应用增强，
+    num_parallel_calls=tf.data.experimental.AUTOTUNE
+）
+
+
+train_size = int(0.8 * len(数据集))
+val_size = int(0.1 * len(数据集))
+test_size = len(数据集) - train_size - val_size
+
+train_dataset = dataset.take(train_size)
+val_dataset = dataset.skip(train_size).take(val_size)
+test_dataset = dataset.skip(train_size).skip(val_size)
+
+vgg = tf.keras.applications.VGG16(
+    输入形状=（IMG_SIZE，IMG_SIZE，3），
+    权重=&#39;imagenet&#39;,
+    include_top=False
+）
+
+
+对于 vgg.layers 中的图层：
+    可训练层 = False
+
+x = 层.Flatten()(vgg.输出)
+预测 = 层.Dense(3, 激活=&#39;relu&#39;)(x)
+
+模型 = tf.keras.models.Model(输入=vgg.输入，输出=预测)
+模型.summary()
+
+模型.编译(
+    损失=&#39;sparse_categorical_crossentropy&#39;,
+    优化器=&#39;亚当&#39;,
+    指标=[&#39;准确性&#39;]
+）
+
+历史=模型.fit(
+    训练数据集，
+    验证数据=val_数据集，
+    纪元=10，
+    steps_per_epoch=train_size，
+    验证步骤=val_size
+）
+
+
+当我开始训练模型时出现以下错误，
+2024-03-29 09:36:18.734909：W tensorflow/core/framework/op_kernel.cc:1839] OP_REQUIRES 在稀疏_xent_op.cc:103 处失败：INVALID_ARGUMENT：收到超出范围的标签值 3 [0, 3) 的有效范围。标签值：2 3 1 0 1 2 2 2 1 2 2 0 0 0 3 0 0 0 2 0 3 1 0 2 2 2 2 0 3 0 2 0
+2024-03-29 09:36:18.734957: W tensorflow/core/framework/local_rendezvous.cc:404] 本地集合点正在中止，状态为：INVALID_ARGUMENT：收到的标签值 3 超出了 [0, 3 的有效范围）。标签值：2 3 1 0 1 2 2 2 1 2 2 0 0 0 3 0 0 0 2 0 3 1 0 2 2 2 2 0 3 0 2 0
+     [[{{function_node __inference_one_step_on_data_2794}}{{节点compile_loss/sparse_categorical_crossentropy/SparseSoftmaxCrossEntropyWithLogits/SparseSoftmaxCrossEntropyWithLogits}}]]
+
+InvalidArgumentError Traceback（最近一次调用最后一次）
+输入 In [15], in ()
+----&gt; 1 历史记录 = model.fit(
+      2 训练数据集，
+      3validation_data=val_dataset，
+      4 epoch=10，
+      5steps_per_epoch=train_size，
+      6 验证步骤=val_size
+      7）
+
+文件 ~/anaconda3/lib/python3.9/site-packages/keras/src/utils/traceback_utils.py:122，位于filter_traceback..error_handler(*args, **kwargs)
+    第119章
+    120 # 要获取完整的堆栈跟踪，请调用：
+    121 # `keras.config.disable_traceback_filtering()`
+--&gt; 122 从 None 引发 e.with_traceback(filtered_tb)
+    123最后：
+    124 删除filtered_tb
+
+文件〜/anaconda3/lib/python3.9/site-packages/tensorflow/python/eager/execute.py:53，在quick_execute（op_name，num_outputs，输入，attrs，ctx，名称）中
+     51 尝试：
+     52 ctx.ensure_initialized()
+---&gt; 53 张量 = pywrap_tfe.TFE_Py_Execute(ctx._handle, device_name, op_name,
+     54 个输入、属性、输出数）
+     55 除了 core._NotOkStatusException 为 e：
+     56 如果名称不是 None：
+
+InvalidArgumentError：图形执行错误：
+
+在节点compile_loss/sparse_categorical_crossentropy/SparseSoftmaxCrossEntropyWithLogits/SparseSoftmaxCrossEntropyWithLogits处检测到（最近一次调用最后）：
+。
+。
+。
+
+我检查了这个问题，但找不到答案，如何可以回复：InvalidArgumentError：图形执行错误吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78242076/how-i-resolve-invalidargumenterror-graph-execution-error</guid>
+      <pubDate>Fri, 29 Mar 2024 05:01:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>Pycharm 调试不适用于 Tensorflow。我该如何解决？</title>
+      <link>https://stackoverflow.com/questions/78241816/pycharm-debug-is-not-working-with-tensorflow-how-do-i-resolve-it</link>
+      <description><![CDATA[我已成功安装以下内容：
+tensorflow（最新版本2.16.1）
+keras（最新版本3.1.1
+
+我使用的是pycharm 2023.3.5（社区版）。我有一些导入的代码行，包括张量流：
+&lt;前&gt;&lt;代码&gt;...
+从tensorflow.keras导入后端为K
+...
+
+每当我调试代码时，都会收到如下错误：
+回溯（最近一次调用最后一次）：
+文件“C:\Program Files\JetBrains\PyCharm Community Edition 2023.3.5\plugins\python-ce\helpers\pydev\_pydevd_bundle\pydevd_xml.py”，第 177 行，在 _get_type 中
+if isinstance(o, t[0]):
+   ^^^^^^^^^^^^^^^^^^^^
+文件“C:\Program Files\Python312\Lib\site-packages\tensorflow\python\platform\flags.py”，第 73 行，在 __getattribute__ 中
+返回 self.__dict__[&#39;__wrapped&#39;].__getattribute__(name)
+       ~~~~~~~~~~~~~^^^^^^^^^^^^^
+关键错误：&#39;__wrapped&#39;
+
+我想相信问题不是由张量流引起的，但我似乎无法弄清楚确切的问题。我已经上网但无济于事。我得到的最接近的解决方案是这个 问题，但是，它似乎我作为一个不同的问题。请这个崇高平台上的博学之士来帮助我。]]></description>
+      <guid>https://stackoverflow.com/questions/78241816/pycharm-debug-is-not-working-with-tensorflow-how-do-i-resolve-it</guid>
+      <pubDate>Fri, 29 Mar 2024 03:17:26 GMT</pubDate>
+    </item>
     <item>
       <title>包含clip_by_value的LSTM冻结层导致android studio在部署时崩溃</title>
       <link>https://stackoverflow.com/questions/78241639/lstm-frozen-layer-containing-clip-by-value-causing-android-studio-to-crash-when</link>
-      <description><![CDATA[我对 ML 很陌生，但我正在尝试将冻结的 LSTM 模型部署到 android studio 中，但我收到此错误，该错误说明在 lstm 层中使用了 Clipbyvalue 操作，而我没有明确声明该操作。
+      <description><![CDATA[我对 ML 很陌生，但我正在尝试将冻结的 LSTM 模型部署到 android studio 中，但我收到此错误，该错误涉及在 lstm 层中使用的 Clipbyvalue 操作，而我没有明确声明该操作。
 java.lang.IllegalArgumentException：没有注册 OpKernel 来支持具有这些属性的 Op &#39;ClipByValue&#39;。注册设备：[CPU]，注册内核：&lt;无注册内核&gt; [[节点：lstm_1/while/clip_by_value = ClipByValue[T=DT_FLOAT](lstm_1/while/add_2，lstm_1/while/Const，lstm_1/while/Const_1)]]
 我目前使用的是tensorflow 1.8，并尝试使用更高版本来使用TFLite，但遇到了问题，这就是为什么我决定降级以尝试使用冻结图功能。
 下面是我在android studio中的java代码
@@ -123,14 +323,6 @@ df_loaded.head(5)
 正如我所提到的，我尝试从summary.best_trial.mlflow_run_id 中获取run_id，但值不匹配。我尝试阅读 automl 和 mlflow 的文档，但没有成功。]]></description>
       <guid>https://stackoverflow.com/questions/78241331/access-df-loaded-and-or-run-id-in-load-data-section-of-best-trial-notebook-of-da</guid>
       <pubDate>Thu, 28 Mar 2024 23:32:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>我需要一位 Python 和 Streamlit 或 FLASK 专家 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78241295/i-need-one-expert-of-python-and-streamlit-or-flask</link>
-      <description><![CDATA[我需要一名专家来完成我的项目“使用机器学习 NLP 对餐厅评论进行情感分析”我有模型，但我想使用 Streamlit 或 FLASK 将其转换为网络应用程序。我会支付费用，如果有人可以帮忙请回复。
-我有这个模型，它工作正常，但无法与 FLASK 或 Streamlit 集成以使其成为 Web 应用程序。面临错误。]]></description>
-      <guid>https://stackoverflow.com/questions/78241295/i-need-one-expert-of-python-and-streamlit-or-flask</guid>
-      <pubDate>Thu, 28 Mar 2024 23:17:25 GMT</pubDate>
     </item>
     <item>
       <title>如何提高回归模型中的 R2 分数？预测房价</title>
@@ -266,7 +458,7 @@ PlayerStyles_Strengths_Strong
     <item>
       <title>集成学习[关闭]</title>
       <link>https://stackoverflow.com/questions/78240346/ensemble-learning</link>
-      <description><![CDATA[我有许多不同的数据（图像、时间序列等），我将分别使用它们来创建模型，我找到了以下代码作为示例。如果我使用这样的算法，我会做正确的事情吗？或者还有其他方法吗？
+      <description><![CDATA[我有许多不同的数据（图像、时间序列等），我将分别使用它们来创建模型，并且我找到了以下代码作为示例。如果我使用这样的算法，我会做正确的事情吗？或者还有其他方法吗？
 将 numpy 导入为 np
 从 sklearn.ensemble 导入 VotingClassifier
 从 sklearn.linear_model 导入 LogisticRegression
@@ -315,7 +507,7 @@ ensemble_model.fit([X_image, X_time_series], y)
 y_pred = ensemble_model.predict([X_image, X_time_series])
 
 # 评估模型的成功
-准确度=准确度_得分（y，y_pred）
+准确度=准确度_分数（y，y_pred）
 print(&quot;集成学习模型的准确率得分：&quot;, 准确度)
 
 
@@ -324,7 +516,7 @@ print(&quot;集成学习模型的准确率得分：&quot;, 准确度)
       <pubDate>Thu, 28 Mar 2024 19:00:25 GMT</pubDate>
     </item>
     <item>
-      <title>如何输入 4 个值（“开盘价”、“最高价”、“最低价”、“总交易量”）来建模并预测未来 x 天的相同 4 个值？</title>
+      <title>如何输入 4 个值（“开盘价”、“最高价”、“最低价”、“总交易量”）来建模并预测未来 x 天的相同 4 个值？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78240071/how-to-input-4-values-open-price-high-price-low-price-total-traded-qu</link>
       <description><![CDATA[我正在开发一个 ML 模型，该模型应该输入并预测以下股票数据：
 &#39;开盘价&#39;、&#39;最高价&#39;、&#39;最低价&#39;、&#39;总交易量&#39;
@@ -434,7 +626,7 @@ plt.show()
 量化权重 B - 层 B - ...
 
 我知道Pytorch已经有量化函数，但该函数仅限于int8。我想从bit = 16到bit = 2进行量化，然后比较它们的准确性。
-我遇到的问题是，量化后，一层的输出大了多个数量级（bit = 16），并且我不知道如何将其反量化回来。我正在使用相同的激活和权重的最小值和最大值来执行量化。这是一个例子：
+我遇到的问题是，量化后，某个层的输出变大了多个数量级（bit = 16），并且我不知道如何将其反量化回来。我正在使用相同的激活和权重的最小值和最大值来执行量化。这是一个例子：
 激活 = [1,2,3,4]
 权重 = [5,6,7,8]
 激活和权重的最小值和最大值 = 1, 8
@@ -463,85 +655,31 @@ Pytorch 如何处理反量化？我尝试定位Pytorch的量化，但是找不�
       <pubDate>Wed, 27 Mar 2024 00:54:36 GMT</pubDate>
     </item>
     <item>
-      <title>解决从 Jupyter Notebook 到 .py 文件的自定义管道类转换中的 OneHotEncoder 问题</title>
-      <link>https://stackoverflow.com/questions/78219825/troubleshooting-onehotencoder-issue-in-custom-pipeline-class-conversion-from-jup</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78219825/troubleshooting-onehotencoder-issue-in-custom-pipeline-class-conversion-from-jup</guid>
-      <pubDate>Mon, 25 Mar 2024 14:32:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>scikeras.wrappers.KerasClassifier 返回 ValueError：无法解释指标标识符：loss</title>
-      <link>https://stackoverflow.com/questions/78089332/scikeras-wrappers-kerasclassifier-returning-valueerror-could-not-interpret-metr</link>
-      <description><![CDATA[我正在研究 KerasClassifier，因为我想将其插入 scikit-learn 管道中，但我收到了前面提到的 ValueError。
-以下代码应该能够重现我遇到的错误：
-从 sklearn.model_selection 导入 KFold，cross_val_score
-从 sklearn.preprocessing 导入 StandardScaler
-从 scikeras.wrappers 导入 KerasClassifier
-从tensorflow.keras.models导入顺序
-从tensorflow.keras.layers导入Dense
-从 sklearn.datasets 导入 load_iris
+      <title>CatBoostRegressor 与 loss_function='Lq'</title>
+      <link>https://stackoverflow.com/questions/76498616/catboostregressor-with-loss-function-lq</link>
+      <description><![CDATA[我不知道如何指定“q” “Lq”中的变量损失函数。我收到以下错误消息：
+CatBoostError：/src/catboost/catboost/private/libs/options/catboost_options.cpp:82：参数 q 对于 Lq 丢失是必需的
+
+我的代码如下：
+from catboost import CatBoostRegressor
+从 sklearn.datasets 导入 make_regression
+从 sklearn.model_selection 导入 train_test_split
 将 numpy 导入为 np
 
-数据 = load_iris()
-X = 数据.数据
-y = 数据.目标
+# 生成人工回归数据集
+X, y = make_regression(n_samples=1000, n_features=10, random_state=42)
 
-def create_model():
-    模型=顺序（）
-    model.add（密集（8，input_dim = 4，激活=&#39;relu&#39;））
-    model.add（密集（3，激活=&#39;softmax&#39;））
-    model.compile(loss=&#39;sparse_categorical_crossentropy&#39;,
-                  优化器=&#39;亚当&#39;,
-                  指标=[&#39;准确性&#39;])
-    返回模型
+# 将数据集分为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-clf = KerasClassifier(build_fn=create_model,
-                      纪元=100，
-                      批量大小=10，
-                      详细=1)
+# 创建一个 CatBoostRegressor 对象
+模型 = CatBoostRegressor(loss_function=&#39;Lq&#39;)
 
-管道=管道([
-    (&#39;缩放器&#39;, StandardScaler()),
-    （&#39;clf&#39;，clf）
-]）
-
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
-结果= cross_val_score（管道，X，y，cv = kf）
-print(&quot;交叉验证准确度：&quot;, np.mean(结果))
-
-似乎我的模型正在随着纪元的运行而被编译。但是，之后我收到错误：
-ValueError：无法解释指标标识符：丢失
-
-tensorflow 和 scikeras 库的版本是：
-scikeras==0.12.0
-张量流==2.15.0
-
-编辑：
-最终我尝试了不同的库版本，以下内容让我成功运行了代码，看来问题是由 scikit-learn 的版本引起的：
-scikeras==0.12.0
-张量流==2.15.0
-scikit学习==1.4.1
+# 拟合模型
+model.fit(X_train, y_train)
 ]]></description>
-      <guid>https://stackoverflow.com/questions/78089332/scikeras-wrappers-kerasclassifier-returning-valueerror-could-not-interpret-metr</guid>
-      <pubDate>Fri, 01 Mar 2024 17:03:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>模块“keras.engine”没有属性“Layer”</title>
-      <link>https://stackoverflow.com/questions/67905185/module-keras-engine-has-no-attribute-layer</link>
-      <description><![CDATA[我尝试运行matterport/MaskRCNN代码，但遇到以下错误
-&lt;前&gt;&lt;代码&gt;----&gt; 6 从mrcnn.model导入MaskRCNN
-
-() 中的 /usr/local/lib/python3.7/dist-packages/mrcnn/model.py
-    第253章
-    第254章
---&gt; 255类ProposalLayer（KE.Layer）：
-    256 &quot;&quot;&quot;接收锚分数并选择一个子集作为提案传递
-    257 进入第二阶段。过滤是根据锚点分数完成的
-
-AttributeError：模块“keras.engine”没有属性“Layer”
-]]></description>
-      <guid>https://stackoverflow.com/questions/67905185/module-keras-engine-has-no-attribute-layer</guid>
-      <pubDate>Wed, 09 Jun 2021 13:32:37 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/76498616/catboostregressor-with-loss-function-lq</guid>
+      <pubDate>Sun, 18 Jun 2023 00:20:48 GMT</pubDate>
     </item>
     </channel>
 </rss>
