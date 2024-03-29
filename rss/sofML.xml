@@ -4,7 +4,179 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 29 Mar 2024 09:13:24 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 29 Mar 2024 12:25:32 GMT</lastBuildDate>
+    <item>
+      <title>使用上游-下游 ML 模型，上游是 Wav2Vec 2.0 转换器，下游是 CNN。模型的准确性趋于稳定，为什么？</title>
+      <link>https://stackoverflow.com/questions/78243585/using-an-upstream-downstream-ml-model-with-the-upstream-being-wav2vec-2-0-trans</link>
+      <description><![CDATA[尝试将 wav2vec 2.0 与 CNN 结合使用进行语音情感识别。已定义四个类别。所有音频都已根据 wav2vec 2.0 模型的需要进行了预处理、充分截断/填充和重新采样。这就是模型的定义方式：
+class SimpleNN(nn.Module)：
+    def __init__(自身，输入大小，隐藏大小，输出大小)：
+        超级(SimpleNN, self).__init__()
+        self.fc1 = nn.Linear(输入大小，隐藏大小)
+        self.fc2 = nn.Linear(隐藏大小, 输出大小)
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax(dim=1)
+
+    def 前向（自身，x）：
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        x = self.softmax(x)
+        返回x
+
+tokenizer = Wav2Vec2Tokenizer.from_pretrained(“facebook/wav2vec2-base-960h”)
+模型 = Wav2Vec2Model.from_pretrained(“facebook/wav2vec2-base-960h”)
+
+# 修改最后一层以匹配输出类的数量
+label_mapping = {&#39;OAF_Fear&#39;：0，&#39;OAF_angry&#39;：1，&#39;OAF_happy&#39;：2，&#39;OAF_neutral&#39;：3}
+num_classes = len(label_mapping)
+
+model.lm_head = nn.Linear（in_features=model.config.hidden_​​size，out_features=num_classes，bias=True）
+
+对于 model.parameters() 中的参数：
+    param.requires_grad = False
+对于 model.lm_head.parameters() 中的参数：
+    param.requires_grad = True
+
+input_size = 768 # 从预训练模型中提取的特征的大小
+隐藏大小 = 256
+output_size = num_classes # 情感类别的数量
+学习率 = 0.001
+纪元数 = 50
+批量大小 = 32
+root_dir =“/content/drive/MyDrive/BTP_hanan_dataset/Dataset/TESS”
+
+类 FullModel(nn.Module):
+    def __init__(self, wav2vec_model, simple_nn_model):
+        超级（FullModel，自我）.__init__()
+        self.wav2vec_model = wav2vec_model
+        self.simple_nn_model = simple_nn_model
+
+    def 前向（自身，x）：
+        # 从预训练模型中获取隐藏状态
+        隐藏状态 = self.wav2vec_model(x)[0]
+        
+        # 聚合隐藏状态（例如，通过平均或最大池化）
+        aggregate_hidden_​​state = torch.mean(hidden_​​states, dim=1) # 示例：求平均值
+        
+        # 通过简单的神经网络
+        输出= self.simple_nn_model（聚合隐藏状态）
+        
+        返回输出
+simple_nn = SimpleNN(输入大小、隐藏大小、输出大小)
+
+对于 simple_nn.parameters() 中的参数：
+    param.requires_grad = True
+
+# 将预训练模型和简单的神经网络组合成一个模型
+full_model = FullModel(模型, simple_nn)
+
+# 损失函数和优化器
+标准 = nn.CrossEntropyLoss()
+优化器 = optim.Adam(full_model.parameters(), lr=learning_rate)
+
+
+预训练模型的最后一层已经训练完毕，其参数被传递给简单的 CNN。该模型的准确率停滞在 35%。
+在两个不同的数据集上进行了尝试，但没有任何改进。提前停止在 7 - 10 个 epoch 后触发，耐心 = 5。我做错了什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78243585/using-an-upstream-downstream-ml-model-with-the-upstream-being-wav2vec-2-0-trans</guid>
+      <pubDate>Fri, 29 Mar 2024 11:48:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 TensorFlow 中对多个类进行分类</title>
+      <link>https://stackoverflow.com/questions/78243492/how-to-classify-multiple-classes-in-tensorflow</link>
+      <description><![CDATA[我已经关注了 youtube 上的教程，该教程向我展示了如何对 2 个数据集进行分类（咳嗽，不是咳嗽），但现在我需要添加一个额外的类，即打喷嚏，因此需要训练 3 个类上（咳嗽，打喷嚏，其他），我不知道该怎么做。请帮忙！！！
+在代码中，模型在 2 个类别（咳嗽、not_cough）上进行训练并且表现相当不错，但我无法让它在多个类别（例如咳嗽、打喷嚏、其他）上工作。
+导入操作系统
+从 matplotlib 导入 pyplot 作为 plt
+将张量流导入为 tf
+将tensorflow_io导入为tfio
+从tensorflow.keras.models导入顺序，load_model
+从tensorflow.keras.layers导入Conv2D、Dense、Flatten、MaxPool2D、Dropout、TimeDistributed、Reshape
+从tensorflow.keras.optimizers.legacy导入Adam
+从 keras 导入层
+从 keras.utils 导入到_categorical
+
+def load_wav_16k_mono(文件名):
+    # 加载编码后的wav文件
+    file_contents = tf.io.read_file(文件名)
+    # 解码 wav（按通道的张量）
+    wav，sample_rate = tf.audio.decode_wav（文件内容，desired_channels = 1）
+    # 删除尾随轴
+    wav = tf.squeeze(wav, 轴=-1)
+    样本率 = tf.cast(样本率，dtype=tf.int64)
+    # 从 44100Hz 到 16000Hz - 音频信号的幅度
+    wav = tfio.audio.resample(wav,rate_in=sample_rate,rate_out=16000)
+    返回波形
+
+def 预处理（文件路径，标签）：
+    wav = load_wav_16k_mono(文件路径)
+    wav = wav[:8000]
+    Zero_padding = tf.zeros([8000] - tf.shape(wav), dtype=tf.float32)
+    wav = tf.concat([zero_padding, wav],0)
+    
+    频谱图 = tf.signal.stft(wav,frame_length=100,frame_step=20)
+    频谱图 = tf.abs(频谱图)
+    频谱图= tf.expand_dims（频谱图，轴= 2）
+    返回频谱图、标签
+
+
+def get_CNN(input_shape):
+    模型=顺序（）
+    model.add(Conv2D(16, (3,3), 激活=&#39;relu&#39;, input_shape=input_shape))
+    model.add(Conv2D(16, (3,3), 激活=&#39;relu&#39;))
+    model.add(MaxPool2D((2,2)))
+    模型.add(压平())
+    model.add（密集（128，激活=&#39;relu&#39;））
+    model.add（密集（1，激活=&#39;softmax&#39;））
+    
+    model.compile(&#39;Adam&#39;, loss=&#39;BinaryCrossentropy&#39;, 指标=[tf.keras.metrics.Recall(),tf.keras.metrics.Precision(),&#39;accuracy&#39;])
+    model.summary() # 删除一些最大池层以减少参数
+    返回模型
+    
+
+def main():
+    POS_COUGH = “./data/咳嗽”
+    NEG_COUGH =“./data/not_cough”
+  
+    #POS_SPEECH =“./数据/语音”
+
+    pos_cough = tf.data.Dataset.list_files(POS_COUGH+&#39;\*.wav&#39;)
+    neg_cough = tf.data.Dataset.list_files(NEG_COUGH+&#39;\*.wav&#39;)
+    
+    #pos_speech = tf.data.Dataset.list_files(POS_SPEECH +&#39;\*.wav&#39;)
+
+    咳嗽标签 = tf.data.Dataset.from_tensor_slices(tf.ones(len(pos_cough)))
+    
+    not_cough_labels = tf.data.Dataset.from_tensor_slices(tf.ones(len(neg_cough)))
+    
+    # 添加标签并合并正负样本
+    咳嗽 = tf.data.Dataset.zip((pos_cough, 咳嗽_标签))
+    
+    not_cough = tf.data.Dataset.zip((neg_cough, not_cough_labels))
+   
+    阴性= not_cough
+    阳性=咳嗽
+    # 连接两个相同的元素
+    数据=正数.连接（负数）
+
+    ### 2. 创建 Tensorflow 数据管道
+    数据 = data.map(预处理)
+    数据 = data.cache()
+    数据 = data.shuffle(buffer_size=1000)
+    数据 = 数据.batch(16)
+    数据 = 数据.预取(8)
+    
+    ## 3. 将数据拆分为训练数据和测试数据
+    火车 = data.take(int(len(数据) * 0.7))
+    test = data.skip(int(len(data) * 0.7)).take(int(len(data) - len(data) * 0.7)) #test.as_numpy_iterator().next()
+
+    输入形状频谱图 = (396, 65,1)
+    模型 = get_CNN(input_shape_spectrogram)
+    hist = model.fit(train, epochs=2,validation_data=test)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78243492/how-to-classify-multiple-classes-in-tensorflow</guid>
+      <pubDate>Fri, 29 Mar 2024 11:24:58 GMT</pubDate>
+    </item>
     <item>
       <title>训练和测试分开，目标类别的每个名称和比例都出现在训练和测试中</title>
       <link>https://stackoverflow.com/questions/78242480/train-and-test-split-in-such-a-way-that-each-name-and-proportion-of-tartget-clas</link>
@@ -449,137 +621,6 @@ df_loaded.head(5)
       <pubDate>Thu, 28 Mar 2024 23:32:11 GMT</pubDate>
     </item>
     <item>
-      <title>如何提高回归模型中的 R2 分数？预测房价</title>
-      <link>https://stackoverflow.com/questions/78241166/how-can-i-improve-r2-score-in-my-regression-model-predicting-house-prices</link>
-      <description><![CDATA[我已经在房屋定价数据集上训练了一些数据。
-我得到的 R-2 分数还不错，接近 0.5，如下所示：
-
-我想问如何提高 R-2 分数并获得接近实际价格的更精确预测。我还带来了价格和实际价格如下：
- 价格
-0 5250000 7.904547e+06
-1 3950000 5.272666e+06
-2 9500000 1.541611e+07
-3 8000000 1.135316e+07
-4 12750000 9.812656e+06
-.. ... ...
-99 7000000 9.222798e+06
-100 6750000 7.002278e+06
-101 6500000 8.844441e+06
-102 6500000 7.946185e+06
-103 5275000 1.005468e+07
-
-[104 行 x 2 列]
-
-在预测它们的价格时，我的想法是模型中的某些地区的行为与其他具有特征的地区不同。所以我想到了：也许我可以为每个地区写一个新的方程，优化每个地区每个特征的系数，然后对我写的所有 104 个方程取平均值。这样我就可以最小化yhat和实际价格之间的差异。我想知道机器学习中是否有一种方法！？
-&lt;预&gt;&lt;代码&gt;[-1720170.96599959 -450112.9969811 -241807.76731698 7269.75674741
-    66318.19738872 1220655.10520284 881134.39040993 2901100.72147558
-  1256062.85997242 1831204.62088706 -707473.49663603 2799885.41237361
-   797886.35464379]-10796920.246326108
-Karlibayir Mh. 的编码值：district0=0、district1=5、district2=0
-为您想要的值：Karlibayir Mh. 90 2 2 5 1 1 1 1 3 3 预测价格为：
-预计价格：10660621.44001897
-
-正如您在上面看到的，在我的代码中，我从用户那里获取一些参数来预测用户的价格。地区、所需房屋的平方米、建筑年龄、公寓楼层、所需建筑的层数、浴室数量、有电梯、有停车场、是否有陡峭的小巷、公寓使用的材料质量、附近的豪华程度
-我还没有在数据集上实现随机森林、XG boosting 和其他模型。最后我想说的是，令人惊讶的是，当我进行 Kfolding 时，我得到的 R-2 分数更少！我不知道为什么。
-感谢您的回复并提前抽出时间。
-顺便说一句，这是我的相关热图：
-]]></description>
-      <guid>https://stackoverflow.com/questions/78241166/how-can-i-improve-r2-score-in-my-regression-model-predicting-house-prices</guid>
-      <pubDate>Thu, 28 Mar 2024 22:33:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>Meta在视频流平台上的无缝通信模型？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78240811/metas-seamless-communication-model-on-video-streaming-platform</link>
-      <description><![CDATA[我想知道如何在youtube或其他平台等视频流媒体平台上使用meta的无缝通信模型？有谁知道怎么做吗？
-目前我可以使用存储的音频/视频在本地计算机上运行它。我不知道如何在流媒体平台上运行它。]]></description>
-      <guid>https://stackoverflow.com/questions/78240811/metas-seamless-communication-model-on-video-streaming-platform</guid>
-      <pubDate>Thu, 28 Mar 2024 20:51:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 MAPIE 进行保形预测，当 alpha 很大时，我得到空的预测集</title>
-      <link>https://stackoverflow.com/questions/78240714/using-mapie-for-conformal-predictions-i-get-empty-predictions-sets-when-alpha-is</link>
-      <description><![CDATA[我正在使用 MAPIE Python 库进行保形预测。在 MapieClassifier 中，我选择 method=&#39;score&#39;。当 alpha 很小时（1% 到 5% 之间），我得到非空预测集。然而，当我查看从 1% 到 99% 的整个 alpha 范围（例如 alphas = np.arange(0.01,1.00,0.01)）时，预测集中的平均类数逐渐下降为零，尽管 C. Molnar 的书 Python 保形预测简介 (2023) 第 27 页指出 « 用于多类任务的预测集是一组一个或多个类。 »，即它是目标模式集的非空子集。我在两个分类数据集上使用了默认的 XGBoost 模型，并得到了带有大 alpha 的空预测集的现象，其中之一是 Dry Bean 数据集。
-这是预测集的平均基数作为 alpha 函数的图表。
-
-据我们观察，平均值最终会低于 1。
-我还尝试了 Molnar 书中第 25-28 页的代码，该代码没有明确使用 MAPIE，但进行了类似的计算，并得到了相同的结果：当 alpha 变大时，预测集最终为空。正如 Molnar 书中第 27 页所述，我期望得到非空预测集。我观察到，当 alpha 变大时，q_level 会下降，这反过来又会使 q_hat 变小。当 q_level 在 0.7 到 0.9 之间时，作为 q_level 函数的 q_hat 似乎下降得很快（见下图）。
-
-问题：
-
-随着 alpha 变大，预测集会变空，这是可以预料到的吗？
-我是否应该将 method=&#39;score&#39; 更改为其他方法来获取非空预测集？
-我缺少关于 MAPIE 的良好实践吗？也许人们应该避免使用大阿尔法，或使用方法 score 或其他方法。直觉上，在我看来，我应该总是得到一个非空的预测集。
-]]></description>
-      <guid>https://stackoverflow.com/questions/78240714/using-mapie-for-conformal-predictions-i-get-empty-predictions-sets-when-alpha-is</guid>
-      <pubDate>Thu, 28 Mar 2024 20:28:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>难以理解如何使用机器学习数据集中的字符串数据列表 - 在进行预测之前扩展的功能</title>
-      <link>https://stackoverflow.com/questions/78240648/trouble-understanding-how-to-use-list-of-string-data-in-a-machine-learning-datas</link>
-      <description><![CDATA[我已经花了几个周末试图解决这个问题，我一直在观看一些教程并阅读，但我仍然缺少数据集实际可行的关键部分。我一直在努力寻找有关实际数据集创建的任何资源。所有教程似乎都只是使用即插即用数据集，没有任何数据背后的推理。
-我一直在尝试创建一个预测模型来预测 Google Colab + Tensorflow、Pandas 和 Numpy 中的足球赛事。例如，在此数据集上，这是为了预测玩家是否会在游戏中投篮。
-我最初将所有这些都采用嵌套 JSON 格式。我首先使用 Pandas json_normalize() 方法进行了尝试。
-我遇到的问题是，当涉及到实际预测时，模型的输入大约是 20,000 个特征或类似的高值。
-所以我尝试扁平化我的结构，并使所有内容尽可能通用。不过，我仍然在为同样的事情而苦苦挣扎，因为这些功能的规模正在爆炸式增长。所以我认为我的完整数据集有 153 个不同的列，包括结果列。
-存在多种类型的数据
-例如：
-
-&lt;标题&gt;
-
-列名称
-类型
-示例数据
-注释
-
-
-&lt;正文&gt;
-
-PlayerTeam_HomeOrAway
-字符串
-首页
-价值观是“在家”或“离开”。可以转换为数字/布尔值
-
-
-玩家团队游戏分析
-数量
-5
-
-
-
-玩家团队平均投篮次数
-十进制
-9.6
-
-
-
-位置
-字符串
-固件
-不同的球员位置，FW、DC、MC等
-
-
-gamesWithShots_game_1_sub
-布尔值
-错误
-
-
-
-PlayerStyles_Strengths_Strong
-列表
-传球、持球、空中决斗
-根据相关玩家的不同，长度可以不同。
-
-
-
-所以我认为问题出在 PlayerStyles_Strengths_Strong 等列上。我已经设法将嵌套结构分解为单个值。我有很多这样的专栏，内容涉及弱点、团队优势等。
-但是我不明白如何在 CSV 文件中构造这些数据。我希望将其视为单个记录，但它似乎是每个新记录的“热编码”。我在这里可能完全错了，这只是我迄今为止的初步研究。这就是为什么当我尝试使用相同的数据集结构运行预测时，它告诉我功能不匹配。
-我不确定这是否是我需要直接使用 Pandas、Tensorflow 做的事情，或者是否是 CSV 结构问题。
-我的第一个解决方案想法是为每种类型的力量等添加一列。然后，如果玩家/团队具有该特征，则将 1 / 0 分配到该字段中。我会将其写入将 JSON 转换为 CSV 的 Python 脚本中。在我经历这个费力的过程之前，我想我应该尝试一下，看看是否有一些明显的我遗漏的东西，我的人工智能建模知识正如上面提到的，是我从 YouTube、Udemy 和一些网站上拼凑起来的。 Medium + GeekForGeek 文章。
-谢谢]]></description>
-      <guid>https://stackoverflow.com/questions/78240648/trouble-understanding-how-to-use-list-of-string-data-in-a-machine-learning-datas</guid>
-      <pubDate>Thu, 28 Mar 2024 20:11:40 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在 Pytorch 中手动对某一层的输出进行反量化并为下一层重新量化？</title>
       <link>https://stackoverflow.com/questions/78239906/how-to-manually-dequantize-the-output-of-a-layer-and-requantize-it-for-the-next</link>
       <description><![CDATA[我正在开展学校项目，该项目要求我对模型的每一层执行手动量化。具体来说，我想手动实现：
@@ -607,15 +648,48 @@ Pytorch 如何处理反量化？我尝试定位Pytorch的量化，但是找不�
       <pubDate>Thu, 28 Mar 2024 17:17:53 GMT</pubDate>
     </item>
     <item>
-      <title>空间特征可以用作机器学习模型的输入吗？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78228843/can-spatial-features-be-used-as-an-input-for-a-machine-learning-model</link>
-      <description><![CDATA[我的数据集包含 Oracle 地理数据库中的线和要素网络。我还有一个数据集，其中包含用户根据此数据放置的点。
-目标是提供 2 个输入，即资产​​和周围网络，并预测需要放置点的位置。
-我一直在寻找这种机器学习的例子。但只能找到图像识别和解释的例子。我最接近的是用于预测停车场形状的形状文件掩码的示例。在那里，他们使用了粗糙的掩模和卫星图像，结果是预测停车场的新多边形形状。但这不是我想要的。
-我此时看到的解决方案是创建网络的光栅图像并将其用作输入，但我确信这是一种迂回的方法，这意味着生成的模型需要一个图像作为还有一个输入。
-预先感谢您的指导。]]></description>
-      <guid>https://stackoverflow.com/questions/78228843/can-spatial-features-be-used-as-an-input-for-a-machine-learning-model</guid>
-      <pubDate>Wed, 27 Mar 2024 00:54:36 GMT</pubDate>
+      <title>使用 Geotiff 图像分割</title>
+      <link>https://stackoverflow.com/questions/78238294/segmentation-with-geotiff-image</link>
+      <description><![CDATA[我想用 python 进行 k-means 分割。我的代码适用于 jpg 图像，但是当我尝试使用 geotiff 时，它只会使图像变成黑白。我怎么解决这个问题？下面是我的代码；
+导入 matplotlib 作为 mpl
+将 matplotlib.pyplot 导入为 plt
+将 matplotlib.image 导入为 mpimg
+从 sklearn.cluster 导入 KMeans
+
+从 PIL 导入图像
+Image.MAX_IMAGE_PIXELS = 无
+
+从 google.colab 导入驱动器
+驱动器.mount（&#39;/内容/驱动器&#39;）
+
+# Dosya yolu，Google Drive&#39;ınızda dosyanın bulunduğu yol
+
+file_path = &#39;/content/drive/MyDrive/Colab Notebooks/ortofoto.tif&#39;
+
+# TIFF dosyasını oku
+图像 = mpimg.imread(文件路径)
+[文本]([https://stackoverflow.com](https://stackoverflow.com))
+
+# 多斯亚伊·戈斯特
+plt.imshow(图像)
+plt.show()
+
+X=图像.reshape(-1, 4)
+kmeans=KMeans(n_clusters=2, n_init=10).fit(X)
+
+segmented_img=kmeans.cluster_centers_[kmeans.labels_]
+splited_img=segmented_img.reshape(image.shape)
+plt.imshow(segmented_img/255)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78238294/segmentation-with-geotiff-image</guid>
+      <pubDate>Thu, 28 Mar 2024 12:48:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>OCR 结果不一致：训练和测试期间的预测不同</title>
+      <link>https://stackoverflow.com/questions/78202518/inconsistent-ocr-results-different-predictions-during-training-and-testing</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78202518/inconsistent-ocr-results-different-predictions-during-training-and-testing</guid>
+      <pubDate>Thu, 21 Mar 2024 20:02:00 GMT</pubDate>
     </item>
     <item>
       <title>CatBoostRegressor 与 loss_function='Lq'</title>
@@ -643,6 +717,82 @@ model.fit(X_train, y_train)
 ]]></description>
       <guid>https://stackoverflow.com/questions/76498616/catboostregressor-with-loss-function-lq</guid>
       <pubDate>Sun, 18 Jun 2023 00:20:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>将 Detectron2 模型转换为 torchscript</title>
+      <link>https://stackoverflow.com/questions/73619217/convert-detectron2-model-to-torchscript</link>
+      <description><![CDATA[我想将 detectorron2 &#39;COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml 模型&#39; 转换为 torchscript。
+我用过托克
+我的代码如下。
+&lt;前&gt;&lt;代码&gt;导入cv2
+
+将 numpy 导入为 np
+
+进口火炬
+从 detector2 导入 model_zoo
+从 detector2.config 导入 get_cfg
+从 detectorron2.engine 导入 DefaultPredictor
+从 detector2.modeling 导入 build_model
+从 detectorron2.export.flatten 导入 TracingAdapter
+导入操作系统
+
+ModelPath=&#39;/home/jayasanka/working_files/create_torchsript/model.pt&#39;
+将 open(&#39;savepic.npy&#39;, &#39;rb&#39;) 作为 f：
+    图像 = np.load(f)
+
+#------------------------------------------------- ------------------------------------------------
+
+cfg = get_cfg()
+cfg.merge_from_file(model_zoo.get_config_file(“COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml”))
+
+cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1 # 你的类数 + 1
+
+cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, ModelPath)
+
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.60 # 设置该模型的测试阈值
+
+预测器 = DefaultPredictor(cfg)
+
+
+
+我使用了 TracingAdapter 和跟踪函数。我不太了解其背后的概念是什么。
+&lt;前&gt;&lt;代码&gt;# im = cv2.imread(图像)
+im = torch.tensor(图像)
+
+def inference_func（模型，图像）：
+    输入= [{“图像”：图像}]
+    返回 model.inference(inputs, do_postprocess=False)[0]
+
+包装器= TracingAdapter（预测器，im，inference_func）
+包装器.eval()
+Traced_script_module= torch.jit.trace（包装器，（im，））
+traced_script_module.save(“torchscript.pt”)
+
+它给出了下面给出的错误。
+回溯（最近一次调用最后一次）：
+  文件“script.py”，第 49 行，位于  中。
+    Traced_script_module= torch.jit.trace（包装器，（im，））
+  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/jit/_trace.py”，第 744 行，跟踪中
+    _模块_类，
+  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/jit/_trace.py”，第 959 行，在trace_module 中
+    参数名称，
+  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/nn/modules/module.py”，第 1051 行，在 _call_impl 中
+    返回forward_call（*输入，**kwargs）
+  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/nn/modules/module.py”，第 1039 行，位于 _slow_forward
+    结果 = self.forward(*输入, **kwargs)
+  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/detectron2/export/flatten.py”，第 294 行，向前
+    输出 = self.inference_func(self.model, *inputs_orig_format)
+  文件“script.py”，第 44 行，inference_func
+    返回 model.inference(inputs, do_postprocess=False)[0]
+  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/yacs/config.py”，第 141 行，在 __getattr__ 中
+    引发属性错误（名称）
+属性错误：推理
+
+
+你能帮我解决这个问题吗？
+还有其他方法可以轻松做到这一点吗？]]></description>
+      <guid>https://stackoverflow.com/questions/73619217/convert-detectron2-model-to-torchscript</guid>
+      <pubDate>Tue, 06 Sep 2022 08:50:15 GMT</pubDate>
     </item>
     </channel>
 </rss>
