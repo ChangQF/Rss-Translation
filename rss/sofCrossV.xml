@@ -4,7 +4,94 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Sat, 30 Mar 2024 00:55:43 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 30 Mar 2024 03:17:08 GMT</lastBuildDate>
+    <item>
+      <title>了解 rpart 树分裂：为什么节点尽管可能分裂但仍然是终端？</title>
+      <link>https://stats.stackexchange.com/questions/643879/understanding-rpart-tree-splits-why-did-a-node-remain-terminal-despite-potentia</link>
+      <description><![CDATA[设置
+考虑使用 rpart() 种植的两棵树&gt;rpart R 包，其中唯一改变的是 minbucket 参数。
+使用相同的数据，我不明白为什么在给定节点上没有执行某些分割，尽管潜在的分割似乎是可能的。通过降低 minbucket 参数，结果分割表明，子级实际上都拥有超过最小数量的观察值。
+库(rpart)
+数据（虹膜）
+# 第一棵树：minbucket = 20
+tree_1 &lt;- rpart(
+  物种 ~ ., method=&#39;class&#39;, data = iris,
+  控制 = rpart.control(xval = 0, minbucket = 20, cp = -1)
+）
+
+# 第二棵树：minbucket = 15
+tree_2 &lt;- rpart(
+  物种 ~ ., method=&#39;class&#39;, data = iris,
+  控制 = rpart.control(xval = 0, minbucket = 15, cp = -1)
+）
+
+生成的树，第一个：
+&lt;前&gt;&lt;代码&gt;&gt;树_1
+人数= 150
+
+节点）、分割、n、损失、yval、（yprob）
+      * 表示终端节点
+
+1) 根 150 100 山毛榉 (0.33333333 0.33333333 0.33333333)
+  2) 花瓣长度&lt; 2.45 50 0 山毛榉 (1.00000000 0.00000000 0.00000000) *
+  3) 花瓣长度&gt;=2.45 100 50 杂色 (0.00000000 0.50000000 0.50000000)
+    6) 花瓣宽度&lt; 1.75 54 5 杂色 (0.00000000 0.90740741 0.09259259) *
+    7) 花瓣宽度&gt;=1.75 46 1 维吉尼亚 (0.00000000 0.02173913 0.97826087) *
+
+第二个：
+&lt;前&gt;&lt;代码&gt;&gt;树_2
+人数= 150
+
+节点）、分割、n、损失、yval、（yprob）
+      * 表示终端节点
+
+ 1) 根 150 100 山毛榉 (0.33333333 0.33333333 0.33333333)
+   2) 花瓣长度&lt; 2.45 50 0 山毛榉 (1.00000000 0.00000000 0.00000000) *
+   3) 花瓣长度&gt;=2.45 100 50 杂色 (0.00000000 0.50000000 0.50000000)
+     6) 花瓣宽度&lt; 1.75 54 5 杂色 (0.00000000 0.90740741 0.09259259)
+      12) 花瓣长度&lt; 4.45 29 0 杂色 (0.00000000 1.00000000 0.00000000) *
+      13) 花瓣长度&gt;=4.45 25 5 杂色 (0.00000000 0.80000000 0.20000000) *
+     7) 花瓣宽度&gt;=1.75 46 1 维吉尼亚 (0.00000000 0.02173913 0.97826087)
+      14) 萼片长度&lt; 6.35 16 1 弗吉尼亚州 (0.00000000 0.06250000 0.93750000) *
+      15) 萼片长度&gt;=6.35 30 0 弗吉尼亚 (0.00000000 0.00000000 1.00000000) *
+
+问题
+对于第一棵树，其中 minbucket = 20，节点 6 是终端。它包含 54 个观察结果。
+对于第二棵树，其中 minbucket = 15，节点 6 不再是终端，并被分为子节点 12 和 13，分别包含 29 和 25 个观察值。
+为什么没有对第一棵树中的节点 6 进行分割，即使每个子节点都包含超过 20 个观察值？
+其他信息
+我查看了节点 6 中的基尼杂质以及节点 12 和 13 中基尼杂质的加权和。增益为 0.1183673。
+库(dplyr)
+node_6 &lt;- 虹膜 |&gt;过滤器（花瓣长度 &gt;= 2.45，花瓣宽度 &lt; 1.75）
+节点_12 &lt;- 节点_6 |&gt;过滤器(花瓣长度&lt;4.45)
+节点_13 &lt;- 节点_6 |&gt;过滤器(花瓣长度&gt;= 4.45)
+
+#&#39; 计算给定标签集的基尼不纯度
+#&#39;
+#&#39; @param labels 标签向量
+calculate_gini_impurity &lt;- 函数（标签）{
+  label_counts &lt;- 表（标签）
+  比例 &lt;- label_counts / sum(label_counts)
+  gini_impurity &lt;- 1 - sum(比例^2)
+  基尼杂质
+}
+
+# 节点 6 中的基尼杂质
+gini_6 &lt;-calculate_gini_impurity(node_6$Species)
+# 节点 12 和 13 中的基尼杂质
+gini_12 &lt;-calculate_gini_impurity(node_12$物种)
+gini_13 &lt;-calculate_gini_impurity(node_13$Species)
+权重 &lt;- c(nrow(node_12), nrow(node_13)) / nrow(node_6)
+gini_tot &lt;- (gini_tot_children &lt;- 权重 %*% c(gini_12, gini_13))
+
+值：
+&lt;前&gt;&lt;代码&gt;&gt; c(基尼 = gini_6, 基尼_Tot = gini_tot)
+     基尼系数 Gini_Tot
+0.1680384 0.1481481
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/643879/understanding-rpart-tree-splits-why-did-a-node-remain-terminal-despite-potentia</guid>
+      <pubDate>Sat, 30 Mar 2024 01:28:01 GMT</pubDate>
+    </item>
     <item>
       <title>关于相关性和 Vif 的混淆</title>
       <link>https://stats.stackexchange.com/questions/643878/confusion-about-correlation-and-vif</link>
@@ -134,9 +221,8 @@
       <description><![CDATA[假设我们有一个阶数为 1 的自回归过程：
 $$y_t = a + {\alpha}y_{t-1}+u_t$$ 对于 $t&gt;k$ ，其中 $k$ 是正整数，$\alpha \in (0,1)$&lt; /跨度&gt;。并且， $$y_t = b + {\alpha}y_{t-1}+u_t$$ 对于 $t\ leq k$。并假设 $a$ 和 $b$ 是两个不同的实常数。 $u_t$ 是独立同分布，均值 $0$ 和方差 $\sigma$ 常数且有限。
 现在，我正在尝试获取该无穷顺序过程的移动平均值。
-通常，$\alpha$ 位于区间 $(0,1)$ 内，意味着 ${sup}_t \ E(y_t)$ 是有限的。因此，$y_t$s 的序列空间是 Banach 空间，我们继续进行几何级数和。
-在这种情况下，我们是否还必须证明 ${sup}_t \ E(y_t)$ 是有限的？或者， $\alpha$ 位于区间 $(0,1)$ 中意味着这一点？
-提前谢谢您。]]></description>
+通常，$\alpha$ 位于区间 $(0,1)$ 内，意味着 ${\sup}_t \ E(y_t)$ 是有限的。因此，$y_t$s 的序列空间是 Banach 空间，我们继续进行几何级数和。
+在这种情况下，我们是否还必须证明 ${\sup}_t \ E(y_t)$ 是有限的？或者， $\alpha$ 位于区间 $(0,1)$ 中意味着这一点？]]></description>
       <guid>https://stats.stackexchange.com/questions/643869/autoregressive-process-to-moving-average-representation</guid>
       <pubDate>Fri, 29 Mar 2024 23:42:57 GMT</pubDate>
     </item>
@@ -306,25 +392,16 @@ Karlibayir Mh. 的编码值：district0=0、district1=5、district2=0
       <pubDate>Fri, 29 Mar 2024 18:58:10 GMT</pubDate>
     </item>
     <item>
-      <title>对于线性建模来说，哪个更重要：正态性还是调整 R 平方？</title>
-      <link>https://stats.stackexchange.com/questions/643837/which-is-more-important-to-linear-modelling-normality-or-adjusted-r-squared</link>
-      <description><![CDATA[我有两个线性模型，一个具有对数转换响应变量，一个没有。我试图在逐步完善之前确定哪个模型更好。
-模型 1 - 未转换模型：更高的调整 R 平方 (0.
-
-
-模型 2 - 对数转换响应变量：调整后的 R 平方较低，Q-Q 图更好（更接近正常）。
-
-
-R 平方值和接近正态性哪个更重要？]]></description>
-      <guid>https://stats.stackexchange.com/questions/643837/which-is-more-important-to-linear-modelling-normality-or-adjusted-r-squared</guid>
-      <pubDate>Fri, 29 Mar 2024 15:27:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>实用等效区域（ROPE）</title>
-      <link>https://stats.stackexchange.com/questions/643824/region-of-practical-equivalence-rope</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/643824/region-of-practical-equivalence-rope</guid>
-      <pubDate>Fri, 29 Mar 2024 12:30:03 GMT</pubDate>
+      <title>Ljung-Box 测试冲突 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/643792/ljung-box-test-conflict</link>
+      <description><![CDATA[在 R 中，对于级数 x
+Box.test(x, lag = 1, type = &quot;L&quot;, fitdf = 0)
+返回大于 0.5 的 p.值，表明滞后 = 1 时的相关性。但是，
+Box.test(x, lag = 5, type = &quot;L&quot;, fitdf = 0)
+返回远小于 0.05 的 p.value，因此在 lag = 5 之前不存在相关性。
+我们如何解释这个结果？我们能说没有相关性吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643792/ljung-box-test-conflict</guid>
+      <pubDate>Thu, 28 Mar 2024 21:48:21 GMT</pubDate>
     </item>
     </channel>
 </rss>
