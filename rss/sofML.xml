@@ -4,13 +4,281 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 30 Mar 2024 12:21:41 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 30 Mar 2024 15:14:41 GMT</lastBuildDate>
+    <item>
+      <title>建议将 Gymnasium 与神经网络结合使用，以避免 model.fit 和 model.predict 中的开销</title>
+      <link>https://stackoverflow.com/questions/78248300/recommended-way-to-use-gymnasium-with-neural-networks-to-avoid-overheads-in-mode</link>
+      <description><![CDATA[我正在尝试 Sutton &amp; 的情景半梯度 Sarsa。 Barto 第 10 章（第二版）使用 Gymnasium 的 CartPole 问题。对于函数逼近，我使用带有 keras 的神经网络。然而，忠实地实现该算法迫使我使用批量大小 1 进行拟合和预测，这会导致代码极其缓慢。另一种方法是首先运行代码从体育馆收集数据，然后使用这些数据离线训练神经网络。是否建议这样做 - 如果我理解正确的话，它会离线但仍然符合政策）？或者是否有其他标准方法可以在 Gymnasium 中使用神经网络而不影响性能？
+
+我当前尝试的概述 -
+将gymnasium导入为gym
+从 numpy.random 导入选择作为 random_choice
+从 numpy 导入数组，argmax
+
+我将算法编写为以下 python 代码：
+env =gym.make(&#39;CartPole-v1&#39;)
+
+对于范围内的 ep_idx（num_episodes）：
+    终止=假
+    状态, _ = env.reset()
+    动作 = env.action_space.sample()
+    未终止时：
+        action_=policy.take_action（状态，qvalue，ep_idx）
+        状态_，奖励，终止，_，_ = env.step(action_)
+        如果终止：
+            qvalue.update(状态、动作、奖励、无、无)
+        别的：
+            qvalue.update(状态、动作、奖励、state_、action_)
+        状态，动作 = 状态_，动作_
+
+对于函数逼近，我决定使用 Keras。这是在 qvalue.update 内部实现的，如下所示：
+类 QValueFunction：
+    def __init__(自我、折扣、学习率、num_actions、*state_vector_dim):
+        # 为简洁起见，此处未显示
+    def __call__(自我，状态，动作=无)：
+        # 为简洁起见，此处未显示
+    def更新（自我，s，a，r，s_，a_）：
+        model = self._model # keras.models.Model 的实例
+        gamma = self._discount # 浮动
+        update_targets = self._update_targets # 预分配的 numpy 数组
+        q = 自我
+        update_targets[:] = q(s, 无)
+        self._s[:] = s
+        s = self._s
+        如果 s_ 为 None 并且 a_ 为 None：
+            update_targets[0, a] = r
+        别的：
+            update_targets[0, a] = r + gamma * q(s_, a_)
+        model.fit(s、update_targets、batch_size=1、verbose=0)
+
+并且 policy 是 EpsilonGreedyPolicy 的实例：
+类 EpsilonGreedyPolicy：
+    def __init__(self, epsilon):
+        self.eps = epsilon
+    def take_action(self, 状态, qvalue, ep=None):
+        num_actions = qvalue.num_actions
+        如果可调用(self.eps): eps = self.eps(ep+1)
+        否则： eps = self.eps
+        如果 rand() &lt;每股收益：
+            返回随机选择(num_actions)
+        别的：
+            qvalues = qvalue(状态)
+            返回 argmax(qvalues)
+
+上面的代码在我的笔记本电脑上以每 10 秒大约 1 集的速度运行（仅 CPU）。为了检查代码实际运行的速度，我尝试使用随机策略 (eps=1) 生成 1000 个剧集的数据，生成 20000 多个 (s, a, r, s_, a_) 元组 。这仅需要大约 10 秒。接下来，我使用这些数据分别训练神经网络，通过将所有数据一次传递到 model.predict 和 model.fit&lt;，每 10000 个数据点大约需要 1 秒Keras 的 /code&gt;。本质上，使用批量大小为 1 的 model.fit 和 model.predict 忠实地按照算法运行代码需要 10000 秒，而按 (i) 首先生成数据 (ii) 接下来训练神经网络的方式运行则需要 10 到 100 秒秒。
+有没有推荐的方法在 Gymnasium 中使用神经网络来避免如此沉重的开销？]]></description>
+      <guid>https://stackoverflow.com/questions/78248300/recommended-way-to-use-gymnasium-with-neural-networks-to-avoid-overheads-in-mode</guid>
+      <pubDate>Sat, 30 Mar 2024 14:32:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>我如何在 coursera 上编辑“唤醒词检测笔记本”，使其适合我自己的单词？</title>
+      <link>https://stackoverflow.com/questions/78248216/how-can-i-edit-the-wake-word-detection-notebook-on-coursera-so-it-fit-my-own-w</link>
+      <description><![CDATA[我已经理解并解决了 Coursera 上 Andrew Ng 提供的深度学习专业化（序列模型课程）笔记本。
+在笔记本中，他提供了构建唤醒词检测模型的详细演练。然而，最后，他加载了一个针对“激活”一词进行训练的预训练模型。
+我尝试使用 Google Colab 和我自己的数据。我收集了 369 个人们说“Alexa”的声音。这些都可以在 Kaggle 上找到。然而，它们的采样率为 16000KHz。
+我还使用 Google 语音命令作为负面声音，并从 YouTube 收集了一些包含各种环境声音的剪辑。
+我完全按照说明执行了所有步骤，并且我正在使用 google colab 进行训练。但是当我尝试创建数据集时，RAM 很快就填满了，并且我无法创建 Andrew 在他的笔记本中提到的 4000 个样本。
+这是我的“create_training_examples”代码：
+&lt;前&gt;&lt;代码&gt;n 样本 = 4000
+X_train = []
+Y_train=[]
+X_测试 = []
+Y_测试 = []
+火车计数 = 0
+测试计数 = 0
+
+测试=假
+对于范围内的 i（0，nsamples）：
+
+    如果我％500==0：
+      打印（一）
+    兰特 = random.randint(0,61)
+
+    如果 i%5 == 0:
+
+
+      x, y = create_data_example(backgrounds_list[rand], alexa_list, negatives_list, Ty, name=str(i),to_test = True)
+      X_test.append(x.swapaxes(0,1))
+      Y_test.append(y.swapaxes(0,1))
+      测试计数+=1
+
+    别的：
+
+      x, y = create_data_example(backgrounds_list[rand], alexa_list, negatives_list, Ty, name=str(i),to_test = False)
+      X_train.append(x.swapaxes(0,1))
+      Y_train.append(y.swapaxes(0,1))
+      火车计数+=1
+
+
+print(&quot;训练样本数：&quot;, train_count)
+print(&quot;测试样本数：&quot;, test_count)
+
+
+X_train = np.array(X_train)
+Y_train = np.array(Y_train)
+
+np.save(&#39;XY_train/X_train.npy&#39;, X_train)
+np.save(&#39;XY_train/Y_train.npy&#39;, Y_train)
+
+
+X_test = np.array(X_test)
+Y_test = np.array(Y_test)
+np.save(&#39;XY_test/X_test.npy&#39;, X_test)
+np.save(&#39;XY_test/Y_test.npy&#39;, Y_test)
+
+
+print(&#39;保存完成&#39;)
+
+print(&#39;X_train.shape: &#39;,X_train.shape)
+print(&#39;Y_train.shape: &#39;,Y_train.shape)
+
+
+
+这是我使用的模型：
+def 模型(input_shape):
+
+    
+    X_input = 输入（形状 = input_shape）
+    
+
+    X = Conv1D(196,15,步长=4)(X_输入)
+    X = BatchNormalization()(X)
+    X = 激活(&#39;relu&#39;)(X)
+    X = 辍学(0.8)(X)
+
+    
+    X = GRU(128,return_sequences = True)(X)
+    X = 辍学(0.8)(X)
+    X = BatchNormalization()(X)
+    
+    
+    X = GRU(128,return_sequences=True)(X)
+    X = 辍学(0.8)(X)
+    X = BatchNormalization()(X)
+    X = 辍学(0.8)(X)
+    
+    X = TimeDistributed(Dense(1,activation = &quot;sigmoid&quot;))(X) # 时间分布 (sigmoid)
+
+
+    模型 = 模型（输入 = X_输入，输出 = X）
+    
+    返回模型
+
+
+
+以及训练：
+opt = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, 衰减=0.01)
+model.compile(loss=&#39;binary_crossentropy&#39;, 优化器=opt, 指标=[“准确度”])
+model.fit（X_train，Y_train，batch_size = 5，epochs = 20，validation_data =（X_test，Y_test））
+
+
+
+我按原样使用笔记本，甚至采用相同的方法进行特征提取。 我唯一修改的是训练数据，使用的是我自己的数据。但是，RAM 很快就被填满了。当我将样本数量减少到 1600KHz 或 8000KHz 时，我根本没有得到好的结果。
+我还尝试编辑batch_size、learning_rate。
+没有任何改变..
+我做错了什么吗？
+请问您有什么意见或建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78248216/how-can-i-edit-the-wake-word-detection-notebook-on-coursera-so-it-fit-my-own-w</guid>
+      <pubDate>Sat, 30 Mar 2024 14:03:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>python中的批量梯度下降算法返回巨大的值</title>
+      <link>https://stackoverflow.com/questions/78248203/batch-gradient-descent-algorithm-in-python-is-returning-huge-values</link>
+      <description><![CDATA[我正在尝试在 python 中实现批量梯度下降算法，该算法将训练集、学习率和迭代次数作为输入参数，并返回权重。然而，当我运行它时，在几次迭代内，参数的值呈指数级增长，最终返回“nan”。
+x = [[2104] [1600] [2400] [1416] [3000] [1985] [1534] [1427] [1380] [1494] [1940] [2000] [1890] [4478] [1268 ] [2300] [1320] [1236] [2609] [3031] [1767] [1888] [1604] [1962] [3890] [1100] [1458] [2526] [2200] [2637] [1839] [ 1000][2040][3137][1811][1437][1239][2132][4215][2162][1664][2238][2567][1200][852][1852][1203]]
+y = [399900 329900 369000 232000 539900 299900 314900 198999 212000 242500 239999 347000 329999 699900 259900 449900 299900 199900 499998 599000 252900 255000 242900 259900 573900 249900 464500 469000 475000 299900 349900 169900 314900 579900 28590 0 249900 229900 345000 549000 287000 368500 329900 314000 299000 179900 299900 239500]
+a = 0.01
+num_iter = 100
+def BGD ( x, y, a, num_iter):
+    m = len(x) #样本数
+    n = x.shape[1] #特征数量
+    p = np.zeros(n)
+    b = 0
+    对于 _ 在范围内（num_iter）：
+        sum_p = np.zeros(n)
+        总和 = 0
+        对于范围 (m) 内的 i：
+            sum_p = sum_p + ((np.dot(p,x[i])+b) - y[i]) * x[i]
+            sum_b = sum_b + (((np.dot(p,x[i])+b) - y[i]))
+        p = p - (a * (1/m) * sum_p)
+        b = b - (a * (1/m) * sum_b)
+    返回 p、b
+
+p, b = BGD(x, y, 0.01, 100)
+打印（页）
+打印(b)
+
+我得到以下信息：
+RuntimeWarning：add 中遇到溢出
+sum_p = sum_p + ((np.dot(p,x[i])+b) - y[i]) * x[i]
+RuntimeWarning：减法中遇到无效值
+p = p - (a * (1/m) * sum_p)
+[南]
+楠]]></description>
+      <guid>https://stackoverflow.com/questions/78248203/batch-gradient-descent-algorithm-in-python-is-returning-huge-values</guid>
+      <pubDate>Sat, 30 Mar 2024 14:00:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>Word2Vec 向量作为其他特征之一</title>
+      <link>https://stackoverflow.com/questions/78248032/word2vec-vectors-as-one-feature-among-others</link>
+      <description><![CDATA[我正在构建一个工具来根据单元格值、坐标和格式来标记发票字段。所述发票采用 Excel 格式，因此我迭代每个单元格以获取其属性并将它们存储在数据框中。坐标按 MinMax 缩放，而格式则变成虚拟的。然而，值是通过 Word2Vec 进行矢量化的。
+现在我需要将向量添加回数据帧，但我不知道该怎么做。正如您在下图中看到的，这些集群相当可区分，但它们需要其他功能才能像我需要的那样工作。
+矢量散点图
+列表（称为“文本”）和数据框列如下所示：[&#39;fl&#39;, &#39;三&#39;], [&#39;四&#39;], [&#39;pc&#39;], [&#39;onetwo&#39;], [&#39;三十三&#39;] &#39;]、[&#39;一&#39;]、[&#39;十二&#39;]、[&#39;五&#39;]...]
+这是通过 word2vec 传递列表的代码。我现在需要将向量发送回数据帧或其 x/y 分量。你们认为哪个最好？我该怎么做？
+texts = df_separado[&#39;valor&#39;].str.split(&#39; &#39;).tolist()
+
+矢量大小 = 100
+MIN_COUNT = 5
+窗口 = 1
+SG = 1
+
+模型 = Word2Vec(
+    句子=文本，
+    矢量大小=矢量大小，
+    min_count=MIN_COUNT,
+    sg=SG
+）
+
+def reduce_dimensions（模型）：
+    组件数量 = 2
+
+    向量 = np.asarray(model.wv.向量)
+    标签 = np.asarray(model.wv.index_to_key)
+
+    tsne = TSNE(n_components=num_components, random_state=0)
+    向量_tsne = tsne.fit_transform（向量）
+
+    缩放器 = MinMaxScaler(feature_range=(0, 1))
+    向量 = scaler.fit_transform(vectors_tsne)
+
+    x_vals = [v[0] 对于向量中的 v]
+    y_vals = [v[1] 对于向量中的 v]
+    返回 x_vals、y_vals、标签
+
+
+defplot_embeddings（x_vals，y_vals，标签）：
+    导入plotly.graph_objs作为go
+    图 = go.Figure()
+    跟踪 = go.Scatter(x=x_vals, y=y_vals, mode=&#39;markers&#39;, text=labels)
+    图.add_trace(跟踪)
+    Fig.update_layout(title=&quot;Word2Vec - TSNE&quot;)
+    图.show()
+    返回无花果
+
+x_vals、y_vals、标签=reduce_dimensions(模型)
+
+情节=情节嵌入（x_vals，y_vals，标签）
+]]></description>
+      <guid>https://stackoverflow.com/questions/78248032/word2vec-vectors-as-one-feature-among-others</guid>
+      <pubDate>Sat, 30 Mar 2024 13:04:09 GMT</pubDate>
+    </item>
     <item>
       <title>在 M2 GPU 上进行 PyTorch 训练比 Colab CPU 慢</title>
       <link>https://stackoverflow.com/questions/78247818/pytorch-training-on-m2-gpu-slower-than-colab-cpu</link>
       <description><![CDATA[我对深度学习/机器学习相当陌生，我一直在尝试使用我的 Apple M2 在 Jupyter 笔记本中加速我的 CNN 训练，但是，我发现尽管使用“mps”，但每个周期的执行速度要慢得多（ 1m 30-40 秒）比 Google Colab CPU 每个周期花费 40 秒。
 我不确定为什么会出现这种情况，并且想知道是否有人可以帮助我理解为什么会这样或者我可能做错了什么。
-我正在检查可用性和 PyTorch 版本并相应地使用它：
+我正在检查可用性和 PyTorch 版本并相应地利用它：
 # 检查 PyTorch 是否可以访问 MPS（Metal Performance Shader，Apple 的 GPU 架构）
 print(f“MPS（金属性能着色器）构建了吗？{torch.backends.mps.is_built()}”)
 print(f&quot;MPS 可用吗？{torch.backends.mps.is_available()}&quot;)
@@ -104,7 +372,7 @@ KeyError Traceback（最近一次调用最后一次）
     <item>
       <title>R 中没有为任何变量提供梯度</title>
       <link>https://stackoverflow.com/questions/78247273/no-gradients-provided-for-any-variable-in-r</link>
-      <description><![CDATA[我正在使用 R 和 MNIST 数据集进行深度学习。
+      <description><![CDATA[我正在使用 R 与 MNIST 数据集进行深度学习。
 我编写了这段代码来存储训练和测试数据，并定义和拟合模型：
 库（keras）
 
@@ -165,7 +433,7 @@ ValueError：没有为任何变量提供渐变：([&#39;dense_124/kernel:0&#39;,
 例如，这是我的一张图表：
 
 该图的独特数字特征是 [8.76e15, 8e-1, 5e-2, 5e-3, 5e-2, 9.65e-1, 2.1e-9] （我有该图所有点的坐标对 (x, y) 以两列 CSV 文件的形式存在，我也可以使用它们）。
-到目前为止，我已经寻找了很多预训练的模型，并在 HuggingFace 等网站上搜索了此类模型，还在 GitHub 代码中搜索了很多。我还在 Papers with Code 网站上搜索了做过同样事情的文章，但不幸的是，我仍然没有找到任何东西！我曾多次尝试自己编写一个网络，但由于这样做的复杂性以及对于如何设置网络的超参数以达到预期结果的知识不够，我遇到了很多错误并且无法做到这一点！
+到目前为止，我已经寻找了很多预训练的模型，并在 HuggingFace 等网站上搜索了此类模型，还在 GitHub 代码中搜索了很多。我还在 Papers with Code 网站上搜索了做过同样事情的文章，但不幸的是，我仍然没有找到任何东西！我曾多次尝试自己编写一个网络，但由于这样做的复杂性以及对如何设置网络的超参数以达到预期结果的了解不够，我遇到了很多错误并且无法做到这一点！
 例如，我编写了以下代码：
 X = []
 y = []
@@ -265,44 +533,6 @@ predict_bone_fracture() 函数接收上传的图像，将其保存到指定文�
       <pubDate>Sat, 30 Mar 2024 05:41:52 GMT</pubDate>
     </item>
     <item>
-      <title>在进行二值图像分类时，设置为二值的类模式错误地标记了图像，但它在分类上是否正确</title>
-      <link>https://stackoverflow.com/questions/78246763/while-working-on-binary-image-classification-the-class-mode-set-to-binary-incor</link>
-      <description><![CDATA[我目前正在研究二值图像分类。我的问题是，当我使用数据增强时，当它设置为二进制时，它会错误地标记图像。
-我尝试过的事情：
-
-在扩充我的数据之前，在图像上查找错误标记的类。不过这并没有什么问题。
-
-将课程模式更改为分类模式。这是可行的，但是我不从事多类分类。
-
-尝试使用图像数据生成器。没有任何效果。
-
-寻找分类不平衡的情况。也没什么问题。
-
-
-我还可以尝试什么？我应该在生成器上使用分类类模式吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78246763/while-working-on-binary-image-classification-the-class-mode-set-to-binary-incor</guid>
-      <pubDate>Sat, 30 Mar 2024 03:44:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>计算explained_variance_score，手动方法和函数调用结果不同</title>
-      <link>https://stackoverflow.com/questions/78246746/calculating-explained-variance-score-result-are-different-between-manual-method</link>
-      <description><![CDATA[根据官方页面的公式
-https://scikit-learn.org/stable/modules/ model_evaluation.html#explained-variance-score，计算数据集的以下 EVS：
-y_true = [1, 2, 3, 4, 5] y_pred = [6, 7, 8, 9, 10]
-手动：evs = 1 - var(y_true - y_pred)/var(y_true) = -11.5
-使用代码：evs = 1
-从 sklearn.metrics 导入解释_方差_分数
-
-y_true = [1, 2, 3, 4, 5]
-y_pred = [6, 7, 8, 9, 10]
-
-解释的方差 = 解释的方差_分数(y_true, y_pred)
-
-为什么结果不同？]]></description>
-      <guid>https://stackoverflow.com/questions/78246746/calculating-explained-variance-score-result-are-different-between-manual-method</guid>
-      <pubDate>Sat, 30 Mar 2024 03:26:49 GMT</pubDate>
-    </item>
-    <item>
       <title>Scikit-Learn 排列和更新 Polars DataFrame</title>
       <link>https://stackoverflow.com/questions/78246736/scikit-learn-permutating-and-updating-polars-dataframe</link>
       <description><![CDATA[我正在尝试重写scikit-learn 排列重要性要实现的：
@@ -354,20 +584,6 @@ X_train_permuted.replace_column( # 这个操作到位
       <pubDate>Sat, 30 Mar 2024 03:20:39 GMT</pubDate>
     </item>
     <item>
-      <title>神经网络距离与性能之间的关系</title>
-      <link>https://stackoverflow.com/questions/78246568/relationship-between-neural-network-distances-and-performance</link>
-      <description><![CDATA[我一直想知道“距离”与“距离”之间是否存在相关性。神经网络权重及其性能之间的关系。
-为了详细说明，请考虑以下场景：
-我们有三个模型：M1、M2 和 M3，它们都具有相同的结构，每个模型都在其各自的数据集 D1、D2 和 D3 上进行训练。训练后，让我们说一下“距离”。 M1 和 M2 之间的距离是 5，而 M1 和 M3 之间的距离是 20。本质上，M1 和 M2 “空间上”更接近。
-我想说的是，如果我们在 D2 和 D3 上评估 M1，它在 D2 上的性能应该更高，因为 M1 更接近 M2，并且 M2 是在 D2 上训练的。然而，一些实验与这一假设相矛盾。
-我故意将“距离”括起来用引号引起来，因为我不确定在这种情况下采用的适当指标。
-我找到了一些关于该主题的论文，但它们似乎不能满足我的需求。
-谁能帮助我更好地理解“距离”和“距离”之间是否存在关系？和性能？
-非常感谢！]]></description>
-      <guid>https://stackoverflow.com/questions/78246568/relationship-between-neural-network-distances-and-performance</guid>
-      <pubDate>Sat, 30 Mar 2024 01:27:55 GMT</pubDate>
-    </item>
-    <item>
       <title>运行排列重要性时，我们是否会排列测试集中的列？</title>
       <link>https://stackoverflow.com/questions/78243995/do-we-permute-columns-in-the-test-set-when-running-permutation-importance</link>
       <description><![CDATA[我一直在查看有关排列重要性的文档和相关教程，但似乎没有人清楚地了解他们实际排列的内容。
@@ -394,7 +610,7 @@ X_train_permuted.replace_column( # 这个操作到位
       <title>用于确定 TRL（技术准备水平）的问答模型</title>
       <link>https://stackoverflow.com/questions/78243266/question-answering-model-for-determine-trltechnology-readiness-levels</link>
       <description><![CDATA[我们想要创建一个问答模型。如何创建像 chatgpt 这样的问答模型，根据对该模型提供的文章、专利或任何产品描述来确定技术准备程度（从 1 到 9）？
-我们考虑使用 robeta 模型作为现成的模型，但是我们如何根据来自 API 的文章格式（标题、描述、作者等）集成掩蔽、微调和预训练阶段到这种格式并从这种格式中获取信息并确定文章在一定水平上的技术就绪程度？
+我们考虑使用 robeta 模型作为现成的模型，但是我们如何根据来自 API 的文章格式（标题、描述、作者等）集成掩蔽、微调和预训练阶段到这种格式并从这种格式中获取信息并确定文章在一定水平上的技术成熟度？
 我考虑过给每个部分，即标题部分中决定成熟度级别的单词赋予系数2，为描述部分中表示成熟度级别的单词赋予系数1.5，以及然后给潜文本中显示成熟度的单词赋予系数1，但是模型将如何在该部分学习这一点呢？我被困住了。如果每次冻结不同的结果，它就不会一致。您能帮我详细解释一下如何完成这些阶段吗？]]></description>
       <guid>https://stackoverflow.com/questions/78243266/question-answering-model-for-determine-trltechnology-readiness-levels</guid>
       <pubDate>Fri, 29 Mar 2024 10:34:46 GMT</pubDate>
@@ -435,82 +651,6 @@ df_loaded.head(5)
 正如我所提到的，我尝试从summary.best_trial.mlflow_run_id 中获取run_id，但值不匹配。我尝试阅读 automl 和 mlflow 的文档，但没有成功。]]></description>
       <guid>https://stackoverflow.com/questions/78241331/access-df-loaded-and-or-run-id-in-load-data-section-of-best-trial-notebook-of-da</guid>
       <pubDate>Thu, 28 Mar 2024 23:32:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>将 Detectron2 模型转换为 torchscript</title>
-      <link>https://stackoverflow.com/questions/73619217/convert-detectron2-model-to-torchscript</link>
-      <description><![CDATA[我想将 detectorron2 &#39;COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml 模型&#39; 转换为 torchscript。
-我用过托克
-我的代码如下。
-&lt;前&gt;&lt;代码&gt;导入cv2
-
-将 numpy 导入为 np
-
-进口火炬
-从 detector2 导入 model_zoo
-从 detector2.config 导入 get_cfg
-从 detectorron2.engine 导入 DefaultPredictor
-从 detector2.modeling 导入 build_model
-从 detectorron2.export.flatten 导入 TracingAdapter
-导入操作系统
-
-ModelPath=&#39;/home/jayasanka/working_files/create_torchsript/model.pt&#39;
-将 open(&#39;savepic.npy&#39;, &#39;rb&#39;) 作为 f：
-    图像 = np.load(f)
-
-#------------------------------------------------- ------------------------------------------------
-
-cfg = get_cfg()
-cfg.merge_from_file(model_zoo.get_config_file(“COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml”))
-
-cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1 # 你的类数 + 1
-
-cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, ModelPath)
-
-cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.60 # 设置该模型的测试阈值
-
-预测器 = DefaultPredictor(cfg)
-
-
-
-我使用了 TracingAdapter 和跟踪函数。我不太了解其背后的概念是什么。
-&lt;前&gt;&lt;代码&gt;# im = cv2.imread(图像)
-im = torch.tensor(图像)
-
-def inference_func（模型，图像）：
-    输入= [{“图像”：图像}]
-    返回 model.inference(inputs, do_postprocess=False)[0]
-
-包装器= TracingAdapter（预测器，im，inference_func）
-包装器.eval()
-Traced_script_module= torch.jit.trace（包装器，（im，））
-traced_script_module.save(“torchscript.pt”)
-
-它给出了下面给出的错误。
-回溯（最近一次调用最后一次）：
-  文件“script.py”，第 49 行，位于  中。
-    Traced_script_module= torch.jit.trace（包装器，（im，））
-  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/jit/_trace.py”，第 744 行，跟踪中
-    _模块_类，
-  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/jit/_trace.py”，第 959 行，在trace_module 中
-    参数名称，
-  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/nn/modules/module.py”，第 1051 行，在 _call_impl 中
-    返回forward_call（*输入，**kwargs）
-  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/torch/nn/modules/module.py”，第 1039 行，位于 _slow_forward
-    结果 = self.forward(*输入, **kwargs)
-  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/detectron2/export/flatten.py”，第 294 行，向前
-    输出 = self.inference_func(self.model, *inputs_orig_format)
-  文件“script.py”，第 44 行，inference_func
-    返回 model.inference(inputs, do_postprocess=False)[0]
-  文件“/home/jayasanka/anaconda3/envs/vha/lib/python3.7/site-packages/yacs/config.py”，第 141 行，在 __getattr__ 中
-    引发属性错误（名称）
-属性错误：推理
-
-
-你能帮我解决这个问题吗？
-还有其他方法可以轻松做到这一点吗？]]></description>
-      <guid>https://stackoverflow.com/questions/73619217/convert-detectron2-model-to-torchscript</guid>
-      <pubDate>Tue, 06 Sep 2022 08:50:15 GMT</pubDate>
     </item>
     </channel>
 </rss>
