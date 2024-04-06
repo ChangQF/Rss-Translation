@@ -4,26 +4,220 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 06 Apr 2024 03:15:34 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 06 Apr 2024 06:16:40 GMT</lastBuildDate>
+    <item>
+      <title>在一组用户数据上训练 ML 模型</title>
+      <link>https://stackoverflow.com/questions/78283322/train-an-ml-model-on-group-of-user-data</link>
+      <description><![CDATA[我需要建立用户支付交易的欺诈检测。
+与之前用户的交易历史记录相比，我需要在用户交易中定义一些独特的模式。
+我需要在每个用户数据集上训练模型吗？
+在这种情况下，我最终会得到大量模型。
+请提出正确的方法。
+我觉得这是一种推荐系统，其中用户是根据用户之前的历史推荐的。但我不知道他们是如何实现这一目标的。
+请帮忙]]></description>
+      <guid>https://stackoverflow.com/questions/78283322/train-an-ml-model-on-group-of-user-data</guid>
+      <pubDate>Sat, 06 Apr 2024 05:22:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用我尝试从头开始构建的神经网络时出现问题</title>
+      <link>https://stackoverflow.com/questions/78283274/problem-with-using-a-neural-network-i-tried-to-build-from-scratch</link>
+      <description><![CDATA[代码：
+&lt;前&gt;&lt;代码&gt;
+随机导入
+导入数学
+将 numpy 导入为 np
+类值：
+  
+  def __init__(self, data, _children=(), _op=&#39;&#39;, label=&#39;&#39;):
+    self.data = 数据
+    自我毕业= 0.0
+    self._backward = lambda: 无
+    self._prev = 设置(_children)
+    self._op = _op
+    self.label = 标签
+
+  def __repr__(自我):
+    return f“值(data={self.data})”
+  
+  def __add__(自己，其他)：
+    other = other if isinstance(other, Value) else Value(other)
+    out = Value(self.data + other.data, (self, other), &#39;+&#39;)
+    
+    def _backward():
+      自我.grad += 1.0 * 输出.grad
+      其他.grad += 1.0 * out.grad
+    输出._backward = _backward
+    
+    返回
+
+  def __mul__(自己，其他)：
+    other = other if isinstance(other, Value) else Value(other)
+    out = Value(self.data * other.data, (self, other), &#39;*&#39;)
+    
+    def _backward():
+      self.grad += other.data * out.grad
+      other.grad += self.data * out.grad
+    输出._backward = _backward
+      
+    返回
+  
+  def __pow__(自己，其他)：
+    assert isinstance(other, (int, float)), “目前仅支持 int/float 幂”
+    out = Value(self.data**other, (self,), f&#39;**{other}&#39;)
+
+    def _backward():
+        self.grad += 其他 * (self.data ** (其他 - 1)) * out.grad
+    输出._backward = _backward
+
+    返回
+  
+  def __rmul__(self, other): # 其他 * self
+    返回自己*其他
+
+  def __truediv__(self, other): # 自己 / 其他
+    返回自己 * 其他**-1
+
+  def __neg__(self): # -self
+    返回自身 * -1
+
+  def __sub__(self, other): # self - other
+    返回自我+（-其他）
+
+  def __radd__(self, other): # 其他 + self
+    返回自己+他人
+
+  def tanh(自身):
+    x = 自身数据
+    t = np.tanh(x)
+    输出 = 值(t, (self, ), &#39;tanh&#39;)
+
+    def _backward():
+        self.grad += (1 - t**2) * out.grad
+    输出._backward = _backward
+
+    返回
+
+  def exp(自身):
+    x = 自身数据
+    out = Value(math.exp(x), (self, ), &#39;exp&#39;)
+    
+    def _backward():
+      self.grad += out.data * out.grad # 注意：在视频中我错误地使用了 = 而不是 +=。固定在这里。
+    输出._backward = _backward
+    
+    返回
+  
+  
+  def向后（自身）：
+    
+    拓扑 = []
+    访问过=设置（）
+    def build_topo(v):
+      如果 v 不在访问中：
+        访问过.add(v)
+        对于 v._prev 中的孩子：
+          构建拓扑（子）
+        拓扑.append(v)
+    构建拓扑（自身）
+    
+    自我毕业= 1.0
+    对于反向节点（topo）：
+      节点._backward()
+
+
+
+神经元类：
+  
+  def __init__(self, nin):
+    self.w = [值(random.uniform(-1,1)) for _ in range(nin)]
+    self.b = Value(随机.uniform(-1,1))
+  
+  def __call__(自身，x)：
+    # w * x + b
+    act = sum((wi*xi for wi, xi in zip(self.w, x)), self.b)
+    输出 = act.tanh()
+    返回
+  
+  def 参数（自身）：
+    返回 self.w + [self.b]
+
+类层：
+  
+  def __init__(self, nin, noout):
+    self.neurons = [神经元(nin) for _ in range(nout)]
+  
+  def __call__(自身，x)：
+    outs = [n(x) for n in self.neurons]
+    返回 outs[0] 如果 len(outs) == 1 否则 outs
+  
+  def 参数（自身）：
+    return [p 代表 self.neurons 中的神经元，代表神经元中的 p.parameters()]
+
+MLP 类：
+  
+    def __init__(self, nin, nouts):
+        sz = [nin] + nouts
+        self.layers = [Layer(sz[i], sz[i+1]) for i in range(len(nouts))]
+  
+    def __call__(自身，x)：
+        对于 self.layers 中的图层：
+            x = 层(x)
+        返回x
+  
+    def 参数（自身）：
+        return [p for self.layers 中的层 for p in layer.parameters()]
+
+现在用这个东西来预测东西：
+随机导入
+
+# 初始化神经网络
+n = MLP(nin=2, nouts=[4, 1])
+
+学习率 = 0.1
+
+# 训练循环
+对于范围 (200) 内的 k：
+    # 生成随机输入数据点
+    xs = [[random.uniform(0, 1001), random.uniform(0, 1)] for _ in range(100)]
+    ys = [Value(5 + 3*x[0] + x[1]) for x in xs] # 使用 Value 类来表示真实输出
+    
+    # 前向传递
+    ypred = [n(x) for x in xs]
+    loss = sum((ygt - yout)**2 for ygt, yout in zip(ys, ypred)) / len(xs) # 计算均方误差
+    
+    # 向后传递
+    对于 n.parameters() 中的 p：
+        p.grad = 0.0
+    loss.backward()
+    
+    # 更新权重和偏差
+    对于 n.parameters() 中的 p：
+        p.data += -learning_rate * p.grad
+    
+    print(k, 损失.数据)
+
+我试图从函数 y=5+3x+i 预测 y 的值，x 的范围从 0 到 1001，i 的范围从 0 到 1，尝试仅使用 x 来预测，但没有成功，它无法仅使用 x 来完成此操作，给出了无法迭代它的错误。
+ypred 搞砸了，它的所有值都是 1.0，我是在做一些非常愚蠢的事情还是因为这件事似乎不起作用，我尝试了 chatgpt，它失败了。
+我该如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78283274/problem-with-using-a-neural-network-i-tried-to-build-from-scratch</guid>
+      <pubDate>Sat, 06 Apr 2024 04:49:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>相似性搜索和文本分类</title>
+      <link>https://stackoverflow.com/questions/78283251/similarity-search-and-text-classification</link>
+      <description><![CDATA[我有一个任务，我想根据收到的文本使用两种不同的机器学习模型？ （计划使用语音到文本的转换）。如果接收到的文本与有关急救箱的数据集匹配，那么我们将使用急救箱模型，如果它与疾病数据集更匹配，我们将使用疾病数据集，另外在分类之后，“症状”将被使用。或输入标签必须从文本中提取。我应该如何进行？
+我有几个问题，例如我应该创建整个数据库的矢量数据库吗？或者只是输入标签？我应该首先识别然后用于计算向量距离的实体吗？或者我应该匹配整个句子？
+急救数据库是一个输入标签，其中包括割伤、烧伤等紧急情况，而疾病数据库只是用于分类的正常数据集。急救箱数据集包含关于如何处理每次伤害的说明，我应该使用决策模型并打印决策还是构建语言模型？对于疾病数据集，我有一个额外的数据集，其中包含有关如何“治疗”疾病的信息。这些疾病，我计划将最终的疾病决策与该数据集相匹配，在这里，是使用语言模型更好还是只打印出决策更好？请指导我。
+我还没有尝试过任何东西，因为最初我计划使用较小的 llms 并简化问题，但是我被告知要使其易于运行，但我不能牺牲性能，我仍然希望它输出可行的语言。]]></description>
+      <guid>https://stackoverflow.com/questions/78283251/similarity-search-and-text-classification</guid>
+      <pubDate>Sat, 06 Apr 2024 04:34:00 GMT</pubDate>
+    </item>
     <item>
       <title>微调t5变压器产生重复输出</title>
       <link>https://stackoverflow.com/questions/78283102/fine-tuned-t5-transformer-generates-repetitive-output</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78283102/fine-tuned-t5-transformer-generates-repetitive-output</guid>
       <pubDate>Sat, 06 Apr 2024 03:13:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我在尝试下载 .ini 文件时遇到 Http:401 未经授权的情况？</title>
-      <link>https://stackoverflow.com/questions/78283084/why-am-i-getting-http401-unauthorized-while-trying-to-download-ini-files</link>
-      <description><![CDATA[我正在运行以下命令来下载。
-mySoccerNetDownloader.password = input(&quot;视频密码？:\n&quot;)
-mySoccerNetDownloader.downloadGames(files=[&quot;1_224p.mkv&quot;, &quot;2_224p.mkv&quot;], split=[&quot;训练&quot;,&quot;有效&quot;,&quot;测试&quot;,&quot;挑战&quot;])
-mySoccerNetDownloader.downloadGames(files=[&quot;1_720p.mkv&quot;, &quot;2_720p.mkv&quot;, &quot;video.ini&quot;], split=[&quot;训练&quot;,&quot;有效&quot;,&quot;测试&quot;,&quot;挑战&quot; ;])
-
-这就是我收到错误的方式
-即使通过了密码，它也会抛出 401 未经授权的错误。我能做什么]]></description>
-      <guid>https://stackoverflow.com/questions/78283084/why-am-i-getting-http401-unauthorized-while-trying-to-download-ini-files</guid>
-      <pubDate>Sat, 06 Apr 2024 03:06:07 GMT</pubDate>
     </item>
     <item>
       <title>编写成本/损失函数[关闭]</title>
@@ -122,177 +316,6 @@ plot1fit(torch.linspace(0, 13, 500).unsqueeze(1), 模型, 隐藏=True, 比例=Fa
       <pubDate>Fri, 05 Apr 2024 17:23:10 GMT</pubDate>
     </item>
     <item>
-      <title>在神经网络中创建并加载数据集</title>
-      <link>https://stackoverflow.com/questions/78281439/creating-and-loading-the-dataset-in-neural-network</link>
-      <description><![CDATA[我是深度学习的初学者...我想做图像分类，我的文件夹中有很多图像...
-将 numpy 导入为 np
-从张量流导入keras
-将 matplotlib.pyplot 导入为 plt
-导入keras
-数据=keras.datasets.fashion_mnist
-(train_images,train_labels),(test_images,test_labels)=data.load_data()
-
-火车图像=火车图像/255.0
-测试图像=测试图像/255.0
-
-
-plt.imshow(train_images[0],cmap=plt.cm.binary)
-plt.show()
-
-名称=[&#39;T恤&#39;，&#39;裤子&#39;，&#39;套头衫&#39;，&#39;连衣裙&#39;，&#39;外套&#39;，&#39;凉鞋&#39;，&#39;衬衫&#39;，&#39;运动鞋&#39;，&#39;包&#39;，&#39;踝靴&#39;]
-模型=keras.Sequential([
-    keras.layers.Flatten(input_shape=(28,28)),
-    keras.layers.Dense(10,activation=“softmax”)
-]）
-model.compile(optimizer=“adam”,loss=“sparse_categorical_crossentropy”,metrics=[“accuracy”])
-
-model.fit(train_images,train_labels,epochs=5)
-
-预测=模型.预测(test_images)
-
-对于范围 (4) 内的 i：
-    plt.网格（假）
-    plt.imshow(test_images[i],cmap=plt.cm.binary)
-    plt.xlabel(“实际：”+names[test_labels[i]])
-    plt.title(“预测：”+names[np.argmax(预测[i])])
-    plt.show()
-
-
-现在上面的程序基本上是从 MNIST 加载数据集...现在我创建了一个文件夹并将图像放入该文件夹中...现在如何加载该数据集并对其进行预处理？
-附：我会给出类名。请有人帮助我。
-我尝试了几种方法，但我没有得到它..请有人帮助我]]></description>
-      <guid>https://stackoverflow.com/questions/78281439/creating-and-loading-the-dataset-in-neural-network</guid>
-      <pubDate>Fri, 05 Apr 2024 17:10:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>由于内存违规或花费太长时间而导致测试用例错误</title>
-      <link>https://stackoverflow.com/questions/78281410/error-in-the-test-case-due-to-memory-violation-or-it-took-too-long</link>
-      <description><![CDATA[我正在做一个程序，结果是正确的，但对于一个案例测试它不起作用，我不知道到底为什么。
-原因是由于内存违规或输出结果花费的时间太长。
-我的程序是关于机器学习的，我需要根据学生的行为，使用点之间的距离来查看是否获得批准。
-#include ;
-#include ;
-#include ; // 使用malloc
-#定义 MAX_SAMPLES 300000
-#定义 MAX_STUDENTS 300000
-
-类型定义结构{
-    浮动学习时间；
-    浮动平均成绩；
-    int pass_or_fail;
-    浮动距离；
-} 样品；
-
-类型定义结构{
-    浮动学习时间；
-    浮动平均成绩；
-} 评估；
-
-// 调整最大堆的函数
-void heapify(样本sample_array[], int n, int i) {
-    int 最大 = i; // 将最大的初始化为root
-    int 左 = 2 * i + 1; // 左孩子的索引
-    int 右 = 2 * i + 2; // 右子节点的索引
-
-    // 如果左孩子大于根
-    if (left &lt; n &amp;&amp; 样本数组[左].距离&gt; 样本数组[最大].距离)
-        最大=左；
-
-    // 如果右孩子大于迄今为止最大的孩子
-    if (右 &lt; n &amp;&amp; 样本数组[右].距离 &gt; 样本数组[最大].距离)
-        最大=右；
-
-    // 如果最大的不是根
-    如果（最大！=我）{
-        // 将最大的与根交换
-        样本温度=样本数组[i]；
-        样本数组[i] = 样本数组[最大];
-        样本数组[最大] = 临时；
-
-        // 递归调整受影响的堆
-        heapify(sample_array, n, 最大);
-    }
-}
-
-// 堆排序的主要函数
-void heapSort(样本sample_array[], int n) {
-    // 构建最大堆
-    for (int i = n / 2 - 1; i &gt;= 0; i--)
-        heapify（样本数组，n，i）；
-
-    // 从堆中逐个取出元素
-    for (int i = n - 1; i &gt; 0; i--) {
-        // 将当前根移动到末尾
-        样本温度=样本数组[0]；
-        样本数组[0] = 样本数组[i];
-        样本数组[i] = 临时；
-
-        // 在缩减堆上调用 max heapify
-        heapify(sample_array, i, 0);
-    }
-}
-
-int main() {
-    int n_样本；
-    int n_students_be_evaluated;
-    整数 k；
-    int pass_count；
-    int 失败计数；
-
-    scanf(“%d %d %d”, &amp;n_samples, &amp;n_students_to_be_evaluated, &amp;k);
-
-   样本sample_array[MAX_SAMPLES]；
-   评估的valued_array[MAX_STUDENTS]；
-
-    // 读取样本
-    for (int j = 0; j &lt; n_samples; j++) {
-        scanf(“%f %f %d”, &amp;sample_array[j].average_grade, &amp;sample_array[j].study_hours, &amp;sample_array[j].pass_or_fail);
-    }
-
-    // 读取待评价的学生
-    for (int i = 0; i &lt; n_students_to_be_evaluated; i++) {
-        scanf(“%f %f”, &amp;evaluated_array[i].average_grade, &amp;evaluated_array[i].study_hours);
-    }
-
-    // 加工
-    for (int i = 0; i &lt; n_students_to_be_evaluated; i++) {
-        通行数=0；
-        失败计数=0；
-
-        // 计算距离并使用堆排序进行排序
-        for (int j = 0; j &lt; n_samples; j++) {
-            样本数组[j].距离 = sqrt(((evaluated_array[i].study_hours - 样本_array[j].study_hours)*(evaluated_array[i].study_hours - 样本_array[j].study_hours)) +
-                                              ((evaluated_array[i].average_grade -sample_array[j].average_grade)*(evaluated_array[i].average_grade -sample_array[j].average_grade)));
-        }
-
-        heapSort(sample_array, n_samples);
-
-        // 统计最近的k个中通过和失败的数量
-        for (int g = 0; g &lt; k; g++) {
-            if (sample_array[g].pass_or_fail == 1)
-                通过计数++；
-            别的
-                失败计数++；
-        }
-
-        // 检查学生是否通过
-        如果（通过计数&gt;失败计数）{
-            printf(“学生%d：(%.2f，%.2f) = 通过\n”，i，evaluated_array[i].average_grade，evaluated_array[i].study_hours);
-        } 别的 {
-            printf(“学生%d：(%.2f，%.2f) = 失败\n”，i，evaluated_array[i].average_grade，evaluated_array[i].study_hours);
-        }
-    }
-
-
-    返回0；
-}
-
-
-我尝试动态分配并使用合并排序。还尝试以静态形式增加数组的大小]]></description>
-      <guid>https://stackoverflow.com/questions/78281410/error-in-the-test-case-due-to-memory-violation-or-it-took-too-long</guid>
-      <pubDate>Fri, 05 Apr 2024 17:04:20 GMT</pubDate>
-    </item>
-    <item>
       <title>无法使用 TF-IDF 功能和微调嵌入模型复制 PECOS XR-Linear 性能</title>
       <link>https://stackoverflow.com/questions/78278617/cannot-replicate-pecos-xr-linear-performance-with-tf-idf-features-and-a-fine-tun</link>
       <description><![CDATA[我正在尝试使用 TFIDF 和 BGE 模型中的预训练嵌入来复制 XR-Linear。
@@ -387,7 +410,7 @@ set_config(transform_output=&quot;pandas&quot;)
       <title>如何将极坐标数据框与 scikit-learn 一起使用？</title>
       <link>https://stackoverflow.com/questions/74398563/how-to-use-polars-dataframes-with-scikit-learn</link>
       <description><![CDATA[我无法将极坐标数据帧与 scikitlearn 一起使用进行机器学习训练。
-目前，我正在极坐标中进行所有数据帧预处理，并且在模型训练期间，我将其转换为 pandas 数据帧以使其正常工作。
+目前，我正在极坐标中进行所有数据帧预处理，在模型训练期间，我将其转换为 pandas 数据帧以使其正常工作。
 是否有任何方法可以直接使用 Polars 数据帧进行 ML 训练而不将其更改为 pandas？]]></description>
       <guid>https://stackoverflow.com/questions/74398563/how-to-use-polars-dataframes-with-scikit-learn</guid>
       <pubDate>Fri, 11 Nov 2022 05:59:55 GMT</pubDate>
@@ -438,7 +461,7 @@ Poetry 主要是一个 Python 包管理器（例如，pip 的升级版），但�
       <link>https://stackoverflow.com/questions/57019163/why-unity-visual-studio-doesnt-recognise-using-mlagents-when-i-create-a-new-p</link>
       <description><![CDATA[我一直在尝试在我的系统上安装 Unity 的 MLAgents。
 阅读详细指南后“https:// /github.com/Unity-Technologies/ml-agents/blob/master/docs/Installation-Windows.md”我成功地让“3D Ball”等演示项目成功运行和训练。
-我的问题是，当我创建一个新项目时，当我包含“使用 MlAgents”时，会突出显示一个错误，其中指出“找不到名称空间名称“mlagents”的类型”。
+我的问题是，当我创建一个新项目时，当我包含“使用 MlAgents”时，会突出显示一个错误，其中指出“找不到命名空间名称“mlagents”的类型”。
 我对 Unity 没有太多经验，所以我希望这是我错过的一件愚蠢的事情，例如您可能必须导入包，但我不知道如何导入？
 我发现的所有教程都已经过时了，所以这是我最后的手段。如有任何帮助或建议，我们将不胜感激。
 我不明白演示项目如何在“使用 mlagents”时没有错误，但新项目却有错误。]]></description>
