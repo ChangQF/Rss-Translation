@@ -4,7 +4,248 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Thu, 11 Apr 2024 06:18:47 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 11 Apr 2024 09:14:23 GMT</lastBuildDate>
+    <item>
+      <title>所有分位数统一的分位数回归的渐近结果</title>
+      <link>https://stats.stackexchange.com/questions/644780/asymptotic-results-for-quantile-regression-uniformly-over-all-quantiles</link>
+      <description><![CDATA[在标准分位数回归 (QR) 框架中，我们通常只考虑一个感兴趣的分位数水平，例如 $\tau$。通过标准渐近结果，我们得到 $\sqrt{n}(\hat{\beta}(\tau) - \beta(\tau))$，其中 $\hat{\beta}(\tau)$ 是 Koenker 和 Bassett (1978) 的标准 QR 估计器。这为我们提供了一种使用渐近方差估计来对大样本进行推理的方法。
+但是，在阅读论文时，我有时也会遇到在所有分位数水平上一致的渐近结果 $\tau \in (0, 1)$。这些结果似乎并不是一个分位数水平结果的简单扩展。例如，在 Belloni 等人的《计量经济学杂志》论文中。 （2019）提到
+&lt;块引用&gt;
+我们注意到对函数$u \to \beta(u)$的推断，特别是对参数$\beta(u)$ 一致地适用于所有 $u ∈ U$，其中 $ U$ 是一组感兴趣的分位数指数，很困难，因为基于极限分布的标准渐近理论（van de Vaart 和 Wellner，1996）在这里没有帮助，因为过程 $u \to \sqrt{n}(\hat{\beta}(u)−\beta(u))$ 一般来说没有限制
+即使在适当的标准化之后，分布也是如此。
+
+这只是我见过的多篇论文中的一篇，这些论文在所有分位数指数上都得出了如此统一的结果。我看过 Van der Vaart 和 Wellner (1996)，但我没有确切地找到 $u \to \sqrt{n}(\hat{\beta }(u)−\beta(u))$ 没有限制。有谁知道为什么会出现这种情况？我想建立一些直觉，了解为什么标准技术不起作用以及如何得出一致的结果。任何帮助或参考其他作品来更详细地解释这一点将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/644780/asymptotic-results-for-quantile-regression-uniformly-over-all-quantiles</guid>
+      <pubDate>Thu, 11 Apr 2024 08:16:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>再现认知诊断评估的估计分类一致性和准确性</title>
+      <link>https://stats.stackexchange.com/questions/644779/reproduce-the-estimating-classification-consistency-and-accuracy-for-cognitive-d</link>
+      <description><![CDATA[I really need to。Here is the code I wrote myself without logic
+library(MASS)
+library(CDM)
+set.seed(0)
+参数设置
+sample_sizes &lt;- c(100, 500, 1000) # 样本大小
+num_attributes &lt;- c(3, 5, 8) # 属性数量级别
+num_simulations &lt;- 2000 # 每种情况下的模拟次数
+num_items &lt;- 20
+num_students &lt;- 1000
+存储结果
+results &lt;- list()
+for (k in num_attributes) {
+创建独立属性的协方差矩阵
+independent_cov &lt;- diag(1, k)
+创建中度相关属性的协方差矩阵
+moderately_correlated_cov &lt;- matrix(0, nrow = k, ncol = k)
+diag(moderately_correlated_cov) &lt;- 1
+moderately_correlated_cov[upper.tri(moderately_correlated_cov)] &lt;- runif((k*(k-1))/2, min = 0.3, max = 0.5)
+moderately_correlated_cov[lower.tri(moderately_correlated_cov)] &lt;- t(moderately_correlated_cov)[lower.tri(moderately_correlated_cov)]
+创建高度相关属性的协方差矩阵
+highly_correlated_cov &lt;- matrix(0, nrow = k, ncol = k)
+diag(highly_correlated_cov) &lt;- 1
+highly_correlated_cov[upper.tri(highly_correlated_cov)] &lt;- runif((k*(k-1))/2, min = 0.5, max = 0.8)
+highly_correlated_cov[lower.tri(highly_correlated_cov)] &lt;- t(highly_correlated_cov)[lower.tri(highly_correlated_cov)]
+生成独立属性模式
+independent_attributes &lt;- mvrnorm(n = num_students, mu = rep(0, k), Sigma = independent_cov)
+true_attribute_patterns[[paste(k, &quot;independent&quot;, sep = &quot;_&quot;)]] &lt;- independent_attributes
+生成中度相关属性模式
+moderately_correlated_attributes &lt;- mvrnorm(n = num_students, mu = rep(0, k), Sigma = moderately_correlated_cov)
+true_attribute_patterns[[paste(k, &quot;moderately_correlated&quot;, sep = &quot;_&quot;)]] &lt;- moderately_correlated_attributes
+生成高度相关属性模式
+highly_correlated_attributes &lt;- mvrnorm(n = num_students, mu = rep(0, k), Sigma = highly_correlated_cov)
+true_attribute_patterns[[paste(k, &quot;highly_correlated&quot;, sep = &quot;_&quot;)]] &lt;- highly_correlated_attributes
+}
+for (n_sample in sample_sizes) {
+for (n_attr in num_attributes_levels) {
+# 根据属性数量确定Q矩阵中测量属性的概率
+prob_attribute_measured &lt;- if (n_attr == 3) {
+0.5
+} else if (n_attr == 5) {
+0.3
+} else { # n_attr == 8
+0.1825
+}
+辅助函数，生成模拟响应数据
+simulateDataCDM &lt;- function(true_attribute_patterns, Q_matrix, num_items) {
+此函数应生成符合DINA模型的学生响应模式
+这里只是一个占位符
+response_patterns &lt;- matrix(sample(0:1, nrow(true_attribute_patterns) * num_items, replace = TRUE), nrow = nrow(true_attribute_patterns))
+return(list(
+true_attribute_patterns = true_attribute_patterns,
+response_patterns = response_patterns
+))
+}# 进行模拟
+for (sim in 1:num_simulations) {
+模拟属性掌握情况
+true_attribute_patterns &lt;- matrix(runif(n_sample * n_attr) &lt; prob_attribute_measured, nrow = n_sample)
+模拟Q矩阵
+Q_matrix &lt;- matrix(runif(num_items * n_attr) &lt; prob_attribute_measured, nrow = num_items, ncol = n_attr)
+生成模拟数据集
+sim_data &lt;- simulateDataCDM(true_attribute_patterns, Q_matrix)
+sim_data &lt;- simulateDataCDM(true_attribute_patterns, Q_matrix, num_items) # 这里传递num_items作为参数
+拟合DINA模型
+fit &lt;- din(data = sim_data$response_patterns, q.matrix = Q_matrix)
+评估分类一致性和准确性
+class_accuracy &lt;- cdm.est.class.accuracy(fit, sim_data$response_patterns)
+存储结果
+results[[paste(n_sample, &#39;sample&#39;, n_attr, &#39;attributes&#39;, sim, &#39;simulation&#39;, sep = &#39;_&#39;)]] &lt;- class_accuracy
+}
+}
+}
+对每种属性数量进行模拟
+使用二分法将正态分布变量转换为二进制属性模式
+假设大于等于0的值表示属性被掌握
+for (i in names(true_attribute_patterns)) {
+true_attribute_patterns[[i]] &lt;- ifelse(true_attribute_patterns[[i]] &gt;= 0, 1, 0)
+}
+查看生成的属性模式
+true_attribute_patterns
+评估所有模拟结果
+evaluate_criteria &lt;- function(Pc, Pa) {
+results &lt;- list(
+Pc_mean = mean(Pc),
+Pc_sd = sd(Pc),
+Pc_skewness = skewness(Pc),
+Pc_kurtosis = kurtosis(Pc),
+Pa_mean = mean(Pa),
+Pa_sd = sd(Pa),
+Pa_skewness = skewness(Pa),
+Pa_kurtosis = kurtosis(Pa)
+)
+Pc_theoretical_sd &lt;- sqrt(var(Pc) / length(Pc)) # 这里应用渐近正态理论
+Pa_theoretical_sd &lt;- sqrt(var(Pa) / length(Pa)) # 同上
+比较实证分布和理论分布
+results$Pc_theoretical_sd_diff &lt;- abs(Pc_theoretical_sd - results$Pc_sd)
+results$Pa_theoretical_sd_diff &lt;- abs(Pa_theoretical_sd - results$Pa_sd)
+return(results)
+}
+调用评估函数
+evaluate_all_simulations(results)]]></description>
+      <guid>https://stats.stackexchange.com/questions/644779/reproduce-the-estimating-classification-consistency-and-accuracy-for-cognitive-d</guid>
+      <pubDate>Thu, 11 Apr 2024 07:39:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>概率和运算顺序[重复]</title>
+      <link>https://stats.stackexchange.com/questions/644778/probability-and-order-of-operations</link>
+      <description><![CDATA[我很困惑......
+
+&lt;标题&gt;
+
+
+汽车
+自行车
+总线
+其他
+
+
+&lt;正文&gt;
+
+新生
+10
+5
+7
+2
+
+
+大二
+20
+10
+11
+5
+
+
+初级
+25
+20
+31
+4
+
+
+高级
+18
+17
+16
+14
+
+
+
+如果我做 P（新生 | 巴士），答案将是 P（新生给巴士）或“巴士”组中有多少人？ （即 [7, 11, 31, 16]）是新生，即
+7/(7 + 11 + 31 + 16) = 7/65
+但是，如果我做 P（汽车 | 大二或大四）...
+我可以将其视为 P((汽车 | 大二或大四) 或 P(汽车 | (大二或大四))
+如果我假设 P((汽车 | 大二) 或大四)：
+给定逻辑 P(A 或 B) = P(A) + P(B) - P(A 和 B)
+并给出逻辑 P(A 和 B) = P(A) * P(B)，
+我也可以构造这样的逻辑：P(A 或 B) = P(A) + P(B) - P(A) * P(B)
+我假设：
+P(A 或 B) = P(A) + P(B) - P(A) * P(B)
+翻译为
+P((汽车 | 大二) 或 高年级) = P(汽车 | 大二) + P(高年级) - P(汽车 | 大二) * P(高年级)
+求解子方程：
+P（汽车 | 大二）= 20 / (20 + 10 + 11 + 5) = 20/46 = 0.43478
+P(高级) = (18 + 17 + 16 + 14) / (18 + 17 + 16 + 14 + 25 + 20 + 31 + 4 + 5 + 11 + 10 + 20 + 2 + 7 + 5 + 10 ) = 65/215 = 0.30233
+这意味着：
+P((汽车|大二)或大四) = 0.43478 + 0.30233 - 0.43478 * 0.30233
+P((汽车|大二)或大四)= 0.60566
+如果我假设 P(Car | (大二或大四))：
+我可以将 [二年级，汽车] 单元格和 [高年级，汽车] 单元格相加，然后将结果除以高年级学生总数和二年级学生总数：
+P(汽车 | (大二或大四)) = (20 + 18) / (20 + 10 + 11 + 5 + 18 + 17 + 16 + 14)
+P(汽车 | (大二或大四)) = 38 / 111
+P(汽车 | (大二或大四)) = 0.34234
+我的困惑：
+什么时候应该应用联合概率与边际概率？另外，我是否遗漏了一些关于首选操作顺序的内容，或者我是否在编造事情？]]></description>
+      <guid>https://stats.stackexchange.com/questions/644778/probability-and-order-of-operations</guid>
+      <pubDate>Thu, 11 Apr 2024 07:28:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么在使用 lme4 比较 R 中结果变量的多级模型（对数变换与常规尺度）时 ICC 有所不同？</title>
+      <link>https://stats.stackexchange.com/questions/644775/why-does-the-icc-differ-when-comparing-multilevel-models-log-transformations-vs</link>
+      <description><![CDATA[我目前正在利用 lme4 包在 R 中开展一个多级建模项目。该研究的主要目的是评估家庭间和家庭内部差异在解释个人收入差异方面的相对重要性。通过检查类内相关系数 (ICC)，我试图量化家庭间差异与家庭内部差异所造成的总收入差异的比例。
+为了进行此分析，我生成了一个综合数据集，其中包含嵌套在 40 个族中的 80 个观察值。每个观察结果都包括收入和年龄变量，并将个人分配到不同的家庭。随后，我安装了四个不同的多级模型：
+利用原始收入规模（收入）的模型。
+采用对数变换的收入规模（对数收入）的模型。
+尽管使用相同的数据集，但我观察到这些模型的 ICC 值存在差异。这种不一致是出乎意料的，因为我认为 ICC 应该对结果变量规模的转换保持不变。
+下面是我用来生成数据集并拟合模型的代码片段：
+库(lme4)
+设置.种子(123)
+
+n &lt;- 80 # 观察数
+n_families &lt;- 40 # 组（族）数量
+
+# 一级变量（个人收入）
+收入 &lt;- rnorm(n，平均值 = 40000，sd = 10000)
+
+# 2 级变量（家庭效应）
+family_id &lt;-rep(1:n_families, every = n/n_families) # 家庭归属
+family_effect &lt;- rnorm(n_families,mean = 0,sd = 5000) # 家庭对收入的影响
+
+# 根据family_id将家庭影响分配给个人收入
+收入 &lt;- 收入 + family_effect[family_id]
+
+# 创建数据框
+data &lt;- data.frame(收入 = 收入, 年龄 = 年龄, family_id = 因子(family_id))
+数据$log Revenue &lt;- log(data$收入)
+
+
+# 使用 lmer 拟合多级模型
+model_regular_scale &lt;- lmer(收入 ~ 1 + (1 | family_id), data = data)
+model_log &lt;- lmer(logvenue ~ 1 + (1 | family_id), data = data)
+
+
+# 模型总结
+摘要（模型_常规_规模）
+摘要（模型日志）
+摘要（model_10）
+
+# ICC值的计算
+icc_regular_scale &lt;- 5518713/(5518713 + 91636300)
+icc_log_scale &lt;- 0.003098/(0.003098 + 0.058133)
+
+我将非常感谢任何关于为什么对数转换模型和非缩放模型之间 ICC 值不同的见解或建议。估计过程或结果解释是否存在潜在问题？感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/644775/why-does-the-icc-differ-when-comparing-multilevel-models-log-transformations-vs</guid>
+      <pubDate>Thu, 11 Apr 2024 06:20:00 GMT</pubDate>
+    </item>
     <item>
       <title>基于缺失数据模式组合回归模型</title>
       <link>https://stats.stackexchange.com/questions/644774/combining-regression-models-based-on-missing-data-patterns</link>
@@ -73,7 +314,7 @@ for (i in 1:(nrow(pattern) - 1)) {
   # 创建一个情节
   plt &lt;- obspred %&gt;%
     ggplot(aes(x = obs, y = pred)) +
-    几何点() +
+    几何点（）+
     geom_abline(斜率 = 1) +
     注释（“文本”，x = -Inf，y = Inf，
              标签=粘贴(粘贴(&#39;n&#39;,n_obs,sep=&#39;=&#39;),
@@ -125,59 +366,11 @@ for (i in 1:(nrow(pattern) - 1)) {
       <pubDate>Thu, 11 Apr 2024 02:03:03 GMT</pubDate>
     </item>
     <item>
-      <title>如何确定时间序列和预测的统计显着性？</title>
-      <link>https://stats.stackexchange.com/questions/644762/how-to-determine-statistical-significance-for-a-time-series-and-forecasts</link>
-      <description><![CDATA[通过一个简单的死亡率示例和基本的三年平均基线：
-df &lt;- tibble(
-  年份 = 2017:2022,
-  实际 = c(904, 889, 839, 913, 835, 836)
-）
-df$预测 &lt;- 代表(平均值(df$实际), 6)
-df$diff &lt;- df$实际 - df$预测
-df
-# 小题：6 × 4
-# 年实际预测差异
-# ;   
-#1 2017 904 869. 34.7
-#2 2018 889 869. 19.7
-#3 2019 839 869。-30.3
-#4 2020 913 869. 43.7
-#5 2021 835 869。-34.3
-#6 2022 836 869。-33.3
-
-确定值 2020:2022 本身是否以及累计代表统计数据的正确方法是什么。符号。与之前的观察值（即预测）相比有何变化？]]></description>
-      <guid>https://stats.stackexchange.com/questions/644762/how-to-determine-statistical-significance-for-a-time-series-and-forecasts</guid>
-      <pubDate>Wed, 10 Apr 2024 23:08:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>逻辑多项式模型的对数似然的详细推导</title>
-      <link>https://stats.stackexchange.com/questions/644756/detailed-derivation-for-the-log-likelihood-of-a-logistic-multinomial-model</link>
-      <description><![CDATA[我正在开发一些涉及逻辑正态多项式模型的贝叶斯模型。但是，我对如何表达多项式部分感到很困惑。
-传统上，多项式逻辑回归的完全似然可以通过所有个体（i）和所有类别（j）上的softmax函数来表达，例如：
-$$
-P(y | X\beta) = \prod_i \prod_j \frac{\exp(x_i \beta_j)}{\sum_j \exp(x_i \beta_j)}^{y_{ij}}
-$$
-对数似然为
-$$
-\sum_i \sum_j y_{ij}x_i \beta_j - \sum_i \sum_j y_{ij}\log(\sum_j \exp(x_i \beta_j))
-$$
-我在几个资源中发现最后一个数量可以表示为：
-$$
-\sum_i \sum_j y_{ij}x_i \beta_j - \sum_i \log(\sum_j \exp(x_i \beta_j))
-$$
-但是目前尚不清楚作者是如何获得最后一个表达式的。我觉得我错过了一些假设或技巧。
-有人可以解释一下如何获取最后的数量或指向相关资源吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/644756/detailed-derivation-for-the-log-likelihood-of-a-logistic-multinomial-model</guid>
-      <pubDate>Wed, 10 Apr 2024 22:10:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>一致性证明中的随机有界性</title>
-      <link>https://stats.stackexchange.com/questions/644755/stochastic-boundedness-in-consistency-proof</link>
-      <description><![CDATA[我正在阅读Knight 和 Fu (2000)，套索渐近-类型估计器，我不明白为什么 (6) 和 (7) 暗示定理 1 的一致性（在下面复制并粘贴）。
-我熟悉标准的 Newey 和 McFadden 一致性条件 - $Q_n$ 到 $Q_0$（这是公式 6），$Q_0$ 的连续性，以及 $Q_0 $ 有一个独特的最大化器 - 我知道它们可以被大大削弱。但我从未在 $Q_n$ 的最大化器上见过类似 (7) 的条件。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/644755/stochastic-boundedness-in-consistency-proof</guid>
-      <pubDate>Wed, 10 Apr 2024 22:10:19 GMT</pubDate>
+      <title>滞后增强局部投影和标准误差</title>
+      <link>https://stats.stackexchange.com/questions/644757/lag-augmented-local-projection-and-standard-errors</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/644757/lag-augmented-local-projection-and-standard-errors</guid>
+      <pubDate>Wed, 10 Apr 2024 22:29:14 GMT</pubDate>
     </item>
     <item>
       <title>当所有变量都是因子时，残差在逻辑回归中重要吗？</title>
@@ -189,29 +382,42 @@ $$
 假设我有一个模型，试图预测结果 A 对结果 B 的选择，并且解释变量都是二元的，或者具有阶乘水平“是、否”。或“选项 1、选项 2、选项 3”。
 在这种情况下，残差代表什么？其实，“距离”并不大。之间的价值观对吗？对我来说似乎有点抽象。
 我读过的有关逻辑回归的大多数资源都涉及至少包含一个连续变量的示例，很少涉及所有变量都是阶乘的情况。
-我读到的一个来源表明，对于这些情况，像 Nagelkerke psuedo-R2 这样的统计数据是因为总方差的比例“概念上不太清晰”。
+我读到的一个消息来源表明，对于这些情况，像 Nagelkerke psuedo-R2 这样的统计数据是因为总方差的比例“概念上不太清晰”。
 我认为人们可以为 AIC 提出同样的理由。
 所以我的总体问题是，如果残差是确定回归模型拟合优度的关键因素，但它们在逻辑回归模型中并不那么相关，那么如何评估模型中的拟合优度纯阶乘变量？]]></description>
       <guid>https://stats.stackexchange.com/questions/644737/are-residuals-important-in-logistic-regression-when-all-variables-are-factors</guid>
       <pubDate>Wed, 10 Apr 2024 17:05:12 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 R 中实现 Newey-West 标准错误？</title>
-      <link>https://stats.stackexchange.com/questions/644765/how-to-implement-newey-west-standard-errors-in-r</link>
-      <description><![CDATA[我正在尝试实施 newey-west 标准错误来纠正我在使用 OLS 进行回归时遇到的自相关问题。
-但是这些严重的错误只会让我的结果变得不那么重要。
-我已经对一个常数进行了仅因变量的回归。
-我得到了输出并检查了残差的自相关性，结果表明存在自相关性。
-然后我应该使用 newey-west 标准错误重新运行回归。我使用命令：
-robust_se &lt;- vcovHAC（模型，类型 =“HC”，滞后 = 4）
-输出 &lt;- coeftest(模型, vcov.=robust_se)
-打印（输出）
-
-但是根据这些结果，当纽维-韦斯特误差应该起到相反的作用时，我的系数现在变得不那么重要了。
-我的 t-stat 值从 1.716 降到了大约 0.9
-我真的不明白这是怎么回事。这段代码有问题吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/644765/how-to-implement-newey-west-standard-errors-in-r</guid>
-      <pubDate>Wed, 10 Apr 2024 12:56:58 GMT</pubDate>
+      <title>对连续解释变量每单位变化结果的纵向变化进行建模</title>
+      <link>https://stats.stackexchange.com/questions/644717/modeling-longitudinal-change-in-outcome-per-unit-of-change-in-a-continuous-expla</link>
+      <description><![CDATA[我的问题与相关您如何处理“嵌套”问题？回归模型中的变量？但是，我的问题略有不同。
+我正在分析减肥干预的基因表达数据。在干预前和两个随访点（变量访问）对参与者进行了测量。从后续 1 到后续 2，参与者的体重减轻了不同程度，有些甚至反弹了。我们还有其他队列的数据，无法与该数据集直接比较。然而，为了产生具有一定可比性的结果，我想对基因表达的干预效果进行建模，以便结果能够通过体重减轻百分比 (wlp) 显示从基线到每次随访的变化。 
+在本例中，visit 是解释变量，wlp 嵌套在其中。如果我只有两个时间点，我将仅使用 wlp 作为解释变量来获得我想要的结果（给出与 visit:wlp 交互相同的结果）。 
+我的问题是：在这种情况下，当有三个时间点时，没有主效应的 visit:wlp 交互是否会给我每个 wlp 结果（基因表达）的变化code&gt; 处两次不同的访问？如果我分别分析两个后续点，估计结果非常相似；然而，p 值较小。]]></description>
+      <guid>https://stats.stackexchange.com/questions/644717/modeling-longitudinal-change-in-outcome-per-unit-of-change-in-a-continuous-expla</guid>
+      <pubDate>Wed, 10 Apr 2024 11:01:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>收敛的概率几乎确定，而现实中的概率为 0</title>
+      <link>https://stats.stackexchange.com/questions/644665/almost-sure-probability-in-convergence-versus-0-probability-in-reality</link>
+      <description><![CDATA[我对概率分布收敛的含义有一些疑问。考虑这个示例问题：对于一个公平的骰子，抛出$6x$次，对于整数$x$，将 $y$ 定义为看到每个结果 $x$ 次的概率。
+我之前的想法是，大数定律说 $$\underset{x \rightarrow \infty}{\lim} y = 1 \tag{1} $$
+但情况似乎更加复杂。我们可以以封闭形式计算 $y$：
+$$y = \dfrac{(6x)!}{6^{6x} (x!)^6} \quad \Rightarrow \quad \underset{x \rightarrow \infty} {\lim} y = 0\tag{2}$$
+上面的问题让我想到了第二个例子，你们中的一些人可能更喜欢这个例子。
+让我们在 $\{0, 1\}$ 的支持下定义随机变量 $X$ span&gt;，这样 $\mathbb{P}(X = 1) = 1/6$ 和 $\mathbb{ P}(X = 0) = 5/6$。使用定义
+$$\bar{X}_n = \frac{1}{6n}\sum_1^{6n} X_i$$
+我们有那个
+$$\mathbb{P}(\bar{X}_n = 1/6) = {6n \选择 n}\left( \dfrac{1}{6} \right) ^n\left(\dfrac{5}{6} \right)^{5n}$$
+由此可见
+$$\underset{n \rightarrow \infty}{\lim}\mathbb{P}(\bar{X}_n = 1/6) = 0 \tag{3}$ $
+现在，根据维基百科页面，根据大数定律，
+$$\mathbb{P}( \underset{n \rightarrow \infty}{\lim} \bar{X}_n = 1/6) = 1 \tag{4}$ $
+这说明了等式之间明显矛盾的原因。 (1) 和 (2) - 极限和概率的顺序不同。在我看来，两个方程。 （3）和（4）是有效的，这对我来说似乎很奇怪。我希望这两个方程应该具有相同的值。
+是等式。 3 有效吗？如果是这样，为什么应该等式。 4 也有效吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/644665/almost-sure-probability-in-convergence-versus-0-probability-in-reality</guid>
+      <pubDate>Tue, 09 Apr 2024 19:42:46 GMT</pubDate>
     </item>
     <item>
       <title>分割稀疏数据集时生成没有数据的集合的概率</title>
@@ -221,15 +427,101 @@ robust_se &lt;- vcovHAC（模型，类型 =“HC”，滞后 = 4）
       <pubDate>Tue, 09 Apr 2024 07:57:09 GMT</pubDate>
     </item>
     <item>
-      <title>相等样本量与相等样本密度的相对重要性</title>
-      <link>https://stats.stackexchange.com/questions/644586/relative-importance-of-equal-sample-size-vs-equal-sample-density</link>
-      <description><![CDATA[我正在对规定火灾的影响进行植被研究。我有一个将被烧毁的实验区和一个不会被烧毁的对照区。实验区域存在三种类型的植被，因此我根据每种植被类型的相对大小（面积）成比例对调查位置进行分层。对照区存在相同的三种植被类型，但每种植被类型的相对比例与实验区不同，尽管总面积（面积）非常相似。该计划是使用方差分析进行分析，查看火灾前后的数据。
-我的问题是，保持相等的样本量与相等的样本密度的相对重要性是什么？
-换句话说，我应该在每个控制层中采样与其等效实验层相同数量的点数，还是应该以与其等效实验层相同的密度对控制层进行采样？在第二个选项中，由于总体区域相同，因此总体样本量将相同，但控制区和实验区之间各个地层的样本量会不同。
-在线搜索显示了几乎无穷无尽的有关样本大小的信息，但有关样本密度的信息较少，而且我没有找到任何对两者进行比较的信息。
-注意：从技术上讲，我相信这里只有一个样本大小，因为处理（火）仅应用于一个区域。我所说的样本实际上是重复的，因为它们并不相互独立，但我认为想法是相同的，并且我认为讨论样本会引起更广泛的受众的兴趣。]]></description>
-      <guid>https://stats.stackexchange.com/questions/644586/relative-importance-of-equal-sample-size-vs-equal-sample-density</guid>
-      <pubDate>Mon, 08 Apr 2024 19:30:07 GMT</pubDate>
+      <title>为什么因子在 2 向方差分析中显得显着，但通过检查（平均值 +/- sd 或误差图）却不显着？</title>
+      <link>https://stats.stackexchange.com/questions/644574/why-does-factor-appear-significant-in-2-way-anova-but-not-by-inspection-mean</link>
+      <description><![CDATA[我对双向方差分析的结果感到困惑。这些因素是分类因素和非随机因素，所使用的平方和受 III 型约束（不过，分类或 SS 类型的选择似乎对结果并不重要）。
+数据由50个测量值、一个因素(“催化剂”)的2个水平、另一因素(“化学处理”)的5个水平以及每个处理5个重复组成。
+下面的误差图说明了各个处理的平均值+/-标准差，根据因子#2（催化剂，有两个水平，-/+）进行阻止。
+（编辑：我用错误图替换了箱线图；评论进一步建议简单地使用散点图。注意，我选择发布箱线图是因为这是 MATLAB ANOVA 函数提供的默认可视化；这些函数的文档解释了线条和符号的含义，可能有些独特）。
+
+在上述处理中，1-5和6-10对应于因子#2（催化剂）的两个水平（-/+），而处理1-5在因子#1（化学处理，水平与6-匹配）方面有所不同。 10).
+从检查来看，因素#1（化学处理）有效果，但对于因素#2（催化剂）却很难说有效果。
+我在 MATLAB 中运行分析
+[p,tbl,model] = anovan(msmnt,{var1,var2},“模型”,“交互”,&#39;varnames&#39;,{&#39;var 1&#39;,&#39;var 2&#39;}) ; %双因素方差分析
+这是输出表：
+
+&lt;标题&gt;
+
+来源
+平方和
+d.f.
+平均平方
+F
+问题&gt;F
+
+
+&lt;正文&gt;
+
+因子 1（化学处理）
+612.97
+4
+153.242
+56.86
+0
+
+
+因子 2（催化剂）
+22.445
+1
+22.445
+8.33
+0.0063
+
+
+因子 1:因子 2
+12.53
+4
+3.132
+1.16
+0.3418
+
+
+错误
+107.8
+40
+2.695
+
+
+
+
+总计
+755.745
+49
+
+
+
+
+
+
+由于这两个因素（并且没有交互作用），似乎存在显着影响（95% 置信度）。
+我手动计算了一些方差分析项，它们（嗯，我的计算）似乎是正确的。
+但是，如果您查看因素 #2 的两个水平中每个水平的均值：
+
+&lt;标题&gt;
+
+事实#2（催化剂）级别
+平均
+示例标准开发
+
+
+&lt;正文&gt;
+
+-
+15.35
+4.50
+
+
++
+16.68
+3.34
+
+
+
+误差图（简单检查）和平均值表明这不是显着差异（由于因素 #2、催化剂而没有影响），但方差分析表似乎另有说明。
+这种相互矛盾的解释令人困惑。我的分析中遗漏了什么？方差分析是否看到了我没有看到的东西？
+我怀疑原因是治疗内差异相对较小。然而，如果这是真的，我如何确定各个对中的两种处理（例如 1-6、2-7 等，存在或不存在催化剂时不同）是否会产生显着不同的效果？]]></description>
+      <guid>https://stats.stackexchange.com/questions/644574/why-does-factor-appear-significant-in-2-way-anova-but-not-by-inspection-mean</guid>
+      <pubDate>Mon, 08 Apr 2024 16:01:53 GMT</pubDate>
     </item>
     <item>
       <title>Gompertz AFT 模型中误差项的分布是怎样的？</title>
@@ -237,57 +529,6 @@ robust_se &lt;- vcovHAC（模型，类型 =“HC”，滞后 = 4）
       <description><![CDATA[给定 AFT 模型 $\ln(T)=\beta+\sigma\times W$， 的分布$T$ 取决于随机项 $W$。如果 $T$ 遵循具有形状和速率的 Gompertz 分布，我如何导出 $\sigma$&lt; 的值/span&gt; 和 $\beta$ 的形状和速率？我想首先我需要知道 $W$ 的分布。]]></description>
       <guid>https://stats.stackexchange.com/questions/644010/what-is-the-distribution-of-error-term-in-gompertz-aft-model</guid>
       <pubDate>Mon, 01 Apr 2024 08:20:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>数据与信息。这两个术语有什么区别？</title>
-      <link>https://stats.stackexchange.com/questions/618396/data-vs-information-what-s-the-difference-between-these-two-terms</link>
-      <description><![CDATA[以下是“代表性”的定义：我读过无数关于数据与信息的文章，但对它们却无话可说。谁能强调一下这两者，以便我更好地理解统计科学？
-数据是单个事实或统计数据的原始形式的表示。由于数据仅包含数字和数字，因此在研究人员对其进行分析或背景化之前，它没有任何意义。例如，数据可以表示有关物体价格、测试分数或当前室外温度的基本数字。信息是对数据的解释，研究人员根据原始数据识别模式并得出结论。使用数据，研究人员可以就他们想要的主题得出有意义的结论。根据上下文，信息也具有不同的含义。例如，数据告诉您室外温度。一个人可能得出结论认为温度很高，而另一个人则认为温度很低。当有人描述气温很高时，他们正在提供有关他们对天气的解释的信息。
-我发现的另一个例子：分析师进行需要数据和信息的市场研究。假设他们追踪 2018 年 18 岁至 24 岁的消费者在护发产品上花费的金额（代表数据）。这些信息包括该数字与前几年的比较以及对其变化原因的解释。在营销行业中，数据和解释使专业人士能够监控消费者购买行为的趋势以及产品在市场上的表现。
-此电子表格中的数据是什么，信息是什么？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/618396/data-vs-information-what-s-the-difference-between-these-two-terms</guid>
-      <pubDate>Sat, 10 Jun 2023 09:58:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何将具有双季节性的 GAM 拟合到每日时间序列？ （mgcv 包）</title>
-      <link>https://stats.stackexchange.com/questions/612312/how-to-fit-a-gam-with-double-seasonality-to-a-daily-time-series-mgcv-package</link>
-      <description><![CDATA[我正在尝试将广义加法模型调整为每日时间序列。我的目标是对我所在城市的天然气需求进行短期预测。我有 2015 年以来的数据，包括有关天气的信息（最低和最高温度）。我正在处理的数据是每日数据，并且由于我有很多年前的信息，所以我有双重季节性：每年和每周。
-这是多年来历史数据的图像。我们可以看到，每年冬季（五月、六月、七月、八月、九月）需求都会增加：
-
-这是每周数据的图像。我们可以看到，在周末，需求下降：
-
-真正的问题如下：当尝试从 Rstudio 中的 mgcv 包调整 gam() 模型时，考虑这两个季节性因素的正确语法是什么？
-我知道它应该是这样的：
-&lt;前&gt;&lt;代码&gt;库(mgcv)
-gam_1 &lt;- gam(gas_demand ~ s(x1, bs = &quot;cr&quot;, k = 7) +
-               s(x2, bs = “ps”, k = 365),
-             数据 = df,
-             家庭=高斯）
-#这只是一个例子，x1和x2还没有定义，他们
-#应该是模型的协变量
-#每日数据应存储在数据框“df”中
-#我试图预测的响应变量是“gas_demand”
-
-
-我是否应该在数据框中创建一个从 1 到 7 的列，具体取决于观察一周中的哪一天，以考虑到每周的季节性？
-对于每年的季节性，我应该创建一个值为 1 到 365 的列（取决于一年中的日期）吗？或者值从 1 到 12 的列（具体取决于一年中的月份）？我不确定什么是正确的方法。
-我的最后一个问题：对于每种类型的季节性，建议使用哪种类型的基函数？
-我真的非常渴望得到答复，因为我正在努力寻找适用于这种确切类型的数据的示例。提前致谢！ :)]]></description>
-      <guid>https://stats.stackexchange.com/questions/612312/how-to-fit-a-gam-with-double-seasonality-to-a-daily-time-series-mgcv-package</guid>
-      <pubDate>Sat, 08 Apr 2023 01:17:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>准确率、精确率和召回率的置信区间</title>
-      <link>https://stats.stackexchange.com/questions/604597/confidence-interval-for-accuracy-precision-and-recall</link>
-      <description><![CDATA[分类准确率或分类误差是比例或比率。它描述了模型做出的正确或错误预测的比例。每个预测都是一个二元决策，可能是正确的，也可能是错误的，这是伯努利试验。
-伯努利试验中的比例服从二项分布。对于较大的样本量（例如超过 30），我们可以用高斯分布来近似。
-我们可以使用比例的高斯分布假设来计算准确度的 95% 置信区间：
-半径 = z * sqrt((精度 * (1 - 精度)) / n)
-其中 n 是数据集的大小，z 是高斯分布的标准差数（95% 区间的 z = 1.96）。
-我们是否可以使用相同的方法来计算精度和召回率，最终也基于正确预测的比例？]]></description>
-      <guid>https://stats.stackexchange.com/questions/604597/confidence-interval-for-accuracy-precision-and-recall</guid>
-      <pubDate>Tue, 07 Feb 2023 17:05:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
