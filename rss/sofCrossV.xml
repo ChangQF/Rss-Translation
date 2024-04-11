@@ -4,7 +4,111 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Thu, 11 Apr 2024 03:14:32 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 11 Apr 2024 06:18:47 GMT</lastBuildDate>
+    <item>
+      <title>基于缺失数据模式组合回归模型</title>
+      <link>https://stats.stackexchange.com/questions/644774/combining-regression-models-based-on-missing-data-patterns</link>
+      <description><![CDATA[我有一个数据集，其中包含一些缺失模式。对于这个数据集，我有一个完整的训练集，包含所有输入特征。我的测试集对因变量有完整的观察结果，但输入特征存在一些缺失数据的模式。下面我举一个例子：
+示例数据集
+# 生成缺少数据模式的假测试
+subset1 &lt;- data.frame(yield = rnorm(500, 1000, 100)) %&gt;%
+  变异(var1 = 产量 * rnorm(500, 100, 5))
+
+subset2 &lt;- data.frame(yield = rnorm(500, 1000, 100)) %&gt;%
+  变异(var2 = 产量 * rnorm(500, 100, 10),
+         var3 = -产量 * rnorm(500, 100, 4))
+
+subset3 &lt;- data.frame(yield = rnorm(500,1000,100)) %&gt;%
+  变异(var1 = 产量 * rnorm(500, 100, 5),
+         var3 = -产量 * rnorm(500, 100, 4))
+
+测试 &lt;- plyr::rbind.fill(subset1,subset2,subset3)
+
+# 训练集有完整的观察结果
+训练 &lt;- data.frame(yield = rnorm(500,1000,100)) %&gt;%
+  变异(var1 = 产量 * rnorm(500, 100, 5),
+         var2 = 产量 * rnorm(500, 100, 10),
+         var3 = -产量 * rnorm(500, 100, 4))
+
+md.pattern(plyr::rbind.fill(测试，训练))
+
+
+缺失数据模式
+注意第一行是训练集，其他行是测试集
+
+我想对此数据集执行回归，但我对使用插补持谨慎态度，除非我有充分的理由。当然，我可以只删除包含丢失数据的行，但这将删除数据集的很大一部分。我遇到过简化建模的概念，它标识了测试集中缺失数据的不同模式，基于完整的子集训练单独的模型。根据我对这个概念的理解，这就是我尝试过的：
+# 查看测试集上缺失的数据模式
+模式 &lt;- 小鼠::md.pattern(test,plot=F)
+
+# 启动一个列表以将子集放入其中
+model_list &lt;- 列表()
+
+for (i in 1:(nrow(pattern) - 1)) {
+  # 获取缺失的数据模式
+  cols_with_no_missing &lt;- 名称(which(pattern[i, -ncol(pattern)] == 1))
+
+  # 根据此模式对数据集进行子集化
+  subset_df &lt;- 测试 %&gt;%
+    选择（all_of（cols_with_no_missing））％&gt;％
+    na.省略()
+
+  # 仅使用这些列训练模型
+  数据 &lt;- 训练 %&gt;%
+    选择（all_of（cols_with_no_missing））
+  
+  mod &lt;- 训练（产量 ~ .,
+               数据=数据，
+               方法 = &#39;lm&#39;,
+               trControl = trainControl(方法 = &#39;repeatedcv&#39;,
+                                        数量 = 10,
+                                        重复次数 = 10))
+  
+  # 获取一些模型统计数据
+  obspred &lt;- data.frame(obs=subset_df$yield,
+                        pred = 预测(mod,newdata =subset_df))
+  
+  n_obs &lt;- nrow(obspred)
+  rsq &lt;- 摘要(mod)$r.squared
+  
+  # 创建一个情节
+  plt &lt;- obspred %&gt;%
+    ggplot(aes(x = obs, y = pred)) +
+    几何点() +
+    geom_abline(斜率 = 1) +
+    注释（“文本”，x = -Inf，y = Inf，
+             标签=粘贴(粘贴(&#39;n&#39;,n_obs,sep=&#39;=&#39;),
+                           粘贴（&#39;R²&#39;，圆形（rsq，2），sep =&#39;=&#39;），
+                           粘贴（&#39;产量&#39;，粘贴（cols_with_no_missing[-1]，折叠=&#39;+&#39;），sep=&#39;〜&#39;），
+                           九月=&#39;\n&#39;),
+             hjust = -0.1，vjust = 1，大小 = 4)
+
+  model_list[[i]] &lt;- plt
+}
+
+# 比较模型测试性能
+图书馆（拼凑而成）
+包裹图（模型列表）+情节布局（轴=&#39;收集&#39;）
+
+
+测试性能
+
+我的问题
+
+我想知道使用这种方法会产生什么后果，或者是否有更合适的方法来做类似的事情？
+您能否创建某种集成模型，根据可用功能选择适当的子模型？如果是这样，您将如何将不断变化的准确性（根据可用功能而变化）纳入其中？
+
+我的实际数据集比这个示例大得多（约 90,000 个观测值），具有 25 个特征，因此实际上我将使用随机森林回归，但（我认为？？）原理应该类似。]]></description>
+      <guid>https://stats.stackexchange.com/questions/644774/combining-regression-models-based-on-missing-data-patterns</guid>
+      <pubDate>Thu, 11 Apr 2024 04:01:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于分层对数秩检验的最早论文</title>
+      <link>https://stats.stackexchange.com/questions/644772/earliest-paper-on-stratified-log-rank-test</link>
+      <description><![CDATA[最早提出对数秩检验的分层版本的论文是什么？
+不幸的是，在教科书中查找既定统计程序的引文/参考文献很困难。]]></description>
+      <guid>https://stats.stackexchange.com/questions/644772/earliest-paper-on-stratified-log-rank-test</guid>
+      <pubDate>Thu, 11 Apr 2024 03:24:52 GMT</pubDate>
+    </item>
     <item>
       <title>使用论文中的 GEE 重现简单交叉试验的分析</title>
       <link>https://stats.stackexchange.com/questions/644771/reproduce-an-analysis-of-a-simple-crossover-trial-using-gee-from-a-paper</link>
@@ -15,8 +119,8 @@
     <item>
       <title>如何计算下面的Dirichlet分布和Beta分布的期望？</title>
       <link>https://stats.stackexchange.com/questions/644769/how-to-calculate-the-expectation-of-the-following-dirichlet-distribution-and-bet</link>
-      <description><![CDATA[这是我研究中的一个问题，涉及基于LDA的模型的变分EM算法的推导。$$E_{q(\psi, \boldsymbol{\varphi } \mid \boldsymbol{\lambda}, \boldsymbol{\mu})}[\log{((1-\psi)\cdot \varphi_{v} +\psi)}]$$
-其中 $\psi \sim \mathrm{Beta}(\lambda_1, \lambda_2), \boldsymbol{\varphi} = (\varphi_1, \varphi_2,\cdots, \varphi_V) \ sim \mathrm{Dir}(\boldsymbol{\mu})$]]></description>
+      <description><![CDATA[这是我研究中的一个问题，涉及基于 LDA 的模型的平均场假设的变分 EM 算法的推导。$$E_{q(\psi, \boldsymbol{\varphi} \mid \boldsymbol{\lambda}, \boldsymbol{\mu})}[\log{((1-\psi)\cdot \varphi_{v} +\psi)}]$$&lt; /跨度&gt;
+其中 $\psi$ 和 $\boldsymbol{\varphi}$ 是独立的， $\psi \sim \mathrm{Beta}(\lambda_1, \lambda_2), \boldsymbol{\varphi} = (\varphi_1, \varphi_2,\cdots, \varphi_V) \sim \mathrm{Dir} (\boldsymbol{\mu})$]]></description>
       <guid>https://stats.stackexchange.com/questions/644769/how-to-calculate-the-expectation-of-the-following-dirichlet-distribution-and-bet</guid>
       <pubDate>Thu, 11 Apr 2024 02:03:03 GMT</pubDate>
     </item>
@@ -44,13 +148,6 @@ df
 确定值 2020:2022 本身是否以及累计代表统计数据的正确方法是什么。符号。与之前的观察值（即预测）相比有何变化？]]></description>
       <guid>https://stats.stackexchange.com/questions/644762/how-to-determine-statistical-significance-for-a-time-series-and-forecasts</guid>
       <pubDate>Wed, 10 Apr 2024 23:08:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>滞后增强局部投影和标准误差</title>
-      <link>https://stats.stackexchange.com/questions/644757/lag-augmented-local-projection-and-standard-errors</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/644757/lag-augmented-local-projection-and-standard-errors</guid>
-      <pubDate>Wed, 10 Apr 2024 22:29:14 GMT</pubDate>
     </item>
     <item>
       <title>逻辑多项式模型的对数似然的详细推导</title>
@@ -83,35 +180,6 @@ $$
       <pubDate>Wed, 10 Apr 2024 22:10:19 GMT</pubDate>
     </item>
     <item>
-      <title>个体治疗和协变量与汇总调查结果之间的关联（仅每 1 个协变量）</title>
-      <link>https://stats.stackexchange.com/questions/644754/association-between-individual-treatment-covariates-and-aggregated-survey-outc</link>
-      <description><![CDATA[我想评估在给定协变量 X 的公司中，进行培训（治疗 T）的员工是否对成长机会（结果 Y）有更好的认知，例如：
-
-性别、年龄范围
-副方向、方向、执行方向
-城市/国家
-级别范围、合同类型
-
-结果 Y（成长机会得分）是通过人力资源调查按照 11 点调查量表（NPS 量表范围从 0 到 10）进行衡量的。
-由于这是一项调查，参与率并非 100%。
-我们仅在每个协变量 X 的聚合水平上得到 Y（见上文）。
-换句话说，我们得到每个协变量值的无方差均值：
-
-英国国家/地区为 8.8
-美国国家/地区为 6.2
-
-治疗T定义为调查前一年之前的训练时间总和。
-这个数量在个体层面上是已知的，并且我们确实有个体层面上所有协变量 X（见上文）的值。
-
-在这种情况下，采用个体治疗和自变量（协变量）以及仅 1 个自变量值的汇总结果（例如：按国家/地区）的建模方法是什么。
-
-如果我想查看一组大于 1 的协变量的影响，该怎么办。如果有的话，建模方法是什么（可能有很多假设）？
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/644754/association-between-individual-treatment-covariates-and-aggregated-survey-outc</guid>
-      <pubDate>Wed, 10 Apr 2024 22:02:45 GMT</pubDate>
-    </item>
-    <item>
       <title>当所有变量都是因子时，残差在逻辑回归中重要吗？</title>
       <link>https://stats.stackexchange.com/questions/644737/are-residuals-important-in-logistic-regression-when-all-variables-are-factors</link>
       <description><![CDATA[我有一个关于逻辑回归模型中残差的概念性问题。
@@ -130,7 +198,7 @@ $$
     <item>
       <title>如何在 R 中实现 Newey-West 标准错误？</title>
       <link>https://stats.stackexchange.com/questions/644765/how-to-implement-newey-west-standard-errors-in-r</link>
-      <description><![CDATA[我正在尝试实施 newey-west 标准误差来纠正我在使用 OLS 进行回归时遇到的自相关问题。
+      <description><![CDATA[我正在尝试实施 newey-west 标准错误来纠正我在使用 OLS 进行回归时遇到的自相关问题。
 但是这些严重的错误只会让我的结果变得不那么重要。
 我已经对一个常数进行了仅因变量的回归。
 我得到了输出并检查了残差的自相关性，结果表明存在自相关性。
@@ -146,61 +214,22 @@ robust_se &lt;- vcovHAC（模型，类型 =“HC”，滞后 = 4）
       <pubDate>Wed, 10 Apr 2024 12:56:58 GMT</pubDate>
     </item>
     <item>
+      <title>分割稀疏数据集时生成没有数据的集合的概率</title>
+      <link>https://stats.stackexchange.com/questions/644617/probability-of-making-a-set-with-no-data-when-splitting-a-sparse-dataset</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/644617/probability-of-making-a-set-with-no-data-when-splitting-a-sparse-dataset</guid>
+      <pubDate>Tue, 09 Apr 2024 07:57:09 GMT</pubDate>
+    </item>
+    <item>
       <title>相等样本量与相等样本密度的相对重要性</title>
       <link>https://stats.stackexchange.com/questions/644586/relative-importance-of-equal-sample-size-vs-equal-sample-density</link>
-      <description><![CDATA[我正在对规定火灾的影响进行植被研究。我有一个将被烧毁的实验区和一个不会被烧毁的对照区。实验区域存在三种类型的植被，因此我根据每种植被类型的相对大小（面积）按比例对调查位置进行分层。对照区存在相同的三种植被类型，但每种植被类型的相对比例与实验区不同，尽管总面积（面积）非常相似。该计划是使用方差分析进行分析，查看火灾前后的数据。
+      <description><![CDATA[我正在对规定火灾的影响进行植被研究。我有一个将被烧毁的实验区和一个不会被烧毁的对照区。实验区域存在三种类型的植被，因此我根据每种植被类型的相对大小（面积）成比例对调查位置进行分层。对照区存在相同的三种植被类型，但每种植被类型的相对比例与实验区不同，尽管总面积（面积）非常相似。该计划是使用方差分析进行分析，查看火灾前后的数据。
 我的问题是，保持相等的样本量与相等的样本密度的相对重要性是什么？
-换句话说，我应该在每个控制层中采样与其等效实验层相同数量的点，还是应该以与其等效实验层相同的密度对控制层进行采样？在第二种选择中，由于总体区域相同，因此总体样本量将相同，但控制区和实验区之间各个地层的样本量会不同。
+换句话说，我应该在每个控制层中采样与其等效实验层相同数量的点数，还是应该以与其等效实验层相同的密度对控制层进行采样？在第二个选项中，由于总体区域相同，因此总体样本量将相同，但控制区和实验区之间各个地层的样本量会不同。
 在线搜索显示了几乎无穷无尽的有关样本大小的信息，但有关样本密度的信息较少，而且我没有找到任何对两者进行比较的信息。
 注意：从技术上讲，我相信这里只有一个样本大小，因为处理（火）仅应用于一个区域。我所说的样本实际上是重复的，因为它们并不相互独立，但我认为想法是相同的，并且我认为讨论样本会引起更广泛的受众的兴趣。]]></description>
       <guid>https://stats.stackexchange.com/questions/644586/relative-importance-of-equal-sample-size-vs-equal-sample-density</guid>
       <pubDate>Mon, 08 Apr 2024 19:30:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用回归似然从回归中复制 t 或 F 检验</title>
-      <link>https://stats.stackexchange.com/questions/644482/replicate-t-or-f-test-from-regression-using-regression-likelihoods</link>
-      <description><![CDATA[我听说我们用来获取回归结果显着性的 t 检验和 F 检验是从似然比检验得出的，但我在复制 t/F 的 p 值时遇到了麻烦对回归似然进行似然比检验的检验
-使用底部的数据集，
-在 R 中运行这三个回归：
-withCov&lt;-lm(Y~X)
-logLik(withCov) # &#39;log Lik。&#39; -61.98043（df=3）
-与Int&lt;-lm(Y~1)
-logLik(withInt) # &#39;log Lik.&#39; -63.18456（df=2）
-有无&lt;-lm(Y~0)
-logLik(withNone) # &#39;log Lik.&#39; -65.32909（df=1）
-
-例如，当我对 beta_1 的显着性进行似然比检验时，我得到
-1-pchisq(2*(logLik(withCov)-logLik(withInt)),df = 1)
-# 0.1206958
-＃ 相比于
-摘要（withCov）
-称呼：
-lm(公式 = Y ~ X)
-
-残差：
-     最小 1Q 中值 3Q 最大
--1.98508 -0.44415 -0.02294 0.59907 1.66593
-
-系数：
-            估计标准。误差t值Pr(&gt;|t|)
-（截距）-0.2568 0.1206 -2.129 0.0384 *
-X -0.2045 0.1329 -1.53​​9 0.1304
----
-西尼夫。代码： 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-残余标准误差：48 自由度上为 0.8531
-多重 R 平方：0.04702，调整 R 平方：0.02717
-F 统计量：1 和 48 DF 上为 2.369，p 值：0.1304
-
-虽然值很接近，但 0.1304 显然与 0.1206958 不同。
-对于似然比检验的所有 6 种组合，我无法从 lm 恢复任何 p 值。
-我做错了什么？谢谢！
-下面的 R 代码设置 X 和 Y 变量：
-&lt;预&gt;&lt;代码&gt;X&lt;-c(0.147462983739098,-0.552822250273655,0.0791413008277721,1.64705442993914,0.68248797132517,-0.315633973636888,1. 40047872456033,0.776033233883272,-0.343689753439294,-0.526351059575156,0.275611183793461,1.7751174954305,-0.932913434395753,0 .163895795533468,-1.00807323166609,-0.434797856886559, 0.112072003876197,-0.319445372479459,1.6989373340732,0.639738727242407,0.02980494131095,0.564230726111237,1.61191604859755, -0.474733281647485,-1.46213462226689,-1.33823497263023,0.0771907623203949,-0.698998017227839,-0.775816444324552,1.46468840793 603,-0.0940659257837727,-1.85718512842644,0.109762500597346,0.293088069440979,-1.33774986808507,0.804321505460817,1.246387803 51287 ,-1.66909878637454,-0.107871283787089,-0.286526054190293,-1.30268476505327,0.241186917275982,0.0941940655245403,0.426156461 908492,-0.951908401332523,-0.782389908678191,0.436387212517629,0.491981905432585,0.863964246361868,-0.715853080383197)
-Y＜-c(0.123592053622774，-0.156626343170975，-1.00704515111936，-0.333485064105835，0.539121555715671，0.0827543989201612，-1.381 38102448818,-0.510996824863877,1.40679987755037,-0.289587787513398,-1.00983646108717,0.20397559183913,-1.53​​795623798144,-0.37 4138120013244,0.753381985793875,-0.195106670583694,-0.395410227522805, 0.314058948313302,-0.567075906102368,-0.823999734395967,0.334195737940288,-0.382748868492066,-1.1924589353617,-2.1447830778 6596,0.198528331051895,0.616636192164357,-1.66623239116232,0.906880778089087,0.663909698659448,-0.96026161021686,-0.028951352 9973109,0.103477089026045,-0.517840007699842,-1.42770065687853,-1.18735568345121,0.441872906307648,- 0.814014579874374,-0.96658546843308,0.474244931448731,-0.975319336891573,-0.0672523439350411,-0.743286641930158,0.788159757 412595,1.23723123779866,-0.508581741865352,0.220065470600985,0.822051420773978,-0.383737198032438,-2.04890944754108,1.5555393 999865）
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/644482/replicate-t-or-f-test-from-regression-using-regression-likelihoods</guid>
-      <pubDate>Sun, 07 Apr 2024 01:59:46 GMT</pubDate>
     </item>
     <item>
       <title>Gompertz AFT 模型中误差项的分布是怎样的？</title>
