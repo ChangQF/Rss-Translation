@@ -4,7 +4,342 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 13 Apr 2024 09:11:23 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 13 Apr 2024 12:19:44 GMT</lastBuildDate>
+    <item>
+      <title>使用 Huggingface Trainer API 在视频数据集上微调“google/vit-base-patch16-224-in21k”时出现 Pytorch 错误</title>
+      <link>https://stackoverflow.com/questions/78320351/pytorch-error-when-fine-tuning-google-vit-base-patch16-224-in21k-on-video-data</link>
+      <description><![CDATA[我正在尝试读取 csv 文件中带有标签的自定义视频数据集，并使用 Huggingface Trainer 和 google/vit-base-patch16-224-in21k 模型对它们进行传输训练。
+这是我到目前为止所实现的，但遇到了 Key 42 错误代码。
+导入火炬
+导入 torchvision.transforms 作为变换
+将 torchvision.io.video 导入为视频
+从 torch.utils.data 导入数据集，DataLoader
+从 Transformers 导入 ViTFeatureExtractor、ViTForImageClassification、TrainingArguments、Trainer
+从 sklearn.model_selection 导入 train_test_split
+将 pandas 导入为 pd
+导入全局
+导入影音
+从 tqdm 导入 tqdm
+
+# 定义类
+类 = [&#39;class_0&#39;, &#39;class_1&#39;]
+
+# 为视频帧定义自定义数据集
+类视频数据集（数据集）：
+    def __init__(自我，视频路径，标签，变换=无)：
+        self.video_paths = video_paths
+        self.labels = 标签
+        self.transform = 变换
+
+    def __len__(自身):
+        返回 len(self.video_paths)
+
+    def __getitem__(self, idx):
+        帧, _, _ = video.read_video(self.video_paths[idx], pts_unit=&#39;sec&#39;)
+        样本 = {&#39;frames&#39;: 框架, &#39;标签&#39;: self.labels[idx]}
+
+        如果自我变换：
+            样本[&#39;frames&#39;] = [self.transform(frame) 用于样本[&#39;frames&#39;]中的帧]
+
+        返回样品
+
+# 定义预处理帧的转换
+变换 = 变换.Compose([
+    变换.调整大小((224, 224)),
+    变换.ToTensor(),
+]）
+
+# 预处理每一帧的函数
+def preprocess_frame(帧):
+    帧 = 变换.ToPILImage()(帧)
+    帧 = 变换（帧）
+    返回帧
+
+# 数据集预处理函数
+def preprocess_dataset（数据集）：
+    返回数据集
+
+# 定义训练参数
+训练参数 = 训练参数（
+    输出目录=“./训练”，
+    per_device_train_batch_size=4,
+    num_train_epochs=3,
+    logging_dir=&#39;./logs&#39;,
+    记录步骤=100，
+）
+
+# 加载ViT模型和特征提取器
+模型 = ViTForImageClassification.from_pretrained(“google/vit-base-patch16-224-in21k”)
+feature_extractor = ViTFeatureExtractor.from_pretrained(“google/vit-base-patch16-224-in21k”)
+
+#加载训练视频
+train_videos = glob.glob(“./dataset100/train/all/*.mp4”)
+
+#加载标签
+train_df = pd.read_csv(&#39;./train100.csv&#39;,names=header_list)
+标签 = train_df[&#39;标签&#39;]
+
+#将数据集拆分为训练集和验证集
+train_paths，val_paths，train_labels，val_labels = train_test_split（train_videos，标签，test_size = 0.2，random_state = 42）
+
+# 创建数据集并对其进行预处理
+train_dataset = VideoDataset(train_paths, train_labels, 变换=变换)
+val_dataset = VideoDataset(val_paths, val_labels, 变换=变换)
+train_dataset = preprocess_dataset(train_dataset)
+val_dataset = preprocess_dataset(val_dataset)
+
+print(&quot;训练视频数量:&quot;, len(train_paths))
+print(&quot;验证视频数量:&quot;, len(val_paths))
+print(&quot;训练标签数量：&quot;, len(train_labels))
+print(&quot;验证标签数量：&quot;, len(val_labels))
+
+print(“训练视频：”, train_videos[:5])
+print(&quot;训练标签：&quot;, train_labels[:5])
+
+# 定义函数来计算精度
+def 计算精度(pred):
+    标签 = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    return {“准确度”: (preds == labels).mean()}
+
+# 定义训练器
+教练=教练（
+    型号=型号，
+    参数=训练参数，
+    训练数据集=训练数据集，
+    eval_dataset = val_dataset，
+    compute_metrics=compute_accuracy,`你的文本`
+）
+
+# 训练模型
+训练师.train()
+
+这是我收到的错误消息，我非常感谢您的帮助。
+------------------------------------------------ ----------------------------------------------------
+KeyError Traceback（最近一次调用最后一次）
+文件 c:\Users\Code\venv\Lib\site-packages\pandas\core\indexes\base.py:3791，在 Index.get_loc(self, key) 中
+   第3790章
+-&gt;第3791章
+   第3792章
+
+文件index.pyx:152，在pandas._libs.index.IndexEngine.get_loc()中
+
+文件index.pyx:181，在pandas._libs.index.IndexEngine.get_loc()中
+
+文件 pandas\_libs\hashtable_class_helper.pxi:2606，位于 pandas._libs.hashtable.Int64HashTable.get_item()
+
+文件 pandas\_libs\hashtable_class_helper.pxi:2630，位于 pandas._libs.hashtable.Int64HashTable.get_item()
+
+密钥错误：42
+
+上述异常是导致以下异常的直接原因：
+
+KeyError Traceback（最近一次调用最后一次）
+单元格 In[31]，第 121 行
+    第112章 训练师=训练师（
+    113 型号=型号，
+    第114章
+   （...）
+...
+   第3801章否则我们会失败并重新加注
+   第3802章
+   第3803章
+
+密钥错误：42
+]]></description>
+      <guid>https://stackoverflow.com/questions/78320351/pytorch-error-when-fine-tuning-google-vit-base-patch16-224-in21k-on-video-data</guid>
+      <pubDate>Sat, 13 Apr 2024 11:00:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>在打印 OLS Summery 或打印任何内容时，它在 google collab 中未以正确的布局打印</title>
+      <link>https://stackoverflow.com/questions/78320334/while-printing-ols-summery-or-while-printing-anything-it-is-not-printing-in-prop</link>
+      <description><![CDATA[“我想以正确的格式打印 OLS 摘要，但我无法这样做。我已经尝试了所有可能的解决方案，但它无法正常工作。即使打印 pd.info() 时，它的格式也不正确。”
+您可以在此处查看布局]]></description>
+      <guid>https://stackoverflow.com/questions/78320334/while-printing-ols-summery-or-while-printing-anything-it-is-not-printing-in-prop</guid>
+      <pubDate>Sat, 13 Apr 2024 10:51:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将参数（标签）传递给映射函数map_func，可从Python中的tf.data.Dataset.map()调用</title>
+      <link>https://stackoverflow.com/questions/78320298/how-to-pass-argumentslabels-to-map-function-map-func-callable-from-tf-data-da</link>
+      <description><![CDATA[有已知的方法来创建数据集：
+代码片段借自： https://www.tensorflow.org/tutorials/audio/simple_audio&lt; /a&gt;
+#从文件中收集数据
+&#39;&#39;&#39;
+.....一些代码我认为不需要粘贴，请参阅上面的链接以获取完整代码......
+&#39;&#39;&#39;
+#创建地图函数
+
+def get_label(文件路径):
+  零件 = tf.strings.split(
+      输入=文件路径，
+      sep=os.path.sep)
+  # 注意：您将在此处使用索引而不是元组解包来启用此功能
+  # 在 TensorFlow 图中工作。
+  返回零件[-2]
+
+#地图功能!!!!!
+def get_waveform_and_label(文件路径):
+  标签 = get_label(文件路径)
+  audio_binary = tf.io.read_file(文件路径)
+  波形 = 解码音频（音频二进制）
+  返回波形、标签
+
+自动调谐 = tf.data.AUTOTUNE
+
+#创建数据集
+files_ds = tf.data.Dataset.from_tensor_slices(train_files)
+
+
+#标记数据集中每个数据的最常见方法是使用 tf.data.Dataset.map():
+波形_ds = 文件_ds.map(
+    map_func=get_waveform_and_label,
+    num_parallel_calls=自动调谐）
+
+对于waveform_ds中的元素：
+  打印（元素）
+
+打印执行后，任何元素都会显示此类数据（我随机选取了数据集行“waveform_ds”）：
+(, )
+(, )
+
+两个问题：
+1.如果没有参数传递给“get_waveform_and_label”，tf.data.Dataset.map() 函数如何确定我要传递什么样的标签？在....Dataset.map()？
+2. 如果我想使用自己的标签（在列表、元组或字典中定义，而不是像上面的许多教程和代码片段那样来自文件路径文件夹），我必须做什么？例如：
+my_labels = [&#39;放松&#39;, &#39;抓握&#39;, &#39;放松&#39;]
+
+那么除了将 my_labels 作为地图函数“get_waveform_and_label”中的常量值之外，还有其他方法吗？
+下面的代码不是主要的，那是“我试图解决问题”、“maplabel”部分的代码。写得不好，“标签”接收“my_labels”之一item，RaggedTensor &#39;timeframes&#39; 实际上是一个数组，存储简单的张量，例如：
+tf.Tensor(
+[[0.5369535 0.2724565 0.073154 ... 0.0074817 0.2035824 0.0882927]
+ [0.5376732 0.2733304 0.0730333 ... 0.0017834 0.1970369 0.0859187]
+ [0.5307747 0.2692053 0.0720603 ... 0.0029357 0.1989727 0.0866213]
+ ...
+ [0.5395046 0.2826822 0.0747677 ... 0.0085316 0.1982029 0.0849934]
+ [0.5299433 0.2774992 0.073246 ... 0.0083179 0.1994617 0.085429 ]
+ [0.5329857 0.278462 0.0736021 ... 0.0070133 0.2008929 0.0860079]]，形状=（117, 128），dtype=float64）
+
+tf.张量(
+[[0.5278226 0.27012 0.0709168 ... 0.0110207 0.1954106 0.0877619]
+ [0.5296971 0.2716435 0.0712691 ... 0.005279 0.1967631 0.0881876]
+ [0.5316442 0.2725459 0.0716114 ... 0.0044511 0.1991368 0.089243 ]
+ ...
+ [0.5419291 0.2776711 0.0726136 ... 0.0114332 0.1941741 0.0884957]
+ [0.5319294 0.2723156 0.071426 ... 0.010159 0.1962118 0.0891404]
+ [0.5338816 0.2737131 0.0718814 ... 0.0103788 0.1974683 0.0897296]]，形状=（118, 128），dtype=float64）
+
+&lt;前&gt;&lt;代码&gt;
+_def maplabel（数据集，tensored_label）：
+    返回数据集，tensored_label
+
+def get_timeFrames_with_label(时间帧:tf.RaggedTensor, \
+                              标签：str）：
+
+    样本计数 = 时间范围.shape[0]
+    dataset_lines = [无] * 样本数
+    str_tensors = [无] * 样本数
+
+    
+    对于范围内的 i（samplesCount）：
+        dataset_lines[i] = tf.data.Dataset.from_tensors(timeframes[i])
+        str_tensors[i] = tf.constant(标签, dtype=tf.string)
+    
+    com1tframes_ds = tf.data.Dataset.choose_from_datasets(dataset_lines,\ tf.data.Dataset.range(samplesCount))
+    #command_ds = tf.data.Dataset.from_tensor_slices(str_tensors)
+    #...Dataset.zip(com1tframes_ds, command_ds) 给出错误“command_ds 没有功能”
+    #string.isidentifier”
+    
+    com1tframes_ds.map(map_func=maplabel(com1tframes_ds, 标签), \
+                       num_parallel_calls=tf.data.AUTOTUNE)_
+]]></description>
+      <guid>https://stackoverflow.com/questions/78320298/how-to-pass-argumentslabels-to-map-function-map-func-callable-from-tf-data-da</guid>
+      <pubDate>Sat, 13 Apr 2024 10:35:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>Tensorflow 图像分类模型在第二个 epoch 后达到峰值，并在其余训练中保持相同的准确性</title>
+      <link>https://stackoverflow.com/questions/78320148/tensorflow-image-classification-model-peaks-after-second-epoch-and-keeps-the-sam</link>
+      <description><![CDATA[我有一个简单的分类模型，有 4 个不同的类别：停止、前进、右、左交通手势信号。在第二个纪元之后，我在其余纪元中获得了相同的准确性。我也尝试过使用不同的数据集，并认为这是一个数据问题。
+def fit_cnn_model(X_train, Y_train, X_test, Y_test, savedir, num_layers=2,
+                  num_filters=64，kernel_size=3，pool_size=2，dropout_rate=0.3，learning_rate=0.0001，
+                  n_epochs=10，batch_size=64，详细=2）：
+
+    模型=顺序（）
+    date_time = datetime.now().strftime(&quot;%Y-%m-%d %H:%M:%S&quot;)
+
+    对于 _ 在范围内（num_layers）：
+        model.add(Conv2D(filters=num_filters, kernel_size=kernel_size,activation=&#39;relu&#39;, padding=&#39;same&#39;, kernel_initializer=&#39;he_uniform&#39;))
+        model.add(BatchNormalization())
+        model.add(MaxPooling2D(pool_size=pool_size))
+        model.add(Dropout(dropout_rate))
+
+    模型.add(压平())
+    model.add（密集（128，激活=&#39;relu&#39;））
+    model.add（密集（4，激活=&#39;softmax&#39;））
+
+    选择=亚当（学习率=学习率）
+    model.compile(optimizer=opt,loss=&#39;categorical_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
+
+    历史 = model.fit(X_train, Y_train,
+                        纪元=n_纪元，
+                        批量大小=批量大小，
+                        验证数据=（X_测试，Y_测试），
+                        详细=详细）
+
+    模型.summary()
+
+    分数 = model.evaluate(X_test, Y_test, verbose=0)
+    print(&quot;损失: {:.2f}&quot;.format(scores[0]))
+    print(&quot;准确率: {:.2f}%&quot;.format(scores[1] * 100))
+
+    model_path = os.path.join(savedir, &#39;saved_model_&#39; + date_time + &#39;.h5&#39;)
+    模型.保存（模型路径）
+    print(f&quot;模型已保存到 {model_path}&quot;)
+
+    返回模型
+
+def load_data(image_folder, label_folder, target_size=(224, 224)):
+    # 加载数据集并排序
+    image_files = os.listdir(image_folder)
+    label_files = os.listdir(label_folder)
+    image_files.sort()
+    label_files.sort()
+
+    图片 = []
+    标签=[]
+
+    # 加载图像和标签
+    对于 image_files 中的 img_file：
+        img_path = os.path.join(image_folder, img_file)
+
+        label_file = img_file.replace(&quot;.jpg&quot;, &quot;.txt&quot;).replace(&quot;.jpeg&quot;, &quot;.txt&quot;)
+        label_path = os.path.join(label_folder, label_file)
+
+        img = Image.open(img_path).resize(target_size)
+        img_array = np.array(img) / 255.0
+        图像.append(img_array)
+
+        将 open(label_path, &#39;r&#39;) 作为 f：
+            label_str = f.readline().strip()
+            label_dict = {&#39;停止&#39;: 0, &#39;继续&#39;: 1, &#39;左&#39;: 2, &#39;右&#39;: 3}
+            标签 = label_dict.get(label_str, -1)
+            如果标签==-1：
+                raise ValueError(“未知标签：{}”.format(label_str))
+
+        labels.append(标签)
+
+    图像 = np.array(图像)
+    标签 = np.array(标签)
+    标签 = to_categorical(标签, 4)
+
+
+    X_train, X_test, Y_train, Y_test = train_test_split(图像, 标签, test_size=0.2)
+
+    返回X_train，Y_train，X_test，Y_test
+
+
+我尝试稍微调整学习率、dropout、层和过滤器。还使用了不同的经过验证的数据集。]]></description>
+      <guid>https://stackoverflow.com/questions/78320148/tensorflow-image-classification-model-peaks-after-second-epoch-and-keeps-the-sam</guid>
+      <pubDate>Sat, 13 Apr 2024 09:30:48 GMT</pubDate>
+    </item>
     <item>
       <title>错误：尝试量化模型时，“tf.TensorListSetItem”操作既不是自定义操作也不是弹性操作</title>
       <link>https://stackoverflow.com/questions/78319798/error-tf-tensorlistsetitem-op-is-neither-a-custom-op-nor-a-flex-op-while-tryi</link>
@@ -104,7 +439,7 @@ History_df.loc[:, [&#39;准确度&#39;, &#39;val_accuracy&#39;]].plot(title=&quo
       <pubDate>Sat, 13 Apr 2024 04:33:34 GMT</pubDate>
     </item>
     <item>
-      <title>是否可以在随机森林的核心中使用 adaBoosting 而不是 bootstrap？</title>
+      <title>是否可以在随机森林的核心中使用 adaBoosting 而不是 bootstrap？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78319519/is-it-possible-to-use-adaboosting-in-the-core-of-random-forest-instead-of-bootst</link>
       <description><![CDATA[随机森林使用 Bagging（Bootstrapping）为其每棵树选择样本，对吗？是否可以使用 adaBoosting 代替？有什么优点和优点？缺点？为什么我没看到这个？
 我看到 Sci-kit learn 中的 RandomForestClassifier 允许启用/禁用引导程序，否则没有选项可以用 boosting 替换它。]]></description>
@@ -139,140 +474,11 @@ History_df.loc[:, [&#39;准确度&#39;, &#39;val_accuracy&#39;]].plot(title=&quo
       <pubDate>Fri, 12 Apr 2024 15:39:17 GMT</pubDate>
     </item>
     <item>
-      <title>一些训练记录，以及训练后的一份记录 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78316879/a-few-records-for-training-and-one-record-after-training</link>
-      <description><![CDATA[我尝试做一些信用评分任务。我陷入了概念问题。
-有：
-train_data（62 列、10339239 行、1250000 个唯一 ID 值 [0 - 1249999]（[最小-最大] ID 值） ),
-test_data（62 列、4724601 行、500000 个唯一 ID 值 [3000000 - 3499999]（[最小-最大] ID 值） ),
-train_target.csv（2列：ID和flag（flag是目标变量，必须预测)，有 361870 行，全部具有唯一的 ID，[0 - 361869]([min-max] ID 值)) ,
-test_target.csv（1 列：ID，500000 行，所有 ID 都是唯一的，[3000000 - 3499999]([min- max] ID 值)) 。
-需要为 test_target.csv 获取 [0,1] 范围内的分数。
-train_data 和 test_data 有 62 列，ID、RN，...。两者都是对应的时间（如果日期时间较大，则 RN 的 ID 值会更大）。 ID表示信用/贷款请求，RN表示信用记录中的信用/贷款数量。 train_target.csv 中的 FLAG 表示：1-默认/破产。
-我不知道如何针对这些数据训练模型。我尝试使用XGBoost。训练后的模型必须采用具有相同 ID 的 RN 排序的几条记录，并给出 [0, 1] 范围内的一个 FLAG 答案。如何才能做到这一点？ XGB分类器？或回归器？通过train_test_split还是TimeSeriesSplit？请问您能给我建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78316879/a-few-records-for-training-and-one-record-after-training</guid>
-      <pubDate>Fri, 12 Apr 2024 14:19:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>重新称重预处理技术与 AdaBoost 的结合</title>
-      <link>https://stackoverflow.com/questions/78316838/combination-of-reweighing-as-pre-processing-technique-and-adaboost</link>
-      <description><![CDATA[我使用了预处理技术“重新称重”来消除数据集的偏差。该技术为我提供了一个列，其中包含每个实例的权重。对于重新称重，我使用了 AIF 360。
-对于模型，我想使用 sklearn 的 AdaBoost 分类器。
-将 .fit() 方法中的预处理技术的权重移交给 AdaBoost 分类器是否有意义？该参数为sample_weight。
-有点不清楚我是否应该使用 class_weight 还是sample_weight。
-我已经研究了应该使用什么参数，或者将权重交给 AdaBoost 是否有意义。然而，我觉得这项研究让我更加不清楚了。我知道 sklearn 的 AdaBoost 分类器没有 class_weight 参数。但如果将权重交给 AdaBoost 有意义的话，也许专家可以帮助我。]]></description>
-      <guid>https://stackoverflow.com/questions/78316838/combination-of-reweighing-as-pre-processing-technique-and-adaboost</guid>
-      <pubDate>Fri, 12 Apr 2024 14:11:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>这是对不平衡数据集进行过采样交叉验证的正确方法吗？</title>
-      <link>https://stackoverflow.com/questions/78316022/is-this-the-right-way-to-do-cross-validation-with-oversampling-on-imbalance-data</link>
-      <description><![CDATA[def stratified_cross_validation_metrics(模型, X, y, method=&#39;&#39;):
-    指标={
-        &#39;准确性&#39;： []，
-        &#39;精确&#39;： []，
-        &#39;记起&#39;： []，
-        &#39;f1_score&#39;：[]
-    }
-    
-    kf = StratifiedKFold(n_splits=10, shuffle=False)
-    
-    对于 kf.split(X, y) 中的 train_index、test_index：
-        X_train_cv, X_test_cv = X.iloc[train_index], X.iloc[test_index]
-        y_train_cv, y_test_cv = y.iloc[train_index], y.iloc[test_index]
-        
-        if method.lower() == &#39;adasyn&#39;:
-            X_train_cv, y_train_cv = adasyn.fit_resample(X_train_cv, y_train_cv)
-            X_test_cv, y_test_cv = adasyn.fit_resample(X_test_cv, y_test_cv)
-        elif method.lower() == &#39;smote&#39;:
-            X_train_cv, y_train_cv = smote.fit_resample(X_train_cv, y_train_cv)
-            X_test_cv, y_test_cv = smote.fit_resample(X_test_cv, y_test_cv)
-        
-        model.fit(X_train_cv, y_train_cv)
-
-        y_pred_cv = model.predict(X_test_cv)
-
-        准确度=准确度_分数（y_test_cv，y_pred_cv）
-        精度 = precision_score(y_test_cv, y_pred_cv, 平均值=&#39;加权&#39;)
-        召回率=召回率（y_test_cv，y_pred_cv，平均值=&#39;加权&#39;）
-        f1 = f1_score(y_test_cv, y_pred_cv, 平均值=&#39;加权&#39;)
-
-        指标[&#39;准确度&#39;].append(准确度)
-        指标[&#39;精度&#39;].append(精度)
-        指标[&#39;recall&#39;].append(recall)
-        指标[&#39;f1_score&#39;].append(f1)
-
-    print(&quot;10 倍分层交叉验证的平均指标：&quot;)
-    print(&quot;准确率：&quot;, np.mean(metrics[&#39;accuracy&#39;]))
-    print(&quot;精度：&quot;, np.mean(metrics[&#39;精度&#39;]))
-    print(&quot;召回率：&quot;, np.mean(metrics[&#39;recall&#39;]))
-    print(&quot;F1 分数：&quot;, np.mean(metrics[&#39;f1_score&#39;]))
-
-    df = pd.DataFrame(指标)
-    
-    返回df
-
-我读到，当你使用过采样方法进行交叉验证时，你不应该首先过采样，这样它就不会泄漏到测试数据，所以我按照所示的方式执行函数，这是正确的方法还是我做错了什么？
-对于不平衡数据集使用什么指标平均值比较好？]]></description>
-      <guid>https://stackoverflow.com/questions/78316022/is-this-the-right-way-to-do-cross-validation-with-oversampling-on-imbalance-data</guid>
-      <pubDate>Fri, 12 Apr 2024 11:37:37 GMT</pubDate>
-    </item>
-    <item>
       <title>ValueError：操作数无法与形状一起广播 (10,1024) (1024,1) [关闭]</title>
       <link>https://stackoverflow.com/questions/78316002/valueerror-operands-could-not-be-broadcast-together-with-shapes-10-1024-1024</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78316002/valueerror-operands-could-not-be-broadcast-together-with-shapes-10-1024-1024</guid>
       <pubDate>Fri, 12 Apr 2024 11:33:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>根据之前的元素，甚至不基于之前的元素，使用 LSTM 预测下一个元素</title>
-      <link>https://stackoverflow.com/questions/78315830/predicting-next-elements-with-an-lstm-based-on-previous-ones-or-even-based-on</link>
-      <description><![CDATA[我有一个时间序列问题，其中包括使用 LSTM 预测价格。该数据集是从 Python 库 yfinance 导入的。我在内置的极客教程中使用了示例代码Pytorch，并设法理解一切。我认为我不明白的唯一具体部分可以在这段代码片段中看到：
-# 定义要预测的未来时间步数
-预测步数 = 30
-
-# 转换为 NumPy 并删除单一维度
-sequence_to_plot = X_test.squeeze().cpu().numpy()
-
-# 使用最后 30 个数据点作为起点
-历史数据=序列到图[-1]
-打印（历史数据.形状）
-
-# 初始化一个列表来存储预测值
-预测值 = []
-
-# 使用训练好的模型来预测未来值
-使用 torch.no_grad()：
-    对于 _ 在范围内（num_forecast_steps*2）：
-        # 准备历史数据张量
-        历史数据张量 = torch.as_tensor(历史数据).view(1, -1, 1).float().to(设备)
-        # 使用模型预测下一个值
-        预测值 = 模型(历史数据张量).cpu().numpy()[0, 0]
-
-        # 将预测值添加到forecasted_values列表中
-        Forecasted_values.append(predicted_value[0])
-
-        # 通过删除最旧的值并添加预测值来更新历史数据序列
-        历史数据 = np.roll(历史数据, 移位=-1)
-        历史数据[-1] = 预测值
-
-        
-# 生成未来日期
-最后日期 = test_data.index[-1]
-
-# 生成接下来的 30 个日期
-future_dates = pd.date_range(start=last_date + pd.DateOffset(1), period=30)
-
-# 将原始索引与未来日期连接起来
-组合索引 = test_data.index.append(future_dates)
-
-根据教程内容，使用滚动预测。这意味着，如果我是对的，带有输入元素的数组将用作预测下一个元素的窗口，该窗口将附加到窗口，以预测下一个元素，依此类推。我的问题可能与概念或代码的其他部分有关，但我不太理解这行代码：
-# 将预测值追加到 Forecasted_values 列表中
-Forecasted_values.append(predicted_value[0])
-
-如果我想根据之前的 30 个元素来预测下一个元素，为什么我应该采用预测数组的第一个预测元素？ （对我来说，这意味着前 30 个输入序列的第二个元素）。如果我需要基于动态生成的值构建一个序列窗口，并且之前没有先前的元素，我该如何修改此示例？]]></description>
-      <guid>https://stackoverflow.com/questions/78315830/predicting-next-elements-with-an-lstm-based-on-previous-ones-or-even-based-on</guid>
-      <pubDate>Fri, 12 Apr 2024 11:01:41 GMT</pubDate>
     </item>
     <item>
       <title>Numpy reshape() 以编程方式以 3D 方式显示 2D 数组</title>
@@ -292,20 +498,19 @@ newarr = t_new.reshape(4,721,1440)
       <pubDate>Thu, 11 Apr 2024 06:06:56 GMT</pubDate>
     </item>
     <item>
+      <title>如何将 tfidfvectorizer 的功能从英语修改为西班牙语</title>
+      <link>https://stackoverflow.com/questions/78232328/how-to-modify-features-of-tfidfvectorizer-from-english-to-spanish</link>
+      <description><![CDATA[我有一个 TfidfVectorizer 模型，该模型经过英语文本数据的训练来预测英语通话中的情绪。我想针对西班牙语文本调整此 TfidfVectorizer，以便我可以将其与使用原始英语 TfidfVectorizer 训练的现有 XGBoost 模型一起使用。我的目标是在将功能从英语转换为西班牙语的同时保留现有的权重，例如将“谢谢”翻译为西班牙语。致“谢谢”，并重复使用旧的权重。本质上，我想应用相同的 TfidfVectorizer，但修改了功能名称。
+这些功能已从英语翻译为西班牙语，并且 TfidfVectorizer 已针对英语文本进行了训练。我需要一种方法来构建一个新的 TfidfVectorizer，它融合了旧的权重和新的西班牙语特征，而无需重新拟合模型或将整个文本语料库翻译成西班牙语。你能推荐一种Python方法来实现这一点吗？请添加相关的Python代码。]]></description>
+      <guid>https://stackoverflow.com/questions/78232328/how-to-modify-features-of-tfidfvectorizer-from-english-to-spanish</guid>
+      <pubDate>Wed, 27 Mar 2024 14:11:46 GMT</pubDate>
+    </item>
+    <item>
       <title>在 Tensorflow federated 中工作时遇到“学习属性”错误</title>
       <link>https://stackoverflow.com/questions/78158329/facing-error-in-learning-attribute-while-working-in-tensorflow-federated</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78158329/facing-error-in-learning-attribute-while-working-in-tensorflow-federated</guid>
       <pubDate>Thu, 14 Mar 2024 05:35:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>Adam 优化器在 PyTorch 上进行预热</title>
-      <link>https://stackoverflow.com/questions/65343377/adam-optimizer-with-warmup-on-pytorch</link>
-      <description><![CDATA[在论文Attention is all you need中，在在5.3节中，作者建议线性增加学习率，然后与步长的平方根倒数成比例地减少。
-
-我们如何使用 Adam 优化器在 PyTorch 中实现这一点？最好没有额外的软件包。]]></description>
-      <guid>https://stackoverflow.com/questions/65343377/adam-optimizer-with-warmup-on-pytorch</guid>
-      <pubDate>Thu, 17 Dec 2020 15:12:56 GMT</pubDate>
     </item>
     <item>
       <title>如何使用变分推理来拟合分布</title>
