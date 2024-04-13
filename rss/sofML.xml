@@ -4,12 +4,135 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 13 Apr 2024 15:10:37 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 13 Apr 2024 18:13:33 GMT</lastBuildDate>
+    <item>
+      <title>脑肿瘤分类的深度学习模型</title>
+      <link>https://stackoverflow.com/questions/78321435/deep-learning-model-for-brain-tumor-classification</link>
+      <description><![CDATA[我想建立一个包含四个类别的脑肿瘤分类模型。
+我希望模型有一个预训练模型（例如 VGG 或 Xception）作为其特征提取器。还有用于分类部分的机器学习分类器（例如随机森林或 KNN）。我正在使用 Pytorch。我不知道如何建立这样的模型。首先我需要 DNN 来提取特征。]]></description>
+      <guid>https://stackoverflow.com/questions/78321435/deep-learning-model-for-brain-tumor-classification</guid>
+      <pubDate>Sat, 13 Apr 2024 17:21:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于大数据分析的 PySpark，断言错误：面临使用哈希和 one-hot 编码转换字符串特征的问题</title>
+      <link>https://stackoverflow.com/questions/78321117/pyspark-for-big-data-analytics-assertion-error-facing-issues-converting-string</link>
+      <description><![CDATA[我是大数据分析新手，正在使用 PySpark 处理大数据机器学习任务，特别是信用卡欺诈检测。然而，我遇到了障碍。在我的数据集中，我有两个字符串特征，需要在构建模型之前将其转换为数值。我尝试过各种方法，例如one-hot编码和散列，但没有成功。
+如何解决这个问题？或者有更好的方法来处理它吗？
+这些是功能，我想将字符串值转换为数字，
+
+!pip3 安装 pyspark
+
+# 从 &#39;google.colab&#39; 库导入 &#39;drive&#39; 模块来挂载 Google Drive
+从 google.colab 导入驱动器
+
+# 将 Google Drive 挂载到 &#39;/content/drive&#39; 目录
+驱动器.mount（&#39;/内容/驱动器&#39;）
+
+# 从 pyspark.sql 模块导入 SparkSession 类
+从 pyspark.sql 导入 SparkSession
+
+# 创建一个名为“spark”的 SparkSession 来与 Spark 交互
+# &#39;master&#39; 参数设置为“local[*]”，这意味着 Spark 将使用所有可用核心以本地模式运行
+# 将“appName”参数设置为“FraudDetection”，为 Spark 应用程序命名
+# &#39;getOrCreate()&#39; 方法确保如果现有的 SparkSession 可用，它将被重用；否则，将创建一个新的
+
+
+火花 = SparkSession.builder \
+        .master(“本地[*]”) \
+        .appName(&#39;欺诈检测&#39;) \
+        .config(&quot;spark.driver.memory&quot;, &quot;8g&quot;) \
+        .config(“spark.kryoserializer.buffer.max”,“16g”) \
+        .getOrCreate()
+
+# 使用spark加载spark_df
+Spark_df = Spark.read.csv(&#39;/content/drive/MyDrive/big_data/transactions_train.csv&#39;,inferSchema=True, header =True)
+
+# 此 Spark_df 中的可用列
+Spark_df.columns
+
+从 pyspark.sql.functions 导入 isnan、when、count、col
+
+# 检查每列中是否有缺失值
+Missing_counts = Spark_df.select([count(when(col(c).isNull() | isnan(col(c)), c)).alias(c) for c in spark_df.columns])
+缺少计数.show()
+
+# 检查任意行中是否有缺失值
+Total_missing_count = Spark_df.rdd.map(lambda row: sum([1 for x in row if x == None])).sum()
+print(&quot;DataFrame 中缺失值总数：{}&quot;.format(total_missing_count))
+
+从 pyspark.sql.functions 导入时
+# 将列类型转换为数值
+”“”
+  兑现 : 0,
+  提现 : 1,
+  借方：2，
+  付款方式： 3,
+  转乘：4，
+
+”“”
+Spark_df=spark_df.withColumn(“类型”,
+                             当（spark_df.type==“CASH_IN”，0）
+                            .when(spark_df.type==“CASH_OUT”, 1)
+                            .when(spark_df.type==“借记”, 2)
+                            .when(spark_df.type==“付款”, 3)
+                            .when(spark_df.type==“传输”, 4)
+                            .否则(-1))
+
+Spark_df.show()
+
+从 pyspark.ml.feature 导入 HashingTF
+从 pyspark.sql.functions 导入 pandas_udf，PandasUDFType
+从 pyspark.sql.types 导入 *
+从 pyspark.ml 导入管道
+
+# 定义一个函数将管道应用到每个分区
+@pandas_udf（架构，PandasUDFType.GROUPED_MAP）
+def 散列功能（pdf）：
+    # 定义函数内管道的阶段
+    hashTF = HashingTF(inputCol=“nameOrig”，outputCol=“nameOrig_hashed”，numFeatures=10)
+    hashingTF_dest = HashingTF(inputCol=“nameDest”，outputCol=“nameDest_hashed”，numFeatures=10)
+
+    # 创建管道
+    管道=管道（阶段= [hashingTF，hashingTF_dest]）
+
+    # 使管道适合数据
+    pipeline_model = pipeline.fit(pdf)
+
+    # 转换数据
+    df_hashed = pipeline_model.transform(pdf)
+
+    返回 df_hashed
+
+# 对 DataFrame 应用哈希
+df_hashed = Spark_df.groupby(“nameOrig”).apply(hashingFeatures)
+
+df_hashed.show()
+
+大多数时候我都会面临这个错误和缓冲区溢出！
+
+几天来我尝试了不同的方法。]]></description>
+      <guid>https://stackoverflow.com/questions/78321117/pyspark-for-big-data-analytics-assertion-error-facing-issues-converting-string</guid>
+      <pubDate>Sat, 13 Apr 2024 15:37:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 ANN 回归时如何克服低值的重大预测误差？ （包括图片）</title>
+      <link>https://stackoverflow.com/questions/78321075/how-to-overcome-significant-prediction-errors-for-low-values-when-using-ann-regr</link>
+      <description><![CDATA[我正在尝试训练一个模型来预测化学性质，但似乎存在一种最低值的预测限制。
+
+图像：x轴：真实值； y 轴：预测值
+我的目标属性值在1-5个单位范围内，我使用relu作为激活函数，数据已经标准化。
+当我更改隐藏层中的节点数或内核正则化器 L1 的值时，问题不太明显。
+我目前正在尝试使用超参数值的其他组合，但我不明白问题的根源，以便找到正确的解决方案。
+任何人都可以向我解释为什么我有这个预测“限制”吗？ ？
+提前谢谢您！]]></description>
+      <guid>https://stackoverflow.com/questions/78321075/how-to-overcome-significant-prediction-errors-for-low-values-when-using-ann-regr</guid>
+      <pubDate>Sat, 13 Apr 2024 15:25:50 GMT</pubDate>
+    </item>
     <item>
       <title>未经训练的 DNN 产生的泛化误差过小</title>
       <link>https://stackoverflow.com/questions/78320915/unreasonably-small-generalization-error-produced-by-untrained-dnn</link>
-      <description><![CDATA[我目前正在尝试训练 DNN 来执行回归任务。目标是在给定 4 个输入特征的情况下预测 2 个 QoI。对于训练和验证，我使用 LHS 获得的 40 个训练模式，其中分为 80-20 个。训练模型后，我用它来预测从正态分布中随机获得的 300 个新的未见样本，并计算两个 QoI 的 rmse（预测与实际结果之间）。我使用 2 个标准 scaler() 实例，一个用于 X（输入），一个用于 y（输出）。相同的两个缩放器实例用于预测 300 个样本。第一个在将输入提供给模型之前缩放输入，第二个将模型预测（反向）缩放到相应的幅度。 （我只会针对一个 QoI 提及这个问题，因为第二个 QoI 也验证了完全相同的问题）。
-到目前为止，我所看到的 300 的 rmse 值约为 2 到 4.5 10^(-4)。这里的悖论是，有一次，只是为了检查，我在训练之前使用了我编译的模型来预测 300 并查看 RMSE 会是什么样子。我的大脑告诉我，这个错误应该比我迄今为止看到的值非常遥远，因为模型完全未经训练。结果（对于不同的种子状态，也称为初始化）也在 510^(-4) 左右，只是比从训练模型获得的结果稍差一点。在我看来，这完全是无稽之谈，我试图理解我在 python 代码中一定犯了一个错误，可能会导致我来到这里。 PS1：问题是我得到了一个非常“小”的东西。回归中使用的完全未经训练的 DNN 产生的泛化误差。 PS2：在模型预测缩小到相应的幅度后，正在计算 rsme。]]></description>
+      <description><![CDATA[我目前正在尝试训练 DNN 来执行回归任务。目标是在给定 4 个输入特征的情况下预测 2 个 QoIs。对于训练和验证，我使用 LHS 获得的 40 个训练模式，其中分为 80-20 个。训练模型后，我用它来预测从正态分布中随机获得的 300 个新的未见样本，并计算两个 QoI 的 rmse（预测与实际结果之间）。我使用 2 个标准 scaler() 实例，一个用于 X（输入），一个用于 y（输出）。相同的两个缩放器实例用于预测 300 个样本。第一个在将输入提供给模型之前对输入进行缩放，第二个将模型预测（反向）缩小到相应的幅度。 （我只会针对一个 QoI 提及这个问题，因为第二个 QoI 也验证了完全相同的问题）。
+到目前为止，我所看到的 300 的 rmse 值约为 2 到 4.5 10^(-4)。这里的悖论是，有一次，只是为了检查，我在训练之前使用了我编译的模型来预测 300 并看看 RMSE 会是什么样子。我的大脑告诉我，这个错误应该比我迄今为止看到的值非常遥远，因为模型完全未经训练。结果（对于不同的种子状态，也称为初始化）也在 510^(-4) 左右，只是比从训练模型获得的结果稍差一点。在我看来，这完全是无稽之谈，我试图理解我在 python 代码中一定犯了一个错误，可能会导致我来到这里。 PS1：问题是我得到了一个非常“小”的东西。回归中使用的完全未经训练的 DNN 产生的泛化误差。 PS2：在模型预测缩小到相应的幅度后，正在计算 rsme。]]></description>
       <guid>https://stackoverflow.com/questions/78320915/unreasonably-small-generalization-error-produced-by-untrained-dnn</guid>
       <pubDate>Sat, 13 Apr 2024 14:34:18 GMT</pubDate>
     </item>
@@ -308,7 +431,7 @@ def get_timeFrames_with_label(时间帧:tf.RaggedTensor, \
     <item>
       <title>Tensorflow 图像分类模型在第二个 epoch 后达到峰值，并在其余训练中保持相同的准确性</title>
       <link>https://stackoverflow.com/questions/78320148/tensorflow-image-classification-model-peaks-after-second-epoch-and-keeps-the-sam</link>
-      <description><![CDATA[我有一个简单的分类模型，有 4 个不同的类别：停止、前进、右转、左转交通手势信号。在第二个纪元之后，我在其余纪元中获得了相同的准确性。我也尝试过使用不同的数据集，并认为这是一个数据问题。
+      <description><![CDATA[我有一个简单的分类模型，有 4 个不同的类别：停止、前进、右、左交通手势信号。在第二个纪元之后，我在其余纪元中获得了相同的准确性。我也尝试过使用不同的数据集，并认为这是一个数据问题。
 def fit_cnn_model(X_train, Y_train, X_test, Y_test, savedir, num_layers=2,
                   num_filters=64，kernel_size=3，pool_size=2，dropout_rate=0.3，learning_rate=0.0001，
                   n_epochs=10，batch_size=64，详细=2）：
@@ -390,13 +513,6 @@ def load_data(image_folder, label_folder, target_size=(224, 224)):
 我尝试稍微调整学习率、dropout、层和过滤器。还使用了不同的经过验证的数据集。]]></description>
       <guid>https://stackoverflow.com/questions/78320148/tensorflow-image-classification-model-peaks-after-second-epoch-and-keeps-the-sam</guid>
       <pubDate>Sat, 13 Apr 2024 09:30:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>错误：尝试量化模型时，“tf.TensorListSetItem”操作既不是自定义操作也不是弹性操作</title>
-      <link>https://stackoverflow.com/questions/78319798/error-tf-tensorlistsetitem-op-is-neither-a-custom-op-nor-a-flex-op-while-tryi</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78319798/error-tf-tensorlistsetitem-op-is-neither-a-custom-op-nor-a-flex-op-while-tryi</guid>
-      <pubDate>Sat, 13 Apr 2024 07:02:24 GMT</pubDate>
     </item>
     <item>
       <title>为什么训练 nn 的准确率没有提高并且损失值如此之高？</title>
@@ -490,29 +606,6 @@ History_df.loc[:, [&#39;准确度&#39;, &#39;val_accuracy&#39;]].plot(title=&quo
       <pubDate>Sat, 13 Apr 2024 04:33:34 GMT</pubDate>
     </item>
     <item>
-      <title>是否可以在随机森林的核心中使用 adaBoosting 而不是 bootstrap？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78319519/is-it-possible-to-use-adaboosting-in-the-core-of-random-forest-instead-of-bootst</link>
-      <description><![CDATA[随机森林使用 Bagging（Bootstrapping）为其每棵树选择样本，对吗？是否可以使用 adaBoosting 代替？有什么优点和优点？缺点？为什么我没看到这个？
-我看到 Sci-kit learn 中的 RandomForestClassifier 允许启用/禁用引导程序，否则没有选项可以用 boosting 替换它。]]></description>
-      <guid>https://stackoverflow.com/questions/78319519/is-it-possible-to-use-adaboosting-in-the-core-of-random-forest-instead-of-bootst</guid>
-      <pubDate>Sat, 13 Apr 2024 04:19:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>拟合投票回归器中权重的估计器预测[关闭]</title>
-      <link>https://stackoverflow.com/questions/78318639/fitting-estimator-predictions-for-weights-in-the-voting-regressor</link>
-      <description><![CDATA[投票回归器所做的似乎就是取平均值，除非您手动输入一些权重，但这看起来并不有效。对 x 和 y 中的所有预测进行线性拟合是否有意义以及它会是什么样子。我假设有一些限制的一阶线性拟合。
-我尝试为其编写一些代码，这不是一项艰巨的任务，但我更好奇第二次拟合的统计实现，因为它感觉不“真实”。]]></description>
-      <guid>https://stackoverflow.com/questions/78318639/fitting-estimator-predictions-for-weights-in-the-voting-regressor</guid>
-      <pubDate>Fri, 12 Apr 2024 20:45:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何修改我的代码，以便它可以使用网络摄像头正确预测</title>
-      <link>https://stackoverflow.com/questions/78317359/how-to-modify-my-code-so-it-can-correctly-predict-using-the-webcam</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78317359/how-to-modify-my-code-so-it-can-correctly-predict-using-the-webcam</guid>
-      <pubDate>Fri, 12 Apr 2024 15:39:17 GMT</pubDate>
-    </item>
-    <item>
       <title>ValueError：操作数无法与形状一起广播 (10,1024) (1024,1) [关闭]</title>
       <link>https://stackoverflow.com/questions/78316002/valueerror-operands-could-not-be-broadcast-together-with-shapes-10-1024-1024</link>
       <description><![CDATA[]]></description>
@@ -528,13 +621,21 @@ History_df.loc[:, [&#39;准确度&#39;, &#39;val_accuracy&#39;]].plot(title=&quo
 我已经尝试过：
 newarr = t_new.reshape(4,721,1440)
 
-将其置于正确的形状，但与前两个纬度/经度坐标不匹配，如下所示：
+这会将其置于正确的形状，但与前两个纬度/经度坐标与以下首选格式不匹配：
 对于上图中的 (6,4) 示例数据，此操作看起来像下面的 (2,3,2) 数组：
 所需输出示例
 newarr = t_new.reshape(4,721,1440)
 ]]></description>
       <guid>https://stackoverflow.com/questions/78308446/numpy-reshape-to-display-2d-array-in-3d-programmatically</guid>
       <pubDate>Thu, 11 Apr 2024 06:06:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>OpenCV 新手，我如何安装/构建 opencv_traincascade</title>
+      <link>https://stackoverflow.com/questions/78286577/new-to-opencv-how-do-i-install-build-opencv-traincascade</link>
+      <description><![CDATA[所以我一直在从事机器学习项目，并且需要使用 opencv_traincascade 训练自定义数据集。但每当我尝试安装它时，它就永远无法工作。我还有其他东西，比如 opencv_annotation 和其他东西可以工作，但是 traincascade 或 event createsamples 不起作用。我必须手动构建这些吗？
+我下载了mingw-gcc、cmake，在网上找不到可行的解决方案。顺便说一句，我有 opencv 4.9.0，手动安装在 anaconda 和我的 C: 驱动器中。我也尝试过寻找一些第三方，他们安装了整个 opencv 并且可以复制，但没有运气。任何帮助将不胜感激，谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78286577/new-to-opencv-how-do-i-install-build-opencv-traincascade</guid>
+      <pubDate>Sun, 07 Apr 2024 03:46:34 GMT</pubDate>
     </item>
     <item>
       <title>如何将 tfidfvectorizer 的功能从英语修改为西班牙语</title>
@@ -551,7 +652,7 @@ newarr = t_new.reshape(4,721,1440)
 参考手册有一个关于 VI 的章节，但仅提供了有关如何在内部实现的一些高级信息，而不是如何使用它。
 用户指南在章节中提到了 VI 22.2，但仅对其效率进行了一些一般性评论。
 关于 SO 的相关问题可能是：PyStan API 中的变分推理？ 
-但这只是询问 advi 是否已经在 PyStan 中实现（它已经实现了）。没有其他信息。]]></description>
+但这只是询问 advi 是否已在 PyStan 中实现（它已经实现）。没有其他信息。]]></description>
       <guid>https://stackoverflow.com/questions/59276428/how-to-use-variational-inference-to-fit-a-distribution</guid>
       <pubDate>Tue, 10 Dec 2019 22:43:29 GMT</pubDate>
     </item>
