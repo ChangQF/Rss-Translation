@@ -4,7 +4,185 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sun, 14 Apr 2024 07:54:53 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 14 Apr 2024 11:19:36 GMT</lastBuildDate>
+    <item>
+      <title>如何正确加载和保存tf官方模型</title>
+      <link>https://stackoverflow.com/questions/78323409/how-to-correctly-load-and-save-tf-official-models</link>
+      <description><![CDATA[我正在尝试保存并加载本教程中经过训练的模型&gt; https://www.tensorflow.org/hub/tutorials/movinet
+这是本教程中的简要代码：
+def build_classifier(batch_size、num_frames、分辨率、backbone、num_classes)：
+  “”“在骨干模型之上构建分类器。”“”“
+  模型 = movinet_model.MovinetClassifier(
+      骨干=骨干，
+      类数=类数）
+  model.build([batch_size, num_frames, 分辨率, 分辨率, 3])
+  返回模型
+
+模型 = build_classifier(batch_size, num_frames, 分辨率, 主干网, 7)
+纪元数 = 30
+loss_obj = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+优化器 = tf.keras.optimizers.Adam(learning_rate = 0.001)
+
+model.compile（loss=loss_obj，optimizer=&#39;adam&#39;，metrics=[&#39;accuracy&#39;]）
+结果 = model.fit(train_ds,
+                    验证数据=val_ds，
+                    纪元=num_epochs，
+                    验证频率=1，
+                    详细=1)
+
+以下代码是我尝试做的：
+model.save(“./saved_model1”)
+模型 = tf.keras.layers.TFSMLayer(&#39;./saved_model1&#39;, call_endpoint=&#39;serving_default&#39;)
+model.evaluate(test_ds, return_dict=True)
+
+错误：
+&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
+AttributeError Traceback（最近一次调用最后一次）
+[86] 中的单元格，第 1 行
+----&gt; 1 model.evaluate(test_ds, return_dict=True)
+
+AttributeError：“TFSMLayer”对象没有属性“evaluate”
+
+&lt;块引用&gt;
+尝试将模型另存为 .keras 、 .h5
+
+model.save(&#39;my_model.keras&#39;)
+load_model = tf.keras.models.load_model(“my_model.keras”, custom_objects={&#39;MovinetClassifier&#39;: movinet_model.MovinetClassifier})
+model.evaluate(test_ds, return_dict=True)
+
+
+&lt;块引用&gt;
+并收到此错误：
+
+&lt;前&gt;&lt;代码&gt;--------------------
+AttributeError Traceback（最近一次调用最后一次）
+[28] 中的单元格，第 3 行
+      1 model_path=“my_movinet_model2.keras”
+      2 # 加载模型 = tf.keras.models.load_model(model_path)
+----&gt; 3 load_model = tf.keras.models.load_model(model_path, custom_objects={&#39;MovinetClassifier&#39;: movinet_model.MovinetClassifier})
+      4 model.evaluate(test_ds, return_dict=True)
+
+文件/opt/conda/lib/python3.10/site-packages/keras/src/ saving/ saving_api.py:176，在load_model（文件路径，custom_objects，编译，safe_mode）中
+    第173章
+  
+  ................................................
+
+文件/opt/conda/lib/python3.10/site-packages/official/projects/movinet/modeling/movinet_model.py:78，在MovinetClassifier.__init__(self,backbone,num_classes,input_specs,activation,dropout_rate,kernel_initializer,kernel_regularizer 、bias_regularizer、output_states、**kwargs）
+     75 self._output_states = 输出状态
+     77 状态规格=无
+---&gt; 78如果backbone.use_external_states：
+     79 状态规格=骨干.初始状态规格（
+     80 input_shape=input_specs[&#39;image&#39;].shape)
+     82 个输入，输出 = self._build_network(
+     83 主干，input_specs，state_specs=state_specs)
+
+AttributeError：“dict”对象没有属性“use_external_states``
+ 
+回溯很长，需要包含在内。我不确定如何像教程一样正确加载和评估保存的模型。
+]]></description>
+      <guid>https://stackoverflow.com/questions/78323409/how-to-correctly-load-and-save-tf-official-models</guid>
+      <pubDate>Sun, 14 Apr 2024 10:10:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>值错误：数据不明确（由于某种原因，所有 x 值均为 1）</title>
+      <link>https://stackoverflow.com/questions/78323348/value-error-data-is-ambiguous-for-some-reason-all-x-values-are-1</link>
+      <description><![CDATA[所以我正在编写一个基于文本生成音乐的人工智能模型。我检查了所有的预处理功能，它们似乎工作得很好。 x 个样本是用于训练的预处理文本，由于某种原因，它们在输入模型时最终都为 1。
+导入tensorflow为tf
+从tensorflow.keras.preprocessing.text导入Tokenizer
+从tensorflow.keras.layers导入LSTM，密集，嵌入，输入，TimeDistributed，激活
+从tensorflow.keras.models导入模型
+从tensorflow.keras.preprocessing.sequence导入pad_sequences
+导入 csv
+导入库
+导入操作系统
+将 numpy 导入为 np
+
+os.system(&#39;cls&#39; if os.name == &#39;nt&#39; else &#39;clear&#39;)
+
+# 加载音频的函数
+def load_audio(文件路径):
+    y, sr = librosa.load(文件路径)
+    返回 y, sr
+
+# 提取音频特征的函数
+def extract_features(音频, sr):
+    mfccs = librosa.feature.mfcc(y=音频, sr=sr)
+    返回 mfccs.T
+
+# 文本编码函数
+defencode_text（文本，分词器）：
+    序列 = tokenizer.texts_to_sequences([text])[0]
+    返回序列
+
+# 数据预处理函数
+def preprocess_data(行、分词器、music_dir):
+    Song_path = os.path.join(music_dir, row[&#39;歌曲&#39;])
+    print(f&#39;检索到的歌曲路径：{song_path}&#39;)
+    音频，sr = load_audio（歌曲路径）
+    mfccs = extract_features(音频, sr)
+    文本 = 行[&#39;提示&#39;]
+    序列=encode_text（文本，分词器）
+    padd_sequence = pad_sequences([序列], maxlen=43, padding=&#39;post&#39;)
+    Expanded_pa​​dd_sequence = np.expand_dims(pagged_sequence, axis=1)
+    返回 mfccs，扩展的_填充_序列
+
+# 加载数据集并标记化提示
+以 open(file=&#39;dataset.csv&#39;, mode=&#39;r&#39;,encoding=&#39;utf-8&#39;) 作为数据集：
+    reader = csv.DictReader(数据集)
+    all_prompts = [row[&#39;prompt&#39;] for reader 中的行]
+
+分词器 = 分词器(num_words=5000)
+tokenizer.fit_on_texts(all_prompts)
+
+# 准备模型训练数据
+预处理音频 = []
+预处理文本 = []
+music_dir = os.path.join(os.getcwd(), &#39;音乐&#39;)
+
+以 open(file=&#39;dataset.csv&#39;, mode=&#39;r&#39;,encoding=&#39;utf-8&#39;) 作为数据集：
+    数据集.seek(0)
+    reader = csv.DictReader(数据集)
+    对于读卡器中的行：
+        mfccs，expanded_pa​​ngled_sequence = preprocess_data（行，标记器，music_dir）
+        preprocessed_audio.append(mfccs)
+        preprocessed_text.append(expanded_pa​​dded_sequence)
+
+example_mfccs = preprocessed_audio[0]
+mfccs_timesteps = len(example_mfccs)
+mfccs_features = len(example_mfccs[0])
+最大文本长度 = 43
+
+audio_input = 输入（形状=（mfccs_timesteps，mfccs_features），名称=&#39;audio_input&#39;）
+text_input = 输入（形状=（max_text_len，），名称=&#39;text_input&#39;）
+
+num_lstm_units = 128
+
+text_embedding = 嵌入（input_dim=tokenizer.num_words，output_dim=64）（text_input）
+text_encoder = LSTM(num_lstm_units, return_sequences=True)(text_embedding)
+解码器 = LSTM(num_lstm_units, return_sequences=True)(text_encoder)
+解码器 = LSTM(num_lstm_units)(解码器)
+#decoder_upsampled = TimeDistributed（密集（mfccs_features））（解码器）
+model_output = Activation(&#39;sigmoid&#39;, name=&#39;model_output&#39;)(解码器)
+模型=模型（输入=文本输入，输出=模型输出）
+
+model.compile(loss=&#39;mse&#39;, 优化器=&#39;adam&#39;)
+打印（len（预处理文本））
+打印（len（预处理音频））
+
+# 训练模型
+epochs = int(input(&#39;请输入纪元数：&#39;))
+model.fit(x=预处理文本，y=预处理音频，纪元=纪元)
+model.save(&#39;Ihy.tf&#39;, overwrite=True, include_optimizer=True)
+
+错误是：
+ValueError：数据基数不明确。确保所有数组包含相同数量的样本。
+“x”尺寸：1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+“y”尺寸：3982、9838、7699、14171、8417、6547、9082、6763、10255、11647、6754、9491、17134、8414、10078、8303、9107、14320、 45、7339、10338、6933、9302 , 11573, 11859, 8915, 8949, 9709, 10538, 10924, 9507, 9987, 9445, 11571, 9563, 9705, 10081, 11245, 10239, 11909, 9678, , 10041
+
+我尝试并尝试调试所有内容，并且所有文本预处理功能都工作得很好。他们返回好的数组。音频预处理正确 (y)，文本仅为 1 秒 (x)。]]></description>
+      <guid>https://stackoverflow.com/questions/78323348/value-error-data-is-ambiguous-for-some-reason-all-x-values-are-1</guid>
+      <pubDate>Sun, 14 Apr 2024 09:47:06 GMT</pubDate>
+    </item>
     <item>
       <title>无法解释优化器标识符：<keras.src.optimizers.adam.Adam 对象位于 0x7d8646d22b00></title>
       <link>https://stackoverflow.com/questions/78323015/could-not-interpret-optimizer-identifier-keras-src-optimizers-adam-adam-object</link>
@@ -142,7 +320,7 @@ model.fit(np.array([图像]).astype(np.float32), ([
 }
 
 无论我做什么，它总是会给我一个类似的错误：
-ValueError: 无法找到可以处理输入的数据适配器：, ( 包含类型 {&#39;(&quot;})&#39;}) 的值的列表
+ValueError: 无法找到可以处理输入的数据适配器：, ( 包含类型 {&#39;( 包含类型值 {&quot;&quot;})&#39;})
 ]]></description>
       <guid>https://stackoverflow.com/questions/78322340/can-not-train-keras-model-with-multiple-outputs</guid>
       <pubDate>Sun, 14 Apr 2024 00:15:42 GMT</pubDate>
@@ -183,7 +361,7 @@ dls.classes[&#39;标题&#39;][idx]
     <item>
       <title>我正在使用 pytorch 训练机器学习多项式回归模型</title>
       <link>https://stackoverflow.com/questions/78321929/im-training-a-model-of-machine-learning-polynomial-regression-using-pytorch</link>
-      <description><![CDATA[我想将数据绘制到 plt.scatter 表单中，但是当我尝试填充它时，它只是说 x 和 y 的大小不同，而且我还挤压了它们仅一维，以便更容易绘制，但仍然不起作用。
+      <description><![CDATA[我想将数据绘制成 plt.scatter 表单，但是当我尝试填充它时，它只是说 x 和 y 的大小不同，而且我还挤压了它们仅一维，以便更容易绘制，但仍然不起作用。
 这是情节机制：
 #使用 matplotlib.pyplot 中的散点图 (x,y) 可视化数据
 defplot_predictions(train_features=X_train,
@@ -191,7 +369,7 @@ defplot_predictions(train_features=X_train,
                      test_features=X_test,
                      测试标签=y_测试，
                      预测=无）：
-    plt.figure(figsize=(10,7))
+    plt.figure(figsize= (10,7))
 
     plt.scatter(X_train, y_train, c=“g”, label=“训练数据”)
 
@@ -274,49 +452,6 @@ PS：还忘记添加数据集注释正确，或者至少这是我在绘图上看
       <pubDate>Sat, 13 Apr 2024 19:08:00 GMT</pubDate>
     </item>
     <item>
-      <title>sklearn DummyClassifier 的预测不正确</title>
-      <link>https://stackoverflow.com/questions/78320892/incorrect-prediction-from-sklearn-dummyclassifier</link>
-      <description><![CDATA[我正在尝试对学校项目的数据集执行虚拟分类。这个想法是为了了解不同政党发表演讲的频率。我的想法是按以下方式编写此代码：
-from sklearn.dummy import DummyClassifier
-将 pandas 导入为 pd
-导入bz2
-
-
-以 bz2.open(“data/ch3/speeches-201718.json.bz2”) 作为源：
-    Speechs_201718 = pd.read_json（来源）
-
-以 bz2.open(“data/ch3/speeches-201819.json.bz2”) 作为源：
-    Speechs_201819 = pd.read_json（来源）
-
-
-训练数据、测试数据 = 演讲_201718、演讲_201819
-
-train_partys_count = Training_data[&#39;party&#39;].value_counts()
-test_partys_count = test_data[&#39;party&#39;].value_counts()
-dummy_clf = DummyClassifier(策略=“most_frequent”)
-
-X = train_party_count
-y = train_party_count.index
-dummy_clf.fit(X.值, y)
-打印（X）
-打印（y）
-
-test_parties_count.index = pd.CategoricalIndex(test_parties_count.index,categories=train_parties_count.index,ordered=True)
-X_test = test_partys_count.sort_index()
-打印（X_测试）
-pred_mfc = dummy_clf.predict(X_test.values)
-
-print(&quot;Urval av prediktioner [0-4]: &quot;, pred_mfc[:5])
-
-
-我得到以下输出：
-在此处输入图像描述
-正如您所看到的，预测应该是 S，但结果却是 C，什么可能是不正确的？
-我尝试以多种方式定义训练和测试数据，但没有成功。]]></description>
-      <guid>https://stackoverflow.com/questions/78320892/incorrect-prediction-from-sklearn-dummyclassifier</guid>
-      <pubDate>Sat, 13 Apr 2024 14:26:18 GMT</pubDate>
-    </item>
-    <item>
       <title>我可以重新训练 AutoModelForSequenceClassification 以生成文本吗？</title>
       <link>https://stackoverflow.com/questions/78284197/can-i-retrain-an-automodelforsequenceclassification-for-text-generation</link>
       <description><![CDATA[我的目标是微调 Mistral 7b 以编写短意识流（文本完成，而不是遵循指令）。
@@ -352,7 +487,7 @@ model = AutoModelForSequenceClassification.from_pretrained(“bert-base-cased”
 如果您选中 model.training 标志，默认情况下它会设置为 false，但 Trainer 有一个调用 model 的逻辑.train() 将其设置为 True，这是有道理的。
 使用此微调模型进行推理时，您可以利用 transformers.pipeline，它接受模型对象作为参数。但是，管道没有检查模型是否处于训练模式的逻辑。我没有在源代码中找到它，并且在文档中的任何地方都没有看到它。当我使用管道进行预测时，结果不确定，这是模型未处于评估模式的另一个指标。
 生成器 = 管道(
-                “某个任务”，
+                “一些_任务”，
                 型号=型号，
                 分词器=分词器，
                 聚合策略=聚合策略，
@@ -369,14 +504,6 @@ Generator(“Example”) # 返回分数 X
 我应该在 pipeline 中使用模型之前调用 model.eval() 还是应该 pipeline 自行处理它，但由于某种原因不是吗？]]></description>
       <guid>https://stackoverflow.com/questions/76388696/should-i-use-model-eval-when-using-transformers-pipeline-for-inference-with-a</guid>
       <pubDate>Fri, 02 Jun 2023 09:06:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>我想要一个 python 脚本将洋葱图像的背景更改为黑色，该怎么做？</title>
-      <link>https://stackoverflow.com/questions/75859536/i-want-a-python-script-to-change-the-background-to-black-of-a-image-of-onion-ho</link>
-      <description><![CDATA[我正在尝试将洋葱图像的背景颜色更改为黑色
-我尝试使用 opencv 和 Pixellib 在 python 中编写代码，但它不起作用，我希望得到一些帮助来改变这一点]]></description>
-      <guid>https://stackoverflow.com/questions/75859536/i-want-a-python-script-to-change-the-background-to-black-of-a-image-of-onion-ho</guid>
-      <pubDate>Mon, 27 Mar 2023 19:10:07 GMT</pubDate>
     </item>
     </channel>
 </rss>
