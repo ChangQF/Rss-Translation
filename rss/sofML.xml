@@ -4,7 +4,111 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Thu, 18 Apr 2024 18:17:32 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 18 Apr 2024 21:12:33 GMT</lastBuildDate>
+    <item>
+      <title>您可以使用 CreateML 从文本 blob 中提取文本吗？</title>
+      <link>https://stackoverflow.com/questions/78350086/can-you-use-createml-to-extract-text-from-a-text-blob</link>
+      <description><![CDATA[我一直在使用 CreateML 通过文本分类构建模型。它需要读取文本块，并从该文本块中提取名称。 （该斑点来自 iPhone 的 OCR 结果）文本斑点的大小各不相同，但名称始终出现在文本中。
+我遇到的问题是，只有在训练期间显示过该名称时，它才会找到该名称。如果是新名称，则不起作用。有没有办法修改 CreateML 以根据 blob 中的其他数据查找新名称？
+如果 CreateML 无法做到这一点，是否还有其他工具可以做到这一点？生成的模型需要在 iPhone 上运行。]]></description>
+      <guid>https://stackoverflow.com/questions/78350086/can-you-use-createml-to-extract-text-from-a-text-blob</guid>
+      <pubDate>Thu, 18 Apr 2024 20:05:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>LMST模型敏感性——初学者抗运气</title>
+      <link>https://stackoverflow.com/questions/78349854/lmst-model-sensitivity-beginners-anti-luck</link>
+      <description><![CDATA[我一直在尝试使用艾伯塔省电力市场的一些非常基本的数据，并尝试使用时间序列数据的 LMST 模型来尝试预测价格。我确实得到“可能”这是我的模型的结果，而且它似乎确实出现了我们可以预期的一些波动（仅根据我自己的市场经验）。
+但是，我正在寻求更好地理解我遇到的一些陷阱。
+从 keras.models 导入顺序
+从 keras.layers 导入 LSTM
+从 keras.layers 导入 Dropout
+从 keras.layers 导入密集
+将 pandas 导入为 pd
+从 sklearn.preprocessing 导入 MinMaxScaler
+从 sklearn.model_selection 导入 train_test_split
+从 sklearn.metrics 导入mean_absolute_error,mean_squared_error
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+将seaborn导入为sns
+导入作业库
+
+# 加载数据
+# 加载数据
+
+# 加载数据
+csv_file_path = &#39;Frankenstein.csv&#39; # 使用您的实际文件路径更新
+df = pd.read_csv(csv_file_path)
+
+# 将“日期/时间”转换为日期时间并提取数据集中存在的组件
+如果 df.columns 中的“日期/时间”：
+    df[&#39;日期&#39;] = pd.to_datetime(df[&#39;日期/时间&#39;])
+    df[&#39;年份&#39;] = df[&#39;日期&#39;].dt.year
+    df[&#39;月份&#39;] = df[&#39;日期&#39;].dt.月份
+    df[&#39;日期&#39;] = df[&#39;日期&#39;].dt.day
+    df[&#39;小时&#39;] = df[&#39;日期&#39;].dt.小时
+    df.drop([&#39;日期/时间&#39;, &#39;日期&#39;], axis=1, inplace=True)
+
+# 假设“价格”是目标变量
+features = df.drop([&#39;价格&#39;], axis=1)
+目标 = df[&#39;价格&#39;]
+
+# 标准化特征和目标
+缩放器特征 = MinMaxScaler()
+features_scaled = scaler_features.fit_transform(features)
+缩放器目标 = MinMaxScaler()
+target_scaled = scaler_target.fit_transform(target.values.reshape(-1, 1))
+
+# 创建序列函数
+def create_sequences（特征，目标，time_steps = 100）：
+    X、y = []、[]
+    对于范围内的 i(len(features) - time_steps)：
+        X.append(特征[i:(i + time_steps)])
+        y.append(目标[i + time_steps])
+    返回 np.array(X), np.array(y)
+
+# 使用整个数据集创建序列
+X, y = create_sequences(features_scaled, target_scaled.flatten())
+
+# 模型配置
+input_shape = (X.shape[1], X.shape[2]) # (time_steps, num_features)
+
+# 定义LSTM模型
+模型=顺序（[
+    LSTM（单位=100，return_sequences=True，input_shape=input_shape），
+    辍学（0.1），
+    LSTM（单位=100），
+    辍学（0.1），
+    密集（单位=100，激活=&#39;elu&#39;），
+    Dense(1) # 预测单个值
+]）
+
+# 编译模型
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;mean_squared_error&#39;)
+
+# 在整个数据集上训练模型
+历史= model.fit（X，y，纪元= 150，batch_size = 20，validation_split = 0.1）
+
+# 情节训练&amp;验证损失值
+plt.figure(figsize=(10, 6))
+plt.plot(history.history[&#39;loss&#39;], label=&#39;火车&#39;)
+plt.plot(history.history[&#39;val_loss&#39;], label=&#39;验证&#39;)
+plt.title(&#39;模型损失&#39;)
+plt.ylabel(&#39;损失&#39;)
+plt.xlabel(&#39;纪元&#39;)
+plt.legend(loc=&#39;右上&#39;)
+plt.show()
+
+# 保存LSTM模型
+model_save_path = &#39;trained_lstm_model.h5&#39;
+model.save(model_save_path)
+print(f&quot;模型已保存到 {model_save_path}&quot;)
+joblib.dump(scaler_features, &#39;scaler_features.pkl&#39;)
+joblib.dump(scaler_target, &#39;scaler_target.pkl&#39;)
+
+有人可以给绝对的初学者一些建议吗？主要是为了更好地理解我应该如何设置它。我有一个每小时的数据集，是过去三年的历史生成和交换。我正在寻找方法让我的模型对供应与价格的变化更具反应性。]]></description>
+      <guid>https://stackoverflow.com/questions/78349854/lmst-model-sensitivity-beginners-anti-luck</guid>
+      <pubDate>Thu, 18 Apr 2024 19:18:18 GMT</pubDate>
+    </item>
     <item>
       <title>KITTI数据集绘制历史轨迹</title>
       <link>https://stackoverflow.com/questions/78349057/kitti-dataset-plotting-historical-trajectory</link>
@@ -27,25 +131,38 @@
       <pubDate>Thu, 18 Apr 2024 16:05:11 GMT</pubDate>
     </item>
     <item>
-      <title>Cypress 测试自动化：频繁 UI 更改的自我修复？</title>
-      <link>https://stackoverflow.com/questions/78348693/cypress-test-automation-self-healing-for-frequent-ui-changes</link>
-      <description><![CDATA[目前，测试自动化框架严重依赖 UI 元素选择器（ID、类等）来与应用程序交互。然而，频繁的 UI 更改通常会导致这些选择器无效，从而导致测试脚本中需要手动更新。
-这种手动干预成为了瓶颈，我正在寻求解决方案来提高框架对 UI 更改的适应能力。理想情况下，我希望框架能够：
+      <title>如何解决此 OML4py 代理错误？</title>
+      <link>https://stackoverflow.com/questions/78348747/how-can-i-resolve-this-oml4py-proxy-error</link>
+      <description><![CDATA[例如，apply 函数适用于 pandas DataFrame，但 OML 数据框不支持 apply 方法。我收到此错误
+AttributeError：“DataFrame”对象没有属性“apply”
+如何解决这个问题？
+&#39;&#39;&#39;
+%python
+导入oml
+将 pandas 导入为 pd
 
-识别选择器在测试执行期间何时无效。
-提出定位目标元素的替代方法（可能使用新的选择器）。
+inp = [{&#39;VAL_1&#39;:10,&#39;VAL_2&#39;:1},{&#39;VAL_1&#39;:11,&#39;VAL_2&#39;:10},{&#39;VAL_1&#39;:12,&#39;VAL_2&#39;:0}]
+df = pd.DataFrame(inp)
+oml_df = oml.push(df)
 
-我有兴趣结合机器学习 (ML) 来增强框架在遇到意外 UI 更改时建议新定位器的能力。
+# apply 函数与 pandas DataFrame 一起使用：
 
-我熟悉自我修复测试自动化框架的概念，但尚未实施。所以不知道如何才能实现这一目标？
-我愿意探索不同的解决方案，包括那些可能涉及机器学习 (ML) 的解决方案。
-我可能缺少任何其他有效的、基于 JS 的赛普拉斯自我修复测试自动化策略吗？
-集成 Python 模型进行定位器验证是否可行，或者是否有更简单的基于 JS 的替代方案？
-如果 Python 集成是一个可行的选择，您能否推荐在 Cypress 框架中实现此目标的资源或最佳实践？
+％Python
 
-我很欣赏有关在 Cypress 中构建自我修复框架的任何建议或见解，该框架可以适应 UI 更改并减少测试脚本的手动维护。]]></description>
-      <guid>https://stackoverflow.com/questions/78348693/cypress-test-automation-self-healing-for-frequent-ui-changes</guid>
-      <pubDate>Thu, 18 Apr 2024 15:34:33 GMT</pubDate>
+df[&#39;VAL_NEW&#39;] = df.apply(lambda 行，arg: 行[&#39;VAL_1&#39;] + 行[&#39;VAL_2&#39;] +100, axis=1, args=(100,))
+打印（df）
+
+# 但OML数据框不支持apply方法：
+
+％Python
+
+oml_df[&#39;VAL_NEW&#39;] = oml_df.apply(lambda 行，arg: 行[&#39;VAL_1&#39;] + 行[&#39;VAL_2&#39;] +100, axis=1, args=(100,))
+
+# AttributeError: &#39;DataFrame&#39; 对象没有属性 &#39;apply&#39;
+
+&#39;&#39;&#39;]]></description>
+      <guid>https://stackoverflow.com/questions/78348747/how-can-i-resolve-this-oml4py-proxy-error</guid>
+      <pubDate>Thu, 18 Apr 2024 15:44:01 GMT</pubDate>
     </item>
     <item>
       <title>重新创建研究论文的结果</title>
@@ -60,87 +177,27 @@
       <pubDate>Thu, 18 Apr 2024 14:10:01 GMT</pubDate>
     </item>
     <item>
-      <title>使用 AdamW 算法的张量流模型中的 MeanAbsolutePercentageError() 错误</title>
-      <link>https://stackoverflow.com/questions/78347984/error-with-meanabsolutepercentageerror-in-tensorflow-model-with-adamw-algorith</link>
-      <description><![CDATA[我试图找到人工神经网络中 2 个隐藏层的最佳节点数。我想使用 MeanAbsolutePercentageError 来评估模型的准确性。这是有错误的代码小节：
-这是我的代码：
-从tensorflow.keras.models导入顺序
-从tensorflow.keras.layers导入Dense
-从tensorflow.keras.losses导入MeanAbsoluteError
-从tensorflow.keras.utils导入set_random_seed
-从tensorflow.keras.losses导入MeanAbsolutePercentageError
-从tensorflow.keras.optimizers导入AdamW
-设置随机种子（777）
-
-结果 = []
-对于范围 (1, 8) 内的 A：
-  对于范围 (1, 8) 内的 B：
-
-    设置随机种子（777）
-    模型=顺序（层=[密集（单位=A，激活=“elu”，input_shape=[TRAIN_X.columns.size]），
-                                        密集（单位=B，激活=“elu”），
-                                        密集(单位=1)])
-    MODEL.compile( 优化器=AdamW() ,
-                  损失=MeanAbsolutePercentageError() )
-    模型.fit( TRAIN_X/10 , TRAIN_Y/10 ,
-                          validation_data=[ TEST_X / 10 , TEST_Y / 10 ] , epochs=300 )
-    预测 = 模型.预测( TEST_X / 10 ) * 10
-    C = MeanAbsolutePercentageError( 预测 , TEST_Y )
-    结果.append([A, B, C])
-
-我期望结果采用 [A,B,C] 格式的数组，这意味着 A = 第一个隐藏层中的 # 个节点，B = 第二个隐藏层中的 # 个节点，C = 平均绝对百分比误差。但是，我收到了这个错误：
-&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
-ValueError Traceback（最近一次调用最后一次）
-&lt;ipython-input-10-59489aa7b7de&gt;在&lt;细胞系：10&gt;()
-     20 validation_data=[ TEST_X / 10 , TEST_Y / 10 ] , epochs=300 )
-     21 预测 = 模型.预测( TEST_X / 10 ) * 10
----&gt; 22 C = MeanAbsolutePercentageError( 预测 , TEST_Y )
-     23 结果.append([A,B,C])
-
-3帧
-/usr/local/lib/python3.10/dist-packages/keras/src/utils/losses_utils.py 中的 validate(cls, key)
-     第85章
-     86 def 验证（cls，密钥）：
----&gt; 87 如果 key 不在 cls.all() 中：
-     88 引发值错误（
-     89 f&#39;无效的还原键：{key}。预期的键为“{cls.all()}”
-
-ValueError：具有多个元素的数组的真值不明确。使用 a.any() 或 a.all()
-]]></description>
-      <guid>https://stackoverflow.com/questions/78347984/error-with-meanabsolutepercentageerror-in-tensorflow-model-with-adamw-algorith</guid>
-      <pubDate>Thu, 18 Apr 2024 13:53:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何利用RMS获取首次预测时间</title>
-      <link>https://stackoverflow.com/questions/78347968/how-to-obtain-the-first-prediction-time-by-using-rms</link>
-      <description><![CDATA[我正在尝试实现从论文中找到的这一点：
-首先，选取轴承故障采样点中的前l个采样点，计算其均方根值的平均值μlRMS和标准差sigmaRMS，并建立3σ判据——
-相应地基于判断区间[μlRMS − 3σlRMS, μlRMS +3σlRMS]。
-2) 其次，计算第l+1个点FPTl+1的RMS指数，并与步骤1中的判定区间进行比较。如果其值不在该范围内，则使l=l+1后重新计算判定区间如果其值在此范围内，则触发一次判断。
-3）最后，为了避免误触发，以连续3次触发作为最终FPT的识别依据，并使本次FPTl = FPT
-论文标题：物理引导神经网络：滚动体剩余使用寿命预测
-通过动态使用长短期记忆网络的轴承
-降解过程的权重
-我完全不明白他们是如何实现这一目标的。如果我计算 RMS，我只有一个值，那么如何从 RMS 获取平均值和标准差。另外，通过尝试我的代码，FPT 在轴承寿命开始时开始。
-def find_fpt(数据):
-    上= np.mean(数据，轴=1) + np.std(数据，轴=1)
-    下= np.mean（数据，轴= 1） - np.std（数据，轴= 1）
-
-    rms_values = np.sqrt(np.mean(样本 ** 2, 轴=1))
-    间隔 = [下[0], 上[0]]
-    触发 = 0
-    对于范围内的 i(len(rms_values))：
-
-        如果间隔[1]&gt;均方根值[i+1]&gt;间隔[0]：
-            触发 += 1
-            如果触发器== 3：
-                返回我
-        别的：
-            间隔 = [下[i + 1], 上[i + 1]]
-
-这是我尝试编写的代码，但没有成功实现 FPT]]></description>
-      <guid>https://stackoverflow.com/questions/78347968/how-to-obtain-the-first-prediction-time-by-using-rms</guid>
-      <pubDate>Thu, 18 Apr 2024 13:51:23 GMT</pubDate>
+      <title>OML4py 中的两个列分组依据</title>
+      <link>https://stackoverflow.com/questions/78347872/tow-column-group-by-in-oml4py</link>
+      <description><![CDATA[如何使用 OML4Py oml.group_apply 调用按两列进行分组？
+例如在 sql 中我可以执行以下操作：
+&#39;&#39;&#39;
+从 emp 中选择 mgr、count(mgr)、count(deptno)、deptno
+按经理、部门分组
+按部门编号排序；
+返回
+7782 1 1 10
+7839 1 1 10
+0 1 10
+7566 2 2 20
+7788 1 1 20
+7839 1 1 20
+7902 1 1 20
+7698 5 5 30
+7839 1 1 30
+&#39;&#39;&#39;]]></description>
+      <guid>https://stackoverflow.com/questions/78347872/tow-column-group-by-in-oml4py</guid>
+      <pubDate>Thu, 18 Apr 2024 13:37:39 GMT</pubDate>
     </item>
     <item>
       <title>用于一维数据中的台阶/扭结识别的卷积神经网络</title>
@@ -388,27 +445,6 @@ _safe_call(_LIB.LGBM_BoosterUpdateOneIter(
 不同工人的垃圾箱数量似乎不同；有些有 137608、137612、137616。这是一个问题吗？]]></description>
       <guid>https://stackoverflow.com/questions/78344537/streaming-lightgbm-dataset-construction-freezes-on-training</guid>
       <pubDate>Thu, 18 Apr 2024 02:25:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>以向量作为自变量而不是多个单值变量进行回归？</title>
-      <link>https://stackoverflow.com/questions/78337383/regression-with-vector-as-independent-variable-instead-of-multiple-single-value</link>
-      <description><![CDATA[我正在做一个项目，试图通过绘制书中句子的情绪来预测用户对书籍的评分（评论）。
-给您一个想法的图表：
-红色是得分最高的 25% 书籍的平均情绪图，
-蓝色最差。
-正如你所看到的，这些书的开头相当中等，在结尾之前就下降了，并且最后都具有很高的情绪。您还可以看到，最好得分 25%（红色）在最后达到最高点。
-我想做的是使用回归来根据包含书中每个句子的情感分数的向量来预测一本书的分数。
-我尝试了一些方法，但没有效果。
-我的想法是将所有书籍分成 100 个部分，对每本书取这 100 个部分的平均值，并在此数据上训练支持向量回归模型（带有多边形内核）。然而，它的表现并不比每次都预测平均分数更好。
-所以：
-1 自变量 = [avg_sentiment1,avg_sentiment2,...avg_sentiment100]
-1 因变量 = 分数（1 到 5 之间的数字，或更具体地说，在我们的数据集中，介于 ~3.200 和 ~4.700 之间）
-因此，虽然使用此设置拟合 sklearn SVR 模型不会给出任何错误，但它似乎并没有学习（它的性能比始终预测平均值的虚拟预测器更差）。我尝试了几种具有不同参数的不同回归模型（Ridge、具有不同内核的 SVR、添加 SplineTransformer）。没有比随机做得更好的了。
-我可以在网上找到的所有回归示例似乎都使用奇异值预测奇异值（因此自变量年龄 = 12，因变量身高 = 160 厘米，类似的东西），或者最多使用多个变量（添加更多奇异值）值，例如体重 = 67（公斤），作为自变量）。
-我的回归是否将 100 个数字向量解释为 100 个不相关的变量？这有关系吗？
-救命，我已经超出了我的能力范围。哪种技术最适用于此？最好是我可以在 SKLearn 上找到的东西，我不是专家（正如您可能知道的那样）]]></description>
-      <guid>https://stackoverflow.com/questions/78337383/regression-with-vector-as-independent-variable-instead-of-multiple-single-value</guid>
-      <pubDate>Tue, 16 Apr 2024 21:22:19 GMT</pubDate>
     </item>
     <item>
       <title>根据单个树获取 XGBoost 预测</title>
