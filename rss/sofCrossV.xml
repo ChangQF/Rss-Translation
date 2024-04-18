@@ -4,9 +4,147 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Thu, 18 Apr 2024 15:14:40 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 18 Apr 2024 18:17:26 GMT</lastBuildDate>
     <item>
-      <title>在训练集上训练的验证准确度比在验证集上训练的要高</title>
+      <title>互信息衰减</title>
+      <link>https://stats.stackexchange.com/questions/645331/mutual-information-decay</link>
+      <description><![CDATA[考虑通过 $i$ 和 $m$ 个频道&quot;&gt;$1 \leq i \leq m$。输入字母来自相同的有限集$\mathcal{X}$。让 $\pi$ 表示 $\mathcal{X}$ 上的概率分布。定义函数
+\begin{方程}
+f_i(\pi)=I(X:Y_i)
+\end{方程}
+其中 $X \sim \pi$ 并给定 $X=x$, $Y_i$ 生成为 $Y_i|X=x \sim Y|i,x$，即我们发送输入 &lt; span class=&quot;math-container&quot;&gt;$X$ 到 $i^{th}$ 通道并观察输出 $Y_i$。 $I(.,.)$ 是两个随机变量之间的互信息。此外，定义 $f(\pi)=max_i f_i(\pi)$。
+现在假设我们看到来自固定通道 $j$ 的输出 $Y_j$。假设 $\mathcal{X}$ 上有一个先前的 $\pi_0$ 我们表示看到 &lt; span class=&quot;math-container&quot;&gt;$Y_j$ 为 $\pi_{1,j}$。是否属实：
+\begin{方程}
+f(\pi_0) \geq E[f(\pi_{1,j})]
+\end{方程}
+对于所有 $j \in [m]$？请注意，期望值取代了 $Y_j$ 和 $X$ 的随机性。
+不难看出：
+\begin{方程}
+f_i(\pi_0) \geq E[f_i(\pi_{1,j})]
+\end{方程}
+通过互信息的凹性以及后验期望只是先验这一事实。不幸的是，$max$操作破坏了$f$的凹性。但这种不等式似乎很直观，因为随着观察数量的积累，您可以从任何通道中提取的有关输入的最大信息会减少。]]></description>
+      <guid>https://stats.stackexchange.com/questions/645331/mutual-information-decay</guid>
+      <pubDate>Thu, 18 Apr 2024 17:43:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 GAM 建模时空数据（第二部分）</title>
+      <link>https://stats.stackexchange.com/questions/645330/modelling-spatiotemporal-data-with-gams-part-ii</link>
+      <description><![CDATA[亲爱的大家，
+这篇文章是我之前关于使用 GAMS 建模时空数据的问题的延续：
+使用 GAM 建模时空数据
+简而言之，我目前正在对房价数据集进行建模，其中一些重要的协变量是房屋坐标 (x,y) 和房屋销售日期 t。根据上一篇文章的建议，我尝试了不同的 GAM 规范来建模时空组件。下面我描述了每一个以及获得的 RMSE 训练误差：
+1) 基于 mgcv 中默认薄板平滑的三变量样条：
+model1 &lt;- mgcv::gam(价格 ~ s(x, y, t, k = 1500),
+                    数据=数据，
+                    家庭=伽玛（链接=日志），
+                    方法=“REML”）
+
+rmse &lt;- sqrt(mean((model1$fitted.values - model1$y)**2))
+
+打印（均方根误差）
+[1]3495.282
+
+
+&lt;强&gt;2。上一篇文章中建议的张量积样条：
+model2 &lt;- mgcv::gam(price ~ te(x, y, t, d = c(2,1), k = c(500, 5), bs = c(“tp”) ;,“cr”)),
+                    数据=数据，
+                    家庭=伽玛（链接=日志），
+                    方法=“REML”）
+
+rmse &lt;- sqrt(mean((model2$fitted.values - model2$y)**2))
+
+打印（均方根误差）
+[1]3745.546
+
+
+&lt;强&gt;3。空间和时间分量之间没有交互的模型：
+model3 &lt;- mgcv::gam(价格 ~ s(x, y, k = 500) +
+                    s(t, k = 3),
+                    数据=数据，
+                    家庭=伽玛（链接=日志），
+                    方法=“REML”）
+
+rmse &lt;- sqrt(mean((model3$fitted.values - model3$y)**2))
+
+打印（均方根误差）
+[1]3771.286
+
+
+&lt;强&gt;4。将交互建模为单独的张量积样条的模型：
+model4 &lt;- mgcv::gam(价格 ~ s(x, y, k = 500) +
+                    s(t, k = 3) +
+                    ti(x, y, t, d = c(2,1), k = c(500, 5), bs = c(“tp”, “cr”)),
+                    数据=数据，
+                    家庭=伽玛（链接=日志），
+                    方法=“REML”）
+
+rmse &lt;- sqrt(mean((model4$fitted.values - model4$y)**2))
+
+打印（均方根误差）
+[1]3753.491
+
+
+现在，我对这些结果感到相当困惑。如果分析有意义，则结论是模型 1 中的各向同性三变量平滑效果最好。但这直接与我上一篇文章中的答案相矛盾，该文章指出默认的 s() 错误地假设空间和时间方向上具有相同的摆动度。上述型号规格是否存在明显错误？或者我对训练 RMSE 的比较没有意义？如果是后者，那么比较模型准确性的最佳方法是什么？我还检查了样本外验证集上的 RMSE 错误，结论是相同的，因此这不是训练/测试错误的问题。]]></description>
+      <guid>https://stats.stackexchange.com/questions/645330/modelling-spatiotemporal-data-with-gams-part-ii</guid>
+      <pubDate>Thu, 18 Apr 2024 17:32:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>治疗前和治疗后倾向评分方法中的积极假设</title>
+      <link>https://stats.stackexchange.com/questions/645327/positivity-assumption-in-propensity-score-methods-for-pre-and-post-treatment</link>
+      <description><![CDATA[我正在设计一个研究项目，需要一些指导。我的研究问题集中于估计新的共同响应警务计划对使用武力和逮捕的影响。我想看看共同响应计划的实施是否导致干预期间使用武力和逮捕的减少。这些案件是警方在接到 911 求助电话后进行的干预。如果共同响应团队对事件做出响应 (1) 或警察照常响应 (0)，则处理变量是二元的。为了避免污染，我希望所有控制案例都来自该项目开始之前的时间，因为该警察局的所有警官都接受过项目培训。治疗案例将从计划实施后发生的事件中抽取。为了避免选择偏差，我想使用倾向评分方法将治疗病例与对照病例进行匹配。然而，根据我正在阅读的内容，倾向评分方法的积极假设可能会被违反，因为对照组中的病例被分配到治疗的可能性为零（哈里斯和霍斯特，2016）。看来我可以通过双重差异的方法来解决这个问题。但是，我不知道如何在实施治疗之前的时间段内确定治疗组，因为所有呼叫都有资格收到共同答复。
+我想要一些关于积极性假设以及如何修改我的分析结构的指导。我见过一篇论文用倾向得分进行事前分析，但没有解决积极性问题（Blais &amp; Brisebois，2021 ）。我知道这并不意味着统计严谨性，但这让我怀疑这是否是我的分析设计中需要解决的必要假设？如果是这样，我如何解决它以确保我的分析在统计上是稳健的 - 差异中的差异是否适用于此，或者是否有更好的技术？任何方向将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/645327/positivity-assumption-in-propensity-score-methods-for-pre-and-post-treatment</guid>
+      <pubDate>Thu, 18 Apr 2024 16:36:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>变换后的正态分布</title>
+      <link>https://stats.stackexchange.com/questions/645325/distribution-of-transformed-normal</link>
+      <description><![CDATA[假设 $X$ 是正态分布，均值 $\mu$ 和标准差 $\sigma$ 和 $\Phi$ 是标准正态分布函数。 $\Phi(X)$ 的分布是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/645325/distribution-of-transformed-normal</guid>
+      <pubDate>Thu, 18 Apr 2024 16:26:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>目前最好的可解释回归模型</title>
+      <link>https://stats.stackexchange.com/questions/645321/the-best-interpretable-regression-model-currently</link>
+      <description><![CDATA[我正在寻求有关表格数据的可解释回归模型的建议。我正在寻找能够在复杂性和可解释性之间取得平衡的方法——比简单的线性回归或决策树更复杂的方法。
+虽然我知道 SHAP、LIME 和 TabNet 等流行选项，但我有兴趣探索其他最先进的方法。
+主要要求包括：
+
+高精度：性能应可与更复杂的模型相媲美。
+可解释的预测：模型应提供有关其如何进行预测的见解。
+
+您能否建议一些符合这些条件的型号名称？
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/645321/the-best-interpretable-regression-model-currently</guid>
+      <pubDate>Thu, 18 Apr 2024 15:51:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何解决残差与预测分位数偏差（Dharma 图）？</title>
+      <link>https://stats.stackexchange.com/questions/645320/how-to-resolve-the-residual-versus-predicted-quantile-devation-dharma-plot</link>
+      <description><![CDATA[我一直在尝试执行具有随机效应的 beta 回归模型。我的性别比例为
+响应变量和气候变量+年份（1970-2021）作为预测变量。使用不同的农场作为随机效应
+但残差图显示显着分位数偏差。我可以知道为什么会发生这种情况吗？
+
+预测变量已标准化
+不转换响应变量
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/645320/how-to-resolve-the-residual-versus-predicted-quantile-devation-dharma-plot</guid>
+      <pubDate>Thu, 18 Apr 2024 15:40:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>两个多元分布之间的距离</title>
+      <link>https://stats.stackexchange.com/questions/645319/distance-between-two-multivariate-distributions</link>
+      <description><![CDATA[
+我的数据结构如下：2 年 -&gt;每年几个指标（假设是 2000 年）-&gt;每个指标有多个测量值（假设第一年为 1000 个，第二年为 800 个）。所以我有一个 2000x1000 的第一年数据集和 2000x800 的第二年数据集。我想要衡量两年之间的相似性或距离，考虑所有指标和每个测量的分布，并知道某些测量是相关的。我知道思考这个问题有很多方法。我想要一个能够考虑每个指标的分布而不必对每个指标进行平均的解决方案。
+到目前为止我的不同想法是：
+多元方差分析
+逐个度量地分布距离度量（Kolmogorov-Smirnov 或类似的东西），然后聚合所有度量（通过平均）。如果有人有软件包建议，请使用 Python。
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/645319/distance-between-two-multivariate-distributions</guid>
+      <pubDate>Thu, 18 Apr 2024 15:36:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>在训练集上训练的验证准确率比在验证集上训练的验证准确度更高</title>
       <link>https://stats.stackexchange.com/questions/645316/validation-accuracy-higher-if-trained-on-training-set-than-in-validation-set</link>
       <description><![CDATA[所以，我在模型验证方面遇到问题，特别是，我正在尝试线性读取（附加到神经网络中间层的逻辑回归）
 特别是，如果我在训练集上训练线性读数，并在验证集上进行评估，我会得到比在验证集上训练它并在验证集上评估更高的准确性
@@ -67,18 +205,11 @@ val_targets_ = []
     <item>
       <title>一系列事件的概率</title>
       <link>https://stats.stackexchange.com/questions/645314/probability-of-a-succession-of-events</link>
-      <description><![CDATA[[这是我在这个网站上的第一个问题，我希望它在范围内，如果不在范围内，请原谅我。我也不太了解如何标记这个]
+      <description><![CDATA[[这是我在这个网站上的第一个问题，我希望它在范围内，如果不在范围内，请原谅我。我也不太了解如何标记这一点]
 我没有统计学背景，希望有人能帮助我找到以下问题的答案。
 假设一个事件成功的概率为 98%，并且该事件重复 X 次（比如 300），每个事件都与之前的事件无关。这些 X 事件中 99% 以上成功的概率是多少？理想情况下，问题中的每个数字（98%、300、99%）都是可以更改的变量。]]></description>
       <guid>https://stats.stackexchange.com/questions/645314/probability-of-a-succession-of-events</guid>
       <pubDate>Thu, 18 Apr 2024 14:59:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>了解渐近相对效率以及如何计算它</title>
-      <link>https://stats.stackexchange.com/questions/645310/understanding-asymptotic-relative-efficiency-and-how-to-compute-it</link>
-      <description><![CDATA[我正在课堂上学习渐近相对效率 (ARE)，并且我正在尝试准确理解如何计算 ARE。根据我的理解，渐近相对效率是指当我们假设采用无限数量的样本并且它们都收敛到正态分布且各自具有各自的方差时，比较两个估计量的效率。因此，我们通过比较它们的方差之比来计算 ARE。如何计算每一项的方差？我正在考虑应用 delta 方法来表明它的分布收敛于正态分布，并从它们获得的方差进行比较，但想知道是否还有其他方法。]]></description>
-      <guid>https://stats.stackexchange.com/questions/645310/understanding-asymptotic-relative-efficiency-and-how-to-compute-it</guid>
-      <pubDate>Thu, 18 Apr 2024 14:29:33 GMT</pubDate>
     </item>
     <item>
       <title>我能否根据 Kaplan Meier 的 5 年生存率推断死亡人数 (n_event)？</title>
@@ -92,57 +223,6 @@ val_targets_ = []
 我理解这些百分比的含义吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/645308/can-i-extrapolate-number-of-deaths-n-event-from-5-year-survival-kaplan-meier</guid>
       <pubDate>Thu, 18 Apr 2024 14:09:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>宽格式（纵向）重复李克特项多重插补收敛失败的原因</title>
-      <link>https://stats.stackexchange.com/questions/645307/reasons-for-failure-of-convergence-in-multiple-imputation-in-wide-format-of-lon</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/645307/reasons-for-failure-of-convergence-in-multiple-imputation-in-wide-format-of-lon</guid>
-      <pubDate>Thu, 18 Apr 2024 13:39:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用纬度、经度和时间预测新冠病毒传播</title>
-      <link>https://stats.stackexchange.com/questions/645306/predict-covid-spread-using-latitude-and-longitude-and-time</link>
-      <description><![CDATA[我有一个数据，其中包含个人的纬度和经度以及地理位置的时间戳。我想使用 R 以及纬度/经度和时间来预测 COVID 的传播。我使用 180 万社交距离阈值将传播量化为新冠病毒感染的可能性。任何关于 R 或 Python 的想法（尽管我不太懂 Python）都会受到欢迎。
-。到目前为止，我所做的是在每分钟内找到个体之间的成对比较，并得出 
-欢迎任何想法。]]></description>
-      <guid>https://stats.stackexchange.com/questions/645306/predict-covid-spread-using-latitude-and-longitude-and-time</guid>
-      <pubDate>Thu, 18 Apr 2024 13:16:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>平均治疗效果：反事实和图形推导</title>
-      <link>https://stats.stackexchange.com/questions/645305/average-treatment-effect-counterfactual-and-graphical-derivation</link>
-      <description><![CDATA[我对平均治疗效果 (ATE)，也称为平均因果效应 (ACE) 有一些（可耻的）怀疑。在此设置中，我对二元暴露/治疗变量 A、单个二元混杂变量 W 和结果变量 Y 感兴趣。该问题的有向无环图 (DAG) 如下所示。
-
-那么，ATE定义为：
-$$
-\Psi = \mathop{\mathbb{E}} [Y(1)] - \mathop{\mathbb{E}} [Y(0)],
-$$
-其中 $\mathop{\mathbb{E}} [Y(a)]$ 是我们设置 A 时结果的预期值=a 适合我们人口中的每个人。
-下一步是提供识别条件，以便我们可以从观察到的数据中识别该参数。让我们假设它们成立。在文献/讲义中，我发现了我认为通常被称为 g 公式的两个推导。
-推导1：基于反事实
-$$
-\开始{对齐*}
-\mathop{\mathbb{E}} [Y(a)] &amp; = \mathop{\mathbb{E}} [\mathop{\mathbb{E}} [Y(a)|W=w]] \\
-&amp; = \mathop{\mathbb{E}} [\mathop{\mathbb{E}} [Y(a)|W=w,A=a]] \\
-&amp; = \mathop{\mathbb{E}} [\mathop{\mathbb{E}} [Y|W=w,A=a]] \\
-&amp; = \int_w \mathop{\mathbb{E}} [Y|W=w,A=a] P(W=w) d\nu(w)。
-\结束{对齐*}
-$$
-这些步骤本质上是基于一致性和积极性假设以及迭代的期望。
-推导 2：基于图形分解
-在其他场合，我看到了以下推导，它通常基于上面 DAG 隐含的因式分解 ($P(A,W, Y) = P(Y|A,W)P(A|W)P(W)$):
-$$
-\开始{对齐*}
-\mathop{\mathbb{E}} [Y] &amp; = \sum_y y f(y) \\
-&amp; = \sum_{y,a} y f(y|a)f(a) \\
-&amp; = \sum_{y,a, w} y f(y|a,w)f(a|w)f(w)。 \\
-\结束{对齐*}
-$$
-如果我们将A设置为a，那么我们可以删除a和f(a|w)&lt;的求和/code&gt; 在上面的公式中。正如预期的那样，这两个推导似乎是一致的。
-我遇到的问题是当我们没有设置 A 为 a 时，而是让它取决于例如A的自然值。也就是说，在第二个推导中，我们不会删除 f(a|w) 而是将其留在那里。在这种设置下，第一个推导会是什么样子？]]></description>
-      <guid>https://stats.stackexchange.com/questions/645305/average-treatment-effect-counterfactual-and-graphical-derivation</guid>
-      <pubDate>Thu, 18 Apr 2024 13:16:15 GMT</pubDate>
     </item>
     <item>
       <title>比值比悖论？合并 OR 与子组 OR 不一致</title>
@@ -226,122 +306,15 @@ B 组频率
       <pubDate>Thu, 18 Apr 2024 13:07:54 GMT</pubDate>
     </item>
     <item>
-      <title>混合模型的功率分析仿真（lme4 和 simr）</title>
-      <link>https://stats.stackexchange.com/questions/645303/simulating-power-analysis-for-mixed-models-lme4-and-simr</link>
-      <description><![CDATA[我想使用以下设计计算组内研究的先验功效分析：
+      <title>k 均值聚类基于概率分布而不是数据集[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/645286/k-means-clustering-on-a-probability-distribution-instead-of-a-dataset</link>
+      <description><![CDATA[通常，聚类算法（例如 $k$-means）在数据集上定义如下：if $ D$ 是一个数据集，将 $D$ 划分为集合 $\{S_1, \dots , S_n\}$ 最小化 $$\sum_{i=1}^n |S_i| 给出的簇内平方和\text{Var} (S_i) = \sum_{i=1}^n \frac{1}{|S_i|} \sum_{x, y\in S_i}\lVert x-y\rVert.$$我想知道是否可以参考概率分布定义 $k$-means 算法 $\mu$  而不是数据集 $D$。例如，假设我们的数据集仅由根据以下概率分布分布的 2d 点的集合组成（其中深色表示低概率）：
 
-participant_id
-条件（组内 - A、B）
-协变量（范围 1-7）
-调查问卷项目（范围 1-7）
-二进制结果
-
-我生成了一个如下的假数据集，如下所示
-# 设置参加人数
-参与者人数 &lt;- 50
-
-# 为参与者创建数据框
-参与者 &lt;- data.frame(participant_id = 1:num_participants)
-
-# 为每个参与者生成 A 和 B 的随机顺序
-参与者顺序 &lt;- 样本（c（“A_first”，“B_first”），num_participants，replace = TRUE）
-
-# 创建一个数据框，每个参与者有两行
-dummy_data &lt;- data.frame(participant_id =rep(participants$participant_id,each = 2),
-                         条件=代表（c（“A”，“B”），次数= num_participants），
-                         顺序 = 代表（participant_order，每个 = 2））
-
-# 添加一个 7 分制的协变量
-dummy_data$covariate &lt;- 样本(1:7, num_participants * 2, 替换 = TRUE)
-
-# 模拟条件之间的差异
-set.seed(123) # 为了重现性
-
-对于（1:3 中的项目）{
-  dummy_data[paste(&quot;item&quot;, item, sep = &quot;_&quot;)] &lt;- rnorm(num_participants * 2, Mean = ifelse(dummy_data$condition == &quot;A&quot;, 4, 6), sd = 1 ）
-}
-
-# 模拟二进制结果“bin_1”的差异
-dummy_data$bin_1 &lt;- rbinom(num_participants * 2, size = 1, prob = ifelse(dummy_data$condition == &quot;A&quot;, 0.3, 0.7))
-
-虚拟数据 &lt;- 虚拟数据 %&gt;%
-  dplyr::变异(
-    item_TOTAL = rowMeans(dplyr::select(., item_1, item_2, item_3)))
-
-这指定了 item_TOTAL 上条件 A 和 B 之间的差异。对于功耗分析，我使用 simr 函数，因此我使用 lme4 创建了一个混合模型。
-model1 &lt;- lmer(item_TOTAL ~ 条件 + 协变量 + (1|participant_id), data = dummy_data)
-摘要（模型1）
-
-这为条件 B 提供了 1.87 的固定效果。按照此处的教程，我可以更改固定效果大小像这样
-model2 &lt;- model1
-fixef(model2)[“条件B”] &lt;-- 0.05
-
-然后我可以使用 powerSim 函数执行功耗分析
-&lt;前&gt;&lt;代码&gt;powerSim（模型1）
-powerSim(模型2)
-
-到目前为止，代码似乎一切正常，但是我对编辑实际功耗分析的参数感到困惑。链接的教程提到“指定效应大小”，并且“x 的估计效应大小为 -0.11，使用默认 z 检验在 0.01 水平上显着。”
-但据我了解，固定效应系数与效应大小不同，所以我不确定应该如何更改fixef系数以对应不同的预期效应大小（因为我想这也是设计依赖）。由于数据是随机生成的，我也不确定 fixef(model2)[&quot;condition&quot;] &lt;-- 0.05 命令实际上在做什么 - 首先我应该使用以下命令生成随机数据没有效果然后只编辑fixef？或者我应该生成 3 个假数据集，每个数据集都有不同的效果大小（我什至不太确定如何做到这一点），然后比较这 3 个数据集？在现实生活中，我也期望我的协变量和结果变量之间存在正相关，这也应该以某种方式解释吗？
-我也不确定进行模拟功耗分析比仅将设计视为重复测量 t 检验并以这种方式计算功耗有什么好处。如有任何建议，我们将不胜感激！]]></description>
-      <guid>https://stats.stackexchange.com/questions/645303/simulating-power-analysis-for-mixed-models-lme4-and-simr</guid>
-      <pubDate>Thu, 18 Apr 2024 12:54:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>最大似然的潜在异方差</title>
-      <link>https://stats.stackexchange.com/questions/645302/potential-heteroskedasticity-in-maximum-likelihood</link>
-      <description><![CDATA[我使用 Logit 回归和最大似然创建了一个不良贷款分类器模型。实际结果与预期结果的比较如下所示。为了创建图表，我们将观察结果按分数按 5% 为一组进行分组。分数低代表信用质量低，分数高代表信用质量高。
-我观察到，对于得分较高的分箱，实际 v 预期存在一些波动。我担心残差的潜在异方差性。不过，我也认为观察到这种波动是正常的，因为不良贷款数量预计会较低，因此估计的标准误差较高。
-我的问题是：
-
-如何评估残差是否实际上是异方差的？
-如果残差恰好是异方差的，会对我的模型的有效性/准确性产生什么影响？
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/645302/potential-heteroskedasticity-in-maximum-likelihood</guid>
-      <pubDate>Thu, 18 Apr 2024 12:53:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>需要帮助比较两个样本[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/645299/need-help-in-comparing-two-samples</link>
-      <description><![CDATA[所以我的情况是，在同一人群中，在实施刺激措施之前和之后采集了两个样本。换句话说
-t0= 总体 A 中的样本 1
-应用刺激。然后，
-t1= 来自总体 A 的样本 2。假设对这两个样本都进行了调查。如果个体是从相同的总体和样本框架中随机选择的，那么我如何比较两次调查的结果作为 t0 和 t1 时一般总体的代表。]]></description>
-      <guid>https://stats.stackexchange.com/questions/645299/need-help-in-comparing-two-samples</guid>
-      <pubDate>Thu, 18 Apr 2024 12:09:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何指定每个用户在不同时间进行处理的逻辑回归？</title>
-      <link>https://stats.stackexchange.com/questions/645301/how-to-specify-a-logistic-regression-with-treatment-happening-in-different-times</link>
-      <description><![CDATA[我有一个时间跨度从 2017 年到 2021 年的数据集。观察结果包含来自某个平台的评论。我想测试精英身份的变化（从精英到非精英，从非精英到精英）对脏话使用的影响。
-但是由于精英地位可能会随着时间的推移（在这 4 年内）多次变化，我不知道如何在我的模型规范和数据集中解决这个问题。
-我已经尝试过 PSM 并尝试制作 2 个 Logit 模型。 （一个用于失去精英状态，另一个用于获得精英状态）。然而，这并不是解决这个问题的正确方法，因为我没有考虑随着时间的推移而产生的某些差异。因此，我想我可能需要对每年发生的治疗产生交互影响？]]></description>
-      <guid>https://stats.stackexchange.com/questions/645301/how-to-specify-a-logistic-regression-with-treatment-happening-in-different-times</guid>
-      <pubDate>Thu, 18 Apr 2024 11:58:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>皮尔逊系数的替代方案[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/645292/alternative-for-pearson-coefficient</link>
-      <description><![CDATA[我继承了一个使用皮尔逊相关系数来完成某些任务的系统。但它有一个明显的问题。
-(1,-2)、(2,-1)、(3,0)、(4,1)、(5,2) 和
-(1,-20)、(2,-10)、(3,0)、(4,10)、(5,20) 具有相同的结果，即 1。
-事实上，(1,-20)、(2,-10)、(3,0)、(4,10)、(5,15) 的相关性较小，这不是我们想要的。这就是我们得到次优结果的原因。
-为了改进这一点，我正在考虑将 Pearson 系数与 Y 值或 YTrend 值（对数或线性拟合值）的差值相乘，以便新的系数变得类似于
-(1,-2), (2,-1), (3,0), (4,1), (5,2) = 1 * 4 = 4
-(1,-20)、(2,-10)、(3,0)、(4,10)、(5,20) = 1 * 40 = 40
-(1,-20)、(2,-10)、(3,0)、(4,10)、(5,19) = .99 * 39 = 38.61
-这个新系数似乎更适合我们的系统。是否还有其他系数可以解决皮尔逊的这一局限性？在使用上述方法之前，我更愿意先看看这些。我已经检查了斯皮尔曼的，但这不起作用，因为我们绝对关心变化量和排名。
-下面是相关代码
-&lt;块引用&gt;
-SELECT ((Sum_xy - (Sum_x * Sum_y / N))) / (SQRT(Sum_xx - (Sum_x *
-Sum_x / N)) * SQRT(Sum_yy - (Sum_y * Sum_y / N))) AS 皮尔逊 FROM
-(选择 SUM(x) AS Sum_x、SUM(y) AS Sum_y、AVG(x) AS Avg_x、AVG(y) AS
-Avg_y、AVG(x * y) as Avg_xy、SUM(x * x) AS Sum_xx、SUM(x * y) AS
-Sum_xy, SUM(y * y) AS Sum_yy, COUNT(*) AS N FROM @OurData) as x
-
-DB Fiddle 是 dbfiddle.uk/2Akwx7Zk]]></description>
-      <guid>https://stats.stackexchange.com/questions/645292/alternative-for-pearson-coefficient</guid>
-      <pubDate>Thu, 18 Apr 2024 09:35:28 GMT</pubDate>
+然后，如果我们使用 $k$ - 表示有 2 个簇的聚类，我们（很可能）会得到一个以 -1 为中心的簇，另一个以 1 为中心的簇。我是想知道我们是否可以在分布本身上定义聚类算法，并将输入空间分割成 Voronoi cells 不参考数据集。换句话说，我想找到两件事： 1. 一个目标函数 $f$ 评估输入空间相对于给定分布的给定 Voronoi 分区2. 针对给定分布最小化目标函数的方法。
+我希望它与 $k$ 保持一致 - 在以下意义上意味着目标函数。假设我们有 IID 随机变量 $Z_1, \dots, Z_m$ 根据 $\mu$ 分布，这样$\{Z_1(\omega), \dots, Z_m(\omega)\}$ 是根据 $\mu$ 对于任何随机结果$\omega$。然后令 $\mathcal{V}(\omega)$ 为由 $k$-表示此数据集上的算法，并让 $SS(\omega)$ 成为此数据集上此分区的簇内平方和。然后我想要属性 $$\mathbb{E}[f(\mathcal{V})] = \mathbb{E}[SS].$$
+这样做的目的是提供一种方法来量化给定理论输入分布的$k$均值的适用性。例如，如果将聚类作为分类任务，则可以计算出簇内距离的预期总和以及预期错误率等数量。]]></description>
+      <guid>https://stats.stackexchange.com/questions/645286/k-means-clustering-on-a-probability-distribution-instead-of-a-dataset</guid>
+      <pubDate>Thu, 18 Apr 2024 08:06:04 GMT</pubDate>
     </item>
     <item>
       <title>为什么在交叉方程限制下，“systemfit”对于 OLS 和 WLS 会产生不同的结果？</title>
@@ -349,6 +322,16 @@ DB Fiddle 是 dbfiddle.uk/2Akwx7Zk]]></description>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/645285/why-does-systemfit-yield-different-results-for-ols-and-wls-under-cross-equatio</guid>
       <pubDate>Thu, 18 Apr 2024 08:00:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>事后观察到的效应大小是否与 p 值冗余，就像事后观察到的功效一样？</title>
+      <link>https://stats.stackexchange.com/questions/645269/is-the-post-hoc-observed-effect-size-redundant-with-the-p-value-just-like-post</link>
+      <description><![CDATA[为了简单起见，假设我们正在对 2 个正态分布总体进行 2 样本 t 检验，从中收集 2 个 i.i.d 样本。 （首先；我们可以稍后扩展到更复杂的情况）。我们知道，一项研究的事后观察功效完全由观察到的 p 值决定。请参阅此处，或此处，以及此网站上的多个参考。
+然后，事后我们得到了计划的 $\alpha$ （传统上为 0.05），实际样本大小 $N $ 和 p 值 $p$。但是从 $p$ 我们可以得到观察到的幂 ($1-\beta&#39;$)，如下显示在链接中。我们有观察到的标准差 ($sd$)。我可以计算观察到的效果 ($\delta=(xbar_1-xbar_2)/sd$)。
+让我知道用 2 个新样本重复此操作（相同的样本大小、相同的正态分布、相同的方差，但不同的“真实”效果）。我得到了不同的 p 值、观察到的功效 $(1-\beta$) 和观察到的效果 $\delta$&lt; /跨度&gt;。我多次重复同样的事情。
+认为 $\delta$ 值与 p 值存在单调递减函数的想法是否正确？ （正如功率与 p 的链接所示）。或者事后效应大小是一个随机变量吗？在这种情况下，它的分布可能是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/645269/is-the-post-hoc-observed-effect-size-redundant-with-the-p-value-just-like-post</guid>
+      <pubDate>Thu, 18 Apr 2024 01:40:12 GMT</pubDate>
     </item>
     </channel>
 </rss>
