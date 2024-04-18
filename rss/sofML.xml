@@ -4,12 +4,121 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Thu, 18 Apr 2024 00:58:23 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 18 Apr 2024 03:14:32 GMT</lastBuildDate>
+    <item>
+      <title>流式 LightGBM 数据集构建在训练中冻结</title>
+      <link>https://stackoverflow.com/questions/78344537/streaming-lightgbm-dataset-construction-freezes-on-training</link>
+      <description><![CDATA[我一直在尝试使用参考数据集（称为 ref_dataset）以流方式在 Python 中构建 LightGBM 数据集。我不确定它是如何完成的，它涉及调用 Dataset 类中看似非公共的方法。
+我已经尝试过：
+label_column = “标签”
+权重列=“权重”
+ref_dataset = lightgbm.Dataset(
+   Sample_df.drop(列=[标签列，权重列])
+   标签=sample_df[标签_列],
+   权重=sample_df[权重列],
+   参数=配置，
+   **（ref_dataset_kwargs 或 {}），
+）
+ref_dataset.construct()
+temp_dataset = lightgbm.Dataset（无，参考= ref_dataset，params = ref_dataset.get_params（））
+# train_filenames_and_part_infos 只是一个元组列表[filename,part_info_dict]
+估计行数=总和（
+    part_info[“num_rows”] for _，train_filenames_and_part_infos 中的part_info
+）
+temp_dataset._init_from_ref_dataset(estimated_num_rows, ref_dataset._handle)
+
+权重列表 = []
+标签列表=[]
+# 这个循环实际上不是我的代码，它更复杂，但基本上是它的作用
+对于文件名，train_filenames_and_part_infos 中的 _：
+    tbl: pyarrow.Table = load_from_file(文件名)
+    标签 = tbl[label_column].to_pandas().to_numpy()
+    权重 = tbl[weight_column].to_pandas().to_numpy()
+
+    labels_list.append(标签)
+    weights_list.append(权重)
+    tbl = tbl.drop_columns([label_column, Weight_column])
+    np_array: np.ndarray = tbl.to_pandas().to_numpy()
+    如果 temp_dataset._start_row + np_array.shape[0] &gt; temp_dataset.num_data():
+        raise RuntimeError(“数据集太小，无法容纳数据”)
+    temp_dataset._push_rows(np_array)
+
+all_weights = np.concatenate(weights_list)
+all_labels = np.concatenate(labels_list)
+实际长度 = all_weights.shape[0]
+# 不幸的是，由于各种原因，这个估计并不准确
+extra_zeros_features = np.zeros(
+     （估计行数 - 实际长度，temp_dataset.num_feature()），dtype=np.float32
+）
+temp_dataset._push_rows(extra_zeros_features)
+_LIB.LGBM_DatasetMarkFinished(temp_dataset._handle)
+extra_zeros = np.zeros(估计行数 - 实际长度, dtype=np.float32)
+temp_dataset.set_weight(np.concatenate([all_weights, extra_zeros]))
+temp_dataset.set_label(np.concatenate([all_labels, extra_zeros]))
+
+lightgbm.train(
+    params=config, # 包含分布式投票并行训练的网络参数
+    train_set=temp_dataset，
+    num_boost_round=100,
+    valid_sets=valid_sets, # 在其他地方初始化
+    valid_names=valid_names, # 在其他地方初始化
+    init_model=starting_model, # 不是很有必要
+    **lightgbm_train_kwargs, # 空
+）
+
+不幸的是，当我运行这段代码时，我得到了这个控制台输出（有些行可能是无序的，因为我实际上是在分布式上运行它，并且日志是聚合的；我已经做了一些简单的编辑删除干扰线）：
+[LightGBM] [Info] 总 bin 137618
+[LightGBM] [Info] 尝试绑定端口 50627...
+[LightGBM] [Info] 绑定端口50627成功
+[LightGBM] [信息] 聆听...
+[LightGBM] [Info] 训练集中的数据点数量：3934363，使用的特征数量：1382
+[LightGBM] [信息] 连接到等级 0
+[LightGBM] [信息] 连接到排名 1
+[LightGBM] [信息] 连接到等级 2
+[LightGBM] [信息] 连接到等级 3
+[LightGBM] [信息] 已连接至等级 4
+[LightGBM] [信息] 已连接至排名 5
+[LightGBM] [信息] 已连接至排名 6
+[LightGBM] [信息] 已连接至排名 8
+[LightGBM] [Info] 本地排名：7，机器总数：9
+[LightGBM] [Info] 自动选择col-wise多线程，测试开销为5.318313秒。
+[LightGBM] [Info] 从分数-0.000000开始训练
+
+然后它就坐在那里，CPU 和网络都处于空闲状态。我没有看到它在几个小时内取得任何进展。我已经检查了所有的排名，是不是我做错了什么？我还如何使用给定的样本进行构建？
+更多信息：
+检查空闲 Python 进程的堆栈跟踪显示代码卡在：
+更新（lightgbm/basic.py:3891）
+火车（lightgbm/engine.py:276）
+...我的代码...
+
+对于我正在使用的 LightGBM 版本 (4.3.0)，这对应于代码：
+_safe_call(_LIB.LGBM_BoosterUpdateOneIter(
+                self._handle,
+                ctypes.byref(is_finished)))
+]]></description>
+      <guid>https://stackoverflow.com/questions/78344537/streaming-lightgbm-dataset-construction-freezes-on-training</guid>
+      <pubDate>Thu, 18 Apr 2024 02:25:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>最后一个维度的有效乘法</title>
+      <link>https://stackoverflow.com/questions/78344508/effective-multiplication-over-last-dimension</link>
+      <description><![CDATA[我有两个火炬张量 - A 形状为 (15, 100, 256) 和 B 形状为 (120, 2010, 256)。如何对最后一个维度进行有效乘法并获得形状 (15, 100, 120, 2010) 的张量。我尝试了类似 torch.einsum(&#39;ijk, mnk -&gt; ijmn&#39;, A, B) 的方法，但据我了解，这种方法隐式创建中间张量并需要大量内存和时间。我还尝试了 opt_einsum 库，但与 torch.einsum 相比，在时间和内存使用方面没有看到很大的差异
+当然，我可以在循环中完成它，但我想要得到在时间和内存使用方面都有效的解决方案。预先感谢您]]></description>
+      <guid>https://stackoverflow.com/questions/78344508/effective-multiplication-over-last-dimension</guid>
+      <pubDate>Thu, 18 Apr 2024 02:13:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>模型在来自麦克风的输入上运行良好，但在从 Websocket 流式传输后效果很差</title>
+      <link>https://stackoverflow.com/questions/78344455/model-works-well-on-input-from-microphone-but-terribly-after-its-streamed-from</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78344455/model-works-well-on-input-from-microphone-but-terribly-after-its-streamed-from</guid>
+      <pubDate>Thu, 18 Apr 2024 01:51:50 GMT</pubDate>
+    </item>
     <item>
       <title>Tensorflow 二元交叉熵总是预测相同的值</title>
       <link>https://stackoverflow.com/questions/78343980/tensorflow-binary-crossentropy-always-predicts-the-same-value</link>
       <description><![CDATA[我是一般堆栈溢出社区的新手，尤其是 Tensorflow 库的新手（截至目前 1 周）。所以我确信我在这里遗漏了一些东西，只是我自己不太明白。
-我利用 Tensorflow 的示例数据集和一些杂项教程进行了一些实践。我发现自己尝试将教程的代码之一应用到我自己的数据集，该数据集是 csv，模型应该返回它对“最后结果”的预测。柱子。结果这有点多了，因为我很快就遇到了一个问题，“预测”是一个问题。函数始终为每个数据条目预测相同的值。
+我利用 Tensorflow 的示例数据集和一些杂项教程进行了一些实践。我发现自己尝试将教程的代码之一应用到我自己的数据集，该数据集是 csv，模型应该返回它对“最后结果”的预测。柱子。事实证明这有点多了，因为我很快就遇到了一个问题，“预测”是一个问题。函数始终为每个数据条目预测相同的值。
 [[0.6335701]
 [0.6335701]
 ...
@@ -28,7 +137,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=.2)
 x_train.head()
 print(&quot;x 列车：\n&quot;, x_train)
 y_train.head()
-print(&quot;y 列车：\n&quot;, y_train)
+print(&quot;y 火车：\n&quot;, y_train)
 
 # 下面是创建新 TensorFlow 模型的代码。如果您需要调用已保存的模型，请参阅下面的“加载模型”。
 
@@ -56,18 +165,6 @@ y_hat = model.predict(x_test)
 对此事的任何帮助都对帮助我了解图书馆有很大帮助。预先致谢，并感谢您抽出时间。]]></description>
       <guid>https://stackoverflow.com/questions/78343980/tensorflow-binary-crossentropy-always-predicts-the-same-value</guid>
       <pubDate>Wed, 17 Apr 2024 22:14:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>Ppo 算法实现[关闭]</title>
-      <link>https://stackoverflow.com/questions/78343450/ppo-algorithm-implementation</link>
-      <description><![CDATA[https://colab.research.google.com/drive/1jYhG8m8otFv1cHD0ydKVRJygGMT7D3LG
-这是文件的链接
-奖励越来越少
-我是 pytorch 的新手，如果有人可以帮忙的话
-这将非常有帮助，我已经坚持了几周了
-我尝试了所有方法仍然无法解决问题😔拜托]]></description>
-      <guid>https://stackoverflow.com/questions/78343450/ppo-algorithm-implementation</guid>
-      <pubDate>Wed, 17 Apr 2024 19:43:34 GMT</pubDate>
     </item>
     <item>
       <title>使用矩阵分解的复制 ML.NET 示例/教程电影推荐器</title>
@@ -121,7 +218,7 @@ ITransformer BuildAndTrainModel（MLContext mlContext，IDataView TrainingDataVi
     <item>
       <title>是否可以将多光谱图像输入 VGG16？</title>
       <link>https://stackoverflow.com/questions/78343173/is-it-possible-to-feed-multispectral-images-to-vgg16</link>
-      <description><![CDATA[我和我的论文伙伴正在开展一项基于使用 VGG16 多光谱图像对 3 种不同疾病进行图像分类的研究。在将其输入 VGG16 之前，我们还使用 U-Net 进行图像分割。由于 VGG16 接受 RGB 输入，我们预计会有一种方法向其提供多光谱图像，例如 690 nm、525 nm 和 320 nm。我们如何将 3 个光谱图像输入 VGG16？如果有办法的话，我们应该做哪些预处理方法呢？我们是否也应该配置VGG16架构？
+      <description><![CDATA[我和我的论文伙伴正在开展一项基于使用 VGG16 多光谱图像对 3 种不同疾病进行图像分类的研究。我们还使用 U-Net 进行图像分割，然后将其输入 VGG16。由于 VGG16 接受 RGB 输入，我们预计会有一种方法向其提供多光谱图像，例如 690 nm、525 nm 和 320 nm。我们如何将 3 个光谱图像输入 VGG16？如果有办法的话，我们应该做哪些预处理方法呢？我们是否也应该配置VGG16架构？
 （P.S.我们是刚接触 CNN 的学生）]]></description>
       <guid>https://stackoverflow.com/questions/78343173/is-it-possible-to-feed-multispectral-images-to-vgg16</guid>
       <pubDate>Wed, 17 Apr 2024 18:36:43 GMT</pubDate>
@@ -148,7 +245,7 @@ ITransformer BuildAndTrainModel（MLContext mlContext，IDataView TrainingDataVi
     <item>
       <title>为什么我的 mnist 模型无法正确读取我的手写号码？</title>
       <link>https://stackoverflow.com/questions/78342498/why-isnt-my-mnist-model-reading-my-handwritten-number-correctly</link>
-      <description><![CDATA[我使用了顺序神经网络并在 pygame 中创建了一个简单的绘画应用程序来绘制整数。然后它会尝试读取该图像。
+      <description><![CDATA[我使用了顺序神经网络，并在 pygame 中创建了一个简单的绘画应用程序来绘制整数。然后它会尝试读取该图像。
 第一部分是我的神经网络文件。
 导入操作系统
 将张量流导入为 tf
@@ -240,11 +337,11 @@ a = 真
     对于 pygame.event.get() 中的事件：
         如果 event.type == pygame.QUIT：
             Small_img = (cv2.cvtColor(cv2.resize(np.flipud(np.rot90(pygame.surfarray.array3d(屏幕))), (28, 28)), cv2.COLOR_RGB2GRAY) / 255.0)
-            小_img = 小_img.reshape(28, 28, 1)
+            小img = 小img.reshape(28, 28, 1)
             Small_img_uint8 = (small_img * 255).astype(np.uint8)
             # 使用OpenCV保存图像
             cv2.imwrite(“digit.png”,small_img_uint8)
-            #pygame.image.save（drawing_surface，“digit.png”）
+            #pygame.image.save(drawing_surface, “digit.png”)
             打印（“完成”）
             a = 假
         elif event.type == pygame.MOUSEBUTTONDOWN：
@@ -260,7 +357,7 @@ a = 真
     pygame.display.flip()
 
     # 限制帧率
-    时钟.tick(60)
+    时钟滴答声(60)
 
 #print(“成品图”)
 
@@ -270,108 +367,106 @@ a = 真
       <pubDate>Wed, 17 Apr 2024 16:24:21 GMT</pubDate>
     </item>
     <item>
-      <title>实施数据库后端来改变预测模型</title>
-      <link>https://stackoverflow.com/questions/78342129/implementing-database-backend-to-predictive-model-changing-predictions</link>
-      <description><![CDATA[我创建了一个预测模型，可以根据输入的变量预测客户是否可能拖欠贷款，这些变量临时存储在用于预测的数组中，并且我最近实现了一个用于存储过去预测的数据库。自从实施数据库以来，无论变量如何，每个预测都具有相同的输出。在添加数据库之前，一切正常，我不确定数据库本身如何影响预测。
-我只能想象错误会出现在这两个块之一
-model = joblib.load(&#39;credit_model.joblib&#39;)
-@app.route(&#39;/&#39;, 方法=[&#39;GET&#39;, &#39;POST&#39;])
-定义形式（）：
-    表格 = CreditForm()
-    预测结果 = 无
+      <title>Keras-rl2 错误与 Tensorflow 的兼容性</title>
+      <link>https://stackoverflow.com/questions/78340927/keras-rl2-error-compability-with-tensorflow</link>
+      <description><![CDATA[我目前在使用 keras-rl2 和 tensorflow 时遇到问题，我不知道为什么，我只是在互联网上搜索 keras-rl2、tensorflow 和 keras 文档，但没有找到解决方案。
+目前，我想将keras-rl2与最新版本的tensorflow（2.16.1和keras 3）一起使用，但在使用时遇到了一些这样的错误
+from rl.agents import DKQAgent
 
-    如果 form.validate_on_submit():
-        数据 = [
-            表格.年龄.数据,
-            表格.收入.数据,
-            表格.home.数据，
-            表单.emp_length.data,
-            表单.意图.数据,
-            表单.金额.数据,
-            表格.费率.数据,
-            表单.状态.数据,
-            表格.百分比收入.数据,
-            表单.cred_length.data
-        ]
+ModuleNotFoundError Traceback（最近一次调用最后一次）
+单元格 In[37]，第 1 行
+----&gt; 1 导入rl.agents
+      3 print(&quot;RL 代理库版本：&quot;, rl.agents.__version__)
 
-        column_names = [&#39;年龄&#39;, &#39;收入&#39;, &#39;家庭&#39;, &#39;Emp_length&#39;, &#39;意图&#39;, &#39;金额&#39;, &#39;比率&#39;, &#39;状态&#39;, &#39;收入百分比&#39;,
-                        &#39;信用长度&#39;]
+文件 D:\Anaconda\Lib\site-packages\rl\agents\__init__.py:2
+      1 从.dqn导入DQNAgent、NAFAgent、ContinuationDQNAgent
+----&gt; 2 从.ddpg导入DDPGAgent
+      3 从.cem导入CEMAgent
+      4 从.sarsa导入SarsaAgent、SARSAAgent
 
-        data_df = pd.DataFrame([数据], columns=column_names)
+文件 D:\Anaconda\Lib\site-packages\rl\agents\dqn.py:8
+      5 从tensorflow.keras.layers导入Lambda，输入，层，密集
+      7.从rl.core导入Agent
+----&gt; 8 从 rl.policy 导入 EpsGreedyQPolicy、GreedyQPolicy
+      9 从 rl.util 导入 *
+     12 defmean_q(y_true, y_pred):
 
-        预测 = model.predict(data_df)
+文件 D:\Anaconda\Lib\site-packages\rl\core.py:8
+      4 将numpy导入为np
+      5 从tensorflow.keras.callbacks导入历史记录
+      7 从 rl.callbacks 导入 (
+----&gt; 8 回调列表，
+      9 测试记录器，
+     10 训练情节记录器，
+     11 训练间隔记录器，
+     12 展示台
+     13）
+     16级代理：
+     17 “”“”所有已实现代理的抽象基类。
+     18
+     19 每个代理通过首先观察环境（由 `Env` 类定义）进行交互
+   （...）
+     37 处理器（`Processor` 实例）：有关详细信息，请参阅[处理器](#processor)。
+     38、“”“”
 
-        最后预测 = 预测[0]
-        如果预测[0] == 1：
-            Prediction_result = “客户很可能不会拖欠贷款。”
-        别的：
-            Prediction_result = “客户很可能会拖欠贷款。”
+文件 D:\Anaconda\Lib\site-packages\rl\callbacks.py:12
+      9 fromtensorflow.python.keras.callbacks import Callback as KerasCallback, CallbackList as KerasCallbackList
+     10 从tensorflow.python.keras.utils.generic_utils导入Progbar
+---&gt; 12类回调（KerasCallback）：
+     13 def _set_env（自身，环境）：
+     14 self.env = 环境
 
-        打印（预测结果）
+ModuleNotFoundError：没有名为“keras.utils.generic_utils”的模块
 
-        新信用=信用（
-            年龄=表单.年龄.数据,
-            收入=表格.收入.数据,
-            home=form.home.data,
-            emp_length=form.emp_length.data,
-            意图=表单.意图.数据,
-            金额=表单.金额.数据,
-            率=form.rate.data,
-            状态=表单.状态.数据,
-            百分比收入=form.百分比收入.数据，
-            cred_length=form.cred_length.data,
-            预测结果=最后预测
-        ）
+当我认为我只需要将其降级到某个版本（例如 2.13.0 和 keras 2.13.0）时，它仍然会出现这样的错误
+&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
+ImportError Traceback（最近一次调用最后一次）
+单元格 In[18]，第 1 行
+----&gt; 1 从 rl.agents.dqn 导入 DQNAgent
 
-        db.session.add(new_credit)
+文件 D:\Anaconda\envs\AI\Lib\site-packages\rl\agents\__init__.py:1
+----&gt; 1 从.dqn导入DQNAgent、NAFAgent、ContinuationDQNAgent
+      2 从.ddpg导入DDPGAgent
+      3 从.cem导入CEMAgent
 
-        db.session.commit()
-    别的：
-        如果 request.method == &#39;POST&#39;:
-            flash(&#39;请更正表单中的错误！&#39;, &#39;错误&#39;)
+文件 D:\Anaconda\envs\AI\Lib\site-packages\rl\agents\dqn.py:7
+      4 从tensorflow.keras.models导入模型
+      5 从tensorflow.keras.layers导入Lambda，输入，层，密集
+----&gt; 7.从rl.core导入Agent
+      8 从 rl.policy 导入 EpsGreedyQPolicy、GreedyQPolicy
+      9 从 rl.util 导入 *
 
-    返回 render_template(&#39;main/index.html&#39;, form=form, Prediction_result=prediction_result)
+文件 D:\Anaconda\envs\AI\Lib\site-packages\rl\core.py:7
+      4 将numpy导入为np
+      5 从tensorflow.keras.callbacks导入历史记录
+----&gt; 7 从 rl.callbacks 导入 (
+      8 回调列表，
+      9 测试记录器，
+     10 训练情节记录器，
+     11 训练间隔记录器，
+     12 展示台
+     13）
+     16级代理：
+     17 “”“”所有已实现代理的抽象基类。
+     18
+     19 每个代理通过首先观察环境（由 `Env` 类定义）进行交互
+   （...）
+     37 处理器（`Processor` 实例）：有关详细信息，请参阅[处理器](#processor)。
+     38、“”“”
 
+文件 D:\Anaconda\envs\AI\Lib\site-packages\rl\callbacks.py:8
+      6 将 numpy 导入为 np
+      7 将tensorflow导入为tf
+----&gt; 8 从tensorflow.keras导入__version__作为KERAS_VERSION
+      9 fromtensorflow.python.keras.callbacks import Callback as KerasCallback, CallbackList as KerasCallbackList
+     10 从tensorflow.python.keras.utils.generic_utils导入Progbar
 
-如果 __name__ == &#39;__main__&#39;:
-    应用程序运行（调试=真）
+ImportError：无法从“tensorflow.keras”导入名称“__version__”（D:\Anaconda\envs\AI\Lib\site-packages\keras\api\_v2\keras\__init__.py）
 
-或者：
-班级学分（db.Model）：
-    __tablename__ = &#39;credit_features&#39;
-
-    # PK
-    id = db.Column(db.Integer, Primary_key=True, autoincrement=True)
-
-    年龄 = db.Column(db.Integer, nullable=False)
-    收入 = db.Column(db.Integer, nullable=False)
-    home = db.Column(db.Integer, nullable=False)
-    emp_length = db.Column(db.Integer, nullable=False)
-    意图 = db.Column(db.Integer, nullable=False)
-    金额 = db.Column(db.Integer, nullable=False)
-    率 = db.Column(db.Float, nullable=False)
-    状态 = db.Column(db.Integer, nullable=False)
-    百分比_收入 = db.Column(db.Float, nullable=False)
-    cred_length = db.Column(db.Integer, nullable=False)
-    Prediction_result = db.Column(db.Float, nullable=False)
-
-    def __init__(自我、年龄、收入、家庭、雇员长度、意图、金额、比率、状态、百分比收入、信用长度、
-                 预测结果）：
-        自我年龄 = 年龄
-        自我收入=收入
-        self.home = 家
-        self.emp_length = emp_length
-        自我意图 = 意图
-        self.金额 = 金额
-        自我评价 = 评价
-        self.status = 状态
-        self.百分比收入 = 百分比收入
-        self.cred_length = cred_length
-        self.prediction_result = 预测结果
-
-查看数据库是否在任何地方更改了输入或数组，但我似乎无法发现问题。]]></description>
-      <guid>https://stackoverflow.com/questions/78342129/implementing-database-backend-to-predictive-model-changing-predictions</guid>
-      <pubDate>Wed, 17 Apr 2024 15:24:39 GMT</pubDate>
+任何人都可以给我一个解释或解决方案，为什么它总是错误？
+感谢您的关心]]></description>
+      <guid>https://stackoverflow.com/questions/78340927/keras-rl2-error-compability-with-tensorflow</guid>
+      <pubDate>Wed, 17 Apr 2024 12:20:33 GMT</pubDate>
     </item>
     <item>
       <title>边界框检测模型：单图像输入的预测不准确</title>
@@ -395,7 +490,7 @@ model = joblib.load(&#39;credit_model.joblib&#39;)
 1 自变量 = [avg_sentiment1,avg_sentiment2,...avg_sentiment100]
 1 因变量 = 分数（1 到 5 之间的数字，或更具体地说，在我们的数据集中，介于 ~3.200 和 ~4.700 之间）
 因此，虽然使用此设置拟合 sklearn SVR 模型不会给出任何错误，但它似乎并没有学习（它的性能比始终预测平均值的虚拟预测器更差）。我尝试了几种具有不同参数的不同回归模型（Ridge、具有不同内核的 SVR、添加 SplineTransformer）。没有比随机做得更好的了。
-我可以在网上找到的所有回归示例似乎都使用奇异值预测奇异值（因此自变量年龄 = 12，因变量高度 = 160 厘米，类似的东西），或者最多使用多个变量（添加更多奇异值）值，例如体重 = 67（公斤），作为自变量）。
+我可以在网上找到的所有回归示例似乎都使用奇异值预测奇异值（因此自变量年龄 = 12，因变量身高 = 160 厘米，类似的东西），或者最多使用多个变量（添加更多奇异值）值，例如体重 = 67（公斤），作为自变量）。
 我的回归是否将 100 个数字向量解释为 100 个不相关的变量？这有关系吗？
 救命，我已经超出了我的能力范围。哪种技术最适用于此？最好是我可以在 SKLearn 上找到的东西，我不是专家（正如您可能知道的那样）]]></description>
       <guid>https://stackoverflow.com/questions/78337383/regression-with-vector-as-independent-variable-instead-of-multiple-single-value</guid>
@@ -423,7 +518,7 @@ Forecast_series = pd.Series(forecast.predicted_mean,index=forecast_index)
 quarterly_sales.plot(kind=&#39;bar&#39;, Figsize=(10, 6), label=&#39;历史季度销售额&#39;)
 
 # 检查预测指数是否与预期的未来季度一致
-打印(forecast_series.index)
+打印（预测系列.索引）
 
 # 以更高的可见性覆盖预测销售额
 plt.plot(forecast_series.index,forecast_series,color=&#39;red&#39;,marker=&#39;o&#39;,linestyle=&#39;dashed&#39;,linewidth=2,label=&#39;预测季度销售额&#39;)
@@ -481,21 +576,6 @@ plt.show()
 有没有办法在这里给予昆虫更多的权重，以便与大量的单词相比，它与昆虫比板球这项运动显示出更多的相似性？]]></description>
       <guid>https://stackoverflow.com/questions/78327620/weighted-input-for-sentence-similarity</guid>
       <pubDate>Mon, 15 Apr 2024 10:09:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>在微调期间如何正确设置 pad token（不是 eos）以避免模型无法预测 EOS？</title>
-      <link>https://stackoverflow.com/questions/76633368/how-does-one-set-the-pad-token-correctly-not-to-eos-during-fine-tuning-to-avoi</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/76633368/how-does-one-set-the-pad-token-correctly-not-to-eos-during-fine-tuning-to-avoi</guid>
-      <pubDate>Fri, 07 Jul 2023 01:11:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>模型和算法之间的确切区别是什么？</title>
-      <link>https://stackoverflow.com/questions/44824153/what-is-the-exact-difference-between-a-model-and-an-algorithm</link>
-      <description><![CDATA[模型和算法之间的确切区别是什么？
-让我们以逻辑回归为例。逻辑回归。逻辑回归是模型还是算法，为什么？]]></description>
-      <guid>https://stackoverflow.com/questions/44824153/what-is-the-exact-difference-between-a-model-and-an-algorithm</guid>
-      <pubDate>Thu, 29 Jun 2017 11:41:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
