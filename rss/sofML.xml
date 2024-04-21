@@ -4,9 +4,229 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sun, 21 Apr 2024 12:24:38 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 21 Apr 2024 15:13:36 GMT</lastBuildDate>
     <item>
-      <title>是否可以在微控制器上以低延迟进行音频干分离？</title>
+      <title>mat1 和 mat2 形状不能相乘（32x1000 和 512x128）</title>
+      <link>https://stackoverflow.com/questions/78362003/mat1-and-mat2-shapes-cannot-be-multiplied-32x1000-and-512x128</link>
+      <description><![CDATA[我正在使用 Google Colab 对水牛芒果进行炭疽病检测。我目前正在使用带有训练、验证和测试数据集的 ResNet18 模型。
+类MangoDiseaseDetection(nn.Module)：
+  def __init__(自身):
+      super(MangoDiseaseDetection, self).__init__()
+      self.base_model = models.resnet18(预训练 = True)
+      self.base_model.requires_grade = False #这将冻结预训练层
+      
+      自我检测 = nn.Sequential(
+          nn.线性(512, 128),
+          nn.ReLU(inplace = True),
+          nn.Dropout(p = 0.5),
+          nn.线性(128, 1),
+          nn.Sigmoid()
+      ）
+
+  def 前向（自身，x）：
+      x = self.base_model(x)
+      x = 自我检测(x)
+      返回x
+
+# 模型实例化
+模型 = MangoDiseaseDetection()
+
+criterion = nn.BCELoss() #二元交叉熵损失
+优化器 = torch.optim.Adam(model.parameters(), lr =learning_rate)
+
+def train(模型、标准、优化器、train_loader)：
+  model.train() # 模型训练模式
+  纪元损失 = 0.0
+
+  对于图像，tqdm（train_loader，unit =“batch”）中的标签：
+      优化器.zero_grad()
+
+      # 前向传递和损失计算
+      输出=模型（图像）
+      损失 = 标准(输出, labels.float())
+
+      # 后台传递和参数更新
+      loss.backward()
+      优化器.step()
+
+      epoch_losee += loss.item() # epoch 的累积损失
+
+  return epoch_loss / len(train_loader) # 每批次的平均损失。
+
+# 验证函数
+
+def 验证（模型、标准、val_loader）：
+    model.eval() # 模型到评估模式
+    纪元损失 = 0.0
+    使用 torch.no_grad()：
+        对于图像，val_loader 中的标签：
+            输出=模型（图像）
+            损失 = 标准(输出, labels.float())
+
+# 训练并验证模型
+
+训练损失 = []
+val_losses = []
+
+对于范围内的纪元（纪元）：
+    print(f&quot;纪元 {纪元+1} / {纪元}&quot;)
+    train_loss = train(模型、标准、优化器、train_loader)
+    val_loss = 验证（模型、标准、val_loader）
+    train_losses.append(train_loss)
+    val_losses.append(val_loss)
+    print(f“训练损失：{train_loss:.4f}，验证损失{val_loss:.4f}”)
+
+然后我遇到了这个错误：
+运行时错误：mat1 和 mat2 形状无法相乘（32x1000 和 512x128）
+几个小时以来我一直在试图解决这个问题，这就是为什么我想在这里寻求一些帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/78362003/mat1-and-mat2-shapes-cannot-be-multiplied-32x1000-and-512x128</guid>
+      <pubDate>Sun, 21 Apr 2024 14:52:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>在时间序列预测中提前多天进行预测时出现问题</title>
+      <link>https://stackoverflow.com/questions/78361646/problem-forecasting-multiple-days-ahead-in-time-series-forecasting</link>
+      <description><![CDATA[我正在做一个项目，涉及使用各种机器学习和深度学习模型来预测股票价格。目标变量是股票每天到第二天收盘价的百分比变化。该数据集由 23 个变量组成，包括宏观经济指标（gdp、通货膨胀...）、一些技术指标（RSI、EMAF、EMAS...）、其他股票从前一天到当前一天的走势以及一些公司基本面数据（每季度收益）。总共有 23 行（不包括目标列），所有行的缩放比例都在 -1 和 1 之间。
+对于单步预测，模型的表现大致符合我的预期，其中随机森林和 lstm 表现最好，在股票走势方向上达到了 80% 左右的准确度。然而，我遇到的问题是在尝试比较模型预测未来 5 天的能力时。我预计模型预测的天数越多，其预测精度就会越来越低，但实际上精度保持不变，甚至由于某种原因而增加。这让我相信存在某种数据泄漏问题，或者我错误地分割了数据。
+到目前为止，我尝试解决此问题的方法是为我尝试训练的每一天训练一个新模型，每个模型都针对移动的 y 列。这意味着如果我想用随机森林预测 5 天，我将训练 5 个随机森林，1 个针对明天，1 个针对后天，依此类推......（全部来自同一个 x 数据集）。其代码如下：
+def precision_trend(list1, list2):
+计数器 = 0
+对于范围内的 x(len(list1)-1)：
+if (list1[x] &gt; 0) == (list2[x] &gt; 0):
+计数器 = 计数器 + 1
+返回计数器 / (len(list1) - 1)
+
+def spliter(路径, days_ahead):
+数据 = pd.read_csv(路径)
+data.drop([&#39;公司&#39;], axis=1, inplace=True)
+x = np.array(data.iloc[:-days_ahead, :-1]) # 使用除最后 days_ahead 之外的所有行作为特征
+y = [np.array(data.iloc[i:-(days_ahead-i) if days_ahead-i &gt; 0 else None, -1]) for i in range(days_ahead)]
+返回 x、y
+
+train_x, train_ys = 分离器(train_path, 5)
+test_x, test_ys = 分割器(test_path, 5)
+
+train_ys = np.array(train_ys)
+
+模型 = [RandomForestRegressor(n_estimators=100, random_state=4) for _ in range(5)]
+预测=[]
+
+对于 zip(models, train_ys, test_ys) 中的模型、train_y、test_y：
+model.fit(train_x, train_y)
+pred = model.predict(test_x)
+预测.append(pred)
+acc = 准确度趋势(test_y, pred) * 100
+print(f&quot;天 {len(预测)} 准确度：{acc}%&quot;)
+rmse =mean_absolute_error(test_y, pred)
+print(f&quot;Day {len(预测)} MAE: {rmse}&quot;)
+
+
+输出如下：
+第 1 天准确率：73.85272145144077%
+第 1 天 MAE：0.01674374965706874
+第 2 天准确率：74.49306296691569%
+第 2 天 MAE：0.016746951626310427
+第 3 天准确度：75.02668089647813%
+第 3 天 MAE：0.016743799915880105
+第 4 天准确度：76.09391675560299%
+第 4 天 MAE：0.016736960931285863
+第 5 天准确度：75.02668089647813%
+第 5 天 MAE：0.016843232056633316
+由于我使用最小-最大缩放测试数据集的方式，存在少量数据泄漏，但我不相信这会解释这个问题，并且目标变量未缩放。
+我知道就这个问题提供建议相当困难，但我相当有信心这一定是我没有看到的编码问题。任何建议将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78361646/problem-forecasting-multiple-days-ahead-in-time-series-forecasting</guid>
+      <pubDate>Sun, 21 Apr 2024 13:05:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>Baseline3 TD3，reset() 方法值太多，无法解包错误</title>
+      <link>https://stackoverflow.com/questions/78361630/baseline3-td3-reset-method-too-many-values-to-unpack-error</link>
+      <description><![CDATA[环境是python 3.10，stable-baseline3 2.3.0，我正在尝试TD3算法。
+无论我做什么，我都会遇到同样的错误。
+据我所知，重置方法的返回值与定义的观察空间相同
+我制作的环境有如下重置方法
+def重置（自身，种子=0）：
+    self.current_index = 0
+    self.current_cash = self.start_cash
+    self.done = False
+    self.当前时间 = self.开始时间
+
+    # 초기 관찰 상태 계산
+    初始状态 = self.get_state() # 字典
+    返回初始状态
+
+它从来都不复杂，定义环境，模型也很好
+from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+从 stable_baselines3 导入 TD3
+
+类 CustomFeatureExtractor(BaseFeaturesExtractor):
+    def __init__(自我, 观察空间, features_dim=5):
+        super(CustomFeatureExtractor, self).__init__(observation_space, features_dim)
+        self.model_alpha = ModelAlpha()
+    
+    defforward（自我，观察）：
+        价格 = 观察结果[&#39;价格&#39;]
+        位置 = 观测值[&#39;位置&#39;]
+        数量 = 观察结果[&#39;数量&#39;]
+        pnr = 观测值[&#39;pnr&#39;]
+        
+        return self.model_alpha(价格, torch.cat([位置, 数量, pnr]))
+        
+        
+# 환경과 모델 설정
+env = MarketEnvironment(蜡烛, &#39;2020-07-01 00:00:00&#39;, &#39;2023-12-31 23:59:00&#39;) # 여러분의 환경 설정
+策略_kwargs = 字典（
+    features_extractor_class=自定义特征提取器，
+    features_extractor_kwargs=dict（features_dim=5）
+）
+
+模型 = TD3(“MultiInputPolicy”，env，policy_kwargs=policy_kwargs，batch_size=128，verbose=1)
+
+Jupyter 提示符表示
+使用CPU设备
+使用 Monitor 包装器包装环境
+将环境包装在 DummyVecEnv 中。
+它运行良好，直到
+model.learn（total_timesteps=1，log_interval=10，progress_bar=True）
+
+这段代码。
+无论我做了什么，它都会一遍又一遍地说
+文件 ~\.conda\envs\mlbase-py3.10\lib\site-packages\stable_baselines3\common\off_policy_algorithm.py:297，在 OffPolicyAlgorithm._setup_learn(self、total_timesteps、callback、reset_num_timesteps、tb_log_name ， 进度条）
+    第290章
+    第291章
+    292 和 self.env.num_envs &gt; 1
+    293 而不是 isinstance(self.action_noise, VectorizedActionNoise)
+    第294章）：
+    第295章
+--&gt;第297章
+    298 总时间步数，
+    299回调，
+    300 重置_num_timesteps，
+    第301章
+    第302章
+    第303章）
+
+文件~\.conda\envs\mlbase-py3.10\lib\site-packages\stable_baselines3\common\base_class.py:425，在BaseAlgorithm._setup_learn(self,total_timesteps,callback,reset_num_timesteps,tb_log_name,progress_bar)中
+    第423章
+    第424章 断言self.env不是None
+--&gt;第425章
+    第426章
+    第427章
+
+文件 ~\.conda\envs\mlbase-py3.10\lib\site-packages\stable_baselines3\common\vec_env\dummy_vec_env.py:77，在 DummyVecEnv.reset(self) 中
+     范围内的 env_idx 为 75(self.num_envs)：
+     76 Maybe_options = {“选项”: self._options[env_idx]} if self._options[env_idx] else {}
+---&gt; 77 obs, self.reset_infos[env_idx] = self.envs[env_idx].reset(seed=self._seeds[env_idx], **maybe_options)
+     78 self._save_obs（env_idx，obs）
+     79 # 种子和选项仅使用一次
+
+ValueError：需要解压的值太多（预期为 2）
+
+我知道这个错误的reset()方法是在一个名为VecEnv的抽象类中
+无论如何，我显然无法正确地实现这个..东西。任何建议都会有帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/78361630/baseline3-td3-reset-method-too-many-values-to-unpack-error</guid>
+      <pubDate>Sun, 21 Apr 2024 12:58:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否可以在微控制器上以低延迟进行音频干分离？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78361504/is-it-possible-to-do-audio-stem-separation-on-a-microcontroller-with-low-latency</link>
       <description><![CDATA[是否可以在微控制器上以低延迟（即几秒）运行像 Demucs 这样的开源模型来执行音频干分离？
 我尝试在我的电脑上运行它，3 分钟的曲目需要一分钟来处理。
@@ -32,7 +252,7 @@ exec（代码，模块。字典）
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 文件“C:\Users\HP.conda\envs\DiseasePredictionSystem\Lib\site-packages\keras\src\utils\traceback_utils.py”，第 122 行，位于 error_handler 中
 从 None 引发 e.with_traceback(filtered_tb)
-文件“C:\Users\HP.conda\envs\DiseasePredictionSystem\Lib\site-packages\keras\src\layers\input_spec.py”，第 245 行，位于assert_input_compatibility 中
+文件“C:\Users\HP.conda\envs\DiseasePredictionSystem\Lib\site-packages\keras\src\layers\input_spec.py”，第 245 行，位于assert_input_compatibility
 引发值错误（
 由于我是机器学习新手，这是第一次为该项目学习 CNN，所以我不明白如何修复错误。如果有我需要学习的参考资料，请发给我。
 这是我与 cnn 模型交互的 UI 
@@ -97,7 +317,7 @@ numeric_transformer = make_pipeline(
 
 得分 = {
     &#39;AUC&#39;: &#39;roc_auc&#39;,
-    &#39;准确度&#39;：&#39;准确度&#39;，
+    &#39;准确性&#39;：&#39;准确性&#39;，
     &#39;F1_SCORE&#39;: &#39;f1&#39;,
     &#39;精度&#39;：&#39;精度&#39;，
     &#39;召回&#39;：&#39;召回&#39;
@@ -150,7 +370,7 @@ plt.legend(loc=&#39;右下&#39;)
 
 plt.show()
 
-print(f“平均 AUC: {mean_auc:.2f}”)
+print(f&quot;平均 AUC: {mean_auc:.2f}&quot;)
 
 
 但是绘制曲线，我在图中得到的 AUC 为 0.97。为什么会出现这种情况？
@@ -180,7 +400,7 @@ model_path = get_file(&#39;model.h5&#39;,drive_link,cache_dir=&#39;./&#39;)
     <item>
       <title>像宠物一样的健身功能[关闭]</title>
       <link>https://stackoverflow.com/questions/78360524/fitness-function-to-be-like-a-pet</link>
-      <description><![CDATA[我想对一个应该像宠物一样行动的机器人使用强化学习。健身函数基本上是什么样子的（不需要精确的代码）？你很难衡量宠物对主人产生的感受。如果有关于这个主题的任何科学研究，如果有人能给我一个链接，那就太好了，因为我还没有发现任何东西？]]></description>
+      <description><![CDATA[我想对一个应该像宠物一样行动的机器人使用强化学习。健身函数基本上是什么样子的（不需要精确的代码）？你很难衡量宠物对主人产生的感受。如果有关于这个主题的任何科学研究，如果有人能给我一个链接就好了，因为我还没有发现任何东西？]]></description>
       <guid>https://stackoverflow.com/questions/78360524/fitness-function-to-be-like-a-pet</guid>
       <pubDate>Sun, 21 Apr 2024 05:42:20 GMT</pubDate>
     </item>
@@ -199,7 +419,7 @@ c:\Users\Dell\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\
    第1470章
    第1471章
    第1472章
-   第1473章）：
+   第1473章
 -&gt;第1474章
 
 c:\Users\Dell\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\tree\_classes.py 中？(self、X、y、sample_weight、check_input)
@@ -230,7 +450,7 @@ c:\Users\Dell\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\
     <item>
       <title>Python-KNN预测误差和数据标准化</title>
       <link>https://stackoverflow.com/questions/78360476/python-knn-predict-error-and-data-normalization</link>
-      <description><![CDATA[我是 M,L 的初学者，正在做我的第一份作业。即使在执行教程指示的所有操作时，我也无法使预测正常工作。
+      <description><![CDATA[我是 M,L 的初学者，正在做我的第一份作业。即使执行教程指示的所有操作，我也无法使预测正常工作。
 从 sklearn.neighbors 导入 KNeighborsClassifier
 
 knn_model = KNeighborsClassifier(n_neighbors=3, metric=&#39;euclidean&#39;)
@@ -256,50 +476,6 @@ y_test = test_labels.label
       <pubDate>Sun, 21 Apr 2024 05:13:50 GMT</pubDate>
     </item>
     <item>
-      <title>如何将机器学习融入我的个人财务管理？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78360262/how-can-i-incorporate-machine-learning-into-my-personal-finance-management</link>
-      <description><![CDATA[我有兴趣利用机器学习技术来优化我的个人财务管理。是否有专门为此目的而定制的现有工具、库或框架？此外，将机器学习算法应用于预算、费用跟踪、投资组合管理或个人理财风险评估等任务时，有哪些关键考虑因素或最佳实践？任何指导或建议将不胜感激。谢谢！]]></description>
-      <guid>https://stackoverflow.com/questions/78360262/how-can-i-incorporate-machine-learning-into-my-personal-finance-management</guid>
-      <pubDate>Sun, 21 Apr 2024 02:55:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>多类问题的层次分类方法</title>
-      <link>https://stackoverflow.com/questions/78358516/hierarchical-classification-approach-to-a-multiclass-problem</link>
-      <description><![CDATA[有一个多类分类任务。我的目标是使用每父节点本地分类器 (LCPN) 方法来解决这个问题。
-让我解释一下如何使用 MWE。
-假设我有这个虚拟数据集：
-将 numpy 导入为 np
-从 sklearn.datasets 导入 make_classification
-从 scipy.cluster 导入层次结构
-
-X, y = make_classification(n_samples=1000, n_features=10, n_classes=5,
-                             n_信息=4）
-
-我想出了这些类之间的距离矩阵：
-d = np.array(
-[[ 0.、201.537、197.294、200.823、194.517]、
- [201.537, 0., 199.449, 202.941, 196.703],
- [197.294, 199.449, 0., 198.728, 192.354],
- [200.823, 202.941, 198.728, 0., 195.972],
-[[194.517, 196.703, 192.354, 195.972, 0.]]
-）
-
-因此，我确定了类层次结构，如下所示：
-hc = hierarchy.linkage(d, method=&#39;complete&#39;)
-
-得到的树状图如下：
-dendrogram = hierarchy.dendrogram(hc, labels=[&#39;A&#39;,&#39;B&#39;,&#39;C&#39;, &#39;D&#39;, &#39;F&#39;])
-树状图
-
-
-我用hierarchy.to_tree()以树状结构进行说明：
-
-我的问题：
-如何按照 LCPN 方法在每个内部节点（包括根）处安装分类器，例如 DecisionTreeClassifier 或 SVM，以像在树中一样进行上图？]]></description>
-      <guid>https://stackoverflow.com/questions/78358516/hierarchical-classification-approach-to-a-multiclass-problem</guid>
-      <pubDate>Sat, 20 Apr 2024 14:08:05 GMT</pubDate>
-    </item>
-    <item>
       <title>在weka中重新采样过滤器</title>
       <link>https://stackoverflow.com/questions/78356992/resample-filter-in-weka</link>
       <description><![CDATA[我的数据集中的数据实例数量很少。所以，我尝试了“重新采样” Weka中的过滤器可以增加数据量，从而提高模型性能。样本量百分比设置为200可以吗？因为那时我在交叉验证测试中获得了良好的相关系数。
@@ -321,7 +497,7 @@ def create_model():
  model.add(Dense(6, 激活 = &#39;relu&#39;, kernel_initializer = &#39;uniform&#39;))
  model.add(Dense(1, 激活=&#39;sigmoid&#39;, kernel_initializer = &#39;uniform&#39;))
 # 编译模型
- model.compile（损失=&#39;binary_crossentropy&#39;，优化器=&#39;Adam&#39;，指标=[&#39;准确性&#39;]）
+ model.compile(loss=&#39;binary_crossentropy&#39;, 优化器=&#39;Adam&#39;, 指标=[&#39;accuracy&#39;])
  返回模型
 
 # 创建模型
@@ -334,7 +510,7 @@ param_grid = {&#39;activation&#39;: [&quot;logistic&quot;, &quot;relu&quot;, &qu
 
 cv = StratifiedKFold(n_splits=3, shuffle=True)
 
-evolved_estimator = GASearchCV(估计器=模型，
+evolved_estimator = GASearchCV(估计器=模型,
                                简历=简历，
                                评分=&#39;准确率&#39;,
                                人口规模=10，
@@ -361,7 +537,7 @@ param_grid = {&#39;activation&#39;: Categorical([&quot;logistic&quot;, &quot;rel
 
 cv = StratifiedKFold(n_splits=3, shuffle=True)
 
-evolved_estimator = GASearchCV(估计器=模型，
+evolved_estimator = GASearchCV(估计器=模型,
                                简历=简历，
                                评分=&#39;准确率&#39;,
                                人口规模=10，
@@ -380,7 +556,7 @@ evolved_estimator = GASearchCV(估计器=模型，
 这部分代码被执行了。但是当我尝试在训练数据上拟合优化模型时，它给了我这个错误：
 GA_result =volved_estimator.fit(x_train, y_train)
 
-ValueError：估计器 KerasClassifier 的参数激活无效。通过在 KerasClassifier 构造函数中设置此参数可能可以解决此问题：KerasClassifier(activation=Tanh) 使用 estimator.get_params().keys() 检查可用参数列表
+ValueError：估计器 KerasClassifier 的参数激活无效。这个问题可以通过在 KerasClassifier 构造函数中设置此参数来解决：KerasClassifier(activation=Tanh) 使用 estimator.get_params().keys() 检查可用参数列表
 我真的很困惑。谁能帮我吗？]]></description>
       <guid>https://stackoverflow.com/questions/78340561/i-try-to-run-genetic-algorithm-for-optimize-hyperparameters-of-ann-keras-model</guid>
       <pubDate>Wed, 17 Apr 2024 11:14:52 GMT</pubDate>
@@ -441,32 +617,6 @@ self.config.get_camera_ids() 中的camera_id：
       <pubDate>Fri, 21 Jul 2023 08:58:28 GMT</pubDate>
     </item>
     <item>
-      <title>使用 ffmpeg 或 Python 从视频中删除随机背景</title>
-      <link>https://stackoverflow.com/questions/55916977/remove-random-background-from-video-using-ffmpeg-or-python</link>
-      <description><![CDATA[我想使用 ffmpeg 或 Python 从某人的视频中删除背景。如果我在任何地方录制视频，请检测视频中的人，然后删除除该人之外的所有内容。不要求绿色或单色背景，因为这可以通过色度键来完成，我不寻找这样的背景。
-我已经尝试过这个（https:// tryolabs.com/blog/2018/04/17/announcing-luminoth-0-1/）方法，但它给了我矩形框的输出。由于要探索的区域足够窄，因此它提供了足够的信息，但仍然需要消除总体背景。
-我还尝试了 grabcut (https: //docs.opencv.org/4.1.0/d8/d83/tutorial_py_grabcut.html），但需要用户交互，否则结果不太好。
-我还尝试使用 ffmpeg 并找到了这个示例（http://oioiiooixiii.blogspot.com/2016/09/ffmpeg-extract-foreground-moving.html），但它需要静态图像，所以我尝试在录制视频之前拍摄背景图片一个人，但要区分背景图像和视频帧需要很多东西。
-对于opencv方法，我已经尝试过了。
-img = cv.imread(&#39;pic.png&#39;)
-mask = np.zeros(img.shape[:2], np.uint8)
-bgdModel = np.zeros((1, 65), np.float64)
-fgdModel = np.zeros((1, 65), np.float64)
-直角 = (39, 355, 1977, 2638)
-cv.grabCut（img，掩码，矩形，bgdModel，fgdModel，5，cv.GC_INIT_WITH_RECT）
-mask2 = np.where((mask==2)|(mask==0), 0, 1).astype(&#39;uint8&#39;)
-img = img*mask2[:, :, np.newaxis]
-plt.imshow(img)、plt.colorbar()、plt.show()
-
-但它也消除了人的一些部分。
-还尝试了 ffmpeg 方式，但效果不佳。
-ffmpeg -report -y -i &quot;img.jpg&quot; -i &quot;vid.mov&quot; -filter_complex &quot;[1:v]format=yuva444p,lut=c3=128[video2withAlpha],[0:v ][video2withAlpha]blend=all_mode=difference[out]&quot; -map &quot;[out]&quot; &quot;output.mp4&quot;
-
-我所需要的只是一个人在任何正常背景下拍摄的图像/视频，无需用户交互，例如区域选择或任何其他类似的事情。 Luminoth 有经过训练的数据，但是给出的人框不是确切的人，以便我可以删除。任何有关删除背景的帮助或指导将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/55916977/remove-random-background-from-video-using-ffmpeg-or-python</guid>
-      <pubDate>Tue, 30 Apr 2019 08:39:08 GMT</pubDate>
-    </item>
-    <item>
       <title>在决策树 ID3 算法中选择分区背后的直觉</title>
       <link>https://stackoverflow.com/questions/36105633/intuition-behind-choosing-partition-in-decision-tree-id3-algorithm</link>
       <description><![CDATA[我试图理解机器学习中决策树分类器背后的直觉。我知道决策树中每个节点的目标是进一步划分可能标签的当前空间，以便根据该节点给定问题的答案消除尽可能多的候选标签。但这与根据最小化分区“熵”的属性选择分区有什么关系呢？其中“熵”定义如下：
@@ -481,7 +631,7 @@ H(S) = −p_1*log2(p_1) −... −p_n*log2(p_n)
      p_i&#39;s：属于 i 类的数据比例
      q_i&#39;s：基于给定分区属于子集 i 的数据比例
 
-此外，每个节点的“问题”是否必须是是/否问题，从而将当前标签空间分成2部分？而不是 3 个或更多子集？任何清晰的例子将不胜感激。]]></description>
+此外，每个节点的“问题”是否必须是是/否问题，从而将当前标签空间分成 2 个？而不是 3 个或更多子集？任何清晰的例子将不胜感激。]]></description>
       <guid>https://stackoverflow.com/questions/36105633/intuition-behind-choosing-partition-in-decision-tree-id3-algorithm</guid>
       <pubDate>Sat, 19 Mar 2016 18:41:37 GMT</pubDate>
     </item>
