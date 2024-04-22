@@ -4,22 +4,187 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Mon, 22 Apr 2024 12:26:45 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 22 Apr 2024 15:14:36 GMT</lastBuildDate>
+    <item>
+      <title>线性回归的负比值比</title>
+      <link>https://stats.stackexchange.com/questions/645556/negative-odds-ratio-from-linear-regression</link>
+      <description><![CDATA[我正在研究事件每千人发生的频率与其收入下降的概率之间的关系。我计算了一个代表每千人事件发生频率的变量与概率（不仅仅是 0 和 1）之间的线性回归，但在输入中 P 当然永远不会大于 1 或小于 0。我得到了方程：
+P = 0.1 x 频率 - 0.05
+因此，当我获得一组频率值时，我可以使用它们来计算 P。但是对于千分之一的高频，P 可以高于 1，对于低频，P 可以低于 0。我读到了在这种情况下使用的对数赔率，我认为这是通过从回归方程输出中获取 P 值并计算 ln(P/1-P) 来完成的。但由于 P 一开始就不在 0 和 1 之间，因此 P/1-P 仍然可以为负数，这只会给出未定义的对数。
+因此，就用例而言，我误解了其中的某些要素。对数赔率是处理有问题的范围的正确工具，还是只是为了对称化已经限制在 0 和 1 之间的分布？您实际上需要执行频率和对数优势比之间的回归还是我需要限制输入范围？]]></description>
+      <guid>https://stats.stackexchange.com/questions/645556/negative-odds-ratio-from-linear-regression</guid>
+      <pubDate>Mon, 22 Apr 2024 14:33:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>随着样本量的增加，线性回归的误报率下降</title>
+      <link>https://stats.stackexchange.com/questions/645555/false-positive-rate-goes-down-in-linear-regression-as-the-sample-size-increases</link>
+      <description><![CDATA[我正在运行一些模拟，比较四种方法的功效和误报率：方差分析（等方差）、方差分析（不等方差）、线性回归 (OLS) 和线性回归 (WLS)。
+出于某种原因，当我增加样本量时，无论出于何种原因，两种类型的回归中的误报率都会显着下降。我可以理解这是正常行为还是我的模型缺少某些内容。
+代码如下：
+将 numpy 导入为 np
+将 pandas 导入为 pd
+从 scipy.stats 导入 f_oneway
+将 numpy 导入为 np
+将 pandas 导入为 pd
+将 statsmodels.api 导入为 sm
+将 numpy 导入为 np
+将 pandas 导入为 pd
+从 scipy.stats 导入 f_oneway
+将 pingouin 导入为 pg
+将 Researchpy 导入为 rp
+
+迭代次数 = 4000
+显着性 = 0.05
+p_values_anova_equal = []
+p_values_anova_unequal = []
+p_values_wls = []
+p_values_ols = []
+比例方差分析 = 0
+比例方差分析 = 0
+比例_wls = 0
+比例_ols = 0
+大小 = 1000
+
+对于范围内的 i（0，迭代）：
+
+    group_1 = np.random.normal(0, 1, 大小)
+    group_2 = np.random.normal(0, 1, 大小)
+    group_3 = np.random.normal(0, 1, 大小)
+    group_4 = np.random.normal(0, 1, 大小)
+    group_5 = np.random.normal(0, 1, 大小)
+    group_6 = np.random.normal(0, 1, 大小)
+
+    # 创建一个值数组
+    值 = np.concatenate([group_1, group_2, group_3, group_4, group_5, group_6])
+
+    # 创建一个组标签数组
+    组 = [&#39;Group_1&#39;]*尺寸 + [&#39;Group_2&#39;]*尺寸 + [&#39;Group_3&#39;]*尺寸 + [&#39;Group_4&#39;]*尺寸 + [&#39;Group_5&#39;]*尺寸 + [&#39;Group_6&#39;]*尺寸
+
+    # 创建数据框
+    数据 = pd.DataFrame({
+        “价值”：价值观，
+        ‘组’：团体
+    })
+
+    # 为组创建虚拟变量
+    dummy_vars = pd.get_dummies(data[&#39;Group&#39;], prefix=&#39;Bin&#39;)
+
+    # 将虚拟变量和原始值合并到一个数据集中
+    数据 = pd.concat([数据, dummy_vars], axis=1)
+
+    # 计算每组的方差
+    group_variances = data.groupby(&#39;组&#39;)[&#39;值&#39;].var()
+    # 计算权重作为方差的倒数并映射到每个数据行
+    数据[&#39;权重&#39;] = 1 / 数据[&#39;组&#39;].map(group_variances)
+
+    # 执行单因素方差分析
+    f_statistic, p_value_anova_equal = f_oneway(group_1, group_2, group_3, group_4, group_5, group_6)
+
+    p_values_anova_equal.append(p_value_anova_equal)
+
+    # 执行线性回归 OLS
+    X = sm.add_constant(数据[[&#39;Bin_Group_2&#39;, &#39;Bin_Group_3&#39;, &#39;Bin_Group_4&#39;, &#39;Bin_Group_5&#39;, &#39;Bin_Group_6&#39;]])
+
+    # 拟合OLS模型
+    ols_model = sm.OLS(data[&#39;Value&#39;], X, hasconst=False).fit()
+
+    p_values_ols.append(ols_model.f_pvalue)
+
+    # 拟合OLS模型
+    wls_model = sm.WLS(data[&#39;值&#39;], X, data[&#39;权重&#39;], hasconst=True).fit()
+
+    p_values_wls.append(wls_model.f_pvalue)
+
+    anova_welch = pg.welch_anova(data=data, dv=&#39;值&#39;, Between=&#39;组&#39;)
+    p_value_welch = anova_welch.at[0, &#39;p-unc&#39;] # 从结果中提取 p 值
+
+    p_values_anova_unequal.append(p_value_welch)
+
+# 计算显着结果的比例
+比例_anova_equal = sum(p &lt;= p_values_anova_equal 中 p 的显着性) / 迭代
+比例_anova_unequal = sum(p &lt;= p_values_anova_unequal 中 p 的显着性) / 迭代
+比例_wls = sum(p &lt;= p_values_wls 中 p 的显着性) / 迭代
+比例_ols = sum(p &lt;= p_values_ols 中 p 的显着性) / 迭代
+
+# 打印结果
+print(f“显着方差分析（等方差）结果的比例：{proportion_anova_equal:.2f}”)
+print(f“显着方差分析（不等方差，Welch）结果的比例：{proportion_anova_unequal:.2f}”)
+print(f“重要 WLS 结果的比例：{proportion_wls:.2f}”)
+print(f“重要 OLS 结果的比例：{proportion_ols:.2f}”)
+
+这是我在每组 1000 个观察值运行模拟时得到的输出：
+显着 ANOVA（等方差）结果的比例：0.06
+显着方差分析（不等方差，Welch）结果的比例：0.05
+重要 WLS 结果的比例：0.02
+显着 OLS 结果的比例：0.02
+
+第一个明显的事情是线性回归，OLS 应该提供与 ANOVA（等方差）相同的结果，但由于某种原因它没有。]]></description>
+      <guid>https://stats.stackexchange.com/questions/645555/false-positive-rate-goes-down-in-linear-regression-as-the-sample-size-increases</guid>
+      <pubDate>Mon, 22 Apr 2024 14:19:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用具有嵌套随机效应的线性混合模型进行有调节的中介分析？</title>
+      <link>https://stats.stackexchange.com/questions/645553/how-to-do-moderated-mediation-analysis-with-linear-mixed-model-with-nested-rando</link>
+      <description><![CDATA[我想建立一个这样的模型。所有变量都是连续变量。每个受试者都会在几天内进行多次测量，因此我想这应该使用线性混合模型来完成。而且，X、Y在每次试验中仅测量一次，而Med在每次试验中通过不同通道测量，因此对于X-M，随机效应是嵌套的。
+
+有点复杂。为了更清楚，我将写出每条路径的假设模型：
+c_path = lmer(Y ~ cX + (1|主题/频道) + (1|天) + (1|时间), data= rating_RR)
+
+a_path = lmer(Med ~ aX + (1|主题/频道) + (1|天) + (1|时间), data= rating_RR)
+
+b_path = lmer(Y ~ c&#39;X + bMed*时间 + (1|受试者/频道) + (1|天), 数据= rating_RR)
+
+我搜索了很多教程和问答，但没有找到方法来做到这一点。 R 包bruceR::PROCESS可以添加随机效果，但遗憾的是它只能包含一个随机变量（如果我没有理解错的话）。
+我想知道是否可以实现以及如何实现。谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/645553/how-to-do-moderated-mediation-analysis-with-linear-mixed-model-with-nested-rando</guid>
+      <pubDate>Mon, 22 Apr 2024 13:58:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>在进行非参数检验时，模型的因素很重要，但在 GLM 中使用它们时，没有一个因素是重要的。我如何开发模型？</title>
+      <link>https://stats.stackexchange.com/questions/645551/factors-for-a-model-are-significant-when-doing-nonparametric-tests-but-when-usin</link>
+      <description><![CDATA[我有两个分类因素和一个连续因素，我想预测失败的实例。我使用卡方检验来寻找分类因素和连续变量的二项式 GLM 之间的显着性。我还使用 GLM 来处理分类因素。至少有一个水平的分类因素显着，连续变量也显着。
+我正在尝试在风险模型中使用这些，并希望标准化系数以简化其他人的模型。然而，当我在 GLM 中使用它们时，它们都显示为不显着，并且系数都非常不同。我该怎么办？]]></description>
+      <guid>https://stats.stackexchange.com/questions/645551/factors-for-a-model-are-significant-when-doing-nonparametric-tests-but-when-usin</guid>
+      <pubDate>Mon, 22 Apr 2024 13:45:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>套索回归的目标变量标准化</title>
+      <link>https://stats.stackexchange.com/questions/645550/target-variable-standardization-for-lasso-regression</link>
+      <description><![CDATA[我正在使用不同的模型来执行回归任务。我的目标变量的范围非常小：
+
+我注意到与其他模型相比，套索回归和弹性网络模型的性能非常差：
+
+然而，在目标变量标准化后，套索回归和弹性网络模型得到了改善，而其他模型的性能却没有：
+
+为什么套索回归对目标变量的小值敏感？]]></description>
+      <guid>https://stats.stackexchange.com/questions/645550/target-variable-standardization-for-lasso-regression</guid>
+      <pubDate>Mon, 22 Apr 2024 13:41:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>贝叶斯观点的 NHST</title>
+      <link>https://stats.stackexchange.com/questions/645547/nhst-from-the-bayesian-point-of-view</link>
+      <description><![CDATA[从贝叶斯的角度来看，概率可以分配给原假设。通过观察，我们可以更新先验概率，以获得后验概率。
+贝叶斯主义者认为，原假设的后验概率正是研究人员感兴趣的。科学家/研究人员提出一个假设，并想知道在给定证据的情况下该假设成立的可能性有多大。在假设生成阶段，以及在实验结果之后，他或她通常不会思考“假设假设为真，那么特定结果是否不太可能为真？”。人们感兴趣并且通常会思考的是该假设是否可能为真。
+我的问题是：从贝叶斯的角度来看，NHST 的认知价值是什么？鉴于从贝叶斯观点来看，在 NHST 框架中，科学家没有得到他或她最感兴趣的问题的答案 - 从贝叶斯角度来看 NHST 的价值是什么？ ]]></description>
+      <guid>https://stats.stackexchange.com/questions/645547/nhst-from-the-bayesian-point-of-view</guid>
+      <pubDate>Mon, 22 Apr 2024 12:53:32 GMT</pubDate>
+    </item>
     <item>
       <title>充分统计量的正式定义</title>
       <link>https://stats.stackexchange.com/questions/645545/formal-definition-of-sufficient-statistic</link>
       <description><![CDATA[让 $(\Omega_X,\mathcal{F}_X)$ 和 $(\Omega_T,\mathcal {F}_T)$ 是可测量的空间。令 $\mathfrak{M}$ 为 $(\Omega_X,\mathcal{F}_X 上的一系列概率测度）$。设 $X:\Omega\to \Omega _X$ 和 $T:\Omega_X\to \Omega _T$ span&gt; 是关于 $\mathcal{F}/\mathcal{F}_X$ 和 $\mathcal 的可测量函数{F}_X/\mathcal{F}_T$。
 根据《统计推断研究生课程》一书由 Li 和 Babu 撰写（请参阅 此链接），我们有如下定义：
 &lt;块引用&gt;
-统计数据$T=T(X)$对于$\mathfrak来说足够 {M}$ 如果对于每个
+统计数据$T=T(X)$对于$\mathfrak来说足够 {M}$ 如果，对于每个
 $B\in\mathcal{F}_X$，有一个函数$\kappa _B:\Omega _X\to
  \mathbb{R}$，可测量$T^{-1}(\mathcal{F}_T)/\mathcal{R}$，例如那
 对于每个 $P\in\mathfrak{M}$，我们有 $P(B|T)=\kappa_B$  $P$-a..
 
+假设 $\mathfrak{M}$ 由 $\sigma$ 有限支配测量。
 在本书定理2.4的证明中（参见此链接），我们知道有一个概率测度 $\mathbb{P}:\mathcal{F}_X\to \mathbb{R}$ 使得$P(B|T)=\mathbb{P}(B|T)$ $\color{red}{ P}$-a.e.对于所有 $P\in\mathfrak{M}$。此外， $\mathbb{P}$ 具有以下属性： $P\ll \mathbb{P}$ span&gt; 对于所有 $P\in \mathfrak{M}$ 以及对于任何 $E\in\mathcal{F }_X$，如果 $P(E)=0$ 对于所有 $P\in\mathfrak{ M}$，然后 $\mathbb{P}(E)=0$。
 我的问题是： $P(B|T)=\mathbb{P}(B|T)$ $\color{red}{\mathbb{P}}$-a.e.对于任何 $P\in\mathfrak{M}$ 和 $B\in\mathcal{F}_X$&lt; 均成立/跨度&gt;？至少，是否存在一个概率度量 $\mathbb{Q}:\mathcal{F}_X\to \mathbb{R}$ 使得 $P(B|T)= \mathbb{Q}(B|T)$ $\color{red}{\mathbb{Q} }$-a.e.对于任何 $P\in\mathfrak{M}$ 和 $B\in\mathcal{F}_X$跨度&gt;?
 &lt;小时/&gt;
-这个问题与充分统计量的正式定义有关。显然，通常假设对于给定的足够统计量 $T$，存在一个概率度量 $\mathbb{Q} :\mathcal{F}_X\ 到 \mathbb{R}$ 使得 $P(B|T)= \mathbb{Q}(B|T)$  $\color{red}{\mathbb{Q}}$-a.e.对于任何 $P\in\mathfrak{M}$ 和 $E\in\mathcal{F}_X$跨度&gt;。然而，如果我们使用先前的足够统计量定义（这与 Halmos 和 Savage 论文中的定义一致，正如您在 此链接）。]]></description>
+这个问题与充分统计量的正式定义有关。显然，通常假设对于给定的足够统计量 $T$，存在一个概率度量 $\mathbb{Q} :\mathcal{F}_X\ 到 \mathbb{R}$ 使得 $P(B|T)= \mathbb{Q}(B|T)$  $\color{red}{\mathbb{Q}}$-a.e.对于任何 $P\in\mathfrak{M}$ 和 $B\in\mathcal{F}_X$跨度&gt;。然而，如果我们使用先前的足够统计量定义（这与 Halmos 和 Savage 论文中的定义一致，正如您在 此链接）。]]></description>
       <guid>https://stats.stackexchange.com/questions/645545/formal-definition-of-sufficient-statistic</guid>
       <pubDate>Mon, 22 Apr 2024 12:00:19 GMT</pubDate>
     </item>
@@ -102,7 +267,7 @@ $l=\overline{X}_N-T_{a}\cdot se_N$
 $u=\overline{X}_N+T_{a}\cdot se_N$
 其中 $T_a$ 是学生的第 $(100\alpha/2)$ 个百分位具有 $N-1$ 自由度的 t 分布。
 现在是我的问题。我知道其中可能存在一些错误（请告诉我）。但是，我确信前面显示的方法如果使用得当，可以为我们提供 $l$ 和 $ 的值u$。
-如果我们看一下初始方程 $\Pr\,(l\leq X_{N+1} \leq u)=1-\alpha$，现在 $l$ 和 $u$ 已知，$\alpha$  总是已知的，而且我们知道 $X_{N+1}\sim\mathcal{N}(\mu, \sigma^2)$ 。难道我们没有足够的信息来准确找到 $ \mu$ 和 $ \sigma^2$ 吗？总的来说，我会说这是不可能的；这两个参数最多可以像开始时使用样本平均值和标准误差一样进行估计。然而，从数学上讲，我不禁注意到，一旦找到置信区间的极值并将它们放入原始方程中，我就可以计算回原始参数。
+如果我们看一下初始方程 $\Pr\,(l\leq X_{N+1} \leq u)=1-\alpha$，现在 $l$ 和 $u$ 已知，$\alpha$  总是已知的，而且我们知道 $X_{N+1}\sim\mathcal{N}(\mu, \sigma^2)$ 。难道我们没有足够的信息来准确找到 $ \mu$ 和 $ \sigma^2$ 吗？总的来说，我会说这是不可能的；这两个参数最多可以像开始时使用样本均值并使用标准误差一样进行估计。然而，从数学上讲，我不禁注意到，一旦找到置信区间的极值并将其放入原始方程中，我就可以计算回原始参数。
 显然，我一定是在某个地方错了，但我不知道在哪里。
 请帮忙！ :(]]></description>
       <guid>https://stats.stackexchange.com/questions/645540/thought-and-doubt-about-students-t-distribution-and-confidence-interval</guid>
@@ -192,37 +357,6 @@ $$\text{部分 r:} \quad r_{yx_1.x_2} = \frac{r_{yx_1} -
       <pubDate>Mon, 22 Apr 2024 08:53:37 GMT</pubDate>
     </item>
     <item>
-      <title>根据 Metropolis-Hastings 算法中的提案分布计算 q(y|x)</title>
-      <link>https://stats.stackexchange.com/questions/645532/calculate-qyx-from-the-proposal-distribution-in-metropolis-hastings-algorithm</link>
-      <description><![CDATA[使用 Metropolis-Hastings 算法，可以计算接受率：
-$$\tau(x \rightarrow y) = \frac{\pi (y) \, q(x|y)}{\pi (x) \, q(y| x)}$$
-其中 $\pi(.)$ 是目标分布，$q(.)$ 是提案分布， $x$ 初始值和 $y$ 候选值。
-如果提案分布是对称的，就像以初始 $x$ 为中心的正态分布，$N(x, \sigma^ 2）$，据说接受率简化为：
-$$\tau(x \rightarrow y) = \frac{\pi (y)}{\pi (x)}$$ 并且 Metropolis-Hastings 被称为大都会...
-嗯，我的问题可能很奇怪（或者没有很好解释？），但它是：
-值 $q(x|y)$ 和 $q(y|x)$是转移概率，对吗？所以必须有 $0 \leq q(x|y),q(y|x) \leq 1$，一般来说公式 应该计算它们以获得 $\tau$，对吗？
-那么，如果提案分布是 $N(x, \sigma^2)$，我怎样才能获得这些值？ （假设我想计算它们，即使它们后来取消）
-我发现（在一篇论文中）作为一个明确的公式，使用 $N(x, \sigma^2)$ ：
-$$q(y|x)=\frac{1}{\sqrt{2 \pi} \sigma} \exp \left(-\frac{1}{2} ( \frac{y-x}{\sigma})^2 \right)$$
-（相当于 $q(x|y)$）。
-这些表达式不就是分布 $N(x, \sigma^2)$ 中的点值吗，可以是 $&gt;1$???
-我们如何真正计算这些转移概率$q(y|x)$？或者我不明白什么？或者我犯了什么大误解/错误？
-感谢您对我的耐心。]]></description>
-      <guid>https://stats.stackexchange.com/questions/645532/calculate-qyx-from-the-proposal-distribution-in-metropolis-hastings-algorithm</guid>
-      <pubDate>Mon, 22 Apr 2024 08:52:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>寻求一些想法[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/645531/asking-for-some-ideas</link>
-      <description><![CDATA[我在银行部门有一种基于规则的算法。该规则监控 90 天内的交易金额以及每个月的 trxn 金额。我的目的是尝试加强规则。我尝试研究曾经被该规则触发的客户过去 9 个月的行为。问题是我不知道如何在 python 中编写这些变量，因为脚本是用 SQL 编写的并且运行 90 天，就像
-
-Hitdate=22-04-2024 表示 21-04-2024 往后 90 天的交易金额 90。
-Hitdate=21-03-2024 表示 20-04-2024 往后 90 天的交易金额 90。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/645531/asking-for-some-ideas</guid>
-      <pubDate>Mon, 22 Apr 2024 08:51:06 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么 Norm.S.Inv(RAND()) 存在偏差？</title>
       <link>https://stats.stackexchange.com/questions/645530/why-is-norm-s-invrand-skewed</link>
       <description><![CDATA[我的蒙特卡罗模拟有问题：
@@ -235,100 +369,18 @@ Hitdate=21-03-2024 表示 20-04-2024 往后 90 天的交易金额 90。
       <pubDate>Mon, 22 Apr 2024 08:36:27 GMT</pubDate>
     </item>
     <item>
-      <title>比较对照组和治疗组的调查响应率的最佳统计测试是什么？</title>
-      <link>https://stats.stackexchange.com/questions/645527/what-is-the-best-statistical-test-to-compare-the-survey-response-rate-for-a-cont</link>
-      <description><![CDATA[我们进行了一项调查，并希望对数据样本进行受控测试。我们试图提高的指标是响应率。
-我们的研究问题是：
-“与收到较少邀请的对照组相比，发送更多的参与邀请是否会提高治疗组的响应率？”
-因变量是该人是否参加调查，这是一个简单的分类变量：回应/不回应。
-但是，我们对该变量的测量是连续的，因为我们正在测量响应率。
-我们正在测量治疗组和对照组：响应数量/人口
-我们的总人口为 30,000 人，分为 3,000 人的治疗组和 27,000 人的对照组。因此，我们认为，即使各组之间的差异可能是由于自然方差造成的，大量的人口也可能会导致统计上显着的结果。
-我不确定哪些统计测试最适合对数据运行？大多数测试都需要平均值和标准差，但我不确定我们是否可以使用分类变量有效地计算这些值。或者我是否应该将数据视为连续的？
-我查看了比值比测试，这似乎是我在比较响应率方面所能看到的最佳选择。我不知道使用 Cohens d 检验是否是更好的选择？]]></description>
-      <guid>https://stats.stackexchange.com/questions/645527/what-is-the-best-statistical-test-to-compare-the-survey-response-rate-for-a-cont</guid>
-      <pubDate>Mon, 22 Apr 2024 08:14:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用四分位距 (IQR) 检测季节性数据的异常</title>
-      <link>https://stats.stackexchange.com/questions/645525/anomaly-detection-for-seasonal-data-using-interquartile-range-iqr</link>
-      <description><![CDATA[我需要创建一个警报机器人，以针对有关我公司网站上不同产品的漏斗监控的数据异常。
-我需要监控的具体指标是：
-
-访问我们网站的用户与启动渠道的用户之间的转化率。
-开始渠道的用户与到达终点（感谢页面）的用户之间的转化率。
-
-对复杂模型进行一些实验（主要使用 pyOD、adtk 和 darts Python 库）后，我发现越简单越好，并且我使用了四分位数范围 (IQR)。 
-每天，对于每个指标，如果当前值低于或大于 [Q1−1.5IQR, Q3+1.5IQR]，我将发送警报，其中 IQR 是根据上个月的数据计算的。
-唯一的缺点是我的数据具有每周季节性（周五访问量达到峰值，周末减少），这会导致频繁的误报和误报周末。
-对于如何考虑季节性并仍然使用 IQR，您有什么建议吗？
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/645525/anomaly-detection-for-seasonal-data-using-interquartile-range-iqr</guid>
-      <pubDate>Mon, 22 Apr 2024 08:00:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于 $X\in\mathcal{F}_o$ 符号的混淆，其中 $X$ 是随机变量，$\mathcal{F}_o$ 是西格玛代数</title>
-      <link>https://stats.stackexchange.com/questions/645524/confusion-about-the-notation-x-in-mathcalf-o-where-x-is-a-random-variable</link>
-      <description><![CDATA[在 Durrett 的概率：理论与示例第 205 页第 4.1 节中，它具有以下符号 $X\in \mathcal{F}_o$ （见下图） ）。我对这个符号感到困惑，因为 $X$ 是一个随机变量，而 $\mathcal{F}_o$&lt; /span&gt; 是西格玛代数。 $\mathcal{F}_o$ 是 $\Omega$ 子集的集合，因此按顺序要编写类似 $a\in\mathcal{F}_o$ 的内容，$a$ 必须是$\Omega$ 的子集。 $X$ 怎么可能是它的一个元素？ （我没有阅读本书的前面部分，如果您知道之前的某个地方对此符号有解释，那就太好了。）
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/645524/confusion-about-the-notation-x-in-mathcalf-o-where-x-is-a-random-variable</guid>
-      <pubDate>Mon, 22 Apr 2024 07:50:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>在调查抽样中，朴素均值估计量是否都比 HT (IPW) 或 Hajek 估计量更差？如果不是，为什么文献中对此讨论较少？</title>
-      <link>https://stats.stackexchange.com/questions/645523/is-naive-mean-estimator-uniformly-worse-than-ht-ipw-or-hajek-estimators-in-sur</link>
-      <description><![CDATA[考虑一个玩具示例：我们对 $n$ 学生 $\bar{\tau 的平均身高感兴趣}=\frac{1}{n}\sum_{i=1}^n\tau_i$，但由于某种原因，我们只能访问随机子集$其中新元。每个学生都将以 $\pi_i$ 的概率被（独立）选择。如果选择学生$i$，我们说$i\in S$。现在观察 $S$、$\{\tau_i:i\in S\}$ 和 $\{\pi_i\}_{i=1}^n$，我们有很多方法来估计$\tau$&lt; /span&gt;.
-朴素均值估计器
-$$\hat{\tau}_{\text{naive}}=\frac{1}{|S|}\sum_{i\in S}\tau_i=\frac {\sum_{i=1}^n\tau_iI(i\in S)}{\sum_{i=1}^nI(i\in S)}.$$
-HT (IPW) 估计器
-$$\hat{\tau}_{\text{ht}}=\frac{1}{n}\sum_{i=1}^n\frac{\tau_iI( i\in S)}{\pi_i}.$$
-Hajek（标准化 IPW）估计器
-$$\hat{\tau}_{\text{haj}}=\frac{\frac{1}{n}\sum_{i=1}^n\frac{ \tau_iI(i\in S)}{\pi_i}}{\frac{1}{n}\sum_{i=1}^n\frac{I(i\in S)}{\pi_i}}.$ $
-文献中有很多关于 HT 和 Hajek 估计量的讨论，而很少有关于“朴素均值”的讨论。估计器。我做了一些模拟，发现 $\hat{\tau}_{\text{naive}}$ 在很多场景下都还不错（甚至比其他的更好），所以我的问题是：这有什么理论上的保证吗？ （在某些条件下，诸如偏差之类的东西可能可以忽略不计，等等。）非常感谢！
-附录：有我的经验结果和R代码。
- 天真的 ht haj
-偏差2 0.061 0.000 0.003
-变量 0.176 0.735 0.688
-均方误差 0.237 0.735 0.691
-
-
-rm(list=ls());gc()
-设置.种子(1)
-n = 100
-tau = rnorm(n,0,5)
-tau.bar = 平均值(tau)
-pi = runif(n,0,1)
-nruns = 1000
-res.df = data.frame(naive=rep(0,nruns),
-                    ht=rep(0,nruns),
-                    haj=rep(0,nruns))
-for(nrun in 1:nruns) {
-  S = rbinom(n,1,pi)
-  S.ind = (1:n)[as.逻辑(S)]
-  res.df$naive[nrun] = Mean(tau[S.ind])
-  res.df$ht[nrun] = 平均值(tau*S/pi)
-  res.df$haj[nrun] = 平均值(tau*S/pi)/平均值(S/pi)
-}
-
-箱线图（res.df）
-abline(a=tau.bar,b=0,col=&#39;红色&#39;)
-res.bias2 = (apply(res.df,2,mean)-tau.bar)^2
-res.var = 应用(res.df,2,var)
-res.mse = res.bias2 + res.var
-绘图（1：3，res.mse，ylim = c（0,1））
-行（1：3，res.var，col =&#39;红色&#39;）
-行（1：3，res.bias2，col =&#39;蓝色&#39;）
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/645523/is-naive-mean-estimator-uniformly-worse-than-ht-ipw-or-hajek-estimators-in-sur</guid>
-      <pubDate>Mon, 22 Apr 2024 07:23:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何得出多元线性回归的二元分解？</title>
-      <link>https://stats.stackexchange.com/questions/645518/how-can-i-derive-the-bivariate-breakdown-of-a-multiple-linear-regression</link>
-      <description><![CDATA[
-我最近开始从这个 网站。它声称“多元回归的效率是考虑模型中其他变量的影响后同一回归量的双变量系数”。我该如何理解呢？有人可以帮忙推导数学证明吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/645518/how-can-i-derive-the-bivariate-breakdown-of-a-multiple-linear-regression</guid>
-      <pubDate>Mon, 22 Apr 2024 04:24:06 GMT</pubDate>
+      <title>如何应用 FDR 校正，哪种方法最合适？</title>
+      <link>https://stats.stackexchange.com/questions/645404/how-to-apply-fdr-correction-and-which-method-is-most-appropriate</link>
+      <description><![CDATA[所以我对 q 值或更广泛的 FDR 校正（BH 或 BKY）的应用有点困惑。
+我运行了多个线性混合效应模型来评估药物对多个大脑区域的影响，矩阵中总共有 245 个 p 值。
+我是否将 q 值方法应用于整个 q 值矩阵？或者我应该按地区应用它？ （假设每个区域大约有 30 个 p 值）
+同样，如果我要使用 BH 或 BKY FDR 校正方法，我会将其应用于整个矩阵还是按区域？
+如果我决定采用 q 值方法，我是否有足够的 p 值来生成可靠的 q 值？
+最后，哪种方法总体上更稳健？我不想过于保守，但我也想充分控制 1 类错误。
+注意，我的 r 代码没有问题，我了解如何应用每个 FDR 过程，我只是发现很难找到有关是否应用于整个模型的具体信息（我可能会使用q 值方法考虑到它可能会因区域或区域的 p 值如此低而表现不佳？
+如有任何建议，我们将不胜感激]]></description>
+      <guid>https://stats.stackexchange.com/questions/645404/how-to-apply-fdr-correction-and-which-method-is-most-appropriate</guid>
+      <pubDate>Fri, 19 Apr 2024 16:44:27 GMT</pubDate>
     </item>
     </channel>
 </rss>
