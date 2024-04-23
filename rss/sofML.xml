@@ -4,7 +4,71 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Tue, 23 Apr 2024 00:59:54 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 23 Apr 2024 03:14:47 GMT</lastBuildDate>
+    <item>
+      <title>如何修改 Adam 优化器以在计算中不包含零？</title>
+      <link>https://stackoverflow.com/questions/78369654/how-to-modify-the-adam-optimizer-to-not-include-zeros-in-the-calculations</link>
+      <description><![CDATA[我在这个SO问题中找到了Adam的实现：
+类 ADAMOptimizer(torch.optim.Optimizer):
+    ”“”
+    作为前面的步骤，实现 ADAM 算法。
+    ”“”
+    def __init__(自身，参数，lr=1e-3，betas=(0.9，0.999)，eps=1e-8，weight_decay=0)：
+        默认值 = dict(lr=lr, betas=betas, eps=eps,weight_decay=weight_decay)
+        super(ADAMOptimizer, self).__init__(参数, 默认值)
+
+    def 步骤（自身）：
+        ”“”
+        执行单个优化步骤。
+        ”“”
+        损失=无
+        对于 self.param_groups 中的组：
+
+            对于组 [&#39;params&#39;] 中的 p：
+                grad = p.grad.data
+                状态 = self.state[p]
+
+                # 状态初始化
+                如果 len(状态) == 0:
+                    状态[&#39;步骤&#39;] = 0
+                    # 动量（梯度的指数 MA）
+                    状态[&#39;exp_avg&#39;] = torch.zeros_like(p.data)
+
+                    # RMS Prop 组件。 （平方梯度的指数 MA）。分母。
+                    状态[&#39;exp_avg_sq&#39;] = torch.zeros_like(p.data)
+
+                exp_avg, exp_avg_sq = 状态[&#39;exp_avg&#39;], 状态[&#39;exp_avg_sq&#39;]
+
+                b1, b2 = 组[&#39;betas&#39;]
+                状态[&#39;步骤&#39;] += 1
+
+                # 添加权重衰减（如果有）
+                如果组[&#39;weight_decay&#39;] != 0:
+                    grad = grad.add(group[&#39;weight_decay&#39;], p.data)
+
+                ＃ 势头
+                exp_avg = torch.mul(exp_avg, b1) + (1 - b1)*grad
+                
+                # 有效值
+                exp_avg_sq = torch.mul(exp_avg_sq, b2) + (1-b2)*(grad*grad)
+
+                mhat = exp_avg / (1 - b1 ** 状态[&#39;步骤&#39;])
+                vhat = exp_avg_sq / (1 - b2 ** 状态[&#39;步骤&#39;])
+                
+                denom = torch.sqrt( vhat + group[&#39;eps&#39;] )
+
+                p.data = p.data - group[&#39;lr&#39;] * mhat / denom
+                
+                # 保存状态
+                状态[&#39;exp_avg&#39;], 状态[&#39;exp_avg_sq&#39;] = exp_avg, exp_avg_sq
+
+        回波损耗
+
+我的问题是我的很多梯度都有 0 值，这会扰乱动量和速度项。我感兴趣的是修改代码，以便在计算动量和速度项（即第一和第二矩估计）时不考虑 0 值。
+不过，我不确定该怎么做。如果它是一个简单的网络，其中梯度只是简单的维度，我可以检查是否 p.grad.data=0，但由于这将是一个多维张量，我不确定如何删除计算中的零并且不会弄乱其他东西（例如，剩余的更新）。]]></description>
+      <guid>https://stackoverflow.com/questions/78369654/how-to-modify-the-adam-optimizer-to-not-include-zeros-in-the-calculations</guid>
+      <pubDate>Tue, 23 Apr 2024 02:41:02 GMT</pubDate>
+    </item>
     <item>
       <title>此代码显示 2 个变量的错误，但未显示 1 个变量的错误，错误位于最后一个代码（第三个代码）中</title>
       <link>https://stackoverflow.com/questions/78369291/this-code-is-showing-error-with-2-variables-but-not-with-1-variable-error-is-in</link>
@@ -163,93 +227,86 @@ ValueError：所有数组的长度必须相同
     <item>
       <title>在使用 LR finder 代码后，如何获得使用循环学习率方法找到的最佳 LR 的学习率 (LR) 范围（最小值和最大值）？</title>
       <link>https://stackoverflow.com/questions/78368740/how-to-get-learning-rate-lr-bounds-min-and-max-values-wrt-optimal-lr-found-t</link>
-      <description><![CDATA[我使用以下代码来获取给定神经网络模型的最佳学习率 - https://github.com/beringresearch/lrfinder/blob/master/lrfinder/lrfinder.py - 最终通过 get_best_lr 函数。因此，在获得最佳学习率的值后，如何以编程方式找出使用循环学习率 (CLR) 方法找到的最佳 LR 的 LR 边界（最小值和最大值）值 (https://arxiv.org/abs/1506.01186)?
+      <description><![CDATA[我正在使用以下代码来获取给定神经网络模型的最佳学习率 - https://github.com/beringresearch/lrfinder/blob/master/lrfinder/lrfinder.py - 最后通过 get_best_lr 函数。因此，在我获得最佳学习率的值后，如何以编程方式找出使用周期性学习率 (CLR) 方法 (https://arxiv.org/abs/1506.01186) 发现的最佳 LR 的 LR 界限（最小值和最大值）值？
 来自引用的 GitHub 存储库的代码：
-导入数学
+import math
 
-将 matplotlib.pyplot 导入为 plt
-导入tensorflow.keras.backend为K
-将 numpy 导入为 np
+import matplotlib.pyplot as plt
+import tensorflow.keras.backend as K
+import numpy as np
 
-从tensorflow.keras.callbacks导入LambdaCallback
+from tensorflow.keras.callbacks import LambdaCallback
 
+class LRFinder:
+&quot;&quot;&quot;
+Leslie N. Smith 的《神经网络训练周期性学习率》中详细介绍的学习率范围测试。学习率范围测试是一种测试，它提供有关最佳学习率的有价值信息。在预训练运行期间，学习率在两个边界之间线性或指数增加。较低的初始学习率允许网络开始收敛，随着学习率的增加，它最终会变得太大，网络会发散。
+“”
 
-LRFinder 类：
-    ”“”
-    训练的循环学习率中详细介绍了学习率范围测试
-    神经网络 作者：Leslie N. Smith。学习率范围测试是一个测试
-    这提供了有关最佳学习率的有价值的信息。期间
-    预训练运行时，学习率线性增加或
-    两个边界之间呈指数关系。较低的初始学习率允许
-    网络开始收敛，并且随着学习率的增加
-    最终会太大并且网络会发散。
-    ”“”
+def __init__(self, model):
+self.model = model
+self.losses = []
+self.learning_rates = []
+self.best_loss = 1e9
 
-    def __init__(自我，模型)：
-        self.model = 模型
-        自我损失= []
-        自我学习率 = []
-        self.best_loss = 1e9
+def on_batch_end(self, batch, logs):
+lr = K.get_value(self.model.optimizer.lr)
+self.learning_rates.append(lr)
 
-    def on_batch_end（自身，批次，日志）：
-        lr = K.get_value(self.model.optimizer.lr)
-        self.learning_rates.append（lr）
+loss = logs[&#39;loss&#39;]
+self.losses.append(loss)
 
-        损失=日志[&#39;损失&#39;]
-        self.losses.append(损失)
+if batch &gt; 5 和 (math.isnan(loss) 或 loss &gt; self.best_loss * 4):
+self.model.stop_training = True
+返回
 
-        如果批次&gt; 5 且 (math.isnan(loss) 或 loss &gt; self.best_loss * 4)：
-            self.model.stop_training = True
-            返回
+如果 loss &lt; self.best_loss:
+self.best_loss = loss
 
-        如果损失&lt; self.best_loss：
-            self.best_loss = 损失
+lr *= self.lr_mult
+K.set_value(self.model.optimizer.lr, lr)
 
-        lr *= self.lr_mult
-        K.set_value(self.model.optimizer.lr, lr)
+def find(self, dataset, start_lr, end_lr, epochs=1,
+steps_per_epoch=None, **kw_fit):
+if steps_per_epoch is None:
+raise Exception(&#39;为了在数据生成器上正确训练，&#39;
+&#39;`steps_per_epoch` 不能为 None。&#39;
+&#39;您可以将其计算为 &#39;
+&#39;`np.ceil(len(TRAINING_LIST) / BATCH)`&#39;)
 
-    def find(自我, 数据集, start_lr, end_lr, epochs=1,
-             steps_per_epoch=无，**kw_fit）：
-        如果steps_per_epoch为None：
-            引发异常（&#39;正确训练数据生成器，&#39;
-                            “steps_per_epoch”不能为“None”。”
-                            &#39;你可以将其计算为&#39;
-                            &#39;`np.ceil(len(TRAINING_LIST) / BATCH)`&#39;)
+self.lr_mult = (float(end_lr) /
+float(start_lr)) ** (float(1) /
+float(epochs * steps_per_epoch))
+initial_weights = self.model.get_weights()
 
-        self.lr_mult = (浮点(end_lr) /
-                        浮动（start_lr））**（浮动（1）/
-                                             浮点数（纪元*steps_per_epoch））
-        初始权重 = self.model.get_weights()
+original_lr = K.get_value(self.model.optimizer.lr)
+K.set_value(self.model.optimizer.lr, start_lr)
 
-        Original_lr = K.get_value(self.model.optimizer.lr)
-        K.set_value(self.model.optimizer.lr, start_lr)
+回调 = LambdaCallback(on_batch_end=lambda batch,
+日志：self.on_batch_end(batch, 日志))
 
-        回调 = LambdaCallback(on_batch_end=lambda 批次,
-                                  日志：self.on_batch_end（批次，日志））
+self.model.fit(dataset,
+epochs=epochs, 回调=[callback], **kw_fit)
+self.model.set_weights(initial_weights)
 
-        self.model.fit（数据集，
-                       纪元=纪元，回调=[回调]，**kw_fit）
-        self.model.set_weights(initial_weights)
+K.set_value(self.model.optimizer.lr, original_lr)
 
-        K.set_value(self.model.optimizer.lr,original_lr)
+def get_learning_rates(self):
+return(self.learning_rates)
 
-    def get_learning_rates(自我):
-        返回（自我学习率）
+def get_losses(self):
+return(self.losses)
 
-    def get_losses(自身):
-        返回（自我损失）
+def get_derivatives(self, sma):
+断言 sma &gt;= 1
+导数 = [0] * sma
+for i in range(sma, len(self.learning_rates)):
+衍生品.append((self.losses[i] - self.losses[i - sma]) / sma)
+返回衍生品
 
-    def get_derivatives(self, sma):
-        断言 sma &gt;= 1
-        导数 = [0] * sma
-        对于范围内的 i(sma, len(self.learning_rates))：
-            衍生品.append((self.losses[i] - self.losses[i - sma]) / sma)
-        回报衍生品
-
-    def get_best_lr（自身，sma，n_skip_beginning = 10，n_skip_end = 5）：
-        衍生品 = self.get_derivatives(sma)
-        best_der_idx = np.argmin(导数[n_skip_beginning:-n_skip_end])
-        返回 self.learning_rates[n_skip_beginning:-n_skip_end][best_der_idx]
+def get_best_lr(self, sma, n_skip_beginning=10, n_skip_end=5):
+衍生品 = self.get_derivatives(sma)
+best_der_idx = np.argmin(衍生品[n_skip_beginning:-n_skip_end])
+返回 self.learning_rates[n_skip_beginning:-n_skip_end][best_der_idx]
 ]]></description>
       <guid>https://stackoverflow.com/questions/78368740/how-to-get-learning-rate-lr-bounds-min-and-max-values-wrt-optimal-lr-found-t</guid>
       <pubDate>Mon, 22 Apr 2024 20:33:17 GMT</pubDate>
@@ -330,18 +387,6 @@ def upload_image():
 请提出任何选择。我还想在 GPU 上执行特征提取。这怎么可能？]]></description>
       <guid>https://stackoverflow.com/questions/78367284/allosaurus-library</guid>
       <pubDate>Mon, 22 Apr 2024 15:19:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>最大似然估计初始参数问题</title>
-      <link>https://stackoverflow.com/questions/78366722/maximum-likelihood-estimation-initial-parameters-issue</link>
-      <description><![CDATA[我的数据集由 x 和 y 变量组成，我想执行最大似然估计 (MLE) 来拟合 sigmoid 均值函数 μ(X;β)=β0​+1+e−(X−β2​) β1​​ 和数据的线性标准偏差函数 σ(X;α)=α0​+α1​⋅X。我使用最大似然函数 L(θ∣X,Y)=i=1ΣN​logf(Yi​∣Xi​;θ) 估计 beta 和 alpha 参数，以便观察数据中的均值和 sigma 趋势。
-可能性 = -np.sum(np.log(norm.pdf(Y, mu, sigma)))
-最后，每次遇到以下情况时，使用 result = minusminimum(likelihood, initial_params, args=(X,Y), method=&#39;L-BFGS-B&#39;,options={&#39;maxiter&#39;: 100}) 执行似然优化当传递不同的初始值时获得不同的平均值和西格玛值的问题时，我发现我的模型对初始参数变得敏感。有什么方法可以解决这种情况，以便我可以获得自动适合我的模型的均值和西格玛的最佳值？
-附：我也应用了不同的优化方法，但没有效果。
-我通过其他技术实现它已经取得了所需的结果，但我想使用 MLE 来实现它。我该如何解决这个问题？
-我尝试过不同的优化方法]]></description>
-      <guid>https://stackoverflow.com/questions/78366722/maximum-likelihood-estimation-initial-parameters-issue</guid>
-      <pubDate>Mon, 22 Apr 2024 13:47:56 GMT</pubDate>
     </item>
     <item>
       <title>用于回归问题的 PyTorch 模型，每个样本 4 个图像，图像之间有时间间隔</title>
