@@ -4,18 +4,156 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Wed, 24 Apr 2024 12:29:58 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 24 Apr 2024 15:15:22 GMT</lastBuildDate>
+    <item>
+      <title>LightGBM 排名指标</title>
+      <link>https://stackoverflow.com/questions/78379350/lightgbm-ranking-metrics</link>
+      <description><![CDATA[我使用了 LightGBM LambdaRank，但不明白如何根据获得的值进一步计算指标
+数据框
+将 numpy 导入为 np
+将 pandas 导入为 pd
+将 lightgbm 导入为 lgb
+
+df = pd.DataFrame({
+    “query_id”：[i for i in range(100) for j in range(10)],
+    “var1”：np.random.random(size=(1000,)),
+    “var2”：np.random.random(size=(1000,)),
+    “var3”：np.random.random(size=(1000,)),
+    “相关性”:list(np.random.permutation([1,2,3,4,5, 6,7,8,9,10]))*100
+})
+
+
+这是数据框：
+query_id var1 var2 var3 相关性
+0 0 0.905357 0.894079 0.375130 5
+1 0 0.547075 0.377121 0.754090 3
+2 0 0.160593 0.397771 0.034981 10
+3 0 0.295548 0.162948 0.549913 9
+4 0 0.833037 0.233751 0.096317 7
+……………………
+995 99 0.188557 0.258408 0.090342 6
+996 99 0.178921 0.881938 0.467198 2
+997 99 0.175884 0.897310 0.992994 8
+998 99 0.466874 0.400800 0.561379 1
+999 99 0.035098 0.232043 0.982138 4
+1000行×5列
+
+
+我将数据集分为训练集、验证集和测试集
+&lt;前&gt;&lt;代码&gt;
+train_df = df.iloc[:600]
+test_df = df.iloc[600:800]
+val_df = df.iloc[800:]
+
+qids_train = train_df.groupby(“query_id”)[“query_id”].count().to_numpy()
+X_train = train_df.drop([“query_id”, “相关性”], axis=1)
+y_train = train_df[“相关性”]
+
+qids_validation =validation_df.groupby(“query_id”)[“query_id”].count().to_numpy()
+X_validation =validation_df.drop([“query_id”,“相关性”], axis=1)
+y_validation =validation_df[“相关性”]
+
+qids_test = test_df.groupby(“query_id”)[“query_id”].count().to_numpy()
+X_test = test_df.drop([“query_id”,“相关性”], axis=1)
+y_test = test_df[“相关性”]
+
+创建 lgb 数据集
+lgb_train = lgb.Dataset(X_train, label=y_train, group=qids_train)
+lgb_valid = lgb.Dataset(X_validation, label=y_validation, group=qids_validation)
+lgb_test = lgb.Dataset(X_test, label=y_test, group=qids_test)
+
+
+火车模型
+param_ranking = {
+    “目标”：“lambdarank”，
+    “label_gain”：[int(i) for i in range(int(max(y_train.max(), y_validation.max())) + 1)],
+    “公制”：[“ndcg”]，
+    “评估时间”：5，
+    “随机状态”：1，
+    “冗长”：-1，
+    # &#39;num_threads&#39;: 16,
+    “学习率”：0.1，
+}
+回调 = [
+    lgb.early_stopping(20),
+    lgb.log_evaluation（周期=10）
+]
+model_gbm = lgb.train(
+    参数排名，
+    LGB_火车，
+    100,
+    valid_sets=[lgb_train, lgb_valid],
+    回调=回调，
+）
+
+训练直到验证分数在 20 轮内没有提高
+[10]训练的ndcg@5：0.880126 valid_1的ndcg@5：1
+[20] 训练的 ndcg@5: 0.906826 valid_1 的 ndcg@5: 1
+提前停止，最佳迭代是：
+[1] 训练的 ndcg@5: 0.789559 valid_1 的 ndcg@5: 1
+
+
+y_pred = model_gbm.predict(X_test)
+X_test[“预测排名”] = y_pred
+X_test.sort_values(“预测排名”, 升序=False)
+
+
+我现在陷入困境，无法计算 map@k、hit@k、mrr、ndcg@k 等指标。如果有人可以帮忙，请解释如何解释 lgbm 模型预测，以便进一步计算测试数据集上的指标
+def hit_rate(y_true, y_pred, k=5):
+    点击数 = 0
+    对于 true，pred 在 zip(y_true, y_pred) 中：
+        top_indices = np.argsort(pred)[::-1][:k]
+        如果 top_indices 为 true：
+            命中数 += 1
+    返回命中数 / len(y_true)
+hit_rate(y_test, y_pred )
+0.0
+
+我尝试计算命中率，但得到了 0]]></description>
+      <guid>https://stackoverflow.com/questions/78379350/lightgbm-ranking-metrics</guid>
+      <pubDate>Wed, 24 Apr 2024 14:48:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于 Sklearn 中的 jaccard_score</title>
+      <link>https://stackoverflow.com/questions/78378954/about-jaccard-score-in-sklearn</link>
+      <description><![CDATA[我遇到了 jaccard_score 函数的问题 (jaccard_score(ground_true, inference,average=“micro”, Zero_division=0))。我没有足够的内存来存储验证的所有 ground_truth 和推论。因此，我所做的是将每个批次的 Jaccard 分数求和到一个变量，并在验证结束时将该变量除以批次数。通过这种方法，我获得的结果为 0.8084487056909495。然而，当我使用容量更大的计算机来处理数据，并一次处理所有ground_truth和mask时，我得到一个像0.7716579100568796这样的值。有人能解释一下为什么会发生这种情况吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78378954/about-jaccard-score-in-sklearn</guid>
+      <pubDate>Wed, 24 Apr 2024 13:49:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么 scikit-learn 的 QDA 警告我“变量共线”——我该怎么办？</title>
+      <link>https://stackoverflow.com/questions/78378679/why-is-qda-of-scikit-learn-warning-me-variables-are-collinear-what-can-i-do</link>
+      <description><![CDATA[在训练中运行 QuadraticDiscriminationAnalysis (QDA) 和 .fit，然后调用 .predict 来预测多项分类时，我收到警告：
+“discriminant_analysis.py:935：UserWarning：变量共线 warnings.warn(“变量共线”)”
+此后，程序不会崩溃，但会导致分类非常差，通常为 20%，而 scikit-learn 中的许多其他分类器对同一数据集（包括 LDA）的准确率为 80% 到 90%。&lt; /p&gt;
+从本论坛之前对问题的回答中，我意识到，当它认为 X 矩阵是线性相关的时，即至少其中一个向量可以由其他向量的线性组合生成时，就会发生这样的警告。在这种情况下，算法的矩阵求逆所产生的误差很大 - 我假设这就是分类精度如此差的原因。
+但是，我知道 X 矩阵不是线性相关的。所以我假设它失败可能是因为 X 矩阵接近线性相关，并且在这些条件下矩阵的求逆并不精确。
+假设这就是问题所在，有没有更好的方法来得到X矩阵求逆，从而得到的误差更小，分类精度更高？
+（同样，由于 LDA 从相同的数据集（即 X 矩阵）中生成了良好的精度，因此此例程中的矩阵求逆很好 - 那么为什么它在 QDA 中失败？）
+我正在使用 scikit-learn 版本 1.3.0、Python 3.8 和 Anaconda 包管理器。更改为 scikit-learn 1.2.0 会生成相同的警告。
+我多次尝试运行该程序，但总是得到这个结果。
+非常感谢，N。]]></description>
+      <guid>https://stackoverflow.com/questions/78378679/why-is-qda-of-scikit-learn-warning-me-variables-are-collinear-what-can-i-do</guid>
+      <pubDate>Wed, 24 Apr 2024 13:04:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>ValueError：输入 X 包含 NaN。 SVR 不接受原生编码为 NaN 的缺失值</title>
+      <link>https://stackoverflow.com/questions/78378560/valueerror-input-x-contains-nan-svr-does-not-accept-missing-values-encoded-as</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78378560/valueerror-input-x-contains-nan-svr-does-not-accept-missing-values-encoded-as</guid>
+      <pubDate>Wed, 24 Apr 2024 12:44:18 GMT</pubDate>
+    </item>
     <item>
       <title>为什么在用平均值或中位数替换数据集中的 NaN 值后会得到“inf”值？</title>
       <link>https://stackoverflow.com/questions/78378193/why-do-i-get-inf-values-after-replacing-nan-values-in-my-dataset-with-the-mean</link>
-      <description><![CDATA[我正在使用 Python，并且有一个包含 NaN 值的数据集。为了清理这些数据，我使用 pandas 的 fillna() 函数将 NaN 值替换为每列的平均值或中位数。然而，在此操作之后，我的数据集中的一些值变成了“inf”。我不明白为什么会发生这种情况以及如何解决这个问题。]]></description>
+      <description><![CDATA[我正在使用 Python，并且有一个包含 NaN 值的数据集。为了清理这些数据，我使用 pandas 的 fillna() 函数将 NaN 值替换为每列的平均值或中位数。然而，在此操作之后，我的数据集中的一些值变成了“inf”。我不明白为什么会发生这种情况以及如何解决此问题。]]></description>
       <guid>https://stackoverflow.com/questions/78378193/why-do-i-get-inf-values-after-replacing-nan-values-in-my-dataset-with-the-mean</guid>
       <pubDate>Wed, 24 Apr 2024 11:45:41 GMT</pubDate>
     </item>
     <item>
       <title>无法使用数据数组 1*10201 编写机器学习模型</title>
       <link>https://stackoverflow.com/questions/78377490/can-t-coding-machine-learning-model-with-data-array-110201</link>
-      <description><![CDATA[我已经编写了拓扑优化代码，并希望使用从拓扑优化循环收集的数据作为数据帧来添加机器学习，如图所示，J_old 每列都有一个值，但 lamda 和灵敏度值​​是 1*10201 数组，灵敏度是我希望该模型预测的输出目标
+      <description><![CDATA[我已经编写了拓扑优化代码，并希望使用从拓扑优化循环收集的数据作为数据帧来添加机器学习，如图所示，J_old 每列都有一个值，但 lamda 和敏感度值​​是 1*10201 数组，灵敏度是我希望该模型预测的输出目标
 我用如图所示的数据编码机器学习模型
 数据
 而且，我希望 x_data 成为“J_old”和“lamda”列中的数据，我该怎么做？？
@@ -29,7 +167,7 @@ x_train, x_test, y_train, y_test = train_test_split(x_data1, y_data1, test_size=
 input_data = tf.placeholder(tf.float32, (None, 40, 40, 2), name=&#39;input_data&#39;) #输入大小=40
 model_dens = model.add(Dense(units=64,activation=&#39;softmax&#39;)) #dense 中的单位 = 64, softmax = 输出为数组
 output_true = tf.placeholder(tf.float32, (None, 40, 40, 1), name=&#39;output_true&#39;) #输入大小=40
-学习率 = tf.placeholder(tf.float32, [], name=&#39;learning_rate&#39;)
+Learning_rate = tf.placeholder(tf.float32, [], name=&#39;learning_rate&#39;)
 
 model.compile（优化器=&#39;adam&#39;，损失=&#39;mean_squared_error&#39;，指标=[&#39;mae&#39;]）
 #model.fit(x=trainX, y=trainY,validation_data=(testX, testY),epochs=200)
@@ -49,7 +187,7 @@ TypeError Traceback（最近一次调用最后一次）
      20 # 打印模型摘要
      21 模型.summary()
 
-文件/usr/local/lib/python3.10/dist-packages/keras/src/utils/traceback_utils.py:122，位于filter_traceback..error_handler(*args, **kwargs)
+文件 /usr/local/lib/python3.10/dist-packages/keras/src/utils/traceback_utils.py:122，位于filter_traceback..error_handler(*args, **kwargs)
     第119章
     120 # 要获取完整的堆栈跟踪，请调用：
     121 # `keras.config.disable_traceback_filtering()`
@@ -69,80 +207,6 @@ TypeError Traceback（最近一次调用最后一次）
 我该如何修复这个错误？]]></description>
       <guid>https://stackoverflow.com/questions/78377490/can-t-coding-machine-learning-model-with-data-array-110201</guid>
       <pubDate>Wed, 24 Apr 2024 09:52:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>顺序最小优化器的训练损失曲线上的峰值</title>
-      <link>https://stackoverflow.com/questions/78377148/spikes-on-training-loss-curve-of-sequential-minimal-optimizer</link>
-      <description><![CDATA[我正在尝试实现一个具有硬边距的 SMO 优化器来解决大边距分类器，但是，我注意到训练损失曲线上有奇怪的尖峰（我正在使用铰链损失），我做了什么吗错了？
-我的代码
-将 numpy 导入为 np
-将 matplotlib.pyplot 导入为 plt
-导入时间
-
-np.随机.种子(0)
-
-
-def SMO_impl(no_of_points):
-#数据点生成
-    区域_abc = []
-    区域_bcd = []
-
-    while(len(region_abc) &lt; no_of_points 或 len(region_bcd) &lt; no_of_points):
-        new_point = np.random.uniform(0,1,(2,))
-        if(new_point[1]&gt;new_point[0] 且 len(region_bcd) &lt; no_of_points):
-            Region_bcd.append(new_point)
-        elif(new_point[1] 容差且 alphas[i] &gt; 0)):
-                j = pick_j(i,len(数据点))
-                error_j = sum([alphas[k]*y[k]*np.dot(data_points[j],data_points[k]) for k in range(len(data_points))]) + b - y[j]
-
-                old_alpha_i, old_alpha_j = alphas[i], alphas[j]
-
-                L = max(0, alphas[j] - alphas[i]) 如果 y[i] != y[j] 否则 max(0, alphas[i] + alphas[j] - C)
-                H = min(C, C + alphas[j] - alphas[i]) 如果 y[i] != y[j] else min(C, alphas[i] + alphas[j])
-
-                如果 L == H：
-                    继续
-
-                eta = 2* np.dot(data_points[i], data_points[j]) - np.dot(data_points[i], data_points[i]) - np.dot(data_points[j], data_points[j])
-                如果（eta &gt;= 0）：
-                    继续
-                new_alpha_j = alphas[j] - y[j] * (error_i - error_j) / eta
-                new_alpha_j = np.clip(new_alpha_j, L, H)
-
-                阿尔法[j] = new_alpha_j
-                if(np.abs(alphas[j]-old_alpha_j)&lt;0.00001):
-                    继续
-                alphas[i] = alphas[i] + y[i]*y[j]*(old_alpha_j-alphas[j])
-
-                b1 = b - error_i - y[i]*(old_alpha_i-alphas[i])*np.dot(data_points[i],data_points[i])- y[j]*(old_alpha_j-alphas[j])*np .dot(数据点[i],数据点[j])
-                b2 = b - error_j - y[i]*(old_alpha_i-alphas[i])*np.dot(data_points[i],data_points[j]) - y[j]*(old_alpha_j-alphas[j])*np .dot(数据点[j],数据点[j])
-
-                if(alphas[i]&gt;0):
-                    b = b1
-                elif(alphas[j]&gt;0):
-                    b = b2
-                别的：
-                    b = (b1+b2)/2
-                改变的阿尔法 += 1
-        总损失 = sum([hinge_loss(alphas, y, data_points,i,b) for i in range(len(data_points))]) / len(data_points)
-                         
-        损失.append(total_loss)
-        迭代 = 迭代 + 1 if(changed_alphas==0) else 0
-
-    #训练损失曲线
-
-    plt.plot(losses, label = f&#39;每组有 {no_of_points} 点的训练损失曲线&#39;)
-    plt.title(f&#39;每组有 {no_of_points} 点的训练损失曲线&#39;)
-
- 
-SMO_impl(20)
-
-曲线
-在此处输入图片描述
-忽略以下内容
-（看起来我的帖子主要是代码；添加更多细节。看起来我的帖子主要是代码；添加更多细节。）]]></description>
-      <guid>https://stackoverflow.com/questions/78377148/spikes-on-training-loss-curve-of-sequential-minimal-optimizer</guid>
-      <pubDate>Wed, 24 Apr 2024 08:59:54 GMT</pubDate>
     </item>
     <item>
       <title>尽管 GPU 可用，但 CUDA 设置失败</title>
@@ -194,153 +258,7 @@ Cuda 编译工具，版本 12.1，V12.1.66
       <pubDate>Wed, 24 Apr 2024 07:18:58 GMT</pubDate>
     </item>
     <item>
-      <title>合并两个不同的人工智能模型</title>
-      <link>https://stackoverflow.com/questions/78376582/merging-two-different-ai-models</link>
-      <description><![CDATA[我已经训练了两个模型，一个用于模糊检测，另一个用于两个不同数据集的曝光分类，现在我想合并这两个模型以获得执行这两项任务的单个组合模型
-我希望组合模型通过将单个图像作为输入来预测模糊和曝光]]></description>
-      <guid>https://stackoverflow.com/questions/78376582/merging-two-different-ai-models</guid>
-      <pubDate>Wed, 24 Apr 2024 07:14:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>训练 DL 模型时，本地集合点正在中止，状态为：OUT_OF_RANGE：序列结束</title>
-      <link>https://stackoverflow.com/questions/78376338/while-training-dl-model-local-rendezvous-is-aborting-with-status-out-of-range</link>
-      <description><![CDATA[我正在创建一个植物病害识别模型。我有一个包含 38 种疾病的数据集，每种疾病有大约 2000 张图像。但是在训练模型时，由于一些 OUT_OF_RANGE 错误，一些时期被跳过。有人可以帮我解决这个问题吗？
-导入操作系统
-从tensorflow.keras.preprocessing.image导入ImageDataGenerator
-从tensorflow.keras.models导入顺序
-从tensorflow.keras.layers导入Conv2D、MaxPooling2D、展平、密集、输入
-
-train_dir = &#39;数据集/火车&#39;
-valid_dir = &#39;数据集/有效&#39;
-批量大小 = 32
-
-train_datagen = 图像数据生成器(
-    重新缩放=1./255，
-    旋转范围=40，
-    宽度偏移范围=0.2，
-    height_shift_range=0.2，
-    剪切范围=0.2，
-    缩放范围=0.2，
-    水平翻转=真，
-    fill_mode=&#39;最近&#39;
-）
-
-valid_datagen = ImageDataGenerator(重新缩放=1./255)
-
-train_generator = train_datagen.flow_from_directory(
-    火车目录，
-    目标大小=(150, 150),
-    批量大小=批量大小，
-    class_mode=&#39;分类&#39;
-）
-
-valid_generator = valid_datagen.flow_from_directory(
-    有效目录，
-    目标大小=(150, 150),
-    批量大小=批量大小，
-    class_mode=&#39;分类&#39;
-）
-
-模型=顺序（[
-    输入(形状=(150, 150, 3)),
-    Conv2D(32, (3, 3), 激活=&#39;relu&#39;),
-    最大池化2D(2, 2),
-    Conv2D(64, (3, 3), 激活=&#39;relu&#39;),
-    最大池化2D(2, 2),
-    Conv2D(128, (3, 3), 激活=&#39;relu&#39;),
-    最大池化2D(2, 2),
-    展平（），
-    密集（512，激活=&#39;relu&#39;），
-    Dense(38,activation=&#39;softmax&#39;) # 根据疾病类别的数量调整输出单位
-]）
-
-model.compile(optimizer=&#39;adam&#39;,loss=&#39;categorical_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
-
-历史=模型.fit(
-    火车发电机，
-    steps_per_epoch=train_generator.samples //batch_size,
-    纪元=10，
-    验证数据=有效生成器，
-    valid_steps=valid_generator.samples // 批量大小
-）
-
-model.save(&#39;plant_disease_model.h5&#39;)
-
-class_indices = train_generator.class_indices
-疾病名称 = 列表(class_indices.keys())
-print(“类索引到疾病名称的映射：”, class_indices)
-
-终端：
-找到属于 38 个类别的 70295 个图像。
-找到属于 38 个类别的 17572 张图像。
-2024-04-23 19：50：32.085744：我tensorflow / core / platform / cpu_feature_guard.cc：210]此TensorFlow二进制文件经过优化以使用可用的CPU仪器
-性能关键操作中的操作。
-要启用以下指令：AVX2 FMA，在其他操作中，使用适当的编译器标志重建 TensorFlow。
-纪元 1/10
-\.venv\Lib\site-packages\keras\src\trainers\data_adapters\py_dataset_adapter.p
-y：120：用户警告：您的“PyDataset”类应在其构造函数中调用“super().__init__(**kwargs)”。 `**kwargs` 可以包括 `workers`、`use_m
-ultiprocessing`、`max_queue_size`。不要将这些参数传递给“fit()”，因为它们将被忽略。
-  self._warn_if_super_not_used()
-←[1m2196/2196←[0m ←[32m–––––––––––––––––––←[0m←[37m←[0m ←[1m905s←[0m 411ms/步]]准确度：0.4608 - 损失：1.8737 - val_accuracy：0.7432 - val_
-损失：0.8556
-纪元 2/10
-←[1m 1/2196←[0m ←[37m–––––––––––––––––––←[0m ←[1m12:02←[0m 329ms/步 - 精度: 0.6875] -损失：0.78202024-04-23 20:05:37.996528：W张量
-ow/core/framework/local_rendezvous.cc:404] 本地集合点正在中止，状态为：OUT_OF_RANGE：序列结束
-         [[{{节点It​​eratorGetNext}}]]
-C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\contextlib.py:155: UserWarning: 您的输入数据不足；中断训练。嘛
-确保您的数据集或生成器至少可以生成“steps_per_epoch * epochs”批次。您可能需要使用`.repeat()`函数
-构建您的数据集。
-  self.gen.throw（类型，值，回溯）
-2024-04-23 20:05:38.068817：W tensorflow/core/framework/local_rendezvous.cc:404] 本地集合点正在中止，状态为：OUT_OF_RANGE：结束
-顺序
-         [[{{节点It​​eratorGetNext}}]]
-←[1m2196/2196←[0m ←[32m–––––––––––––––––––←[0m←[37m←[0m ←[1m0s←[0m 49us/步]]准确度：0.6875 - 损失：0.7820 - val_accuracy：0.7500 - val_los
-秒：0.2462
-
-如上所示，epoch 1 已成功完成，但 epoch 2 由于某些错误而终止。同样，epoch 3、5、7、9 成功完成，但 epoch 4、6、8、10 出现错误。]]></description>
-      <guid>https://stackoverflow.com/questions/78376338/while-training-dl-model-local-rendezvous-is-aborting-with-status-out-of-range</guid>
-      <pubDate>Wed, 24 Apr 2024 06:27:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>优化问题的软件方法？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78376279/software-approach-for-optimization-problem</link>
-      <description><![CDATA[我陷入了优化问题，不知道从哪里着手。这些是问题的条件和整体背景：
-我们有一组类型的产品，每种类型都有在生产线上执行的几个步骤。
-生产线由7台机器组成
-例如，产品可以通过步骤（或机器）编号 1、5 和 7
-产品用货车运送到不同的机器上，总共有3辆货车。我根据一些推理确定了货车是这样划分的：货车 1 机器 1 到 5 都包括在内，货车 2 机器 2 到 4 都包括在内，货车 3 机器 5 到 7 都包括在内。货车不能碰撞，每台机器一次只能加工一种产品。机器 1 用于入口，只能通过货车 1 进入，机器 7（出口机器）只能通过货车 3 进入
-我们的目标是优化生产，以便一年至少生产 70,000 件。我必须找到不同类型产品进入生产线的顺序（例如：A、D、E、K、 C ....) 使单位总数最大化
-产品列表及其必须执行的顺序如下所示：
-
-A 3 7 10
-B 3 7 9 10
-C 3 7 10
-D 3 6 7 10
-E 3 6 7 8 9 10
-F 3 4 6 7 10
-G 3 4 6 7 8 9 10
-H 3 4 9 6 9 7 10
-我3 4 6 7 10
-J 3 4 6 7 8 9 10
-K 3 4 6 7 8 9 10
-L 3 5 9 6 7 4 5 9 6 9 7 10
-中号3 5 9 6 7 4 5 9 6 9 7 10
-
-我们有在每台机器上花费的时间。
-我正在考虑是否使用某种优化，例如杰克逊定律，与优化相关的东西，或者遗传算法，甚至强化学习。你有什么看法？
-我正在考虑是否使用某种优化，例如杰克逊定律，与优化相关的东西，或者遗传算法，甚至强化学习。你有什么看法？]]></description>
-      <guid>https://stackoverflow.com/questions/78376279/software-approach-for-optimization-problem</guid>
-      <pubDate>Wed, 24 Apr 2024 06:08:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>PyTorch 的 DDP 在扩散模型训练中的运行时错误</title>
-      <link>https://stackoverflow.com/questions/78376085/runtime-error-with-pytorchs-ddp-in-the-diffusion-model-training</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78376085/runtime-error-with-pytorchs-ddp-in-the-diffusion-model-training</guid>
-      <pubDate>Wed, 24 Apr 2024 05:05:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法过度拟合多项式回归？</title>
+      <title>未能过度拟合多项式回归？</title>
       <link>https://stackoverflow.com/questions/78374435/failing-to-overfit-polynomial-regression</link>
       <description><![CDATA[我正在尝试将多项式回归过拟合到正弦曲线。据我所知，当有 N 数据样本和多项式次数 N-1 时，曲线应该穿过所有数据点，但是，在我的例如这不会发生。
 我的代码如下：
@@ -373,6 +291,79 @@ plt.show()
       <pubDate>Tue, 23 Apr 2024 18:44:44 GMT</pubDate>
     </item>
     <item>
+      <title>如何使用 TimeSeriesSplit 处理面板数据？</title>
+      <link>https://stackoverflow.com/questions/78370489/how-to-use-timeseriessplit-for-panel-data</link>
+      <description><![CDATA[我一直在尝试使用TimeSeriesSplit对于面板数据。我所说的面板数据是指人口的年度图片。我对多年来的数据分割很感兴趣。该人口正在不断变化，每年的人口规模并不相同。因此，直接使用 TimeSeriesSplit 是不可能的。
+基本上我试图获得以下简历方案：
+
+我设法使用以下代码来做到这一点：
+将 pandas 导入为 pd，将 numpy 导入为 np
+将seaborn导入为sns，将matplotlib.pyplot导入为plt
+
+从 sklearn.datasets 导入 make_regression
+从 sklearn.dummy 导入 DummyRegressor
+从 sklearn.metrics 导入mean_squared_error
+从 sklearn.model_selection 导入 TimeSeriesSplit
+
+X_测试，y_测试 = []，[]
+
+开始年份 = 2010
+年底 = 2020 年
+
+对于 np.arange(start_year, end_year+1) 中的年份：
+    X_year, y_year = make_regression(n_samples=5+year-start_year, n_features=2, 偏差=100, 噪声=1, random_state=year)
+    X_year = pd.DataFrame(X_year).rename(columns={0:&#39;X1&#39;, 1:&#39;X2&#39;})
+    X_year[&#39;年份&#39;] = 年
+    y_year = pd.Series(y_year)
+    X_test.append(X_year)
+    y_test.append(y_year)
+    
+X_test, y_test = pd.concat(X_test), pd.concat(y_test)
+
+# 建模
+
+X = X_测试
+y = y_测试
+年 = np.unique(X_test[&#39;year&#39;])
+
+# 建模
+模型= DummyRegressor（策略=“平均值”）
+指标=均方误差
+cv = TimeSeriesSplit(n_splits=len(年)-1)
+
+年数=[]
+分辨率=[]
+
+对于 i，枚举（cv.split（years））中的（train_year，test_year）：
+    
+    print(f&quot;折叠 {i}:&quot;)
+    print(f&quot;火车：索引={years[train_year]}&quot;)
+    print(f&quot;测试：index={years[test_year]}&quot;)
+    
+    years_folds.append((years[train_year],years[test_year]))
+    
+    train_filter = X[&#39;year&#39;].isin(years[train_year])
+    test_filter = X[&#39;year&#39;].isin(years[test_year])
+    
+    X_train, y_train = X.loc[train_filter.values], y[train_filter.values]
+    X_test, y_test = X.loc[test_filter.values], y[test_filter.values]
+    
+    model.fit(X_train, y_train)
+    分数 = 指标(model.predict(X_test), y_test)
+    print(f&#39; {score=:.3}&#39;)
+    res.append((年份[test_year][0], 分数))
+
+情节_年份_折叠（年份_折叠）
+    
+Folds_res = pd.DataFrame(res,columns=[&#39;test_year&#39;, metric.__name__])
+Folds_res.plot.scatter(x=&#39;test_year&#39;, y=metric.__name__, title=f&#39;{metric.__name__} over test_year&#39;);
+
+注意：我使用虚拟数据集和虚拟模型是为了提供运行示例。这不是我帖子的主题。
+正如您所注意到的，我必须使用一个技巧：我分割年份而不是数据。我想知道：是否有一种标准方法可以使用 sklearn cv 对象分割数据？目标是在 cross_val_score 函数中使用它。]]></description>
+      <guid>https://stackoverflow.com/questions/78370489/how-to-use-timeseriessplit-for-panel-data</guid>
+      <pubDate>Tue, 23 Apr 2024 07:14:30 GMT</pubDate>
+    </item>
+    <item>
       <title>如何在 Python 中制作人工智能驱动的自学习聊天机器人 [关闭]</title>
       <link>https://stackoverflow.com/questions/78370101/how-to-make-ai-powered-self-learning-chatbot-in-python</link>
       <description><![CDATA[我一直在尝试用 Python 制作一个自学习聊天机器人，并尝试了不同的库，如 NLTK、TensorFlow、ChatBot 和 PyTorch，但所有这些库都在处理预定义的训练数据。我找不到任何选项来根据给定的输入自行训练模型并尝试不同类型的数据集。
@@ -382,109 +373,12 @@ plt.show()
       <pubDate>Tue, 23 Apr 2024 05:44:52 GMT</pubDate>
     </item>
     <item>
-      <title>valueerror: 层“model_2”的输入 0 与该层不兼容：预期形状=(none, 128, 128, 3)，发现形状=(1, 224, 224, 3)</title>
-      <link>https://stackoverflow.com/questions/78361052/valueerror-input-0-of-layer-model-2-is-incompatible-with-the-layer-expected</link>
-      <description><![CDATA[我正在尝试使用 cnn 模型和 Streamlit UI 进行疟疾检测。但它显示“valueerror：层“model_2”的输入0”的错误与层不兼容：预期形状=(无, 128, 128, 3)，发现形状=(1, 224, 224, 3)”用于预测。
-错误消息：
-ValueError：层“model_2”的输入 0与图层不兼容：预期形状=(无, 128, 128, 3)，发现形状=(1, 224, 224, 3)
-
-回溯：
-文件“C:\Users\HP\.conda\envs\DiseasePredictionSystem\Lib\site-packages\streamlit\runtime\scriptrunner\script_runner.py”，第 584 行，位于 _run_script
-    exec（代码，模块.__dict__）
-文件“C:\Users\HP\Desktop\多种疾病预测系统\多种疾病pred.py”，第361行，在&lt;模块&gt;中。
-    结果 = malaria_model.predict(final_image)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-文件“C:\Users\HP\.conda\envs\DiseasePredictionSystem\Lib\site-packages\keras\src\utils\traceback_utils.py”，第 122 行，位于 error_handler 中
-    从 None 引发 e.with_traceback(filtered_tb)
-文件“C:\Users\HP\.conda\envs\DiseasePredictionSystem\Lib\site-packages\keras\src\layers\input_spec.py”，第 245 行，位于assert_input_compatibility 中
-    引发值错误（
-
-这是我与 CNN 模型交互的 UI：
-
-这是我用于该项目的 UI 文件。
-malaria_model = tf.keras.models.load_model(r&#39;C:\Users\HP\Desktop\多种疾病预测系统\保存的模型\malaria.h5&#39;)
-#疟疾预测页面
-如果选择==“疟疾疾病预测”：
-
-     ＃页面标题
-     st.title(&#39;使用机器学习预测疟疾&#39;)
-     
-     IMG_大小 = 224
-     def resize_rescale(图像):
-          返回 tf.image.resize(图像, (IMG_SIZE, IMG_SIZE))/255.0
-
-     uploaded_image = st.file_uploader(&quot;上传图片&quot;, type=[&quot;jpg&quot;, &quot;png&quot;, &quot;jpeg&quot;])
-
-     如果 uploaded_image 不是 None：
-    # 显示上传的图片
-         st.image（uploaded_image，caption =“上传的图像”，use_column_width = False）
-         图像 = Image.open(上传的图像)
-    
-    # 处理图像（例如，执行图像分析）
-
-     if st.button(“PREDICT”)：
-         image_array = tf.keras.preprocessing.image.img_to_array(图像)
-
-    # 将 NumPy 数组转换为 TensorFlow 张量
-         张量图像 = tf.convert_to_tensor(image_array)
-         张量图像 = tf.expand_dims(张量图像，轴=0)
-    
-         最终图像=调整大小重新缩放（张量图像）
-
-         结果 = malaria_model.predict(final_image)
-
-         如果结果[0][0] &lt; 0.5：
-            st.header(“寄生虫”)
-         别的：
-            st.header(“未感染”)
-
-这是我用于该项目的参考代码文件：https://github.com/kanchitank/Medibuddy-Smart-Disease-Predictor/blob/main/notebooks/malaria.ipynb]]></description>
-      <guid>https://stackoverflow.com/questions/78361052/valueerror-input-0-of-layer-model-2-is-incompatible-with-the-layer-expected</guid>
-      <pubDate>Sun, 21 Apr 2024 09:40:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>通过 Keras 训练同时检查不同类型的数据</title>
-      <link>https://stackoverflow.com/questions/78348894/simultaneously-going-over-different-kinds-of-data-with-keras-training</link>
-      <description><![CDATA[在回归任务中，我得到以下数据：
-
-具有已知标签的输入向量。 MSE损失应该用在预测和标签之间。
-没有标签的输入向量对，已知模型应给出相似的结果。应在两个预测之间使用 MSE 损失。
-
-同时将这两种数据拟合 Keras 模型的正确方法是什么？
-理想情况下，我希望火车循环以交错的方式迭代这两种类型 - 一个有监督的（1）批次，然后是一个自我监督的（2）批次，然后再次监督，等等。
-如果重要的话，我正在使用 Jax 后端。 Keras 版本 3.2.1。]]></description>
-      <guid>https://stackoverflow.com/questions/78348894/simultaneously-going-over-different-kinds-of-data-with-keras-training</guid>
-      <pubDate>Thu, 18 Apr 2024 16:05:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>用于多标签分类的 CLIP</title>
-      <link>https://stackoverflow.com/questions/74927358/clip-for-multi-label-classification</link>
-      <description><![CDATA[我正在使用 CLIP 来确定单词和图像之间的相似性。
-现在我正在使用这个 repo 和以下代码，对于分类它给出了很好的结果。我需要它来进行多标签分类，其中我需要使用 sigmoid 而不是 softmax。
-导入火炬
-从 PIL 导入图像
-导入 open_clip
-
-模型, _, 预处理 = open_clip.create_model_and_transforms(&#39;ViT-B-32-quickgelu&#39;, pretrained=&#39;laion400m_e32&#39;)
-tokenizer = open_clip.get_tokenizer(&#39;ViT-B-32-quickgelu&#39;)
-
-图像 = 预处理(Image.open(&quot;CLIP.png&quot;)).unsqueeze(0)
-text = tokenizer([“图表”, “一只狗”, “一只猫”])
-
-与 torch.no_grad(), torch.cuda.amp.autocast():
-    image_features = model.encode_image(图像)
-    text_features = model.encode_text(text)
-    image_features /= image_features.norm(dim=-1, keepdim=True)
-    text_features /= text_features.norm(dim=-1, keepdim=True)
-
-    text_probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
-
-print(“标签概率：”, text_probs) # 打印：[[1., 0., 0.]]
-
-现在我想将它用于多类别。例如，如果我们有图像狗和猫，我希望两者都有很高的概率，所以我需要用 sigmoid 运行它。但这给我的结果都是 0.55 左右，正确的类别是 0.56，错误的类别是 0.54，所以像这样的 [0.54, 0.555, 0.56]。我希望在使用 sigmoid 后得到类似 [0.01, 0.98, 0.99] 的结果。
-我在那里做错了什么？我怎样才能得到我想要的结果？]]></description>
-      <guid>https://stackoverflow.com/questions/74927358/clip-for-multi-label-classification</guid>
-      <pubDate>Tue, 27 Dec 2022 08:56:22 GMT</pubDate>
+      <title>最后一个维度的有效乘法</title>
+      <link>https://stackoverflow.com/questions/78344508/effective-multiplication-over-last-dimension</link>
+      <description><![CDATA[我有两个火炬张量 - A 形状为 (15, 100, 256) 和 B 形状为 (120, 2010, 256)。如何对最后一个维度进行有效乘法并获得形状 (15, 100, 120, 2010) 的张量。我尝试了类似 torch.einsum(&#39;ijk, mnk -&gt; ijmn&#39;, A, B) 的方法，但据我了解，这种方法隐式创建中间张量并需要大量内存和时间。我还尝试了 opt_einsum 库，但与 torch.einsum 相比，在时间和内存使用方面没有看到很大的差异
+当然，我可以在循环中完成它，但我想要得到在时间和内存使用方面都有效的解决方案。预先感谢您]]></description>
+      <guid>https://stackoverflow.com/questions/78344508/effective-multiplication-over-last-dimension</guid>
+      <pubDate>Thu, 18 Apr 2024 02:13:36 GMT</pubDate>
     </item>
     <item>
       <title>迭代重新加权最小二乘法</title>
@@ -496,7 +390,7 @@ print(“标签概率：”, text_probs) # 打印：[[1., 0., 0.]]
 def y(X, w):
     返回 sigmoid(X.dot(w))
 
-定义 R(y)：
+定义 R(y):
     R = np.identity(y.size)
     R = R*(y*(1-y))
     返回R
@@ -517,6 +411,94 @@ def irls(X, t):
 感谢任何帮助指出我出错的地方。]]></description>
       <guid>https://stackoverflow.com/questions/62116804/iterative-reweighted-least-squares</guid>
       <pubDate>Sun, 31 May 2020 13:15:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 OneHotEncoder 时出现错误“预期为 2D 数组，改为 1D 数组”</title>
+      <link>https://stackoverflow.com/questions/47957151/error-expected-2d-array-got-1d-array-instead-using-onehotencoder</link>
+      <description><![CDATA[我是机器学习的新手，正在尝试解决使用 OneHotEncoder 类遇到的错误。错误是：“预期是二维数组，却得到了一维数组”。因此，当我想到一维数组时，它类似于： [1,4,5,6] ，而二维数组则为 [[2,3], [3,4], [ 5,6]]，但我仍然无法弄清楚为什么会失败。这条线失败了：
+X[:, 0] = onehotencoder1.fit_transform(X[:, 0]).toarray()
+
+这是我的完整代码：
+# 导入库
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+将 pandas 导入为 pd
+
+# 导入数据集
+数据集 = pd.read_csv(&#39;Data2.csv&#39;)
+X = dataset.iloc[:, :-1].values
+y = dataset.iloc[:, 5].values
+df_X = pd.DataFrame(X)
+df_y = pd.DataFrame(y)
+
+# 替换缺失值
+从 sklearn.preprocessing 导入 Imputer
+imputer = Imputer（missing_values =&#39;NaN&#39;，策略=&#39;平均值&#39;，轴= 0）
+imputer = imputer.fit(X[:, 3:5 ])
+X[:, 3:5] = imputer.transform(X[:, 3:5])
+
+
+# 对分类数据“名称”进行编码
+从 sklearn.preprocessing 导入 LabelEncoder、OneHotEncoder
+labelencoder_x = LabelEncoder()
+X[:, 0] = labelencoder_x.fit_transform(X[:, 0])
+
+# 转化为矩阵
+onehotencoder1 = OneHotEncoder(categorical_features = [0])
+X[:, 0] = onehotencoder1.fit_transform(X[:, 0]).toarray()
+
+# 编码分类数据“大学”
+从 sklearn.preprocessing 导入 LabelEncoder
+labelencoder_x1 = LabelEncoder()
+X[:, 1] = labelencoder_x1.fit_transform(X[:, 1])
+
+我确信您可以通过这段代码看出我有两列是标签。我使用标签编码器将这些列转换为数字。我想使用 OneHotEncoder 更进一步，将它们转换为一个矩阵，这样每一行都会有这样的内容： 
+
+&lt;前&gt;&lt;代码&gt;0 1 0
+1 0 1
+
+我唯一想到的是我如何对标签进行编码。我一项一项地做，而不是一次全部做。不确定这就是问题所在。
+我希望做这样的事情：
+# 编码分类数据“名称”
+从 sklearn.preprocessing 导入 LabelEncoder、OneHotEncoder
+labelencoder_x = LabelEncoder()
+X[:, 0] = labelencoder_x.fit_transform(X[:, 0])
+
+# 转化为矩阵
+onehotencoder1 = OneHotEncoder(categorical_features = [0])
+X[:, 0] = onehotencoder1.fit_transform(X[:, 0]).toarray()
+
+# 编码分类数据“大学”
+从 sklearn.preprocessing 导入 LabelEncoder、OneHotEncoder
+labelencoder_x1 = LabelEncoder()
+X[:, 1] = labelencoder_x1.fit_transform(X[:, 1])
+
+# 转化为矩阵
+onehotencoder2 = OneHotEncoder(categorical_features = [1])
+X[:, 1] = onehotencoder1.fit_transform(X[:, 1]).toarray()
+
+下面你会发现我的整个错误：
+文件“/Users/jim/anaconda3/lib/python3.6/site-packages/sklearn/utils/validation.py”，第 441 行，在 check_array 中
+    “如果它包含单个样本。”.format(array))
+
+ValueError：需要 2D 数组，却得到 1D 数组：
+数组=[ 2.1.3.2.3.5.5.0.4.0.]。
+如果数据具有单个特征，则使用 array.reshape(-1, 1) 重塑数据；如果数据包含单个样本，则使用 array.reshape(1, -1) 重塑数据。
+
+任何朝着正确方向的帮助都会很棒。]]></description>
+      <guid>https://stackoverflow.com/questions/47957151/error-expected-2d-array-got-1d-array-instead-using-onehotencoder</guid>
+      <pubDate>Sun, 24 Dec 2017 00:27:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>AttributeError：模块“tensorflow.python.pywrap_tensorflow”没有属性“TFE_Py_RegisterExceptionClass”</title>
+      <link>https://stackoverflow.com/questions/46010571/attributeerror-module-tensorflow-python-pywrap-tensorflow-has-no-attribute-t</link>
+      <description><![CDATA[我正在尝试使用最新的可用资源来开发一些时间序列序列预测。为此，我确实检查了 TensorFlow 时间序列中的示例代码，但收到此错误：
+AttributeError：模块“tensorflow.python.pywrap_tensorflow”没有属性“TFE_Py_RegisterExceptionClass”
+
+我正在使用 Anaconda。当前环境是Python 3.5和TensorFlow 1.2.1。也尝试过 TensorFlow 1.3，但没有任何改变。
+这是我的代码尝试运行。我在谷歌上没有找到与该问题相关的任何有用信息。有什么解决办法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/46010571/attributeerror-module-tensorflow-python-pywrap-tensorflow-has-no-attribute-t</guid>
+      <pubDate>Sat, 02 Sep 2017 04:48:51 GMT</pubDate>
     </item>
     <item>
       <title>最大似然估计伪代码</title>
