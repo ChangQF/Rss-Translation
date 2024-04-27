@@ -4,7 +4,39 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 27 Apr 2024 09:13:20 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Apr 2024 12:22:57 GMT</lastBuildDate>
+    <item>
+      <title>如何访问和更新LSTM层的权重？</title>
+      <link>https://stackoverflow.com/questions/78394601/how-to-access-and-update-the-weight-of-the-lstm-layer</link>
+      <description><![CDATA[我使用 Tensorflow 2.17 版本构建了混合 CNN 和 LSTM 模型。我想向 LSTM 添加反向传播调整来修改 LSTM 层的权重。我尝试找到一种方法来访问权重进行计算并在 LSTM 训练期间更新权重。我做了一些研究，他们手动构建 LSTM，而不是应用 TensorFlow API。我只是好奇是否有一种方法可以获取权重，然后应用导数，最后在训练时进行更新。
+这是我的模型：
+ model_cnn = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(input_shape = input_data_shape,
+                               过滤器=256，
+                               内核大小=3，
+                               激活=&#39;线性&#39;，
+                               步幅=1，
+                               填充=“因果”），
+        tf.keras.layers.MaxPooling1D(pool_size=2),
+        tf.keras.layers.Conv1D（过滤器=128，
+                               内核大小=3，
+                               激活=&#39;线性&#39;，
+                               步幅=1，
+                               填充=“因果”），
+        tf.keras.layers.MaxPooling1D(pool_size=2),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.LSTM(16,return_sequences=True),
+        tf.keras.layers.LSTM(8,return_sequences=True),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(1)
+    ]）
+    返回 model_cnn
+
+
+我的期望是在混合 CNN 和 LSTM 模型的训练期间访问权重并更新权重。]]></description>
+      <guid>https://stackoverflow.com/questions/78394601/how-to-access-and-update-the-weight-of-the-lstm-layer</guid>
+      <pubDate>Sat, 27 Apr 2024 10:01:25 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用Python读取图像中的七段显示和徽标？</title>
       <link>https://stackoverflow.com/questions/78393841/how-to-read-seven-segment-display-and-logos-in-images-using-python</link>
@@ -44,58 +76,6 @@
       <pubDate>Fri, 26 Apr 2024 20:33:56 GMT</pubDate>
     </item>
     <item>
-      <title>在 Pytorch 中调整 Ray 进行无尽运行</title>
-      <link>https://stackoverflow.com/questions/78392510/tune-ray-in-pytorch-on-endless-run</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78392510/tune-ray-in-pytorch-on-endless-run</guid>
-      <pubDate>Fri, 26 Apr 2024 18:51:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>我们如何以优雅的方式捕获使用optimizer.step()完成的更新？</title>
-      <link>https://stackoverflow.com/questions/78392429/how-can-we-capture-update-done-with-optimizer-step-in-an-elegant-way</link>
-      <description><![CDATA[我想实现一种方法，在使用 PyTorch 进行训练期间在 Tensorboard 中监控更新与数据比率，按照 Karpathy 视频中提到的想法。我想出了一个解决方案，但我正在寻找一种更优雅、更可配置的方法。
-当前实现直接修改训练循环，如下所示：
-for step, batch in data_loader:
-x, y = batch
-optimizer.zero_grad()
-for name, param in model.named_pa​​rameters():
-if param.requires_grad and &quot;weight&quot; in name:
-param.data_before_step = param.data.clone()
-output = model(x)
-loss = loss_fn(output, y)
-loss.backward()
-optimizer.step()
-lr_scheduler.step()
-for name, param in model.named_pa​​rameters():
-if hasattr(param, &quot;data_before_step&quot;):
-update = param.data - param.data_before_step
-update_to_data = (update.std() / param.data_before_step.std()).log10().item()
-summary_writer.add_scalar(f&quot;Update:data ratio {name}&quot;, update_to_data, epoch * len(data_loader) + step)
-param.data_before_step = param.data.clone()
-
-但是，这种方法直接在训练循环中添加代码，这会使代码变得混乱如果我们想使其可配置，则需要 if-else 语句，这会使代码更加混乱。
-我也探索过使用 PyTorch hooks 来实现这一点。我已成功实现一个钩子来跟踪梯度：
-class GradToDataRatioHook:
-def __init__(self, name, param, start_step, summary_writer):
-self.name = name
-self.param = param
-self.summary_writer = summary_writer
-self.grads = []
-self.grads_to_data = []
-self.param.update_step = start_step
-
-def __call__(self, grad):
-self.grads.append(grad.std().item())
-self.grads_to_data.append((grad.std() / (self.param.data.std() + 1e-5)).log10().item())
-self.summary_writer.add_scalar(f&quot;Grad {self.name}&quot;, self.grads[-1], self.param.update_step)
-self.summary_writer.add_scalar(f&quot;Grad:data ratio {self.name}&quot;, self.grads_to_data[-1], self.param.update_step)
-self.param.update_step += 1
-
-但是，实现类似的钩子来捕获更新似乎很棘手。据我所知，param.register_hook(...) 注册钩子，在计算梯度时调用，即在调用 optimizer.step() 之前。虽然梯度和学习率为标准 SGD 提供了更新的直接值，但像 Adam 这样的现代优化器使更新过程变得有点复杂。我正在寻找一种以与优化器无关的方式捕获更新的解决方案，最好使用 PyTorch 钩子。但是，任何建议或替代方法也将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/78392429/how-can-we-capture-update-done-with-optimizer-step-in-an-elegant-way</guid>
-      <pubDate>Fri, 26 Apr 2024 18:32:22 GMT</pubDate>
-    </item>
-    <item>
       <title>我想从 pdf 中提取图像及其标题，并将这些带有标题的图像保存在 blob 存储中[关闭]</title>
       <link>https://stackoverflow.com/questions/78392387/i-want-to-extract-the-images-and-its-caption-from-the-pdf-and-save-those-images</link>
       <description><![CDATA[如何从 pdf 中提取图像及其标题并将这些带有标题的图像保存在 blob 存储中？我正在考虑我在 pdf 列表中的 20-30 pdf 上训练的对象检测模型。将 pdf 每页的转换图像传递给模型并获取边界框。但不管这是否有效。
@@ -105,14 +85,6 @@ self.param.update_step += 1
 我订阅了顶点 AI，因此如果我可以从中使用任何优势，请告诉我。]]></description>
       <guid>https://stackoverflow.com/questions/78392387/i-want-to-extract-the-images-and-its-caption-from-the-pdf-and-save-those-images</guid>
       <pubDate>Fri, 26 Apr 2024 18:23:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>用于无人机基地垃圾检测的 MSW 数据集 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78390012/msw-data-set-for-drone-base-garbage-detection</link>
-      <description><![CDATA[我的项目需要一个根据 MSW 进行标记和分类的城市固体废物数据集，该项目是使用 Raspberry Pi 进行无人机基础垃圾检测。
-我检查了 Kaggle &amp; Roboflow，但没有为我的项目获得任何有用的数据集。]]></description>
-      <guid>https://stackoverflow.com/questions/78390012/msw-data-set-for-drone-base-garbage-detection</guid>
-      <pubDate>Fri, 26 Apr 2024 11:08:21 GMT</pubDate>
     </item>
     <item>
       <title>检查给定图像是否是另一个更大图像的裁剪</title>
@@ -131,33 +103,17 @@ self.param.update_step += 1
       <pubDate>Fri, 26 Apr 2024 10:32:29 GMT</pubDate>
     </item>
     <item>
-      <title>在加速配置和 TrainingArguments 中同时设置时，哪种混合精度设置有效？</title>
-      <link>https://stackoverflow.com/questions/78387547/which-mixed-precision-setting-is-in-effect-when-it-is-set-both-in-accelerate-con</link>
-      <description><![CDATA[我正在使用 HuggingFace 的 transformers 库和 accelerate 库。
-当谈到混合精度设置时，我可以设置两个地方：
-
-位于加速配置，在下面的界面中
-您希望使用 FP16 还是 BF16（混合精度）？
-请使用箭头或数字键选择一个选项，然后按 Enter 键进行选择
-   不
-   FP16
-➔ bf16
-   FP8
+      <title>识别图像中红色粒子占据的像素</title>
+      <link>https://stackoverflow.com/questions/78387055/identify-pixels-occupied-by-red-particles-in-image</link>
+      <description><![CDATA[我有一些塑料颗粒和水波实验的图像。目标是自动识别塑料颗粒。它们有时会重叠，我不需要找到单个粒子，找到那些包含塑料的像素就足够了。
+由于粒子是红色的，并且背景大多是白色或黑色，我想我可以进行简单的阈值处理，如果R &gt; &gt;，则说像素是塑料。 5*B 和 R&gt; 0.25，其中 R 和 B 是红色和蓝色通道。然而，不同实验之间的曝光差异很大，有时在实验中，当部分表面被水覆盖时，所以我的方法不能非常一致地工作，有时会错误地识别侧面的黑色裂缝。
+我想知道还有什么其他选择。我对神经网络的经验有限，所以我不确定这是否可行（需要付出合理的努力）。特别是，我认为形状不会有太大帮助，因为粒子靠近在一起并且部分重叠，它们之间的对比度很差，但也许颜色就足够了？
+示例图像：
 
 
-在TrainingArguments，例如
-transformers.TrainingArguments(
-    bf16=假,
-    fp16=真
-）
-
-
-
-所以我的问题是，哪个地方的设置最终会取代另一个地方并生效？
-例如，如果在accelerate config中我设置了bf16，但在TrainingArguments中我设置了fp16，那么将使用哪一个？
-我尝试修复加速配置中的设置并更改TrainingArguments中的设置，并且确实注意到一些速度变化。所以看来 TrainingArguments 中的设置会被取代。但我还是想得到一些确认。]]></description>
-      <guid>https://stackoverflow.com/questions/78387547/which-mixed-precision-setting-is-in-effect-when-it-is-set-both-in-accelerate-con</guid>
-      <pubDate>Thu, 25 Apr 2024 23:01:21 GMT</pubDate>
+]]></description>
+      <guid>https://stackoverflow.com/questions/78387055/identify-pixels-occupied-by-red-particles-in-image</guid>
+      <pubDate>Thu, 25 Apr 2024 20:14:01 GMT</pubDate>
     </item>
     <item>
       <title>在数据分割过程中保留数据的空间分布</title>
@@ -166,15 +122,22 @@ transformers.TrainingArguments(
 我想将我的数据集拆分为训练集和测试集，以使两个集合中的数据空间分布相同。这个想法是，如果数据拆分忽略了空间分布，则存在这样的风险：训练集最终可能会集中人口密集地区的点，而忽略较稀疏的地区。这可能会扭曲模型的学习过程，使其在整个感兴趣区域内不太准确或不具有普遍性。sklearn train_test_split 只是随机将数据分为训练集和测试集，它不考虑数据中的空间模式。
 我上面提到的论文遵循这种方法：“我们将整个数据集分成两个子数据集，分别用于训练和测试。为了考虑测量站空间分布的异质性，我们在数据分割步骤中采用了空间密度估计技术，通过使用带宽为 50 公里的高斯核（使用 GRASS GIS33 中提供的 v.kernel）为每个物种和季节构建密度表面。所得密度表面的像素值用作加权因子，将数据分成具有相同空间分布的训练和测试子集。”
 我想遵循相同的方法，但不使用草地 GIS，而是自己用 Python 构建密度表面。我还提取了站点的概率密度值和权重。 （附图）
-现在我面临的唯一问题是如何使用这些权重将数据分成训练集和测试集？我检查了 sklearn train_test_split 函数中没有可以考虑权重的关键字。我也反复使用 GPT 4 聊天，但它也无法给我一个明确的答案。我也没有在互联网上找到关于此的具体信息。也许我错过了什么。
+现在我面临的唯一问题是如何使用这些权重将数据分成训练集和测试集？我检查了sklearn train_test_split函数中没有可以考虑权重的关键字。我也反复使用聊天GPT 4，但它也无法给我一个明确的答案。我也没有在互联网上找到关于此的具体信息。也许我错过了什么。
 还有其他函数可以用来做这个吗？还是我必须编写自己的算法来进行拆分？如果是后者，您能否建议我使用这种方法，以便我自己编写代码？
-在附图中，您可以看到使用核密度估计方法（使用高斯核）生成的站点位置和概率密度曲面。
+在附图中，您可以看到站点的位置和使用核密度估计方法（使用高斯核）生成的概率密度曲面。
 还附上了我的数据框的屏幕截图，让您了解数据结构。 （经度（&#39;lon&#39;）列之后的所有列都用作特征。NO3 列用作目标变量。）
 请参阅所附图片以供参考。
 使用高斯核的核密度估计方法生成的概率密度曲面。
 我用来模拟硝酸盐浓度的数据集]]></description>
       <guid>https://stackoverflow.com/questions/78383883/preserving-spatial-distribution-of-data-during-data-splitting</guid>
       <pubDate>Thu, 25 Apr 2024 10:10:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>ValueError：输入 X 包含 NaN。SVR 本身不接受编码为 NaN 的缺失值</title>
+      <link>https://stackoverflow.com/questions/78378560/valueerror-input-x-contains-nan-svr-does-not-accept-missing-values-encoded-as</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78378560/valueerror-input-x-contains-nan-svr-does-not-accept-missing-values-encoded-as</guid>
+      <pubDate>Wed, 24 Apr 2024 12:44:18 GMT</pubDate>
     </item>
     <item>
       <title>训练 DL 模型时，本地集合点正在中止，状态为：OUT_OF_RANGE：序列结束</title>
@@ -321,7 +284,7 @@ UnicodeEncodeError：“charmap”编解码器无法对位置 20-21 中的字符
       <pubDate>Mon, 22 Apr 2024 17:25:20 GMT</pubDate>
     </item>
     <item>
-      <title>多类问题的层次分类方法</title>
+      <title>针对多类问题的分层分类方法</title>
       <link>https://stackoverflow.com/questions/78358516/hierarchical-classification-approach-to-a-multiclass-problem</link>
       <description><![CDATA[有一个多类分类任务。我的目标是使用每父节点本地分类器 (LCPN) 方法来解决这个问题。
 让我解释一下如何使用 MWE。
@@ -356,6 +319,98 @@ dendrogram = hierarchy.dendrogram(hc, labels=[&#39;A&#39;,&#39;B&#39;,&#39;C&#39
 如何按照 LCPN 方法在每个内部节点（包括根）处安装分类器，例如 DecisionTreeClassifier 或 SVM，以像在树中一样进行上图？]]></description>
       <guid>https://stackoverflow.com/questions/78358516/hierarchical-classification-approach-to-a-multiclass-problem</guid>
       <pubDate>Sat, 20 Apr 2024 14:08:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>ML 预测的 NER（命名实体识别）的 CUDA 问题</title>
+      <link>https://stackoverflow.com/questions/77440001/cuda-issue-with-ner-named-entity-recognition-for-ml-predictions</link>
+      <description><![CDATA[我正在尝试使用NamedEntityRecognition (NER)(https ://github.com/dotnet/machinelearning/issues/630）来预测大量文本中单词/短语的类别。
+当前使用 3 个 Nuget 包来尝试实现此功能：
+Microsoft.ML (3.0.0-preview.23511.1)
+Microsoft.ML.TorchSharp (0.21.0-preview.23511.1)
+Torchsharp-cpu (0.101.1)
+在训练模型 [estimator.Fit(dataView)] 时，出现以下错误：
+找不到字段：“TorchSharp.torch.CUDA”。
+我可能在这里误解了一些东西，但我应该使用 Torchsharp-cpu 包中的 CPU 进行处理，并且我不确定 CUDA 参考来自哪里。这似乎也是一个包引用而不是一个字段？
+使用 Microsoft.ML；
+使用 Microsoft.ML.Data；
+使用 Microsoft.ML.TorchSharp；
+使用系统；
+使用 System.Collections.Generic；
+使用 System.Windows.Forms；
+
+命名空间 NerTester
+{
+    公共部分类 Form1 ：表格
+    {
+        公共表格1()
+        {
+            初始化组件();
+        }
+
+    私有类 TestSingleSentenceData
+    {
+        公共字符串句子；
+        公共字符串[]标签；
+    }
+
+    私人班级标签
+    {
+        公共字符串密钥{获取;放; }
+    }
+
+    私人无效startButton_Click（对象发送者，EventArgs e）
+        {
+        尝试
+        {
+                var context = new MLContext();
+                context.FallbackToCpu = true;
+                上下文.GpuDeviceId = null;
+
+                var labels = context.Data.LoadFromEnumerable(
+                新的[] {
+                新标签{Key =“PERSON”; },
+                新标签 { Key = &quot;CITY&quot;; },
+                新标签 { Key = &quot;COUNTRY&quot;; }
+                });
+
+                var dataView = context.Data.LoadFromEnumerable(
+                    新列表（新TestSingleSentenceData[] {
+                    新的 TestSingleSentenceData()
+                    { // 测试长度超过 512 个单词。
+                        句子=“爱丽丝和鲍勃住在美国”，
+                        Label = new string[]{&quot;人员&quot;, &quot;0&quot;, &quot;人员&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;国家&quot;}
+                    },
+                     新的 TestSingleSentenceData()
+                     {
+                        句子=“爱丽丝和鲍勃住在美国”，
+                        Label = new string[]{&quot;人员&quot;, &quot;0&quot;, &quot;人员&quot;, &quot;0&quot;, &quot;0&quot;, &quot;0&quot;, &quot;国家&quot;}
+                     },
+                    }));
+                var chain = new EstimatorChain();
+                var estimator = chain.Append(context.Transforms.Conversion.MapValueToKey(“Label”, keyData: labels))
+                   .Append(context.MulticlassClassification.Trainers.NameEntityRecognition(outputColumnName:“outputColumn”))
+                   .Append(context.Transforms.Conversion.MapKeyToValue(“outputColumn”));
+
+                var Transformer = estimator.Fit(dataView);
+                Transformer.Dispose();
+                
+                MessageBox.Show(&quot;成功！&quot;);
+            }
+        catch（异常前）
+            {
+        MessageBox.Show($&quot;错误: {ex.Message}&quot;);
+            }
+    }
+    }
+}
+
+应用程序在 x64 上运行，NER 的文档似乎有限。
+任何帮助将不胜感激。
+尝试更改我引用的 Nuget 软件包，包括使用 if libtorch 软件包。
+尝试在 x86 和 x64 配置中运行应用程序。
+添加了代码以尝试强制使用 CPU 而不是 GPU (CUDA)。]]></description>
+      <guid>https://stackoverflow.com/questions/77440001/cuda-issue-with-ner-named-entity-recognition-for-ml-predictions</guid>
+      <pubDate>Tue, 07 Nov 2023 16:42:42 GMT</pubDate>
     </item>
     <item>
       <title>Apriori 算法 - 没有在 python 中获取规则</title>
