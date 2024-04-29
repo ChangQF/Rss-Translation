@@ -4,7 +4,101 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Mon, 29 Apr 2024 15:15:22 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 29 Apr 2024 18:17:44 GMT</lastBuildDate>
+    <item>
+      <title>如何基于掩码相乘矩阵并排除元素？</title>
+      <link>https://stackoverflow.com/questions/78403969/how-to-multiply-matrices-and-exclude-elements-based-on-masking</link>
+      <description><![CDATA[矩阵相乘很有趣：
+导入火炬
+
+# 尺寸和内容
+批量大小 = 1
+输入大小 = 8
+Layer_1_emb_size = 3
+Layer_2_emb_size = 4
+Layer_3_emb_size = 5
+Layer_4_emb_size = 6
+
+# 权重矩阵
+torch.manual_seed(42) # 再现性 = ♡
+l1_weights = torch.rand（input_size，layer_1_emb_size）
+l2_weights = torch.rand（layer_1_emb_size，layer_2_emb_size）
+l3_weights = torch.rand（layer_2_emb_size，layer_3_emb_size）
+l4_weights = torch.rand（layer_3_emb_size，layer_4_emb_size）
+
+# 前向传递
+some_input = torch.rand(batch_size, input_size)
+out = torch.mm(some_input, l1_weights)
+out_again = torch.mm(out, l2_weights)
+very_out_again = torch.mm(out_again, l3_weights)
+last_very_out_again = torch.mm(very_out_again, l4_weights)
+
+在我的用例中，我有一堆掩蔽张量（值为 0 或 1 的张量，其中 0 是“ “mask”），我需要用它来决定输入矩阵的哪些元素与下一层的权重矩阵相乘：
+# 前向传递
+some_input = torch.rand(batch_size, input_size)
+random_masking_tensor = (torch.rand((batch_size, input_size)) &lt; 0.5).float()
+some_input = some_input * random_masking_tensor # 按元素屏蔽
+out = torch.mm(some_input, l1_weights)
+打印（随机掩码张量）
+打印（一些_输入）
+打印（l1_权重）
+打印出）
+&gt;&gt;&gt;&gt;&gt;
+张量([[1., 1., 0., 1., 1., 1., 1., 0.]])
+张量([[0.7860, 0.1115, 0.0000, 0.6524, 0.6057, 0.3725, 0.7980, 0.0000]])
+张量([[0.8823, 0.9150, 0.3829],
+        [0.9593, 0.3904, 0.6009],
+        [0.2566, 0.7936, 0.9408],
+        [0.1332, 0.9346, 0.5936],
+        [0.8694, 0.5677, 0.7411],
+        [0.4294, 0.8854, 0.5739],
+        [0.2666, 0.6274, 0.2696],
+        [0.4414, 0.2969, 0.8317]])
+张量([[1.7867,2.5470,1.6331]])
+
+但是，我不希望只将所有值相乘（例如，0）。相反，我想要
+
+根据屏蔽索引排除相应的屏蔽列/行。
+明智地执行此操作（例如，请不要使用for循环 - 例如，请参阅这个相关的SO问题）
+最重要的是保持梯度，所以如果我调用optimizer.backward()，相关元素应该被更新（即，不是屏蔽的行/列）。是的，我知道如果我将它们乘以0，它们的梯度将已经是0，因此它们不会被更新，但我需要完全排除它们。
+
+例如，在上面的示例中，random_masking_tensor 的掩码索引为 [2, 7]，这意味着
+
+我想从 some_input 中排除 [2, 7] 列（例如，元素后面的 0 列）明智的乘法——尽管我不想将它乘以掩码张量）
+我想从计算中排除权重矩阵中的 [2, 7] 行（即 [0.2566, 0.7936, 0.9408] 和 [ 0.4414, 0.2969, 0.8317])
+
+所以矩阵乘法应该而不是
+print(火炬.mm(
+    火炬. 张量([[0.7860, 0.1115, 0.0000, 0.6524, 0.6057, 0.3725, 0.7980, 0.0000]]),
+    火炬. 张量([[0.8823, 0.9150, 0.3829],
+        [0.9593, 0.3904, 0.6009],
+        [0.2566, 0.7936, 0.9408],
+        [0.1332, 0.9346, 0.5936],
+        [0.8694, 0.5677, 0.7411],
+        [0.4294, 0.8854, 0.5739],
+        [0.2666, 0.6274, 0.2696],
+        [0.4414, 0.2969, 0.8317]])
+
+））
+&gt;&gt;&gt;&gt;&gt;张量([[1.7866, 2.5468, 1.6330]])
+
+是
+print(火炬.mm(
+    火炬. 张量([[0.7860, 0.1115, 0.6524, 0.6057, 0.3725, 0.7980]]),
+    火炬. 张量([[0.8823, 0.9150, 0.3829],
+        [0.9593, 0.3904, 0.6009],
+        [0.1332, 0.9346, 0.5936],
+        [0.8694, 0.5677, 0.7411],
+        [0.4294, 0.8854, 0.5739],
+        [0.2666, 0.6274, 0.2696]])
+
+））
+&gt;&gt;&gt;&gt;&gt;张量([[1.7866, 2.5468, 1.6330]])
+
+请注意，我的矩阵非常大（例如，emb_size=50000），并且批量大小不是 1（仅在本示例中使用了这些值），这就是为什么我不确定如何来做到这一点（批量大小为1时，我可能可以使用torch.index_select或类似的东西）]]></description>
+      <guid>https://stackoverflow.com/questions/78403969/how-to-multiply-matrices-and-exclude-elements-based-on-masking</guid>
+      <pubDate>Mon, 29 Apr 2024 16:16:47 GMT</pubDate>
+    </item>
     <item>
       <title>有没有办法在 Designer 中使用在 Azure AutoML 中创建的 ML 模型？</title>
       <link>https://stackoverflow.com/questions/78403537/is-there-a-way-to-use-a-ml-model-created-in-azure-automl-within-designer</link>
@@ -16,7 +110,7 @@ AutoML 模型正在使用 XGBoost，这似乎不是 Designer 的 ML 组件功能
       <pubDate>Mon, 29 Apr 2024 14:52:21 GMT</pubDate>
     </item>
     <item>
-      <title>为什么在机器学习中使用管道？</title>
+      <title>为什么在机器学习中使用管道？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78403533/why-use-pipelines-in-machine-learning</link>
       <description><![CDATA[我们都知道，在机器学习中，我们通常不会对整个数据集及其所有列执行数据处理和特征工程步骤。
 例如，在处理缺失值的步骤中，我们假设我们将使用平均值处理某些列，而使用中位数或众数处理其他列。但是，如果我们使用管道，则无法指定要用平均值或中位数替换缺失值的列。这可能会导致不同的结果，那么为什么要使用管道呢？]]></description>
@@ -33,7 +127,7 @@ AutoML 模型正在使用 XGBoost，这似乎不是 Designer 的 ML 组件功能
       <pubDate>Mon, 29 Apr 2024 11:49:58 GMT</pubDate>
     </item>
     <item>
-      <title>使用人工智能寻找好的视频质量增强器</title>
+      <title>使用人工智能寻找好的视频质量增强器[关闭]</title>
       <link>https://stackoverflow.com/questions/78402402/searching-for-a-good-video-quality-enhancer-using-ai</link>
       <description><![CDATA[我有一些 15 年前制作的旧视频。质量很差，它确实被压缩了，而且我有一些小故障，因为此时视频导入非常有问题。
 我想尝试一些能够使用人工智能增强这些视频的程序。
@@ -176,7 +270,7 @@ ValueError Traceback（最近一次调用最后一次）
     100 如果不是 self._is_layer_name_unique(layer):
     101 引发值错误（
     102“添加到顺序模型的所有层”
-    103 f”应该有唯一的名称。名称“{layer.name}”已经是“”
+    103 f”应该有唯一的名称。名称“{layer.name}”已经是“
     104“该模型中层的名称。更新“name”参数“
     105“传递唯一的名称。”
     106）
@@ -185,33 +279,6 @@ ValueError：只能将“keras.Layer”的实例添加到顺序模型中。收�
 ]]></description>
       <guid>https://stackoverflow.com/questions/78401636/transfer-learning-using-keras-for-image-classification</guid>
       <pubDate>Mon, 29 Apr 2024 09:15:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>卡在 AWS SageMaker 笔记本实例的 1 个训练单元中</title>
-      <link>https://stackoverflow.com/questions/78401011/stuck-at-1-training-cell-in-notebook-instance-in-aws-sagemaker</link>
-      <description><![CDATA[我已开始运行命令，使用 Ultralytics YOLOv8.2.4 训练模型。
-大多数先决条件应该已经安装。但是，每当我运行单元时，它都会卡在以下位置：
-开始训练 100 个 epoch...
-
-Epoch GPU_mem box_loss cls_loss dfl_loss Instances Size
-0%| | 0/143 [00:00&lt;?, ?it/s]
-
-之后它会卡在那里几个小时而没有任何变化，并且单元停止运行。
-有一次我停止了笔记本并尝试重新启动，我收到以下错误消息：
-IOStream.flush 超时
-
-有人知道问题是什么吗？
-我当前的 Jupyter Notebook 实例正在 ml.t3.medium 上运行
-我尝试过重启笔记本实例，但似乎没有开始训练。我也尝试过在 google colab 上操作，效果很好。]]></description>
-      <guid>https://stackoverflow.com/questions/78401011/stuck-at-1-training-cell-in-notebook-instance-in-aws-sagemaker</guid>
-      <pubDate>Mon, 29 Apr 2024 07:07:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：在 LSTM 时间序列预测中发现输入变量样本数量不一致</title>
-      <link>https://stackoverflow.com/questions/78400794/valueerror-found-input-variables-with-inconsistent-numbers-of-samples-in-lstm-t</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78400794/valueerror-found-input-variables-with-inconsistent-numbers-of-samples-in-lstm-t</guid>
-      <pubDate>Mon, 29 Apr 2024 06:16:48 GMT</pubDate>
     </item>
     <item>
       <title>Keras TextVectorization 似乎区分大小写，即使词汇量没有反映这一点？</title>
@@ -270,7 +337,7 @@ print(l(&#39;a A b B&#39;))
 &lt;前&gt;&lt;代码&gt;12
 13
 [&#39;[UNK]&#39;、&#39;l&#39;、&#39;k&#39;、&#39;j&#39;、&#39;i&#39;、&#39;h&#39;、&#39;g&#39;、&#39;f&#39;、&#39;e&#39;、&#39;d&#39;、&#39;c&#39;、&#39;b&#39; ， &#39;A&#39;]
-tf.Tensor([0.0.0.0.0.0.0.0.0.0.0.2.2.]，形状=(13,)，dtype=float32)
+tf.Tensor([0.0.0.0.0.0.0.0.0.0.0.2.2.],形状=(13,),dtype=float32)
 
 如何正确使用词汇参数？]]></description>
       <guid>https://stackoverflow.com/questions/78400462/keras-textvectorization-seems-to-be-case-sensitive-even-though-vocabulary-doesn</guid>
@@ -293,12 +360,106 @@ tf.Tensor([0.0.0.0.0.0.0.0.0.0.0.2.2.]，形状=(13,)，dtype=float32)
       <pubDate>Mon, 29 Apr 2024 02:20:41 GMT</pubDate>
     </item>
     <item>
-      <title>用于无人机基地垃圾检测的城市固体废物数据集[关闭]</title>
-      <link>https://stackoverflow.com/questions/78390012/msw-data-set-for-drone-base-garbage-detection</link>
-      <description><![CDATA[我的项目需要一个根据 MSW 进行标记和分类的城市固体废物数据集，该项目是使用 Raspberry Pi 进行无人机基础垃圾检测。
-我检查了 Kaggle &amp; Roboflow，但没有为我的项目获得任何有用的数据集。]]></description>
-      <guid>https://stackoverflow.com/questions/78390012/msw-data-set-for-drone-base-garbage-detection</guid>
-      <pubDate>Fri, 26 Apr 2024 11:08:21 GMT</pubDate>
+      <title>呼吸信号的对数功率谱</title>
+      <link>https://stackoverflow.com/questions/78386374/log-power-spectrum-for-breath-signal</link>
+      <description><![CDATA[我的数据集是噪声频谱的LPS，我的标签是干净频谱的LPS，每个图片大小是（1025*1292）。我使用unet作为我的模型。
+型号：
+导入火炬
+将 torch.nn 导入为 nn
+
+解码器类（nn.Module）：
+    def __init__(self, in_channels,out_features, kernel_size, maxpoolindex, apply_dropout,stride):
+        super(解码器, self).__init__()
+        self.conv = nn.Conv2d(in_channels=in_channels、out_channels=out_features、kernel_size=kernel_size、stride=stride、padding=0、bias=True)
+        self.batch_norm = nn.BatchNorm2d(out_features)
+        self.relu = nn.LeakyReLU(负斜率=0.2)
+        self.dropout = nn.Dropout(p=0.1)
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2) 如果 maxpoolindex == 1 否则无
+
+    def 前向（自身，x）：
+        x = self.conv(x)
+        x = self.batch_norm(x)
+        x = self.relu(x)
+        如果 self.dropout 不是 None：
+            x = self.dropout(x)
+        如果 self.maxpool 不是 None：
+            x = self.maxpool(x)
+        返回x
+
+编码器类（nn.Module）：
+    def __init__(self,in_channels, out_features, kernel_size, apply_dropout):
+        超级（编码器，自我）.__init__()
+        self.conv_transpose = nn.ConvTranspose2d（in_channels = in_channels，out_channels = out_features，kernel_size = kernel_size，stride = 2，padding = 0，bias = True）
+        self.batch_norm = nn.BatchNorm2d(out_features)
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(p=0.1)
+
+    def 前向（自身，x）：
+        x = self.conv_transpose(x)
+        x = self.batch_norm(x)
+        x = self.relu(x)
+        如果 self.dropout 不是 None：
+            x = self.dropout(x)
+        返回x
+
+class DenoiseUnet(nn.Module):#除到第一个奇数停止的设计
+    def __init__(自身):
+        超级（DenoiseUnet，自我）.__init__()
+        self.down_procedure = nn.ModuleList([
+            解码器(1,8,2,0,0,2),
+            解码器(8,16,2,0,0,2),
+            解码器(16,32,2,0,0,2),
+            解码器(32,128,2,0,0,2),
+            解码器(128,128,1,0,0,1)
+        ]）
+        self.up_procedure = nn.ModuleList([
+            编码器(2​​56,32,2,0),
+            编码器(64,16,2,0),
+            编码器(32,8,2,0),
+            编码器(16,4,2,0),
+        ]）
+        self.convert = nn.ConvTranspose2d(4, 1, kernel_size=1, stride=1, padding=0)
+
+
+    def 前向（自身，x）：
+        连接=[]
+        对于 self.down_procedure 中的 down：
+            x = 向下(x)
+            连接.append(x)
+
+        连接=列表（反转（连接[：-1]））
+        对于 up，在 zip(self.up_procedure, connection) 中连接：
+
+
+            如果 x.shape[2] &lt;连接.形状[2]：
+              连接 = 连接[:, :, :x.shape[2], :]
+            别的：
+              x = x[:, :, :connect.shape[2], :]
+
+            如果 x.shape[3] &lt;连接.形状[3]：
+              连接 = 连接[:, :, :, :x.shape[3]]
+            别的：
+              x = x[:, :, :, :connect.shape[3]]
+
+
+
+            x = torch.cat([x, 连接], 暗淡=1)
+            x = 上(x)
+
+        y = self.convert(x)
+        返回y
+
+
+模型 = DenoiseUnet()
+打印（模型）
+
+但是经过 10 轮训练后，我得到这样的结果：
+https://i.sstatic.net/b8DxXHUr.png
+https://i.sstatic.net/UDhZNKHE.png
+一个是预测结果，一个是测试，任何人都可以帮我找出问题所在吗？
+数据集数量不同，看起来是一样的。]]></description>
+      <guid>https://stackoverflow.com/questions/78386374/log-power-spectrum-for-breath-signal</guid>
+      <pubDate>Thu, 25 Apr 2024 17:43:28 GMT</pubDate>
     </item>
     <item>
       <title>使用 Raspberry Pi 4 在 Python 中崩溃的多线程 [关闭]</title>
@@ -315,6 +476,19 @@ tf.Tensor([0.0.0.0.0.0.0.0.0.0.0.2.2.]，形状=(13,)，dtype=float32)
 在此处输入图片描述]]></description>
       <guid>https://stackoverflow.com/questions/78352359/multiple-threads-collapsing-in-python-with-raspberry-pi-4</guid>
       <pubDate>Fri, 19 Apr 2024 08:31:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>我尝试使用 (pip install pickle5) 安装 Python 的 pickle 包，但安装包失败</title>
+      <link>https://stackoverflow.com/questions/77890171/i-tried-installing-the-pickle-package-for-python-using-pip-install-pickle5-and</link>
+      <description><![CDATA[这是我尝试过的：
+pip install pickle5
+
+这是带有错误消息的快照。
+这也是我收到的错误：
+错误：无法为 pickle5 构建 wheel，这是安装基于 pyproject.toml 的项目所必需的
+我尝试按照其他一些帖子中的建议安装并重新安装 Microsoft Visual C++，但没有成功。]]></description>
+      <guid>https://stackoverflow.com/questions/77890171/i-tried-installing-the-pickle-package-for-python-using-pip-install-pickle5-and</guid>
+      <pubDate>Sat, 27 Jan 2024 05:36:19 GMT</pubDate>
     </item>
     </channel>
 </rss>
