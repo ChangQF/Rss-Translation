@@ -4,7 +4,56 @@
     <title>学习机器学习</title>
     <link>https://www.reddit.com/r/learnmachinelearning/</link>
     <description>致力于学习机器学习的 Reddit 子版块</description>
-    <lastBuildDate>Sun, 28 Apr 2024 21:12:50 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 29 Apr 2024 01:00:29 GMT</lastBuildDate>
+    <item>
+      <title>如何计算隐马尔可夫模型的联合概率？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cflyas/how_to_calculate_the_joint_probability_on_a/</link>
+      <description><![CDATA[我这里有一个表格：   x_t-1&lt; /th&gt; P(X_t = 1 / x_t01 x_t P(E_t = 0 / X_t ) P (Et = 1/Xt)    0    0 0.6 0 0.4 0.1    1 0.4 1 0.1 0.6   上面的斜杠实际上必须使用 | / 由于格式问题  我试图解决这个问题： 观察到这个序列 {E1 , E2 } = {2, 1} P (X1 = 1, E1 = 2，X2 = 0)？ 我怎样才能开始做这样的事情。    提交32;  /u/Famous-Help-3572   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cflyas/how_to_calculate_the_joint_probability_on_a/</guid>
+      <pubDate>Mon, 29 Apr 2024 00:41:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>数据泄露在哪里？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cflcp7/where_is_the_data_leakage/</link>
+      <description><![CDATA[我正在尝试创建一个预测出租车需求的模型。我希望我的模型能够从数据集中前 7 周的数据中学习，然后针对第 8 周进行测试。第8周应该是看不见的。然而我的图表表明不然，我的预测需求与实际需求几乎相同。我在哪里犯了错误？ ​ 将 pandas 导入为 pd 将 numpy 导入为 np 从 sklearn 导入。预处理导入MinMaxScaler 从tensorflow.keras.models导入顺序 从tensorflow.keras.layers导入GRU，Dense，Dropout 导入matplotlib.pyplot作为plt  导入时间 from sklearn.metrics importmean_squared_error ​ def build_model(input_shape): 模型 = 顺序([ GRU(80, return_sequences=True, input_shape=input_shape), Dropout(0.1), GRU(80 ), Dropout(0.1), Dense(1) # 预测单个未来时间步 ]) 模型。编译(optimizer=&#39;adam&#39;, loss=&#39;mse&#39;) 返回模型 ​ def prepare_data(file_path, location_id, input_day_of_week, window_size=12): df = pd.read_csv(file_path, index_col=&#39;tpep_pickup_datetime&#39;) df.index = pd.to_datetime(df.index) &lt; p&gt;​ 如果 df.columns 中有 location_id： df = df[[location_id]] df[&#39;day_of_week&#39;] = df .index.dayofweek df = df[df[&#39;day_of_week&#39;] == input_day_of_week] ​ scaler = MinMaxScaler(feature_range=( 0, 1)) df_scaled = scaler.fit_transform(df[[location_id]]) ​ X, y = [], [] for i in range(len(df_scaled) - window_size ):  X.append(df_scaled[i:(i + window_size)]) y.append(df_scaled[i + window_size ])  X, y = np.array(X), np.array(y) ​ cutoff_date = df.index.max() - pd.Timedelta(weeks=1) training_set = df[df.index &lt;= cutoff_date] testing_set = df[df.索引&gt; cutoff_date] ​ train_size = len(training_set) - window_size X_train, y_train = X[:train_size], y[:train_size]  X_test, y_test = X[train_size:], y[train_size:] ​ 返回X_train, y_train, X_test, y_test, 缩放器 else: print(f“在数据集中未找到位置 ID {location_id}。”) return None, None, None, None,无 ​ def main(): data_path = &#39;combined.csv&#39; location_id = input(&quot; ;输入位置 ID: &quot;) day_of_week = int(input(&quot;输入星期几 (0=星期一, ..., 6=星期日): &quot;)) ​ start_time = time.time() X_train、y_train、X_test、y_test、scaler = prepare_data(data_path、location_id、day_of_week) ​ 如果 X_train 不是 None 并且 X_train.shape[0] &gt; 0： input_shape = (X_train.shape[1], X_train.shape[2]) model = build_model(input_shape) model.fit(X_train, y_train, epochs=50, verbose=1) ​ test_loss = model.evaluate(X_test, y_test) print(f&quot;测试损失：{test_loss}&quot;) ​ predicted_demand_test = model.预测（X_test） predicted_demand_test=scaler.inverse_transform（predicted_demand_test） actual_demand_test=scaler.inverse_transform（y_test） ​ &lt; p&gt;rmse = np.sqrt（mean_squared_error（actual_demand_test，predicted_demand_test）） print（f“均方根误差：{rmse}”） ​ end_time = time.time() print(f&quot;执行时间：{end_time - start_time:.2f}秒&quot;) ​ num_time_steps = len(actual_demand_test) time_labels = [f&quot;{str(i//2).zfill(2)}:{&#39;00&#39; if i%2 == 0 else ‘30’}”对于我在范围内（num_time_steps）] ​ plt.figure(figsize=(15, 7)) plt.plot(time_labels ,actual_demand_test, label=&#39;实际需求（测试集）&#39;) plt.plot(time_labels, Predicted_demand_test, label=&#39;预测需求（测试集）&#39;, alpha=0.7) plt.title(f&#39;测试集的实际需求与预测需求 - RMSE: {rmse:.2f}&#39;) plt.xlabel(&#39;一天中的时间&#39;) plt .xticks(rotation=45) plt.ylabel(&#39;需求&#39;) plt.legend() plt.tight_layout() plt.show() else: print(&quot;训练数据不足模型。”) ​ if __name__ == &quot;__main__&quot;: main()  ​   由   提交 /u/SemajReddit   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cflcp7/where_is_the_data_leakage/</guid>
+      <pubDate>Mon, 29 Apr 2024 00:12:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>对机器学习预测进行事后分析有什么问题吗？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cfl108/is_there_anything_questionable_about_doing_post/</link>
+      <description><![CDATA[非常新，对于任何不正确的术语表示歉意，并感谢您的帮助！我有 20 个“特征”/x 值（存在或不存在）中每一个的二进制输出，其中每个组合都会产生预测的 y 值。我有兴趣通过经过训练的模型运行一系列预测并解释输出中的相关性。我目前让模型输出 x1-x20 二进制组合及其关联的 y 值。有什么因素阻止我只取前 10% 的 y 值并分析哪些 x 值组合对于这些最高 y 值很重要/与之相关吗？   由   提交 /u/DisastrousClothes   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cfl108/is_there_anything_questionable_about_doing_post/</guid>
+      <pubDate>Sun, 28 Apr 2024 23:57:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>ML 证书值得吗？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cfjddf/are_any_of_ml_certificates_worth_it/</link>
+      <description><![CDATA[我是一年级计算机科学学生，并且还担任过一年后端开发人员。我有一些机器学习的基础知识，并做了一些小项目。这些是其中的一些： https://github.com/Null-byte -00/毒性预测-gnn https://github.com/Null -byte-00/Fargasht https://github.com/Null-byte -00/Imagerecognition 像许多其他学生一样，我今年夏天找不到任何实习机会，所以我想知道是否有任何真正值得的 ML 证书？我尝试了一些张量流证书样本考试，我知道了一些答案。值得花时间吗？招聘人员关心这些证书吗？如果是，您推荐哪一个？   由   提交 /u/Soroush_ra   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cfjddf/are_any_of_ml_certificates_worth_it/</guid>
+      <pubDate>Sun, 28 Apr 2024 22:41:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在一个月内尽可能多地学习机器学习</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cfipdc/how_to_learn_as_much_ml_as_i_can_in_one_month/</link>
+      <description><![CDATA[嘿 Reddit， 最近获得了软件开发实习机会，并对这种可能性感到非常兴奋，唯一的问题是它们是一台机器学习重公司，我对 ML 不太了解。 我的背景：CS 学位，前端/后端 Web 开发。 如果有任何对 ML 有用的资源初学者让他们在机器学习方面有一定的能力，我真的很感激:)）   由   提交 /u/UnusualXchaos   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cfipdc/how_to_learn_as_much_ml_as_i_can_in_one_month/</guid>
+      <pubDate>Sun, 28 Apr 2024 22:12:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>我正在尝试用神经网络求解二维达芬振荡器的福克-普朗克方程。</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cfia6i/i_am_trying_to_solve_fokkerplanck_equation_of_2d/</link>
+      <description><![CDATA[]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cfia6i/i_am_trying_to_solve_fokkerplanck_equation_of_2d/</guid>
+      <pubDate>Sun, 28 Apr 2024 21:54:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>编写 alpha 的机器人或程序？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cfi8rq/a_bot_or_a_program_to_write_alphas/</link>
+      <description><![CDATA[大家好， 作为新手，我想编写一个机器人或程序来编写股票超额收益的 alpha。我有数据集和我想使用的语言。这有多可行？我可以采取什么步骤？    提交人    /u/demonrentals   [link] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cfi8rq/a_bot_or_a_program_to_write_alphas/</guid>
+      <pubDate>Sun, 28 Apr 2024 21:52:21 GMT</pubDate>
+    </item>
     <item>
       <title>Tensorflow 跨步切片错误。需要帮忙。</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cfgfvp/tensorflow_strided_slice_error_need_help/</link>
@@ -13,46 +62,18 @@
       <pubDate>Sun, 28 Apr 2024 20:37:22 GMT</pubDate>
     </item>
     <item>
-      <title>在我有贝叶斯网络模型的马尔可夫毯子中，我是否需要考虑我作为毯子一部分引用的节点的“祖父母”？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cffm4l/in_a_markov_blanket_where_i_have_a_bayes_net/</link>
-      <description><![CDATA[我有一个看起来像这样的贝叶斯网络。 https://imgur.com/a/yQQtSd9  我引用的节点是粉红色的节点。正如你所看到的，还有“祖父母”。我也想知道我是否也需要考虑祖父母。  对于马尔可夫毯子，我的理解是你必须引用孩子 - 在这种情况下没有，孩子节点的父母（在这种情况下没有），父母我引用的节点的。但我不知道是否需要引用节点的祖父母。本质上是父母的父母。  ​ ​   由   提交 /u/Famous-Help-3572   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cffm4l/in_a_markov_blanket_where_i_have_a_bayes_net/</guid>
-      <pubDate>Sun, 28 Apr 2024 20:03:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>在我有贝叶斯网络模型的马尔可夫毯子中，我是否需要考虑我作为毯子一部分引用的节点的“祖父母”？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cffm4f/in_a_markov_blanket_where_i_have_a_bayes_net/</link>
-      <description><![CDATA[我有一个看起来像这样的贝叶斯网络。 https://imgur.com/a/yQQtSd9  我引用的节点是粉红色的节点。正如你所看到的，还有“祖父母”。我也想知道我是否也需要考虑祖父母。  对于马尔可夫毯子，我的理解是你必须引用孩子 - 在这种情况下没有，孩子节点的父母（在这种情况下没有），父母我引用的节点的。但我不知道是否需要引用节点的祖父母。本质上是父母的父母。  ​ ​   由   提交 /u/Famous-Help-3572   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cffm4f/in_a_markov_blanket_where_i_have_a_bayes_net/</guid>
-      <pubDate>Sun, 28 Apr 2024 20:03:55 GMT</pubDate>
-    </item>
-    <item>
       <title>这位作者是谁？他值得信赖吗？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cff1tw/who_is_this_author_and_is_he_trustworthy/</link>
-      <description><![CDATA[由于有关 ML 和 AI 的文献呈爆炸式增长，因此出现了许多可疑的书籍和作者，您在互联网上找不到任何关于他们的信息，除了一堆图书。 “Jesse Sprinter”就是这样的一位作者。  这个人是谁？他是真的吗？在我看来，一些印度骗局工厂将一些东西复制粘贴到一本书中，并让它看起来像一些有信誉的作者，在所有情况下都带有欧洲/西方的名字。  那么有人认识这个似乎写了近 30 本有关人工智能的书籍的人吗？ 这是亚马逊页面：/stores/Jesse-Sprinter/author/B0CN3V7JSQ &lt; /div&gt;  由   提交 /u/OkCrow3938   [链接] [评论]]]></description>
+      <description><![CDATA[由于有关 ML 和 AI 的文献呈爆炸式增长，因此出现了许多可疑的书籍和作者，您在互联网上找不到任何关于他们的信息，除了一堆图书。 “Jesse Sprinter”就是这样的一位作者。  这个人是谁，他是真的吗？在我看来，一些印度骗局工厂将一些东西复制粘贴到一本书中，并让它看起来像一些有信誉的作者，在所有情况下都带有欧洲/西方的名字。  那么有人认识这个似乎写了近 30 本有关人工智能的书籍的人吗？ 这是亚马逊页面：/stores/Jesse-Sprinter/author/B0CN3V7JSQ &lt; /div&gt;  由   提交 /u/OkCrow3938   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cff1tw/who_is_this_author_and_is_he_trustworthy/</guid>
       <pubDate>Sun, 28 Apr 2024 19:41:08 GMT</pubDate>
     </item>
     <item>
-      <title>基本问题：还有什么地方在使用 RNN/LSTM。</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cfeh5b/basic_question_is_there_any_place_where_rnnlstms/</link>
-      <description><![CDATA[新手问题。但是否有任何特定领域 RNN/LSTM 仍被用作 SOTA？我的印象是，对于像 NLP 这样的序列数据，Transformer 是 RNN 的首选。当您查看时间序列数据时，ARIMA 模型通常比 LSTM 表现更好或相当。那么还有哪些地方 LSTM 仍然是首选呢？   由   提交/u/No-Mud4063  /u/No-Mud4063 reddit.com/r/learnmachinelearning/comments/1cfeh5b/basic_question_is_there_any_place_where_rnnlstms/&quot;&gt;[链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cfeh5b/basic_question_is_there_any_place_where_rnnlstms/</guid>
-      <pubDate>Sun, 28 Apr 2024 19:17:37 GMT</pubDate>
-    </item>
-    <item>
       <title>大家好，有人可以帮助我完成我的 GAN 项目吗？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cf9zvs/hi_can_anyone_help_me_with_my_gan_project/</link>
-      <description><![CDATA[      嘿，我正在制作一个 GAN 模型，它可以预测训练后 DR 的阶段，但由于一些未知的原因，我的模型会抛出噪音，而不是显示结果，甚至 GAN正在生成一些嘈杂的图像 这是GAN模型的输出 ​ ​ 这是严重性预测的输出，因为您可以看到它很吵，所以请帮忙   由   提交/u/INFINITY_TALES   [链接] [评论] &lt; /表&gt;]]></description>
+      <description><![CDATA[      嘿，我正在制作一个 GAN 模型，它可以预测训练后 DR 的阶段，但由于一些未知的原因，我的模型会抛出噪音，而不是显示结果，甚至 GAN正在生成一些嘈杂的图像 这是GAN模型的输出 ​ ​ 这是严重性预测的输出，因为你可以看到它很吵，所以请帮忙   由   提交/u/INFINITY_TALES   [链接] [评论] &lt; /表&gt;]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cf9zvs/hi_can_anyone_help_me_with_my_gan_project/</guid>
       <pubDate>Sun, 28 Apr 2024 16:10:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>LangChain 和 ChatGPT 插件如何受到此错误的攻击</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cf8bkj/how_langchain_and_chatgpt_plugins_are_getting/</link>
-      <description><![CDATA[https://journal.hexmos.com /不安全输出处理   由   提交/u/djang_odude  [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cf8bkj/how_langchain_and_chatgpt_plugins_are_getting/</guid>
-      <pubDate>Sun, 28 Apr 2024 14:57:34 GMT</pubDate>
     </item>
     <item>
       <title>BLEU 分数解释</title>
@@ -69,16 +90,9 @@
       <pubDate>Sun, 28 Apr 2024 14:50:19 GMT</pubDate>
     </item>
     <item>
-      <title>寻求有关开发低预算大学聊天机器人的建议</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cf82vh/seeking_advice_on_developing_a_lowbudget/</link>
-      <description><![CDATA[ 由   提交/u/Shadic627  [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cf82vh/seeking_advice_on_developing_a_lowbudget/</guid>
-      <pubDate>Sun, 28 Apr 2024 14:46:23 GMT</pubDate>
-    </item>
-    <item>
       <title>我在 YouTube 上分享了 Python 数据科学和机器学习训练营（7 个多小时、7 门课程和 3 个项目）</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cf7aer/i_shared_a_python_data_science_and_machine/</link>
-      <description><![CDATA[您好，我在 YouTube 上分享了 Python 数据科学和机器学习训练营。 Bootcamp 时长超过 7 个小时，共有 7 门课程、3 个项目。课程包括 Python、Pandas、Numpy、Matplotlib、Seaborn、Plotly 和 Scikit-learn。我将离开下面的链接，祝您有美好的一天！ https://www.youtube.com /watch?v=6gDLcTcePhM   由   提交/u/onurbaltaci  [链接] [评论]]]></description>
+      <description><![CDATA[大家好，我在 YouTube 上分享了一个 Python 数据科学和机器学习训练营。训练营超过 7 小时，有 7 门课程和 3 个项目。课程包括 Python、Pandas、Numpy、Matplotlib、Seaborn、Plotly 和 Scikit-learn。我将在下面留下链接，祝大家有美好的一天！ https://www.youtube.com/watch?v=6gDLcTcePhM    提交人    /u/onurbaltaci   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cf7aer/i_shared_a_python_data_science_and_machine/</guid>
       <pubDate>Sun, 28 Apr 2024 14:10:12 GMT</pubDate>
     </item>
@@ -95,20 +109,6 @@
       <description><![CDATA[我今年将完成数学硕士学位，并且成绩非常好（德国 1.2，相当于 US-GPA 3.8）。我真的很想进入机器学习并利用我的数学背景，但我不确定哪些工作真正需要数学以及如何识别它们。几乎没有招聘广告要求数学，而是要求特定的机器学习知识。另一方面，研究职位通常需要博士学位。 我并不是真的想获得博士学位，但我担心不这样做会让我最终陷入资格不足的境地从事研究工作，而从事其他工作的资历过高。那么，是否有一些工作对我的数学背景有很大的帮助，我该如何识别它们呢？另外，我应该在空闲时间学习什么才能找到这些工作？更多地关注理论或使用库和实际训练模型？ 编辑：也许我应该补充一点，我住在德国，不想离开。所以我需要这里提供的工作类型。   由   提交 /u/Potheker   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cf5h5p/where_do_i_find_my_place_as_a_mathematician_in_ml/</guid>
       <pubDate>Sun, 28 Apr 2024 12:40:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>pandas 如何进行统计并删除异常值</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cf1kc1/pandas_how_to_do_stats_and_drop_outliers/</link>
-      <description><![CDATA[我使用机器学习薪资数据来展示如何在处理 Pandas 数据时计算平均值并丢弃异常值，并制作了 此视频。我在乌克兰教授乌克兰难民、青少年和大学生数据科学    由   提交/u/cyprusgreekstudent  [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cf1kc1/pandas_how_to_do_stats_and_drop_outliers/</guid>
-      <pubDate>Sun, 28 Apr 2024 08:32:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 self-attention 需要 Transformer 架构？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cekxph/why_does_selfattention_require_the_transformer/</link>
-      <description><![CDATA[是吗？我总是听说自注意力是 Transformer 的关键要素。这是否也意味着自注意力需要编码器-解码器等设置？ （我想如果你有像自回归变压器这样的东西，它就不需要两者。）   由   提交 /u/YourWelcomeOrMine   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cekxph/why_does_selfattention_require_the_transformer/</guid>
-      <pubDate>Sat, 27 Apr 2024 18:11:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
