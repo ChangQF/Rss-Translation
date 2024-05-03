@@ -4,7 +4,135 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 03 May 2024 12:24:32 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 03 May 2024 15:15:22 GMT</lastBuildDate>
+    <item>
+      <title>Tensorflow 联合混淆矩阵</title>
+      <link>https://stackoverflow.com/questions/78425468/tensorflow-federated-confusion-matrix</link>
+      <description><![CDATA[我想知道如何在 TensorFlow 联合学习中创建混淆矩阵。此外，我很好奇最后为每个客户生成混淆矩阵的可能性。
+一个想法是使用本地预测和地面实况标签来计算每个客户端设备上的混淆矩阵，方法是创建一个接受这些输入并返回相应混淆矩阵的函数。之后可以将其汇总到总体中。我对不对？
+有人可以帮我看看这在 Tensroflow-Federated Framework 中是如何实现的吗]]></description>
+      <guid>https://stackoverflow.com/questions/78425468/tensorflow-federated-confusion-matrix</guid>
+      <pubDate>Fri, 03 May 2024 15:05:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>PyTorch 使用的 VRAM 数量过多</title>
+      <link>https://stackoverflow.com/questions/78425445/pytorch-is-using-an-ungodly-amount-of-vram</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78425445/pytorch-is-using-an-ungodly-amount-of-vram</guid>
+      <pubDate>Fri, 03 May 2024 15:00:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么我的 GAN 模型训练在 90 次迭代时停止></title>
+      <link>https://stackoverflow.com/questions/78425198/why-does-my-gan-model-training-stops-at-90-iterations</link>
+      <description><![CDATA[我正在训练一个cycleGAN模型，每个域40张图片。 epochs 应该是 50，batch_size=1，总迭代次数是 2000，batch_per_epoch 是 40，但是模型在迭代 90 次后停止训练，没有任何条件可以将 90 视为 true 并且模型停止.
+def train(d_model_A, d_model_B, g_model_AtoB, g_model_BtoA, c_model_AtoB, c_model_BtoA, 数据集, epochs=1):
+    # 定义训练运行的属性
+    n_epochs, n_batch, = epochs, 1 #batch size固定为1，如论文中建议的
+    # 确定鉴别器的输出正方形形状
+    n_patch = d_model_A.output_shape[1]
+    # 解压数据集
+    trainA, trainB = 数据集
+    # print(trainA.shape,trainB.shape)
+    # 为假图像准备图像池
+    池A，池B = 列表（），列表（）
+    # 计算每个训练时期的批次数
+    bat_per_epo = int(len(trainA) / n_batch)
+    # 计算训练迭代次数
+    n_steps = bat_per_epo * n_epochs
+    
+    打印（n_steps，bat_per_epo）
+    # 手动枚举纪元
+    对于范围内的 i（n_steps）：
+        # 从每个域（A和B）中选择一批真实样本
+        X_realA, y_realA =generate_real_samples(trainA, n_batch, n_patch)
+        X_realB, y_realB =generate_real_samples(trainB, n_batch, n_patch)
+        # 使用 B to A 和 A to B 生成器生成一批假样本。
+        X_fakeA, y_fakeA =generate_fake_samples(g_model_BtoA, X_realB, n_patch)
+        X_fakeB, y_fakeB =generate_fake_samples(g_model_AtoB, X_realA, n_patch)
+        # 更新池中的假图像。请记住，论文建议使用 50 个图像的缓冲区
+        X_fakeA = update_image_pool(poolA, X_fakeA)
+        X_fakeB = update_image_pool(poolB, X_fakeB)
+        # 通过复合模型更新生成器 B-&gt;A
+        # print(类型(X_realA),类型(X_realB),类型(X_fakeA),类型(X_fakeB),类型(y_realA),类型(y_realB),类型(y_fakeA),类型(y_fakeB))
+        
+        g_loss2 = c_model_BtoA.train_on_batch([X_realB, X_realA], [y_realA, X_realA, X_realB, X_realA])
+        
+        # 更新 A 的鉴别器 -&gt; [真/假]
+        dA_loss1 = d_model_A.train_on_batch(X_realA, y_realA)
+        dA_loss2 = d_model_A.train_on_batch(X_fakeA, y_fakeA)
+        
+        # 通过复合模型更新生成器 A-&gt;B
+        g_loss1 = c_model_AtoB.train_on_batch([X_realA, X_realB], [y_realB, X_realB, X_realA, X_realB])
+        # 更新 B 的鉴别器 -&gt; [真/假]
+        dB_loss1 = d_model_B.train_on_batch(X_realB, y_realB)
+        dB_loss2 = d_model_B.train_on_batch(X_fakeB, y_fakeB)
+        
+        # 总结性能
+        #由于我们的批量大小=1，迭代次数将与数据集的大小相同。
+        #在一个纪元中，迭代次数等于图像数量。
+        #如果你有 100 张图像，那么 1 epoch 就是 100 次迭代
+        print(&#39;迭代&gt;%d, dA[%.3f,%.3f] dB[%.3f,%.3f] g[%.3f,%.3f]&#39; % (i+1, dA_loss1,dA_loss2, dB_loss1 ,dB_loss2, g_loss1,g_loss2))
+        # 定期评估模型性能
+        #如果批量大小（总图像）=100，则每 75 次迭代后将总结性能。
+        如果 (i+1) % (bat_per_epo * 1) == 0:
+            # 绘制 A-&gt;B 翻译
+            总结性能（i，g_model_AtoB，trainA，&#39;AtoB&#39;）
+            # 情节 B-&gt;A 翻译
+            总结性能（i，g_model_BtoA，trainB，&#39;BtoA&#39;）
+        如果 (i+1) % (bat_per_epo * 5) == 0:
+            # 保存模型
+            # #如果批量大小（总图像）=100，模型将在之后保存
+            #每 75 次迭代 x 5 = 375 次迭代。
+            save_models(i, g_model_AtoB, g_model_BtoA)
+
+这是训练函数，历元传递为 50，最后一个条件：
+如果 (i+1) % (bat_per_epo * 5) == 0:
+    # 保存模型
+    # #如果批量大小（总图像）=100，模型将在之后保存
+    #每 75 次迭代 x 5 = 375 次迭代。
+    save_models(i, g_model_AtoB, g_model_BtoA)
+
+没有被执行。
+随着生成器损失的减少，模型似乎正在训练和改进，生成的图像并没有那么糟糕，因为它只训练了 40 次迭代和 80 次迭代，在第 40 次和 80 次之后生成了图片并保存了模型迭代，然后停止。
+这是我得到的结果：
+40 次迭代后
+80 次迭代后]]></description>
+      <guid>https://stackoverflow.com/questions/78425198/why-does-my-gan-model-training-stops-at-90-iterations</guid>
+      <pubDate>Fri, 03 May 2024 14:13:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在损失函数内使用未知的matlab函数训练pytorch模型？</title>
+      <link>https://stackoverflow.com/questions/78425073/how-to-train-a-pytorch-model-with-an-unknown-matlab-function-inside-the-loss-fun</link>
+      <description><![CDATA[我目前正在尝试使用 Python 和 Pytorch 实现自定义损失函数来训练神经网络。问题是我的函数调用 Matlab 中的另一个函数来计算一些值。我们将其称为 Matlab 函数 M1(y)。所以基本上我的损失函数是
+Loss(y,t) = M1(y) - M2(t)
+
+其中 y 是模型的预测值，t 是实际目标值，M2(t) 是另一个 Matlab 函数。有没有办法在不知道 M1 和 M2 细节的情况下计算梯度并训练模型？
+我相信应该可以使用类似的东西来近似梯度
+(Loss(Y(x,d+h),t) - Loss(Y(x,d-h),t))/(2h)
+
+对于非常小的 h。其中 Y(x,d) 是输入 x 和参数 d，用于计算 y。这将近似损失函数关于参数 d 的导数。
+这是一个值得追求的解决方案吗？还是太不准确了？
+我该如何使用 pytorch 实现它？]]></description>
+      <guid>https://stackoverflow.com/questions/78425073/how-to-train-a-pytorch-model-with-an-unknown-matlab-function-inside-the-loss-fun</guid>
+      <pubDate>Fri, 03 May 2024 13:44:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>针对 BERT 模型进行微调 - 我需要什么数据集来调整模型</title>
+      <link>https://stackoverflow.com/questions/78424935/fine-tuned-for-the-bert-model-what-dataset-do-i-need-to-tune-the-model</link>
+      <description><![CDATA[我有一个与深度学习相关的问题。
+如果您在一周中有时间可以向我解释一件事，我将不胜感激。
+我目前正在创建一个与微调 BERT 相关的项目。我仍在考虑基本版本或大版本。
+该项目将基于初步文件分析并提取从文件中提取的最重要信息。类似于信用申请的预检查文件。
+根据 WordPiece 方法，我为 BERT 创建了大约 1500 个额外代币。
+我对数据集有疑问。目前我有大约 25 万个句子（每个句子占一个新行）。
+这些句子的质量各不相同。没有标签，因为我想基于MLM（屏蔽）进行微调。
+数据集的质量是平均的。可能会有一些噪音和错误。
+我的问题是，是否最好对较少数量的句子进行微调，例如从大约 30-40,000 个（适当选择的）+新令牌的数据集中进行选择，或者尝试消耗资源并启用完整数据集的训练？
+为了时间+计算资源，我更愿意先向社区询问，而不是每次烧毁环境几次。
+问候，]]></description>
+      <guid>https://stackoverflow.com/questions/78424935/fine-tuned-for-the-bert-model-what-dataset-do-i-need-to-tune-the-model</guid>
+      <pubDate>Fri, 03 May 2024 13:17:37 GMT</pubDate>
+    </item>
     <item>
       <title>Python 中的多线程无法在 Raspberry Pi 上正常工作</title>
       <link>https://stackoverflow.com/questions/78424618/multithreading-in-python-not-working-correctly-with-raspberry-pi</link>
@@ -15,10 +143,10 @@
     <item>
       <title>从核矩阵中删除特征</title>
       <link>https://stackoverflow.com/questions/78424564/remove-feature-from-kernel-matrix</link>
-      <description><![CDATA[我对机器学习还很陌生，所以请多多包涵 :)
-我正在尝试使用带有预计算内核的 SVM 执行二元分类任务（在 Python 中使用 sklearn）。
-我创建了训练内核，但我包含了一个我本不打算包含的功能，并且该功能在测试数据中不存在。除了数据点之间的“距离”之外，我对内核到底是什么没有非常透彻的了解，但是是否可以从训练内核中删除此功能而无需生成新内核？
-我希望这有意义，再次请多多包涵，因为我对此很陌生。]]></description>
+      <description><![CDATA[我对机器学习还很陌生，所以请耐心等待:)
+我正在尝试使用带有预计算内核的 SVM 来执行二进制分类任务（在 python 中使用 sklearn）。
+我创建了我的火车内核，但我包含了一个我不打算包含的功能，并且测试数据中不存在该功能。我对内核除了“距离”之外到底是什么没有非常透彻的了解。数据点之间，但是否可以从训练内核中删除此功能而无需生成新的功能？
+我希望这是有道理的，请再次耐心等待，因为我对此很陌生。]]></description>
       <guid>https://stackoverflow.com/questions/78424564/remove-feature-from-kernel-matrix</guid>
       <pubDate>Fri, 03 May 2024 11:59:00 GMT</pubDate>
     </item>
@@ -26,17 +154,17 @@
       <title>深度学习算法参数优化时无法识别学习率值</title>
       <link>https://stackoverflow.com/questions/78424478/learning-rate-value-unrecognized-while-parameter-optimization-in-deep-learning-a</link>
       <description><![CDATA[params_nn = {
-&#39;neurons&#39; : (10,100),
-&#39;activation&#39; : (0, 9),
-&#39;optimizer&#39; : (0,7),
-&#39;learning_rate&#39; : (1e-4,1e-2),
-&#39;batch_size&#39; : (200, 1000),
-&#39;epochs&#39; : (20, 100)
-
-nn_bo = BayesianOptimization(nn_cl_bo, params_nn, random_state=111)
+“神经元”：（10,100），
+“激活”：(0, 9),
+“优化器”：（0,7），
+&#39;学习率&#39;：(1e-4,1e-2),
+&#39;批量大小&#39;: (200, 1000),
+&#39;纪元&#39; : (20, 100)
+}
+nn_bo = 贝叶斯优化(nn_cl_bo, params_nn, random_state=111)
 nn_bo.maximize(init_points=25, n_iter=4)
-respose: ValueError: 参数无法识别：{&#39;lr&#39;: 0.007715698477978917
-我尝试使用贝叶斯优化来优化顺序模型。我想知道参数优化中到底出了什么问题。为什么这个特定的会出现错误。]]></description>
+回复：ValueError：无法识别参数：{&#39;lr&#39;：0.007715698477978917}
+我尝试使用贝叶斯优化来优化顺序模型。我想知道参数优化中到底出了什么问题。为什么这个特定的错误。]]></description>
       <guid>https://stackoverflow.com/questions/78424478/learning-rate-value-unrecognized-while-parameter-optimization-in-deep-learning-a</guid>
       <pubDate>Fri, 03 May 2024 11:41:02 GMT</pubDate>
     </item>
@@ -44,7 +172,7 @@ respose: ValueError: 参数无法识别：{&#39;lr&#39;: 0.007715698477978917
       <title>通过组合许多不同的 ML 模型的输出来构建强化学习模型</title>
       <link>https://stackoverflow.com/questions/78424449/building-a-reinforcement-learning-model-by-combining-outputs-of-many-different-m</link>
       <description><![CDATA[与许多人相比，我对编码来说是一个业余爱好者，我需要一些指导。
-经过仔细编写和调整以构建股票价格预测器（希望之后是交易机器人），我构建了 3 个不同的 ML 模型：CNN+LSTM、带有 LSTM 的堆叠自动编码器和 Liquid Time Cell 模型，以使用 LNN。我保存了他们的模型文件、缩放器和模型权重（用于 LNN）。使用它们获得了不错的 MSE、MAE、RMSE 和 Theil&#39;s U (U1) 结果。
+在仔细编写和调整构建股票价格预测器（希望之后是交易机器人）后，我构建了 3 个不同的 ML 模型：CNN+LSTM、带有 LSTM 的堆叠自动编码器和 Liquid Time Cell 模型，以使用 LNN。我保存了他们的模型文件、缩放器和模型权重（用于 LNN）。使用它们获得了不错的 MSE、MAE、RMSE 和 Theil&#39;s U (U1) 结果。
 现在我想将他们的输出整合到一个强化学习模型中，这将受益于目标和奖励函数。我可以想象我即将踏上人生旅程中最艰难的一段路。我的第一个选择是编写一个 Qlearning 类来在 Tensorflow (python) 上运行：
 类 QLearning：
     def __init__(self,learning_rate=0.1,discount_factor=0.95,exploration_rate=1.0,iterations=100):
@@ -60,7 +188,7 @@ respose: ValueError: 参数无法识别：{&#39;lr&#39;: 0.007715698477978917
         td_delta = td_target - self.q_table[当前状态][操作]
         self.q_table[current_state][action] += self.learning_rate * td_delta
 
-    def select_action(自我, 状态):
+    def select_action(self, 状态):
         如果 np.random.rand() &lt;自我探索率：
             return np.random.randint(3) # 示例：3 个可能的操作
         返回 np.argmax(self.q_table[状态])
@@ -72,112 +200,7 @@ respose: ValueError: 参数无法识别：{&#39;lr&#39;: 0.007715698477978917
       <pubDate>Fri, 03 May 2024 11:33:54 GMT</pubDate>
     </item>
     <item>
-      <title>如何将 mediapipe 3D 关键点转换为骨架的欧拉角？</title>
-      <link>https://stackoverflow.com/questions/78424171/how-can-i-convert-mediapipe-3d-keypoints-to-eular-angles-of-a-skeleton</link>
-      <description><![CDATA[我有代码片段可将 openpose 3D 关键点转换为骨架的欧拉角。从 openpose 检测到的关键点如下图所示：
-
-将这些 3D 关键点转换为骨架的 eular 角度的代码是：
-defpose2euler（自身，姿势，标题）：
-    频道 = []
-    季铵化合物 = {}
-    欧拉 = {}
-    堆栈 = [标头.root]
-    而堆栈：
-        节点 = stack.pop()
-        关节 = 节点名称
-        joint_idx = self.keypoint2index[关节]
-        
-        如果node.is_root：
-            通道.extend(姿势[joint_idx])
-
-        索引 = self.keypoint2index
-        订单 = 无
-        如果关节 == &#39;髋关节&#39;:
-            x_dir = 姿势[索引[&#39;LeftHip&#39;]] - 姿势[索引[&#39;RightHip&#39;]]
-            y_dir = 无
-            z_dir = 姿势[索引[&#39;脊柱&#39;]] - 姿势[joint_idx]
-            订单 = &#39;zyx&#39;
-        [&#39;RightHip&#39;, &#39;RightKnee&#39;] 中的 elif 关节：
-            child_idx = self.keypoint2index[node.children[0].name]
-            x_dir = 姿势[索引[&#39;Hip&#39;]] - 姿势[索引[&#39;RightHip&#39;]]
-            y_dir = 无
-            z_dir = 姿势[joint_idx] - 姿势[child_idx]
-            订单 = &#39;zyx&#39;
-        [&#39;LeftHip&#39;, &#39;LeftKnee&#39;] 中的 elif 关节：
-            child_idx = self.keypoint2index[node.children[0].name]
-            x_dir = 姿势[索引[&#39;LeftHip&#39;]] - 姿势[索引[&#39;Hip&#39;]]
-            y_dir = 无
-            z_dir = 姿势[joint_idx] - 姿势[child_idx]
-            订单 = &#39;zyx&#39;
-        elif 关节 == &#39;脊柱&#39;:
-            x_dir = 姿势[索引[&#39;LeftHip&#39;]] - 姿势[索引[&#39;RightHip&#39;]]
-            y_dir = 无
-            z_dir = 姿势[索引[&#39;胸部&#39;]] - 姿势[joint_idx]
-            订单 = &#39;zyx&#39;
-        elif 关节 == &#39;胸部&#39;:
-            x_dir = 姿势[索引[&#39;LeftShoulder&#39;]] - \
-                姿势[索引[&#39;右肩&#39;]]
-            y_dir = 无
-            z_dir = 姿势[joint_idx] - 姿势[索引[&#39;脊柱&#39;]]
-            订单 = &#39;zyx&#39;
-        elif 关节 == &#39;颈部&#39;:
-            x_dir = 无
-            y_dir = 姿势[索引[&#39;胸部&#39;]] - 姿势[joint_idx]
-            z_dir = 姿势[索引[&#39;HeadEndSite&#39;]] - 姿势[索引[&#39;胸部&#39;]]
-            订单 = &#39;zxy&#39;
-        elif 关节 == &#39;LeftShoulder&#39;:
-            x_dir = 姿势[索引[&#39;LeftElbow&#39;]] - 姿势[joint_idx]
-            y_dir = 姿势[索引[&#39;LeftElbow&#39;]] - 姿势[索引[&#39;LeftWrist&#39;]]
-            z_dir = 无
-            订单 = &#39;xzy&#39;
-        elif 关节 == &#39;LeftElbow&#39;:
-            x_dir = 姿势[索引[&#39;LeftWrist&#39;]] - 姿势[joint_idx]
-            y_dir = 姿势[joint_idx] - 姿势[索引[&#39;LeftShoulder&#39;]]
-            z_dir = 无
-            订单 = &#39;xzy&#39;
-        elif 关节 == &#39;RightShoulder&#39;:
-            x_dir = 姿势[joint_idx] - 姿势[索引[&#39;RightElbow&#39;]]
-            y_dir = 姿势[索引[&#39;RightElbow&#39;]] - 姿势[索引[&#39;RightWrist&#39;]]
-            z_dir = 无
-            订单 = &#39;xzy&#39;
-        elif 关节 == &#39;RightElbow&#39;:
-            x_dir = 姿势[joint_idx] - 姿势[索引[&#39;RightWrist&#39;]]
-            y_dir = 姿势[joint_idx] - 姿势[索引[&#39;RightShoulder&#39;]]
-            z_dir = 无
-            订单 = &#39;xzy&#39;
-        如果订购：
-            dcm = math3d.dcm_from_axis(x_dir, y_dir, z_dir, 顺序)
-            quats[关节] = math3d.dcm2quat(dcm)
-        别的：
-            quats[关节] = quats[self.parent[关节]].copy()
-        
-        local_quat = quats[关节].copy()
-        如果节点.父节点：
-            local_quat = math3d.quat_divide(
-                q=quats[关节], r=quats[节点.父级.名称]
-            ）
-        
-        欧拉 = math3d.quat2euler(
-            q=local_quat, order=node.rotation_order
-        ）
-        欧拉 = np.rad2deg(欧拉)
-        欧拉[联合] = 欧拉
-        通道.扩展（欧拉）
-
-        对于 node.children[::-1] 中的子节点：
-            如果不是child.is_end_site：
-                堆栈.追加（子）
-
-    返回通道
-
-现在我想实现媒体管道关键点的欧拉角度，但我无法理解上面的代码。 x_dir、y_dir 和 z_dir 是如何计算以及为何计算的？谁能向我解释一下吗？我正在做一个项目，我已经被困在这里四个星期了。 Mediapipe计算出的关键点如下图所示：
-
-仅适用于姿势关键点，不适用于面部。]]></description>
-      <guid>https://stackoverflow.com/questions/78424171/how-can-i-convert-mediapipe-3d-keypoints-to-eular-angles-of-a-skeleton</guid>
-      <pubDate>Fri, 03 May 2024 10:38:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>预处理不平衡欺诈检测数据并选择合适的算法</title>
+      <title>预处理不平衡的欺诈检测数据并选择合适的算法</title>
       <link>https://stackoverflow.com/questions/78423937/preprocessing-imbalanced-fraud-detection-data-and-choosing-suitable-algorithms</link>
       <description><![CDATA[我目前正在使用不平衡的数据集构建欺诈检测模型，其中欺诈的发生率远高于非欺诈交易。这是我的数据集的细分：
 &lt;前&gt;&lt;代码&gt;
@@ -190,76 +213,199 @@ defpose2euler（自身，姿势，标题）：
  - 名称：字符串
  - Is_fraud：二进制，0 或 1
 
-我尝试通过删除不相关的列（例如 Merchant、Name、Category、Trans_num 和 Card_num）来预处理数据。此外，我将时间列从格式“1/1/2019 0:00”转换为将小时、分钟、年、月和日的列分开，然后删除时间列。最后我应用逻辑回归进行分类，但准确率并不理想。对于改进数据预处理步骤并为这种场景选择更好的算法，您有什么建议吗？]]></description>
+我尝试通过删除不相关的列（例如 Merchant、Name、Category、Trans_num 和 Card_num）来预处理数据。此外，我将时间列从格式“1/1/2019 0:00”转换为将小时、分钟、年、月和日的列分开，然后删除时间列。最后我应用逻辑回归进行分类，但准确率并不理想。对于改进数据预处理步骤并针对此场景选择更好的算法，您有什么建议吗？]]></description>
       <guid>https://stackoverflow.com/questions/78423937/preprocessing-imbalanced-fraud-detection-data-and-choosing-suitable-algorithms</guid>
       <pubDate>Fri, 03 May 2024 09:54:01 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用机器学习来解释植物信号并将其转化为人类可以理解的见解？</title>
-      <link>https://stackoverflow.com/questions/78423671/how-can-machine-learning-be-used-to-interpret-plant-signals-and-translate-them-i</link>
-      <description><![CDATA[我的目标是设计模仿自然界中分散决策和自组织的算法。我想使用这些算法来开发解决问题的新方法，可能在治理或资源分配等领域。
-我尝试对植物生长数据进行基本的时间序列分析。我期望看到与环境因素相关的清晰模式，但结果并不确定。]]></description>
-      <guid>https://stackoverflow.com/questions/78423671/how-can-machine-learning-be-used-to-interpret-plant-signals-and-translate-them-i</guid>
-      <pubDate>Fri, 03 May 2024 09:00:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何向 Polars 列添加新类别？</title>
-      <link>https://stackoverflow.com/questions/78423364/how-to-add-a-new-category-to-a-polars-column</link>
-      <description><![CDATA[我在 Polars 中有一个分类列，其中包含 3 个类别 &#39;A&#39;、&#39;B&#39; 和 &#39;C&#39;，这是从训练中推断出来的数据集。该列还包含一些空值。
-现在假设我的测试集中存在一个以前未见过的类别&#39;X&#39;。我想这样处理：
+      <title>自监督模型收敛到一个常数</title>
+      <link>https://stackoverflow.com/questions/78421910/self-supervised-model-converging-to-a-constant</link>
+      <description><![CDATA[我试图训练巴洛双胞胎模型进行图像分类。尽管如此，我在完成模型训练后遇到了一个问题。模型似乎已经成为一个常数，无论两个给出的图像有多么不同，它总是返回数字 2046，小数部分略有变化。
+该模型尝试将互相关矩阵最小化为单位矩阵。
+有没有办法解决这个问题。
+def off_diagonal(x):
+    # 返回方阵非对角线元素的展平视图
 
-向训练列添加“未知”类别
-对于测试集中任何未见的类别（例如 &#39;X&#39;），请将其设置为 &#39;Unknown&#39;。
-按原样保留训练集和测试集中的所有空值（或作为专用类别），因为它们可能具有特殊含义。
+BarlowTwins 类（nn.Module）：
+    def __init__(自身, 羔羊,batch_size):
+        超级().__init__()
+        self.batch_size = 批量大小
+        self.lambd = 羔羊
+        self.backbone = torchvision.models.resnet34(zero_init_residual=True,weights=&#39;DEFAULT&#39;)
+        self.backbone.fc = nn.Identity()
+        self.size = [512,2048,2048,2048]
 
-如何实现这一目标？]]></description>
-      <guid>https://stackoverflow.com/questions/78423364/how-to-add-a-new-category-to-a-polars-column</guid>
-      <pubDate>Fri, 03 May 2024 07:54:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否有可能数据集不适合构建准确的模型？</title>
-      <link>https://stackoverflow.com/questions/78423313/is-there-a-possibility-dataset-is-just-not-suitable-for-building-accurate-model</link>
-      <description><![CDATA[我正在尝试使用糖尿病健康指标数据集 (https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset) 构建糖尿病预测模型。我使用 Azure 机器学习工作室 (经典版)，尝试了“训练模型”和“调整模型超参数”(随机扫描) 方法，但无法达到 cca 72% 以上的准确度和/或其他指标。数据集是平衡的（0 有 35346 个实例，1 有 35346 个实例），并且其大多数特征都只有 0 或 1。我删除了其中一些对糖尿病预测不重要的特征（CholCheck、AnyHealthCare、NoDocbcCost、Education、Income）。
-https://i.ibb.co/Wn5cSY9/Bez-naslova.png
-这个数据集是否适合准确预测，还是我必须改变解决问题的方法？]]></description>
-      <guid>https://stackoverflow.com/questions/78423313/is-there-a-possibility-dataset-is-just-not-suitable-for-building-accurate-model</guid>
-      <pubDate>Fri, 03 May 2024 07:42:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何将数据从 CFF 资源管理器导出到 csv 或 xlsx 文件？</title>
-      <link>https://stackoverflow.com/questions/78422974/how-do-i-export-data-from-cff-explorer-to-a-csv-or-xlsx-file</link>
-      <description><![CDATA[我正在尝试从 CFF 资源管理器获取数据进行一些分析。如何导出数据？
-我尝试查看不同的东西，但没有可用的来源。是否有可用的扩展或者我必须为此专门编写代码？如果是的话怎么办？]]></description>
-      <guid>https://stackoverflow.com/questions/78422974/how-do-i-export-data-from-cff-explorer-to-a-csv-or-xlsx-file</guid>
-      <pubDate>Fri, 03 May 2024 06:17:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>Unsloth 未检测到 CUDA 和“str2optimizer32bit”</title>
-      <link>https://stackoverflow.com/questions/78420830/unsloth-not-detecting-cuda-and-str2optimizer32bit</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78420830/unsloth-not-detecting-cuda-and-str2optimizer32bit</guid>
-      <pubDate>Thu, 02 May 2024 17:30:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>Visual Studio Code 中的 PyLance 无法识别 TensorFlow.keras 命名空间</title>
-      <link>https://stackoverflow.com/questions/78419755/tensorflow-keras-namespace-not-recognized-by-pylance-in-visual-studio-code</link>
-      <description><![CDATA[我在 Visual Studio Code 中遇到 PyLance 问题，其中tensorflow.keras 命名空间无法被识别，导致 IntelliSense 和自动完成不完整。看来这个问题源于 TensorFlow 利用延迟加载功能 (_KerasLazyLoader) 推迟加载不必要的包，直到需要它们为止。
-我搜索了有关该主题的现有问题，但我发现的最新讨论可以追溯到 2023 年底。此外，提议的解决方案主要涉及从长远来看可能不可靠的解决方法。
-是否有官方解决方案来确保 PyLance 正确识别 tensorflow.keras 命名空间？我无法想象延迟加载通常会破坏 VSCode 智能感知（尽管我肯定是错的）。或者，是否有任何可靠的解决方法在未来的更新中不太可能被破坏？任何见解或指导将不胜感激。
-软件：
-MacOS 索诺玛 14.1.2
-Python 3.12
-张量流2.16.1
-参考之前发布的问题/问题：
 
-https://github.com/microsoft/pylance-release/issues/3249 
-VSCode 自动完成和建议 (IntelliSense) 不支持适用于 Tensorflow 和 Keras 库吗？
-https://community.deeplearning.ai/t/unable-to-import-tensorflow-keras-pylinte0401-import-error-in-visual-studio-code/512586
-https://jagaimox.wordpress.com/2020/12/28/configure-python-intellisense-on-vscode-for-tensorflow-1-14-or-1-15/ （张量流1.14/1.15）
+        ＃ 投影仪
+        _尺寸 = [512,4096,4096,4096]
 
-我在上面的链接中尝试了几种解决方案，但它们对我不起作用。其中一些可能需要一些我需要做但我没有做的额外配置（例如，tensorflow.init 中引用了 _typing，但尚未定义 _typing - 可能已过时） .]]></description>
-      <guid>https://stackoverflow.com/questions/78419755/tensorflow-keras-namespace-not-recognized-by-pylance-in-visual-studio-code</guid>
-      <pubDate>Thu, 02 May 2024 14:11:58 GMT</pubDate>
+        层=[]
+        对于范围内的 i(len(self.sizes) - 2)：
+            层.追加（nn.Linear（self.sizes [i]，self.sizes [i + 1]，偏差= False））
+            Layers.append(nn.BatchNorm1d(self.sizes[i + 1]))
+            层.append(nn.ReLU(inplace=True))
+        层.追加（nn.Linear（self.sizes [-2]，self.sizes [-1]，偏差= False））
+        self.projector = nn.Sequential(*层数)
+
+        # 表示 z1 和 z2 的归一化层
+        self.bn = nn.BatchNorm1d(self.sizes[-1], affine=False)
+
+    def 前进（自身，y1，y2）：
+        z1 = self.投影仪(self.backbone(y1))
+        z2 = self.projector(self.backbone(y2))
+
+        # 经验互相关矩阵
+        c = self.bn(z1).T @ self.bn(z2)
+
+        # 对所有 GPU 之间的互相关矩阵求和
+        c.div_(self.batch_size)
+
+        on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
+        # 打印(&#39;c&#39;, c)
+        val = torch.diagonal(c).sum()
+
+        off_diag = off_diagonal(c).pow_(2).sum()
+        # print(&#39;off_diag&#39;, off_diag)
+        
+        损失 = on_diag + self.lambd * off_diag
+        回波损耗，值
+
+来自 tqdm 导入 tqdm
+
+
+
+def intiate_p（模型，epoch_n，加载器，print_freq，lr，动量，weight_decay）：
+    epoch_tqdm = tqdm(范围(epoch_n))
+    参数权重 = []
+    参数偏差 = []
+    r = 打印频率
+    函数=模型
+
+
+    优化器= optim.SGD(model.parameters(),lr=lr,动量=动量,weight_decay=weight_decay)
+  
+
+    调度程序= optim.lr_scheduler.PolynomialLR(优化器,total_iters=40,power=2.0)
+
+
+    损失=[]
+
+    # 目标 = torch.tensor(2048, dtype=torch.float32)
+    开始时间 = 时间.time()
+    stats_file = open(&#39;stats.txt&#39;, &#39;a&#39;, 缓冲=1)
+
+    
+    对于 epoch_tqdm 中的纪元：
+        
+        对于 enumerate(loader, start=epoch * len(loader)) 中的步骤 ((y1, y2), _)：
+
+            优化器.zero_grad()
+            损失 = func.forward(y1, y2)[0]
+            损失.追加（损失）
+            loss.backward()
+            优化器.step()
+            调度程序.step()
+            epoch_tqdm.set_description(f“损失是：{abs(loss -2048)}”)
+
+  
+    回波损耗
+
+这里的问题是我不确定我的模型评估方法是否正确。因为我随机将两个图像作为 y1 和 y2 输入到我的模型中进行 100 次迭代，但结果保持不变。
+旁注：我尝试了许多不同的训练变量值，我能得到的最佳损失是 100。
+md = BarlowTwins(batch_size=64,lambda=0.005)
+t = intiate_p(model=md, epoch_n=20, loader=loader,lr=0.4,momentum=0.3 ,print_freq=10,weight_decay=0.0001)
+# 从 2000 左右开始，损失收敛到 100 左右
+
+这是不同获取值的直方图示例：
+]]></description>
+      <guid>https://stackoverflow.com/questions/78421910/self-supervised-model-converging-to-a-constant</guid>
+      <pubDate>Thu, 02 May 2024 22:03:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么使用 torch autograd 与 functorch 计算的梯度之间存在微小差异？</title>
+      <link>https://stackoverflow.com/questions/78414800/why-is-there-a-small-difference-between-gradients-calculated-using-torch-autogra</link>
+      <description><![CDATA[我正在使用这个链接解决方案来自上一个问题，比手动循环更有效地计算梯度。
+我注意到使用两种方法计算的梯度存在一些细微差别（即 torch.abs(grads_torch - grads_func).sum() 返回 ~1e-05）。什么可以解释这种差异？一种解决方案比另一种更正确吗？
+MWE
+导入火炬
+从torchvision导入数据集，转换
+将 torch.nn 导入为 nn
+
+＃＃＃＃＃＃ 设置 ＃＃＃＃＃＃
+
+类 MLP(nn.Module):
+    def __init__(自身，输入大小，隐藏大小，输出大小)：
+        超级（MLP，自我）.__init__()
+        self.fc1 = nn.Linear(输入大小，隐藏大小)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(隐藏大小, 输出大小)
+        
+    def 前向（自身，x）：
+        h = self.fc1(x)
+        pred = self.fc2(self.relu(h))
+        返回预测值
+    
+train_dataset = datasets.MNIST(root=&#39;./data&#39;, train=True, download=True,
+                            变换=变换.Compose(
+                                [transforms.ToTensor(),
+                                    变换.Normalize((0.5,),(0.5,))
+        ]))
+
+train_dataloader = torch.utils.data.DataLoader(train_dataset,batch_size=2,shuffle=False)
+
+X, y = next(iter(train_dataloader)) # 随机获取一批数据
+
+net = MLP(28*28, 20, 10) # 定义一个网络
+
+
+###### 使用 Torch AUTOGRAD GRAD 计算梯度 ######
+def计算梯度（模型，X）：
+    # 创建一个张量来保存梯度
+    梯度 = torch.zeros(X.shape[0], 10, sum(p.numel() for p in model.parameters()))
+
+    # 计算每个输入和目标维度的梯度
+    对于范围内的 i(X.shape[0])：
+        对于范围 (10) 内的 j：
+            model.zero_grad()
+            输出 = 模型(X[i])
+            # 计算梯度
+            grads = torch.autograd.grad(输出[j], model.parameters())
+            # 压平梯度并存储它们
+            梯度[i, j, :] = torch.cat([g.view(-1) for g in grads])
+            
+    返回梯度
+
+grads_torch =calculate_gradients(net, X.view(X.shape[0], -1))
+
+###### 现在使用 FUNCTORCH 计算相同的梯度 ######
+# 提取函数调用的参数和缓冲区
+params = {k: v.detach() for k, v in net.named_pa​​rameters()}
+buffers = {k: v.detach() for k, v in net.named_buffers()}
+
+def one_sample(样本):
+    # 这将计算单个样本的梯度
+    # 我们希望每个输出的梯度与参数相关
+    # 这与网络参数的雅可比矩阵相同
+
+    # 定义一个函数，以输入作为返回网络的输出
+    call = lambda x: torch.func.function_call(net, (x, 缓冲区), 样本)
+    
+    # 计算网络与参数的雅可比矩阵
+    J = torch.func.jacrev(call)(params)
+    
+    # J 是一个字典，其中键为参数名称，值为梯度
+    # 我们想要一个张量
+    grads = torch.cat([v.flatten(1) for v in J.values()],-1)
+    返回毕业生
+
+# 不，我们可以使用 vmap 一次性计算所有样本的梯度
+grads_func = torch.vmap(one_sample)(X.flatten(1))
+
+print(torch.allclose(grads_torch, grads_func)) # 返回 True
+print(torch.abs(grads_torch - grads_func).sum()) # 返回张量(1.4454e-05)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78414800/why-is-there-a-small-difference-between-gradients-calculated-using-torch-autogra</guid>
+      <pubDate>Wed, 01 May 2024 16:14:45 GMT</pubDate>
     </item>
     <item>
       <title>尝试使用 YOLOv8 训练后出现多处理错误</title>
@@ -269,22 +415,21 @@ https://jagaimox.wordpress.com/2020/12/28/configure-python-intellisense-on-vscod
       <pubDate>Wed, 01 May 2024 05:10:52 GMT</pubDate>
     </item>
     <item>
-      <title>预测新数据时保存的 GAMLSS 模型出现问题</title>
-      <link>https://stackoverflow.com/questions/77837026/issue-with-saved-gamlss-model-while-predicting-for-new-data</link>
-      <description><![CDATA[我有一个经过 GAMLSS 训练的模型，已使用 saveRDS() 以 .rda 格式保存。
-例如，我将模型训练为：
-gamlss_model&lt;- gamlss(res~pb(x)+pb(y), family=BCTo, data = test)
+      <title>处理机器学习中预测时间序列的分类特征的方法[关闭]</title>
+      <link>https://stackoverflow.com/questions/78402245/approach-to-deal-with-categorical-features-for-forecasting-time-series-in-ml</link>
+      <description><![CDATA[我必须根据 csv 数据对给定日期的网络单元格进行流量预测，其中包含 5 列：区域、站点、单元格、日期、流量
+例如：
+&lt;上一页&gt;&lt;代码&gt;AAN,AAN001,AAN001A,2021-01-01,2.56
 
-当我在清除所有环境变量后加载上述模型，并对新数据使用预测函数时：
-预测（model_old，newdata = new_data）
+AAN,AAN001,AAN001B,2021-01-01,5.6
 
-我收到以下错误：
-eval(Call$data) 中的错误：未找到对象“test”
+ANM,ANM448,ANM448B,2021-04-19,1.2
 
-但是这个测试是旧数据集，在这里应该没有任何意义。我无法理解这有什么问题。因此，我无法运行 REST API。
-当我的所有环境变量在 GAMLSS 模型训练后都存在时，那么当我立即使用预测时，它就可以工作了！但我想稍后使用预测。]]></description>
-      <guid>https://stackoverflow.com/questions/77837026/issue-with-saved-gamlss-model-while-predicting-for-new-data</guid>
-      <pubDate>Thu, 18 Jan 2024 05:10:18 GMT</pubDate>
+ANM,ANM448,ANM448C,2021-04-19,3.6
+
+我对处理站点或单元格等分类特征感到困惑。我可以在这些列中进行热编码吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78402245/approach-to-deal-with-categorical-features-for-forecasting-time-series-in-ml</guid>
+      <pubDate>Mon, 29 Apr 2024 11:01:17 GMT</pubDate>
     </item>
     <item>
       <title>“keras.api._v2.keras”没有属性“mnist”</title>
