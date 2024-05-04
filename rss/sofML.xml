@@ -3,8 +3,182 @@
   <channel>
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
-    <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 04 May 2024 03:15:49 GMT</lastBuildDate>
+    <description>来自 stackoverflow.com 的最新 30 个</description>
+    <lastBuildDate>Sat, 04 May 2024 06:18:16 GMT</lastBuildDate>
+    <item>
+      <title>这些随机森林决策边界表明什么？</title>
+      <link>https://stackoverflow.com/questions/78427857/what-are-these-random-forest-decision-boundary-indicate</link>
+      <description><![CDATA[从这些图像中可以推断出关于观察到的计算行为的哪些见解或含义？
+在特定的二元分类问题中，我利用包含 34 个输入特征和一个目标列（包含 7428 条记录）的完整特征数据集为随机森林模型生成了决策边界图。随后，我应用了“信息增益”特征选择技术，导致包含 25 个输入特征和一个目标列的缩减数据集，但保持相同数量的记录 (7428)。通过 GridSearchCV 将具有一致超参数值的相同随机森林模型应用于两个数据集后，我发现在处理缩减后的数据集时，计算时间意外增加，尽管其特征较少。
+为了清晰起见，我决定将两个数据集的决策边界可视化，并且所附图像代表这些图（只有几列）。
+
+
+其余图像没有复杂的边界。
+绘制示例代码为：
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+将seaborn导入为sns
+将 pandas 导入为 pd
+从 sklearn.ensemble 导入 RandomForestClassifier
+从 sklearn.model_selection 导入 train_test_split
+
+# 加载数据集
+df = pd.read_excel(“curated_data.xlsx”)
+
+# 将数据拆分为特征 (X) 和目标变量 (y)
+X = df.drop(columns=[&#39;病原体检测结果&#39;])
+y = df[&#39;病原体检测结果&#39;]
+
+# 将数据分为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 验证X_train和X_test中的特征数量
+print(&quot;X_train 中的特征数量:&quot;, X_train.shape[1])
+print(&quot;X_test 中的特征数量:&quot;, X_test.shape[1])
+
+# 训练随机森林分类器
+clf = RandomForestClassifier(n_estimators=200, max_depth=None, max_features = &#39;log2&#39;, min_samples_leaf = 1, min_samples_split = 2, random_state=42)
+clf.fit(X_train, y_train)
+
+# 绘制决策边界
+plt.figure(figsize=(8, 6))
+
+# 定义网格
+x_min, x_max = X_train.iloc[:, 0].min() - 1, X_train.iloc[:, 0].max() + 1
+y_min, y_max = X_train.iloc[:, 1].min() - 1, X_train.iloc[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
+
+# 创建一个包含所有特征的网格
+mesh_data = np.column_stack((xx.ravel(), yy.ravel())) # 假设仅使用前两个特征进行绘图
+
+# 用零扩展网格以匹配分类器期望的特征数量
+对于范围 (2, 34) 内的 i：
+    mesh_data = np.column_stack((mesh_data, np.zeros_like(xx.ravel())))
+
+# 在网格上进行预测
+Z = clf.predict(mesh_data)
+Z = Z.reshape(xx.shape)
+
+# 绘制决策边界
+plt.contourf(xx, yy, Z, alpha=0.8)
+
+对于 df1.columns 中的 i：
+    # 绘制数据点
+    sns.scatterplot(x=df1[i], y=df1[&#39;病原体检测结果&#39;],hue=y_train,palette=&#39;Set1&#39;,edgecolor=&#39;k&#39;, alpha=0.7)
+    plt.title(&#39;全特征集上随机森林分类器的决策边界&#39;)
+    plt.xlabel(i)
+    plt.ylabel(&#39;病原体检测结果&#39;)
+    plt.legend(loc=&#39;最佳&#39;)
+    plt.show()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78427857/what-are-these-random-forest-decision-boundary-indicate</guid>
+      <pubDate>Sat, 04 May 2024 05:16:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 tesseract OCR 检测数字</title>
+      <link>https://stackoverflow.com/questions/78427754/detect-digital-numbers-using-tesseract-ocr</link>
+      <description><![CDATA[我正在制作一个用于在数字测量仪器上读取数字的模型，其中结果必须是十进制数。但是，我的问题是我编写的模型无法识别十进制数字中的标点符号。有谁可以帮助我，以便我可以更好地读取 OCR 结果吗？
+谢谢您
+&lt;前&gt;&lt;代码&gt;导入cv2
+将 matplotlib.pyplot 导入为 plt
+将 numpy 导入为 np
+导入 pytesseract
+
+# 预处理图像
+def 预处理图像（图像路径）：
+   图像 = cv2.imread(image_path)
+   # 灰度
+   Gray_image = cv2.cvtColor(图像, cv2.COLOR_BGR2GRAY)
+   # 阈值
+   _, thresh_image = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+   # 膨胀
+   扩张图像 = 扩张（thresh_image）
+   # 腐蚀
+   侵蚀图像 = 侵蚀（扩张图像）
+   # 开运算（先腐蚀后膨胀）
+   打开的图像=打开（侵蚀的图像）
+   # 噪声去除
+   去噪图像 = 去除噪声（打开图像）
+   返回去噪图像
+
+# 获取灰度图像
+def get_grayscale(图像):
+   返回 cv2.cvtColor(图像, cv2.COLOR_BGR2GRAY)
+
+#阈值
+定义阈值（图像）：
+   返回 cv2.threshold(图像, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+＃扩张
+def 膨胀（图像）：
+   内核 = np.ones((5,5),np.uint8)
+   返回 cv2.dilate(图像、内核、迭代 = 1)
+   
+＃侵蚀
+def 侵蚀（图像）：
+   内核 = np.ones((5,5),np.uint8)
+   返回 cv2.erode(图像、内核、迭代 = 1)
+
+#opening - 腐蚀后膨胀
+默认开场（图片）：
+   内核 = np.ones((5,5),np.uint8)
+   返回 cv2.morphologyEx(图像, cv2.MORPH_OPEN, 内核)
+
+# 噪声去除
+def remove_noise(图像):
+   返回 cv2.medianBlur(图像,5)
+
+# 图片路径
+input_image_path = &#39;图像/train7.jpg&#39;
+
+# 预处理图像
+预处理图像 = 预处理图像（输入图像路径）
+
+# 显示预处理结果
+plt.imshow(preprocessed_image, cmap=&#39;灰色&#39;)
+plt.title(&#39;预处理后的图像&#39;)
+plt.axis(&#39;关闭&#39;)
+plt.show()
+pytesseract.pytesseract.tesseract_cmd = r“C:/Program Files/Tesseract-OCR/tesseract.exe”
+
+custom_config = r&#39;--oem 3 --psm 7 -l ssd -c tessedit_char_whitelist=0123456789。&#39;
+打印（&#39; -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -&#39;）
+打印（&#39;TESSERACT输出&#39;）
+打印（&#39; -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - -&#39;）
+打印（pytesseract.image_to_string（预处理图像，配置=自定义配置））
+
+
+
+输出：
+&lt;前&gt;&lt;代码&gt;----------------------------------------
+正方体输出
+----------------------------------------------------
+第1485章
+]]></description>
+      <guid>https://stackoverflow.com/questions/78427754/detect-digital-numbers-using-tesseract-ocr</guid>
+      <pubDate>Sat, 04 May 2024 04:19:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何导入 Gensim？ Pip Install 有效，但我无法在没有出现 ImportError: Cannot import name 'triu' 错误的情况下运行 Import Gensim</title>
+      <link>https://stackoverflow.com/questions/78427675/how-do-i-import-gensim-pip-install-worked-but-i-cant-run-import-gensim-withou</link>
+      <description><![CDATA[我正在尝试执行此 Word2Vec 代码并收到 NameError：名称“gensim”未定义：
+w2v_model = gensim.models.Word2Vec（docgen，min_count = 5，sg = 1，seed = 22122，workers = 1）
+当我导入 gensim 时，出现此错误： ImportError: 无法从 &#39;scipy.linalg&#39; (/opt/conda/lib/python3.9/site-packages/scipy/linalg/&lt;强&gt;init.py)
+如何修复代码以便能够调用 Gensim？我需要 Word2Vec 才能运行，之前没有遇到过这个问题；我今天早上运行这个模型，一切都很好，但现在突然出现错误。
+我看到你必须升级 Scipy，而且它似乎有效。这是完整的代码：
+!pip install scipy==1.10.1
+!pip 安装 gensim
+从 numpy 导入 triu
+导入gensim
+从 gensim 导入语料库、模型
+
+w2v_model = gensim.models.Word2Vec(docgen, min_count=3, sg=1, 种子=22122, 工人=1)
+
+
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78427675/how-do-i-import-gensim-pip-install-worked-but-i-cant-run-import-gensim-withou</guid>
+      <pubDate>Sat, 04 May 2024 03:23:37 GMT</pubDate>
+    </item>
     <item>
       <title>如何将自定义训练代码上传到 Sagemaker Estimator Python</title>
       <link>https://stackoverflow.com/questions/78427298/how-to-upload-custom-training-code-to-sagemaker-estimator-python</link>
@@ -128,7 +302,7 @@ train.csv - ./opt/ml/input/data/train/train.csv。
       <pubDate>Fri, 03 May 2024 23:14:44 GMT</pubDate>
     </item>
     <item>
-      <title>“寻求 Python 中高效 EDA 和大型数据集可视化的先进技术”</title>
+      <title>“寻求使用 Python 实现高效 EDA 和大型数据集可视化的先进技术”</title>
       <link>https://stackoverflow.com/questions/78427059/seeking-advanced-techniques-for-efficient-eda-and-visualization-of-large-datase</link>
       <description><![CDATA[在提高数据分析和可视化技能的过程中，我一直在探索各种技术和工具来更有效地处理大型数据集。我一直使用 Python、Pandas 和 Matplotlib 作为我的主要工具，但我目前正在社区寻求建议和最佳实践，以进一步增强我在该领域的工作流程和熟练程度。我希望从像你们这样经验丰富的专业人士那里获得宝贵的见解、技术和建议，这将帮助我更好地处理涉及海量数据集的现实生活场景
 我试图解释我的学习目标，但我最初的反应很不专业。我期望清楚地了解我的意图，但实际结果却是混乱。我现在提供更合适的回应]]></description>
@@ -146,7 +320,7 @@ https://github.com/ mocboch/Neural-Net/blob/master/Neural%20Network%20for%20Iris
       <pubDate>Fri, 03 May 2024 21:21:04 GMT</pubDate>
     </item>
     <item>
-      <title>如何解释基于情感分析数据训练的朴素贝叶斯模型？</title>
+      <title>如何解释针对情绪分析数据训练的朴素贝叶斯模型？</title>
       <link>https://stackoverflow.com/questions/78426520/how-to-explain-a-naive-bayes-model-trained-on-data-for-sentiment-analysis</link>
       <description><![CDATA[我正在编写此代码来训练朴素贝叶斯模型：
 # 加载必要的库
@@ -237,25 +411,25 @@ df[&#39;y_hat&#39;] = clf.predict(df[特征])
     <item>
       <title>正确理解 LSTM 的 Keras 实现：单元如何工作？</title>
       <link>https://stackoverflow.com/questions/78425666/proper-understanding-of-keras-implementation-of-lstm-how-do-the-units-work</link>
-      <description><![CDATA[N_u 单位的 LSTM 如何处理 N_x 长度的数据？我知道以前有很多类似的问题被问过，但答案却充满矛盾和困惑。因此，我试图通过提出具体问题来消除我的疑虑。我在这里关注简单的博客：
-https://colah.github.io/posts/2015-08-Understanding -LSTM/
-Q0) keras 实现与上面博客一致吗？
+      <description><![CDATA[N_u 个 LSTM 单元如何对 N_x 长度的数据进行处理？我知道之前有很多类似的问题被问到，但答案充满矛盾和困惑。因此，我试图通过提出具体问题来消除我的疑虑。我正在关注这里的简单博客：
+https://colah.github.io/posts/2015-08-Understanding-LSTMs/
+Q0) keras 实现是否与上述博客一致？
 请考虑以下代码。
-导入tensorflow为tf
+import tensorflow as tf
 N_u,N_x=1,1
-模型 = tf.keras.Sequential([
-    tf.keras.layers.LSTM(N_u, stateful=True, batch_input_shape=(32, 1, N_x))
-]）
-模型.summary()
+model = tf.keras.Sequential([
+tf.keras.layers.LSTM(N_u, stateful=True, batch_input_shape=(32, 1, N_x))
+])
+model.summary()
 
-为了简单起见，我在这里的输入数据只是一个标量，并且我有一个时间步长来使事情变得简单。输出形状为(32,1)。参数个数为12。
-Q1) 我有一个 LSTM 单元或单元，对吗？下面代表一个单元格，对吗？
+为简单起见，我这里的输入数据只是一个标量，我有一个时间步长来保持简单。输出形状为 (32,1)。参数数量为 12。
+Q1) 我有一个 LSTM 单元或细胞，对吗？以下代表一个细胞，对吗？
 
-我从图片中了解到会有12个参数：忘记gate=2个权重+1个偏差； input_gate=2*(2个权重+1个偏置);输出门=（2个权重+1个偏置）。所以到目前为止一切都很好。
-Q2) 现在让我们设置N_u,N_x=1,2。我希望相同的单元格将应用于 x 的两个元素。但我发现现在参数总数是16个！为什么？是否因为我获得了与 x_2 和 LSTM 单元之间的 LSTM 连接相对应的 4 个额外权重参数？
-Q3) 现在让我们设置N_u,N_x=2,1。我现在有两个 LSTM 单元。我的理解是两个单元将并行操作相同的数据（在本例中为标量）。这两个单位是完全独立的还是相互影响的？我预计参数数量为 2*12=24，但实际上我得到了 32 个。为什么是 32？
-Q4）如果我设置N_u,N_x=2,2，参数数量是40。我想如果我理解了以上两点就可以得到它。
-Q5）最后，是否有 keras 实现所基于的文档/论文？]]></description>
+我从图片中了解到会有 12 个参数：忘记门 = 2 个权重 + 1 个偏差；输入门 = 2*(2 个权重 + 1 个偏差)；输出门 = (2 个权重 + 1 个偏差)。所以到目前为止一切都很好。
+Q2) 现在让我们设置 N_u,N_x=1,2。我希望相同的单元格将应用于 x 的两个元素。但我发现现在的参数总数是 16！为什么？是因为我获得了 4 个额外的权重参数，这些参数对应于 x_2 和 LSTM 单元之间的 LSTM 连接吗？
+Q3) 现在让我们设置 N_u,N_x=2,1。我现在有两个 LSTM 单元。我的理解是这两个单元将对同一数据（在本例中为标量数）并行操作。这两个单元是完全独立的还是相互影响？我预计参数数量是 2*12=24，但实际上我得到的是 32。为什么是 32？
+Q4) 如果我设置 N_u,N_x=2,2，参数数量为 40。如果我理解了以上两点，我想我可以理解。
+Q5) 最后，是否有 keras 实现所基于的文档/论文？]]></description>
       <guid>https://stackoverflow.com/questions/78425666/proper-understanding-of-keras-implementation-of-lstm-how-do-the-units-work</guid>
       <pubDate>Fri, 03 May 2024 15:46:19 GMT</pubDate>
     </item>
@@ -354,38 +528,10 @@ dt_accuracy #accuracy 为 4.92%，表现不佳
     <item>
       <title>从核矩阵中删除特征</title>
       <link>https://stackoverflow.com/questions/78424564/remove-feature-from-kernel-matrix</link>
-      <description><![CDATA[我正在尝试使用带有 sklearn 预计算内核的 SVM 来执行二元分类任务。
-我创建了我的火车内核，但我包含了一个我不打算包含的功能，并且测试数据中不存在该功能。我对内核除了“距离”之外到底是什么没有非常透彻的了解。数据点之间，但是否可以从训练内核中删除此功能而无需生成新的功能？]]></description>
+      <description><![CDATA[我正在尝试使用带有预先计算内核的 SVM 和 sklearn 来执行二元分类任务。
+我创建了我的火车内核，但我包含了一个我不打算包含的功能，并且测试数据中没有该功能。我对内核除了“距离”之外到底是什么没有非常透彻的了解。数据点之间，但是否可以从训练内核中删除此功能而不必生成新的功能？]]></description>
       <guid>https://stackoverflow.com/questions/78424564/remove-feature-from-kernel-matrix</guid>
       <pubDate>Fri, 03 May 2024 11:59:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>通过组合许多不同的 ML 模型的输出来构建强化学习模型</title>
-      <link>https://stackoverflow.com/questions/78424449/building-a-reinforcement-learning-model-by-combining-outputs-of-many-different-m</link>
-      <description><![CDATA[与许多人相比，我对编码来说是一个业余爱好者，我需要一些指导。
-经过仔细编写和调整以构建股票价格预测器（希望之后是交易机器人），我构建了 3 个不同的 ML 模型：CNN+LSTM、带有 LSTM 的堆叠自动编码器和液体时间常数模型，以使用 LNN。我保存了他们的模型文件、缩放器和模型权重（用于 LNN）。使用它们获得了不错的 MSE、MAE、RMSE 和 Theil&#39;s U (U1) 结果。
-现在我想将他们的输出整合到强化学习模型中，这将受益于目标和奖励函数。我可以想象我即将踏上人生旅程中最艰难的一段路。我的第一个选择是编写一个 Qlearning 类来在 Tensorflow (python) 上运行。然后我转而使用 Tensorflow 代理来组合和堆叠不同的模型文件。这里很黑。有人指导一下吗？
-目前我正在尝试这个：
-# 为股市数据定义自定义环境
-StockMarketEnv 类（suite_gym.GymEnv）：
-    “”“我们的股票市场预测器的自定义环境。”“”
-    def __init__(自身，数据)：
-        super().__init__(数据, max_episode_steps=1000)
-        self._data = data # 这应该是预处理的市场数据
-
-    def观察规范（自我）：
-        “”“”返回观察规范。“”“”
-        return self._data.shape[1] # 特征数量
-
-    def action_spec(自身):
-        “”“返回动作规范。”“”
-        return 3 # 例如：买入、持有、卖出
-
-我的第二个选择是使用 OpenAI Gym 或其他一些库。请帮助选择最佳方法以及如何开始实施它。
-提前非常感谢
-我尝试用 Tensorflow 构建一个类，但这只是初步的努力。不过，我确实有以前模型的模型输出和缩放器+权重，可以用作我即将推出的 RL 模型的输入。]]></description>
-      <guid>https://stackoverflow.com/questions/78424449/building-a-reinforcement-learning-model-by-combining-outputs-of-many-different-m</guid>
-      <pubDate>Fri, 03 May 2024 11:33:54 GMT</pubDate>
     </item>
     <item>
       <title>是否有可能数据集不适合构建准确的模型？</title>
@@ -395,22 +541,6 @@ https://i.ibb.co/Wn5cSY9/Bez-naslova.png
 该数据集是否适合准确预测，或者我必须改变解决问题的方法？]]></description>
       <guid>https://stackoverflow.com/questions/78423313/is-there-a-possibility-dataset-is-just-not-suitable-for-building-accurate-model</guid>
       <pubDate>Fri, 03 May 2024 07:42:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解决在Python中导入TensorFlow时出现“unhashable type”错误？</title>
-      <link>https://stackoverflow.com/questions/78185218/how-can-i-solve-the-unhashable-type-error-when-importing-tensorflow-in-python</link>
-      <description><![CDATA[我在 Virtual Studio Code 中导入 TensorFlow 时遇到问题。我尝试执行我的代码，该代码从导入不同的模块开始。其中一行正在导入 Tensorflow：
-将tensorflow导入为tf
-这给了我错误：
-不可散列的类型：“列表”
-文件“链接”，第 10 行，位于
-导入tensorflow as tf TypeError：不可散列类型：&#39;list&#39;
-首先，我在另一台计算机上使用 Jupyter Notebook 编写了此代码，我可以毫无问题地执行它。在我想要执行它的计算机上遇到此错误后，我尝试重现该错误。我在第一台计算机上安装了 Virtual Studio Code，安装了所有模块并成功执行。好像是设置什么的问题。
-为了测试我只执行了这个，这给了我错误：
-导入tensorflow为tf
-我在两台计算机上都安装了 Python 3.9.0 和 Tensorflow 2.16.1。经过多次尝试（例如卸载并安装tensorflow，或重置Virtual Studio Code），我决定在这里询问。也许这里有人更了解这个问题:)]]></description>
-      <guid>https://stackoverflow.com/questions/78185218/how-can-i-solve-the-unhashable-type-error-when-importing-tensorflow-in-python</guid>
-      <pubDate>Tue, 19 Mar 2024 08:44:21 GMT</pubDate>
     </item>
     <item>
       <title>小数据集上的 r 平方分数差异极大</title>
@@ -426,53 +556,11 @@ H,布朗尼,0.3955
 H,布朗尼,0.3797
 H,布朗尼,0.2962
 
-每个植物有 3L、3M 和 3H（因此每个植物有 9 个）。任务是获得最佳的 r 平方分数，但有 6 个数据点被保留（从我得到的数据集中删除了 6 个数据点，这意味着对于每朵花（有 6 个），L、M 或 H 的一个数据点被删除。正如您在示例 abvoe 中看到的，“brownii”中的一个 L 被删除了，我尝试了几种回归算法，尝试了 KFolds、LeaveOneOut 并手动分割数据集，但似乎数据集太小，以至于取决于测试。数据，结果变化很大。在某些测试数据上我可以得到 0.95 的分数，但在某些测试数据上我可能只能得到 0.2。
+每个植物有 3L、3M 和 3H（因此每个植物有 9 个）。任务是获得最佳 r 平方分数，但有 6 个数据点被保留（从我得到的数据集中删除了 6 个数据点，这意味着对于每朵花（有 6 个），L、M 或 H 中的一个数据点被删除。正如您在示例 abvoe 中看到的，“brownii”中的一个 L 被删除了，我尝试了几种回归算法，尝试了 KFolds、LeaveOneOut 并手动分割数据集，但似乎数据集太小，以至于取决于测试。数据，结果变化很大。在某些测试数据上我可以得到 0.95 的分数，但在某些测试数据上我可能只能得到 0.2。
 
 有什么方法可以实现一致性吗？ ]]></description>
       <guid>https://stackoverflow.com/questions/50630012/extremely-varying-r-squared-score-on-small-dataset</guid>
       <pubDate>Thu, 31 May 2018 17:46:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Tensorflow C++ API 中为占位符张量提供值</title>
-      <link>https://stackoverflow.com/questions/45054737/feeding-a-value-for-placeholder-tensor-in-tensorflow-c-api</link>
-      <description><![CDATA[我使用（Tensorflow）Python API重新训练了Inception-v3模型，并通过修改tensorflow/tensorflow/examples/image_retraining/retrain.py在.pb中保存了一个独立的图形，并进行了以下修改以在分类之前添加一个退出层层：
-def nn_layer（input_tensor，input_dim，output_dim，layer_name，activation_name =&#39;activation&#39;，act = tf.nn.softmax）：
-# 添加名称范围可确保对图中各层进行逻辑分组。
-与 tf.name_scope(layer_name):
-# 该变量将保存该层权重的状态
-与 tf.name_scope(&#39;权重&#39;):
-权重 = 权重变量（[输入维数，输出维数]）
-变量摘要（权重，图层名称+&#39;/权重&#39;）
-与 tf.name_scope(&#39;dropout&#39;):
-keep_prob = tf.placeholder(tf.float32)
-tf.scalar_summary(&#39;dropout_keep_probability&#39;, keep_prob)
-drop = tf.nn.dropout(input_tensor, keep_prob)
-变量摘要(drop, 图层名称 + &#39;/dropout&#39;)
-与 tf.name_scope(&#39;偏差&#39;):
-偏差 =bias_variable([output_dim])
-变量摘要（偏差，层名称 + &#39;/偏差&#39;）
-preactivate = tf.matmul(drop, 权重) + 偏差
-tf.histogram_summary(layer_name + &#39;/pre_activations&#39;, 预激活)
-与 tf.name_scope(activation_name):
-激活 = 行动（预激活）
-tf.histogram_summary(layer_name + &#39;/activations&#39;, 激活)
-返回预激活、激活、keep_prob
-
-在Python中生成预测的代码如下：
-softmax_tensor = sess.graph.get_tensor_by_name(&#39;final_layer/final_result/Softmax:0&#39;)
-预测 = sess.run(softmax_tensor, { &#39;DecodeJpeg/contents:0&#39;:image_data, &#39;final_layer/dropout/Placeholder:0&#39;: 1.})
-
-Python 代码的 C++ 对应部分如下：
-字符串 input_layer = &quot;Mul&quot;;
-字符串output_layer =“final_layer/dropout/Placeholder:0”;
-状态 run_status = session-&gt;Run({{input_layer, resized_tensor}}, {output_layer}, {}, &amp;outputs);
-
-C++ 代码最终出现以下错误消息：
-运行模型失败：参数无效：您必须为占位符张量“final_layer/dropout/Placeholder”提供一个值
-
-我应该在上面的 C++ 代码中更改什么来消除此错误？换句话说，如何像在 python 代码中一样更改 C++ 代码中的占位符值。我已经被这个问题困扰很多天了。任何帮助将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/45054737/feeding-a-value-for-placeholder-tensor-in-tensorflow-c-api</guid>
-      <pubDate>Wed, 12 Jul 2017 10:10:13 GMT</pubDate>
     </item>
     </channel>
 </rss>
