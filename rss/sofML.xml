@@ -3,8 +3,145 @@
   <channel>
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
-    <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 04 May 2024 09:14:48 GMT</lastBuildDate>
+    <description>来自 stackoverflow.com 的最新 30 个</description>
+    <lastBuildDate>Sat, 04 May 2024 12:23:16 GMT</lastBuildDate>
+    <item>
+      <title>错误：HuggingFaceInstructEmbeddings 初始化</title>
+      <link>https://stackoverflow.com/questions/78428830/error-huggingfaceinstructembeddings-initalization</link>
+      <description><![CDATA[`python
+from langchain.embeddings import HuggingFaceInstructEmbeddings
+instructor_embeddings = HuggingFaceInstructEmbeddings()
+
+`
+我被这个错误困住了，似乎无法解决这个问题：
+&#39;&#39;&#39;
+TypeError：INSTRUCTOR._load_sbert_model() 获得了一个意外的关键字参数“token”
+&#39;&#39;&#39;
+请帮忙！我该如何解决这个问题？
+我想使用 HuggingFaceInstructEmbeddings 来矢量化我的数据集，但它不起作用]]></description>
+      <guid>https://stackoverflow.com/questions/78428830/error-huggingfaceinstructembeddings-initalization</guid>
+      <pubDate>Sat, 04 May 2024 11:32:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>PyTorch：不同的 DataLoader 批量大小会产生截然不同的损失</title>
+      <link>https://stackoverflow.com/questions/78428584/pytorch-different-dataloader-batch-sizes-yield-very-different-losses</link>
+      <description><![CDATA[我正在使用 此近似示例将正弦波作为学习近似的基础。我是 PyTorch 新手……为什么不同的 BATCH_SIZE 值会显着改变结果？
+批量大小 512：
+
+批量大小 10000（所有数据点）：
+
+我发布了下面的代码，但首先我将解释我对原始代码所做的更改：
+
+所有随机种子都是静态的，禁用洗牌：
+
+学习率更改为 1e-4，X 大小更改为 10**4，MAX_EPOCH 更改为 20。
+
+添加了一个绘图来绘制 X 范围内所有值的近似值，以显示差异
+
+
+完整代码如下...
+谢谢！
+导入火炬
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+
+从火炬导入 nn，优化
+从 torch.utils.data 导入 TensorDataset、DataLoader
+从 sklearn.model_selection 导入 train_test_split
+
+device = torch.device(“cuda”) if torch.cuda.is_available() else torch.device(“cpu”)
+LR = 1e-4
+最大纪元 = 20
+BATCH_SIZE = 10**4
+
+类 SineApproximator(nn.Module):
+    def __init__(自身):
+        超级（SineApproximator，自我）.__init__()
+        self.regressor = nn.Sequential(nn.Linear(1, 1024),
+                                       nn.ReLU(inplace=True),
+                                       nn.线性(1024, 1024),
+                                       nn.ReLU(inplace=True),
+                                       nn.线性(1024, 1))
+    def 前向（自身，x）：
+        输出 = self.regressor(x)
+        返回输出
+
+
+火炬.manual_seed(41)
+如果 torch.cuda.is_available():
+    torch.cuda.manual_seed_all(41)
+np.随机.种子(41)
+
+X = np.random.rand(10**4) * 2 * np.pi
+y = np.sin(X)
+
+X_train, X_val, y_train, y_val = map(torch.tensor, train_test_split(X, y, test_size=0.2, shuffle=False, random_state=41))
+train_dataloader = DataLoader(TensorDataset(X_train.unsqueeze(1), y_train.unsqueeze(1)), batch_size=BATCH_SIZE,
+                              pin_memory=True, shuffle=True)
+val_dataloader = DataLoader(TensorDataset(X_val.unsqueeze(1), y_val.unsqueeze(1)), batch_size=BATCH_SIZE,
+                            pin_memory=True, shuffle=True)
+
+模型 = SineApproximator().to(设备)
+优化器 = optim.Adam(model.parameters(), lr=LR)
+标准 = nn.MSELoss(reduction=&quot;mean&quot;)
+
+train_loss_list = 列表()
+val_loss_list = 列表()
+对于范围内的纪元（MAX_EPOCH）：
+    print(&quot;纪元 %d / %d&quot; % (纪元 + 1, MAX_EPOCH))
+    模型.train()
+    # 训练循环
+    temp_loss_list = 列表()
+    对于train_dataloader中的X_train、y_train：
+        X_train = X_train.type(torch.float32).to(设备)
+        y_train = y_train.type(torch.float32).to(设备)
+
+        优化器.zero_grad()
+
+        分数 = 模型(X_train)
+        损失=标准（输入=分数，目标=y_train）
+        loss.backward()
+
+        优化器.step()
+
+        temp_loss_list.append(loss.detach().cpu().numpy())
+
+    temp_loss_list = 列表()
+    对于train_dataloader中的X_train、y_train：
+        X_train = X_train.type(torch.float32).to(设备)
+        y_train = y_train.type(torch.float32).to(设备)
+
+        分数 = 模型(X_train)
+        损失=标准（输入=分数，目标=y_train）
+
+        temp_loss_list.append(loss.detach().cpu().numpy())
+
+    avg_loss = np.average（temp_loss_list）
+    train_loss_list.append(avg_loss)
+    print(&quot;\ttrain 损失: %.5f&quot; % train_loss_list[-1])
+
+# 构建一个 np 数组，其中所有 X 值都在最小值和最大值之间，间隔为 0.01，每个值都在自己的数组中：
+模型.eval()
+X_all = torch.tensor(np.arange(X.min(), X.max(), 0.01)).type(torch.float32).unsqueeze(1).to(device)
+y_预测 = 模型(X_all)
+y_prediction = y_prediction.detach().cpu().numpy().flatten()
+原始 = plt.scatter(X, y, s=1)
+预测 = plt.scatter(X_all.detach().cpu().numpy(), y_prediction, s=1)
+plt.legend((预测，原始), (“函数”, “样本”))
+plt.waitforbuttonpress()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78428584/pytorch-different-dataloader-batch-sizes-yield-very-different-losses</guid>
+      <pubDate>Sat, 04 May 2024 10:10:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何从未分割的（正常）图像中提取放射学特征？</title>
+      <link>https://stackoverflow.com/questions/78428542/how-to-extract-radiomic-features-from-an-unsegmented-normal-image</link>
+      <description><![CDATA[我正在通过从医学图像中提取放射组学特征来利用机器学习进行肿瘤检测。我的问题是：
+由于健康数据上没有肿瘤，因此图像中没有分割部分。如何从健康图像中提取放射组学特征？
+“值错误：在此掩码中找不到标签（即没有任何内容被分段）！”]]></description>
+      <guid>https://stackoverflow.com/questions/78428542/how-to-extract-radiomic-features-from-an-unsegmented-normal-image</guid>
+      <pubDate>Sat, 04 May 2024 09:57:03 GMT</pubDate>
+    </item>
     <item>
       <title>饮食推荐系统的python代码[关闭]</title>
       <link>https://stackoverflow.com/questions/78428234/python-code-for-diet-recommendation-system</link>
@@ -17,16 +154,16 @@ defgenerate_recommendations(self,):
     self.meals_calories_perc 中的膳食：
         膳食卡路里=self.meals_calories_perc[膳食]*total_calories
         如果餐==&#39;早餐&#39;：
-            推荐营养 = [膳食卡路里,rnd(10,30),rnd(0,4),rnd(0,30),rnd(0,400),rnd(40,75),rnd(4,10),rnd(0,10) ),rnd(30,100)]
+            推荐营养 = [膳食卡路里,rnd(10,30),rnd(0,4),rnd(0,30),rnd(0,400),rnd(40,75),rnd(4,10),rnd(0,10 ),rnd(30,100)]
         elif 餐==&#39;发射&#39;：
             推荐营养 = [膳食卡路里,rnd(20,40),rnd(0,4),rnd(0,30),rnd(0,400),rnd(40,75),rnd(4,20),rnd(0,10 ),rnd(50,175)]
         elif 餐==&#39;晚餐&#39;：
             推荐营养 = [膳食卡路里,rnd(20,40),rnd(0,4),rnd(0,30),rnd(0,400),rnd(40,75),rnd(4,20),rnd(0,10 ),rnd(50,175)]
         别的：
-            推荐营养 = [膳食卡路里,rnd(10,30),rnd(0,4),rnd(0,30),rnd(0,400),rnd(40,75),rnd(4,10),rnd(0,10) ),rnd(30,100)]
+            推荐营养 = [膳食卡路里,rnd(10,30),rnd(0,4),rnd(0,30),rnd(0,400),rnd(40,75),rnd(4,10),rnd(0,10 ),rnd(30,100)]
         生成器=生成器（推荐_营养）
         Recommended_recipes=generator.generate().json()[&#39;输出&#39;]
-        suggest.append(recommended_recipes)
+        推荐.追加（推荐菜谱）
     对于推荐中的推荐：
         推荐食谱：
             食谱[&#39;image_link&#39;]=find_image(食谱[&#39;名称&#39;])
@@ -46,32 +183,32 @@ defgenerate_recommendations(self,):
       <title>这些随机森林决策边界表明什么？</title>
       <link>https://stackoverflow.com/questions/78427857/what-are-these-random-forest-decision-boundary-indicate</link>
       <description><![CDATA[从这些图像中可以推断出关于观察到的计算行为的哪些见解或含义？
-在特定二元分类问题的背景下，我利用包含 34 个输入特征和一个目标列的完整特征数据集为随机森林模型生成了决策边界图，包含 7428 条记录。随后，我应用了“信息增益”特征选择技术，结果数据集缩小为包含 25 个输入特征和一个目标列，但记录数量保持不变（7428）。通过 GridSearchCV 将具有一致超参数值的相同随机森林模型应用于两个数据集后，我观察到在处理精简数据集时计算时间意外增加，尽管其特征较少。
-为了寻求清晰度，我决定可视化两个数据集的决策边界，所附图像代表这些图（带有几列）。
+在特定的二元分类问题中，我利用包含 34 个输入特征和一个目标列（包含 7428 条记录）的完整特征数据集为随机森林模型生成了决策边界图。随后，我应用了“信息增益”特征选择技术，导致包含 25 个输入特征和一个目标列的缩减数据集，但保持相同数量的记录 (7428)。通过 GridSearchCV 将具有一致超参数值的相同随机森林模型应用于两个数据集后，我发现在处理缩减后的数据集时，计算时间意外增加，尽管其特征较少。
+为了清晰起见，我决定将两个数据集的决策边界可视化，并且所附图像代表这些图（只有几列）。
 
 
 其余图像没有复杂的边界。
-绘图的示例代码是：
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+绘制示例代码为：
+将 numpy 导入为 np
+将 matplotlib.pyplot 导入为 plt
+将seaborn导入为sns
+将 pandas 导入为 pd
+从 sklearn.ensemble 导入 RandomForestClassifier
+从 sklearn.model_selection 导入 train_test_split
 
 # 加载数据集
-df = pd.read_excel(&quot;curated_data.xlsx&quot;) 
+df = pd.read_excel(“curated_data.xlsx”)
 
 # 将数据拆分为特征 (X) 和目标变量 (y)
-X = df.drop(columns=[&#39;Pathogen Test Result&#39;]) 
-y = df[&#39;Pathogen Test Result&#39;]
+X = df.drop(columns=[&#39;病原体检测结果&#39;])
+y = df[&#39;病原体检测结果&#39;]
 
-# 将数据拆分为训练集和测试集
+# 将数据分为训练集和测试集
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 验证 X_train 和 X_test 中的特征数量
-print(&quot;Number of X_train 中的特征：&quot;，X_train.shape[1])
-print(&quot;X_test 中的特征数量：&quot;，X_test.shape[1])
+# 验证X_train和X_test中的特征数量
+print(&quot;X_train 中的特征数量:&quot;, X_train.shape[1])
+print(&quot;X_test 中的特征数量:&quot;, X_test.shape[1])
 
 # 训练随机森林分类器
 clf = RandomForestClassifier(n_estimators=200, max_depth=None, max_features = &#39;log2&#39;, min_samples_leaf = 1, min_samples_split = 2, random_state=42)
@@ -85,12 +222,12 @@ x_min, x_max = X_train.iloc[:, 0].min() - 1, X_train.iloc[:, 0].max() + 1
 y_min, y_max = X_train.iloc[:, 1].min() - 1, X_train.iloc[:, 1].max() + 1
 xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
 
-# 创建包含所有特征的网格
+# 创建一个包含所有特征的网格
 mesh_data = np.column_stack((xx.ravel(), yy.ravel())) # 假设仅使用前两个特征进行绘图
 
-# 使用零扩展网格以匹配分类器预期的特征数量
-for i in range(2, 34):
-mesh_data = np.column_stack((mesh_data, np.zeros_like(xx.ravel())))
+# 用零扩展网格以匹配分类器期望的特征数量
+对于范围 (2, 34) 内的 i：
+    mesh_data = np.column_stack((mesh_data, np.zeros_like(xx.ravel())))
 
 # 在网格上进行预测
 Z = clf.predict(mesh_data)
@@ -99,14 +236,14 @@ Z = Z.reshape(xx.shape)
 # 绘制决策边界
 plt.contourf(xx, yy, Z, alpha=0.8)
 
-for i in df1.columns:
-# 绘制数据点
-sns.scatterplot(x=df1[i], y=df1[&#39;病原体检测结果&#39;], hue=y_train, palette=&#39;Set1&#39;, edgecolor=&#39;k&#39;, alpha=0.7)
-plt.title(&#39;全特征集上随机森林分类器的决策边界&#39;)
-plt.xlabel(i)
-plt.ylabel(&#39;病原体检测结果&#39;)
-plt.legend(loc=&#39;best&#39;)
-plt.show()
+对于 df1.columns 中的 i：
+    # 绘制数据点
+    sns.scatterplot(x=df1[i], y=df1[&#39;病原体检测结果&#39;],hue=y_train,palette=&#39;Set1&#39;,edgecolor=&#39;k&#39;, alpha=0.7)
+    plt.title(&#39;全特征集上随机森林分类器的决策边界&#39;)
+    plt.xlabel(i)
+    plt.ylabel(&#39;病原体检测结果&#39;)
+    plt.legend(loc=&#39;最佳&#39;)
+    plt.show()
 ]]></description>
       <guid>https://stackoverflow.com/questions/78427857/what-are-these-random-forest-decision-boundary-indicate</guid>
       <pubDate>Sat, 04 May 2024 05:16:48 GMT</pubDate>
@@ -126,7 +263,7 @@ def 预处理图像（图像路径）：
    图像 = cv2.imread(image_path)
    # 灰度
    Gray_image = cv2.cvtColor(图像, cv2.COLOR_BGR2GRAY)
-   # 阈值化
+   # 阈值
    _, thresh_image = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
    # 膨胀
    扩张图像 = 扩张（thresh_image）
@@ -159,7 +296,7 @@ def 侵蚀（图像）：
 #opening - 腐蚀后膨胀
 默认开场（图片）：
    内核 = np.ones((5,5),np.uint8)
-   返回cv2.morphologyEx（图像，cv2.MORPH_OPEN，内核）
+   返回 cv2.morphologyEx(图像, cv2.MORPH_OPEN, 内核)
 
 # 噪声去除
 def remove_noise(图像):
@@ -198,30 +335,30 @@ custom_config = r&#39;--oem 3 --psm 7 -l ssd -c tessedit_char_whitelist=01234567
     <item>
       <title>COCO分段json格式的合并和减去注释</title>
       <link>https://stackoverflow.com/questions/78427741/merge-and-subtract-annotations-in-coco-segmentation-json-format</link>
-      <description><![CDATA[我是 Python 和机器学习的新手，我遇到了以下问题：我已注释 COCO .json 格式的数据。在这种情况下，它是水下照片上活着的珊瑚的表面积和死亡的珊瑚的部分。有时，蒙版会重叠。
-我想从我注释为“活着”的区域中减去我注释为“死亡”的区域。在每张照片上，只有一个珊瑚被注释，有时我会在多个部分中这样做，因此我还想在减法之前合并每个类别的蒙版。注释类“死亡”只出现在图像的子集中。
-有人能告诉我如何做到这一点吗？
-我添加了一个示例照片：黄色表示“活着”类，绿色表示“死亡”类。
+      <description><![CDATA[我是 Python 和机器学习新手，遇到以下问题：我以 COCO .json 格式注释了数据。在这种情况下，水下照片上的珊瑚表面区域是活的，而珊瑚的部分区域是死的。有时，蒙版会重叠。
+我想减去我注释为“死区”的区域来自我注释为“活着”的区域。在每张照片上，只有一个珊瑚被注释，有时我会分多个部分进行注释，因此我也想在减法之前合并每个类别的蒙版。注释类“死”了。仅出现在图像的子集中。
+有人能指出我如何做到这一点的正确方向吗？
+我添加了一张示例照片：黄色表示“活着”类别，绿色表示“死亡”类别。
 
 非常感谢！]]></description>
       <guid>https://stackoverflow.com/questions/78427741/merge-and-subtract-annotations-in-coco-segmentation-json-format</guid>
       <pubDate>Sat, 04 May 2024 04:11:41 GMT</pubDate>
     </item>
     <item>
-      <title>如何导入 Gensim？ Pip Install 有效，但我无法在没有出现 ImportError: Cannot import name 'triu' 错误的情况下运行 Import Gensim</title>
+      <title>如何导入 Gensim？Pip Install 成功了，但是我无法运行 Import Gensim，否则会出现 ImportError: 无法导入名称“triu”错误</title>
       <link>https://stackoverflow.com/questions/78427675/how-do-i-import-gensim-pip-install-worked-but-i-cant-run-import-gensim-withou</link>
-      <description><![CDATA[我正在尝试执行此 Word2Vec 代码并收到 NameError：名称“gensim”未定义：
-w2v_model = gensim.models.Word2Vec（docgen，min_count = 5，sg = 1，seed = 22122，workers = 1）
-当我导入 gensim 时，出现此错误： ImportError: 无法从 &#39;scipy.linalg&#39; (/opt/conda/lib/python3.9/site-packages/scipy/linalg/&lt;强&gt;init.py)
-如何修复代码以便能够调用 Gensim？我需要 Word2Vec 才能运行，之前没有遇到过这个问题；我今天早上运行这个模型，一切都很好，但现在突然出现错误。
-我看到你必须升级 Scipy，而且它似乎有效。这是完整的代码：
+      <description><![CDATA[我尝试执行此 Word2Vec 代码并收到 NameError：名称“gensim”未定义：
+w2v_model = gensim.models.Word2Vec(docgen, min_count=5, sg=1, seed=22122, worker=1)
+当我导入 gensim 时，我收到此错误：ImportError：无法从“scipy.linalg”导入名称“triu”（/opt/conda/lib/python3.9/site-packages/scipy/linalg/init.py）
+我该如何修复代码才能调用 Gensim？我需要 Word2Vec 才能运行，之前没有遇到过这个问题；我今天早上运行这个模型时一切正常，但现在突然出现错误。
+我看到你必须升级 Scipy，它似乎有效。这是完整代码：
 !pip install scipy==1.10.1
-!pip 安装 gensim
-从 numpy 导入 triu
-导入gensim
-从 gensim 导入语料库、模型
+!pip install gensim 
+from numpy import triu
+import gensim
+from gensim import corpora, models
 
-w2v_model = gensim.models.Word2Vec(docgen, min_count=3, sg=1, 种子=22122, 工人=1)
+w2v_model = gensim.models.Word2Vec(docgen, min_count=3, sg=1, seed=22122, worker=1)
 
 
 谢谢！]]></description>
@@ -229,129 +366,63 @@ w2v_model = gensim.models.Word2Vec(docgen, min_count=3, sg=1, 种子=22122, 工�
       <pubDate>Sat, 04 May 2024 03:23:37 GMT</pubDate>
     </item>
     <item>
-      <title>如何将自定义训练代码上传到 Sagemaker Estimator Python</title>
-      <link>https://stackoverflow.com/questions/78427298/how-to-upload-custom-training-code-to-sagemaker-estimator-python</link>
-      <description><![CDATA[我正在尝试使用 Sagemaker 的 Estimator 类来训练模型。我的目录结构如下：
-&lt;前&gt;&lt;代码&gt;- 温度
-   - 训练步骤
-      - 火车.py
-      - 要求.txt
-   - 温度.py
+      <title>如何解释基于情感分析数据训练的朴素贝叶斯模型？</title>
+      <link>https://stackoverflow.com/questions/78426520/how-to-explain-a-naive-bayes-model-trained-on-data-for-sentiment-analysis</link>
+      <description><![CDATA[我正在编写此代码来训练朴素贝叶斯模型：
+# 加载必要的库
+库（readxl）
+库（插入符号）
+图书馆(e1071)
 
-train.py：
-from sklearn.datasets import load_iris
-从 sklearn.model_selection 导入 train_test_split
-从 sklearn.ensemble 导入 RandomForestClassifier
-从 sklearn.metrics 导入 precision_score
+# 加载预处理后的TF-IDF矩阵
+tfidf_df &lt;- read_excel(&#39;~/Downloads/tfidf_r.xlsx&#39;)
 
-########################################版本测试######## #################################################### ####
-导入日志记录
-导入系统
-导入pkg_resources
-导入 json
+# 加载带有标签的原始DataFrame
+df &lt;- read_excel(&#39;~/Downloads/all-review_label.xlsx&#39;)
 
-def get_python_and_package_versions():
-    # 获取Python版本
-    python_version = 系统版本
+# 将 TF-IDF 矩阵与标签 DataFrame 合并
+merged_df &lt;- 合并(tfidf_df, df, by=&#39;review_id&#39;)
 
-    # 获取已安装的包版本
-    install_packages = {pkg.key: pkg_resources.working_set 中 pkg 的 pkg.version}
+# 将数据分为训练集和测试集
+  设置.种子(42)
+  train_indices &lt;- createDataPartition(merged_df$review_id, p = 0.8, list = FALSE)
+  train_data &lt;- merged_df[train_indices, ]
+  test_data &lt;- merged_df[-train_indices, ]
+  
+  # 初始化并训练朴素贝叶斯分类器
+  naive_bayes_model &lt;- naiveBayes(标签 ~ ., data = train_data)
+  
+  # 对测试集进行预测
+  y_pred &lt;- 预测（naive_bayes_model，newdata = test_data）
+  打印（y_pred）
+  
+  # 将预测值和实际值转换为相同水平的因子
+  级别 &lt;- 唯一（c（级别（y_pred），级别（test_data$review）））
+  y_pred &lt;- 因子(y_pred, 级别 = 级别)
+  test_data$label&lt;- 因子(test_data$label, 级别 = 级别)
 
-    # 将Python版本和已安装的包版本合并到字典中
-    版本数据 = {
-        “python_版本”：python_版本，
-        “已安装的包”：已安装的包
-    }
-    
-    # 初始化记录器
-    记录器=logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    
-    # 检查默认记录器是否已经存在
-    如果不是 logger.hasHandlers():
-        # 如果不存在默认记录器，则创建一个新记录器
-        处理程序=logging.StreamHandler(sys.stdout)
-        formatter =logging.Formatter(&#39;%(asctime)s - %(levelname)s - %(message)s&#39;)
-        handler.setFormatter(格式化程序)
-        logger.addHandler(处理程序)
-    
-    # 记录版本数据
-    logger.info(“Python版本和安装的包版本：”)
-    logger.info(json.dumps(version_data, indent=4))
+我想解释使用 SHAP 从模型中获得的结果，我使用了以下代码：
+库（kernelshap）
+图书馆（shapviz）
 
-# 用法示例：
-get_python_and_package_versions()
+xvars &lt;- setdiff(colnames(merged_df), &quot;label...2&quot;)
 
+# 如果 length(xvars) 大于 10，则使用 kernelshap()。对 bg_X 进行子采样至 100-500 行
+shap_values &lt;- kernelshap(naive_bayes_model,
+                          X = 合并_df,
+                          bg_X = 合并_df,
+                          功能名称 = xvars)
 
-########################################版本测试######## #################################################### ####
+shap_values &lt;- shapviz(shap_values)
+sv_importance(shap_values, kind = “bar”)
 
-
-# 加载鸢尾花数据集
-虹膜 = load_iris()
-X = 虹膜数据
-y = 虹膜.目标
-
-# 将数据集分为训练集和测试集
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# 初始化并训练随机森林分类器
-分类器 = RandomForestClassifier(n_estimators=100, random_state=42)
-分类器.fit(X_train, y_train)
-
-# 对测试集进行预测
-预测 = classifier.predict(X_test)
-
-# 计算准确率
-准确度=准确度_得分（y_测试，预测）
-print(“准确度：”, 准确度)
-
-临时.py：
-导入 sagemaker
-从 sagemaker.estimator 导入估算器
-从 sagemaker.image_uris 导入 get_base_python_image_uri
-从 sagemaker.local 导入 LocalSession
-导入boto3
-
-# 创建 boto 会话
-boto_session = boto3.Session()
-
-local_session = LocalSession(boto_session = boto_session, default_bucket = pipeline_bucket_name) #存储桶名称
-
-输入 = {
-        “训练”：sagemaker.inputs.TrainingInput(
-            s3_data=processor_output #数据存在的S3 URI
-        ）
-
-    }
-
-估计器 = 估计器(
-            image_uri=get_base_python_image_uri(
-                “us-east-1”，py_version=str(38)
-            ),
-            role=role, #添加执行角色
-            实例计数=1，
-            instance_type =“本地”，
-            output_path=artifact_location, #s3-bucket-location
-            base_job_name=training_base_job_name, # 训练作业的名称
-            sagemaker_session=local_session,
-            source_dir=&quot;./train_step&quot;,
-            code_location=training_code_location, #s3-bucket-location
-            入口点=“train.py”，
-            container_entry_point=[&quot;find&quot;, &quot;.&quot;, &quot;-type&quot;, &quot;f&quot;, &quot;(&quot; , &quot;-name&quot;, &quot;train.py&quot;, &quot;-o&quot;, “-name”、“train.csv”、“)” ]
-        ）
-train_args = 估计器.fit(
-    输入=输入
-）
-
-似乎未添加 source_dir 中指定的目录。当我尝试查找 train.py 和 train.csv 时，我可以找到 train.csv 的路径，但  中没有任何文件&gt;train_step 目录。
-train.csv - ./opt/ml/input/data/train/train.csv。
-注意：train.py 是一个虚拟代码，只是为了使其可以在没有数据集的情况下重现。
-在检查 code_location 中指定的 s3 位置时，我可以看到上传到那里的 source_code。]]></description>
-      <guid>https://stackoverflow.com/questions/78427298/how-to-upload-custom-training-code-to-sagemaker-estimator-python</guid>
-      <pubDate>Fri, 03 May 2024 23:14:44 GMT</pubDate>
+但是 R 显示“停止”图标几个小时，但没有给出任何结果。
+如何修复它？]]></description>
+      <guid>https://stackoverflow.com/questions/78426520/how-to-explain-a-naive-bayes-model-trained-on-data-for-sentiment-analysis</guid>
+      <pubDate>Fri, 03 May 2024 18:57:59 GMT</pubDate>
     </item>
     <item>
-      <title>为什么最终模型中的树木数量不是我指定的数量？</title>
+      <title>为什么最终模型中的树木数量不是我指定的数量？[关闭]</title>
       <link>https://stackoverflow.com/questions/78426497/why-is-the-number-of-trees-in-the-final-model-not-the-number-that-i-specified</link>
       <description><![CDATA[我使用 quantregForest 进行分位数回归森林模型，代码如下：
 opt_mdl &lt;- quantregForest(x = train[, features],
@@ -361,119 +432,9 @@ opt_mdl &lt;- quantregForest(x = train[, features],
                           n树= 500，
                           nthreads = 并行::DetectCores() - 1)
 
-这里我指定ntree为500。但是在opt_mdl中，值ntree (opt_mdl$ntree) 是 34。为什么会发生这种情况以及如何修复它？]]></description>
+其中 Train 是一个包含 1909 个数据实例和特征列的数据框，features 是要使用的 24 个特征名称的列表。这里我将ntree指定为500。但是在opt_mdl中，值ntree (opt_mdl$ntree)是 34。为什么会发生这种情况以及如何解决它？]]></description>
       <guid>https://stackoverflow.com/questions/78426497/why-is-the-number-of-trees-in-the-final-model-not-the-number-that-i-specified</guid>
       <pubDate>Fri, 03 May 2024 18:51:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>正确理解 LSTM 的 Keras 实现：单元如何工作？</title>
-      <link>https://stackoverflow.com/questions/78425666/proper-understanding-of-keras-implementation-of-lstm-how-do-the-units-work</link>
-      <description><![CDATA[N_u 个 LSTM 单元如何对 N_x 长度的数据进行处理？我知道之前有很多类似的问题被问到，但答案充满矛盾和困惑。因此，我试图通过提出具体问题来消除我的疑虑。我正在关注这里的简单博客：
-https://colah.github.io/posts/2015-08-Understanding-LSTMs/
-Q0) keras 实现是否与上述博客一致？
-请考虑以下代码。
-import tensorflow as tf
-N_u,N_x=1,1
-model = tf.keras.Sequential([
-tf.keras.layers.LSTM(N_u, stateful=True, batch_input_shape=(32, 1, N_x))
-])
-model.summary()
-
-为简单起见，我这里的输入数据只是一个标量，我有一个时间步长来保持简单。输出形状为 (32,1)。参数数量为 12。
-Q1) 我有一个 LSTM 单元或细胞，对吗？以下代表一个细胞，对吗？
-
-我从图片中了解到会有 12 个参数：忘记门 = 2 个权重 + 1 个偏差；输入门 = 2*(2 个权重 + 1 个偏差)；输出门 = (2 个权重 + 1 个偏差)。所以到目前为止一切都很好。
-Q2) 现在让我们设置 N_u,N_x=1,2。我希望相同的单元格将应用于 x 的两个元素。但我发现现在的参数总数是 16！为什么？是因为我获得了 4 个额外的权重参数，这些参数对应于 x_2 和 LSTM 单元之间的 LSTM 连接吗？
-Q3) 现在让我们设置 N_u,N_x=2,1。我现在有两个 LSTM 单元。我的理解是这两个单元将对同一数据（在本例中为标量数）并行操作。这两个单元是完全独立的还是相互影响？我预计参数数量是 2*12=24，但实际上我得到的是 32。为什么是 32？
-Q4) 如果我设置 N_u,N_x=2,2，参数数量为 40。如果我理解了以上两点，我想我可以理解。
-Q5) 最后，是否有 keras 实现所基于的文档/论文？]]></description>
-      <guid>https://stackoverflow.com/questions/78425666/proper-understanding-of-keras-implementation-of-lstm-how-do-the-units-work</guid>
-      <pubDate>Fri, 03 May 2024 15:46:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何提高决策树的准确性？</title>
-      <link>https://stackoverflow.com/questions/78425640/how-can-i-improve-the-accuracy-of-my-decision-tree</link>
-      <description><![CDATA[我的决策树的准确率是 5%。如何改进？我已经尝试过一些事情，但没有运气。我的目标变量是 Daily_Max，它是每日臭氧水平读数。
-&lt;前&gt;&lt;代码&gt;库(mlbench)
-#data(包=“mlbench”)
-数据（“臭氧”，包=“mlbench”）
-臭氧名称
-colnames(Ozone) = c(“月”、“日”、“周”、“Daily_Max”、“Pressure_Height”、“Wind_Speed”、“湿度”、“Sandburg_Temp”、“ElMonte_Temp” ;、“Inversion_Height”、“Pressure_Gradient”、“Inversion_Temp”、“Visibility”）
-
-#（来源）Leo Breiman，加州大学伯克利分校统计系。 Leo Breiman 和 Jerome H. Friedman (1985)，《估计多元回归和相关性的最佳变换》中使用的数据，JASA，80，第 580-598 页。
-#（资源）https://rdrr.io/cran/mlbench/man/Ozone.html
-
-
-＃打扫  -  -  -  -  -  -  -  -  - 
-sum(is.na(臭氧))
-
-df_Ozone = na.omit(臭氧)
-总和（is.na（df_Ozone））
-
-
-#我的数据需要平衡吗？ ----------------
-#班级分布
-class_counts = 表(df_Ozone$Daily_Max)
-打印（类计数）
-
-# 绘制类别分布
-barplot(class_counts, main = “类别分布”)
-
-# 训练模型的示例（替换为您的实际模型）
-w_model &lt;- rpart(Daily_Max ~ ., data = df_Ozone)
-
-＃ 作出预测
-w_predictions &lt;- 预测(w_model, newdata = df_Ozone)
-
-# 计算混淆矩阵
-fusion_matrix &lt;- 表(w_predictions, df_Ozone$Daily_Max)
-打印（混淆矩阵）
-
-#分箱
-#低 0 - 12 ppb
-#中 12 - 25 ppb
-#高 26 - 38 ppb
-休息时间 = c(1, 12, 25, 38)
-df_Ozone$bin = cut(df_Ozone$Daily_Max, Breaks = Breaks, labels = c(“低”, “中”, “高”), include.lowest = TRUE)
-打印（df_臭氧）
-
-
-＃决策树  -  -  -  - -
-设置.种子(123)
-
-# 将数据分为训练集和测试集
-train_indices = Sample(1:nrow(df_Ozone), 0.7 * nrow(df_Ozone)) # 70% 用于训练
-dt_train = df_Ozone[train_indices, ]
-dt_test = df_Ozone[-train_indices, ]
-
-库（r部分）
-库（rpart.plot）
-dt_model = rpart(Daily_Max ~ ., 数据 = dt_train)
-
-# 可视化决策树
-rpart.plot(dt_model)
-
-# 对测试集进行预测
-dt_predictions = 预测(dt_model, dt_test)
-dt_预测
-
-dt_table = 表(dt_test$Daily_Max, dt_predictions)
-数据表
-
-
-# 计算准确率
-dt_accuracy = sum(diag(dt_table)) / sum(dt_table)
-dt_准确度
-
-dt_准确度 = dt_准确度 * 100
-dt_accuracy #accuracy 为 4.92%，表现不佳
-
-# 决策树总结
-摘要（dt_model）
-
-我尝试删除“周”从数据中提取特征，它实际上使准确性变得更差！我不知道从这里该去哪里。]]></description>
-      <guid>https://stackoverflow.com/questions/78425640/how-can-i-improve-the-accuracy-of-my-decision-tree</guid>
-      <pubDate>Fri, 03 May 2024 15:39:50 GMT</pubDate>
     </item>
     <item>
       <title>Python 中的多线程无法在 Raspberry Pi 上正常工作</title>
@@ -481,14 +442,6 @@ dt_accuracy #accuracy 为 4.92%，表现不佳
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78424618/multithreading-in-python-not-working-correctly-with-raspberry-pi</guid>
       <pubDate>Fri, 03 May 2024 12:10:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>从核矩阵中删除特征</title>
-      <link>https://stackoverflow.com/questions/78424564/remove-feature-from-kernel-matrix</link>
-      <description><![CDATA[我正在尝试使用带有 sklearn 预计算内核的 SVM 来执行二元分类任务。
-我创建了我的火车内核，但我包含了一个我不打算包含的功能，并且测试数据中不存在该功能。我对内核除了“距离”之外到底是什么没有非常透彻的了解。数据点之间，但是否可以从训练内核中删除此功能而无需生成新的功能？]]></description>
-      <guid>https://stackoverflow.com/questions/78424564/remove-feature-from-kernel-matrix</guid>
-      <pubDate>Fri, 03 May 2024 11:59:00 GMT</pubDate>
     </item>
     <item>
       <title>是否有可能数据集不适合构建准确的模型？</title>
@@ -503,13 +456,13 @@ https://i.ibb.co/Wn5cSY9/Bez-naslova.png
       <title>如何在短时间内建立准确的数据集？</title>
       <link>https://stackoverflow.com/questions/78418098/how-can-i-build-an-accurate-dataset-in-a-short-span-of-time</link>
       <description><![CDATA[我们正在开发一款 iOS 应用，让用户可以发送可定制的数字卡片。用户可以从各种卡片模板中进行选择，输入自己的文本，并根据自己的喜好对卡片进行编辑。我们还有一项功能，用户可以提供短信，例如“妈妈生日快乐”，并收到文本的扩展版本，例如“祝我特别的母亲生日快乐！”我爱你，希望你度过愉快的一天。”
-我正在研究如何实现这一目标，并计划使用自然语言处理 (NLP) 和 CoreML 创建一个模型。然而，我在为这个特定任务寻找合适的数据集时遇到了问题。因此，我有兴趣构建专门为此目的而定制的准确数据集。但是，我不确定从哪里可以获得必要的数据，或者是否有其他数据源可供快速使用。
+我正在研究如何实现这一目标，并计划使用自然语言处理 (NLP) 和 CoreML 创建一个模型。但是，我在为该特定任务寻找合适的数据集时遇到了问题。因此，我有兴趣构建专门为此目的而定制的准确数据集。但是，我不确定从哪里可以获得必要的数据，或者是否有其他数据源可供快速使用。
 如果您有任何见解或替代方法来实现此功能，请分享。]]></description>
       <guid>https://stackoverflow.com/questions/78418098/how-can-i-build-an-accurate-dataset-in-a-short-span-of-time</guid>
       <pubDate>Thu, 02 May 2024 09:18:54 GMT</pubDate>
     </item>
     <item>
-      <title>小数据集上的 r 平方分数差异极大</title>
+      <title>小数据集上 R 平方得分变化极大</title>
       <link>https://stackoverflow.com/questions/50630012/extremely-varying-r-squared-score-on-small-dataset</link>
       <description><![CDATA[我目前正在进行回归任务。我们收到了一个非常小的数据集，由 47 个数据点组成，具有 2 个特征和 1 个目标值。它看起来像这样：
 N级，品种，植株重量(g)
@@ -522,7 +475,7 @@ H,布朗尼,0.3955
 H,布朗尼,0.3797
 H,布朗尼,0.2962
 
-每个植物有 3L、3M 和 3H（因此每个植物有 9 个）。任务是获得最佳的 r 平方分数，但有 6 个数据点被保留（从我得到的数据集中删除了 6 个数据点，这意味着对于每朵花（有 6 个），L、M 或 H 的一个数据点被删除。正如您在示例 abvoe 中看到的，“brownii”中的一个 L 被删除了，我尝试了几种回归算法，尝试了 KFolds、LeaveOneOut 并手动分割数据集，但似乎数据集太小，以至于取决于测试。数据，结果变化很大。在某些测试数据上我可以得到 0.95 的分数，但在某些测试数据上我可能只能得到 0.2。
+每个植物有 3L、3M 和 3H（因此每个植物有 9 个）。任务是获得最佳 r 平方分数，但有 6 个数据点被保留（从我得到的数据集中删除了 6 个数据点，这意味着对于每朵花（有 6 个），L、M 或 H 中的一个数据点被删除。正如您在示例 abvoe 中看到的，“brownii”中的一个 L 被删除了，我尝试了几种回归算法，尝试了 KFolds、LeaveOneOut 并手动分割数据集，但似乎数据集太小，以至于取决于测试。数据，结果变化很大。在某些测试数据上我可以得到 0.95 的分数，但在某些测试数据上我可能只能得到 0.2。
 
 有什么方法可以实现一致性吗？ ]]></description>
       <guid>https://stackoverflow.com/questions/50630012/extremely-varying-r-squared-score-on-small-dataset</guid>
