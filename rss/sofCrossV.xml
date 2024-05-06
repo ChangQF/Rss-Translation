@@ -4,379 +4,303 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Mon, 06 May 2024 15:14:46 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 06 May 2024 18:21:06 GMT</lastBuildDate>
     <item>
-      <title>在训练逻辑回归以预测未来结果时如何分割和采样“面板数据”</title>
-      <link>https://stats.stackexchange.com/questions/646624/how-to-split-and-sample-panel-data-when-training-a-logistic-regression-to-pred</link>
-      <description><![CDATA[简介
-我有面板数据，可以观察一段时间内的客户行为。对于给定参考日期的每位客户，我有 12 个月的回顾窗口用于生成功能，以及 12 个月的展望窗口用于识别结果，例如取消订阅、默认或类似操作。
-
-每个客户按月存在于我的数据集中，方式如下：
-
-现在我想训练逻辑回归来预测二元结果，这就是我有很多问题的地方。我大多只能找到有关时间序列验证的博客和书籍，但找不到有关面板数据的博客和书籍。但以下是我的想法，我想提出意见。
-拆分的最佳实践是什么？
-我需要将数据集分成训练/有效/测试，其中训练/有效将用于训练逻辑回归和对抗模型（验证数据用于超参数调整和早期停止），以及测试数据将用于最终评估。
-由于模型必须随着时间的推移以及新客户的表现而变化，我想做两种类型的“样本外”测试：验证：1）时间验证（过时）以确保其适用于未来未见的数据，2）“外部验证”，以便训练数据、验证数据和数据中不存在相同的客户测试数据。
-
-什么是“最佳实践”？用于拆分面板数据？
-大多数博客文章都提到做“不合时宜”的事情。验证，但没有人真正提到对训练数据中不存在的样本进行验证。最后一部分没有必要吗？
-如何处理“串行相关性”？
-在逻辑回归中，观察之间的独立性假设通常很重要。让同一客户在训练数据中多次出现（可能具有相关变量和结果）违反了这一假设，因为他们的每月观察并不真正独立。这可能会导致低估标准误差和过度自信的预测，因为该模型不会考虑受试者内的相关性。
-什么是“最佳实践”？用于处理这些“序列相关性”？
-我处理这个问题的一些想法：
-
-数据中仅保留单个客户一次
-
-一个潜在的问题是，我可能会丢失重要分段和二进制结果上的太多数据
-
-
-使用聚集标准错误
-
-对非独立观察结果（客户）进行聚类，并计算修正的标准误差以考虑客户内的相关性。
-
-
-使用广义估计方程 (GEE)
-
-我对这些不太熟悉，但他们应该能够根据数据中的相关结构调整模型指标
-
-
-
-您将如何验证模型的时间方面？
-我希望模型能够随着时间的推移尽可能保持高性能，但它需要在为测试留出多少时间方面进行权衡。已经充分证明，“最近的过去”已经过去了。比“遥远的过去”更好地预测未来。但我正在考虑这样的事情，我在 2 年的评估期内每月单独评估模型，有或没有校准（将预测率调整为过去一年的观察率）。
-整个“校准”的原因是步骤是我们期望模型的排名性能随着时间的推移而保持一致，而总体结果率预计会随着时间的推移而变化。
-什么是“最佳实践”？获得最“值得信赖”的随着时间的推移有效的评估指标？
-
-您还有其他很酷的提示和技巧吗？
-这里可能缺少很多东西，所以请随时提供其他建议和最佳实践。]]></description>
-      <guid>https://stats.stackexchange.com/questions/646624/how-to-split-and-sample-panel-data-when-training-a-logistic-regression-to-pred</guid>
-      <pubDate>Mon, 06 May 2024 15:13:32 GMT</pubDate>
+      <title>潜在因子指标吉布斯抽样步骤的有效性</title>
+      <link>https://stats.stackexchange.com/questions/646645/validity-of-gibbs-sampling-step-for-latent-factor-indicators</link>
+      <description><![CDATA[我想验证潜在因子指标吉布斯采样步骤的正确性。假设我观察 $K \times G$ 数据矩阵 $X$，我将其建模为 $$X \sim \mbox{Poisson}(AB),$$ 对于低维 $K \times N$ 矩阵 $A$ 和 $N \times G$ 矩阵 $B$.
+现在假设在实践中，我不知道这个潜在维度 $N$ 应该是什么，所以我定义了潜在因子指标 $Z$ 其中 $Z_n = 1$ 表示包含因子 $n$&lt; /span&gt; 进入模型，否则 $Z_n = 0$ 表示排除。表达这一点的一种方法是编写 $$X \sim \mbox{Poisson}(A \text{ diag}(Z)\text{ } B),$$$\text{diag}(Z)$ 是对角矩阵，其对角元素为 $Z_1$ 到 $Z_N$。
+假设我将伯努利先于 $Z_n \sim \mbox{Bernoulli}(p)$ 固定 $p $，并为 $A, B$ 指定一些其他先验，使我能够构建吉布斯采样器。我建议在吉布斯采样步骤中更新每个条目 $Z_n$ ，其中我定义 $$p_{1n} = p \cdot f(X|A,B,Z_{-n},Z_n=1)$$ 和 $$p_{0n} = (1-p) \ cdot f(X|A,B,Z_{-n},Z_n=0),$$ 并根据 $Z_n$ =&quot;math-container&quot;&gt;$\mbox{伯努利}\left(\frac{p_{1n}}{p_{1n}+p_{0n}}\right)$.换句话说，$p_{1n}$ 表示先验概率 $Z_n=1$ 乘以可能性以 $Z_n=1$ 为条件，同样适用于 $p_{0n}$。
+对于每次迭代中模型中包含的因素（即 $Z_n=1$），我更新 $A, B$ 使用通常的吉布斯采样更新。对于给定迭代中未包含的因素（即 $Z_n=0$），在缺乏信息的情况下，我对 $A, B$。当 $Z_n$ 当前为 0 时，这些值用于计算 $p_{1n}$。
+问题：这是一个有效的抽样策略吗？ 特别是，我想确保可以更新与先前排除的因素相对应的组件，并在评估条件可能性时使用这些组件用于采样$Z_n$。]]></description>
+      <guid>https://stats.stackexchange.com/questions/646645/validity-of-gibbs-sampling-step-for-latent-factor-indicators</guid>
+      <pubDate>Mon, 06 May 2024 18:06:21 GMT</pubDate>
     </item>
     <item>
-      <title>使用连续输入和分类结果拟合“bnlearn”模型时出错</title>
-      <link>https://stats.stackexchange.com/questions/646621/error-when-fitting-bnlearn-model-with-continuous-inputs-and-categorical-outcom</link>
-      <description><![CDATA[我有一个关于 bnlearn 中变量类型的基本问题。我在看
-拟合贝叶斯网络模型，其中预测变量（或至少
-其中一些）是连续的，而结果是分类的
-（是/否，即二进制）。
-首先，我创建了一个非常小的模型 net，其中 A 和 B 是
-预测变量，C 是结果，如下所示：
-库(bnlearn)
+      <title>时间序列建模中违反 i.i.d 假设</title>
+      <link>https://stats.stackexchange.com/questions/646644/violation-of-i-i-d-assumption-in-time-series-modeling</link>
+      <description><![CDATA[在时间序列预测中，假设您有
+$x_1、x_2、x_3、\cdots、x_t$
+目标是预测之前给定值 $x_{t+1}$ 的值 $1,\ cdots，t$。假设 $x_{t}$ 的值仅取决于 $x_{t-1},\cdots, x_{t-n}$。据我所知，对时间序列进行建模的一种常见方法是重新排列数据集以获得：
+$X_1 = [x_1, x_2, \cdots, x_{n}]$，目标 = $y_1 =x_{n+1}$
+$X_2 = x_2、x_2、\cdots、x_{n+1}$，目标 = $y_2 = x_{n+2}$
+$X_3 = x_3, x_2, \cdots, x_{n+2}$, target = $y_3 = x_{n+3}$
+$\vdots$
+一旦数据被重新排列成新的形状，$D=\{X_t, y_t\}_{t=1}^{t=n}$可以训练回归模型来预测序列的下一个值（步骤）。
+在统计学习中，通常假设 $D= (\mathbf X, \mathbf y ) = \{(X_t, y_t)\}_{t=1}^{ t=n}$ 是来自 $P(\mathbf X, \mathbf y)$ 的独立同分布样本。
+我的问题是：如果我考虑 $X_{1}, X_{2}$ 或 $X_1, X_3 $ 它们明显相关。这是否意味着独立同分布假设被违反了？我是否需要细化训练集以仅获取其中的独立样本，即我应该只保留 $X_1, X_{n+1}, X_{2n+1}, X_{ 3n+1}, \cdots$ 以确保我没有违反 i.i.d.假设？]]></description>
+      <guid>https://stats.stackexchange.com/questions/646644/violation-of-i-i-d-assumption-in-time-series-modeling</guid>
+      <pubDate>Mon, 06 May 2024 17:42:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>当某些数据缺少组时的多级/混合模型</title>
+      <link>https://stats.stackexchange.com/questions/646643/multilevel-mixed-model-when-group-is-missing-for-some-of-the-data</link>
+      <description><![CDATA[一位客户给了我一个玉米样本数据集，这些样本是从运送到谷物升降机的不同玉米负载中收集的。他们感兴趣的是谷物中不同真菌毒素的浓度是否与谷物的营养成分有关。有数百个样本。他们来自不同地区（美国各州）。不幸的是，只有大约一半的样品的原产地是已知的。我假设许多样本来自同一农场，因此不是独立的，所以我想拟合一个多级模型。我不知道它们来自哪些农场，因此原产地是我可以用来对数据进行分组的唯一可能的变量。在这种情况下，当某些数据的组标识丢失或未知时，我该怎么办？
+我最初的想法只是忘记多级结构并将每个样本视为独立的，但这似乎并不理想。我想你也可以为你知道的组拟合随机截距，并将所有其他未知的组视为属于自己的组？这是一种可以接受的继续方式吗？任何见解将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/646643/multilevel-mixed-model-when-group-is-missing-for-some-of-the-data</guid>
+      <pubDate>Mon, 06 May 2024 17:42:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>抛硬币实验中的检验功效</title>
+      <link>https://stats.stackexchange.com/questions/646642/power-of-test-in-a-coin-toss-experiment</link>
+      <description><![CDATA[我正在尝试理解“测试的力量”的概念以硬币实验为例。
+我有一枚硬币，我想证明它偏向于正面。我抛硬币 10 次，得到 9 次正面和 1 次反面。对于一枚公平的硬币来说，发生这种情况的概率是 $0.0107$。在 Excel 上，我们可以将其计算为：
+= BINOM.DIST(9, 10, 0.5, 0) + BINOM.DIST(10, 10, 0.5, 0)。或者我可以手动计算为 $\binom{10}{9}\cdot0.5^9\cdot0.5^1 + \binom{10}{10}\cdot0。 5^{10}\cdot0.5^0 = 0.0107$
+这个概率是如此之低，以至于我可以说我有足够的证据来证明硬币不公平。
+$H_0$ = 硬币是公平的； $H_A$ = 硬币偏向正面
+假设 $H_0$，10 次抛掷中至少出现 9 个正面的概率 - $p-value$&lt; /span&gt; - 太低了，我拒绝 $H_0$。
+$0.0107$ 是错误拒绝 $H_0$ 的概率吗？以及 $1-0.0107$ 正确不拒绝零假设（置信度）的概率？我该如何解读这个“信心”？
+然后，我如何计算检验的功效，并在这种情况下解释它？
+感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/646642/power-of-test-in-a-coin-toss-experiment</guid>
+      <pubDate>Mon, 06 May 2024 17:33:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>找到噪声函数中的最小值</title>
+      <link>https://stats.stackexchange.com/questions/646640/find-the-minimum-in-a-noisy-function</link>
+      <description><![CDATA[我有一个多维噪声函数，我想通过丢弃噪声来找到其最小值
+为了简单起见，我将举一个低维的例子。
+set.seed(5)
+s &lt;- sin(0.5 * seq(0,10,0.1) + 5)/-1
+ln &lt;- as.numeric(长度)
+sn &lt;- s + rnorm(ln,sd = 0.3)
 
-net = model2network(“[A][B][C|A:B]”)
-情节（净）
+绘图（sn，t =“l”，col = 8，lty = 2）
+行（s，列 = 4）
+点(which.min(s), min(s), lwd=5 , col=4)
 
 
-现在，当使用输入数据 dat 时，其中 A 和 B 是连续的，而
-C 是分类的：
-dat = data.frame(
-    A = r范数(10),
-    B = r范数(10),
-    C = 因子(样本(c(&#39;否&#39;, &#39;是&#39;), 10, 替换 = TRUE))
-）
-数据
+所以我拥有的功能以灰色表示，蓝点是我想要得到的最小值。
+我的目标函数是找到对应于非噪声函数最小值的点的索引。
+fit &lt;- function(i) sn[ round(i,0) ]
 
-&lt;前&gt;&lt;代码&gt;## A B C
-## 1 1.4409734 -0.7174069 无
-## 2 -2.2561945 0.6199236 无
-## 3 -0.0788327 1.1691368 无
-## 4 -0.1327248 -0.8090412 是
-## 5 0.2824567 -0.8949076 无
-## 6 -0.2571486 1.2250626 无
-## 7 -0.7173780 -0.4481589 是
-## 8 1.9991288 0.4964841 无
-## 9 2.0103807 -0.4971404 是
-## 10 -2.6614089 0.7371227 无
+我听说模拟退火算法非常适合此类问题，但它只是找到了全局最小值
+库(GenSA)
+gs &lt;- GenSA（下= 1，上= ln，fn =适合，控制=列表（平滑= FALSE））
+点(round(gs$par,0), gs$值, col=2, lwd=5)
 
-尝试拟合模型会引发错误：
-fit = bn.fit(x = net, data = dat)
 
-## check.arcs.against.asclusions(x$arcs, data, method) 中的错误：arc A -&gt; C 违反了模型的假设。
+我还尝试了对 this 小插图中的噪声函数进行贝叶斯优化
+但我再次得到的结果与我的愿望相去甚远。
+库(mlrMBO)
+obj.fun = makeSingleObjectiveFunction(name = &quot;noisy_fu&quot;,
+                                      fn = 适合，
+                                      has.simple.signature = TRUE,
+                                      par.set = makeNumericParamSet(“i”,
+                                                                    长度 = 1,
+                                                                    下=1，
+                                                                    上=长度(sn)),
+                                      嘈杂=真）
 
-作为参考，我还尝试使用数据拟合模型，其中 A, B,
-和C都是分类，效果很好：
-dat = data.frame(
-    A = 因子(样本(c(&#39;否&#39;, &#39;是&#39;), 10, 替换 = TRUE)),
-    B = 因子(样本(c(&#39;否&#39;, &#39;是&#39;), 10, 替换 = TRUE)),
-    C = 因子(样本(c(&#39;否&#39;, &#39;是&#39;), 10, 替换 = TRUE))
-）
-fit = bn.fit(x = net, 数据 = dat)
-预测（拟合，节点=“C”，dat）
+ctrl = makeMBOControl(final.method = “最佳预测”, Final.evals = 10)
+ctrl = setMBOControlInfill(ctrl, crit = crit.eqi)
+ctrl = setMBOControlTermination(ctrl, iters = 10)
 
-## [1] 是 否 是 否 否 是 否 是
-## 级别： 否 是
+configureMlr(on.learner.warning = “安静”, show.learner.output = FALSE)
+res = mbo(obj.fun, control = ctrl, show.info = T)
 
-然后我还尝试使用数据来拟合模型，其中 A、B 和 C
-都是连续的，这也可以正常工作：
-dat = data.frame(
-    A = r范数(10),
-    B = r范数(10),
-    C = r范数(10)
-）
-fit = bn.fit(x = net, 数据 = dat)
-预测（拟合，节点=“C”，dat）
+点(res$x, res$y, lwd=5, col=3)
 
-&lt;前&gt;&lt;代码&gt;## [1] 1.1804221 0.7789704 0.8053814 0.1266163 0.7005048 0.8392106 0.4928314
-## [8] 0.8563145 0.2687796 1.3578046
 
-我也是偶然发现这个论坛的
-发布
-似乎提到了同样的问题，但没有提供任何解决方案。
-所以我的问题是：
+我可以应用哪些其他算法来获得所需的结果，或者我是否错误地使用了这些算法？]]></description>
+      <guid>https://stats.stackexchange.com/questions/646640/find-the-minimum-in-a-noisy-function</guid>
+      <pubDate>Mon, 06 May 2024 17:28:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>交错双重差分：R 中的多重处理和时间段编码</title>
+      <link>https://stats.stackexchange.com/questions/646639/staggered-difference-in-difference-multiple-treatments-and-time-periods-coding</link>
+      <description><![CDATA[我应该采取哪些步骤来正确编码估计洪水对失业率的影响？我正在使用 TWFE 双重差分法和交错治疗采用方法。我正在检查非洲的所有 54 个国家，并查看 2005 年至 2020 年间每年的所有洪水和干旱。我有一个 excel 文件，其中包含所有国家、起始年份（洪水发生的时间和哪个国家）、处理/虚拟变量洪水发生情况（如果该国家在特定年份发生洪水，则为 1，例如：2020 年摩洛哥发生洪水）、每个国家每年的失业率以及一堆协变量。
+我将接受治疗的国家/地区指定为高于 90% 的国家，将未接受治疗的国家/地区指定为低于 90% 的国家。我发现 90% 以上和以下的国家的全国平均失业率有类似的趋势。但是，不确定我在这里的想法是否正确..]]></description>
+      <guid>https://stats.stackexchange.com/questions/646639/staggered-difference-in-difference-multiple-treatments-and-time-periods-coding</guid>
+      <pubDate>Mon, 06 May 2024 17:20:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>了解如何评估积分因果效应表达式</title>
+      <link>https://stats.stackexchange.com/questions/646638/understanding-how-to-evaluate-the-integral-causal-effect-expression</link>
+      <description><![CDATA[我有这个表情
+$$
+\mathbb{E} [ Y \mid \text{do}(Z=z)] =
+\int_{B, S, W, X} dBdSdWdX \ \ P(B | S) P(W | B, S) P(X | B, S, Z=z) \left[ \int_{Z&#39;} dZ &#39; P(Z&#39;| B,S,W) P(Y | B, S, W, X, Z&#39;) P(S) \right]
+$$
+代表对 $Z$ 进行干预对 $Y$ 产生因果影响的预期在因果图中 $\mathcal{G}$ 是结构因果模型的一部分。
+对于熟悉文献的人来说，这是通过 ID 算法找到的。
+现在的问题是，我不太确定这个结果意味着什么，特别是内部积分。这里的 $Z&#39;$ 代表什么？我如何评价这一点？假设我的 $Z$ 变量的干预域是 $[-2,2]$ 并且我干预 $Z=1$，这个表达式是否意味着我在整个域上积分内积分 $[-2 ,2]$ 除了$Z=1$？
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/646638/understanding-how-to-evaluate-the-integral-causal-effect-expression</guid>
+      <pubDate>Mon, 06 May 2024 17:09:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>重复测量混合模型 (mmrm) - 假设</title>
+      <link>https://stats.stackexchange.com/questions/646637/mixed-model-for-repeated-measurement-mmrm-assumptions</link>
+      <description><![CDATA[我想要在一组具有 6 次访问 和  的面板数据上拟合重复测量的混合模型 (mmrm) N = 1200。我想估计时间对结果的影响，无需任何干预，因为这是一项小组研究。所以我想使用 mmrm 包来拟合模型。进展顺利，估算看起来不错且合理。但我想知道 mmrm 是否必须满足与其他随机效应模型相同的假设（线性、残差正态性、方差同质性和误差独立性 afaik）和 如果我的模型代码正确。
+如果必须满足所有假设，我该如何使用 R 来做到这一点？如何处理违反假设的情况？
+我选择了自回归结构，因为时间点的相关性会随着时间的推移而下降。
+这是代码：
+mmrm_model &lt;- mmrm(结果 ~ 性别 + 年龄 + 教育 + 时间 + ar1(时间|subject_id),
+                   方法=“肯沃德-罗杰”，
+                   数据=数据）
+emmeans.mmrm &lt;- emmeans::emmeans(mmrm_model, 规格 = “时间”)
 
-有没有办法将模型拟合为
-上面的第一个st示例，其中 A 和 B 是连续的，而 C
-是绝对的吗？
-如果是这样，怎么做？
-如果没有，我很乐意
-了解原因，以及是否可以使用另一种技术/包
-适合这样的模型。
+非常感谢您的建议！]]></description>
+      <guid>https://stats.stackexchange.com/questions/646637/mixed-model-for-repeated-measurement-mmrm-assumptions</guid>
+      <pubDate>Mon, 06 May 2024 16:55:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>一组 10 个随机整数从 -5 到 +5 的平均偏差</title>
+      <link>https://stats.stackexchange.com/questions/646636/average-deviation-of-a-set-of-10-random-integers-from-%e2%88%925-to-5</link>
+      <description><![CDATA[我计算一组 $10$ 数字的平均偏差 ($AVD$) (&lt; span class=&quot;math-container&quot;&gt;$v_{1},v_{2},\cdots,v_{10}$) 如下：
 
-非常感谢任何帮助！
-会话信息：
-sessionInfo()
+计算 $10$ 个数字的平均值：$$AVR =\frac{\sum_{n =1}^{10} v_{n}}{10}$$
 
-## R 版本 4.4.0 (2024-04-24)
-## 平台：x86_64-pc-linux-gnu
-## 运行环境：Ubuntu 22.04.4 LTS
-##
-## 矩阵产品：默认
-## BLAS：/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0
-## LAPACK：/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0
-##
-## 语言环境：
-## [1] LC_CTYPE=en_IL LC_NUMERIC=C
-## [3] LC_TIME=en_US.UTF-8 LC_COLLATE=en_IL
-## [5] LC_MONETARY=en_US.UTF-8 LC_MESSAGES=en_IL
-## [7] LC_PAPER=en_US.UTF-8 LC_NAME=C
-## [9] LC_ADDRESS=C LC_电话=C
-## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C
-##
-## 时区：亚洲/耶路撒冷
-## tzcode 来源：系统（glibc）
-##
-## 附加基础包：
-## [1] 统计图形 grDevices utils 数据集 方法 基础
-##
-## 其他附加包：
-## [1]bnlearn_4.9.3
-##
-## 通过命名空间加载（且未附加）：
-## [1] 编译器_4.4.0 fastmap_1.1.1 cli_3.6.2 并行_4.4.0
-## [5]tools_4.4.0 htmltools_0.5.8.1 yaml_2.3.8 rmarkdown_2.26
-## [9] highr_0.10 knit_1.46 xfun_0.43digest_0.6.35
-## [13] rlang_1.1.3 评估_0.23
+计算平均偏差：$$AVD = \frac{\sum_{n=1}^{10} |v_{n}-AVR|}{10 }$$
+
+
+如果我要生成 $N$ 个这些 $10$ 组，其中每个集合由 $\bf{random}$ $\bf{integers}$ 组成，来自 $−5$ 到 $+5$，然后对 $AVD 求和每组的 $ 一起，然后将该总和除以 $N$，这将得到平均值 $AVD $N$ 组中的 $ 。似乎这个平均 $AVD$ 应该收敛到某个值，因为 $N$ 增加到 $\infty$。我编写了一个计算机程序来确定该值，几个小时后该数字似乎已收敛到 2.70526。
+有没有一种优雅的方法来计算这个？]]></description>
+      <guid>https://stats.stackexchange.com/questions/646636/average-deviation-of-a-set-of-10-random-integers-from-%e2%88%925-to-5</guid>
+      <pubDate>Mon, 06 May 2024 16:41:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用历史观察结果计算周期性数据中峰值的概率？</title>
+      <link>https://stats.stackexchange.com/questions/646635/calculate-the-probability-of-a-peak-in-cyclical-data-using-historical-observatio</link>
+      <description><![CDATA[我发现使用直方图不适用于正弦波，因为它有很多接近峰值的数据点。因此，我测量了高于当前观测值的行进距离_i。
+我的目标是使用一种适用于非常嘈杂的循环数据的通用方法，并使用过去的观察来推断最新（当前）观察是峰值（即局部最大值）的可能性。&lt; /strong&gt;
+下面是我的Python代码的输出，试图测量这个，但它仍然受到任何噪音的很大影响，我想做得更好（特别是在锯齿数据中，在y = 1时，我的算法估计为50峰值概率百分比，我认为这个值太高了，因为它通常在 2) 左右达到峰值。如何使用周期性且有噪声的历史数据来计算当前观察到的 data_i 是峰值的实际概率？我应该使用什么方法？
+
+
+将 numpy 导入为 np
+从 scipy 导入信号
+将 matplotlib.pyplot 导入为 plt
+将 pandas 导入为 pd
+
+
+### 正弦数据测试
+
+t1 = np.linspace(0, np.pi*2*3, num=int(100)*2*3)
+signal1 = np.absolute(np.sin(t1))
+噪声1= np.random.rand(len(signal1),)/10
+
+数据1 = 信号1 + 噪声1
+
+prob_is_peak = np.empty((len(data1),))
+prob_is_peak[:] = np.nan
+
+for i in range(1,len(data1)): # 距离和频率的概率
+    
+    数据_i = 数据1[i]
+    hist_data = 数据1[0:i]
+    
+    ＃距离
+    hist_higher_than_i = hist_data[hist_data&gt;data_i]
+    覆盖距离 = data_i/hist_higher_than_i
+    obs_mean_dist_covered = np.mean(distance_covered)
+    
+    #较低值的频率
+    n_below_obs_i = len(hist_data[hist_datadata_i]
+    覆盖距离 = data_i/hist_higher_than_i
+    obs_mean_dist_covered = np.mean(distance_covered)
+    
+    #较低值的频率
+    n_below_obs_i = len(hist_data[hist_data]]></description>
+      <guid>https://stats.stackexchange.com/questions/646635/calculate-the-probability-of-a-peak-in-cyclical-data-using-historical-observatio</guid>
+      <pubDate>Mon, 06 May 2024 16:35:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>我可以使用 TWFE DiD 并交错采用治疗吗？</title>
+      <link>https://stats.stackexchange.com/questions/646634/can-i-use-twfe-did-with-staggered-treatment-adoption</link>
+      <description><![CDATA[我可以使用 TWFE DiD 并采用交错处理来估计干旱和洪水对失业率的影响吗？我正在研究非洲的几个国家，并分析 2005 年至 2020 年间每年发生的 2-66 次洪水和干旱。我将接受治疗的国家指定为高于 90% 的国家，将未接受治疗的国家指定为低于 90% 的国家。我发现 90% 以上和以下的国家的全国平均失业率有类似的趋势。]]></description>
+      <guid>https://stats.stackexchange.com/questions/646634/can-i-use-twfe-did-with-staggered-treatment-adoption</guid>
+      <pubDate>Mon, 06 May 2024 16:34:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>我的兄弟想申请统计学硕士学位，但没有数学背景[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/646629/my-brother-wants-to-apply-for-an-ms-in-statistics-but-has-no-math-background</link>
+      <description><![CDATA[对于想要申请统计学硕士学位但没有数学背景的人来说，自学所需的先决条件（例如 Calc1-3 和线性代数）有多现实？]]></description>
+      <guid>https://stats.stackexchange.com/questions/646629/my-brother-wants-to-apply-for-an-ms-in-statistics-but-has-no-math-background</guid>
+      <pubDate>Mon, 06 May 2024 16:22:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 G*Power 计算样本量——根据已计算的效应量使用哪个模型？</title>
+      <link>https://stats.stackexchange.com/questions/646628/sample-size-calculation-using-gpower-which-model-to-use-based-on-an-already</link>
+      <description><![CDATA[我想使用 G*Power 执行样本量计算。我有 2 个预测变量，想要测试这 2 个预测变量如何影响特定认知测量中随时间的变化。认知测量将重复 3 次。我将使用 5 个协变量。根据我的初步数据，我有一个效果大小。任何关于在 G*Power 中使用哪种模型的指导将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/646628/sample-size-calculation-using-gpower-which-model-to-use-based-on-an-already</guid>
+      <pubDate>Mon, 06 May 2024 15:42:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>强化学习：深度 Q 学习</title>
+      <link>https://stats.stackexchange.com/questions/646627/reinforcement-learning-deep-q-learning</link>
+      <description><![CDATA[手头的问题：我有 B Hz 的资源（带宽）。我必须根据用户的要求将带宽 B 分配给他们。例如，语音呼叫需要一定量的带宽，而视频呼叫则需要一定量的带宽。虚拟现实应用和工业物联网需要比上述两种情况更多的带宽。我可以分配的带宽占总带宽 B 的比例如下：[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]。也就是说，以下分数中的任何一个都可以被赋值。
+我正在尝试设计一个强化学习代理，它可以根据特定应用程序所需的带宽量为不同的应用程序分配带宽。
+我正在尝试在我的应用程序中使用以下模板。
+深度 Q 学习
+我的问题：
+我无法理解如何告诉神经网络它只能采用以下值之一：
+[0、0.1、0.2、0.3、0.4、0.5、0.6、0.7、0.8、0.9、1.0]
+类代理：
+    def __init__(自身，状态大小，动作大小)：
+        self.内存 = 双端队列(maxlen=2500)
+        自我学习率=0.001
+        self.epsilon=1
+        self.max_eps=1
+        self.min_eps=0.01
+        self.eps_decay = 0.001/3
+        自身伽玛=0.9
+        self.state_size = 状态大小
+        self.action_size=action_size
+        self.epsilon_lst=[]
+        self.model = self.buildmodel()
+
+    def 构建模型（自身）：
+        模型=顺序()
+        model.add（密集（32，input_dim = self.state_size，激活=&#39;relu&#39;））
+        model.add（密集（32，激活=&#39;relu&#39;））
+        model.add(Dense(self.action_size, 激活=&#39;线性&#39;))
+        model.compile(loss=&#39;mse&#39;, 优化器=Adam(lr=self.learning_rate))
+        返回模型
+
+    def add_memory(self, new_state, 奖励, 完成, 状态, 动作):
+        self.memory.append((new_state, 奖励, 完成, 状态, 动作))
+
+    def 动作（自身，状态）：
+        如果 np.random.rand() &gt; self.epsilon：
+            返回 np.random.randint(0,4)
+        返回 np.argmax(self.model.predict(state))
+
+    def pred(自身，状态)：
+        返回 np.argmax(self.model.predict(state))
+
+    def 重播（自身，batch_size）：
+        minibatch=random.sample(self.内存,batch_size)
+        对于小批量中的 new_state、reward、done、state、action：
+            目标=奖励
+            如果没有完成：
+                目标=奖励 + self.gamma* np.amax(self.model.predict(new_state))
+            target_f= self.model.predict(状态)
+            target_f[0][动作]=目标
+            self.model.fit(状态, target_f, epochs=1, verbose=0)
+
+        如果 self.epsilon &gt; self.min_eps：
+            self.epsilon=(self.max_eps - self.min_eps) * np.exp(-self.eps_decay*episode) + self.min_eps
+
+        self.epsilon_lst.append(self.epsilon)
+
+    def 负载（自身，名称）：
+        self.model.load_weights(名称)
+
+    def 保存（自我，名称）：
+        self.model.save_weights(名称)
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/646621/error-when-fitting-bnlearn-model-with-continuous-inputs-and-categorical-outcom</guid>
-      <pubDate>Mon, 06 May 2024 14:33:08 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/646627/reinforcement-learning-deep-q-learning</guid>
+      <pubDate>Mon, 06 May 2024 15:37:53 GMT</pubDate>
     </item>
     <item>
-      <title>确定 $H_0$ 或 $H_1$ 是否成立所需的方差？</title>
-      <link>https://stats.stackexchange.com/questions/646619/variance-needed-to-determine-whether-h-0-or-h-1-holds</link>
-      <description><![CDATA[给出实验室 12 次脑部扫描持续时间的样本：
-X = {22, 19, 20, 17, 19, 25, 23, 20, 25, 27, 19, 22}
-我可以测试平均扫描时间是否小于 20 分钟，且显着性水平为 $\alpha = 0.05$。为此，我需要（但可以轻松计算）方差。
-在不知道方差的情况下是否可以进行相同的分析？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646619/variance-needed-to-determine-whether-h-0-or-h-1-holds</guid>
-      <pubDate>Mon, 06 May 2024 13:50:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>确定样本大小的中心极限定理</title>
-      <link>https://stats.stackexchange.com/questions/646617/central-limit-theorem-to-determine-sample-size</link>
-      <description><![CDATA[给定一个示例 $X_1, ..., X_n \sim^{iid} $ Bern(p)。我想测试 $H_0: p = 0.49$ 与 $H_1: p = 0.51$。&lt; /p&gt;
-如何确定 I 类错误（和 II 类错误）概率等于 0.02 的样本量？
-我尝试使用中心极限定理，但到目前为止没有成功。谁能帮帮我吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646617/central-limit-theorem-to-determine-sample-size</guid>
-      <pubDate>Mon, 06 May 2024 13:04:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>从简单的合成模型进行一致的特征重要性估计</title>
-      <link>https://stats.stackexchange.com/questions/646616/consistent-feature-importance-estimation-from-a-simple-sintetic-model</link>
-      <description><![CDATA[我有一个简单的数据生成模型，其中 $x_{[1,2,3,5,6]}$ 是 $\sim U(0,10)$ 和 $x_4 = 2x_1*\gamma + 10$ 其中 $\gamma \sim U(0.8,1.2)$
-$y$ 生成为 $y=10*x_1-x_2-0.1*x_3*x_1$，即 $x_1$ 应该具有最大的重要性，$x_2$ 具有较小的重要性，$x_3$ 与 $x_1$、 交互相关的重要性$x_4$ 与 $x_1$ 相关，但其本身并不影响 $y$ 和 $x_5, x_6$ 在 y 根本没有贡献。
-我发现检索变量“重要性”是很困难的。这个例子的实现是极其困难的。我本希望按照重要性递增的顺序检索类似 [$x_6, x_5, x_4, x_3, x_2, x_1$] 的内容，但我尝试了我个人的解决方案基于平均准确率下降和 Sobol 总指数的计算（打乱列并忽略预测中的列），我得到了非常不一致的结果，其中通常 $x_5$ 或$x_6$ 被视为重要。
-然后我尝试了其他人的方法（Shapley值），但我仍然遇到同样的问题（Julia中的两种实现都是在此论坛帖子中）。
-所以我看得更广泛，但我发现的所有例子都取自一些玩具数据集，并最终得到了“重要性”指标，但不能保证算法返回的指标确实是“正确的”。
-我的例子是不是特别“难”？ ？是否有任何从合成数据生成中给出的、可复制且稳健的特征重要性算法的示例？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646616/consistent-feature-importance-estimation-from-a-simple-sintetic-model</guid>
-      <pubDate>Mon, 06 May 2024 13:01:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>当不使用样本数据而是使用整个总体的数据时，置信区间的含义是什么？ [复制]</title>
-      <link>https://stats.stackexchange.com/questions/646615/what-is-the-meaning-of-confidence-intervals-when-not-using-sample-data-and-inste</link>
-      <description><![CDATA[我试图理解，当您的数据不是来自样本，而您拥有整个人口的数据时，为什么需要置信区间或计算统计检验（用于比较比例）。
-我的例子。
-2014 年，重症监护病房有 100 人死亡。其中 40 人在死前表示他们希望在死后捐献器官。因此，持积极态度的死者比例为 40%。其余 60% 要么持消极态度，要么在死前未表明意愿。2015 年，重症监护病房有 120 人死亡。其中 60 人在死前表示他们希望在死后捐献器官。因此，2015 年持积极态度的死者比例为 50%。其余 50% 的人要么持否定态度，要么在去世前没有表明意愿。
-现在回答我的问题。
-我们知道，2014 年至 2015 年间，这一比例已从 40% 增加到 50%。我们真的需要围绕这两个比例构建置信区间，以确保这一增长是显著的吗？或者我们真的需要进行统计测试（建议的测试？）以确保百分比确实增加了？
-我听说，在处理人口数据时，您可能希望构建置信区间，然后置信区间控制“自然变异”。
-此外，如果有人有关于这个主题的一些文献，我将非常感激一些链接。]]></description>
-      <guid>https://stats.stackexchange.com/questions/646615/what-is-the-meaning-of-confidence-intervals-when-not-using-sample-data-and-inste</guid>
-      <pubDate>Mon, 06 May 2024 12:49:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>当我们在没有 prefit 的情况下使用 CaliberatedClassifierCV 时，幕后发生了什么？</title>
-      <link>https://stats.stackexchange.com/questions/646614/what-is-happening-behind-the-scenes-when-we-use-calibratedclassifiercv-without-p</link>
-      <description><![CDATA[根据我通过阅读sklearn概率校准的理解，当我们运行时在 CalibatedClassifierCV 中，我们将拟合“一个回归器（称为校准器），它将分类器的输出（由 Decision_function 或 Predict_proba 给出）映射到 [0, 1] 中的校准概率”。然而，它提到我们可以使用 prefit 或不使用 prefit，我们可以使用 ensemble 或不使用 ensemble，但这两个参数对我来说都不清楚。
-当我们使用 cv=prefit 时，我们会将数据分为训练集、测试集和校准集，然后使用训练集拟合模型，使用校准集进行校准，然后将校准后的模型与测试集一起使用？当我们不使用cv=prefit时，我们只使用训练和测试？用于拟合模型的相同训练集也用于校准？
-那么 ensemble = True 呢？这个参数我完全不清楚。]]></description>
-      <guid>https://stats.stackexchange.com/questions/646614/what-is-happening-behind-the-scenes-when-we-use-calibratedclassifiercv-without-p</guid>
-      <pubDate>Mon, 06 May 2024 12:37:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>计算正态分布的平均值和标准差[重复]</title>
-      <link>https://stats.stackexchange.com/questions/646613/calculating-the-mean-and-standard-deviation-from-a-normal-distribution</link>
-      <description><![CDATA[我对求正态分布的平均值和标准差的方法很感兴趣。它受到以下问题的启发，该问题属于英国 A 级数学课程的一部分。
-
-随机变量 $X \sim N(\mu, \sigma^2)$。已知 $P(X&gt;35)=0.025$ 和 $P(X&lt;15)=0.1469$，求出 $\mu$ 和 $\sigma$ 的值。
-
-这可以使用关系 $Z= \frac{X - \mu}{\sigma}$ 来求解，从而得到两个联立方程。需要明确的是，我有信心使用 Z 值来解决这个问题：
-$1.9599=\frac{35-\mu}{\sigma}$ 和 $-1.0499=\frac{15-\mu}{\sigma}$
-我对推广此方法有两个问题：
-
-如果给出了两个以上的概率，如何确定 $\mu$ 和 $\sigma$ 的“最佳”值？问题在于可以成对求解联立方程以得到不同的解。
-
-此方法是否用于统计学中估计正态分布的平均值和标准差。天真地，我期望$\mu$和$\sigma$可以通过数据样本的平均值和标准差来估计。
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/646613/calculating-the-mean-and-standard-deviation-from-a-normal-distribution</guid>
-      <pubDate>Mon, 06 May 2024 11:25:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>我的训练/验证数据准确率达到 99-100%，但在全新数据上表现不佳</title>
-      <link>https://stats.stackexchange.com/questions/646611/getting-99-100-accuracy-on-my-training-validation-data-but-performs-bad-on-comp</link>
-      <description><![CDATA[我有一个大型 ASL（美国手语）数据集。我将这些数据分成 70:15:15 进行训练、验证和测试。
-然后我在其上训练了一个 CNN 模型，其中我使用 70% 进行训练，并在 15% 的验证集上进行评估。经过几个轮次后，我能够在训练/验证数据上实现 100% 的准确率。然后我在剩余的“未见”测试数据上运行这个训练模型，它也实现了 99% 的准确率，我认为这很好。
-但是，我随后从第三方来源获得了更多的 ASL 数据，这些数据是更多的“未见数据”，我只实现了大约 40% 的准确率。看起来我的模型在这个原始数据源上过度拟合（数据集有大约 87000 张图像），而且我很确定我没有将测试集泄露到模型的训练中。
-首先，还有其他解释吗？其次，我有什么方法可以改进我当前的模型吗？我最初的想法是将这些第三方数据与我的原始数据混合在一起，但数据集仍然会不平衡吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646611/getting-99-100-accuracy-on-my-training-validation-data-but-performs-bad-on-comp</guid>
-      <pubDate>Mon, 06 May 2024 10:59:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>乘以外生变量会减少内生性吗？</title>
-      <link>https://stats.stackexchange.com/questions/646610/does-multiplying-an-exogenous-variable-reduce-endogeneity</link>
-      <description><![CDATA[设$X$为内生变量，$Y$为非负外生变量，和 $e$ 错误项。将 $\operatorname{cov}(.,.)$ 定义为协方差。然后， $\operatorname{cov}(X,e) \neq 0$ 和 $\operatorname{cov}(Y ,e) = 0$。定义 $Z = XY$。
-那么，如何评估$\operatorname{cov}(Z,e)$？它是否大于 $\operatorname{cov}(X,e)$？
-如果我理解正确，假设多元正态性并遵循 Bohrnstedt &amp; Goldberger (1969) - 方程 (12)，我们有：
-$\operatorname{cov}(Z,e)$ = $\operatorname{E}(Y)$  $\cdot$ $\operatorname{cov}(X,e)$
-这里，作为 $Y$ 的非负数 $E(Y) \geq 0$。因此，在这种特定情况下，乘以外生变量不会减少内生性，除非 $E(Y) = 0$。它是否正确？这对我来说似乎违反直觉，因为我们期望与 $\operatorname{cov}(Z,e)$ “数学容器”&gt;$\operatorname{cov}(X,e)$。
-参考文献：Bohrnstedt、George W. 和 Arthur S. Goldberger。 “关于随机变量乘积的精确协方差。”美国统计协会杂志，卷。 64，没有。 328，1969 年，第 1439-42 页。 JSTOR，https://doi.org/10.2307/2286081。]]></description>
-      <guid>https://stats.stackexchange.com/questions/646610/does-multiplying-an-exogenous-variable-reduce-endogeneity</guid>
-      <pubDate>Mon, 06 May 2024 10:43:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>解决面板数据分析中的比例偏差</title>
-      <link>https://stats.stackexchange.com/questions/646607/addressing-scaling-bias-in-panel-data-analysis</link>
-      <description><![CDATA[我正在运行（不平衡）面板数据分析，其中因变量是农业公司 $i$ 在 $t$ 时期的 $fixed\ cost\ (per\ ha)$。解释变量是每公顷作物的种植面积，包括作物 A、作物 B 和作物 C。
-$fixed\ cost\ (per\ ha)_{it} = hect\ crop\ A_{it} + hect\ crop\ B_{it} + hect\ crop\ C_{it}$
-因变量以每公顷表示，因为它具有首选解释。但是，我怀疑当农作物也以公顷表示时会出现问题。
-农作物$A、B$和$C$的系数（显示在其他条件不变的情况下该农作物增加 1 公顷的影响）会衡量$A$、$B$、$C$的增加对除以该额外公顷的因变量的影响吗？
-如果是这样，那将导致问题，因为它可能会在农作物公顷和成本之间产生负相关关系，因为它显示了分母增加一公顷时的影响。
-真正令人感兴趣的是农作物 A 增加 1 公顷，转换为另一种作物，保持总公顷数不变。
-我如何指定我的模型来反映这一点？
-应该是这样的：
-$fixed\ cost\ (per\ ha)_{it} = (hect\ crop\ A\ \div tot\ hect)_{it} + (hect\ crop\ B\ \div tot\ hect)_{it} + (hect\ crop\ C\ \div tot\ hect)_{it}$
-我改用作物和总公顷数的百分比，甚至：
-$fixed\ cost_{it} = (hect\ crop\ A\ \div tot\ hect)_{it} + (hect\ crop\ B\ \div tot\ hect)_{it} + (hect\ crop\ C\ \div tot\ hect)_{it}$
-不过我还假设，当我使用比率时，我不能同时使用这三个比率？因为它们加起来会是 100%。
-任何见解都将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/646607/addressing-scaling-bias-in-panel-data-analysis</guid>
-      <pubDate>Mon, 06 May 2024 09:56:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>密度函数之和</title>
-      <link>https://stats.stackexchange.com/questions/646594/sum-of-density-functions</link>
-      <description><![CDATA[考虑四个 pdf $f_1(x), \ldots, f_4(x)$。对于任何 $x$，$f_1(x) \neq \cdots \neq f_4(x)$ 。
-我们能否证明对于某些 $f_1(x) + f_2(x) \neq f_3(x) + f_4(x)$ &quot;&gt;$x$？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646594/sum-of-density-functions</guid>
-      <pubDate>Mon, 06 May 2024 06:10:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>对于包含李克特量表项目的模型应使用哪种技术？</title>
-      <link>https://stats.stackexchange.com/questions/646591/which-technique-to-use-for-models-that-include-likert-scale-items</link>
-      <description><![CDATA[我有三个或更多自变量（使用李克特量表）和 GWA 作为因变量，以了解哪些变量影响学生遵守学校的成绩保留政策。多元回归适用于此吗？另外，我还有哪些其他测试选项？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646591/which-technique-to-use-for-models-that-include-likert-scale-items</guid>
-      <pubDate>Mon, 06 May 2024 03:34:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>自举置信区间高估了均值差异的方差</title>
-      <link>https://stats.stackexchange.com/questions/646569/bootstrapped-confidence-interval-overestimates-variance-in-difference-of-means</link>
-      <description><![CDATA[我正在尝试将 Welch T 检验转化为引导抽样方案。然而，我发现自举 95% 置信区间比 Welch T 检验大得多。也许这只是引导 CI 的一个已知属性？
-综合数据、不同的平均值、方差和大小。
-A = np.random.normal(loc=10，scale=2，size=90)
-B = np.random.normal(loc=8，比例=1.5，大小=100)
-
-韦尔奇 T 检验
-导入 scipy.stats 作为统计数据
-测试 = stats.ttest_ind(A, B, equal_var = False)
-测试.confidence_interval(confidence_level=0.95)
-&gt;&gt;&gt;&gt;&gt;
-置信区间（低=1.5130925732256637，高=2.503357120571464）
-
-然后是引导方案
-def bootstrap_ci(A, B, size=30, itrs=100):
-  delta_arr = []
-  对于范围内的 itr(itr)：
-    a_mu = np.mean(np.random.choice(a=A, 替换=True, 大小=大小))
-    b_mu = np.mean(np.random.choice(a=B, 替换=True, 大小=大小))
-    d = a_mu - b_mu
-    delta_arr.append(d)
-
-  d_mu = np.mean(delta_arr)
-  d_std = np.std(delta_arr)
-  
-  返回（d_mu - 1.96*d_std，d_mu + 1.96*d_std）
-
-引导 CI 调用和结果
-bootstrap_ci（A，B，大小= 30，itrs = 500）
-&gt;&gt;&gt;&gt;&gt;
-（1.1214979199515835、2.862487579486028）
-
-因此，Bootstrap 估计似乎没有偏高或偏低，但标准差被高估了。作为参考，我之前手动实现了样本标准差函数（分母为 $n-1$），但这显然进一步增加了方差。
-以下问题纯粹是出于好奇，没有多大实际意义
-
-Bootstrap 方法是否会高估方差？
-是否有一些引导 CI 计算指南？例如，样本量 (30) 和迭代次数 (500) 可能太小。
-我认为我没有错误地计算出标准误差平均值。我不认为 $\frac{s}{\sqrt{n-1}}$ 是必要的，因为 delta_arr 已经在A、B 均值之差项。不是原始群体，A 或 B。但是这个结论准确吗？
-
-谢谢！
-编辑：
-鉴于 Christian Hennig 的评论，我通过以下方式修改了引导 CI：1/ 使用完整样本并进​​行替换，2/ 假设中心为 $\mu_A - \ mu_B$ 以避免将随机误差纳入评估，并使用 3/ 百分位数（第 2.25 个和第 97.5 个）来避免正态性假设。
-def bootstrap_ci(A, B, 置信度=0.95, itrs=1000):
-  alpha = 1.0 - 置信度
-  lb_idx = int(alpha/2.0 * itrs)
-  ub_idx = int((1.0 - alpha/2.0) * itrs)
-
-  delta_arr = []
-  对于范围内的 itr(itr)：
-    a_mu = np.mean(np.random.choice(a=A, 替换=True, 大小=A.size))
-    b_mu = np.mean(np.random.choice(a=B, 替换=True, 大小=B.size))
-    d = a_mu - b_mu
-    delta_arr.append(d)
-
-  sort_arr = 排序(delta_arr)
-  lb = sort_arr[lb_idx]
-  ub = sort_arr[ub_idx]
-  
-  返回（磅，UB）
-
-结果更接近事实
-&lt;前&gt;&lt;代码&gt;bootstrap_ci(A,B)
-&gt;&gt;&gt;&gt;&gt;
-（1.526411681562184、2.5033789920789973）
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/646569/bootstrapped-confidence-interval-overestimates-variance-in-difference-of-means</guid>
-      <pubDate>Sun, 05 May 2024 19:52:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>两张 2x2 的表格是否来自同一人群？</title>
-      <link>https://stats.stackexchange.com/questions/646550/were-two-2x2-tables-drawn-from-the-same-population</link>
-      <description><![CDATA[如何检验两个 2x2 表（频率）来自同一群体的零假设？
-更具体地说，我有两个样本大小不等的 2x2 样本。我想检验这两个样本来自同一人群的假设。我对样本大小不感兴趣。
-下表相当详细地说明了我的数据。这两个样本由一年内在两个设施中出现的病例组成。我认为这两个 2x2 表是两个设施地理区域的无偏样本。我预计在不久的将来不会收到更多数据。
-我只对比较两个样本的存活率感兴趣。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/646550/were-two-2x2-tables-drawn-from-the-same-population</guid>
-      <pubDate>Sun, 05 May 2024 14:47:17 GMT</pubDate>
+      <title>当可信区间与置信区间重合时，是否可以将置信区间解释为可信区间，反之亦然？</title>
+      <link>https://stats.stackexchange.com/questions/646625/when-a-credible-interval-coincides-with-a-confidence-interval-can-one-interpret</link>
+      <description><![CDATA[假设我有一个带有 $n$ 个数据点的频率论模型来导出参数的置信区间。我还有一个带有 $n$ 数据点的贝叶斯模型，用于导出参数的后验。在有限 $n$ 情况下，可信区间不需要与置信区间一致。考虑$n\to\infty$，在有良好先验的正则条件下将导致置信区间和可信区间一致。
+$Q:$ 在这种情况下，如果我使用频率模型并得出置信区间，我可以将其解释为可信区间，反之亦然吗？从技术上讲，频率区间要么包含真实值，要么不包含真实值。我猜想贝叶斯可信区间频率覆盖率会以 $\frac{1}{\sqrt{n}}$ 的速率收敛。
+$Q&#39;:$ 假设 $n$ 非常大。我什至可以尝试将置信区间解释为可信区间，反之亦然吗？从频率论的角度来看，可信区间的覆盖范围很可能不足或过度。]]></description>
+      <guid>https://stats.stackexchange.com/questions/646625/when-a-credible-interval-coincides-with-a-confidence-interval-can-one-interpret</guid>
+      <pubDate>Mon, 06 May 2024 15:18:56 GMT</pubDate>
     </item>
     </channel>
 </rss>
