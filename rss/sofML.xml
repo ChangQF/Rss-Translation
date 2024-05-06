@@ -4,7 +4,156 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Mon, 06 May 2024 03:16:49 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 06 May 2024 06:20:03 GMT</lastBuildDate>
+    <item>
+      <title>如何在tensorflow中读入csv文件</title>
+      <link>https://stackoverflow.com/questions/78434695/how-to-read-into-a-csv-file-in-tensorflow</link>
+      <description><![CDATA[我正在使用tensorflow在conda环境中进行机器学习。在我的代码中，当我尝试读入我的 train.csv 和 test.csv 时，出现问题，如下代码所示：
+os.environ[&#39;TF_CPP_MIN_LOG_LEVEL&#39;] = &#39;2&#39;
+将张量流导入为 tf
+从张量流导入keras
+从tensorflow.keras导入层，正则化器
+从tensorflow.keras.datasets导入mnist
+将 pandas 导入为 pd
+从tensorflow.keras.optimizers.legacy导入Adam
+
+#超级参数
+
+批量大小 = 64
+WEIGHT_DECAY = 0.001
+学习率 = 0.001
+
+train_df = pd.read_csv(“train.csv”)
+test_df = pd.read_csv(“test.csv”)
+train_images = os.getcwd() + “/train_images/” + train_df.iloc[:, 0].values
+test_images = os.getcwd() + “/test_images/” + test_df.iloc[:, 0].values
+
+train_labels = train_df.iloc[:, 1:].values
+test_labels = test_df.iloc[:, 1:].values
+
+def read_image(图像路径, 标签):
+  图像 = tf.io.read_file(image_path)
+  图像 = tf.image.decode_image(图像, 通道=1, dtype=tf.float32)
+
+  图像.set_shape((64, 64, 1))
+  标签[0].set_shape([])
+  标签[1].set_shape([])
+
+  标签 = {“first_num”：标签[0]，“second_num”：标签[1]}
+  返回图像、标签
+
+自动调谐 = tf.data.experimental.AUTOTUNE
+train_dataset = tf.data.Dataset.from_tensor_slices(
+  （火车图像，火车标签）
+）
+训练数据集 = (
+  train_dataset.shuffle(buffer_size=len(train_labels))
+  .map(读取图像)
+  .batch(batch_size=BATCH_SIZE)
+  .prefetch(buffer_size=AUTOTUNE)
+）
+
+test_dataset = tf.data.Dataset.from_tensor_slices((test_images, test_labels))
+测试数据集 = (
+  test_dataset.map(read_image)
+  .batch(batch_size=BATCH_SIZE)
+  .prefetch(buffer_size=AUTOTUNE)
+）
+
+输入 = keras.Input(形状= (64, 64, 1))
+x = 层.Conv2D(
+  过滤器=32，
+  内核大小=3，
+  填充=&#39;相同&#39;，
+  kernel_regularizer=regularizers.l2(WEIGHT_DECAY),
+)(输入)
+x = 层.BatchNormalization()(x)
+x = keras.activations.relu(x)
+x = 层.Conv2D(
+  64, 3, kernel_regularizer=regularizers.l2(WEIGHT_DECAY),
+）（X）
+x = 层.BatchNormalization()(x)
+x = keras.activations.relu(x)
+x = 层数.MaxPooling2D()(x)
+x = 层.Conv2D(
+  64、
+  3、
+  激活=&#39;relu&#39;,
+  kernel_regularizer=regularizers.l2(WEIGHT_DECAY),
+）（X）
+
+x= 层.Conv2D(128, 3, 激活=&#39;relu&#39;)(x)
+x = 层数.MaxPooling2D()(x)
+x = 层.Flatten()(x)
+x = 层.Dense(128, 激活=&#39;relu&#39;)(x)
+x = 层.Dropout(0.5)(x)
+x = 层.Dense(64, 激活=&#39;relu&#39;)(x)
+输出1 = 层.Dense(10, 激活=&#39;softmax&#39;, 名称=&#39;first_num&#39;)(x)
+输出2 = 层.Dense(10, 激活=&#39;softmax&#39;, 名称=&#39;second_num&#39;)(x)
+模型= keras.Model（输入=输入，输出=[输出1，输出2]）
+
+打印（模型.摘要（））
+
+模型.编译(
+  损失=[keras.losses.SparseCategoricalCrossentropy(),
+        keras.losses.SparseCategoricalCrossentropy(),
+        ],
+  指标=[“准确度”,“准确度”],
+）
+
+model.fit(train_dataset, epochs=5, verbose=2)
+model.evaluate(train_dataset, verbose=2)
+
+错误开始于...
+&lt;前&gt;&lt;代码&gt;
+2024-05-06 06:09:12.539105: E external/local_tsl/tsl/platform/windows/windows_file_system.cc:363] 错误：GetSymbolicLinkTarget 无法打开 \\?\C:\Users\USER\CODE\PycharmProjects\ 的文件pythonProject2Conda\train_images\129_97.png GetLastError：2
+
+
+对于要读取的不同图像，以下错误类似，并以以下结尾：
+回溯（最近一次调用最后一次）：
+  文件“C:\Users\USER\CODE\PycharmProjects\pythonProject2Conda\main.py”，第 94 行，在  中
+    model.fit(train_dataset, epochs=5, verbose=2)
+  文件“C:\Users\USER\anaconda3\envs\tf_cpu\Lib\site-packages\keras\src\utils\traceback_utils.py”，第 123 行，在 error_handler 中
+    从 None 引发 e.with_traceback(filtered_tb)
+  文件“C:\Users\USER\anaconda3\envs\tf_cpu\Lib\site-packages\tensorflow\python\eager\execute.py”，第 53 行，在 Quick_execute 中
+    张量 = pywrap_tfe.TFE_Py_Execute(ctx._handle, device_name, op_name,
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tensorflow.python.framework.errors_impl.NotFoundError：图执行错误：
+
+在定义于（最近一次调用最后）的节点 ReadFile 处检测到：
+&lt;堆栈跟踪不可用&gt;
+NewRandomAccessFile 无法创建/打开：C:\Users\USER\CODE\PycharmProjects\pythonProject2Conda/train_images/129_97.png ：系统找不到指定的文件。
+;没有这样的文件或目录
+     [[{{节点读取文件}}]]
+     [[IteratorGetNext]] [操作：__inference_one_step_on_iterator_2745]
+
+
+请问我该如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78434695/how-to-read-into-a-csv-file-in-tensorflow</guid>
+      <pubDate>Mon, 06 May 2024 05:33:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将我训练过的模型移动到另一个 Python 笔记本中？</title>
+      <link>https://stackoverflow.com/questions/78434627/how-can-i-move-my-trained-model-to-another-python-notebook</link>
+      <description><![CDATA[我有一个Python笔记本，其中包含多个函数，例如pre_process，..并且它包含我训练的模型。现在我应该提交一个 python 笔记本，其中包含我训练过的模型以进行进一步测试。我怎样才能做到这一点？
+我知道在运行单元格时，它会保存所有单元格使用的变量，我可以链接这两个文件并从那里调用模型吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78434627/how-can-i-move-my-trained-model-to-another-python-notebook</guid>
+      <pubDate>Mon, 06 May 2024 05:04:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于 onehotencoder 空间成本</title>
+      <link>https://stackoverflow.com/questions/78434421/regarding-onehotencoder-space-cost</link>
+      <description><![CDATA[为什么 onehotencoding 不使用基于位的编码？占用的内存不是少很多吗？我的意思是，当您对四个城市进行编码时，您可以像 onehotencoder 那样将一列扩展到 4 或在一列中这样进行：
+ 第一个城市 = 0(base10) = 00000000
+    第二个城市 = 1(base10) = 00000001
+    第三个城市 = 2(base10) = 00000010
+    第四个城市 = 3(base10) = 00000011
+
+。
+就内存成本而言，这不是更有效吗？或者编码技术是否迫使它占用更多空间？]]></description>
+      <guid>https://stackoverflow.com/questions/78434421/regarding-onehotencoder-space-cost</guid>
+      <pubDate>Mon, 06 May 2024 03:24:38 GMT</pubDate>
+    </item>
     <item>
       <title>如何在多个 GPU 上进行训练？</title>
       <link>https://stackoverflow.com/questions/78433502/how-do-i-train-on-multiple-gpus</link>
@@ -38,136 +187,14 @@
         样本 = self.data[idx]
         返回样品
 
-当我尝试获取索引 0 处的 Data 对象时，它给了我一个 KeyIndex 错误。我还尝试了上述代码的一个版本，其中超类是 Dataset 而不是 InMemoryDataset，但我不知道如何制作整理方法有效。]]></description>
+当尝试获取索引 0 处的 Data 对象时，它给了我一个 KeyIndex 错误。我还尝试了上述代码的一个版本，其中超类是 Dataset 而不是 InMemoryDataset，但我不知道如何制作整理方法有效。]]></description>
       <guid>https://stackoverflow.com/questions/78433332/turning-a-list-of-pyg-data-objects-into-a-pyg-dataset</guid>
       <pubDate>Sun, 05 May 2024 18:30:03 GMT</pubDate>
     </item>
     <item>
-      <title>Python 项目中“tokenizer”的 ModuleNotFoundError</title>
-      <link>https://stackoverflow.com/questions/78433151/modulenotfounderror-for-tokenizer-in-python-project</link>
-      <description><![CDATA[回溯（最近一次调用最后一次）：
-  文件“/usr/ML/image-captioning-oscar-main/oscar/run_captioning.py”，来自 oscar.utils.caption_evaluate import (evaluate_on_coco_caption,
-  文件“/usr/ML/image-captioning-oscar-main/oscar/utils/caption_evaluate.py”，来自 coco_caption.pycocoevalcap.eval 的行导入 COCOEvalCap
-  文件“/usr/ML/image-captioning-oscar-main/oscar/coco_caption/pycocoevalcap/tokenizer/ptbtokenizer.py”，行 from tokenizer.ptbtokenizer import PTBTokenizer
-ModuleNotFoundError：没有名为“tokenizer”的模块
-
-我已经提供了我的项目的目录结构以获取更多上下文。以下是相关目录的外观：
-usr/
-└── ML/
-    └── 图像字幕-oscar-main/
-        └── 奥斯卡/
-            ├── 数据集/
-            │ ├── __init__.py
-            │ ├── build.py
-            │ └── 标题_tsv.py
-            ├── 造型/
-            │ ├── __init__.py
-            │ ├── 建模_bert.py
-            │ └── modeling_utils.py
-            ├── 实用程序/
-            │ ├── __init__.py
-            │ ├── infer_on_single.py
-            │ └── run_captioning.py
-            └── 脚本/
-                ├── 自述文件.md
-                └── 需求.txt
-
-此目录结构中似乎不存在 run_captioning.py 脚本所需的 tokenizer 模块。这可能是该模块位于其他地方的问题，还是我应该单独安装该模块？
-请验证 tokenizer 是否应该是另一个已安装软件包的一部分，或者是否应该包含在您的项目目录中。如果它应该是您项目的一部分，请确保该目录存在于 Python 期望的位置，并且它包含在您的项目文件中。如果 tokenizer 是第三方库，请确保它已正确安装在您的 Python 环境中。如果缺少，您可能需要通过 pip 或 conda 安装它，或者确保您的环境具有正确的路径设置。
-我尝试过的：
-
-检查了目录结构：我验证了项目的目录结构包含 tokenizer 模块，并且包含一个可被识别为 Python 包的 __init__.py 文件。
-检查 Python 路径：我将包含 tokenizer 模块的目录添加到 Python 路径中，以确保 Python 可以检测到它。
-已验证导入：我确保项目其他部分中的导入语句正常工作，这表明问题可能与分词器模块的导入方式或其位置有关。
-
-我所期待的：
-我希望 Python 能够毫无问题地从 tokenizer.ptbtokenizer 模块中查找并导入 PTBTokenizer 类。作为图像字幕过程的一部分，脚本应该能够使用此模块来标记字符串。相反，我遇到了 ModuleNotFoundError，这表明 Python 无法找到 tokenizer 模块，即使它似乎正确放置在项目的目录结构中并且正确构建为包.]]></description>
-      <guid>https://stackoverflow.com/questions/78433151/modulenotfounderror-for-tokenizer-in-python-project</guid>
-      <pubDate>Sun, 05 May 2024 17:27:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>由于图像容器问题，无法启动 sagemaker 训练作业</title>
-      <link>https://stackoverflow.com/questions/78433082/unable-to-launch-sagemaker-training-job-due-to-issues-with-image-container</link>
-      <description><![CDATA[我正在尝试从 sagemaker studio 代码编辑器实例中启动 sagemaker 培训作业。我有一个自定义的 docker 映像，其中包含一个requirements.txt 文件，其中包含一系列要安装的 python 库。此过程利用了 sagemaker 培训工具包，不幸的是，该库集合依赖于 python 3.10 及更高版本中已弃用的模块（请参阅此 github 开放问题 了解更多）。因此，我决定使用 python 3.9 运行我的容器，但这现在导致了与工具包的 sagemaker-containers 库相关的一系列问题。当尝试启动训练作业时，我收到此错误：
-ImportError：无法从“jinja2”导入名称“escape”（/usr/local/lib/python3.9/site-packages/jinja2/__init__.py）
-
-一些研究告诉我，jinja2 中的 escape 模块在较新版本的库中已被弃用，jinja2 是  的依赖项&gt;flask 和 flask 是 sagemaker-containers 的依赖项。 解决方案是将flask添加到需求文件并将其版本日期指定为更高版本，但是问题是 sagemaker-containers 依赖于旧版本的 Flask==1.1.1（请参阅以下）。我尝试过不指定 sagemaker-containers 的版本，我尝试过将其设置为旧版本，我尝试过更新 flask 和各种版本。我似乎找不到可以运行的组合。我还可能会补充一点，当我通过 sagemaker-training 安装训练工具包时，我不清楚为什么需要安装 sagemaker-container （但不会出现另一个错误）这是通过在其他地方讨论安装它来解决的）。
-94.67 冲突的原因是：
-94.67 用户请求 Flask==2.0.3
-94.67 sagemaker-containers 2.8.6.post2 依赖于flask==1.1.1
-
-Python 脚本启动作业：
-导入 sagemaker
-从 sagemaker.estimator 导入估算器
-
-角色 = &#39;aws 角色&#39;
-s3_bucket = &#39;s3-bucket-name&#39;
-实例类型 = &#39;&#39;
-类别 = &#39;视频游戏&#39;
-输出路径 = f&#39;s3://{s3_bucket}/classification/{category}/output&#39;
-图像_uri = &#39;我的图像_uri&#39;
-source_dir = &#39;/home/sagemaker-user/data-analytics/data_science/classifcation/pipeline/auxilary/source_code/&#39;
-
-估计器 = 估计器(image_uri=image_uri,
-                      角色=角色，
-                      实例计数=1，
-                      实例类型=实例类型，
-                      输出路径=输出路径，
-                      Entry_point=&#39;train.py&#39;,
-                      源目录=源目录）
-
-estimator.set_hyperparameters(类别=类别,
-                              s3_bucket=s3_bucket,
-                              target_column=&#39;注释&#39;,
-                              测试大小=0.2）
-
-估计器.fit()
-
-Dockerfile
-# 使用 python 图像作为基础
-来自Python：3.9
-
-# 设置环境变量
-ENV Python不写入字节码1
-ENV Python 无缓冲 1
-
-# 安装系统依赖
-运行 apt-get update \
-    &amp;&amp; apt-get install -y --no-install-recommends \
-        libpq-dev \
-        海湾合作委员会\
-    &amp;&amp; rm -rf /var/lib/apt/lists/*
-
-# 在容器中设置工作目录
-工作目录/代码
-
-# 安装Python依赖项
-复制requirements.txt /代码/
-运行 pip install --no-cache-dir --exists-action i -rrequirements.txt
-
-# 复制其余的应用程序代码
-复制 。 /代码/
-
-requirements.txt 文件
-Flask==2.0.3
-简单变压器==0.70.0
-熊猫==2.1.1
-numpy==1.26.0
-火炬==2.2.1
-sklearn-deap==0.3.0
-sklearn-遗传-opt==0.10.1
-贤者==2.215.0
-Sagemaker-培训==4.7.4
-boto3==1.33.3
-Sagemaker-容器
-]]></description>
-      <guid>https://stackoverflow.com/questions/78433082/unable-to-launch-sagemaker-training-job-due-to-issues-with-image-container</guid>
-      <pubDate>Sun, 05 May 2024 17:07:35 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在自定义估计器上使用 GridSearchCV？</title>
       <link>https://stackoverflow.com/questions/78433029/how-to-use-gridsearchcv-on-a-customized-estimator</link>
-      <description><![CDATA[我使用 sklearn BaseEstimator 和 ClassifierMixin 构建了一个自定义 Estimator。但当涉及到交叉验证时，GridSearchCV 给我的分数是 nan 值。
+      <description><![CDATA[我使用 sklearn BaseEstimator 和 ClassifierMixin 构建了一个自定义 Estimator。但是当涉及到交叉验证时，GridSearchCV 给我的分数是 nan 值。
 这是估计器的代码：
 class RegressionClassifier(ClassifierMixin, BaseEstimator):
     def __init__(self, 回归器=RidgeCV(cv=10, fit_intercept=True), alpha=0, n_components=1):
@@ -224,47 +251,10 @@ class RegressionClassifier(ClassifierMixin, BaseEstimator):
     <item>
       <title>如何使用 Torchvison Mixup 解决多标签问题？</title>
       <link>https://stackoverflow.com/questions/78432917/how-to-use-torchvison-mixup-with-a-multilabel-problem</link>
-      <description><![CDATA[我想使用 MixUp 作为多标签图像分类问题的数据增强，但它似乎只支持形状为 (batch_size,) 的标签。如何修改它以允许使用 [0.0, 1.0, 0.0, 1.0] 之类的标签
-我尝试在标签向量 [0.0, 1.0, 0.0, 1.0] 上调用 argmax ，这给了我一个索引。这使得该函数可以工作，但它只是对单个类进行混合。]]></description>
+      <description><![CDATA[我想使用 MixUp 作为多标签图像分类问题的数据增强，但它似乎只支持形状为 (batch_size,) 的标签。我该如何修改它以允许使用 [0.0, 1.0, 0.0, 1.0] 这样的标签
+我尝试在我的标签向量 [0.0, 1.0, 0.0, 1.0] 上调用 argmax，这给了我一个索引。这使函数工作，但它只对单个类进行混合。]]></description>
       <guid>https://stackoverflow.com/questions/78432917/how-to-use-torchvison-mixup-with-a-multilabel-problem</guid>
       <pubDate>Sun, 05 May 2024 16:17:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 bart_machine_Arr 时如何调查变量重要性并获取 bartmachine 对象列表？</title>
-      <link>https://stackoverflow.com/questions/78432817/how-to-investigate-variable-importance-when-using-bart-machine-arr-and-get-a-lis</link>
-      <description><![CDATA[对于单个 bartmachine 对象，我们可以使用函数 investigate_var_importance 来获取变量重要性结果。然而，即使在函数中使用num_replicates_for_avg语句，结果仍然不稳定。
-我们有 bartMachineArr(bart_machine, R=5) 函数，它可以让我们计算五个 bartmachine 并获得稳定的平均值。但我认为 investigate_var_importance 函数不能应用于 bartMachineArr 的结果，因为它是 bartmachine 对象的列表。这是同时实现这两个的错误：
-&lt;块引用&gt;
-&lt;块引用&gt;
-调查_var_重要性（bart_machine_Arr，num_replicates_for_avg = 20）
-check_serialization(bart_machine) 中的错误：
-此 bartMachine 对象是从 R 图像加载的，但未序列化。
-请使用选项“serialize = TRUE”构建 bartMachine下次。
-
-
-因此，我想知道是否有任何可能的方法来研究更稳定的 bartmachine 结果的变量重要性？非常感谢！]]></description>
-      <guid>https://stackoverflow.com/questions/78432817/how-to-investigate-variable-importance-when-using-bart-machine-arr-and-get-a-lis</guid>
-      <pubDate>Sun, 05 May 2024 15:46:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>在python中安装pyttsx3模块后出错</title>
-      <link>https://stackoverflow.com/questions/78431349/error-after-installing-pyttsx3-module-in-python</link>
-      <description><![CDATA[&lt;前&gt;&lt;代码&gt;导入 pyttsx3
-
-引擎 = pyttsx3.init(&#39;sapi5&#39;)
-声音 = engine.getProperty(&#39;声音&#39;)
-engine.setProperty(&#39;声音&#39;,声音[0].id)
-
-def 说话（音频）：
-    引擎.say（音频）
-    引擎.runAndWait()
-
-如果 __name__ == “__main__”：
-    说话（“嗨，我是维拉”）
-
-我试图使用 pyttsx3 模块让 Jarvis 说话，但我的系统说 pyttsx3 未安装，即使在安装模块后它也会抛出 MoudleNotFoundError]]></description>
-      <guid>https://stackoverflow.com/questions/78431349/error-after-installing-pyttsx3-module-in-python</guid>
-      <pubDate>Sun, 05 May 2024 07:13:41 GMT</pubDate>
     </item>
     <item>
       <title>在自定义数据上训练 Mask R-CNN，但训练不会停止并且不会产生输出或错误</title>
@@ -301,7 +291,7 @@ ValueError Traceback（最近一次调用最后一次）
 [19] 中的单元格，第 1 行
 ----&gt; 1 title_model.save(“/kaggle/working/mymodel.h5”)
 
-文件/opt/conda/lib/python3.10/site-packages/keras/src/utils/traceback_utils.py:122，位于filter_traceback..error_handler(*args, **kwargs)
+文件 /opt/conda/lib/python3.10/site-packages/keras/src/utils/traceback_utils.py:122，位于filter_traceback..error_handler(*args, **kwargs)
     第 119 章
     120 # 要获取完整的堆栈跟踪，请调用：
     121 # `keras.config.disable_traceback_filtering()`
@@ -316,7 +306,7 @@ ValueError Traceback（最近一次调用最后一次）
     184 dset = 数据集. 数据集（dsid）
     185 返回数据集
 
-文件/opt/conda/lib/python3.10/site-packages/h5py/_hl/dataset.py:163，在make_new_dset(父、形状、dtype、数据、名称、块、压缩、洗牌、fletcher32、maxshape、compression_opts 、 fillvalue、scaleoffset、track_times、external、track_order、dcpl、dapl、efile_prefix、virtual_prefix、allow_unknown_filter、rdcc_nslots、rdcc_nbytes、rdcc_w0)
+文件 /opt/conda/lib/python3.10/site-packages/h5py/_hl/dataset.py:163，在 make_new_dset(parent、shape、dtype、数据、名称、块、压缩、shuffle、fletcher32、maxshape、compression_opts 中、 fillvalue、scaleoffset、track_times、external、track_order、dcpl、dapl、efile_prefix、virtual_prefix、allow_unknown_filter、rdcc_nslots、rdcc_nbytes、rdcc_w0)
     160 其他：
     161 sid = h5s.create_simple（形状，maxshape）
 --&gt;第163章
@@ -327,7 +317,7 @@ ValueError Traceback（最近一次调用最后一次）
 
 文件 h5py/_objects.pyx:55，在 h5py._objects.with_phil.wrapper() 中
 
-文件 h5py/h5d.pyx:137，在 h5py.h5d.create() 中
+文件h5py/h5d.pyx:137，在h5py.h5d.create()中
 
 ValueError：无法同步创建数据集（名称已存在）
 
@@ -337,26 +327,28 @@ ValueError：无法同步创建数据集（名称已存在）
       <pubDate>Sat, 04 May 2024 14:51:33 GMT</pubDate>
     </item>
     <item>
-      <title>如何导入 Gensim？ Pip Install 有效，但我无法在没有出现 ImportError: Cannot import name 'triu' 错误的情况下运行 Import Gensim</title>
-      <link>https://stackoverflow.com/questions/78427675/how-do-i-import-gensim-pip-install-worked-but-i-cant-run-import-gensim-withou</link>
-      <description><![CDATA[我正在尝试执行此 Word2Vec 代码并收到 NameError: name &#39;gensim&#39; is not Defined:
-w2v_model = gensim.models.Word2Vec（docgen，min_count = 5，sg = 1，seed = 22122，workers = 1）
+      <title>从tensorflow.compat.v1导入估计器作为tf_estimator导入错误：无法从'tensorflow.compat.v1导入名称'估计器'</title>
+      <link>https://stackoverflow.com/questions/78428547/from-tensorflow-compat-v1-import-estimator-as-tf-estimator-importerror-cannot-i</link>
+      <description><![CDATA[我收到此错误
+ImportError：无法从“tensorflow.compat.v1”（/root/.local/lib/python3.10/site-packages/tensorflow/_api/v2/compat/v1/__init__.py）导入名称“estimator”
 
-当我导入 gensim 时，出现此错误：ImportError: Cannot import name &#39;triu&#39; from &#39;scipy.linalg&#39; (/opt/conda/lib/python3.9/site-packages/scipy/ linalg/__init__.py)
-如何修复代码以便能够调用 Gensim？我需要 Word2Vec 才能运行，之前没有遇到过这个问题；我今天早上运行这个模型，一切都很好，但现在突然出现错误。
-我看到你必须升级 Scipy，而且它似乎有效。这是完整的代码：
-!pip install scipy==1.10.1
-!pip 安装 gensim
+当我尝试运行此代码时
+python Tensorflow\models\research\object_detection\model_main_tf2.py --model_dir=Tensorflow\workspace\models\my_ssd_mobnet --pipeline_config_path=Tensorflow\workspace\models\my_ssd_mobnet\pipeline.config --num_train_steps=10000
+]]></description>
+      <guid>https://stackoverflow.com/questions/78428547/from-tensorflow-compat-v1-import-estimator-as-tf-estimator-importerror-cannot-i</guid>
+      <pubDate>Sat, 04 May 2024 09:58:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>COCO分段json格式的合并和减去注释</title>
+      <link>https://stackoverflow.com/questions/78427741/merge-and-subtract-annotations-in-coco-segmentation-json-format</link>
+      <description><![CDATA[我是 Python 和机器学习新手，遇到以下问题：我以 COCO .json 格式注释了数据。在这种情况下，水下照片上的珊瑚表面区域是活的，而珊瑚的部分区域是死的。有时，蒙版会重叠。
+我想减去我注释为“死区”的区域来自我注释为“活着”的区域。在每张照片上，只有一个珊瑚被注释，有时我会分多个部分进行注释，因此我也想在减法之前合并每个类别的蒙版。注释类“死”了。仅出现在图像的子集中。
+有人能指出我如何做到这一点的正确方向吗？
+我添加了一张示例照片：黄色表示“活着”类别，绿色表示“死亡”类别。
 
-from numpy import triu
-导入gensim
-从 gensim 导入语料库、模型
-
-w2v_model = gensim.models.Word2Vec(docgen, min_count=3, sg=1, 种子=22122, 工人=1)
-
-谢谢！]]></description>
-      <guid>https://stackoverflow.com/questions/78427675/how-do-i-import-gensim-pip-install-worked-but-i-cant-run-import-gensim-withou</guid>
-      <pubDate>Sat, 04 May 2024 03:23:37 GMT</pubDate>
+非常感谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78427741/merge-and-subtract-annotations-in-coco-segmentation-json-format</guid>
+      <pubDate>Sat, 04 May 2024 04:11:41 GMT</pubDate>
     </item>
     <item>
       <title>为什么我的 GAN 模型训练在 90 次迭代时停止？</title>
