@@ -4,64 +4,241 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Thu, 09 May 2024 12:25:29 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 09 May 2024 15:15:49 GMT</lastBuildDate>
+    <item>
+      <title>将分类加权损失函数集成到我的代码中后，准确性下降</title>
+      <link>https://stackoverflow.com/questions/78455283/the-accuracy-decreased-after-integrating-categorical-weighted-loss-function-to-m</link>
+      <description><![CDATA[我想提高准确性，并且我有不平衡数据集：akiec：229，bcc：360，bkl：769，df：81，mel：779，vasc：99。为了解决这个问题，我选择将分类加权损失机制集成到模型中。然而，尽管进行了这样的调整，我还是注意到准确性随后下降了。这个意想不到的结果让我怀疑实施过程中出现了错误。您能否帮助我识别和解决任何潜在的错误以优化模型的性能？
+# 定义目录
+train_dir = &#39;/content/drive/MyDrive/ikinciasamadataset/Train&#39;
+test_dir = &#39;/content/drive/MyDrive/ikinciasamadataset/Test&#39;
+validation_dir = &#39;/content/drive/MyDrive/ikinciasamadataset/Validation&#39;
+
+# 确定类的数量
+numClasses = len(os.listdir(train_dir))
+
+# 定义超参数网格
+参数网格 = {
+    &#39;学习率&#39;：[0.001]，
+    &#39;批量大小&#39;：[16]，
+}
+
+最佳准确度 = 0
+最佳参数=无
+
+# 执行网格搜索
+对于 ParameterGrid(param_grid) 中的参数：
+    # 为每次网格搜索迭代加载预训练的 VGG19 模型
+    base_model = VGG19(权重=&#39;imagenet&#39;, include_top=False, input_shape=(224, 224, 3))
+    对于 base_model.layers 中的图层：
+        可训练层 = False
+
+    # 定义函数从最后一个卷积层提取特征
+    def extract_features（生成器，模型）：
+        特征 = model.predict(生成器)
+        返回 features.reshape((len(generator.filenames), -1))
+
+    # 创建数据生成器
+    train_datagen = 图像数据生成器(
+        重新缩放=1./255，
+        旋转范围=20，
+        宽度偏移范围=0.2，
+        height_shift_range=0.2，
+        剪切范围=0.2，
+        缩放范围=0.2，
+        水平翻转=真，
+        fill_mode=&#39;最近&#39;)
+
+    validation_datagen = ImageDataGenerator（重新缩放=1./255）
+
+    train_generator = train_datagen.flow_from_directory(
+        火车目录，
+        目标大小=(224, 224),
+        批量大小=参数[&#39;批量大小&#39;],
+        class_mode=&#39;分类&#39;
+    ）
+
+    validation_generator =validation_datagen.flow_from_directory(
+        验证目录，
+        目标大小=(224, 224),
+        批量大小=参数[&#39;批量大小&#39;],
+        class_mode=&#39;分类&#39;
+    ）
+&#39;&#39;&#39;
+
+可能这里有一个错误
+
+&#39;&#39;&#39;
+
+    # 定义类索引
+    类索引 = {
+        &#39;基亚克&#39;: 0,
+        “密件抄送”：1，
+        &#39;bkl&#39;：2，
+        “df”：3，
+        “梅尔”：4，
+        “血管”：5
+    }
+
+    ## 计算班级人数
+    类计数 = {}
+    对于 os.listdir(train_dir) 中的 class_name：
+        class_counts[class_name] = len(os.listdir(os.path.join(train_dir, class_name)))
+
+    # 计算类别权重
+    类权重 = {}
+    Total_samples = sum(class_counts.values())
+    对于 class_name、class_count 在 class_counts.items() 中：
+        class_weights[class_indices[class_name]] = 总样本数 / (class_count * len(class_counts))
+
+
+
+    # 定义模型架构以接受提取的特征作为输入
+    输入=输入(形状=(combined_data_train.shape[1],))
+    x = 密集（256，激活=&#39;relu&#39;）（输入）
+    预测=密集（numClasses，激活=&#39;softmax&#39;）（x）
+    模型=模型（输入=输入，输出=预测）
+
+    # 使用当前的超参数和类权重编译模型
+    model.compile（优化器=SGD（learning_rate=params[&#39;learning_rate&#39;]），loss=&#39;sparse_categorical_crossentropy&#39;，metrics=[&#39;accuracy&#39;]，sample_weight_mode=&#39;temporal&#39;）
+
+    # 定义提前停止
+    Early_stopping = EarlyStopping（监视器=&#39;val_loss&#39;，耐心= 5，restore_best_weights = True）
+
+    # 通过提前停止来训练模型
+    num_epochs = 50 # 您可以在此处调整纪元数
+    历史=模型.fit(
+        x=组合数据训练，
+        y=train_generator.labels,
+        纪元=num_epochs，
+        批量大小=参数[&#39;批量大小&#39;],
+        validation_data=(combined_data_validation,validation_generator.labels),
+        回调=[early_stopping],
+        类权重=类权重，
+        详细=1
+    ）
+
+    model.save(&#39;best_vgg19_model_with_age.h5&#39;)
+
+    # 根据验证数据评估模型
+    _，val_accuracy = model.evaluate（combined_data_validation，validation_generator.labels，详细= 0）
+
+    # 如有必要，更新最佳精度和最佳参数
+    如果 val_accuracy &gt;最佳准确度：
+        最佳准确度 = 验证准确度
+        最佳参数 = 参数
+
+# 打印最佳参数和准确度
+print(&#39;最佳参数：&#39;, best_params)
+print(&#39;最佳验证准确度：&#39;, best_accuracy)
+
+
+# 加载最佳模型
+best_model = load_model(&#39;best_vgg19_model_with_age.h5&#39;)
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78455283/the-accuracy-decreased-after-integrating-categorical-weighted-loss-function-to-m</guid>
+      <pubDate>Thu, 09 May 2024 14:52:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>我应该使用什么工具来注释机器学习项目的图像，以便我可以向每个边界框添加数据</title>
+      <link>https://stackoverflow.com/questions/78455181/what-tool-should-i-use-to-annotate-images-for-a-machine-learning-project-so-that</link>
+      <description><![CDATA[我和我的团队有大量水果图像需要注释来训练 YOLO 模型。注释过程需要包括每个水果周围的边界框和重量等附加数据。
+根据 YOLO 文档，可以通过直接将补充信息附加到通常包含边界框数据的文件来包含补充信息。我在 GitHub 上发现了一条建议采用这种方法的回复（回复链接），但我还没有找到支持在定义边界框的同时添加额外数据的注释工具（例如 Roboflow 或 CVAT）。
+虽然可以在创建边界框后手动将数据添加到文本文件中，但这将是一项艰巨的任务。我正在寻找一种更加自动化的解决方案，我可以在其中对每个图像进行注释，同时方便地添加其他信息。
+是否有支持此功能的工具或网站？]]></description>
+      <guid>https://stackoverflow.com/questions/78455181/what-tool-should-i-use-to-annotate-images-for-a-machine-learning-project-so-that</guid>
+      <pubDate>Thu, 09 May 2024 14:36:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何纠正 r 中光栅堆栈的方向</title>
+      <link>https://stackoverflow.com/questions/78454706/how-do-i-correct-the-orientation-of-a-raster-stack-in-r</link>
+      <description><![CDATA[我有一个每日数据的 NetCDF 文件。我将其转换为光栅堆栈，但其方向不正确（我已附上图像）。我该如何纠正它。我还将我的代码附在本文中。 [raster_stack 图像和 r 代码](https://i.sstatic.net/UmI4kSNE.png)
+另外，请告诉是否有人知道，我如何从这些栅格文件中提取年度数据到 Excel 格式（在 arcGIS 或 r 中）。我有 1955 年到 2023 年的栅格文件，其中包含每日降雨量数据，我想根据我拥有的管理形状文件提取年降雨量数据。
+我在 r 中运行了代码，但没有取得任何进展。]]></description>
+      <guid>https://stackoverflow.com/questions/78454706/how-do-i-correct-the-orientation-of-a-raster-stack-in-r</guid>
+      <pubDate>Thu, 09 May 2024 13:18:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何为大型语言模型有效构建提示？</title>
+      <link>https://stackoverflow.com/questions/78454565/how-to-structure-prompts-effectively-for-large-language-models</link>
+      <description><![CDATA[我目前正在使用大型语言模型 (LLM)，并在构建提示以获得最准确和相关的响应方面面临挑战。我对提示工程有基本的了解，但正在寻找有关如何改进提示的最佳实践和建议。
+这是我的具体问题：
+
+LLM 的结构良好的提示的关键组成部分是什么？
+提示的复杂性或简单性如何影响 LLM 的回答？
+设计提示时是否需要避免常见的陷阱或错误？
+
+我对确保模型理解并遵守提示中提供的上下文的技术特别感兴趣。任何可以指导我的示例或资源将不胜感激。
+我希望指导法学硕士做什么和不做什么，包括与之相关的流程和链条，正如我所期望的那样
+我尝试过的示例提示：
+”“”作为您的专属助手，我在这里解答与我们公司产品和服务相关的任何疑问。请注意，我的专业知识仅限于内部主题，我不具备处理外部查询或执行数学计算的能力。”“”
+在某些情况下，此提示有效，但在其他情况下则无效。]]></description>
+      <guid>https://stackoverflow.com/questions/78454565/how-to-structure-prompts-effectively-for-large-language-models</guid>
+      <pubDate>Thu, 09 May 2024 12:52:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>Stylegan3汽车生成问题</title>
+      <link>https://stackoverflow.com/questions/78454480/stylegan3-car-generation-issue</link>
+      <description><![CDATA[你好堆栈溢出社区，
+我正在尝试训练stylegan3来生成汽车图像，特别是某个国家的救护车，我有一个小的数据集，经过长时间的训练过程后的输出不方便，我是否需要更长的训练或更大的数据集？
+我试图使我的数据集更加统一，并连续训练我的网络 3 天，输出仍然看起来与原始数据完全相同，但分辨率较低，您对针对此用例的更好网络有什么建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78454480/stylegan3-car-generation-issue</guid>
+      <pubDate>Thu, 09 May 2024 12:37:13 GMT</pubDate>
+    </item>
     <item>
       <title>我的情绪分析给出了错误的预测</title>
       <link>https://stackoverflow.com/questions/78454399/my-sentiment-analysis-is-giving-wrong-predictions</link>
       <description><![CDATA[我有一个包含两列的数据框：推文和标签（攻击性语言、仇恨言论、无仇恨和攻击性）。
 我清理了推文并创建了我的模型。
-但在建模之后，我的所有测试文本都给出了相同的预测结果：“没有仇恨和攻击性”
+但建模后，我的所有测试文本都给出了相同的预测结果：“无仇恨和冒犯”
 # 清理我的文本
-def clean_text(文本):
-    文本 = str(文本).lower()
-    文本 = re.sub(&#39;\[.*?\]&#39;, &#39;&#39;, 文本)
-    text = re.sub(&#39;https?://\S+|www\.\S+&#39;, &#39;&#39;, text)
-    文本 = re.sub(&#39;&lt;.*?&gt;+&#39;, &#39;&#39;, 文本)
-    text = re.sub(&#39;[%s]&#39; % re.escape(string.punctuation), &#39;&#39;, text)
-    文本 = re.sub(&#39;\n&#39;, &#39;&#39;, 文本)
-    文本 = re.sub(&#39;\w*\d\w*&#39;, &#39;&#39;, 文本)
-    text = [text.split(&#39; &#39;) 中的单词逐字，如果单词不在停用词中]
-    文本 =“”.join(文本)
-    text = [stemmer.stem(word) for word in text.split(&#39; &#39;)]
-    文本=“”.join(文本)
-    
-    返回文本
+def clean_text(text):
+text = str(text).lower()
+text = re.sub(&#39;\[.*?\]&#39;, &#39;&#39;, text)
+text = re.sub(&#39;https?://\S+|www\.\S+&#39;, &#39;&#39;, text)
+text = re.sub(&#39;&lt;.*?&gt;+&#39;, &#39;&#39;, text)
+text = re.sub(&#39;[%s]&#39; % re.escape(string.punctuation), &#39;&#39;, text)
+text = re.sub(&#39;\n&#39;, &#39;&#39;, text)
+text = re.sub(&#39;\w*\d\w*&#39;, &#39;&#39;, text)
+text = [word for word in text.split(&#39; &#39;) if word not in stopword]
+text = &quot;&quot;.join(text)
+text = [stemmer.stem(word) for word in text.split(&#39; &#39;)]
+text = &quot;&quot;.join(text)
 
-数据[“推文”] = 数据[“推文”].apply(clean_text)
+return text
 
+data[&quot;tweet&quot;] = data[&quot;tweet&quot;].apply(clean_text)
 
-#将我的列转换为数组
-将 numpy 导入为 np
-x = np.array(data[“tweet”])
-y = np.array(数据[“标签”])
+# 将我的列转换为数组
+import numpy as np
+x = np.array(data[&quot;tweet&quot;])
+y = np.array(data[&quot;labels&quot;])
 
-
-# 拟合推文列以进行建模
-从 sklearn.feature_extraction.text 导入 CountVectorizer
-从 sklearn.model_selection 导入 train_test_split
+# 拟合 tweet 列以进行建模
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
 count_vec = CountVectorizer()
 X = count_vec.fit_transform(x)
 
-X_train、X_test、y_train、y_test = train_test_split(X、y、test_size = 0.33、random_state = 42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.33，random_state = 42)
 
+来自 sklearn.tree 导入 DecisionTreeClassifier
 
-从 sklearn.tree 导入 DecisionTreeClassifier
-
-dc_tree = 决策树分类器()
+dc_tree = DecisionTreeClassifier()
 dc_tree.fit(X_train, y_train)
 
 ##测试我的模型
-test_text = &quot;杀掉所有的人并将其烧毁&quot;;
+test_text = &quot;杀死他们所有人并烧毁它&quot;
 test_data = count_vec.transform([test_text]).toarray()
 
-打印（dc_tree.预测（测试数据））
-#Output：[&#39;没有仇恨和攻击性&#39;] #Expectation：[&#39;仇恨言论&#39;]
+print(dc_tree.predict(test_data)) 
+#输出：[&#39;没有仇恨和攻击性&#39;] #期望：[&#39;仇恨言论&#39;]
 
-
-test_text = “实践爱和耐心，过上美好的生活！”
+test_text = &quot;实践爱和耐心，过上美好的生活！&quot;
 test_data2 = count_vec.transform([test_text]).toarray()
-打印（dc_tree.预测（test_data2））
-#Output：[&#39;没有仇恨和攻击性&#39;]
+print(dc_tree.predict(test_data2)) 
+#输出：[&#39;没有仇恨和攻击性&#39;]
 
 ]]></description>
       <guid>https://stackoverflow.com/questions/78454399/my-sentiment-analysis-is-giving-wrong-predictions</guid>
@@ -105,37 +282,36 @@ xgb2 &lt;- xgboost（数据 = dm2，参数 = 参数，nrounds = 10，print_every
     <item>
       <title>输入列的架构不匹配预期的字符串或字符串向量，得到 UInt32（参数“inputSchema”）</title>
       <link>https://stackoverflow.com/questions/78453914/schema-mismatch-for-input-column-expected-string-or-vector-of-string-got-uint32</link>
-      <description><![CDATA[未处理的异常。 System.ArgumentOutOfRangeException：输入列“QuestionKey”的架构不匹配：预期的字符串或字符串向量，得到 UInt32（参数“inputSchema”）
+      <description><![CDATA[未处理的异常。System.ArgumentOutOfRangeException：输入列“QuestionKey”的架构不匹配：预期为字符串或字符串向量，获取 UInt32（参数“inputSchema”）
 代码：
 // 尝试不同的文本特征化技术
 var tokenizedText = mlContext.Transforms.Text.TokenizeIntoWords(&quot;Tokens&quot;, &quot;Question&quot;);
-var wordEmbeddings = mlContext.Transforms.Text.ApplyWordEmbedding(&quot;特征&quot;, &quot;令牌&quot;, WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding);
+var wordEmbeddings = mlContext.Transforms.Text.ApplyWordEmbedding(&quot;Features&quot;, &quot;Tokens&quot;, WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding);
  var concatenatedFeatures = mlContext.Transforms.Concatenate(&quot;FeaturesConcatenated&quot;, &quot;Features&quot;);
 
-        // 将“问题”列转换为 KeyType
-        var modelPipeline = mlContext.Transforms.Conversion.MapValueToKey(&quot;QuestionKey&quot;, &quot;Question&quot;)
-            .Append(mlContext.Transforms.Text.TokenizeIntoWords(“Tokens”, “QuestionKey”))
-            .Append(mlContext.Transforms.Text.ApplyWordEmbedding(“特征”, “令牌”, WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding))
-            .Append(mlContext.Transforms.Categorical.OneHotEncoding(“QuestionEncoded”, “QuestionKey”))
-            .Append(mlContext.Transforms.Conversion.MapValueToKey(“标签”, “答案”))
-            .Append(mlContext.Transforms.Concatenate(&quot;FeaturesConcatenated&quot;, &quot;Features&quot;));
+// 将“问题”列转换为 KeyType
+var modelPipeline = mlContext.Transforms.Conversion.MapValueToKey(&quot;QuestionKey&quot;, &quot;Question&quot;)
+.Append(mlContext.Transforms.Text.TokenizeIntoWords(&quot;Tokens&quot;, &quot;QuestionKey&quot;))
+.Append(mlContext.Transforms.Text.ApplyWordEmbedding(&quot;Features&quot;, &quot;Tokens&quot;, WordEmbeddingEstimator.PretrainedModelKind.SentimentSpecificWordEmbedding))
+.Append(mlContext.Transforms.Categorical.OneHotEncoding(&quot;QuestionEncoded&quot;, &quot;QuestionKey&quot;))
+.Append(mlContext.Transforms.Conversion.MapValueToKey(&quot;Label&quot;, &quot;Answer&quot;))
+.Append(mlContext.Transforms.Concatenate(&quot;FeaturesConcatenated&quot;, &quot;Features&quot;));
 
-        
-        // 使用 AutoML 或手动调整进行超参数调整实验
-        var trainer = mlContext.MulticlassClassification.Trainers.LightGbm(labelColumnName: &quot;答案&quot;, featureColumnName: &quot;问题&quot;);
+// 使用 AutoML 或手动调整进行超参数调整实验
+var trainer = mlContext.MulticlassClassification.Trainers.LightGbm(labelColumnName: &quot;Answer&quot;, featureColumnName: &quot;Question&quot;);
 
-        var TrainingPipeline = modelPipeline.Append(trainer);
+var trainingPipeline = modelPipeline.Append(trainer);
 
-        // 训练模型
-        var TrainingModel = TrainingPipeline.Fit(dataView);
+// 训练模型
+var trainingModel = trainingPipeline.Fit(dataView);
 
-        // 将训练好的模型保存到文件中
-        mlContext.Model.Save(trainedModel, dataView.Schema, modelPath);
+// 将训练好的模型保存到文件
+mlContext.Model.Save(trainedModel, dataView.Schema, modelPath);
 
-        返回训练好的模型；
-    }
+return trainingModel;
+}
 
-我正在使用包含两列问题和答案的数据集构建一个常见问题解答聊天机器人。该数据集包含大约 30000 个 QnA。我被困在这里尝试不同的技术。让我通过这个。]]></description>
+我正在使用包含两列问题和答案的数据集构建一个常见问题聊天机器人。该数据集包含大约 30000 个问答。我在这里尝试了不同的技术，但一直卡在这里。请帮我解决这个问题。]]></description>
       <guid>https://stackoverflow.com/questions/78453914/schema-mismatch-for-input-column-expected-string-or-vector-of-string-got-uint32</guid>
       <pubDate>Thu, 09 May 2024 10:49:39 GMT</pubDate>
     </item>
@@ -199,134 +375,25 @@ NC=2
       <pubDate>Thu, 09 May 2024 10:35:51 GMT</pubDate>
     </item>
     <item>
-      <title>房地产数据集中多标签回归问题的挑战</title>
+      <title>房地产数据集中的多标签回归问题面临的挑战</title>
       <link>https://stackoverflow.com/questions/78453678/challenges-with-a-multi-label-regression-problem-in-a-real-estate-dataset</link>
-      <description><![CDATA[我目前正在进行一项研究，旨在预测纽约房产的售价和交易执行时间。为此，我有一个在纽约出售的各种房产的数据集，其中包含有关房产特征的多个功能。
-我想要实现的是多输出回归问题。我正在和我的教授讨论这个问题，在最终的协议中，他要求我解释为什么预测交易执行时间可能会出现问题。
+      <description><![CDATA[我目前正在进行一项研究，旨在预测纽约房产的销售价格和交易执行时间。为此，我拥有一个纽约出售的各种房产的数据集，其中包含有关房产特征的几个特征。
+我试图实现的是一个多输出回归问题。我和教授讨论了这个问题，在最后的协议中，他让我解释为什么预测交易执行时间可能会有问题。
 这是我的想法，我想知道这对您是否有意义，或者是否还有其他我没有考虑到的问题：
-我认为，主要问题是评估结果的准确性。问题在于，交易执行时间可能会受到数据集中不存在的无数不可量化的外部因素的影响。例如，房地产经纪人的熟练程度、他们在房地产行业的人脉、他们出售房产的决心、天气状况、买家的经验等等。
-因此，交易执行时间的多个值可能表现出相同的特征模式。因此，我们正在处理多标签回归问题。因此，创建负责尽可能准确地预测交易执行时间的模型可能会隐藏一些困难。
-我还应该考虑其他数学或机器学习优化因素吗？]]></description>
+在我看来，主要问题是评估结果的准确性。问题在于交易执行时间可能受到数据集中不存在的无数无法量化的外部因素的影响。例如，房地产经纪人的熟练程度、他们在房地产行业的人脉、他们出售房产的决心、天气状况、买家的经验等等。
+因此，交易执行时间的多个值可能表现出相同的特征模式。因此，我们正在处理一个多标签回归问题。因此，创建尽可能准确地预测交易执行时间的模型可能会隐藏一些困难。
+我还应该考虑其他数学或 ML 优化因素吗？]]></description>
       <guid>https://stackoverflow.com/questions/78453678/challenges-with-a-multi-label-regression-problem-in-a-real-estate-dataset</guid>
       <pubDate>Thu, 09 May 2024 10:06:01 GMT</pubDate>
     </item>
     <item>
-      <title>确定适当的统计测试来比较生存分析中 ML/DL 模型之间的性能差异</title>
+      <title>确定适当的统计检验来比较生存分析中 ML/DL 模型之间的性能差异</title>
       <link>https://stackoverflow.com/questions/78453674/determining-the-appropriate-statistical-test-for-comparing-performance-differenc</link>
-      <description><![CDATA[我进行了一项实验，在生存分析任务中训练和测试了八个 ML 和 DL 模型，每个模型都经过超参数优化。调整后，每个模型在训练数据上训练一次，在测试数据上测试一次，得到八个代表模型性能的 c 指数分数。
-现在，我想确定这些模型之间的性能是否存在显著差异。由于我有多个模型，每个模型有一组测试结果，我应该使用什么统计假设检验来评估性能差异的显著性？我应该考虑 Kruskal-Wallis 检验、方差分析还是其他检验？此外，我该如何解释从所选测试中获得的结果？任何见解或指导都将不胜感激。
+      <description><![CDATA[我进行了一项实验，在生存分析任务中训练和测试了 8 个 ML 和 DL 模型，每个模型都经过超参数优化。调优后，每个模型在训练数据上训练一次，在测试数据上测试一次，得到代表模型性能的 8 个 c 指数分数。
+现在，我想确定这些模型之间的性能是否存在显着差异。由于我有多个模型并且每个模型有一组测试结果，我应该使用什么统计假设检验来评估性能差异的显着性？我应该考虑 Kruskal-Wallis 检验、方差分析或其他检验吗？此外，我如何解释从所选测试中获得的结果？任何见解或指导将不胜感激。
 ]]></description>
       <guid>https://stackoverflow.com/questions/78453674/determining-the-appropriate-statistical-test-for-comparing-performance-differenc</guid>
       <pubDate>Thu, 09 May 2024 10:05:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>我无法使用tensorflow和keras</title>
-      <link>https://stackoverflow.com/questions/78453593/i-cannot-use-tensorflow-and-keras</link>
-      <description><![CDATA[所以我尝试使用keras来加载模型。但是当我导入 keras lib 时，出现“导入错误：导入 _pywrap_tfe 时 DLL 加载失败：找不到指定的过程”。
-&#39;，然后我尝试
-导入tensorflow为tf
-从张量流导入keras
-
-但后来我得到了“导入错误：无法从“tensorflow”（未知位置）导入名称“keras””
-我使用的是最新版本的tensorflow（2.16.1）和keras（3.3.3）
-任何帮助。
-我希望它再次正常工作]]></description>
-      <guid>https://stackoverflow.com/questions/78453593/i-cannot-use-tensorflow-and-keras</guid>
-      <pubDate>Thu, 09 May 2024 09:49:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>VAE 中的哑解码器</title>
-      <link>https://stackoverflow.com/questions/78453467/dumb-decoder-in-a-vae</link>
-      <description><![CDATA[我正在 VAE 架构中预训练编码器。我的目标是传输编码器的权重并针对分类任务对其进行微调。因为我的最终目标是分类问题，而不是生成问题，是编码“哑”问题解码器的一般做法？
-例如：
- # 哑解码器
-        self.decoder = nn.Sequential(
-            nn.Linear(latent_size, 5000),
-            nn.Sigmoid()
-        ）
-
-        # 使解码器不可训练
-        对于 self.decoder.parameters() 中的参数：
-            param.requires_grad = False
-]]></description>
-      <guid>https://stackoverflow.com/questions/78453467/dumb-decoder-in-a-vae</guid>
-      <pubDate>Thu, 09 May 2024 09:25:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用自定义数据微调 LayoutLMv2 以进行文档问答</title>
-      <link>https://stackoverflow.com/questions/78453431/fine-tuning-layoutlmv2-for-document-question-answering-using-custom-data</link>
-      <description><![CDATA[我想微调 LayoutLMv2，以实现自定义数据的文档问答。有人可以帮我了解如何为此任务准备数据吗？
-我需要以正确的格式准备数据，但由于这方面的资源非常少，这变得非常困难。我请求您帮助解决此事。
-谢谢]]></description>
-      <guid>https://stackoverflow.com/questions/78453431/fine-tuning-layoutlmv2-for-document-question-answering-using-custom-data</guid>
-      <pubDate>Thu, 09 May 2024 09:17:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么混合精度训练中使用的梯度缩放可以导致 float32 模型中更大的学习率？</title>
-      <link>https://stackoverflow.com/questions/78453294/why-gradient-scaling-used-in-mix-precision-training-could-lead-to-bigger-learnin</link>
-      <description><![CDATA[背景：
-Gradient Scaling原用于混合精度训练（部分模型权重为float16，部分为float 32），其目的是减少float16存储的小梯度的下溢。
-最近，我在做一些实验，发现一些结果让我感到困惑。在整个模型具有 float32 权重的情况下，如果我使用梯度缩放更新模型，与不使用它相比，我可以使用更大的 LR（学习率）来进行收敛。
-缩放版本更新代码摘录：
-loss_scaler = torch.cuda.amp.GradScaler()
-loss_scaler.scale(loss).backward()
-loss_scaler.unscale_（优化器）
-loss_scaler.step（优化器）
-loss_scaler.update()
-
-未缩放版本更新代码摘录：
-loss.backward()
-优化器.step()
-
-问题：
-为什么会发生这种情况？是否应该取消缩放后的渐变并将其转换为原始渐变？我期望的是他们的 LR 对于模型训练应该是相同的？
-以下是 ChatGPT 的解释：
-即使float32也可能下溢，而scale使得这些下溢梯度有助于权重更新，使训练更加稳定，因此lr可以更大。
-我不知道这个解释是否合理，因为LR有很大不同。 （1.5e-4 与 1.5e-8）]]></description>
-      <guid>https://stackoverflow.com/questions/78453294/why-gradient-scaling-used-in-mix-precision-training-could-lead-to-bigger-learnin</guid>
-      <pubDate>Thu, 09 May 2024 08:49:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>尝试使用 KL 散度损失进行知识蒸馏。损失太高</title>
-      <link>https://stackoverflow.com/questions/78452655/trying-to-perform-knowledge-distillation-using-kl-divergence-loss-the-loss-is</link>
-      <description><![CDATA[KL 散度损失过高
-我正在尝试进行知识提炼。对于我的学生损失，我使用了交叉熵损失，对于我的知识蒸馏损失，我尝试使用 KL 散度损失。
-这是我用于 KL 散度损失的代码。
-class KLDivLoss(nn.Module):
-    def __init__(self,ignore_index=-1, reduction=&quot;batchmean&quot;, log_target=False):
-        super(KLDivLoss, self).__init__()
-        self.reduction = reduction
-        self.log_target = log_target
-        self.ignore_index = ignore_index
-
-    def forward(self, preds_S, preds_T, T =1.0, alpha = 1.0):
-        preds_T[0] = preds_T[0].detach()  # 分离教师预测
-        pred_1 = torch.sigmoid(preds_T[0]/T) # 白色
-        pred_0 = 1 - pred_1
-        preds_teacher = torch.cat((pred_0, pred_1), dim=1)
-        assert preds_S[0].shape == preds_teacher.shape, “输入和目标形状必须匹配 KLDivLoss”
-       stu_prob = F.log_softmax(preds_S[0]/T, dim=1)
-        kd_loss = F.kl_div(stu_prob, 
-                           preds_teacher, 
-                             reduction=&#39;batchmean&#39;,
-                           ) * T * T
-        return {&#39;loss&#39;: kd_loss}
-
-我从中得到的值非常大。我只是从学生模型中添加了知识蒸馏损失和交叉熵损失。由于我的 CE 损失非常小，这全都来自 KLdiv 损失。你能告诉我如何减少损失吗？或者如果我做错了什么。
-在此处输入图片说明
-我尝试使用 KL div 损失，其中温度 =1
-我的老师模型以张量 [8,1,224,224] 的形式给出输出，因为它用于像素的二进制预测，而我的学生模型以 [8,2,224,224] 的形式给出输出，其中 0 属于黑色类，1 属于白色。
-因此，为了将它们与 KL div 损失相匹配，我使用 sigmoid 函数来获取白色类的概率和 1 - 黑色的白色概率。然后将它们连接起来形成一个大小为 [8,2,224,224] 的张量，这与学生张量相似。
-然后我尝试执行 KL 发散。我遭受的损失非常大]]></description>
-      <guid>https://stackoverflow.com/questions/78452655/trying-to-perform-knowledge-distillation-using-kl-divergence-loss-the-loss-is</guid>
-      <pubDate>Thu, 09 May 2024 06:27:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>谁能帮我解决输入形状问题？我尝试了多种解决方案，但无法解决该错误？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78452124/can-anyone-help-me-solve-the-input-shape-problem-i-tried-several-solutions-but</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78452124/can-anyone-help-me-solve-the-input-shape-problem-i-tried-several-solutions-but</guid>
-      <pubDate>Thu, 09 May 2024 03:28:23 GMT</pubDate>
     </item>
     <item>
       <title>Yolo 模型中的增量分类器和表示学习</title>
@@ -338,62 +405,14 @@ class KLDivLoss(nn.Module):
       <pubDate>Wed, 08 May 2024 12:20:14 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Python 3.10.0 在 PySpark 中加载 LightGBM 库时出错</title>
-      <link>https://stackoverflow.com/questions/78441794/error-loading-lightgbm-library-in-pyspark-with-python-3-10-0</link>
-      <description><![CDATA[描述：
-在 Python 3.10.0 中使用 PySpark 时，我遇到了 LightGBM 回归器和分类器的问题。
-环境：
-PySpark 版本：3.2.1
-Python版本：3.10.0
-Py4j版本：0.10.9.5
-Spark jar 包：com.microsoft.azure:synapseml_2.12:0.11.0
-错误消息：
-java.lang.UnsatisfiedLinkError：无法加载库：/var/folders/dz/mc23060n2kq52djyhcxl9kmh0000gp/T/mml-natives17452036633252549823/lib_lightgbm.dylib
-重现步骤：
-
-在 Python 中将 LightGBM 回归器或分类器与 PySpark DataFrame 结合使用
-3.10.0。
-遇到上述错误。
-
-所做的尝试：
-我按照此处提供的解决方案进行操作，并对已安装的 libomp 进行了符号链接，但问题仍然存在。
-详细的错误堆栈：
-py4j.protocol.Py4JJavaError：调用 o5147.fit 时发生错误。
-E：java.lang.UnsatisfiedLinkError：无法加载库：/var/folders/dz/mc23060n2kq52djyhcxl9kmh0000gp/T/mml-natives17452036633252549823/lib_lightgbm.dylib
-E 位于 java.base/java.lang.ClassLoader.loadLibrary（来源未知）
-E 位于 java.base/java.lang.Runtime.load0（来源未知）
-E 位于 java.base/java.lang.System.load（来源未知）
-E 位于 com.microsoft.azure.synapse.ml.core.env.NativeLoader.loadLibraryByName(NativeLoader.java:66)
-E 位于 com.microsoft.azure.synapse.ml.lightgbm.LightGBMUtils$.initializeNativeLibrary(LightGBMUtils.scala:33)
-E 位于 com.microsoft.azure.synapse.ml.lightgbm.LightGBMBase.train(LightGBMBase.scala:37)
-E 位于 com.microsoft.azure.synapse.ml.lightgbm.LightGBMBase.train$(LightGBMBase.scala:36)
-E 位于 com.microsoft.azure.synapse.ml.lightgbm.LightGBMRegressor.train(LightGBMRegressor.scala:39)
-E 位于 com.microsoft.azure.synapse.ml.lightgbm.LightGBMRegressor.train(LightGBMRegressor.scala:39)
-E at org.apache.spark.ml.Predictor.fit(Predictor.scala:151)
-E at org.apache.spark.ml.Predictor.fit(Predictor.scala:115)
-E at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0（本机方法）
-E 位于 java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke（来源未知）
-E 位于 java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke（来源未知）
-E 位于 java.base/java.lang.reflect.Method.invoke（来源未知）
-E 位于 py4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)
-E 位于 py4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)
-E 位于 py4j.Gateway.invoke(Gateway.java:282)
-E 位于 py4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)
-E 位于 py4j.commands.CallCommand.execute(CallCommand.java:79)
-E 在 py4j.ClientServerConnection.waitForCommands(ClientServerConnection.java:182)
-E 位于 py4j.ClientServerConnection.run(ClientServerConnection.java:106)
-E 位于 java.base/java.lang.Thread.run（来源未知）
-附加说明：
-
-该问题似乎与在 Python 3.10.0 中加载 LightGBM 库有关
-我已检查指定路径中是​​否存在 lib_lightgbm.dylib。
-如果您能提供有关解决此问题的任何见解或建议，我们将不胜感激。
-]]></description>
-      <guid>https://stackoverflow.com/questions/78441794/error-loading-lightgbm-library-in-pyspark-with-python-3-10-0</guid>
-      <pubDate>Tue, 07 May 2024 10:23:19 GMT</pubDate>
+      <title>RuntimeError: 默认进程组尚未初始化，请确保调用 init_process_group</title>
+      <link>https://stackoverflow.com/questions/78376085/runtimeerror-default-process-group-has-not-been-initialized-please-make-sure-t</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78376085/runtimeerror-default-process-group-has-not-been-initialized-please-make-sure-t</guid>
+      <pubDate>Wed, 24 Apr 2024 05:05:11 GMT</pubDate>
     </item>
     <item>
-      <title>如何在python中添加L1规范化？</title>
+      <title>如何在Python中添加L1标准化？</title>
       <link>https://stackoverflow.com/questions/48782758/how-to-add-l1-normalization-in-python</link>
       <description><![CDATA[我正在尝试从头开始编写逻辑回归代码。在这段代码中，我认为我的成本导数是我的正则化，但我的任务是添加 L1norm 正则化。你如何在Python中添加这个？是否应该在我定义成本导数的地方添加此内容？感谢任何正确方向的帮助。
 def Sigmoid(z):
@@ -444,6 +463,32 @@ Logistic_Regression(X_train,Y_train,alpha,initial_theta,迭代)
 ]]></description>
       <guid>https://stackoverflow.com/questions/48782758/how-to-add-l1-normalization-in-python</guid>
       <pubDate>Wed, 14 Feb 2018 08:34:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>NLTK 与距离度量的一致性</title>
+      <link>https://stackoverflow.com/questions/32733510/nltk-agreement-with-distance-metric</link>
+      <description><![CDATA[我的任务是计算 注释者间协议 “https://en.wikipedia.org/wiki/Multi-label_classification” rel=&quot;nofollow noreferrer&quot;&gt;多标签分类，其中每个示例可以分配多个标签。我发现 NLTK 可以根据距离度量来衡量一致性。
+我正在寻找使用 MASI 距离计算 krippendorff alpha 的示例。
+这就是我所拥有的。
+&lt;前&gt;&lt;代码&gt;导入nltk
+从 nltk.metrics 导入 masi_distance
+
+
+玩具数据 = [[&#39;1&#39;, 5723, [1,2]],[&#39;2&#39;, 5723, [2,3]]]
+
+任务= nltk.metrics.agreement.AnnotationTask（数据= toy_data，距离= masi_distance）
+打印任务.alpha()
+
+此代码失败并显示
+类型错误：不可散列的类型：“列表”
+
+以下方法也不起作用：
+toy_data = [[&#39;1&#39;, 5723, set([1,2])],[&#39;2&#39;, 5723, set([2,3])]]
+
+你有一个可行的例子吗？
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/32733510/nltk-agreement-with-distance-metric</guid>
+      <pubDate>Wed, 23 Sep 2015 07:28:09 GMT</pubDate>
     </item>
     </channel>
 </rss>
