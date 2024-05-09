@@ -4,83 +4,271 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Wed, 08 May 2024 21:14:51 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 09 May 2024 01:00:38 GMT</lastBuildDate>
     <item>
-      <title>重复测量的 GLM 二项式回归能否被视为生存分析的可靠替代方案？</title>
+      <title>病例对照设计中逻辑回归的预测概率是否有效？</title>
+      <link>https://stats.stackexchange.com/questions/646870/are-predicted-probabilities-from-logistic-regression-in-a-case-control-design-va</link>
+      <description><![CDATA[我一直在阅读和学习如何从逻辑回归中获取预测概率，如果需要的话，将其转换为风险比。但我突然想到，不同研究设计的二元结果显然不同。我是否正确地认为，只有当研究是队列（前向）设计而不是病例对照设计时，从逻辑模型计算概率才有意义，因为在后者中，“风险”并不代表人群，因为你选择了结果吗？因此，在病例对照设计中，在报告和描述结果方面，人们应该停留在比值比上，不再继续下去吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/646870/are-predicted-probabilities-from-logistic-regression-in-a-case-control-design-va</guid>
+      <pubDate>Wed, 08 May 2024 23:36:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>回归的可能性有多大？</title>
+      <link>https://stats.stackexchange.com/questions/646868/what-is-the-likelihood-of-a-regression</link>
+      <description><![CDATA[我知道线性回归本身就有可能性。这仅仅是错误发生的可能性吗？我认为这是给定 X 时 Y 的数据的可能性。换句话说， $Lik(Y$~$X )=Lik(Y|X)$ 使得 $$Lik((X,Y))=Lik(Y|X)Lik(X)=Lik(X |Y)Lik(Y)=(proportionality.constant)probability(X,Y).$$ 换句话说，我们可以重建联合分布的可能性。但只有当 X 和 Y 来自相同的分布时，这似乎才是正确的。我想我已经做了一个反例，表明当 X 和 Y 的两个边际分布不同时，它是不正确的。我已经用 R 代码实现了它：
+# 创建简单数据集
+XData&lt;-c(-0.402103,-4.628608,2.731303,-1.041853)
+YData&lt;-c(-2.1607852,-0.3150687,-2.1435201,-0.2779723)
+# 我知道 X 和 Y 的分布是
+# 多元正态分布如下所述
+# 方差-协方差矩阵
+# XMat 具有非零的非对角线条目
+XMat&lt;-矩阵(c(4,2,0,0,
+               2,4,0,0,
+               0,0,4,1,
+               0,0,1,4),nrow=4,ncol=4)
+# YMat 沿非对角线条目全为零。
+YMat&lt;-diag(4,nrow=4,ncol=4)
+# 首先我将展示 ln(Lik(Y~X))+ln(Lik(X))
+# =ln(Lik(X~Y))+ln(Lik(Y))=ln(Lik(X,Y))
+# 当两个矩阵相同时为真
+#（在这种情况下，两者都全为零
+# 非对角线条目）。
+XonYResultA&lt;-lm(XData~YData)
+logLik(XonYResultA)
+#&#39;记录喜欢。&#39; -7.830222（df=3）
+YonXResultA&lt;-lm(YData~XData)
+“记录力克。” -3.686896 (df=3)
+Xnorm&lt;-MASS::fitdistr(XData,“正常”)
+Ynorm&lt;-MASS::fitdistr(YData,“正常”)
+logLik(Xnorm)
+#&#39;记录喜欢。&#39; -9.519879 (df=2)
+logLik(Ynorm)
+#&#39;记录喜欢。&#39; -5.376553 (df=2)
+# 这样你就可以看到
+logLik(Xnorm)+logLik(YonXResultA)
+#&#39;记录喜欢。&#39; -13.20678（df=2）
+logLik(Ynorm)+logLik(XonYResultA)
+#&#39;记录喜欢。&#39; -13.20678（df=2）
+# 给出相同的可能性。
+# 但当我将 X 建模为来自
+# 与 Y 不同的分布：
+##### 首先，为了运行不同的特殊回归
+##### 分布，我需要找到正确的平均值：
+findXMean&lt;-函数（par）{
+  return(-mvtnorm::dmvnorm(XData-par[1],sigma=XMat,log=TRUE)) #negative ln(lik) 因为 subplex 最小化函数以找到最佳值。
+}
+subplexResult1&lt;-subplex::subplex(par=c(1),fn=findXMean)
+XMean&lt;-subplexResult1$par
+XlnLik&lt;- -subplexResult1$value #-10.71792
+findYMean&lt;-函数(par){
+  return(-mvtnorm::dmvnorm(YData-par[1],sigma=YMat,log=TRUE)) #negative ln(lik) 因为 subplex 最小化函数以找到最佳值。
+}
+subplexResult2&lt;-subplex::subplex(par=c(1),fn=findYMean)
+YMean&lt;-subplexResult2$par
+YlnLik&lt;- -subplexResult2$value #-6.878869
+##### 现在我可以找到 Y ~ X 和 X ~ Y 的可能性：
+#####
+XDelta&lt;-XData-XMean
+YDelta&lt;-YData-YMean
+findYonX&lt;-函数（pars）{
+  贝塔=pars[1]; EVar&lt;-pars[2]
+  残差&lt;-YDelta-beta*XDelta
+  返回（-mvtnorm :: dmvnorm（残差，sigma = EVar * YMat，log = TRUE））
+}
+subplexResult3&lt;-subplex::subplex(par=c(1,1),fn=findYonX)
+LikYGivenX&lt;- -subplexResult3$value #-3.695906
+LikJointYonXPlusX&lt;-LikYGivenX+XlnLik #-14.41383
+findXonY&lt;-函数（pars）{
+  贝塔=pars[1]; EVar&lt;-pars[2]
+  残差&lt;-XDelta-beta*YDelta
+  返回（-mvtnorm :: dmvnorm（残差，sigma = EVar * XMat，log = TRUE））
+}
+subplexResult4&lt;-subplex::subplex(par=c(1,1),fn=findXonY)
+LikXGivenY&lt;- -subplexResult4$value
+LikJointXonYPlusY&lt;-LikXGivenY+YlnLik #-13.90974
+
+因此，您可以在上面的代码中看到 LikJointYonXPlusX 和 LikJointXonYPlusY 给出不同的值，这意味着它们不能同时代表联合的可能性
+数据 X 和 Y。
+我想我的问题是我是否通过说residuals&lt;-YDelta-beta*XDelta正确地实现了回归，如果我这样做了，那么为什么回归的可能性等于当两个分布相同时给定自变量的因变量，而不是当两个分布不同时给定自变量的因变量？
+谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/646868/what-is-the-likelihood-of-a-regression</guid>
+      <pubDate>Wed, 08 May 2024 22:55:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何训练连续时间归一化流模型？</title>
+      <link>https://stats.stackexchange.com/questions/646867/how-to-train-a-continuous-time-normalizing-flow-model</link>
+      <description><![CDATA[我对如何真正训练连续时间归一化流模型感到困惑。离散时间（原始）标准化流有两个用例，我试图概述如何使用连续时间流来处理这两种情况。你能帮我解决这个问题吗？ 每个部分的问题都以粗体显示。
+我将让 $f_\phi(t, z_t)$ 成为我的神经网络，这样我们就有了  $z_t = z_0 + \int_0^t f(\tau, z) d\tau$，我们有 $\log p_t(z_t) = \log p_0( z_0) - \int_0^t Tr(D_z f)$。
+我假设我有一些 ODE 求解器，当我使用它时，它可以跟踪 $f_\phi$ 的梯度。它应该接受参数 $z_0, dz/dt, \log p_0(z_0), t_0 = 0, t_1 = 1$ 并输出 $z_1, \log p_1(z_1)$ （并跟踪梯度$D_\phi f_\phi$）。请注意，我们不需要传输 $\log p_0$，我们可以只计算数据的传输 $ z_1$。
+我将使用 $u = z_0$ 来表示 $t = 0$ 上的变量NF 的（基）侧和输出侧的 $x = z_1$，$t = 1$.
+我的基本密度将始终为 $p_u = p_0 = N(0,I)$。
+
+第一个用例是当我们有一个数据集 $\{x_i\}$ 时，我们假设它们是来自未知密度的 IID 样本$p_x^*$。在这种情况下，为了训练 NF，我认为我们希望最大化数据的可能性。我能弄清楚如何做到这一点的唯一方法是向后使用 ODE 求解器（并跟踪梯度），因此我们让 $z_1 = x_i$ 并调用
+ode_solver(x_i, f, ???, t_0 = 1, t_1 = 0)。 我的第一个问题是我不知道将 $p_x(x) 放入 ode 求解器中。这里有什么？请注意，在代码 [此处][1] 中，第 139 行显示它们传入了 $\log p_x=0$，这对我来说毫无意义。
+
+假设我们忽略这一点并仅对数据使用 ODE 求解器。它将提供 $z_0 = u_i$。然后我可以写 $\sum \log p_0(u_i)$ (b/c $p_0 = N(0,I )$，并且由于 $u_i$ 取决于 $\phi$ 我们可以最大化但我认为这不是一个好的损失函数，因为它忽略了概率密度的传输。
+有人可以帮助我了解如何训练它吗？请注意，在上面链接的代码库中，您从我提到的损失（行186）。为什么？
+
+第二个用例是当我们可以计算一些棘手的密度（的对数）$p^*_x$直到一个常数时（我们可以计算$\log(p_x^*(x)) + C$ 对于任何 $x$，我们希望所以我的计划是最小化 $KL(p_x, p_x^*)$ 其中 $p_u^*$  是我的未知密度的回拉，为了执行此操作，我将采样 $u_i~p_u = N(0,I)$ 并计算 &lt; span class=&quot;math-container&quot;&gt;$w_i = \log p_u(u_i)$。我会将这些传递给 ODE 求解器的前向传递，
+
+ode_solver(u_i, f, w_i, t_0 =0, t_1 = 1) 并取出 $x_i = z_1$ 和$\log p_x(x_i)$。然后我可以将 $KL(p_x, p_x^*)$ 的蒙特卡罗模拟写为我的损失：
+$$L(\phi) = -\tfrac{1}{n}\sum_i \log p_x(x_i) - \log p_x^*(x_i)$$&lt; /span&gt; （两个日志项都取决于 $\phi$。
+这看起来对吗？
+感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/646867/how-to-train-a-continuous-time-normalizing-flow-model</guid>
+      <pubDate>Wed, 08 May 2024 22:34:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中的 randomForest 模型过度拟合，为什么？</title>
+      <link>https://stats.stackexchange.com/questions/646866/overfitting-in-randomforest-model-in-r-why</link>
+      <description><![CDATA[我正在尝试在 R 中训练随机森林模型以进行情感分析。该模型使用 tf-idf 矩阵，并从中学习如何对评论进行正面或负面分类。
+正的被分类为标签1，负的被分类为标签0。
+我在 R 中创建了一个代码，其逻辑是训练一个模型，将给定的 2 个标签转换为因子，然后将数据库划分为训练数据集和测试数据集。
+类似的代码逻辑对于朴素贝叶斯来说效果很好，但是对于 RF 来说似乎存在问题。
+我得到的代码输出为 Accuracy = 1，这很奇怪。是代码逻辑的问题，还是应该添加参数来限制mtry等？
+# 加载必要的库
+库（随机森林）
+库（readxl）
+库（插入符号）
+图书馆(e1071)
+
+# 加载带有标签的原始DataFrame
+df &lt;- read_excel(&#39;~/Downloads/tfidf_r.xlsx&#39;)
+df$label...2 &lt;- as.factor(df$label...2)
+
+# 将数据分为训练集和测试集
+设置.种子(42)
+train_indices &lt;- createDataPartition(df$review_id, p = 0.7, list = FALSE)
+train_data &lt;- df[train_indices, ]
+test_data &lt;- df[-train_indices, ]
+
+# 使用正则化初始化并训练随机森林分类器
+random_forest_model &lt;- train(label...2 ~ ., data = train_data, method = &quot;rf&quot;,
+                             trControl = trainControl(方法 = &quot;cv&quot;, 数量 = 10))
+
+# 打印模型
+打印（随机森林模型）
+
+# 对测试数据进行预测
+y_pred &lt;- 预测（random_forest_model，newdata = test_data）
+
+在这里您可以看到输出：
+准确度：1
+                 95% 置信区间：(0.9757, 1)
+    无信息率：0.6067
+    P值[Acc&gt; NIR]：&lt; 2.2e-16
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/646866/overfitting-in-randomforest-model-in-r-why</guid>
+      <pubDate>Wed, 08 May 2024 21:59:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>d 维立方体的覆盖数</title>
+      <link>https://stats.stackexchange.com/questions/646864/the-covering-number-of-a-d-dim-cube</link>
+      <description><![CDATA[在 Martin Wainwright 的教科书中，方程 (5.5) 指出 d 维立方体的 $\delta$ 覆盖数满足
+$$
+\log N(\delta; [0,1]^d) \asymp d \log(\frac{1}{\delta}),
+$$
+对于足够小的 $\delta$，$N(\delta,A)$ 是 $\delta$ - 覆盖集合$A$的数量。
+我的问题是，这里的 $\asymp$ 到底是什么意思？
+谁能给我提供 $A \asymp B$ 的示例以及 $\asymp$ 的定义？
+不幸的是，温赖特在他的书中没有包含符号表。]]></description>
+      <guid>https://stats.stackexchange.com/questions/646864/the-covering-number-of-a-d-dim-cube</guid>
+      <pubDate>Wed, 08 May 2024 21:53:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>列联表测试的顺序概率比测试的下限阈值</title>
+      <link>https://stats.stackexchange.com/questions/646862/lower-threshold-for-sequential-probability-ratio-test-on-contingency-table-testi</link>
+      <description><![CDATA[为了测试骰子是否公平，我们有对数似然比：
+$$
+\Lambda = \frac{1}{2} \sum_{i} \mathrm{观测值}_i \log\left(\frac{\mathrm{观测值}_i}{\mathrm{预期}_i}\right)。
+$$
+假设我想将 Wald 的顺序概率比测试 (SPRT) 应用于这种情况，滚动骰子几次并根据观察到的 $\Lambda$。据我所知，SPRT 的保守界限是继续掷骰子当且仅当
+$$
+a \le \Lambda \le b,
+$$
+其中 $$a = \log\left(\frac{\beta}{1-\alpha}\right),\quad b=\log\left(\frac{1- \beta}{\alpha}\right)$$ 和 $\alpha, \beta$ 是 I 类和 II 类比率。
+然而，当没有指定替代方案时，当我们看到完全公平的结果时，我们总是有 $\Lambda \ge 0$ 具有相等性频率相同）。因此我们永远观察不到$\Lambda &lt;一个&lt;典型 I 类和 II 类费率为 0 美元。也就是说，SPRT 将永远终止以接受空值。
+$a$ 是否存在满足 I 类和 II 类比率的已知正值？]]></description>
+      <guid>https://stats.stackexchange.com/questions/646862/lower-threshold-for-sequential-probability-ratio-test-on-contingency-table-testi</guid>
+      <pubDate>Wed, 08 May 2024 21:24:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>重复测量的 GLM 二项式回归是否可以被视为生存分析的可靠替代方案？</title>
       <link>https://stats.stackexchange.com/questions/646860/can-a-glm-binomial-regression-on-repeated-measures-be-seen-as-a-trustworthy-alte</link>
       <description><![CDATA[我正在开展一个精算项目，以估计某人每月残疾的概率。
-我们有多种格式的数据。例如，以下几行是数据的一部分：
+我们有多种格式的可用数据。例如，以下几行是数据的一部分：
+
+&lt;标题&gt;
+
+政策编号
+性别
+年龄残疾
+职业类别
+残疾时间
 
 
-
-PolicyNr
-Gender
-AgeatDisability
-OccupationClass
-TimetoDisabilty
-
-
-
+&lt;正文&gt;
 
 001
-男
-40岁
+男性
+40年
 1
 2个月
 
 
 002
-女
-30岁
+女性
+30年
 2
 3个月
 
 
 
-直观地讲，我们将使用生存分析方法（例如比例风险模型或加速失效时间模型）对此进行建模，变量 TimetoDisabilty 表示发生残疾的时间，性别、年龄残疾和职业类别作为协变量。
-数据包括右删失观察值。
+直观上，我们将使用生存分析方法（例如，比例风险模型或加速故障时间模型）对此进行建模，变量 TimetoDisabilty 为残疾发生之前的时间，Gender、AgeatDisability 和 OccupationClass 为协变量。
+数据包括右删失观察结果。
 最近，一位顾问提出了以下（替代）建模方法：
-首先将宽数据转换为长数据格式，其中每行根据变量 TimetoDisabilty 进行复制。例如，上表中的第一行转换为 2 行，因为残疾发生于 2 个月。最后一行的变量残疾值为 1，因为残疾发生在第 2 个月。同样，上表中的第二行转换为 3 行，因为残疾发生于 3 个月。最后一行的变量 Disability 值为 1，因为残疾发生在第 3 个月。变量 AgeatDisability 转换为变量 Age，现在表示该月的年龄：
+宽数据首先转换为长数据格式，其中每行根据变量 TimetoDisabilty 进行复制。例如，上表中的第一行转换为 2 行，因为需要 2 个月才能禁用。最后一行的变量 Disability 的值为 1，因为残疾发生在第 2 个月。类似地，上表中的第二行转换为 3 行，因为需要 3 个月才能成为残疾。最后一行的变量 Disability 的值为 1，因为残疾发生在第 3 个月。变量 AgeatDisability 转换为变量 Age，现在表示该月的年龄：
+
+&lt;标题&gt;
+
+政策编号
+性别
+年龄
+职业类别
+持续时间
+残疾
 
 
-
-PolicyNr
-Gender
-Age
-OccupationClass
-Duration
-Disability
-
-
-
+&lt;正文&gt;
 
 001
-Mal
-39 岁11个月
+男性
+39年11个月
 1
 1
 0
 
 
 001
-男
-40岁
+男性
+40年
 1
 2
 1
 
 
 002
-女
-29岁10个月
+女性
+29年10个月
 2
 1
 0
 
 
 002
-女
-29岁11个月
+女性
+29年11个月
 2
 2
 0
@@ -88,16 +276,16 @@ Mal
 
 002
 女性
-30 岁
+30年
 2
 3
 1
 
 
 
-右侧删失的观测值仍然在数据中，直到观测窗口的长度为止，行数相等，并且未观察到残疾时刻的“残疾”列中的所有零。
-尽管新数据现在有多个嵌套在同一个人中的观测值（重复测量），但顾问建议进行 GLM 二项式回归分析，以变量“残疾”作为响应变量，以“性别”、“年龄”、“职业类别”和“持续时间”作为协变量。从统计学角度来看，我们知道 GLM 模型会将数据的所有行视为独立观测值，并且不会考虑可用的正确审查。
-问题：假设 - 由于实际/技术原因 - 只能执行 GLM 二项式回归。考虑到新数据的结构（即重复测量、多条线之间的依赖关系），我们是否可以将 GLM 二项式回归分析的结果视为可信结果？这是生存分析的有效替代方案吗？或者我们是否可以从理论上预期估计概率小于或大于生存分析获得的概率？]]></description>
+正确的删失观察结果仍在数据中，行数等于观察窗口的长度，并且“残疾”列中全为零，因为未观察到残疾时刻。
+尽管新数据现在具有嵌套在同一个人内的多个观察结果（重复测量），但顾问建议进行 GLM 二项式回归分析，其中以“残疾”变量作为响应变量，以“性别”、“年龄”、“职业类别”和“持续时间”作为协变量。从统计角度来看，我们知道 GLM 模型会将所有数据线视为独立的观察结果，并且不会考虑可用的正确审查制度。
+问题：假设 - 由于实际/技术原因 - 只能执行 GLM 二项式回归。考虑到新数据的结构（即重复测量、多条线之间的依赖性），我们是否可以将 GLM 二项式回归分析的结果视为值得信赖的结果？这是生存分析的有效替代方案吗？或者我们可以理论上期望估计的概率小于或大于通过生存分析获得的概率吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/646860/can-a-glm-binomial-regression-on-repeated-measures-be-seen-as-a-trustworthy-alte</guid>
       <pubDate>Wed, 08 May 2024 21:10:35 GMT</pubDate>
     </item>
@@ -131,7 +319,8 @@ Mal
     <item>
       <title>基于其参数，负二项式分布的中位数是否存在已知界限？</title>
       <link>https://stats.stackexchange.com/questions/646851/are-there-known-bounds-for-the-median-of-a-negative-binomial-distribution-based</link>
-      <description><![CDATA[这对我来说似乎是一个天真的问题，但当我进行一些挖掘时，我找不到令人满意的答案。二项分布有一个封闭形式的中位数，泊松分布有一组简单的非常严格的界限，这些都很容易追踪，例如在维基百科上。如果我尝试（也许愚蠢地）绘制与连续分布的相似之处，我可以想象二项式与正态分布（具有简单的封闭形式中位数），泊松与指数（具有简单的封闭形式中位数）对，并且负二项式与伽玛配对。从我在维基百科关于伽马分布的文章中可以看出，它的中值很难确定——有多种方法可以达到近似值和界限，但没有一种方法是同时简单、紧凑的，并始终工作。伽玛的这种困难是否揭示了负二项式的类似挑战？关于这个问题是否有任何关键研究/是否是一个活跃的研究领域？]]></description>
+      <description><![CDATA[这对我来说似乎是一个天真的问题，但当我进行一些挖掘时，我找不到令人满意的答案。二项分布有一个封闭形式的中位数，泊松分布有一组简单的非常严格的界限，这些都很容易追踪，例如在维基百科上。如果我尝试（也许愚蠢地）绘制与连续分布的相似之处，我可以想象二项式与正态分布（具有简单的封闭形式中位数），泊松与指数（具有简单的封闭形式中位数）对，并且负二项式与伽玛配对。从我在维基百科关于伽马分布的文章中可以看出，它的中值很难确定——有多种方法可以达到近似值和界限，但没有一种方法是同时简单、紧凑的，并始终工作。伽玛的这种困难是否揭示了负二项式的类似挑战？关于这个问题是否有任何关键研究/是否是一个活跃的研究领域？
+编辑：重新阅读本文后，几乎可以肯定，在我上面的离散连续类比中，泊松应该被替换为几何......]]></description>
       <guid>https://stats.stackexchange.com/questions/646851/are-there-known-bounds-for-the-median-of-a-negative-binomial-distribution-based</guid>
       <pubDate>Wed, 08 May 2024 20:44:24 GMT</pubDate>
     </item>
@@ -155,15 +344,23 @@ mod =clm(GEG~Sex, 名义=~VIO, 数据=数据)
 &lt;前&gt;&lt;代码&gt; .L .Q .C
 
 [1，]-0.6708204 0.5 -0.2236068
+
 [2，]-0.2236068 -0.5 0.6708204
-[3，]0.2236068-0.5-0.6708204
-[4，]0.6708204 0.5 0.2236068
+
+[3,] 0.2236068 -0.5 -0.6708204
+
+[4、]0.6708204 0.5 0.2236068
+
 为了找到 logit 表达式的系数，我针对因变量水平的每个变化，在对比矩阵的行与模型输出的 alpha 系数之间执行了标量积。因此，对于第一个 Logit，不满足平行线假设的序数变量的 alpha 系数为
 无|小VIO.L =0.20
+
 无|小VIO.Q =0.75
+
 无|小VIO.C =1.00
+
 log[P(y≤无)/P(y&gt;无)]=-3.14+ 0.354 男性+0.021 VIOnull
 +0.251 VIO低-1.0 VIO中+0.733VIO高
+
 我遇到的问题是我不知道如何解释序数变量的优势比；因为由于对比度是多项式，所以我没有参考类别。
 例如，如果我为 VIOnull 指示，当从空类别移动到低类别时，由于相关的优势比为 e^0.021=1.021，因此它将表明具有总体影响无与大于无的累积赔率，从 VIO 变量的空类别移动到低类别时增加 2.1%。
 您如何解释 VIOhigh(0.733)，因为高是最高类别，并且您无法从高类别移动到更高类别，那么解释与此 logit 相对应的优势比的正确方法是什么，特别是在与序数 VIO 变量？]]></description>
@@ -175,75 +372,28 @@ log[P(y≤无)/P(y&gt;无)]=-3.14+ 0.354 男性+0.021 VIOnull
       <link>https://stats.stackexchange.com/questions/646846/rmse-on-individual-vs-aggregate-data</link>
       <description><![CDATA[我正在比较两种情况：
 
-建立模型并在测试集上获得预测。然后通过对预测进行排序并根据重量制作 10 个等体积的桶来形成十分位数。
-找到每个桶内的平均实际值和平均预测值。然后用这些平均值计算 RMSE。
+建立模型并在测试集上获得预测。然后通过对预测进行排序并根据权重制作 10 个容量相等的桶来形成十分位数。
+找到每个桶内的平均实际值和平均预测。然后使用这些平均值计算 RMSE。
 
-同样的事情，但 RMSE 是直接根据测试数据计算的，而不是形成十分位数。
+同样的事情，但 RMSE 是直接在测试数据上计算的，而不是形成十分位数。
 
 
-然后使用这些指标来比较模型性能。使用聚合方法在模型之间的相对基础上提供了非常不同的结果，我想了解为什么。
+然后使用这些指标来比较模型性能。使用聚合方法在模型之间提供非常不同的相对结果，我想了解原因。
 模型类型是 tweedie 回归，用于保险费建模。]]></description>
       <guid>https://stats.stackexchange.com/questions/646846/rmse-on-individual-vs-aggregate-data</guid>
       <pubDate>Wed, 08 May 2024 19:42:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>概率 PCA 中的对数似然和参数数量的行为是否正确？</title>
-      <link>https://stats.stackexchange.com/questions/646843/is-the-behavior-of-log-likelihood-and-number-of-parameters-correct-in-probabilis</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/646843/is-the-behavior-of-log-likelihood-and-number-of-parameters-correct-in-probabilis</guid>
-      <pubDate>Wed, 08 May 2024 19:27:08 GMT</pubDate>
     </item>
     <item>
       <title>因果模型中的内生性或遗漏变量偏差</title>
       <link>https://stats.stackexchange.com/questions/646842/endogeneity-or-omitted-variable-bias-in-a-causal-model</link>
       <description><![CDATA[我正在估计以下形式的回归：
 
-我感兴趣的变量是“X1”，根据此处的信息，我可以自信地说，我的分析目标是因果推断。
-现在回答我的问题。假设“Y”是“每个国家/地区的狗数量”。这个变量是由一个知名组织估计的，他们让一群专家参与其中。然而，最初的专家估计不是“每个国家/地区的狗数量”，而是“按地区划分的狗占人口的比例”（换句话说，他们估计在 A 地区，狗的数量占人口的 5%，在 B 地区占 10%，等等）。根据这个百分比估计，他们估计了“Y”我使用的是国家层面的数据（因此 Y 因国家而异，但主要基于区域估计的百分比）。
-如果我将“区域”添加为控制变量，我会将内生性引入模型，不是吗？（​​因为区域字面上定义了“Y”）。但是，不包括它也可能是 OVB？在这种情况下，两者中哪一个更成问题？
+我感兴趣的变量是“X1”，并且基于此处的信息&lt; /a&gt; 我可以自信地说，我的分析目标是因果推断。
+现在回答我的问题。说“是”是“每个国家的狗数量”。这个变量是由一个知名组织估计的，他们有很多专家参与。不过，专家最初的估计并不是“不行”。每个国家的狗数量”而是“按地区划分的人口中狗的比例” （换句话说，他们估计在 A 地区，狗的数量占人口的 5%，在 B 地区则为 10%，等等）。根据该％估计，他们估计了“Y”。我在国家/地区级别使用（因此 Y 因国家/地区而异，但主要基于百分比的区域估计）。
+如果我添加“区域”作为控制变量，我会向模型引入内生性，不是吗？ (如区域字面定义“Y”)。但是，不包括它也可能是OVB？在这种情况下，两者中哪一个更有问题？
 我不知道这是否重要，但调整后的 R2 从没有区域虚拟变量的 0.30 变为有区域虚拟变量的 0.88。]]></description>
       <guid>https://stats.stackexchange.com/questions/646842/endogeneity-or-omitted-variable-bias-in-a-causal-model</guid>
       <pubDate>Wed, 08 May 2024 19:17:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>检查两个“单词”的字符频率是否显著不同</title>
-      <link>https://stats.stackexchange.com/questions/646839/check-if-the-charachter-frequency-of-two-words-are-significantly-different</link>
-      <description><![CDATA[虽然标题中的问题听起来有点奇怪，但我有一个数据集，其中每个条目包含两个“单词”，分别包含 1000 个和 1100 个字符。对于每个条目，我需要找出这两个单词中字符的频率是相似还是不同。
-是否有一种像配对 t 检验这样的测试可以用于这种情况？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646839/check-if-the-charachter-frequency-of-two-words-are-significantly-different</guid>
-      <pubDate>Wed, 08 May 2024 18:29:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>误差的自相关总是会引起问题吗？</title>
-      <link>https://stats.stackexchange.com/questions/646837/does-autocorrelation-in-errors-always-cause-problems</link>
-      <description><![CDATA[我正在准备一张关于误差自相关对 t 统计量影响的讲座幻灯片，并且我正在使用模拟练习来说明这一点。然而，我得到的结果与我对何时这是问题、何时不是问题的理解相冲突。
-我所做的是以下。我使用随机数生成器为变量 X 创建了 1000 个模拟样本，然后将误差模拟为自相关过程（即来自系数为 0.9 的 AR(1) 模型）。然后我创建变量 Y 作为 X 和误差的总和。然后我运行 1000 次回归，保存 t 统计量。只要 X 在时间上不相关，得到的 t 统计量分布就很好。。 （当然，如果 X 在时间上相关，则分布不再近似正态）。这是预期的结果吗？经过一番考虑后，感觉这是一个合乎逻辑的答案，但我只是想确定我一直以来都误解了相关错误是一个问题。谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/646837/does-autocorrelation-in-errors-always-cause-problems</guid>
-      <pubDate>Wed, 08 May 2024 18:06:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>在什么情况下验证损失和验证 f1 分数都会增加？</title>
-      <link>https://stats.stackexchange.com/questions/646834/in-which-cases-validation-loss-validation-f1-score-both-increase</link>
-      <description><![CDATA[我正在使用 BCE 损失训练图像分割模型。我的验证损失在增加，但同时我的验证 f1 分数也在增加。哪些场景是可能的？]]></description>
-      <guid>https://stats.stackexchange.com/questions/646834/in-which-cases-validation-loss-validation-f1-score-both-increase</guid>
-      <pubDate>Wed, 08 May 2024 17:39:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>在报告数据的描述性统计时，我们是否应该定期进行无监督学习？</title>
-      <link>https://stats.stackexchange.com/questions/646833/should-we-routinely-conduct-unsupervised-learning-when-reporting-descriptive-sta</link>
-      <description><![CDATA[进行预测或推断分析之前的标准方法是报告研究变量的一些基本单变量描述性统计数据：平均值、中值、最小值、最大值、方差等。
-为什么不执行无监督学习（例如聚类分析）来帮助识别更高维度数据中的模式？
-我认为了解这一点很有用，例如，居住在数据中特定邮政编码的年轻男性异常集中，而您在查看单变量描述性统计数据时可能会错过这一点。]]></description>
-      <guid>https://stats.stackexchange.com/questions/646833/should-we-routinely-conduct-unsupervised-learning-when-reporting-descriptive-sta</guid>
-      <pubDate>Wed, 08 May 2024 17:24:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否可以在不调整 Alpha 级别的情况下运行 MANOVA？</title>
-      <link>https://stats.stackexchange.com/questions/646831/is-it-possible-to-run-manova-without-adjusting-the-alpha-level</link>
-      <description><![CDATA[我有 11 个因变量和两个自变量。我需要看到性别和学术水平之间关于 10 个最常见的语法错误和错误总数的差异，并且我必须看到它们在每种错误类型中的具体差异。我是否需要将 alpha 级别更正为 0.0045？我将运行一个多元方差分析，然后检查受试者间效应测试以查看差异。
-我迫切需要指导]]></description>
-      <guid>https://stats.stackexchange.com/questions/646831/is-it-possible-to-run-manova-without-adjusting-the-alpha-level</guid>
-      <pubDate>Wed, 08 May 2024 17:15:20 GMT</pubDate>
     </item>
     <item>
       <title>R中的线性回归，但目标是一组的总和</title>
