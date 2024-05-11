@@ -4,7 +4,140 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 11 May 2024 03:15:52 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 11 May 2024 06:17:40 GMT</lastBuildDate>
+    <item>
+      <title>核逻辑回归 - 错误的预测</title>
+      <link>https://stackoverflow.com/questions/78463519/kernel-logistic-regression-wrong-prediction</link>
+      <description><![CDATA[我正在研究内核逻辑回归函数，但它们没有返回正确的预期预测。
+它还会抛出指数溢出警告，目前已被抑制
+&lt;前&gt;&lt;代码&gt;
+    将 numpy 导入为 np
+    进口警告
+
+    warnings.filterwarnings(&#39;忽略&#39;)
+
+    def monomial_kernel(d):
+        def k(x, y, d=d):
+            phi_x_y = 0
+            prod_xy = np.dot(x.T,y)
+
+            对于范围 (d+1) 中的 n：
+                phi_x_y += (prod_xy ** n)
+
+            返回 phi_x_y
+            
+        返回 k
+
+    def rbf_kernel(西格玛):
+        def k(x, y, 西格玛=西格玛):
+            分子 = np.linalg.norm(x - y) **2
+            分母 = 2 * (西格玛 ** 2)
+            
+            return np.exp(-分子/分母)
+
+        返回 k
+
+    定义 sigmoid(z):
+        如果类型（z）== np.ndarray：
+            z = z[0]
+        尝试：
+            返回 1 / (1 + np.exp(-z))
+        除了：
+            打印（z）
+
+    def Logistics_regression_with_kernel(X, y, k, alpha, 迭代):
+
+        n_samples, _ = X.shape
+        偏差 = 0
+        kernel_matrix = np.zeros((n_samples, n_samples))
+        beta = np.zeros(n_samples)
+
+        #创建核矩阵
+        对于范围内的 i（n_samples）：
+            对于 j 在范围内（n_samples）：
+                kernel_matrix[i][j] = k(X[i], X[j])
+        
+        对于 _ 在范围内（迭代）：
+            对于范围内的 i（n_samples）：
+                总计 = 0
+                对于 j 在范围内（n_samples）：
+                    总计 += beta[j] * kernel_matrix[i][j]
+                总计 += 偏差
+                sigmoid_value = sigmoid(总计)
+                t = y[i]
+
+                beta += kernel_matrix[i] * alpha * (t - sigmoid_value)
+                        
+                偏差 += (alpha * (t - (sigmoid_value)))
+
+        def 模型(x, beta=beta, 偏差=bias, k=k, ref=X):
+            z = sum([k(ref[i], x) * beta[i] for i in range(ref.shape[0])]) + 偏差
+
+            sig = sigmoid(z)
+            # 打印（签名）
+            回程(sig)
+        返回模型
+
+
+
+由于某种原因，它无法正确学习以下测试用例：
+ def test4():
+        
+    f = lambda x, y, z, w: int(x*y*z - y**2*z*w/4 + x**4*w**3/8- y*w/2 &gt;= 0）
+
+    训练示例 = [
+        ([0.254, 0.782, 0.254, 0.569], 0),
+        ([0.237, 0.026, 0.237, 0.638], 0),
+        ([0.814, 0.18, 0.814, 0.707], 1),
+        ([0.855, 0.117, 0.855, 0.669], 1),
+        ([0.776, 0.643, 0.776, 0.628], 1),
+        ([0.701, 0.71, 0.701, 0.982], 0),
+        ([0.443, 0.039, 0.443, 0.356], 1),
+        ([0.278, 0.105, 0.278, 0.158], 0),
+        ([0.394, 0.203, 0.394, 0.909], 0),
+        ([0.83, 0.197, 0.83, 0.779], 1),
+        ([0.277, 0.415, 0.277, 0.357], 0),
+        ([0.683, 0.117, 0.683, 0.455], 1),
+        ([0.421, 0.631, 0.421, 0.015], 1)
+    ]
+
+    X, y = 地图(np.array, zip(*training_examples))
+
+    h =logistic_regression_with_kernel(X, y, monomial_kernel(10), 0.01, 500)
+
+    测试示例 = [
+        ([0.157, 0.715, 0.787, 0.644], 0),
+        ([0.79, 0.279, 0.761, 0.886], 1),
+        ([0.903, 0.544, 0.138, 0.925], 0),
+        ([0.129, 0.01, 0.493, 0.658], 0),
+        ([0.673, 0.526, 0.672, 0.489], 1),
+        ([0.703, 0.716, 0.088, 0.674], 0),
+        ([0.276, 0.174, 0.69, 0.358], 1),
+        ([0.199, 0.812, 0.825, 0.653], 0),
+        ([0.332, 0.721, 0.148, 0.541], 0),
+        ([0.51, 0.956, 0.023, 0.249], 0)
+    ]
+    print(f&quot;{&#39;x&#39;: ^30}{&#39;预测&#39;: ^11}{&#39;true&#39;: ^6}&quot;)
+    对于 test_examples 中的 x、y：
+        print(f&quot;{str(x) : ^30}{int(h(x)) : ^11}{y : ^6}&quot;)
+    # x 预测为真
+    # [0.157, 0.715, 0.787, 0.644] 0 0
+    # [0.79, 0.279, 0.761, 0.886] 1 1
+    # [0.903, 0.544, 0.138, 0.925] 0 0
+    # [0.129, 0.01, 0.493, 0.658] 0 0
+    # [0.673, 0.526, 0.672, 0.489] 1 1
+    # [0.703, 0.716, 0.088, 0.674] 0 0
+    # [0.276, 0.174, 0.69, 0.358] 1 1
+    # [0.199, 0.812, 0.825, 0.653] 0 0
+    # [0.332, 0.721, 0.148, 0.541] 0 0
+    # [0.51, 0.956, 0.023, 0.249] 0 0
+
+我的结果是：
+
+我尝试将迭代次数增加到 4000，但仍然没有产生正确的结果]]></description>
+      <guid>https://stackoverflow.com/questions/78463519/kernel-logistic-regression-wrong-prediction</guid>
+      <pubDate>Sat, 11 May 2024 05:52:43 GMT</pubDate>
+    </item>
     <item>
       <title>不平衡学习管道的哪些部分应用于测试集？</title>
       <link>https://stackoverflow.com/questions/78462616/which-parts-of-the-imbalanced-learn-pipeline-are-applied-to-the-test-set</link>
@@ -15,7 +148,7 @@ RandomSearchCV 用于选择最佳的超参数。
 cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=42)
 
 缩放器 = RobustScaler(quantile_range=(25.0, 75.0))
-smote = SMOTENC（分类特征=分类特征，采样策略=0.35，随机状态=42）
+smote = SMOTENC(categorical_features=categorical_features,抽样策略=0.35,random_state=42)
 rus = RandomUnderSampler(sampling_strategy=0.35, random_state=42)
 分类器 = RandomForestClassifier(random_state=42)
 
@@ -115,27 +248,6 @@ Keras 版本：3.3.3，
 关于如何实现这项工作有什么建议吗？]]></description>
       <guid>https://stackoverflow.com/questions/78461646/how-to-restrict-a-13b-parameter-llm-model-to-provide-short-responses</guid>
       <pubDate>Fri, 10 May 2024 17:07:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用深度学习将位于各自房间的扬声器（音频设备）分组为集群？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78461347/how-to-group-speakers-audio-devices-located-in-their-respective-rooms-into-clu</link>
-      <description><![CDATA[当前的任务涉及对位于不同房间的扬声器进行分组。例如，如果房间 1 中有 3 个设备，房间 2 中有 5 个设备，则目标是创建两组：一组用于房间 1，另一组用于房间 2，每个组包含各自的扬声器。为了实现这一目标，我们分析声音样本。这些样本是通过从一个扬声器播放声音并从同一房间的其他扬声器录制声音来收集的。此过程会生成一个 .wav 文件，其中包含该特定房间中播放的声音的录音。
-该项目的目的是增强对音频设备相对位置的理解，并探索对这些设备进行智能分组的有效方法或算法。我们的目标是利用这些见解来开发原型设备，以实际演示这一概念。随后，将对原型的性能进行评估，以评估其有效性。
-以下是扬声器的基本功能：
-
-扬声器可以播放声音文件，例如“alarm.mp3”。
-扬声器可以录制任何声音，并使用其内置麦克风将其保存为 .wav 文件。
-您可以调节扬声器输出的音量，使其更大或更小。
-您还可以使用 dB 值修改输入增益，该增益决定麦克风捕获的声音量。
-
-这是我解决这个问题的方法：
-首先，我将多个设备放置在不同的房间中：扬声器 1 和 2 放置在房间 1 中，扬声器 3、4 和 5 放置在房间 2 中，扬声器 6 和 7 放置在房间 3 中。然后，我自动化了一个流程，其中每个扬声器录制 10 秒，同时另一个扬声器播放声音剪辑，例如“alarm.mp3” 6 秒。这会产生 7 个以聆听和演奏扬声器命名的样本（录音），例如“speaker3_speaker1”和“speaker3_speaker1”。表示扬声器 3 正在录音，而扬声器 1 正在播放。我对所有扬声器组合重复了这个过程，为我提供了一些可以使用的数据。
-接下来，我使用 Python 库 Librosa 从这些录音中提取声音特征，包括梅尔倒谱系数 (MFCC) 和梅尔频谱图，它们本质上是代表声音特征的图像。这些特征作为深度学习模型的输入。
-现在，我开发了一个 Siamese 神经网络来处理这些 MFCC 和频谱图图像并生成输出。但是，我目前陷入这个阶段，不确定如何继续。
-我遇到的一个挑战是，即使扬声器 3 和 7 位于不同的房间，模型也可能会错误地认为它们位于同一个房间，因为它们来自同一家公司，具有相同的型号，并且玩游戏相同的声音文件(“alarm.mp3”)。此问题使分组过程变得复杂。
-我正在寻求有关如何解决此问题的建议以及推进此项目的任何其他想法。我愿意探索上述之外的替代想法。请随意提出任何其他有助于解决前面段落中概述的挑战的方法或策略。]]></description>
-      <guid>https://stackoverflow.com/questions/78461347/how-to-group-speakers-audio-devices-located-in-their-respective-rooms-into-clu</guid>
-      <pubDate>Fri, 10 May 2024 16:08:30 GMT</pubDate>
     </item>
     <item>
       <title>FileNotFoundError：[Errno 2]没有这样的文件或目录：'Models\\model_new.json'</title>
@@ -253,7 +365,7 @@ HTTP 错误：禁止
 ncfile &lt;- nc_open(“E:/IMD2/Rainfall/netcdfFiles_0.25 Degree/RF25_ind1955_rfp25.nc”)
 
 variable_name &lt;- “RAINFALL”
-降雨数据 &lt;- ncvar_get(ncfile, 变量名称)
+降雨量数据 &lt;- ncvar_get(ncfile, 变量名)
 lon &lt;- ncvar_get(ncfile, “经度”)
 lat &lt;- ncvar_get(ncfile, “纬度”)
 时间 &lt;- ncvar_get(ncfile, “TIME”)
@@ -286,19 +398,19 @@ for (i in 1:dim(rainfall_data)[3]) {
     <item>
       <title>高斯模糊相对于像素的导数</title>
       <link>https://stackoverflow.com/questions/77701235/derivative-of-gaussian-blur-with-respect-to-the-pixels</link>
-      <description><![CDATA[我正在对图像应用高斯模糊，其中原始图像的每个像素都针对某种目的进行优化，并且高斯模糊是中间变换。由于多种原因，能够获得此变换的雅可比行列式对我来说非常重要。
+      <description><![CDATA[我正在将高斯模糊应用于图像，其中原始图像的每个像素都针对某种目的进行了优化，并且高斯模糊是中间变换。由于多种原因，能够获得此变换的雅可比行列式对我来说非常重要。
 例如，如果像素的变换可以用 G(p) 给出，那么我需要能够找到 dG/dp。
 我对如何真正找到这个感到困惑。它不必是分析性的，它可以通过 Python 程序进行数值计算。
 我真的不知道从哪里开始。
 我有一个 150x150 像素的输入图像。我正在通过 OpenCV 应用高斯模糊。我知道如何找到高斯 X 和 Y 导数，但我不知道如何找到整个变换相对于像素的雅可比。
-从数字上讲，我认为有限差分法会起作用（稍微改变像素并查看效果），但可能有更好的方法不是吗？]]></description>
+从数字上讲，我认为有限差分法可行（稍微改变像素并查看效果），但可能有更好的方法不是吗？]]></description>
       <guid>https://stackoverflow.com/questions/77701235/derivative-of-gaussian-blur-with-respect-to-the-pixels</guid>
       <pubDate>Fri, 22 Dec 2023 00:49:16 GMT</pubDate>
     </item>
     <item>
       <title>带有正则化的 Numpy 线性回归</title>
       <link>https://stackoverflow.com/questions/27476933/numpy-linear-regression-with-regularization</link>
-      <description><![CDATA[我没有发现我的正则化线性回归代码有什么问题。非正规化我只是这样，我有理由确定这是正确的：
+      <description><![CDATA[我没有发现我的正则化线性回归代码有什么问题。未正规化我只是这样，我有理由确定这是正确的：
 将 numpy 导入为 np
 
 def get_model（特征，标签）：
