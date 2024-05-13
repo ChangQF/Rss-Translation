@@ -4,7 +4,148 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Mon, 13 May 2024 18:17:06 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 13 May 2024 21:15:26 GMT</lastBuildDate>
+    <item>
+      <title>Keras 卷积回归模型，始终预测相同的值</title>
+      <link>https://stackoverflow.com/questions/78474230/keras-convolutional-regression-model-predicting-always-the-same-value</link>
+      <description><![CDATA[目标是计算图像中较大圆圈与较小圆圈的比例。所以我希望模型返回一个浮点数。
+数据集包括：
+
+16K 图像，每张图像都包含 2 个比另一个大的圆圈。
+
+具有更大圆圈数据的 CSV，在本例中为文件名和
+比例。
+
+
+问题：
+该模型始终预测相同的值。
+我尝试过：
+
+标准化 0 和 1 之间的比例。
+使用其他方法加载数据集。
+不同的优化器和学习率
+
+代码：
+train_dir = &#39;../train/circles/&#39;
+test_dir = &#39;../test/circles/&#39;
+
+IMG_SIZE = 250
+批次大小 = 32
+
+data_df = pd.read_csv(&#39;../data/circles_big.csv&#39;)
+train_df = data_df[data_df[&#39;变体&#39;] == &#39;火车&#39;]
+test_df = data_df[data_df[&#39;变体&#39;] == &#39;测试&#39;]
+
+train_df = train_df[[&#39;比例&#39;, &#39;文件名&#39;]]
+test_df = test_df[[&#39;比例&#39;, &#39;文件名&#39;]]
+
+gen = keras.preprocessing.image.ImageDataGenerator(rescale=1./255)
+
+train_generator = gen.flow_from_dataframe(
+    数据框=train_df，
+    目录=train_dir，
+    x_col=&#39;文件名&#39;,
+    y_col=&#39;比例&#39;,
+    目标大小=（IMG_SIZE，IMG_SIZE），
+    class_mode=&#39;原始&#39;,
+    批量大小=批量大小，
+    随机播放=真
+）
+
+test_generator = gen.flow_from_dataframe(
+    数据框=test_df，
+    目录=test_dir，
+    x_col=&#39;文件名&#39;,
+    y_col=&#39;比例&#39;,
+    目标大小=（IMG_SIZE，IMG_SIZE），
+    class_mode=&#39;原始&#39;,
+    批量大小=批量大小，
+    随机播放=真
+）
+
+输入= keras.Input（形状=（IMG_SIZE，IMG_SIZE，3））
+x = groups.Conv2D(filters=32, kernel_size=3,activation=“relu”)(输入)
+x = 层数.MaxPooling2D(pool_size=2)(x)
+x = 层.Conv2D（过滤器= 64，kernel_size = 3，激活=“relu”）（x）
+x = 层数.MaxPooling2D(pool_size=2)(x)
+x = 层.Conv2D（过滤器= 128，kernel_size = 3，激活=“relu”）（x）
+x = 层数.MaxPooling2D(pool_size=2)(x)
+x = 层.Conv2D（过滤器= 128，kernel_size = 3，激活=“relu”）（x）
+x = 层数.MaxPooling2D(pool_size=2)(x)
+x = 层.Flatten()(x)
+x = 层.Dense(512, 激活=“relu”)(x)
+输出=层.Dense(1)(x)
+
+模型= keras.Model（输入=输入，输出=输出）
+
+model.compile（损失=“mse”，优化器=“adam”，指标=[“mae”]）
+
+历史= model.fit（train_generator，epochs = 10，batch_size = 32，verbose = 1）
+
+训练输出（我已经训练了 50 个 epoch，但没有摆脱 72.000 损失）：
+344/344 [================================] - 63s 161ms/步 - 损耗：73.8999 - 前：3.7510
+纪元 2/10
+344/344 [================================] - 54s 156ms/步 - 损耗：72.5437 - mae：3.7838
+纪元 3/10
+344/344 [================================] - 53s 153ms/步 - 损耗：72.3242 - mae：3.7979
+纪元 4/10
+344/344 [================================] - 53s 153ms/步 - 损耗：72.3054 - mae：3.7828
+纪元 5/10
+344/344 [================================] - 54s 158ms/步 - 损耗：72.2541 - mae：3.7986
+纪元 6/10
+344/344 [================================] - 54s 157ms/步 - 损耗：72.3650 - mae：3.7947
+纪元 7/10
+344/344 [================================] - 53s 155ms/步 - 损耗：72.2549 - mae：3.7982
+纪元 8/10
+344/344 [================================] - 55s 159ms/步 - 损耗：72.2433 - mae：3.7906
+纪元 9/10
+344/344 [==============================] - 54s 158ms/步 - 损耗：72.2253 - 平均：3.8048
+纪元 10/10
+344/344 [================================] - 53s 154ms/步 - 损耗：72.2451 - mae：3.7841
+
+现在我的问题是为什么预测总是相同的？即使模型没有经过足够的训练，它不应该给出不同的预测值吗？
+test_data = next(test_generator)
+预测 = model.predict(test_data[0])
+真实值 = 测试数据[1]
+
+对于范围内的 i(len(预测))：
+    print(f&quot;预测: {predictions[i][0]:}, 真实值: {true_value[i]:}&quot;)
+
+输出：
+1/1 [================================] - 0s 33ms/步
+预测：3.8054518699645996，真实值：1.448
+预测：3.8054518699645996，真实值：1.063
+预测：3.8054518699645996，真实值：6.06
+预测：3.8054518699645996，真实值：1.058
+预测：3.8054518699645996，真实值：2.826
+预测：3.8054518699645996，真实值：3.188
+预测：3.8054518699645996，真实值：4.437
+预测：3.8054518699645996，真实值：1.983
+预测：3.8054518699645996，真实值：2.213
+...
+]]></description>
+      <guid>https://stackoverflow.com/questions/78474230/keras-convolutional-regression-model-predicting-always-the-same-value</guid>
+      <pubDate>Mon, 13 May 2024 18:47:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>正类是大多数类，因此很难解释结果</title>
+      <link>https://stackoverflow.com/questions/78474226/positive-class-is-the-majority-class-made-it-hard-to-interpret-result</link>
+      <description><![CDATA[我正在做一个流失预测任务，其中 1 类（流失）是大多数类别。
+两个类的结果
+我的问题是：这个结果是类设置的结果吗（通常正类是负类）。我该如何解释上面的结果？就F1分数而言，0类和1类之间是否存在权衡？
+结果中，默认的 F1 在不平衡数据集上得分更高，而我预计重采样方法会改善 F1。他们实际上为少数群体改进了 F1，但没有为多数群体改进。]]></description>
+      <guid>https://stackoverflow.com/questions/78474226/positive-class-is-the-majority-class-made-it-hard-to-interpret-result</guid>
+      <pubDate>Mon, 13 May 2024 18:45:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>机器学习：从哪里开始实践？ [关闭]</title>
+      <link>https://stackoverflow.com/questions/78474129/machine-learning-where-to-start-the-practice</link>
+      <description><![CDATA[我正在学习机器学习和大数据的大学课程，即将完成（今年年底），但我们很少进行练习，并且很多理论。
+我想要一些关于我可以遵循哪些来源在机器学习领域进行实践的建议。
+谢谢大家。]]></description>
+      <guid>https://stackoverflow.com/questions/78474129/machine-learning-where-to-start-the-practice</guid>
+      <pubDate>Mon, 13 May 2024 18:18:29 GMT</pubDate>
+    </item>
     <item>
       <title>如何将 LinkedIn 或类似网站上的原始文本格式职位发布处理为键值格式？</title>
       <link>https://stackoverflow.com/questions/78473771/how-can-i-process-raw-text-format-job-posts-from-linkedin-or-similar-sites-into</link>
@@ -84,7 +225,7 @@ https://colab.research.google.com/drive/1RrTfa3O80QOFL68rXdtAyn1KHt0NCCB3 ?usp=�
       <pubDate>Mon, 13 May 2024 14:43:39 GMT</pubDate>
     </item>
     <item>
-      <title>MSE 高且 R 方值为负的原因</title>
+      <title>高 MSE 和负 R 平方值的原因 [已迁移]</title>
       <link>https://stackoverflow.com/questions/78472866/reason-for-high-mse-and-negative-r-square-value</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78472866/reason-for-high-mse-and-negative-r-square-value</guid>
@@ -142,31 +283,27 @@ _loss = self._criterion(_responses, labels) # 标准：binary_cross_entropy
       <pubDate>Mon, 13 May 2024 13:45:05 GMT</pubDate>
     </item>
     <item>
-      <title>如何创建我自己的自定义输入器以在 pyspark.ml 管道中无缝输入常量值</title>
-      <link>https://stackoverflow.com/questions/78472581/how-to-create-my-own-custom-imputter-to-input-constant-values-seamlessly-in-pysp</link>
-      <description><![CDATA[我想通过 CV 搜索来优化数据集上缺失值的插补。这在我熟悉的 sklearn 中是微不足道的——但是，我是第一次使用集群分布式 Spark 数据帧，并且必须使用 pyspark.ml 模块。
-据我所知， pyspark.ml.feature.Imputer 类无法估算（选择）常量值，这是我想测试的一件事。
-您建议我如何执行此操作？我研究了编写一个自定义转换器，这在 sklearn API 中也很容易，但我还没有在 pyspark.ml 中找到明确的方法来做到这一点。
-非常感谢任何见解。]]></description>
-      <guid>https://stackoverflow.com/questions/78472581/how-to-create-my-own-custom-imputter-to-input-constant-values-seamlessly-in-pysp</guid>
-      <pubDate>Mon, 13 May 2024 13:26:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>易于计算机器学习算法的决策边界[关闭]</title>
-      <link>https://stackoverflow.com/questions/78471748/easy-to-compute-decision-boundaries-of-a-machine-learning-algorithm</link>
-      <description><![CDATA[可用于精确计算数值数据的 2D 或 ND 分类的决策边界的最佳机器学习算法是什么。我对分类的性能不感兴趣，而是对决策边界的简单性和计算时间感兴趣。我已经将 SVM 与 sk-learn 一起使用，但它只返回每条线的方程，而不返回界定 2D 类的多边形。我感兴趣的是提取每个类别的最终分类的多边形或确切形状。
-非常感谢。
-我尝试了 SVM，但库没有提供解决方案。我期待一种有监督的机器学习算法，具有易于提取决策边界的方法。]]></description>
-      <guid>https://stackoverflow.com/questions/78471748/easy-to-compute-decision-boundaries-of-a-machine-learning-algorithm</guid>
-      <pubDate>Mon, 13 May 2024 10:49:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>我需要 ph2 数据集用于分类项目</title>
-      <link>https://stackoverflow.com/questions/78471681/i-need-ph2-data-set-for-classification-project</link>
-      <description><![CDATA[我在大学有一个关于人工智能的项目“ ph2数据集中的分类和深度学习但是我无法找到适合这个项目的数据，因为Kaggle中的数据只是图片，不包含样本是否患病的信息。谁有合适的数据？
-我意识到除了有人已经在使用这个数据集之外没有其他解决方案，因为我没有时间在大学展示该项目]]></description>
-      <guid>https://stackoverflow.com/questions/78471681/i-need-ph2-data-set-for-classification-project</guid>
-      <pubDate>Mon, 13 May 2024 10:38:48 GMT</pubDate>
+      <title>使用 YOLOv5 标记对象的正确方法</title>
+      <link>https://stackoverflow.com/questions/78471070/correct-way-to-tag-objects-with-yolov5</link>
+      <description><![CDATA[我需要标记一系列图像以用于织物上的缝纫检测。我使用 YOLOv5 算法。
+我遇到的问题是，我不清楚标记这些缝纫的最佳方式应该是什么。
+下图显示了织物中的缝线。
+
+正如您在图片中看到的，缝线总是会占据布料的整个宽度。最初，我曾想过对缝纫的几个部分/部分进行标记（检测到的缝纫数量并不重要，对我来说真正重要的是它检测到至少有一个缝纫）。下图展示了这个想法：
+
+但是，我不清楚这是否是正确的方法（而是最佳方法），或者应该创建一个完全包围缝纫的单个标签。
+另一方面，根据文档中给出的标签提示，标签应该恰好包围要检测的对象，在对象和标签的边界框之间留出尽可能小的空间。
+&lt;块引用&gt;
+标签准确性。标签必须紧密包围每个对象。没有空间
+应该存在于对象与其边界框之间。没有物体
+应该缺少标签。
+
+获得最佳训练结果的提示
+在这种特殊情况下，考虑到缝线总是以非常相似的方式出现（它们总是具有水平方向），这些标签将非常薄（高度很小），因此不清楚我认为该算法将能够检测到它们。以我的拙见，我认为稍微增加标签的高度将使算法更有效地检测缝纫，因为通过这些缝纫连接的织物可能具有相同的颜色。 （第二张图片显示了我正在谈论的想法）。
+如果您能帮助我并告诉我进行此标记的最佳方法，我将不胜感激。
+提前非常感谢您。]]></description>
+      <guid>https://stackoverflow.com/questions/78471070/correct-way-to-tag-objects-with-yolov5</guid>
+      <pubDate>Mon, 13 May 2024 08:48:35 GMT</pubDate>
     </item>
     <item>
       <title>在 Streamlit.io 上部署 Python 应用程序时出错：“sklearn”的 ModuleNotFoundError</title>
@@ -177,119 +314,45 @@ _loss = self._criterion(_responses, labels) # 标准：binary_cross_entropy
       <pubDate>Sun, 12 May 2024 23:18:51 GMT</pubDate>
     </item>
     <item>
-      <title>训练 DL 模型时，本地集合点正在中止，状态为：OUT_OF_RANGE：序列结束</title>
-      <link>https://stackoverflow.com/questions/78376338/while-training-dl-model-local-rendezvous-is-aborting-with-status-out-of-range</link>
-      <description><![CDATA[我正在创建一个植物病害识别模型。我有一个包含 38 种疾病的数据集，每种疾病有大约 2000 张图像。但是在训练模型时，由于一些 OUT_OF_RANGE 错误，一些时期被跳过。有人可以帮我解决这个问题吗？
-导入操作系统
-从tensorflow.keras.preprocessing.image导入ImageDataGenerator
-从tensorflow.keras.models导入顺序
-从tensorflow.keras.layers导入Conv2D、MaxPooling2D、展平、密集、输入
+      <title>ARIMA 可以在 Python 中获取输入序列吗？</title>
+      <link>https://stackoverflow.com/questions/78027259/can-arima-take-input-sequence-in-python</link>
+      <description><![CDATA[在Python中，当你训练LSTM模型时，你可以在部分数据上训练模型。然后在推理时，您可以为其提供任何您喜欢的输入，例如不属于训练集的 10 个最近时间步长。它将产生输出。现在 ARIMA 可以以同样的方式运行吗？我们可以给它输入序列吗？或者它是否使用训练数据来预测下一步？
+下面是我的代码：
+导入 pandas 作为 pd
+从 statsmodels.tsa.arima.model 导入 ARIMA
+进口火炬
+导入系统
+导入数学
 
-train_dir = &#39;数据集/火车&#39;
-valid_dir = &#39;数据集/有效&#39;
-批量大小 = 32
+# 从CSV文件中读取数据集
+df = pd.read_csv(&#39;sm_data.csv&#39;, header=None)
 
-train_datagen = 图像数据生成器(
-    重新缩放=1./255，
-    旋转范围=40，
-    width_shift_range=0.2，
-    height_shift_range=0.2，
-    剪切范围=0.2，
-    缩放范围=0.2，
-    水平翻转=真，
-    fill_mode=&#39;最近&#39;
-）
+# 将前102行作为训练数据，其余作为测试数据
+train_data = df.iloc[:102, :]
+test_data = df.iloc[102:, :]
 
-valid_datagen = ImageDataGenerator(重新缩放=1./255)
 
-train_generator = train_datagen.flow_from_directory(
-    火车目录，
-    目标大小=(150, 150),
-    批量大小=批量大小，
-    class_mode=&#39;分类&#39;
-）
+# 迭代每个趋势
+预测结果 = {}
+对于 df.columns 中的列：
+    # 在训练数据上拟合 ARIMA 模型
+    模型 = ARIMA(train_data[列], 顺序=(10,1,0))
+    model_fit = model.fit()
 
-valid_generator = valid_datagen.flow_from_directory(
-    有效目录，
-    目标大小=(150, 150),
-    批量大小=批量大小，
-    class_mode=&#39;分类&#39;
-）
+    # 预测未来 36 个月
+    预测 = model_fit.forecast(步数=36)
 
-模型=顺序（[
-    输入(形状=(150, 150, 3)),
-    Conv2D(32, (3, 3), 激活=&#39;relu&#39;),
-    最大池化2D(2, 2),
-    Conv2D(64, (3, 3), 激活=&#39;relu&#39;),
-    最大池化2D(2, 2),
-    Conv2D(128, (3, 3), 激活=&#39;relu&#39;),
-    最大池化2D(2, 2),
-    展平（），
-    密集（512，激活=&#39;relu&#39;），
-    Dense(38,activation=&#39;softmax&#39;) # 根据疾病类别的数量调整输出单位
-]）
+    # 存储预测结果
+    Forecast_results[列] = 预测
 
-model.compile(optimizer=&#39;adam&#39;,loss=&#39;categorical_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
+# 将预测结果转换为DataFrame
+Forecast_df = pd.DataFrame(forecast_results)
 
-历史=模型.fit(
-    火车发电机，
-    steps_per_epoch=train_generator.samples //batch_size,
-    纪元=10，
-    验证数据=有效生成器，
-    valid_steps=valid_generator.samples // 批量大小
-）
-
-model.save(&#39;plant_disease_model.h5&#39;)
-
-class_indices = train_generator.class_indices
-疾病名称 = 列表(class_indices.keys())
-print(“类索引到疾病名称的映射：”, class_indices)
-
-终端：
-找到属于 38 个类别的 70295 个图像。
-找到属于 38 个类别的 17572 张图像。
-2024-04-23 19：50：32.085744：我tensorflow / core / platform / cpu_feature_guard.cc：210]此TensorFlow二进制文件经过优化以使用可用的CPU仪器
-性能关键操作中的操作。
-要启用以下指令：AVX2 FMA，在其他操作中，使用适当的编译器标志重建 TensorFlow。
-纪元 1/10
-\.venv\Lib\site-packages\keras\src\trainers\data_adapters\py_dataset_adapter.p
-y：120：用户警告：您的“PyDataset”类应在其构造函数中调用“super().__init__(**kwargs)”。 `**kwargs` 可以包括 `workers`、`use_m
-ultiprocessing`、`max_queue_size`。不要将这些参数传递给“fit()”，因为它们将被忽略。
-  self._warn_if_super_not_used()
-←[1m2196/2196←[0m ←[32m–––––––––––––––––––←[0m←[37m←[0m ←[1m905s←[0m 411ms/步]]准确度：0.4608 - 损失：1.8737 - val_accuracy：0.7432 - val_
-损失：0.8556
-纪元 2/10
-←[1m 1/2196←[0m ←[37m–––––––––––––––––––←[0m ←[1m12:02←[0m 329ms/步 - 精度: 0.6875] -损失：0.78202024-04-23 20:05:37.996528：W张量
-ow/core/framework/local_rendezvous.cc:404] 本地集合点正在中止，状态为：OUT_OF_RANGE：序列结束
-         [[{{节点It​​eratorGetNext}}]]
-C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\contextlib.py:155: UserWarning: 您的输入数据不足；中断训练。嘛
-确保您的数据集或生成器可以生成至少“steps_per_epoch * epochs”批次。您可能需要使用`.repeat()`函数
-构建您的数据集。
-  self.gen.throw（类型，值，回溯）
-2024-04-23 20:05:38.068817：W tensorflow/core/framework/local_rendezvous.cc:404] 本地集合点正在中止，状态为：OUT_OF_RANGE：结束
-顺序
-         [[{{节点It​​eratorGetNext}}]]
-←[1m2196/2196←[0m ←[32m–––––––––––––––––––←[0m←[37m←[0m ←[1m0s←[0m 49us/步]]准确度：0.6875 - 损失：0.7820 - val_accuracy：0.7500 - val_los
-秒：0.2462
-
-如上所示，epoch 1 已成功完成，但 epoch 2 由于某些错误而终止。同样，epoch 3、5、7、9 成功完成，但 epoch 4、6、8、10 出现错误。]]></description>
-      <guid>https://stackoverflow.com/questions/78376338/while-training-dl-model-local-rendezvous-is-aborting-with-status-out-of-range</guid>
-      <pubDate>Wed, 24 Apr 2024 06:27:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>scikit 学习 1.1.3。 import 无法在 python 中导入名称“METRIC_MAPPING64”</title>
-      <link>https://stackoverflow.com/questions/78327535/scikit-learn-1-1-3-import-cannot-import-name-metric-mapping64-in-python</link>
-      <description><![CDATA[我试图将 scikit-learn 中的线性模型导入到 vscode 中的 python 代码中，但收到意外的错误消息。
-导入sklearn
-从sklearn导入线性模型
-
-错误：
-无法从“sklearn.metrics._dist_metrics”导入名称“METRIC_MAPPING64”
-
-我不想导入这些指标，如何解决这个问题？
-使用的scikit-learn版本是1.1.3。]]></description>
-      <guid>https://stackoverflow.com/questions/78327535/scikit-learn-1-1-3-import-cannot-import-name-metric-mapping64-in-python</guid>
-      <pubDate>Mon, 15 Apr 2024 09:54:33 GMT</pubDate>
+# 将预测结果保存到 CSV
+Forecast_df.to_csv(&#39;forecast_results.csv&#39;, index=False)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78027259/can-arima-take-input-sequence-in-python</guid>
+      <pubDate>Tue, 20 Feb 2024 12:16:51 GMT</pubDate>
     </item>
     <item>
       <title>从 nltk 停用词中排除负面词</title>
