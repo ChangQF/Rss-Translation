@@ -4,7 +4,309 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 17 May 2024 03:16:08 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 17 May 2024 06:20:18 GMT</lastBuildDate>
+    <item>
+      <title>ValueError：参数“target”和“output”必须具有相同的等级（ndim）。收到：target.shape=(None,)，output.shape=(None, 3)</title>
+      <link>https://stackoverflow.com/questions/78493744/valueerror-arguments-target-and-output-must-have-the-same-rank-ndim-rece</link>
+      <description><![CDATA[我尝试运行以下代码，但它显示此错误
+我尝试过使用
+tf.keras.utils.to_categorical 函数，但如果我这样做了，它会给我另一个错误，那就是
+ValueError：数据基数不明确。确保所有数组包含相同数量的样本。&#39;x&#39; 大小：128, 128, 128, 128, 128, 128, 128
+“y”尺寸：7
+这是我的代码：
+将 numpy 导入为 np
+导入操作系统
+将 matplotlib.pyplot 导入为 plt
+从 sklearn.model_selection 导入 train_test_split
+将 cv2 导入为 cv
+进口泡菜
+导入时间
+
+os.environ[&#39;TF_ENABLE_ONEDNN_OPTS&#39;] = &#39;0&#39;
+将张量流导入为 tf
+
+人 = [&#39;H&#39;, &#39;J&#39;, &#39;A&#39;]
+目录 = &#39;C:\AI&#39;
+图片 = []
+标签=[]
+haar_cascade = cv.CascadeClassifier(&#39;haar_face.xml&#39;)
+
+对于人中的人：
+    路径 = os.path.join(DIR, 人)
+    标签 = people.index(person)
+    对于 os.listdir(path) 中的 img：
+        img_path = os.path.join(路径, img)
+        img_array = cv.imread(img_path)
+        灰色 = cv.cvtColor(img_array, cv.COLOR_BGR2GRAY)
+        face_rect = haar_cascade.detectMultiScale（灰色，scaleFactor = 1.1，minNeighbors = 6）
+        对于face_rect 中的(x, y, w, h)：
+            face_roi = img_array[y:y + h, x:x + w]
+            face_roi = cv.resize(face_roi, (128, 128))
+            图像.append(face_roi)
+            labels.append(标签)
+
+image_aug = tf.keras.preprocessing.image.ImageDataGenerator（rotation_range=30，shear_range=0.2，zoom_range=0.2，height_shift_range=0.2，width_shift_range=0.2，horizo​​ntal_flip=True，fill_mode=&#39;最近&#39;）
+
+x_train, x_test, y_train, y_test = train_test_split(图像, 标签, test_size=0.2, random_state=4)
+
+x_train = np.array(x_train, dtype=&#39;float&#39;) / 255.0
+y_train = np.array(y_train, dtype=&#39;float&#39;) / 255.0
+
+#y_train = tf.keras.utils.to_categorical(y_train, 3)
+#y_test = tf.keras.utils.to_categorical(y_test, 3)
+
+模型 = tf.keras.models.Sequential()
+输入形状 = (128, 128, 3)
+
+model.add(tf.keras.layers.Conv2D(32, (3, 3), 填充=&#39;相同&#39;, 激活=&#39;relu&#39;, input_shape=input_shape))
+model.add(tf.keras.layers.BatchNormalization(axis=-1))
+model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(tf.keras.layers.Dropout(0.2))
+
+model.add(tf.keras.layers.Conv2D(64, (3, 3), padding=&#39;相同&#39;, 激活=&#39;relu&#39;))
+model.add(tf.keras.layers.BatchNormalization(axis=-1))
+
+model.add(tf.keras.layers.Conv2D(64, (3, 3), padding=&#39;相同&#39;, 激活=&#39;relu&#39;))
+model.add(tf.keras.layers.BatchNormalization(axis=-1))
+model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(tf.keras.layers.Dropout(0.2))
+
+model.add(tf.keras.layers.Conv2D(128, (3, 3), padding=&#39;相同&#39;, 激活=&#39;relu&#39;))
+model.add(tf.keras.layers.BatchNormalization(axis=-1))
+
+model.add(tf.keras.layers.Conv2D(128, (3, 3), padding=&#39;相同&#39;, 激活=&#39;relu&#39;))
+model.add(tf.keras.layers.BatchNormalization(axis=-1))
+
+model.add(tf.keras.layers.Conv2D(128, (3, 3), padding=&#39;相同&#39;, 激活=&#39;relu&#39;))
+model.add(tf.keras.layers.BatchNormalization(axis=-1))
+model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2)))
+model.add(tf.keras.layers.Dropout(0.2))
+
+model.add(tf.keras.layers.Flatten())
+model.add（tf.keras.layers.Dense（512，激活=&#39;relu&#39;））
+model.add(tf.keras.layers.BatchNormalization())
+model.add(tf.keras.layers.Dropout(0.2))
+model.add(tf.keras.layers.Dense(3, 激活=&#39;softmax&#39;))
+
+NAME = &#39;people-{}&#39;.format(int(time.time()))
+tensorboard = tf.keras.callbacks.TensorBoard(log_dir=&#39;logs/{}&#39;.format(NAME))
+model.compile(loss=&#39;categorical_crossentropy&#39;, 优化器=&#39;adam&#39;, 指标=[&#39;accuracy&#39;])
+历史= model.fit（x_train，y_train，batch_size = 32，epochs = 10，callbacks = [tensorboard]，validation_data =（x_test，y_test），steps_per_epoch = len（x_train）// 32）
+
+
+如果我取消注释 to_categorical 函数，然后打印 x_train 和 y_train 的形状
+它显示 x 为 (24, 128, 128, 3)，y 为 (24, 3)]]></description>
+      <guid>https://stackoverflow.com/questions/78493744/valueerror-arguments-target-and-output-must-have-the-same-rank-ndim-rece</guid>
+      <pubDate>Fri, 17 May 2024 06:00:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>反馈管理器需要具有单一签名推断的模型</title>
+      <link>https://stackoverflow.com/questions/78493742/feedback-manager-requires-a-model-with-a-single-signature-inference</link>
+      <description><![CDATA[我在尝试运行机器运行模型时遇到了此错误，该模型应该为驾驶员睡意检测项目提供动力
+”
+W0000 00:00:1715924294.765512 2256 inference_feedback_manager.cc:114] 反馈管理器需要具有单个签名推理的模型。禁用对反馈张量的支持。”
+模型架构如下：
+&lt;前&gt;&lt;代码&gt;#**型号**
+从 keras.layers 导入 BatchNormalization
+模型 = tf.keras.models.Sequential()
+# 输入形状是所需的图像大小 145 x 145，颜色为 3 字节
+
+#这是第一个卷积
+   model.add(Conv2D(16, 3, 激活=&#39;relu&#39;, input_shape=X_train.shape[1:]))
+   model.add(BatchNormalization())
+   model.add(MaxPooling2D())
+   tf.keras.layers.Dropout(0.3)
+
+# 第二次卷积
+   model.add(Conv2D(32, 5, 激活=&#39;relu&#39;))
+   model.add(BatchNormalization())
+   model.add(MaxPooling2D())
+   tf.keras.layers.Dropout(0.3)
+
+# 第三次卷积
+  model.add(Conv2D(64, 10, 激活=&#39;relu&#39;))
+  model.add(BatchNormalization())
+  model.add(MaxPooling2D())
+  tf.keras.layers.Dropout(0.3)
+
+# 第四次卷积
+  model.add(Conv2D(128, 12, 激活=&#39;relu&#39;))
+  model.add(BatchNormalization())
+
+# 将结果压平以输入 DNN
+  模型.add(压平())
+  model.add（密集（128，激活=&#39;relu&#39;））
+  模型.add(Dropout(0.25))
+  model.add（密集（64，激活=&#39;relu&#39;））
+# 只有 1 个输出神经元。
+  model.add（密集（1，激活=&#39;sigmoid&#39;））
+
+  model.compile(loss=“binary_crossentropy”，metrics=[“accuracy”]，optimizer=Adam(lr=0.001))
+  历史= model.fit（train_generator，epochs = 10，batch_size = 32，validation_data = test_generator）
+
+# 定义服务签名
+  输入签名 = [
+      tf.TensorSpec(shape=[None, 145, 145, 3], dtype=tf.float32, name=&#39;input_tensor&#39;)
+  ]
+
+@tf.function(input_signature=input_signature)
+defserving_fn（输入）：
+    返回模型（输入）
+
+export_dir = &#39;E:\系统项目\项目&#39;
+tf.saved_model.save（serving_fn，export_dir）
+
+# 加载模型进行推理
+load_model = tf.saved_model.load(&#39;my_model.keras&#39;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78493742/feedback-manager-requires-a-model-with-a-single-signature-inference</guid>
+      <pubDate>Fri, 17 May 2024 05:59:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在流模式下应用 .map() 函数并将其保留为拥抱脸部数据集的迭代器而不将其加载到内存中？</title>
+      <link>https://stackoverflow.com/questions/78493588/how-to-apply-map-function-and-keep-it-as-an-iterator-for-a-hugging-face-datas</link>
+      <description><![CDATA[我目前正在使用 Hugging Face 数据集库，需要使用 .map() 函数对多个数据集（例如 ds_khan 和 ds_mathematica）应用转换，但以模仿流的方式（即，不加载整个数据集进入内存）。我特别感兴趣的是交错这些转换后的数据集，同时保持数据处理尽可能懒惰，类似于streaming=True。
+这是我当前代码的相关部分：
+从数据集导入 load_dataset, interleave_datasets
+
+def get_hf_khan_ds(path_2_ds: str, split: str = &#39;train&#39;):
+    path_2_ds = os.path.expanduser(path_2_ds)
+    数据集= load_dataset（&#39;json&#39;，data_files = [path_2_ds]，split = split，streaming = True）
+    Problem_as_text = lambda 示例：{&#39;text&#39;: example[&#39;problem&#39;]}
+    返回dataset.map（problem_as_text，remove_columns = dataset.column_names）
+
+def main():
+    ds_khan = get_hf_khan_ds(&#39;~/gold-ai-olympiad/data/amps/khan/train.jsonl&#39;)
+    ds_mathematica = get_hf_khan_ds(&#39;~/gold-ai-olympiad/data/amps/mathematica/train.jsonl&#39;)
+    interleaved_datasets = interleave_datasets([ds_khan, ds_mathematica], 概率=[0.5, 0.5])
+    对于 interleaved_datasets.take(10) 中的示例：
+        打印（样本）
+
+如果 __name__ == &#39;__main__&#39;:
+    主要的（）
+
+此设置旨在处理和交错数据集，而不将它们完全加载到内存中。但是，我不确定这种方法是否按照我的意图正确实现了流式计算和惰性求值。
+问题：
+
+此代码是否以流式或迭代器式方式正确应用转换？
+如果不是，我该如何修改它以确保每个数据集仅根据需要进行处理，而不预加载整个内容？
+是否有更有效的方法来交错这些数据集，同时保持流式传输方法？
+
+任何关于如何有效地使用 .map() 和 Streaming=True 来交错数据集的建议或见解将不胜感激（注意我确实在磁盘中有数据集，但最终我想使用 HF 数据集）。
+输出：
+ 表 = cls._concat_blocks(块, axis=0)
+地图：100%|█████████████████████████████████████████████ ████████████████████████████████████████| 103059/103059 [00:06&lt;00:00, 16218.25 个示例/秒]
+地图：100%|█████████████████████████████████████████████ ████████████████████████████████████████| 103059/103059 [00:07&lt;00:00, 13633.64 个示例/秒]
+地图：100%|█████████████████████████████████████████████ ████████████████████████████████████████| 103059/103059 [00:08&lt;00:00, 12444.64 个示例/秒]
+/lfs/ampere1/0/brando9/miniconda/envs/gold_ai_olympiad/lib/python3.11/site-packages/datasets/table.py:1421：FutureWarning：promote 已被 Promotion_options=&#39;default&#39; 取代。
+  表= cls._concat_blocks（块，轴= 0）
+下载数据文件：100%|███████████████████████████████████████████ █████████████████████████████████████████| 1/1 [00:00&lt;00:00, 3792.32it/s]
+提取数据文件：100%|███████████████████████████████████████████ ███████████████████████████████████████████| 1/1 [00:00&lt;00:00, 479.84it/s]
+生成训练分割：20 个示例 [00:00，3628.29 个示例/秒]
+地图：100%|█████████████████████████████████████████████ █████████████████████████████████████████████████| 20/20 [00:00&lt;00:00, 2792.11 示例/秒]
+地图：100%|█████████████████████████████████████████████ █████████████████████████████████████████████████| 20/20 [00:00&lt;00:00, 3525.66 示例/秒]
+地图：100%|█████████████████████████████████████████████ █████████████████████████████████████████████████| 20/20 [00:00&lt;00:00, 3415.97 示例/秒]
+/lfs/ampere1/0/brando9/miniconda/envs/gold_ai_olympiad/lib/python3.11/site-packages/datasets/table.py:1421：FutureWarning：promote 已被 Promotion_options=&#39;default&#39; 取代。
+  表= cls._concat_blocks（块，轴= 0）
+概率=[0.3333333333333333, 0.3333333333333333, 0.3333333333333333]
+/lfs/ampere1/0/brando9/miniconda/envs/gold_ai_olympiad/lib/python3.11/site-packages/datasets/table.py:1421：FutureWarning：promote 已被 Promotion_options=&#39;default&#39; 取代。
+  表= cls._concat_blocks（块，轴= 0）
+完毕！时间：50.09秒、0.83分钟、0.01小时
+
+我没想到输出会显示整个数据集......这让我很困惑。而且加载时间太长，这很糟糕。
+参考：https://discuss.huggingface.co/t/how-to-apply-map-function -and-keep-it-as-an-iterator-for-a-hugging-face-dataset-in-streaming-mode-without-loading-it-to-memroy/87110]]></description>
+      <guid>https://stackoverflow.com/questions/78493588/how-to-apply-map-function-and-keep-it-as-an-iterator-for-a-hugging-face-datas</guid>
+      <pubDate>Fri, 17 May 2024 05:14:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>我试图运行此命令！pip install tensorflow-gpu in google colab 出现错误</title>
+      <link>https://stackoverflow.com/questions/78493587/i-was-trying-to-run-this-command-pip-install-tensorflow-gpu-in-google-colab-to</link>
+      <description><![CDATA[收集tensorflow-gpu
+使用缓存的tensorflow-gpu-2.12.0.tar.gz (2.6 kB)
+错误：子进程退出并出现错误
+× python setup.py Egg_info 未成功运行。
+│ 退出代码：1
+╰─&gt;请参阅上面的输出。
+注意：此错误源自子进程，并且可能不是 pip 的问题。
+准备元数据（setup.py）...错误
+错误：元数据生成失败
+× 生成包元数据时遇到错误。
+╰─&gt;请参阅上面的输出。
+注意：这是上面提到的包的问题，​​而不是 pip 的问题。
+提示：详细信息请参见上文。现在该怎么办
+检查了blackbox ai，但没有帮助]]></description>
+      <guid>https://stackoverflow.com/questions/78493587/i-was-trying-to-run-this-command-pip-install-tensorflow-gpu-in-google-colab-to</guid>
+      <pubDate>Fri, 17 May 2024 05:14:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>UndefinedMetricWarning：精度定义不明确，在没有预测样本的标签中设置为 0.0。使用“zero_division”错误</title>
+      <link>https://stackoverflow.com/questions/78493410/undefinedmetricwarning-precision-is-ill-defined-and-being-set-to-0-0-in-labels</link>
+      <description><![CDATA[我正在 VS Code 上使用 Python 来开始使用 Wine Quality ML 进行训练。
+但我不断得到
+“UndefinedMetricWarning：精度定义不明确，在没有预测样本的标签中设置为 0.0。使用 zero_division 参数来控制此行为。”
+我的[准确率][召回率、fi-score] 一直显示为空白：
+ 精确召回率 f1-score 支持
+
+           3 0.00 0.00 0.00 4
+           4 1.00 0.06 0.11 17
+           5 0.69 0.69 0.69 231
+           6 0.57 0.62 0.60 226
+           7 0.38 0.42 0.40 50
+           8 0.00 0.00 0.00 5
+
+    准确度 0.60 533
+   宏观平均 0.44 0.30 0.30 533
+加权平均 0.61 0.60 0.59 533
+
+我已经设置了：
+mlp.fit(X_train, y_train)
+
+预测 = mlp.predict(X_test)
+打印（分类报告（y_test，预测，zero_division = 0））
+打印（预测，&#39;\n&#39;）
+
+我的代码中的其他所有内容似乎都正常工作：
+df = pd.read_csv(&#39;winequality-red.csv&#39;, sep =&#39;;&#39;)
+
+
+X = df.drop(&#39;质量&#39;, 轴 = 1)
+y = df[&#39;质量&#39;]
+
+X_train，X_test，y_train，y_test = train_test_split（X，y，test_size = 0.333，random_state = 0）
+X_训练，X_测试
+
+定标器=标准定标器()
+缩放器.fit(X_train)
+
+X_train = 缩放器.transform(X_train)
+X_test = 缩放器.transform(X_test)
+
+打印（df.head（））
+打印(df.describe().transpose())
+
+打印（X_train，&#39;\n&#39;）
+打印（X_test，&#39;\n&#39;）
+
+mlp = MLPClassifier(hidden_​​layer_sizes=(11, 11)，激活=&#39;逻辑&#39;，alpha=1e-06，batch_size=&#39;auto&#39;，beta_1=0.9，beta_2=0.999，early_stopping=False，epsilon=1e-08，learning_rate= &#39;自适应&#39;，
+                    Learning_rate_init=0.5，max_iter=10000，动量=0.4，n_iter_no_change=10，nesterovs_momentum=True，power_t=0.5，random_state=1，shuffle=True，solver=&#39;sgd&#39;，tol=1e-09，validation_fraction=0.1，
+                    详细=10，warm_start=False）
+
+mlp.fit(X_train, y_train)
+
+预测 = mlp.predict(X_test)
+打印（分类报告（y_test，预测，zero_division = 0））
+打印（预测，&#39;\n&#39;）
+
+打印（confusion_matrix（y_test，预测），&#39;\n&#39;）
+打印（分类报告（y_测试，预测））
+
+
+e = y_test - 预测
+e
+]]></description>
+      <guid>https://stackoverflow.com/questions/78493410/undefinedmetricwarning-precision-is-ill-defined-and-being-set-to-0-0-in-labels</guid>
+      <pubDate>Fri, 17 May 2024 03:59:52 GMT</pubDate>
+    </item>
     <item>
       <title>LSTM 或 Transformer 模型是否有可逆的实现？</title>
       <link>https://stackoverflow.com/questions/78493118/is-there-any-reversible-implementation-for-lstm-or-transformer-models</link>
@@ -130,7 +432,7 @@ numpy.core._exceptions._UFuncOutputCastingError：无法使用转换规则“sam
       <pubDate>Thu, 16 May 2024 23:00:43 GMT</pubDate>
     </item>
     <item>
-      <title>大矩阵和算法</title>
+      <title>大矩阵和算法[关闭]</title>
       <link>https://stackoverflow.com/questions/78492698/large-matrix-and-algorithm</link>
       <description><![CDATA[您能否编写一种算法，从包含卷积神经网络权重值的文件（csv 格式）中分离并保存矩阵的列，该文件有 20,000 行和 48,000 列？
 我想了好几天了，但我写不出这样的算法]]></description>
@@ -147,237 +449,11 @@ numpy.core._exceptions._UFuncOutputCastingError：无法使用转换规则“sam
       <pubDate>Thu, 16 May 2024 20:33:26 GMT</pubDate>
     </item>
     <item>
-      <title>具有 n 维卫星图像的多类 UNet</title>
-      <link>https://stackoverflow.com/questions/78491587/multiclass-unet-with-n-dimensional-satellite-images</link>
-      <description><![CDATA[我正在尝试使用 Pytorch 中的 UNet 从多维（8 波段）卫星图像中提取预测掩模。我无法让预测蒙版看起来有些预期/连贯。我不确定问题是否在于我的训练数据的格式化方式、我的训练代码或我用于进行预测的代码。我怀疑这是我的训练数据输入模型的方式。我有 8 个波段卫星图像和单波段掩码，其值范围为 0-n 个类别，其中 0 是背景，1-n 是目标标签，如下所示：
-
-在单通道示例的情况下，图像形状为 (8, 512, 512)，掩模形状为 (512, 512)，在 OHE 情况下为 (512, 512, 8)，而 (512, 512, 3) 在堆叠的情况下。
-有些蒙版可能包含所有类标签，有些可能只有几个或仅是背景标签。我尝试过使用这些单通道掩码，我还将它们转换为 3 通道掩码，第一个通道是给定图像的所有标签，并且我还尝试了对它们进行热编码，以便每个掩码都是 0- n 个维度，每个通道都有一个不同的标签，其中背景/目标为二进制 0-1。
-在每种情况下，无论我采用哪种方式格式化训练数据，训练结果最终要么是全黑、全白，要么是像这样的网格效果：
-
-是否有一种理想的方式来格式化这些数据以进行训练/预测，或者我是否做错了什么导致了这些错误的预测掩码？
-为了不发布数百行代码，以下是我用来尝试堆叠/OHE 掩码、训练和预测的一些通用片段：
-蒙版操作：
-将 numpy 导入为 np
-从 PIL 导入图像
-mask = np.array(Image.open(mask_path))
-如果堆栈：
-    Zeros = np.zeros((mask.shape[0], mask.shape[1]))
-    掩码 = np.transpose(np.array([掩码, 零, 零]), (1, 2, 0)).astype(np.uint8)
-如果一个热：
-    one_hot_mask = np.zeros((mask.shape[0], mask.shape[1], self.num_classes))
-    label_values = 列表(np.unique(mask))
-    对于范围内的 i(0, self.num_classes):
-        如果我不在 label_values 中：
-            one_hot_mask[:, :, i] = 0
-        别的：
-            如果堆栈：
-                one_hot_mask[:, :, i][掩码[:, :, 0] == i] = 1
-            别的：
-                one_hot_mask[:, :, i][掩码[:, :] == i] = 1
-
-火车
-导入火炬
-将 torch.nn 导入为 nn
-导入 torch.optim 作为 optim
-
-频段数 = 8
-num_classes = 8 # 碰巧该数据集具有与输入频段/通道相同数量的类，但情况并非总是如此
-纪元=5
-学习率 = 0.001
-权重衰减 = 0
-
-模型 = UNet(n_channels=num_bands, n_classes=num_classes).to(device)
-优化器= optim.Adam(model.parameters(),lr=learning_rate,weight_decay=weight_decay)
-loss_fn = nn.CrossEntropyLoss() 如果 num_classes &gt; 1 否则 nn.BCEWithLogitsLoss()
-
-device = torch.device(&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
-
-对于范围内的纪元（纪元）：
-    循环= tqdm（枚举（train_loader），总计= len（train_loader））
-    对于batch_idx，（数据，目标）循环：
-        数据 = data.float().to(设备)
-        目标 = Targets.long().to(设备)
-        预测=模型（数据）
-        损失= loss_fn（预测，目标）
-        优化器.zero_grad()
-        循环.set_postfix(loss=loss.item())
-    checkpoint_name = os.path.join(model_dir, f&quot;model_{epoch}.pt&quot;)
-    torch.save(model.state_dict(), checkpoint_name)
-
-预测
-将 numpy 导入为 np
-从 skimage 导入 io
-图像 = np.array(io.imread(image_path))
-
-张量 = ToTensor()(图像)
-batch_t = torch.unsqueeze(张量, 0).to(设备)
-preds = 模型(batch_t)
-softmax = torch.nn.Softmax(dim=1)
-preds = torch.argmax(softmax(model(preds)),axis=1).cpu()
-preds = np.array(preds[0,:,:])
-plt.imshow(preds, cmap=&#39;tab20&#39;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78491587/multiclass-unet-with-n-dimensional-satellite-images</guid>
-      <pubDate>Thu, 16 May 2024 17:28:46 GMT</pubDate>
-    </item>
-    <item>
       <title>TypeError“NoneType”对象不可下标</title>
       <link>https://stackoverflow.com/questions/78491414/typeerror-nonetype-object-is-not-subscriptable</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78491414/typeerror-nonetype-object-is-not-subscriptable</guid>
       <pubDate>Thu, 16 May 2024 16:44:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>有 0 张图像属于 0 个类别，我被卡住了</title>
-      <link>https://stackoverflow.com/questions/78490995/there-are-0-images-belonging-to-0-classes-and-im-stuck</link>
-      <description><![CDATA[我尝试使用 google Colab 让程序运行我的 google 驱动器中的图像，但它在 model.fit(train_generator, epochs=10,validation_data=test_generator) 处不断出现错误
-我尝试将批次大小调整为 10，并将所有图像大小调整为 100，我认为它会起作用，但它仍然给了我
-找到属于 0 个类别的 0 个图像。
-找到属于 0 个类别的 0 张图片。
-
-我将训练和测试图像放入两个单独的文件夹中，分别名为“training_data”和“testing_data”。
-!pip 安装tensorflow
-导入CV2
-从tensorflow.keras.preprocessing.image导入img_to_array
-将 numpy 导入为 np
-将张量流导入为 tf
-从tensorflow.keras.preprocessing.image导入ImageDataGenerator
-从tensorflow.keras.applications导入EfficientNetB0
-从tensorflow.keras.layers导入密集，GlobalAveragePooling2D
-从tensorflow.keras.models导入模型
-从sklearn.metrics导入confusion_matrix、accuracy_score、 precision_score、recall_score
-
-#上传图片
-def load_image(图像位置):
-    # 使用OpenCV加载图像
-    图像 = cv2.imread(图像位置)
-
-   #检查图片是否上传
-    如果图像为无：
-        print(“错误：找不到图像”，image_location)
-        返回无
-
-    resized_image= cv2.resize(图像, (100, 100))
-    image_array = img_to_array(调整大小的图像)
-
-    图像数组 /= 255.0
-
-    返回图像数组
-
-
-example_image_location = &#39;/content/drive/MyDrive/机器学习文件夹/training_data/LightGreen_Crayon_Testing.jpg&#39;
-
-# 加载并预处理示例图像
-示例图像 = 加载图像（示例图像位置）
-
-
-如果 example_image 不是 None：
-
-    # 收集/处理数据
-  train_dir = &#39;/content/drive/MyDrive/机器学习文件夹/training_data&#39;
-  test_dir = &#39;/content/drive/MyDrive/机器学习文件夹/testing_data&#39;
-
-  train_datagen = ImageDataGenerator（重新缩放=1。/ 255）
-  test_datagen = ImageDataGenerator（重新缩放=1。/ 255）
-
-  train_generator = train_datagen.flow_from_directory(train_dir, target_size=(100, 100), batch_size=10, class_mode=&#39;binary&#39;)
-
-  test_generator = test_datagen.flow_from_directory(test_dir, target_size=(100, 100), batch_size=10, class_mode=&#39;binary&#39;)
-
-    ＃ 建筑模型
-  base_model = EfficientNetB0(weights=&#39;imagenet&#39;, include_top=False)
-  x = 基础模型.输出
-  x = GlobalAveragePooling2D()(x)
-  x = 密集（1024，激活=&#39;relu&#39;）（x）
-  预测=密集（1，激活=&#39;sigmoid&#39;）（x）
-  模型 = 模型（输入=base_model.输入，输出=预测）
-
-  对于 base_model.layers 中的图层：
-    可训练层 = False
-    model.compile(optimizer=&#39;adam&#39;,loss=&#39;binary_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
-    model.fit（train_generator，epochs = 10，validation_data = test_generator）
-]]></description>
-      <guid>https://stackoverflow.com/questions/78490995/there-are-0-images-belonging-to-0-classes-and-im-stuck</guid>
-      <pubDate>Thu, 16 May 2024 15:27:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>我如何使变压器输出相对于特定上下文的翻译</title>
-      <link>https://stackoverflow.com/questions/78490608/how-can-i-make-a-transformer-output-a-translation-relative-to-a-specific-context</link>
-      <description><![CDATA[我正在做一个类似机器翻译的项目，其中我有一个具有编码器-解码器结构的转换器，它应该从自然语言命令生成 SQL 查询，例如：
-输入：计算 XYZ 公司生产的飞机数量
-输出：从飞机中选择 COUNT(*) 个，其中制造商=&#39;XYZ&#39;；
-现在我已经实现了我的目标，我的模型在大多数情况下都可以生成看起来不错的查询，但仍然有一个问题需要解决，那就是它可以生成的查询在语法上都是正确的，但它并没有解决问题属性/表名称，例如：
-输入：计算 XYZ 公司生产的飞机数量
-输出： SELECT COUNT(*) FROM 飞机，其中生产=&#39;XYZ&#39;;
-或者：
-输入：显示所有 40 岁以上的员工
-输出： SELECT * FROM员工，其中国家/地区&gt; 40；
-就像我说的，从语法上讲，查询没有错误，但它肯定无法在数据库本身上正确执行。
-我的模型是在 json 数据集上进行训练的，该数据集包含遵循以下形式的样本列表：
-&lt;前&gt;&lt;代码&gt;[
-  [
-    “计算 XYZ 公司生产的飞机数量”，
-    “从制造商 = &#39;XYZ&#39; 的飞机中选择 COUNT(*)；”
-  ],
-  [
-    “大西洋发现了多少海洋物种？”,
-    “SELECT COUNT(*) FROM Marine_species WHERE location = &#39;Atlantic Ocean&#39;;”
-  ]
-]
-
-尽管我发现一些数据集包含数据库架构作为一组 CREATE 查询，如下所示：
-{“指令”：“CREATE TABLE table_72445 (
-    “县”文本，
-    “人口”真实的，
-    “人均收入”文本，
-    “家庭收入中位数”文本，
-    “家庭收入中位数”文本
-）
--- 列出河滨家庭收入中位数”，
-“输出”：“选择\“家庭收入中位数” FROM table_72445 WHERE \“县\” =“河滨”}
-
-那么我是否可以利用这种数据集，以便为我的转换器提供它应该工作的数据库上下文，或者是否有其他方法来实现此任务目标？
-注意：我无法将之前的语料库作为一个整体作为我的输入，因为这会导致巨大的性能开销。想象一下，每次我想要执行时，都会定义包含数十个表的相同集合，因此这是别无选择。]]></description>
-      <guid>https://stackoverflow.com/questions/78490608/how-can-i-make-a-transformer-output-a-translation-relative-to-a-specific-context</guid>
-      <pubDate>Thu, 16 May 2024 14:25:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有数值列和数组列的机器学习输入，处理机器学习中的混合类型数据</title>
-      <link>https://stackoverflow.com/questions/78490240/machine-learning-input-with-numerical-columns-and-array-columns-handling-mixed</link>
-      <description><![CDATA[我正在开发一个机器学习项目，其中有一个数据集，其中包含数字列和包含数组的列的组合。数字列（例如平均值）包含单个值，而带有数组的列（例如梯度）每行可以包含可变数量的元素。
-处理此类输入的最佳实践是什么？我可以在机器学习模型中同时使用数字列和带有数组的列吗？如果是这样，在模型的预处理和训练阶段处理这种数据异构性的最常见策略是什么？
-如果有任何建议或资源可以帮助我更好地了解如何应对这一挑战，我将不胜感激。
-示例：
-模型输入：
-
-&lt;标题&gt;
-
-平均值
-渐变
-
-
-&lt;正文&gt;
-
-0.5
-[1,2,3,45,0.2]
-
-
-1
-[2,5,1.2,5,0]
-
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78490240/machine-learning-input-with-numerical-columns-and-array-columns-handling-mixed</guid>
-      <pubDate>Thu, 16 May 2024 13:28:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 NER 和 XLM-RoBERTa 进行信息提取</title>
-      <link>https://stackoverflow.com/questions/78488394/information-extraction-using-ner-with-xlm-roberta</link>
-      <description><![CDATA[我想询问有关从 PDF 文档中提取信息的问题。
-我将使用 XLM-RoBERTa 和 NER 来执行信息提取，并且我将使用来自以下来源的代码进行微调：https://towardsdatascience.com/named-entity-recognition-with-bert-in-pytorch-a454405e0b6a。从这个来源来看，它确实使用了 BERT，并且在我尝试之后，结果发现来自单词的预测实体与真实值不同。我很困惑是否需要从代码中更改某些内容，或者数据集是否有问题，因为我使用的数据集是自制的数据集。]]></description>
-      <guid>https://stackoverflow.com/questions/78488394/information-extraction-using-ner-with-xlm-roberta</guid>
-      <pubDate>Thu, 16 May 2024 08:03:25 GMT</pubDate>
     </item>
     <item>
       <title>使用 DeepSeekMath 7b 模型在 vllm 中进行无说明的断言</title>
@@ -435,7 +511,7 @@ jjvg = jax.jit(jvg).lower(pars).compile()
       <title>需要使用 Rand_forest 和 h2o 进行预测的指导</title>
       <link>https://stackoverflow.com/questions/78444040/need-guidance-on-predictions-with-rand-forest-and-h2o-with-r</link>
       <description><![CDATA[我有一个随机森林模型，我正在尝试更好地理解它。
-为了举例，假设我们有一片蓝莓灌木丛。我们感兴趣的是预测单个灌木丛中所有蓝莓的收获中特定灌木丛中腐烂蓝莓的产量。
+为了举例，假设我们有一片蓝莓灌木丛。我们感兴趣的是预测特定灌木丛中腐烂蓝莓的产量以及各个灌木丛中所有蓝莓的收获量。
 每个灌木都有一个识别名称：bush_name，例如&#39;bush001&#39;，我们希望根据每个单独的灌木进行预测。例如，我想知道 Bush025 是否在 2/2/22 生产了腐烂的浆果。
 为了本示例，输入位于具有以下虚拟结构的 df 中：
 train_data &lt;- data.frame(date = c(&quot;2022-01-01&quot;, &quot;2022-01-07&quot;, &quot;2022-02-09&quot;, &quot;2022-05&quot; -01”、“2022-11-01”、“2022-11-02”)、
@@ -474,7 +550,7 @@ model_fit &lt;- rand_forest(mtry = 10, trees = 100) %&gt;%
       <pubDate>Tue, 07 May 2024 16:58:00 GMT</pubDate>
     </item>
     <item>
-      <title>在 Ray Tune 上使用 GPU 或 CPU</title>
+      <title>在 Ray 调整上使用 GPU 或 CPU</title>
       <link>https://stackoverflow.com/questions/70208093/use-gpu-or-cpu-on-ray-tune</link>
       <description><![CDATA[我的机器上有 1 个 GPU 和 32 个 CPU。 Ray 中可以单独使用它们吗？例如，一个任务分配有 1 个 CPU，另一任务分配有 1 个 GPU？
 如果我使用
