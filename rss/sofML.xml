@@ -4,7 +4,131 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Fri, 17 May 2024 01:02:05 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 17 May 2024 03:16:08 GMT</lastBuildDate>
+    <item>
+      <title>LSTM 或 Transformer 模型是否有可逆的实现？</title>
+      <link>https://stackoverflow.com/questions/78493118/is-there-any-reversible-implementation-for-lstm-or-transformer-models</link>
+      <description><![CDATA[可以训练 LSTM 和转换器来注入数据流（例如键入的文本）并输出概率分数流，即序列到序列。
+这对于文体评分、仇恨语言检测等很有用。
+我想象用户通过基于 Web 的 GUI 与模型交互。
+如果使用后端模型（为了论证：LSTM）是为了在用户文本块旁边动态显示分数，那么在大多数情况下，键入的字符可以通过模型逐一输入-一。
+然而，现实世界的书写工具用户经常会出现拼写错误，从而在继续书写之前多次按退格键。这会破坏 seq2seq 模型的流程。可以想象，整个文本块需要再次通过模型输入，以达到先前点（用户“退格”到的点）出现的模型状态。
+或者，对于较小的模型，可以在每次按键时缓存模型的状态，但我认为这在大多数情况下是不可行的。
+我的问题是：有没有能够“倒带”状态的 seq2seq 模型？ IE。输入字符不是使用输入字符来确定下一个输出项，而是相反地到达，其预期目的是倒带存储单元的内部状态？这太好了，因为前一个示例中的退格键不会触发 LSTM 从最顶部传递整个文本。]]></description>
+      <guid>https://stackoverflow.com/questions/78493118/is-there-any-reversible-implementation-for-lstm-or-transformer-models</guid>
+      <pubDate>Fri, 17 May 2024 01:47:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 python 上从头开始实现 XGBoost</title>
+      <link>https://stackoverflow.com/questions/78492767/implementing-xgboost-from-scratch-on-python</link>
+      <description><![CDATA[我尝试编写自己的实现
+类 XGBoost_own(BaseEstimator, ClassifierMixin):
+    def __init__(自身，n_estimators=100，learning_rate=0.2，max_深度=3，
+                 损失=&#39;逻辑&#39;，reg_alpha=0，reg_lambda=1，random_state=0）：
+
+        self.n_estimators = n_estimators
+        self.最大深度 = 最大深度
+        自我学习率 = 学习率
+        自我损失=损失
+        self.reg_alpha = reg_alpha
+        self.reg_lambda = reg_lambda
+        self.初始化 = lambda y: np.mean(y) * np.ones([y.shape[0]])
+        self.loss_by_iter = []
+        self.trees_ = []
+        self.boosted_pred = 无
+        self.random_state = random_state
+
+    def _sigmoid（自我，预测）：
+        返回 1 / (1 + np.exp(-预测))
+
+    def _softmax(自我，预测)：
+        exp = np.exp(预测)
+        返回 exp / np.sum(exp, axis=1, keepdims=True)
+
+    def _compute_loss_gradient(自身, F, y):
+        如果 self.loss == &#39;逻辑&#39;：
+            返回 y - self._sigmoid(F)
+        别的：
+            raise ValueError(“不支持的损失函数”)
+
+    def _compute_regularization_penalty(自我):
+        如果 self.reg_alpha == 0:
+            返回0
+        elif self.reg_alpha &gt; &gt; elif self.reg_alpha &gt; 0 和 self.reg_lambda == 0：
+            返回 self.reg_alpha * np.sum(np.abs(tree.coef_))
+        elif self.reg_alpha == 0 且 self.reg_lambda &gt; 0:
+            返回 0.5 * self.reg_lambda * np.sum(tree.coef_ ** 2)
+        elif self.reg_alpha &gt; &gt; elif self.reg_alpha &gt; 0 和 self.reg_lambda &gt; 0:
+            返回 self.reg_alpha * np.sum(np.abs(tree.coef_)) + 0.5 * self.reg_lambda * np.sum(tree.coef_ ** 2)
+        别的：
+            raise ValueError(“正则化参数组合无效”)
+
+    def fit(自身, X, y):
+        自我.X = X
+        自我.y = y
+        self.boosted_pred = np.zeros_like(y)
+        F = 自我初始化(y)
+
+        对于范围内的 t(self.n_estimators)：
+            残差 = self._compute_loss_gradient(F, y)
+            树 = DecisionTreeRegressor(max_深度=self.max_深度, random_state=self.random_state)
+            tree.fit(X, 残差)
+            self.trees_.append(树)
+            更新 = self.learning_rate * tree.predict(X)
+            F+=更新
+            self.boosted_pred += 更新
+
+        返回自我
+
+    def Predict_proba(自身, X):
+        F = np.zeros(X.shape[0])
+        对于 self.trees_ 中的树：
+            F += self.learning_rate * tree.predict(X)
+        F = np.clip(F, -700, 700)
+        如果 self.loss == &#39;逻辑&#39;：
+            返回 self._sigmoid(F).reshape(-1, 1)
+        elif self.loss == &#39;softmax&#39;:
+            返回 self._softmax(F)
+        别的：
+            raise ValueError(“不支持的损失函数”)
+
+    def 预测（自身，X）：
+        概率 = self.predict_proba(X)
+        返回 np.argmax(proba, axis=1)
+
+    def get_params(self, deep=True):
+        返回 {
+            &#39;n_estimators&#39;: self.n_estimators,
+            &#39;学习率&#39;：自我学习率，
+            &#39;最大深度&#39;: self.最大深度,
+            &#39;损失&#39;：自我损失，
+            &#39;reg_alpha&#39;: self.reg_alpha,
+            &#39;reg_lambda&#39;: self.reg_lambda,
+            &#39;random_state&#39;: self.random_state,
+        }
+
+通过函数运行模型。也许我的实施不正确。我很困惑。另外，有人已经做到了，我很高兴看到 LightGBM、CatBoost、基于直方图的梯度提升的自写实现
+def hyperparameter_tuning(模型、param_grid、Xre_train、Yre_train、Xre_test、Yre_test、结果)：
+    对于 models.items() 中的名称、型号：
+        print(f“调整 {name} 的超参数...”)
+        param_grid_name = param_grid[名称]
+        grid_search = GridSearchCV(估计器=模型，param_grid=param_grid_name，评分=&#39;准确度&#39;，cv=5，n_jobs=-1)
+        grid_search.fit(Xre_train, Yre_train)
+        best_params = grid_search.best_params_
+        最佳模型 = grid_search.best_estimator_
+        Yre_pred = best_model.predict(Xre_test)
+        准确度=准确度_分数（Yre_test，Yre_pred）
+        精度 = precision_score(Yre_test, Yre_pred, 平均值=&#39;加权&#39;)
+        召回率=召回率（Yre_test，Yre_pred，平均值=&#39;加权&#39;）
+        f1 = f1_score(Yre_test, Yre_pred, 平均值=&#39;加权&#39;)
+        roc_auc = roc_auc_score(Yre_test, best_model.predict_proba(Xre_test), multi_class=&#39;ovr&#39;,average=&#39;加权&#39;)
+        混乱=混乱_矩阵（Yre_test，Yre_pred）
+
+我收到错误。多类分类的数据集
+numpy.core._exceptions._UFuncOutputCastingError：无法使用转换规则“same_kind”将 ufunc &#39;add&#39; 输出从 dtype(&#39;float64&#39;) 转换为 dtype(&#39;int32&#39;)]]></description>
+      <guid>https://stackoverflow.com/questions/78492767/implementing-xgboost-from-scratch-on-python</guid>
+      <pubDate>Thu, 16 May 2024 23:00:43 GMT</pubDate>
+    </item>
     <item>
       <title>大矩阵和算法</title>
       <link>https://stackoverflow.com/questions/78492698/large-matrix-and-algorithm</link>
@@ -14,7 +138,7 @@
       <pubDate>Thu, 16 May 2024 22:26:56 GMT</pubDate>
     </item>
     <item>
-      <title>如何利用机器学习算法来提高各个领域的预测准确性和效率？ [关闭]</title>
+      <title>如何利用机器学习算法来提高各个领域的预测准确性和效率？[关闭]</title>
       <link>https://stackoverflow.com/questions/78492345/how-can-machine-learning-algorithms-be-leveraged-to-improve-prediction-accuracy</link>
       <description><![CDATA[应用算法来改进预测
 尝试过：制作食物热量预测模型
@@ -23,32 +147,11 @@
       <pubDate>Thu, 16 May 2024 20:33:26 GMT</pubDate>
     </item>
     <item>
-      <title>基于概要的多标签电影类型分类器</title>
-      <link>https://stackoverflow.com/questions/78491754/multi-label-movie-genre-classifier-based-on-synopsis</link>
-      <description><![CDATA[我必须创建一个机器学习模型，可以根据电影的概要将电影分类为类型。该数据集包含大量示例和标记数据。流派输出变量很复杂，因为有 18 种不同的流派，但所有这些流派都可以组合起来以获得电影的“官方”流派。所以实际上总共有 1000 种不同的流派。我尝试用多标签分类来解决它。然而，最后，我需要根据每部电影的概率对类型进行排名，这很奇怪，因为它是多标签的，对吧？
-因此，性能也很差（12% 准确率），我需要达到 77%。我很好地处理了数据（删除了停用词、矢量化文本……），并使用了逻辑回归和一对一分类器。您对如何改进这一点有什么建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78491754/multi-label-movie-genre-classifier-based-on-synopsis</guid>
-      <pubDate>Thu, 16 May 2024 18:10:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 BERT 对连续数据流进行分类</title>
-      <link>https://stackoverflow.com/questions/78491661/categorising-continuous-data-streams-with-bert</link>
-      <description><![CDATA[我正在研究构建分类系统，该系统基本上将通过各种管道实时摄取连续的数据流，例如 Twitter 帖子和这些帖子中的评论，以文章形式来自网站源的数据。
-我希望系统将数据组织在主题和子主题中，例如：
-主题——笔记本电脑
-副主题——宏碁推出全新 XYZ 笔记本电脑
-我无意使用生成式人工智能来编写子主题，我更期待从数据源中形成句子，例如，如果宏碁推出 XYZ 笔记本电脑，那么所有 Twitter 帖子和文章都会包含类似的内容“宏碁透露/推出了等等”。
-我只需要一个从哪里开始的方向，因为我有点迷失如何实现它
-我什至从来没有超越过构建数据流。更不用说设置模型来进行分类了]]></description>
-      <guid>https://stackoverflow.com/questions/78491661/categorising-continuous-data-streams-with-bert</guid>
-      <pubDate>Thu, 16 May 2024 17:44:49 GMT</pubDate>
-    </item>
-    <item>
       <title>具有 n 维卫星图像的多类 UNet</title>
       <link>https://stackoverflow.com/questions/78491587/multiclass-unet-with-n-dimensional-satellite-images</link>
       <description><![CDATA[我正在尝试使用 Pytorch 中的 UNet 从多维（8 波段）卫星图像中提取预测掩模。我无法让预测蒙版看起来有些预期/连贯。我不确定问题是否在于我的训练数据的格式化方式、我的训练代码或我用于进行预测的代码。我怀疑这是我的训练数据输入模型的方式。我有 8 个波段卫星图像和单波段掩码，其值范围为 0-n 个类别，其中 0 是背景，1-n 是目标标签，如下所示：
 
-在单通道示例的情况下，图像形状为 (8, 512, 512)，掩模形状为 (512, 512)，在 OHE 情况下为 (512, 512, 8)，而 (512, 512, 3) 在堆叠箱中。
+在单通道示例的情况下，图像形状为 (8, 512, 512)，掩模形状为 (512, 512)，在 OHE 情况下为 (512, 512, 8)，而 (512, 512, 3) 在堆叠的情况下。
 有些蒙版可能包含所有类标签，有些可能只有几个或仅是背景标签。我尝试过使用这些单通道掩码，我还将它们转换为 3 通道掩码，第一个通道是给定图像的所有标签，并且我还尝试了对它们进行热编码，以便每个掩码都是 0- n 个维度，每个通道都有一个不同的标签，其中背景/目标为二进制 0-1。
 在每种情况下，无论我采用哪种方式格式化训练数据，训练结果最终要么是全黑、全白，要么是像这样的网格效果：
 
@@ -128,7 +231,7 @@ plt.imshow(preds, cmap=&#39;tab20&#39;)
     <item>
       <title>有 0 张图像属于 0 个类别，我被卡住了</title>
       <link>https://stackoverflow.com/questions/78490995/there-are-0-images-belonging-to-0-classes-and-im-stuck</link>
-      <description><![CDATA[我尝试让程序使用 google Colab 运行我的 google 驱动器中的图像，但它在 model.fit(train_generator, epochs=10,validation_data=test_generator) 处不断出现错误
+      <description><![CDATA[我尝试使用 google Colab 让程序运行我的 google 驱动器中的图像，但它在 model.fit(train_generator, epochs=10,validation_data=test_generator) 处不断出现错误
 我尝试将批次大小调整为 10，并将所有图像大小调整为 100，我认为它会起作用，但它仍然给了我
 找到属于 0 个类别的 0 个图像。
 找到属于 0 个类别的 0 张图片。
@@ -231,7 +334,7 @@ example_image_location = &#39;/content/drive/MyDrive/机器学习文件夹/train
     “家庭收入中位数”文本，
     “家庭收入中位数”文本
 ）
--- 列出河畔家庭收入中位数”，
+-- 列出河滨家庭收入中位数”，
 “输出”：“选择\“家庭收入中位数” FROM table_72445 WHERE \“县\” =“河滨”}
 
 那么我是否可以利用这种数据集，以便为我的转换器提供它应该工作的数据库上下文，或者是否有其他方法来实现此任务目标？
@@ -329,53 +432,60 @@ jjvg = jax.jit(jvg).lower(pars).compile()
       <pubDate>Wed, 15 May 2024 19:17:27 GMT</pubDate>
     </item>
     <item>
-      <title>在深度训练/验证循环期间使用分层 k 折叠时出现越界错误</title>
-      <link>https://stackoverflow.com/questions/78473057/out-of-bounds-error-when-using-stratified-k-fold-during-deep-train-validation-lo</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78473057/out-of-bounds-error-when-using-stratified-k-fold-during-deep-train-validation-lo</guid>
-      <pubDate>Mon, 13 May 2024 14:43:39 GMT</pubDate>
-    </item>
-    <item>
       <title>需要使用 Rand_forest 和 h2o 进行预测的指导</title>
       <link>https://stackoverflow.com/questions/78444040/need-guidance-on-predictions-with-rand-forest-and-h2o-with-r</link>
-      <description><![CDATA[我有一个随机森林模型，想更好地理解它。
-为了举例说明，假设我们有一片蓝莓灌木丛。我们感兴趣的是预测在单个灌木丛的所有蓝莓收获中，特定灌木丛上腐烂蓝莓的产量。
-每棵灌木丛都有一个标识名称：bush_name，例如&#39;bush001&#39;，我们希望根据每棵灌木丛进行预测。例如，我想知道 bush025 是否在 2/2/22 产下了腐烂的浆果。
-为了便于说明，输入位于具有以下虚拟结构的 df 中：
-train_data &lt;- data.frame(date = c(&quot;2022-01-01&quot;, &quot;2022-01-07&quot;, &quot;2022-02-09&quot;, &quot;2022-05-01&quot;, &quot;2022-11-01&quot;, &quot;2022-11-02&quot;),
-bush_name = c(&quot;bush001&quot;, &quot;bush001&quot;, &quot;bush043&quot;, &quot;bush043&quot;, &quot;bush043&quot;),
-bugs = c(2, 0, 1, 0, 3, 1),
-has_rotten_berry = c(1, 0, 0, 1, 1, 0),
-berry_count = c(12, 1, 7, 100, 14, 4),
-weather = c(1, 0, 2, 0, 1, 1))
+      <description><![CDATA[我有一个随机森林模型，我正在尝试更好地理解它。
+为了举例，假设我们有一片蓝莓灌木丛。我们感兴趣的是预测单个灌木丛中所有蓝莓的收获中特定灌木丛中腐烂蓝莓的产量。
+每个灌木都有一个识别名称：bush_name，例如&#39;bush001&#39;，我们希望根据每个单独的灌木进行预测。例如，我想知道 Bush025 是否在 2/2/22 生产了腐烂的浆果。
+为了本示例，输入位于具有以下虚拟结构的 df 中：
+train_data &lt;- data.frame(date = c(&quot;2022-01-01&quot;, &quot;2022-01-07&quot;, &quot;2022-02-09&quot;, &quot;2022-05&quot; -01”、“2022-11-01”、“2022-11-02”)、
+                   Bush_name = c(“bush001”、“bush001”、“bush001”、“bush043”、“bush043”、“bush043”),
+                   错误 = c(2, 0, 1, 0, 3, 1),
+                   有腐烂的浆果 = c(1, 0, 0, 1, 1, 0),
+                   浆果计数 = c(12, 1, 7, 100, 14, 4),
+                   天气 = c(1, 0, 2, 0, 1, 1))
 
-我有一个随机森林模型，我已设置了以下高级设置：
-library(agua)
-library(parsnip)
-library(h2o)
+我已经建立了一个随机森林模型，并进行了以下高级设置：
+库(agua)
+图书馆（防风草）
+图书馆（水）
 
-h2o.init(nthreads = -1)
+h2o.init(n线程 = -1)
 
 model_fit &lt;- rand_forest(mtry = 10, trees = 100) %&gt;%
-set_engine(&quot;h2o&quot;) %&gt;%
-set_mode(&quot;classification&quot;) %&gt;%
-fit(has_rotten_berry ~ .,
-data = train_data) %&gt;% 
-step_dummy(bush_name) %&gt;%
-step_zv(all_predictors()) %&gt;%
-step_normalize(all_predictors())
+  set_engine(“h2o”) %&gt;%
+  set_mode(“分类”) %&gt;%
+  适合（has_rotten_berry ~ .,
+      数据 = train_data) %&gt;%
+  step_dummy(灌木名称) %&gt;%
+  step_zv(all_predictors()) %&gt;%
+  step_normalize(all_predictors())
 
-我在训练后确实收到了这条消息：
+训练后我确实收到了这条消息：
 警告消息：
 在 .h2o.processResponseWarnings(res) 中：
-删除坏的和恒定的列：[bush_name]。
+  删除坏列和常量列：[bush_name]。
 
 我想知道的是：
-当我尝试在训练模型中预测新数据时，似乎我只能输入带有我已经训练过的灌木的 bush_names 的新测试数据。我是否正确地假设该模型正在创建特定于灌木的预测？因此，是否必须在训练中输入新的灌木信息才能输出这些新灌木的未来预测？
-例如：我种植了一种新灌木，bush700，它不存在于原始训练数据集中。如果我尝试使用新灌木数据进行预测，而训练数据中不存在该数据，则会给我一条消息，即数据中有新的级别。所以我假设这一点，因为这些预测似乎是针对灌木的，我们无法获得任何针对新添加灌木的新灌木预测。
+当我尝试预测训练模型中的新数据时，似乎我只能使用我已经训练过的灌木丛的 Bush_names 输入新的测试数据。 我假设该模型正在创建特定于灌木丛的预测是否正确？因此必须在训练中输入新的灌木丛信息才能输出这些新灌木丛的未来预测？
+示例：我种植了一棵新灌木，bush700，它不存在于原始训练数据集中。如果我尝试使用新的灌木丛数据进行预测，但训练数据中不存在该数据，则会向我传达一条消息：数据中存在新的级别。所以我假设因为这些预测似乎是特定于灌木丛的，并且我们无法为新添加的灌木丛获得任何新的灌木丛预测。
 这个假设正确吗？]]></description>
       <guid>https://stackoverflow.com/questions/78444040/need-guidance-on-predictions-with-rand-forest-and-h2o-with-r</guid>
       <pubDate>Tue, 07 May 2024 16:58:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 Ray Tune 上使用 GPU 或 CPU</title>
+      <link>https://stackoverflow.com/questions/70208093/use-gpu-or-cpu-on-ray-tune</link>
+      <description><![CDATA[我的机器上有 1 个 GPU 和 32 个 CPU。 Ray 中可以单独使用它们吗？例如，一个任务分配有 1 个 CPU，另一任务分配有 1 个 GPU？
+如果我使用
+ tune.run(trainer_fn,
+             样本数=32，
+             resources_per_Trial={“GPU”: 1, “CPU”: 1},
+             ...
+
+它只运行一列火车，因为只有一个 GPU 可用。我知道我可以使用 0.1 GPU 之类的东西来运行多个火车，但我无法知道哪个火车应该使用 CPU，哪个火车应该使用 GPU。]]></description>
+      <guid>https://stackoverflow.com/questions/70208093/use-gpu-or-cpu-on-ray-tune</guid>
+      <pubDate>Fri, 03 Dec 2021 00:28:07 GMT</pubDate>
     </item>
     </channel>
 </rss>
