@@ -4,37 +4,45 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Tue, 21 May 2024 21:13:52 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 22 May 2024 01:02:15 GMT</lastBuildDate>
+    <item>
+      <title>模型通过后的梯度检查点</title>
+      <link>https://stackoverflow.com/questions/78514889/gradient-checkpointing-after-model-passing</link>
+      <description><![CDATA[假设在默认设置中，我有两个 3d 张量作为输入，例如 batch_len x seq_len x ebb_size，我将其传递给类似模型，在输出上我再次有 2 个 3d 张量，然后我得到通过 einsum 计算 4d 张量，例如 torch.einsum(&#39;ijk, mnk -&gt; ijmn&#39;,first_tensor, secondary_tensor)，然后用最大值之和将其减少到 2d，获取分数并计算损失。问题是这个 4d 张量需要很多内存，而且我不能接受大批量大小，这就是为什么我想在 einsum 之前检查所有内容，然后计算第一个张量的前 k 批的 einsum，如 torch.einsum(&#39; ijk, mnk → ijmn,first_tensor[:k], secondary_tensor)，其中k ~first_tensor.shape[0] / 10，然后计算这些小张量的最大值之和，计算损失，从 GPU 内存中删除这个小的 4d 张量，对第二批第一个张量、第三批等进行相同的操作。最主要的是我想从 GPU 内存中删除所有 4d 张量。向后，我们将从检查点（模型传递的输出，但在 einsum 计算之前）向前推进并再次计算 4d 张量，但由于批处理，这个 4d 张量是一个小得多的张量，并且在每个批次中我们都会计算这个小的 4d 张量再次使用张量来计算梯度，然后再次将其从GPU内存中删除。在我看来，它运作良好。当然，由于检查点，它的运行速度较慢，但​​它使用的内存应该比具有大张量的默认 einsum 少得多。
+但是我很难在 PyTorch 中实现它。我想典型的 torch.checkpoint 在这里是不够的。有人可以帮助我理解如何以正确的方式实现它，而不是破坏渐变]]></description>
+      <guid>https://stackoverflow.com/questions/78514889/gradient-checkpointing-after-model-passing</guid>
+      <pubDate>Wed, 22 May 2024 00:41:43 GMT</pubDate>
+    </item>
     <item>
       <title>对数核和指数激活的非线性关系模型精度无法达到 100%</title>
       <link>https://stackoverflow.com/questions/78514097/model-accuracy-for-non-linear-relationship-with-logarithm-kernel-and-exponential</link>
-      <description><![CDATA[我正在开展一个项目，需要使用神经网络对非线性关系进行建模。关系为 ( y = 3x_1^2x_2^3 )。网络设置如下：
+      <description><![CDATA[我正在做一个项目，需要用神经网络来建立非线性关系模型。这个关系是 ( y = 3x_1^2x_2^3 )。网络设置如下：
 
 预处理：输入的自然对数
 网络设计：单层，一个神经元
 激活函数：指数
 损失函数：MAE（平均绝对误差）
 优化器： Adam
-纪元：50
-批量大小：32
+迭代次数： 50
+批次大小： 32
 
 输入和预期输出：
 
-输入：([x1, x2])
-正确权重：([2, 3])
-正确的偏差：(\ln 3)
+输入：（[x1, x2]）
+正确权重：（[2, 3]）
+正确偏差：（\ln 3）
 
-尽管有这些设置，我仍无法达到 100% 的准确度。我尝试过随机初始化权重和偏差以及使用特定值。
-这是代码：
-将 numpy 导入为 np
-将张量流导入为 tf
-从tensorflow.keras.models导入顺序
-从tensorflow.keras.layers导入Dense
-从tensorflow.keras.optimizers导入Adam
+尽管这些设置，我无法达到 100% 的准确度。我尝试过随机初始化权重和偏差以及使用特定值。
+代码如下：
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
 
 # 生成数据
-x1 = np.random.randint(1, 21, 大小=(1000, 1))
-x2 = np.random.randint(1, 21, 大小=(1000, 1))
+x1 = np.random.randint(1, 21, size=(1000, 1))
+x2 = np.random.randint(1, 21, size=(1000, 1))
 y = 3 * (x1 ** 2) * (x2 ** 3)
 
 # 预处理数据
@@ -43,23 +51,23 @@ log_x2 = np.log(x2)
 log_inputs = np.hstack((log_x1, log_x2))
 
 # 定义模型
-模型=顺序（）
-model.add（密集（1，input_dim = 2，激活=&#39;指数&#39;，kernel_initializer =&#39;ones&#39;，bias_initializer =&#39;zeros&#39;））
+model = Sequential()
+model.add(Dense(1, input_dim=2,activation=&#39;exponential&#39;, kernel_initializer=&#39;ones&#39;,bias_initializer=&#39;zeros&#39;))
 
 # 编译模型
-model.compile(优化器=Adam(learning_rate=0.01), loss=&#39;mae&#39;)
+model.compile(optimizer=Adam(learning_rate=0.01),loss=&#39;mae&#39;)
 
 # 训练模型
-model.fit（log_inputs，np.log（y），epochs = 50，batch_size = 32）
+model.fit(log_inputs, np.log(y),epochs=50,batch_size=32)
 
 # 评估模型
-test_x1 = np.array([[2], [4], [5]])
-test_x2 = np.array([[3], [7], [19]])
+test_x1 = np.array([[2],[4],[5]])
+test_x2 = np.array([[3],[7],[19]])
 test_inputs = np.hstack((np.log(test_x1), np.log(test_x2)))
-预测 = model.predict(test_inputs)
-print(np.exp(预测))
+predicted = model.predict(test_inputs)
+print(np.exp(predicted))
 
-有人对如何提高该模型的准确性有建议吗？]]></description>
+有人对如何提高这个模型的准确性有什么建议吗？]]></description>
       <guid>https://stackoverflow.com/questions/78514097/model-accuracy-for-non-linear-relationship-with-logarithm-kernel-and-exponential</guid>
       <pubDate>Tue, 21 May 2024 19:54:48 GMT</pubDate>
     </item>
@@ -124,17 +132,16 @@ print(np.exp(预测))
       <pubDate>Tue, 21 May 2024 18:43:13 GMT</pubDate>
     </item>
     <item>
-      <title>联合概率分布如何帮助生成事物？</title>
+      <title>联合概率分布如何帮助生成事物？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78513688/how-does-the-joint-probability-distribution-help-to-generate-things</link>
-      <description><![CDATA[我试图理解判别模型和生成模型之间的区别。堆栈溢出的有用答案之一在这里：生成算法和判别算法有什么区别？
+      <description><![CDATA[我试图理解判别模型和生成模型之间的区别。 Stack Overflow 上有用的答案之一在这里：生成算法和判别算法有什么区别？
 在最上面的答案中（请参阅上面的链接），有一个简单的示例，其中只有四个 (x,y) 形式的数据点。答案的作者说了以下内容：分布 p(y|x) 是将给定示例 x 分类为类 y 的自然分布code&gt;，这就是为什么直接建模的算法被称为判别算法。生成算法模型p(x,y)，可以应用贝叶斯规则将其转化为p(y|x)，然后用于分类。然而，分布p(x,y)也可以用于其他目的。例如，您可以使用p(x,y)生成可能的(x,y)对。
-我不太明白如何使用p(x,y)来生成可能的(x,y)对。有人可以帮助我给出使用联合概率分布p(x,y)生成的(x,y)对的具体示例吗？另外，有人还可以告诉我为什么条件概率分布p(y|x)不能用于生成新的对吗？非常感谢。
-我对此很困惑。请帮助我。]]></description>
+我不太明白如何使用p(x,y)来生成可能的(x,y)对。我有兴趣查看使用联合概率分布 p(x,y) 生成的 (x,y) 对的示例？另外，为什么条件概率分布p(y|x)不能用来生成新的对？]]></description>
       <guid>https://stackoverflow.com/questions/78513688/how-does-the-joint-probability-distribution-help-to-generate-things</guid>
       <pubDate>Tue, 21 May 2024 18:13:38 GMT</pubDate>
     </item>
     <item>
-      <title>Model.forecast() 不显示预测下一个日期的数据，而是预测训练数据中已有的日期的数据</title>
+      <title>Model.forecast() 并不预测下一个日期的数据，而是预测训练数据中已有的日期的数据</title>
       <link>https://stackoverflow.com/questions/78513216/model-forecast-is-not-showin-forecasting-the-data-for-the-next-date-rather-is</link>
       <description><![CDATA[Python 中的问题：model.forecast() 不显示下一个日期
 我在 Python 中遇到 model.forecast() 函数的问题。具体来说，它不显示下一个日期，即我用来训练的 y_train 的最后一天的第二天。详细信息如下：
@@ -223,14 +230,14 @@ def main():
       <pubDate>Tue, 21 May 2024 15:30:51 GMT</pubDate>
     </item>
     <item>
-      <title>如何从 Hugging 脸上的 Mbart 微调模型中获取 GGUF 文件？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78511521/how-do-you-get-the-gguf-file-from-a-mbart-fine-tuned-model-on-hugging-face</link>
-      <description><![CDATA[我已经对 Mbart 进行了微调，使其根据英文新闻生成印地语内容，它运行良好，但我想要它的 gguf 文件，我尝试了各种方法，但似乎都没有用。]]></description>
-      <guid>https://stackoverflow.com/questions/78511521/how-do-you-get-the-gguf-file-from-a-mbart-fine-tuned-model-on-hugging-face</guid>
-      <pubDate>Tue, 21 May 2024 11:22:27 GMT</pubDate>
+      <title>是否可以使用 RTX 4090 训练 Mask RCNN？</title>
+      <link>https://stackoverflow.com/questions/78511541/is-it-possible-to-train-mask-rcnn-with-a-rtx-4090</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78511541/is-it-possible-to-train-mask-rcnn-with-a-rtx-4090</guid>
+      <pubDate>Tue, 21 May 2024 11:27:34 GMT</pubDate>
     </item>
     <item>
-      <title>DecisionTreeRegressor 算法如何工作？[关闭]</title>
+      <title>DecisionTreeRegressor 算法如何工作？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78510567/how-does-the-decisiontreeregressor-algorithm-work</link>
       <description><![CDATA[我是人工智能新手，老实说，我不明白决策树回归算法为何有效。
 我尝试研究其背后的算法，但找不到令我满意的答案。
@@ -373,7 +380,7 @@ max_batches = 6000 # 类数 * 2000
     <item>
       <title>使用 Devnagri 字体（gargi.ttf）的词云中的印地语重音（“数量”）问题</title>
       <link>https://stackoverflow.com/questions/73877676/hindi-accent%e0%a4%ae%e0%a4%be%e0%a4%a4%e0%a5%8d%e0%a4%b0%e0%a4%be-issue-in-word-cloud-using-devnagri-fontgargi-ttf</link>
-      <description><![CDATA[我正在为一个项目处理印地语数据集，并对数据进行预处理，并为其创建词云。我用过“gargi”字体在词云上绘制印地语单词，我面临着口音问题（“ि मात्रा”）。在词云中，这个重音位于它应该出现的字母旁边，例如，पुलिस 是 पुलसि。 （请参阅附件，其中单词 किसान 的重音符号（मात्रा）位于同一个字母（वर्ण）上）。
+      <description><![CDATA[我正在为一个项目处理印地语数据集，并对数据进行了预处理，为此创建了一个词云。我使用“gargi”字体在词云上绘制印地语单词，我遇到了重音问题（“ि मात्रा”）。在词云中，这个重音出现在它应该出现的字母旁边，例如，पुलिस 出现为 पुलसि。（请参考附件，其中单词 किसान 的重音（मात्रा）位于同一字母（वर्ण）上）。
 
 此词云中还有其他几个词反映了类似的问题。我也尝试过使用不同的字体，例如“lohit-devnagri”、“samyak-devnagri”。
 font = “gargi.ttf”
@@ -381,17 +388,16 @@ font = “gargi.ttf”
 图，轴 = plt.subplots(2,2,figsize=(16,10))
 图.tight_layout(pad=5.0)
 
-wordcloud_kisaan = WordCloud(宽度 = 1000, 高度 = 700,
-                背景颜色=&#39;白色&#39;,
-                min_font_size = 10, font_path= font).generate_from_frequencies(counter_kisaan)
+wordcloud_kisaan = WordCloud(width = 1000, height = 700,
+background_color =&#39;white&#39;,
+min_font_size = 10, font_path= font).generate_from_frequencies(counter_kisaan)
 
-axis[0][0].imshow(wordcloud_kisaan,插值=“双线性”)
-轴[0][0].轴(&#39;关闭&#39;)
+axis[0][0].imshow(wordcloud_kisaan,interpolation=&quot;bilinear&quot;)
+axis[0][0].axis(&#39;off&#39;)
 axis[0][0].set_title(&#39;Kisaan Andolan&#39;, fontsize=22)
- 
-plt.axis(“关闭”)
-plt.tight_layout(pad = 5.0)
 
+plt.axis(&quot;off&quot;)
+plt.tight_layout(pad = 5.0)
 
 plt.show()
 ]]></description>
@@ -446,46 +452,6 @@ https://discuss.pytorch.org/t/how-to-use-have-batch-norm-not-forget-batch-statis
 ]]></description>
       <guid>https://stackoverflow.com/questions/64920715/how-to-use-have-batch-norm-not-forget-batch-statistics-it-just-used-in-pytorch</guid>
       <pubDate>Thu, 19 Nov 2020 22:05:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>k-mean python 图像分离</title>
-      <link>https://stackoverflow.com/questions/51245877/image-segregation-by-k-mean-python</link>
-      <description><![CDATA[我是机器学习的新手，我正在学习用于图像分离的 k 均值，但我无法理解它的代码：
-from matplotlib.image import imread
-image = imread(os.path.join(&quot;images&quot;,&quot;unsupervised_learning&quot;,&quot;ladybug.png&quot;))
-图像.形状
-X = 图像.reshape(-1, 3)
-kmeans = KMeans(n_clusters=8, random_state=42).fit(X)
-segmented_img = kmeans.cluster_centers_[kmeans.labels_]
-Segmented_img = Segmented_img.reshape(image.shape)
-分段的imgs = []
-n_颜色 = (10, 8, 6, 4, 2)
-对于 n_colors 中的 n_clusters：
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42).fit(X)
-    segmented_img = kmeans.cluster_centers_[kmeans.labels_]
-    segmented_imgs.append(segmented_img.reshape(image.shape))
-plt.figure(figsize=(10,5))
-plt.subplots_调整（wspace = 0.05，hspace = 0.1）
-plt.子图(231)
-plt.imshow(图像)
-plt.title(&quot;原图&quot;)
-plt.axis(&#39;关闭&#39;)
-对于 idx，枚举中的 n_clusters(n_colors)：
-   plt.子图（232 + idx）
-   plt.imshow(segmented_imgs[idx])
-   plt.title(&quot;{} 颜色&quot;.format(n_clusters))
-   plt.axis(&#39;关闭&#39;)
-plt.show()
-
-使用的图像：
-
-输出图
-
-特别是，这段代码的含义
-segmented_img = kmeans.cluster_centers_[kmeans.labels_]
-]]></description>
-      <guid>https://stackoverflow.com/questions/51245877/image-segregation-by-k-mean-python</guid>
-      <pubDate>Mon, 09 Jul 2018 12:42:30 GMT</pubDate>
     </item>
     </channel>
 </rss>
