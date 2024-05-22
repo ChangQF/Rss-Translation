@@ -3,8 +3,71 @@
   <channel>
     <title>学习机器学习</title>
     <link>https://www.reddit.com/r/learnmachinelearning/</link>
-    <description>一个致力于学习机器学习的 subreddit</description>
-    <lastBuildDate>Wed, 22 May 2024 03:17:18 GMT</lastBuildDate>
+    <description>致力于学习机器学习的 Reddit 子版块</description>
+    <lastBuildDate>Wed, 22 May 2024 06:20:05 GMT</lastBuildDate>
+    <item>
+      <title>请教如何融合特征向量</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxtham/ask_about_how_to_fuse_feature_vector/</link>
+      <description><![CDATA[目前，我正在处理图像分类问题。我使用 2 种提取方法：HOG 和面部地标。我的想法是使用 HOG 来查找图像的梯度大小和方向，并使用面部标志来查找面部关键点。我想我可以融合两种方法来制作更好的功能。但新特征比 HOG 差，比面部特征点好（评估相同模型）。我有一些问题： 1.我想知道如何融合这两种方法，其中 HOG 归一化之前和面部标志返回 68x2 对点整数。 2.如果可以，我应该在熔断之前进行归一化或其他处理吗？我可以尝试融合哪种方法（连接、加法、乘法……）？   由   提交/u/Civil_Statement_9331   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxtham/ask_about_how_to_fuse_feature_vector/</guid>
+      <pubDate>Wed, 22 May 2024 06:17:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何开始微调法学硕士</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxtfv0/how_to_begin_at_fine_tuning_llms/</link>
+      <description><![CDATA[大家好。这是我的第一篇 Reddit 帖子，所以如果我使用了错误的格式，请原谅。 我想了解微调 LLM，例如 LLama-2、Gemma 模型、Llama-3。我已经阅读了大量 Medium 文章，并接触过许多新主题，例如 LoRA、QLoRA、PEFT 等。我已尽力理解它们。但是在按照 Medium 文章实现代码时，我有时会遇到许多未经解释就初始化的参数，这有时令人不知所措。我也接触过 Unsloth。我想知道我可以从哪里开始。我是否应该从了解如何使用 PyTorch 和 Transformers 库微调小型模型（例如 BERT、T5 等）开始？如果您愿意提供一些路线图，那将非常有帮助。感谢您的时间。 我附上了一个我难以理解的代码示例。如何知道应该使用哪些参数，哪些不应该使用？ model_name = &quot;NousResearch/Llama-2-7b-chat-hf&quot; dataset_name = &quot;mlabonne/guanaco-llama2-1k&quot; new_model = &quot;Llama-2-7b-chat-finetune&quot; # QLoRA 参数 lora_r = 64 lora_alpha = 16 lora_dropout = 0.1 #bitsandbytes 参数 #激活 4 位精度基础模型加载 use_4​​bit = True #计算 4 位基础模型的 dtype bnb_4bit_compute_dtype = &quot;float16&quot; #量化类型 fp4 或 nf4 bnb_4bit_quant_type = &quot;nf4&quot; #为 4 位基础模型激活嵌套量化 use_nested_quant = False #训练参数 #输出目录 output_dir = &quot;./results&quot; #训练周期数 num_train_epochs = 1 fp16 = False bf16 = False per_device_train_batch_size = 4 per_device_eval_batch_size = 4 gradient_accumulation_steps = 1 gradient_checkpointing = True max_grad_norm = 0.3 learning_rate = 2e-4 weight_decay = 0.001 optim = &quot;paged_adamw_32bit&quot; lr_scheduler_type = &quot;cosine&quot; max_steps = -1 warmup_ratio = 0.03 group_by_length = True save_steps = 0 logs_steps = 25 # SFT 参数 # 要使用的最大序列长度 max_seq_length = None # 在同一个输入序列中打包多个简短示例以提高效率packing = False # 在 GPU 上加载整个模型 0 device_map = {&quot;&quot;: 0} # 加载数据集（您可以在此处处理） dataset = load_dataset(dataset_name, split=&quot;train&quot;) # 使用 QLoRA 配置加载 tokenizer 和模型 compute_dtype = getattr(torch, bnb_4bit_compute_dtype) bnb_config = BitsAndBytesConfig( load_in_4bit=use_4​​bit, bnb_4bit_quant_type=bnb_4bit_quant_type, bnb_4bit_compute_dtype=compute_dtype, bnb_4bit_use_double_quant=use_nested_quant, ) # 检查 GPU 与 bfloat16 的兼容性 if compute_dtype == torch.float16 and use_4​​bit: major, _ = torch.cuda.get_device_capability() if major &gt;= 8: print(&quot;=&quot; * 80) print(&quot;您的 GPU 支持 bfloat16：使用 bf16=True 加速训练&quot;) print(&quot;=&quot; * 80) # 加载基础模型 model = AutoModelForCausalLM.from_pretrained( model_name, quantization_config=bnb_config, device_map=device_map ) model.config.use_cache = False model.config.pretraining_tp = 1 # 加载 LLaMA 分词器 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True) tokenizer.pad_token = tokenizer.eos_token tokenizer.padding_side = &quot;right&quot; # 修复 fp16 训练的奇怪溢出问题 # 加载 LoRA 配置 peft_config = LoraConfig( lora_alpha=lora_alpha, lora_dropout=lora_dropout, r=lora_r, bias=&quot;none&quot;, task_type=&quot;CAUSAL_LM&quot;, ) # 设置训练参数 training_arguments = TrainingArguments( output_dir=output_dir, num_train_epochs=num_train_epochs, per_device_train_batch_size=per_device_train_batch_size, gradient_accumulation_steps=gradient_accumulation_steps, optim=optim, save_steps=save_steps, logs_steps=logging_steps, learning_rate=learning_rate, weight_decay=weight_decay, fp16=fp16, bf16=bf16, max_grad_norm=max_grad_norm, max_steps=max_steps, warmup_ratio=warmup_ratio, group_by_length=group_by_length, lr_scheduler_type=lr_scheduler_type, report_to=&quot;tensorboard&quot; ) # 设置监督微调参数 trainer = SFTTrainer( model=model, train_dataset=dataset, peft_config=peft_config, dataset_text_field=&quot;text&quot;, max_seq_length=max_seq_length, tokenizer=tokenizer, args=training_arguments,packing=packing, ) # 训练模型 trainer.train()     submitted by    /u/Straight-Ad-6389   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxtfv0/how_to_begin_at_fine_tuning_llms/</guid>
+      <pubDate>Wed, 22 May 2024 06:14:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>数据科学需要多少统计数据？免费资源</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxsqjw/how_much_statistics_is_needed_for_data_science/</link>
+      <description><![CDATA[   /u/Aqsa81  [链接] [评论] &lt; /表&gt;]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxsqjw/how_much_statistics_is_needed_for_data_science/</guid>
+      <pubDate>Wed, 22 May 2024 05:28:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>一些RNN问题</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxsh3e/some_rnn_questions/</link>
+      <description><![CDATA[据我所知，对于 RNN 如果我们有一个句子，我们首先获得每个句子的输入嵌入单词是一个向量。 对于所有这些，隐藏状态向量的大小与输入嵌入的大小相同。  有一个 RNN 单元将循环遍历以下输入嵌入：output,hidden_​​state = f(input_embedding,hidden_​​state) 但是有一些我不确定的细节&lt; /p&gt; 1a.输出是否只是一个包含最新隐藏状态以及所有先前隐藏状态的向量，并且最后一个单词的输出被填充并发送到前馈神经网络以进行预测？ 1b。输出是否只是下一个单词预测（以向量的形式），并且它是通过将先前的隐藏状态向量乘以唯一的权重矩阵并将结果经过 tanh 生成的？ 2a。新的隐藏状态是通过将旧的隐藏状态与最新的输入连接起来，将该新向量乘以权重矩阵，然后将结果通过 tanh 生成的吗？ 2b。新的隐藏状态是通过将旧隐藏状态乘以权重矩阵，将最新输入乘以不同的权重矩阵，将两个结果相加，最后将结果通过 tanh 生成的吗？ 我个人是倾向1a。和 2b。   由   提交/u/Less_Ad7537   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxsh3e/some_rnn_questions/</guid>
+      <pubDate>Wed, 22 May 2024 05:11:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>转型为应用人工智能工程师</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxsfca/transitioning_to_applied_ai_engineer/</link>
+      <description><![CDATA[我是印度的一名全栈 Web 开发人员，拥有大约 4 年的经验，一直致力于 Web 技术和分布式系统。我正在寻求转向人工智能领域。我在大学里学过一些机器学习基础课程，并且还在这个领域做过暑期研究实习。为了加深我对此的理解，我最近使用开源预训练模型和公开可用的数据集完成了一个小项目。我的目标是成为一名应用人工智能工程师，加入美国这一领域的顶尖企业行列，但目前还不清楚如何实现这一目标。我应该考虑在美国大学攻读人工智能/机器学习硕士学位，还是继续构建小型个人项目并为开源项目做出贡献，直到我的作品集适合该领域的工作？   由   提交/u/Brainfreeze181  [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxsfca/transitioning_to_applied_ai_engineer/</guid>
+      <pubDate>Wed, 22 May 2024 05:08:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>在手写识别模型上运行推理 (keras/tensorflow)</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxs51q/running_inferences_on_a_handwriting_recognition/</link>
+      <description><![CDATA[你好，我一直想学习一些机器学习，我发现了这个参考笔记本，它基本上使用 CNN/RNN 和 CTC 损失实现了手写 OCR 模型。 https://keras.io/examples/vision/handwriting_recognition/#evaluation-metric 上面是该笔记本的链接，我的主要问题是我无法用它对我自己的图像进行推理。就像数据集本身以外的图像一样。在运行预测之前首先预处理图像时似乎存在一些问题，并且我不断遇到一些错误。 from PIL import Image image_path = &#39;/content/drive/MyDrive/ stuff/test.png&#39; image = Image.open(image_path).convert(&#39;L&#39;) pred = model2.predict(preprocessed_image) pred_texts =decode_batch_predictions(pred) # 显示结果 plt.figure(figsize=(8, 8) ) plt.imshow(image, cmap=&#39;gray&#39;) plt.title(f&#39;Prediction: {pred_texts[0]}&#39;) # 为简单起见，仅假设一个预测 plt.axis(&#39;off&#39;) plt.show() &lt; /code&gt; 我基本上首先尝试运行这个，但似乎我需要先对图像进行一些预处理，任何人都可以帮助我吗？非常感谢！   由   提交 /u/Saumyax   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxs51q/running_inferences_on_a_handwriting_recognition/</guid>
+      <pubDate>Wed, 22 May 2024 04:50:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>您推荐哪些学习深度学习的课程？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxrreh/what_courses_do_you_recommend_for_learning_deep/</link>
+      <description><![CDATA[涵盖理论和实践方面的课程。除了我应该从事哪些项目来整合信息。我有点不知所措，不知道该如何开始？！   由   提交 /u/Some_Fail4188   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxrreh/what_courses_do_you_recommend_for_learning_deep/</guid>
+      <pubDate>Wed, 22 May 2024 04:28:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何学习机器学习？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxrpm6/how_to_learn_machine_learning/</link>
+      <description><![CDATA[我是计算机科学专业三年级学生，拥有 Python 和 DSA 经验。我想在 2025 年找到一份实习机会。我的数学非常好，而且我想学习机器学习。我需要一份包含资源的路线图。    由   提交 /u/Miserable-Love6576    reddit.com/r/learnmachinelearning/comments/1cxrpm6/how_to_learn_machine_learning/&quot;&gt;[链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxrpm6/how_to_learn_machine_learning/</guid>
+      <pubDate>Wed, 22 May 2024 04:25:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>在我大学的大数据和人工智能实验室获得了研究助理职位</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxrgon/got_a_research_assisstant_position_at_my_unis_big/</link>
+      <description><![CDATA[您好， 我从未发表过论文，我是一名刚开始的硕士生，而且我从未（在今天之前）访问过或者知道研究实验室里发生了什么。面试的主题是学习、参与任何即将进行的项目。我将成为我实验室的第一个也是唯一一个硕士（其他都是未毕业的人，因为它是一个新部门）所以我想象会得到很多帮助和一起学习。但除此之外，您对新手研究员还有什么建议吗？  谢谢。   由   提交 /u/Bobsthejob   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxrgon/got_a_research_assisstant_position_at_my_unis_big/</guid>
+      <pubDate>Wed, 22 May 2024 04:10:03 GMT</pubDate>
+    </item>
     <item>
       <title>你有扑克</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxpsv1/ai_poker/</link>
@@ -15,7 +78,7 @@
     <item>
       <title>Autogen Studio：无需代码即可构建多代理编排用例</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxps8f/autogen_studio_building_multiagent_orchestration/</link>
-      <description><![CDATA[Autogen studio 为 Autogen 框架启用 UI，如果您不喜欢编程，它看起来是一个很酷的选择。本教程介绍了 studio 版本的不同组件，以及如何通过一个简短的运行示例来设置它们，以及如何使用 LiteLLM 为 Ollama 的tinllama 模型创建代理服务器 https://youtu.be/rPCdtbA3aLw?si=c4zxYRbv6AGmPX2y   由   提交/u/mehul_gupta1997   [链接] [评论]]]></description>
+      <description><![CDATA[Autogen studio 为 Autogen 框架启用 UI，如果您不喜欢编程，它看起来是一个很酷的选择。本教程解释了 studio 版本的不同组件以及如何通过使用 LiteLLM 为 Ollama 的 tinyllama 模型创建代理服务器来设置它们以及使用简短的运行示例 https://youtu.be/rPCdtbA3aLw?si=c4zxYRbv6AGmPX2y    提交人    /u/mehul_gupta1997   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxps8f/autogen_studio_building_multiagent_orchestration/</guid>
       <pubDate>Wed, 22 May 2024 02:37:31 GMT</pubDate>
     </item>
@@ -27,25 +90,11 @@
       <pubDate>Wed, 22 May 2024 02:06:39 GMT</pubDate>
     </item>
     <item>
-      <title>实时物体检测模型</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxow5n/realtime_object_detection_models/</link>
-      <description><![CDATA[您好，我有兴趣了解可以实时执行的对象检测模型。是否有人有他们推荐查看的模型或提供模型列表的资源。谢谢！   由   提交/u/originalusername000   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxow5n/realtime_object_detection_models/</guid>
-      <pubDate>Wed, 22 May 2024 01:51:04 GMT</pubDate>
-    </item>
-    <item>
       <title>是什么导致我的模型过度拟合？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxl8js/what_is_causing_overfitting_in_my_model/</link>
       <description><![CDATA[      im 训练和 lstm 模型，我的模型似乎并没有避免过度拟合，我尝试了不同的技术 dropout批量和层归一化，将学习率从 0.01 更改为 0.00001，改变批量大小，任何想法 ​ ​ https://preview.redd.it/ax090k5kzu1d1.png?width= 1152&amp;format=png&amp;auto=webp&amp;s=c3e0497b29bfae107e041c6236f1779694e198a2 model = Sequential() model.add(LSTM(50, return_sequences=True, input_shape= (12, 9),activation=&#39;线性&#39;)) model.add(Dropout(0.8)) model.add(BatchNormalization()) model.add(LSTM(50, return_sequences=False,activation=&#39;线性&#39;)) model.add(Dropout(0.8)) model.add(BatchNormalization() ） model.add(Dense(1)) model.compile(optimizer=Adam(learning_rate=0.00001), loss=&#39;mean_squared_error&#39;)  ​ # 训练模型 history = model.fit(X2_train, y2_train, epochs =150，batch_size=16，validation_split=0.4，verbose=1) ​ # 从历史记录中提取训练和验证损失和准确性  train_loss = History.history[&#39;loss&#39;] val_loss = History.history[&#39;val_loss&#39;] epochs = range(1, len(train_loss) + 1) ​ 导入 matplotlib.pyplot as plt from sklearn.metrics importmean_squared_error # 绘制训练和验证损失 &gt; plt.plot(epochs[2:], train_loss[2:], &#39;b&#39;, label=&#39;训练损失&#39;) plt.plot(epochs[2:], val_loss[ 2:], &#39;r&#39;, label=&#39;验证损失&#39;) plt.title(&#39;训练和验证损失&#39;) plt.xlabel(&#39;Epochs&#39;) plt.ylabel(&#39;损失&#39;) plt.legend() plt.show&lt; /a&gt;()   由   提交/u/Significant-Tear-915   [链接] [评论] &lt; /表&gt;]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxl8js/what_is_causing_overfitting_in_my_model/</guid>
       <pubDate>Tue, 21 May 2024 22:50:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习项目/研究</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxjg1m/ml_projectsresearch/</link>
-      <description><![CDATA[大家好。我的机器学习之旅正处于十字路口，我想知道是否有人可以帮助我。我喜欢机器学习，但我也非常喜欢它背后的数学。一开始，机器学习真的很有趣，但现在我没那么感兴趣了，因为很多时候使用高级库时构建新模型感觉很重复。我从头开始构建了几种类型的网络，并且非常喜欢它。你们对我如何进一步将数学与机器学习相结合以及是否有可能在本科生期间参与研究有什么建议吗？任何很酷的项目也将不胜感激。非常感谢    由   提交/u/tempperson23  [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxjg1m/ml_projectsresearch/</guid>
-      <pubDate>Tue, 21 May 2024 21:33:09 GMT</pubDate>
     </item>
     <item>
       <title>夏天要做的机器学习事情</title>
@@ -55,60 +104,11 @@
       <pubDate>Tue, 21 May 2024 21:27:54 GMT</pubDate>
     </item>
     <item>
-      <title>人工智能代理的学习和贡献</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxfmqk/learning_and_contributing_in_ai_agents/</link>
-      <description><![CDATA[我发现由法学硕士支持的人工智能代理是一个非常有趣的话题！我想知道是否有人可以告诉我理解和贡献它所需的理论和实践背景是什么？考虑到我精通基础 NLP、RNN、LSTM 和 Transformer（仅限 SLM）等深度学习技术以及基本 RAG 管道。 此外，我还想在与 ML 相关的开源项目中工作/做出贡献我也想知道您知道哪些项目？请不要犹豫分享您的项目:)。    由   提交/u/Working_Resident2069   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxfmqk/learning_and_contributing_in_ai_agents/</guid>
-      <pubDate>Tue, 21 May 2024 18:55:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>我是否正确理解了机器学习中频率论方法和贝叶斯方法之间的区别？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxfea3/have_i_understood_the_difference_between/</link>
-      <description><![CDATA[正如上面的问题所述，我想看看我是否正确理解了机器学习中的频率论方法和贝叶斯方法之间的区别。我将使用简单的术语来解释我目前的理解，如果我在某些地方错了，请随时纠正我。 频率主义方法： 我们给出了一些具有某些特征的数据。然后我们使用优化过程来找到特定机器学习模型的最佳超参数。一旦我们找到了最佳的超参数，我们就会使用它们来“运行推理”。其他以前未见过的数据样本。我们可以为不同的机器学习模型（比如 SVM、CNN 等）搜索最佳的超参数，但最终我们选择一个（我也将集成算作一种模型）。我的意思是，我们基本上只有一个假设和一组从数据中学到的参数。 贝叶斯方法： 这里，我们“娱乐”同时提出多个假设。这与频率论方法不同，在频率论方法中，我们有一个机器学习模型（一个假设），该模型只有一组最佳超参数 - 这里我们可以同时有假设，其中每个假设都被分配了一定的概率。 “推理”不像频率论情况那样运行，即我插入输入并获得一些输出，而是我们必须从我们当前“系统中拥有的”任何概率分布中进行采样。 （这通常需要结合不同的概率分布和我们分配给它们的真实概率）。所以基本上我们“运行流程”并获得一些输出。 当我写这篇文章时，我已经意识到我在机器学习模型、假设和超参数方面的不明确性。根据我的理解，假设需要选择机器学习模型和该机器学习模型的超参数。所以当我说“一个假设”时我的意思是一个特定的机器学习模型和该特定机器学习模型的一组特定的超参数。当我说“多个假设”时，这意味着多个机器学习模型以及其中多个可能的超参数集，每个超参数都有分配给它们自己的概率（在贝叶斯情况下）。 我的理解正确吗？如果不是，出了什么问题？ P.S.我在 /r/MLQuestions  上交叉发布了此内容 由   提交/u/A_Time_Space_Person  [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxfea3/have_i_understood_the_difference_between/</guid>
-      <pubDate>Tue, 21 May 2024 18:46:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>分享您在没有技术/数学背景的情况下进行 ML Engs/DS 的经验</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxexiu/share_your_experience_ml_engsds_with_no_techmath/</link>
-      <description><![CDATA[有没有在没有技术/计算机/数学背景（大学或高中）的情况下找到工作的机器学习工程师或数据科学家吗？ 我很好奇你是怎么学习的，你花了多长时间才走到这一步，你遇到了哪些困难，你使用了哪些资源，你在申请之前建立了什么样的作品集。   由   提交 /u/ForsakenCow069   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxexiu/share_your_experience_ml_engsds_with_no_techmath/</guid>
-      <pubDate>Tue, 21 May 2024 18:27:23 GMT</pubDate>
-    </item>
-    <item>
       <title>是什么让你找到好工作？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxdgma/what_make_you_land_good_job/</link>
       <description><![CDATA[我最近获得了人工智能和机器人学硕士学位。我在学术领域（例如教学和研究）有六年的经验。我的问题是：我需要哪些技能、证书或项目才能找到一份好工作？任何建议都会有帮助   由   提交 /u/heyitm   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxdgma/what_make_you_land_good_job/</guid>
       <pubDate>Tue, 21 May 2024 17:27:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>揭秘柯尔莫哥洛夫-阿诺德网络：初学者友好的代码指南</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cxb7jv/demystifying_kolmogorovarnold_networks_a/</link>
-      <description><![CDATA[  由    /u/team-daniel  提交  [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cxb7jv/demystifying_kolmogorovarnold_networks_a/</guid>
-      <pubDate>Tue, 21 May 2024 15:53:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>作为暑期研究实习的本科生，要花多长时间才能成为合格的 CNN 人员？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cx9rqd/how_long_would_it_take_to_make_a_passable_cnn_as/</link>
-      <description><![CDATA[所以我是一名数据科学/生物学本科生，在暑假期间进行临床研究实习。我必须提出自己的研究项目，并且我有兴趣尝试将 CNN 应用于临床时频数据（想想应用 FFT 的连续电信号），但是，我对 ML 没有任何经验。到夏末有可能生产出一个还过得去的模型吗？我只会C++，所以我必须学习Python。我并不是想“学习”机器学习，因为我知道这需要多长时间，只是为暑期实习制作一个还过得去的模型。感谢您的建议。    由   提交 /u/Aech_sh   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cx9rqd/how_long_would_it_take_to_make_a_passable_cnn_as/</guid>
-      <pubDate>Tue, 21 May 2024 14:52:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果您要从头开始学习机器学习，您将如何利用该领域的最新更新来完成它？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cx8ski/if_you_were_to_study_machine_learning_from_the/</link>
-      <description><![CDATA[ 由   提交 /u/ResponsibleSpeech482   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cx8ski/if_you_were_to_study_machine_learning_from_the/</guid>
-      <pubDate>Tue, 21 May 2024 14:08:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>寻找 Langchain 课程推荐</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1cx7q5c/looking_for_recommendations_on_langchain_courses/</link>
-      <description><![CDATA[大家好，我正在寻找有关课程/教程/材料的建议，以便对框架有一些了解并在我的框架下进行一些实践腰带。 youtube 上的课程不是很深入，我学习了 Deeplearning.ai 的几门课程，但即使这些课程也不是很广泛。我确实有几个使用 Langchain 的 Basic RAG、Text2Sql 项目，但我认为这还不够好。我正在尝试了解工具、代理、函数调用和高级内容。任何有关课程、教程或频道的建议将不胜感激。   由   提交/u/alcatraz0411   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1cx7q5c/looking_for_recommendations_on_langchain_courses/</guid>
-      <pubDate>Tue, 21 May 2024 13:19:29 GMT</pubDate>
     </item>
     </channel>
 </rss>
