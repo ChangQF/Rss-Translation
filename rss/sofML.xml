@@ -4,7 +4,102 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 25 May 2024 01:01:04 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 25 May 2024 03:18:16 GMT</lastBuildDate>
+    <item>
+      <title>使用 xgboost 推断 csv 数据时出现问题</title>
+      <link>https://stackoverflow.com/questions/78531267/there-was-a-problem-infering-csv-data-with-xgboost</link>
+      <description><![CDATA[我在用xgboost进行推断时遇到了问题。我是xgboost的新手。所以可能犯了一些低级错误，希望得到帮助，谢谢！
+简单来说，我想用xgboost做一个回归任务，由几个csv数据集组成。我把它们拼接成一个dataframe，并使用train_test_split分割train/val/test。模型运行良好（mae：0.6）。但是当我手动分割训练集和测试集时（我选了一部分csv放在测试文件夹中），结果变得很差（mae：12+）。
+我真的很想知道这里发生了什么？我在下面发布了一些代码。
+1：这是使用 train_test_split 的拆分代码：
+# 准备好数据
+datasets = []
+path = &#39;../data/low_fidelity_chips_res&#39;
+for filename in os.listdir(path):
+if filename.endswith(&quot;.csv&quot;):
+dataset = ThermalDataset(os.path.join(path, filename))
+datasets.append(dataset)
+
+# 合并数据集
+[merged_dataset = pd.concat([pd.DataFrame(dataset.X) for dataset in datasets])
+merged_targets = pd.concat([pd.DataFrame(dataset.y) for dataset in datasets])
+X_scaled = scaler.fit_transform(merged_dataset)
+y_scaled = scaler.fit_transform(merged_targets)
+
+#划分
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=11)
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=11)
+
+# 构建 xgboost 模型
+model = xgb.XGBRegressor(tree_method=&#39;gpu_hist&#39;, gpu_id=device.index, n_estimators=500, learning_rate=0.05, max_depth=8)
+model.fit(X_train, y_train)
+
+# 评估
+y_val_pred = scaler.inverse_transform(y_val_pred_scaled.reshape(-1, 1)).flatten()
+y_test_pred = scaler.inverse_transform(y_test_pred_scaled.reshape(-1, 1)).flatten()
+y_val_original = scaler.inverse_transform(y_val.reshape(-1, 1)).flatten()
+y_test_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+val_mse = mean_squared_error(y_val_original, y_val_pred)
+test_mse = mean_squared_error(y_test_original, y_test_pred)
+val_mae = mean_absolute_error(y_val_original, y_val_pred)
+test_mae = mean_absolute_error(y_test_original, y_test_pred)]
+
+2：这是我手动除法之后的结果代码：
+`# 训练数据集
+datasets = []
+path = &#39;../data/low_fidelity_chips_res&#39;
+for filename in os.listdir(path):
+if filename.endswith(&quot;.csv&quot;):
+dataset = ThermalDataset(os.path.join(path, filename))
+datasets.append(dataset)
+
+# 测试数据，它是我从原始数据中手动划分的测试集的 csv
+tests = []
+test_file = &#39;../data/test_xgboost/Thermal014withMidPos.csv&#39;
+test = ThermalDataset(test_file)
+tests.append(test)
+
+# 合并
+merged_dataset = pd.concat([pd.DataFrame(dataset.X) for dataset in datasets])
+merged_targets = pd.concat([pd.DataFrame(dataset.y) for dataset在数据集中])
+test_x = pd.concat([pd.DataFrame(test.X) 用于测试中的测试])
+test_y = pd.concat([pd.DataFrame(test.y) 用于测试中的测试])
+
+# 规范化
+X_scaled = scaler.fit_transform(merged_dataset)
+y_scaled = scaler.fit_transform(merged_targets)
+x_fill = scaler.fit_transform(test_x)
+y_fill = scaler.fit_transform(test_y)
+
+# 分割
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.05, random_state=11)
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=11)
+
+#训练
+model = xgb.XGBRegressor(tree_method=&#39;gpu_hist&#39;, gpu_id=device.index, n_estimators=500, learning_rate=0.05, max_depth=8)
+model.fit(X_train, y_train)
+
+# 评估
+y_val_pred_scaled = model.predict(X_val)
+y_test_pred_scaled = model.predict(X_test)
+y_fill_res = model.predict(x_fill)
+
+# inverse_transform 获取原始数据
+y_val_pred = scaler.inverse_transform(y_val_pred_scaled.reshape(-1, 1)).flatten()
+y_test_pred = scaler.inverse_transform(y_test_pred_scaled.reshape(-1, 1)).flatten()
+y_pre = scaler.inverse_transform(y_fill_res.reshape(-1, 1)).flatten()
+y_val_original = scaler.inverse_transform(y_val.reshape(-1, 1)).flatten()
+y_test_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
+y_fill = scaler.inverse_transform(y_fill.reshape(-1, 1)).flatten()
+val_mse = mean_squared_error(y_val_original, y_val_pred)
+test_mse = mean_squared_error(y_test_original, y_test_pred)
+val_mae = mean_absolute_error(y_val_original, y_val_pred)
+test_mae = mean_absolute_error(y_pre, y_fill)`
+
+我希望能够在单个 csv 文件上正确推理并获得与训练中一样好的结果。]]></description>
+      <guid>https://stackoverflow.com/questions/78531267/there-was-a-problem-infering-csv-data-with-xgboost</guid>
+      <pubDate>Sat, 25 May 2024 02:40:08 GMT</pubDate>
+    </item>
     <item>
       <title>wandb 的超带算法在哪些时期检查改进？</title>
       <link>https://stackoverflow.com/questions/78530549/at-which-epochs-does-the-hyperband-algorithm-of-wandb-checks-for-improvement</link>
@@ -58,7 +153,7 @@ def finish_episode():
     num_epochs = 1 # 当 num_epochs 大于 1 时我的网络将无法学习
 
     对于 actor.rewards[::-1] 中的 r：
-        R = r + 0.99 * R # 伽马值为 0.99
+        R = r + 0.99 * R # 伽玛值为 0.99
         返回.插入(0, R)
     返回= torch.tensor（返回，设备=设备）
     返回 = (返回 - returns.mean()) / (returns.std() + eps)
@@ -89,7 +184,7 @@ def finish_episode():
         actor_optimizer.step()
 
         如果纪元 == num_epochs - 1：
-            Criteria_loss = F.smooth_l1_loss(state_values.squeeze(), 返回)
+            ritic_loss = F.smooth_l1_loss(state_values.squeeze(), 返回)
             
             批评家优化器.zero_grad()
             ritic_loss.backward(retain_graph=False)
@@ -107,7 +202,7 @@ def finish_episode():
       <link>https://stackoverflow.com/questions/78529077/how-to-deal-with-cod-postal-feature-in-recommendation-systems</link>
       <description><![CDATA[我有一个带有邮政编码列的数据集。它们具有一定的意义，我想将其用作一项功能。我正处于预处理阶段，但仍然不确定我将使用的算法。
 我需要有关使用邮政编码列作为功能的最佳方法的建议。
-我发现你可以使用one-hot编码，但就我而言，我正在处理大量唯一的邮政编码（例如3513个不同的邮政编码），one-hot编码（或虚拟编码）是不切实际的，因为它引入的高维度。]]></description>
+我发现你可以使用 one-hot 编码，但就我而言，我正在处理大量唯一的邮政编码（例如 3513 个不同的邮政编码），one-hot 编码（或虚拟编码）是不切实际的，因为它引入的高维度。]]></description>
       <guid>https://stackoverflow.com/questions/78529077/how-to-deal-with-cod-postal-feature-in-recommendation-systems</guid>
       <pubDate>Fri, 24 May 2024 14:06:08 GMT</pubDate>
     </item>
@@ -125,73 +220,73 @@ def finish_episode():
     <item>
       <title>进行超参数调整后浅层卷积神经网络中的过度拟合</title>
       <link>https://stackoverflow.com/questions/78528272/overfitting-in-a-shallow-convolutional-neural-network-after-doing-hyper-paramete</link>
-      <description><![CDATA[我正在 Google Colab 中研究用于 3 类分类问题的 CNN 模型。我有一个平衡类数据集，其中包含 1680 个训练样本（每个 560 个）和 420 个测试样本（每个 140 个）。我构建了一个浅层网络来训练我的数据。但是我的模型在 7/8 时期后过度拟合。我已经应用了所有可能的技术，如 Dropout、l2 正则化、数据增强、Batch Normalization、降低学习率，但模型性能没有任何变化。
-我在 30 个时期实现了损失：0.7746 - 准确度：0.6673 - val_loss：0.8310 - val_accuracy：0.6071。
-#模型架构
-模型 = models.Sequential()
-model.add(layers.Conv2D(8, (3, 3), 激活=&#39;relu&#39;, input_shape=(28, 28, 3)))
+      <description><![CDATA[我正在 Google Colab 中开发一个 CNN 模型来解决 3 类分类问题。我有一个平衡的类数据集，其中包含 1680 个训练样本（每个 560 个）和 420 个测试样本（每个 140 个）。我构建了一个浅层网络来训练我的数据。但我的模型在 7/8 个 epoch 之后就过度拟合了。我已经应用了所有可能的技术，例如 Dropout、l2 正则化、数据增强、批量标准化、降低学习率，但模型性能没有任何变化。
+我在 30 个 epoch 上实现了损失：0.7746 - 准确度：0.6673 - val_loss：0.8310 - val_accuracy：0.6071。
+#model architecture
+model = models.Sequential()
+model.add(layers.Conv2D(8, (3, 3),activation=&#39;relu&#39;, input_shape=(28, 28, 3)))
 model.add(layers.BatchNormalization())
 model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(16, (3, 3), 激活=&#39;relu&#39;))
+model.add(layers.Conv2D(16, (3, 3),激活=&#39;relu&#39;))
 model.add(layers.BatchNormalization())
 model.add(layers.MaxPooling2D((2, 2)))
 model.add(layers.Dropout(0.5))
 model.add(layers.Flatten())
 model.add(layers.Dropout(0.5))
-model.add(layers.Dense(3,activation=&#39;softmax&#39;))
+model.add(layers.Dense(3, 激活=&#39;softmax&#39;))
 
-模型.summary()
+model.summary()
 
-型号：“sequential_4”
+模型：“sequence_4”
 _________________________________________________________________
- 层（类型）输出形状参数#   
-=================================================== ===============
- conv2d_8（Conv2D）（无、26、26、8）224       
-                                                                 
- batch_normalization_8（蝙蝠（无、26、26、8）32        
- ch归一化）                                                
-                                                                 
- max_pooling2d_4（最大池化（无、13、13、8）0         
- g2D)                                                            
-                                                                 
- conv2d_9（Conv2D）（无、11、11、16）1168      
-                                                                 
- batch_normalization_9（蝙蝠（无、11、11、16）64        
- ch归一化）                                                
-                                                                 
- max_pooling2d_5（最大池化（无、5、5、16）0         
- g2D)                                                            
-                                                                 
- dropout_7（辍学）（无、5、5、16）0         
-                                                                 
- flatten_4（压平）（无，400）0         
-                                                                 
- dropout_8（辍学）（无，400）0         
-                                                                 
- 密集_5（密集）（无，3）1203      
-                                                                 
-=================================================== ===============
+层 (类型) 输出形状 参数 # 
+======================================================================
+conv2d_8 (Conv2D) (无，26，26，8) 224 
+
+batch_normalization_8 (Bat (无，26，26，8) 32 
+chNormalization) 
+
+max_pooling2d_4 (MaxPoolin (无，13，13，8) 0 
+g2D) 
+
+conv2d_9 (Conv2D) (无，11，11，16) 1168 
+
+batch_normalization_9 (Bat (无，11，11， 16) 64 
+chNormalization) 
+
+max_pooling2d_5 (MaxPoolin (None, 5, 5, 16) 0 
+g2D) 
+
+dropout_7 (Dropout) (None, 5, 5, 16) 0 
+
+flatten_4 (Flatten) (None, 400) 0 
+
+dropout_8 (Dropout) (None, 400) 0 
+
+density_5 (Dense) (None, 3) 1203 
+
+============================================================================
 总参数：2691 (10.51 KB)
 可训练参数：2643 (10.32 KB)
-不可训练参数：48（192.00 字节）
+不可训练参数：48 (192.00 字节)
 
 learning_rate=0.001、batch_size=8、optimizer=Adam、loss=&#39;categorical_crossentropy&#39; 和
 target_size=(28,28)
 分类报告
-                     精确召回率 f1-score 支持
+准确率召回率 f1 分数支持
 
-中等耐受 0.33 0.66 0.43 140
-        敏感 0.33 0.13 0.18 140
-           耐受 0.39 0.23 0.29 140
+中等容忍度 0.33 0.66 0.43 140
+易受影响 0.33 0.13 0.18 140
+容忍度 0.39 0.23 0.29 140
 
-           精度 0.34420
-          宏观平均 0.35 0.34 0.30 420
-       加权平均 0.35 0.34 0.30 420
+准确率 0.34 420
+宏平均值 0.35 0.34 0.30 420
+加权平均值 0.35 0.34 0.30 420
 
-尽管我在中等容忍类别中具有较高的 f1 分数，但我的模型仍将看不见的图像预测为易感类别。以下是训练和验证准确性和损失的图表。
+虽然我在中等容忍度类别中具有较高的 f1 分数，但我的模型仍然将未见过的图像预测为易感类别。以下是训练和验证准确度和损失的图表。
 
 
-这背后的原因是什么以及如何改进我的模型以使我的模型能够很好地泛化？]]></description>
+这背后的原因是什么，如何改进我的模型，以便我的模型能够很好地概括？]]></description>
       <guid>https://stackoverflow.com/questions/78528272/overfitting-in-a-shallow-convolutional-neural-network-after-doing-hyper-paramete</guid>
       <pubDate>Fri, 24 May 2024 11:29:02 GMT</pubDate>
     </item>
@@ -251,12 +346,12 @@ AttributeError：“元组”对象没有属性“预测”
 我知道对于典型的时间序列回归，这将导致数据泄漏，但在这里我不使用 Y 的过去值，也不使用任何滞后。
 理论上，我想对数据进行洗牌，因为从我所看到的来看，X 和 Y 之间的关系会随着时间的推移而变化，所以如果我仅根据较早和较晚的日期分割数据，我担心我会训练模型稍微过时的值。
 顺便说一句，我使用梯度提升作为我的模型
-那么，我可以在我的情况下使用 shuffle = True 吗？如果是，哪些附加功能可能导致泄漏：滞后、季节性影响或其他原因？]]></description>
+那么，我可以在我的情况下使用 shuffle = True 吗？如果是，哪些附加功能可能导致泄漏：滞后、季节性影响或其他因素？]]></description>
       <guid>https://stackoverflow.com/questions/78525482/data-leakage-in-time-series-related-regression</guid>
       <pubDate>Thu, 23 May 2024 20:43:46 GMT</pubDate>
     </item>
     <item>
-      <title>Mediapipe-Training 的数据 [关闭]</title>
+      <title>Mediapipe 培训数据[关闭]</title>
       <link>https://stackoverflow.com/questions/78525263/data-for-mediapipe-training</link>
       <description><![CDATA[我正在尝试向媒体管道框架提供尽可能多的图片，但我发现从各个角度制作人物图片以从人们那里获取数据非常累人。
 我还没有尝试媒体管道的视频训练，因为我讨厌它剪切视频。
@@ -273,41 +368,7 @@ AttributeError：“元组”对象没有属性“预测”
       <pubDate>Thu, 23 May 2024 19:45:15 GMT</pubDate>
     </item>
     <item>
-      <title>ImportError：无法从“sklearn.utils”导入名称“_get_column_indices”</title>
-      <link>https://stackoverflow.com/questions/78524575/importerror-cannot-import-name-get-column-indices-from-sklearn-utils</link>
-      <description><![CDATA[尝试为 RandomOverSampler 导入 imblearn.over_sampling 时出现导入错误。我相信问题不在于我的代码，而在于库冲突，但我不确定。
-导入 pandas 作为 pd
-将 matplotlib.pyplot 导入为 plt
-将 numpy 导入为 np
-from sklearn.preprocessing import StandardScaler #actually scikit-learn
-从 imblearn.over_sampling 导入 RandomOverSampler
-
-使用 StandardScaler 和 RandomOverSampler 的代码：
-def scale_dataset(dataframe, oversample=False):
-    X = dataframe[dataframe.columns[:-1]].values
-    Y = dataframe[dataframe.columns[-1]].values
-
-    定标器=标准定标器() 
-    X = 缩放器.fit_transform(X) 
-
-    如果过采样：
-        ros = RandomOverSampler()
-        X, Y = ros.fit_resample(X,Y) 
-    数据 = np.hstack((X, np.reshape(Y, (-1, 1))))
-    返回数据，X，Y
-
-print(len(train[train[“班级”]==1]))
-print(len(train[train[“班级”]==0]))
-
-训练，X_train，Y_train =scale_dataset（训练，True）
-
-我尝试完全导入sklearn，卸载并重新安装scipi和sklearn（作为scikit-learn），安装Tensorflow。
-我确实安装了 numpy、scipy、pandas 和其他依赖库。]]></description>
-      <guid>https://stackoverflow.com/questions/78524575/importerror-cannot-import-name-get-column-indices-from-sklearn-utils</guid>
-      <pubDate>Thu, 23 May 2024 16:54:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 VS Code 上使用计算机视觉 + yolov8 应用程序进行实时网络摄像头数据分类</title>
+      <title>使用 VS Code 上的 computervision + yolov8 应用程序进行实时网络摄像头数据分类</title>
       <link>https://stackoverflow.com/questions/78524343/live-web-cam-data-classification-using-computervision-yolov8-application-on-vs</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78524343/live-web-cam-data-classification-using-computervision-yolov8-application-on-vs</guid>
@@ -332,49 +393,46 @@ print(len(train[train[“班级”]==0]))
       <pubDate>Wed, 22 May 2024 12:17:33 GMT</pubDate>
     </item>
     <item>
-      <title>每个时期 Retinanet 模型内的数据流</title>
+      <title>每个时期 Retinanet 模型内部的数据流</title>
       <link>https://stackoverflow.com/questions/78516393/flow-of-data-inside-the-retinanet-model-in-each-epoch</link>
-      <description><![CDATA[通过提供 batch_size、epochs 和每个 epoch 的步数，向 retinanet model_network 提供了多少数据？
-到目前为止，我认为步数的计算方法如下：
+      <description><![CDATA[通过提供batch_size、epochs和每个epoch的步骤，向retinanet model_network提供了多少数据？
+到目前为止，我认为步长的计算如下：
 step_size = (total_number_of_data/batch_size)*epochs
 
-而在 keras-retinanet 中，它以 batch_size、epochs 和 steps_per_epoch 作为参数，这与上面提到的情况不同。我对计算是如何进行的表示怀疑。]]></description>
+而在keras-retinanet中，它以batch_size、epochs和steps_per_epoch作为参数，这与上述情况不同。我怀疑计算是如何进行的。]]></description>
       <guid>https://stackoverflow.com/questions/78516393/flow-of-data-inside-the-retinanet-model-in-each-epoch</guid>
       <pubDate>Wed, 22 May 2024 09:04:14 GMT</pubDate>
     </item>
     <item>
       <title>为什么我的分段似乎没有保存？关于totalsegmentator</title>
       <link>https://stackoverflow.com/questions/78516029/why-my-segmentations-dont-seem-to-be-saved-about-totalsegmentator</link>
-      <description><![CDATA[我一步一步按照你的教程操作，但得到的结果类似于分割未保存。
+      <description><![CDATA[我一步步按照您的教程进行操作，但得到的结果类似于分段未保存。
 这是我输入的语句和得到的结果：
-(d:\totalsegmentotar.conda) D:\totalsegmentotar&gt;TotalSegmentator -i hip_left.nii.gz -o fragmentations -ta hip_implant
+(d:\totalsegmentotar.conda) D:\totalsegmentotar&gt;TotalSegmentator -i hip_left.nii.gz -o 分段 -ta hip_implant
 
 如果您使用此工具，请引用：https://pubs.rsna.org/doi/10.1148/ryai.230024
 
-未检测到 GPU。在 CPU 上运行。这可能非常慢。&#39;--fast&#39; 或 --roi_subset 选项可以帮助减少运行时间。
-生成粗略的身体分割...
+未检测到 GPU。在CPU上运行。这可能会非常慢。 &#39;--fast&#39; 或 --roi_subset 选项可以帮助减少运行时间。
+生成粗糙的身体分割...
 重新采样...
-在 1.93 秒内重新采样
+1.93 秒内重新采样
 预测...
-d:\totalsegmentotar.conda\Lib\site-packages\nnunetv2\utilities\plans_handling\plans_handler.py:37: UserWarning：检测到旧的 nnU-Net 计划格式。尝试重建网络架构参数。如果失败，请为您的数据集重新运行 nnUNetv2_plan_experiment。如果您使用自定义架构，请将 nnU-Net 降级到您实施的版本或更新您的实施 + 计划。
-warnings.warn(&quot;检测到旧的 nnU-Net 计划格式。尝试重建网络架构&quot;
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00&lt;00:00, 1.12it/s]
-预计 12.95 秒
+d:\totalsegmentotar.conda\Lib\site-packages\nnunetv2\utilities\plans_handling\plans_handler.py:37: UserWarning: 检测到旧的 nnU-Net 计划格式。尝试重构网络架构参数。如果失败，请为您的数据集重新运行 nnUNetv2_plan_experiment。如果您使用自定义架构，请将 nnU-Net 降级到您实现的版本或更新您的实现+计划。
+warnings.warn(“检测到旧的 nnU-Net 计划格式。尝试重建网络架构”
+100%|███████████████████████████████████████████████ ███████████████████████████████████████████████████ ███████████████████████████████████████████████████ ██| 1/1 [00:00&lt;00:00, 1.12it/s]
+预测12.95秒后
 重新采样...
 警告：无法裁剪，因为未检测到前景
 从 (333, 333, 539) 裁剪到 (333, 333, 539)
 预测...
-d:\totalsegmentotar.conda\Lib\site-packages\nnunetv2\utilities\plans_handling\plans_handler.py:37: UserWarning：检测到旧的 nnU-Net 计划格式。尝试重建网络架构参数。如果失败，请为您的数据集重新运行 nnUNetv2_plan_experiment。如果您使用自定义架构，请将 nnU-Net 降级到您实施的版本或更新您的实施 + 计划。
-warnings.warn(&quot;检测到旧的 nnU-Net 计划格式。尝试重建网络架构&quot;
-100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 64/64 [04:27&lt;00:00, 4.18s/it]
-预测时间为 288.96s
-正在保存分段...
-0%| | 0/1 [00:00&lt;?, ?it/s]正在创建 hip_implant.nii.gz
-100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:04&lt;00:00, 4.61s/it]
-保存于 6.80s
-
-可以看到分割没有保存，而且我用过切片软件看确实没有预测结果，什么都没有显示。
-当我使用 `-ta total 时，分割器进度条发生了变化，但遗憾的是它似乎没有保存分割的结果。这是我的输出，以及在切片器 5.6.2 中打开的输出文件夹和图像，什么都没有显示出来。
+d:\totalsegmentotar.conda\Lib\site-packages\nnunetv2\utilities\plans_handling\plans_handler.py:37: UserWarning: 检测到旧的 nnU-Net 计划格式。尝试重构网络架构参数。如果失败，请为您的数据集重新运行 nnUNetv2_plan_experiment。如果您使用自定义架构，请将 nnU-Net 降级到您实现的版本或更新您的实现+计划。
+warnings.warn(“检测到旧的 nnU-Net 计划格式。尝试重建网络架构”
+100%|███████████████████████████████████████████████ ███████████████████████████████████████████████████ ███████████████████████████████████████████████████ | 64/64 [04:27&lt;00:00, 4.18s/it]
+预测 288.96 秒
+保存分段...
+0%| | 0/1 [00:00
+可以看到分割没有保存，我用切片器软件看确实没有预测结果，什么也没有显示。
+当我使用`-tatotal时，分割器进度条发生变化，但不幸的是它似乎没有保存分割的结果。这是我的输出，以及在切片器 5.6.2 中打开的输出文件夹和图像，但没有显示任何内容。
 这是我的 powershell 输出
 这是我的输出文件夹和在切片器 5.6.2 中打开的图像]]></description>
       <guid>https://stackoverflow.com/questions/78516029/why-my-segmentations-dont-seem-to-be-saved-about-totalsegmentator</guid>
