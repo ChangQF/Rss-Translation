@@ -4,7 +4,213 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近 30 个来自 stats.stackexchange.com</description>
-    <lastBuildDate>Sat, 25 May 2024 06:19:50 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 25 May 2024 09:14:12 GMT</lastBuildDate>
+    <item>
+      <title>如何使用 convLSTM2D 对可变输入形状进行训练？</title>
+      <link>https://stats.stackexchange.com/questions/647949/how-to-train-with-convlstm2d-on-variable-input-shape</link>
+      <description><![CDATA[我正在对 4 个过滤器中的 72x72 图像的时间序列进行分类（就像 RGB）。如果我的所有样本都具有相同的时间步长（或时期数），那么一切就都很好。然而，实际上每个样本的时间步长数不同。（这是在天文学中，我无法随心所欲地获取数据。）但当我尝试包含不同的时间步长时，我会收到错误。请查看 MWC。
+N=2000
+train_data_arr=np.random.rand(N, 11, 72, 72, 4)
+train_label=np.repeat(np.random.randint(2,size=N)[:, np.newaxis], 11,axis=1)
+Ntot,dum=train_label.shape;print(Ntot,dum)
+
+#=== 变量数据形状 ====
+def select_random_time_epochs(data, labels, max_time_steps=11):
+variable_data = []
+variable_labels = []
+for d, l in zip(data, labels):
+#time_steps = 11
+time_steps = np.random.randint(1, max_time_steps + 1)
+variable_data.append(d[:time_steps])
+variable_labels.append(l[:time_steps])
+返回 variable_data, variable_labels
+train_data_var, train_label_var = select_random_time_epochs(train_data_arr, train_label)
+
+#==== 数据生成器 ======
+def make_generator(data, labels):
+def generator():
+for d, l in zip(data, labels):
+产生 d, l
+返回生成器
+
+train_ds = tf.data.Dataset.from_generator(
+generator=make_generator(train_data_var, train_label_var),
+output_types=(tf.float32, tf.int32),
+output_shapes=(tf.TensorShape([None, 72, 72, 4]), tf.TensorShape([None]))
+)
+batch_size = 32
+train_ds = train_ds.batch(batch_size)
+
+#===model===
+input_shape = (None, 72, 72, 4) 
+model = tf.keras.Sequential()
+model.add(Input(shape=input_shape))
+model.add(ConvLSTM2D(32, (9, 9), 激活=&#39;relu&#39;, 填充=&#39;valid&#39;, return_sequences=True, 数据格式=&#39;channels_last&#39;))
+model.add(BatchNormalization())
+model.add(TimeDistributed(MaxPooling2D((2, 2), 数据格式=&#39;channels_last&#39;)))
+model.add(TimeDistributed(Flatten()))
+model.add(TimeDistributed(Dense(64, 激活=&#39;relu&#39;)))
+model.add(TimeDistributed(Dense(1,激活=&#39;sigmoid&#39;)))
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;binary_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+model.summary()
+
+model.fit(train_ds, epochs=20)
+
+如果我将时间步长固定在 11（在函数 select_random_time_epochs() 中），则一切正常。但是当我使用可变数量的时间步长时，我收到错误：
+无法在组件 0 中批量处理具有不同形状的张量。第一个元素的形状为 [3,72,72,4]，元素 3 的形状为 [6,72,72,4]。
+
+我理解它无法处理 32 个批次内的可变时间步骤。实际上，当我设置 batch_size = 1 时，上述代码可以工作，但这需要太多时间，而且很可能永远不会在实际用例场景中收敛。
+所以我的问题如下。
+
+假设我严格不想要任何填充。当批次内的样本具有不同的形状时，有没有更快的方法来实现 model.fit()？否则，我可以使用具有相同时间步骤的样本进行动态批处理吗？这是唯一的方法吗？在评估可能不遵循相同批次分布的测试数据时会出现问题吗？
+
+现在谈到 padding 选项：tensorflow.keras.layers.Masking 真的能处理我在缺失时期放置的“坏图像”吗？换句话说，Masking 或其他东西是否可以完全使填充值无关紧要？
+
+
+重要的一点：我必须使用 generator 来避免一次在 GPU 上加载数据，因为我的实际数据非常庞大（简直是天文数字）。
+此外，以下主题讨论了 LSTM 的变量输入，但我的用例稍微复杂一些。
+https://stackoverflow.com/questions/63663399/how-to-handle-variable-length-data-for-lstm
+https://stackoverflow.com/questions/38189070/how-do-i-create-a-variable-length-input-lstm-in-keras]]></description>
+      <guid>https://stats.stackexchange.com/questions/647949/how-to-train-with-convlstm2d-on-variable-input-shape</guid>
+      <pubDate>Sat, 25 May 2024 08:54:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>书籍：Rice 还是 Casella、Berger？</title>
+      <link>https://stats.stackexchange.com/questions/647948/books-rice-or-casella-berger</link>
+      <description><![CDATA[我对您更喜欢哪个以及出于什么（主观和客观）原因感兴趣：
+Rice（数学、统计和数据分析）或 Casella、Berger（统计推断）？
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/647948/books-rice-or-casella-berger</guid>
+      <pubDate>Sat, 25 May 2024 08:53:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何估计很小比例的置信区间？</title>
+      <link>https://stats.stackexchange.com/questions/647947/how-to-estimate-the-confidence-interval-of-a-very-small-proportion</link>
+      <description><![CDATA[我想估计很小比例的置信区间。假设我有 1000 人的简单随机样本，有 4 个人回答了“是”这个问题。人们可能想利用正态性假设并使用基本公式计算置信区间
+CI ± z * sqrt(p^ * (1-p^)/n))
+然而，要使这一点成立，通常会施加 n * p ≥ 5 且 n * (1-p) ≥ 5 的限制，在本例中违反了这一限制。
+因此，我的问题是：如果我想说：“在 95% 的置信度下，回答“是”的人数比例小于 x%”。我如何找到x？]]></description>
+      <guid>https://stats.stackexchange.com/questions/647947/how-to-estimate-the-confidence-interval-of-a-very-small-proportion</guid>
+      <pubDate>Sat, 25 May 2024 08:51:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>改进股票交易的 LSTM 模型并加快代码执行速度 [已关闭]</title>
+      <link>https://stats.stackexchange.com/questions/647945/improving-lstm-model-for-stock-trading-and-speeding-up-code-execution</link>
+      <description><![CDATA[我一直在研究使用 LSTM 模型的股票交易算法。该算法获取实时数据，进行预测，并根据预测价格决定是否买入或卖出股票。这是代码：
+将 numpy 导入为 np
+将 pandas 导入为 pd
+将 matplotlib.pyplot 导入为 plt
+从 sklearn.preprocessing 导入 MinMaxScaler
+从tensorflow.keras.models导入顺序
+从 keras.layers 导入 LSTM，密集
+导入时间
+导入请求
+
+# 定义股票代码和您的 Alpha Vantage API 密钥
+符号 = &#39;AAPL&#39;
+api_key = &#39;MY_API&#39;
+
+# 定义初始资本
+初始资本 = 10000
+资本=初始资本
+
+# 每只股票的经纪费
+每只股票经纪费 = 0.02
+
+# 最低经纪费
+最低经纪费 = 18
+
+# 美国证券交易委员会税率
+秒税率 = 0.0000278
+
+# 创建一个数据框来存储一段时间内的资本和行动
+Capital_df = pd.DataFrame(columns=[&#39;时间&#39;, &#39;资本&#39;, &#39;行动&#39;, &#39;价格&#39;])
+Capital_df.loc[0] = {&#39;time&#39;: pd.Timestamp.now(), &#39;capital&#39;: Capital, &#39;action&#39;: &#39;Initial&#39;, &#39;price&#39;: 0} # 使用初始资本进行初始化
+
+# 定义回溯期
+回顾=60
+
+# 定义LSTM模型
+模型=顺序（）
+model.add(LSTM(单位=50, return_sequences=True, input_shape=(lookback, 1)))
+model.add(LSTM(单位=50))
+model.add(密集(1))
+
+# 编译LSTM模型
+model.compile(loss=&#39;mean_squared_error&#39;, 优化器=&#39;adam&#39;)
+
+而真实：
+    # 使用 Alpha Vantage API 获取实时数据
+    url = f&#39;https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&amp;symbol={symbol}&amp;interval=1min&amp;apikey={api_key}&#39;
+    响应 = requests.get(url)
+    数据 = 响应.json()
+    current_price = float(data[&#39;时间序列 (1min)&#39;][list(data[&#39;时间序列 (1min)&#39;].keys())[0]][&#39;4.收盘&#39;])
+
+    # 预处理数据
+    缩放器 = MinMaxScaler(feature_range=(0, 1))
+    Price_data = np.array([范围内 _ 的当前价格(回溯)]).reshape(-1, 1)
+    缩放数据 = 缩放器.fit_transform(price_data)
+
+    # 为 LSTM 模型准备输入
+    输入=scaled_data.reshape（1，回顾，1）
+
+    # 拟合 LSTM 模型
+    model.fit(输入，np.array([current_price])，epochs=1，batch_size=1，verbose=2)
+
+    # 使用经过训练的 LSTM 模型进行预测
+    预测价格 = model.predict(输入)
+    预测价格 = scaler.inverse_transform(预测价格)[0][0]
+
+    # 计算买入或卖出的股票数量
+    num_stocks = 资本 // 当前价格
+
+    # 计算买入和卖出的经纪费用总额
+    总经纪费 = 最大（每只股票经纪费 * 股票数量，最低经纪费） * 2
+
+    # 计算 SEC 税
+    sec_tax = sec_tax_rate * 预测价格 * 股票数量
+
+    # 根据预测价格更新资本并记录操作
+    如果预测价格&gt;时价：
+        资本 += 股票数量 * 当前价格 - 总经纪费用 - 秒税
+        行动=“购买”
+    别的：
+        资本 -= 股票数量 * 当前价格 + 经纪费用总额 + 秒税
+        行动=&#39;卖出&#39;
+
+    # 将当前资本和操作附加到数据框
+    new_row = {&#39;time&#39;: pd.Timestamp.now(), &#39;capital&#39;: 资本, &#39;action&#39;: 操作, &#39;price&#39;: current_price}
+    Capital_df = pd.concat([capital_df, pd.DataFrame([new_row])],ignore_index=True)
+
+    # 绘制资本随时间变化的图
+    plt.figure(figsize=(10, 5))
+    plt.plot(capital_df[&#39;时间&#39;], Capital_df[&#39;资本&#39;])
+    plt.title(&#39;资本随着时间的推移&#39;)
+    plt.xlabel(&#39;时间&#39;)
+    plt.ylabel(&#39;大写&#39;)
+    plt.xticks（旋转=45）
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(10)) # 显示 10 个刻度
+    plt.show()
+
+    print(f&#39;当前收益: {capital - initial_capital}, 操作: {action} 价格: {current_price}&#39;)
+
+    # 等待1分钟
+    时间.睡眠(60)
+
+我对此有几个问题：
+
+奇怪的情节：随着时间的推移，资本的情节看起来很奇怪。它实际上只是一条直线。我不确定为什么会发生这种情况，但我相信这可能会带来一些统计问题。难道是由于我更新和绘制首都的方式所致？
+
+确切时间和操作：我希望我的代码指定 LSTM 模型计算的确切时间和确切操作（买入/卖出）。我怎样才能实现这个目标？
+
+加快代码执行速度：代码需要在一分钟内运行才能按分钟更新。然而，目前需要一分多钟的时间。有没有办法优化代码，使其运行得更快？
+
+
+任何帮助将不胜感激。
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/647945/improving-lstm-model-for-stock-trading-and-speeding-up-code-execution</guid>
+      <pubDate>Sat, 25 May 2024 07:27:56 GMT</pubDate>
+    </item>
     <item>
       <title>XGBoost：操纵样本是否会使其“推断”？</title>
       <link>https://stats.stackexchange.com/questions/647942/xgboost-does-manipulating-the-sample-make-it-extrapolate</link>
@@ -20,17 +226,17 @@
       <pubDate>Sat, 25 May 2024 04:29:51 GMT</pubDate>
     </item>
     <item>
-      <title>Vision Transformer 模型训练和验证准确度停留在 50</title>
+      <title>Vision Transformer 模型训练和验证准确度停留在 50 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/647941/vision-transformer-model-training-and-validation-accuracy-stuck-at-50</link>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/647941/vision-transformer-model-training-and-validation-accuracy-stuck-at-50</guid>
       <pubDate>Sat, 25 May 2024 04:23:01 GMT</pubDate>
     </item>
     <item>
-      <title>在 cox 模型中发现非线性后，我应该如何处理 RCS</title>
+      <title>在 Cox 模型中发现非线性后，我应该如何处理 RCS</title>
       <link>https://stats.stackexchange.com/questions/647937/what-should-i-do-with-rcs-after-finding-non-linearity-in-a-cox-model</link>
       <description><![CDATA[您好，我正在进行 cox 回归分析。
-我发现 SAS 上的 RCS 宏我们的变量“收缩压”存在非线性问题。
+我通过 SAS 上的 RCS 宏发现我们的变量“收缩压”存在非线性问题。
 那么，在这种情况下，我该如何报告结果呢？
 我们的主要兴趣不是这个因素。收缩压仅用于多变量 cox 回归分析中的调整。
 下面是应用限制三次样条的 cox 回归模型的结果（5 节）
@@ -40,7 +246,7 @@
       <pubDate>Sat, 25 May 2024 00:22:18 GMT</pubDate>
     </item>
     <item>
-      <title>使用 k=1 的 knn 分类器创建研究论文</title>
+      <title>使用 k=1 的 knn 分类器创建研究论文 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/647936/creating-research-paper-using-knn-classifier-with-k-1</link>
       <description><![CDATA[我正在准备一篇关于使用人工智能和录音来早期检测帕金森病的研究论文。
 我现在完成了代码，我创建了一个机器模型来检测帕金森病。我使用的数据集具有 756 个特征。
@@ -50,7 +256,7 @@
 &lt;块引用&gt;
 使用默认超参数 (n_neighbors=5, p=2) knn 给出的准确度为 84.11。
 
-然后我对 knn (n_neighbors=1, p=1) 进行了交叉验证 5 倍，它给了我更好的准确度 平均准确度 96.19 +/- 1.14 平均 f1 97.45 +/- 0.76。
+然后我对 knn (n_neighbors=1, p=1) 进行交叉验证 5 倍，它给了我更好的准确度 平均准确度 96.19 +/- 1.14 平均 f1 97.45 +/- 0.76。
 然后我用 knn (n_neighbors=1, p=1) 进行装袋，它的准确度为 94.74，
 然后我对 BaggingClassifier 进行了超参数调整，发现超参数（max_features=0.37，n_estimators=20）给了我准确度 96.71 f1 97.84
 然后我对此 Bagging 进行了交叉验证：knn + CV* 5 倍（max_features=0.37，n_estimators=20），并给了我更好的平均准确度 97.22 +/- 0.78 平均 f1 98.15 +/- 0.52
@@ -113,103 +319,49 @@ A&amp; = J，\\
 C&amp; = L + KJK^T。
 \end{对齐}
 $(J,K,L)\mapsto(A,B,C)$ 的域是笛卡尔积，其第一和第三因子是所有正数的集合- 适当大小的定对称实矩阵，其第二个因子是（这是有趣的部分）全部 $p_2\times p_1$ 实数矩阵 $K.$ （简单练习：证明这一点。）
-因此，我们将积分界限问题简化为较小正定对称实矩阵的积分界限问题，并在矩阵空间上进行积分，其中每个条目的界限为 $-\infty$ 和 $+\infty.$
+因此，我们将积分界限问题简化为较小正定对称实数矩阵的积分界限问题，并在矩阵空间上进行积分，其中每个条目的界限为 $-\infty$ 和 $+\infty.$
 可以迭代这个过程，直到我们得到 $p=p_1+p_2$ 因子的笛卡尔积，其中每个因子都是  $(0,+\infty),$ 和 $\binom p2$ 因子，每个因子都是 $ (-\infty,+\infty).$
 我的问题是：这有用吗？这是标准技术吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/647928/bounds-of-integration-for-the-wishart-density</guid>
       <pubDate>Fri, 24 May 2024 23:01:09 GMT</pubDate>
     </item>
     <item>
-      <title>当所有数据来自同一个人时相关性的独立性假设</title>
-      <link>https://stats.stackexchange.com/questions/647922/independence-assumptions-in-correlations-when-all-data-comes-from-same-individua</link>
-      <description><![CDATA[这感觉像是一个愚蠢的问题，但无论如何 - 如果所有数据都来自同一个人并且我不想做出任何更广泛的推论/假设，那么常见相关性测试中的独立性假设是否很重要？
-例如：假设我有兴趣知道，对于特定的板球运动员，他们在助跑中的最大跑步速度是否与投球的速度相关，并且我从 1000 个球中获得了数据 - 我可以处理即使球都来自同一名球员，出于相关性分析的目的，这些球也是独立的吗？我只想了解相关玩家的这种关系，而不是对任何更广泛的人群做出推断。]]></description>
-      <guid>https://stats.stackexchange.com/questions/647922/independence-assumptions-in-correlations-when-all-data-comes-from-same-individua</guid>
-      <pubDate>Fri, 24 May 2024 20:54:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>相对精度公式名称？ n = z²(1-p)/e²p</title>
-      <link>https://stats.stackexchange.com/questions/647921/relative-precision-formula-name-n-z%c2%b21-p-e%c2%b2p</link>
-      <description><![CDATA[我需要知道我最后一年论文的方法部分中样本量计算的相对精度公式名称（标准化）
-$$n = \frac{z^2(1-p)p}{e^2}.$$]]></description>
-      <guid>https://stats.stackexchange.com/questions/647921/relative-precision-formula-name-n-z%c2%b21-p-e%c2%b2p</guid>
-      <pubDate>Fri, 24 May 2024 20:51:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何计算集合预测的估计方差？</title>
-      <link>https://stats.stackexchange.com/questions/647919/how-do-i-calculate-estimated-variance-for-an-ensemble-forecast</link>
-      <description><![CDATA[基于相同的数据，但使用截然不同的统计模型，我对一个变量有几个（n）个质量相当的不同预测。对于每个预测，我都生成了未来 m 个周期的估计值，使用标准 R 工具为每个预测生成点估计值和置信区间。我希望将这些估计值合并为未来 m 个周期的单点估计值，以及组合点估计值的单个置信区间。
-如果这些估计值的误差均通过正态性检验，我倾向于将组合估计值视为 n 个正态变量的平均值，并相应地计算该平均值的点估计值和置信区间。
-这是一个合理的方法吗？还有更好的吗？
-这是我第一次尝试集成估计，我对文献中的结果几乎一无所知。因此，请毫不犹豫地阐述显而易见的事情]]></description>
-      <guid>https://stats.stackexchange.com/questions/647919/how-do-i-calculate-estimated-variance-for-an-ensemble-forecast</guid>
-      <pubDate>Fri, 24 May 2024 19:47:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么信度是真实得分方差与总得分方差的比值，而不是真实得分与总得分的比值？</title>
-      <link>https://stats.stackexchange.com/questions/647917/why-is-reliability-a-ratio-of-true-score-variance-to-total-score-variance-inste</link>
-      <description><![CDATA[可靠性由下式给出：
-$r_{xx} = \frac{Var(T)}{Var(X)}$
-其中 $T$ 是真实分数，$X$ 是总分。
-为什么可靠性不简单：
-$r_{xx} = \frac{T}{X}$
-其中 $T$ 是所有个人真实分数的总和，$X$ 是是所有个人总分的总和吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/647917/why-is-reliability-a-ratio-of-true-score-variance-to-total-score-variance-inste</guid>
-      <pubDate>Fri, 24 May 2024 19:14:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>为贝叶斯线性模型中的数据推导条件联合概率模型</title>
-      <link>https://stats.stackexchange.com/questions/647915/deriving-a-conditional-joint-probability-model-for-the-data-in-a-bayesian-linear</link>
-      <description><![CDATA[我一直在阅读 Tony Lancaster 2004 年出版的书“现代贝叶斯计量经济学简介”。在第 116-117 页，Lancaster 导出了线性模型 $p(y,X|\boldsymbol{\beta})$ 的条件联合分布class=&quot;math-container&quot;&gt;$y=X\boldsymbol{\beta}+\epsilon$ 使用 $X$ 的联合分布和残差，$p(\epsilon, X)$。但他在获得结果的过程中使用的换人似乎并不总是合理的。他们有道理吗？
-他从目标开始：给定 $X$ 的情况下，对 $\boldsymbol{\beta}$ 进行后验推理 和 $y$，使用贝叶斯定理
-$$p(\boldsymbol{\beta}|y,X)\propto p(y,X|\boldsymbol{\beta})p(\boldsymbol{\beta })$$
-这需要导出数据的条件联合分布
-$$p(y,X|\boldsymbol{\beta})$$
-他的策略是首先获得 $\epsilon$ 和 $X$ 的联合分布，假设 $\epsilon$ 和 $X$ 是独立的，而不仅仅是不相关
-$$p(\epsilon, X)=p_{\epsilon}(\epsilon)p(X)$$
-他的下一步是使用 $y=X\boldsymbol{\beta}+\epsilon$ 对此联合分布进行替换，然后以 $\boldsymbol{\beta}$，产生所需的条件联合分布
-$$p(y,X|\boldsymbol{\beta})=p_{\epsilon}(y-X\boldsymbol{\beta})p(X|\boldsymbol{ \beta})$$
-我理解这个结果的右侧，只需使用 $\epsilon=y-X\boldsymbol{\beta}$ 即可。但是左边呢？它不能简单地替换 $y=\epsilon$，因为这没有意义。有人可以帮助我更好地理解这个结果的合理性吗？我错过了一些基本的东西吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/647915/deriving-a-conditional-joint-probability-model-for-the-data-in-a-bayesian-linear</guid>
-      <pubDate>Fri, 24 May 2024 18:09:37 GMT</pubDate>
-    </item>
-    <item>
       <title>计算边际效应与 brms 模型的边际效应对比</title>
       <link>https://stats.stackexchange.com/questions/647910/calculating-contrasts-of-marginal-effects-with-marginaleffects-for-brms-model</link>
-      <description><![CDATA[我已经使用 brms 拟合了逻辑模型，并希望计算平均边际效应 (AME)。
-库(brms)
+      <description><![CDATA[我已经用 brms 拟合了一个逻辑模型，并想计算平均边际效应 (AME)。
+library(brms)
 
-模型 &lt;- brm(公式 = 结果 ~ var1 + var2 + var3, family = Bernoulli(), data = data)
+model &lt;- brm(formula = consequence ~ var1 + var2 + var3, family = bernoulli(), data = data)
 
-var1 是分类的，具有两个级别 (1, 0)，var3 是分类的，具有三个级别（“a”、“b”、“0”）。 c”）。 var3 是另一个变量，在计算边际效应时我不想设置/平均其值。
-现在，我想计算 var2 每个级别的 var1 的 AME/斜率。 （我不想使用平均协变量 (MEM)。）
-库（边际效应）
+var1 是分类变量，有两个级别 (1, 0)，var3 是分类变量，有三个级别 (&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)。var3 是另一个变量，我不想在计算边际效应时设置/平均它的值。
+现在，我想为 var2 的每个级别计算 var1 的 AME/斜率。 （我不想使用平均协变量 (MEM)。）
+library(marginaleffects)
 
-斜率 &lt;- avg_slopes(
-  模型，
-  变量=“var1”，
-  通过=“var2”
-) %&gt;%terior_draws()
+slopes &lt;- avg_slopes(
+model,
+variable = &quot;var1&quot;,
+by = &quot;var2&quot;
+) %&gt;% posterior_draws()
 
 这给了我：
- 术语对比度 var2 估计 2.5 % 97.5 %
- var1 平均值(dY/dX) a 0.0361 -0.1098 0.1735
- var1 平均值(dY/dX) b 0.0618 -0.0454 0.1666
- var1 平均值(dY/dX) c -0.0788 -0.1667 0.0177
+ Term Contrast var2 Estimate 2.5 % 97.5 %
+var1 mean(dY/dX) a 0.0361 -0.1098 0.1735
+var1 mean(dY/dX) b 0.0618 -0.0454 0.1666
+var1 mean(dY/dX) c -0.0788 -0.1667 0.0177
 
 现在，我需要这些对比之间的成对对比。即，a - b、a - c 和 b - c 的估计差异。
 我可以像这样手动完成：
-slopes_a &lt;- 斜率 %&gt;% 过滤器(var2 == &quot;a&quot;)
-lopes_b &lt;- 斜率 %&gt;% 过滤器(var2 == &quot;b&quot;)
-lopes_c &lt;- 斜率 %&gt;% 过滤器(var2 == &quot;c&quot;)
+slopes_a &lt;- slopes %&gt;% filter(var2 == &quot;a&quot;)
+slopes_b &lt;- slopes %&gt;% filter(var2 == &quot;b&quot;)
+slopes_c &lt;- slopes %&gt;% filter(var2 == &quot;c&quot;)
 
 df &lt;- data.frame(
-  `a - b` =lopes_a$draw-slopes_b$绘制，
-  `a - c` =lopes_a$draw-slopes_c$绘制，
-  `b - c` =lopes_b$draw-slopes_c$绘制
-）
+`a - b` = slopes_a$draw - slopes_b$draw,
+`a - c` = slopes_a$draw - slopes_c$draw,
+`b - c` = slopes_b$draw - slopes_c$draw
+)
 
-这是一种有效的方法吗？是否有更好/更好的方法，例如直接使用 marginaleffects 包？]]></description>
+这是一种有效的方法吗？有没有更好/更优的方法，例如直接使用 marginaleffects 包？]]></description>
       <guid>https://stats.stackexchange.com/questions/647910/calculating-contrasts-of-marginal-effects-with-marginaleffects-for-brms-model</guid>
       <pubDate>Fri, 24 May 2024 16:50:10 GMT</pubDate>
     </item>
@@ -221,97 +373,41 @@ df &lt;- data.frame(
       <pubDate>Fri, 24 May 2024 03:07:14 GMT</pubDate>
     </item>
     <item>
-      <title>了解 Chinchilla 复制研究中的 Log-Sum-Exp (LSE) 运算符，e 是集合还是 exp？</title>
-      <link>https://stats.stackexchange.com/questions/647669/understanding-the-log-sum-exp-lse-operator-in-chinchilla-replication-study-is</link>
-      <description><![CDATA[我正在尝试了解 Log-Sum-Exp (LSE) 运算符在 Chinchilla 复制研究中的使用，特别是论文“Chinchilla Scaling：一种复制尝试”中引用的运算符。贝西罗格鲁等人（2024）。在该研究中，LSE 用于损失参数模型的拟合过程。不过，e似乎并不是作为自然对数的标准底，而是作为参数的一组初始值。
-为什么 e 是一组值 {-1, =0.5, ..., 1} 而不是 Chinchilla 复制研究中 LSE 运算符上下文中的标准指数函数？ p&gt;
-上下文：
-Chinchilla复制论文定义参数模型和拟合过程如下：
-$$
-L(N,D) = E + A N^{-\alpha} + B D^{-\beta}
-$$
-在龙猫复制研究中，LSE函数的使用如下：
-$[
-\min_{a,b,e,\alpha,\beta} \sum_{\text{Run } i} \text{Huber}_\delta \left( \text{LSE}(a \alpha \log N_i, b \beta \log D_i, e) - \log L_i \right)
-]$
-这里，LSE不是传统的log-sum-exp，而是将这些对数项与参数结合起来的函数
-𝑒
-e 从集合 {-1, -0.5, ..., 1} 初始化
-为什么会有差异？
-在这项具体研究中，e 用作从一组值初始化的参数，以优化拟合过程。这与 log-sum-exp 函数中 e 的传统用法不同，其中 e 是自然对数的底数。 e 的集合 {-1, -.5, ..., 1} 的选择允许研究人员探索不同的初始化并找到模型的最佳参数。
-我希望这有助于阐明 e 在龙猫复制研究中的使用。如果您还有其他问题或需要更多详细信息，请告诉我！
-&lt;小时/&gt;
-将 numpy 导入为 np
-从 scipy.optimize 导入最小化
-从 sklearn.metrics 导入mean_squared_error
-
-# 定义参数模型
-def model_loss(N, D, E, A, alpha, B, beta):
-    返回 E + (A / (N ** alpha)) + (B / (D ** beta))
-
-# 定义Huber损失函数
-def huber_loss(delta, pred, 实际):
-    diff = np.abs(预测值 - 实际值)
-    return np.where(diff &lt; delta, 0.5 * diff ** 2, delta * (diff - 0.5 * delta))
-
-# 示例数据（N：模型大小，D：训练标记数量，L：观察到的损失）
-数据 = [
-    {&#39;N&#39;：1e6，&#39;D&#39;：1e9，&#39;L&#39;：2.0}，
-    {&#39;N&#39;：1e7，&#39;D&#39;：1e10，&#39;L&#39;：1.5}，
-    # 根据需要添加更多数据点
-]
-
-# 将数据转换为 numpy 数组
-N = np.array([d[&#39;N&#39;] for d in data])
-D = np.array([d[&#39;D&#39;] for d in data])
-L = np.array([d[&#39;L&#39;] for d in data])
-
-# 定义优化目标函数
-def 目标（参数）：
-    E、A、alpha、B、beta = 参数
-    L_pred = model_loss(N、D、E、A、α、B、β)
-    返回 np.sum(huber_loss(0.1, L_pred, L))
-
-# 初始参数网格
-参数网格 = {
-    ‘E’: [0, 0.5, 1],
-    ‘A’: [100, 200, 300],
-    “阿尔法”：[0.3，0.5，0.7]，
-    ‘B’: [1000, 2000, 3000],
-    “测试版”：[0.3，0.5，0.7]，
-    ‘e’: [-1, -0.5, 0, 0.5, 1]
-}
-
-# 执行网格搜索
-最佳参数 = 无
-最佳损失 = 浮动（&#39;inf&#39;）
-对于 param_grid[&#39;E&#39;] 中的 E：
-    对于 param_grid[&#39;A&#39;] 中的 A：
-        对于 param_grid[&#39;alpha&#39;] 中的 alpha：
-            对于 param_grid[&#39;B&#39;] 中的 B：
-                对于 param_grid[&#39;beta&#39;] 中的 beta：
-                    对于 param_grid[&#39;e&#39;] 中的 e：
-                        参数 = (E, A, alpha, B, beta)
-                        损失=目标（参数）
-                        如果损失&lt;最佳损失：
-                            最佳损失 = 损失
-                            最佳参数 = 参数
-
-print(&quot;最佳参数：&quot;, best_params)
-print(&quot;最佳损失：&quot;, best_loss)
-
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/647669/understanding-the-log-sum-exp-lse-operator-in-chinchilla-replication-study-is</guid>
-      <pubDate>Tue, 21 May 2024 04:37:11 GMT</pubDate>
+      <title>使用费舍尔推理可以帮助我对动力不足的结果更有信心吗？</title>
+      <link>https://stats.stackexchange.com/questions/647457/can-using-fisherian-inference-help-me-to-be-more-confident-of-an-underpowered-re</link>
+      <description><![CDATA[我正在使用贫困指数作为运行变量进行不连续回归，以了解现金转移对结果的影响。问题在于，该评分并不能很好地预测治疗效果，依从性约为 40%。此外，文献建议我应该寻找大约 0.1 个标准差的最小可检测效应大小。因此，在进行功率计算时，我发现虽然我的样本不小（~16 000 obs.），但功率仍然不足。
+阅读 Cattaneo 等人的论文。 （2024；回归不连续性设计的实用介绍：扩展），我注意到，在存在以下情况的情况下观察值并不多，可以假设在截止值的上方和下方进行随机分配，并使用费舍尔推理（假设非随机的潜在结果并使用尖锐的零假设）仍然可以获得稳健的结果（尽管您必须放弃点估计）。
+当您的结果不是因为样本量小而是因为不完美的合规性而导致结果不足时，是否可以应用相同的逻辑？
+也就是说，如果我使用常见的回归不连续性方法得到一个不显着的结果，然后在运行相同的回归但使用费舍尔推理时也得到一个不显着的结果，那么最后的结果是否令人放心？我是否可以相当有信心地认为，这种不显着性并非偶然，而是由于缺乏影响？]]></description>
+      <guid>https://stats.stackexchange.com/questions/647457/can-using-fisherian-inference-help-me-to-be-more-confident-of-an-underpowered-re</guid>
+      <pubDate>Fri, 17 May 2024 22:18:08 GMT</pubDate>
     </item>
     <item>
       <title>理解分数实验中的“乘法/群运算”</title>
       <link>https://stats.stackexchange.com/questions/643907/understanding-multiplication-group-operation-in-fractional-experiments</link>
-      <description><![CDATA[在我试图理解的分数阶乘设计中，至少有一种群运算。为了确定性，假设我们有 3 个因素； A、B、C，各两个级别。请批评我的理解。我们假设效应稀疏，因此复合 ABC 是微不足道的。然后我们以某种方式设置 ABC=1。这1到底是什么？我们是否以某种方式“乘以”？或者将 A 与 B、C 组合以获得这个 1？我们可以单独围绕这个关系和别名定义一个乘法，其中等号的列是等效的吗？
+      <description><![CDATA[在我试图理解的部分阶乘设计中，至少有一种群运算。为了确定性，假设我们有 3 个因素； A、B、C，各两个级别。请批评我的理解。我们假设效应稀疏，因此复合 ABC 是微不足道的。然后我们以某种方式设置 ABC=1。这1到底是什么？我们是否以某种方式“乘以”？或者将 A 与 B、C 组合以获得这个 1？我们可以单独围绕这个关系和别名定义一个乘法，其中等号的列是等效的吗？
 编辑：我假设“1”代表一个无关紧要的结果，其他关系是通过别名给出的，即组合对（抱歉，我在这里在精确的术语上画了一个空白）如果它们的列被认为是相等的对于每个列条目来说都是相等的，例如 AB=C。就是这样，还是还有更多，比如正式的数学描述？]]></description>
       <guid>https://stats.stackexchange.com/questions/643907/understanding-multiplication-group-operation-in-fractional-experiments</guid>
       <pubDate>Sat, 30 Mar 2024 14:41:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>结合 2 个调查来源的结果</title>
+      <link>https://stats.stackexchange.com/questions/572051/combining-results-of-2-survey-sources</link>
+      <description><![CDATA[在我的研究中，我有来自 2 个调查来源（来自 2 组人）的数据。他们彼此之间非常不同。一些主要区别：
+
+第一组没有获得报酬来回答调查，而第二组则获得报酬（金钱是第二组进行调查的主要原因）。
+
+第一组中显示调查的人数和第一组中回答调查的人数比第二组多很多
+
+每组人都会在各自的平台上显示调查（例如：第一组在 Youtube 上显示调查，第二组在 Facebook 上显示调查）。显然，用户使用的平台会影响他们是否会看到调查。
+
+与第一组相比，第二组的响应率要高得多（出于金钱原因）
+...
+
+
+我只是想知道是否有任何论文和资源描述如何结合两个不同调查来源的结果。谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/572051/combining-results-of-2-survey-sources</guid>
+      <pubDate>Mon, 18 Apr 2022 17:59:41 GMT</pubDate>
     </item>
     </channel>
 </rss>
