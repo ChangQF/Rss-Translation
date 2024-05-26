@@ -4,7 +4,195 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Sat, 25 May 2024 21:13:01 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 26 May 2024 01:07:03 GMT</lastBuildDate>
+    <item>
+      <title>如何将 Xarray 数据集转换为 Darts 时间序列</title>
+      <link>https://stackoverflow.com/questions/78534046/how-to-convert-xarray-dataset-to-a-darts-time-series</link>
+      <description><![CDATA[
+我有一个带有纬度/经度/时间坐标的 Xarray 数据集对象，这是气候数据地图。我想将其转换为 Darts TimeSeries 对象，以便在其上训练模型。有一个 函数将 Xarray 对象转换为TimeSeries，但它需要“时间”、“组件”和“时间”三个字段。和“样品”。如何将我的 xarray 数据集转换为这种格式？
+我尝试了这个，但得到了 KeyError: &#39;component&#39;
+vi_time_series = TimeSeries.from_xarray(ds.vegetation_index)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78534046/how-to-convert-xarray-dataset-to-a-darts-time-series</guid>
+      <pubDate>Sun, 26 May 2024 01:01:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>时间序列预测平台的 Transformer 模型 - 求建议</title>
+      <link>https://stackoverflow.com/questions/78533853/transformer-model-for-time-series-prediction-plateaus-seeking-suggestion</link>
+      <description><![CDATA[对于机器学习领域来说有点陌生，如果这个问题很基本，那么抱歉。我使用一个简单的香草变压器来处理时间序列数据来预测特定的连续值。之前，我通过随机森林实现了一些准确性，并希望使用变压器来提高它。然而，无论其复杂程度如何，我的变压器模型的性能似乎都趋于稳定。
+我尝试过批量大小（16、32、64、128、200）、各种学习率和不同的标准化技术。在测试了不同的损失函数（MSE、MAE、Cauchy Loss、Huber损失和RMSE）后，我发现批量大小为200，学习率为0.005，MSE表现最好。
+我还可视化了注意力头来识别重要特征，训练了变分自动编码器并在我的变压器中使用了它的权重，并尝试了迁移学习。尽管做出了这些努力，该模型的性能仍然稳定。
+我最近看到了 Anthropic 写的这篇文章 (https://transformer- Circuits.pub/2024/scaling-monosemanticity/index.html），但尚未实施其建议。
+有人对进一步改进或研究模型有建议吗？我相信它在某个时候会陷入困境，任何见解都将不胜感激。请注意，我已经绘制了异常值，并观察了具有高 MSE 的样本之间的 MSE 及其相互关系，但我没有看到任何可以解释该问题的内容。下面，我粘贴了我正在使用的一个简单的变压器模型。以及显示训练 (25,000) 和验证 (1000) 数据集的损失曲线的图表。 X 轴是纪元，y 轴是 MSE。
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model, max_len=1000):
+        super(PositionalEncoding, self).__init__()       
+        pe = torch.zeros(max_len, d_model)
+        位置 = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        #div_term = torch.randn(19)
+        print(&#39;div term&#39;, div_term.shape)
+        print(&#39;正弦&#39;,torch.sin(position * div_term).shape)
+        print(&#39;cosine&#39;,torch.cos(position * div_term).shape)
+        print(&#39;位置&#39;, 位置.形状)
+        print(&#39;pe&#39;, pe.shape)
+        pe[:, 0::2] = torch.sin(位置 * div_term)  
+        pe[:, 1::2] = torch.cos(位置 * div_term) 
+        pe = pe.unsqueeze(0).transpose(0, 1)
+ 
+        self.register_buffer(&#39;pe&#39;, pe)
+
+    def 前向（自身，x）：
+        返回 x + self.pe[:x.size(0), :]
+       
+
+
+
+def focus_hook(模块, 输入, 输出):
+    查询、键、值 = 输入[0]、输入[1]、输入[2] 
+
+TransAm 类（nn.Module）：
+    def __init__(self,feature_size=20,num_layers=1,dropout=0.1):
+        super(TransAm, self).__init__()
+        self.model_type = &#39;变压器&#39;
+        
+        self.src_mask = 无
+        self.pos_encoder = PositionalEncoding(feature_size)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=10, dropout=dropout)
+        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)        
+        self.decoder = nn.Linear(feature_size,1)
+        self.init_weights()
+        
+        
+ 
+        
+    def init_weights(自身):
+ 
+        nn.init.constant_(self.decoder.bias.data, 0)
+
+ 
+        nn.init.xavier_uniform_(self.decoder.weight)
+
+    def 转发（自身，src）：
+        如果 self.src_mask 为 None 或 self.src_mask.size(0) != len(src):
+            设备 = src.设备
+            mask = self._generate_square_subsequent_mask(len(src)).to(device)
+            self.src_mask = 掩码
+
+        src = self.pos_encoder(src)
+        输出 = self.transformer_encoder(src,self.src_mask) 
+        输出 = self.decoder(输出)
+        返回输出
+
+    def _generate_square_subsequent_mask(self, sz):
+        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+        mask = mask.float().masked_fill(mask == 0, float(&#39;-inf&#39;)).masked_fill(mask == 1, float(0.0))
+        返回掩码
+    
+
+模型 = TransAm().to(设备)
+
+
+
+ 
+input_tensor = torch.tensor(np.random.rand(32, 20), dtype = torch.float32).to(device)
+print(&quot;输入张量形状：&quot;, input_tensor.shape)
+输出=模型（输入张量）
+输出形状
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78533853/transformer-model-for-time-series-prediction-plateaus-seeking-suggestion</guid>
+      <pubDate>Sat, 25 May 2024 22:18:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>ClassifierChain ValueError：无法将字符串转换为浮点数：'eval'</title>
+      <link>https://stackoverflow.com/questions/78533760/classifierchain-valueerror-could-not-convert-string-to-float-eval</link>
+      <description><![CDATA[我正在尝试在 CatBoostClassifier 上使用 ClassifierChain。请参阅下面的代码。
+X 由数字/分类特征组成
+Y 是二维布尔矩阵。
+&lt;前&gt;&lt;代码&gt;-------------------------------------------------------- -------------------------------------------
+ValueError Traceback（最近一次调用最后一次）
+/var/folders/qt/pddm3t3951g42p57pf8yms780000gn/T/ipykernel_81478/3196626518.py 在？()
+     11 clf = CatBoostClassifier(reg_lambda=0.001,
+---&gt; 12次迭代=450，
+     13深度=5，
+     14 学习率=0.01,
+     15 loss_function=&#39;MultiLogloss&#39;,
+
+〜/miniforge3/envs/m_arch/lib/python3.9/site-packages/sklearn/base.py 中？（估计器，*args，**kwargs）
+   第1148章
+   第1149章
+   第1150章
+   第1151章
+-&gt;第1152章
+
+〜/miniforge3/envs/m_arch/lib/python3.9/site-packages/sklearn/multioutput.py 在？（自我，X，Y，** fit_params）
+    第929章”
+    930“请参阅用户指南以获取更多信息。”
+    第931章）
+    第932章 
+--&gt;第933章
+    第934章
+    第935章
+    第936章
+...
+   第2151章
+   第2152章
+   第2153章
+
+ValueError：无法将字符串转换为浮点数：&#39;eval&#39;
+
+下面是我尝试的代码。
+cat_feature_idx/feature_idx 用于指定 catboostclassifier 参数中的索引。只有 5 个数字特征。插补后，df idx 顺序现在变为[数字特征+分类特征]，而不是来自 X 的列的原始顺序，因此“feature_idx[-cat_feature_idx:]”在争论中。
+我在没有 ClassifierChain 的情况下测试了模型，但在包含它时提示错误。
+我怀疑发生错误的两个可能原因：
+
+ClassifierChain 包含链中较早模型的预测，从而使 X 更大，但是 CatBoostClassifier 无法识别新“特征”是否适用于该链。是类别或数字（或者列的索引现在可能是随机排列的），因此会出现错误。
+
+在 new_X_train 的一列中，值“eval”导致错误。
+怀疑短语“eval”提示错误，或者我弄乱了转换后的 X_train 中的顺序 
+
+
+该列表是要在 CatboostClassifier feature_idx[-cat_feature_idx:] 中指定的 cat_features 索引
+我不确定这个理论是否正确，也不知道如何对此进行更多研究。
+下面是代码。
+hamming_scorer = make_scorer(hamming_loss,greater_is_better=False)
+
+预处理器 = ColumnTransformer(
+    变形金刚=[
+        （&#39;num&#39;，IterativeImputer（random_state = 42），numeric_features），
+        (&#39;cat&#39;, SimpleImputer(strategy=&#39;most_frequent&#39;), categorical_features)
+    ]）
+
+cat_feature_idx = X.shape[1] - len(numerical_features) 
+feature_idx = np.arange(X.shape[1])
+
+预处理器 = ColumnTransformer(
+    变形金刚=[
+        （&#39;num&#39;，IterativeImputer（random_state = 42），numeric_features），
+        (&#39;cat&#39;, SimpleImputer(strategy=&#39;most_frequent&#39;), categorical_features)
+    ]）
+管道 = 管道(步骤=[(&#39;预处理器&#39;, 预处理器)])
+new_X_train = pipeline.fit_transform(X_train)
+
+
+clf = CatBoostClassifier(reg_lambda=0.001,
+                        迭代=450，
+                        深度=5，
+                        学习率=0.01，
+                        loss_function=&#39;多对数损失&#39;, 
+                        eval_metric=&#39;汉明损失&#39;, 
+                        cat_features=feature_idx[-cat_feature_idx:], 
+                        详细=0，
+                        随机种子=42）
+链 = [ClassifierChain(clf, order=“随机”, random_state=i) for i in range(10)]
+对于链中链：
+    chain.fit(X_train, y_train)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78533760/classifierchain-valueerror-could-not-convert-string-to-float-eval</guid>
+      <pubDate>Sat, 25 May 2024 21:24:12 GMT</pubDate>
+    </item>
     <item>
       <title>Keras 模型总是预测几乎相同的事情</title>
       <link>https://stackoverflow.com/questions/78533664/keras-model-always-predicts-almost-the-same-thing</link>
@@ -83,23 +271,22 @@ print(&quot;预期类型：{}，预测类型：{}&quot;.format(expected_genre, P
     <item>
       <title>类型错误：单例数组 array(1) 不能被视为有效集合</title>
       <link>https://stackoverflow.com/questions/78532981/typeerror-singleton-array-array1-cannot-be-considered-a-valid-collection</link>
-      <description><![CDATA[我有一个数据集，其中我的目标变量是 1 到 8 之间的数字。
-现在我要实现 Cubic SVM。
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
+      <description><![CDATA[我有一个数据集，其中目标变量是 1 到 8 之间的数字。
+现在我要实现三次SVM。
+将 numpy 导入为 np
+将 pandas 导入为 pd
+从 sklearn.model_selection 导入 train_test_split
+从 sklearn.metrics 导入 roc_auc_score
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-from sklearn.svm import SVC
+从 sklearn.svm 导入 SVC
 
-model1 = SVC(kernel=&#39;poly&#39;, degree=3)
-
+model1 = SVC(内核=&#39;poly&#39;, 度=3)
 model1.fit(X_train, y_train)
 
 y_prob = model1.predict(X_test)
-y_true = np.argmax(y_prob, axis=0)
+y_true = np.argmax(y_prob, 轴=0)
 
 auc = roc_auc_score(y_test, y_true, multi_class=&#39;ovr&#39;)
 
@@ -109,16 +296,6 @@ TypeError：单例数组 array(1) 不能被视为有效集合。
 如何解决此错误并找到我的模型的 AUC？]]></description>
       <guid>https://stackoverflow.com/questions/78532981/typeerror-singleton-array-array1-cannot-be-considered-a-valid-collection</guid>
       <pubDate>Sat, 25 May 2024 16:00:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 xml 文件在 Pytorch 中训练模型？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78532699/how-to-train-model-in-pytorch-with-xml-files</link>
-      <description><![CDATA[我的文件夹 train 文件夹 gest_a 和 gest_b 中有照片和 xml 文件。
-如何在 pytorch 中使用它训练模型？
-我想要实时识别 gest 的文件。我不使用 ipynb 文件，我只使用 .py 文件
-预先感谢您的建议和解答]]></description>
-      <guid>https://stackoverflow.com/questions/78532699/how-to-train-model-in-pytorch-with-xml-files</guid>
-      <pubDate>Sat, 25 May 2024 14:06:01 GMT</pubDate>
     </item>
     <item>
       <title>我需要与目标服务器中的资源使用情况相关的 HTTP 请求数据集</title>
@@ -179,148 +356,6 @@ sayi = self.条目号
       <pubDate>Sat, 25 May 2024 09:22:50 GMT</pubDate>
     </item>
     <item>
-      <title>A3C 代理（连续动作空间）没有经过适当的训练，只能达到</title>
-      <link>https://stackoverflow.com/questions/78531464/a3c-agent-continuous-action-space-not-being-trained-properly-and-only-reach</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78531464/a3c-agent-continuous-action-space-not-being-trained-properly-and-only-reach</guid>
-      <pubDate>Sat, 25 May 2024 05:21:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 xgboost 推断 csv 数据时出现问题</title>
-      <link>https://stackoverflow.com/questions/78531267/there-was-a-problem-infering-csv-data-with-xgboost</link>
-      <description><![CDATA[我在使用 xgboost 进行推断时遇到问题：
-简单来说，我想使用 xgboost 执行回归任务，由多个 csv 数据集组成。我将它们拼接成一个数据帧，并使用 train_test_split 分割训练/验证/测试。该模型运行良好（mae：0.6）。但是当我手动拆分训练集和测试集（我挑选了一部分 csv 并将其放入测试文件夹中）时，结果变得非常差（mae：12+）。
-我真的很想知道这里发生了什么？我已经发布了下面的一些代码。
-1：这是带有train_test_split的分割代码：
-# 准备好数据
-数据集 = []
-路径=&#39;../data/low_fidelity_chips_res&#39;
-对于 os.listdir(path) 中的文件名：
-    if filename.endswith(“.csv”)：
-        数据集 = ThermalDataset(os.path.join(路径，文件名))
-        数据集.append(数据集)
-
-# 合并数据集
-[merged_dataset = pd.concat([pd.DataFrame(dataset.X) 用于数据集中的数据集])
-merged_targets = pd.concat([数据集中的数据集的pd.DataFrame(dataset.y)])
-X_scaled = scaler.fit_transform(merged_dataset)
-y_scaled = 缩放器.fit_transform(merged_targets)
-
-# 除法
-X_train，X_test，y_train，y_test = train_test_split（X_scaled，y_scaled，test_size = 0.2，random_state = 11）
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=11)
-
-# 构建xgboost模型
-模型= xgb.XGBRegressor（tree_method =&#39;gpu_hist&#39;，gpu_id = device.index，n_estimators = 500，learning_rate = 0.05，max_depth = 8）
-model.fit(X_train, y_train)
-
-＃ 评估
-y_val_pred = scaler.inverse_transform(y_val_pred_scaled.reshape(-1, 1)).flatten()
-y_test_pred = 缩放器.inverse_transform(y_test_pred_scaled.reshape(-1, 1)).flatten()
-y_val_original = scaler.inverse_transform(y_val.reshape(-1, 1)).flatten()
-y_test_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
-val_mse =mean_squared_error(y_val_original, y_val_pred)
-test_mse =mean_squared_error(y_test_original, y_test_pred)
-val_mae = Mean_absolute_error(y_val_original, y_val_pred)
-test_mae = Mean_absolute_error(y_test_original, y_test_pred)]
-
-2：这是我在代码后的手动划分：
-# 训练数据集
-数据集 = []
-路径=&#39;../data/low_fidelity_chips_res&#39;
-对于 os.listdir(path) 中的文件名：
-    if filename.endswith(“.csv”)：
-        数据集 = ThermalDataset(os.path.join(路径，文件名))
-        数据集.append(数据集)
-
-# 测试数据，这是我从原始数据中手动分区的测试集的 csv
-测试=[]
-test_file = &#39;../data/test_xgboost/Thermal014withMidPos.csv&#39;
-测试 = ThermalDataset(test_file)
-测试.追加（测试）
-
-＃ 结合
-merged_dataset = pd.concat([数据集中的数据集的pd.DataFrame(dataset.X)])
-merged_targets = pd.concat([数据集中的数据集的pd.DataFrame(dataset.y)])
-test_x = pd.concat([pd.DataFrame(test.X) 用于测试中的测试])
-test_y = pd.concat([pd.DataFrame(test.y) 用于测试中的测试])
-
-# 标准化
-X_scaled = scaler.fit_transform(merged_dataset)
-y_scaled = 缩放器.fit_transform(merged_targets)
-x_fill = 缩放器.fit_transform(test_x)
-y_fill = 缩放器.fit_transform(test_y)
-
-＃ 分裂
-X_train，X_test，y_train，y_test = train_test_split（X_scaled，y_scaled，test_size = 0.05，random_state = 11）
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=11)
-
-＃ 火车
-模型= xgb.XGBRegressor（tree_method =&#39;gpu_hist&#39;，gpu_id = device.index，n_estimators = 500，learning_rate = 0.05，max_depth = 8）
-model.fit(X_train, y_train)
-
-＃ 评估
-y_val_pred_scaled = model.predict(X_val)
-y_test_pred_scaled = model.predict(X_test)
-y_fill_res = model.predict(x_fill)
-
-# inverse_transform 获取原始数据
-y_val_pred = scaler.inverse_transform(y_val_pred_scaled.reshape(-1, 1)).flatten()
-y_test_pred = 缩放器.inverse_transform(y_test_pred_scaled.reshape(-1, 1)).flatten()
-y_pre = scaler.inverse_transform(y_fill_res.reshape(-1, 1)).flatten()
-y_val_original = scaler.inverse_transform(y_val.reshape(-1, 1)).flatten()
-y_test_original = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
-y_fill = scaler.inverse_transform(y_fill.reshape(-1, 1)).flatten()
-val_mse =mean_squared_error(y_val_original, y_val_pred)
-test_mse =mean_squared_error(y_test_original, y_test_pred)
-val_mae = Mean_absolute_error(y_val_original, y_val_pred)
-test_mae = Mean_absolute_error(y_pre, y_fill)`
-
-我希望能够对单个 csv 文件进行正确推理，并获得与训练中一样好的结果。]]></description>
-      <guid>https://stackoverflow.com/questions/78531267/there-was-a-problem-infering-csv-data-with-xgboost</guid>
-      <pubDate>Sat, 25 May 2024 02:40:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>langchain RetrievalQA 错误：ValueError：缺少一些输入键：{'query'}</title>
-      <link>https://stackoverflow.com/questions/78530745/langchain-retrievalqa-error-valueerror-missing-some-input-keys-query</link>
-      <description><![CDATA[在 RAG 项目中，我使用 langchain。当我使用查询输入运行 QA 链时，此错误不断出现：
-----&gt;;结果 = qa_chain({&#39;查询&#39;: 问题})
-ValueError：缺少一些输入键：{&#39;query&#39;}
-
-这是我的代码：
-from langchain.chains import RetrievalQA
-从 langchain.prompts 导入 PromptTemplate
-
-# 构建提示
-template = &quot;&quot;&quot; 根据以下上下文回答问题。
-    语境：
-    {语境}
-    ------------------
-    问题：{查询}
-    答案：“”
-
-# 法学硕士链
-QA_CHAIN_PROMPT = PromptTemplate.from_template(模板)
-qa_chain = RetrievalQA.from_chain_type(
-    嗯，
-    检索器=vectordb.as_retriever(),
-    return_source_documents=真，
-    chain_type_kwargs={“提示”: QA_CHAIN_PROMPT}
-）
-
-Question =“这篇研究论文使用了什么方法？”
-
-结果 = qa_chain({&#39;查询&#39;: 问题})
-
-# 查看查询结果
-结果[“结果”]
-# 检查我们所在的源文档 
-结果[“源文档”][0]
-]]></description>
-      <guid>https://stackoverflow.com/questions/78530745/langchain-retrievalqa-error-valueerror-missing-some-input-keys-query</guid>
-      <pubDate>Fri, 24 May 2024 21:23:49 GMT</pubDate>
-    </item>
-    <item>
       <title>ImportError：无法从“sklearn.utils”导入名称“_get_column_indices”</title>
       <link>https://stackoverflow.com/questions/78524575/importerror-cannot-import-name-get-column-indices-from-sklearn-utils</link>
       <description><![CDATA[尝试为 RandomOverSampler 导入 imblearn.over_sampling 时出现导入错误。我相信问题不在于我的代码，而在于库冲突，但我不确定。
@@ -355,7 +390,14 @@ print(len(train[train[“班级”]==0]))
       <pubDate>Thu, 23 May 2024 16:54:46 GMT</pubDate>
     </item>
     <item>
-      <title>成为一名 mlops 工程师从哪里开始？ [关闭]</title>
+      <title>机器学习 CTF 挑战赛 [已关闭]</title>
+      <link>https://stackoverflow.com/questions/78522790/machine-learning-ctf-challenge</link>
+      <description><![CDATA[我正在尝试解决机器学习 CTF 挑战。 这是链接，这里是网站背后的代码。我需要获取该标志，根据我所见（在 src/api/v1/predict/index.ts 中），该标志在“l33t”输出时被打印。 label 在 totalScores 对象中得分最高。我尝试了多个提示，但没有任何效果。对此的任何帮助将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78522790/machine-learning-ctf-challenge</guid>
+      <pubDate>Thu, 23 May 2024 11:25:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>要成为一名 mlops 工程师，从哪里开始？[关闭]</title>
       <link>https://stackoverflow.com/questions/78502776/where-to-start-to-become-a-mlops-engineer</link>
       <description><![CDATA[我目前是一名 DevOps 工程师，我非常渴望了解 MLOPS。
 从职业角度来看，我希望将 ML 相关工作添加到我的个人资料中。
