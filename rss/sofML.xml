@@ -4,9 +4,60 @@
     <title>标记为机器学习的活跃问题 - Thinbug</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 个</description>
-    <lastBuildDate>Tue, 28 May 2024 15:14:33 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 28 May 2024 18:19:01 GMT</lastBuildDate>
     <item>
-      <title>将 Spark 中的大数据引入盛宴特征存储中</title>
+      <title>使用并行神经网络进行动态权重分配来提高 CNN 性能</title>
+      <link>https://stackoverflow.com/questions/78545298/improving-cnn-performance-with-a-parallel-neural-network-for-dynamic-weight-assi</link>
+      <description><![CDATA[我试图通过为所有数据点分配 0-1 之间的权重来改进我的回归模型，即卷积神经网络，这反过来又告诉我特定数据点在进行预测时有多好。关键是有些数据点很嘈杂并且会做出更糟糕的预测，我希望这些数据点具有较低的权重，以便在最后和训练期间忽略它们。
+我所做的：尝试实现一个并行神经网络 (nn)，输出 0 到 1 之间的权重，并将此权重分配给相关的数据点/图像。
+两个网络都接收相同的数据点作为输入，nn 输出权重，而回归 cnn 输出值 Y_i。然后将结果连接起来并传递给两个网络的相互自定义损失函数，该函数将预测值和目标值之间的平方差与并行 nn 中的给定权重相乘：sum((Y(:,i)-T(:,i))^2)*W(i)。
+问题是模型似乎向较小的权重 W(i) 收敛，因为这将最大限度地减少损失，我该如何解决这个问题？
+我尝试添加与权重大小成比例的正则化项来惩罚较小的权重。它有所帮助，但结果仍然不如没有并行 nn 时那么好。
+# functional api
+inputs = Input(shape=(16,150,1) )
+
+x2 = Conv2D(64, 3, 1,activation=&#39;relu&#39;,data_format=&quot;channels_last&quot;,name=&#39;Conv1&#39;)(inputs)
+
+x2 = MaxPooling2D()(x2)
+x2 = BatchNormalization()(x2)
+
+x2 = Conv2D(74, 2,activation=&#39;relu&#39;)(x2)
+x2 = MaxPooling2D()(x2)
+x2 = BatchNormalization()(x2)
+
+x2 = Conv2D(128, 2,activation=&#39;relu&#39;)(x2)
+x2 = Flatten()(x2)
+
+x2 = Dense(256,activation=&#39;relu&#39;, name=&quot;FC1&quot;)(x2)
+x2 = Dense(256,activation=&#39;relu&#39;,name=&#39;FC2&#39;)(x2)
+regression_output = Dense(1,name=&#39;Output&#39;)(x2)
+
+# 权重 NN 
+x1 = Flatten()(inputs) # 与上面的 CNN 相同的输入
+x1 = Dense(64,activation=&#39;relu&#39;,kernel_regularizer=tf.keras.regularizers.l2(0.01))(x1)
+x1 = Dense(64,activation=&#39;relu&#39;,kernel_regularizer=tf.keras.regularizers.l2(0.01))(x1)
+x1 = Dense(64,activation=&#39;relu&#39;)(x1)
+
+weight_output = Dense(1,activation=&#39;sigmoid&#39;,name=&#39;weight_output&#39;)(x1) # 权重作为输出
+weight_output = tf.maximum(weight_output, 0.1) # 确保权重至少为 0.1
+combined_output = Concatenate()([regression_output, weight_output])
+model = Model(inputs=inputs, output=combined_output)
+
+def custom_loss(y_true, y_pred):
+regression = y_pred[:, 0]
+weight = y_pred[:, 1]
+# 与之前一样对权重进行 L2 惩罚
+#weight_penalty = tf.reduce_mean(tf.square(weight))
+#l1_penalty = tf.reduce_sum(tf.abs(weight)) # L1 惩罚
+#lambda_l1 = 0.10 # L1 的正则化强度
+return tf.reduce_mean(weight * tf.square(y_true - return))
+model.compile(optimizer=&#39;adam&#39;, loss=custom_loss, metrics = [&#39;mae&#39;])
+]]></description>
+      <guid>https://stackoverflow.com/questions/78545298/improving-cnn-performance-with-a-parallel-neural-network-for-dynamic-weight-assi</guid>
+      <pubDate>Tue, 28 May 2024 16:06:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>将 Spark 中的大数据导入到 Feast Feature Store</title>
       <link>https://stackoverflow.com/questions/78544969/ingesting-big-data-from-spark-into-feast-feature-store</link>
       <description><![CDATA[我目前正在为 MLOps 项目构建大数据管道，该管道用于批处理。
 这是当前设置：
@@ -22,7 +73,7 @@ Spark 作业提取原始数据并进行处理。
     <item>
       <title>预测多元时间序列时 VARIMA 模型的模型漂移</title>
       <link>https://stackoverflow.com/questions/78544041/model-drift-for-varima-model-when-forecasting-multivariate-time-series</link>
-      <description><![CDATA[我目前正在尝试使用有关冷却系统 5 种不同传感器测量值的多元时间序列数据来训练 VARIMA 模型。数据具有周期性，因此每 25 个数据点左右就会重复出现完全相同的模式。我有一个包含 5 个不同组件的数据集，其中每分钟都有一个数据点。我使用了 2 周的数据来训练模型，然后让它合成数据。我使用的 VARIMA 模型是从 Darts 包导入的，我这样定义模型：model_VARIMA = VARIMA(p=12, d=0, q=0, trend=“n”)。该模型使用 2 周的训练数据进行训练。当预测未来 30 个点或更长时间时，预测明显开始显示模型漂移。所有组件不再产生循环的多元时间序列数据，而是不再有价值的水平直线。我想知道是否有人对此有解释以及解决问题的方法。谢谢！]]></description>
+      <description><![CDATA[我目前正在尝试在多变量时间序列数据上训练 VARIMA 模型，该数据是关于冷却系统的 5 种不同类型的传感器测量的。数据具有周期性，因此完全相同的模式每 25 个数据点左右就会重复出现一次。我有一个包含 5 个不同组件的数据集，其中每分钟有一个数据点。我使用了 2 周的数据来训练模型，然后让它合成数据。我使用的 VARIMA 模型是从 Darts 包导入的，我这样定义模型：model_VARIMA = VARIMA(p=12, d=0, q=0, trend=&quot;n&quot;)。该模型是在 2 周的训练数据上训练的。当预测未来 30 个点或更多时，预测显然开始显示模型漂移。所有组件都没有产生周期性的多变量时间序列数据，因为一条不再有价值的直线。我想知道是否有人对此有解释并有解决问题的方法。谢谢！]]></description>
       <guid>https://stackoverflow.com/questions/78544041/model-drift-for-varima-model-when-forecasting-multivariate-time-series</guid>
       <pubDate>Tue, 28 May 2024 12:15:20 GMT</pubDate>
     </item>
@@ -46,7 +97,7 @@ y_(t+21) - y_(t) 有两种情况。一是区分月末值和区分月均值。因
       <pubDate>Tue, 28 May 2024 11:21:17 GMT</pubDate>
     </item>
     <item>
-      <title>二元分类得到大于1的预测值</title>
+      <title>二元分类获取预测值大于 1 [重复]</title>
       <link>https://stackoverflow.com/questions/78543310/binary-classification-get-predict-value-greater-than-1</link>
       <description><![CDATA[
 &lt;img alt=&quot;预测代码&quot; src=&quot;https://i.sstatic.net/Lwa9ISdr.png ” /&gt;
@@ -87,16 +138,6 @@ y_(t+21) - y_(t) 有两种情况。一是区分月末值和区分月均值。因
       <pubDate>Tue, 28 May 2024 08:29:01 GMT</pubDate>
     </item>
     <item>
-      <title>如何聚合 DNA 序列数据 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78542443/how-to-aggregate-dna-sequence-data</link>
-      <description><![CDATA[数据文件：Task1-serious data.zip，包含10,000,000个样本，每个样本一行，第一个样本编号，剩余64个样本特征。数据来自DNA序列
-簇数最大为1000000，如果超过1000000，超出的簇将合并到第1000000个簇中
-例如在此处输入图片描述
-什么聚类方案是最好的以及我们应该如何做]]></description>
-      <guid>https://stackoverflow.com/questions/78542443/how-to-aggregate-dna-sequence-data</guid>
-      <pubDate>Tue, 28 May 2024 07:13:48 GMT</pubDate>
-    </item>
-    <item>
       <title>无法在 Kaggle 上以 .h5 格式保存深度学习模型</title>
       <link>https://stackoverflow.com/questions/78541201/unable-to-save-deep-learning-model-in-h5-format-on-kaggle</link>
       <description><![CDATA[我在尝试在 Kaggle 上以 .h5 格式保存深度学习模型时遇到问题。尽管遵循标准程序，保存过程始终失败。 在此处输入图像描述我已添加代码和面临的问题。
@@ -114,7 +155,7 @@ y_(t+21) - y_(t) 有两种情况。一是区分月末值和区分月均值。因
       <pubDate>Mon, 27 May 2024 19:40:59 GMT</pubDate>
     </item>
     <item>
-      <title>在与我之前训练的数据集不同的数据集上训练 yolov8 变得非常慢</title>
+      <title>在与我之前训练的数据集不同的数据集上训练 yolov8 变得非常慢[关闭]</title>
       <link>https://stackoverflow.com/questions/78539266/training-yolov8-on-a-different-data-set-than-i-had-previously-trained-it-on-beca</link>
       <description><![CDATA[我正在尝试在与我之前训练过的数据集不同的数据集上训练 yolov8。尽管这是一个较小的数据集，但即使 1 个 epoch 也需要极长的时间才能完成。还有其他人遇到这个问题吗？我可能哪里出错了？
 我正在尝试在与我之前训练过的数据集不同的数据集上训练 yolov8。尽管这是一个较小的数据集，但即使 1 个 epoch 也需要非常长的时间才能完成。]]></description>
@@ -167,98 +208,97 @@ PS：我是初学者，可能不懂东西，所以请不要嫌弃。]]></descrip
       <pubDate>Mon, 27 May 2024 09:54:27 GMT</pubDate>
     </item>
     <item>
-      <title>librosa、MFCC 中的 TypeError</title>
+      <title>librosa、MFCC 中的类型错误</title>
       <link>https://stackoverflow.com/questions/75775979/typeerror-in-librosa-mfcc</link>
-      <description><![CDATA[我有下面的代码，它接受一个数据集（GTZAN）并将其转换为字典中的 MFCC：
+      <description><![CDATA[我有以下代码，它获取一个数据集（GTZAN）并将其转换为字典中的 MFCC：
 DATASET_PATH = &#39;/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original&#39;
-JSON_PATH =“data_10.json”
-SAMPLE_RATE = 22050 #每首歌曲长度为30秒，采样率为22,050 Hz
+JSON_PATH = &quot;data_10.json&quot;
+SAMPLE_RATE = 22050 #每首歌曲时长 30 秒，采样率为 22,050 Hz
 TRACK_DURATION = 30 # 以秒为单位
 SAMPLES_PER_TRACK = SAMPLE_RATE * TRACK_DURATION #=661,500
 
+def save_mfcc(dataset_path, json_path, num_mfcc=13, n_fft=2048, hop_length=512, num_segments=5):
 
-def save_mfcc（数据集路径，json_path，num_mfcc = 13，n_fft = 2048，hop_length = 512，num_segments = 5）：
+# 用于存储映射、标签和 MFCC 的字典
+data = {
+&quot;mapping&quot;: [], #标签名称。size - (10,)
+&quot;labels&quot;: [], #存储“真实”歌曲类型（值从 0 到 9）。 size - (5992,)
+&quot;mfcc&quot;: [] #存储 mfccs.size - (5992, 216, 13)
+}
 
-    # 用于存储映射、标签和 MFCC 的字典
-    数据 = {
-        “映射”：[]，#标签名称。尺寸 - (10,)
-        &quot;labels&quot;: [], #存储“真实”歌曲类型（值从0-9）。尺寸 - (5992,)
-        &quot;mfcc&quot;: [] #存储 mfccs.size - (5992, 216, 13)
-    }
+samples_per_segment = int(SAMPLES_PER_TRACK / num_segments) #=110250
+num_mfcc_vectors_per_segment = math.ceil(samples_per_segment / hop_length) #=216(math.ceil of 215.332)
+# 循环遍历所有流派子文件夹
+for i, (dirpath, dirnames, filenames) in enumerate(os.walk(dataset_path)):
 
-    samples_per_segment = int(SAMPLES_PER_TRACK / num_segments) #=110250
-    num_mfcc_vectors_per_segment = math.ceil(samples_per_segment / hop_length) #=216(math.ceil of 215.332)
-    # 循环遍历所有流派子文件夹
-    对于 i，枚举（os.walk（dataset_path））中的（目录路径，目录名，文件名）：
+# 确保我们正在处理流派子文件夹级别
+if dirpath is not dataset_path:
 
-      # 确保我们正在处理流派子文件夹级别
-      如果 dirpath 不是 dataset_path：
+# 在映射中保存流派标签（即子文件夹名称）
+semantic_label = dirpath.split(&quot;/&quot;)[-1]
+data[&quot;mapping&quot;].append(semantic_label)
+print(&quot;\nProcessing: {}&quot;.format(semantic_label))
+# 处理类型子目录中的所有音频文件
+for f in filenames:
 
-          # 在映射中保存流派标签（即子文件夹名称）
-          Semantic_label = dirpath.split(“/”)[-1]
-          数据[“映射”].append(semantic_label)
-          print(&quot;\n处理: {}&quot;.format(semantic_label))
-          # 处理流派子目录中的所有音频文件
-          对于文件名中的 f：
+# 加载音频文件
 
-            # 加载音频文件
+file_path = os.path.join(dirpath, f)
 
-            file_path = os.path.join(dirpath, f)
-        
-            如果 file_path != &#39;/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original/jazz/jazz.00054.wav&#39;: 
-              “”“fileError：打开“/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original/jazz/jazz.00054.wav”时出错：文件包含未知格式的数据。“”“” ;
+if file_path != &#39;/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original/jazz/jazz.00054.wav&#39;: 
+&quot;&quot;&quot;fileError: 打开 &#39;/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original/jazz/jazz.00054.wav&#39; 时出错：文件包含未知数据格式。&quot;&quot;&quot;
 
-              signal,sample_rate = librosa.load(file_path, sr=SAMPLE_RATE) #signal=音频文件中有多少样本，采样率=音频文件的采样率num，sample=22050
+signal, sample_rate = librosa.load(file_path, sr=SAMPLE_RATE) #signal=音频文件中有多少样本, sample rate =音频文件的采样率, sample=22050
 
-              # 处理音频文件的所有片段
-              对于范围内的 d（num_segments）：
+#处理音频文件的所有片段
+for d in range(num_segments):
 
-                # 计算当前片段的开始和结束样本
-                开始 = 每个段的样本 * d
-                完成=开始+samples_per_segment
+#计算当前片段的开始和结束样本
+start = samples_per_segment * d
+finish = start + samples_per_segment
 
-                # 提取mfcc
-                mfcc = librosa.feature.mfcc(signal[start:finish], Sample_rate, n_mfcc=num_mfcc, n_fft=n_fft, hop_length=hop_length) #mfcc - 时间和 Coef(13 因为 num_mfcc=13), 
-                mfcc = mfcc.T #[216,13]
-                # 仅存储具有预期向量数量的 mfcc 特征
-                如果 len(mfcc) == num_mfcc_vectors_per_segment: #==216
-                    数据[“mfcc”].append(mfcc.tolist())
-                    数据[“标签”].append(i-1)
-                    print(&quot;{}, 段:{}&quot;.format(file_path, d+1))
-    # 将 MFCC 保存到 json 文件
-    以 open(json_path, &quot;w&quot;) 作为 fp：
-        json.dump(data, fp, indent=4) #将所有内容放入 Json 文件中
+#提取mfcc
+mfcc = librosa.feature.mfcc(signal[start:finish], sample_rate, n_mfcc=num_mfcc, n_fft=n_fft, hop_length=hop_length) #mfcc - 时间和 Coef(13 因为 num_mfcc=13), 
+mfcc = mfcc.T #[216,13]
+#仅存储具有预期向量数量的 mfcc 特征
+if len(mfcc) == num_mfcc_vectors_per_segment: #==216
+data[&quot;mfcc&quot;].append(mfcc.tolist())
+data[&quot;labels&quot;].append(i-1)
+print(&quot;{},segment:{}&quot;.format(file_path, d+1))
+# 将 MFCC 保存到 json 文件
+with open(json_path, &quot;w&quot;) as fp:
+json.dump(data, fp, indent=4) # 将所有内容放入 Json 文件中
 
-# 运行数据处理     
-save_mfcc（数据集路径，JSON_PATH，num_segments = 6）
+# 运行数据处理 
+save_mfcc(DATASET_PATH, JSON_PATH, num_segments=6)
 
-我已经使用这段代码很长一段时间了，它一直工作得很好，直到今天我收到了如下错误：
-TypeError Traceback（最近一次调用最后一次）
-&lt;ipython-input-10-4a9371926618&gt;在&lt;模块&gt;中
-      1 # 运行数据处理
+我已经使用这个代码很长一段时间了，它一直运行良好，直到今天我收到以下错误：
+TypeError Traceback (most最近调用最后一次)
+&lt;ipython-input-10-4a9371926618&gt; 在 &lt;module&gt;
+1 # 运行数据处理
 ----&gt; 2 save_mfcc(DATASET_PATH, JSON_PATH, num_segments=6)
 
-&lt;ipython-input-9-8ba1c6e78747&gt;在 save_mfcc(dataset_path, json_path, num_mfcc, n_fft, hop_length, num_segments) 中
-     56 
-     57 # 提取mfcc
----&gt; 58 mfcc = librosa.feature.mfcc(signal[start:finish],sample_rate,n_mfcc=num_mfcc,n_fft=n_fft,hop_length=hop_length) #mfcc - 时间和 Coef(13 因为 num_mfcc=13),
-     59 mfcc = mfcc.T #[216,13]
-     60 # 仅存储具有预期向量数量的 mfcc 特征
+&lt;ipython-input-9-8ba1c6e78747&gt; 在 save_mfcc(dataset_path, json_path, num_mfcc, n_fft, hop_length, num_segments)
+56 
+57 # 提取 mfcc
+---&gt; 58 mfcc = librosa.feature.mfcc(signal[start:finish], sample_rate, n_mfcc=num_mfcc, n_fft=n_fft, hop_length=hop_length) #mfcc - 时间和 Coef（13 因为 num_mfcc=13），
+59 mfcc = mfcc.T #[216,13]
+60 # 仅存储具有预期向量数量的 mfcc 特征
 
-类型错误：mfcc() 接受 0 个位置参数，但给出了 2 个位置参数（和 1 个仅关键字参数）
+TypeError：mfcc() 接受 0 个位置参数，但给出了 2 个位置参数（和 1 个仅关键字参数）
 
-关于save_mfcc函数：
-从音乐数据集中提取 MFCC，并将其与流派标签一起保存到 json 文件中。
- :param dataset_path (str): 数据集路径
-    :param json_path (str): 用于保存 MFCC 的 json 文件的路径
-    :param num_mfcc (int): 要提取的系数数量 
-    :param n_fft (int): 我们考虑应用 FFT 的间隔。以样本数衡量
-    :param hop_length (int): FFT 的滑动窗口。以样本数衡量
-    :param: num_segments (int): 我们想要将样本轨道划分为的段数
-    ：返回：
+关于 save_mfcc 函数：
+从音乐数据集中提取 MFCC 并将它们与流派标签一起保存到 json 文件中。
+ :param dataset_path (str)：数据集路径
+:param json_path (str)：用于保存的 json 文件的路径MFCCs
+:param num_mfcc (int)：要提取的系数数量
+:param n_fft (int)：我们考虑应用 FFT 的间隔。以样本数量为单位测量
+:param hop_length (int)：FFT 的滑动窗口。以样本数量为单位测量
+:param: num_segments (int)：我们要将样本轨迹划分成的段数
+:return:
 
 我不明白为什么今天才出现这个问题，以及如何解决它。
-如何解决该错误？]]></description>
+我该如何解决这个错误？]]></description>
       <guid>https://stackoverflow.com/questions/75775979/typeerror-in-librosa-mfcc</guid>
       <pubDate>Sat, 18 Mar 2023 12:46:34 GMT</pubDate>
     </item>
@@ -279,7 +319,7 @@ TypeError Traceback（最近一次调用最后一次）
       <pubDate>Wed, 09 Jan 2019 11:57:47 GMT</pubDate>
     </item>
     <item>
-      <title>数据挖掘方面 R 与 Matlab 的比较 [关闭]</title>
+      <title>将 R 与 Matlab 进行比较以进行数据挖掘[关闭]</title>
       <link>https://stackoverflow.com/questions/4811995/comparing-r-to-matlab-for-data-mining</link>
       <description><![CDATA[我最近开始学习 R，而不是开始在 Matlab 中编码，主要是因为它是开源的。我目前从事数据挖掘和机器学习领域的工作。我发现许多用 R 实现的机器学习算法，并且我仍在探索用 R 实现的不同包。
 我有一个简单的问题：您如何比较 R 和 Matlab 在数据挖掘应用中的受欢迎程度、优缺点、行业和学术接受度等？您会选择哪一个？为什么？
