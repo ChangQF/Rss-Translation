@@ -4,7 +4,150 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 29 May 2024 15:16:48 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 29 May 2024 18:19:33 GMT</lastBuildDate>
+    <item>
+      <title>使用机器学习方法选择加权平均的权重集</title>
+      <link>https://stackoverflow.com/questions/78551292/using-machine-learning-approach-to-select-weight-sets-for-weighted-average</link>
+      <description><![CDATA[我有一个问题，我有多个风速预测，我试图为每个预测分配不同的权重，以获得最佳的“混合”预测，从而获得最佳的预测性能。假设每个风速预测在温度和湿度等外部条件下表现不同。
+我知道这可以建模为优化问题，但我很好奇这是否可以通过机器学习来解决，因为 NN 基本上是在解决优化问题，并且由权重和偏差组成。
+因此，给定预测，并且可能给定外部条件（例如温度），模型会返回最佳权重选择。
+期待听到大家的想法。提前谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78551292/using-machine-learning-approach-to-select-weight-sets-for-weighted-average</guid>
+      <pubDate>Wed, 29 May 2024 18:08:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 R 中的 k 倍交叉验证机器学习模型中提取 SHAP 值？</title>
+      <link>https://stackoverflow.com/questions/78551276/extract-shap-values-in-the-context-of-a-k-fold-cross-validated-machine-learning</link>
+      <description><![CDATA[为了计算具有连续结果的随机森林模型的变量重要性，我想计算 k 倍交叉验证过程每一倍的训练集和测试集上的 SHAP 值并取平均值。Scheda 等人 已经完成了这项工作，似乎在 Python 中很容易完成。但是，在 R 中似乎没有简单的方法来实现这一点。下面是我正在尝试执行的操作的模式，基于 Scheda 和 al。
+
+这是我的所在位置，带有一个可复制的示例：
+
+用于 k 折交叉验证的常用 for 循环
+
+
+library(iml)
+library(caret)
+library(tidyverse)
+
+#upload car data
+data(cars)
+
+#create the folds
+folds.samp = createFolds(cars$Price,k=4,list=F)
+
+#创建 k 倍的 for 循环预测
+rf_preds = list()#样本外预测的空列表
+rf_models= list()#列出模型
+
+#for 循环：这为我提供了经过训练和验证的模型（每个折叠一个），这些模型基于训练数据，并在未见数据上进行了测试
+for(j in 1:4){
+rf = caret::train(Price~.,cars[folds.samp!=j,],
+method = &quot;rf&quot;,
+trControl=trainControl(method=&quot;cv&quot;),
+ntree=150)#ntrees 通常设置为 2000 以获得稳健变量重要性，但出于示例目的设置为 150
+rf_models=c(rf_models,list(rf))
+rf_preds[[j]]=predict(rf,cars[folds.samp==j,])
+} 
+
+
+
+我尝试在 k 折 for 循环中加入另一个 for 循环来提取每次折叠时每行的训练 SHAP 值，但这不起作用。我知道代码很乱，但除了使用 iml 包，我不知道还有其他方法可以做到这一点，即为给定模型创建预测器对象，然后循环遍历没有结果变量的数据集。
+
+#在 k 倍上创建 for 循环预测
+rf_preds = list()#用于样本外预测的空列表
+rf_models= list()#带有模型的列表
+shap_vals_matrix_list=list()
+#for 循环：这为我提供了经过训练和验证的模型（每个折叠一个），这些模型在训练数据上进行训练，并在看不见的数据上进行测试
+for(j in 1:5){
+rf = caret::train(Price~.,cars[folds.samp!=j,],
+method = &quot;rf&quot;,
+trControl=trainControl(method=&quot;cv&quot;),
+ntree=150)#ntrees 通常设置为 2000 用于稳健变量重要性，但为了便于示例，设置为 150
+rf_models=c(rf_models,list(rf))
+rf_preds[[j]]=predict(rf,cars[folds.samp==j,])
+###循环的 Shapley 值部分###
+mod = Predictor$new(rf_models[[j]]$finalModel, data = cars)#创建预测器对象
+# 创建一个空矩阵来收集结果
+shap_vals &lt;- matrix(NA,nrow(cars[folds.samp!=j,]),ncol(cars)-1)
+# 预测器的训练数据
+X &lt;- cars[folds.samp!=j, -which(names(cars) == &quot;Price&quot;)]
+# 创建一个预测器对象
+predictor &lt;- Predictor$new(model = rf_models[[j]]$finalModel, data = X, y = cars[folds.samp!=j,&quot;Price&quot;])
+#创建一个内部循环来计算实际的 SHAP 值
+for(i in 1:nrow(cars[folds.samp!=j,])){
+shapley &lt;- Shapley$new(mod, x.interest = cars[i,-1])
+shap_vals[i,] = abs(shapley$results$phi)[1:(ncol(cars)-1)]
+mean_shap_values &lt;- colMeans(shap_vals, na.rm = TRUE)#每行的平均值
+}
+shap_vals_matrix_list=c(shap_vals_matrix_list,list(mean_shap_values))
+}
+
+
+我需要一些帮助，使代码正常工作或使其更简单！]]></description>
+      <guid>https://stackoverflow.com/questions/78551276/extract-shap-values-in-the-context-of-a-k-fold-cross-validated-machine-learning</guid>
+      <pubDate>Wed, 29 May 2024 18:04:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>Azure AI ML Studio - NLP 多标签提供 0 准确度、F1、精确度、召回率</title>
+      <link>https://stackoverflow.com/questions/78551138/azure-ai-ml-studio-nlp-multilabel-giving-0-accuracy-f1-precision-recall</link>
+      <description><![CDATA[我正在使用 Azure automl 进行 NLP，这是一种多标签分类，其中单个预测可能涉及多个值。就我而言，我正在预测汽车单元的维修代码。我将其压缩为两列，一列是纯文本文档，包含单元品牌、型号、使用的零件以及技术人员在维修期间记录的维修步骤。第二列是我想要预测的内容，它是相关维修代码的列表。我提供了 28,000 个训练样本和 4,000 个验证样本。
+无论是默认值还是超参数调整，我在准确率、精确度、召回率以及 f1 上几乎总是得到 0。在每个实例中，对数损失都是 33 到 50。当我得到这些 0 指标时，我没有从模型部署端点获得任何结果。
+知道我缺少什么来改进这个场景的预测指标吗？NLP 多标签方法完全是错误的方法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78551138/azure-ai-ml-studio-nlp-multilabel-giving-0-accuracy-f1-precision-recall</guid>
+      <pubDate>Wed, 29 May 2024 17:32:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法使用 CLI 创建 Azure 机器学习工作区</title>
+      <link>https://stackoverflow.com/questions/78550892/unable-to-create-an-azure-machine-learning-workspace-using-the-cli</link>
+      <description><![CDATA[下午好，开发人员，我目前正在尝试使用 CLI 创建一个 Azure 机器学习工作区。我使用的代码：
+az ml working create --name &quot;rg-dp100-labs&quot; --resource-group &quot;rg-dp100-labs&quot;
+
+我收到以下错误。仅创建了 KeyVault 和存储帐户。参考此Microsoft Learn 上的链接，我发现其他人也遇到了同样的问题。甚至谷歌搜索也给了我与上面写的代码相同的代码。lease，有人遇到过同样的问题并解决了吗？我认为这是最近出现的问题。
+代码：ValidationError
+消息：工作区 json 中缺少依赖资源
+目标：工作区
+异常详细信息：（无效）工作区 json 中缺少依赖资源
+代码：无效
+消息：工作区 json 中缺少依赖资源
+目标：工作区
+]]></description>
+      <guid>https://stackoverflow.com/questions/78550892/unable-to-create-an-azure-machine-learning-workspace-using-the-cli</guid>
+      <pubDate>Wed, 29 May 2024 16:44:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何追踪多标签MLP的损失？</title>
+      <link>https://stackoverflow.com/questions/78550784/how-to-track-loss-of-multi-label-mlp</link>
+      <description><![CDATA[我获得了维度为 5,000 的二进制数据点。我被要求执行机器学习，预测长度为 1k 的二进制向量，其中输出的每个位置都是一个类。这些类别不互斥。
+我对类别分布的了解：
+
+索引较小的位置更常见
+一个样本可以属于多个类别
+每个样本仅满足少数类别要求（即输出是“稀疏的”）
+
+如何跟踪我的 ML 模型中的损失？我使用了多层感知器（pytorch）和交叉熵损失（CE 损失），但我发现很难解释结果。我假设当您有多个类别但一次只选择一个（多类分类）时使用 CE 损失。
+此外，我的预测导致向量设置了大约一半的位，而我预计设置了 20 到 50 位，不会更多。
+我很乐意得到关于阅读什么、做什么或任何其他帮助的建议。
+# 一个“示例”数据点：
+point = [1, 0, 0, 1, 0, 0, 1, 1, ...,1, 1, 0, 0, 1, 0, 1] # 长度 5000
+label = [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, ...,0] # 长度 1000
+# 标签仅设置了 20-50 位
+]]></description>
+      <guid>https://stackoverflow.com/questions/78550784/how-to-track-loss-of-multi-label-mlp</guid>
+      <pubDate>Wed, 29 May 2024 16:17:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>人工智能和深度学习在 5 年或 10 年后蓬勃发展，而人工智能无法做到或我们可以说它无法进入这个领域或行业 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78550741/the-way-ai-deep-learning-is-booming-after-5-or-10-years-later-what-ai-will-not</link>
+      <description><![CDATA[人工智能正在迅速发展，但在某些领域，它不太可能在未来 5-10 年内完全取代人类。以下是人类能力可能仍占优势的一些领域：**
+社会工作和治疗：这些领域严重依赖于理解复杂的情绪、建立信任和提供个性化指导。人工智能可以协助进行数据分析和初步评估，但人类治疗师擅长建立融洽关系和提供情感支持。
+客户服务：虽然人工智能聊天机器人可以处理常规查询，但复杂问题或需要同理心的问题更适合人类代表。
+高度创造性的领域：
+艺术、音乐创作和写作：虽然人工智能可以生成创造性的文本格式或艺术风格，但它往往缺乏人类创作作品中的原创性和情感深度。人类的创造力是由人工智能目前难以复制的经历和情感所驱动的。
+pen_spar
+你的文字]]></description>
+      <guid>https://stackoverflow.com/questions/78550741/the-way-ai-deep-learning-is-booming-after-5-or-10-years-later-what-ai-will-not</guid>
+      <pubDate>Wed, 29 May 2024 16:05:51 GMT</pubDate>
+    </item>
     <item>
       <title>针对多模态目标的大型 MSE 模型</title>
       <link>https://stackoverflow.com/questions/78550210/huge-mse-model-for-multimodal-targets</link>
@@ -149,44 +292,6 @@ Epoch [6/6]，训练损失：21424500.0000，Val 损失：28001668.0000
       <pubDate>Wed, 29 May 2024 11:33:27 GMT</pubDate>
     </item>
     <item>
-      <title>Synthcity DECAF 生成人工智能中的形状误差</title>
-      <link>https://stackoverflow.com/questions/78548544/synthcity-decaf-shape-error-in-generative-artificial-intelligence</link>
-      <description><![CDATA[我正在尝试使用 DECAF 生成器生成新数据，但出现无法解决的错误。
-我使用的代码与主 repo 文档中提到的代码完全相同（链接 Synthcity Docs）：
-from sklearn.datasets import load_iris
-from synthcity.plugins import Plugins
-
-X, y = load_iris(as_frame = True, return_X_y = True)
-X[&quot;target&quot;] = y
-
-plugin = Plugins().get(&quot;decaf&quot;, n_iter = 100)
-plugin.fit(X)
-
-plugin.generate(50)
-
-我不断得到
-ValueError：传递值的形状为 (150, 1)，索引暗示 (150, 3)
-
-无论我做什么。我有点惊讶错误竟然会发生，因为它实际上是作者的一个案例研究。
-有人能解释或更重要的是解决这个错误吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78548544/synthcity-decaf-shape-error-in-generative-artificial-intelligence</guid>
-      <pubDate>Wed, 29 May 2024 09:25:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何让 LangChain 代理可以访问 DataFrame？</title>
-      <link>https://stackoverflow.com/questions/78547953/how-to-make-dataframe-accessible-to-langchain-agent</link>
-      <description><![CDATA[我目前正在开发一个 LangChain 代理，需要一些帮助，使 DataFrame (df) 可供代理访问。下面是我想实现的目标的简要概述：
-代理可以访问多个功能工具。
-这些工具需要 DataFrame (df) 作为参数。
-代理的任务是调用这些工具，传递存储在 df 变量中的数据。
-有没有办法确保代理可以访问 df 变量，以便它可以成功地将数据传递给功能工具？有什么指导或例子吗？
-我尝试在提示模板中传递数据，但需要 30 多秒。在此部分中，代理重新格式化数据，然后才传递。但我希望代理传递变量。
-我还尝试创建一个工具函数，该函数使用查询从数据库中提取数据并将其存储在变量中。但是 llm 使用的代理仍然会转换为 json 格式然后传递它。
-我希望 llm 接受变量并在不进行任何格式化的情况下传递它（以节省时间）。]]></description>
-      <guid>https://stackoverflow.com/questions/78547953/how-to-make-dataframe-accessible-to-langchain-agent</guid>
-      <pubDate>Wed, 29 May 2024 07:28:30 GMT</pubDate>
-    </item>
-    <item>
       <title>如何使用 SHAP 值来表示 EEG 生物标志物和特征重要性？</title>
       <link>https://stackoverflow.com/questions/78547686/how-to-use-shap-values-for-eeg-biomarker-and-feature-importance</link>
       <description><![CDATA[我做什么：
@@ -231,80 +336,6 @@ importance_df = pd.DataFrame({
 提前致谢！]]></description>
       <guid>https://stackoverflow.com/questions/78547686/how-to-use-shap-values-for-eeg-biomarker-and-feature-importance</guid>
       <pubDate>Wed, 29 May 2024 06:28:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>YoloV8 结果中没有 'box'、'max' 属性</title>
-      <link>https://stackoverflow.com/questions/78547320/yolov8-results-have-no-box-max-properties-in-it</link>
-      <description><![CDATA[我已经训练了一个 YOLOV8 模型来识别十字路口的物体（即汽车、道路等）。
-它工作正常，我可以将输出作为带有感兴趣分割对象的图像。
-但是，我需要做的是捕获原始几何图形（多边形），以便稍后将它们保存在 txt 文件中。
-我尝试了在文档中找到的内容（https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode）但返回的对象与文档所述不同。
-实际上，结果是 TensorFlow 数字列表：
-
-这是我的代码：
-import argparse
-import cv2
-import numpy as np
-from pathlib import Path
-from ultralytics.yolo.engine.model import YOLO 
-
-# 解析命令行参数
-parser = argparse.ArgumentParser()
-parser.add_argument(&#39;--source&#39;, type=str, required=True, help=&#39;源图像目录或文件&#39;)
-parser.add_argument(&#39;--output&#39;, type=str, default=&#39;output&#39;, help=&#39;输出目录&#39;)
-args = parser.parse_args()
-
-# 如果不存在则创建输出目录
-Path(args.output).mkdir(parents=True, exist_ok=True)
-
-# 模型路径
-model_path = r&#39;C:\\_Projects\\best_100img.pt&#39;
-
-# 直接加载模型
-model = YOLO(model_path)
-model.fuse()
-
-# 加载图像
-if Path(args.source).is_dir():
-image_paths = list(Path(args.source).rglob(&#39;*.tiff&#39;))
-else:
-image_paths = [args.source]
-
-# 处理每幅图像
-for image_path in image_paths:
-img = cv2.imread(str(image_path))
-if img is None:
-continue
-
-# 执行推理
-predictions = model.predict(image_path, save=True, save_txt=True)
-
-print(&quot;处理完成。&quot;)
-
-问题在于：返回对象（预测变量）没有框、掩码、关键点和等等。
-我想我的问题是：
-
-为什么结果与文档如此不同？
-是否有转换步骤？
-]]></description>
-      <guid>https://stackoverflow.com/questions/78547320/yolov8-results-have-no-box-max-properties-in-it</guid>
-      <pubDate>Wed, 29 May 2024 04:32:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习项目：PCB 的光学检测 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78547175/machine-learning-project-optical-inspection-of-pcbs</link>
-      <description><![CDATA[我有一个项目要创建一个机器学习模型，其中有一个印刷电路板 (PCB) 被分成 16 个部分的图像，我们以正确的印刷电路板组件为基础，然后在相机的帮助下放大印刷电路板 (PCB) 组件以检查它是否与正确的印刷电路板 (PCB) 组件匹配。
-我完全不知道该如何处理这个问题，因为我对图像处理的机器学习知识很少，所以请有人帮助我。]]></description>
-      <guid>https://stackoverflow.com/questions/78547175/machine-learning-project-optical-inspection-of-pcbs</guid>
-      <pubDate>Wed, 29 May 2024 03:18:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>当使用大规模数据进行训练时，数据是如何处理？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78547001/when-training-with-large-scale-data-how-is-the-data-processed</link>
-      <description><![CDATA[我面临着使用大规模数据进行训练的挑战，具体来说是大约 19 TB 的视频数据。创建模型并不困难，但我不知道在哪里存储如此大量的数据以及如何使用它。由于我们没有高性能计算机，似乎我们可能需要租用一些。我很好奇处理大规模数据的 AI 开发人员通常如何处理这种情况。
-此外，我发现可以使用 AWS，但我想知道这种方法是否真的被采用，或者是否有更好的替代方案。]]></description>
-      <guid>https://stackoverflow.com/questions/78547001/when-training-with-large-scale-data-how-is-the-data-processed</guid>
-      <pubDate>Wed, 29 May 2024 01:50:16 GMT</pubDate>
     </item>
     <item>
       <title>我得到了 ValueError: np.nan 是一个无效文档，预期是字节或 unicode 字符串</title>
@@ -356,39 +387,61 @@ mapped_df.to_excel(&#39;mapped_data.xlsx&#39;, index=False)
       <pubDate>Tue, 28 May 2024 15:57:51 GMT</pubDate>
     </item>
     <item>
-      <title>GPU 上的 Pytorch 比 CPU 上的 numpy 慢很多？</title>
-      <link>https://stackoverflow.com/questions/78537571/pytorch-in-gpu-is-much-slower-than-numpy-on-cpu</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78537571/pytorch-in-gpu-is-much-slower-than-numpy-on-cpu</guid>
-      <pubDate>Mon, 27 May 2024 06:56:13 GMT</pubDate>
+      <title>概率编程与概率机器学习有什么区别？</title>
+      <link>https://stackoverflow.com/questions/57300913/what-is-the-difference-between-probabilistic-programming-vs-probabilistic-machi</link>
+      <description><![CDATA[我试图理解概率编程的概念，但我读得越多，就越感到困惑。
+我目前的理解是，概率编程类似于贝叶斯网络，只是翻译成编程语言来创建自动推理模型？
+我有一些机器学习的背景，我记得一些机器学习模型也输出概率，然后我遇到了概率机器学习这个术语……
+两者之间有区别吗？或者它们是类似的东西？
+感谢任何能帮助澄清的人。]]></description>
+      <guid>https://stackoverflow.com/questions/57300913/what-is-the-difference-between-probabilistic-programming-vs-probabilistic-machi</guid>
+      <pubDate>Thu, 01 Aug 2019 01:57:10 GMT</pubDate>
     </item>
     <item>
-      <title>哪种方法适合基于人脸检测的考勤系统，需要在没有 GPU 系统的低硬件设备上运行 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78515586/which-is-the-suitable-approach-for-face-detection-based-attendance-system-which</link>
-      <description><![CDATA[需要在 Raspberry pi 中快速准确地运行人脸检测代码。没有 GPU，输出会非常慢，我无法使用 GPU，因此如果有人可以帮助或指导我，我将不胜感激]]></description>
-      <guid>https://stackoverflow.com/questions/78515586/which-is-the-suitable-approach-for-face-detection-based-attendance-system-which</guid>
-      <pubDate>Wed, 22 May 2024 06:09:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>YOLOv8：如何在测试集上计算映射</title>
-      <link>https://stackoverflow.com/questions/78073911/yolov8-how-to-calculate-map-on-test-set</link>
-      <description><![CDATA[假设我有一个名为“test”的文件夹，里面有“images”和“labels”文件夹。我还有一个经过训练的 YOLOv8 模型，名为“best.pt”。我的标签是多边形（yolo-obb .txt 文件）。
-我想找到我的 YOLOv8 模型在此测试集上的平均精度 (MAP)。
-我已经阅读了预测和基准测试的文档，但是，我很难找到从一些测试图像计算地图的示例。
-https://docs.ultralytics.com/modes/predict/
-https://docs.ultralytics.com/modes/benchmark/
-from ultralytics import YOLO
+      <title>“出了点问题；所有准确度指标值均缺失：”</title>
+      <link>https://stackoverflow.com/questions/38945574/something-is-wrong-all-the-accuracy-metric-values-are-missing</link>
+      <description><![CDATA[我从 Brett Lantz 的教科书《机器学习与 R》中取出了以下代码，但从教科书中将相同的代码复制到了控制台，
+&gt; library(caret)
+正在加载所需包：lattice
+正在加载所需包：ggplot2
+&gt; library(kernlab)
 
-# 加载预训练YOLOv8n 模型
-model = YOLO(&#39;best.pt&#39;)
+附加包：“kernlab”
 
-# 对图像运行推理
-results = model([&#39;test/images/bus.jpg&#39;, &#39;test/images/zidane.jpg&#39;]) # 2 个 Results 对象的列表
+以下对象从“package:ggplot2”中屏蔽：
 
-我想我必须将图像列表放在上面，然后编写代码来计算测试文件夹中所有内容的映射并取平均值。有没有已经完成此操作的软件包？
-实现此任务的代码是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/78073911/yolov8-how-to-calculate-map-on-test-set</guid>
-      <pubDate>Wed, 28 Feb 2024 11:05:52 GMT</pubDate>
+alpha
+
+&gt; set.seed(300)
+&gt; ctrl &lt;- trainControl(method = “cv”, number = 10)
+&gt; bagctrl &lt;- bagControl(fit = svmBag$fit, predict = svmBag$pred,aggregate = svmBag$aggregate)
+&gt; setwd(&quot;~/2148OS_code/chapter 11&quot;)
+&gt; credit &lt;- read.csv(&quot;credit.csv&quot;)
+&gt; svmbag &lt;- train(default ~ ., data = credit, &quot;bag&quot;, trControl = ctrl, bagControl = bagctrl)
+
+我收到此回复。哪里错了？
+有些不对劲；所有准确度指标值都缺失：
+准确度 Kappa 
+最小值：NA 最小值: NA 
+第 1 组：NA 第 1 组：NA 
+中位数：NA 中位数：NA 
+平均值：NaN 平均值：NaN 
+第 3 组：NA 第 3 组：NA 
+最大值：NA 最大值：NA 
+NA ：1 NA ：1 
+train.default(x, y, weights = w, ...) 中的错误：正在停止
+此外：有 50 个或更多警告（使用 warnings() 查看前 50 个）
+
+警告是
+&gt; warnings()
+警告消息：
+1：在 data.row.names(row.names, rowsi, i) 中：
+一些 row.names 重复： 3,6,10,13,17,19,23,24,26,27,30,32,34,36,38,41,42,45,49,54,59,60,61,64,66,69,71,72,77,80,81,90,95,102,103,106,112,114,117,118,122,125,127,132,133,137,139,141,143,146,148,151,152,155,158,161,174,176,178,181,185,187,188,189,191,194,203,208,210,21 2,215,216,218,219,221,223,225,229,230,235,236,239,245,246,262,266,269,271,272,276,279,282,283,285,286,287,288,296,299,305,308,309,313,314,315,317,318,319,322,323,327,328,330,332,333,335,336,338,339,343,347,349,350,352,354,358,360,361,363,366,3 67,368,369,371,377,379,387,389,392,394,396,397,399,400,410,412,413,414,421,425,428,437,438,441,443,445,446,448,451,453,461,467,469,471,479,481,482,484,486,487,489,491,493,503,504,506,508,511,512,514,517,519,521,522,524,529,530,532,534,537,538, 545,547,550,552,555,562,570,579,582,584,588,589,590,601,606,608,610,611,614,615,618,619,623,627,628,629,630,632,634,636,638,641,642,645,653,656,659,660,661,663,667,669,672,673,676,679,681,686,687,690,693,700,701,702,707,708,721,722,724,725,728, [... 截断]
+2：在 data.row.names(row.names, rowsi, i) 中：
+一些 row.names 重复：3,5,8,9,13,15,18,21,25,27,29,33,36,37,41,44,45,51,52,53,55,59,60,64,66,67,72,76,77,80,91,92,96,97,102,103,104,107,110,111,113,116,119,121,122,123,127,130,133,136,139, 140,143,145,147,148,149,154,158,160,164,166,168,169,171,174,176,177,178,180,182,185,187,195,199,203,205,216,218,220,223,226,231,234,236,237,238,242,245,2
+]]></description>
+      <guid>https://stackoverflow.com/questions/38945574/something-is-wrong-all-the-accuracy-metric-values-are-missing</guid>
+      <pubDate>Sun, 14 Aug 2016 18:55:47 GMT</pubDate>
     </item>
     </channel>
 </rss>
