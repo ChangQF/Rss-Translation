@@ -4,12 +4,169 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 29 May 2024 03:16:41 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 29 May 2024 06:21:41 GMT</lastBuildDate>
+    <item>
+      <title>KITTI 数据集中的标签文件</title>
+      <link>https://stackoverflow.com/questions/78547630/label-file-in-kitti-dataset</link>
+      <description><![CDATA[我正在研究 3d 对象检测，并遇到了 PointPillars。PointPillars 使用 KITTI 数据集。
+现在我想使用自己的数据集，但首先我应该像 KITTI 一样格式化我的数据集，因为我想知道 KITTI 数据集的标签文件中的那些值是什么。有人可以解释一下吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78547630/label-file-in-kitti-dataset</guid>
+      <pubDate>Wed, 29 May 2024 06:15:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将坐标系转换为普通笛卡尔坐标系？我正在用 Python 进行图像分析</title>
+      <link>https://stackoverflow.com/questions/78547444/how-do-i-translate-the-coordinate-system-into-the-normal-cartesian-i-am-working</link>
+      <description><![CDATA[因此，本质上我的问题是找到椭圆的半长轴的角度。为此，我使用了以下方法：
+我首先加载图像并将其转换为灰度。然后，我使用阈值对灰度图像进行二值化（阈值以上的像素变为白色，阈值以下的像素变为黑色）。然后遍历二值化图像中的每个像素。如果像素为黑色（值 0），我将计算该像素与椭圆的质心（质心）之间的欧几里得距离。最大距离将是长轴，像素和中心的坐标将是两个坐标，我可以使用这两个坐标来获得长轴和 theta 的方程。
+这是我得到的结果，这是有道理的。 
+不合理的是最大点和 COM 的坐标。COM 坐标约为 500,500，而最大点坐标约为 270,1000。但最大点的坐标不应该大于 COM 坐标吗？如果我们想象一条连接两个十字的线，那么这两个十字的梯度应该是正的，但使用这些我得到的答案是负的。我觉得问题是因为 y 轴从左上角开始，x 轴从左下角开始。我该如何解决这个问题？
+import cv2
+import numpy as np
+from scipy import ndimage
+import matplotlib.pyplot as plt
+import math
+
+def euclidean_distance(a, row, col):
+
+return ((a[1] - col) ** 2 + (a[0] - row) ** 2)
+
+def angle(a, row, col):
+
+slope = (a[0] - row) / (a[1] - col)
+return math.atan(slope)
+
+# 加载图像
+image_path = &quot;/Users/yahya2/Desktop/Scr​​eenshot 2024-05-29 at 1.17.34AM.png&quot;
+img = cv2.imread(image_path)
+a = ndimage.center_of_mass(img)
+
+# 将图像转换为灰度
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# 将灰度图像二值化
+_, img_bin = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY)
+
+# 获取图像的尺寸
+rows, cols = img_bin.shape
+max_length = 0
+max_row, max_col = 0, 0
+
+# 循环遍历图像中的每个像素
+for row in range(rows):
+for col in range(cols):
+# 检查像素是否为黑色 (0)
+if img_bin[row, col] == 0:
+length = euclidean_distance(a, row, col)
+if length &gt; max_length:
+max_length = length
+max_row, max_col = row, col
+print(a[1],a[0])
+print(max_col,max_row)
+# 计算角度
+major_axis_angle = angle(a, max_row, max_col)
+
+# 可视化结果
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.imshow(img, cmap=&#39;gray&#39;)
+plt.scatter(max_col, max_row, color=&#39;red&#39;, marker=&#39;x&#39;, s=100)
+plt.scatter(a[1], a[0], color=&#39;red&#39;, marker=&#39;x&#39;, s=100)
+plt.show()
+
+print(major_axis_angle)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78547444/how-do-i-translate-the-coordinate-system-into-the-normal-cartesian-i-am-working</guid>
+      <pubDate>Wed, 29 May 2024 05:21:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>YoloV8 结果中没有 'box'、'max' 属性</title>
+      <link>https://stackoverflow.com/questions/78547320/yolov8-results-have-no-box-max-properties-in-it</link>
+      <description><![CDATA[我已经训练了一个 YOLOV8 模型来识别十字路口的物体（即汽车、道路等）。
+它工作正常，我可以将输出作为图像，其中包含感兴趣的分割对象。
+但是，我需要做的是捕获原始几何图形（多边形），以便稍后将它们保存在 txt 文件中。
+我尝试了在文档中找到的内容（https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode）但返回的对象与文档所述不同。
+例如，这是 Ultralytics 推荐的：
+from ultralytics import YOLO
+
+# 加载模型
+model = YOLO(&quot;yolov8n.pt&quot;) # 预训练的 YOLOv8n 模型
+
+#对图像列表运行批量推理
+results = model([&quot;im1.jpg&quot;, &quot;im2.jpg&quot;]) # 返回 Results 对象列表
+
+# 处理结果列表
+for result in results:
+boxes = result.boxes # 用于边界框输出的 Boxes 对象
+mask = result.masks # 用于分割掩码输出的 Masks 对象
+keypoints = result.keypoints # 用于姿势输出的关键点对象
+probs = result.probs # 用于分类输出的 Probs 对象
+obb = result.obb # 用于 OBB 输出的定向框对象
+result.show() # 显示到屏幕
+result.save(filename=&quot;result.jpg&quot;) # 保存到磁盘
+
+但是，当我尝试时，预测的返回对象与上面的代码完全不同。没有框、掩码、关键点等。
+实际上，结果是 TensorFlow 数字列表：
+
+这是我的代码：
+import argparse
+import cv2
+import numpy as np
+from pathlib import Path
+from ultralytics.yolo.engine.model import YOLO
+
+# 解析命令行参数
+parser = argparse.ArgumentParser()
+parser.add_argument(&#39;--source&#39;, type=str, required=True, help=&#39;源图像目录或file&#39;)
+parser.add_argument(&#39;--output&#39;, type=str, default=&#39;output&#39;, help=&#39;Output directory&#39;)
+args = parser.parse_args()
+
+# 如果不存在，则创建输出目录
+Path(args.output).mkdir(parents=True, exist_ok=True)
+
+# 模型路径
+model_path = r&#39;C:\\_Projects\\best_100img.pt&#39;
+
+# 直接加载模型
+model = YOLO(model_path)
+model.fuse()
+
+# 加载图像
+if Path(args.source).is_dir():
+image_paths = list(Path(args.source).rglob(&#39;*.tiff&#39;))
+else:
+image_paths = [args.source]
+
+# 处理每个图像
+for image_path in image_paths:
+img = cv2.imread(str(image_path))
+if img is None:
+continue
+
+# 执行推理
+predictions = model.predict(image_path, save=True, save_txt=True)
+
+print(&quot;处理完成。&quot;)
+
+我想我的问题是：
+
+为什么结果与文档如此不同？
+是否有转换步骤？
+]]></description>
+      <guid>https://stackoverflow.com/questions/78547320/yolov8-results-have-no-box-max-properties-in-it</guid>
+      <pubDate>Wed, 29 May 2024 04:32:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>机器学习项目[关闭]</title>
+      <link>https://stackoverflow.com/questions/78547175/machine-learning-project</link>
+      <description><![CDATA[我有一个项目要创建一个机器学习模型，其中有一个印刷电路板 (PCB) 被分成 16 个部分的图像，我们以正确的印刷电路板组件为基础，然后在相机的帮助下放大印刷电路板 (PCB) 组件以检查它是否与正确的印刷电路板 (PCB) 组件匹配。
+我完全不知道该如何处理这个问题，因为我对图像处理的机器学习知识很少，所以请有人帮助我。]]></description>
+      <guid>https://stackoverflow.com/questions/78547175/machine-learning-project</guid>
+      <pubDate>Wed, 29 May 2024 03:18:48 GMT</pubDate>
+    </item>
     <item>
       <title>当使用大规模数据进行训练时，数据是如何处理？</title>
       <link>https://stackoverflow.com/questions/78547001/when-training-with-large-scale-data-how-is-the-data-processed</link>
       <description><![CDATA[我面临着使用大规模数据进行训练的挑战，具体来说是大约 19 TB 的视频数据。创建模型并不困难，但我不知道在哪里存储如此大量的数据以及如何使用它。由于我们没有高性能计算机，似乎我们可能需要租用一些。我很好奇处理大规模数据的 AI 开发人员通常如何处理这种情况。
-此外，我发现可以使用 AWS，但我想知道这种方法是否真的被采用，或者是否有更好的替代方案。]]></description>
+此外，我发现可以使用 AWS，但我想知道是否真的采用了这种方法，或者是否有更好的替代方案。]]></description>
       <guid>https://stackoverflow.com/questions/78547001/when-training-with-large-scale-data-how-is-the-data-processed</guid>
       <pubDate>Wed, 29 May 2024 01:50:16 GMT</pubDate>
     </item>
@@ -119,42 +276,6 @@ Spark 作业提取原始数据并对其进行处理。
       <pubDate>Tue, 28 May 2024 15:00:31 GMT</pubDate>
     </item>
     <item>
-      <title>预测多元时间序列时 VARIMA 模型的模型漂移</title>
-      <link>https://stackoverflow.com/questions/78544041/model-drift-for-varima-model-when-forecasting-multivariate-time-series</link>
-      <description><![CDATA[我目前正在尝试在多变量时间序列数据上训练 VARIMA 模型，该数据是关于冷却系统的 5 种不同类型的传感器测量的。数据具有周期性，因此完全相同的模式每 25 个数据点左右就会重复出现一次。我有一个包含 5 个不同组件的数据集，其中每分钟有一个数据点。我使用了 2 周的数据来训练模型，然后让它合成数据。我使用的 VARIMA 模型是从 Darts 包导入的，我这样定义模型：model_VARIMA = VARIMA(p=12, d=0, q=0, trend=&quot;n&quot;)。该模型是在 2 周的训练数据上训练的。当预测未来 30 个点或更多时，预测显然开始显示模型漂移。所有组件都没有产生周期性的多变量时间序列数据，因为一条不再有价值的直线。我想知道是否有人对此有解释并有解决问题的方法。谢谢！]]></description>
-      <guid>https://stackoverflow.com/questions/78544041/model-drift-for-varima-model-when-forecasting-multivariate-time-series</guid>
-      <pubDate>Tue, 28 May 2024 12:15:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习中如何按行处理不同数量的解释变量？</title>
-      <link>https://stackoverflow.com/questions/78543787/how-should-different-numbers-of-explanatory-variables-be-handled-by-row-in-machi</link>
-      <description><![CDATA[我在制作预测模型时遇到问题，所以留下一个问题。
-我正在尝试使用随机森林、xgboost 等机器学习方法创建一个预测模型。
-此时，y 值是分化后的月度时间序列数据，x 值是分化后的每日时间序列数据。
-作为参考，t（表示时间）的时间与美国股市的交易日同步。
-我的模型由以下格式组成。
-预测值 = y_(t+21) - y_(t)
-解释值 = y(t) - y(t-1), y(t-1) - y(t-2) ... y(t-p) - y(t-p-1)
-此时，p 是该月的最后一个交易日。
-这里的问题是每个月都有交易日数不同
-例如1980年1月有23个交易日，而1981年2月有20个交易日，而且有假期的月份可能更少。
-这种情况下，在构建用于预测因变量的解释变量数据集时，可能会对逐行中的某些值生成NaN值。
-这种情况下，应该如何普遍处理？或者有没有术语或论文提到这个问题？
-y_(t+21) - y_(t)有两种情况。一种是微分月末值，一种是微分月平均值。因此，目前还没有触及。]]></description>
-      <guid>https://stackoverflow.com/questions/78543787/how-should-different-numbers-of-explanatory-variables-be-handled-by-row-in-machi</guid>
-      <pubDate>Tue, 28 May 2024 11:21:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>二元分类获取预测值大于 1 [重复]</title>
-      <link>https://stackoverflow.com/questions/78543310/binary-classification-get-predict-value-greater-than-1</link>
-      <description><![CDATA[
-
-有人能帮我吗，为什么我的模型返回的预测值大于 1。即使我使用的是具有 1 个单位和 S 形激活函数的密集层。我创建了一个二元分类模型。
-我正在使用 tensorflow 和 keras 调谐器进行超参数调整。]]></description>
-      <guid>https://stackoverflow.com/questions/78543310/binary-classification-get-predict-value-greater-than-1</guid>
-      <pubDate>Tue, 28 May 2024 09:53:40 GMT</pubDate>
-    </item>
-    <item>
       <title>提高人脸识别性能并扩大检测范围 [关闭]</title>
       <link>https://stackoverflow.com/questions/78543297/improving-face-recognition-performance-and-extending-detection-range</link>
       <description><![CDATA[我正在使用 Python、dlib 和 OpenCV 开发人脸识别系统，但是在检测到多张人脸时会遇到性能问题，并且我需要扩大检测范围以检测 3 米以外距离的人脸。以下是我当前设置和挑战的摘要：
@@ -170,64 +291,12 @@ y_(t+21) - y_(t)有两种情况。一种是微分月末值，一种是微分月�
 
 当帧中有多个人脸时，性能会显著下降，
 导致丢帧和 FPS 降低。
-需要在保持准确性的同时从 3 米以上的距离检测人脸。
+需要从 3 米以上的距离检测人脸，同时
+保持准确性。
 
 是否有任何硬件加速技术或优化我应该考虑以更快的速度计算？]]></description>
       <guid>https://stackoverflow.com/questions/78543297/improving-face-recognition-performance-and-extending-detection-range</guid>
       <pubDate>Tue, 28 May 2024 09:51:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>在与我之前训练过的数据集不同的数据集上训练 yolov8 变得非常慢 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78539266/training-yolov8-on-a-different-data-set-than-i-had-previously-trained-it-on-beca</link>
-      <description><![CDATA[我正在尝试在与我之前训练过的数据集不同的数据集上训练 yolov8。即使这是一个较小的数据集，即使是 1 个 epoch 也需要很长时间才能完成。还有其他人遇到过这个问题吗，我可能哪里出错了？
-我正在尝试在与我之前训练过的数据集不同的数据集上训练 yolov8。即使这是一个较小的数据集，即使是 1 个 epoch 也需要很长时间才能完成。]]></description>
-      <guid>https://stackoverflow.com/questions/78539266/training-yolov8-on-a-different-data-set-than-i-had-previously-trained-it-on-beca</guid>
-      <pubDate>Mon, 27 May 2024 13:08:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>层“dense_4”的输入 0 与层不兼容：预期输入形状的轴 -1 具有值 1，但收到的输入形状为 (None, 6)</title>
-      <link>https://stackoverflow.com/questions/78538382/input-0-of-layer-dense-4-is-incompatible-with-the-layer-expected-axis-1-of-i</link>
-      <description><![CDATA[我正在尝试实现多元回归模型。
-使用以下代码：
-all_normalizer = keras.layers.Normalization(input_shape=(1, ), axis=-1)
-all_normalizer.adapt(x_train_all)
-
-nn_model = tf.keras.Sequential([
-all_normalizer,
-tf.keras.layers.Dense(32,activation=&#39;relu&#39;),
-tf.keras.layers.Dense(32,activation=&#39;relu&#39;),
-tf.keras.layers.Dense(1)
-])
-
-nn_model.compile(keras.optimizers.Adam(learning_rate=0.001), loss=&#39;mean_squared_error&#39;)
-
-history = nn_model.fit(
-x_train_Temp,y_train_Temp,
-validation_data=(x_val_Temp, y_val_Temp),
-verbose=0, epochs=100
-)
-
-我收到以下错误：
- 文件“C:\~ai.py”，第 330 行，位于 &lt;module&gt;
-history = nn_model.fit(
-^^^^^^^^^^^^^^
-文件 &quot;C:\~\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\keras\src\utils\traceback_utils.py&quot;，第 122 行，位于 error_handler 中
-从 None 引发 e.with_traceback(filtered_tb)
-文件 &quot;C:\~PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\keras\src\layers\input_spec.py&quot;，第 227 行，位于 assert_input_compatibility 中
-引发 ValueError(
-ValueError：调用 Sequential.call() 时遇到异常。
-
-层的输入 0 &quot;dense_4&quot; 与层不兼容：预期输入形状的轴 -1 具有值 1，但收到的输入形状为 (None, 6)
-
-Sequential.call() 收到的参数：
-• 输入=tf.Tensor(shape=(None, 1), dtype=float32)
-• 训练=True
-• 掩码=None
-
-我应该在代码中更改/实现什么来解决此错误？
-PS：我是初学者，所以我可能不了解一些东西，所以请不要不喜欢。]]></description>
-      <guid>https://stackoverflow.com/questions/78538382/input-0-of-layer-dense-4-is-incompatible-with-the-layer-expected-axis-1-of-i</guid>
-      <pubDate>Mon, 27 May 2024 09:54:27 GMT</pubDate>
     </item>
     <item>
       <title>Tensorflow 保存模型有效，但加载模型无效</title>
@@ -246,6 +315,13 @@ import os os.environ[&#39;TF_CPP_MIN_LOG_LEVEL&#39;] = &#39;3&#39;]]></descripti
       <pubDate>Sat, 25 May 2024 08:01:27 GMT</pubDate>
     </item>
     <item>
+      <title>在 PyCharm 虚拟环境中训练后模型未保存</title>
+      <link>https://stackoverflow.com/questions/78531747/model-not-saving-after-training-in-pycharm-virtual-environment</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78531747/model-not-saving-after-training-in-pycharm-virtual-environment</guid>
+      <pubDate>Sat, 25 May 2024 07:44:18 GMT</pubDate>
+    </item>
+    <item>
       <title>librosa、MFCC 中的 TypeError</title>
       <link>https://stackoverflow.com/questions/75775979/typeerror-in-librosa-mfcc</link>
       <description><![CDATA[我有以下代码，它获取一个数据集（GTZAN）并将其转换为字典中的 MFCC：
@@ -260,7 +336,7 @@ def save_mfcc(dataset_path, json_path, num_mfcc=13, n_fft=2048, hop_length=512, 
 # 用于存储映射、标签和 MFCC 的字典
 data = {
 &quot;mapping&quot;: [], #标签名称。size - (10,)
-&quot;labels&quot;: [], #存储“真实”歌曲类型（值从 0 到 9）。 size - (5992,)
+&quot;labels&quot;: [], #存储“真实”歌曲类型（值从 0-9）。 size - (5992,)
 &quot;mfcc&quot;: [] #存储 mfccs.size - (5992, 216, 13)
 }
 
@@ -284,7 +360,7 @@ for f in filenames:
 file_path = os.path.join(dirpath, f)
 
 if file_path != &#39;/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original/jazz/jazz.00054.wav&#39;: 
-&quot;&quot;&quot;fileError: 打开 &#39;/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original/jazz/jazz.00054.wav&#39; 时出错：文件包含未知数据格式。&quot;&quot;&quot;
+&quot;&quot;&quot;fileError: 错误打开 &#39;/content/drive/MyDrive/ColabNotebooksNew/PROJECT/ProjectMusic/Data/genres_original/jazz/jazz.00054.wav&#39;: 文件包含未知数据格式。&quot;&quot;&quot;
 
 signal, sample_rate = librosa.load(file_path, sr=SAMPLE_RATE) #signal=音频文件中有多少样本, sample rate =音频文件的采样率, sample=22050
 
@@ -341,11 +417,30 @@ TypeError：mfcc() 接受 0 个位置参数，但给出了 2 个位置参数（�
       <pubDate>Sat, 18 Mar 2023 12:46:34 GMT</pubDate>
     </item>
     <item>
-      <title>从头开始实现 dropout</title>
-      <link>https://stackoverflow.com/questions/54109617/implementing-dropout-from-scratch</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/54109617/implementing-dropout-from-scratch</guid>
-      <pubDate>Wed, 09 Jan 2019 11:57:47 GMT</pubDate>
+      <title>如何使用 StandardScaler 正确扩展训练、验证和测试集？</title>
+      <link>https://stackoverflow.com/questions/58823264/how-to-scale-train-validation-and-test-sets-properly-using-standardscaler</link>
+      <description><![CDATA[有些文章说，在只有训练集和测试集的情况下，首先，我们需要使用 fit_transform() 来缩放训练集，然后只对测试集使用 transform()，以防止数据泄漏。
+就我而言，我还有验证集。
+我认为下面这些代码之一可以使用，但我不能完全依赖它们。任何形式的帮助都将不胜感激，谢谢！
+1)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3)
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size = 2/7)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_val = scaler.transform(X_val)
+X_test = scaler.transform(X_test)
+
+2)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size = 2/7)
+X_test = scaler.transform(X_test)
+]]></description>
+      <guid>https://stackoverflow.com/questions/58823264/how-to-scale-train-validation-and-test-sets-properly-using-standardscaler</guid>
+      <pubDate>Tue, 12 Nov 2019 16:54:52 GMT</pubDate>
     </item>
     </channel>
 </rss>
