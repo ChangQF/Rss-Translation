@@ -4,7 +4,233 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 30 May 2024 18:20:13 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 30 May 2024 21:15:00 GMT</lastBuildDate>
+    <item>
+      <title>将两个相关变量的联合 pmf 建模为 p(x)*pmf(E(y|x))</title>
+      <link>https://stats.stackexchange.com/questions/648320/modelling-the-joint-pmf-of-2-correlated-variables-as-pxpmfeyx</link>
+      <description><![CDATA[让 x,y 为 2 个相关计数。我们想要对联合 pmf p(x,y) 进行建模。我们知道 p(x,y) = p(x)p(y|x) = p(y)(x|y)。但是，当我们不知道 y|x，但可以估计 E(y|x) 时会发生什么？我们不能使用 p(x)*pmf(E(y|x) 来对 p(x,y) 进行建模吗？
+下面，我生成两个相关的泊松变量。然后，我估计给定 x 的预期 y，E(y|x)。之后，我生成 x 的边际 pmf。最后，我计算 p(x)*pmf(E(y|x) 来创建一个矩阵，该矩阵用于表示联合 pmf p(x,y)。
+我正在对 pXY 矩阵的行和列求和，希望得到边际分布。这对于 p(x) 是正确的。然而，对于 p(y) 来说，情况并非如此，它的方差明显更高，表明我的逻辑存在问题。有人能解释一下我做错了什么，以及在这个例子中我们如何才能得到 (x,y) 的正确联合 pmf 吗？
+import numpy as np
+from scipy.stats import norm, poisson
+
+def generate_correlated_poisson(N, mu, rho):
+# 步骤 1：生成相关的高斯随机变量
+mean = [0, 0] # 高斯变量的平均值
+cov = [[1, rho], [rho, 1]] # 协方差矩阵
+
+# 从二元正态分布生成 N 个样本
+gaussian_samples = np.random.multivariate_normal(mean, cov, N)
+
+# 步骤 2：使用 CDF 将高斯变量转换为均匀变量
+uniform_samples = norm.cdf(gaussian_samples)
+
+# 步骤 3：使用逆 CDF (PPF) 将均匀变量转换为泊松变量
+poisson_samples_x = poisson.ppf(uniform_samples[:, 0], mu)
+poisson_samples_y = poisson.ppf(uniform_samples[:, 1], mu)
+
+return poisson_samples_x, poisson_samples_y
+
+# 参数
+N = 100000 # 样本大小
+mu = 2.5 # 泊松分布的平均值
+rho = 0.5 # 期望相关性
+
+# 生成相关泊松变量
+x, y = generate_correlated_poisson(N, mu, rho)
+
+# 估计 E(y|x)
+df = pd.DataFrame(columns=[&#39;y&#39;,&#39;x&#39;],data=np.vstack((y,x)).T)
+ols = smf.ols(&#39;y~x&#39;,data=df).fit() # 也可以使用 smf.poisson(&#39;y~np.log(x+1)&#39;,data=df).fit()
+betas = ols.params.values
+
+# 为 X 生成边际 pmf
+pX = poisson.pmf(np.arange(0,21),2.5)
+
+#生成联合分布 p(x)*pmf(E(y|x))
+pXY = np.array([(pX[i]*poisson.pmf(np.arange(0,21),betas[0]+betas[1]*i)).tolist() for i in range(0,21)])
+
+print(np.sum(pXY,axis=0)) #通过对矩阵行求和得到边际 pmf p(y)
+print(np.sum(pXY,axis=1)) #通过对矩阵列求和得到边际 pmf p(x)
+print(pX) #真实边际 p(x)
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648320/modelling-the-joint-pmf-of-2-correlated-variables-as-pxpmfeyx</guid>
+      <pubDate>Thu, 30 May 2024 20:47:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 K 均值方法解决时间序列的维数灾难</title>
+      <link>https://stats.stackexchange.com/questions/648319/curse-of-dimensionality-in-time-series-with-k-means</link>
+      <description><![CDATA[我一直在查看以下笔记本：时间序列聚类
+其中作者说数据集受到“维度诅咒”的影响，因此应用tslearn提供的 TimeSeriesKMeans 是不正确的。相反，PCA 应用于列“值”时间序列的 2 个成分，然后使用普通的 k 均值函数划分聚类。
+我在网上查了一下，似乎只有当数据集具有许多特征和少量数据时，才会发生“维数灾难”。文章中的数据集只有 2 个特征（时间戳、值）和许多数据，所以在我看来，不存在“维数灾难”，因此对所有“值”进行 PCA列是无用的。
+我是否遗漏了重要的东西？
+另一方面，如果文章是正确的，每次我想研究时间序列时，我可能会对所有值应用 PCA，然后使用经典的 k-means，而不是 tslearn 提供的 TimeSeriesKMeans 函数]]></description>
+      <guid>https://stats.stackexchange.com/questions/648319/curse-of-dimensionality-in-time-series-with-k-means</guid>
+      <pubDate>Thu, 30 May 2024 20:45:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>统计确定粒子数量</title>
+      <link>https://stats.stackexchange.com/questions/648318/statistically-determining-a-count-of-particles</link>
+      <description><![CDATA[我进行实验来测量各种药物。其中一项测量是对限制在小体积内的粒子数量感兴趣。
+我实验中的原始数据是 32 x 32 像素大小的视频，其背景噪音较高，并且包含多个随机扩散的粒子。然后，我使用局部最大值轨迹跟踪粒子。
+跟踪方法产生以下一组信息：
+$$\vec p = \begin{bmatrix} x\\ y\\ \text{mass}
+\\\ \text{ecc}\\ \text{raw_mass} \end{bmatrix}$$
+其中 x、y 为位置，质量、raw_mass 为粒子强度（围绕选定半径 $r$ 积分）。ecc（偏心率）表示粒子的圆度。
+现在，统计问题出现了。给定单个图像/帧中的一组 $N$ 粒子测量值，我很难从统计上形成一种方法来确定存在 $N$ 个粒子。例如，可能存在噪声，这会影响计数的决定，或者可能存在粒子聚集。
+简而言之，给定一个图像和一组算法确定的向量 $\vec p$，每次测量真正反映粒子的概率是多少，以及该测量的置信度是多少。
+尝试的想法
+1.
+在确定是否有粒子方面，必须有一种方法可以将相邻的强度与粒子进行比较。即，粒子的信号应该比背景/漏检的信号明显多。
+2.
+我还尝试集思广益，如何创建一种方法来调整一组参数以统计地推断这一决定。即，让阈值确定一个最小值，从而可以区分最不明亮的粒子。这需要动态地完成，因为每个训练集都应该非常大。由于实验的性质（荧光标记），这也存在物理限制
+如果有任何统计参考/建议可以帮助我解决这个问题，请告诉我。
+谢谢，
+附言：标签的选择是我认为应该的，如果我应该更改任何内容，请告诉我。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648318/statistically-determining-a-count-of-particles</guid>
+      <pubDate>Thu, 30 May 2024 20:31:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>计算比例数据的置信区间（多个数据点）</title>
+      <link>https://stats.stackexchange.com/questions/648316/calculating-confidence-intervals-for-proportion-data-multiple-data-points</link>
+      <description><![CDATA[各位 -
+我正在寻找一种方法来计算数据系列（多个数据点的样本）的置信区间（例如 95%）或其他变异性指标，其中数据都是比例（即每个数据都在零和一之间）。我认为这种方法不同于计算连续数据的标准 CI，可以是任何数值等。请注意，我并不是要求对单个比例进行 CI 估计（例如，Clopper-Pearson 方法）。R 代码或 Excel 公式会有所帮助。似乎在任何基础教科书中都找不到这个。谢谢。
+示例数据集：
+0.12、0.24、0.93、0.56、0.02]]></description>
+      <guid>https://stats.stackexchange.com/questions/648316/calculating-confidence-intervals-for-proportion-data-multiple-data-points</guid>
+      <pubDate>Thu, 30 May 2024 20:21:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>比较具有不同拟合分布的 GLM</title>
+      <link>https://stats.stackexchange.com/questions/648315/comparing-glms-with-different-fitted-distributions</link>
+      <description><![CDATA[我有一个场景，我需要将一些广义线性模型（具有相同的链接函数、目标变量，但不一定嵌套）与 k 倍交叉验证进行比较，使用成本函数比较预测值与保留集中的实际数据的“接近度”。据我所知，给出此度量的指标是 GLM 范式中的偏差，因为与 OLS 不同，方差不被假定为常数。但是，正如我在文本中看到的那样，偏差似乎是底层分布拟合的函数，因此其函数（数学）形式可能因分布而异。
+那么，我说偏差（作为损失函数）不能用于比较具有不同拟合分布（例如 m1 - Gamma、m2 - 逆高斯）的模型的“实际数据与预测值的接近度”是否正确？如果是，在这种情况下使用的首选指标（损失函数）是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648315/comparing-glms-with-different-fitted-distributions</guid>
+      <pubDate>Thu, 30 May 2024 20:17:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>找到具有 cursed 支持度的随机样本的最小充分统计量</title>
+      <link>https://stats.stackexchange.com/questions/648312/find-minimal-sufficient-statistic-of-this-random-sample-with-cursed-support</link>
+      <description><![CDATA[假设 $X_1,X_2,...,X_n$ 是一个 i.i.d 随机样本，其概率质量函数为 $p(x_i,\theta)$，其中 $x_i \in \{\theta,\theta+1,\theta+2,...\}$ 且 $\theta \in \mathbb{R}$。我声称最小充分统计量为 $(X_{(1)},...,X_{(n)})$。我说得对吗？
+特殊情况
+如果很难找到该问题的最小充分统计量，则可以考虑一种特殊情况，即 $p(x_i,\theta)=p(x_i)$，这意味着 p 不依赖于 $\theta$。
+一般情况
+我还认为，当 $\theta \in A$ 其中 $card(A) \ge 2$ 时，我的说法是正确的。
+我的方法
+如果您尝试使用因式分解定理：
+$$P(\textbf{X}=\textbf{x}) = {\displaystyle \prod_{i=1}^{n} p(x_i,\theta) I_{ \{ \theta,\theta+1,...\} }(x_i) }$$其中 $I_{ \{ \theta,\theta+1,...\} }(x_i)$ 是指示函数。这是我们无能为力的地方，因为我们无法分解指示函数的乘积，所以我猜最小充分统计量是$(X_{(1)},...,X_{(n)}) $。
+我的解释
+我认为${\displaystyle \prod_{i=1}^{n} I_{ \{ \theta,\theta+1,...\} }(x_i) }$意味着&quot;为了找出$x_i$是一个有效的观察结果，我们需要知道$\theta$&quot;
+我的问题
+是${\displaystyle \prod_{i=1}^{n} I_{ \{ \theta,\theta+1,...\} }(x_i) } ... class=&quot;math-container&quot;&gt;$(X_{(1)},...,X_{(n)})$ 最小充分统计量？
+我也在 math stackexchange 中问过这个问题，但没有得到答案。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648312/find-minimal-sufficient-statistic-of-this-random-sample-with-cursed-support</guid>
+      <pubDate>Thu, 30 May 2024 19:54:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>带聚类的个体水平横断面数据的差异分析的功效分析</title>
+      <link>https://stats.stackexchange.com/questions/648309/power-analysis-for-difference-in-differences-analysis-with-individual-level-cros</link>
+      <description><![CDATA[我计划使用个体层面的横断面数据进行差异分析。我的结果变量是二分的。
+我目前无法访问数据，因此我必须使用模拟数据进行功效分析。
+我的 DID 将有两组，治疗前 12 个时间段（月），治疗后 12 个时间段。我的总样本量大概在 N=5,000 左右，我将有 73 个聚类。
+我的模型还将包括 5 或 6 个控制变量以及月-年固定效应。
+我的模型的数学表达式如下：
+Yit = α + β1Treatmenti + β2Postt + β3(Treatmenti × Postt) + δt + γ′Xit + ϵit
+如何对这样的模型进行功效分析（我假设我应该运行几个参数略有不同的分析？）以及如何报告结果？
+最后，我还想运行补充分析来估计异质性治疗效果（基于个体是否具有某种特征），基于以下公式：
+Yit = α + β1Treatmenti + β2Postt + β3(治疗i × 治疗后t) + β4Ci + β5(治疗i × 治疗后Ci) + β6(治疗后T × 治疗后Ci) + β7(治疗i × 治疗后T × 治疗后Ci) + δt + γ′Xit + ϵit)
+我还不知道具有和不具有该特征的人的比例。如何对这个补充 DID 模型进行功效分析？
+我主要使用 R 和 Stata，因此 R 或 Stata 代码会很有帮助 - 但我也会很感激只是概念上分解该怎么做。
+到目前为止，我有这个，它似乎有效，但我不确定这是否是正确的方法：
+library(lme4) # 用于 glmer
+library(dplyr) # 用于数据操作
+
+# 参数
+set.seed(123) # 用于可重复性
+N &lt;- 5000 # 个体数量
+T &lt;- 24 # 时间段数（治疗前 12 个，治疗后 12 个）
+P &lt;- 0.5 # 治疗组比例
+num_simulations &lt;- 1000 # 模拟次数
+effect_size &lt;- log(1.5) # 预期对数优势比（效应大小） beta3
+alpha &lt;- 0.05 # 显著性水平
+
+# 模拟数据和拟合模型的函数
+simulate_DiD &lt;- function(N, T, P, effect_size) {
+# 创建个体和时间段
+individuals &lt;- rep(1:N, each = T)
+time &lt;- rep(1:T, N)
+
+# 治疗分配
+treatment &lt;- rbinom(N, 1, P)
+treatment &lt;- rep(treatment, each = T)
+
+# 治疗后指标
+post &lt;- ifelse(time &gt; 12, 1, 0)
+
+# 控制变量（5 个分类变量）
+X1 &lt;- rep(sample(1:3, N, replace = TRUE), each = T)
+X2 &lt;- rep(sample(1:2, N, replace = TRUE), each = T)
+X3 &lt;- rep(sample(1:4, N, replace = TRUE), each = T)
+X4 &lt;- rep(sample(1:5, N, replace = TRUE), each = T)
+X5 &lt;- rep(sample(1:3, N, replace = TRUE), each = T)
+
+# 线性预测器
+linear_predictor &lt;- 1 + 1*treatment + 1*post + effect_size*(treatment * post) + 
+0.5*X1 + 0.5*X2 + 0.5*X3 + 0.5*X4 + 0.5*X5
+
+# 概率
+prob &lt;- 1 / (1 + exp(-linear_predictor))
+
+# 结果变量（二进制）
+Y &lt;- rbinom(N * T, 1, prob)
+
+# 创建数据框
+data &lt;- data.frame(individuals, time, treatment, post, Y, X1, X2, X3, X4, X5)
+
+# 拟合逻辑回归模型
+model &lt;- glm(Y ~ treatment * post + X1 + X2 + X3 + X4 + X5, data = data, family = binomial)
+
+# 返回是否拒绝零假设
+p_value &lt;- summary(model)$coefficients[&quot;treatment:post&quot;, 4]
+return(p_value &lt; alpha)
+}
+
+# 运行模拟
+结果 &lt;- replicate(num_simulations, mock_DiD(N, T, P, effect_size))
+
+# 计算功效
+功效 &lt;- mean(results)
+print(paste(&quot;估计功效：&quot;, power))
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648309/power-analysis-for-difference-in-differences-analysis-with-individual-level-cros</guid>
+      <pubDate>Thu, 30 May 2024 19:24:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>非常低的 p 值的正确格式是什么？</title>
+      <link>https://stats.stackexchange.com/questions/648307/what-is-the-proper-formatting-of-very-low-p-values</link>
+      <description><![CDATA[一般来说，我相信应该给出精确的 p 值，而不是像“p &lt; 0.05”这样的值。但是，有时 p 值非常低，大约为 $10^{-10}$ 甚至更低。在什么情况下我们应该 a) 四舍五入并说“$p &lt; 10^&quot;-5$”或 b) 以科学计数法给出完整的估计值，例如“$p = 3.46*10^{-7}$”？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648307/what-is-the-proper-formatting-of-very-low-p-values</guid>
+      <pubDate>Thu, 30 May 2024 19:10:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>在多重共线性设置中，套索是否比岭回归或主成分回归更可取？</title>
+      <link>https://stats.stackexchange.com/questions/648305/is-lasso-preferable-to-ridge-or-principal-component-regression-in-multicollinear</link>
+      <description><![CDATA[考虑一个 $N\times p$ 数据矩阵 $\mathbf X$，其列为 $\mathbf x_j$。ESL 建议在执行岭回归之前对输入进行标准化，我的理解是将列 $\mathbf x_j$ 居中，使其均值为 0，并重新缩放它们，使其方差为 $\|\mathbf x_j\|^2/N=1$。所以让我们假设情况就是这样。我正在思考 $\mathbf X$ 的列跨度 $V\subset\mathbf R^N$ 中的主要成分方向（$\mathbf R^N$ 的线性子空间）。这些主成分方向 $v\in\mathbf R^N$ 具有这样的属性：它们是 $V$ 中的范数为 1 的向量，因此 $Xv$ 的方差最大化（即，我们希望最大化 $\|Xv\|$）。
+请注意，如果我通过在末尾添加 $n-1$ 个 $\mathbf x_p$ 副本来扩充 $\mathbf X$（因此 $\mathbf X$ 现在是 $N\times(p+n-1)$)，则向量 $v=(0,\ldots,0,1/\sqrt n,\ldots,1/\sqrt n)$ 的范数为 1，其中有 $p-1$ 个零，后跟 $n$ 个值为 $1/\sqrt n$ 的条目。
+现在 $Xv=\frac{n}{\sqrt n}\mathbf x_p$，范数为 $\sqrt{nN}$，方差为 $(Xv\cdot Xv)/N=n$.因此，对于足够大的 $n$，$v$ 到 $V$ 的投影将确定一个主成分方向，并且 $\mathbf x_p$ 的一些重新缩放将成为 $\mathbf X$ 的主成分。
+将其与套索进行对比，如果我们遵循修改后的最小角度回归算法，套索应该对添加额外列完全不敏感，因为 LAR 算法将分析哪一列与任何给定时刻的残差最相关。
+这是一个完全人为的构造，但它是否反映了在多重共线情况下更喜欢套索而不是岭回归的原因？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648305/is-lasso-preferable-to-ridge-or-principal-component-regression-in-multicollinear</guid>
+      <pubDate>Thu, 30 May 2024 18:57:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>巴苏定理的应用[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/648303/basu-theorems-application</link>
+      <description><![CDATA[设 X 和 Y 为独立的 N(0,1) 变量。求 Pr[ (X+Y)/(X-Y) &gt; 0.5]。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648303/basu-theorems-application</guid>
+      <pubDate>Thu, 30 May 2024 18:24:59 GMT</pubDate>
+    </item>
     <item>
       <title>尽管类别不平衡，Logit 模型仍未预测任何 < 0 的值</title>
       <link>https://stats.stackexchange.com/questions/648302/logit-model-not-predicting-any-values-0-despite-class-imbalance</link>
@@ -119,99 +345,6 @@ print(&quot;-&quot; * 50)
       <pubDate>Thu, 30 May 2024 16:06:35 GMT</pubDate>
     </item>
     <item>
-      <title>交错式 diff-in-diff 与 堆叠式 diff-in-diff</title>
-      <link>https://stats.stackexchange.com/questions/648291/staggered-diff-in-diff-vs-stacked-diff-in-diff</link>
-      <description><![CDATA[只是想更好地理解交错式差分和堆​​叠式差分之间的技术差异到底是什么。我知道 TWFE 交错式差分有其自身的问题，而且几位作者已经想出了更准确的 ATT 估计方法。但我也知道有些作者更依赖堆叠式差分设计，我想更好地理解其中的区别。我的先验是堆叠式差分不允许将已处理过的单元用作对照，而交错式差分可以？但不确定。谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648291/staggered-diff-in-diff-vs-stacked-diff-in-diff</guid>
-      <pubDate>Thu, 30 May 2024 14:16:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>运行逻辑回归（LMM）时，R 会抛出缺陷警告</title>
-      <link>https://stats.stackexchange.com/questions/648293/r-throws-deficiency-warning-when-running-a-logistic-regression-lmm</link>
-      <description><![CDATA[我从未在 R 中运行过逻辑回归分析（线性混合效应模型），但它似乎是一种合理的方法来回答与条件 NB 相比，条件 BB 在多大程度上影响元音 i 和 e 的辨别能力的问题。
-因变量有两个级别（I 或 E），有六个预测变量。
-运行逻辑回归时，R 会抛出警告消息。
-对于第一个模型，我有：
-glmer1 &lt;- glmer(response_converted ~ (1|subject_nr) + condition + 
-continuum_step + block_order + 
-vowel_carrier +stimulus, 
-data = data, family = binomial)
-
-我在 R 中收到警告：
-
-固定效应模型矩阵是秩不足的，因此删除 3 列/系数
-
-因此，我运行了
-allFit(glmer1)
-
-结果是两个优化器都失败了。因此，我逐个删除了固定效应（第一个“block_order”，第二个“vowel_carrier”，第三个“stimulus”），直到没有收到警告。最终模型具有以下变量：
-glmer4 &lt;- glmer(response_converted ~ (1|subject_nr) + condition + continuum_step, data = data, family = binomial)
-
-我添加了“stimulus”作为模型 5 中的随机效应：
-glmer5 &lt;- glmer(response_converted ~ (1|subject_nr) + (1|stimulus) + condition + continuum_step, data = data, family = binomial)
-
-我使用 anova() 函数比较了 glmer4 和 glmer5：
-anova(glmer4, glmer5, test = &quot;Chisq&quot;)
-
-glmer5 似乎更合适。
-这个过程有意义吗？有什么建议吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648293/r-throws-deficiency-warning-when-running-a-logistic-regression-lmm</guid>
-      <pubDate>Thu, 30 May 2024 14:13:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>我们有敏感度-特异性空间（ROC 曲线）和精确度-召回率空间（PR 曲线，$F_1$ 分数）。PPV-NPV 空间方面做了哪些工作？</title>
-      <link>https://stats.stackexchange.com/questions/648290/we-have-sensitivity-specificity-space-roc-curves-and-precision-recall-space-p</link>
-      <description><![CDATA[接收者操作特性 (ROC) 曲线显示了敏感度和特异性之间的平衡：您在检测类别 $1$（敏感度）方面有多好，同时不会将类别 $0$ 错误地识别为类别 $1$（特异性）。这样，我们可以相信预测的 $1$ 确实是 $1$。
-精确召回率 (PR) 曲线可以说通过使用精确度直接衡量怀疑程度来改善这一点，精确度是特异性的函数（以及分类器性能的其他方面）。召回率/敏感度衡量的是在一个观测值为 $1$ 的情况下检测到 $1$ 的概率，而准确率则是阳性预测值 (PPV)：你所声称的 $1$ 确实属于 $1$ 类别的概率。此外，$F_1$ 和更一般的 $F_{\beta}$ 分数同时考虑了精确度和召回率。
-负预测值 (NPV，不要与金融中的净现值混淆) 与敏感度/召回率的关系，就像正预测值与特异性的关系一样，因为 NPV 给出了您声称的 $0$ 确实属于 $0$ 类别的概率。与 PPV 一样，NPV 通过调节已知预测来估计未知概率，从而测量信息的正向流动。比较 PPV 与 NPV 似乎很有价值：对于 $0$ 类别声明的给定可信度水平，我们对 $1$ 类别的声明的可信度有多高。这可能并不总是我们想知道的，但肯定是可能的。
-有哪些工作明确处理 PPV-NPV 空间，无论是 PPV-NPV 曲线还是结合 PPV 和 NPV 的分类器指标，类似于 $F_{\beta}$ 结合 PPV/精度和召回率/灵敏度的方式？当然，我们可以将 ROC 曲线与流行度一起转换为 PPV-NPV 曲线，但这并不明确使用 PPV 和 NPV。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648290/we-have-sensitivity-specificity-space-roc-curves-and-precision-recall-space-p</guid>
-      <pubDate>Thu, 30 May 2024 14:06:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何确定 Gamma-Poisson 模型的 Gamma 分布的参数？</title>
-      <link>https://stats.stackexchange.com/questions/648289/how-to-decide-the-parameters-of-a-gamma-distribution-for-a-gamma-poisson-model</link>
-      <description><![CDATA[在贝叶斯推断中，Gamma-Poisson 模型通常使用泊松分布的 $\lambda$ 参数上的 Gamma($\alpha$,$\beta$) 先验。
-是否有任何规则可以对 Gamma 先验的这些 $\alpha$ 和 $\beta$ 参数设置适当的值？
-先验通常在看到数据之前设置；那么，我们需要什么信息才能知道应该给予 $\alpha$ 和 $\beta$ 的值？
-我们是否需要至少大致了解我们计划的泊松实验中应该观察到的平均 $\lambda$ 值是多少？
-或者我们是否需要至少大致了解我们计划的泊松实验中应该观察到的最大值是多少？
-或者任何其他类型的信息，以免立即盲目地给出 $\alpha$ 和 $\beta$ 无意义的值？
-任何回报都值得赞赏。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648289/how-to-decide-the-parameters-of-a-gamma-distribution-for-a-gamma-poisson-model</guid>
-      <pubDate>Thu, 30 May 2024 14:01:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>训练集和验证集之间的性能显著下降</title>
-      <link>https://stats.stackexchange.com/questions/648288/significant-performance-drop-between-train-and-validation-set</link>
-      <description><![CDATA[我正在尝试使用 Lgbm 和 RandomForest 进行分类，并且我观察到了同样的问题。我使用各种元参数来防止过度拟合，例如 max_depth、num_trees（对于 Lgbm 保持较小）、reg_alpha 和 reg_lambda（对于 Lgbm）等。
-在这两种情况下，AUC 从训练集上的 70% 左右下降到验证集上的 55%（对于最佳参数组合），测试集也是如此，约为 55%。
-我在想：我能做些什么来将它们结合起来？提前停止是一种可能性吗？我还能尝试什么来避免在训练集上过度拟合？显然，学到的见解不会从样本中转化出来。
-或者它可能是早期步骤中更根本的问题，例如特征工程等？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648288/significant-performance-drop-between-train-and-validation-set</guid>
-      <pubDate>Thu, 30 May 2024 13:34:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 $S = X \cdot W + b$，$dS$ 的梯度等于 $\frac{\text{probs} - 1} {N}$，其中 $\text{probs}$ 是 $S$ 的 softmax 分类器？</title>
-      <link>https://stats.stackexchange.com/questions/648285/why-is-the-gradient-of-s-x-cdot-w-b-ds-equal-to-frac-textprobs</link>
-      <description><![CDATA[为什么$S = X \cdot W + b$，$dS$的梯度等于$\frac{\text{probs} - 1} {N}$？
-这里，probs 是一个$1 \times K$数组，表示$X_i$属于类$k$的概率，其中$k = 1, 2, ..., K$，$N$是数据集的大小。
-$X_i$ 具有 $J$ 个特征/列 ($X_{i1}$, $X_{i2}$, ... ,$X_{iJ}$)，并且我们在 $S$ 上使用 softmax 激活函数：
-$$\text{probs}_k = \frac{\exp(S_K)}{\sum_{k = 1}^{K} \exp(S_k)}$$
-以下是代码的具体部分，其中指出 $dS = \frac{\text{probs} - 1} {N}$: 
-以下是 NN 的结构：]]></description>
-      <guid>https://stats.stackexchange.com/questions/648285/why-is-the-gradient-of-s-x-cdot-w-b-ds-equal-to-frac-textprobs</guid>
-      <pubDate>Thu, 30 May 2024 12:58:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>回归：仅具有正值的负截距[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/648284/regression-negative-intercept-with-only-positive-values</link>
-      <description><![CDATA[我正在对一些标准差值进行多元线性回归，但许多预测因子的截距和系数为负。
-关于我应该如何解释结果，您有什么想法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648284/regression-negative-intercept-with-only-positive-values</guid>
-      <pubDate>Thu, 30 May 2024 12:38:25 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在 R 中执行（流行病学）等时替代分析？</title>
       <link>https://stats.stackexchange.com/questions/648264/how-to-perform-an-epidemiologic-isotemporal-substitution-analysis-in-r</link>
       <description><![CDATA[]]></description>
@@ -219,106 +352,22 @@ $$\text{probs}_k = \frac{\exp(S_K)}{\sum_{k = 1}^{K} \exp(S_k)}$$
       <pubDate>Thu, 30 May 2024 07:26:18 GMT</pubDate>
     </item>
     <item>
-      <title>结果变量可以在同一个模型中使用两次吗？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/648251/can-an-outcome-variable-be-used-twice-in-the-same-model</link>
-      <description><![CDATA[在什么时候，在同一个模型框架中的两个似然中使用同一个结果变量是合适的？
-下面是一个具体的例子：
-model{
-y ~ bernoulli( (1-psi) * mu);
-y ~ bernoulli( (1-psi) * theta);
+      <title>具有聚类 SE 或 GLMER 的 GLM</title>
+      <link>https://stats.stackexchange.com/questions/648313/glm-with-clustered-se-or-glmer</link>
+      <description><![CDATA[我正在对 113 名受试者进行行为经济学实验，每人回答从 10 个问题中随机挑选出的 6 个问题。我的因变量是二进制的（错误 = 0 或错误 = 1），我正在使用逻辑回归。我不知道在具有个体随机效应的 GMLER 或 GLM 之间选择什么，然后在个体层面上聚类 SE。我认为两者都可以控制个体内相关性 + GMLER 还增加了个体间变异性。我尝试了这两种模型，但得到了非常不同的结果，我不确定如何解释它以及选择哪种模型......特别是我不明白为什么我的所有系数在 GMLER 中都是显著的，但在 GLM 中却不是。这是否意味着随机效应捕获了部分无法解释的方差？因此 GMLER 是一个更好的模型？感觉我的 p 值“好得令人难以置信”......感谢您的帮助
+我使用 GLM（上）和 GLMER（下）进行了两次逻辑回归，并比较了结果。我得到了非常不同的标准错误和 p 值……我应该相信哪一个？
 
-u ~ bernoulli( theta);
-}
+# glm
+model2 &lt;- glm(Error ~ Complexity + Response_time +Response_time:Complexity, family = binomial(&quot;logit&quot;), data = B)
+clustered_se2 &lt;- coeftest(model2, vcov. = vcovCR(model2, cluster = B$Individual, type = &quot;CR2&quot;))
+p_values2 &lt;- clustered_se2[, 4]
 
+# glmer
+model &lt;- glmer(Error ~ Complexity + Response_time +Response_time:Complexity+ (1 | Individual), family = binomial(&quot;logit&quot;), data = B)
 
-我能够使这个模型工作的唯一方法是在两个单独的似然中使用 y。该模型公式完美地恢复了模拟参数。
-在联合似然（混合模型，Stan 中的 log_mix）中执行此操作会导致 mu 的估计有偏差。它仅在似然独立时才有效。
-任何帮助和背景信息都将不胜感激。
-谢谢，
-Benny]]></description>
-      <guid>https://stats.stackexchange.com/questions/648251/can-an-outcome-variable-be-used-twice-in-the-same-model</guid>
-      <pubDate>Wed, 29 May 2024 22:38:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>理解元分析中的相关和分层效应模型</title>
-      <link>https://stats.stackexchange.com/questions/648224/understanding-correlated-and-hierarchical-effects-models-in-meta-analysis</link>
-      <description><![CDATA[我正在做一个三级荟萃分析，我想比较一个三级相关和分层效应模型（其中效应嵌套在研究之间）和一个两级模型（其中研究级别的方差被限制为 0）。
-最初，我使用以下简单的三级随机效应模型：
-model &lt;- rma.mv(yi = es, 
-V = var, 
-slab = study,
-data =pression,
-random = ~ 1 | study/es.id, 
-test = &quot;t&quot;, 
-method = &quot;REML&quot;)
-
-并将其与这个混合效应模型进行比较。
-model.reduced &lt;- rma.mv(yi = es, 
-V = var, 
-slab = study,
-data =pression,
-random = ~ 1 | study/es.id, 
-test = &quot;t&quot;, 
-method = &quot;REML&quot;,
-sigma2 = (0,NA))
-
-anova(model, model.reduced)
-
-这使我能够理解模型适应度如何随着聚类效果的变化而变化。到目前为止很简单。
-但是，从那时起，我将上述模型拟合为如下所示的相关分层模型（V.6），这将使我能够进一步使用稳健方差估计对其进行拟合，并避免模型错误指定。我通过将方差输入更改为使用 R 中的 ClubSandwich 包得出的 imputed_variance_matrix 来实现此目的。请参阅下面的示例：
-V.6 &lt;- with(depression, 
-impute_covariance_matrix(vi = var,
-cluster = study,
-r = rho))
-
-我现在使用以下模型 [che.model.6]，但我无法将其与简化模型 [model.reduced] 进行比较，因为两个模型之间的协方差不相等。使用与上述相同的逻辑，将 che.model.6 与 che.model.60 进行比较，以比较在研究集群水平上将方差限制为 0 时异质性的差异，这是否有问题。
-che.model.6 &lt;- rma.mv(yi =es,
-V = V.6,
-random = ~ 1 | study/es.id,
-data =pression,
-sparse = TRUE)
-
-che.model.60 &lt;- rma.mv(yi =es,
-V = V.6,
-random = ~ 1 | study/es.id,
-data =pression,
-sparse = TRUE,
-sigma2 = c(0, NA))
-
-anova(che.model.6, che.model.60)
-
-第二个方差分析是否与第一个方差分析在随机效应模型中发挥相同的作用？或者 RVE，例如：
-coef_test(che.model.6, 
-vcov = &quot;CR2&quot;)
-
-对于我的 CHE 模型，其功能与 anova 对于我的随机效应三级模型的功能基本相同？
-感谢您的帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648224/understanding-correlated-and-hierarchical-effects-models-in-meta-analysis</guid>
-      <pubDate>Wed, 29 May 2024 16:22:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>VAE：为什么我们需要编码器来生成图像？</title>
-      <link>https://stats.stackexchange.com/questions/647848/vaes-why-do-we-need-the-encoder-for-image-generation</link>
-      <description><![CDATA[我可能忽略了一些显而易见的东西，但如果我们只想生成图像，而对潜在空间不感兴趣，为什么我们甚至需要 VAE 中的编码器？
-据我理解，VAE 损失的第二项主要确保编码器分布接近$N(0,1)$，这使得生成新输出变得更容易，因为我们只需要从标准正态分布中采样，而不必明确知道编码器分布。
-为什么我们不能从正态分布中采样开始，并使用重构损失训练生成器，而无需编码器？
-或者只是一个很好的副作用，我们也可以“免费”获得一个编码器，例如在 BiGAN 中？]]></description>
-      <guid>https://stats.stackexchange.com/questions/647848/vaes-why-do-we-need-the-encoder-for-image-generation</guid>
-      <pubDate>Thu, 23 May 2024 19:08:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>详尽测试所有可能的特征组合以找到最佳组合是否有效？</title>
-      <link>https://stats.stackexchange.com/questions/647517/is-it-valid-to-exhaustively-test-all-possible-combinations-of-features-to-find-t</link>
-      <description><![CDATA[我有大约 1000 个带标签的观察结果，这些观察结果来自大约 50 名受试者，他们在不同的情境下做出生理反应，我正在尝试对情境进行分类（通常分为频率大致相等的三个类别，但有时分为四个或五个类别）。对于每个观察结果，我生成大约 2000 个特征，需要选择最佳的特征子集进行分类。使用 mRMR（最小冗余最大相关性），我可以将特征减少到大约 25-100 个特征，然后 mRMR 得分会降得很低（取决于我包括哪些类别）。
-我取其中的前 20 个（以保持数字的可行性），并使用留一交叉验证测试最多 8 个特征的所有可能组合，得到大约 264,000 个组合。然后，我选择准确率最高的组合。对于 LDA，这只需要我的笔记本电脑 6 个小时，但我也在测试需要更长时间的其他分类器。
-我的问题是，这是否是一种有效的方法，或者我是否引入了偏差、过度拟合等，如果是，如何弥补。我读到最好在每个折叠内进行特征选择，但我甚至不确定如何做到这一点，尤其是在遗漏一个主题的情况下。
-我发现单独使用 mRMR 并不合适：如果我只使用 mRMR 的前 8 个特征，我得到的准确度会比找到最佳组合要低得多。在一个极端情况下，使用高斯 SVM 仅比较两个类，差异是 99% 的准确率和 50% 的准确率，但通常准确率差异约为 10-20%。）
-我有两个目标：1）选择最佳特征来在所有数据上训练模型，并用它来对新观察进行分类，2）估计此类模型对未来观察的准确率。
-有没有办法可以考虑对准确率的影响，如果我愿意分配这么多的计算量，有没有更好的方法来选择特征？
-当我问的时候，使用 PCA 创建 5-10 个组件而不是直接使用特征是否更有意义？
-任何建议都值得赞赏！非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/647517/is-it-valid-to-exhaustively-test-all-possible-combinations-of-features-to-find-t</guid>
-      <pubDate>Sat, 18 May 2024 18:21:32 GMT</pubDate>
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648313/glm-with-clustered-se-or-glmer</guid>
+      <pubDate>Wed, 29 May 2024 16:08:04 GMT</pubDate>
     </item>
     </channel>
 </rss>
