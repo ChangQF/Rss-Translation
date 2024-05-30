@@ -4,7 +4,198 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 30 May 2024 09:16:33 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 30 May 2024 12:27:11 GMT</lastBuildDate>
+    <item>
+      <title>如何将多个观测值拟合到单个高斯过程</title>
+      <link>https://stackoverflow.com/questions/78554891/how-to-fit-a-multiple-observations-to-single-gaussian-process</link>
+      <description><![CDATA[我试图将多个观测值拟合到单个高斯过程。
+如果我尝试像这样拟合两个观测值 (Y) 的数据，
+import numpy as np
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
+# 示例数据
+
+# 输入数据 X 
+
+X = np.array([[1.0], [2.0], [3.0], [4.0], [5.0]])
+
+# 输出数据 Y 
+
+Y = np.array([[1.5, 2.5], [2.5, 3.5], [3.5, 4.5], [4.5, 5.5], [5.5, 6.5]])
+
+kernel = C(1.0, (1e-4, 1e1)) * RBF(1.0, (1e-4, 1e1))
+
+gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
+
+# 拟合模型
+
+gp.fit(X, Y)
+
+mean_prediction, cov_prediction = gp.predict(X, return_cov=True)
+
+
+我得到了两个 mean_prediction 数组和两个 cov_prediction 矩阵。但我想要一个与单个拟合 GP 对应的观测值相同维度的单个均值和协方差矩阵。我该如何实现它。
+感谢您的时间和考虑。]]></description>
+      <guid>https://stackoverflow.com/questions/78554891/how-to-fit-a-multiple-observations-to-single-gaussian-process</guid>
+      <pubDate>Thu, 30 May 2024 12:16:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何正确计算图像和文本嵌入之间的余弦相似度以检索结果</title>
+      <link>https://stackoverflow.com/questions/78554528/how-to-correctly-compute-cosine-similarity-between-image-and-text-embeddings-for</link>
+      <description><![CDATA[我在图像-文本对上训练了一个对比学习模型，现在我想根据图像检索最相似的文本。为此，我使用预训练的图像和文本编码器生成测试图像（嵌入）和测试文本（嵌入）。
+然后我想测量每个文本和所有图像嵌入之间的余弦相似度，如下所示
+**images = (i1, i2, i3) text = (t1,t2, t3)**
+
+**余弦相似度 = [(t1,i1),(t1, i2), (t1, i3)], [(t2, i1), (t2, i2), (t2, i3)], [(t3, i1), (t3, i2), (t3, i3)]****
+
+使用此代码 
+
+image_embeddings = [loaded_global_vision_encoder(image) for image in test_images]
+
+# 生成查找嵌入
+finding_embeddings = [loaded_finding_encoder(tf.convert_to_tensor([finding])) for finding in test_findings]`
+
+# 计算图像和查找嵌入之间的余弦相似度
+
+cosine_similarities = []
+for finding_emb in finding_embeddings:
+similarities = [tf.keras.losses.cosine_similarity(finding_emb, image_emb, axis=-1) for image_emb in image_embeddings]
+cosine_similarities.append(similarities)
+
+然后我找到相似度得分最高的前 1 对，如下所示 
+
+**image_embeddings = [
+[0.1, 0.2, 0.3],
+[0.4, 0.5, 0.6],
+]**
+
+**finding_embeddings = [
+[0.3, 0.4, 0.5],
+[0.6, 0.7, 0.8]
+]**
+
+对于第一个发现的嵌入 [0.3, 0.4, 0.5]：
+余弦相似度：
+
+**- 使用 [0.1, 0.2, 0.3]：0.9746**
+
+**- 使用 [0.4, 0.5, 0.6]：0.9873**
+
+对于第二个发现的嵌入 [0.6, 0.7, 0.8]：
+余弦相似度：
+
+**- 使用 [0.1, 0.2, 0.3]：0.8847**
+
+**- 使用 [0.4, 0.5, 0.6]：0.9603**
+
+步骤 2：找到前 k 个最相似的图像索引
+假设 k = 2
+对于第一个发现的嵌入 [0.3, 0.4, 0.5]:
+
+**前 2 个最相似的图像索引：[3, 1]**
+
+对于第二个发现嵌入 [0.6, 0.7, 0.8]:
+
+**前 2 个最相似的图像索引：[2, 4]**
+
+**results = [
+[3, 1],
+[2, 4],
+]
+**
+
+使用此代码
+
+```
+k = 1
+results = [tf.math.top_k(similarities, k).indices.numpy() for similarities in cosine_similarities]
+```
+
+所以现在我完全不知道这个检索部分，我对此非常困惑。我的代码如下 
+
+```
+predict_reports = [[test_findings[int(idx)] for idx in indices] for indices in results]
+```
+
+我认为它是这样工作的
+
+```
+test_findings = [
+&quot;无急性心肺过程。&quot;,
+&quot;心脏大小正常。无局灶性气腔疾病或积液。&quot;,
+&quot;肺容量低。无急性发现。&quot;,
+&quot;肺部清晰。无胸腔积液或气胸。&quot;,
+&quot;胸椎退行性变化。&quot;
+]
+
+results = [
+[3, 1],
+[2, 4],
+[0, 3]
+]
+
+predict_reports = [
+[
+&quot;肺部清晰。无胸腔积液或气胸。&quot;,
+&quot;心脏大小正常。无局灶性气腔疾病或积液。&quot;
+],
+[
+&quot;肺容量低。无急性发现。&quot;,
+&quot;胸椎退行性变化。&quot;
+],
+[
+&quot;无急性心肺过程。&quot;,
+&quot;肺部清晰。无胸腔积液或气胸。&quot;
+]
+]
+
+```
+
+如果它以我解释的方式工作，那么我会很高兴，因为我对使用这种检索方式的结果不满意，但是我很想知道我对此代码的概念是否正确。]]></description>
+      <guid>https://stackoverflow.com/questions/78554528/how-to-correctly-compute-cosine-similarity-between-image-and-text-embeddings-for</guid>
+      <pubDate>Thu, 30 May 2024 10:57:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>Android 上的随机森林</title>
+      <link>https://stackoverflow.com/questions/78554436/random-forest-on-android</link>
+      <description><![CDATA[如何使用 CSV 数据在 Android 上使用机器学习随机森林。数据以表格形式呈现，时间段为 2023 年至 2017 年，每年从第 1 个月到第 12 个月。
+给我一个教程。
+完美完成，没有错误。]]></description>
+      <guid>https://stackoverflow.com/questions/78554436/random-forest-on-android</guid>
+      <pubDate>Thu, 30 May 2024 10:37:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何处理 KNN 中的列？</title>
+      <link>https://stackoverflow.com/questions/78554214/how-to-deal-with-columns-in-knn</link>
+      <description><![CDATA[目前，我正在学习 ML，从 K 邻居分类开始，我想知道如何处理给我的所有参数（列）。我只有 1 个包含 10k 行的数据集，我将其拆分为 80/20。我在另一个 csv 中也有测试数据（没有 y）。
+但困扰我的是，我在学习时只能获得约 78% 的准确率，我想知道如何才能提高我的结果。查看列时，我对这些列特别有一些疑问：
+第一个数据集包含 2 个不同的组，而测试数据包含均匀分布的点
+与第一张图片相反的情况
+与其他列相同
+有些奇怪
+我应该删除它们吗，还是应该尝试对它们做些什么以在我的训练中使用它们数据？
+此外，目前，我不明白为什么我的模型使用 metric=&#39;manhattan&#39; 而不是 euclidean 效果更好，以及如何使用测试/训练数据选择最佳 K。我读到你应该使用 sqrt(N)，其中 N 是测试行数，但事实真的如此吗？
+训练/测试数据]]></description>
+      <guid>https://stackoverflow.com/questions/78554214/how-to-deal-with-columns-in-knn</guid>
+      <pubDate>Thu, 30 May 2024 09:51:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>我正在加载鸢尾花数据集，但出现错误，提示不允许使用重复的名称，我甚至尝试更改名称，但又出现另一个错误</title>
+      <link>https://stackoverflow.com/questions/78554157/i-was-loading-the-iris-dataset-but-there-is-an-error-where-it-says-duplicate-na</link>
+      <description><![CDATA[url= &quot;https://archive.ics.uci.edu/ml/machine-learning-databases/iris.data&quot;
+names = [&#39;sepal-length&#39;,&#39;sepal-width&#39;,&#39;petal-length&#39;,&#39;petal-width&#39;,&#39;petal-width&#39;,&#39;class&#39;] 
+dataset = pandas.read_csv(url, names = names)
+
+
+ValueError: 不允许重复的名称。
+
+我原本期待这个输出，但却出现了错误]]></description>
+      <guid>https://stackoverflow.com/questions/78554157/i-was-loading-the-iris-dataset-but-there-is-an-error-where-it-says-duplicate-na</guid>
+      <pubDate>Thu, 30 May 2024 09:42:33 GMT</pubDate>
+    </item>
     <item>
       <title>特征提取 + 逻辑回归 与 特征提取 + softmax 密集层的区别</title>
       <link>https://stackoverflow.com/questions/78553888/differences-on-features-extraction-logistic-regression-vs-features-extraction</link>
@@ -68,18 +259,6 @@ log_reg.predict(features_test)
 我尝试使用 GridSearchCV 中使用的相同分割来计算平均精度得分，但 GridSearchCv.cv_results_ 的结果更高。]]></description>
       <guid>https://stackoverflow.com/questions/78553088/average-precision-score</guid>
       <pubDate>Thu, 30 May 2024 05:49:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>单项赛冠军如何排序？</title>
-      <link>https://stackoverflow.com/questions/78552850/how-to-classify-winner-of-individual-races</link>
-      <description><![CDATA[随着奥运会的临近，我认为这将是一个有趣的机会来提高一些机器学习方法的技能。我读过各种试图预测赛马、足球等比赛结果的例子，但我缺少一些关于我的用例的细节。
-让我们以游泳为例。我有一堆运动员在不同距离和项目上的历史表现数据。我想训练一个分类模型，以便能够预测特定比赛的获胜者。
-我已经研究出如何使用 GroupKFold 来确保我的训练集和测试集中的数据沿着我的 race_id 的边界干净地分割，这样就不会有一半的比赛同时出现在两场比赛中。然后，我根据 is_winner 的值针对分类/结果的各种特征训练模型。
-该模型需要尽最大努力查看测试集并预测每场比赛的获胜者。我并不是想查看整个数据集并说“对所有可能成为赢家的行进行分类”。这对于决赛之类的比赛毫无帮助，决赛由大约 8 名游泳运动员组成，他们在国内比赛和大多数国际比赛中都可能保持不败，而每年只有一两次比赛，与地球上比他们更快的其他六个人比赛。
-这就是为什么我试图找出如何在单个比赛中进行分类和预测的原因。到目前为止，我想到的最好的解决方案是手动循环测试集中的每一场比赛，只对这大约 8 名参赛者测试预测，重复，保持结果的累计以计算精度/准确度/召回率/等。但事实证明这非常慢。
-有没有更好的方法可以探索？]]></description>
-      <guid>https://stackoverflow.com/questions/78552850/how-to-classify-winner-of-individual-races</guid>
-      <pubDate>Thu, 30 May 2024 04:25:33 GMT</pubDate>
     </item>
     <item>
       <title>由于 decision_function，使用 roc_auc 度量的 KNeighborsClassifier 的 GridSearchCV 和 cross_val_score 返回错误</title>
@@ -194,61 +373,6 @@ gcloud computeregionslist
       <pubDate>Thu, 30 May 2024 00:35:03 GMT</pubDate>
     </item>
     <item>
-      <title>可并行化的 C++ 代码数据库或数据集</title>
-      <link>https://stackoverflow.com/questions/78552019/parallelizable-c-code-database-or-dataset</link>
-      <description><![CDATA[是否有任何数据库或数据集包含可以和不能并行化的标记代码示例？
-我正在构建的项目需要这样的数据集，而创建自己的数据集似乎不是一个非常可靠的选择。]]></description>
-      <guid>https://stackoverflow.com/questions/78552019/parallelizable-c-code-database-or-dataset</guid>
-      <pubDate>Wed, 29 May 2024 21:30:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么模型训练需要填充数据？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78551888/why-is-padding-data-for-model-training-necessary</link>
-      <description><![CDATA[为什么需要填充？有人能解释一下吗？如果你的张量大小不同，它们可以堆叠，但问题是什么？有人能用一个现实生活中的例子来解释一下吗？（我问过 gpt4，但它没有给出令人满意的答案）
-我正在尝试制作一个 AI 机器人，它告诉我要填充我的输入，但我不明白为什么？]]></description>
-      <guid>https://stackoverflow.com/questions/78551888/why-is-padding-data-for-model-training-necessary</guid>
-      <pubDate>Wed, 29 May 2024 20:47:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法使用 CLI 创建 Azure 机器学习工作区</title>
-      <link>https://stackoverflow.com/questions/78550892/unable-to-create-an-azure-machine-learning-workspace-using-the-cli</link>
-      <description><![CDATA[我目前正在尝试使用 CLI 创建一个 Azure 机器学习工作区。我使用了以下代码：
-az ml working create --name &quot;rg-dp100-labs&quot; --resource-group &quot;rg-dp100-labs&quot;
-
-我收到以下错误。
-代码：ValidationError
-消息：工作区 json 中缺少依赖资源
-目标：工作区
-异常详细信息：（无效）工作区 json 中缺少依赖资源
-代码：无效
-消息：工作区 json 中缺少依赖资源
-目标：工作区
-
-仅创建了 KeyVault 和存储帐户。参考Microsoft Learn 上的链接，我发现其他人也遇到了同样的问题。甚至谷歌搜索也给了我与上面相同的代码。lease，有人遇到过同样的问题并解决了吗？我认为这是最近出现的问题。]]></description>
-      <guid>https://stackoverflow.com/questions/78550892/unable-to-create-an-azure-machine-learning-workspace-using-the-cli</guid>
-      <pubDate>Wed, 29 May 2024 16:44:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何追踪多标签MLP的损失？</title>
-      <link>https://stackoverflow.com/questions/78550784/how-to-track-loss-of-multi-label-mlp</link>
-      <description><![CDATA[我获得了维度为 5,000 的二进制数据点。我被要求执行机器学习，预测长度为 1k 的二进制向量，其中输出的每个位置都是一个类。这些类别不互斥。
-我对类别分布的了解：
-
-索引较小的位置更常见
-一个样本可以属于多个类别
-每个样本仅满足少数类别要求（即输出是“稀疏的”）
-
-如何跟踪我的 ML 模型中的损失？我使用了多层感知器（pytorch）和交叉熵损失（CE 损失），但我发现很难解释结果。我假设当您有多个类别但一次只选择一个（多类分类）时使用 CE 损失。
-此外，我的预测导致向量设置了大约一半的位，而我预计设置了 20 到 50 位，不会更多。
-# 一个“示例”数据点：
-point = [1, 0, 0, 1, 0, 0, 1, 1, ...,1, 1, 0, 0, 1, 0, 1] # 长度 5000
-label = [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, ...,0] # 长度 1000
-# 标签仅设置了 20-50 位
-]]></description>
-      <guid>https://stackoverflow.com/questions/78550784/how-to-track-loss-of-multi-label-mlp</guid>
-      <pubDate>Wed, 29 May 2024 16:17:36 GMT</pubDate>
-    </item>
-    <item>
       <title>如何使用 SHAP 值来分组特征重要性？</title>
       <link>https://stackoverflow.com/questions/78547686/how-to-use-shap-values-for-grouped-feature-importance</link>
       <description><![CDATA[我做什么：
@@ -317,8 +441,8 @@ shap.summary_plot(train_aggregated_shap_df.values, feature_names=train_aggregate
       <title>YoloV8 结果中没有 'box'、'max' 属性</title>
       <link>https://stackoverflow.com/questions/78547320/yolov8-results-have-no-box-max-properties-in-it</link>
       <description><![CDATA[我已经训练了一个 YOLOV8 模型来识别十字路口的物体（即汽车、道路等）。
-它工作正常，我可以将输出作为带有感兴趣分割对象的图像。
-但是，我需要做的是捕获原始几何图形（多边形），以便稍后将它们保存在 txt 文件中。
+它工作正常，我可以将输出作为图像，其中包含感兴趣的分段对象。
+但是，我需要做的是捕获原始几何图形（多边形），以便以后可以将它们保存在 txt 文件中。
 我尝试了在文档中找到的内容（https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode）但返回的对象与文档所述不同。
 实际上，结果是 TensorFlow 数字列表：
 
@@ -372,33 +496,18 @@ print(&quot;处理完成。&quot;)
       <pubDate>Wed, 29 May 2024 04:32:01 GMT</pubDate>
     </item>
     <item>
+      <title>A3C 代理（连续动作空间）没有得到适当的训练，只能达到</title>
+      <link>https://stackoverflow.com/questions/78531464/a3c-agent-continuous-action-space-not-being-trained-properly-and-only-reach</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78531464/a3c-agent-continuous-action-space-not-being-trained-properly-and-only-reach</guid>
+      <pubDate>Sat, 25 May 2024 05:21:08 GMT</pubDate>
+    </item>
+    <item>
       <title>即使按照示例 3 的文档代码操作，PyKan 代码仍然不起作用：分类</title>
       <link>https://stackoverflow.com/questions/78451382/pykan-code-not-working-even-after-following-the-documentation-code-for-example-3</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78451382/pykan-code-not-working-even-after-following-the-documentation-code-for-example-3</guid>
       <pubDate>Wed, 08 May 2024 22:17:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否可以加载没有 config.json 文件的 huggingface 模型？</title>
-      <link>https://stackoverflow.com/questions/75626974/is-it-possible-to-load-huggingface-model-which-does-not-have-config-json-file</link>
-      <description><![CDATA[我尝试使用以下代码从 HF 加载此语义分割模型：
-from transformers import pipeline
-
-model = pipeline(&quot;image-segmentation&quot;, model=&quot;Carve/u2net-universal&quot;, device=&quot;cpu&quot;)
-
-但我收到以下错误：
-OSError：tamnvcc/isnet-general-use 似乎没有名为 config.json 的文件。查看“https://huggingface.co/tamnvcc/isnet-general-use/main”以获取可用文件。
-
-即使没有提供 config.json 文件，是否也可以从 HuggingFace 加载模型？
-我也尝试通过以下方式加载模型：
-id2label = {0: &quot;background&quot;, 1: &quot;target&quot;}
-label2id = {&quot;background&quot;: 0, &quot;target&quot;: 1}
-image_processor = AutoImageProcessor.from_pretrained(&quot;Carve/u2net-universal&quot;)
-model = AutoModelForSemanticSegmentation(&quot;Carve/u2net-universal&quot;, id2label=id2label, label2id=label2id)
-
-但出现了同样的错误。]]></description>
-      <guid>https://stackoverflow.com/questions/75626974/is-it-possible-to-load-huggingface-model-which-does-not-have-config-json-file</guid>
-      <pubDate>Fri, 03 Mar 2023 12:16:42 GMT</pubDate>
     </item>
     </channel>
 </rss>
