@@ -4,7 +4,202 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 01 Jun 2024 18:18:15 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 01 Jun 2024 21:14:18 GMT</lastBuildDate>
+    <item>
+      <title>如何加载使用预训练的 bert 模型（使用 ktrain 训练）？</title>
+      <link>https://stackoverflow.com/questions/78564748/how-to-load-use-pretrained-bert-model-trained-using-ktrain</link>
+      <description><![CDATA[我训练了 bert_model 并保存了它。它运行良好。保存预测器后，它创建了 bert_model 文件夹，其中包含 tf_model.h5 和 tf_model.preproc，但在加载 &amp;保存预测器，它会产生大量错误。
+y_train = [encoding[x] for x in y_train]
+y_test = [encoding[x] for x in y_test]
+(x_train, y_train), (x_test, y_test), preproc = text.texts_from_array(x_train=X_train, y_train=y_train,
+x_test=X_test, y_test=y_test,
+class_names=class_names,
+preprocess_mode=&#39;bert&#39;,
+maxlen=350,
+max_features=35000)
+
+model = text.text_classifier(
+&#39;bert&#39;, train_data=(x_train, y_train), preproc=preproc)
+learner = ktrain.get_learner(model, train_data=(x_train, y_train),
+val_data=(x_test, y_test),
+batch_size=6)
+learner.fit_onecycle(2e-5, 3)
+learner.validate(val_data=(x_test, y_test), class_names=class_names)
+predictor = ktrain.get_predictor(learner.model, preproc)
+predictor.get_classes()
+
+import time
+message = &#39;她在我等她的时候离开了我，她不是她自己&#39;
+
+start_time = time.time()
+prediction = predictor.predict(message)
+
+print(&#39;predicted: {} ({:.2f})&#39;.format(prediction, (time.time() - start_time)))
+predictor.save(&quot;models/bert_model&quot;)
+
+现在保存后，bert_model 文件夹已创建，其中包含两个文件 tf_model.h5 和 tf_model.preproc。
+要加载此文件，我使用：
+
+来自 keras.models 导入 load_model
+导入 ktrain
+来自 ktrain 导入文本
+导入时间
+
+消息 = &#39;她在我等她的时候离开了我，她不是她自己&#39;
+model_path = &quot;/home/priyanshi/Desktop/folder/models/bert_model/&quot;
+
+predictor = ktrain.load_predictor(model_path)
+
+start_time = time.time()
+prediction = predictor.predict(message)
+
+print(&#39;预测：{} ({:.2f} 秒)&#39;.format(
+prediction, (time.time() - start_time)))
+
+但它给出了这个错误：---
+python -u &quot;/home/priyanshi/Desktop/folder/test2.py&quot;
+2024-06-02 00:59:18.984734：I external/local_tsl/tsl/cuda/cudart_stub.cc:32] 无法在您的机器上找到 cuda 驱动程序，GPU 将不会被使用。
+2024-06-02 00:59:18.987632：I external/local_tsl/tsl/cuda/cudart_stub.cc:32] 无法在您的机器上找到 cuda 驱动程序，GPU 将不会被使用。
+2024-06-02 00:59:19.031606：I tensorflow/core/platform/cpu_feature_guard.cc:210] 此 TensorFlow 二进制文件经过优化，可在性能关键型操作中使用可用的 CPU 指令。
+要启用以下指令：AVX2 FMA，在其他操作中，请使用适当的编译器标志重建 TensorFlow。
+2024-06-02 00:59:19.734612：W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT 警告：找不到 TensorRT
+调用 keras.models.load_model 失败。请尝试手动调用此函数来调查错误并在必要时报告问题。
+回溯（最近一次调用）：
+文件“/home/priyanshi/.local/lib/python3.10/site-packages/ktrain/core.py”，第 2048 行，在 _load_model 中
+model = keras.models.load_model(
+文件“/home/priyanshi/.local/lib/python3.10/site-packages/tf_keras/src/saving/saving_api.py”，第 262 行，在 load_model 中
+return legacy_sm_saving_lib.load_model(
+文件“/home/priyanshi/.local/lib/python3.10/site-packages/tf_keras/src/utils/traceback_utils.py”，第 70 行，在 error_handler 中
+从 None 引发 e.with_traceback(filtered_tb)
+文件&quot;/home/priyanshi/.local/lib/python3.10/site-packages/tensorflow/python/saved_model/loader_impl.py&quot;，第 119 行，在 parse_saved_model
+raise IOError(
+OSError: SavedModel 文件不存在：/home/priyanshi/Desktop/folder/models/bert_model//{saved_model.pbtxt|saved_model.pb
+在处理上述异常期间，发生了另一个异常：
+回溯（最近一次调用最后一次）：
+文件 &quot;/home/priyanshi/Desktop/folder/test2.py&quot;，第 13 行，在 
+predictor = ktrain.load_predictor(model_path)
+文件 &quot;/home/priyanshi/.local/lib/python3.10/site-packages/ktrain/core.py&quot;，第 1848 行，在 load_predictor 中
+model = _load_model(fpath, preproc=preproc, custom_objects=custom_objects)
+文件 &quot;/home/priyanshi/.local/lib/python3.10/site-packages/ktrain/core.py&quot;，第 2055 行，在 _load_model 中
+raise Exception(&quot;检测到错误：%s&quot; % (e))
+异常：检测到错误：SavedModel 文件不存在：/home/priyanshi/Desktop/folder/models/bert_model//{saved_model.pbtxt|saved_model.pb
+我尝试了许多其他方法来使用它，但它不起作用并且给出错误]]></description>
+      <guid>https://stackoverflow.com/questions/78564748/how-to-load-use-pretrained-bert-model-trained-using-ktrain</guid>
+      <pubDate>Sat, 01 Jun 2024 19:36:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>需要采取什么措施来对抗过度拟合？</title>
+      <link>https://stackoverflow.com/questions/78564674/what-need-to-be-implemented-to-combat-overfitting</link>
+      <description><![CDATA[我正在 Chestxray 数据集上训练 ResNet50。我的训练数据大约有 15000 个样本，其中 1500 个用于验证，3000 个用于测试。这是一个多标签分类问题，我有 13 个标签，并且对其进行了独热编码。我在训练时遇到了一个问题。尽管观察到训练准确率在各个时期有所提高，但验证准确率似乎有所下降。我尝试了几个实验和故障排除步骤，但无法解决这个问题。
+尝试的实验：
+
+数据增强。
+
+ transforms.Compose([
+transforms.RandomAutocontrast(p=0.5), 
+transforms.RandomHorizo​​ntalFlip(), 
+transforms.ToTensor(), 
+transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
+
+增加/减少学习率。
+在所有层、少数层等上进行训练。
+（我想可能是我的数据集很大而且有点复杂，所以我应该深入训练我的网络，这样它才能了解功能）
+增加批量大小。目前使用 32。
+正则化（Dropout，当我使用时，验证会改进，但训练会下降）。
+
+我使用了不同的 Resnet 变体，但它不起作用，下面的损失和准确度曲线可以向您展示。可能是我忽略了一些东西，如果你们知道该怎么做？
+图像示例：
+图像
+模型架构：
+learning_rate = 0.001
+early_stopping = EarlyStopping(monitor=&#39;val_accuracy&#39;,patient=10,restore_best_weights=True)
+adam_optimizer = Adam(learning_rate=learning_rate)
+resnet50 = ResNet50(input_shape=(256, 256, 3), weights=&#39;imagenet&#39;, include_top=False)
+
+对于 resnet50.layers 中的层：
+layer.trainable = False
+
+x = Flatten()(resnet50.output)
+prediction = Dense(13,activation=&#39;sigmoid&#39;)(x)
+model = Model(inputs=resnet50.input,outputs=prediction)
+
+model.compile(optimizer=adam_optimizer,loss=&#39;binary_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
+
+history = model.fit(train_dataset,epochs=100,validation_data=val_dataset,
+callbacks[early_stopping])
+
+输出：
+Epoch 1/100
+477/477 [===============================] - 48s 88ms/步 - 损失：0.8895 - 准确度：0.1362 - val_loss：0.5471 - val_accuracy：0.1835
+Epoch 2/100
+477/477 [==============================] - 39s 81ms/步 - 损失：0.6483 - 准确度：0.2059 - val_loss：0.7141 - val_accuracy：0.1175
+Epoch 3/100
+477/477 [===============================] - 39s 82ms/step - 损失：0.6154 - 准确度：0.2471 - val_loss：0.4956 - val_accuracy：0.3182
+Epoch 4/100
+477/477 [===============================] - 39s 82ms/step - 损失：0.5840 - 准确度：0.2784 - val_loss：0.6674 - val_accuracy：0.1464
+Epoch 5/100
+477/477 [=================================] - 39s 81ms/步 - 损失：0.5519 - 准确度：0.3058 - val_loss：0.7490 - val_accuracy：0.1533
+Epoch 6/100
+477/477 [=============================] - 39s 81ms/步 - 损失：0.5033 - 准确度：0.3369 - val_loss：0.7575 - val_accuracy：0.1354
+Epoch 7/100
+477/477 [================================] - 39s 81ms/步 - 损失：0.5321 - 准确度：0.3396 - val_loss：0.7116 - val_accuracy：0.1230
+Epoch 8/100
+477/477 [==============================] - 39s 82ms/step - 损失：0.4538 - 准确度：0.3678 - val_loss：0.5930 - val_accuracy：0.1753
+Epoch 9/100
+477/477 [===============================] - 39s 81ms/step - 损失：0.4576 - 准确度：0.3766 - val_loss：0.6753 - val_accuracy：0.1072
+Epoch 10/100
+477/477 [===============================] - 39s 82ms/步 - 损失：0.4989 - 准确度：0.3758 - val_loss：0.6825 - val_accuracy：0.1168
+Epoch 11/100
+477/477 [==============================] - 39s 82ms/步 - 损失：0.5037 - 准确度：0.3859 - val_loss：0.7811 - val_accuracy：0.2144
+Epoch 12/100
+477/477 [================================] - 39s 81ms/step - 损失：0.5155 - 准确度：0.3881 - val_loss：0.8082 - val_accuracy：0.1402
+Epoch 13/100
+477/477 [===============================] - 39s 82ms/step - 损失：0.5550 - 准确度：0.3884 - val_loss：0.9528 - val_accuracy：0.2419
+
+
+目前，这是上述架构的结果，请建议我现在应该做些什么来改善结果？
+图表曲线：
+损失和准确率图表]]></description>
+      <guid>https://stackoverflow.com/questions/78564674/what-need-to-be-implemented-to-combat-overfitting</guid>
+      <pubDate>Sat, 01 Jun 2024 18:54:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>VotingRegressor 无法提高模型得分</title>
+      <link>https://stackoverflow.com/questions/78564656/votingregressor-not-improving-model-score</link>
+      <description><![CDATA[我目前正在尝试一些机器学习方面的知识，并尝试不同的模型。
+我无法让 VotingRegressor 正常工作。这里使用的指标是 r2 分数。
+例如以下代码导致度量为 -89：
+from sklearn.ensemble import VotingRegressor
+
+linear_model = LinearRegression()
+xgb = XGBRegressor()
+cat = CatBoostRegressor(verbose=0)
+ridge = Ridge()
+
+ensemble_model = VotingRegressor(estimators=[(&#39;linear_regression&#39;, linear_model), (&#39;xgb&#39;, xgb), (&#39;cat&#39;, cat), (&#39;ridge&#39;, ridge)], weights=[1, 1, 1, 1])
+
+y_pred = ensemble_model.predict(X_test)
+
+r2 = r2_score(y_test.values, y_pred)
+
+print(f&quot;R² Score: {r2}&quot;)
+
+虽然仅使用线性模型会返回0.85：
+linear_model = LinearRegression()
+linear_model.fit(X_train,y_train)
+
+y_pred = linear_model.predict(X_test)
+
+r2 = r2_score(y_test, y_pred)
+
+print(f&quot;R² Score: {r2}&quot;)
+
+非常希望得到一些帮助 :)
+提前谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78564656/votingregressor-not-improving-model-score</guid>
+      <pubDate>Sat, 01 Jun 2024 18:45:46 GMT</pubDate>
+    </item>
     <item>
       <title>为什么使用相同的 Q 值表会得到不同的测试结果</title>
       <link>https://stackoverflow.com/questions/78564460/why-do-i-get-different-testing-result-using-the-same-q-value-table</link>
@@ -21,7 +216,7 @@
       <pubDate>Sat, 01 Jun 2024 16:36:57 GMT</pubDate>
     </item>
     <item>
-      <title>TensorFlow 自定义对象检测希望在 Windows 11 原生 GPU 支持下运行</title>
+      <title>TensorFlow 自定义对象检测希望在具有 GPU 支持的 Windows 11 本机中运行</title>
       <link>https://stackoverflow.com/questions/78564211/tensorflow-custom-object-detection-want-work-in-windows-11-native-with-gpu-suppo</link>
       <description><![CDATA[我最近尝试在 Windows 11 本地机器上使用 Tensorflow 2.10 创建自定义对象检测模型。但 Tensorflow 对象检测 API model_builder_tf2_test.py 出现错误。
 ImportError：无法从“tensorflow.python.framework”导入名称“tensor”
@@ -43,46 +238,6 @@ ImportError：无法从“tensorflow.python.framework”导入名称“tensor”
       <pubDate>Sat, 01 Jun 2024 09:35:46 GMT</pubDate>
     </item>
     <item>
-      <title>Seq2Seq LSTM 模型是否适用于具有不变参数的多元时间序列预测</title>
-      <link>https://stackoverflow.com/questions/78562876/should-the-seq2seq-lstm-model-be-used-for-multivariate-time-series-forecasting-w</link>
-      <description><![CDATA[我正在使用 Seq2Seq LSTM 模型来预测两个时间序列变量（Value1 和 Value2）。我的数据集包含 2000 组实验，每组有多个时间步骤。每组包含 11 个与 value1 和 value2 相关的参数，请注意，与其他数据不同，每组中的 11 个参数不会随时间变化，但每组之间的 11 个参数并不相同。这是我的数据的示例图：
-数据解释
-您可以清楚地看到，我的数据集中的第 1 到第 11 个参数不会随时间变化，但每组中的 11 个参数不同，并决定了 value1 和 value2 的最终时间序列
-我的问题是，选择 seq2seq，即编码器-解码器 LSTM 模型是最佳选择吗？或者这更像是回归分类问题？任何建议都将不胜感激
-此外，我基于 Keras 构建了一个 seq2seq 模型，并尝试了两个输入，第一个输入仅使用 11 个参数时间序列（尽管随时间不变）作为 x_train，使用 value1&amp;2 时间序列作为 y_train，验证集的损失几乎没有下降。第二个输入是 11 个参数，value1&amp;2 的时间序列向前移动一个时间步，即 teacher-forcing 方法。但是在我的预测中我还需要y_test的前向时间步长的序列，我对此感到困惑，这样做是否意味着我正在使用y_test来预测y_test？
-以下是第二个输入的代码示例：
-#编码器
-encoder_inputs = Input(shape=(X_train.shape[1], X_train.shape[2])) #基于X_train的输入形状
-encoder_lstm1 = LSTM(32, return_sequences=True, return_state=True)
-encoder_outputs1, state_h1, state_c1 =coder_lstm1(encoder_inputs)
-encoder_lstm2 = LSTM(32, return_state=True)
-encoder_outputs2, state_h2, state_c2 =coder_lstm2(encoder_outputs1)
-
-#解码器
-decoder_inputs =输入（形状=（X_train.shape[1]，y_train.shape[2]））# 两个目标
-decoder_lstm = LSTM（32，return_sequences=True，return_state=True）
-decoder_outputs，_，_ =coder_lstm（decoder_inputs，initial_state=[state_h2，state_c2]）
-decoder_dense = Dense（y_train.shape[2]）
-decoder_outputs =coder_dense（decoder_outputs）
-
-# 模型
-model = Model（[encoder_inputs，decoder_inputs]，decoder_outputs）
-
-# 训练
-decoder_input_data = np.zeros_like（y_train）
-decoder_input_data[:，1:] = y_train[:，:-1] # 将 y_test 值向前移动一步
-
-LSTM_model = model.fit（[X_train，解码器输入数据]，y_train，validation_split=0.2，epochs=100，batch_size=64，verbose=1)
-
-# 测试
-解码器输入测试 = np.zeros_like(y_test)
-解码器输入测试[:, 1:] = y_test[:, :-1] # 这里我使用 y_test 作为测试的输入
-y_pred = model.predict([X_test, 解码器输入测试])
-]]></description>
-      <guid>https://stackoverflow.com/questions/78562876/should-the-seq2seq-lstm-model-be-used-for-multivariate-time-series-forecasting-w</guid>
-      <pubDate>Sat, 01 Jun 2024 05:26:17 GMT</pubDate>
-    </item>
-    <item>
       <title>使用机器学习进行文本分类</title>
       <link>https://stackoverflow.com/questions/78562439/text-classification-with-ml</link>
       <description><![CDATA[我目前正在新工作中开展我的第一个 ML 项目。任务是通过 ML 模型将收到的电子邮件分类到 4 个单独的邮箱以降低成本。我成功训练的模型在不平衡数据集上的概率几乎达到 90%。
@@ -92,87 +247,6 @@ Michal
 我希望我的模型只会对可以至少 95% 准确率预测的电子邮件进行分类。]]></description>
       <guid>https://stackoverflow.com/questions/78562439/text-classification-with-ml</guid>
       <pubDate>Fri, 31 May 2024 23:32:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>pytorch 模型返回一个元组而不是张量[关闭]</title>
-      <link>https://stackoverflow.com/questions/78562431/pytorch-model-returns-a-tuple-instead-of-tensor</link>
-      <description><![CDATA[我使用 pytorch 在 python 中编写了一个程序。我的问题是：
-我的 模型返回的是元组而不是张量。我如何让/强制我的模型返回张量？
-这是我的代码：
-import torch
-from torch import nn
-import numpy as np
-from torch.optim import Adam
-
-x = np.linspace(0, 1, 50).reshape((-1, 1)).astype(&#39;float32&#39;)
-y = np.power(x, 2).reshape((-1, 1)).astype(&#39;float32&#39;)
-
-x = torch.tensor(x)
-y = torch.tensor(y)
-
-model = nn.Sequential(
-nn.Linear(1, 1),
-nn.ReLU()
-)
-
-loss = nn.MSELoss()
-opt = Adam(model.parameters(), lr=0.001)
-model.train()
-n_batch = 4
-n_epoch = 100
-for i in range(n_epoch):
-for b in range(0, len(x), n_batch):
-inp = x[b:b+n_batch]
-out = y[b:b+n_batch]
-opt.zero_grad()
-pred = model(inp),
-ls = loss(pred, out)
-ls.backward()
-opt.step()
-
-这是我得到的错误：
-
-文件 &quot;...\torch\nn\ functional.py&quot;，第 3355 行，在 mse_loss 中
-if not (target.size() == input.size()): AttributeError: &#39;tuple&#39; 对象没有属性 &#39;size&#39;
-]]></description>
-      <guid>https://stackoverflow.com/questions/78562431/pytorch-model-returns-a-tuple-instead-of-tensor</guid>
-      <pubDate>Fri, 31 May 2024 23:27:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>随机森林/决策树输出概率设计：使用正输出叶样本/总输出叶样本</title>
-      <link>https://stackoverflow.com/questions/78561885/random-forest-decision-tree-output-probability-design-using-positive-output-l</link>
-      <description><![CDATA[我正在使用 python 和 scikitlearn 设计一个二元分类器随机森林模型，我想在其中检索我的测试集是两个标签之一的概率。据我了解，predict_proba(xtest) 将给我以下结果：
-投票给分类器的树数/树数
-
-我发现这太不精确了，因为某些树节点可能将我的（非确定性）样本分成相当精确的叶子（100 个 a 类，0 个 b 类）和不精确的叶子（5 个 a 类，3 个 b 类）。我想要一个“概率”的实现，将我的 n 个分类器输出叶子中的样本总数作为主导，将输出叶子中总体选择的分类器的总数作为分子（即使对于选择大多数树没有选择的类的树及其输出叶子也是如此）。
-例如（简单）：
-2 棵树：
-树 1： 
---- 5, 0 类 A（已选择） 
-10 
---- 2, 3 类 B（未选择） 
-
-树 2： 
---- 3, 2 类 A（已选择） 
-10 
---- 5, 0 类 B（未选择）
-
-predict_proba 结果：
-选择类 A 的树数 (2) / 树数 (2) = 1.0
-
-期望结果：
-输出叶子中的 A 类样本数 (8) / 输出叶子中的样本总数 (10) = 0.8
-
-有人知道如何做到这一点，或者他们正在使用什么实现？
-我有一个想法，就是遍历每棵树，检索它们的概率，然后取平均值。但是，这会给样本较少的输出叶子带来更高的偏差（选举团风格）。
-如何直接访问特定样本的决策树输出叶子的样本数量及其类别（或者甚至只是叶子索引，然后从那里开始）？在随机森林的情况下，对它们求和并取平均值？
-如果不行，就完全切换平台/库？或者可能只是增加分类器的数量（不是最佳的）？
-一些可能有用的文档？：
-dtc.tree_.n_node_samples
-dtc.tree_[node_index].n_node_samples ?
-]]></description>
-      <guid>https://stackoverflow.com/questions/78561885/random-forest-decision-tree-output-probability-design-using-positive-output-l</guid>
-      <pubDate>Fri, 31 May 2024 19:44:58 GMT</pubDate>
     </item>
     <item>
       <title>多输出分类器低分</title>
@@ -189,59 +263,15 @@ dtc.tree_[node_index].n_node_samples ?
       <pubDate>Fri, 31 May 2024 08:59:38 GMT</pubDate>
     </item>
     <item>
-      <title>成本函数最小值太低</title>
-      <link>https://stackoverflow.com/questions/78558974/cost-function-minimum-is-too-low</link>
-      <description><![CDATA[下面是我正在尝试编写的神经网络的一段 Matlab 代码。这是我第一次尝试与机器学习相关的任何事情。我在这里跟随 Michael Nielson 的书：http://neuralnetworksanddeeplearning.com/chap2.html
-我正在加载一组 60000 张 28x28 灰度手写数字图像，并尝试训练这个神经网络来识别它们。还有一个包含 10000 张图像的测试数据集。该网络有 784 个输入神经元（28^2），两个隐藏层，每个隐藏层有 16 个神经元，输出层有 10 个神经元。我将权重和偏差初始化为 -0.5 和 0.5 之间的随机值。
-我将成本函数评估为 C = 0.5*(a-y).^2。它似乎取得了一定成功，因为它从 C=1.35 开始，在 C=0.46 结束，然后基本趋于平稳（大约 75 个时期）。但是，错误仍然很高，只有 12% 的时间能猜出正确的数字，这几乎是随机的。我反复检查了数学，但找不到错误。我想一定有一个我没有看到的。下面的代码是主训练循环中的所有内容，因此任何错误都应该在那里。我没有将图像分成更小的批次，而是在每个时期一次处理整个 60k 图像。由于每张图像只有 28x28 像素，因此无需将其分开就足够快了。输入神经元 a_0 是一个 784x60000 的双精度数组，值介于 0 和 1 之间。我获取了原始图像，其中每个像素都是一个 uint8，然后将其转换为双精度，然后除以 255 得到 a_0。我在代码中对层进行编号，其中第 0 层是输入层，第 1 层和第 2 层是隐藏层，第 3 层是输出层。
-a_0 = training_images;
-epoch = 0;
-while epoch &lt; 5 || C(epoch - 1) - C(epoch) &gt; 0.001 
-epoch = epoch + 1;
+      <title>给定一个由症状和器官组成的文本，有没有办法检测哪个器官导致了该症状？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78556953/given-a-text-which-consist-of-symptoms-and-organs-are-there-ways-to-detect-whic</link>
+      <description><![CDATA[假设我有以下文本：
+胸部计算机断层扫描 (CT) 检测到一名患者患有劳力性呼吸困难和侧方双侧胸腔积液。
 
-%向前传播
-z_1 = weights_1*a_0 + biases_1;
-a_1 = sigmoid(z_1);
-z_2 = weights_2*a_1 + biases_2;
-a_2 = sigmoid(z_2);
-z_3 = weights_3*a_2 + biases_3;
-a_3 = sigmoid(z_3);
-
-%评估成本函数
-C(epoch) = 0.5*mean(sum((a_3-y).^2, 1));
-
-%向后传播
-sigmoid_d1 = a_1 .* (1-a_1); %Sigmoid 导数
-sigmoid_d2 = a_2 .* (1-a_2);
-sigmoid_d3 = a_3 .* (1-a_3);
-delta_3 = (a_3-y).*sigmoid_d3;
-delta_2 = weights_3.&#39;*delta_3 .* sigmoid_d2;
-delta_1 = weights_2.&#39;*delta_2 .* sigmoid_d1;
-
-%计算梯度
-for image_index = 1:num_images
-dC_dw3(:, :, image_index) = delta_3(:, image_index) * a_2(:, image_index).&#39;;
-dC_dw2(:, :, image_index) = delta_2(:, image_index) * a_1(:, image_index).&#39;;
-dC_dw1(:, :, image_index) = delta_1(:, image_index) * a_0(:, image_index).&#39;;
-end
-
-%计算调整
-training_rate = 0.1;
-adjust_biases_1 = -training_rate * mean(delta_1, 2);
-adjust_biases_2 = -training_rate * mean(delta_2, 2);
-adjust_biases_3 = -training_rate * mean(delta_3, 2);
-调整权重1 = -训练速率 * 平均值(dC_dw1, 3);
-调整权重2 = -训练速率 * 平均值(dC_dw2, 3);
-调整权重3 = -训练速率 * 平均值(dC_dw3, 3);
-偏差1 = 偏差1 + 调整偏差1;
-偏差2 = 偏差2 + 调整偏差2;
-偏差3 = 偏差3 + 调整偏差3;
-权重1 = 权重1 + 调整权重1;
-权重2 = 权重2 + 调整权重2;
-权重3 = 权重3 + 调整权重3;
-]]></description>
-      <guid>https://stackoverflow.com/questions/78558974/cost-function-minimum-is-too-low</guid>
-      <pubDate>Fri, 31 May 2024 08:39:40 GMT</pubDate>
+此处，由于胸部出现一些问题，检测到了呼吸困难症状。有没有办法实现一个模型来帮助我实现这一点，即根据给定文本中的症状获取受影响的身体部位？
+并且，是否有任何预训练模型可以完成此任务？]]></description>
+      <guid>https://stackoverflow.com/questions/78556953/given-a-text-which-consist-of-symptoms-and-organs-are-there-ways-to-detect-whic</guid>
+      <pubDate>Thu, 30 May 2024 19:35:13 GMT</pubDate>
     </item>
     <item>
       <title>MNIST - mnist.train_images() 的问题 - HTTPError：禁止访问</title>
@@ -315,47 +345,11 @@ esp32 by Espressif 版本 2.0.14
       <pubDate>Wed, 07 Feb 2024 22:12:55 GMT</pubDate>
     </item>
     <item>
-      <title>VertexAIException - 调用 Gemini-Pro API 时出现列表索引超出范围错误</title>
-      <link>https://stackoverflow.com/questions/77930819/vertexaiexception-list-index-out-of-range-error-when-calling-gemini-pro-api</link>
-      <description><![CDATA[我正在以连续的方式调用 Google Gemini-Pro API（例如每分钟大约 50 个查询）。我相信我已经正确设置了我的 VertexAI 项目和凭据。当我使用的连续查询数低于一个恒定的条时，查询将运行，并且响应将正常接收。但是，一旦查询数量增加到上述条以上，就会出现以下错误：
-
-IndexError - 列表索引超出范围
-
-请注意，发生此错误的查询数“条”取决于每个查询的长度，并且如果查询的长度在程序执行过程中保持不变，则该查询数是一致的。例如，在尝试将查询长度增加大约 20% 后，查询数量从大约 330 个下降到大约 60 个。
-
-文件
-&quot;/Users/user/anaconda3/envs/chat1/lib/python3.11/site-packages/vertexai/generative_models/_generative_models.py&quot;,
-line 1315, in text
-return self.candidates[0].text
-~~~~~~~~~~~~~~~^^^ IndexError: 列表索引超出范围
-
-是什么原因造成的？我已将 VertexAI 服务器位置设置为：“us-central1”，据我所知，其配额应仅为 300 个查询/分钟。由于我连续进行 API 调用，但低于 60 个查询/分钟的速率，因此我认为我的使用情况尚可。我目前正在使用免费的 VertexAI 试用帐户（免费赠送 300 美元信用额度）。
-我编写的 Gemini Pro API 调用函数是：
-def gemini_response(message: str) -&gt; str:
-# 初始化 Vertex AI
-vertexai.init(project=&quot;project-id-0123&quot;, location=&quot;us-central1&quot;)
-
-# 加载模型
-model = GenerativeModel(&quot;gemini-pro&quot;)
-
-# 查询模型
-response = model.generate_content(message)
-return response.text
-
-在调试 candidates 变量出了什么问题时，变量检查结果如下所示：
-&gt; self 
-&gt; prompt_feedback {block_reason: OTHER} 
-&gt; usage_metadata {prompt_token_count: 505 total_token_count: 505 } 
-
-&gt; self.candidates 
-&gt; []
-
-&gt; self._raw_response 
-&gt; prompt_feedback {block_reason: OTHER}
-&gt; usage_metadata {prompt_token_count: 505 total_token_count: 505 }
-]]></description>
-      <guid>https://stackoverflow.com/questions/77930819/vertexaiexception-list-index-out-of-range-error-when-calling-gemini-pro-api</guid>
-      <pubDate>Sat, 03 Feb 2024 04:05:38 GMT</pubDate>
+      <title>如何修复将 KerasTensor 传递给 TF API 时出现的错误？</title>
+      <link>https://stackoverflow.com/questions/71808327/how-to-fix-error-where-a-kerastensor-is-passed-to-a-tf-api</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/71808327/how-to-fix-error-where-a-kerastensor-is-passed-to-a-tf-api</guid>
+      <pubDate>Sat, 09 Apr 2022 13:03:40 GMT</pubDate>
     </item>
     <item>
       <title>我如何知道使用 SelectKBest 选择了哪些功能？</title>
