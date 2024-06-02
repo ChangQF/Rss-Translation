@@ -4,103 +4,208 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 02 Jun 2024 15:13:54 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 02 Jun 2024 18:18:53 GMT</lastBuildDate>
     <item>
-      <title>我被分配使用 metropolis 算法来数值求解积分。我编写了一个 Python 代码，我做错了什么？</title>
+      <title>确定生存曲线显示问题的原因</title>
+      <link>https://stats.stackexchange.com/questions/648490/identifying-the-cause-of-a-survival-curve-display-issue</link>
+      <description><![CDATA[我正在 R 中进行生存分析（使用 Cox 比例风险回归）。我的总体样本死亡率约为 10％，但从我的分析得出的 Kaplan-Meier 生存曲线似乎显示生存率下降了约 40-50％，并且在 4 年左右急剧下降。这并不能反映实际数据集中死亡时间的模式，但我不确定是什么导致了这种差异……有人知道吗？
+
+# 定义绘图的层
+strata &lt;- expand.grid(
+pression_level = levels(complete_cases_all$depression_level),
+sex = levels(complete_cases_all$sex)
+)
+rownames(strata) &lt;- letters[1:nrow(strata)]
+
+# 定义平均参与者
+average_participant &lt;- expand.grid(
+pression_level = levels(complete_cases_all$depression_level),
+sex = levels(complete_cases_all$sex),
+calendar_year = median(complete_cases_all$calendar_year),
+age = median(complete_cases_all$age),
+education_level = median(complete_cases_all$education_level),
+employment = &quot;有竞争力的就业&quot;,
+marital_status = &quot;单身&quot;,
+rehab_payor_primary_type = &quot;非医疗补助&quot;,
+func_score = median(complete_cases_all$func_score),
+mental_health_tx_hx = &quot;否认有任何心理健康治疗史&quot;,
+psych_hosp_hx = &quot;否认有任何精神病住院史&quot;,
+problematic_substance_use = &quot;否&quot;,
+suicide_attempt_hx = &quot;否认有任何自杀企图史&quot;
+)
+rownames(average_participant) &lt;- letters[1:nrow(average_participant)]
+
+# 拟合生存模型
+cxsf &lt;- survfit(model_5, newdata = average_participant, conf.type = &quot;none&quot;)
+surv_cxsf &lt;- surv_summary(cxsf, data = complete_cases_all) |&gt; # 总结生存模型
+tibble()
+m_newdat &lt;- average_participant[as.character(surv_cxsf$strata), ] # 将新数据与生存总结层匹配
+
+gg.surv.model5 &lt;- surv_model_5 |&gt;
+ggsurvplot_df(
+surv.geom = geom_line,
+color = &quot;depression_level&quot;,
+xlab = &quot;X 之后的时间（年）&quot;,
+ylab = &quot;生存概率&quot;,
+legend = c(0.175, 0.175),
+conf.int = FALSE,
+censor = FALSE,
+surv.scale = &quot;percent&quot;,
+break.time.by = 1,
+xlim = c(0, 5), # 将 x 轴限制为 5 年
+ylim = c(crop, 1),
+palette = c(&quot;#90cbf9&quot;, &quot;#2196f3&quot;, &quot;#114b7a&quot;),
+ggtheme = theme_classic(),
+) +
+labs(linetype = &quot;Sex&quot;, color = &quot;抑郁水平&quot;)
+
+数据基于纵向数据集，并在初始研究登记日期后约 1 年和 4 年进行后续访谈。审查日期由每个审查参与者的最后一次后续访谈日期确定，死亡日期由每个死者官方死亡证明中列出的日期确定。时间 0 对应于每个参与者的研究登记日期，并在随后的 5 年内进行跟踪。
+我检查了数据集，发现 4 年后死亡的死者数量异常，但在此期间似乎有合理的死亡频率（总死亡人数的约 23% 发生在 4 至 5 年之间）。我确保我的死亡时间基于日期，而不是（整数）跟踪间隔。最后，我确保受审查的参与者也在 4-5 年的时间范围内贡献数据。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648490/identifying-the-cause-of-a-survival-curve-display-issue</guid>
+      <pubDate>Sun, 02 Jun 2024 18:03:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中线性混合模型中随机效应结构的澄清</title>
+      <link>https://stats.stackexchange.com/questions/648486/clarification-on-random-effects-structure-in-linear-mixed-models-in-r</link>
+      <description><![CDATA[我正在使用线性混合模型来分析具有层次结构的数据集，其中随时间变化的测量值（级别 1）聚集在个体内（级别 2），而个体聚集在国家内（级别 3）。我最初在 R 中使用 lme4 包中的以下语法来建模此结构：
+model &lt;- lmer(basdai ~ 1 + time + (1|country) + (1|id), data = data, REML = FALSE) 
+
+但是，一位审阅者指出，我使用的语法并不代表 3 级模型，而是 2 级模型。他们建议改用以下语法：
+model &lt;- lmer(basdai ~ 1 + time + (1|country) + (1|country:id), data = data, REML = FALSE)
+
+据我了解，术语 (1|country) 表示每个国家（级别 3）的随机截距，而 (1|id) 表示每个个体（级别 2）的随机截距。我认为包括这两个术语将解释聚类。
+如果您能提供关于这两个模型规范之间的差异的任何见解或解释，以及我的初始语法是否真正代表了 2 级结构而不是预期的 3 级层次结构，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648486/clarification-on-random-effects-structure-in-linear-mixed-models-in-r</guid>
+      <pubDate>Sun, 02 Jun 2024 17:13:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么如果 $T>>N$ 则 $O_p(N^{-1/2}) + O_p(T^{-1/2}) = O_p(N^{-1/2})$ 的数学推导</title>
+      <link>https://stats.stackexchange.com/questions/648485/mathematical-derivation-of-why-o-pn-1-2-o-pt-1-2-o-pn-1-2-i</link>
+      <description><![CDATA[我会尽量简单。假设我们有一系列随机变量，$X_{NT}$，其边界表达式为：$X_{NT} = O_p(N^{-1/2}) + O_p(T^{-1/2})$。现在，这意味着如果 $T&gt;&gt;N$，则 $X_{NT} = O_p(N^{-1/2})$，因为在这种情况下，$N^{-1/2}$ 占主导地位。使用$O_p(\cdot)$的定义，我们可以看到，对于每个$\varepsilon&gt;0$，存在一个常数$M$和$N_0$，使得
+$$ P\left( \left|\frac{X_{NT}}{N^{-1/2} + T^{-1/2}} \right| &gt; M \right) &lt; \varepsilon $$
+对于 $NT\geq N_0.$ 如果我犯了错误，请纠正我。
+一般来说，这意味着 $O_p(N^{-1/2}) + O_p(T^{-1/2}) = O_p(C^{-1}_{NT})$，其中 $C_{NT} = min(\sqrt{T},\sqrt{N}).$
+你能更严格地向我展示这一点吗？如果你能从概念上解释一下，我将不胜感激。
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/648485/mathematical-derivation-of-why-o-pn-1-2-o-pt-1-2-o-pn-1-2-i</guid>
+      <pubDate>Sun, 02 Jun 2024 16:54:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>领域知识在聚类中是否需要外部验证？</title>
+      <link>https://stats.stackexchange.com/questions/648483/is-domain-knowledge-external-validation-in-clustering</link>
+      <description><![CDATA[我有聚类结果，其 Silhuette Width 等值良好。聚类大小为：4998、1、1，这并不好，因为我知道我的客户没有该特定分区（它更平衡）。因此，我忽略了这些聚类结果并得出结论，它很糟糕。这是否意味着我使用了外部验证，因为我得出的聚类不好的结论是基于我的领域知识？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648483/is-domain-knowledge-external-validation-in-clustering</guid>
+      <pubDate>Sun, 02 Jun 2024 16:08:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>从一副 40 张牌中选出 4 张总点数为 5 的牌的概率</title>
+      <link>https://stats.stackexchange.com/questions/648482/probability-of-selecting-4-cards-that-add-up-to-5-from-a-deck-of-40-cards</link>
+      <description><![CDATA[假设我们有一副牌，不包括人头牌，也就是从 A 到 10 的牌。
+以下哪种方法可以正确计算 4 张随机选择的牌之和等于 5 的概率？
+方法 1：
+$P(X=5)=\frac{8}{40}\cdot\frac{7}{39}\cdot\frac{6}{38}\cdot\frac{4}{37}$
+我的逻辑是，对于第一张牌，有 8 种可能性。4 张 A 和 4 张 2。对于第二张牌，如果第一张牌是一张 A，则有 7 种可能性。3 张 A 和 4 张 2。如果第二张牌是一张 A，则可以从 2 张 A 和 4 张 2 中选择第三张牌。最后，如果第三张牌是 A，那么第四张牌就必须是 2，因此它的样本空间只有 4 张 2。
+方法 2：
+$P(X=5) = \frac{8}{40}\cdot\frac{4}{39}\cdot\frac{3}{38}\cdot\frac{2}{37}$
+与方法 1 一样，第一张牌可以从 4 张 A 和 4 张 2 中选择。不过这次，我们假设第一张牌是 2。根据定义，所有剩余的牌都必须是 A。
+方法 3：
+$P(X=5)=\frac{4}{40}\cdot\frac{4}{39}\cdot\frac{3}{38}\cdot\frac{2}{37}$
+我们知道，为了得到总和 5，我们特别需要 1 张 2 牌和 3 张 A。第一个分数表示选择 2 的概率，其余分数与 A 有关。
+我认为方法 3 是所有方法中最合理的，但我仍然觉得它们都是错的，我应该使用超几何公式来找出概率。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648482/probability-of-selecting-4-cards-that-add-up-to-5-from-a-deck-of-40-cards</guid>
+      <pubDate>Sun, 02 Jun 2024 15:58:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于分解图（季节性）的问题</title>
+      <link>https://stats.stackexchange.com/questions/648481/question-on-decomposition-plot-seasonality</link>
+      <description><![CDATA[通过查看分解图，我无法真正理解季节性的存在。因此，我附上了两个分解图。该系列中存在季节性吗？
+第一个是CPI系列（2003年=100），月度和季节性未调整系列
+
+第二个是通货膨胀。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648481/question-on-decomposition-plot-seasonality</guid>
+      <pubDate>Sun, 02 Jun 2024 15:52:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>理解广义线性模型中高度相关特征的系数</title>
+      <link>https://stats.stackexchange.com/questions/648479/understanding-the-coefficients-of-highly-correlated-features-in-generalized-line</link>
+      <description><![CDATA[我正在尝试拟合广义线性模型，为简单起见，假设它是一个线性回归。我有一堆特征，我为它拟合了一个线性模型，特征 x9 并不重要（例如，t 统计量很小）。
+ OLS 回归结果 
+===========================================================================================
+依赖变量：y R 平方：0.518
+模型：OLS Adj。 R 平方：0.507
+方法：最小二乘 F 统计量：46.27
+日期：2017 年 3 月 8 日，星期三 概率（F 统计量）：3.83e-62
+时间：10:08:24 对数似然：-2386.0
+观测值数量：442 AIC：4794。
+Df 残差：431 BIC：4839。
+Df 模型：10
+协方差类型：非稳健
+============================================================================================
+coef std err t P&gt;|t| [0.025 0.975]
+-----------------------------------------------------------------------------
+const 152.1335 2.576 59.061 0.000 147.071 157.196
+x1 -10.0122 59.749 -0.168 0.867 -127.448 107.424
+x2 -239.8191 61.222 -3.917 0.000 -360.151 -119.488
+x3 519.8398 66.534 7.813 0.000 389.069 650.610
+x4 324.3904 65.422 4.958 0.000 195.805 452.976
+x5 -792.1842 416.684 -1.901 0.058 -1611.169 26.801
+x6 476.7458 339.035 1.406 0.160 -189.621 1143.113
+x7 101.0446 212.533 0.475 0.635 -316.685 518.774
+x8 177.0642 161.476 1.097 0.273 -140.313 494.442
+x9 1.2793 1.902 0.070 0.906 0.409 2.150
+==========================================================================================
+
+但是当我向其中添加另一个特征 x10 时，突然 x9 和 x10 都变得显著，两者都具有很大的系数但符号相反，并且 R^2 变得更高，我该如何解释这一点？
+ OLS 回归结果
+=====================================================================================
+依赖变量：y R 平方：0.520
+模型：OLS Adj。 R 平方：0.509
+方法：最小二乘 F 统计量：46.27
+日期：2017 年 3 月 8 日，星期三 概率（F 统计量）：3.81e-62
+时间：10:08:24 对数似然：-2380.0
+观测值数量：442 AIC：4781。
+Df 残差：431 BIC：4831。
+Df 模型：10 
+协方差类型：非稳健 
+================================================================================================
+coef std err t P&gt;|t| [0.025 0.975]
+-----------------------------------------------------------------------------
+const 152.1335 2.576 59.061 0.000 147.071 157.196
+x1 -10.0122 59.749 -0.168 0.867 -127.448 107.424
+x2 -239.8191 61.222 -3.917 0.000 -360.151 -119.488
+x3 519.8398 66.534 7.813 0.000 389.069 650.610
+x4 324.3904 65.422 4.958 0.000 195.805 452.976
+x5 -792.1842 416.684 -1.901 0.058 -1611.169 26.801
+x6 476.7458 339.035 1.406 0.160 -189.621 1143.113
+x7 101.0446 212.533 0.475 0.635 -316.685 518.774
+x8 177.0642 161.476 1.097 0.273 -140.313 494.442
+x9 5751.2793 5171.902 4.370 0.950 5413.409 5189.150
+x10 -7867.6254 -7765.984 1.025 0.906 -9862.065 -6197.316
+===================================================================================
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648479/understanding-the-coefficients-of-highly-correlated-features-in-generalized-line</guid>
+      <pubDate>Sun, 02 Jun 2024 15:14:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>我被分配使用 Metropolis 算法来数值求解积分。我做错了什么？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/648478/i-have-been-assigned-to-use-the-metropolis-algorithm-in-order-to-solve-numerical</link>
       <description><![CDATA[几天来，我一直在尝试使用 metropolis 算法解决以下问题：
 $A = \frac{\int_0^1...\int_0^1\prod_{l=1}^N d^3r_l\frac{1}{|\vec{r_1}-\vec{r_2}|_\alpha}*e^{\eta u(\vec{r_1},...,\vec{r_N})}}{\int_0^1...\int_0^1\prod_{l=1}^N d^3r_le^{\eta u(\vec{r_1},...,\vec{r_N})}}$
 其中 $u(.)=\frac{1}{N}\sum_{1\le l &lt; j\le N}\frac{1}{|\vec{r_l}-\vec{r_j}|_\alpha}$。
 对于$|\vec{r_l}-\vec{r_j}|\ge \alpha$，则$\frac{1}{|\vec{r_l}-\vec{r_j}|_\alpha}=\frac{1}{|\vec{r_l}-\vec{r_j}|}$，而对于$|\vec{r_l}-\vec{r_j}|\le \alpha$，则$\frac{1}{|\vec{r_l}-\vec{r_j}|_\alpha}=-\frac{1}{\alpha}$.
 这取自：https://arxiv.org/pdf/astro-ph/0505561.
-我基本上用大都市来近似 A，如下所示（m 是蒙特卡洛的迭代次数）：
+我基本上用大都市算法来近似 A，用一个小的增量因子取代之前的坐标。以下总和（m 是蒙特卡洛的迭代次数）是我在代码中使用的：
 $&lt;A&gt; = \frac{1}{m}\sum_1^m \frac{1}{|\vec{r_1}-\vec{r_2}|_\alpha}$
-（还有一个常数$\frac{N(N-1)}{2}$，但我暂时忽略它，因为我将 A 代入另一个方程中，它们会相互抵消）
-现在，我编写了以下 Python 代码，以便使用 metropolis 算法解决 A，如上面的 Arxiv（第 3 节）中所述。但是，我似乎没有得到与论文相同的结果。
-@jit(nopython=True)
-def potential(coord_array, A, N):
-energy_sum = 0
-for l in range(N-1):
-for j in range(l+1, N):
-dif = np.sqrt((coord_array[l, 0] - coord_array[j, 0])**2 +
-(coord_array[l, 1] - coord_array[j, 1])**2 +
-(coord_array[l, 2] - coord_array[j, 2])**2)
-if dif &gt;= A:
-energy = -1/dif
-else:
-energy = 1/A
-​​energy_sum += energy
-return energy_sum / N
-
-@jit(nopython=True)
-def potential_move(coord_array, random_particle, A, N):
-energy_sum = 0
-for l in range(N):
-if l == random_particle:
-continue
-dif = np.sqrt((coord_array[l, 0] - coord_array[random_particle, 0])**2 +
-(coord_array[l, 1] - coord_array[random_particle, 1])**2 +
-(coord_array[l, 2] - coord_array[random_particle, 2])**2)
-if dif &gt;= A:
-energy = -1 / dif
-else:
-energy = 1 / A
-energy_sum += energy
-return energy_sum / N
-
-@jit(nopython=True)
-def canonical_ensemble(coord_array, eta, A, iterations, N, delta):
-final_coords = np.zeros((N, 3, 迭代))
-acc = np.zeros((迭代))
-for i in range(迭代):
-random_particle = random.randint(0, N-1)
-if i == 0:
-coordinates = np.copy(coord_array)
-else:
-coordinates = np.copy(final_coords[:, :, i-1])
-
-for j in range(3):
-coordinates[random_particle, j] += delta * (2 * np.random.rand() - 1)
-
-if i == 0:
-energy_dif = (potential_move(coordinates, random_particle, A, N) - potential_move(coord_array, random_particle, A, N))
-#energy_dif = (potential(coordinates, A, N) - potential(coord_array, A, N))
-else:
-energy_dif = (potential_move(坐标，random_particle，A，N) - potential_move(final_coords[:, :, i-1]，random_particle，A，N))
-#energy_dif = (potential(坐标，A，N) - potential(final_coords[:, :, i-1]，A，N))
-
-如果 energy_dif &lt;= 0:
-final_coords[:, :, i] = 坐标
-acc[i] = 1
-否则：
-ratio = np.exp(-eta * energy_dif)
-Omega = np.random.random()
-如果 min(1, ratio) &gt;= Omega:
-final_coords[:, :, i] = 坐标
-acc[i] = 1
-否则：
-final_coords[:, :, i] = final_coords[:, :, i-1]
-acc[i] = 0
-integration_sum = 0
-for i in range(iterations):
-distance = np.sqrt((final_coords[0,0,i] - final_coords[1,0,i])**2 +
-(final_coords[0,1,i] - final_coords[1,1,i])**2 +
-(final_coords[0,2,i] - final_coords[1,2,i])**2)
-if distance &gt;= A:
-integration_sum += (1 / distance)
-else:
-integration_sum += -(1/A)
-Phi = (N-1) * integration_sum / (2 * iterations)
-#print(final_coords&gt;=1)
-print(np.sum(acc)*100/iterations)
-return Phi 
-
-有任何帮助吗将不胜感激，因为我已经困在这个问题上好几天了:)]]></description>
+（还有一个常数 $\frac{N(N-1)}{2}$，但我暂时忽略它，因为我将 A 代入另一个方程中，它们会相互抵消）
+我的接受标准是，如果 $\Delta E \le 0$，则移动被接受，如果它大于 0，我会使用从 0 到 1 的随机数来执行典型的接受标准。
+我是否正确使用了 Metropolis 算法，还是我做错了什么？
+任何帮助都将不胜感激，因为我已经为此困扰了好几天 :)]]></description>
       <guid>https://stats.stackexchange.com/questions/648478/i-have-been-assigned-to-use-the-metropolis-algorithm-in-order-to-solve-numerical</guid>
       <pubDate>Sun, 02 Jun 2024 14:38:00 GMT</pubDate>
     </item>
     <item>
-      <title>对于左截断计数数据，哪个对数似然要最大化？[关闭]</title>
+      <title>对于左截断计数数据，哪个对数似然要最大化？</title>
       <link>https://stats.stackexchange.com/questions/648477/which-log-likelihood-is-to-be-maximized-for-left-truncated-count-data</link>
       <description><![CDATA[如果计数数据缺少零点上的计数（即左截断数据），该怎么办？假​​设有人想估计泊松回归，目标是推导出最大化的对数似然。
 我的方法：
@@ -125,7 +230,7 @@ $$]]></description>
       <title>拒绝怀疑不属于目标人群的样本[关闭]</title>
       <link>https://stats.stackexchange.com/questions/648475/rejection-of-samples-suspected-of-not-coming-of-the-target-population</link>
       <description><![CDATA[假设有一个平稳过程，它应该类似于具有“已知”均值和方差的高斯分布。从中取出三次（或 n 次）Iid 样本。众所周知，一些样本可能会受到污染，即包括来自其他分布（具有不同的形状、均值和/或方差）的观测值。
-假设这种污染可以通过产生具有不可思议的高范围的样本来表现出来。血压测量可以作为一个例子。在这种情况下，偶尔会出现不代表被测变量的“奇怪”测量值，虽然它们的起源尚有争议，但它们很容易是测量过程中血压本身偶尔出现的时间波动以及仪器和方法的怪癖的结果。这被视为污染，因为此类异常值是由测量技术机械引入的，与临床无关。
+假设这种污染可以通过产生具有不可思议的高范围的样本来表现出来。血压测量可以作为一个例子。在这种情况下，偶尔会出现不代表被测变量的“奇怪”测量值，虽然它们的起源尚有争议，但它们很容易是测量过程中血压本身偶尔出现的时间波动以及仪器和方法的怪癖的结果。这被认为是污染，因为此类异常值是由测量技术机械引入的，并且与临床无关。
 因此，评估每个 n 重样本的范围，并将其与基于假定的“干净”高斯母分布选择的截止值进行比较。如果超出该值，则拒绝该样本，并且不将其纳入分析。
 我的问题是（以三次重复为例，假设该程序是可接受的）：以下哪种方法更合适？
 
@@ -139,64 +244,6 @@ $$]]></description>
       <pubDate>Sun, 02 Jun 2024 13:41:51 GMT</pubDate>
     </item>
     <item>
-      <title>基因变异的事件时间分析：是否要根据年龄进行调整？</title>
-      <link>https://stats.stackexchange.com/questions/648473/time-to-event-analysis-for-genetic-variants-whether-or-not-to-adjust-for-age</link>
-      <description><![CDATA[据我理解，当人们有兴趣研究暴露与事件发生时间结果之间的关联（在 Cox PH 回归的背景下）时，暴露的性质决定了如何制定结果。举个例子，假设我有一群来自普通人群的个体，他们在某个时间跨度（这里指 2000 年至 2004 年之间）参加了一项研究，并对他们进行了跟踪调查，直到 2020 年。5 名假设参与者的整体研究如下所示：
-
-我有两个问题，如果有人能纠正我，我将不胜感激：
-
-如果我有兴趣研究遗传变异与特定结果的事件发生时间之间的关联，我会在我的模型中考虑发病年龄和出生日期之间的差异，因为在这种情况下感兴趣的暴露（遗传变异）在出生时就存在，并且不会随时间而变化。但是，如果感兴趣的暴露是生物标志物（例如 ALT 水平），那么事件发生时间将是发病年龄和入组日期之间的差异，因为每个受试者的暴露都是在他们参加研究时测量的。我的理解正确吗？
-
-在上述两种情况下，如何将年龄视为协变量？例如，在暴露是遗传变异的情况下，最近的可扩展方法（例如此处）未根据年龄进行调整：
-
-
-
-对于所有疾病，我们使用前四个主成分 (PC) 和性别作为协变量。
-
-或者来自本文：
-
-我们没有包括任何年龄或出生年份的协变量，因为这些与我们的表型直接相关。
-
-但是关于感兴趣的暴露何时与时间相关（例如 ALT）。此外，如果人们有兴趣解释其他时间依赖性协变量（例如仅在入组时基线测量的 BMI）的影响，而感兴趣的暴露是遗传变异，那么最合适的方法是什么？
-提前致谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/648473/time-to-event-analysis-for-genetic-variants-whether-or-not-to-adjust-for-age</guid>
-      <pubDate>Sun, 02 Jun 2024 12:36:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>布伦特原油价格季节性调整</title>
-      <link>https://stats.stackexchange.com/questions/648472/seasonal-adjustment-of-brent-crude-oil-price</link>
-      <description><![CDATA[我需要使用布伦特原油的全球价格（月度数据；1990 年 1 月，2024 年 4 月）
-数据集未经季节性调整。我分解了趋势和季节性，如下图所示。
-我需要做季节性调整吗？如果是，我该如何在 R 中处理这种季节性调整？
-谢谢。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/648472/seasonal-adjustment-of-brent-crude-oil-price</guid>
-      <pubDate>Sun, 02 Jun 2024 12:06:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>将离散生存时间转换为连续生存时间</title>
-      <link>https://stats.stackexchange.com/questions/648471/converting-discreate-survival-time-to-continuous-one</link>
-      <description><![CDATA[我记得几年前有位科学家告诉我，我们可以根据以下示例方法将流行病学中的离散生存时间转换为连续生存时间。如果您能告诉我我们是否可以确认此方法（如果可以，请告诉我该技术的名称），我将不胜感激。
-假设，我有一项研究，患者每三个月来医院检查一次。T0（手术前一周）、T1（手术后三个月）、T2（手术后 6 个月）直至 T8（手术后 21 个月）。如果患者 1 在 3 到 6 个月（T2）的间隔内发生事件，那么我们可以将生存时间转换为 3+1.5=4.5。如果患者 2 在 6 到 9 个月（T2）的间隔内发生事件，那么我们可以将生存时间转换为 6+1.5=7.5]]></description>
-      <guid>https://stats.stackexchange.com/questions/648471/converting-discreate-survival-time-to-continuous-one</guid>
-      <pubDate>Sun, 02 Jun 2024 11:42:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>在没有外生价格变化的情况下估计需求函数</title>
-      <link>https://stats.stackexchange.com/questions/648470/estimating-demand-function-without-exogenous-variation-in-prices</link>
-      <description><![CDATA[假设我拥有关于保险产品需求和价格的个人层面信息。如果消费者 i 购买了保险产品，则需求 D_i 为虚拟变量，等于 1，否则为 0。这是一次性决定，因此我没有面板数据（不过，我观察了不同的群体）。现在假设 i 的定价规则如下：
-p_i=b+f(risk_i)，
-其中 b 是某个在个体之间相等的基准价格，而 f(risk_i) 是影响风险的可观察个体特征的函数，并且假定计量经济学家知道该函数。
-目标是估算标准需求曲线：
-D_i=a+β*p_i+ε_i&lt;​​/code&gt;。
-我面临的问题是 p_i 的变化不是外生于个体需求特征的（即，可观察风险特征中的支付意愿可能会增加），但如果我估算 D_i=a+β_1*b+β_2*f(risk_i)+ε_i&lt;​​/code&gt;，我缺乏价格。
-不幸的是，我无法想出解决这个问题的方法。IV 方法是不可行的，因为定价没有随机成分（例如，取决于保险员工等）。我想，即使假设 f() 是非线性的，估计 D_i=a+β 1*p_i+β_2*risk+ε_i&lt;​​/code&gt; 也会不一致。
-另一方面，定价规则是在 t 年引入的，没有可靠的个人预期。在此之前，每个 i 都面临着一个对所有个人都相同的通用时不变价格。但是，鉴于购买保险产品是一次性决定，我每年都会观察不同的人。
-很高兴收到有关如何在这种情况下估计需求曲线的任何建议！]]></description>
-      <guid>https://stats.stackexchange.com/questions/648470/estimating-demand-function-without-exogenous-variation-in-prices</guid>
-      <pubDate>Sun, 02 Jun 2024 11:00:21 GMT</pubDate>
-    </item>
-    <item>
       <title>对顺序数据的依赖性是什么？</title>
       <link>https://stats.stackexchange.com/questions/648464/what-is-dependency-on-sequential-data</link>
       <description><![CDATA[我们知道，只要数据集中的点依赖于数据集中的其他点，数据就被称为顺序数据。
@@ -205,73 +252,6 @@ D_i=a+β*p_i+ε_i&lt;​​/code&gt;。
 我的问题是“依赖”一词是什么意思？在上面的例子中，数据点如何相互依赖？]]></description>
       <guid>https://stats.stackexchange.com/questions/648464/what-is-dependency-on-sequential-data</guid>
       <pubDate>Sun, 02 Jun 2024 05:33:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用预测值置信区间来“预测”结果</title>
-      <link>https://stats.stackexchange.com/questions/648463/using-predictive-value-confidence-intervals-to-predict-outcomes</link>
-      <description><![CDATA[以下是简要版本：
-假设我有一个混淆矩阵，其中包含以下数据，这些数据基于预测试的熟练程度分数线和课程结果（通过/不通过）。
-TP：550 FP：200
-FN：280 TN：825
-以下是一些统计数据：
-敏感度：66.27%
-1 - 特异性：19.51%
-准确度：74.12%
-阳性预测值 (PPV；贝叶斯理论)：73.33% 95% 可信区间 (70.64%，75.86%)
-1 - 阴性预测值 (1 - NPV)：25.34% 95% 可信区间 (23.49%， 27.28%)
-是否可以将 PPV 置信区间中的最小值和最大值与 1 - NPV 置信区间中的最小值和最大值结合使用，根据预测试的结果“预测”某个班级中一组学生通过考试的概率范围？目标是了解预测试结果对学生在课堂上的成功有多“预测”。
-例如，根据我们的熟练程度分数线，开学第一天 75% 的学生在预测试中获得了“熟练”的成绩。如果过去的数据（如混淆矩阵所示）表明，如果学生在预测试中表现良好，则通过该课程的概率 (PPV) 为 73.33%，95% CI（70.64%，75.86%），如果学生在预测试中表现不佳，则通过该课程的概率 (1 - NPV) 为 25.34%，95% CI（23.49%，27.28%），我们能否使用两个置信区间的最小值和最大值来表示：
-0.7064 * 75 + 0.2349 * 25 [两个置信区间的最小值] = 58.9%
-0.7586 * 75 + 0.2728 * 25 [两个置信区间的最大值] = 63.7%
-我们预计当前学生群体中会有 58.9% 到 63.7%通过这门课程？
-这实际上是使用贝叶斯定理/条件概率，使用过去收集的预测试和课程通过率数据来回答我们的问题。使用置信区间而不是实际条件概率 73.33% 和 25.34% 来做到这一点有问题吗？当然，这里的“预测”是笼统的。我们知道现实世界总是有一些有趣的事情在等着我们。 （旁注：我们将来会添加一门必修课程，希望能随着时间的推移提高通过率。）一旦有数据可供在学习本课程之前修读必修课程的学生使用，比较必修课程与无必修课程组的数据、两组在预考中的分数以及课程的通过/不通过率等，看看课程结果实际上如何随时间变化将会很有趣，但就目前而言……
-根据过去的数据，根据该课程在预考中的表现，我们是否可以进行上述计算并说，根据该课程在预考中的表现，我们预计当前这组学生中 58.9% 至 63.7% 的学生会通过该课程？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648463/using-predictive-value-confidence-intervals-to-predict-outcomes</guid>
-      <pubDate>Sun, 02 Jun 2024 04:55:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>中位数的平均值始终不同于中位数</title>
-      <link>https://stats.stackexchange.com/questions/648458/mean-of-medians-consistently-differs-from-median</link>
-      <description><![CDATA[免责声明：这是我的第一个问题。
-问题背景：
-我想比较两个分布（n1 ~ 500 和 n2 ~ 700），它们不是正态分布，方差也不同，但大致是单峰分布。我决定使用中位数进行比较统计。
-使用（scipy 的）置换检验，我得到了两个中位数观察到的差异的 p 值。使用同样生成的零假设分布，我也能够得到实验的最小可检测效果。
-我想估计观察到的差异（中位数）的误差（-&gt; 用于绘图的误差线）。所以我使用 np.random.choice 绘制两个具有相同大小的新分布并重复/替换；但不混合组（即假设效果/观察到的差异是真实的）。我计算了两个新分布的中位数差，并重复了 100000 次。
-问题
-在所有这些实现中，我计算了平均值和标准差，发现平均值（中位数差）与原始数据中位数差相比始终相差约 13%。
-这是错误、测试设计错误还是实际可能的结果？如果是最后一个，为什么？这意味着什么？
-代码
-# 原始实验数据：A、B
-# 绘制新的分布 a、b，不进行混合
-a = np.random.choice(A, (100000, len(A), True) 
-b = np.random.choice(B, (100000, len(B), True)
-med_m = np.mean(np.median(a, axis = 1) - np.median(b, axis = 1))
-med_s = np.std(np.median(a, axis = 1) - np.median(b, axis = 1))
-med = np.median(A) - np.median(B)
-
-med_m / med
-&gt;&gt;&gt; 1.13...
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/648458/mean-of-medians-consistently-differs-from-median</guid>
-      <pubDate>Sun, 02 Jun 2024 00:57:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>按离散的、不相关的属性进行聚类？</title>
-      <link>https://stats.stackexchange.com/questions/648455/clustering-by-discrete-unrelated-properties</link>
-      <description><![CDATA[我有大量具有不相关属性的对象，例如
-
-color=yellow
-material=stone
-is_important=true
-等等。
-
-这些属性基本上是随机的，只要用户认为有就好。没有实际的方法可以将这些属性强制转换为具有欧几里得距离的类似物。
-我认为，如果不存在某种距离度量，那么从概念上讲，考虑通过这些属性对对象进行聚类是没有意义的（这是正确的吗？），但我希望存在可以产生类似输出的东西
-“90% 的 color=yellow 对象也有 material=plastic 和 is_important=false”
-除了强制通过数据集之外，还有其他东西可以进行此类分析吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648455/clustering-by-discrete-unrelated-properties</guid>
-      <pubDate>Sun, 02 Jun 2024 00:19:01 GMT</pubDate>
     </item>
     <item>
       <title>我们可以使用 CDF 而不是 PDF 来表达无意识统计学家的定律吗？[重复]</title>
@@ -297,38 +277,42 @@ $$\mathbb{E}[g(X)] = \int g(x) dF_X(x).$$
       <pubDate>Sat, 01 Jun 2024 09:23:06 GMT</pubDate>
     </item>
     <item>
-      <title>条件 Logit 模型 - 效用结构估计 - 元分析</title>
-      <link>https://stats.stackexchange.com/questions/648401/conditional-logit-model-utility-structural-estimation-meta-analysis</link>
-      <description><![CDATA[我正在使用 McFadden (2001) 框架（参见参考资料）对多个数据库（来自不同的文章）中的效用函数进行结构估计。
-每篇文章的数据库包含 N 个主题、J 个选项，从而给出 J x N 行。每个主题都选择了 J 个选项中的一个。数据还包括一些特定于选择的特征。
-使用此数据结构，我通过条件逻辑模型 (CLM) 以两种方式估计效用参数：
-一般估计：我对整个数据集运行了一个唯一的 CLM。请注意，J 可以在不同文章中变化
-逐篇文章估计：我对每篇文章运行一个 CLM，并对结果估计进行平均
-但是，这两种方法给出的结果截然不同。
-有谁知道哪种程序（如果有的话）最适合提供这些参数的元估计？
-谢谢！
-参考文献：McFadden，D.（2001）。经济选择。美国经济评论，91(3)，351-378。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648401/conditional-logit-model-utility-structural-estimation-meta-analysis</guid>
-      <pubDate>Fri, 31 May 2024 16:58:04 GMT</pubDate>
+      <title>从统计角度来看，R 中的 transform="" 在绘制平滑缩放的 Schoenfeld 残差图时起什么作用？</title>
+      <link>https://stats.stackexchange.com/questions/648370/what-does-transform-in-r-statistically-wise-do-when-plotting-the-smoothed-s</link>
+      <description><![CDATA[正如标题所示，我旨在解决 R 中的参数 transform = &#39;&#39;，特别是关于用于评估比例风险 (PH) 假设的平滑缩放 Schoenfeld 残差检验/图。
+我知道默认值是 transform = &#39;km&#39;，但也有其他可用选项：
+transform=&#39;log&#39;
+transform=&#39;rank&#39;
+transform=&#39;identity&#39;
+
+我相信我已经掌握了每个选项的含义。如果我的理解不正确，请纠正我：
+log 用于强调早期事件，因为它为它们分配了更大的权重。
+rank 用于突出显示晚期事件，因为它为它们分配了更大的权重。
+identity 表示未经任何修改的原始时间数据。
+但是，我不确定 km 到底是做什么的。虽然它似乎可以节省时间，但我不确定它的含义。
+我的问题：
+
+从统计的角度来看，有人可以详细说明每个转换背后的细节吗？
+
+从统计的角度来看，在哪种情况下我应该使用每个转换来评估 R 中的 cox.zph() 测试/绘图？
+
+每个转换都会为 PH 假设产生不同的 p 值。根据所选的转换，我应该信任哪个 p 值？
+
+
+编辑：我的问题已关闭，因为它似乎不属于这里，因为它与统计无关。我将尝试澄清，我想从统计的角度而不是编码的角度来理解问题。提前谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/648370/what-does-transform-in-r-statistically-wise-do-when-plotting-the-smoothed-s</guid>
+      <pubDate>Fri, 31 May 2024 12:11:26 GMT</pubDate>
     </item>
     <item>
-      <title>随机效应模型：理解与、之间和上下文效应</title>
-      <link>https://stats.stackexchange.com/questions/648373/random-effect-models-understanding-with-between-and-contextual-effect</link>
-      <description><![CDATA[为了更好地理解和更有效地应用随机/固定效应和聚类标准误差，我一直在努力理解“内部”、“之间”和“上下文”效应这些术语。
+      <title>调整后的 R^2 或失拟值</title>
+      <link>https://stats.stackexchange.com/questions/648362/adjusted-r2-or-lack-of-fit</link>
+      <description><![CDATA[这可能是一个基本问题，但我还是会问，因为我没有从论坛中找到任何合适的结论。
+我正在使用响应面方法拟合我的数据。因此，理想情况下，响应和独立变量之间的关系应描述如下：
 
-据我所知，我们只能在没有上下文效应的情况下应用随机效应模型 - 否则随机效应假设不成立。对吗？这是否也意味着在这种情况下，组内和组间效应是相同的？
-
-请看以下示例：
-
-
-
-数据：汇总的横断面调查数据，其中各个受访者嵌套在各个国家/地区，并且多年来在每个国家/地区进行多次调查
-研究问题旨在找出国家级变量（例如 GDP）是否影响受访者回答有关生活满意度的问题的方式
-感兴趣的影响：GDP 对生活满意度的总体影响
-
-我感兴趣的是哪种影响：组内、组间还是上下文？这样的研究是否需要随机效应模型？或者聚类标准误差就足够了？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648373/random-effect-models-understanding-with-between-and-contextual-effect</guid>
-      <pubDate>Fri, 31 May 2024 12:58:22 GMT</pubDate>
+当我包含所有系数时，R^2 调整很好，但缺乏拟合度是显著的。在缩小模型/添加参数/转换数据后，我仍然无法通过良好的 R^2 调整实现拟合度的缺失。
+由于 R^2 调整很大，我是否仍可以使用方程来描述变量对响应的影响？因此，我不会将其用于预测目的，而只是用于描述目的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648362/adjusted-r2-or-lack-of-fit</guid>
+      <pubDate>Fri, 31 May 2024 10:26:42 GMT</pubDate>
     </item>
     </channel>
 </rss>
