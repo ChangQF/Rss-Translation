@@ -4,7 +4,164 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 02 Jun 2024 12:24:45 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 02 Jun 2024 15:13:54 GMT</lastBuildDate>
+    <item>
+      <title>我被分配使用 metropolis 算法来数值求解积分。我编写了一个 Python 代码，我做错了什么？</title>
+      <link>https://stats.stackexchange.com/questions/648478/i-have-been-assigned-to-use-the-metropolis-algorithm-in-order-to-solve-numerical</link>
+      <description><![CDATA[几天来，我一直在尝试使用 metropolis 算法解决以下问题：
+$A = \frac{\int_0^1...\int_0^1\prod_{l=1}^N d^3r_l\frac{1}{|\vec{r_1}-\vec{r_2}|_\alpha}*e^{\eta u(\vec{r_1},...,\vec{r_N})}}{\int_0^1...\int_0^1\prod_{l=1}^N d^3r_le^{\eta u(\vec{r_1},...,\vec{r_N})}}$
+其中 $u(.)=\frac{1}{N}\sum_{1\le l &lt; j\le N}\frac{1}{|\vec{r_l}-\vec{r_j}|_\alpha}$。
+对于$|\vec{r_l}-\vec{r_j}|\ge \alpha$，则$\frac{1}{|\vec{r_l}-\vec{r_j}|_\alpha}=\frac{1}{|\vec{r_l}-\vec{r_j}|}$，而对于$|\vec{r_l}-\vec{r_j}|\le \alpha$，则$\frac{1}{|\vec{r_l}-\vec{r_j}|_\alpha}=-\frac{1}{\alpha}$.
+这取自：https://arxiv.org/pdf/astro-ph/0505561.
+我基本上用大都市来近似 A，如下所示（m 是蒙特卡洛的迭代次数）：
+$&lt;A&gt; = \frac{1}{m}\sum_1^m \frac{1}{|\vec{r_1}-\vec{r_2}|_\alpha}$
+（还有一个常数$\frac{N(N-1)}{2}$，但我暂时忽略它，因为我将 A 代入另一个方程中，它们会相互抵消）
+现在，我编写了以下 Python 代码，以便使用 metropolis 算法解决 A，如上面的 Arxiv（第 3 节）中所述。但是，我似乎没有得到与论文相同的结果。
+@jit(nopython=True)
+def potential(coord_array, A, N):
+energy_sum = 0
+for l in range(N-1):
+for j in range(l+1, N):
+dif = np.sqrt((coord_array[l, 0] - coord_array[j, 0])**2 +
+(coord_array[l, 1] - coord_array[j, 1])**2 +
+(coord_array[l, 2] - coord_array[j, 2])**2)
+if dif &gt;= A:
+energy = -1/dif
+else:
+energy = 1/A
+​​energy_sum += energy
+return energy_sum / N
+
+@jit(nopython=True)
+def potential_move(coord_array, random_particle, A, N):
+energy_sum = 0
+for l in range(N):
+if l == random_particle:
+continue
+dif = np.sqrt((coord_array[l, 0] - coord_array[random_particle, 0])**2 +
+(coord_array[l, 1] - coord_array[random_particle, 1])**2 +
+(coord_array[l, 2] - coord_array[random_particle, 2])**2)
+if dif &gt;= A:
+energy = -1 / dif
+else:
+energy = 1 / A
+energy_sum += energy
+return energy_sum / N
+
+@jit(nopython=True)
+def canonical_ensemble(coord_array, eta, A, iterations, N, delta):
+final_coords = np.zeros((N, 3, 迭代))
+acc = np.zeros((迭代))
+for i in range(迭代):
+random_particle = random.randint(0, N-1)
+if i == 0:
+coordinates = np.copy(coord_array)
+else:
+coordinates = np.copy(final_coords[:, :, i-1])
+
+for j in range(3):
+coordinates[random_particle, j] += delta * (2 * np.random.rand() - 1)
+
+if i == 0:
+energy_dif = (potential_move(coordinates, random_particle, A, N) - potential_move(coord_array, random_particle, A, N))
+#energy_dif = (potential(coordinates, A, N) - potential(coord_array, A, N))
+else:
+energy_dif = (potential_move(坐标，random_particle，A，N) - potential_move(final_coords[:, :, i-1]，random_particle，A，N))
+#energy_dif = (potential(坐标，A，N) - potential(final_coords[:, :, i-1]，A，N))
+
+如果 energy_dif &lt;= 0:
+final_coords[:, :, i] = 坐标
+acc[i] = 1
+否则：
+ratio = np.exp(-eta * energy_dif)
+Omega = np.random.random()
+如果 min(1, ratio) &gt;= Omega:
+final_coords[:, :, i] = 坐标
+acc[i] = 1
+否则：
+final_coords[:, :, i] = final_coords[:, :, i-1]
+acc[i] = 0
+integration_sum = 0
+for i in range(iterations):
+distance = np.sqrt((final_coords[0,0,i] - final_coords[1,0,i])**2 +
+(final_coords[0,1,i] - final_coords[1,1,i])**2 +
+(final_coords[0,2,i] - final_coords[1,2,i])**2)
+if distance &gt;= A:
+integration_sum += (1 / distance)
+else:
+integration_sum += -(1/A)
+Phi = (N-1) * integration_sum / (2 * iterations)
+#print(final_coords&gt;=1)
+print(np.sum(acc)*100/iterations)
+return Phi 
+
+有任何帮助吗将不胜感激，因为我已经困在这个问题上好几天了:)]]></description>
+      <guid>https://stats.stackexchange.com/questions/648478/i-have-been-assigned-to-use-the-metropolis-algorithm-in-order-to-solve-numerical</guid>
+      <pubDate>Sun, 02 Jun 2024 14:38:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>对于左截断计数数据，哪个对数似然要最大化？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/648477/which-log-likelihood-is-to-be-maximized-for-left-truncated-count-data</link>
+      <description><![CDATA[如果计数数据缺少零点上的计数（即左截断数据），该怎么办？假​​设有人想估计泊松回归，目标是推导出最大化的对数似然。
+我的方法：
+$$
+f(y_i \mid y_i &gt; 0, x_i) = \frac{f(y_i \mid x_i)}{1 - f(y_i = 0 \mid x_i)}
+$$
+$$
+f(y_i \mid y_i &gt; 0, x_i) = \frac{e^{-\lambda} \lambda^{x_i}}{x_i! \left(1 - e^{-\lambda}\right)}
+$$
+要最大化的似然函数是：
+$$
+L(\lambda) = \prod_{i=1}^{n} \frac{e^{-\lambda} \lambda^{x_i}}{x_i! \left(1 - e^{-\lambda}\right)}
+$$
+对数似然函数为：
+$$
+\log L(\lambda) = \sum_{i=1}^{n} \left(-\lambda + x_i \log(\lambda) - \log(x_i!) - \log\left(1 - e^{-\lambda}\right)\right)
+$$]]></description>
+      <guid>https://stats.stackexchange.com/questions/648477/which-log-likelihood-is-to-be-maximized-for-left-truncated-count-data</guid>
+      <pubDate>Sun, 02 Jun 2024 14:23:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>拒绝怀疑不属于目标人群的样本[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/648475/rejection-of-samples-suspected-of-not-coming-of-the-target-population</link>
+      <description><![CDATA[假设有一个平稳过程，它应该类似于具有“已知”均值和方差的高斯分布。从中取出三次（或 n 次）Iid 样本。众所周知，一些样本可能会受到污染，即包括来自其他分布（具有不同的形状、均值和/或方差）的观测值。
+假设这种污染可以通过产生具有不可思议的高范围的样本来表现出来。血压测量可以作为一个例子。在这种情况下，偶尔会出现不代表被测变量的“奇怪”测量值，虽然它们的起源尚有争议，但它们很容易是测量过程中血压本身偶尔出现的时间波动以及仪器和方法的怪癖的结果。这被视为污染，因为此类异常值是由测量技术机械引入的，与临床无关。
+因此，评估每个 n 重样本的范围，并将其与基于假定的“干净”高斯母分布选择的截止值进行比较。如果超出该值，则拒绝该样本，并且不将其纳入分析。
+我的问题是（以三次重复为例，假设该程序是可接受的）：以下哪种方法更合适？
+
+如果前两个单独的观察值超出允许的最大范围，则拒绝它们并从下一个观察值开始下一个三次重复样本。
+
+无论如何都要取第三个样本以完成三次采样程序，然后拒绝它。
+
+
+第一个选项保证（给定上述程序）无论尚未进行的第三次观察如何，样本都将被拒绝，但拒绝标准是基于三次重复的范围，而不是两个相邻测量之间的差异。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648475/rejection-of-samples-suspected-of-not-coming-of-the-target-population</guid>
+      <pubDate>Sun, 02 Jun 2024 13:41:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>基因变异的事件时间分析：是否要根据年龄进行调整？</title>
+      <link>https://stats.stackexchange.com/questions/648473/time-to-event-analysis-for-genetic-variants-whether-or-not-to-adjust-for-age</link>
+      <description><![CDATA[据我理解，当人们有兴趣研究暴露与事件发生时间结果之间的关联（在 Cox PH 回归的背景下）时，暴露的性质决定了如何制定结果。举个例子，假设我有一群来自普通人群的个体，他们在某个时间跨度（这里指 2000 年至 2004 年之间）参加了一项研究，并对他们进行了跟踪调查，直到 2020 年。5 名假设参与者的整体研究如下所示：
+
+我有两个问题，如果有人能纠正我，我将不胜感激：
+
+如果我有兴趣研究遗传变异与特定结果的事件发生时间之间的关联，我会在我的模型中考虑发病年龄和出生日期之间的差异，因为在这种情况下感兴趣的暴露（遗传变异）在出生时就存在，并且不会随时间而变化。但是，如果感兴趣的暴露是生物标志物（例如 ALT 水平），那么事件发生时间将是发病年龄和入组日期之间的差异，因为每个受试者的暴露都是在他们参加研究时测量的。我的理解正确吗？
+
+在上述两种情况下，如何将年龄视为协变量？例如，在暴露是遗传变异的情况下，最近的可扩展方法（例如此处）未根据年龄进行调整：
+
+
+
+对于所有疾病，我们使用前四个主成分 (PC) 和性别作为协变量。
+
+或者来自本文：
+
+我们没有包括任何年龄或出生年份的协变量，因为这些与我们的表型直接相关。
+
+但是关于感兴趣的暴露何时与时间相关（例如 ALT）。此外，如果人们有兴趣解释其他时间依赖性协变量（例如仅在入组时基线测量的 BMI）的影响，而感兴趣的暴露是遗传变异，那么最合适的方法是什么？
+提前致谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/648473/time-to-event-analysis-for-genetic-variants-whether-or-not-to-adjust-for-age</guid>
+      <pubDate>Sun, 02 Jun 2024 12:36:11 GMT</pubDate>
+    </item>
     <item>
       <title>布伦特原油价格季节性调整</title>
       <link>https://stats.stackexchange.com/questions/648472/seasonal-adjustment-of-brent-crude-oil-price</link>
@@ -40,119 +197,6 @@ D_i=a+β*p_i+ε_i&lt;​​/code&gt;。
       <pubDate>Sun, 02 Jun 2024 11:00:21 GMT</pubDate>
     </item>
     <item>
-      <title>如何将“最大值”作为未知值来规范化自定义范围？</title>
-      <link>https://stats.stackexchange.com/questions/648467/how-to-normalize-a-custom-range-with-max-being-the-unknown</link>
-      <description><![CDATA[要对范围进行归一化，我们应用以下变换：
-$$
-\frac{x_i - \min(x)}{\max(x) - \min(x)}
-$$
-要将归一化调整为首选范围，其中 b=max_target 和 a=min_target：
-$$
-\text{norm}_i \cdot (b - a) + a
-$$
-如果我们希望调整后的范围之和等于 1，b 将是一个未知数，求解如下：
-$$
-\left( \frac{1 - n \cdot a}{\sum \text{norm}_i} \right) + a
-$$
-但是，当 n &gt; 9 时，查找 b 会失败。例如，假设我想规范化一个分布，其中 b=x 和 a=0.1：
-
-
-
-标签
-频率
-adj_norm
-
-
-
-
-1
-7
-0.35
-
-
-2
-10
-0.55
-
-
-3
-3
-0.10
-
-
-
-
-
-
-标签
-频率
-adj_norm
-
-
-
-
-1
-7
-0.09...
-
-
-2
-&lt; td&gt;10
-0.08...
-
-
-3
-3
-0.09...
-
-
-4
-5
-0.09...
-
-
-5
-9
-0.08... 
-
-
-6
-4
-0.09...
-
-
-7
-6
-0.09...
-
-
-8
-8
-0.08...
-
-
-9 
-1
-0.10
-
-
-10
-2
-0.09...
-
-
-11
-20
-0.07...
-
-
-
-请注意，在第一个表中，频率最低的标签被正确识别为最小值，而频率最高的标签具有正确的最大值，使得数组等于 1。但是，在第二个表中，最大值被错误分类...
-关于如何更正 n &gt; 9 的公式，您有什么想法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648467/how-to-normalize-a-custom-range-with-max-being-the-unknown</guid>
-      <pubDate>Sun, 02 Jun 2024 06:14:01 GMT</pubDate>
-    </item>
-    <item>
       <title>对顺序数据的依赖性是什么？</title>
       <link>https://stats.stackexchange.com/questions/648464/what-is-dependency-on-sequential-data</link>
       <description><![CDATA[我们知道，只要数据集中的点依赖于数据集中的其他点，数据就被称为顺序数据。
@@ -186,6 +230,33 @@ FN：280 TN：825
       <pubDate>Sun, 02 Jun 2024 04:55:58 GMT</pubDate>
     </item>
     <item>
+      <title>中位数的平均值始终不同于中位数</title>
+      <link>https://stats.stackexchange.com/questions/648458/mean-of-medians-consistently-differs-from-median</link>
+      <description><![CDATA[免责声明：这是我的第一个问题。
+问题背景：
+我想比较两个分布（n1 ~ 500 和 n2 ~ 700），它们不是正态分布，方差也不同，但大致是单峰分布。我决定使用中位数进行比较统计。
+使用（scipy 的）置换检验，我得到了两个中位数观察到的差异的 p 值。使用同样生成的零假设分布，我也能够得到实验的最小可检测效果。
+我想估计观察到的差异（中位数）的误差（-&gt; 用于绘图的误差线）。所以我使用 np.random.choice 绘制两个具有相同大小的新分布并重复/替换；但不混合组（即假设效果/观察到的差异是真实的）。我计算了两个新分布的中位数差，并重复了 100000 次。
+问题
+在所有这些实现中，我计算了平均值和标准差，发现平均值（中位数差）与原始数据中位数差相比始终相差约 13%。
+这是错误、测试设计错误还是实际可能的结果？如果是最后一个，为什么？这意味着什么？
+代码
+# 原始实验数据：A、B
+# 绘制新的分布 a、b，不进行混合
+a = np.random.choice(A, (100000, len(A), True) 
+b = np.random.choice(B, (100000, len(B), True)
+med_m = np.mean(np.median(a, axis = 1) - np.median(b, axis = 1))
+med_s = np.std(np.median(a, axis = 1) - np.median(b, axis = 1))
+med = np.median(A) - np.median(B)
+
+med_m / med
+&gt;&gt;&gt; 1.13...
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648458/mean-of-medians-consistently-differs-from-median</guid>
+      <pubDate>Sun, 02 Jun 2024 00:57:18 GMT</pubDate>
+    </item>
+    <item>
       <title>按离散的、不相关的属性进行聚类？</title>
       <link>https://stats.stackexchange.com/questions/648455/clustering-by-discrete-unrelated-properties</link>
       <description><![CDATA[我有大量具有不相关属性的对象，例如
@@ -197,35 +268,13 @@ is_important=true
 
 这些属性基本上是随机的，只要用户认为有就好。没有实际的方法可以将这些属性强制转换为具有欧几里得距离的类似物。
 我认为，如果不存在某种距离度量，那么从概念上讲，考虑通过这些属性对对象进行聚类是没有意义的（这是正确的吗？），但我希望存在可以产生类似输出的东西
-&quot;90% 的 color=yellow 对象也有 material=plastic 和 is_important=false&quot;
+“90% 的 color=yellow 对象也有 material=plastic 和 is_important=false”
 除了强制通过数据集之外，还有其他东西可以进行此类分析吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/648455/clustering-by-discrete-unrelated-properties</guid>
       <pubDate>Sun, 02 Jun 2024 00:19:01 GMT</pubDate>
     </item>
     <item>
-      <title>量化（观察到的）空间聚类？</title>
-      <link>https://stats.stackexchange.com/questions/648453/quantifying-observed-spatial-clustering</link>
-      <description><![CDATA[我正在寻找一些有关空间统计的建议。
-我有一个大型数据集，其中包含 5 种不同条件下的多个样本。每个样本由 2D 空间中的不同点类型组成。例如：
-样本 1，条件 1：
-X，Y，类型
-1，1，A
-5，3，A
-11，2，B
-6，22，L
-...
-
-我们注意到，对于某些条件，某些点类型（我们分别称它们为 A 和 B，红色和蓝色）显示不同的分布。在大多数情况下（“通常模式”），A 类与其他 A 类点聚类，B 类与其他 B 类点聚类；每种类型的簇在视觉上彼此不同（参见图像，右侧子图，“通常模式”）。但是，在某些条件下，我们注意到 A 和 B 的簇彼此混合更多； As 可能仍然与 As 聚类（多于 Bs），但 As 和 Bs 的聚类/合并在一起（见图像，左侧子图，“观察到的模式”）。
-捕捉和量化这种观察到的现象的最佳方法是什么？（完整披露：我是空间统计的新手）。
-
-到目前为止，我们已经研究了不同条件之间的香农熵（跨所有点类型，例如 A-M），以检查在感兴趣的条件下点类型分布是否存在更多异质性（但似乎没有显着差异）。我们还研究了中心性度量以及邻域丰富度（我们对所有点类型，即 A-M 进行了这些研究）。最近，我们尝试了 DBSCAN（仅关注点类型 A 和 B），希望能够证明结果簇大小存在差异（尽管我个人不确定这是否是解决问题的正确方法）。我们可能尚未令人满意地调整模型参数，但到目前为止，它似乎还没有解决问题。我还担心，虽然它可能有助于探索性数据分析，但我们不太可能使用 DBSCAN 输出来有意义地比较不同条件下的结果。
-直观地讲，我认为答案可能在于网络分析和研究几个节点之外的聚类行为（而不是仅仅研究直接邻居，这可能是邻域富集分析对我们不起作用的原因）。
-展示和量化观察到的聚类现象的最佳方法是什么？理想情况下，我们需要一种允许比较不同条件的方法。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648453/quantifying-observed-spatial-clustering</guid>
-      <pubDate>Sat, 01 Jun 2024 23:50:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>我们可以使用 CDF 而不是 PDF 来表达无意识统计学家的定律吗？</title>
+      <title>我们可以使用 CDF 而不是 PDF 来表达无意识统计学家的定律吗？[重复]</title>
       <link>https://stats.stackexchange.com/questions/648452/can-we-express-the-law-of-the-unconscious-statistician-using-the-cdf-instead-of</link>
       <description><![CDATA[我只见过LOTUS以密度形式给出
 $$\mathbb{E}[g(X)] = \int g(x) f(x) dx$$
@@ -238,17 +287,14 @@ $$\mathbb{E}[g(X)] = \int g(x) dF_X(x).$$
       <pubDate>Sat, 01 Jun 2024 22:37:36 GMT</pubDate>
     </item>
     <item>
-      <title>两组时间序列之间的假设检验</title>
-      <link>https://stats.stackexchange.com/questions/648405/hypothesis-testing-between-two-sets-of-time-series</link>
-      <description><![CDATA[我想通过比较在不同时间捕获的两组时间序列来验证捕获方法的可重复性。
-让我们考虑两组时间序列$A=(tsa_1,\dots,tsa_n)$和$B=(tsb_1,\dots,tsb_m)$，其中$n,m &gt;&gt; 100$。
-我们还定义$H_0$=两个数据集彼此一致，并且$H_a$=两个数据集显示出显着差异。
-测试这些假设的经典方法是什么？
-我想出了基于距离的方法，但我想探索统计方法来进行比较。我读过关于统计测试的文章，但找不到太多关于处理时间序列的信息。任何帮助或资源指导都值得赞赏。
-为了论证的目的，我们可以考虑类似于下图的数据。这些是围绕预定义模式用正常噪声生成的合成数据，但实际捕获的数据预计具有相同的属性。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/648405/hypothesis-testing-between-two-sets-of-time-series</guid>
-      <pubDate>Fri, 31 May 2024 18:00:19 GMT</pubDate>
+      <title>什么是协同过滤？</title>
+      <link>https://stats.stackexchange.com/questions/648424/what-defines-collaborative-filtering</link>
+      <description><![CDATA[协同过滤的定义特征是什么？
+如果您采用两个嵌入向量（一个用于用户，一个用于项目），您可以进行点积并将结果传递给 S 型函数来预测 CTR。这是协同过滤吗？
+或者，您可以在每个嵌入上放置多个 FC 层，然后进行点积。这是协同过滤吗？
+您还可以将多个离散和连续特征连接到每个嵌入，然后将它们传递给 FC 层并进行 S 型函数。这是协同过滤吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648424/what-defines-collaborative-filtering</guid>
+      <pubDate>Sat, 01 Jun 2024 09:23:06 GMT</pubDate>
     </item>
     <item>
       <title>条件 Logit 模型 - 效用结构估计 - 元分析</title>
@@ -276,60 +322,13 @@ $$\mathbb{E}[g(X)] = \int g(x) dF_X(x).$$
 
 
 
-数据：汇总的横断面调查数据，其中各个受访者嵌套在各个国家/地区，并且调查多年来在每个国家/地区进行多次
+数据：汇总的横断面调查数据，其中各个受访者嵌套在各个国家/地区，并且多年来在每个国家/地区进行多次调查
 研究问题旨在找出国家级变量（例如 GDP）是否影响受访者回答有关生活满意度的问题的方式
 感兴趣的影响：GDP 对生活满意度的总体影响
 
 我感兴趣的是哪种影响：组内、组间还是上下文？这样的研究是否需要随机效应模型？或者聚类标准误差就足够了？]]></description>
       <guid>https://stats.stackexchange.com/questions/648373/random-effect-models-understanding-with-between-and-contextual-effect</guid>
       <pubDate>Fri, 31 May 2024 12:58:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>在绘制平滑缩放的 Schoenfeld 残差图时，R 中的 transform="" 到底起什么作用？</title>
-      <link>https://stats.stackexchange.com/questions/648370/what-does-transform-in-r-exactly-do-when-plotting-the-smoothed-scaled-schoenf</link>
-      <description><![CDATA[编辑：“我的问题已被关闭，因为它似乎不属于这里，因为它与统计无关。我不同意这个决定，感谢@J-J-J 在这方面对我的支持。我会尝试澄清，我想从统计的角度而不是编码的角度来理解以下问题。我有 4 个问题。我删除了第四个，因为那是唯一一个与编码有关的问题。所以这是我的责任，但我希望有人能帮助我理解其他三个问题。提前谢谢您！”
-正如标题所示，我旨在解决 R 中的参数 transform = &#39;&#39;，特别是关于用于评估比例风险 (PH) 假设的平滑缩放 Schoenfeld 残差检验/图。
-我知道默认是 transform = &#39;km&#39;，但还有其他可用选项：
-transform=&#39;log&#39;
-transform=&#39;rank&#39;
-transform=&#39;identity&#39;
-
-我相信我了解每个选项的含义。如果我的理解不正确，请纠正我：
-log 用于强调早期事件，因为它为它们分配了更大的权重。
-rank 用于突出显示晚期事件，因为它为它们分配了更大的权重。
-identity 表示未经任何修改的原始时间数据。
-但是，我不确定 km 到底是做什么的。虽然它似乎可以缩短时间，但我不确定它的含义。
-我的问题：
-
-我应该何时使用每个转换来评估 R 中的 cox.zph() 测试/绘图？（编辑：从统计角度来看，我应该在什么情况下使用它？）
-
-它们为 PH 假设产生不同的 p 值。根据所选的转换，我应该信任哪个 p 值？（编辑：再次从统计角度）
-
-虽然我理解 transform = &#39;&#39; 参数的总体目的，但我仍然不确定在哪些情况下应该选择每个参数。（编辑：从统计角度来看，有人可以澄清何时使用每个转换吗？）
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/648370/what-does-transform-in-r-exactly-do-when-plotting-the-smoothed-scaled-schoenf</guid>
-      <pubDate>Fri, 31 May 2024 12:11:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>小样本与大样本的因果效应和外生性</title>
-      <link>https://stats.stackexchange.com/questions/648335/causal-effect-and-exogeneity-in-small-samples-vs-in-large-samples</link>
-      <description><![CDATA[这个标题下有两个问题。
-在 Y 对 X 和控制 Z 的回归中，随机误差为 e，
-
-在小样本中，如果满足严格外生性，即 E(e|X,Z)=0，是否意味着 X 的系数具有因果关系的意义？
-在大样本中，严格外生性的条件是否可以放宽为不相关，即 Cov(e,X)=0 和 Cov(e,Z)=0，以描述因果关系？如果答案是肯定的，请用公式推导原因。
-
-我发现很多书和论文（例如关于 IV）讨论的是相关性而不是外生性。我查过一些教科书，它们只解释了从小样本的无偏变为大样本的一致性的性质，这与因果关系无关。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648335/causal-effect-and-exogeneity-in-small-samples-vs-in-large-samples</guid>
-      <pubDate>Fri, 31 May 2024 03:26:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>添加混杂因素“因子”与减去层内平均值</title>
-      <link>https://stats.stackexchange.com/questions/648262/adding-a-confounder-factor-vs-subtracting-within-level-mean</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/648262/adding-a-confounder-factor-vs-subtracting-within-level-mean</guid>
-      <pubDate>Thu, 30 May 2024 07:17:02 GMT</pubDate>
     </item>
     </channel>
 </rss>
