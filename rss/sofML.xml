@@ -4,30 +4,116 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 03 Jun 2024 09:16:15 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 03 Jun 2024 12:28:29 GMT</lastBuildDate>
     <item>
-      <title>如何开发根据文本提示生成网站模板的人工智能模型？</title>
-      <link>https://stackoverflow.com/questions/78569248/how-to-develop-an-ai-model-for-generating-website-templates-from-text-prompts</link>
-      <description><![CDATA[我正在开展一个项目，开发一个可以根据用户提供的文本提示生成网站模板的 AI 模型。该模型应该能够解释所需功能、配色方案、页面数量和动态元素等详细信息。
-我正在寻找以下方面的指导：
+      <title>加载预先训练的 json 模型时，Python tensorflow keras 出现错误</title>
+      <link>https://stackoverflow.com/questions/78570246/python-tensorflow-keras-error-when-load-a-pre-trained-json-model</link>
+      <description><![CDATA[这是我在尝试执行 Python 代码时遇到的**错误**
+[ERROR:0@5.030] global persistence.cpp:519 cv::FileStorage::Impl::open 无法以读取模式打开文件：“models/haarcascade_frontalface_default.xml”
+回溯（最近一次调用）：
+文件“C:\Users\Richard.Joy\Desktop\Final-antispoofing_models\anti.py”，第 14 行，位于&lt;module&gt;
+model = model_from_json(loaded_model_json)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件 &quot;C:\Users\Richard.Joy\Desktop\Final-antispoofing_models\antispoof_env\Lib\site-packages\keras\src\models\model.py&quot;，第 575 行，位于 model_from_json
+return serialization_lib.deserialize_keras_object(
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件&quot;C:\Users\Richard.Joy\Desktop\Final-antispoofing_models\antispoof_env\Lib\site-packages\keras\src\saving\serialization_lib.py&quot;，第 694 行，位于 deserialize_keras_object
+cls = _retrieve_class_or_fn(
+^^^^^^^^^^^^^^^^^^^^^^^
+文件 &quot;C:\Users\Richard.Joy\Desktop\Final-antispoofing_models\antispoof_env\Lib\site-packages\keras\src\saving\serialization_lib.py&quot;，第 812 行，位于 _retrieve_class_or_fn
+raise TypeError(
+TypeError：无法找到类“Functional”。确保自定义类已用修饰`@keras.saving.register_keras_serializable()`。完整对象配置：{&#39;class_name&#39;: &#39;Functional&#39;, &#39;config&#39;: {&#39;name&#39;: &#39;model&#39;, &#39;trainable&#39;: True,...(**json 文件的内容**........&#39;keras_version&#39;: &#39;2.15.0&#39;, &#39;backend&#39;: &#39;tensorflow&#39;)
 
-技术堆栈：
-哪些 AI 框架和库最适合此任务（例如 TensorFlow、PyTorch）？
-哪些自然语言处理 (NLP) 模型可以有效理解和解析文本提示（例如 GPT-4、BERT）？
-生成的模板应与哪些 Web 开发技术兼容（例如 HTML、CSS、JavaScript、React）？
-基础设施要求：
-训练和部署此类 AI 模型的推荐硬件和软件要求是什么？
-是否有任何云平台提供 AI 模型训练和网络托管的集成解决方案？
-开发工作流程：
-应如何训练 AI 模型以准确地将文本提示转换为网页设计规范？
-哪些数据集对于训练模型以理解网页设计概念和用户偏好有用？
-集成和部署：
-如何将模型集成到用户友好的界面中，以便非技术用户生成网站模板？
-确保生成的网站响应迅速、可访问且符合现代网络标准的最佳实践是什么？
-非常感谢任何见解或建议。谢谢！
-]]></description>
-      <guid>https://stackoverflow.com/questions/78569248/how-to-develop-an-ai-model-for-generating-website-templates-from-text-prompts</guid>
-      <pubDate>Mon, 03 Jun 2024 08:46:20 GMT</pubDate>
+以下是库版本
+keras 3.3.3
+opencv-python 4.9.0.80
+tensorflow 2.16.1
+python 3.12.3
+以下是我正在尝试执行的**代码**
+import cv2
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import img_to_array 
+import os
+import numpy as np
+
+root_dir = os.getcwd()
+# 加载人脸检测模型
+face_cascade = cv2.CascadeClassifier(&quot;models/haarcascade_frontalface_default.xml&quot;)
+# 加载反欺骗模型图
+json_file = open(&#39;C:/Users/Richard.Joy/Desktop/Final-antispoofing_models/Antispoofing_model_mobilenet.json&#39;,&#39;r&#39;)
+loaded_model_json = json_file.read()
+json_file.close()
+model = tf.keras.models.model_from_json(loaded_model_json)
+# 加载反欺骗模型权重
+model.load_weights(&#39;C:/Users/Richard.Joy/Desktop/Final-antispoofing_models/finalyearproject_antispoofing_model_99-0.978947.h5&#39;)
+print(&quot;模型从磁盘加载&quot;)
+
+video = cv2.VideoCapture(0)
+while True:
+try:
+ret,frame = video.read()
+gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+faces = face_cascade.detectMultiScale(gray,1.3,5)
+for (x,y,w,h) in faces: 
+face = frame[y-5:y+h+5,x-5:x+w+5]
+resized_face = cv2.resize(face,(160,160))
+resized_face = resized_face.astype(&quot;float&quot;) / 255.0
+resized_face = np.expand_dims(resized_face, axis=0)
+# 将人脸 ROI 传递到经过训练的活体检测器
+# 模型确定人脸是“真”还是“假”
+preds = model.predict(resized_face)[0]
+print(preds)
+if preds&gt; 0.5:
+标签 = &#39;poof&#39;
+cv2.putText(frame, 标签, (x,y - 10),
+cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
+cv2.rectangle(frame, (x, y), (x+w,y+h),
+(0, 0, 255), 2)
+else:
+标签 = &#39;eal&#39;
+cv2.putText(frame, 标签, (x,y - 10),
+cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
+cv2.rectangle(frame, (x, y), (x+w,y+h),
+(0, 255, 0), 2)
+cv2.imshow(&#39;frame&#39;, frame)
+key = cv2.waitKey(1)
+if key == ord(&#39;q&#39;):
+break
+except Exception as e: 
+pass
+video.release() 
+cv2.destroyAllWindows()
+
+
+请告诉我我应该怎么做（我尝试降级库，但也出现了错误）
+我尝试降级库，但也出现了错误]]></description>
+      <guid>https://stackoverflow.com/questions/78570246/python-tensorflow-keras-error-when-load-a-pre-trained-json-model</guid>
+      <pubDate>Mon, 03 Jun 2024 12:21:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>梯度累积损失计算</title>
+      <link>https://stackoverflow.com/questions/78569958/gradient-accumulation-loss-compute</link>
+      <description><![CDATA[假设我们有数据 [b,s,dim]，我最近注意到 CrossEntropyLoss 是 (1) 计算一批中所有 token (b * s) 的平均值，而不是 (2) 计算每个句子然后计算平均值。
+以下是计算 hugging_face 转换器 BertLMHeadMode 损失的代码
+sequence_output = output[0]
+prediction_scores = self.cls(sequence_output)
+
+lm_loss = None
+if labels is not None:
+# 我们正在进行下一个 token 预测；将预测分数和输入 ID 移位一格
+shifted_prediction_scores = prediction_scores[:, :-1, :].contiguous()
+labels = labels[:, 1:].contiguous()
+loss_fct = CrossEntropyLoss()
+lm_loss = loss_fct(shifted_prediction_scores.view(-1, self.config.vocab_size), labels.view(-1))
+
+我知道 (1) 和 (2) 在这种情况下没有区别。但是当我们应用梯度累积时，我认为情况就不同了。
+假设我的batch_size为4，4个句子的长度分别为100,200,300,400。
+使用batch_size 4时，损失是根据总共1000个token的平均值计算的。
+但是当batch_size = 1且梯度累积= 4时，我认为损失是不同的。我们首先分别计算每个句子的损失，然后计算平均值，这意味着对于100个token的句子，我们计算100个token的损失平均值，然后除以4并将其添加到总损失中，对于其他3个句子也是如此，我认为以这种方式计算的损失与使用batch_size = 4计算的损失不同。
+我误解了什么吗？
+想知道我是否正确或误解了什么]]></description>
+      <guid>https://stackoverflow.com/questions/78569958/gradient-accumulation-loss-compute</guid>
+      <pubDate>Mon, 03 Jun 2024 11:19:53 GMT</pubDate>
     </item>
     <item>
       <title>姿势估计等待检测</title>
@@ -153,73 +239,7 @@ les:10612kB oom_score_adj:0
       <pubDate>Mon, 03 Jun 2024 05:38:39 GMT</pubDate>
     </item>
     <item>
-      <title>XGBRanker `label` 参数理解</title>
-      <link>https://stackoverflow.com/questions/78568511/xgbranker-label-parameter-understanding</link>
-      <description><![CDATA[我正在尝试测试 XGBRanker 的金融产品推荐系统。一个人可以随着时间的推移多次购买多种产品或同一种产品。
-我已准备如下所示的数据。在这里，客户 1 在过去 2 年内购买了 P1 和 P2 [在线 + 离线]，但在我的平台上点击是最近的 [最近 30/60 天]。此外，我将使用 pyspark 运行我的代码。
-
-
-
-id
-功能 1（点击 P1）
-功能 2（点击 P2）
-功能 3（点击 P3）
-购买的产品（标签）
-
-
-
-
-1
-2
--
-5
-P1
-
-
-1
-2
--
-5
-P2
-
-
-2
--
- 3
-2
-P2
-
-
-3
-5
-1
-7
-P1
-
-
-3
-5
-1
-7
-P3
-
-
-
-由于过去 30/60 天每个产品的点击数据都相同，XGBRanker 将如何了解同一客户购买的不同产品。
-关于如何为 XGBRanker 准备输入，有什么建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78568511/xgbranker-label-parameter-understanding</guid>
-      <pubDate>Mon, 03 Jun 2024 05:23:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在可变形 DETR 中可视化注意力以及基于 DETR 的一系列后续工作？</title>
-      <link>https://stackoverflow.com/questions/78568416/how-to-visualize-attentions-in-deformable-detr-and-a-series-of-follow-up-works-i</link>
-      <description><![CDATA[许多论文，即使代码是开源的，也没有提供生成这些可视化的具体代码。因此，我想问一下是否有任何脚本或参考资料可以指导这些可视化的重现。
-具体来说，Conditional-DETR 中的框定位可视化或其他一些作品中的 Cross Attention 可视化。很多时候，即使我能理解作者想要通过这些图传达的意思，但理解用于可视化的实际视觉特征和后处理方法仍然完全难以捉摸。]]></description>
-      <guid>https://stackoverflow.com/questions/78568416/how-to-visualize-attentions-in-deformable-detr-and-a-series-of-follow-up-works-i</guid>
-      <pubDate>Mon, 03 Jun 2024 04:41:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>稳定扩散图像中的突变检测方法</title>
+      <title>稳定扩散图像中突变的检测方法[关闭]</title>
       <link>https://stackoverflow.com/questions/78568259/detection-methods-for-mutations-in-stable-diffusion-images</link>
       <description><![CDATA[我正在使用 Python 中的稳定扩散来生成人体图像。我面临的一个挑战是自动检测生成的图像中的任何异常。这些异常包括手、脚等身体部位的不规则性，或身体部位过多或过少，以及介于两者之间的一切。
 我测试了几种方法，但没有成功。例如，我尝试使用 OpenAI GPT4 视觉来识别这些异常；但是，它无法检测到异常，除非我说“你确定吗”几次，然后它似乎会发现它。
@@ -258,13 +278,6 @@ OpenAI GPT4 视觉
 3：图片]]></description>
       <guid>https://stackoverflow.com/questions/78568259/detection-methods-for-mutations-in-stable-diffusion-images</guid>
       <pubDate>Mon, 03 Jun 2024 03:28:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>Tensorflow-Keras 训练在 Macbook M2 Pro 上出现问题 - 在云端和其他操作系统上运行良好</title>
-      <link>https://stackoverflow.com/questions/78567702/tensorflow-keras-training-goes-awry-on-macbook-m2-pro-runs-fine-on-cloud-and-o</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78567702/tensorflow-keras-training-goes-awry-on-macbook-m2-pro-runs-fine-on-cloud-and-o</guid>
-      <pubDate>Sun, 02 Jun 2024 21:11:56 GMT</pubDate>
     </item>
     <item>
       <title>编码结果以布尔值而不是数字形式输出</title>
@@ -343,6 +356,174 @@ result[&quot;source_documents&quot;][0]
 ]]></description>
       <guid>https://stackoverflow.com/questions/78530745/langchain-retrievalqa-error-valueerror-missing-some-input-keys-query</guid>
       <pubDate>Fri, 24 May 2024 21:23:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>梯度下降：缩减的特征集比原始特征集的运行时间更长</title>
+      <link>https://stackoverflow.com/questions/78288109/gradient-descent-reduced-feature-set-has-a-longer-runtime-than-the-original-fea</link>
+      <description><![CDATA[我尝试用 Python 实现梯度下降算法来解决机器学习问题。我处理的数据集已经过预处理，当我使用奇异值分解 (SVD) 比较两个数据集（一个具有原始特征，另一个具有前者集合的缩减维度）时，我在运行时观察到了意外行为。我不断观察到，与缩减后的数据集相比，较大的原始数据集的梯度下降算法的运行时间较短，这与我的预期相反。考虑到缩减后的数据集较小，运行时间难道不应该更短吗？我试图理解为什么会发生这种情况。
+以下是相关代码片段：
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+
+def h_theta(X1, theta1):
+# 假设函数的实现
+return np.dot(X1, theta1)
+
+def j_theta(X1, y1, theta1):
+# 成本函数的实现
+return np.sum((h_theta(X1, theta1) - y1) ** 2) / (2 * X1.size)
+
+def grad(X1, y1, theta):
+# 梯度的计算
+gradient = np.dot(X1.T, h_theta(X1, theta) - y1) / len(y1)
+return gradient
+
+def gradient_descent(X1, y1):
+theta_initial = np.zeros(X1.shape[1]) # 用初始化 theta零
+
+num_iterations = 1000
+learning_rates = [0.1, 0.01, 0.001] 
+cost_iterations = []
+theta_values = []
+start = time.time()
+for alpha in learning_rates:
+theta = theta_initial.copy()
+cost_history = []
+for i in range(num_iterations):
+gradient = grad(X1, y1, theta)
+theta = theta - np.dot(alpha, gradient)
+cost = j_theta(X1, y1, theta)
+cost_history.append(cost)
+cost_iterations.append(cost_history)
+theta_values.append(theta)
+end = time.time()
+print(f&quot;所用时间：{end - start} 秒&quot;)
+fig, axs = plt.subplots(len(learning_rates), figsize=(8, 15)) 
+for i, alpha in enumerate(learning_rates):
+axs[i].plot(range(num_iterations), cost_iterations[i], label=f&#39;alpha = {alpha}&#39;) 
+axs[i].set_title(f&#39;学习率：{alpha}&#39;)
+axs[i].set_ylabel(&#39;成本 J&#39;)
+axs[i].set_xlabel(&#39;迭代次数&#39;) 
+axs[i].legend()
+plt.tight_layout() 
+plt.show()
+
+# 使用 SVD 将 X 减少到 3 个特征（列）的代码：
+# 对 X 执行奇异值分解并将其减少到 3 列
+U, S, Vt = np.linalg.svd(X_normalized)
+# 将 X 减少到 3 列
+X_reduced = np.dot(X_normalized, Vt[:3].T)
+
+# 打印 X_reduced 的前 5 行
+print(&quot;X_reduced 的前 5 行：&quot;)
+# 规范化 X_reduced
+X_reduced = (X_reduced - np.mean(X_reduced, axis=0)) / np.std(X_reduced, axis=0)
+
+print(&quot;X 经过缩减和规范化后的均值和标准差:\n&quot; ,X_reduced.mean(axis=0), X_reduced.std(axis=0))
+# 打印简化后的 X 的形状，以确认它只有 3 个特征
+print(&quot;Shape of X_reduced:&quot;, X_reduced.shape)
+
+# 将截距列添加到 X_reduced
+X_reduced_with_intercept = np.hstack((intercept_column, X_reduced))
+
+# 示例用法
+# X_normalized_with_intercept 和 y_normalized 表示原始数据集
+# X_reduced_with_intercept 和 y_normalized 表示简化后的数据集
+
+# 对原始数据集执行梯度下降
+gradient_descent(X_normalized_with_intercept, y_normalized)
+
+# 对简化后的数据集执行梯度下降
+gradient_descent(X_reduced_with_intercept, y_normalized)
+
+在我的梯度下降实现中，什么原因导致精简数据集的运行时间始终比完整数据集长？任何有关故障排除的见解或建议都将不胜感激。
+我尝试过重写和审查我的实现，但似乎对于大多数学习率以及增加的迭代次数，较大特征集的运行时间低于其 SVD 子集。]]></description>
+      <guid>https://stackoverflow.com/questions/78288109/gradient-descent-reduced-feature-set-has-a-longer-runtime-than-the-original-fea</guid>
+      <pubDate>Sun, 07 Apr 2024 14:13:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Python 中的 LSTM 预测未来值</title>
+      <link>https://stackoverflow.com/questions/69906416/forecast-future-values-with-lstm-in-python</link>
+      <description><![CDATA[此代码可预测截至当前日期的指定股票价值，但无法预测训练数据集之外的日期。此代码来自我之前提出的一个问题，因此我对它的理解程度相当低。我认为解决方案是一个简单的变量更改以添加额外的时间，但我不知道需要操作哪个值。
+import pandas as pd
+import numpy as np
+import yfinance as yf
+import os
+import matplotlib.pyplot as plt
+from IPython.display import display
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+from sklearn.preprocessing import MinMaxScaler
+os.environ[&#39;TF_CPP_MIN_LOG_LEVEL&#39;] = &#39;2&#39;
+
+pd.options.mode.chained_assignment = None
+
+# 下载数据
+df = yf.download(tickers=[&#39;AAPL&#39;], period=&#39;2y&#39;)
+
+# 拆分数据
+train_data = df[[&#39;Close&#39;]].iloc[: - 200, :]
+valid_data = df[[&#39;Close&#39;]].iloc[- 200:, :]
+
+# 缩放数据
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaler.fit(train_data)
+
+train_data = scaler.transform(train_data)
+valid_data = scaler.transform(valid_data)
+
+# 提取训练序列
+x_train, y_train = [], []
+
+for i in range(60, train_data.shape[0]):
+x_train.append(train_data[i - 60: i, 0])
+y_train.append(train_data[i, 0])
+
+x_train = np.array(x_train)
+y_train = np.array(y_train)
+
+# 提取验证序列
+x_valid = []
+
+for i in range(60, valid_data.shape[0]):
+x_valid.append(valid_data[i - 60: i, 0])
+
+x_valid = np.array(x_valid)
+
+# 重塑序列
+x_train = x_train.reshape(x_train.shape[0], 
+x_train.shape[1], 1)
+x_valid = x_valid.reshape(x_valid.shape[0], 
+x_valid.shape[1], 1)
+
+# 训练模型
+model = Sequential()
+model.add(LSTM(units=50, return_sequences=True, 
+input_shape=x_train.shape[1:]))
+model.add(LSTM(units=50))
+model.add(Dense(1))
+
+model.compile(loss=&#39;mean_squared_error&#39;, optimizer=&#39;adam&#39;)
+model.fit(x_train, y_train, epochs=50, batch_size=128, verbose=1)
+
+# 生成模型预测
+y_pred = model.predict(x_valid)
+y_pred = scaler.inverse_transform(y_pred)
+y_pred = y_pred.flatten()
+
+# 绘制模型预测
+df.rename(columns={&#39;Close&#39;: &#39;Actual&#39;}, inplace=True)
+df[&#39;Predicted&#39;] = np.nan
+df[&#39;Predicted&#39;].iloc[- y_pred.shape[0]:] = y_pred
+df[[&#39;Actual&#39;, &#39;Predicted&#39;]].plot(title=&#39;AAPL&#39;)
+
+display(df)
+
+plt.show()
+]]></description>
+      <guid>https://stackoverflow.com/questions/69906416/forecast-future-values-with-lstm-in-python</guid>
+      <pubDate>Tue, 09 Nov 2021 23:47:07 GMT</pubDate>
     </item>
     </channel>
 </rss>
