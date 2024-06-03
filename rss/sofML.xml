@@ -4,9 +4,204 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 03 Jun 2024 18:20:47 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 03 Jun 2024 21:14:39 GMT</lastBuildDate>
     <item>
-      <title>使用什么方法对网络结构进行统计分析？</title>
+      <title>在执行无监督域自适应时，属性移位数据的性能下降</title>
+      <link>https://stackoverflow.com/questions/78572439/decrease-in-performance-on-attribute-shift-data-on-performing-unsupervised-domai</link>
+      <description><![CDATA[大家好，我正在对 cifar10 和 cifar10.1 数据集进行实验，其中我使用 Resnet18 模型在 cifar10 训练数据上进行训练，并在 cifar10 测试数据和 cifar10.1（属性移位数据）上进行评估。我使用监督对比学习来训练特征编码器（当前特征向量 dim id 64），然后训练投影头（单层 MLP），在评估此模型时，cifar10 测试数据上的 ACC 为 91%，cifar10.1 数据集上的 ACC 为 81%。
+为了将特征编码器模型改进为看不见的属性移位数据，我正在使用自监督对比损失对 cifar10.1 数据集上的特征编码器进行微调，但在对微调的特征编码器以及在 cifar10 训练数据上预训练的投影头进行微调时，其性能比未微调的模型更差，微调模型的准确率为 56%（之前为 81%），请告诉我为什么微调后的模型效果不佳。
+我想知道为什么在 cifar10.1 上对自动编码器进行微调时，它在 cifar10.1 上的表现更差，在 cifar10 测试集上的表现也很差]]></description>
+      <guid>https://stackoverflow.com/questions/78572439/decrease-in-performance-on-attribute-shift-data-on-performing-unsupervised-domai</guid>
+      <pubDate>Mon, 03 Jun 2024 20:39:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>训练期间准确率与测试期间准确率之间的差异</title>
+      <link>https://stackoverflow.com/questions/78572370/difference-between-accuracy-during-training-and-accuracy-during-testing</link>
+      <description><![CDATA[在下面的模型中，最终验证阶段结束时报告的准确度为 0.46，但在手动测试期间报告的值为 0.53。什么可以解释这种差异？
+import torch
+from torch import nn
+import torchvision.models as models
+import pytorch_lightning as pl
+from torchmetrics.classification import BinaryAccuracy
+from pytorch_lightning.loggers import NeptuneLogger
+from torch.utils.data import DataLoader, TensorDataset
+from os import environ
+
+class ResNet(pl.LightningModule):
+def __init__(self, n_classes=1, n_channels=3, lr=1e-3):
+super().__init__()
+self.save_hyperparameters()
+self.validation_accuracy = BinaryAccuracy()
+
+backbone = models.resnet18(pretrained=True)
+n_filters = backbone.fc.in_features
+if n_channels != 3:
+backbone.conv1 = nn.Conv2d(n_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+layer = list(backbone.children())[:-1]
+self.feature_extractor = nn.Sequential(*layers)
+self.classifier = nn.Linear(n_filters, n_classes)
+self.loss_fn = nn.BCEWithLogitsLoss()
+
+def forward(self, x):
+features = self.feature_extractor(x)
+logits = self.classifier(features.squeeze())
+return logits
+
+def configure_optimizers(self):
+return torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
+
+def training_step(self, batch, batch_idx):
+x, y = batch
+y_hat = self(x)
+loss = self.loss_fn(y_hat, y)
+self.log(&#39;train_loss&#39;, loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+返回损失
+
+def validation_step(self, batch, batch_idx):
+x, y = batch
+y_hat = self(x)
+loss = self.loss_fn(y_hat, y)
+self.validation_accuracy.update(y_hat, y)
+self.log(&#39;val_loss&#39;, loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+返回损失
+
+def on_validation_epoch_end(self):
+val_acc = self.validation_accuracy.compute()
+self.log(&#39;val_acc&#39;, val_acc, on_epoch=True, prog_bar=True, logger=True)
+self.validation_accuracy.reset()
+
+def predict_step(self, batch, batch_idx):
+x, y = batch
+y_hat = self(x)
+preds = torch.sigmoid(y_hat) &gt; 0.5
+return preds, y
+
+def get_dataloader():
+# 创建一个简单的合成数据集用于演示目的
+x = torch.randn(100, 3, 224, 224)
+y = torch.randint(0, 2, (100, 1)).float()
+dataset = TensorDataset(x, y)
+return DataLoader(dataset, batch_size=8)
+
+# 设置模型、数据和训练器
+model = ResNet()
+train_loader = get_dataloader()
+val_loader = get_dataloader()
+
+logger = NeptuneLogger(
+api_key=environ.get(&quot;NEPTUNE_API_TOKEN&quot;),
+project=&quot;richbai90/ResnetTest&quot;,
+tags=[&quot;MRE&quot;, &quot;resnet&quot;],
+)
+
+trainer = pl.Trainer(max_epochs=3, logger=logger, log_every_n_steps=1)
+
+# 训练并验证模型
+trainer.fit(model, train_loader, val_loader)
+
+# 根据验证数据进行预测
+val_loader = get_dataloader()
+preds, target = [], []
+for batch in val_loader:
+batch_preds, batch_targets = model.predict_step(batch, 0)
+preds.extend(batch_preds)
+target.extend(batch_targets)
+
+# 手动计算准确率以进行比较
+preds = torch.stack(preds).view(-1)
+targets = torch.stack(targets).view(-1)
+manual_accuracy = (preds == target).float().mean().item()
+print(f&quot;手动准确率： {manual_accuracy:.4f}&quot;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78572370/difference-between-accuracy-during-training-and-accuracy-during-testing</guid>
+      <pubDate>Mon, 03 Jun 2024 20:17:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>神经网络中回归任务的批量归一化</title>
+      <link>https://stackoverflow.com/questions/78572327/batch-normalization-in-neural-network-for-regression-task</link>
+      <description><![CDATA[所以我有这个想要适合回归的神经网络。当我在层之间不使用批量归一化时，它表现良好，但是当我添加批量归一化时，它表现非常糟糕。
+例如，没有批量归一化的 MAE 是 17000，而使用批量归一化的 MAE 则高达 180000。这是为什么？
+X = train_data.drop([&#39;SalePrice&#39;], axis=1)
+y = train_data[&#39;SalePrice&#39;]
+
+# 获取每种类型的列
+numeric_cols = [col for col in X.columns if X[col].dtype in [&#39;float64&#39;, &#39;int64&#39;]]
+categoric_cols = [col for col in X.columns if X[col].dtype == &#39;object&#39;]
+
+X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=0)
+
+# 转换管道
+numeric_transformer = Pipeline(steps=[
+(&#39;impute_numeric&#39;, SimpleImputer(strategy=&#39;median&#39;)),
+(&#39;scale&#39;, StandardScaler())
+])
+
+categoric_transformer = Pipeline(steps=[
+(&#39;impute_categoric&#39;, SimpleImputer(strategy=&#39;most_frequent&#39;)),
+(&#39;encode&#39;, OneHotEncoder(handle_unknown=&#39;ignore&#39;)),
+])
+
+preprocessing = ColumnTransformer(transformers=[
+(&#39;num&#39;, numeric_transformer, numeric_cols),
+(&#39;cat&#39;, categoric_transformer, categoric_cols)
+])
+
+# 拟合变换器
+transformed_X_train = preprocessing.fit_transform(X_train)
+transformed_X_val = preprocessing.transform(X_val)
+
+# 模型 14392
+input_shape = perceived_X_train.shape[1]
+model = keras.Sequential([
+layer.Dense(units=256,activation=&#39;swish&#39;,input_shape=[input_shape]),
+layers.BatchNormalization(),
+layers.Dense(units=256,activation=&#39;swish&#39;),
+layers.BatchNormalization(),
+layers.Dense(units=128,activation=&#39;swish&#39;),
+layers.BatchNormalization(),
+layers.Dense(units=128,activation=&#39;swish&#39;),
+layers.BatchNormalization(),
+layers.Dense(units=64,activation=&#39;swish&#39;),
+layers.BatchNormalization(),
+layers.Dense(units=64,activation=&#39;swish&#39;),
+layers.BatchNormalization(),
+layers.Dense(units=1),
+])
+
+# 设置优化器和损失函数
+model.compile(
+optimizer=&#39;adam&#39;,
+loss=&#39;mae&#39;
+)
+
+early_stopping = callups.EarlyStopping(
+min_delta=0.01, # 计为改进的最小变化量
+patient=20, # 需要失败的时期数 min_delta 才能提前停止
+restore_best_weights=True,
+)
+
+# 拟合神经网络
+history = model.fit(
+transformed_X_train, y_train,
+epochs=200,
+batch_size=128,
+callbacks=[early_stopping],
+validation_data=(transformed_X_val, y_val)
+#validation_split=0.2,# 自动创建测试和验证集
+)
+
+history_df = pd.DataFrame(history.history)
+history_df.loc[0:, [&#39;loss&#39;, &#39;val_loss&#39;]].plot()
+
+# 最佳 13962.4795
+print(&quot;Evaluation模型的”，model.evaluate(transformed_X_val, y_val, batch_size=128))
+plt.show()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78572327/batch-normalization-in-neural-network-for-regression-task</guid>
+      <pubDate>Mon, 03 Jun 2024 20:03:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用什么方法对网络结构进行统计分析？[关闭]</title>
       <link>https://stackoverflow.com/questions/78571525/what-methods-to-use-for-statistical-analysis-of-network-structures</link>
       <description><![CDATA[我有一个网络结构（邻接矩阵），想找到一种方法来告诉我网络中的哪些特征对于解释我的响应变量最重要。在这种情况下，它是一种感染模拟措施。直观地说，一个可以提取我看不到的图形特征并告诉我它很重要的神经网络会很棒，但我不知道该怎么做。理想情况下，我也想保持简单。任何建议都值得赞赏。
 我一直在使用广泛的 GAM 进行建模，但总是回到这个问题上，我是提取我认为重要的特征的人。]]></description>
@@ -54,13 +249,13 @@ Cell In[50], line 53, in &lt;listcomp&gt;(.0)
     <item>
       <title>如何标记社交媒体中未标记的大量文本数据</title>
       <link>https://stackoverflow.com/questions/78571418/how-to-label-unlabeled-large-text-data-from-socia-media</link>
-      <description><![CDATA[我收集了一些社交媒体评论，并计划执行分层深度学习模型。作为初始过程，我想将这些未标记的数据标记为一些预定义的主题，例如交通、食品等。然后必须定义不同的交通或食品类别。所以，我需要两列标签。我有 9.341.087 个无标签训练数据和 30.000 行无标签测试文本数据。由于我是机器学习的新手，不确定在没有标记数据的情况下是否可以继续标记。感谢您的帮助
+      <description><![CDATA[我收集了一些社交媒体评论，并计划执行分层深度学习模型。作为初始过程，我想将这些未标记的数据标记为一些预定义的主题，例如交通、食品等。然后必须定义不同的交通类别或食品类别。因此，我需要两列标签。我有 9.341.087 个无标签训练数据和 30.000 行无标签测试文本数据。由于我是机器学习新手，不确定在没有标记数据的情况下是否可以继续标记。感谢您的帮助
 我尝试了分层文本分类，需要拖曳特定的标签列，但行数太少，我无法手动完成。]]></description>
       <guid>https://stackoverflow.com/questions/78571418/how-to-label-unlabeled-large-text-data-from-socia-media</guid>
       <pubDate>Mon, 03 Jun 2024 16:04:53 GMT</pubDate>
     </item>
     <item>
-      <title>尝试为 knn 算法绘制不同的邻居</title>
+      <title>尝试为 knn 算法绘制不同的邻居[关闭]</title>
       <link>https://stackoverflow.com/questions/78571281/trying-to-plot-different-neighbors-for-a-knn-algorithm</link>
       <description><![CDATA[它给出了一个值错误
 ValueError：x 和 y 必须具有相同的第一维，但形状为 (10,) 和 (30,)
@@ -196,87 +391,6 @@ lm_loss = loss_fct(shifted_prediction_scores.view(-1, self.config.vocab_size), l
       <pubDate>Mon, 03 Jun 2024 11:19:53 GMT</pubDate>
     </item>
     <item>
-      <title>用于聊天中问答识别的印地语 NLP 模型</title>
-      <link>https://stackoverflow.com/questions/78568815/hindi-nlp-model-for-question-and-answer-identification-in-chats</link>
-      <description><![CDATA[我正在开展一个自然语言处理项目，涉及分析印地语聊天数据。具体来说，我需要在聊天记录中识别问题及其对应的答案。
-是否有任何预先训练过的印地语 NLP 模型或库可以有效地处理此任务？理想情况下，我正在寻找一种解决方案，可以：
-检测句子并将其分类为问题或答案。
-识别上下文并将问题与各自的答案配对。
-任何有关模型、库或方法的建议都将不胜感激。谢谢！
-我尝试了各种模型，但没有一个适合。]]></description>
-      <guid>https://stackoverflow.com/questions/78568815/hindi-nlp-model-for-question-and-answer-identification-in-chats</guid>
-      <pubDate>Mon, 03 Jun 2024 06:56:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>Transformer 模型在攻击期间预测相同的 token，但在训练期间表现良好</title>
-      <link>https://stackoverflow.com/questions/78568713/transformer-model-predicting-the-same-token-during-infrence-but-performing-well</link>
-      <description><![CDATA[我的 Transformer 模型无法正常工作。
-训练循环：
-for epoch in range(40):
-data_loader = tqdm(data_loader, desc=f&quot;Epoch {epoch + 1}/{20}&quot;, unit=&quot;batch&quot;)
-for batch_idx, (en_batch, hi_batch) in enumerate(data_loader):
-en_batch = en_batch.to(&#39;cuda&#39;).to(torch.long)
-hi_batch = hi_batch.to(&#39;cuda&#39;).to(torch.long)
-y_pred = model(en_batch, hi_batch)
-loss = loss_fn(y_pred[:, 0:127, :].transpose(2,1), hi_batch[:, 1:128]).mean()
-history.append(loss.item())
-如果 batch_idx % 400 == 0:
-clear_output(wait=False)
-torch.save(history, &#39;history2.pth&#39;)
-torch.save(losses, &#39;valLoss2.pth&#39;)
-torch.save(model.state_dict(), &#39;model_weightsBPE2.pth&#39;)
-model.eval()
-val_loss = 0
-使用 torch.no_grad():
-对于 id , (en_batch, hi_batch) 在 enumerate(val_loader, 1):
-en_batch, hi_batch = en_batch.to(&#39;cuda&#39;), hi_batch.to(&#39;cuda&#39;)
-y_pred = model(en_batch.to(torch.long), hi_batch[:, :-1].to(torch.long))
-val_loss += loss_fn(y_pred[:, 0:127, :].transpose(2,1), hi_batch[:, 1:128].to(torch.long)).mean()
-如果 id % 5 == 0:
-break
-val_loss /= 5
-model.train()
-print(f&quot;验证损失：{val_loss}&quot;)
-losses.append(val_loss.item())
-如果 batch_idx % 100 == 0:
-print(&quot;-&quot;20, batch_idx, &quot;-&quot;, epoch, &quot;-&quot;, loss.item(), &quot;-&quot;20)
-print(&quot;en : &quot;, id_to_token(en_batch, &quot;en&quot;))
-print(&quot;hi : &quot;, id_to_token(hi_batch, &quot;hi&quot;))
-print(&quot;out: &quot;, id_to_token_M(y_pred, &quot;hi&quot;))
-optimizer.zero_grad()
-loss.backward()
-optimizer.step()
-scheduler.step()
-
-
-训练输出：
-out: संघ के प्रदेशाध्यक्ष बृज मो गाुप्ता ने महारे्ल इेंदिर क के艾特里公园韋प माया।
-
-
-推理循环：
-def inference_loop( input_seq, max_output_length=128):
-input_seq = input_seq.unsqueeze(0) # 添加批次维度
-current_token = torch.tensor([[1]], device=input_seq.device)
-output_seq = []
-for * in range(max*output_length):
-predictions = model(input_seq, current_token)
-next_token = predictions[:, -1, :].argmax(dim=-1)
-current_token = torch.cat([current_token, next_token.unsqueeze(0)], dim=1)
-if next_token.item() == 2:
-break
-output_seq.append(next_token.item())
-return output_seq
-
-
-推理输出：
-&#39; क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क क&#39;
-
-
-我该如何解决这个问题，训练和验证损失都下降了，但在推理过程中它开始一次又一次地预测相同的标记。]]></description>
-      <guid>https://stackoverflow.com/questions/78568713/transformer-model-predicting-the-same-token-during-infrence-but-performing-well</guid>
-      <pubDate>Mon, 03 Jun 2024 06:31:29 GMT</pubDate>
-    </item>
-    <item>
       <title>稳定扩散图像中突变的检测方法[关闭]</title>
       <link>https://stackoverflow.com/questions/78568259/detection-methods-for-mutations-in-stable-diffusion-images</link>
       <description><![CDATA[我正在使用 Python 中的稳定扩散来生成人体图像。我面临的一个挑战是自动检测生成的图像中的任何异常。这些异常包括手、脚等身体部位的不规则性，或身体部位过多或过少，以及介于两者之间的一切。
@@ -318,75 +432,22 @@ OpenAI GPT4 视觉
       <pubDate>Mon, 03 Jun 2024 03:28:04 GMT</pubDate>
     </item>
     <item>
-      <title>编码结果以布尔值而不是数字形式输出</title>
-      <link>https://stackoverflow.com/questions/78565774/encoded-result-gives-output-as-bolean-instead-of-numeric</link>
-      <description><![CDATA[执行 OneHotEncoding 后，我的数据框将其列的值设为 True 和 False，而不是我应该得到的 1 和 0。我的代码如下所示，其中数据框为 ds，分类列名称为“type”：
-pd.get_dummies(ds,columns = [&quot;type&quot;])
-
-我试图获取数字结果。]]></description>
-      <guid>https://stackoverflow.com/questions/78565774/encoded-result-gives-output-as-bolean-instead-of-numeric</guid>
-      <pubDate>Sun, 02 Jun 2024 07:52:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Feast + Cassandra 中存储特征之前是否需要一个中间持久存储？</title>
-      <link>https://stackoverflow.com/questions/78544969/is-an-intermediary-persistent-store-needed-before-storing-features-in-feast-ca</link>
-      <description><![CDATA[我目前正在为 MLOps 项目构建大数据管道，该管道用于批处理。
-这是当前设置：
-
-我将原始结构化数据存储在 Hive 中。
-Spark 作业提取原始数据并对其进行处理。
-我打算使用 feast 和 Apache Cassandra 作为离线存储，用于存储由我的 Spark 作业产生的计算和策划特征。
-
-我想高效地将数据从 spark 作业传递到 feast 和 Cassandra，我不确定在将处理后的数据传递给 feast 以存储在离线存储中之前，是否需要中间数据持久性解决方案来保存处理后的数据，在我的情况下有必要吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78544969/is-an-intermediary-persistent-store-needed-before-storing-features-in-feast-ca</guid>
-      <pubDate>Tue, 28 May 2024 15:00:31 GMT</pubDate>
+      <title>在 sagemaker 中部署 llama-3 8B 时出错：标记器不匹配？</title>
+      <link>https://stackoverflow.com/questions/78563364/error-deploying-llama-3-8b-in-sagemaker-tokenizer-mismatch</link>
+      <description><![CDATA[尝试部署 meta/llama-3-8B-Instruct 时，我在 sagemaker 代码编辑器中收到以下错误：
+“您从此检查点加载的 tokenizer 类与调用此函数的类的类型不同。这可能会导致意外的标记化。
+您从此检查点加载的 tokenizer 类是“PreTrainedTokenizerFast”。
+调用此函数的类是“LlamaTokenizer”。&quot;
+我正在使用 Huggingface API 将模型从 HF Hub 直接加载到 sagemaker 代码编辑器，使用 AWS 中的 ml.g5xlarge 实例类型。使用 HF API 不需要或公开 tokenizer。]]></description>
+      <guid>https://stackoverflow.com/questions/78563364/error-deploying-llama-3-8b-in-sagemaker-tokenizer-mismatch</guid>
+      <pubDate>Sat, 01 Jun 2024 09:35:46 GMT</pubDate>
     </item>
     <item>
       <title>预测多元时间序列时 VARIMA 模型的模型漂移</title>
       <link>https://stackoverflow.com/questions/78544041/model-drift-for-varima-model-when-forecasting-multivariate-time-series</link>
-      <description><![CDATA[我目前正在尝试在多变量时间序列数据上训练 VARIMA 模型，该数据是关于冷却系统的 5 种不同类型的传感器测量的。数据具有周期性，因此完全相同的模式每 25 个数据点左右就会重复出现。我有一个包含 5 个不同组件的数据集，其中每分钟都有一个数据点。我使用了 2 周的数据来训练模型，然后让它合成数据。我使用的 VARIMA 模型是从 Darts 包导入的，我是这样定义模型的：model_VARIMA = VARIMA(p=12, d=0, q=0, trend=&quot;n&quot;)。该模型是在 2 周的训练数据上训练的。当预测未来 30 个点或更多时，预测显然开始显示模型漂移。所有组件都没有产生周期性的多变量时间序列数据，而是慢慢开始遵循一条不再改变值的水平直线。换句话说，所有成分的标准偏差都会慢慢变为零，所有成分都会慢慢开始向其平均值漂移并永远停留在那里。我想知道是否有人对此有解释并有解决问题的方法。谢谢！]]></description>
+      <description><![CDATA[我目前正在尝试在多变量时间序列数据上训练 VARIMA 模型，该数据是关于冷却系统的 5 种不同类型的传感器测量的。数据具有周期性，因此完全相同的模式每 25 个数据点左右就会重复出现。我有一个包含 5 个不同组件的数据集，其中每分钟都有一个数据点。我使用了 2 周的数据来训练模型，然后让它合成数据。我使用的 VARIMA 模型是从 Darts 包导入的，我这样定义模型：model_VARIMA = VARIMA(p=12, d=0, q=0, trend=&quot;n&quot;)。该模型是在 2 周的训练数据上训练的。当预测未来 30 个点或更多时，预测显然开始显示模型漂移。所有组件都没有产生周期性的多变量时间序列数据，而是慢慢开始遵循一条不再改变值的直线水平线。换句话说，所有成分的标准偏差都会慢慢变为零，所有成分都会慢慢开始向其平均值漂移并永远停留在那里。我想知道是否有人对此有解释并有解决问题的方法。谢谢！]]></description>
       <guid>https://stackoverflow.com/questions/78544041/model-drift-for-varima-model-when-forecasting-multivariate-time-series</guid>
       <pubDate>Tue, 28 May 2024 12:15:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>langchain RetrievalQA 错误：ValueError：缺少一些输入键：{'query'}</title>
-      <link>https://stackoverflow.com/questions/78530745/langchain-retrievalqa-error-valueerror-missing-some-input-keys-query</link>
-      <description><![CDATA[在 RAG 项目中，我使用的是 langchain。当我使用查询输入运行 QA 链时，此错误一直出现：
-----&gt; result = qa_chain({&#39;query&#39;: question})
-ValueError: 缺少一些输入键：{&#39;query&#39;}
-
-这是我的代码：
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
-
-# 构建提示
-template = &quot;&quot;&quot;根据以下上下文回答问题。
-上下文：
-{context}
-------------------
-问题：{query}
-答案：&quot;&quot;&quot;
-
-# LLM 链
-QA_CHAIN_PROMPT = PromptTemplate.from_template(template)
-qa_chain = RetrievalQA.from_chain_type(
-llm,
-trieser=vectordb.as_retriever(),
-return_source_documents=True,
-chain_type_kwargs={&quot;prompt&quot;: QA_CHAIN_PROMPT}
-)
-
-question = &quot;这篇研究论文使用了什么方法？&quot;
-
-result = qa_chain({&#39;query&#39;: question})
-
-# 检查查询结果
-result[&quot;result&quot;]
-# 检查我们从中获取的源文档
-result[&quot;source_documents&quot;][0]
-]]></description>
-      <guid>https://stackoverflow.com/questions/78530745/langchain-retrievalqa-error-valueerror-missing-some-input-keys-query</guid>
-      <pubDate>Fri, 24 May 2024 21:23:49 GMT</pubDate>
     </item>
     <item>
       <title>梯度下降：缩减的特征集比原始特征集的运行时间更长</title>
@@ -476,7 +537,7 @@ gradient_descent(X_reduced_with_intercept, y_normalized)
     <item>
       <title>使用 Python 中的 LSTM 预测未来值</title>
       <link>https://stackoverflow.com/questions/69906416/forecast-future-values-with-lstm-in-python</link>
-      <description><![CDATA[此代码可预测截至当前日期的指定股票价值，但无法预测训练数据集之外的日期价值。此代码来自我之前提出的一个问题，因此我对它的理解程度相当低。我认为解决方案是一个简单的变量更改以添加额外的时间，但我不知道需要操作哪个值。
+      <description><![CDATA[此代码可预测截至当前日期的指定股票价值，但无法预测训练数据集之外的日期。此代码来自我之前提出的一个问题，因此我对它的理解程度相当低。我认为解决方案是一个简单的变量更改以添加额外的时间，但我不知道需要操作哪个值。
 import pandas as pd
 import numpy as np
 import yfinance as yf
@@ -555,6 +616,21 @@ plt.show()
 ]]></description>
       <guid>https://stackoverflow.com/questions/69906416/forecast-future-values-with-lstm-in-python</guid>
       <pubDate>Tue, 09 Nov 2021 23:47:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>“如何使用 Python 和 Keras 构建自己的 AlphaZero AI”中的 stmemory 和 ltmemory</title>
+      <link>https://stackoverflow.com/questions/52396257/stmemory-and-ltmemory-in-how-to-build-your-own-alphazero-ai-using-python-and-ke</link>
+      <description><![CDATA[我关注的是如何使用 Python 和 Keras 构建自己的 AlphaZero AI
+git 在这里
+在 run.ipynb 中，这部分代码：
+memory.clear_stmemory()
+
+if len(memory.ltmemory) &gt;= config.MEMORY_SIZE:
+
+这篇文章没有对此做太多解释。
+memory.ltmemory 和 memory.stmemory 有何用途？]]></description>
+      <guid>https://stackoverflow.com/questions/52396257/stmemory-and-ltmemory-in-how-to-build-your-own-alphazero-ai-using-python-and-ke</guid>
+      <pubDate>Wed, 19 Sep 2018 00:22:34 GMT</pubDate>
     </item>
     </channel>
 </rss>
