@@ -4,7 +4,150 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 04 Jun 2024 15:15:39 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 04 Jun 2024 18:19:09 GMT</lastBuildDate>
+    <item>
+      <title>R 中的 Firth 模型“重采样性能指标中的缺失值”</title>
+      <link>https://stats.stackexchange.com/questions/648631/firths-model-in-r-missing-values-in-resampled-performance-measures</link>
+      <description><![CDATA[library(caret)
+library(logistf)
+library(data.table)
+library(ggplot2)
+
+# 创建合成数据集
+set.seed(123)
+n &lt;- 100
+data &lt;- data.table(
+predictor1 = rnorm(n),
+predictor2 = rnorm(n),
+predictor3 = rnorm(n),
+group = factor(sample(c(&quot;control&quot;, &quot;AD&quot;), n, replace = TRUE))
+)
+
+# 标准化预测变量
+data_normalized &lt;- as.data.table(scale(data[, .SD, .SDcols = -&quot;group&quot;]))
+data_normalized[, group := data$group]
+
+# 分为训练集和测试集
+train_index &lt;- createDataPartition(data_normalized$group, p = .75, list = FALSE)
+train &lt;- data_normalized[train_index, ]
+test &lt;- data_normalized[-train_index, ]
+
+# 标准化训练数据
+train_proc &lt;- predict(preProcess(train, method = c(&quot;center&quot;, &quot;scale&quot;), verbose = TRUE), train)
+train_proc[, group := factor(group, levels = c(&quot;control&quot;, &quot;AD&quot;))]
+
+# 定义训练控制
+train_control &lt;- trainControl(method = &quot;repeatedcv&quot;, 
+number = 3, repeats = 3,
+savePredictions = TRUE,
+classProbs = TRUE)
+
+# 定义自定义模型函数
+firth_model &lt;- list(
+type = &quot;Classification&quot;,
+library = &quot;logistf&quot;,
+loop = NULL,
+parameters = data.frame(parameter = c(&quot;none&quot;), class = c(&quot;character&quot;), label = c(&quot;none&quot;)),
+grid = function(x, y, len = NULL, search = &quot;grid&quot;) {
+data.frame(none = &quot;none&quot;)
+},
+fit = function(x, y, wts, param, lev, last, classProbs, ...) {
+data &lt;- as.data.frame(x)
+data$group &lt;- y
+logistf(group ~ ., data = data, control = logistf.control(maxit = 100), ...)
+},
+predict = function(modelFit, newdata, submodels = NULL) {
+as.factor(ifelse(predict(modelFit, newdata, type = &quot;response&quot;) &gt; 0.5, &quot;AD&quot;, &quot;control&quot;))
+},
+prob = function(modelFit, newdata, submodels = NULL) {
+preds &lt;- predict(modelFit, newdata, type = &quot;response&quot;)
+data.frame(control = 1 - preds, AD = preds)
+}
+)
+
+# 训练模型
+set.seed(123)
+firth.logist.model &lt;- train(train_proc[, .SD, .SDcols = !c(&quot;group&quot;)],
+train_proc$group,
+method = firth_model,
+trControl = train_control)
+
+print(firth.logist.model)
+
+
+收到以下错误:
+&gt; firth.logist.model &lt;- train(train_proc[, .SD, .SDcols = !c(&quot;group&quot;)],
++ train_proc$group,
++ method = firth_model,
++ trControl = train_control)
+出现问题；所有准确度指标值均缺失：
+准确度 Kappa 
+最小值：NA 最小值：NA 
+第 1 组：NA 第 1 组：NA 
+中位数：NA 中位数：NA 
+平均值：NaN 平均值：NaN 
+第 3 组：NA 第 3 组：NA 
+最大值：NA 最大值: NA 
+NA :1 NA :1 
+错误：正在停止
+此外：警告消息：
+在 normTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo, :
+中，重新采样的性能指标中缺少值。
+
+
+我试图比较不同模型的性能，当我使用 caret 中的逻辑回归或随机森林时，模型都有效（使用相同的训练、交叉验证和测试数据），所以不确定 Firth 模型在这里失败的原因是什么。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648631/firths-model-in-r-missing-values-in-resampled-performance-measures</guid>
+      <pubDate>Tue, 04 Jun 2024 18:10:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否存在一个表达式，可以用来评估表征 t 检验的样本均值之间显著差异的阈值？</title>
+      <link>https://stats.stackexchange.com/questions/648629/is-there-an-expression-that-can-be-used-to-evaluate-the-threshold-that-character</link>
+      <description><![CDATA[我目前正在对样本均值之间的差异进行配对 t 检验。我有兴趣确定是否有办法获得阈值的标量值，该阈值量化在规定的显著性水平下样本均值之间的差异是否显著大于零。是否存在这样的表达式或阈值？如果能够报告，给定假设检验的结果，样本均值之间的差异“x”或更大被确定为在显著性水平“y”下差异显著大于零的指标，那就太好了。该结果将用于支持 p 值的结论，方法是将实际意义添加到将 p 值与显著性水平进行比较的统计意义中。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648629/is-there-an-expression-that-can-be-used-to-evaluate-the-threshold-that-character</guid>
+      <pubDate>Tue, 04 Jun 2024 17:47:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>Pallavich 博士 BHMS,MPH [已关闭]</title>
+      <link>https://stats.stackexchange.com/questions/648625/dr-pallavich-bhms-mph</link>
+      <description><![CDATA[当我在 STATA/SE 18.5 中执行单组比例荟萃分析来计算患病率和相应的置信区间时，图表中的患病率以小数显示（例如 0.35、0.24、0.56）。我应该选择哪个选项来将此格式更改为常规数字（例如 35、24、56）。有人能帮我做这些更改吗？
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/648625/dr-pallavich-bhms-mph</guid>
+      <pubDate>Tue, 04 Jun 2024 17:04:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么聚合可以减少噪音</title>
+      <link>https://stats.stackexchange.com/questions/648622/why-aggregation-reduces-the-noise</link>
+      <description><![CDATA[我正在寻找证据来证明为什么将数据聚合到更高级别（例如，将变量的每日值聚合到每周或每月）可以减少噪音。有人知道如何证明这一点吗？基本上，为什么更细粒度的数据比聚合的、更粗的数据更不稳定、更不稳定？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648622/why-aggregation-reduces-the-noise</guid>
+      <pubDate>Tue, 04 Jun 2024 16:10:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何防止回归模型对较低值的预测过高或对较高值的预测过低</title>
+      <link>https://stats.stackexchange.com/questions/648621/how-to-prevent-a-regression-model-from-overpredicting-lower-values-and-underpred</link>
+      <description><![CDATA[我正在尝试预测待售房屋的租金。我的训练集由待租房屋组成。根据预测，我的想法是计算盈利能力的估计值（租金/售价）。
+我遇到的问题是，任何回归模型都倾向于高估廉价房屋的租金，而低估昂贵房屋的租金。结果，廉价房屋的盈利能力被夸大，而昂贵房屋的盈利能力被低估。
+这是预期的行为：基线预测是我的目标的平均值/中位数，随着我添加更多特征，预测会偏离该值，但不足以消除这种偏差。但是，这对我的业务问题非常成问题。
+有人知道如何解决这种偏见吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648621/how-to-prevent-a-regression-model-from-overpredicting-lower-values-and-underpred</guid>
+      <pubDate>Tue, 04 Jun 2024 15:40:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>ZCA 是否等同于用 $\sqrt{n}$ 替换奇异值？</title>
+      <link>https://stats.stackexchange.com/questions/648620/is-zca-equivalent-to-substituting-singular-values-with-sqrtn</link>
+      <description><![CDATA[考虑（居中）数据集 $X \in R^{n \times p}$，具有 $n$ 个样本和 $p$ 个特征。根据此解决方案，ZCA 只是 PCA 的重新旋转：
+$$W_{ZCA} = E W_{PCA} = E D^{-1/2} E^T$$
+其中 $E$ 和 $D$ 是参与相关矩阵特征分解的矩阵：
+$$C = \frac{1}{n}X^T X = E D E^T \in R ^{p \times p}$$
+$$C = \frac{1}{n}X^T X = E D E^T \in R ^{p \times p}$$
+$$C = \frac{1}{n}X^T X = E D E^T \in R ^{p \times p}$$
+球面化表示$X$ 随后可转换为 $\bar X = X W_{ZCA}$。
+现在，如果我们对数据 $X = U\Sigma V^T$ 进行 SVD 并将其代入相关矩阵 C，我们会发现 $V = E$ 和 $D = \frac{1}{n}\Sigma^2$。然后，球面化表示可以简单地写成：
+$$\bar X = X ED^{-1/2}E^T = U \Sigma (V^T E) D^{-1/2}E^T = U (\Sigma D^{-1/2}) E^T = \sqrt{n} U I E^T =U (\sqrt{n} I) V^T$$
+因此，这表明 ZCA 实际上等同于用 $\sqrt{n}$ 替换奇异值。我从未在任何地方看到过这种解释，这让我认为它可能不正确。
+我的计算正确吗？我们可以将 ZCA 视为均衡奇异值吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648620/is-zca-equivalent-to-substituting-singular-values-with-sqrtn</guid>
+      <pubDate>Tue, 04 Jun 2024 15:39:37 GMT</pubDate>
+    </item>
     <item>
       <title>对网络结构进行统计分析要用什么方法？</title>
       <link>https://stats.stackexchange.com/questions/648618/what-methods-to-use-for-statistical-analysis-of-a-network-structure</link>
@@ -12,6 +155,18 @@
 我一直在使用广泛的 GAM 进行建模，但总是回到这个问题上，我是提取我认为重要的特征的人。]]></description>
       <guid>https://stats.stackexchange.com/questions/648618/what-methods-to-use-for-statistical-analysis-of-a-network-structure</guid>
       <pubDate>Tue, 04 Jun 2024 15:15:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>配对或独立样本 T 检验</title>
+      <link>https://stats.stackexchange.com/questions/648619/paired-or-independent-sample-t-test</link>
+      <description><![CDATA[我正在开展一个统计项目，该项目由两组（对照组和干预组）组成，两组中的参与者彼此不同。干预组在12 周内对基线和终点的生物标志物进行了测量。即对照组患者P1在基线和 12 周后测量体重。干预组其他患者也采用相同的过程。最后，21 名参与者有大约300 个变量。
+我想知道两组内和两组之间是否存在差异。我的意思是，干预在组内和组间的效果如何？最初提出了“GLMM”，但从数据来看，它不符合 GLMM 的假设。我打算使用配对样本 t 检验，但它似乎不是适用的正确统计模型，因为我假设测量值（数据）在组间是独立的。我也想过线性混合模型（LMM），但对 LMM 的假设并不太确定。我的第一种方法是应用 PCA/K-means 来识别变量聚类，然后使用这些聚类变量进行分析。
+注意：所有数据都是连续的
+我需要有关正确方法进行此分析的建议/帮助。
+所附图片是实验设计
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648619/paired-or-independent-sample-t-test</guid>
+      <pubDate>Tue, 04 Jun 2024 15:13:20 GMT</pubDate>
     </item>
     <item>
       <title>基因总量测试</title>
@@ -239,104 +394,6 @@ plt.show()
       <pubDate>Tue, 04 Jun 2024 12:07:38 GMT</pubDate>
     </item>
     <item>
-      <title>R 中的 GAM，拟合和假设[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/648611/gam-in-r-fitting-and-assumptions</link>
-      <description><![CDATA[我遇到了以下问题：我的调节分析显示非线性。因此，我尝试拟合 GAM。我有几个问题：
-
-我的 DV 是左偏的，有很多高值和一些低值。
-在拟合模型时，我没有足够的 k 来表示 1 个变量，但增加 k 也无济于事。
-我的共轭性很高。
-
-我对这个话题比较陌生，过去几天没有找到答案。
-这是我的代码：
-我有几个模型：
-model_gam &lt;- mgcv::gam(ipv_variety ~ s(dar_scaled) + s(age_scaled, k = 12) + ti(dar_scaled, age_scaled), data = merged_all_complete, method = &quot;REML&quot;)
-
-model_gam2 &lt;- mgcv::gam(ipv_variety ~ te(dar_scaled, k = 12) + te(age_scaled, k = 13) + ti(dar_scaled, age_scaled), data = merged_all_complete)
-
-#alternative
-gam1 &lt;- lm(ipv_variety ~ ns(dar_scaled, 5) * age_scaled, data=merged_all_complete)
-
-mgcv::gam.check(model_gam)
-
-方法：REML 优化器：外牛顿
-12 次迭代后完全收敛。
-梯度范围 [-4.809951e-05,4.615121e-05]
-(得分 251.5576 &amp; 比例 2.881421)。
-Hessian 正定，特征值范围 [7.643802e-06,62.50661]。
-模型等级 = 37 / 37 
-
-基础维度 (k) 检查结果。低 p 值 (k 指数&lt;1) 可能
-表示 k 太低，尤其是当 edf 接近 k&#39; 时。
-
-k&#39; edf k 指数 p 值 
-s(dar_scaled) 9.00 1.00 0.94 0.260 
-s(age_scaled) 11.00 1.00 0.86 0.045 *
-ti(dar_scaled,age_scaled) 16.00 2.29 0.98 0.365 
----
-显著性。代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-mgcv::gam.check(model_gam2)
-
-方法：GCV 优化器：magic
-平滑参数选择在 18 次迭代后收敛。
-收敛时的 RMS GCV 得分梯度为 1.247369e-07。
-Hessian 为正定。
-模型等级 = 40 / 40
-
-基础维度 (k) 检查结果。低 p 值（k 指数&lt;1）可能
-表示 k 太低，尤其是当 edf 接近 k&#39; 时。
-
-k&#39; edf k 指数 p 值 
-te(dar_scaled) 11.00 2.78 0.96 0.29 
-te(age_scaled) 12.00 1.00 0.84 0.02 *
-ti(dar_scaled,age_scaled) 16.00 2.95 1.02 0.52 
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-concurvity(model_gam)
-para s(dar_scaled) s(age_scaled) ti(dar_scaled,age_scaled)
-最差 0.686332 0.9685481 0.9463088 0.9723609
-观察值 0.686332 0.4515971 0.7249471 0.4033396
-估计值 0.686332 0.4769273 0.7471936 0.2483518
-&gt; concurvity(model_gam2)
-para te(dar_scaled) te(age_scaled) ti(dar_scaled,age_scaled)
-最差 0.7006861 0.9708301 0.9635877 0.9779052
-观察到的 0.7006861 0.5241473 0.7229355 0.4458624
-估计 0.7006861 0.2949492 0.3336875 0.2602797
-
-
-我尝试使用 bs = &quot;ps&quot; 进行惩罚，但这对 concurvity 没有帮助。我不知道哪种方法最好，默认方法与 REML 显示出类似的结果。我找不到正确的分布。目前它是高斯的。
-提前非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648611/gam-in-r-fitting-and-assumptions</guid>
-      <pubDate>Tue, 04 Jun 2024 11:52:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用与差异估计量不随时间变化的控件</title>
-      <link>https://stats.stackexchange.com/questions/648606/using-controls-that-are-time-invariant-with-the-difference-in-differences-estima</link>
-      <description><![CDATA[我进行了一项实验，其中有两组参与者在第一阶段执行完全相同的任务。在第二阶段，这两组必须第二次执行相同的任务。但是，对于其中一组，我为第二部分引入了附加信息。这两组被称为社交信息条件和无社交信息条件。
-最简单的模型如下：
-DE=Beta0 + Beta1 X SocialInfo + Beta2 X Time +Beta3 X SocialInfo X Time + u
-（抱歉没有放索引）。
-DE 是因变量，即处置效应。
-社交信息是一个虚拟变量，当没有社交信息（无治疗）时取 0，当有治疗社交信息时取 1。
-时间是一个虚拟变量，在研究的第一部分取 0，在第二部分取 1。
-从这里开始，就理解而言，一切对我来说似乎都很好，但我认为我可能犯了一个错误：
-在每个组中，参与者在两个时间段内有不同的时间限制来执行任务：没有时间限制、20 秒时间限制、10 秒时间限制。因此，我建立的模型如下：
-DE=Beta0 + Beta1 X SocialInfo + Beta2 X Time +Beta3 X SocialInfo X Time + Beta4 X 20TC + Beta5 X 10TC + Beta6 X 人口统计控制+ u
-10TC 和 20TC 是虚拟变量，如果个人在每个时期有 10 秒或 20 秒的时间来完成任务，则取 1，如果没有时间限制，则取 0。
-对我来说，这些系数代表基线差异，即没有社交信息和时间限制的人与没有社交信息但有时间限制的人之间的差异。
-人口统计控制表示在执行任何任务之前测量的变量，例如风险规避、损失规避、性别、年龄等。
-我认为添加这些将使我有更精确的估计。
-但由于我没有材料来验证这一点，所以我我很怀疑添加这些变量是否明智。
-我冒了这个险，因为添加这些变量后 DiD 估计量 (Beta3) 并没有改变。
-我的问题如下：
-为什么 did 估计量的系数在有或没有这些控制（不随时间变化）的情况下保持不变？
-为什么在使用 DiD 估计量的回归模型中添加错误的时间不变控制？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648606/using-controls-that-are-time-invariant-with-the-difference-in-differences-estima</guid>
-      <pubDate>Tue, 04 Jun 2024 11:23:18 GMT</pubDate>
-    </item>
-    <item>
       <title>就风险因素的变化而言，绝对风险降低/相对风险降低与比值比存在哪些问题</title>
       <link>https://stats.stackexchange.com/questions/648605/what-are-the-issues-with-absolute-risk-reduction-relative-risk-reduction-vs-odds</link>
       <description><![CDATA[以下引文来自此：
@@ -349,95 +406,6 @@ DE=Beta0 + Beta1 X SocialInfo + Beta2 X Time +Beta3 X SocialInfo X Time + Beta4 
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/648605/what-are-the-issues-with-absolute-risk-reduction-relative-risk-reduction-vs-odds</guid>
       <pubDate>Tue, 04 Jun 2024 11:22:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有离散时间点和随时间变化的协变量的生存分析的样本大小（R 中的 SampleSizeDiscSurv）</title>
-      <link>https://stats.stackexchange.com/questions/648604/sample-size-for-survival-analysis-with-discrete-time-points-and-time-varying-cov</link>
-      <description><![CDATA[**针对我关于计算具有时间依赖性协变量和有限时间点的 cox 回归的样本量的问题，我得到的反馈是，我可以通过基于二项回归或具有互补对数对数链接的二项回归进行估计来计算样本量。
-具有离散时间的生存分析 (Cox 回归) 的样本量或进行深度模拟。
-我浏览了网站上关于计算具有时间变化协变量的离散生存时间 (cox) 的样本量的所有建议，但没有人建议使用 R 中的以下函数 SampleSizeDiscSurv 进行计算。
-所以我想知道 R 中的这个函数是否可用于计算样本量？这个功能有任何限制-假设-局限吗？?*]]></description>
-      <guid>https://stats.stackexchange.com/questions/648604/sample-size-for-survival-analysis-with-discrete-time-points-and-time-varying-cov</guid>
-      <pubDate>Tue, 04 Jun 2024 11:12:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>寻找合适的方法来查找事件组</title>
-      <link>https://stats.stackexchange.com/questions/648603/looking-for-a-suitable-way-to-find-groups-of-events</link>
-      <description><![CDATA[我有一个 excel 文件，其中有三列。第一列是事件的名称，第二列是事件的开始时间，第三列是事件的结束时间。假设我正在处理人们登录服务器的时间。
-某些行将是：
-Robert 2023-11-28 13:34:43 2023-11-28 13:34:45
-Alice 2023-11-28 13:35:22 2023-11-28 13:37:01
-Robert 2023-11-28 13:44:43 2023-11-28 13:54:08
-Anna 2023-11-28 13:45:02 2023-11-28 13:47:04
-我的想法是使用 python 生成另一个文件，其列数与人员数和将许多行按秒为单位，如果该人在该秒内登录，则输入 1，否则输入 0。然后，在列上使用层次聚类、平均链接和Roger&#39;s Tanimoto距离来查看人与人之间的亲密程度，然后使用关联规则将每行视为一个篮子。我还可以计算人与人之间的相关矩阵。
-我也想知道其他人对这个话题的意见。
-最后，我想创建基于人们同时在线的场景，例如罗伯特和萨曼莎通常同时在线。
-任何关于如何做到这一点的意见都值得赞赏。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648603/looking-for-a-suitable-way-to-find-groups-of-events</guid>
-      <pubDate>Tue, 04 Jun 2024 11:07:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的二项分布不对称</title>
-      <link>https://stats.stackexchange.com/questions/648602/binomial-distribution-in-r-is-not-symmetrical</link>
-      <description><![CDATA[我期望下面的代码产生相同的输出，但事实并非如此。我的想法是基于密度函数的二项分布公式。我使用 Rstudio。
-错误在哪里？
-$$
-P(x) = \binom{n}{x} p^xp^{n-x}
-$$
-r12 = pbinom(2,5,(pnorm(1.4)))
-r13 = pbinom(3,5,(1-pnorm(1.4)))
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/648602/binomial-distribution-in-r-is-not-symmetrical</guid>
-      <pubDate>Tue, 04 Jun 2024 11:06:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 Openmx 确定单变量 ADE/ACE 模型（或饱和模型）中的“起始值”？</title>
-      <link>https://stats.stackexchange.com/questions/648601/how-to-determine-starting-values-in-univariate-ade-ace-model-or-saturated-mod</link>
-      <description><![CDATA[有人知道如何确定起始值吗，例如在未测量的基因型数据中执行饱和模型？我使用了 https://hermine-maes.squarespace.com/#/one/ 中的代码“oneSATc.R”，但它没有很好地解释如何确定起始值，所以也许有人有这方面的经验，可以帮助我。这里我将提供我的代码片段。
- #################
-## 假设测试 ##
-#################
-
-#------------#
-## 准备数据 ##
-#------------#
-
-# 选择要分析的变量
-vars &lt;- &#39;SBJS5T&#39; # 变量名称列表
-nv &lt;- 1 # 变量数量
-ntv &lt;- nv*2 # 总变量数量
-selVars &lt;- paste(vars,c(rep(1,nv),rep(2,nv)),sep=&quot;&quot;) 
-
-# 选择要分析的数据
-mzData &lt;- subset(raw, ZYGO == 1, selVars) 
-dzData &lt;- subset(raw, ZYGO == 2, selVars) 
-
-# 生成描述性统计
-colMeans(mzData,na.rm=TRUE)
-colMeans(dzData,na.rm=TRUE)
-cov(mzData,use=&quot;complete&quot;)
-cov(dzData,use=&quot;complete&quot;)
-
-# 设置起始值
-# 更新设置起始值
-svMe &lt;- 18.42 # 平均值的起始值，四舍五入的平均平均值
-svVa &lt;- 3.45 # 方差的起始值，四舍五入的方差意味着双胞胎
-lbVa &lt;- .0001 # 方差的下限
-
-
-现在我仅使用 4 个“colMeans”的平均值作为“svME”，使用 8 个“cov”的平均值作为“svVa”
-有人可以肯定这一点或告诉我哪种方法可以准确确定这些起始值吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648601/how-to-determine-starting-values-in-univariate-ade-ace-model-or-saturated-mod</guid>
-      <pubDate>Tue, 04 Jun 2024 10:30:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何比较二元名义变量和离散变量？</title>
-      <link>https://stats.stackexchange.com/questions/648598/how-do-i-compare-a-binary-nominal-variable-and-a-discrete-variable</link>
-      <description><![CDATA[我试图比较服务是否已交付（是/否）与员工必须完成的异常任务数量（1、2、... n）。
-我可以使用什么统计测试来做到这一点？
-谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648598/how-do-i-compare-a-binary-nominal-variable-and-a-discrete-variable</guid>
-      <pubDate>Tue, 04 Jun 2024 10:03:54 GMT</pubDate>
     </item>
     </channel>
 </rss>
