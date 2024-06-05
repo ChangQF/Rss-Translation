@@ -4,7 +4,108 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 04 Jun 2024 21:13:26 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 05 Jun 2024 01:03:16 GMT</lastBuildDate>
+    <item>
+      <title>系数之间的差异 = 1 的对比系数称为什么？</title>
+      <link>https://stats.stackexchange.com/questions/648650/what-is-the-name-for-contrast-coefficients-where-the-difference-between-the-coef</link>
+      <description><![CDATA[我想知道是否有一个名称用于对比编码类型，其中项之间的差异等于 1。让我用一些假数据来说明（使用 R 代码，抱歉）
+两组，组 b 的平均值比组 a 的平均值大 3。
+set.seed(1234)
+df_2groups &lt;- data.frame(group = factor(rep(letters[1:2],each=10)),
+score = round(x = c(rnorm(10,5,1), rnorm(10,8,1)),
+digits = 2))
+
+head(df_2groups)
+
+# group score
+# 1 a 3.79
+# 2 a 5.28
+# 3 a 6.08
+# 4 a 2.65
+# 5 a 5.43
+# 6 a 5.51
+
+治疗编码为 [0,1] 时，截距为组 a 的平均值，组 系数为组 b 和组 a 之间的平均值差（组 b 平均值减去组 a 平均值）。
+summary(lm(score ~ group, df_2groups))
+
+# 系数：
+# 估计标准差。误差 t 值 Pr(&gt;|t|) 
+# (截距) 4.6170 0.3268 14.127 3.50e-11 ***
+# groupb 3.2640 0.4622 7.062 1.38e-06 ***
+
+现在，如果我们指定总和为零的对比 [-1,1]（R 中的 &quot;contr.sum&quot; 对比），则截距变为总平均值 - 两个组的平均分数 - 系数是组 b 与总平均值之间的差值（组 b 的平均值减去总平均值）
+summary(lm(score ~ group, df_2groups,contrasts = list(group = c(-1,1))))
+
+# 系数：
+# 估计标准差。误差 t 值 Pr(&gt;|t|) 
+# (截距) 6.2490 0.2311 27.040 5.00e-16 ***
+# group1 1.6320 0.2311 -7.062 1.38e-06 ***
+
+为了准确地在回归输出中返回组间均值差异，我们需要使用简单编码（定义见此处），我们通过从治疗编码中减去 1/nlevels 来实现。
+summary(lm(score ~ group, df_2groups,contrasts = list(group = c(-.5,.5))))
+
+# 系数：
+# 估计标准误差 t 值 Pr(&gt;|t|) 
+# (截距) 6.2490 0.2311 27.040 5.00e-16 ***
+# group1 3.2640 0.4622 -7.062 1.38e-06 ***
+
+第二和第三种对比方案都是“总和为零”对比，因为它们的总和为零。
+我发现治疗编码和简单编码的共同点是两个对比系数之间的差异为 1。
+这种对比类型有名称吗：即系数之间的差异为 1？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648650/what-is-the-name-for-contrast-coefficients-where-the-difference-between-the-coef</guid>
+      <pubDate>Wed, 05 Jun 2024 00:06:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>何时必须知道或可以不知道误差方差结构的直观解释</title>
+      <link>https://stats.stackexchange.com/questions/648649/an-intuitive-explanation-of-when-error-variance-structure-must-be-known-or-can-b</link>
+      <description><![CDATA[在我所学习的线性模型中，似乎必须提前知道误差的方差结构，而不能进行拟合或估计。
+例如，在戴明回归中，您必须知道 X 和 Y 之间的误差比率，并且只允许一个未知的缩放方差适用于整个问题。
+对于单误差模型，当然假设 X 没有误差，但也假设误差是同方差的。但是如果误差不是同方差的，只要我们知道（或假设）特定的权重，就可以通过适当加权点来轻松纠正。
+对于混合线性模型，维基百科写道：
+
+从那段文字中实际上并不清楚当方差未知时我们的参数估计是否仍然是蓝色，但如果它遵循最后两个例子的模式，那么答案是否定的。但维基百科也说：
+
+这让我们得到的估计值至少在某种定义上是“最佳”的。那是什么定义？
+总的来说，我可以（如果它是真的）相信这个概念，即我们不能同时拟合误差结构和线性关系，因为它们总是可以相互混淆并进行权衡，而不会在任何“最佳”测量函数中产生任何成本，但另一方面，为什么没有办法测量两个变量之间的关系，如果最大化，就会告诉我们
+我们的误差结构和线性关系？
+例如，通过对完全相同的点进行多次测量，可以测量误差结构的方差，但什么时候两个点才算完全相同？显然，如果我们使用两个不同的标尺来测量完全相同的物体，那么我们就知道它是同一个点。但在很多情况下，我们有“不同的”彼此具有协方差的点，因此部分充当同一点。
+总结：
+
+关于何时必须知道或不需要知道我们的误差方差以获得有效结果的实用指导
+何时点在估计方差结构（包括它们与其他点之间的协方差）时被视为相同，何时点不算作同一点。
+直观地解释为什么不可能确定一组点的误差结构，以及为什么必须做出诸如“正态分布和独立”之类的假设才能取得进展。（或者也许我完全不了解的非参数测试不需要做出任何假设来描述误差/点的分布？？）
+解释为什么我们似乎总是可以拟合至少一个缩放方差分量，但几乎从不拟合两个。
+
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/648649/an-intuitive-explanation-of-when-error-variance-structure-must-be-known-or-can-b</guid>
+      <pubDate>Tue, 04 Jun 2024 22:18:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>何时 Tukey 事后检验结果与 Welch ANOVA 的 Games Howell 事后检验结果相同？</title>
+      <link>https://stats.stackexchange.com/questions/648646/when-is-tukey-post-hoc-test-result-identical-to-games-howell-post-hoc-test-for-w</link>
+      <description><![CDATA[在什么情况下 Tukey 事后检验与 Games Howell 事后检验相同？我有一个违反 HOV 的 ANOVA 分析，并且我有一个具有统计意义的 Welch ANOVA 结果。我在网上读到，在某些情况下，运行 Tukey 事后检验会产生与 Games Howell 相同的结果。但是，我无法再次在网上找到此来源，而且我不记得它足够具体，无法为我提供明确的答案。我想知道我是否可以有效地使用 Tukey 结果，因为据我了解，要在 SAS 中运行 Games Howell，需要使用在线宏，如果我可以有效地做到这一点，我希望使我的编码和流程更简单。这是我的 ANOVA 语法的示例：
+proc glm data=data1;
+class PtGroup;
+model AvgFURxLen = PtGroup/ solution;
+means PtGroup / hovtest=levene(type=abs);
+means PtGroup / hovtest=bartlett;
+表示 PtGroup / welch tukey;
+run;
+
+有没有办法知道 Tukey 是否对我的分析有效，或者更广泛地说，Tukey 何时与 Games Howell 相同？谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/648646/when-is-tukey-post-hoc-test-result-identical-to-games-howell-post-hoc-test-for-w</guid>
+      <pubDate>Tue, 04 Jun 2024 22:05:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>将样本均值与标准测量值进行比较</title>
+      <link>https://stats.stackexchange.com/questions/648645/comparing-sample-means-to-standard-measurements</link>
+      <description><![CDATA[我正在尝试最好地解决如何确定样本测量值是否在统计上不同于标准的问题。
+如果我测量样本的任何变量（比如说质量）1000 次以确定算术平均值和标准差，同时我测量标准的 10 个不同等分试样，每个等分试样 1000 次。假设数据具有高斯分布，我如何才能最好地描述标准总体和样本总体的测量值并确定每个的平均值是否在统计上不同。
+我可以整理我对标准的所有测量值（即 10,000 次测量）吗？还是最好将其视为一个总体（n=10，其中每个质量等于对该等分试样进行的 1000 次测量的平均值）。
+之后，我可以简单地运行 Welch t 检验或 Bayes 因子 t 检验来确定均值差异的统计显着性吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648645/comparing-sample-means-to-standard-measurements</guid>
+      <pubDate>Tue, 04 Jun 2024 21:57:34 GMT</pubDate>
+    </item>
     <item>
       <title>比较匹配的前后李克特量表数据（n = 40）</title>
       <link>https://stats.stackexchange.com/questions/648644/comparing-matched-pre-post-likert-scale-data-n-40</link>
@@ -24,7 +125,12 @@
     <item>
       <title>是否可以计算由多个评分者评分且具有权重的同一个项目的评分者间信度？</title>
       <link>https://stats.stackexchange.com/questions/648639/is-it-possible-to-calculate-inter-rater-reliability-for-one-item-rated-by-multip</link>
-      <description><![CDATA[我有一个调查，其中有 n 个陈述，参与者将这些陈述归类到他们提供的 4 个选项之一（名义数据）。然后要求参与者根据 5 点李克特量表评估他们分类的信心。我想通过根据他们的信心水平为他们的分类分配权重来计算各个陈述的评级者间信度。当我尝试在 SPSS 中计算 Krippendorff 的 alpha 时，我得到的是零或“nan”。考虑到 Krippendorff 的 alpha 是一种机会调整一致性，我已诉诸使用百分比一致性。这在某种程度上消除了对评级者信心的使用。我考虑使用加权 Cohen 的 kappa，但缺点是它仅适用于两个评级者。有人知道我如何获得一个陈述（项目）的评级者间信度和多个带有权重的评级者。]]></description>
+      <description><![CDATA[我有一个调查，调查中有许多陈述，参与者将这些陈述归类到他们提供的 4 个选项之一。
+然后要求参与者根据 5 点李克特量表对他们的分类的信心进行评分。
+我想通过根据他们的信心水平为他们的分类分配权重来计算单个陈述的评级者间信度。
+当我尝试在 SPSS 中计算 Krippendorff 的 alpha 时，我得到的是零或“nan”。
+考虑到 Krippendorff 的 alpha 是一种机会调整一致性，我已诉诸使用百分比一致性。这在某种程度上消除了对评级者信心的使用。我考虑使用加权 Cohen 的 kappa，但缺点是它仅适用于两个评级者。
+有人知道我如何获得一个陈述（项目）的多个评级者与权重的评级者之间的评级者间信度。]]></description>
       <guid>https://stats.stackexchange.com/questions/648639/is-it-possible-to-calculate-inter-rater-reliability-for-one-item-rated-by-multip</guid>
       <pubDate>Tue, 04 Jun 2024 19:27:12 GMT</pubDate>
     </item>
@@ -159,11 +265,12 @@ print(firth.logist.model)
 NA :1 NA :1 
 错误：正在停止
 此外：警告消息：
-在 normTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo, :
-中，重新采样的性能指标中缺少值。
+在nominalTrainWorkflow（x = x，y = y，wts = weights，info = trainInfo，：
+重采样性能指标中缺少值。
 
 
-我试图比较不同模型的性能，当我使用 caret 中的逻辑回归或随机森林时，模型都有效（使用相同的训练、交叉验证和测试数据），所以不确定 Firth 模型在这里失败的原因是什么。]]></description>
+我试图比较不同模型的性能，当我使用 caret 中的逻辑回归或随机森林时，模型都有效（使用相同的训练、交叉验证和测试数据），所以不确定 Firth 模型在这里失败的原因是什么。
+我在交叉验证中提出了这个问题，因为我怀疑问题在于数据结构，并决定 Firth 模型是否以及如何适合样本，而不是调试。]]></description>
       <guid>https://stats.stackexchange.com/questions/648631/firths-model-in-r-missing-values-in-resampled-performance-measures</guid>
       <pubDate>Tue, 04 Jun 2024 18:10:31 GMT</pubDate>
     </item>
@@ -173,56 +280,6 @@ NA :1 NA :1
       <description><![CDATA[我目前正在对样本均值之间的差异进行配对 t 检验。我有兴趣确定是否有办法获得阈值的标量值，该阈值量化在规定的显著性水平下样本均值之间的差异是否显著大于零。是否存在这样的表达式或阈值？如果能够报告，给定假设检验的结果，样本均值之间的差异“x”或更大被确定为在显著性水平“y”下差异显著大于零的指标，那就太好了。该结果将用于支持 p 值的结论，方法是将实际意义添加到将 p 值与显著性水平进行比较的统计意义中。]]></description>
       <guid>https://stats.stackexchange.com/questions/648629/is-there-an-expression-that-can-be-used-to-evaluate-the-threshold-that-character</guid>
       <pubDate>Tue, 04 Jun 2024 17:47:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>Pallavich 博士 BHMS,MPH [已关闭]</title>
-      <link>https://stats.stackexchange.com/questions/648625/dr-pallavich-bhms-mph</link>
-      <description><![CDATA[当我在 STATA/SE 18.5 中执行单组比例荟萃分析来计算患病率和相应的置信区间时，图表中的患病率以小数显示（例如 0.35、0.24、0.56）。我应该选择哪个选项来将此格式更改为常规数字（例如 35、24、56）。有人能帮我做这些更改吗？
-谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/648625/dr-pallavich-bhms-mph</guid>
-      <pubDate>Tue, 04 Jun 2024 17:04:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么聚合可以减少噪音</title>
-      <link>https://stats.stackexchange.com/questions/648622/why-aggregation-reduces-the-noise</link>
-      <description><![CDATA[我正在寻找证据来证明为什么将数据聚合到更高级别（例如，将变量的每日值聚合到每周或每月）可以减少噪音。有人知道如何证明这一点吗？基本上，为什么更细粒度的数据比聚合的、更粗的数据更不稳定、更不稳定？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648622/why-aggregation-reduces-the-noise</guid>
-      <pubDate>Tue, 04 Jun 2024 16:10:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何防止回归模型对较低值的预测过高或对较高值的预测过低</title>
-      <link>https://stats.stackexchange.com/questions/648621/how-to-prevent-a-regression-model-from-overpredicting-lower-values-and-underpred</link>
-      <description><![CDATA[我正在尝试预测待售房屋的租金。我的训练集由待租房屋组成。根据预测，我的想法是计算盈利能力的估计值（租金/售价）。
-我遇到的问题是，任何回归模型都倾向于高估廉价房屋的租金，而低估昂贵房屋的租金。结果，廉价房屋的盈利能力被夸大，而昂贵房屋的盈利能力被低估。
-这是预期的行为：基线预测是我的目标的平均值/中位数，随着我添加更多特征，预测会偏离该值，但不足以消除这种偏差。但是，这对我的业务问题非常成问题。
-有人知道如何解决这种偏见吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648621/how-to-prevent-a-regression-model-from-overpredicting-lower-values-and-underpred</guid>
-      <pubDate>Tue, 04 Jun 2024 15:40:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>ZCA 是否等同于用 $\sqrt{n}$ 替换奇异值？</title>
-      <link>https://stats.stackexchange.com/questions/648620/is-zca-equivalent-to-substituting-singular-values-with-sqrtn</link>
-      <description><![CDATA[考虑（居中）数据集 $X \in R^{n \times p}$，具有 $n$ 个样本和 $p$ 个特征。根据此解决方案，ZCA 只是 PCA 的重新旋转：
-$$W_{ZCA} = E W_{PCA} = E D^{-1/2} E^T$$
-其中 $E$ 和 $D$ 是参与相关矩阵特征分解的矩阵：
-$$C = \frac{1}{n}X^T X = E D E^T \in R ^{p \times p}$$
-$$C = \frac{1}{n}X^T X = E D E^T \in R ^{p \times p}$$
-$$C = \frac{1}{n}X^T X = E D E^T \in R ^{p \times p}$$
-球面化表示$X$ 随后可转换为 $\bar X = X W_{ZCA}$。
-现在，如果我们对数据 $X = U\Sigma V^T$ 进行 SVD 并将其代入相关矩阵 C，我们会发现 $V = E$ 和 $D = \frac{1}{n}\Sigma^2$。然后，球面化表示可以简单地写成：
-$$\bar X = X ED^{-1/2}E^T = U \Sigma (V^T E) D^{-1/2}E^T = U (\Sigma D^{-1/2}) E^T = \sqrt{n} U I E^T =U (\sqrt{n} I) V^T$$
-因此，这表明 ZCA 实际上等同于用 $\sqrt{n}$ 替换奇异值。我从未在任何地方看到过这种解释，这让我认为它可能不正确。
-我的计算正确吗？我们可以将 ZCA 视为均衡奇异值吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648620/is-zca-equivalent-to-substituting-singular-values-with-sqrtn</guid>
-      <pubDate>Tue, 04 Jun 2024 15:39:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>对网络结构进行统计分析要用什么方法？</title>
-      <link>https://stats.stackexchange.com/questions/648618/what-methods-to-use-for-statistical-analysis-of-a-network-structure</link>
-      <description><![CDATA[我有一个网络结构（邻接矩阵），想找到一种方法来告诉我网络中的哪些特征对于解释我的响应变量最重要。在这种情况下，它是一种感染模拟措施。直观地说，一个可以提取我看不到的图形特征并告诉我它很重要的神经网络会很棒，但我不知道该怎么做。理想情况下，我也想保持简单。任何建议都值得赞赏。
-我一直在使用广泛的 GAM 进行建模，但总是回到这个问题上，我是提取我认为重要的特征的人。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648618/what-methods-to-use-for-statistical-analysis-of-a-network-structure</guid>
-      <pubDate>Tue, 04 Jun 2024 15:15:18 GMT</pubDate>
     </item>
     <item>
       <title>配对或独立样本 T 检验</title>
@@ -265,6 +322,31 @@ $$
 但我不确定如何处理$f(x\mid\lambda,y)$。我们如何获得$f(x\mid\lambda,y)$的表达式？]]></description>
       <guid>https://stats.stackexchange.com/questions/648614/hierarchical-models-and-conditional-independence</guid>
       <pubDate>Tue, 04 Jun 2024 14:05:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用与差异估计量不随时间变化的控件</title>
+      <link>https://stats.stackexchange.com/questions/648606/using-controls-that-are-time-invariant-with-the-difference-in-differences-estima</link>
+      <description><![CDATA[我进行了一项实验，其中有两组参与者在第一阶段执行完全相同的任务。在第二阶段，这两组必须第二次执行相同的任务。但是，对于其中一组，我为第二部分引入了附加信息。这两组被称为社交信息条件和无社交信息条件。
+最简单的模型如下：
+DE=Beta0 + Beta1 X SocialInfo + Beta2 X Time +Beta3 X SocialInfo X Time + u
+（抱歉没有放索引）。
+DE 是因变量，即处置效应。
+社交信息是一个虚拟变量，当没有社交信息（无治疗）时取 0，当有治疗社交信息时取 1。
+时间是一个虚拟变量，在研究的第一部分取 0，在第二部分取 1。
+从这里开始，就理解而言，一切对我来说似乎都很好，但我认为我可能犯了一个错误：
+在每个组中，参与者在两个时间段内有不同的时间限制来执行任务：没有时间限制、20 秒时间限制、10 秒时间限制。因此，我建立的模型如下：
+DE=Beta0 + Beta1 X SocialInfo + Beta2 X Time +Beta3 X SocialInfo X Time + Beta4 X 20TC + Beta5 X 10TC + Beta6 X 人口统计控制+ u
+10TC 和 20TC 是虚拟变量，如果个人在每个时期有 10 秒或 20 秒的时间来完成任务，则取 1，如果没有时间限制，则取 0。
+对我来说，这些系数代表基线差异，即没有社交信息和时间限制的人与没有社交信息但有时间限制的人之间的差异。
+人口统计控制表示在执行任何任务之前测量的变量，例如风险规避、损失规避、性别、年龄等。
+我认为添加这些将使我有更精确的估计。
+但由于我没有材料来验证这一点，所以我我很怀疑添加这些变量是否明智。
+我冒了这个险，因为添加这些变量后 DiD 估计量 (Beta3) 并没有改变。
+我的问题如下：
+为什么 did 估计量的系数在有或没有这些控制（不随时间变化）的情况下保持不变？
+为什么在使用 DiD 估计量的回归模型中添加错误的时间不变控制？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648606/using-controls-that-are-time-invariant-with-the-difference-in-differences-estima</guid>
+      <pubDate>Tue, 04 Jun 2024 11:23:18 GMT</pubDate>
     </item>
     </channel>
 </rss>

@@ -4,22 +4,127 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 04 Jun 2024 21:13:30 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 05 Jun 2024 01:03:23 GMT</lastBuildDate>
+    <item>
+      <title>如何使用 Keras 创建小批量？</title>
+      <link>https://stackoverflow.com/questions/78577993/how-to-create-minibatch-with-keras</link>
+      <description><![CDATA[假设我有 20 个 5*5 张量。我该如何创建一个 batchsize = 20 的数据集？
+读了很多帖子后，我觉得最有可能的解决方案是：
+步骤 1.使用 tf.dataset.from_tensors 创建 20 个数据集，每个数据集包含一个 5*5 张量。
+步骤 2.使用 tf.dataset.zips 将 20 个数据集压缩为一个大数据集。
+步骤 3.不要在 model.fit 中声明 batch_size=20，因为从官方文档中可以看到，“如果您的数据是数据集、生成器或 keras.utils.PyDataset 实例的形式，请不要指定 batch_size（因为它们会生成批次）”
+我不明白批次是从上述步骤生成的。是不是因为数据集的形状（2055）意味着小批次大小应该是 20，这等于第一个参数？
+如果以下陈述是正确的。假设我想将批次大小减少到 10。我需要做的就是在步骤 1 之后先将两个数据集压缩 10 次，然后将新的 10 个数据集压缩为最终数据集。这是正确的吗？
+此外，我尝试在第 2 步之后使用 tf.dataset.batch(20) 应用大数据集。在我 tf.print 执行此批处理命令之前和之后的最终数据集后，我得到的输出是：
+之前：压缩数据集 (array(shape(55), array(shape(55)), …)
+之后：批处理数据集 (array(shape(none55), array(shape(none55)), …)
+形状不同。输出值后，我注意到应用 tf.dataset.batch(20) 后的实际形状为每个数组变为 1*5*5。
+这个命令 tf.dataset.batch(20) 在我的情况下是无用的吗？还是我应该在第 2 步之后使用它？
+官方文档仅使用一个例子是无量纲数组。所以我不知道这个命令对高阶张量如何起作用。]]></description>
+      <guid>https://stackoverflow.com/questions/78577993/how-to-create-minibatch-with-keras</guid>
+      <pubDate>Tue, 04 Jun 2024 22:21:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中的 Firth 模型“重采样性能指标中的缺失值”</title>
+      <link>https://stackoverflow.com/questions/78577799/firths-model-in-r-missing-values-in-resampled-performance-measures</link>
+      <description><![CDATA[以下是带有样本数据的示例
+library(caret)
+library(logistf)
+library(data.table)
+library(ggplot2)
+
+# 创建合成数据集
+set.seed(123)
+n &lt;- 100
+data &lt;- data.table(
+predictor1 = rnorm(n),
+predictor2 = rnorm(n),
+predictor3 = rnorm(n),
+group = factor(sample(c(&quot;control&quot;, &quot;AD&quot;), n, replace = TRUE))
+)
+
+# 标准化预测变量
+data_normalized &lt;- as.data.table(scale(data[, .SD, .SDcols = -&quot;group&quot;]))
+data_normalized[, group := data$group]
+
+# 分为训练集和测试集
+train_index &lt;- createDataPartition(data_normalized$group, p = .75, list = FALSE)
+train &lt;- data_normalized[train_index, ]
+test &lt;- data_normalized[-train_index, ]
+
+# 标准化训练数据
+train_proc &lt;- predict(preProcess(train, method = c(&quot;center&quot;, &quot;scale&quot;), verbose = TRUE), train)
+train_proc[, group := factor(group, levels = c(&quot;control&quot;, &quot;AD&quot;))]
+
+# 定义训练控制
+train_control &lt;- trainControl(method = &quot;repeatedcv&quot;, 
+number = 3, repeats = 3,
+savePredictions = TRUE,
+classProbs = TRUE)
+
+# 定义自定义模型函数
+firth_model &lt;- list(
+type = &quot;Classification&quot;,
+library = &quot;logistf&quot;,
+loop = NULL,
+parameters = data.frame(parameter = c(&quot;none&quot;), class = c(&quot;character&quot;), label = c(&quot;none&quot;)),
+grid = function(x, y, len = NULL, search = &quot;grid&quot;) {
+data.frame(none = &quot;none&quot;)
+},
+fit = function(x, y, wts, param, lev, last, classProbs, ...) {
+data &lt;- as.data.frame(x)
+data$group &lt;- y
+logistf(group ~ ., data = data, control = logistf.control(maxit = 100), ...)
+},
+predict = function(modelFit, newdata, submodels = NULL) {
+as.factor(ifelse(predict(modelFit, newdata, type = &quot;response&quot;) &gt; 0.5, &quot;AD&quot;, &quot;control&quot;))
+},
+prob = function(modelFit, newdata, submodels = NULL) {
+preds &lt;- predict(modelFit, newdata, type = &quot;response&quot;)
+data.frame(control = 1 - preds, AD = preds)
+}
+)
+
+# 训练模型
+set.seed(123)
+firth.logist.model &lt;- train(train_proc[, .SD, .SDcols = !c(&quot;group&quot;)],
+train_proc$group,
+method = firth_model,
+trControl = train_control)
+
+print(firth.logist.model)
+
+
+收到以下错误:
+&gt; firth.logist.model &lt;- train(train_proc[, .SD, .SDcols = !c(&quot;group&quot;)],
++ train_proc$group,
++ method = firth_model,
++ trControl = train_control)
+出现问题；所有准确度指标值均缺失：
+准确度 Kappa 
+最小值：NA 最小值：NA 
+第 1 组：NA 第 1 组：NA 
+中位数：NA 中位数：NA 
+平均值：NaN 平均值：NaN 
+第 3 组：NA 第 3 组：NA 
+最大值：NA 最大值: NA 
+NA :1 NA :1 
+错误：正在停止
+此外：警告消息：
+在 normTrainWorkflow(x = x, y = y, wts = weights, info = trainInfo, :
+中，重新采样的性能指标中缺少值。
+
+
+我试图比较不同模型的性能，当我使用 caret 中的逻辑回归或随机森林时，模型都有效（使用相同的训练、交叉验证和测试数据），所以不确定 Firth 模型在这里失败的原因是什么。]]></description>
+      <guid>https://stackoverflow.com/questions/78577799/firths-model-in-r-missing-values-in-resampled-performance-measures</guid>
+      <pubDate>Tue, 04 Jun 2024 21:24:40 GMT</pubDate>
+    </item>
     <item>
       <title>Julia MLJ Forest Load：错误：MethodError：没有与 BetaML.Bmlj.RandomForestRegressor() 匹配的方法</title>
       <link>https://stackoverflow.com/questions/78577415/julia-mlj-forest-loaderror-methoderror-no-method-matching-betaml-bmlj-randomf</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78577415/julia-mlj-forest-loaderror-methoderror-no-method-matching-betaml-bmlj-randomf</guid>
       <pubDate>Tue, 04 Jun 2024 19:40:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>GDown 下载在 3605 秒时停止</title>
-      <link>https://stackoverflow.com/questions/78577377/gdown-download-stops-at-3605-seconds</link>
-      <description><![CDATA[我一直在尝试从 Google Drive 下载数据集，但不知为何我的下载总是在 3605 秒时停止，如您在图片中看到的那样。
-我没有磁盘或网络问题，一切都很稳定。此外，这与此特定文件无关，因为它一直发生在我下载的任何文件上。此外，我可以使用 continue 标志从临时（部分下载）文件恢复下载。
-我正在运行带有 python==3.10 和 gdown==5.2.0 的 Ubuntu 系统。我怀疑这是某种超时问题，但我无法找出或修复它。我在他们的 GitHub 上提出了一个问题。]]></description>
-      <guid>https://stackoverflow.com/questions/78577377/gdown-download-stops-at-3605-seconds</guid>
-      <pubDate>Tue, 04 Jun 2024 19:29:32 GMT</pubDate>
     </item>
     <item>
       <title>如何枚举 ML.NET 训练管道中的所有训练师？</title>
@@ -85,43 +190,6 @@ ValueError: Total对于 MobilenetV2/Conv/weights，新数组的大小必须保�
       <pubDate>Tue, 04 Jun 2024 17:13:08 GMT</pubDate>
     </item>
     <item>
-      <title>TrOCR 模型无法解释文本</title>
-      <link>https://stackoverflow.com/questions/78576566/trocr-model-fails-to-interpret-text</link>
-      <description><![CDATA[我尝试按照各种教程使用 HuggingFace 的 TrOCR 模型来读取收据中的文本。这与 SROIE 数据集的预训练任务相匹配，因此它应该表现得非常好，但即使我尝试在训练数据上运行生成，我也遇到了一些问题。
-按照本教程，对裁剪文本的推理效果非常好 https://learnopencv.com/trocr-getting-started-with-transformer-based-ocr/。处理器将一小部分文本转换为 384x384 相位包裹图像。大多数文章将预处理器描述为调整大小 + 规范化，但显然还有更多的事情要做。
-
-
-生成效果非常好：
-
-“而且斗争只能持续一段时间”
-
-当我尝试在 &gt;384x384 的收据图像上运行代码时，它确实只是重新缩放和标准化，并存在一些量化（？）问题：
-
-预测不太好...
-
-TAX
-
-令人惊讶的是，只生成了 4 个 token（model.config 显示最大值为 20 个 token，我假设不能超过这个数字）。设置 max_new_tokens 似乎不会增加生成的 token 数量。增加 min_new_tokens 会产生乱码。
-示例图像 - https://drive.google.com/file/d/1MMa-Nnw2yjoiRymoXw8b7MdgMD3oj-CH/view?usp=drive_link
-model_name = &#39;microsoft/trocr-large-printed&#39;
-processor = TrOCRProcessor.from_pretrained(model_name)
-model = VisionEncoderDecoderModel.from_pretrained(model_name).to(&#39;cuda&#39;)
-pixel_values = process(image, return_tensors=&#39;pt&#39;).pixel_values.to(&#39;cuda&#39;)
-generated_ids = model.generate(pixel_values)
-generated_text = processing.batch_decode(generated_ids, skip_special_tokens=True)[0]
-print(generated_ids)
-print(generated_text)
-
-有人能解释一下吗：
-
-预处理中会发生什么以及如何修复？我应该在补丁中运行预测，还是可以进行微调？
-为什么只有 4 个 token，max_tokens=20
-还有其他突出的问题吗？
-]]></description>
-      <guid>https://stackoverflow.com/questions/78576566/trocr-model-fails-to-interpret-text</guid>
-      <pubDate>Tue, 04 Jun 2024 16:03:45 GMT</pubDate>
-    </item>
-    <item>
       <title>skopt.gbrt_minimize（梯度提升回归树）——如果损失函数不可微，如何计算其梯度？</title>
       <link>https://stackoverflow.com/questions/78576495/skopt-gbrt-minimize-gradient-boosted-regression-trees-how-does-it-calculate</link>
       <description><![CDATA[我正在为 Jansen &amp; Rit 全脑模型优化 11 个参数，如下所示：
@@ -135,35 +203,31 @@ gbrt_minimize(find_bold_loss, search_space, n_calls=80, n_initial_points=32, ini
       <pubDate>Tue, 04 Jun 2024 15:50:01 GMT</pubDate>
     </item>
     <item>
+      <title>'InvalidArgumentError' 的解决方案是什么</title>
+      <link>https://stackoverflow.com/questions/78576371/what-is-the-solution-to-an-invalidargumenterror</link>
+      <description><![CDATA[尝试在扩散模型上训练我的数据以生成新数据时，最后一个用于训练的单元输出此错误。请问解决方案是什么？
+在预测和运行噪声和去噪后，现在训练 UNet。尽管为 train 创建了一个函数
+def train(R=50):
+bar = trange(R)
+total = 100
+for i in bar:
+for j in range(total):
+x_img = X_train[np.random.randint(len(X_train), size=BATCH_SIZE).tolist()]
+loss = train_one(x_img)
+pg = (j / total) * 100
+if j % 5 == 0:
+bar.set_description(f&#39;loss: {loss:.5f}, p: {pg:.2f}%&#39;)
+
+上传的图像是出现错误的单元格，具体来说是调用 train 函数的那一行]]></description>
+      <guid>https://stackoverflow.com/questions/78576371/what-is-the-solution-to-an-invalidargumenterror</guid>
+      <pubDate>Tue, 04 Jun 2024 15:27:10 GMT</pubDate>
+    </item>
+    <item>
       <title>如果我的模型检测到多个物体（有时是假的），我该如何使用 mAP、精度、召回率和 f1 验证我的 mask rcnn 模型</title>
       <link>https://stackoverflow.com/questions/78576156/how-do-i-validate-my-mask-rcnn-model-with-map-precision-recall-and-f1-if-my-mo</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78576156/how-do-i-validate-my-mask-rcnn-model-with-map-precision-recall-and-f1-if-my-mo</guid>
       <pubDate>Tue, 04 Jun 2024 14:49:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么会出现此错误？“TransformerMixin.fit_transform() 缺少 1 个必需的位置参数：‘X’”</title>
-      <link>https://stackoverflow.com/questions/78575884/why-is-this-error-coming-up-transformermixin-fit-transform-missing-1-require</link>
-      <description><![CDATA[我有这行代码
-cols_to_scale = [&#39;tenure&#39;,&#39;MonthlyCharges&#39;,&#39;TotalCharges&#39;]
-
-来自 sklearn.preprocessing import MinMaxScaler
-scaler = MinMaxScaler
-
-df2[cols_to_scale] = scaler.fit_transform(df2[cols_to_scale])
-
-这会引发此错误，为什么？
-TypeError Traceback (most recent call last)
-Cell In[77], line 6
-3 来自 sklearn.preprocessing import MinMaxScaler
-4 scaler = MinMaxScaler
-----&gt; 6 df2[cols_to_scale] = scaler.fit_transform(df2[cols_to_scale])
-
-TypeError: TransformerMixin.fit_transform() 缺少 1 个必需的位置参数：“X”
-
-不知道为什么会发生此错误。]]></description>
-      <guid>https://stackoverflow.com/questions/78575884/why-is-this-error-coming-up-transformermixin-fit-transform-missing-1-require</guid>
-      <pubDate>Tue, 04 Jun 2024 13:58:35 GMT</pubDate>
     </item>
     <item>
       <title>PySpark 错误要求失败：A 和 B 维度不匹配</title>
@@ -289,132 +353,34 @@ print(&quot;Prediction file saved.&quot;)
       <pubDate>Tue, 04 Jun 2024 13:07:29 GMT</pubDate>
     </item>
     <item>
-      <title>使用 python 和 opencv 计算盒子的尺寸</title>
-      <link>https://stackoverflow.com/questions/78575461/calculate-the-dimensions-of-a-box-using-python-and-opencv</link>
-      <description><![CDATA[我正在使用 Python 绘制盒子照片的轮廓，并使用 opencv 在盒子的轮廓上画线，我试图做的是计算，如附图所示。
-绘制另一个不同颜色的轮廓并标记顶点 (tl、tr、br、bl)。
-我正在尝试计算宽度 (BL + BR)、高度 (BL、TL) 和长度 (TL、TR)。
-但是这样做时，它会计算出不同的大小，并采用其他参考。
-我正在尝试计算框的大小，尝试获取宽度、高度和长度。
-import cv2
-import numpy as np
-from scipy.spatial import distance as dist
+      <title>如何使用随机森林计算预测的置信区间？</title>
+      <link>https://stackoverflow.com/questions/78572538/how-can-i-calculate-confidence-interval-for-forecast-using-random-forest</link>
+      <description><![CDATA[我正在计算名为 &quot;spot&quot; 的变量的预测（数据的未来结果）。我正在使用随机森林和名为 &quot;DTCI&quot; 的独立变量来协助预测 &quot;spot&quot;。
+预测按月进行，与数据频率相同。我想根据每个月的上限和下限获得每个预测月份的置信区间。它与附图中所做的类似，带有绿色限制。
 
-def tup(point):
-return (int(point[0]), int(point[1]))
+我尝试使用 GradientBoostingRegressor 构建间隔，如下所示：
+# 设置下分位数和上分位数
+inf = 0.1
+sup = 0.9
 
-# 按正确顺序排列点的函数
-def order_points(pts):
-rect = np.zeros((4, 2), dtype=&quot;float32&quot;)
-s = pts.sum(axis=1)
-rect[0] = pts[np.argmin(s)]
-rect[2] = pts[np.argmax(s)]
+# 每个模型必须独立
+lower_model = GradientBoostingRegressor(loss=&quot;quantile&quot;, alpha=inf)
+upper_model = GradientBoostingRegressor(loss=&quot;quantile&quot;, alpha=sup)
 
-diff = np.diff(pts, axis=1)
-rect[1] = pts[np.argmin(diff)]
-rect[3] = pts[np.argmax(diff)]
+lower_model.fit(X_train, y_train)
+upper_model.fit(X_train, y_train)
 
-return rect
+predictions = pd.DataFrame(y_hat_forecast_spot)
 
-# 加载图像
-img = cv2.imread(&quot;boxing.jpg&quot;)
+predictions[&quot;inf&quot;] = lower_model.predict(X_fore)
+predictions[&quot;sup&quot;] = upper_model.predict(X_fore)
 
-# 缩小尺寸以适合屏幕
-scale = 0.2
-h, w = img.shape[:2]
-h = int(scale * h)
-w = int(scale * w)
-img = cv2.resize(img, (w, h))
-copy = np.copy(img)
+然而，结果并没有我预期的趋势。由于它是一个时间序列，我想象（如上图所示）限值应该以置信区域变大的方式增长。换句话说，日期越远，预测就越困难，因此与之相关的误差或间隔就越大。
+我使用 GradientBoostingRegressor 得到的结果（如下所示）的间隔会随时间变化而不是增长。
 
-# 转换为 hsv
-hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-h, s, v = cv2.split(hsv)
-
-# 制作遮罩
-mask = cv2.inRange(s, 30, 255)
-
-# 扩大和侵蚀以去除小的孔
-kernel = np.ones((5, 5), np.uint8)
-mask = cv2.dilate(mask, kernel, iterations=1)
-mask = cv2.erode(mask, kernel, iterations=1)
-
-# 查找轮廓
-contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-contour = max(contours, key=cv2.contourArea) # 使用最大轮廓
-
-# 将轮廓近似为多边形
-epsilon = 0.02 * cv2.arcLength(contour, True)
-approx = cv2.approxPolyDP(contour, epsilon, True)
-
-# 绘制轮廓
-cv2.drawContours(img, [approx], -1, (0, 0, 200), 2)
-
-# 计算框尺寸
-if len(approx) == 6:
-pts = approx.reshape(6, 2)
-
-# 对点进行排序
-rect = order_points(pts[:4])
-
-# 计算尺寸
-(tl, tr, br, bl) = rect
-widthA = dist.euclidean(br, bl)
-widthB = dist.euclidean(tr, tl)
-heightA = dist.euclidean(tr, br)
-heightB = dist.euclidean(tl, bl)
-
-maxWidth = max(int(widthA), int(widthB))
-maxHeight = max(int(heightA), int(heightB))
-
-print(f&quot;Width: {maxWidth}px&quot;)
-print(f&quot;Height: {maxHeight}px&quot;)
-
-# 绘制带标签的点和线
-colors = [(0, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 0)]
-标签 = [&quot;TL&quot;, &quot;TR&quot;, &quot;BR&quot;, &quot;BL&quot;]
-
-对于 i，点在 enumerate(rect) 中：
-cv2.circle(img, tup(point), 5, colors[i], -1)
-cv2.putText(img, labels[i], tup(point), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[i], 2)
-
-cv2.line(img, tup(tl), tup(tr), (0, 255, 0), 2)
-cv2.line(img, tup(tr), tup(br), (0, 255, 0), 2)
-cv2.line(img, tup(br), tup(bl), (0, 255, 0), 2)
-cv2.line(img, tup(bl), tup(tl), (0, 255, 0), 2)
-
-# 显示
-cv2.imshow(&quot;Image&quot;, img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-使用的图片：
-
-处理后的图片：
-]]></description>
-      <guid>https://stackoverflow.com/questions/78575461/calculate-the-dimensions-of-a-box-using-python-and-opencv</guid>
-      <pubDate>Tue, 04 Jun 2024 12:40:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>Early Stopping 在 Colab 上没有指标</title>
-      <link>https://stackoverflow.com/questions/78572180/early-stopping-does-not-have-metrics-on-colab</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78572180/early-stopping-does-not-have-metrics-on-colab</guid>
-      <pubDate>Mon, 03 Jun 2024 19:17:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>YoloV3-Tiny 训练时间 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78571568/yolov3-tiny-training-time</link>
-      <description><![CDATA[我是 AI 新手，正在将 Cat 检测器作为一个项目进行训练。我目前正在 Google Colab 上工作，已经完成了初步训练，并且拥有用于进一步训练的最佳权重。我遇到的问题是我的新数据集大约有 9500 张图像，它给出的完成时间估计大约为 400 小时。我可以做哪些更改来减少时间？我只有 1 个类，这是我当前使用的 cfg：
-批次为 64
-细分为 16
-最大批次为 150000
-步骤为 120000 到 135000
-除过滤器和类别外，所有其他设置均为默认设置，这些设置均已正确更改。
-如果您需要更多信息，请告诉我。任何帮助都将不胜感激！
-我尝试过调整批次大小、最大批次大小、细分和步骤，但并没有取得太大成功。]]></description>
-      <guid>https://stackoverflow.com/questions/78571568/yolov3-tiny-training-time</guid>
-      <pubDate>Mon, 03 Jun 2024 16:38:48 GMT</pubDate>
+GradientBoostingRegressor 适合时间序列吗？或者有其他函数可以更好地理解时间序列吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78572538/how-can-i-calculate-confidence-interval-for-forecast-using-random-forest</guid>
+      <pubDate>Mon, 03 Jun 2024 21:17:18 GMT</pubDate>
     </item>
     <item>
       <title>处理图像以提取神经网络的手写文本</title>
@@ -486,12 +452,62 @@ selected_rects.append((x, y, w, h))
       <pubDate>Wed, 29 May 2024 18:08:08 GMT</pubDate>
     </item>
     <item>
+      <title>优化欺诈检测不平衡数据的指标</title>
+      <link>https://stackoverflow.com/questions/77444565/optimize-metrics-for-fraud-detection-imbalanced-data</link>
+      <description><![CDATA[我需要您的帮助来提高我的模型性能。就像大多数欺诈检测一样，我有一个不平衡的数据集（0.1/0.9）。我想优化目标 1 和 0 的召回率，因为一方面我想避免欺诈检测，另一方面我想限制将非欺诈客户定位为欺诈的成本，因为 5% 的错误分类会使我的收入减少 3000 欧元（而定位正确的欺诈者会让我为每个检测到的客户节省 1000 欧元的损失）。
+我的第一个问题是：您会根据这个问题考虑哪些指标？我更关注召回率，但我会阅读您的意见。
+第二个问题：我如何提高模型性能？
+到目前为止，我在不降低阈值的情况下获得的最佳结果是：
+准确率：0.89
+混淆矩阵：
+[[3153 279]
+[ 145 297]]
+分类报告：
+准确率 召回率 f1 分数 支持
+ 0 0.96 0.92 0.94 3432
+1 0.52 0.67 0.58 442
+
+准确率 0.89 3874
+
+而如果我降低阈值以增加目标 1 的召回率：
+准确率：0.61
+混淆矩阵：
+[[1959 1473]
+[ 42 400]]
+分类报告：
+准确率 召回率 f1 分数 支持率
+ 0 0.98 0.57 0.72 3432
+1 0.21 0.90 0.35 442
+
+准确率 0.61 3874
+
+我尝试了几种模型：
+线性回归、XGBoost、随机森林和 SVM
+此外，甚至过采样/反采样技术（仅在训练集上）
+RandomOverSampling、RandomUnderSampling、SMOTE
+您还有其他建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/77444565/optimize-metrics-for-fraud-detection-imbalanced-data</guid>
+      <pubDate>Wed, 08 Nov 2023 10:08:43 GMT</pubDate>
+    </item>
+    <item>
       <title>使用单类 SVM 计算异常检测的异常分数</title>
       <link>https://stackoverflow.com/questions/53956538/calculating-anomaly-score-for-anomaly-detection-using-one-class-svm</link>
       <description><![CDATA[我对使用单类 SVM 计算异常检测的异常分数有疑问。我的问题是：如何使用 decision_function(X) 计算它，就像我在隔离森林中计算异常分数一样？
 非常感谢，]]></description>
       <guid>https://stackoverflow.com/questions/53956538/calculating-anomaly-score-for-anomaly-detection-using-one-class-svm</guid>
       <pubDate>Fri, 28 Dec 2018 09:50:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于欺诈检测的特征工程</title>
+      <link>https://stackoverflow.com/questions/50330778/feature-engineering-for-fraud-detection</link>
+      <description><![CDATA[我正在为学术目的进行一些欺诈检测研究。
+我想具体了解从交易数据集中进行特征选择\工程化的技术。
+更详细地说，给定一个交易数据集（例如信用卡），选择什么样的特征用于模型以及如何设计它们？
+我遇到的所有论文都关注模型本身（SVM、NN 等），并没有真正涉及这个主题。
+此外，如果有人知道未匿名的公共数据集 - 这也会有所帮助。
+谢谢]]></description>
+      <guid>https://stackoverflow.com/questions/50330778/feature-engineering-for-fraud-detection</guid>
+      <pubDate>Mon, 14 May 2018 12:50:06 GMT</pubDate>
     </item>
     </channel>
 </rss>
