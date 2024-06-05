@@ -4,7 +4,138 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 05 Jun 2024 06:21:52 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 05 Jun 2024 09:18:15 GMT</lastBuildDate>
+    <item>
+      <title>对图像应用离散余弦变换 (DCT) 时获取黑色图像</title>
+      <link>https://stackoverflow.com/questions/78579740/getting-black-images-while-applying-discrete-cosine-transform-dct-on-image</link>
+      <description><![CDATA[在对图像应用离散余弦变换 (DCT) 时获取黑色图像
+
+def perform_dct(image_path):
+# 以灰度加载图像
+img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+if img is None:
+raise ValueError(f&quot;Image at {image_path} could not be loaded.&quot;)
+# 将图像大小调整为 224x224（ViT 模型预期的大小）
+
+img = cv2.resize(img, (224, 224))
+# 执行 DCT
+dct_img = cv2.dct(np.float32(img))
+
+# 将 DCT 图像规范化为范围[0, 1]
+dct_img_min = np.min(dct_img)
+dct_img_max = np.max(dct_img)
+dct_img_normalized = (dct_img - dct_img_min) / (dct_img_max - dct_img_min)
+
+# 转换为 3 通道 RGB 图像
+dct_img_normalized = (dct_img_normalized * 255).astype(np.uint8)
+dct_img_rgb = cv2.merge([dct_img_normalized, dct_img_normalized, dct_img_normalized])
+
+plt.imshow(dct_img_rgb)
+plt.title(&quot;DCT of Imagesss&quot;)
+plt.show()
+
+return dct_img_rgb
+
+尝试获取离散余弦变换 (DCT) 图像，但获取的是整个黑色图像，我无法在代码中发现错误。如果可以，请帮助我]]></description>
+      <guid>https://stackoverflow.com/questions/78579740/getting-black-images-while-applying-discrete-cosine-transform-dct-on-image</guid>
+      <pubDate>Wed, 05 Jun 2024 08:41:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>最新版本的 Mask-RCNN 和 TensorFlow 版本的错误</title>
+      <link>https://stackoverflow.com/questions/78579595/newest-version-of-working-mask-rcnn-errors-on-tensorflow-version</link>
+      <description><![CDATA[我一直在尝试在生物实验室的细胞图像上实现 Mask-RCNN。
+我知道 matterport/Mask_RCNN 无法正常工作，因为它使用的是 TensorFlow 1，所以我尝试使用使用 TensorFlow 2 的 github repos。但我仍然觉得有些已经过时了，或者我的设置不匹配，它没有运行。我一直在使用这个：https://github.com/ahmedfgad/Mask-RCNN-TF2
+是否有 2024 年或 2023 年的最新版本可以作为参考？我真的很想尝试在我的系统上实现，但是当我尝试从同一位置修复问题时，不断收到类似 ModuleNotFoundError: 没有名为“keras.engine”的模块 或 ERROR: 找不到满足要求 tensorflow==2.2.0 的版本的错误。]]></description>
+      <guid>https://stackoverflow.com/questions/78579595/newest-version-of-working-mask-rcnn-errors-on-tensorflow-version</guid>
+      <pubDate>Wed, 05 Jun 2024 08:11:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 logistf 包在 R 中计算 Firth 模型非收敛误差</title>
+      <link>https://stackoverflow.com/questions/78579401/firths-model-non-converge-error-in-r-using-the-logistf-package</link>
+      <description><![CDATA[这是示例数据的链接（示例数据不大 - 只有 23 kb，但可能是导致错误的原因）：
+
+https://drive.google.com/file/d/1TWkFIKhq9VZkFnhUrt6LxYmab54ouODd/view?usp=sharing
+
+这是我运行 firth 模型的代码。我在不同的运行中遇到了不同的错误（重新启动 r 或 r 会话），有时程序似乎卡住了（但是，活动监视器显示 CPU 使用率为 99%），其他时候我遇到了诸如不收敛之类的错误，并建议我增加迭代次数，但这并没有真正帮助。
+library(caret)
+library(logistf)
+library(data.table)
+
+# 定义训练控制
+train_control &lt;- trainControl(method = &quot;repeatedcv&quot;, 
+number = 3, repeats = 3,
+savePredictions = TRUE,
+classProbs = TRUE)
+
+# 定义自定义模型函数
+firth_model &lt;- list(
+type = &quot;Classification&quot;,
+library = &quot;logistf&quot;,
+loop = NULL,
+parameters = data.frame(parameter = c(&quot;none&quot;), class = c(&quot;character&quot;), label = c(&quot;none&quot;)),
+grid = function(x, y, len = NULL, search = &quot;grid&quot;) {
+data.frame(none = &quot;none&quot;)
+},
+fit = function(x, y, wts, param, lev, last, classProbs, ...) {
+data &lt;- as.data.frame(x)
+data$group &lt;- y
+logistf(group ~ ., data = data, control = logistf.control(maxit = 100), ...)
+},
+predict = function(modelFit, newdata, submodels = NULL) {
+as.factor(ifelse(predict(modelFit, newdata, type = &quot;response&quot;) &gt; 0.5, &quot;AD&quot;, &quot;control&quot;))
+},
+prob = function(modelFit, newdata, submodels = NULL) {
+preds &lt;- predict(modelFit, newdata, type = &quot;response&quot;)
+data.frame(control = 1 - preds, AD = preds)
+}
+)
+
+train_proc &lt;- fread(&quot;train_proc.csv&quot;)
+
+# 训练模型
+set.seed(123)
+firth.logist.model &lt;- train(train_proc[, .SD, .SDcols = !c(&quot;group&quot;)],
+train_proc$group,
+method = firth_model,
+trControl = train_control)
+
+print(firth.logist.model)
+
+
+这是最新的错误
+logistf(group ~ ., data = data, control = logistf.control(maxit = 100), 中出现警告：
+未收敛的 PL 置信限度：变量的最大迭代次数：（截距）、x1、x2、x3、x4、x5、x6、x7、x8、x9、x10、x11、x12、x13、x14、x15、x16、x17、x18、x19、x20、x21、x22、x23、x24 超出。尝试通过将“logistpl.control(maxit=...)”传递给参数 plcontrol 来增加迭代次数
+
+相同的代码似乎在某些数据集上运行，但在其他数据集上运行不起来。但这也可能是由于我的函数无法针对特定数据集进行自定义。我遇到了许多不同类型的错误，我开始怀疑 logistf 包本身是否不稳定。
+为了提供更多信息，这是我的 r 版本：
+R.version
+_ 
+platform aarch64-apple-darwin20 
+arch aarch64 
+os darwin20 
+system aarch64, darwin20 
+status 
+major 4 
+minor 3.2 
+year 2023 
+month 10 
+day 31 
+svn rev 85441 
+language R 
+version.string R version 4.3.2 (2023-10-31)
+nickname Eye Holes 
+
+这是我的包版本：
+&gt; packageVersion(&quot;caret&quot;)
+[1] ‘6.0.94’
+&gt; packageVersion(&quot;logistf&quot;)
+[1] ‘1.26.0’
+&gt; packageVersion(&quot;data.table&quot;)
+[1] ‘1.14.10’
+]]></description>
+      <guid>https://stackoverflow.com/questions/78579401/firths-model-non-converge-error-in-r-using-the-logistf-package</guid>
+      <pubDate>Wed, 05 Jun 2024 07:34:40 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用 Keras 创建小批量？</title>
       <link>https://stackoverflow.com/questions/78577993/how-to-create-minibatch-with-keras</link>
@@ -127,27 +258,6 @@ NA :1 NA :1
       <pubDate>Tue, 04 Jun 2024 19:40:11 GMT</pubDate>
     </item>
     <item>
-      <title>如何枚举 ML.NET 训练管道中的所有训练师？</title>
-      <link>https://stackoverflow.com/questions/78576996/how-to-enumerate-over-all-trainers-in-an-ml-net-training-pipeline</link>
-      <description><![CDATA[是否可以从 ML.NET 应用程序中的特定训练器类别中获取所有训练器并对它们进行迭代？例如，使类似这样的工作（没有）。
-var allTrainers = new object[]
-{
-mlContext.MulticlassClassification.Trainers.SdcaNonCalibrated(),
-mlContext.MulticlassClassification.Trainers.LbfgsMaximumEntropy()
-};
-
-foreach (var trainer in allTrainers)
-{
-var trainingPipeline = dataProcessPipeline
-.Append(trainer)
-.Append(mlContext.Transforms.Conversion.MapKeyToValue(&quot;PredictedLabel&quot;));
-}
-
-它们似乎没有使用可以放入列表并分配给 Append() 的通用基类型。]]></description>
-      <guid>https://stackoverflow.com/questions/78576996/how-to-enumerate-over-all-trainers-in-an-ml-net-training-pipeline</guid>
-      <pubDate>Tue, 04 Jun 2024 17:52:31 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么MobileNetv2微调时Conv中的数组形状不匹配？</title>
       <link>https://stackoverflow.com/questions/78576851/why-the-shape-of-array-in-conv-when-fine-tuning-mobilenetv2-doesnt-match</link>
       <description><![CDATA[我正在尝试从检查点（https://github.com/tensorflow/models/tree/master/research/slim/nets/mobilenet，请参阅“Mobilenet V2 Imagenet 检查点”下的“float_v2_1.4_224”）对 MobileNetv2 模型进行微调，以完成使用 Deeplabv3 进行图像分割的任务。我按照 deeplab repo 中描述的方法，将 pascal VOC 数据集替换为我自己的数据集，该数据集由大小为 224x224 的图像组成（与用于训练该检查点的图像大小相同），然后使用此脚本作为参考，以确定要设置哪些标志来训练 mobilenetv2。（https://github.com/tensorflow/models/blob/master/research/deeplab/local_test_mobilenetv2.sh）
@@ -184,7 +294,7 @@ ignore_missing_vars=ignore_missing_vars)
 (ckpt_name, str(ckpt_value.shape), str(var.get_shape())))
 ValueError: Total对于 MobilenetV2/Conv/weights，新数组的大小必须保持不变 lh_shape: [(3, 3, 3, 48)], rh_shape: [(3, 3, 3, 32)]
 
-我尝试将其他配置值（例如将“initialize_last_layer”更改为 false 并将“last_layers_contain_logits_only”更改为 false）更改为 false，但这没有帮助，而且 Google 和 GitHub 上似乎都不存在有关此问题的信息。一位用户建议将“depth_multiplier”标志更改为 0.5，但除了将 rh 形状更改为 [3,3,3,16] 之外，它没有任何效果。
+我尝试过将其他配置值（例如将“initialize_last_layer”更改为 false 并将“last_layers_contain_logits_only”更改为 false）但这没有帮助，而且 Google 和 GitHub 上似乎都不存在有关此问题的信息。一位用户建议将“depth_multiplier”标志更改为 0.5 和 1.4，但除了将 rh 形状更改为 [3,3,3,16] 和 [3,3,3,45] 之外，它没有任何效果。我认为 dm=1.4 是假定值，因为它几乎与形状非常接近，但有一些我无法理解的填充/缺失。
 感谢您的帮助。]]></description>
       <guid>https://stackoverflow.com/questions/78576851/why-the-shape-of-array-in-conv-when-fine-tuning-mobilenetv2-doesnt-match</guid>
       <pubDate>Tue, 04 Jun 2024 17:13:08 GMT</pubDate>
@@ -201,156 +311,6 @@ gbrt_minimize(find_bold_loss, search_space, n_calls=80, n_initial_points=32, ini
 注意：我已经用 gbrt 运行了模型，效果很好（比贝叶斯优化更好），所以它一定做对了什么……]]></description>
       <guid>https://stackoverflow.com/questions/78576495/skopt-gbrt-minimize-gradient-boosted-regression-trees-how-does-it-calculate</guid>
       <pubDate>Tue, 04 Jun 2024 15:50:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>'InvalidArgumentError' 的解决方案是什么</title>
-      <link>https://stackoverflow.com/questions/78576371/what-is-the-solution-to-an-invalidargumenterror</link>
-      <description><![CDATA[尝试在扩散模型上训练我的数据以生成新数据时，最后一个用于训练的单元输出此错误。请问解决方案是什么？
-在预测和运行噪声和去噪后，现在训练 UNet。尽管为 train 创建了一个函数
-def train(R=50):
-bar = trange(R)
-total = 100
-for i in bar:
-for j in range(total):
-x_img = X_train[np.random.randint(len(X_train), size=BATCH_SIZE).tolist()]
-loss = train_one(x_img)
-pg = (j / total) * 100
-if j % 5 == 0:
-bar.set_description(f&#39;loss: {loss:.5f}, p: {pg:.2f}%&#39;)
-
-上传的图像是出现错误的单元格，具体来说是调用 train 函数的那一行]]></description>
-      <guid>https://stackoverflow.com/questions/78576371/what-is-the-solution-to-an-invalidargumenterror</guid>
-      <pubDate>Tue, 04 Jun 2024 15:27:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果我的模型检测到多个物体（有时是假的），我该如何使用 mAP、精度、召回率和 f1 验证我的 mask rcnn 模型</title>
-      <link>https://stackoverflow.com/questions/78576156/how-do-i-validate-my-mask-rcnn-model-with-map-precision-recall-and-f1-if-my-mo</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78576156/how-do-i-validate-my-mask-rcnn-model-with-map-precision-recall-and-f1-if-my-mo</guid>
-      <pubDate>Tue, 04 Jun 2024 14:49:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>PySpark 错误要求失败：A 和 B 维度不匹配</title>
-      <link>https://stackoverflow.com/questions/78575590/pyspark-error-requirement-failed-a-b-dimension-mismatch</link>
-      <description><![CDATA[我正在使用 PySpark 中的房屋贷款还款数据构建神经网络。执行了 EDA、数据预处理和特征工程步骤，但当涉及到模型时，我收到错误：
-
-java.lang.IllegalArgumentException：要求失败：A 和 B 维度不匹配！
-
-代码如下：
-# 要转换为数字的列的列表 -&gt;解决不支持字符串的错误
-# 将列转换为双精度
-columns_to_cast = [&#39;AMT_REQ_CREDIT_BUREAU_HOUR&#39;, &#39;AMT_REQ_CREDIT_BUREAU_DAY&#39;, &#39;AMT_REQ_CREDIT_BUREAU_WEEK&#39;,
-&#39;AMT_REQ_CREDIT_BUREAU_MON&#39;, &#39;AMT_REQ_CREDIT_BUREAU_QRT&#39;, &#39;AMT_REQ_CREDIT_BUREAU_YEAR&#39;]
-
-for col_name in columns_to_cast:
-train_df = train_df.withColumn(col_name, col(col_name).cast(&quot;double&quot;))
-test_df = test_df.withColumn(col_name, col(col_name).cast(&quot;double&quot;))
-
-print(&quot;转换完成。正在检查schema:&quot;)
-train_df.printSchema()
-
-# 组装特征向量
-ohe_columns = [col + &#39;_ohe&#39; for col in categorical_columns]
-numerical_columns = [col for col in train_df.columns if col not in ohe_columns + [&#39;SK_ID_CURR&#39;, &#39;TARGET&#39;]]
-
-print(f&quot;Numerical columns: {numerical_columns}&quot;)
-print(f&quot;One-hotcoded columns: {ohe_columns}&quot;)
-
-# 删除现有的 &#39;scaled_features&#39; 列（如果存在）-&gt; 重新运行代码后导致
-# 我们需要运行两次才能玩
-# 稍后可能会删除。
-如果 train_df.columns 中有 &#39;features&#39;:
-train_df = train_df.drop(&#39;features&#39;)
-否则:
-通过
-如果 test_df.columns 中有 &#39;features&#39;:
-test_df = test_df.drop(&#39;features&#39;)
-否则:
-通过
-如果 train_df.columns 中有 &#39;scaled_features&#39;:
-train_df = train_df.drop(&#39;scaled_features&#39;)
-否则:
-通过
-如果 test_df.columns 中有 &#39;scaled_features&#39;:
-test_df = test_df.drop(&#39;scaled_features&#39;)
-否则:
-通过
-
-assembler = VectorAssembler(inputCols=numerical_columns + ohe_columns, outputCol=&quot;features&quot;)
-train_df = assembler.transform(train_df)
-test_df = assembler.transform(test_df)
-print(&quot;特征向量组装完成。&quot;)
-
-print(&quot;检查组装的特征向量模式：&quot;)
-train_df.select(&quot;features&quot;).show(5, truncate=False)
-
-# 缩放特征
-scaler = StandardScaler(inputCol=&quot;features&quot;, outputCol=&quot;scaled_features&quot;)
-scaler_model = scaler.fit(train_df)
-train_df = scaler_model.transform(train_df)
-test_df = scaler_model.transform(test_df)
-print(&quot;缩放完成。&quot;)
-
-print(&quot;检查缩放的特征模式：&quot;)
-train_df.select(&quot;scaled_features&quot;).show(5, truncate=False)
-
-# 定义神经网络结构
-
-层 = [
-173, # 输入特征的数量 -&gt;从上面的语句中检查
-64, # 隐藏层大小
-32, # 隐藏层大小
-2 # 类数
-]
-
-print(f&quot;神经网络层：{layers}&quot;)
-
-# 初始化多层感知器分类器
-mlp = MultilayerPerceptronClassifier(
-featuresCol=&#39;scaled_features&#39;,
-labelCol=&#39;TARGET&#39;,
-maxIter=100,
-layer=layers,
-blockSize=128,
-seed=1234
-)
-
-print(&quot;训练模型...&quot;)
-# 训练模型
-mlp_model = mlp.fit(train_df)
-print(&quot;模型训练完成。&quot;)
-
-print(&quot;对训练集进行预测...&quot;)
-# 对训练集进行预测（用于评估目的）
-train_predictions = mlp_model.transform(train_df)
-
-print(&quot;评估模型...&quot;)
-# 评估模型
-evaluator = BinaryClassificationEvaluator(labelCol=&#39;TARGET&#39;, rawPredictionCol=&#39;rawPrediction&#39;, metricName=&#39;areaUnderROC&#39;)
-auc_train = evaluator.evaluate(train_predictions)
-print(f&#39;Training AUC: {auc_train}&#39;)
-
-print(&quot;对测试集进行预测...&quot;)
-# 对测试集进行预测 --------此处错误 
-test_predictions = mlp_model.transform(test_df)
-
-# 显示预测
-test_predictions.select(&#39;SK_ID_CURR&#39;, &#39;prediction&#39;, &#39;probability&#39;).show()
-
-print(&quot;准备提交文件...&quot;)
-# 准备提交文件
-submission = test_predictions.select(&#39;SK_ID_CURR&#39;, &#39;prediction&#39;)
-submission.show()
-
-# 将预测保存到 CSV 文件
-submission.write.csv(&#39;./prediction&#39;, header=True)
-print(&quot;Prediction file saved.&quot;)
-
-请注意，我添加了打印语句来帮助我识别错误发生的位置，并且看起来，当模型尝试对测试数据框进行预测时会产生错误，而它在训练数据框上工作
-（错误就在这里）
-这是什么意思？]]></description>
-      <guid>https://stackoverflow.com/questions/78575590/pyspark-error-requirement-failed-a-b-dimension-mismatch</guid>
-      <pubDate>Tue, 04 Jun 2024 13:07:29 GMT</pubDate>
     </item>
     <item>
       <title>如何使用随机森林计算预测的置信区间？</title>
@@ -383,73 +343,11 @@ GradientBoostingRegressor 适合时间序列吗？或者有其他函数可以更
       <pubDate>Mon, 03 Jun 2024 21:17:18 GMT</pubDate>
     </item>
     <item>
-      <title>处理图像以提取神经网络的手写文本</title>
-      <link>https://stackoverflow.com/questions/78571522/process-the-image-to-extract-handwritten-text-for-the-neural-network</link>
-      <description><![CDATA[我想识别图像中的方块并提取其中的字母，但我无法获得整个字母。我只得到像下面显示的图像中的片段。
-img = cv2.imread(img_path)
-img_path = &quot;img.png&quot;
-
-gray = cv2.cvtColor(img , cv2.COLOR_BGR2GRAY)
-
-# 平滑边缘以方便锐化
-blur = cv2.GaussianBlur(gray, (5, 5), 0)
-# sharpen_kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
-sharpen_kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
-sharpen = cv2.filter2D(blur, -1, sharpen_kernel)
-
-# 应用自适应阈值创建二值图像并缩小间隙
-thresh = cv2.adaptiveThreshold(sharpen, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV, 11, 2)
-kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-close = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
-
-# 检测轮廓并根据面积大小进行过滤
-contours = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
-contours = contours[0] if len(contours) == 2 else contours[1]
-min_area = 350
-max_area = 6200
-image_number = 0
-lower_blue = np.array([90, 50, 20]) 
-upper_blue = np.array([150, 255, 255]) 
-# 避免检测到的小/大随机轮廓
-contours = filter(lambda contour: min_area &lt; cv2.contourArea(contour) &lt; max_area, contours)
-# 对轮廓进行排序，使其变成“线”
-sorted_contours = sorted(contours, key=lambda contour: cv2.boundingRect(contour)[0])
-selected_rects = []
-for c in sorted_contours:
-x, y, w, h = cv2.boundingRect(c)
-# 确保矩形不与已选定的矩形重叠
-if not any(x &gt; rect[0] and y &gt; rect[1] and x + w &lt; rect[0] + rect[2] and y + h &lt; rect[1] + rect[3] for rect in selected_rects):
-ROI = image[y:y + h, x:x + w]
-ROI = cv2.GaussianBlur(ROI, (3, 3), 0)
-hsv = cv2.cvtColor(ROI, cv2.COLOR_BGR2HSV)
-mask = cv2.inRange(hsv, lower_blue, upper_blue)
-blue_pixels = cv2.countNonZero(mask)
-# 确保矩形内有蓝色，以避免出现随机矩形
-if blue_pixels &gt; 100：
-binary_image = cv2.resize(mask, (28, 28))
-cv2.imwrite(f&#39;./resources/ROI_{image_number}.png&#39;, binary_image)
-image_number += 1
-selected_rects.append((x, y, w, h))
-
-初始图像
-
-一些提取的 ROI
-
-不完整的蒙版
-
-我尝试移除灰色边框，然后将所有非白色的像素转换为亮蓝色。但是，我无法在每种情况下都移除所有边框，而且有时会出现随机的黄色斑点，因为图像是扫描的。]]></description>
-      <guid>https://stackoverflow.com/questions/78571522/process-the-image-to-extract-handwritten-text-for-the-neural-network</guid>
-      <pubDate>Mon, 03 Jun 2024 16:27:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用机器学习方法选择加权平均的权重集</title>
-      <link>https://stackoverflow.com/questions/78551292/using-machine-learning-approach-to-select-weight-sets-for-weighted-average</link>
-      <description><![CDATA[我有多个风速预测，我试图为每个预测分配不同的权重，以获得最佳的“混合”预测，从而获得最佳的预测性能。假设每个风速预测在温度和湿度等外部条件下的表现不同。
-我知道这可以建模为优化问题，但我很好奇这是否可以通过机器学习来解决，因为 NN 基本上是在解决优化问题，并且由权重和偏差组成。
-因此，给定预测，并且可能给定外部条件（例如温度），模型将返回最佳权重选择。
-你们觉得呢？]]></description>
-      <guid>https://stackoverflow.com/questions/78551292/using-machine-learning-approach-to-select-weight-sets-for-weighted-average</guid>
-      <pubDate>Wed, 29 May 2024 18:08:08 GMT</pubDate>
+      <title>为什么使用相同的 Q 值表会得到不同的测试结果</title>
+      <link>https://stackoverflow.com/questions/78564460/why-do-i-get-different-testing-result-using-the-same-q-value-table</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78564460/why-do-i-get-different-testing-result-using-the-same-q-value-table</guid>
+      <pubDate>Sat, 01 Jun 2024 17:17:18 GMT</pubDate>
     </item>
     <item>
       <title>AttributeError：'Flags' 对象没有属性 'c_contiguous'</title>
@@ -514,6 +412,14 @@ RandomOverSampling、RandomUnderSampling、SMOTE
       <pubDate>Wed, 08 Nov 2023 10:08:43 GMT</pubDate>
     </item>
     <item>
+      <title>使用单类 SVM 计算异常检测的异常分数</title>
+      <link>https://stackoverflow.com/questions/53956538/calculating-anomaly-score-for-anomaly-detection-using-one-class-svm</link>
+      <description><![CDATA[我对使用单类 SVM 计算异常检测的异常分数有疑问。我的问题是：如何使用 decision_function(X) 计算它，就像我在隔离森林中计算异常分数一样？
+非常感谢，]]></description>
+      <guid>https://stackoverflow.com/questions/53956538/calculating-anomaly-score-for-anomaly-detection-using-one-class-svm</guid>
+      <pubDate>Fri, 28 Dec 2018 09:50:20 GMT</pubDate>
+    </item>
+    <item>
       <title>用于欺诈检测的特征工程</title>
       <link>https://stackoverflow.com/questions/50330778/feature-engineering-for-fraud-detection</link>
       <description><![CDATA[我正在为学术目的进行一些欺诈检测研究。
@@ -524,6 +430,14 @@ RandomOverSampling、RandomUnderSampling、SMOTE
 谢谢]]></description>
       <guid>https://stackoverflow.com/questions/50330778/feature-engineering-for-fraud-detection</guid>
       <pubDate>Mon, 14 May 2018 12:50:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>TensorFlow 中的步骤和时期有什么区别？</title>
+      <link>https://stackoverflow.com/questions/38340311/what-is-the-difference-between-steps-and-epochs-in-tensorflow</link>
+      <description><![CDATA[在大多数模型中，都有一个 steps 参数，表示在数据上运行的步骤数。但我在大多数实际使用中看到，我们还会执行拟合函数 N epochs。
+用 1 个 epoch 运行 1000 步和用 10 个 epoch 运行 100 步有什么区别？在实践中哪一个更好？连续 epoch 之间有任何逻辑变化吗？数据混洗？]]></description>
+      <guid>https://stackoverflow.com/questions/38340311/what-is-the-difference-between-steps-and-epochs-in-tensorflow</guid>
+      <pubDate>Tue, 12 Jul 2016 23:20:22 GMT</pubDate>
     </item>
     </channel>
 </rss>
