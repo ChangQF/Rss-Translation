@@ -4,7 +4,179 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 06 Jun 2024 21:15:22 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 07 Jun 2024 01:05:53 GMT</lastBuildDate>
+    <item>
+      <title>可教机器使用哪个版本的 tensorFlow/Keras？</title>
+      <link>https://stackoverflow.com/questions/78589351/what-version-of-tensorflow-keras-does-teachable-machine-use</link>
+      <description><![CDATA[我尝试按照 YouTube 上的教程操作（https://www.youtube.com/watch?v=wa2ARoUUdU8&amp;t=2877s&amp;ab_channel=Murtaza%27sWorkshop-RoboticsandAI）。当我尝试运行 tennsorflow 时，一直出现错误。视频中，该人使用 https://teachablemachine.withgoogle.com/train/tiny_image 来训练模型。我完成了所有步骤，但是在运行时（视频的 49:32。它没有运行）错误与使用支持组参数的 TensorFlow / Keras 版本训练的模型有关，但我正在使用的当前 TensorFlow / Keras 版本无法识别它。提醒一下，我使用的是 vs 而不是 py charms 和 dowloand tensflow，我的版本是 2.16.1
+这是我的代码：
+import cv2
+from cvzone.HandTrackingModule import HandDetector
+from cvzone.ClassificationModule import Classifier
+import numpy as np
+import tensorflow as tf
+import math
+import time
+import tensorflow as tf
+print(tf.__version__)
+
+cap = cv2.VideoCapture(0)
+detector = HandDetector(maxHands=1)#决定要检测多少只手
+classifier = Classifier(&quot;Model/keras_model.h5&quot;,&quot;Model/labels.txt&quot;)
+
+offset = 20 #用于裁剪图像以增加尺寸
+imgSize = 300
+
+folder = “数据/C” #数据存储位置
+counter = 0#知道将保存多少图像
+
+labels = [&quot;A&quot;,&quot;B&quot;,&quot;C&quot;]
+
+while True:
+success, img = cap.read()
+hands, img = detector.findHands(img)
+#裁剪图像
+if hands:#还要注意，当手很大/离相机太近时，程序将停止工作
+hand = hands[0]#仅适用于 1 只手
+x,y,w,h = hand[&#39;bbox&#39;]#粘合框并给出尺寸
+
+imgWhite = np.ones((imgSize,imgSize,3),np.uint8)*255#创建白色背景用于裁剪图像
+imgCrop = img[y-offset:y+h+offset,x-offset:x+w+offset]#给出边界框要求
+
+imgCropShape = imgCrop.shape
+
+aspectRatio = h/w
+
+ifaspectRatio&gt;1:#图像高度
+k = imgSize/h #拉伸高度
+wCal=math.ceil(k*w)
+imgResize=cv2.resize(imgCrop,(wCal,imgSize))
+imgResizeShape = imgResize.shape
+wGap = math.ceil((imgSize-wCal)/2)
+#在白色图像上叠加图像
+imgWhite[:,wGap:wCal+wGap] = imgResize #中心图像
+#发送值
+#predection,index = classifier.getPrediction(img)
+#print(predection,index)
+else:#图像宽度
+k = imgSize/w #拉伸高度
+hCal=math.ceil(k*h)
+imgResize=cv2.resize(imgCrop,(imgSize,hCal))
+imgResizeShape = imgResize.shape
+hGap = math.ceil((imgSize-hCal)/2)
+#在白色图像上叠加图像
+imgWhite[hGap:hCal+hGap,:] = imgResize #居中图像
+
+cv2.imshow(&quot;ImageCrop&quot;, imgCrop)#再裁剪一次
+cv2.imshow(&quot;ImageWhite&quot;, imgWhite)
+
+cv2.imshow(&quot;Image&quot;, img)
+key =cv2.waitKey(1)#1 毫秒延迟
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78589351/what-version-of-tensorflow-keras-does-teachable-machine-use</guid>
+      <pubDate>Thu, 06 Jun 2024 22:56:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>训练误差持续下降，但测试误差却没有下降，即使测试数据集是训练数据集的子集</title>
+      <link>https://stackoverflow.com/questions/78589173/train-error-decreases-consistently-but-test-error-does-not-even-when-test-data</link>
+      <description><![CDATA[我的数据包含来自传感器的 6 个特征。我正在用这些数据训练 LSTM 网络来预测三个值。
+在训练过程中，我的训练损失随着每个时期而持续减少，但测试损失在几个时期后并没有减少多少。
+当训练数据和测试数据之间没有重叠时就会出现这种情况。因此，我尝试使用训练数据的子集作为测试数据。
+但是，仍然是相同的行为，测试损失仍然没有减少。
+以下是 LSTM 模型和训练器的代码。
+class LSTMModel(nn.Module):
+def __init__(self, in_dim=6, hidden_​​size=200, num_layers=1, output_size=3):
+super(LSTMModel, self).__init__()
+self.lstm_1 = nn.LSTM(in_dim, hidden_​​size, num_layers, batch_first=True)
+self.lstm_2 = nn.LSTM(hidden_​​size, hidden_​​size, num_layers, batch_first=True)
+self.lstm_3 = nn.LSTM(hidden_​​size, hidden_​​size, num_layers, batch_first=True)
+self.lstm_4 = nn.LSTM(hidden_​​size, hidden_​​size, num_layers, batch_first=True)
+self.fc = nn.Linear(hidden_​​size, output_size)
+
+def forward(self, x):
+x, _ = self.lstm_1(x)
+x, _ = self.lstm_2(x)
+x, _ = self.lstm_3(x)
+x, _ = self.lstm_4(x)
+output = self.fc(x[:, -1, :])
+return output
+
+class SimpleModelTrainer:
+def __init__(self, model, train_dataset, test_dataset, batch_size=1024, epochs=100, lr=0.005): # window_size=200, do_windowing=True, waiting=5, pad_testing_data = False
+
+self.model = model
+self.optimizer = AdamW(params=self.model.parameters(), lr=lr)
+
+self.lr = lr
+self.epochs = epochs
+self.batch_size = batch_size
+self.loss_fn = nn.L1Loss()
+self.train_data = train_dataset
+self.test_data = test_dataset
+
+def train(self):
+self.train_dataloader = torch.utils.data.DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, generator=torch.Generator(device=device))
+self.test_dataloader = torch.utils.data.DataLoader(self.test_data, batch_size=self.batch_size, shuffle=True, generator=torch.Generator(device=device))
+total_samples = 0
+
+for epoch in tqdm(range(self.epochs), desc=&quot;epoch&quot;):
+self.model.train()
+total_loss = 0
+
+for train_data in tqdm(self.train_dataloader, desc=&quot;train&quot;):
+
+X = train_data[0]
+Y = train_data[1]
+
+if X.shape[0] != self.batch_size: continue # 以避免 RuntimeError: 形状 &#39;[16, 1, 256]&#39; 对于大小为 3328 的输入无效
+
+total_samples += self.batch_size
+
+y_hat = self.model(X)
+
+loss = self.loss_fn(y_hat, Y)
+self.optimizer.zero_grad()
+loss.backward()
+self.optimizer.step()
+total_loss += loss.item()
+
+avg_train_loss = total_loss / total_samples
+val_loss = self.test(self.test_dataloader)
+print(f&quot;Epoch {epoch} - Train loss:{avg_train_loss:.10f}, Val loss:{val_loss:.10f}&quot;)
+
+def test(self, dataloader):
+self.model.eval()
+with torch.no_grad():
+total_loss = 0
+total_samples = 0
+for test_data in tqdm(dataloader, desc=&quot;test&quot;):
+X = test_data[0]
+Y = test_data[1]
+
+if X.shape[0] != self.batch_size: continue # 以避免 RuntimeError: shape &#39;[Y, 200, 6]&#39; 对于大小为 Z 的输入无效
+
+total_samples += self.batch_size 
+
+y_hat = self.model(X)
+
+loss = self.loss_fn(y_hat, Y)
+total_loss += loss.item()
+
+val_loss = total_loss/total_samples
+return val_loss
+
+我尝试使用随机生成的虚拟变量数据集。它给出了与上述完全相同的行为！
+您可以在此 colab 笔记本中查看它。
+正如您在笔记本中看到的那样，自第一个时期以来，验证损失一直停留在 0.00048。但训练损失随着每个时期持续下降，从 0.00048 下降到第 28 个时期的 0.000016。
+（当我写这个问题时，它仍在训练。）测试数据集是训练数据集的子集：
+train_dataset = CustomDataset(windowed_input_data, windowed_target_data)
+test_dataset = CustomDataset(windowed_input_data[:20000], windowed_target_data[:20000])
+
+因此，我相信我应该得到类似的验证损失行为，验证损失也应该达到约 0.00001。我想我在代码中犯了一些愚蠢的错误（错误的 pytorch API 调用？）我的眼睛根本无法帮助我。有人可以帮帮我吗？我在概念上错过了什么吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78589173/train-error-decreases-consistently-but-test-error-does-not-even-when-test-data</guid>
+      <pubDate>Thu, 06 Jun 2024 21:42:12 GMT</pubDate>
+    </item>
     <item>
       <title>TensorFlow 目录结构与文档不同</title>
       <link>https://stackoverflow.com/questions/78588051/tensorflow-directory-structure-different-from-documentation</link>
@@ -85,24 +257,16 @@ importance 的形状：（30, 26）
       <pubDate>Thu, 06 Jun 2024 14:49:37 GMT</pubDate>
     </item>
     <item>
-      <title>xgboast scale_pos_weight 如果训练数据集中的正样本多于负样本，是否仍然保持平衡？</title>
+      <title>xgboast scale_pos_weight 如果训练数据集的正样本多于负样本，是否仍然正确平衡？</title>
       <link>https://stackoverflow.com/questions/78587301/xgboast-scale-pos-weight-if-the-training-dataset-has-more-positive-samples-than</link>
       <description><![CDATA[经过研究，我意识到 scale_pos_weight 通常计算为训练数据中负样本数量与正样本数量的比率。我的数据集有 840 个负样本和 2650 个正样本，因此比率为 0.32。如果我的样本反过来，我确信 scale_pos_weight 会是一种更好的方法。是否可以假设因为它小于 1，所以它仍然会正确平衡？当然，特异性在我的研究中很重要，但我们的目标更多是关于召回率、精确度和 f1 分数。这是否会通过最大程度地影响特异性而导致更多的假阳性？]]></description>
       <guid>https://stackoverflow.com/questions/78587301/xgboast-scale-pos-weight-if-the-training-dataset-has-more-positive-samples-than</guid>
       <pubDate>Thu, 06 Jun 2024 14:27:52 GMT</pubDate>
     </item>
     <item>
-      <title>大型语言模型发布的关键质量指标是什么？</title>
-      <link>https://stackoverflow.com/questions/78587300/what-are-the-key-quality-metrics-for-large-language-model-releases</link>
-      <description><![CDATA[我是一名一年级博士生，致力于改进机器学习模型的发布实践，尤其是预先训练的大型语言模型。我想了解上述概念，以便进行初步学习并听取专家的意见。
-我一直在阅读不同的文章，但仍然需要专家的意见。]]></description>
-      <guid>https://stackoverflow.com/questions/78587300/what-are-the-key-quality-metrics-for-large-language-model-releases</guid>
-      <pubDate>Thu, 06 Jun 2024 14:27:30 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 paddleocr 从图像文档中提取表格</title>
       <link>https://stackoverflow.com/questions/78586625/extract-tables-from-image-documents-using-paddleocr</link>
-      <description><![CDATA[我是 Ocr 的新手。我试图从图像格式的表格中提取数据。
+      <description><![CDATA[我是 Ocr 的新手。我正尝试从图像格式的表格中提取数据。
 
 为此我想使用 paddleocr，paddleocr 是否适合这些类型的表格图像。如果可以，有人可以提供图像的资源或教程吗？或者是否有任何适用于表格图像的软件包]]></description>
       <guid>https://stackoverflow.com/questions/78586625/extract-tables-from-image-documents-using-paddleocr</guid>
@@ -129,140 +293,6 @@ importance 的形状：（30, 26）
       <pubDate>Thu, 06 Jun 2024 12:08:11 GMT</pubDate>
     </item>
     <item>
-      <title>为什么我的验证准确度比训练准确度差？</title>
-      <link>https://stackoverflow.com/questions/78586275/why-is-my-validation-accuracy-worse-than-train-accuracy</link>
-      <description><![CDATA[我正在 Chestxray 数据集上训练 ResNet50。我的训练数据大约有 15000 个样本，其中 1500 个用于验证，3000 个用于测试。这是一个多标签分类问题，我有 13 个标签，并且对其进行了独热编码。我在训练时遇到了一个问题。尽管观察到训练准确率在各个时期有所提高，但验证准确率似乎有所下降。我尝试了几次实验（操纵学习率、更改架构）和故障排除步骤，但都无法解决这个问题。我也使用了很多数据增强方法，但并没有收敛。我应该怎么做才能对其进行排序？
-架构
-learning_rate = 0.001
-early_stopping = EarlyStopping(monitor=&#39;val_accuracy&#39;,patient=5,restore_best_weights=True)
-adam_optimizer = Adam(learning_rate=learning_rate)
-
-resnet50 = ResNet50(input_shape=(256, 256, 3),weights=&#39;imagenet&#39;,include_top=False)
-
-for layer in resnet50.layers:
-layer.trainable = False
-
-x = Flatten()(resnet50.output)
-prediction = Dense(13,activation=&#39;sigmoid&#39;)(x)
-
-model = Model(inputs=resnet50.input,outputs=prediction)
-
-model.compile(optimizer=adam_optimizer, loss=&#39;binary_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
-
-history = model.fit(
-train_dataset,
-epochs=100,
-validation_data=val_dataset,
-callbacks=[early_stopping]
-
-结果
-Epoch 1/100
-477/477 [================================] - 44s 83ms/step - loss: 1.2993 - accuracy: 0.1122 - val_loss: 1.0983 - val_accuracy: 0.1010
-
-Epoch 2/100
-477/477 [===============================] - 38s 80ms/step - 损失：1.0298 - 准确度：0.1843 - val_loss：1.3670 - val_accuracy：0.0976
-
-Epoch 3/100
-477/477 [===============================] - 39s 81ms/step - 损失：0.9871 - 准确度：0.2328 - val_loss：1.1190 - val_accuracy：0.1155
-
-Epoch 4/100
-477/477 [================================] - 39s 81ms/步 - 损失：0.9146 - 准确度：0.2757 - val_loss：1.2730 - val_accuracy：0.0797
-
-Epoch 5/100
-477/477 [==============================] - 38s 81ms/步 - 损失：0.9076 - 准确度：0.3011 - val_loss：1.4535 - val_accuracy：0.0708
-
-Epoch 6/100
-477/477 [================================] - 39s 82ms/步 - 损失：0.9280 - 准确度：0.3104 - val_loss：1.6235 - val_accuracy：0.0632
-
-Epoch 7/100
-477/477 [===============================] - 39s 81ms/step - 损失：0.8828 - 准确度：0.3356 - val_loss：1.3770 - val_accuracy：0.0777
-
-Epoch 8/100
-477/477 [===============================] - 39s 82ms/step - 损失：0.8223 - 准确度：0.3633 - val_loss：1.3722 - val_accuracy：0.1512
-
-Epoch 9/100
-477/477 [===============================] - 39s 81ms/步 - 损失：0.8407 - 准确度：0.3669 - val_loss：1.3479 - val_accuracy：0.1856
-
-Epoch 10/100
-477/477 [==============================] - 39s 81ms/步 - 损失：0.8931 - 准确度：0.3773 - val_loss：1.6562 - val_accuracy：0.0784
-
-Epoch 11/100
-477/477 [===============================] - 39s 81ms/step - 损失：0.9010 - 准确度：0.3832 - val_loss：1.9345 - val_accuracy：0.0804
-
-Epoch 12/100
-477/477 [===============================] - 39s 81ms/step - 损失：0.8932 - 准确度：0.3961 - val_loss：1.8141 - val_accuracy：0.0900
-
-Epoch 13/100
-477/477 [===============================] - 39s 81ms/step - 损失：0.8961 - 准确度：0.4017 - val_loss：2.1651 - val_accuracy：0.0598
-
-Epoch 14/100
-477/477 [===============================] - 39s 82ms/step - 损失：0.7799 - 准确度：0.4318 - val_loss：1.8136 - val_accuracy：0.0997
-]]></description>
-      <guid>https://stackoverflow.com/questions/78586275/why-is-my-validation-accuracy-worse-than-train-accuracy</guid>
-      <pubDate>Thu, 06 Jun 2024 11:30:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在支持物联网的自动售货机中实现实时库存跟踪？</title>
-      <link>https://stackoverflow.com/questions/78586219/how-to-implement-real-time-inventory-tracking-in-iot-enabled-vending-machines</link>
-      <description><![CDATA[该问题的主要目标是收集在自动售货机中实施基于物联网的实时库存跟踪的见解和解决方案。所概述的挑战涉及项目的关键方面，例如传感器选择、数据传输、系统集成、数据安全性和成本效益。通过提供详细的项目目标和具体挑战，该问题旨在让 Stack Overflow 社区提供实用建议、最佳实践和来自他们经验的示例
-我尝试过的：
-
-传感器选择：研究并入围了一些可以准确监控库存水平的传感器（例如，称重传感器、红外传感器）。
-连接选项：考虑使用 Wi-Fi 和蜂窝网络进行数据传输。测试了初始设置，但面临间歇性连接问题。
-数据处理：使用 AWS IoT Core 设置基本的云基础设施，以收集和处理来自传感器的数据。
-原型：使用 Arduino 板和称重传感器构建了一个基本原型，以测量库存水平并将数据发送到 AWS IoT Core。原型可以工作，但准确性和可靠性需要改进。
-
-我的期望：
-
-关于最佳传感器类型的建议，以实现准确可靠的库存跟踪。
-确保在连接性较差的地区稳定传输数据的解决方案。
-自动售货机中 IoT 设备的电源管理技巧。
-有关将新 IoT 组件与我们现有的后端系统集成的建议。
-]]></description>
-      <guid>https://stackoverflow.com/questions/78586219/how-to-implement-real-time-inventory-tracking-in-iot-enabled-vending-machines</guid>
-      <pubDate>Thu, 06 Jun 2024 11:16:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>Python tensorflow 图像回归模型中的 MAE 损失函数存在问题 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78583554/issue-with-my-mae-loss-function-in-python-tensorflow-image-regression-model</link>
-      <description><![CDATA[我有 8000 张黑色背景上的圆圈图像。每个标签都是圆圈的 x 坐标。每张图片的尺寸为 (128,128,3)。我的训练损失从 2000 开始，到 10 结束，而验证损失保持在 200 左右。另外，我通过将每幅图像除以 255 来对其进行标准化。
-images_array 的形状为：(8000,128,128,3)
-y 的形状为：(8000,1)
-这是我的代码：
-from sklearn.model_selection import train_test_split
-X_train, X_temp, y_train, y_temp = train_test_split(images_array, y, test_size=0.2, random_state=42)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
-
-import tensorflow as tf
-X_train = tf.convert_to_tensor(X_train)
-y_train = tf.convert_to_tensor(y_train)
-
-从 tensorflow 导入 keras
-从 tensorflow.keras 导入层，模型
-从 tensorflow.keras.models 导入顺序
-
-输入 = keras.Input(shape=(128, 128, 3))
-
-# 定义层
-
-x = 层。Conv2D(8, 3, 激活=&#39;relu&#39;)(输入)
-x = 层。MaxPooling2D(2)(x)
-x = 层。Conv2D(16, 3, 激活=&#39;relu&#39;)(x)
-x = 层。MaxPooling2D(2)(x)
-x=层。Flatten()(x)
-x = 层。Dense(128, 激活=&#39;relu&#39;)(x)
-output_x = 层。Dense(1, 激活 = &#39;linear&#39;, 名称 = &quot;y1_output&quot;)(x)
-
-model = Model(inputs = input, output = output_x)
-model.summary()
-
-
-我可以做些什么来显著改善我的损失？
-我尝试了不同的激活函数和不同的优化器。]]></description>
-      <guid>https://stackoverflow.com/questions/78583554/issue-with-my-mae-loss-function-in-python-tensorflow-image-regression-model</guid>
-      <pubDate>Wed, 05 Jun 2024 21:21:28 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 logistf 包时，Firth 的模型在 R 中卡住了（出现未收敛警告，CPU 使用率高达 99%）</title>
       <link>https://stackoverflow.com/questions/78579401/firths-model-stuck-with-non-converge-warning-and-cpu-usage-99-in-r-using-the</link>
       <description><![CDATA[]]></description>
@@ -284,6 +314,33 @@ generator = pipeline(&#39;text-generation&#39;, model=&#39;gpt2&#39;, device=&qu
 我知道有些模型需要特定的标记器和依赖项，但是，有没有办法从 pipeline() 列出所有可用的模型？有什么方法可以在 pipeline() 中使用其他模型及其所有依赖项，而无需在脚本中导入或使用它们？]]></description>
       <guid>https://stackoverflow.com/questions/78328539/huggingface-pipeline-available-models</guid>
       <pubDate>Mon, 15 Apr 2024 12:54:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>从熊猫数据框中删除高度相关的列</title>
+      <link>https://stackoverflow.com/questions/44889508/remove-highly-correlated-columns-from-a-pandas-dataframe</link>
+      <description><![CDATA[我有一个名为 data 的数据框，我使用其计算了相关矩阵
+corr = data.corr()
+
+如果两列之间的相关性大于 0.75，我想从数据框 data 中删除其中一列。我尝试了一些选项
+raw =corr[(corr.abs()&gt;0.75) &amp; (corr.abs() &lt; 1.0)]
+
+但这没有帮助；我需要 raw 中值非零的列号。基本上是以下 R 命令的一些 Python 等效命令（使用函数 findCorrelation）。
+{hc=findCorrelation(corr,cutoff = 0.75)
+
+hc = sort(hc)
+
+data &lt;- data[,-c(hc)]}
+
+如果有人能帮助我在 Python pandas 中获取类似于上述 R 命令的命令，那将会很有帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/44889508/remove-highly-correlated-columns-from-a-pandas-dataframe</guid>
+      <pubDate>Mon, 03 Jul 2017 15:39:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>PyTorch 中的 L1/L2 正则化</title>
+      <link>https://stackoverflow.com/questions/42704283/l1-l2-regularization-in-pytorch</link>
+      <description><![CDATA[如何在 PyTorch 中添加 L1/L2 正则化而无需手动计算？]]></description>
+      <guid>https://stackoverflow.com/questions/42704283/l1-l2-regularization-in-pytorch</guid>
+      <pubDate>Thu, 09 Mar 2017 19:54:19 GMT</pubDate>
     </item>
     </channel>
 </rss>
