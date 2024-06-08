@@ -4,7 +4,104 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 07 Jun 2024 21:15:42 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 08 Jun 2024 01:03:34 GMT</lastBuildDate>
+    <item>
+      <title>尽管 Resnet50 的测试和训练准确率很高，但 F1 分数却很低</title>
+      <link>https://stats.stackexchange.com/questions/648855/resnet50-low-f1-score-despite-high-testing-and-training-accuracy</link>
+      <description><![CDATA[我目前正在使用 Resnet50 在 Amazon Berkley Objects 数据集上进行图像分类，我一直面临 F1 分数低的问题，我确保训练和测试样本中的类别相等（总共约 50k 张图像），尽管它不会超过 10%（我知道图像显示的是第 7 个 epoche，但我不会让步直到运行结束），有什么建议吗？
+预处理步骤主要是过滤、数据增强、重新缩放、基本数据准备，数据分为 80 20。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648855/resnet50-low-f1-score-despite-high-testing-and-training-accuracy</guid>
+      <pubDate>Sat, 08 Jun 2024 00:43:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>适合 MLP 和 LSTM 的分布</title>
+      <link>https://stats.stackexchange.com/questions/648854/appropriate-distribution-for-mlp-and-lstm</link>
+      <description><![CDATA[我总共有 6300 个样本，其中 5800 个是训练数据，500 个是测试数据。我们在训练过程、预测精度和学习能力方面比较了 LSTM 和具有一个隐藏层的多层感知器 (MLP) 的性能。
+在下图中，横坐标和纵坐标分别是迭代次数和 MSE 误差。它们的学习曲线如图所示。观察图，很明显 LSTM 的学习曲线比 MLP 的学习曲线衰减得更快。此外，LSTM 的收敛曲线比其他曲线更稳定。此外，LSTM 的损失 (RME 误差) 始终小于 MLP。LSTM 的 RMS 误差为 3.47998，MLP 为 5.02391。
+我的问题是如何为 LSTM 和 MLP 找到/定义合适的分布？ ]]></description>
+      <guid>https://stats.stackexchange.com/questions/648854/appropriate-distribution-for-mlp-and-lstm</guid>
+      <pubDate>Sat, 08 Jun 2024 00:37:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用二元结果的功率计算（使用 R 包和手动模拟）</title>
+      <link>https://stats.stackexchange.com/questions/648852/power-calculation-with-a-binary-outcome-using-a-r-package-manual-simulation</link>
+      <description><![CDATA[我试图在相同的设置下比较三种不同的功效计算方法。虽然我理解由于随机性，每种方法的功效估计不可能完全相同，但我预计它们会非常相似。然而，我观察到功效估计略有不同。
+基本设置如下：
+
+结果：二进制（成功 1；失败 0）
+要比较的两组：G1 vs G2
+G1：样本数 - 150；成功率为 0.2
+G2：样本数 - 30；成功率为 0.4
+显著性水平为 0.2（不是通常的 0.05）
+
+也就是说，
+p1 &lt;- 0.2
+p2 &lt;- 0.4
+
+n1 &lt;- 150
+n2 &lt;- 30
+
+我使用的三种方法是：
+
+使用 pwr 包中的 pwr.2p2n.test 函数。
+使用 prop.test 函数进行模拟。
+使用 fisher.test 函数进行模拟
+
+### -------------------------------- ###
+### --- 版本 1：pwr.2p2n.test --- ###
+### -------------------------------- ###
+library(pwr)
+pwr.2p2n.test(h = ES.h(p1 = p1, p2 = p2), 
+n1 = n1, n2 = n2,
+sig.level = 0.20,
+alternative = &quot;less&quot;)
+
+# power = 0.9145152
+
+### ---------------------------- ###
+### --- 版本 2：Prop 测试 --- ###
+### ---------------------------- ###
+nreps &lt;- 10000
+y1 &lt;- rbinom(n = nreps, size = n1, p = p1)
+y2 &lt;- rbinom(n = nreps, size = n2, p = p2)
+
+pval &lt;- rep(NA, nreps)
+for(i in 1:nreps) {
+pval[i] &lt;- prop.test(c(y1[i], y2[i]), 
+n= c(n1, n2), 
+alternative = &quot;less&quot;,
+p = NULL, correct = TRUE)$p.value
+}
+
+power &lt;- sum(pval &lt; 0.20) / nreps 
+power # [1] 0.8756
+
+### -------------------------------------- ###
+### --- 版本 3：Fisher 精确检验 --- ###
+### -------------------------------------- ###
+pval.fin &lt;- c()
+for(i in 1:nreps){
+y1 &lt;- rbinom(n1, size = 1, p = p1)
+y2 &lt;- rbinom(n2, size = 1, p = p2)
+dat.comb &lt;- rbind(data.frame(res = y1, group = &quot;G1&quot;),
+data.frame(res = y2, group = &quot;G2&quot;))
+tab &lt;- table(dat.comb$group, dat.comb$res)
+test.res &lt;- fisher.test(tab, alternative = &#39;less&#39;)
+pval.fin[i] &lt;- test.res$p.value
+}
+mean(pval.fin&lt;0.2) # [1] 8e-04
+
+我注意到了以下两点：
+
+第三种方法使用 Fisher 精确检验，其幂为 8e-0.4。但是，如果我将“替代”选项从“less”更改为“greater”，幂将变为 0.8811，这与我们从第一种方法和第二种方法中获得的结果相似。但是第一种方法和第二种方法使用了“less”的“替代”选项……我不明白是什么导致了如此巨大的差异。
+
+版本 1 和版本 2 的幂估计也有点偏差。我不太清楚是什么导致了这种差异。
+
+
+有人能帮我理解为什么即使设置相同，我也没有获得类似的功率吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/648852/power-calculation-with-a-binary-outcome-using-a-r-package-manual-simulation</guid>
+      <pubDate>Fri, 07 Jun 2024 22:15:04 GMT</pubDate>
+    </item>
     <item>
       <title>对于缺少很多天的时间序列，最好的输入选择是什么</title>
       <link>https://stats.stackexchange.com/questions/648849/what-are-the-best-options-for-imputing-time-series-that-is-missing-lots-of-days</link>
@@ -65,7 +162,7 @@ $X_1, X_2$受到其他一些特征的非线性影响：$Z_1, Z_2$。
     </item>
     <item>
       <title>为什么我的风险比系数在 Coxph 回归中这么大或这么小？</title>
-      <link>https://stats.stackexchange.com/questions/648843/why-is-my-hazard-ratio-coefficients-so-large-or-small-in-coxph-regression</link>
+      <link>https://stats.stackexchange.com/questions/648843/why-are-my-hazard-ratio-coefficients-so-large-or-small-in-coxph-regression</link>
       <description><![CDATA[我有一些我工作的机构中特定子群体的成绩数据，并将其与一段时间内的留校情况进行比较。下面的第一个表格是 R 中 coxph 回归的一些风险比，使用 D&amp;F GPA 学生作为比较组。这是一个通常会离开我们机构去另一所机构的子群体，所以我希望看到 A（学术货币）与离开与留下有关。
 时间单位基于学分数量。
 
@@ -78,7 +175,7 @@ $X_1, X_2$受到其他一些特征的非线性影响：$Z_1, Z_2$。
 
 为了进一步参考，我附上了一份 Kaplan Maier 成绩生存图，该图似乎并未表明如此大的 coxph 系数。
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/648843/why-is-my-hazard-ratio-coefficients-so-large-or-small-in-coxph-regression</guid>
+      <guid>https://stats.stackexchange.com/questions/648843/why-are-my-hazard-ratio-coefficients-so-large-or-small-in-coxph-regression</guid>
       <pubDate>Fri, 07 Jun 2024 19:36:29 GMT</pubDate>
     </item>
     <item>
@@ -155,25 +252,6 @@ hAIC：在具有高多重共线性或不适定问题的场景中特别有用，�
       <pubDate>Fri, 07 Jun 2024 16:33:20 GMT</pubDate>
     </item>
     <item>
-      <title>什么转换可以“平滑地”调整经验数据方差？</title>
-      <link>https://stats.stackexchange.com/questions/648838/what-transformation-to-adjust-empirical-data-variance-smoothly</link>
-      <description><![CDATA[假设我们拥有产生该数据的过时流程的经验数据。
-我们有理由相信当今的流程是相似的（例如相同的分布），但方差不同。
-一般问题：在这种情况下，如何调整过时的经验数据以更好地反映当今情况？即，对数据应用哪种一般变换将允许创建提供最新方差（我们假设具有）的伪数据？
-如果我们有“均值”而不是“方差”，那么翻译就可以了。
-对于方差，用标量计时样本将提供以此标量的平方计时的方差，但在这种情况下，整个经验样本将按相同的量进行调整。我更多地考虑一些更“有弹性”的东西，如果接近平均值，它不会改变观察结果，但如果远离平均值，它就会改变很多（我猜是平方根的东西）。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648838/what-transformation-to-adjust-empirical-data-variance-smoothly</guid>
-      <pubDate>Fri, 07 Jun 2024 16:19:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>与独立 ARMA 模型相比，为什么使用 VARMA 模型时某些序列的预测值会下降？</title>
-      <link>https://stats.stackexchange.com/questions/648836/why-does-the-forecast-for-some-series-degrade-when-using-a-varma-model-comparing</link>
-      <description><![CDATA[我正在处理多个我怀疑有关联的时间序列，并且我假设使用 VARMA 模型至少不会降低每个序列的预测，甚至会改善它们。但是，当我在 Python 中使用 statsmodels.tsa.statespace.varmax 预测两个时间序列时，与使用单变量模型相比，其中一个时间序列的预测会降低。
-我已确保序列是平稳的。使用 VARMA 模型时，其中一个序列的预测性能下降的原因可能是什么？这是由于解决 VARMA 模型的计算限制，还是我可能忽略了 VARMA 模型的理论方面？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648836/why-does-the-forecast-for-some-series-degrade-when-using-a-varma-model-comparing</guid>
-      <pubDate>Fri, 07 Jun 2024 16:10:34 GMT</pubDate>
-    </item>
-    <item>
       <title>李克特量表和样本量</title>
       <link>https://stats.stackexchange.com/questions/648828/likert-scale-and-sample-size</link>
       <description><![CDATA[我想研究母亲收到论文或网站信息的满意度。我至少会问 5 个问题，每个问题都使用李克特量表（5 分）。
@@ -187,24 +265,12 @@ hAIC：在具有高多重共线性或不适定问题的场景中特别有用，�
       <pubDate>Fri, 07 Jun 2024 14:57:59 GMT</pubDate>
     </item>
     <item>
-      <title>在 Wedderburn 1974 中的矩量法中使用 $n-m$ 的动机是什么？</title>
-      <link>https://stats.stackexchange.com/questions/648811/what-is-the-motivation-for-the-use-of-n-m-in-the-method-of-moments-in-wedderbu</link>
-      <description><![CDATA[在回答这个问题时方差和卡方之间有关系吗？
-我写道
-
-因此，要找到分散参数，必须使用不同的技巧。在 Wedderburn 1974 中，这是通过使用 矩法 来实现的。
-方差的期望大约为：
-$$E\left[\sum_{i=1}^n \frac{(x_i-\mu_i)^2}{V(\mu_i)} \right] \approx \phi({n-m})$$
-（该近似值基于假设 $V(\mu_i)$ 近似线性，并且分布服从 $\chi^2$ 分布）
-
-括号中的这部分不正确。分布不服从 $\chi^2$ 分布。这是针对正态分布族而言的，但一般情况下并非如此。
-但它也不必如此。对于矩量法而言，重要的是分布具有该期望值。
-然而，我想知道的是：
-缩放残差平方和的期望值是否等于样本大小 $n$ 减去参数 $m$？
-我们如何证明这一点？如果它只是近似正确，我们如何证明近似是合理的？
-我们确实知道残差位于较小的子空间中（如此处所述：为什么残差在 $\mathbb{R}^{n-p}$ 中？），但误差的分布不是球对称的，方差可能不需要均等分割。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648811/what-is-the-motivation-for-the-use-of-n-m-in-the-method-of-moments-in-wedderbu</guid>
-      <pubDate>Fri, 07 Jun 2024 11:14:28 GMT</pubDate>
+      <title>估计样本的概率密度</title>
+      <link>https://stats.stackexchange.com/questions/648819/estimating-probability-density-for-sample</link>
+      <description><![CDATA[我有一个包含 20,000 多个样本的数据集。这里的目标是为样本定义一个分布，以便我可以绘制所有可能的结果。但是，我无法找到可用于估计概率密度的适当分布。我尝试使用正态分布、柯西分布、拉普拉斯分布、学生 T 分布和威布尔分布来测试样本。在所有情况下，Kolmogorov-Smirnov 检验都拒绝了我的样本遵循上述任何分布的可能性。我也尝试使用 KDE 进行估计，但结果并不理想。我尝试使用 KS 检验来检查 KDE 和我的样本之间的相似性，但即使在这里相似性也被拒绝了。我不知道下一步该怎么做才能估算出概率密度。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648819/estimating-probability-density-for-sample</guid>
+      <pubDate>Fri, 07 Jun 2024 13:27:34 GMT</pubDate>
     </item>
     <item>
       <title>离散时间生存中的审查类型</title>
@@ -225,34 +291,17 @@ $$E\left[\sum_{i=1}^n \frac{(x_i-\mu_i)^2}{V(\mu_i)} \right] \approx \phi({n-m})
       <pubDate>Wed, 05 Jun 2024 19:03:51 GMT</pubDate>
     </item>
     <item>
-      <title>t 代之后回归的方差是多少？</title>
-      <link>https://stats.stackexchange.com/questions/648671/what-is-the-variance-of-a-regression-after-t-generations</link>
-      <description><![CDATA[假设我们有一个回归：
-$$x_{t+1} = b x_t + e_t.$$
-取每边的方差，我们得到
-$$\operatorname{Var}(x_{t+1}) = b^2 \operatorname{Var}(x_t) + \operatorname{Var}(e_t)。 $$
-现在假设 $\operatorname{Var}(e_t) = \sigma^2$ 是所有 $t$ 的常数。
-然后我们有一个一阶递归关系，因此我们可以明确地解决：
-$$\operatorname{Var}(x_t) = \frac{\sigma^2 (1 - b^{2t})}{(1-b^2)}。$$
-不幸的是，我正在阅读的书 Gregory Clark 的《儿子也复活了》给出的方差为 $\sigma^2 (1 - b^{2t})$。我的推导正确吗？
-（注意：对于拥有这本书的人来说，页码是 297。这不是打字错误，后续文本已明确指出。）]]></description>
-      <guid>https://stats.stackexchange.com/questions/648671/what-is-the-variance-of-a-regression-after-t-generations</guid>
-      <pubDate>Wed, 05 Jun 2024 10:18:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么要正式检验工具变量的相关性假设？</title>
-      <link>https://stats.stackexchange.com/questions/648577/why-can-we-formally-test-the-relevance-assumption-of-instrument-variable</link>
-      <description><![CDATA[我在我以前的关于 IV 的幻灯片中看到，教授说我们无法测试 IV 的排除假设，但我们可以测试 IV 的相关性假设。他关于无法测试排除的论据是：
+      <title>计算 Cox-Snell Rsquared 的值</title>
+      <link>https://stats.stackexchange.com/questions/648684/calculating-the-value-of-cox-snell-rsquared</link>
+      <description><![CDATA[我想计算前瞻性纵向研究的最小样本量（使用 cox 回归 - 该项目的目的是进行预测）。可以使用 R 中 pmsampsize 包中的以下函数 pmsampsize 进行计算（基于以下出版物；开发具有连续、二元或生存（事件发生时间）结果的模型的最小样本量。Riley 等人（2018））。要运行以下函数，我们需要输入 csrsquared 的值，即新模型的 Cox-Snell Rsquared 值。
+pmsampsize(type = &quot;s&quot;, csrsquared = , parameters = , rate = ,timepoint = , meanfup = )
 
-$y=\beta_1 x_1 +\beta_2 x_2+\gamma z + u$如果 z 不独立于 u，那么您无法通过执行此回归来测试排除要求，并与 $\gamma=0$ 争论，因为 $cov(z,u)\ne 0$ 会使 $\gamma$ 的估计产生偏差
-
-同时，他说您可以通过以下方式测试相关性假设：
-
-$x_1=\eta x_2+\lambda z+v$，如果 $\eta $ 与 0 显著不同，我们满足相关性要求
-
-但是，第二个不是也存在内生性问题吗？因此，如果 z 不独立于 v，但与 x_2 相关，则 $\eta $ 会有偏差。如果我们观察到非零 gamma，则可能存在向上偏差，如果没有偏差，z 本身与 x 没有任何关系。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648577/why-can-we-formally-test-the-relevance-assumption-of-instrument-variable</guid>
-      <pubDate>Mon, 03 Jun 2024 21:57:36 GMT</pubDate>
+如果在类似的研究中没有试验数据，也没有伪 R2 的报告值，那么如何定义 csrsquared 的值以使用此函数进行计算？
+2. 假设伪 R2 的值可用，如何估计 Cox-Snell R 平方的值。。
+我的模型中有一个二元时间相关协变量，只有 9 个时间点。因此，当 cox 模型包含时间相关协变量和离散生存时间时，我认为上述函数不可用于样本量计算。 但我仍然想知道在没有试验数据的情况下如何预测伪 R2，假设我们有连续的生存时间并且所有协变量都是时间独立的。
+在我的研究中，患者每两个月来医院检查一次。T0（手术前一周）、T1（手术后两个月）、T2（手术后 4 个月）直至 T9（手术后 18 个月）。有一个二元时间相关协变量和一个连续独立变量。 在事件发生前退出、完成无事件随访（T9）的病例被审查。]]></description>
+      <guid>https://stats.stackexchange.com/questions/648684/calculating-the-value-of-cox-snell-rsquared</guid>
+      <pubDate>Wed, 05 Jun 2024 13:08:22 GMT</pubDate>
     </item>
     </channel>
 </rss>
