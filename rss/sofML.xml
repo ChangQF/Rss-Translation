@@ -4,7 +4,175 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 09 Jun 2024 15:14:10 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 09 Jun 2024 18:18:32 GMT</lastBuildDate>
+    <item>
+      <title>搜索具有相似文本的文档</title>
+      <link>https://stackoverflow.com/questions/78599128/search-for-documents-with-similar-texts</link>
+      <description><![CDATA[我有一个包含三个属性的文档：标签、位置和文本。
+目前，我正在使用 LangChain/pgvector/embeddings 对它们全部进行索引。
+我得到了满意的结果，但我想知道是否有更好的方法，因为我想查找一个或多个具有特定标签和位置的文档，但文本可能会有很大差异，但含义仍然相同。出于这个原因，我考虑使用嵌入/向量数据库。
+这是否也是使用 RAG（检索增强生成）来“教”的一个例子LLM 不知道的一些常见缩写？
+import pandas as pd
+
+from langchain_core.documents import Document
+from langchain_postgres import PGVector
+from langchain_postgres.vectorstores import PGVector
+from langchain_openai.embeddings import OpenAIEmbeddings
+
+connection = &quot;postgresql+psycopg://langchain:langchain@localhost:5432/langchain&quot;
+embeddings = OpenAIEmbeddings(model=&quot;text-embedding-3-small&quot;)
+collection_name = &quot;notas_v0&quot;
+
+vectorstore = PGVector(
+embeddings=embeddings,
+collection_name=collection_name,
+connection=connection,
+use_jsonb=True,
+)
+
+# 开始索引
+
+# df = pd.read_csv(&quot;notes.csv&quot;)
+# df = df.dropna() # .head(10000)
+# df[&quot;tags&quot;] = df[&quot;tags&quot;].apply(
+# lambda x: [tag.strip() for tag in x.split(&quot;,&quot;) if tag.strip()]
+# )
+
+# long_texts = df[&quot;Texto Longo&quot;].tolist()
+# wc = df[&quot;Centro Trabalho Responsável&quot;].tolist()
+# notes = df[&quot;Nota&quot;].tolist()
+# tags = df[&quot;tags&quot;].tolist()
+
+# documents = list(
+# map(
+# lambda x: Document(
+# page_content=x[0], metadata={&quot;wc&quot;: x[1], &quot;note&quot;: x[2], &quot;tags&quot;: x[3]}
+# ),
+# zip(long_texts, wc, notes, tags),
+# )
+# )
+
+# print(
+# [
+# vectorstore.add_documents(documents=documents[i : i + 100])
+# for i in range(0, len(documents), 100)
+# ]
+# )
+# print(&quot;Done.&quot;)
+
+### END INDEX
+
+### BEGIN QUERY
+
+result = vectorstore.similarity_search_with_relevance_scores(
+&quot;EVTD202301222707&quot;,
+filter={&quot;note&quot;: {&quot;$in&quot;: [&quot;15310116&quot;]}, &quot;tags&quot;: {&quot;$in&quot;: [&quot;abcd&quot;, &quot;xyz&quot;]}},
+k=10, # 结果限制
+)
+
+### END QUERY
+]]></description>
+      <guid>https://stackoverflow.com/questions/78599128/search-for-documents-with-similar-texts</guid>
+      <pubDate>Sun, 09 Jun 2024 16:40:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>PHP proc_open 与 Python 脚本导致 UnicodeEncodeError</title>
+      <link>https://stackoverflow.com/questions/78599045/php-proc-open-with-python-script-causes-unicodeencodeerror</link>
+      <description><![CDATA[我尝试使用 proc_open 从 PHP 脚本运行 Python 脚本。Python 脚本在直接从命令行运行时运行良好，但从 PHP 运行时会引发 UnicodeEncodeError。我怀疑问题可能与 PHP 中捕获和处理输出的方式有关，但我不确定如何修复它。
+我正在开发一个项目，需要从 PHP 脚本调用 Python 脚本。Python 脚本处理一些数据并打印结果。以下是我使用的 PHP 代码：
+&lt;?php
+
+function my_shell_exec($cmd, &amp;$stdout=null, &amp;$stderr=null) {
+$proc = proc_open($cmd,[
+1 =&gt; [&#39;pipe&#39;,&#39;w&#39;],
+2 =&gt; [&#39;pipe&#39;,&#39;w&#39;],
+],$pipes);
+$stdout = stream_get_contents($pipes[1]);
+fclose($pipes[1]);
+$stderr = stream_get_contents($pipes[2]);
+fclose($pipes[2]);
+return proc_close($proc);
+}
+
+$output = my_shell_exec(&#39;.\\.venv\\Scripts\\activate &amp;&amp; .\\.venv\\Scripts\\python.exe infer.py&#39;, $stdout, $stderr);
+var_dump($output);
+var_dump($stdout);
+var_dump($stderr);
+exit();
+
+PHP 输出：
+int(1)
+string(183) &quot;初始化模型
+模型已存在于 keras-model/model-transventricular-v3.keras 中，跳过模型初始化。
+推断图像
+(1, 256, 256, 1)
+&quot; keras-model\model-transventricular-v3.keras &quot;
+&quot;
+string(2416) &quot;2024-06-09 22:57:14.361024: I tensorflow/core/util/port.cc:113] oneDNN 自定义操作已启用。由于不同计算顺序的浮点舍入误差，您可能会看到略有不同的数值结果。要关闭它们，请设置环境变量 `TF_ENABLE_ONEDNN_OPTS=0`。
+...
+回溯（最近一次调用最后一次）：
+文件 &quot;D:\path\to\infer.py&quot;，第 220 行，位于 &lt;module&gt;
+infer_image(&quot;input.dat&quot;)
+文件 &quot;D:\path\to\infer.py&quot;，第 201 行，在 infer_image 中
+prediction = model.predict(images)
+文件 &quot;C:\path\to\python\lib\encodings\cp1252.py&quot;，第 19 行，在 encode 中
+return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: &#39;charmap&#39; 编解码器无法对位置 19-38 中的字符进行编码：字符映射到 &lt;undefined&gt;
+
+直接命令行执行（工作正常）：
+(.venv) D:\path\to\project&gt;.\.venv\Scripts\activate &amp;&amp; .\.venv\Scripts\python.exe infer.py
+2024-06-09 22:56:04.593392：I tensorflow/core/util/port.cc:113] oneDNN 自定义操作已开启。
+...
+初始化模型
+模型已存在于 keras-model/model-transventricular-v3.keras 中，跳过模型初始化。
+推断图像
+(1, 256, 256, 1)
+I0000 00:00:1717948579.475089 18516 service.cc:153] StreamExecutor 设备 (0): 主机，默认版本
+2024-06-09 22:56:19.530820: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:268] 禁用 MLIR 崩溃重现器，设置环境变量 `MLIR_CRASH_REPRODUCER_DIRECTORY` 以启用。
+I0000 00:00:1717948580.392302 18516 device_compiler.h:188] 使用 XLA 编译集群！此行在进程的整个生命周期内最多记录一次。
+1/1 ━━━━━━━━━━━━━━━━━━━━━ 2s 2s/step
+
+
+Python 脚本 (infer.py):
+import os
+from keras.models import load_model # type: ignore
+# from keras.optimizers import Adam # type: ignore
+from dotenv import load_dotenv
+import cv2
+import numpy as np
+import gdown
+
+if __name__ == &#39;__main__&#39;:
+if not os.path.exists(&#39;input.dat&#39;):
+print(&quot;input.dat not exist&quot;)
+exit(0)
+
+print(&quot;Init model&quot;)
+init_model()
+
+print(&quot;Infer image&quot;)
+infer_image(&quot;input.dat&quot;)
+
+def infer_image(image_filepath):
+# 预处理图像
+images = preproces(image_filepath)
+print(images.shape)
+
+path = os.path.join(&#39;keras-model&#39;, &#39;model-transventricular-v3.keras&#39;)
+print(&#39;&quot;&#39;, path, &#39;&quot;&#39;)
+
+# 加载模型
+model = load_model(path)
+
+# 预测图像
+prediction = model.predict(images)
+predictions = np.argmax(prediction, axis=1)
+
+# 进一步处理
+]]></description>
+      <guid>https://stackoverflow.com/questions/78599045/php-proc-open-with-python-script-causes-unicodeencodeerror</guid>
+      <pubDate>Sun, 09 Jun 2024 16:06:09 GMT</pubDate>
+    </item>
     <item>
       <title>提高 LSTM 模型对股票价格预测的鲁棒性</title>
       <link>https://stackoverflow.com/questions/78598814/improving-robustness-of-lstm-model-for-stock-price-prediction</link>
@@ -170,38 +338,6 @@ ML 生态系统正在使用 keras 和 tensorflow 并将其存储在容器的本�
       <pubDate>Sun, 09 Jun 2024 06:25:08 GMT</pubDate>
     </item>
     <item>
-      <title>我们如何使用字典列表作为 tfidfvectorizer 的输入</title>
-      <link>https://stackoverflow.com/questions/78597657/how-we-can-use-list-of-dictionary-for-input-of-tfidfvectorizer</link>
-      <description><![CDATA[我有一份字典列表，每个字典都显示一个 pdf，键是页码和 pdf 每页的词干标记值，如何使用此结构输入 tfidf vectorize？
-我知道 tfidfvectorize 的输入必须是字符串，但我不知道如何转换我的输入，以便系统分别理解每个 pdf 和每页的标记，因为我想建立倒排索引]]></description>
-      <guid>https://stackoverflow.com/questions/78597657/how-we-can-use-list-of-dictionary-for-input-of-tfidfvectorizer</guid>
-      <pubDate>Sun, 09 Jun 2024 05:28:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>为神经网络 MATLAB 实现岭回归方程</title>
-      <link>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network-matlab</link>
-      <description><![CDATA[我试图在 MATLAB 中复制以下方程，以使用岭回归训练找到神经网络的最佳输出权重矩阵。
-使用岭回归训练后的神经网络输出权重矩阵：
-
-我的尝试如下。请注意，y_i 是一个 T x 1 向量，而 y_i_target 也是一个 T x 1 向量。 Wout_i 是一个 N x 1 向量，其中 N 是神经网络中的节点数。我为每个 i^th 目标训练信号生成一个 Wout_i,y_i,y_i_target。为了简单起见，我没有在我的可重现示例中计算 Wout_i,y_i,y_i_target。
-Ny = 1000; % 训练信号数量
-T = 100; % 每个训练信号的时间长度
-reg = 10^-4; % 岭回归系数
-outer_sum = 0;
-for i = 1:Ny
-Wouts{i} = Wout_i; % 为每个第 i 个目标训练信号收集每个 Wout_i 的单元矩阵
-inner_sum = sum(((y_i-y_i_target).^2)+reg*norm(Wout_i)^2);
-outer_sum(i) = inner_sum;
-end
-outer_sum = outer_sum.*(1/Ny);
-[minval, minidx] = min(outer_sum);
-Wout = cell2mat(Wouts(minidx));
-
-我对 Wout 的最终答案是 N 乘以 1，正如它应该的那样，但我对我的答案不确定。我特别不确定我是否正确地完成了 Wout 运算的双重求和和 arg min。有什么方法可以验证我的答案吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network-matlab</guid>
-      <pubDate>Sat, 08 Jun 2024 22:31:47 GMT</pubDate>
-    </item>
-    <item>
       <title>同一组内距离最小的图节点着色</title>
       <link>https://stackoverflow.com/questions/78597010/graph-node-coloring-with-minimal-distance-within-same-group</link>
       <description><![CDATA[我有一个带权重的边列表（节点 1 节点 2 权重）作为无向图的输入。
@@ -235,7 +371,7 @@ E红色，蓝色=dist(A,B)+dist(A,C)+dist(D,B)+dist(D,C)=10+9+12+11=42
       <pubDate>Sat, 08 Jun 2024 21:44:35 GMT</pubDate>
     </item>
     <item>
-      <title>在 Raspberry Pi 4 上安装 MediaPipe 时出现问题 [关闭]</title>
+      <title>在 Raspberry Pi 4 上安装 MediaPipe 时出现问题[关闭]</title>
       <link>https://stackoverflow.com/questions/78596275/problem-with-installation-mediapipe-on-raspberry-pi-4</link>
       <description><![CDATA[我在 Raspberry Pi 4 上安装 MediaPipe 时遇到问题。首先，我遇到一个错误，即没有 MediaPipe，安装 mediapipe-rpi4 后，我收到此警报。
 这是一条错误消息：
@@ -252,6 +388,71 @@ ModuleNotFoundError：没有名为“mediapipe.python._framework_bindings”的�
 我正在尝试在 Raspberry Pi 4 上安装 MediaPipe 以用于我的手部检测模块。]]></description>
       <guid>https://stackoverflow.com/questions/78596275/problem-with-installation-mediapipe-on-raspberry-pi-4</guid>
       <pubDate>Sat, 08 Jun 2024 16:17:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否可以在 Elixir Nx/Schorar 中进行 ELISA 分析？</title>
+      <link>https://stackoverflow.com/questions/78565463/is-elisa-analysis-in-elixir-nx-schorar-possible</link>
+      <description><![CDATA[我已阅读 Medium 上的文章 ELISA Analysis in Python。
+上述文章使用 SciPy 的 curve_fit 函数根据 4 参数逻辑回归 (4PL) 模型找到近似曲线，如下所示：
+from scipy.optimize import curve_fit
+
+x = [1.95, 3.91, 7.381, 15.63, 31.25, 62.5, 125,250, 500, 1000]
+y = [0.274, 0.347, 0.392, 0.420, 0.586, 1.115, 1.637, 2.227, 2.335, 2.372]
+
+def log4pl(x, A, B, C, D):
+return(((A - D) / (1.0 + ((x / C) ** B))) + D)
+
+params, _ = curve_fit(log4pl, x, y)
+A, B, C, D = params[0], params[1], params[2], params[3]
+
+我想使用 Nx/Scholar Elixir 中的库。
+可能吗？如果您能给我任何提示，我将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78565463/is-elisa-analysis-in-elixir-nx-schorar-possible</guid>
+      <pubDate>Sun, 02 Jun 2024 04:29:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>通过单一数字指标训练 XGBoost</title>
+      <link>https://stackoverflow.com/questions/78558863/training-xgboost-over-a-single-number-metric</link>
+      <description><![CDATA[假设我正在用 Python（xgboost 版本 2.0.3）构建一个 XGBoost 模型（这里的回归或分类完全不重要）来预测股票市场时间序列分析中的目标变量。
+例如，目标可能是：时间序列中的下一个值或二进制变量，如果下一个值高于前一个值，则设置为 1，否则设置为 0。
+为了训练模型，是否可以使用回归问题中的 MSE 或分类问题中的“二元逻辑”。
+训练后，可以根据测试集中模型的输出对策略进行回测并计算总体回报。
+我的问题是：使用 xgboost scikit-learn 接口，是否可以根据用于回测策略的性能指标来训练模型？
+例如：按照策略最大化训练集中的总体回报规则。
+在xgboost库网站上，展示了如何使用自定义损失函数来训练模型：
+def softprob_obj(labels: np.ndarray, predt: np.ndarray) -&gt; Tuple[np.ndarray, np.ndarray]:
+rows = labels.shape[0]
+classes = predt.shape[1]
+grad = np.zeros((rows, classes), dtype=float)
+hess = np.zeros((rows, classes), dtype=float)
+eps = 1e-6
+for r in range(predt.shape[0]):
+target = labels[r]
+p = softmax(predt[r, :])
+for c in range(predt.shape[1]):
+g = p[c] - 1.0 if c == target else p[c]
+h = max((2.0 * p[c] * (1.0 - p[c])).item(), eps)
+grad[r, c] = g
+hess[r, c] = h
+
+grad = grad.reshape((rows * classes, 1))
+hess = hess.reshape((rows * classes, 1))
+return grad, hess
+
+clf = xgb.XGBClassifier(tree_method=&quot;hist&quot;, objective=softprob_obj)
+
+目标函数需要计算梯度和 hessian。
+假设函数定义如下：
+def maximum_performance_metric(y_true: np.ndarray, y_pred: np.ndarray):
+# 指标计算（例如：使用 y_pred 计算总体回报
+overall_return = get_overall_return(y_pred, real_prices, ...) #overall_return 是浮点数
+return grad, hess
+
+
+是否可以根据总体回报计算梯度和 hessian，然后使用此自定义损失训练模型函数？
+函数 maximize_performance_metric() 如何访问包含 real_prices 的变量（需要整体回报计算）？]]></description>
+      <guid>https://stackoverflow.com/questions/78558863/training-xgboost-over-a-single-number-metric</guid>
+      <pubDate>Fri, 31 May 2024 08:14:07 GMT</pubDate>
     </item>
     <item>
       <title>我用自己的数据集训练yolo模型，但是没有测试结果</title>
@@ -309,183 +510,6 @@ avg_outputs = 1052318
 我尝试使用了许多图像，但它没有在任何图像中绘制方框。我不明白它是否无法检测到它，或者我在测试时是否犯了错误。]]></description>
       <guid>https://stackoverflow.com/questions/78497575/i-train-yolo-model-with-my-own-data-set-but-there-is-no-test-result</guid>
       <pubDate>Fri, 17 May 2024 19:21:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>由于“tokenizer”不为“none”，因此不会使用参数“token_pattern”</title>
-      <link>https://stackoverflow.com/questions/77149319/the-parameter-token-pattern-will-not-be-used-since-tokenizer-is-not-none</link>
-      <description><![CDATA[我试图删除标点符号和空格（包括换行符）并过滤仅由字母组成的标记，然后返回标记文本。
-我首先定义函数
- return [t.text for t in nlp(doc) if \
-not t.is_punct and \
-not t.is_space and \
-t.is_alpha]
-
-然后我进行矢量化
-vectorizer = TfidfVectorizer(tokenizer=spacy_tokenizer)
-train_feature_vects = vectorizer.fit_transform(train_data)
-
-终端卡住了，并说参数“token_pattern”不会被使用，因为“tokenizer”不是“none”。
-我做错了什么？]]></description>
-      <guid>https://stackoverflow.com/questions/77149319/the-parameter-token-pattern-will-not-be-used-since-tokenizer-is-not-none</guid>
-      <pubDate>Thu, 21 Sep 2023 10:17:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何通过所有变量创建一些机器学习模型，并在每次迭代之后在 Python 中创建具有少 1 个变量的下一个 XGBClassifier？</title>
-      <link>https://stackoverflow.com/questions/75262963/how-to-create-a-few-machine-learning-models-through-all-variables-and-after-each</link>
-      <description><![CDATA[我在 Python Pandas 中有如下 DataFrame：
-输入数据：
-
-Y - 二进制目标
-
-X1...X5 - 预测变量
-
-
-
-Y
-X1
-X2
-X3
-X4
-X5
-
-
-
-
-1
-111
-22
-1
-0
-150
-
-
-0
-12
-33
-1
-0
-222
-
-
-1
-150
-44
-0
-0
-230
-
-
-0
-270
-55
-0
-1
-500
-
-
-...
-...
-...
-...
-...
-...
-
-
-
-
-
-要求：
-并且我需要：
-
-对所有变量进行循环，这样每次迭代后都会创建一个新的 XGBoost 分类模型，并且每次迭代后都会丢弃其中一个变量并创建下一个模型
-因此，如果我有例如 5 个预测变量 (X1...X5)，我需要创建 5 个 XGBoost 分类模型，并且在每个连续模型中必须少 1 个变量
-每个模型都应通过 roc_auc_score 进行评估
-作为输出，我需要：list_of_models = []，其中将保存创建的模型和带有训练和测试 AUC 的 DataFrame
-
-期望输出：
-因此，我需要有如下所示的内容
-
-模型 - 模型在list_of_models
-
-Num_var - 模型中使用的预测变量数量
-
-AUC_train - 训练数据集上的 roc_auc_score
-
-AUC_test - 测试数据集上的 roc_auc_score
-
-
-
-模型
-Num_var
-AUC_train
-AUC_test
-
-
-
-
-0
-5
-0.887
-0.884
-
-
-1
-4
-0.875
-0.845
-&lt; /tr&gt;
-
-2
-3
-0.854
-0.843
-
-
-3
-2
-0.965
-0.928
-
-
-4
-1
-0.922
-0.921
-
-
-
-
-
-我的draft: 这是错误的，因为它应该循环遍历所有变量，这样每次迭代后都会创建一个新的 XGBoost 分类模型，并且每次迭代后都会丢弃其中一个变量并创建下一个模型
-X_train, X_test, y_train, y_test = train_test_split(df.drop(&quot;Y&quot;, axis=1)
-, df.Y
-, train_size = 0.70
-, test_size=0.30
-, random_state=1
-, stratify = df.Y)
-
-results = []
-list_of_models = []
-
-for val in X_train:
-
-model = XGBClassifier()
-model.fit(X_train, y_train)
-list_of_models.append(model)
-
-preds_train = model.predict(X_train)
-preds_test = model.predict(X_test)
-preds_prob_train = model.predict_proba(X_train)[:,1]
-preds_prob_test = model.predict_proba(X_test)[:,1]
-
-results.append({(&quot;AUC_train&quot;:round(metrics.roc_auc_score(y_train,preds_prod_test),3),
-&quot;AUC_test&quot;:round(metrics.roc_auc_score(y_test,preds_prod_test),3})
-
-results = pd.DataFrame(results)
-
-如何在 Python 中做到这一点？]]></description>
-      <guid>https://stackoverflow.com/questions/75262963/how-to-create-a-few-machine-learning-models-through-all-variables-and-after-each</guid>
-      <pubDate>Fri, 27 Jan 2023 20:18:43 GMT</pubDate>
     </item>
     <item>
       <title>无需深度学习技术的手写数字识别</title>
