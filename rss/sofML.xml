@@ -4,7 +4,197 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 10 Jun 2024 15:16:56 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 10 Jun 2024 18:19:42 GMT</lastBuildDate>
+    <item>
+      <title>有人能帮我解释一下 NO TEARS 算法在估计 DAG 中的梯度编码吗？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78603629/can-anyone-help-me-explain-the-gradient-coding-of-no-tears-algorithm-in-estimati</link>
+      <description><![CDATA[
+notears &lt;- function(df, lambda1=0.1, loss.type=c(&#39;l2&#39;,&#39;logistic&#39;,&#39;poisson&#39;),
+max.iter=100, h.tol=1e-6, rho.max=1e+6, w.threshold=0.1, m=NULL,
+to=c(&#39;igraph&#39;, &#39;adjacency&#39;, &#39;edges&#39;, &#39;graph&#39;, &#39;bnlearn&#39;), seed=sample(1:10**6, 1)) {
+loss.type &lt;- match.arg(loss.type)
+to &lt;- match.arg(to)
+
+set.seed(seed)
+
+splitted.df &lt;- dataset.split(df, m=m)
+X &lt;- df &lt;- as.matrix(splitted.df$train)
+
+loss.func &lt;- function(W) { # ?
+M &lt;- X %*% W
+if (loss.type==&#39;l2&#39;) {
+R &lt;- X - M
+loss &lt;- 0.5 / dim(X)[1] * sum(R ** 2)
+} else if (loss.type==&#39;logistic&#39;) {
+loss &lt;- 1.0 / dim(X)[1] * sum(log(sum(exp(M)+1)) - X * M)
+} else if (loss.type==&#39;poisson&#39;) {
+S &lt;- exp(M)
+loss &lt;- 1.0 / dim(X)[1] * sum(S - X * M)
+}
+return(loss)
+}
+
+G.loss.func &lt;- function(W) { # ?
+M &lt;- X %*% W
+if (loss.type==&#39;l2&#39;) {
+R &lt;- X - M
+G.loss &lt;- -1.0 / dim(X)[1] * t(X) %*% R
+} else if (loss.type==&#39;logistic&#39;) {
+G.loss &lt;- 1.0 / dim(X)[1] * t(X) %*% (1.0 / (1 + exp(-1 * M)) - X)
+} else if (loss.type==&#39;poisson&#39;) {
+S &lt;- exp(M)
+G.loss &lt;- 1.0 / dim(X)[1] * t(X) %*% (S - X)
+}
+return(G.loss)
+}
+
+h.func &lt;- function(W) { # ?
+M &lt;- diag(1, d, d) + W * W / d
+E &lt;- matrixcalc::matrix.power(M, d-1)
+h.new &lt;- sum(t(E) * M) - d
+return(h.new)
+}
+
+G.h.func &lt;- function(W) { # ?
+M &lt;- diag(1, d, d) + W * W / d
+E &lt;- matrixcalc::matrix.power(M, d-1)
+G.h &lt;- t(E) * W * 2
+return(G.h)
+}
+
+adj &lt;- function(w) { # ?
+w &lt;- as.matrix(w)
+w.pos &lt;- w[1:(length(w)/2),]
+w.neg &lt;- w[((length(w)/2)+1):(length(w)),]
+dim(w.pos) &lt;- c(d,d)
+dim(w.neg) &lt;- c(d,d)
+W &lt;- w.pos - w.neg
+return(W)
+}
+
+fn &lt;- function(w) { # ?
+W &lt;- adj(w)
+loss &lt;- loss.func(W)
+h.new &lt;- h.func(W)
+obj &lt;- loss + 0.5 * rho * h.new * h.new + alpha * h.new + lambda1 * sum(w)
+return(obj)
+}
+
+gr &lt;- function(w) { # ?
+W &lt;- adj(w)
+G.loss &lt;- G.loss.func(W)
+h.new &lt;- h.func(W)
+G.h &lt;- G.h.func(W)
+G.smooth &lt;- G.loss + (rho * h.new + alpha) * G.h
+G.obj &lt;- c(array(G.smooth + lambda1), array(-1 * G.smooth + lambda1))
+return(G.obj)
+}
+
+n &lt;- nrow(df)
+d &lt;- ncol(df)
+nodes &lt;- colnames(df)
+w.est &lt;- replicate(2*d*d, 0)
+rho &lt;- 1
+alpha &lt;- 0
+h &lt;- Inf
+
+for (i in 1:max.iter) {
+w.new &lt;- NULL
+h.new &lt;- NULL
+while (rho &lt; rho.max) {
+w.new &lt;- optim(w.est, fn, gr=gr, method=&#39;L-BFGS-B&#39;, lower=0, upper=Inf)$par # ?
+h.new &lt;- h.func(adj(w.new))
+if (h.new &gt; (0.25*h)) {
+rho = rho*10
+} else {
+break
+}
+}
+w.est &lt;- w.new
+h &lt;- h.new
+alpha &lt;- alpha + (rho*h)
+if (h &lt;= h.tol | rho &gt;= rho.max) {
+break
+}
+}
+W.est &lt;- adj(w.est)
+W.est[abs(W.est) &lt; w.threshold] &lt;- 0
+colnames(W.est) &lt;- rownames(W.est) &lt;- nodes
+
+rownames(W.est) &lt;- colnames(W.est) &lt;- colnames(splitted.df$train)
+g &lt;- convert.format(W.est, from=&#39;adjacency&#39;, to=to)
+return(g)
+}
+
+以上是NO TEARS算法的代码，原论文在这里：https://arxiv.org/abs/1803.01422
+我有2个问题，
+第一，邻接矩阵W只有$d^2$个元素，我不知道为什么算法需要 $2*d^2$ 个元素来优化。
+其次，我对他们的梯度代码感到很困惑。我认为他们的论文中没有任何讨论。
+ gr &lt;- function(w) { # ?
+W &lt;- adj(w)
+G.loss &lt;- G.loss.func(W)
+h.new &lt;- h.func(W)
+G.h &lt;- G.h.func(W)
+G.smooth &lt;- G.loss + (rho * h.new + alpha) * G.h
+G.obj &lt;- c(array(G.smooth + lambda1), array(-1 * G.smooth + lambda1))
+return(G.obj)
+}
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78603629/can-anyone-help-me-explain-the-gradient-coding-of-no-tears-algorithm-in-estimati</guid>
+      <pubDate>Mon, 10 Jun 2024 16:57:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>从 Azure 机器学习工作室笔记本直接将数据写入 Blob 存储</title>
+      <link>https://stackoverflow.com/questions/78603383/write-data-directly-to-blob-storage-from-an-azure-machine-learning-studio-notebo</link>
+      <description><![CDATA[我正在 Azure 机器学习笔记本中进行一些交互式开发，我想将一些数据直接从 pandas DataFrame 保存到我默认连接的 blob 存储帐户中的 csv 文件中。我目前正在按以下方式加载一些数据：
+import pandas as pd
+
+uri = f&quot;azureml://subscriptions/&lt;sub_id&gt;/resourcegroups/&lt;res_grp&gt;/workspaces/&lt;workspace&gt;/datastores/&lt;datastore_name&gt;/paths/&lt;path_on_datastore&gt;&quot;
+df = pd.read_csv(uri)
+
+加载这些数据没有问题，但经过一些基本转换后，我想将这些数据保存到我的存储帐户中。我发现的大多数（如果不是全部）解决方案都建议将此文件保存到本地目录，然后将此保存的文件上传到我的存储帐户。我发现的最佳解决方案是以下解决方案，它使用 tmpfile，因此我不必事后删除任何“本地”文件：
+from azureml.core import Workspace
+import tempfile
+
+ws = Workspace.from_config()
+datastore = ws.datastores.get(&quot;exampleblobstore&quot;)
+
+with tempfile.TemporaryDirectory() as tmpdir:
+tmpath = f&quot;{tmpdir}/example_file.csv&quot;
+df.to_csv(tmpath)
+datastore.upload_files([tmpath], target_path=&quot;path/to/target.csv&quot;, overwrite=True)
+
+这是一个合理的解决方案，但我想知道是否有任何方法可以直接写入我的存储帐户，而无需先保存文件。理想情况下，我想做一些简单的事情：
+target_uri = f&quot;azureml://subscriptions/&lt;sub_id&gt;/resourcegroups/&lt;res_grp&gt;/workspaces/&lt;workspace&gt;/datastores/&lt;datastore_name&gt;/paths/&lt;path_on_datastore&gt;&quot;
+df.to_csv(target_uri)
+
+读了一些资料后，我认为 AzureMachineLearningFileSystem 类可能允许我以类似于在本地机器上开发时的方式读取和写入数据到我的数据存储，但是，似乎这个类不允许我写入数据，只能检查“文件系统”并从中读取数据。]]></description>
+      <guid>https://stackoverflow.com/questions/78603383/write-data-directly-to-blob-storage-from-an-azure-machine-learning-studio-notebo</guid>
+      <pubDate>Mon, 10 Jun 2024 16:05:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>Yolov4如何在指定置信度下获取map@0.50</title>
+      <link>https://stackoverflow.com/questions/78603262/yolov4-how-to-get-map0-50-under-specify-confidence</link>
+      <description><![CDATA[我尝试在指定的 conf_thresh 下获取 map@0.50。
+我设置了不同的 conf_thresh，但我得到了平均 IoU 和相同的 map@0.50
+我尝试使用此代码获取 map@0.50
+darknet 检测器地图 .data .cfg .weights -thresh 0.2
+
+我得到了“对于 conf_thresh = 0.2 TP FP FN，平均 IoU=73.15%”和“map@0.50 = 96.30%”
+我尝试了其他 conf_thresh 从 0.1 到 0.9，得到了相同的 map@0.50 = 96.30%。
+我不知道这个 map@0.50=96.30% 的意思是 conf_thresh0.1 到 0.9 下都是 96.30，还是使用了 Yolov4 默认的 conf_thresh。]]></description>
+      <guid>https://stackoverflow.com/questions/78603262/yolov4-how-to-get-map0-50-under-specify-confidence</guid>
+      <pubDate>Mon, 10 Jun 2024 15:38:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 DeepLab2 存储库使用 Deeplabv3+</title>
+      <link>https://stackoverflow.com/questions/78603167/how-to-use-deeplabv3-using-deeplab2-repository</link>
+      <description><![CDATA[这是我第一次训练神经网络。我的工作是使用 Xception 作为语义分割的主干来训练 Deeplabv3+，我想使用预先训练的权重。如何使用 deeplab2 存储库的配置来训练我的模型？如果不可能，您推荐哪些库来使用 xception 微调 deeplabv3+？
+我在 deeplab2 存储库中搜索，但找不到训练或使用 deeplabv3+ 的配置]]></description>
+      <guid>https://stackoverflow.com/questions/78603167/how-to-use-deeplabv3-using-deeplab2-repository</guid>
+      <pubDate>Mon, 10 Jun 2024 15:20:21 GMT</pubDate>
+    </item>
     <item>
       <title>PINN 解决 1D PDE，损失没有下降</title>
       <link>https://stackoverflow.com/questions/78603134/pinn-solving-1d-pde-loss-does-not-go-down</link>
@@ -154,6 +344,13 @@ return 0;
 使其训练更好的建议]]></description>
       <guid>https://stackoverflow.com/questions/78603134/pinn-solving-1d-pde-loss-does-not-go-down</guid>
       <pubDate>Mon, 10 Jun 2024 15:14:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否可以在 GPU 上加载一次 YOLO 模型并将其提供给多个 Python 进程？</title>
+      <link>https://stackoverflow.com/questions/78603046/is-it-possible-to-load-a-yolo-model-on-gpu-once-and-give-it-to-multiple-python-p</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78603046/is-it-possible-to-load-a-yolo-model-on-gpu-once-and-give-it-to-multiple-python-p</guid>
+      <pubDate>Mon, 10 Jun 2024 14:56:16 GMT</pubDate>
     </item>
     <item>
       <title>类型错误：“StratifiedShuffleSplit”对象不可迭代</title>
@@ -337,26 +534,6 @@ history = model.fit(X_train,y_train,batch_size=1,epochs=50,validation_data=(X_te
       <pubDate>Mon, 10 Jun 2024 09:39:03 GMT</pubDate>
     </item>
     <item>
-      <title>MultiScale Vision Transformer 张量不匹配形状问题</title>
-      <link>https://stackoverflow.com/questions/78600117/multiscale-vision-transformer-tensor-mismatch-shape-issue</link>
-      <description><![CDATA[MultiScale Vision Transformer 似乎存在张量不匹配形状问题。有人知道如何解决这个问题吗？
-https://github.com/facebookresearch/mvit/issues/22]]></description>
-      <guid>https://stackoverflow.com/questions/78600117/multiscale-vision-transformer-tensor-mismatch-shape-issue</guid>
-      <pubDate>Mon, 10 Jun 2024 00:51:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>时间序列中具有小数据集的机器学习模型</title>
-      <link>https://stackoverflow.com/questions/78599891/machine-learning-models-with-small-datasets-in-time-series</link>
-      <description><![CDATA[我正在开展一个预测项目，我的数据集包含 24 个月的历史销售数据。我使用 20 个月进行训练和验证，其余 4 个月进行测试。对于验证，我使用滚动预测起源（类似于 TimeSeriesSplit）。
-我尝试使用几种模型，包括 SVR、GBR、随机森林、Facebook Prophet、ARIMA 和线性回归。但是，我很难找到一个正常工作的模型。我所有的预测图看起来都不一致，并且与数据不太吻合。
-您能否解释为什么机器学习模型在像我这样的小数据集上可能表现不佳，并建议任何更适合小数据集的技术或模型？
-我所有的预测结果看起来都像图像一样，有一条直线。
-谢谢！
-在此处输入图片描述]]></description>
-      <guid>https://stackoverflow.com/questions/78599891/machine-learning-models-with-small-datasets-in-time-series</guid>
-      <pubDate>Sun, 09 Jun 2024 22:25:42 GMT</pubDate>
-    </item>
-    <item>
       <title>使用随机森林对心电图数据进行验证和测试的准确率较低</title>
       <link>https://stackoverflow.com/questions/78599809/low-validation-and-test-accuracy-with-random-forest-on-ecg-data</link>
       <description><![CDATA[]]></description>
@@ -364,60 +541,88 @@ https://github.com/facebookresearch/mvit/issues/22]]></description>
       <pubDate>Sun, 09 Jun 2024 21:43:40 GMT</pubDate>
     </item>
     <item>
-      <title>如何提高多标签分类的准确度得分？</title>
-      <link>https://stackoverflow.com/questions/78598665/how-to-improve-accuracy-score-in-multilabel-classification</link>
-      <description><![CDATA[我想知道如何在多标签分类问题中提高准确率并降低损失。
-如果你查看 sklearn 参考，你会发现在多类和多输出算法中提到了多标签，我现在正在测试它。
-（https://scikit-learn.org/stable/modules/multiclass.html）
-样本数据使用sklearn.datasets中的make_multilabel_classification有10个特征，通过修改n_classes创建一个数据集。
-当multilabel有两个类时，似乎准确率和损失都比较令人满意。
-from numpy import mean
-from numpy import std
-from sklearn.datasets import make_multilabel_classification
-from sklearn.neighbors import KNeighborsClassifier
+      <title>在 Scikit-learn 管道中过滤 y 的中间模型</title>
+      <link>https://stackoverflow.com/questions/78597981/intermediate-model-that-filters-y-in-scikit-learn-pipelines</link>
+      <description><![CDATA[我想实现一个具有中间分类器的预测架构。该模型将被拟合，然后预测训练集另一部分上的二进制特征类别的概率。然后，转换器将删除概率小于给定值的每个实例。显然，也应该删除与这些实例相对应的 y 值。默认的 sklearn 行为不支持此功能，它不允许在管道内转换 y 以进行优化，例如 GridSearchCV。
+我的自定义模型转换器如下（我使用的是 sklearn==1.4.0，这非常重要）：
+class My_Int_Classifier(BaseEstimator, TransformerMixin):
+def __init__(self, pctg_int_model=0.5, int_target=None, thres_prob=0.5, y_final_target=None, **kwargs):
+self.model=RandomForestClassifier(n_estimators=100, criterion=&#39;gini&#39;, max_depth=None,
+min_weight_fraction_leaf=0.0, max_features=&#39;sqrt&#39;,
+max_leaf_nodes=None, min_impurity_decrease=0.0,
+bootstrap=True, oob_score=False, n_jobs=None,
+random_state=None, verbose=0, warm_start=False,
+class_weight=None, ccp_alpha=0.0, max_samples=None,
+monotonic_cst=None, min_samples_split=2, min_samples_leaf=1)
+self.__dict__.update(kwargs)
+self.pctg_int_model =pctg_int_model
+self.int_target = int_target
+self.thres_prob =thres_prob
+self.y_final_target=y_final_target
+self.model=self.model.set_params(**kwargs)
 
-from sklearn.metrics import accuracy_score, hamming_loss
+def fit(self, x, y=None):
+int_X=X.iloc[0:math.floor(self.pctg_int_model*len(X))]
+self.model.fit(int_X.drop(self.int_target, axis=1), int_X[self.int_target])
+return self
 
-# define dataset
-X, y = make_multilabel_classification(n_samples=10000, n_features=10, n_classes=2, random_state=1)
+def transform(self, x, y=None):
+remaining_X=X.iloc[math.floor(self.pctg_int_model*len(x)):]
+remaining_X=remaining X.drop(self.int_target, axis=1)
+remaining_y = self.y_final_target.iloc[math.floor(self.pctg_int_model*len(self.y_final_target)):]
+probs = self.model.predict proba (remaining X)[:0]
+remaining_X[&#39;proba_int&#39;] = probs
+remaining_X = remaining_X.reset_index(drop=True)
+remaining_y=remaining_y.reset_index(drop=True)
+remaining_y= pd.Series(remaining_y, name=&#39;remaining_y&#39;)
+df = pd.concat([remaining X, remaining_y])
+df =df[df[&#39;proba_int&#39;]&lt;=self.thres_prob]
+remaining_X=df.drop(&#39;remaining y&#39;, axis-1)
+remaining_y=df[&#39;remaining_y&#39;]
+return (remaining_X, remaining_y)
 
-# 总结数据集形状
-print(X.shape, y.shape)
-# 总结前几个示例
-for i in range(10):
-print(X[i], y[i])
+和相应的 fit_transform。单独来看，这个方法运行良好，问题是我需要将 remaining_y 作为新的 y 传递到以下（最后一个）估计器中，管道形式为
+int_model = My_Int_Classifier(int_target=&#39;int_binary_target&#39;, y_final_target=y_train)
 
-from sklearn.model_selection import train_test_split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=101)
+pipeline_rfr = Pipeline([(&#39;scaler&#39;, StandardScaler()), (&#39;int_model&#39;, model_rfr), (&#39;final_model&#39;, RandomForestRegressor())])
 
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
-print(scaler.mean_)
-print(scaler.var_)
+但是不起作用。
+我想要一个如下所示的解决方案，其形式为 此处：
+class MyWrapperEstimator(RealEstimator):
+def fit(X, y=None):
+if isinstance(X, tuple):
+X, y = X
+super().fit(X=X, y=y)
 
-x_train_std = scaler.transform(X_train)
-x_test_std = scaler.transform(X_test)
+这样我就可以包装这个类中的最后一个 RandomForestRegressor，但效果并不好。
+我得到了 AttributeError: &#39;RandomForestRegressor_Wrapped&#39; 对象没有属性估计器_，这似乎是管道拟合的 _fit_context 装饰器的问题方法。
+任何见解都非常感谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78597981/intermediate-model-that-filters-y-in-scikit-learn-pipelines</guid>
+      <pubDate>Sun, 09 Jun 2024 08:08:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>为神经网络 MATLAB 实现岭回归方程</title>
+      <link>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network-matlab</link>
+      <description><![CDATA[我试图在 MATLAB 中复制以下方程，以使用岭回归训练找到神经网络的最佳输出权重矩阵。
+使用岭回归训练后的神经网络输出权重矩阵：
 
-knn = KNeighborsClassifier(n_neighbors=3)
-knn.fit(x_train_std, y_train)
+我的尝试如下。请注意，y_i 是一个 T x 1 向量，而 y_i_target 也是一个 T x 1 向量。 Wout_i 是一个 N x 1 向量，其中 N 是神经网络中的节点数。我为每个 i^th 目标训练信号生成三个 Ny x 1 向量 Wout_i,y_i,y_i_target，其中 Ny 是训练信号的数量。为了简单起见，我没有在我的可重现示例中计算 Wout_i,y_i,y_i_target。
+Ny = 1000; % 训练信号数量
+T = 100; % 每个训练信号的时间长度
+reg = 10^-4; % 岭回归系数
+outer_sum = 0;
+for i = 1:Ny
+Wouts{i} = Wout_i; % 为每个第 i 个目标训练信号收集每个 Wout_i 的单元矩阵
+inner_sum = sum(((y_i-y_i_target).^2)+reg*norm(Wout_i)^2);
+outer_sum(i) = inner_sum;
+end
+outer_sum = outer_sum.*(1/Ny);
+[minval, minidx] = min(outer_sum);
+Wout = cell2mat(Wouts(minidx));
 
-pred = knn.predict(x_test_std)
-
-print(accuracy_score(y_test, pred))
-print(hamming_loss(y_test, pred))
-
-accuracy_score: 0.8345, hamming_loss: 0.08875
-但是，随着类别数超过3，准确率得分逐渐下降，损失增加。
-# define dataset
-X, y = make_multilabel_classification(n_samples=10000, n_features=10, n_classes=3, random_state=1)
-
-n_classes= 3 --&gt; accuracy_score: 0.772, hamming_loss: 0.116
-n_classes= 4 --&gt; accuracy_score: 0.4875, hamming_loss: 0.194125
-使用 RandomForestClassifier 算法时也是如此，如参考中所示，或者使用 ClassifierChain(estimator=SVC) 使用不支持多标签分类的算法时也是如此。
-我想知道为什么会出现这种情况，以及如何调整超参数以提高准确性？]]></description>
-      <guid>https://stackoverflow.com/questions/78598665/how-to-improve-accuracy-score-in-multilabel-classification</guid>
-      <pubDate>Sun, 09 Jun 2024 13:03:31 GMT</pubDate>
+我对 Wout 的最终答案是 N 乘以 1，正如它应该的那样，但我对我的答案不确定。我特别不确定我是否正确地完成了 Wout 运算的双重求和和 arg min。有什么方法可以验证我的答案吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network-matlab</guid>
+      <pubDate>Sat, 08 Jun 2024 22:31:47 GMT</pubDate>
     </item>
     <item>
       <title>Python 中事件/事件关系的关联规则</title>
@@ -575,38 +780,6 @@ John D
       <pubDate>Fri, 07 Jun 2024 12:38:09 GMT</pubDate>
     </item>
     <item>
-      <title>如果训练数据集中的正样本多于负样本，XGBoost 的 scale_pos_weight 是否可以正确平衡正样本？</title>
-      <link>https://stackoverflow.com/questions/78587301/does-xgboosts-scale-pos-weight-correctly-balance-the-positive-samples-if-the-tr</link>
-      <description><![CDATA[经过研究，我意识到 scale_pos_weight 通常计算为训练数据中负样本数量与正样本数量的比率。我的数据集有 840 个负样本和 2650 个正样本，因此比率为 0.32。如果我的样本反过来，我相信 scale_pos_weight 会是一种更好的方法。
-是否可以安全地假设，由于比率小于 1，它仍将正确平衡类别？特异性在我的研究中很重要，但我们的主要目标集中在召回率、精确度和 F1 分数上。此设置是否会通过最大程度地影响特异性而导致更多的假阳性？]]></description>
-      <guid>https://stackoverflow.com/questions/78587301/does-xgboosts-scale-pos-weight-correctly-balance-the-positive-samples-if-the-tr</guid>
-      <pubDate>Thu, 06 Jun 2024 14:27:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>tf.keras.callbacks.ModelCheckpoint 保存 HDF5 格式或 SavedModel 格式</title>
-      <link>https://stackoverflow.com/questions/75587367/tf-keras-callbacks-modelcheckpoint-saves-hdf5-format-or-savedmodel-format</link>
-      <description><![CDATA[save_weights_only=False 时，如何配置 tf.keras.callbacks.ModelCheckpoint 以保存 SavedModel 格式而不是 HDF5 格式？
-与此相关的两个问题。我使用的是 TF2.4
-https://github.com/tensorflow/tensorflow/issues/39679
-https://github.com/keras-team/keras/issues/16657]]></description>
-      <guid>https://stackoverflow.com/questions/75587367/tf-keras-callbacks-modelcheckpoint-saves-hdf5-format-or-savedmodel-format</guid>
-      <pubDate>Tue, 28 Feb 2023 02:34:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>当观察次数有限时的时间序列预测</title>
-      <link>https://stackoverflow.com/questions/59054968/time-series-prediction-when-you-have-limited-number-of-observations</link>
-      <description><![CDATA[我在 Keras 中训练了一个 NN 来预测每周需求，并进行了所有超参数调整，我能得到的最好的结果就是下图。
-我的理解是，由于两个原因，预测结果不好：
-
-我没有足够的观察值（每周需求）
-信号本身看起来非常随机，很难预测这种信号。
-
-你有处理类似时间序列数据的经验吗？你有什么建议吗？
-]]></description>
-      <guid>https://stackoverflow.com/questions/59054968/time-series-prediction-when-you-have-limited-number-of-observations</guid>
-      <pubDate>Tue, 26 Nov 2019 16:06:11 GMT</pubDate>
-    </item>
-    <item>
       <title>如何比较两个 keras 模型的相似度</title>
       <link>https://stackoverflow.com/questions/52991969/how-to-compare-the-similarity-of-two-keras-models</link>
       <description><![CDATA[我使用函数式 API 构建了一个 Keras 模型，并使用 model_from_json() 函数创建了第二个模型。我想看看两个模型的模型层（而不是权重）是否完全相同。
@@ -618,16 +791,6 @@ print (l1.get_config() == l2.get_config())
 ]]></description>
       <guid>https://stackoverflow.com/questions/52991969/how-to-compare-the-similarity-of-two-keras-models</guid>
       <pubDate>Thu, 25 Oct 2018 14:38:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何从 scikit-learn 决策树中提取决策规则？</title>
-      <link>https://stackoverflow.com/questions/20224526/how-to-extract-the-decision-rules-from-scikit-learn-decision-tree</link>
-      <description><![CDATA[我可以从决策树中经过训练的树中提取底层决策规则（或“决策路径”）作为文本列表吗？
-类似于：
-如果 A&gt;0.4，则如果 B&lt;0.2，则如果 C&gt;0.8，则 class=&#39;X&#39;
-]]></description>
-      <guid>https://stackoverflow.com/questions/20224526/how-to-extract-the-decision-rules-from-scikit-learn-decision-tree</guid>
-      <pubDate>Tue, 26 Nov 2013 17:58:00 GMT</pubDate>
     </item>
     </channel>
 </rss>
