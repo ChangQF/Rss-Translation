@@ -4,7 +4,109 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 10 Jun 2024 09:17:22 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 10 Jun 2024 12:28:43 GMT</lastBuildDate>
+    <item>
+      <title>在预处理 CT 扫描图像系列数据以训练 CNN 模型以获得更好的准确性时，我应该如何具体地关注我感兴趣的区域？</title>
+      <link>https://stackoverflow.com/questions/78601522/how-specific-should-i-be-with-my-region-of-interest-while-preprocessing-a-ct-sca</link>
+      <description><![CDATA[我正在尝试训练一个 3D CNN 模型，以对一个数据集上的癌症分期进行分类，该数据集由头部到颈部的 CT 图像系列组成，分为 5 个类别，与癌症的分期相对应。每个阶段都有与每位患者（总共 606 位患者）相对应的文件夹，每个文件夹包含 120 帧 CT 图像系列。我想将一个图像立方体输入到模型中，以考虑空间分辨率和深度分辨率，并将图像立方体分类为五个类别之一。
+在 120 张图像中，大约有 10 帧存在癌症。
+我将整个图像集（每个患者 120 张）作为 3D 图像立方体传入 3D 卷积模型，对数据进行归一化，其结构如下所示）：
+num_classes = 5
+model = Sequential([
+tf.keras.Input(shape=(255, 255, 120, 1)),
+# 卷积层 1
+Conv3D(16, (3, 3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+
+MaxPooling3D((2, 2, 1), strides=(2, 2, 1), padding=&quot;same&quot;),
+
+# 卷积层 2
+Conv3D(32, (3, 3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+MaxPooling3D((2, 2, 2), strides=(2, 2, 2), padding=&quot;same&quot;),
+
+# 卷积层 3
+Conv3D(32, (3, 3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+MaxPooling3D((2, 2, 2), strides=(2, 2, 2),padding=&quot;same&quot;),
+
+# 卷积层 4
+Conv3D(64, (3, 3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+MaxPooling3D((2, 2, 2), strides=(2, 2, 2),padding=&quot;same&quot;),
+
+# 卷积层 5
+Conv3D(128, (3, 3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+
+# 卷积层 6
+Conv3D(128, (3, 3, 3), 激活=&#39;relu&#39;),
+BatchNormalization(),
+MaxPooling3D((2, 2, 2), strides=(2, 2, 2),padding=&quot;same&quot;),
+#Dropout(0.25),
+# Flatten 层
+Flatten(),
+
+# Dense 层 1
+Dense(256, 激活=&#39;relu&#39;, kernel_initializer = &#39;glorot_uniform&#39;, kernel_regularizer=tf.keras.regularizers.L2(0.01)),
+BatchNormalization(),
+#Dropout(0.35),
+# Dense 层 2
+Dense(128, 激活=&#39;relu&#39;, kernel_initializer = &#39;glorot_uniform&#39;, kernel_regularizer=tf.keras.regularizers.L2(0.01)),
+BatchNormalization(),
+#Dropout(0.25),
+# 输出层
+Dense(num_classes,activation=&#39;softmax&#39;)
+])
+
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.000001),loss=&#39;categorical_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
+
+这是我将 DICOM 图像加载到输入 (X) 和输出 (Y) 标签中的方式：
+def load_dicom_images(folder_path):
+images = []
+for file in sorted(os.listdir(folder_path)):
+ds = pydicom.dcmread(os.path.join(folder_path,file))
+# 转换为灰度图像并调整大小为 255x255
+image = ds.pixel_array
+image = cv2.resize(image, (255, 255))
+# 标准化图像
+normalized_images= (image.astype(np.float32)-image.mean())/image.std()
+images.append(normalized_images)
+# 将列表转换为 numpy 数组
+images = np.array(images)
+return images
+
+def load_data(stage_folder): # 阶段文件夹包含与类别相关的五个文件夹
+X = []
+y = [] 
+# 将阶段映射到标签
+stage_to_label = {&#39;阶段 I&#39;: 0, &#39;阶段 II&#39;: 1, &#39;阶段 III&#39;: 2, &#39;阶段 IVA&#39;: 3, &#39;阶段 IVB&#39;: 4 }
+
+for stage in os.listdir(stage_folder):
+stage_path = os.path.join(stage_folder, stage)
+label = stage_to_label[stage]
+forp​​atient_id in os.listdir(stage_path):
+patient_folder = os.path.join(stage_path,patient_id)
+selected_images = load_dicom_images(patient_folder)
+
+X.append(selected_images)
+y.append(label)
+
+X = np.array(X)
+y = np.array(y)
+
+# 将 y 转换为分类（独热编码）
+y = to_categorical(y,num_classes=5)
+
+返回 X,y
+
+history = model.fit(X_train,y_train,batch_size=1,epochs=50,validation_data=(X_test,y_test),verbose = True,callbacks=callbacks)
+
+这会导致训练准确率（21%）和验证准确率较低，并且验证损失会随着每个时期而增加。我已经根据 CNN 的输入重塑了数据。
+我是否需要进一步处理我的数据，通过过滤掉其余部分来仅包含癌症帧，还是应该包含整个数据以保留深度分辨率并寻找不同的方法来提高准确性？]]></description>
+      <guid>https://stackoverflow.com/questions/78601522/how-specific-should-i-be-with-my-region-of-interest-while-preprocessing-a-ct-sca</guid>
+      <pubDate>Mon, 10 Jun 2024 09:39:03 GMT</pubDate>
+    </item>
     <item>
       <title>MultiScale Vision Transformer 张量不匹配形状问题</title>
       <link>https://stackoverflow.com/questions/78600117/multiscale-vision-transformer-tensor-mismatch-shape-issue</link>
@@ -16,7 +118,7 @@ https://github.com/facebookresearch/mvit/issues/22]]></description>
     <item>
       <title>时间序列中具有小数据集的机器学习模型</title>
       <link>https://stackoverflow.com/questions/78599891/machine-learning-models-with-small-datasets-in-time-series</link>
-      <description><![CDATA[我正在开展一个预测项目，我的数据集包含 24 个月的历史销售数据。我使用 20 个月进行训练和验证，其余 4 个月进行测试。对于验证，我使用滚动预测起源（类似于 TimeSeriesSplit）。
+      <description><![CDATA[我正在开展一个预测项目，其中我的数据集包含 24 个月的历史销售数据。我使用 20 个月进行训练和验证，其余 4 个月进行测试。对于验证，我使用滚动预测起源（类似于 TimeSeriesSplit）。
 我尝试使用几种模型，包括 SVR、GBR、随机森林、Facebook Prophet、ARIMA 和线性回归。但是，我很难找到一个正常工作的模型。我所有的预测图看起来都不一致，并且与数据不太吻合。
 您能否解释为什么机器学习模型在像我这样的小数据集上可能表现不佳，并建议任何更适合小数据集的技术或模型？
 我所有的预测结果看起来都像图像一样，有一条直线。
@@ -80,76 +182,6 @@ display_segmentation_mask(prediction)
 ]]></description>
       <guid>https://stackoverflow.com/questions/78599481/converting-unet-model-to-tflite</guid>
       <pubDate>Sun, 09 Jun 2024 19:11:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>搜索具有相似文本的文档</title>
-      <link>https://stackoverflow.com/questions/78599128/search-for-documents-with-similar-texts</link>
-      <description><![CDATA[我有一个包含三个属性的文档：标签、位置和文本。
-目前，我正在使用 LangChain/pgvector/embeddings 对它们全部进行索引。
-我得到了满意的结果，但我想知道是否有更好的方法，因为我想查找一个或多个具有特定标签和位置的文档，但文本可能会有很大差异，但含义仍然相同。出于这个原因，我考虑使用嵌入/向量数据库。
-这是否也是使用 RAG（检索增强生成）来“教”的一个例子LLM 不知道的一些常见缩写？
-import pandas as pd
-
-from langchain_core.documents import Document
-from langchain_postgres import PGVector
-from langchain_postgres.vectorstores import PGVector
-from langchain_openai.embeddings import OpenAIEmbeddings
-
-connection = &quot;postgresql+psycopg://langchain:langchain@localhost:5432/langchain&quot;
-embeddings = OpenAIEmbeddings(model=&quot;text-embedding-3-small&quot;)
-collection_name = &quot;notas_v0&quot;
-
-vectorstore = PGVector(
-embeddings=embeddings,
-collection_name=collection_name,
-connection=connection,
-use_jsonb=True,
-)
-
-# 开始索引
-
-# df = pd.read_csv(&quot;notes.csv&quot;)
-# df = df.dropna() # .head(10000)
-# df[&quot;tags&quot;] = df[&quot;tags&quot;].apply(
-# lambda x: [tag.strip() for tag in x.split(&quot;,&quot;) if tag.strip()]
-# )
-
-# long_texts = df[&quot;Texto Longo&quot;].tolist()
-# wc = df[&quot;Centro Trabalho Responsável&quot;].tolist()
-# notes = df[&quot;Nota&quot;].tolist()
-# tags = df[&quot;tags&quot;].tolist()
-
-# documents = list(
-# map(
-# lambda x: Document(
-# page_content=x[0], metadata={&quot;wc&quot;: x[1], &quot;note&quot;: x[2], &quot;tags&quot;: x[3]}
-# ),
-# zip(long_texts, wc, notes, tags),
-# )
-# )
-
-# print(
-# [
-# vectorstore.add_documents(documents=documents[i : i + 100])
-# for i in range(0, len(documents), 100)
-# ]
-# )
-# print(&quot;Done.&quot;)
-
-### END INDEX
-
-### BEGIN QUERY
-
-result = vectorstore.similarity_search_with_relevance_scores(
-&quot;EVTD202301222707&quot;,
-filter={&quot;note&quot;: {&quot;$in&quot;: [&quot;15310116&quot;]}, &quot;tags&quot;: {&quot;$in&quot;: [&quot;abcd&quot;, &quot;xyz&quot;]}},
-k=10, # 结果限制
-)
-
-### END QUERY
-]]></description>
-      <guid>https://stackoverflow.com/questions/78599128/search-for-documents-with-similar-texts</guid>
-      <pubDate>Sun, 09 Jun 2024 16:40:32 GMT</pubDate>
     </item>
     <item>
       <title>使用上下文检测自动从 AutoCAD PDF 平面图中提取尺寸 [关闭]</title>
@@ -227,7 +259,7 @@ n_classes= 4 --&gt; accuracy_score: 0.4875, hamming_loss: 0.194125
     <item>
       <title>Python 中事件/事件关系的关联规则</title>
       <link>https://stackoverflow.com/questions/78591986/association-rule-on-incident-event-relations-in-python</link>
-      <description><![CDATA[我有两组数据：一个事件列表和一个已解决的事件列表，以及导致每个事件的事件。如何训练模型来预测哪个事件导致新事件发生？
+      <description><![CDATA[我有两组数据：一个事件列表和一个已解决的事件列表，以及导致每个事件的事件。我如何训练模型来预测哪个事件导致了新事件的发生？
 例如，使用以下方法：
 已解决的训练事件列表：
 
@@ -347,7 +379,7 @@ N°
 
 N°
 目标服务
-变更生效
+更改生效
 开发人员
 ...
 
@@ -386,27 +418,6 @@ John D
 是否可以安全地假设，由于比率小于 1，它仍将正确平衡类别？特异性在我的研究中很重要，但我们的主要目标集中在召回率、精确度和 F1 分数上。此设置是否会通过最大程度地影响特异性而导致更多的假阳性？]]></description>
       <guid>https://stackoverflow.com/questions/78587301/does-xgboosts-scale-pos-weight-correctly-balance-the-positive-samples-if-the-tr</guid>
       <pubDate>Thu, 06 Jun 2024 14:27:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否可以在 Elixir Nx/Schorar 中进行 ELISA 分析？</title>
-      <link>https://stackoverflow.com/questions/78565463/is-elisa-analysis-in-elixir-nx-schorar-possible</link>
-      <description><![CDATA[我已阅读 Medium 上的文章 ELISA Analysis in Python。
-上述文章使用 SciPy 的 curve_fit 函数根据 4 参数逻辑回归 (4PL) 模型找到近似曲线，如下所示：
-from scipy.optimize import curve_fit
-
-x = [1.95, 3.91, 7.381, 15.63, 31.25, 62.5, 125,250, 500, 1000]
-y = [0.274, 0.347, 0.392, 0.420, 0.586, 1.115, 1.637, 2.227, 2.335, 2.372]
-
-def log4pl(x, A, B, C, D):
-return(((A - D) / (1.0 + ((x / C) ** B))) + D)
-
-params, _ = curve_fit(log4pl, x, y)
-A, B, C, D = params[0], params[1], params[2], params[3]
-
-我想使用 Nx/Scholar Elixir 中的库。
-可能吗？如果您能给我任何提示，我将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/78565463/is-elisa-analysis-in-elixir-nx-schorar-possible</guid>
-      <pubDate>Sun, 02 Jun 2024 04:29:18 GMT</pubDate>
     </item>
     <item>
       <title>通过单一数字指标训练 XGBoost</title>
@@ -455,8 +466,8 @@ return grad, hess
     <item>
       <title>tf.keras.callbacks.ModelCheckpoint 保存 HDF5 格式或 SavedModel 格式</title>
       <link>https://stackoverflow.com/questions/75587367/tf-keras-callbacks-modelcheckpoint-saves-hdf5-format-or-savedmodel-format</link>
-      <description><![CDATA[save_weights_only=False 时，如何配置 tf.keras.callbacks.ModelCheckpoint 以保存 SavedModel 格式而不是 HDF5 格式？
-与此相关的两个问题。我使用的是 TF2.4
+      <description><![CDATA[save_weights_only=False 时，如何配置 tf.keras.callbacks.ModelCheckpoint 保存 SavedModel 格式而不是 HDF5 格式？
+关于此问题有两个相关问题。我使用的是 TF2.4
 https://github.com/tensorflow/tensorflow/issues/39679
 https://github.com/keras-team/keras/issues/16657]]></description>
       <guid>https://stackoverflow.com/questions/75587367/tf-keras-callbacks-modelcheckpoint-saves-hdf5-format-or-savedmodel-format</guid>
@@ -475,6 +486,19 @@ https://github.com/keras-team/keras/issues/16657]]></description>
 ]]></description>
       <guid>https://stackoverflow.com/questions/59054968/time-series-prediction-when-you-have-limited-number-of-observations</guid>
       <pubDate>Tue, 26 Nov 2019 16:06:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何比较两个 keras 模型的相似度</title>
+      <link>https://stackoverflow.com/questions/52991969/how-to-compare-the-similarity-of-two-keras-models</link>
+      <description><![CDATA[我使用函数式 API 构建了一个 Keras 模型，并使用 model_from_json() 函数创建了第二个模型。我想看看两个模型的模型层（而不是权重）是否完全相同。
+如何比较这两个 Keras 模型？
+编辑
+根据以下评论，我可能会比较每个层。下面这样的代码有意义吗：
+for l1, l2 in zip(mdl.layers, mdl2.layers):
+print (l1.get_config() == l2.get_config())
+]]></description>
+      <guid>https://stackoverflow.com/questions/52991969/how-to-compare-the-similarity-of-two-keras-models</guid>
+      <pubDate>Thu, 25 Oct 2018 14:38:21 GMT</pubDate>
     </item>
     <item>
       <title>Opencv C++ 识别数字</title>
