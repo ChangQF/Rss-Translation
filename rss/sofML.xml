@@ -4,7 +4,236 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 10 Jun 2024 12:28:43 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 10 Jun 2024 15:16:56 GMT</lastBuildDate>
+    <item>
+      <title>PINN 解决 1D PDE，损失没有下降</title>
+      <link>https://stackoverflow.com/questions/78603134/pinn-solving-1d-pde-loss-does-not-go-down</link>
+      <description><![CDATA[我正在尝试使用 PINN 解决 1D d(psi)/d(x) = S。左：固定值边界条件。右：零梯度边界条件。
+当 S = 0 时，训练速度非常快。它只预测均匀值。
+但如果 S 不是均匀的 0，损失就会下降得非常慢。
+我将我的代码附在下面（libtorch）。该代码可以轻松编译，我确信它没有错误。如果 S 的值非常大，损失也更难下降。
+有什么建议吗？谢谢。
+#include &lt;torch/torch.h&gt;
+
+using namespace std;
+class NN
+:
+public torch::nn::Module 
+{
+torch::nn::Sequential net_;
+
+公共：
+
+NN()
+{
+net_ = register_module
+(
+&quot;net&quot;, 
+torch::nn::Sequential
+(
+torch::nn::Linear(1,20),
+torch::nn::ReLU(),
+torch::nn::Linear(20,20),
+torch::nn::ReLU(),
+torch::nn::Linear(20,20),
+torch::nn::ReLU(),
+torch::nn::Linear(20,20),
+torch::nn::ReLU(),
+torch::nn::Linear(20,1)
+)
+);
+}
+
+auto forward(torch::Tensor x)
+{
+return net_-&gt;forward(x);
+}
+};
+
+int main()
+{
+int iter = 1;
+int IterationNum = 5000;
+double learning_rate = 0.001;
+torch::nn::MSELoss criterion = torch::nn::MSELoss();
+std::shared_ptr&lt;NN&gt; model = std::make_shared&lt;NN&gt;();
+std::shared_ptr&lt;torch::optim::Adam&gt; adam = 
+std::make_shared&lt;torch::optim::Adam&gt;
+(
+model-&gt;parameters(), 
+torch::optim::AdamOptions(learning_rate)
+);
+
+// 计算域
+double dx = 0.1;
+自动网格 = torch::arange(0.0, 1.0 + dx, dx, torch::requires_grad()).unsqueeze(1);
+//自动源 = torch::full_like(mesh, 0.0);
+自动源 = 
+torch::tensor
+(
+{0.0,0.0,0.0,0.0,0.0,0.0,50.0,0.0,0.0,0.0,0.0,0.0}
+).reshape({-1, 1});
+
+自动入口 = torch::full({1}, mesh.index({0}).item());
+自动出口 = torch::full({1}, mesh.index({-1}).item());
+自动 psiInlet = torch::full({1}, 10.0);
+
+//cout&lt;&lt; &quot;inlet\n&quot; &lt;&lt; 入口 &lt;&lt; endl;
+//cout&lt;&lt; &quot;出口\n&quot; &lt;&lt; 出口 &lt;&lt; endl;
+//cout&lt;&lt; &quot;psiInlet\n&quot; &lt;&lt; psiInlet &lt;&lt; endl;
+//cout&lt;&lt; &quot;源\n&quot; &lt;&lt; 源 &lt;&lt; endl;
+//cout&lt;&lt; &quot;网格\n&quot; &lt;&lt; 网格 &lt;&lt; endl;
+
+for (int i = 0; i &lt; IterationNum; i++) 
+{
+adam-&gt;zero_grad();
+
+auto psiInletPred = model-&gt;forward(入口);
+auto lossInlet = criterion(psiInletPred, psiInlet);
+
+自动 psi = model-&gt;forward(mesh);
+自动 dpsidx = 
+torch::autograd::grad
+(
+{psi},
+{mesh},
+{torch::ones_like(psi)},
+true,
+true
+)[0];
+自动 loss_pde = criterion(dpsidx, source);
+
+自动 loss = loss_pde + lossInlet;
+loss.backward();
+adam-&gt;step();
+
+if (iter % 100 == 0) 
+{
+cout &lt;&lt; iter &lt;&lt; &quot; loss = &quot; &lt;&lt; loss.item() &lt;&lt; endl;
+}
+iter++;
+}
+
+自动 psiFinal = model-&gt;forward(mesh);
+cout&lt;&lt; &quot;psiFinal\n&quot; &lt;&lt; psiFinal &lt;&lt; endl;
+
+std::cout&lt;&lt; &quot;完成！&lt;&lt; std::endl;
+return 0;
+}
+
+输出：
+100 损失 = 239.65
+200 损失 = 210.191
+300 损失 = 193.635
+400 损失 = 197.778
+500 损失 = 203.71
+600 损失 = 192.241
+700 损失 = 189.999
+800 损失 = 177.973
+900 损失 = 190.415
+1000 损失 = 186.3
+1100 损失 = 198.209
+1200 损失 = 196.226
+1300 损失 = 179.71
+1400 损失 = 193.564
+1500 损失 = 192.17
+1600 损失 = 173.498
+1700 损失 = 190.252
+1800 损失 = 189.662
+1900 损失 = 189.473
+2000 损失 = 189.412
+2100 损失 = 189.397
+2200 损失 = 189.394
+2300 损失 = 189.394
+2400 损失 = 189.394
+2500 损失 = 189.394
+2600 损失 = 189.394
+2700 损失 = 189.394
+2800 损失 = 189.394
+
+使其训练更好的建议]]></description>
+      <guid>https://stackoverflow.com/questions/78603134/pinn-solving-1d-pde-loss-does-not-go-down</guid>
+      <pubDate>Mon, 10 Jun 2024 15:14:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>类型错误：“StratifiedShuffleSplit”对象不可迭代</title>
+      <link>https://stackoverflow.com/questions/78602817/typeerror-stratifiedshufflesplit-object-is-not-iterable</link>
+      <description><![CDATA[我有这段代码：
+来自 sklearn.datasets 导入 fetch_lfw_people
+lfw_people = fetch_lfw_people(min_faces_per_person=60, resize=0.4)
+X = lfw_people.data
+y = lfw_people.target
+target_names = [lfw_people.target_names[a] for a in y]
+n_samples, h, w = lfw_people.images.shape
+来自 collections 导入 Counter
+for name, count in Counter(target_names).items():
+print (&quot;%20s %i&quot; % (name, count))
+
+来自 sklearn.model_selection 导入 StratifiedShuffleSplit
+
+train, test = list(StratifiedShuffleSplit(target_names, test_size=0.1, random_state=101))[0]
+
+plt.subplot(1, 4, 1)
+plt.axis(&#39;off&#39;)
+for k,m in enumerate(X[train][y[train]==6][:4]):
+plt.subplot(1, 4, 1+k)
+if k==0:
+plt.title(&#39;训练集&#39;)
+plt.axis(&#39;off&#39;)
+plt.imshow(m.reshape(50,37), cmap=plt.cm.gray, interpolation=&#39;nearest&#39;)
+plt.show()
+
+for k,m in enumerate(X[test][y[test]==6][:4]):
+plt.subplot(1, 4, 1+k)
+if k==0:
+plt.title(&#39;测试集&#39;)
+plt.axis(&#39;off&#39;)
+plt.imshow(m.reshape(50,37), cmap=plt.cm.gray, interpolation=&#39;nearest&#39;)
+plt.show()
+
+它给了我这个错误：
+TypeError: &#39;StratifiedShuffleSplit&#39; 对象不可迭代
+
+
+我做错了什么？令人困惑的是代码来自一本书，我只是复制它，并没有改变它。库中的某些东西发生了变化，导致代码不再起作用？感谢您的帮助
+代码最多显示人物图片，但它不会]]></description>
+      <guid>https://stackoverflow.com/questions/78602817/typeerror-stratifiedshufflesplit-object-is-not-iterable</guid>
+      <pubDate>Mon, 10 Jun 2024 14:12:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 shap 或 lime 解释天气预报 PyTorch 模型的输出</title>
+      <link>https://stackoverflow.com/questions/78602768/using-shap-or-lime-to-explain-output-for-a-weather-prediction-pytorch-model</link>
+      <description><![CDATA[我曾尝试使用 SHAP 来分析天气预报模型。它不是分类器，而分类器似乎是这些包最常见的用例。
+我对所有这些都不太有经验，但我正在考虑改用 Lime，希望这样会更容易？
+对吗？我发现 Lime 似乎不适合 PyTorch，我肯定必须将我的张量更改为 np.Arrays。对此有什么直觉吗？
+我尝试使用 Shaps Deep Explainer，但尚未成功。这是一个抽象的问题。]]></description>
+      <guid>https://stackoverflow.com/questions/78602768/using-shap-or-lime-to-explain-output-for-a-weather-prediction-pytorch-model</guid>
+      <pubDate>Mon, 10 Jun 2024 14:02:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何从模型调用而不是 logits 中获得 [0, 1] 之间的标准化概率作为输出？</title>
+      <link>https://stackoverflow.com/questions/78601616/how-to-obtain-normalized-probabilities-between-0-1-as-output-from-model-call</link>
+      <description><![CDATA[我有一个经过训练的图像语义分割模型。
+由于我的预测中有很多 FP，我想使用模型置信度参数进行阈值处理，该参数将设置为 [0, 1] 范围内的值。
+到目前为止，我都是这样做的：
+logits = model_to_predict(img_tensor, training=False).logits # (batch, NUM_CLASSES, w, h)
+sigmoid_logits = tf.math.sigmoid(logits)
+
+if model_confidence:
+confidence_logits = tf.where(sigmoid_logits &gt;= model_confidence, sigmoid_logits, 0)
+pred = tf.argmax(confident_logits, axis=1)
+
+else:
+pred = tf.argmax(logits, axis=1)
+
+pred = tf.cast(tf.squeeze(pred, axis=0), tf.uint8)
+
+但是这些解决方案导致每个图像的概率从 0 到 1，而预期结果是，在一个图像的范围内，概率将在 0 到 0.3 之间，而在另一个图像的情况下，假设在 0 到 0.8 之间。
+那么在将模型置信度设置为 0.5 后，第一张图像将不会检测到 FP 对象
+我如何才能实现这个结果？我使用 SegFormer（预训练）模型。]]></description>
+      <guid>https://stackoverflow.com/questions/78601616/how-to-obtain-normalized-probabilities-between-0-1-as-output-from-model-call</guid>
+      <pubDate>Mon, 10 Jun 2024 09:56:16 GMT</pubDate>
+    </item>
     <item>
       <title>在预处理 CT 扫描图像系列数据以训练 CNN 模型以获得更好的准确性时，我应该如何具体地关注我感兴趣的区域？</title>
       <link>https://stackoverflow.com/questions/78601522/how-specific-should-i-be-with-my-region-of-interest-while-preprocessing-a-ct-sca</link>
@@ -118,7 +347,7 @@ https://github.com/facebookresearch/mvit/issues/22]]></description>
     <item>
       <title>时间序列中具有小数据集的机器学习模型</title>
       <link>https://stackoverflow.com/questions/78599891/machine-learning-models-with-small-datasets-in-time-series</link>
-      <description><![CDATA[我正在开展一个预测项目，其中我的数据集包含 24 个月的历史销售数据。我使用 20 个月进行训练和验证，其余 4 个月进行测试。对于验证，我使用滚动预测起源（类似于 TimeSeriesSplit）。
+      <description><![CDATA[我正在开展一个预测项目，我的数据集包含 24 个月的历史销售数据。我使用 20 个月进行训练和验证，其余 4 个月进行测试。对于验证，我使用滚动预测起源（类似于 TimeSeriesSplit）。
 我尝试使用几种模型，包括 SVR、GBR、随机森林、Facebook Prophet、ARIMA 和线性回归。但是，我很难找到一个正常工作的模型。我所有的预测图看起来都不一致，并且与数据不太吻合。
 您能否解释为什么机器学习模型在像我这样的小数据集上可能表现不佳，并建议任何更适合小数据集的技术或模型？
 我所有的预测结果看起来都像图像一样，有一条直线。
@@ -133,72 +362,6 @@ https://github.com/facebookresearch/mvit/issues/22]]></description>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78599809/low-validation-and-test-accuracy-with-random-forest-on-ecg-data</guid>
       <pubDate>Sun, 09 Jun 2024 21:43:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>将 Unet 模型转换为 tflite</title>
-      <link>https://stackoverflow.com/questions/78599481/converting-unet-model-to-tflite</link>
-      <description><![CDATA[我正在尝试将 .h5 模型（用于图像分割的 Unet 的简化版本）转换为 .tflite 模型。我该如何正确执行此操作？到目前为止，.h5 模型似乎做出了很好的预测，但是当我尝试 .tflite 模型时，预测实际上是一张完全紫色的图像。
-这是我所做的：
-converter = tf.lite.TFLiteConverter.from_keras_model(model)
-tflite_model = converter.convert()
-
-with open(&#39;unet_model_prueba_sin_int8.tflite&#39;, &#39;wb&#39;) as f:
-f.write(tflite_model)
-
-然后测试 .tflite 模型：
-interpreter = tf.lite.Interpreter(model_path=&quot;unet_model_prueba_sin_int8.tflite&quot;)
-interpreter.allocate_tensors()
-
-input_details =解释器。获取输入细节（）
-输出细节 = 解释器。获取输出细节（）
-
-def load_and_preprocess_image(image_path, target_size):
-image = Image.open(image_path).resize(target_size)
-image_array = np.array(image, dtype=np.float32) / 255.0 # 标准化图像
-image_array = np.expand_dims(image_array, axis=0)
-return image_array
-
-def predict_with_tflite(image_array):
-input_tensor = image_array.astype(np.float32)
-解释器。设置输入细节（输入细节[0][&#39;index&#39;], 输入细节）
-解释器。invoke()
-输出 = 解释器。获取输出细节（输出细节[0][&#39;index&#39;])
-return output
-
-image_path = &quot;image_path/image.jpg&quot;
-
-image_array = load_and_preprocess_image(image_path, target_size=(96, 96))
-
-prediction = predict_with_tflite(image_array)
-
-def display_segmentation_mask(pred):
-&quot;&quot;&quot;显示分割掩码。&quot;&quot;&quot;
-mask = np.argmax(pred, axis=-1) 
-plt.imshow(mask[0], cmap=&#39;viridis&#39;) 
-plt.axis(&#39;off&#39;) 
-plt.show()
-
-display_segmentation_mask(prediction)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78599481/converting-unet-model-to-tflite</guid>
-      <pubDate>Sun, 09 Jun 2024 19:11:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用上下文检测自动从 AutoCAD PDF 平面图中提取尺寸 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78599084/automating-dimension-extraction-from-autocad-pdf-plans-with-context-detection</link>
-      <description><![CDATA[几个月来我一直在考虑一个项目。
-今天，我决定开始着手做这件事。但是，我不知道从哪里开始，也不想走错路。
-让我解释一下：
-我在一家工业设计公司工作。我们每月创建大约 300 个 AutoCAD 计划。这些计划或多或少都相似。
-我的项目背后的想法是获取我们发送给客户的最终计划 (PDF)，并从这些计划中提取尺寸，然后将它们输入到 Excel 工作表中。
-听起来很简单，但我希望我的程序能够检测尺寸的上下文。例如，如果计划是一辆汽车，我希望我的程序说：“这个尺寸是车轮的尺寸，这个是左门的高度。”
-我做了很多研究，但我发现自己迷失了方向。我甚至不确定我是否需要为此使用 AI...
-我读过文档并观看了许多视频。我以为我会很容易找到解决方案，但对于我的情况，没有什么是很清楚的。
-我很幸运，我已经拥有大量潜在 AI 的训练数据。
-我主要是 .NET 开发人员，但如果真的有必要，我可以切换到 Python。
-有人能告诉我应该遵循哪种方式吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78599084/automating-dimension-extraction-from-autocad-pdf-plans-with-context-detection</guid>
-      <pubDate>Sun, 09 Jun 2024 16:23:48 GMT</pubDate>
     </item>
     <item>
       <title>如何提高多标签分类的准确度得分？</title>
@@ -259,7 +422,7 @@ n_classes= 4 --&gt; accuracy_score: 0.4875, hamming_loss: 0.194125
     <item>
       <title>Python 中事件/事件关系的关联规则</title>
       <link>https://stackoverflow.com/questions/78591986/association-rule-on-incident-event-relations-in-python</link>
-      <description><![CDATA[我有两组数据：一个事件列表和一个已解决的事件列表，以及导致每个事件的事件。我如何训练模型来预测哪个事件导致了新事件的发生？
+      <description><![CDATA[我有两组数据：一个事件列表和一个已解决的事件列表，以及导致每个事件的事件。如何训练模型来预测哪个事件导致新事件发生？
 例如，使用以下方法：
 已解决的训练事件列表：
 
@@ -379,7 +542,7 @@ N°
 
 N°
 目标服务
-更改生效
+变更生效
 开发人员
 ...
 
@@ -420,54 +583,10 @@ John D
       <pubDate>Thu, 06 Jun 2024 14:27:52 GMT</pubDate>
     </item>
     <item>
-      <title>通过单一数字指标训练 XGBoost</title>
-      <link>https://stackoverflow.com/questions/78558863/training-xgboost-over-a-single-number-metric</link>
-      <description><![CDATA[假设我正在用 Python（xgboost 版本 2.0.3）构建一个 XGBoost 模型（这里的回归或分类完全不重要）来预测股票市场时间序列分析中的目标变量。
-例如，目标可能是：时间序列中的下一个值或二进制变量，如果下一个值高于前一个值，则设置为 1，否则设置为 0。
-为了训练模型，是否可以使用回归问题中的 MSE 或分类问题中的“二元逻辑”。
-训练后，可以根据测试集中模型的输出对策略进行回测并计算总体回报。
-我的问题是：使用 xgboost scikit-learn 接口，是否可以根据用于回测策略的性能指标来训练模型？
-例如：按照策略最大化训练集中的总体回报规则。
-在xgboost库网站上，展示了如何使用自定义损失函数来训练模型：
-def softprob_obj(labels: np.ndarray, predt: np.ndarray) -&gt; Tuple[np.ndarray, np.ndarray]:
-rows = labels.shape[0]
-classes = predt.shape[1]
-grad = np.zeros((rows, classes), dtype=float)
-hess = np.zeros((rows, classes), dtype=float)
-eps = 1e-6
-for r in range(predt.shape[0]):
-target = labels[r]
-p = softmax(predt[r, :])
-for c in range(predt.shape[1]):
-g = p[c] - 1.0 if c == target else p[c]
-h = max((2.0 * p[c] * (1.0 - p[c])).item(), eps)
-grad[r, c] = g
-hess[r, c] = h
-
-grad = grad.reshape((rows * classes, 1))
-hess = hess.reshape((rows * classes, 1))
-return grad, hess
-
-clf = xgb.XGBClassifier(tree_method=&quot;hist&quot;, objective=softprob_obj)
-
-目标函数需要计算梯度和 hessian。
-假设函数定义如下：
-def maximum_performance_metric(y_true: np.ndarray, y_pred: np.ndarray):
-# 指标计算（例如：使用 y_pred 计算总体回报
-overall_return = get_overall_return(y_pred, real_prices, ...) #overall_return 是浮点数
-return grad, hess
-
-
-是否可以根据总体回报计算梯度和 hessian，然后使用此自定义损失训练模型函数？
-函数 maximize_performance_metric() 如何访问包含 real_prices 的变量（需要整体回报计算）？]]></description>
-      <guid>https://stackoverflow.com/questions/78558863/training-xgboost-over-a-single-number-metric</guid>
-      <pubDate>Fri, 31 May 2024 08:14:07 GMT</pubDate>
-    </item>
-    <item>
       <title>tf.keras.callbacks.ModelCheckpoint 保存 HDF5 格式或 SavedModel 格式</title>
       <link>https://stackoverflow.com/questions/75587367/tf-keras-callbacks-modelcheckpoint-saves-hdf5-format-or-savedmodel-format</link>
-      <description><![CDATA[save_weights_only=False 时，如何配置 tf.keras.callbacks.ModelCheckpoint 保存 SavedModel 格式而不是 HDF5 格式？
-关于此问题有两个相关问题。我使用的是 TF2.4
+      <description><![CDATA[save_weights_only=False 时，如何配置 tf.keras.callbacks.ModelCheckpoint 以保存 SavedModel 格式而不是 HDF5 格式？
+与此相关的两个问题。我使用的是 TF2.4
 https://github.com/tensorflow/tensorflow/issues/39679
 https://github.com/keras-team/keras/issues/16657]]></description>
       <guid>https://stackoverflow.com/questions/75587367/tf-keras-callbacks-modelcheckpoint-saves-hdf5-format-or-savedmodel-format</guid>
@@ -499,15 +618,6 @@ print (l1.get_config() == l2.get_config())
 ]]></description>
       <guid>https://stackoverflow.com/questions/52991969/how-to-compare-the-similarity-of-two-keras-models</guid>
       <pubDate>Thu, 25 Oct 2018 14:38:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>Opencv C++ 识别数字</title>
-      <link>https://stackoverflow.com/questions/34122975/opencv-c-recognize-number</link>
-      <description><![CDATA[这应该很容易。我正在研究 Sedoku 解算器，并试图弄清楚如何分辨我正在查看哪个数字。 
-
-我能够隔离如上所示的数字。我只是无法使任何图像识别工作。我尝试过 Knearest 和一种称为 tesseract 的东西，但无济于事。有什么帮助吗？]]></description>
-      <guid>https://stackoverflow.com/questions/34122975/opencv-c-recognize-number</guid>
-      <pubDate>Sun, 06 Dec 2015 21:25:16 GMT</pubDate>
     </item>
     <item>
       <title>如何从 scikit-learn 决策树中提取决策规则？</title>
