@@ -4,7 +4,115 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 12 Jun 2024 01:05:01 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 12 Jun 2024 03:17:39 GMT</lastBuildDate>
+    <item>
+      <title>如何使用时间序列数据中的传统模型提前预测销售额？</title>
+      <link>https://stats.stackexchange.com/questions/649079/how-to-predict-sales-in-advance-using-tradition-model-in-time-series-data</link>
+      <description><![CDATA[将 pandas 导入为 pd
+将 numpy 导入为 np
+导入 holidays
+将 matplotlib.pyplot 导入为 plt
+将 statsmodels.api 导入为 sm
+从 datetime 导入 datetime、timedelta
+从 sklearn.model_selection 导入 train_test_split
+从 sklearn.linear_model 导入 LinearRegression
+从 sklearn.ensemble 导入 RandomForestRegressor、GradientBoostingRegressor
+从 sklearn.metrics 导入 mean_absolute_error
+
+np.random.seed(0) 
+
+start_date = datetime(2022, 1, 1)
+end_date = start_date + timedelta(days=730)
+dates = pd.date_range(start_date, end_date, freq=&#39;MS&#39;)
+
+sales = np.random.randint(50, 200, size=len(dates))
+
+sales_data = pd.DataFrame({&#39;日期&#39;: 日期, &#39;销售&#39;: 销售})
+sales_data.index = sales_data[&#39;日期&#39;]
+sales_data = sales_data.drop([&#39;日期&#39;], axis=1)
+sales_data[&#39;月份&#39;] = sales_data.index.月份
+sales_data[&#39;季度&#39;] = sales_data.index.季度
+sales_data[&#39;滞后 1&#39;] = sales_data[&#39;销售&#39;].shift(1)
+sales_data[&#39;滞后 3&#39;] = sales_data[&#39;销售&#39;].shift(3)
+sales_data[&#39;滞后 6&#39;] = sales_data[&#39;销售&#39;].shift(6)
+sales_data[&#39;滚动平均值 2&#39;] = sales_data[&#39;销售&#39;].rolling(window=2).mean()
+sales_data[&#39;滚动平均值 3&#39;] = sales_data[&#39;Sales&#39;].rolling(window=3).mean()
+sales_data[&#39;Rolling_Mean_6&#39;] = sales_data[&#39;Sales&#39;].rolling(window=6).mean()
+sales_data = sales_data.dropna()
+
+我正在尝试学习时间序列建模。
+这是我使用虚拟数据的代码。现在我想使用线性回归、随机森林和梯度提升等传统模型来训练这些数据。那么，现在我们如何训练模型，使其能够预测从模型运行之日起 90 天的预测？
+例如，目前此数据集中的最小日期为 2022-07-01，最大日期为 2024-01-01。
+那么，我们如何准备一个数据集来训练机器学习模型进行 90 天/3 个月的预测？即使模型在 2024-04-01 运行，我们也应该知道或确信它做出的预测是针对 2024-07-01。
+我正在尝试学习针对 2024-07-01 进行的单一预测，而不是多个分步预测。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649079/how-to-predict-sales-in-advance-using-tradition-model-in-time-series-data</guid>
+      <pubDate>Wed, 12 Jun 2024 02:52:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>二元对撞机有向无环图中加权逆概率作为选择偏差</title>
+      <link>https://stats.stackexchange.com/questions/649078/inverse-probability-of-weighting-in-directed-acyclic-graph-for-a-binary-collider</link>
+      <description><![CDATA[对于下图中的混杂因素，通常建议使用加权逆概率来消除从混杂因素到暴露的路径，从而消除混杂效应的后门。
+
+但是，我发现这个原则似乎并不直接适用于对撞机的情况。在双星对撞机中，由于选择偏差，我们只分析观察到的数据，这导致对撞机的条件性。
+
+我原本以为使用从暴露到碰撞的加权逆概率，应该不存在选择偏差；然而，我错了。使用加权回归，结果在加权回归中仍然保持暴露和结果之间的相同偏差关联，就像在 IPW 权重之前一样。
+
+只有我使用暴露和结果对碰撞变量进行建模，我才能消除暴露和结果之间加权回归中的选择偏差。
+有人能告诉我为什么我的倾向得分模型的审查 = 治疗时无法解决选择偏差，以及如何使用 dag 来表示我的倾向得分模型的审查 = 治疗。
+我提供 r 代码来演示我所说的内容：
+library(tidyverse)
+
+# 设置种子以实现可重复性
+set.seed(123)
+n=10000
+# 生成数据
+t &lt;- tibble(
+x = rbinom(n, 1, 1/2), # x 的伯努利分布
+y = rbinom(n, 1, 1/2), # y 的伯努利分布
+c = rbinom(n, 1, plogis(2 * x - 3 * y)) # c 的逻辑函数
+)
+
+# 正确结果
+summary(glm(y ~ x, family = binomial(link = &quot;logit&quot;), data = t))
+
+# 有偏差的结果
+summary(glm(y ~ x, family = binomial(link = &quot;logit&quot;), data = t, subset=c==0))
+
+# 倾向得分匹配，其中 c = x 且仅
+psmodel=glm(c==0 ~ x, family = binomial(link = &quot;logit&quot;), data = t)
+
+#ps
+t$ps &lt;- predict(psmodel, newdata = t, type = &quot;response&quot;)#数据可以套到新的上面
+#不稳定的权重
+t$weight=ifelse(t$c==0, 1/(t$ps), 1/(1-t$ps))
+
+# x 和 y 之间的偏差结果
+summary(glm(y ~ x, family = binomial(link = &quot;logit&quot;), data = t, subset=c==0, weights=weight))
+
+# 倾向得分匹配，其中 c = x 且仅
+psmodel=glm(c==0 ~ x + y, family = binomial(link = &quot;logit&quot;), data = t)
+
+t$ps &lt;- predict(psmodel, newdata = t, type = &quot;response&quot;)#数据可以套到新的上面
+#不稳定的权重
+t$weight=ifelse(t$c==0, 1/(t$ps), 1/(1-t$ps))
+
+# x 和 y 之间的结果正确，但当前分析中未更正标准误差 
+summary(glm(y ~ x, family = binomial(link = &quot;logit&quot;), data = t, subset=c==0, weights=weight))
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649078/inverse-probability-of-weighting-in-directed-acyclic-graph-for-a-binary-collider</guid>
+      <pubDate>Wed, 12 Jun 2024 02:42:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>lme4 包中的模型 mixet 是单数</title>
+      <link>https://stats.stackexchange.com/questions/649075/the-model-mixet-in-the-lme4-packages-is-singular</link>
+      <description><![CDATA[我运行了这个。
+modele_mixte &lt;- lmer(Carbon ~ Periode + (1|Traitements), data = Terres)
+summary(modele_mixte)
+我没有得到这个错误
+边界（奇异）拟合：参见帮助（&#39;isSingular&#39;）]]></description>
+      <guid>https://stats.stackexchange.com/questions/649075/the-model-mixet-in-the-lme4-packages-is-singular</guid>
+      <pubDate>Wed, 12 Jun 2024 02:07:50 GMT</pubDate>
+    </item>
     <item>
       <title>后验概率</title>
       <link>https://stats.stackexchange.com/questions/649073/likelihood-from-posterior</link>
@@ -19,6 +127,23 @@
 我对逻辑回归的观察独立性有什么误解，对于这样的问题，有什么替代模型吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/649072/violated-assumption-of-independence-in-logistic-regression</guid>
       <pubDate>Wed, 12 Jun 2024 00:23:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>与 Wilcoxon 和 ANOVA 不同的 p 值</title>
+      <link>https://stats.stackexchange.com/questions/649077/different-p-value-from-wilcoxon-and-anova</link>
+      <description><![CDATA[我从 Wilcoxon 检验和 ANOVA 检验中获得了不同的 $p$ 值。当我使用 Wilcoxon 检验时，$p$ 值小于 $0.05$:
+treatmentA &lt;- drug$weight[treatment == &quot;A&quot;]
+treatmentB &lt;- drug$weight[treatment == &quot;B&quot;]
+
+wilcox.test(treatmentA, treatmentB, paired = F)
+
+如果运行 ANOVA，$p$ 值大于 $0.05$:
+aov(weight~treatment, data = drug)
+
+有 $2$ 个独立样本（比较来自处理 A 和 B))，样本中超过 $100$ 人，数据缺失，权重呈偏态分布。
+我应该用什么？结果是因为缺失值吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649077/different-p-value-from-wilcoxon-and-anova</guid>
+      <pubDate>Tue, 11 Jun 2024 23:17:47 GMT</pubDate>
     </item>
     <item>
       <title>泊松减去一个常数仍然是泊松吗？</title>
@@ -71,19 +196,9 @@ fitdist(obs-11, &quot;pois&quot;)
 4.5
 
 
-:----
-:------------:
------------:
-
-
 内容
 5.4
 6.5
-
-
-:----
-:------------:
------------:
 
 
 xxxx
@@ -92,7 +207,7 @@ xxxx
 
 
 
-我可以用这种方式计算相关性吗？我的变量 1 将是学生的平均值，变量 2 将是专家的平均值。但我将在相关性计算中整合这 10 个标准。
+我可以用这种方式计算相关性吗？我的变量 1 是学生的平均值，变量 2 是专家的平均值。但我会在相关性计算中整合这 10 个标准。
 或者我必须以某种方式计算每个单独标准的相关性？]]></description>
       <guid>https://stats.stackexchange.com/questions/649065/pearsons-correlation-more-than-one-variable</guid>
       <pubDate>Tue, 11 Jun 2024 20:42:11 GMT</pubDate>
@@ -119,24 +234,6 @@ xxxx
       <description><![CDATA[假设我们有一个回归模型，我们想使用回归样条来模拟随访时间。随访时间有几个阶段，我们想考虑这些阶段，即允许斜率变化。但是，这些阶段发生的时间点可能因受试者（人）而异。是否可以/有效地构建时间样条，使得结点位置由表示受试者进入给定阶段的时间点的附加变量确定？换句话说，结点位置会因受试者而异。]]></description>
       <guid>https://stats.stackexchange.com/questions/649062/regression-spline-with-varying-knot-locations</guid>
       <pubDate>Tue, 11 Jun 2024 19:40:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>证明 $E[Y],E[X] = \infty$ 假设它们的条件服从泊松分布</title>
-      <link>https://stats.stackexchange.com/questions/649059/proving-ey-ex-infty-given-their-conditionals-are-poisson-distributed</link>
-      <description><![CDATA[设：
-$$X \mid Y = y \sim \text{Poi}(a+y)$$
-$$Y \mid X = x \sim \text{Poi}(a+x)$$
-对于某些$a &gt;0$。
-是否$E[X],E[Y] = \infty$？
-我试过：
-$$E[X] = E[E[X\mid Y]]$$
-其中，由于条件的对称性，给出
-$$ E[X] = a + E[Y] $$
-$$ E[Y] = a + E[X] $$
-暗示 $a=0$ ，这似乎是错误的...
-有没有办法在不找到联合分布的情况下获得期望值？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649059/proving-ey-ex-infty-given-their-conditionals-are-poisson-distributed</guid>
-      <pubDate>Tue, 11 Jun 2024 18:32:25 GMT</pubDate>
     </item>
     <item>
       <title>P 值不显著，但蒙特卡洛置信区间不包含间接效应的零</title>
@@ -166,71 +263,6 @@ indirect22 0.112 -0.044 0.303
       <pubDate>Tue, 11 Jun 2024 18:30:05 GMT</pubDate>
     </item>
     <item>
-      <title>给定一个单位为正的估计概率和实际观察到的类别，如何绘制 ROC 曲线？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/649057/how-to-draw-a-roc-curve-given-estimated-probability-that-a-unit-is-positive-and</link>
-      <description><![CDATA[假设一个适合您可用数据的分类模型为每个统计单位提供了一个概率$P(+|x)$，该单位为正。下表显示了所有可用单元、每个单元的预测概率以及真实观察到的类别。
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-单元
-1
-2
-3
-4
-5
-6
-7
-8
-
-
-P(+|x)
-0.95
-0.87
-0.85
-0.85
-0.76
-0.53
-0.43
-0.25
-
-
-实际类
-+
--
--
-+
--
-+
-
-
-
-(a) 绘制此模型的 ROC 曲线。
-(b) 您认为这是一个好的模型吗？简要说明您的答案。
-
-我被这个问题难住了。我认为我可以使用 $P(+|x)$ 作为每个点的 $1 - \mbox{specificity}$ 的估计值，但我不知道如何估计敏感度。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649057/how-to-draw-a-roc-curve-given-estimated-probability-that-a-unit-is-positive-and</guid>
-      <pubDate>Tue, 11 Jun 2024 18:11:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何确定时间序列中的最佳滞后长度？</title>
-      <link>https://stats.stackexchange.com/questions/649044/how-to-determine-the-optimal-lag-length-in-time-series</link>
-      <description><![CDATA[我是时间序列分析的初学者，我总是遇到选择时间序列最佳滞后长度的问题，尤其是在使用机器学习算法进行预测任务时。我应该考虑 ACF 还是 PACF？阈值是多少？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649044/how-to-determine-the-optimal-lag-length-in-time-series</guid>
-      <pubDate>Tue, 11 Jun 2024 15:35:03 GMT</pubDate>
-    </item>
-    <item>
       <title>二分分类变量在技术上是区间/连续测量吗？</title>
       <link>https://stats.stackexchange.com/questions/649020/are-dichotomous-categorical-variables-technically-interval-continuous-measures</link>
       <description><![CDATA[在我的大学统计学书中，它说“二分分类变量在 MRA 中很容易处理。这是因为它们在定义上是一种区间（连续）测量。”然而，我认为分类变量在定义上不是连续测量 - 有人能进一步解释一下吗？非常感谢！]]></description>
@@ -255,27 +287,6 @@ $X:[0,1]\to\mathbb R$ 是 r.v.
 这两个度量可以不同吗（排除两个度量相同等简单情况）？]]></description>
       <guid>https://stats.stackexchange.com/questions/648795/can-two-different-measures-have-the-same-first-order-stochastic-dominance</guid>
       <pubDate>Fri, 07 Jun 2024 06:27:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>统计确定粒子数量</title>
-      <link>https://stats.stackexchange.com/questions/648318/statistically-determining-a-count-of-particles</link>
-      <description><![CDATA[我进行实验来测量各种药物。其中一项测量是对限制在小体积内的粒子数量感兴趣。
-我实验中的原始数据是 32 x 32 像素大小的视频，其背景噪音较高，并且包含多个随机扩散的粒子。然后，我使用局部最大值轨迹跟踪粒子。
-跟踪方法产生以下一组信息：
-$$\vec p = \begin{bmatrix} x\\ y\\ \text{mass}
-\\\ \text{ecc}\\ \text{raw_mass} \end{bmatrix}$$
-其中 x、y 为位置，质量、raw_mass 为粒子强度（围绕选定半径 $r$ 积分）。ecc（偏心率）表示粒子的圆度。
-现在，统计问题出现了。给定单个图像/帧中的一组 $N$ 粒子测量值，我很难从统计上形成一种方法来确定存在 $N$ 个粒子。例如，可能存在噪声，这会影响计数的决定，或者可能存在粒子聚集。
-简而言之，给定一个图像和一组算法确定的向量 $\vec p$，每次测量真正反映粒子的概率是多少，以及该测量的置信度是多少。
-尝试的想法
-1.
-在确定是否有粒子方面，必须有一种方法可以将相邻的强度与粒子进行比较。即，粒子的信号应该比背景/漏检的信号明显多。
-2.
-我还尝试集思广益，如何创建一种方法来调整一组参数以统计地推断这一决定。即，让阈值确定一个最小值，从而可以区分最不明亮的粒子。这需要动态地完成，因为每个训练集都应该非常大。由于实验的性质（荧光标记），这也存在物理限制
-如果有任何统计参考/建议可以帮助我解决这个问题，请告诉我。
-ps：标签的选择是我认为应该的，如果我应该更改任何内容，请告诉我。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648318/statistically-determining-a-count-of-particles</guid>
-      <pubDate>Thu, 30 May 2024 20:31:52 GMT</pubDate>
     </item>
     </channel>
 </rss>
