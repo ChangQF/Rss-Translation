@@ -4,7 +4,109 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 11 Jun 2024 21:25:07 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 12 Jun 2024 01:05:18 GMT</lastBuildDate>
+    <item>
+      <title>更改 Keras/Tensorflow“可见设备”会降低模型的准确性</title>
+      <link>https://stackoverflow.com/questions/78610219/changing-keras-tensorflow-visible-devices-makes-the-model-less-accurate</link>
+      <description><![CDATA[我正在运行一个用 Keras/Tensorflow 构建的 CNN。因为我在学校的远程服务器上运行，其他人也使用该服务器，所以我通常会设置“可见设备”来限制使用的 GPU 数量，而不是使用所有 GPU。以下是我用来执行此操作的代码：
+def set_gpus(num_gpus=4):
+print(&quot;Num GPUs Available: &quot;, len(tf.config.list_physical_devices(&#39;GPU&#39;)))
+gpus = tf.config.list_physical_devices(&#39;GPU&#39;)
+if gpus:
+# 限制 TensorFlow 仅使用第一个 GPU
+try:
+tf.config.set_visible_devices(gpus[:num_gpus], &#39;GPU&#39;)
+logical_gpus = tf.config.list_logical_devices(&#39;GPU&#39;)
+print(len(gpus), &quot;Physical GPUs,&quot;, len(logical_gpus), &quot;Logical GPU&quot;)
+except RuntimeError as e:
+# 必须在初始化 GPU 之前设置可见设备
+print(e)
+
+我发现，当我没有运行 set_gpus 时，我的模型表现比运行 set_gpus 时好得多。当仅使用 4 个 GPU 时，训练准确率在 100 个 epoch 后达到 88%，但验证和测试准确率都保持在 50% 左右，两个类别的 F1 分数显示一个类别的准确率约为 66%，另一个类别的准确率约为 3%。相比之下，当我在未先运行 set_gpus() 的情况下运行代码时，验证和测试准确率约为 70%，类别特定分数分别为 56% 和 77%。
+我尝试在运行 set_gpus 时更改 num_gpus，但即便如此，我得到的结果与仅使用 4 个 GPU 时的结果相同。即使我将 GPU 数量设置为 8（即服务器上的总数），结果也不会改变。有人知道是什么原因导致了这个问题吗？
+我的代码在 Jupyter Notebook 上运行，其中安装了 Python 3.12.2、Keras 版本 3.0.5 和 Tensorflow 版本 2.16.1。以下是与我的 CNN 模型相关的附加代码，希望对您有所帮助：
+def convolution_encoder(inputs, kernels, kernel_size=[3,3], stride=[1,1], data_format=&#39;channels_last&#39;):
+# 规范化和注意力
+x = layer.BatchNormalization(axis=-1)(inputs)
+x = layer.Conv2D(filters=kernels,activation=&#39;relu&#39;, kernel_size=kernel_size, strides=stride, data_format=data_format)(x)
+x = layer.MaxPooling2D(data_format=data_format)(x)
+return x
+
+def build_model_predict(
+input_shape,
+output_dim=2,
+mode=&#39;single-channel&#39;,
+data_format=&#39;channels_last&#39;
+):
+input = keras.Input(shape=input_shape)
+x = 输入
+x= convolution_encoder(x, 16，[5,5]，[2,2]，data_format=data_format) 
+x= convolution_encoder(x，32，[3,3]，[1,1]，data_format=data_format)
+x= convolution_encoder(x，64，[3,3]，[1,1]，data_format=data_format)
+x= layer.Flatten()(x)
+x= layer.Dropout(0.5)(x)
+x= layer.Dense(units=256，activation=&#39;sigmoid&#39;)(x)
+x= layer.Dropout(0.5)(x)
+output = layer.Dense(output_dim，activation=&quot;softmax&quot;)(x)
+return keras.Model(inputs, output)
+
+def run_CNN(x, y, seeded=False, seed=42, epoch_num=50):
+if seeded:
+x_train, x_test, y_train，y_test= train_test_split(x，y，test_size= 0.20，random_state=seed，stratify=y)
+a，x_val，b，y_val= train_test_split(x_train，y_train，test_size= 0.10，random_state=seed，stratify=y_train)
+else:
+x_train，x_test，y_train，y_test= train_test_split(x，y，test_size= 0.20，stratify=y)
+a，x_val，b，y_val= train_test_split(x_train，y_train，test_size= 0.10，stratify=y_train)
+keras.backend.clear_session()
+model = build_model_predict(
+x_train.shape[1:],
+output_dim=y.shape[-1])
+model.compile(
+optimizer=keras.optimizers.Adam(learning_rate=5e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08), # 优化器
+# 最小化损失函数
+loss=keras.losses.CategoricalFocalCrossentropy(),
+# 要监控的指标列表
+metrics=[keras.metrics.CategoricalAccuracy()],
+)
+print(&quot;Fit model on training data&quot;)
+history = model.fit(
+x_train,
+y_train,
+batch_size=64,
+epochs=epoch_num,
+# 我们通过一些验证来
+# 监控验证损失和指标
+# 在每个 epoch 结束时
+validation_data=(x_val, y_val),
+initial_epoch=0
+#callbacks=callbacks_list
+)
+results = model.evaluate(x_test, y_test, batch_size=128)
+print(&#39;按类别划分的训练准确率：&#39;)
+y_train_predict = model.predict(x_train)
+score= f1_score(np.argmax(y_train, axis=1), np.argmax(y_train_predict, axis=1), average=None)
+print(score)
+print(&#39;按类别划分的测试准确率：&#39;)
+y_predict = model.predict(x_test)
+score= f1_score(np.argmax(y_test, axis=1), np.argmax(y_predict, axis=1), average=None)
+print(score)
+return model
+
+下面是运行模型的实际代码块：
+set_gpus()
+model=run_CNN(x_stft, y_short, seeded=True, epoch_num=100)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78610219/changing-keras-tensorflow-visible-devices-makes-the-model-less-accurate</guid>
+      <pubDate>Wed, 12 Jun 2024 00:45:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>CNN 网络中的卷积层可以在池化层或全连接层之后继续进行吗？</title>
+      <link>https://stackoverflow.com/questions/78610065/can-convolutional-layers-in-cnn-networks-proceed-after-pooling-or-fully-connecte</link>
+      <description><![CDATA[CNN 网络中的卷积层可以在池化或全连接层之后继续吗？我知道具有这种架构的网络是不寻常的，但我很好奇，因为我正在尝试了解不同 CNN 设计中的可变性。
+我预计答案是肯定的？]]></description>
+      <guid>https://stackoverflow.com/questions/78610065/can-convolutional-layers-in-cnn-networks-proceed-after-pooling-or-fully-connecte</guid>
+      <pubDate>Tue, 11 Jun 2024 23:16:34 GMT</pubDate>
+    </item>
     <item>
       <title>为什么 FastAPI 框架使用起来很昂贵？ [关闭]</title>
       <link>https://stackoverflow.com/questions/78609577/why-fastapi-framework-is-expensive-to-use</link>
@@ -15,23 +117,6 @@ FastAPI 框架的主要缺点是价格昂贵。具体价格会根据您使用它
 我不太明白的是，如果 FastAPI 擅长创建 API，但调用开发的 API 却很昂贵，那么为什么它在 ML 中仍然越来越受欢迎？我知道 FastAPI 中集成了一些付费库。在使用 FastAPI 开发的 ML 项目的 API 调用中，这些付费库一定会被调用吗？如何估算使用 FastAPI 开发的 ML 项目需要多少成本？]]></description>
       <guid>https://stackoverflow.com/questions/78609577/why-fastapi-framework-is-expensive-to-use</guid>
       <pubDate>Tue, 11 Jun 2024 20:12:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的模型没有做出正确的预测？</title>
-      <link>https://stackoverflow.com/questions/78606937/why-is-my-model-not-making-good-predictions</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78606937/why-is-my-model-not-making-good-predictions</guid>
-      <pubDate>Tue, 11 Jun 2024 10:38:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>ResumeParcer 没有给出预期的结果，我希望在从简历中提取实体时至少得到 80 个结果 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78606930/resumeparcer-is-not-giving-result-as-expected-i-want-atleast-80-per-while-doing</link>
-      <description><![CDATA[我遇到了实体提取问题。
-我没有获得预期的准确度。我想要至少 80% 的准确度，但每次（在输出中）都会缺少一些实体，如姓名、电子邮件或联系人
-我在 Python 中尝试了很多方法，使用 nir 模型和 huggingFace 转换器，但结果中仍然缺少一些实体。我还尝试在 1500 多份简历上训练模型。但似乎这仍然没有足够的数据。
-有什么办法吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78606930/resumeparcer-is-not-giving-result-as-expected-i-want-atleast-80-per-while-doing</guid>
-      <pubDate>Tue, 11 Jun 2024 10:36:29 GMT</pubDate>
     </item>
     <item>
       <title>使用 Cord-V2 数据集微调 LayoutLmv3</title>
@@ -52,7 +137,7 @@ FastAPI 框架的主要缺点是价格昂贵。具体价格会根据您使用它
     <item>
       <title>每个时间戳有多个条目的数据集-解决方案？</title>
       <link>https://stackoverflow.com/questions/78605877/dataset-with-multiple-entries-per-timestamp-solutions</link>
-      <description><![CDATA[我想预测某些公司每月股价的百分比变化。我有一个包含月度数据的数据集，因此这些公司的股价变化百分比也是按月计算的。我目前每个时间戳（月）有多个条目，范围从每月 185 到 238。
+      <description><![CDATA[我想预测某些公司每月股价的百分比变化。我有一个包含月度数据的数据集，因此这些公司的股价百分比变化也是按月计算的。我目前每个时间戳（月）有多个条目，范围从每月 185 到 238。
 我听说和读到过，每个时间戳的多个条目会使模型难以学习，因此难以做出准确的预测。当我将条目数量限制为每月一个时，我会丢失非常重要的信息，因此这对我不利。
 有人可以解释一下，并给出一些我可以遵循的建议，或者我可以尝试的模型吗？
 我已经尝试过 XGBoost。当使用不考虑训练的先前股价数据时，XGBoost 确实很难学习。]]></description>
@@ -178,7 +263,7 @@ Epoch 1000/1000
       <description><![CDATA[我正在开展一个预测项目，其中我的数据集包含 24 个月的历史销售数据。我使用 20 个月进行训练和验证，其余 4 个月进行测试。对于验证，我使用滚动预测起源（类似于 TimeSeriesSplit）。
 我尝试使用几种模型，包括 SVR、GBR、随机森林、Facebook Prophet、ARIMA 和线性回归。但是，我很难找到一个正常工作的模型。我所有的预测图看起来都不一致，并且与数据不太吻合。
 您能否解释为什么机器学习模型可能无法在像我这样的小数据集上表现良好，并建议任何可能更适合小数据集的技术或模型？
-我所有的预测结果看起来都像图像一样，有一条直线。
+我所有的预测结果看起来都像图片一样，有一条直线。
 在此处输入图片描述]]></description>
       <guid>https://stackoverflow.com/questions/78599891/machine-learning-models-with-small-datasets-in-time-series</guid>
       <pubDate>Sun, 09 Jun 2024 22:25:42 GMT</pubDate>
