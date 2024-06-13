@@ -4,7 +4,170 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 13 Jun 2024 15:16:10 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 13 Jun 2024 18:20:05 GMT</lastBuildDate>
+    <item>
+      <title>R 包 glmnet LASSO 与正交协变量的理论行为不一致</title>
+      <link>https://stats.stackexchange.com/questions/649202/r-package-glmnet-lasso-not-agreeing-with-theoretical-behaviour-for-orthonormal-c</link>
+      <description><![CDATA[根据https://en.wikipedia.org/wiki/Lasso_(statistics)#Orthonormal_covariates，如果模型中的协变量是正交的，则$$\beta_j^{LASSO} = \beta_j^{OLS} \cdot \operatorname{max}\left(0, 1 - \frac{N\lambda}{|\beta_j^{OLS}|}\right)$$
+我尝试用三个正交协变量 X1、X2 和 X4 模拟这种情况，其中 X3 是高斯噪声，并使用 R 包 glmnet 运行回归。我使用的代码如下：
+
+size &lt;- 100
+
+X1 &lt;- 1/sqrt(size) * rnorm(size) # 独立变量
+X2 &lt;- 1/sqrt(size) * rnorm(size) # 独立变量
+X3 &lt;- 1/sqrt(size) * rnorm(size) # 随机误差项
+
+X &lt;- as.matrix(cbind(X1, X2))
+
+X4_coefficients = c(0,0) # 与 X1、X2 线性相关的独立变量
+X4_normalisation_term &lt;- 1/sqrt(X4_coefficients %*% X4_coefficients + 1)[1]
+
+X4 &lt;- X4_normalisation_term * ((X %*% X4_coefficients) + 1/sqrt(size) * rnorm(size))
+
+X &lt;- as.matrix(cbind(X1,X2,X4)) # 我们的最终设计矩阵
+
+coefficients = c(0.8,0.01,0.1)
+
+normalisation_term &lt;- (1/sqrt(coefficients %*% 系数 + 1))[1]
+
+y &lt;- normalisation_term * ((X %*% 系数) + X3) # 我们的因变量
+
+regularisation_parameter = 0.01
+
+regularised_linear_model &lt;- glmnet(X,y, lambda = regularisation_parameter)
+ols_linear_model &lt;- glmnet(X,y, lambda = 0)
+
+orthonormal_rejection_conditions = 1 - (length(coefficients) * regularisation_parameter)/abs(ols_linear_model$beta)
+
+regularised_linear_model$beta
+ols_linear_model$beta
+orthonormal_rejection_conditions
+
+运行此代码可得到输出
+&gt; regularised_linear_model$beta
+3 x 1 稀疏矩阵，类为 &quot;dgCMatrix&quot;
+s0
+X1 0.4713485
+X2 . 
+. 
+
+&gt; ols_linear_model$beta
+3 x 1 稀疏矩阵，类为 &quot;dgCMatrix&quot;
+s0
+X1 0.57450010
+X2 0.04578776
+-0.07540264
+
+&gt; orthonormal_rejection_conditions
+3 x 1 矩阵，类为 &quot;dgeMatrix&quot;
+s0
+X1 0.9477807
+X2 0.3448031
+0.6021360
+
+至少根据我的理解，由于“拒绝条件”均为正，因此任何系数都不应通过指定 $\lambda$ 的 LASSO 回归设置为零，而 glmnet 恰恰做到了这一点。glmnet 错了吗？还是我误解了什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649202/r-package-glmnet-lasso-not-agreeing-with-theoretical-behaviour-for-orthonormal-c</guid>
+      <pubDate>Thu, 13 Jun 2024 18:10:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>我应该针对这些在野外收集到的昆虫数据做哪些测试</title>
+      <link>https://stats.stackexchange.com/questions/649201/what-tests-should-i-do-for-this-data-colected-in-the-field-about-insects</link>
+      <description><![CDATA[我正在研究昆虫的目级。我有两个不同池塘 A 和 B 的样本。每个池塘的样本都取自近岸，另一个则取自更远的地方。我有每个地点和池塘的温度以及环境温度。时间也是一个变量，您可以考虑它来研究昆虫目随时间的变化和演变。采样的昆虫按目和个体数量分类。考虑到我的数据不呈正态分布，您会进行哪些测试？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649201/what-tests-should-i-do-for-this-data-colected-in-the-field-about-insects</guid>
+      <pubDate>Thu, 13 Jun 2024 17:58:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>对于高斯过程中的可分离协方差，逆 Wishart 先验是否是共轭的？</title>
+      <link>https://stats.stackexchange.com/questions/649198/for-a-separable-covariance-in-a-gaussian-process-is-an-inverse-wishart-prior-co</link>
+      <description><![CDATA[假设我们有一个向量 $\mathbf{y}\sim\text{GP}(\boldsymbol{0},\Sigma_y)$ 的 GP，其中 $\Sigma_y=\Sigma_r\otimes\Sigma_f$ 是一个可分离的协方差矩阵。假设 $\Sigma_f$ 是固定的，并且逆 Wishart 先验 $\Sigma_r\sim\text{IW}(\nu_0,\Psi_0)$。这里的逆 Wishart 是共轭的吗？到目前为止，我有以下步骤：
+$$p(\Sigma_r|\mathbf{y})\propto p(\mathbf{y}|\Sigma_r)p(\Sigma_r)\propto|\Sigma_r|^{-(\nu_0+d+n+1)/2}\exp\left\{-\frac12\mathbf{y}^T(\Sigma_r^{-1}\otimes\Sigma_f^{-1}\mathbf{y}) - \frac12 \text{tr}(\Psi_0\Sigma_r^{-1})\right\},$$
+其中 $\Sigma_f$ 是一个 $d\times d$ 矩阵。为了达到这一目的，我使用了以下克罗内克性质：(i) $|A\otimes B|=|A|^m|B|^n$，其中 $A$ 为 $n\times n$，而 $B$ 为 $m\times m$，以及 (ii) $(A\otimes B)^{-1}=A^{-1}\otimes B^{-1}$。它似乎 应该 是共轭的，但我不确定如何以这种方式简化指数项。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649198/for-a-separable-covariance-in-a-gaussian-process-is-an-inverse-wishart-prior-co</guid>
+      <pubDate>Thu, 13 Jun 2024 16:59:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何确定 GLMM 中 AR1 成分的结构？</title>
+      <link>https://stats.stackexchange.com/questions/649196/how-to-determine-the-structure-of-an-ar1-component-in-glmm</link>
+      <description><![CDATA[我一直在尝试将 GLMM（泊松）拟合到数据集中，该数据集以羊群大小作为响应变量，以气候数据作为固定效应，以美国不同动物园作为随机效应。
+每群羊群的大小都是随时间测量的。在这些情况下，我可能应该包括一个随机斜率，并使用 AR(1) 模型在羊群级别对自相关进行建模。否则，我会假设一群鸟的时间序列中的所有值都是独立的统计重复，但事实并非如此。
+library(glmmTMB)
+
+Model_Pop_Rec &lt;- glmmTMB(flock_size ~ tmin_I + ppt_I + vpdmin_I + 
+(1 + time | Zoo),
+family = poisson,
+data = Data_Z_fs) 
+
+我可以知道合并 AR1 组件的正确方法吗？
+谢谢
+Rahul]]></description>
+      <guid>https://stats.stackexchange.com/questions/649196/how-to-determine-the-structure-of-an-ar1-component-in-glmm</guid>
+      <pubDate>Thu, 13 Jun 2024 16:49:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>矩阵与子矩阵相乘</title>
+      <link>https://stats.stackexchange.com/questions/649194/multiplication-of-matrix-by-submatrices</link>
+      <description><![CDATA[我有一个 $J \times J$ 矩阵 $C$，它是上三角矩阵。此外，$C&#39;C$ 是正定矩阵。我还有一个矩阵 $A$，由大小为 $J \times K$ 的子矩阵组成，如下所示 $A = \begin{bmatrix} A_1 \\ A_2 \\ A_3 \\ \vdots \\ A_N \end{bmatrix}$,
+其中 $A_i = [I_{J \times J}\ B_{i_{J \times (K - J)}}]$，每个 $i$ 都有。我创建了一个新矩阵 $A_{new}$，使得
+$A_{new} = \begin{bmatrix} CA_1 \\ CA_2 \\ CA_3 \\ \vdots \\ CA_N \end{bmatrix}$。
+请注意，A_new 可以写成 $A_{new} = \begin{bmatrix} C &amp; CB_1 \\ C &amp; CB_2 \\ \vdots &amp; \vdots \\ C &amp; CB_N \end{bmatrix}$。
+有没有办法让我以矩阵运算或连接的形式写出 $A_{new}&#39;*A_{new}$？
+我正在做一个循环，每次迭代时我都需要为不同的 $C$ 值获取一个矩阵 $A_{new}(C)$。这在计算上非常昂贵，因为矩阵 $B_i$ 和 $C$ 非常大，因此，对于给定的 $C$，任何关于如何轻松进行这些计算的建议都将不胜感激！
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/649194/multiplication-of-matrix-by-submatrices</guid>
+      <pubDate>Thu, 13 Jun 2024 16:22:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 R 进行编程的 ChatGPT 替代品 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/649193/alternatives-to-chatgpt-for-programming-in-r</link>
+      <description><![CDATA[我想知道是否有人知道（并推荐）一款免费的 AI，其效果比 ChatGPT 更好，可用于 R 编程（统计分析和数据可视化）。到目前为止，它运行良好，但最近它变得非常慢（至少对我来说）。非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649193/alternatives-to-chatgpt-for-programming-in-r</guid>
+      <pubDate>Thu, 13 Jun 2024 16:12:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 pca.fit() 重现 pca.fit_transform() 的 PCA 结果？[重复]</title>
+      <link>https://stats.stackexchange.com/questions/649189/reproducing-pca-results-of-pca-fit-transform-using-pca-fit</link>
+      <description><![CDATA[我有一个名为 data_principal_components 的数据框，尺寸为 (306x21154)，因此有 306 个观测值和 21154 个特征。使用 PCA，我想将数据投影到 10 个维度中。
+据我所知，以下代码可以实现这一点。生成的矩阵（投影）的尺寸为 (306x10)。
+#示例数据：
+# 定义 DataFrame 的尺寸
+num_rows = 306
+num_cols = 21154
+
+# 从正态分布生成随机数
+data = np.random.randn(num_rows, num_cols)
+
+# 从随机数据创建 DataFrame
+data_principal_components = pd.DataFrame(data)
+
+pca = PCA(10) 
+projected = pca.fit_transform(data_principal_components)
+
+为了更好地了解代码的执行情况，我想“手动”重现 pca.fit_transform() 的结果。
+根据互联网搜索，我发现：
+pc_components = pca.components_ #这给出了特征向量
+pc_components = pc_components.transpose() #转置特征向量，因此维度为 (21154x10)
+eigenvalues = pca.explained_variance_ #这些是维度为 (1x10) 的特征值
+
+现在，据我所知，可以使用以下代码根据公式计算载荷 $ loadings = eigenvectors * 
+sqrt(eigenvalues) $
+# 创建一个空的 DataFrame
+df = pd.DataFrame()
+
+# 迭代特征值
+for i in range(len(eigenvalues)):
+result = np.dot(pc_components[:, i], np.sqrt(eigenvalues[i]))
+df[f&#39;Result_{i+1}&#39;] = result #将结果分配为 ​​DataFrame 中的新列
+
+loadings = df
+
+在获得尺寸为 (21154x10) 的载荷后，我想使用它们来获得尺寸为 (306x21154)*(21154x10)=(306x10) 的 $Actual values*loadings$
+的投影值：
+test = np.dot(data_principal_components,loadings)
+
+但是，当我将测试与投影进行比较时，值相差很大。我错在哪里？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649189/reproducing-pca-results-of-pca-fit-transform-using-pca-fit</guid>
+      <pubDate>Thu, 13 Jun 2024 15:34:47 GMT</pubDate>
+    </item>
     <item>
       <title>期望值卡方分布</title>
       <link>https://stats.stackexchange.com/questions/649184/expected-value-chi-square-distribution</link>
@@ -19,26 +182,6 @@
 此外，如果一个变量是计数而另一个变量是二元，我可以运行哪种相关性？]]></description>
       <guid>https://stats.stackexchange.com/questions/649183/count-predictor-and-binary-outcome</guid>
       <pubDate>Thu, 13 Jun 2024 14:13:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>线性回归应用于具有趋势的时间序列 - 如何处理以及如何解释结果？</title>
-      <link>https://stats.stackexchange.com/questions/649181/linear-regression-applied-to-time-series-with-trend-how-to-deal-with-it-and-ho</link>
-      <description><![CDATA[我需要在时间序列上拟合线性回归模型。为简单起见，我们假设只有三个变量：
-
-Y - 有明显趋势；差分后是平稳的
-X1 - 有明显趋势；差分后是平稳的
-X2 - 是平稳的。
-
-我在这里看到三个选项：
-
-原始 Y 与原始 X1 和 X2 - 可能导致伪回归
-原始 Y 与 diff(X1)、X2 - 目标与 Xs 之间的相关性较低 =&gt;真的很低 $R^2$
-diff(Y) vs diff(X1), X2 - 我不知道在这种情况下如何解释回归系数。
-
-我该怎么办？选项 3 对我来说似乎是正确的方法，但我不知道如何解释系数 - 这很重要，因为它是一个计量经济学模型，我应该能够得出一些关于建模现象性质的结论。请注意，在实际项目中有 8 个独立变量（X1，... X8），而不是两个。其中一些是平稳的，一些是差分后的。
-编辑：我刚刚想出了选项 4 - 原始 Y vs diff(X1)、X2 和时间变量。我不确定它是否有意义，我将尝试检查拟合模型。我的直觉是它将导致模型只有截距和时间的显着系数。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649181/linear-regression-applied-to-time-series-with-trend-how-to-deal-with-it-and-ho</guid>
-      <pubDate>Thu, 13 Jun 2024 13:50:17 GMT</pubDate>
     </item>
     <item>
       <title>大都会-黑斯廷斯-随机游走链 (MCMC) 中的先验</title>
@@ -73,73 +216,6 @@ $\theta^*_j$的先验分布是什么？ class=&quot;math-container&quot;&gt;$\th
       <pubDate>Thu, 13 Jun 2024 13:30:35 GMT</pubDate>
     </item>
     <item>
-      <title>主成分分析应包含哪些维度？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/649174/what-dimensions-to-expect-of-principal-components-analysis</link>
-      <description><![CDATA[在 Python 和 R 中，主成分分析 (PCA) 的特征向量矩阵都是维度为 (观测值数量 x 主成分数量) 的主成分矩阵。由于特征值分解基于维度为 (特征数量 x 特征数量) 的方差-协方差矩阵，为什么得到的 PCA 矩阵的维度为 (观测值数量 x 主成分数量)？有人能解释一下这种差异背后的原因吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649174/what-dimensions-to-expect-of-principal-components-analysis</guid>
-      <pubDate>Thu, 13 Jun 2024 12:55:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>什么是间接原因联系和共同原因联系？</title>
-      <link>https://stats.stackexchange.com/questions/649172/what-are-indirect-and-common-cause-links</link>
-      <description><![CDATA[本问题是关于 PCMCI 方法（如 Runge et al 2019 所述）用于查找时间序列数据中的因果关系。
-该过程的第二部分称为瞬时条件独立性 (MCI)，涉及对目标（$X^3_t$ 在下面示例中）与其因果父级（$X^1_{ t−2}$）进行独立性测试，以两者的因果父级为条件：
-
-然后，MCI 测试（图 3C）解决了高度相互依赖的时间序列案例的假阳性控制问题：例如，对于测试 $X^1_{t−2} \rightarrow X ^3_{ t}$ ，条件 $ \hat{\mathscr{P}}(X^3_ t )$（图 3B 中的蓝色框）足以建立条件独立性（马尔可夫特性），即识别间接和共同原因链接。
-
-供参考，图 3B 如下：
-
-我对这一部分过程“[识别] 间接和共同原因”的说法感到困惑导致链接”。这是什么意思，这一步是如何实现的？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649172/what-are-indirect-and-common-cause-links</guid>
-      <pubDate>Thu, 13 Jun 2024 12:19:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>PCA。R 与 Python：主成分的维度？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/649171/pca-r-vs-python-dimension-of-principal-components</link>
-      <description><![CDATA[在 Python 和 R 中，PCA 的结果给出一个主成分矩阵，其维度为（观测值数量 x 特征数量）。由于特征值分解基于方差-协方差矩阵，因此维度为（特征数量 x 特征数量）的结果对我来说更有意义。为什么 R 和 Python 中的结果与此不同？
-示例数据：
-
-# 特征和观测值的数量
-num_features &lt;- 10000
-num_observations &lt;- 300
-
-# 生成数据矩阵
-data &lt;- matrix(rnorm(num_features * num_observations), nrow = num_observations, ncol = num_features)
-
-# 将矩阵转换为数据框
-data_principal_components &lt;- as.data.frame(data)
-
-Python：
-
-# 对外生因素的中心化和标准化数据集执行 PCA
-pca = PCA()
-data_pca = pca.fit_transform(data_principal_components)
-
-# 总结 PCA 结果
-explained_variance_ratio = pca.explained_variance_ratio_
-cumulative_variance_ratio = np.cumsum(explained_variance_ratio)
-
-R:
-
-set.seed(42)
-# 计算相关矩阵
-
-# 对相关矩阵执行 PCA
-data.pca &lt;- princomp(data_principal_components)
-
-# 总结 PCA 结果
-sumpca &lt;- summary(data.pca)
-
-# 计算主成分的累积重要性
-importance &lt;- cumsum(sumpca$sdev^2 / sum(sumpca$sdev^2))
-
-# 显示累积重要性
-print(importance)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649171/pca-r-vs-python-dimension-of-principal-components</guid>
-      <pubDate>Thu, 13 Jun 2024 12:04:46 GMT</pubDate>
-    </item>
-    <item>
       <title>不平衡面板的差异分析</title>
       <link>https://stats.stackexchange.com/questions/649170/diff-in-diff-with-an-unbalanced-panel</link>
       <description><![CDATA[假设我想使用 diff-in-diff 设置研究某些干预措施的效果。我有一组在某个时期内观察到的单位。我可以识别治疗/非治疗组和前期/后期（假设它是经典的 DID，没有交错干预等）。我的问题是我有不平衡的面板 - 对于某些单位，包括那些接受治疗的单位，我没有后期的完整观察结果。我可以仅在平衡样本上估计 DID 模型，或者简单地忽略面板不平衡的事实（我猜这对 Stata xtdidrgress 来说不是问题），但我担心这可能会产生有偏差的结果。由于治疗，可能会从样本中删除单位。例如，如果我研究某些医疗治疗对血压的影响，可能会发生由于治疗，一些患者的血压下降，他们不再去看医生，这就是为什么没有对他们的观察结果。
@@ -161,36 +237,6 @@ print(importance)
       <pubDate>Thu, 13 Jun 2024 11:05:34 GMT</pubDate>
     </item>
     <item>
-      <title>我在不同的种子上对逻辑回归分类器获得了 98% 到 100% 的准确率。这应该发生吗（主要关注 100% 准确率）</title>
-      <link>https://stats.stackexchange.com/questions/649167/i-am-getting-98-to-100-accuracy-in-my-logistic-regression-classifier-on-differ</link>
-      <description><![CDATA[我的数据分割：
-from sklearn.model_selection import train_test_split
-df.drop(&#39;id&#39;, axis=1, inplace=True)
-X = df.drop(&#39;classification&#39;, axis=1)
-y = df[&#39;classification&#39;]
-X_train, X_test, y_train, y_test = train_test_split(
-X, 
-y, 
-test_size = 0.30, 
-random_state =0 
-)
-print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-输出：(280, 23) (120, 23) (280,) (120,)
-
-和我的 ML 模型：
-来自 sklearn.linear_model 导入 LogisticRegression
-来自 sklearn.metrics 导入 accuracy_score、classification_report、confusion_matrix
-
-model = LogisticRegression()
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-print(accuracy_score(y_test, y_pred))
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649167/i-am-getting-98-to-100-accuracy-in-my-logistic-regression-classifier-on-differ</guid>
-      <pubDate>Thu, 13 Jun 2024 10:20:44 GMT</pubDate>
-    </item>
-    <item>
       <title>在 R 中使用 lme4 的混合效应模型</title>
       <link>https://stats.stackexchange.com/questions/649182/mixed-effect-model-using-lme4-in-r</link>
       <description><![CDATA[]]></description>
@@ -198,44 +244,51 @@ print(accuracy_score(y_test, y_pred))
       <pubDate>Thu, 13 Jun 2024 06:42:08 GMT</pubDate>
     </item>
     <item>
-      <title>多个二项分布的结果分布</title>
-      <link>https://stats.stackexchange.com/questions/649090/distribution-of-outcomes-of-multiple-binomial-distributions</link>
-      <description><![CDATA[我有 50 名受试者的样本，其中每个受试者完成一项具有两种可能结果（左手或右手使用，概率为 50%）的任务 30 次。在个人层面上，这导致每个受试者的结果呈二项分布，其中可以计算每个受试者的 z 分数，以查看手的使用距离预期的 50%（15 个左手和右手使用）水平有多远。根据 z 分数，我们将那些大于 1.96（›1.96）的值视为右撇子，那些低于 -1.96（‹-1.96）的值视为左撇子，那些介于两者之间（-1.96‹‹1.96）的值视为双侧。
-问题：在我的 50 名受试者样本中，z 分数的预期比率（或 z 分数的分布）是多少？这是否与个人层面的情况相同，即双侧利手的可能性为 95%，左撇子或右撇子的可能性为 2.5-2.5%？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649090/distribution-of-outcomes-of-multiple-binomial-distributions</guid>
-      <pubDate>Wed, 12 Jun 2024 09:07:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>将偏移量除以整数以使模型非奇异是否合理？</title>
-      <link>https://stats.stackexchange.com/questions/649039/how-reasonable-is-it-to-divide-an-offset-by-an-integer-to-make-the-model-non-sin</link>
-      <description><![CDATA[我一直在尝试将 GLMM（泊松）拟合到数据集中，该数据集以羊群大小作为响应变量，以气候数据作为固定效应，以美国不同动物园作为随机效应。我是回归建模领域的新手，我通过阅读一些资源并在公共论坛上提问尝试了不同的方法。但是我非常困惑！！！
-根据一些专家的建议，我使用了以下模型：
-glmer(Flock_size ~ scaled(Climate data) + (1 | Zoo) + offset (a column with flock size of previous years), data = d, family = poisson)[![enter image description here][1]][1]
+      <title>调整多元预测模型以适应季节性漂移</title>
+      <link>https://stats.stackexchange.com/questions/649139/adjusting-a-multivariate-predictive-model-for-drifting-seasonalities</link>
+      <description><![CDATA[这个问题是最初在《量化金融》中提出的一个问题的重新发布。我被告知这是一个更适合它的地方。
+我有一个每日观察的时间序列，这些序列被汇总为每月周期。月度序列表现出强烈而可靠的季节性模式，非常适合用 X-13ARIMA-SEATS 进行调整。X-13ARIMA-SEATS 可以生成预测，OOS 预测通常很好，误差分布接近对称，平均中位数和众数接近零，平均方差平稳，没有明显的序列自相关。
+现在我对未来一个月有了一个很好的预测，我想预测个别日子。每日数据仅限于预先知道的一组工作日。一个月内还有其他季节性模式，我正在尝试预测这些模式。许多模式在一段时间内都具有高度可靠性，一个月的季节性与同一月份在具有相同工作日模式的不同年份的季节性非常相似。
+我采用的方法是使用与任何给定日期相对应的月度总数的百分比作为因变量，然后使用一系列描述季节性的二元独立变量。由于这些特征在几个月内基本一致，因此可以使用所有月份的组合来计算系数。问题是季节性会随时间而变化，尽管变化非常缓慢，这导致了两个问题：
 
+每日预测的准确性会随着时间的推移而下降
+较早的观察结果对于计算系数的用处越来越小。
 
-其中 offset = 前几年羊群大小的对数
-结果为奇异拟合。
-qqplot 如下：
+一个简单的例子是：我正在停车场计算汽车数量，我的目标是预测每天将有多少辆车停放。在月份开始之前，我对将停放的汽车总数有一个预测。从之前的观察中，我知道每个工作日的利用率水平都不同，假期前几天比较安静，月底和月中比较繁忙，但其他模式也会随着时间而变化（繁忙的周三可能会逐渐变成繁忙的周二）
+我正在尝试找到训练回归的“最佳点”，我发现最好的方法是将某种衰减分配给观察结果，以便它们对系数的影响随着时间的推移而下降。我一直在做的一件事是根据近期历史的较小滚动样本每月计算系数，然后以指数方式加权系数与前一个月的系数。到目前为止，它有点有效，但似乎笨拙而笨拙，并且仍然难以适应新模式。我也尝试过简单地重复使用上个月具有相同工作日模式的值，这几乎不需要做任何工作就可以得到很多正确结果，但不够准确，无法使用。
+我希望得到关于如何改进此过程的建议。我尝试搜索了好几次，但似乎不知道该搜索什么才能找到有用的东西。下面是一些 R 伪代码，希望能说明一下我目前正在做的事情。我希望有一种方法可以将权重构建到模型本身中。我知道我可以根据观察结果的近期性（越近，副本越多）复制观察结果，通过填充训练数据来模拟这种情况，但这似乎非常可疑？任何建议都将不胜感激。
+library(lubridate)
+library(tibble)
+library(dplyr)
+library(tidyr)
+library(purrr)
 
-观察值和预期值在很大程度上不对齐。
+training_data &lt;- daily_data |&gt; 
+filter(date &gt;= max(date) - months(24)) |&gt;
+group_by(period = floor_date(date, &#39;month&#39;) |&gt;
+mutate(value = value/sum(value)) |&gt; 
+ungroup() |&gt; inner_join(features, by = &#39;date&#39;)
 
-现在，我选择将偏移量除以任意值 100，看看它有什么不同
-glmer(Flock_size ~ scaled(Climate data) + (1 | Zoo) + offset (前几年羊群大小的列/100), data = d, family = poisson)
-它产生了一个非奇异模型，其改进的 qqplot 如下：
-
-我想知道将偏移量除以整数以使模型非奇异是否合理?
-谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/649039/how-reasonable-is-it-to-divide-an-offset-by-an-integer-to-make-the-model-non-sin</guid>
-      <pubDate>Tue, 11 Jun 2024 13:55:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>Salesforce Marketing Cloud 群发电子邮件打开率大幅下降 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/648970/salesforce-marketing-cloud-big-drop-of-open-rate-in-mass-email-sendings</link>
-      <description><![CDATA[我正在使用 Salesforce Marketing Cloud 向订阅者发送群发电子邮件，发现我在 2023 年发送的群发电子邮件的打开率比 2024 年发送的群发电子邮件更高，这意味着 2024 年群发电子邮件的打开率大幅下降。
-两年（2023 年和 2024 年）发送的目标受众相同。
-有人能帮我找出这个问题的根本原因吗？我们应该考虑什么来克服这个问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/648970/salesforce-marketing-cloud-big-drop-of-open-rate-in-mass-email-sendings</guid>
-      <pubDate>Mon, 10 Jun 2024 13:57:36 GMT</pubDate>
+model &lt;- lm(value ~ feat1 + feat2 + feat3, data = training_data)
+#实际上这是一个矩阵而不是数据框，这只是一个例子
+model_coef &lt;- pivot_wider(enframe(coef(model)))
+previous_coefs &lt;- union_all(
+previous_coefs, 
+add_column(model_coef, date = max(training_data$period))
+)
+ewma_lambda &lt;- 0.85
+weighted_coefs &lt;- mutate(
+across(
+-date,
+\(x) acquire(
+x,
+\(.x, .y)(1 - ewma_lambda) * .y + ewma_lambda * .x
+)
+)
+)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649139/adjusting-a-multivariate-predictive-model-for-drifting-seasonalities</guid>
+      <pubDate>Wed, 12 Jun 2024 21:50:52 GMT</pubDate>
     </item>
     </channel>
 </rss>
