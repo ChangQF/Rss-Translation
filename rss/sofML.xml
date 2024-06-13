@@ -4,7 +4,180 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 13 Jun 2024 06:21:16 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 13 Jun 2024 09:16:41 GMT</lastBuildDate>
+    <item>
+      <title>通过 R 实现支持向量机</title>
+      <link>https://stackoverflow.com/questions/78616808/support-vector-machine-implementation-through-r</link>
+      <description><![CDATA[我正在尝试使用 e1071 库在 R 中实现 SVM。
+svm_train &lt;- svm(factor_new ~ RFS +LI+SDI+LDI+DR+DBT+FCT+FII+DITP+ADCG+ADDG+ROA+ROI+ROS+ROE,data = train01_new, kernel = &quot;linear&quot;, cost = 0.1, scale = TRUE, type = &quot;C-classification&quot;)
+predict_svm_train &lt;- predict(svm_train, train01_new)
+cm_svm_train &lt;- chaosMatrix(predict_svm_train, train01_new$factor_new, mode = &quot;everything&quot;, positive = &quot;1&quot;)
+
+代码运行正常，没有错误或警告，但训练集上的预测结果确实很奇怪。似乎模型无法检测到默认值（1）。]]></description>
+      <guid>https://stackoverflow.com/questions/78616808/support-vector-machine-implementation-through-r</guid>
+      <pubDate>Thu, 13 Jun 2024 08:50:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>强化学习算法中的 CUDA 内存不足</title>
+      <link>https://stackoverflow.com/questions/78616686/cuda-out-of-memory-on-a-reinforcement-learning-algorithm</link>
+      <description><![CDATA[import os
+import gym
+from gym import space
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn. functional as F
+from torch.utils.data import Dataset, DataLoader
+from stable_baselines3 import PPO
+from stable_baselines3.common.env_util import make_vec_env
+from tqdm import tqdm
+from TTset_main import load_TTset
+
+# 加载数据集
+filted_tset_path = &quot;training_path.csv&quot;
+filted_vset_path = &quot;validation_path.csv&quot;
+TTset_training, TTset_vali, training_data_length = load_TTset(filted_tset_path, filted_vset_path)
+
+# 自定义数据集类
+class VideoDataset(Dataset):
+def __init__(self, data_list):
+self.data_list = data_list
+self.length = sum(len(video[0]) for video in data_list) # 总帧数
+
+def __len__(self):
+return self.length
+
+def __getitem__(self, idx):
+video_idx = 0
+frame_idx = idx
+# 查找对应的视频和帧
+for video, labels in self.data_list:
+if frame_idx &lt; len(video):
+frame = video[frame_idx]
+label = labels[frame_idx]
+return frame, label
+frame_idx -= len(video)
+raise IndexError(&quot;索引超出范围&quot;)
+
+# 创建 DataLoader
+batch_size = 1 # 每次一帧
+video_dataset = VideoDataset(TTset_training)
+data_loader = DataLoader(video_dataset, batch_size=batch_size, shuffle=True)
+
+# CNN 模型
+class CNNModel(nn.Module):
+def __init__(self, num_classes):
+super(CNNModel, self).__init__()
+self.conv1 = nn.Conv3d(3, 32, kernel_size=3, stride=1, padding=1)
+self.conv2 = nn.Conv3d(32, 64, kernel_size=3, stride=1, padding=1)
+self.fc1 = nn.Linear(64*30*115*115, 512)
+self.fc2 = nn.Linear(512, num_classes)
+
+def forward(self, x):
+x = F.relu(self.conv1(x))
+x = F.max_pool3d(x, 2)
+x = F.relu(self.conv2(x))
+x = F.max_pool3d(x, 2)
+x = x.view(-1, 64*30*115*115)
+x = F.relu(self.fc1(x))
+x = self.fc2(x)
+return x
+
+# 训练循环
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+model = CNNModel(num_classes=20).to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+loss_function = nn.CrossEntropyLoss()
+
+# 带进度条的训练
+total_epochs = 10
+for epoch in range(total_epochs):
+training_acu_count = 0 # 重置每个 epoch 的准确率
+for i, (x, y) in tqdm(enumerate(data_loader)):
+model.train()
+x = x.to(device).unsqueeze(0) # 添加批次维度
+y = y.to(device)
+pred = model(x)
+t_loss = loss_function(pred, y.unsqueeze(0)) # 匹配维度以计算损失
+t_loss.backward()
+optimizer.step()
+optimizer.zero_grad()
+
+pred_convert = torch.argmax(pred, 1)
+training_acu_count += (pred_convert == y).sum().item()
+
+print(f&quot;Epoch {epoch+1}/{total_epochs}, Training Accuracy: {training_acu_count/len(video_dataset):.4f}&quot;)
+
+# 保存模型
+torch.save(model.state_dict(), &quot;video_classification_model.pth&quot;)
+
+
+我使用上面的代码来训练一个对视频进行分类的 RL 模型。TTset_training 是一个包含输入和目标的数据加载器对象。输入尺寸为 129x15x3x60x230x230，目标尺寸为 129x15。视频帧是尺寸为 3x60x230x230 的张量。
+我在 4070Ti 上运行此代码，并收到以下错误：
+torch.cuda.OutOfMemoryError：CUDA 内存不足。尝试分配 48.43 GiB。GPU
+
+我尝试了多种调整，更改批处理大小，使用循环单独输入数据，但都没有成功。我在网上搜索解决方案，但所有解决方案都建议更改帧的大小，但这是不可能的，因为我会丢失大量数据。]]></description>
+      <guid>https://stackoverflow.com/questions/78616686/cuda-out-of-memory-on-a-reinforcement-learning-algorithm</guid>
+      <pubDate>Thu, 13 Jun 2024 08:27:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>超参数和运行模型但卡在 Python .py 文件</title>
+      <link>https://stackoverflow.com/questions/78616605/hyperparameter-and-running-model-but-stuck-python-py-files</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78616605/hyperparameter-and-running-model-but-stuck-python-py-files</guid>
+      <pubDate>Thu, 13 Jun 2024 08:09:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>在生成模型中，如何使用 DAG 依赖关系分解观察数据的可能性？</title>
+      <link>https://stackoverflow.com/questions/78616519/in-a-generative-model-how-to-factorize-the-likelihood-of-observing-the-data-usi</link>
+      <description><![CDATA[在机器学习中，考虑由以下有向无环图 (DAG) 表示的生成模型：
+
+其中：
+
+潜在变量为：z0、z1 和 tr
+观察变量为 a、xO、x1
+
+我们希望训练模型，以便最大限度地提高从潜在变量中看到观察结果的可能性，即：
+
+如何根据 DAG 的依赖关系分解此表达式？
+
+我尝试了以下方法：
+
+使用
+
+和
+
+但是现在，我陷入困境]]></description>
+      <guid>https://stackoverflow.com/questions/78616519/in-a-generative-model-how-to-factorize-the-likelihood-of-observing-the-data-usi</guid>
+      <pubDate>Thu, 13 Jun 2024 07:50:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>哪个分类器（决策树、支持向量机、感知器）可能生成决策边界？</title>
+      <link>https://stackoverflow.com/questions/78616291/which-classifier-decision-tree-support-vector-machines-perceptron-might-have</link>
+      <description><![CDATA[在此处输入图片描述
+我们有 3 个决策边界：h1、h2、h3。
+我正在为数据挖掘和机器学习考试做准备，我对之前考试的这个问题很不确定。
+对于每个决策边界，哪个分类器可以生成分割？
+我知道，决策树只能创建 h3，因为它们只生成垂直或水平分割。
+我特别不确定，感知器是否可以创建垂直分割。此外，我怀疑，SVM 只能生成 h2，因为它应该始终创建具有最大边距的分割。但我不确定。
+我自己的猜测：
+h1：感知器
+h2：SVM，感知器
+h3：决策树]]></description>
+      <guid>https://stackoverflow.com/questions/78616291/which-classifier-decision-tree-support-vector-machines-perceptron-might-have</guid>
+      <pubDate>Thu, 13 Jun 2024 06:59:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>从 hugging face 空间创建 API 端点</title>
+      <link>https://stackoverflow.com/questions/78616285/create-api-endpoint-from-hugging-face-space</link>
+      <description><![CDATA[我在 Hugging Face 上创建了一个 Space，使用 Gradio 运行我的自定义机器学习模型。它在 Web 界面中运行完美，但现在我想将此 Space 转换为可以从我的应用程序调用的 API 端点。
+有人可以指导我将 Hugging Face Space 转换为 API 端点的过程吗？具体来说，我正在寻找：
+从我现有的 Space 设置推理端点的步骤。
+如何处理用于访问端点的身份验证和 API 密钥？
+是否有任何最佳实践或技巧可用于优化端点的性能。]]></description>
+      <guid>https://stackoverflow.com/questions/78616285/create-api-endpoint-from-hugging-face-space</guid>
+      <pubDate>Thu, 13 Jun 2024 06:57:15 GMT</pubDate>
+    </item>
     <item>
       <title>Torch.unique() 的替代方案不会破坏梯度流吗？</title>
       <link>https://stackoverflow.com/questions/78615860/torch-unique-alternatives-that-do-not-break-gradient-flow</link>
@@ -54,117 +227,6 @@ from os.path import isdir, join
       <pubDate>Wed, 12 Jun 2024 17:28:53 GMT</pubDate>
     </item>
     <item>
-      <title>PySpark：具有 min_frequency 的 StringIndexer，类似 scikit-learn 的 OrdinalEncoder</title>
-      <link>https://stackoverflow.com/questions/78613394/pyspark-stringindexer-with-min-frequency-like-in-scikit-learns-ordinalencoder</link>
-      <description><![CDATA[我正在 PySpark 中构建一个机器学习管道，其中 StringIndexer 是其中一个阶段。问题是有些类别非常小，所以我希望将它们映射到同一个标签。使用 scikit-learn 中的 OrdinalEncoder 可以实现这一点。
-我想我正在寻找一种方法来扩展 StringIndexer 类，但我无论如何也想不出如何做到这一点。我想我必须覆盖 fit（或 _fit）方法，但我甚至无法在源代码中找到它。欢迎提出其他建议。
-这里有一个小例子：
-from pyspark.sql import SparkSession
-from pyspark.ml.feature import StringIndexer
-
-spark = SparkSession.builder.getOrCreate()
-
-data = [
-(&quot;a&quot;,),
-(&quot;b&quot;,),
-(&quot;a&quot;,),
-(&quot;b&quot;,),
-(&quot;c&quot;,),
-(&quot;b&quot;,),
-(&quot;b&quot;,),
-(&quot;d&quot;,),
-(&quot;d&quot;,),
-(&quot;d&quot;,),
-(&quot;e&quot;,)
-]
-
-data = spark.createDataFrame(data, [&quot;category&quot;])
-
-indexer = StringIndexer(inputCol=&#39;category&#39;, outputCol=&#39;label&#39;)
-categories_and_labels = indexer.fit(data).transform(data)
-
-
-以上代码给出以下结果：
-+--------+-----+
-|category|label|
-+--------+-----+
-| a| 2.0|
-| b| 0.0|
-| a| 2.0|
-| b| 0.0|
-| c| 3.0|
-| b| 0.0|
-| b| 0.0|
-| d| 1.0|
-| d| 1.0|
-| d| 1.0|
-| e| 4.0|
-+--------+-----+
-
-我想要一个带有参数 minFrequency 的自定义类，我可以像下面这样使用：
-indexer = CustomStringIndexer(inputCol=&#39;category&#39;, outputCol=&#39;label&#39;, minFrequency=3)
-categories_and_labels = indexer.fit(data).transform(data)
-
-预期结果将是
-+--------+-----+
-|category|label|
-+--------+-----+
-| a| 2.0|
-| b| 0.0|
-| a| 2.0|
-| b| 0.0|
-| c| 2.0|
-| b| 0.0|
-| b| 0.0|
-| d| 1.0|
-| d| 1.0|
-| d| 1.0|
-| e| 2.0|
-+--------+-----+
-
-我使用的是 Spark 版本 3.5]]></description>
-      <guid>https://stackoverflow.com/questions/78613394/pyspark-stringindexer-with-min-frequency-like-in-scikit-learns-ordinalencoder</guid>
-      <pubDate>Wed, 12 Jun 2024 14:43:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>预测性维护 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78612921/predictive-maintenance</link>
-      <description><![CDATA[我从事预测性维护工作，其中有每小时的传感器数据，其中包含振动、压力等列。要求是预测机器何时会出现故障。
-以下是数据示例：
-
-
-
-ID
-压力
-振动
-故障状态
-时间
-
-
-
-
-1
-75.53
-450.65
-0
-2023-03-01 00:30:00
-
-
-2
-143.54
-543.40
-1
-2023-03-01 01:30:00
-
-
-
-有了这些数据，我们需要预测接下来 10 个时间步骤的故障状态。
-我不确定是否要使用时间序列分类模型或常规分类模型来解决这个问题。您能建议最好的方法吗？
-我尝试使用 DES-SVM 方法双指数平滑和 SVM 模型来处理数据，但预测非常差。之后我做了一些特征工程，并浏览了一些 kaggle 笔记本以进一步了解，但解决方案并不令人满意。因为我需要预测接下来的 n 步，并告诉用户该机器可能在接下来的 12 小时内出现故障。但这种模型只能在时间序列中使用，但我不知道如何在时间序列中使用基于预测的分类模型]]></description>
-      <guid>https://stackoverflow.com/questions/78612921/predictive-maintenance</guid>
-      <pubDate>Wed, 12 Jun 2024 13:17:49 GMT</pubDate>
-    </item>
-    <item>
       <title>推荐系统 - 奇异值分解 (SVD) 提供随机结果</title>
       <link>https://stackoverflow.com/questions/78612024/recommender-system-singular-value-decomposition-svd-is-providing-random-resu</link>
       <description><![CDATA[有时，输出的质量仅通过目测来评估。查看下面提供的示例，如果我们使用简单的直觉，很明显预期的用户评分是 2 和 3（请参考空数据单元格）。
@@ -192,28 +254,6 @@ ID
 ALS 模型提供了这些评分，但 SVD 模型却惨遭失败。有人知道这是为什么吗？为什么使用 SVD 进行用户预测结果时，我们会得到 2 和 3 以外的结果？]]></description>
       <guid>https://stackoverflow.com/questions/78612024/recommender-system-singular-value-decomposition-svd-is-providing-random-resu</guid>
       <pubDate>Wed, 12 Jun 2024 10:21:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>在实践代码中，它说 keras 层无效</title>
-      <link>https://stackoverflow.com/questions/78611171/in-practice-code-it-is-saying-the-keras-layer-is-not-valid</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78611171/in-practice-code-it-is-saying-the-keras-layer-is-not-valid</guid>
-      <pubDate>Wed, 12 Jun 2024 07:26:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习模型的输入</title>
-      <link>https://stackoverflow.com/questions/78610947/input-to-machine-learning-model</link>
-      <description><![CDATA[我训练了一个基于 bert 的模型，我已经研究了很长时间了。训练后，我在模型目录中得到了几个文件 - pytorch_model.bin、training_args.bin、merges.txt、vocab.json。现在我想通过向模型提供输入并检查其输出来测试模型。但我不知道该怎么做。
-我试着在网上查找，有人建议我使用 Gradio。]]></description>
-      <guid>https://stackoverflow.com/questions/78610947/input-to-machine-learning-model</guid>
-      <pubDate>Wed, 12 Jun 2024 06:27:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>Tensorflow 对象检测-数据集格式[关闭]</title>
-      <link>https://stackoverflow.com/questions/78610630/tensorflow-object-detection-dataset-format</link>
-      <description><![CDATA[我正在使用深度学习进行实时对象检测任务。哪种类型的 TensorFlow 数据集格式是强烈推荐的？我看到 TfRecord 格式和 tf.data.Dataset 格式使用最多。哪一个最好用？我的注释采用 PASCAL VOC（xml）格式。]]></description>
-      <guid>https://stackoverflow.com/questions/78610630/tensorflow-object-detection-dataset-format</guid>
-      <pubDate>Wed, 12 Jun 2024 04:26:15 GMT</pubDate>
     </item>
     <item>
       <title>如何在 Pytorch 中对离散概率函数进行梯度下降编码？</title>
@@ -316,33 +356,6 @@ flutter_tesseract_ocr 版本：最新
       <pubDate>Fri, 07 Jun 2024 12:06:38 GMT</pubDate>
     </item>
     <item>
-      <title>是否可以在 Elixir Nx/Schorar 中进行 ELISA 分析？</title>
-      <link>https://stackoverflow.com/questions/78565463/is-elisa-analysis-in-elixir-nx-schorar-possible</link>
-      <description><![CDATA[我已阅读 Medium 上的文章 ELISA Analysis in Python。
-上述文章使用 SciPy 的 curve_fit 函数根据 4 参数逻辑回归 (4PL) 模型找到近似曲线，如下所示：
-from scipy.optimize import curve_fit
-
-x = [1.95, 3.91, 7.381, 15.63, 31.25, 62.5, 125,250, 500, 1000]
-y = [0.274, 0.347, 0.392, 0.420, 0.586, 1.115, 1.637, 2.227, 2.335, 2.372]
-
-def log4pl(x, A, B, C, D):
-return(((A - D) / (1.0 + ((x / C) ** B))) + D)
-
-params, _ = curve_fit(log4pl, x, y)
-A, B, C, D = params[0], params[1], params[2], params[3]
-
-我想使用 Nx/Scholar 库。
-可能吗？如果您能给我任何提示，我将不胜感激。
-
-[更新]
-快速浏览一下 Python scipy.optimize 源代码，似乎 curve_fit 在内部使用了 Fortran 的 MINPACK 库。
-据我所知，没有简单的方法可以从 Elixir 使用 MINPACK。
-因此，我得出结论，目前在 Elixir 中进行 ELISA 分析很困难。
-欢迎提供任何其他信息。]]></description>
-      <guid>https://stackoverflow.com/questions/78565463/is-elisa-analysis-in-elixir-nx-schorar-possible</guid>
-      <pubDate>Sun, 02 Jun 2024 04:29:18 GMT</pubDate>
-    </item>
-    <item>
       <title>YOLOv8n PyTorch 与转换后的 CoreML 模型之间的对象检测性能不一致</title>
       <link>https://stackoverflow.com/questions/77541935/inconsistent-object-detection-performance-between-yolov8n-pytorch-and-converted</link>
       <description><![CDATA[我发现，YOLOv8n 对象检测模型在其原始 PyTorch 格式 (.pt) 和将其转换为 CoreML 格式以在 iOS 设备上部署后之间存在显著的性能差异。原始模型在自定义数据集上训练，成功检测了给定图像中的对象。但是，转换后的 CoreML 模型无法在同一图像中检测到任何对象。
@@ -371,35 +384,20 @@ YOLOv8n 中是否存在已知与 CoreML 存在兼容性问题的特定层或操�
       <pubDate>Fri, 24 Nov 2023 09:09:33 GMT</pubDate>
     </item>
     <item>
-      <title>神经网络预测变成直线</title>
-      <link>https://stackoverflow.com/questions/72775077/neural-network-prediction-becomes-a-straight-line</link>
-      <description><![CDATA[我实现了一个两层神经网络（根据 Kolmogorov-Arnold 定理，这足以表示 n 个变量的任何非线性函数）来预测时间序列。然而，在神经网络的末端，收到的预测的波动性下降到几乎为零，并变成一条直线（我附上了预测屏幕和神经网络的源代码）。我增加了隐藏层中的神经元数量、时期数、训练样本的大小、学习率，改变了训练样本数据的规范化范围，改变了初始权重的范围。但都无济于事。训练样本的大小为 336 个示例，训练方法是误差的反向传播，规范化方法是极小极大。此外，当使用双曲正切作为激活函数时，情况有所改善，但图形看起来也很奇怪。ReLU 输出“直接预测”。有人对这个问题有什么想法吗？
-import random
-import sys
-import numpy
-import math
+      <title>Tensorflow 的 random.truncated_normal 使用相同的种子返回不同的结果</title>
+      <link>https://stackoverflow.com/questions/75110547/tensorflows-random-truncated-normal-returns-different-results-with-the-same-see</link>
+      <description><![CDATA[以下几行应该得到相同的结果：
+import tensorflow as tf
+print(tf.random.truncated_normal(shape=[2],seed=1234))
+print(tf.random.truncated_normal(shape=[2],seed=1234))
 
-eta=0.0001 #学习率
-n=200 #训练周期数。还有 500、1000、5000
-inp=30 #输入层大小
-m=60 #隐藏层大小
-y=0 #输出信号
-t=0 #目标信号
-e=0 #错误
-d_y=0 #最后一个神经元的局部梯度
-err=0 #计算输出神经元的网络误差
-err_av=0 #平均网络误差
-path=&#39;dataTrain.txt&#39; #训练样本
-path2=&#39;dataLaunch.txt&#39; #启动预测
-day = 365 #预测天数
-...
+但我得到的是：
+tf.Tensor([-0.12297685 -0.76935077], shape=(2,), dtype=tf.float32)
+tf.Tensor([0.37034193 1.3367208 ], shape=(2,), dtype=tf.float32)
 
-其余内容在网站上：https://ideone.com/vV2QW6
-屏幕截图（激活函数 - sigmoid）：https://ibb.co/GHrTGLr
-屏幕截图（激活函数 - 双曲正切）：https://ibb.co/WHFX3Sc
-感谢关注。]]></description>
-      <guid>https://stackoverflow.com/questions/72775077/neural-network-prediction-becomes-a-straight-line</guid>
-      <pubDate>Mon, 27 Jun 2022 15:59:46 GMT</pubDate>
+为什么？]]></description>
+      <guid>https://stackoverflow.com/questions/75110547/tensorflows-random-truncated-normal-returns-different-results-with-the-same-see</guid>
+      <pubDate>Fri, 13 Jan 2023 14:29:34 GMT</pubDate>
     </item>
     <item>
       <title>如何将生成的数据转换为 Pandas 数据框</title>
