@@ -4,32 +4,157 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 14 Jun 2024 18:20:48 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 14 Jun 2024 21:15:17 GMT</lastBuildDate>
     <item>
-      <title>mxnet、gluonts 和 numpy 出现奇怪的错误</title>
-      <link>https://stackoverflow.com/questions/78623912/strange-error-with-mxnet-gluonts-and-numpy</link>
+      <title>训练期间存在 EarlyStopping 回调的 keras 中的 ReduceLROnPlateau 流程图</title>
+      <link>https://stackoverflow.com/questions/78624879/flowchart-of-reducelronplateau-in-keras-during-training-while-there-is-earlystop</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78623912/strange-error-with-mxnet-gluonts-and-numpy</guid>
-      <pubDate>Fri, 14 Jun 2024 15:46:13 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/78624879/flowchart-of-reducelronplateau-in-keras-during-training-while-there-is-earlystop</guid>
+      <pubDate>Fri, 14 Jun 2024 20:29:11 GMT</pubDate>
     </item>
     <item>
-      <title>在训练随机森林之前进行额外的引导是否有用？</title>
-      <link>https://stackoverflow.com/questions/78623778/is-additional-bootstrapping-useful-before-training-a-random-forest</link>
-      <description><![CDATA[我正在审查使用随机森林 (RF) 回归器的代码库，我注意到在创建每个 RF 模型之前都应用了引导程序。但是，RF 本质上使用引导来训练每个决策树 (DT)。
-在创建随机森林之前使用额外的引导是否有意义并且有用？
-以下是该过程的说明：
+      <title>模型不适用于多类分割</title>
+      <link>https://stackoverflow.com/questions/78624691/model-not-working-for-multiclass-segmentation</link>
+      <description><![CDATA[我正在训练一个用于多类分割问题的模型。我有 3 个类，图像大小为 512x512 和 1 个通道。我的数据集中的类别不平衡。问题是该模型在多类分割方面表现不佳。
+我尝试过交叉熵损失、Dice 损失、Jaccard 损失和损失组合（Jaccard + Focal）。
+交叉熵工作正常，但结果并不令人满意。
+我应该在其中进行哪些更改？
+以下是模型的代码
+class AxialDW(nn.Module):
+def __init__(self, dim, mixer_kernel, dilation=1):
+super().__init__()
+h, w = mixer_kernel
+self.dw_h = nn.Conv2d(dim, dim, kernel_size=(h, 1), padding=(max(h // 2, dilation), 0), groups=dim, dilation=dilation)
+self.dw_w = nn.Conv2d(dim, dim, kernel_size=(1, w), padding=(0, max(w // 2, dilation)), groups=dim, dilation=dilation)
 
-从 75 个训练观察中，创建了 100 个引导批次。
-每个引导批次用于训练 RF，RF 本身由
-100 个 DT 组成。
-总共，我们将训练 1000 个 DT。
-最后，将每个 DT 的预测汇总以形成
-RF 预测。
-最后，将来自所有 RF 的预测汇总以获得最终结果。
+def forward(self, x):
+x = x + self.dw_h(x) + self.dw_w(x)
+返回 x
 
-]]></description>
-      <guid>https://stackoverflow.com/questions/78623778/is-additional-bootstrapping-useful-before-training-a-random-forest</guid>
-      <pubDate>Fri, 14 Jun 2024 15:15:11 GMT</pubDate>
+class EncoderBlock(nn.Module):
+&quot;&quot;&quot;编码然后下采样&quot;&quot;&quot;
+
+def __init__(self, in_c, out_c, mixer_kernel=(7, 7)):
+super().__init__()
+self.dw = AxialDW(in_c, mixer_kernel=(7, 7))
+self.bn = nn.BatchNorm2d(in_c)
+self.pw = nn.Conv2d(in_c, out_c, kernel_size=1)
+self.down = nn.MaxPool2d((2, 2))
+self.act = nn.GELU()
+
+def forward(self, x):
+skip = self.bn(self.dw(x))
+x = self.act(self.down(self.pw(skip)))
+return x, skip
+
+class DecoderBlock(nn.Module):
+&quot;&quot;&quot;上采样然后解码&quot;&quot;&quot;
+
+def __init__(self, in_c, out_c, mixer_kernel=(7, 7)):
+super().__init__()
+self.up = nn.Upsample(scale_factor=2)
+self.pw = nn.Conv2d(in_c + out_c, out_c, kernel_size=1)
+self.bn = nn.BatchNorm2d(out_c)
+self.dw = AxialDW(out_c, mixer_kernel=(7, 7))
+self.act = nn.GELU()
+self.pw2 = nn.Conv2d(out_c, out_c, kernel_size=1)
+
+def forward(self, x, skip):
+x = self.up(x)
+x = torch.cat([x, skip], dim=1)
+x = self.act(self.pw2(self.dw(self.bn(self.pw(x)))))
+return x
+
+class BottleNeckBlock(nn.Module):
+&quot;&quot;&quot;轴向扩张 DW 卷积&quot;&quot;&quot;
+
+def __init__(self, dim):
+super().__init__()
+
+gc = dim // 4
+self.pw1 = nn.Conv2d(dim, gc, kernel_size=1)
+self.dw1 = AxialDW(gc, mixer_kernel=(3, 3), dilation=1)
+self.dw2 = AxialDW(gc, mixer_kernel=(3, 3), dilation=2)
+self.dw3 = AxialDW(gc, mixer_kernel=(3, 3), dilation=3)
+
+self.bn = nn.BatchNorm2d(4 * gc)
+self.pw2 = nn.Conv2d(4 * gc, dim, kernel_size=1)
+self.act = nn.GELU()
+
+def forward(self, x):
+x = self.pw1(x)
+x = torch.cat([x, self.dw1(x), self.dw2(x), self.dw3(x)], 1)
+x = self.act(self.pw2(self.bn(x)))
+return x
+
+class ULite(nn.Module):
+def __init__(self, freeze_model, num_classes=3):
+super().__init__()
+
+&quot;&quot;&quot;Encoder&quot;&quot;&quot;
+self.conv_in = nn.Conv2d(1, 16, kernel_size=7, padding=3)
+self.e1 = EncoderBlock(16, 32)
+self.e2 = EncoderBlock(32, 64)
+self.e3 = EncoderBlock(64, 128)
+self.e4 = EncoderBlock(128, 256)
+self.e5 = EncoderBlock(256, 512)
+
+“瓶颈”
+self.b5 = BottleNeckBlock(512)
+
+“解码器”
+self.d5 = DecoderBlock(512, 256)
+self.d4 = DecoderBlock(256, 128)
+self.d3 = DecoderBlock(128, 64)
+self.d2 = DecoderBlock(64, 32)
+self.d1 = DecoderBlock(32, 16)
+self.conv_out = nn.Conv2d(16, num_classes, kernel_size=1)
+
+if freeze_model:
+self.freeze_model()
+
+def forward(self, x):
+&quot;&quot;&quot;编码器&quot;&quot;&quot;
+x = self.conv_in(x)
+x, skip1 = self.e1(x)
+x, skip2 = self.e2(x)
+x, skip3 = self.e3(x)
+x, skip4 = self.e4(x)
+x, skip5 = self.e5(x)
+
+“瓶颈” “” “”
+x = self.b5(x) # (512, 8, 8)
+
+“解码器” “” “”
+x = self.d5(x, skip5)
+x = self.d4(x, skip4)
+x = self.d3(x, skip3)
+x = self.d2(x, skip2)
+x = self.d1(x, skip1)
+x = self.conv_out(x)
+
+# 应用 softmax 进行多类分类
+x = F.softmax(x, dim=1)
+return x
+
+def freeze_model(self):
+for name, param in self.named_pa​​rameters():
+param.requires_grad = False
+
+Jaccard + Focal Loss
+Loss Image
+Jaccard Loss
+丢失图片]]></description>
+      <guid>https://stackoverflow.com/questions/78624691/model-not-working-for-multiclass-segmentation</guid>
+      <pubDate>Fri, 14 Jun 2024 19:30:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>“利用计算机视觉技术创建高效的实时人脸检测系统” [关闭]</title>
+      <link>https://stackoverflow.com/questions/78624565/creating-an-efficient-real-time-face-detection-system-using-computer-vision-tec</link>
+      <description><![CDATA[“如何使用现代计算机视觉技术和框架，从实时视频中创建实时人脸检测系统，确保准确性和效率？”
+我期待一个结构良好的答案来消除我的疑虑，我需要任何链接供我参考。]]></description>
+      <guid>https://stackoverflow.com/questions/78624565/creating-an-efficient-real-time-face-detection-system-using-computer-vision-tec</guid>
+      <pubDate>Fri, 14 Jun 2024 18:51:33 GMT</pubDate>
     </item>
     <item>
       <title>RobertaForSequenceClassification 的一些权重未初始化[重复]</title>
@@ -226,34 +351,6 @@ https://docs.google.com/document/d/1kI1WJqq9pp3aSsGLpNGjf22mzK6swIiZbIXwfUeTGto/
       <pubDate>Fri, 14 Jun 2024 04:07:57 GMT</pubDate>
     </item>
     <item>
-      <title>pytorch PascalVOC 数据集中的数据加载器错误：RuntimeError：批次列表中的每个元素应大小相同</title>
-      <link>https://stackoverflow.com/questions/78620402/dataloader-error-in-pytorch-pascalvoc-dataset-runtimeerror-each-element-in-lis</link>
-      <description><![CDATA[当尝试实现 yolo 算法时，其中一个步骤是将每个图像的大小调整为 (448, 448)。但即使应用了转换，Dataloader 也会抛出有关数据集大小差异的异常。
-确切的错误消息：“RuntimeError：批次列表中的每个元素应大小相同”
-from torchvision import datasets
-from torchvision.transforms import v2, ToTensor
-
-from torch.utils.data import DataLoader
-
-validation_data = datasets.voc.VOCDetection(
-root=&#39;.DATA/&#39;,
-download=False,
-image_set=&quot;val&quot;,
-transform=v2.Compose([ v2.Resize(size=(448, 448)), ToTensor() ])
-)
-
-batch_size = 64
-
-validation_dataloader = DataLoader(validation_data, batch_size=batch_size)
-
-for X, y in validation_dataloader:
-print(f&quot;Shape X [N, C, H, W] 的：{X.shape}&quot;)
-break
-]]></description>
-      <guid>https://stackoverflow.com/questions/78620402/dataloader-error-in-pytorch-pascalvoc-dataset-runtimeerror-each-element-in-lis</guid>
-      <pubDate>Thu, 13 Jun 2024 22:43:49 GMT</pubDate>
-    </item>
-    <item>
       <title>在不同的 Python 环境中训练的相同 XGBClassifier 模型得出的预测结果明显不同</title>
       <link>https://stackoverflow.com/questions/78619966/the-same-xgbclassifier-model-trained-in-different-python-environment-made-notice</link>
       <description><![CDATA[我尝试将在旧的 Python 环境中训练的 XGBClassifier 模型转移到新的环境中。
@@ -375,54 +472,21 @@ ActualSequence=42，AuthorUserId=16388128
       <pubDate>Thu, 13 Jun 2024 15:06:29 GMT</pubDate>
     </item>
     <item>
-      <title>实现神经网络的岭回归方程</title>
-      <link>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network</link>
-      <description><![CDATA[我试图在 MATLAB 中复制以下方程，以使用岭回归训练找到神经网络的最佳输出权重矩阵。
-使用岭回归训练后的神经网络输出权重矩阵：
+      <title>XGBoost 将特征重要性作为列表而不是绘图</title>
+      <link>https://stackoverflow.com/questions/63060367/xgboost-get-feature-importance-as-a-list-of-columns-instead-of-plot</link>
+      <description><![CDATA[我想知道是否可以将特征重要性作为列表而不是图表来获取。这就是我所拥有的
+xg_reg = xgb.train(params=params, dtrain=data_dmatrix, num_boost_round=10)
+import matplotlib.pyplot as plt
 
-此方程来自 Mantas Lukosevicius 提供的回声状态网络指南，可在以下位置找到：https://www.researchgate.net/publication/319770153_A_practical_guide_to_applying_echo_state_networks（见第 11 页）
-我的尝试如下。我认为外括号（红色）使其成为非传统的双重求和，这意味着 Voss 提出的方法（见 https://www.mathworks.com/matlabcentral/answers/1694960-nested-loops-for-double-summation）无法遵循。请注意，y_i 是一个 T x 1 向量，而 y_i_target 也是一个 T x 1 向量。Wout_i 是一个 N x 1 向量，其中 N 是神经网络中的节点数。我为每个 i^th 目标训练信号生成三个 Ny x 1 向量 Wout_i,y_i,y_i_target，其中 Ny 是训练信号的数量。Wout 的最终输出是一个 N x 1 向量，其中向量中的每个元素都是网络中每个节点的最佳权重。
-N = 100; % 神经网络节点数
-Ny = 200; % 训练信号数
-T = 50; % 每个训练信号的时间长度 
-X = rand(N,T); % 神经网络状态矩阵
-reg = 10^-4; % 岭回归系数
-outer_sum = zeros(Ny,1);
-for i = 1:Ny
-y_i_target = rand(T,1); % 训练信号
-Wout_i = ((X*X&#39; + reg*eye(N)) \ (X*y_i_target)); 
-Wouts{i} = Wout_i; % 针对每个第 i 个目标训练信号收集的每个 Wout_i 的单元矩阵
-y_i = Wout_i&#39;*X; % 预测信号 
-inner_sum = sum(((y_i&#39;-y_i_target).^2)+reg*norm(Wout_i)^2);
-outer_sum(i) = inner_sum;
-end
-outer_sum = outer_sum.*(1/Ny);
-[minval, minidx] = min(outer_sum);
-Wout = cell2mat(Wouts(minidx));
+xgb.plot_importance(xg_reg)
+plt.rcParams[&#39;figure.figsize&#39;] = [5,5]
+plt.show()
 
-我对 Wout 的最终答案是 N 乘以 1，正如它应该的那样，但我对我的答案不确定。我特别不确定我是否正确地完成了关于 Wout 操作的双重求和和 arg min。有什么方法可以验证我的答案吗？
-解决方案：
-我尝试了另一种方法/尝试，如下所示：
-N = 100; % 神经网络中的节点数
-Ny = 200; % 训练信号数
-T = 50; % 每个训练信号的时间长度
-X = rand(N,T); % 神经网络状态矩阵
-reg = 10^-4; % 岭回归系数
-MSE = zeros(Ny,1);
-for i = 1:Ny
-y_i_target = rand(T,1); % 训练信号
-Wout_i = ((X*X&#39; + reg*eye(N)) \ (X*y_i_target)); % Luko 等人的 Eq. 9。
-Wouts{i} = Wout_i; % 为每个第 i 个目标训练信号收集每个 Wout_i 的单元矩阵
-y_i = Wout_i&#39;*X; % 预测信号
-MSE(i) = (1/T)*sum((y_i&#39;-y_i_target).^2); % 均方误差
-end
-[minval, minidx] = min(MSE);
-Wout = cell2mat(Wouts(minidx));
+这给了我这个图
 
-我相信这次尝试比第一次更好，但我不确定它是否仍然正确。
-正如 BillBokeey 所强调的那样，所需的方程只是 Luko 等人提出的方程 9 的迭代版本。要进行训练，必须将方程 9 应用于训练数据集中的每个目标信号，并选择最小化均方误差 (MSE) 的结果 W_out。]]></description>
-      <guid>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network</guid>
-      <pubDate>Sat, 08 Jun 2024 22:31:47 GMT</pubDate>
+我想只获取主要特征的列表，因为我有超过 800 个不同的特征。]]></description>
+      <guid>https://stackoverflow.com/questions/63060367/xgboost-get-feature-importance-as-a-list-of-columns-instead-of-plot</guid>
+      <pubDate>Thu, 23 Jul 2020 17:57:31 GMT</pubDate>
     </item>
     </channel>
 </rss>
