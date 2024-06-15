@@ -4,7 +4,18 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 15 Jun 2024 03:16:01 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 15 Jun 2024 06:19:12 GMT</lastBuildDate>
+    <item>
+      <title>为什么 Kaiming/He 权重初始化不寻求前向和后向传递的 50/50 折衷？</title>
+      <link>https://stats.stackexchange.com/questions/649279/why-doesnt-kaiming-he-weight-initialization-seek-a-50-50-compromise-for-forward</link>
+      <description><![CDATA[抱歉，如果我错了请告诉我，但似乎 He 初始化旨在通过前向传递或后向传递保持恒定方差。
+似乎这个想法是，对于具有权重 $W$（平均值为 0）的特定神经元，对于仅经过 Relu（如果是前向传递）或仅被 Relu 导数点缀（如果是后向传递）的传入值 $Y$，我们应用权重 $W$ 来获得 $Y&#39;=W \cdot Y$。这可以被视为 #$W$ 随机变量 $w_iy_i$，因此由于 $W \cdot Y$ 的均值为 0，并且使用 relu 的方差属性， $Var(Y&#39;)=Var(W\cdot Y)=$ #$W 
+\cdot Var(W) \cdot \mathbb{E}[Y^2]=$ #$W \cdot Var(W) \cdot \frac{1}{2} Var[Y_{previous}]$，因此我们通过选择来维持 $Var(Y&#39;)=1$ $Var(W)=\frac{2}{\#W}$（并假设 $Var(Y_{previous})=1$）。在这里，我将 #$W$ 视为结构化事物的大小，该事物与值相对应并产生单个标量，例如 MLP 中前向/后向传递的输入/输出大小以及 CNN 中前向/后向的整个张量输入大小/输出大小。
+我可能错了，但让我感到困惑的是，在一个方向上保持方差似乎不一定在相反方向上保持它。例如，对于使用 fan_in 的 MLP 中的前向传递，（我认为）前向方差最多保持一个常数。如果我们将连续输入标记为 $Y_{1}\dots Y_{n}$，将最终输出标记为 $O$，并使用误差函数（如 MSE），则第一层梯度为 $\frac{2(O_{i}-C_{i})}{\#O}$，其中 $C$ 是正确的输出，如果将它们视为具有与之前相同的方差（因为减法保留了方差）但经过缩放的独立随机变量，那么我们似乎可以用同样的想法倒退。
+但直到第 $k$ 层，初始方差现在似乎积累了因子 $\frac{\#O}{\#Y_n}\cdot\frac{\#Y_{n}}{\#Y_{n-1}}\cdots\frac{\#Y_{k+1}}{\#Y_{k}}=\frac{\#O}{\#Y_k}$。由于初始化似乎通常使用 fan_in，是否希望或有意让 $k$ 层上的梯度方差在更新期间与 $\frac{1}{\#Y_k}$ 成比例？如果这是正确的，我们难道不希望方差为 1 或常数吗？看起来前向和后向传递之间的折衷可能会导致与 Xavier 相同的方差初始化，（我相信）$\frac{2}{\text{fan_in}+\text{fan_out}}$？我可能犯了多个错误或遗漏了一些东西。谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/649279/why-doesnt-kaiming-he-weight-initialization-seek-a-50-50-compromise-for-forward</guid>
+      <pubDate>Sat, 15 Jun 2024 05:53:05 GMT</pubDate>
+    </item>
     <item>
       <title>计算同一样本的多个平均值之间的显著差异</title>
       <link>https://stats.stackexchange.com/questions/649277/calculating-significant-difference-between-several-averages-of-the-same-samples</link>
@@ -208,58 +219,6 @@ $\begin{equation*}\exp \left( -\frac{1}{2\sigma^2} (\mathbf{y} - \mathbf{X}\beta
       <pubDate>Fri, 14 Jun 2024 22:09:22 GMT</pubDate>
     </item>
     <item>
-      <title>仅给出相邻观测历史 $p\left(\mathbf{x}_t \vert \mathbf{z}_{t-1}, \ldots,\mathbf{z}_\tau\right)$ 的卡尔曼滤波器状态预测</title>
-      <link>https://stats.stackexchange.com/questions/649271/kalman-filter-state-prediction-given-only-adjacent-history-of-observations-p-le</link>
-      <description><![CDATA[问题
-按照 wiki 页面 中 卡尔曼滤波器 的符号，我想计算以下概率：
-$$
-p\left(\mathbf{x}_t \vert \mathbf{z}_{t-1}, \ldots,\mathbf{z}_\tau\right)
-$$
-其中 $0&lt;t&lt;\tau$，和 $\mathbf{x}_t, \mathbf{z}_t$ 是时间 $t$。
-
-尝试
-从卡尔曼滤波器的更新步骤中，我们根据完整历史记录得到以下预测
-\begin{align}
-p(\mathbf{x}_t \vert \mathbf{z}_{1:t-1}) &amp;= \int p(\mathbf{x}_t \vert \mathbf{x}_{t-1}) p(\mathbf{x}_{t-1} \vert \mathbf{z}_{1:t-1}) d\mathbf{x}_{t-1} \\
-&amp;\sim \mathcal{N} \left( \mathbf{x}_t; \hat{\mathbf{x}}_{t \vert t-1}, \mathbf{P}_{t \vert t-1} \right) \\
-\hat{\mathbf{x}}_{t \vert t-1} &amp;= \mathbf{F}_t\hat{\mathbf{x}}_{t-1 \vert t-1}\\
-\mathbf{P}_{t \vert t-1} &amp;= \mathbf{F}_t \mathbf{P}_{t-1 \vert t-1} \mathbf{F}_t^\top + \mathbf{Q}_{t-1}\end{align&gt;
-其中 $\mathbf{F}_t, \mathbf{Q}_{t-1}$ 分别是转移矩阵和过程噪声。有关其他符号，请访问 wiki 页面（抱歉！）
-因此，概率 $p\left(\mathbf{x}_t \vert \mathbf{z}_{t-1}, \ldots,\mathbf{z}_\tau\right)$ 可以被认为是给定初始状态 $\mathbf{x}_\tau$ 和观测值 $\mathbf{z}_{t-1}, \ldots,\mathbf{z}_\tau$ 的预测步骤。要找到边际初始概率$p(\mathbf{x}_\tau )$，
-\begin{align}
-p(\mathbf{x}_\tau )
-&amp;= \int p(\mathbf{x}_\tau \vert \mathbf{z}_{1:\tau}) p(\mathbf{z}_{1:\tau}) d\mathbf{z}_{0:\tau} \\
-&amp;= \int \mathcal{N} \left( \mathbf{x}_\tau; \hat{\mathbf{x}}_{\tau \vert \tau}, \boldsymbol{\Sigma}_{\tau \vert \tau} \right) \prod_{t=0}^\tau \mathcal{N}\left(\mathbf{z}_t; \mathbf{H}_t \hat{\mathbf{x}}_{t \vert t-1}, \mathbf{S}_t\right) \mathbf{z}_{0:\tau}
-\end{align&gt;
-其中第二项我使用了 wiki 页面上的边际似然公式。但是，$\mathbf{z}_{0:\tau}$ 的边缘化似乎相当困难。任何帮助都将不胜感激！]]></description>
-      <guid>https://stats.stackexchange.com/questions/649271/kalman-filter-state-prediction-given-only-adjacent-history-of-observations-p-le</guid>
-      <pubDate>Fri, 14 Jun 2024 20:42:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>R panelvar 包中的 pvarfeols 函数如何处理固定效应？</title>
-      <link>https://stats.stackexchange.com/questions/649270/how-does-the-pvarfeols-function-from-the-r-panelvar-package-handle-fixed-effects</link>
-      <description><![CDATA[我一直在使用 R panelvar 包中的 pvarfeols 函数（PVAR 模型的固定效应估计器）。似乎 pvargmm 函数是 panelvar 包的主要功能，但由于数据量相对较大，我选择不使用它。
-我的面板数据由 3 列（不包括 id 和时间）组成，大约有 760 万个观测值。
-我想对三个变量进行面板向量自回归 (VAR) 分析，具有五个滞后，并结合以下控制：公司固定效应、日固定效应和时间（时钟时间）固定效应。
-在 pvarfeols 函数的包文档中，我注意到“demean”选项可用于转换。例如：
-pvarfeols(
-dependent_vars,
-lags,
-exog_vars,
-transformation = c(&quot;demean&quot;),
-data,
-panel_identifier = c(1, 2)
-)
-
-但是，我很好奇函数中如何定义“demean”选项。
-此选项是否会从每个数据点中减去时间序列平均值以控制固定效应？还是还会从每个数据点中减去横截面平均值？
-使用 ChatGPT，我发现除了“demean”之外可能还有更多选项。
-例如，ChatGPT 建议“time-demean”也可用，尽管我不确定这是否真的如此。当我使用“time-demean”选项时，pvarfeols 函数的结果与使用“demean”选项时的结果相同。
-我能否了解一下 pvarfeols 函数如何处理固定效应？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649270/how-does-the-pvarfeols-function-from-the-r-panelvar-package-handle-fixed-effects</guid>
-      <pubDate>Fri, 14 Jun 2024 20:06:41 GMT</pubDate>
-    </item>
-    <item>
       <title>指数增长的假设检验？</title>
       <link>https://stats.stackexchange.com/questions/649267/hypothesis-tests-for-exponential-growth</link>
       <description><![CDATA[标准测试是否适用于涉及指数增长的情况？我没有需要解决的“桌上问题”。这只是好奇。例子可能包括细菌的有丝分裂或投资的复利。
@@ -272,16 +231,6 @@ panel_identifier = c(1, 2)
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/649267/hypothesis-tests-for-exponential-growth</guid>
       <pubDate>Fri, 14 Jun 2024 19:41:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的时间序列 ts() 函数 - 如果测量不是每月进行但频率较低，则如何使用它？</title>
-      <link>https://stats.stackexchange.com/questions/649266/time-series-ts-function-in-r-how-to-use-it-if-measurements-are-not-monthly</link>
-      <description><![CDATA[假设我有一个过程，每年只产生一定数量的$x$个月的数据点。为了便于论证，设$x=8$。该过程不会在其他月份发生。每年该过程都会重新开始。我有几年的数据（比如说 5 年）。我相信数据中存在一些年度季节性，并且每年可能存在长期趋势，因此在创建 ts() 对象后，我希望使用 stl() 函数对其进行分解。
-假设这些数据点保存在数据框“df”中名为“data”的列中。
-如何使用适当的频率和其他参数创建时间序列对象来适应这些未按标准间隔进行的测量？尝试使用 ts(df$data, frequency = 8) 无法得到我想要的结果（我猜测 frequency = 8 参数与我每年的 $x=8$ 测量值不符）。
-我该怎么办？一般来说，如何在 ts() 函数中为每个“周期”包含指定数量的测量值？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649266/time-series-ts-function-in-r-how-to-use-it-if-measurements-are-not-monthly</guid>
-      <pubDate>Fri, 14 Jun 2024 18:48:12 GMT</pubDate>
     </item>
     <item>
       <title>LME4 模型产生奇怪的 p 值</title>
@@ -329,39 +278,6 @@ Anova(m1, test.statistic = &#39;F&#39;, type =3)
       <pubDate>Fri, 14 Jun 2024 16:50:02 GMT</pubDate>
     </item>
     <item>
-      <title>当两个暴露变量的模型相同时，如何解释估计值？</title>
-      <link>https://stats.stackexchange.com/questions/649255/how-do-you-interpret-estimates-when-the-model-is-the-same-for-two-exposure-varia</link>
-      <description><![CDATA[我想研究两个环境变量$X_1$和$X_2$对数量$Y$的直接影响。$X_1$和$X_2$相互关联，并且与另外两个环境变量$X_3$和$X_4$（也已测量）相互关联。我构建了一个 DAG，其中包括我能想到的 Xi 之间所有相关且合理的因果关系，以选择估计 $X_1$ 和 $X_2 的影响所需的调整集（见下图）。
-
-我的问题是，ggdag 建议的用于估计 X1 和 X2 直接影响的调整集会产生相同的模型。对于 X1，我需要调整 {X2、X3 和 X4}，对于 X2，我需要调整 {X1、X3 和 X4}。在这两种情况下，我的模型如下所示：$ Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \beta_4 X_4$。对于 $\beta_1$ 和 $\beta_2$ 的可解释性，这是什么意思？
-感谢您的帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649255/how-do-you-interpret-estimates-when-the-model-is-the-same-for-two-exposure-varia</guid>
-      <pubDate>Fri, 14 Jun 2024 16:09:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该对现场收集的有关昆虫的数据进行哪些测试[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/649201/what-tests-should-i-do-for-this-data-collected-in-the-field-about-insects</link>
-      <description><![CDATA[我正在研究昆虫的目水平。我有来自两个不同地块 A 和 B 的样本。在每个地块中，样本取自角落附近和中心。我有关于每个位置的土壤温度和环境温度的信息。此外，时间是我可以考虑的一个变量，用于研究昆虫目进化和变化。采样的昆虫按目和个体数量分类。要研究的变量是：地块、地块区域（角落或中心）、星期、土壤温度、每周温度、昆虫目和个体数量。由于我的数据不呈正态分布，我应该执行哪些测试？我愿意接受有关进行比较的建议。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649201/what-tests-should-i-do-for-this-data-collected-in-the-field-about-insects</guid>
-      <pubDate>Thu, 13 Jun 2024 17:58:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>合成控制方法中无与伦比的预处理趋势</title>
-      <link>https://stats.stackexchange.com/questions/649162/unparallel-pre-treatment-trends-in-synthetic-control-method</link>
-      <description><![CDATA[我正在使用 R 包 Synth 运行合成控制模型，其中包含 44 个季度（36 个处理前和 8 个处理后）200 个地区的犯罪数据。我的模型包括几个社会人口变量（例如，总人口、平均年龄、男性比例、平均收入）和总犯罪作为结果变量。
-但是，处理单元和合成单元的趋势并不平行，这与文章中经常看到的近乎完美的模仿不同。这是我的数据中的样子：
-
-我的主要问题是：这足以进行有效的比较吗？如果没有，我该如何改进？
-例如，我是否应该考虑在捐赠池中使用更少的控制单元，如果是，基于哪些标准？
-我应该注意，我尝试使用犯罪率（每 1,000 名居民）以及犯罪率的移动平均值（试图“平滑”趋势），但没有帮助。
-任何建议都将不胜感激。
-谢谢！
-编辑：这是治疗单元（黑色）和捐赠池单元（白色）的总犯罪率图。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649162/unparallel-pre-treatment-trends-in-synthetic-control-method</guid>
-      <pubDate>Thu, 13 Jun 2024 08:48:13 GMT</pubDate>
-    </item>
-    <item>
       <title>在核回归的背景下，为什么我们将特征图定义为等于核 $\varphi(x)=k(\cdot ,x)$？</title>
       <link>https://stats.stackexchange.com/questions/649132/in-the-contex-of-kernel-regression-why-do-we-define-the-feature-map-as-equal-to</link>
       <description><![CDATA[我有一个符号上的困惑，正在努力澄清。在核回归的上下文中，核和特征图之间的关系定义如下：
@@ -386,6 +302,103 @@ $$
 事实上 $\langle \varphi (x&#39;),\varphi (x)\rangle = k(x, x&#39;)$。但是 $ \varphi (x)=k(\cdot ,x) $ 又是如何呢？在这种情况下我该如何理解这个符号？]]></description>
       <guid>https://stats.stackexchange.com/questions/649132/in-the-contex-of-kernel-regression-why-do-we-define-the-feature-map-as-equal-to</guid>
       <pubDate>Wed, 12 Jun 2024 20:23:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>找到 $\theta$ 的二维充分统计量</title>
+      <link>https://stats.stackexchange.com/questions/643275/find-a-two-dimensional-sufficient-statistic-for-theta</link>
+      <description><![CDATA[假设$\{X_i\}_{i=1}^n$服从分布，且$\theta$，则令其为条件独立
+$$p_{X_i | \theta} (x |\theta) = \frac{1}{2i\theta}, \ -i\theta&lt;x&lt;i\theta.$$
+为$\theta.$找到一个二维充分统计量
+尝试使用因式分解定理求解：
+$$p_{X | \theta} = \prod_{i=1}^{n}\frac{1}{2i\theta}1_{x_i &gt; -i\theta} 1_{x_i &lt; i\theta} = \frac{1}{(2i\theta)^n} 1_{\min(x_i) &gt; -i\theta} 1_{\max(x_i) &lt; i\theta}$$
+因此我们可以选择 $T(x) = \big(T_1(x), T_2(x)\big) = \big(\min(x_i), \max(x_i)\big) $ 和 $g\big(\theta, T_1(x), T_2(x)\big) = \frac{1}{(2i\theta)^n} 1_{T_1 &gt; -i\theta} 1_{T_2 &lt; i\theta}$。
+根据因式分解定理，$T(x)$ 应该是一个充分的二维统计量，对吗？
+关于充分统计量的维度，我们总是可以稍微增加维度，例如说 $T_n(x) = 1$ 并乘以它？另一方面，我们不能将维度降低到某个点吗？在这个例子中，二维统计量是我们能达到的最低值吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/643275/find-a-two-dimensional-sufficient-statistic-for-theta</guid>
+      <pubDate>Fri, 22 Mar 2024 16:56:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 LSTM 进行顺序二进制不平衡数据分类</title>
+      <link>https://stats.stackexchange.com/questions/582452/sequential-binary-imbalanced-data-classification-with-lstm</link>
+      <description><![CDATA[我正在构建一个 LSTM 顺序二分类模型，数据非常不平衡，比如说欺诈检测案例。
+在顺序矢量化数据上构建 LSTM 模型后，我得到的召回率非常低，只有 0.005。
+# 构建 LSTM 层
+model = Sequential()
+model.add(LSTM (100, dropout=0.2, input_shape=(time_steps, features)))
+model.add(Dense(50,activation=&#39;relu&#39;))
+model.add(Dense(25,activation=&#39;relu&#39;))
+model.add(Dense(10,activation=&#39;relu&#39;))
+model.add(Dense(1,activation=&#39;sigmoid&#39;))
+model.compile(loss=&#39;binary_crossentropy&#39;,optimizer=&#39;rmsprop&#39;,metrics=[Recall()])
+print (model.summary())
+history=model.fit(train_X, train_Y, validation_data=(test_X, test_Y), 
+epochs=10,batch_size=64)
+
+请帮我，如何优化这个模型的召回率。
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/582452/sequential-binary-imbalanced-data-classification-with-lstm</guid>
+      <pubDate>Tue, 19 Jul 2022 08:05:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>充分降维的目的到底是什么？什么情况下才能实现？</title>
+      <link>https://stats.stackexchange.com/questions/549030/what-is-the-goal-of-sufficient-dimension-reduction-under-what-circumstances-can</link>
+      <description><![CDATA[我最近听到人们到处谈论“充分降维”这个术语，尽管我一直在努力寻找关于这个概念的材料，我完全理解这个概念，或者清楚地解释为什么需要这种专门的降维变体。
+充分降维技术的目标是什么？为什么不能够通过非充分降维技术来实现？什么时候可以实现这个目标，什么时候不可能实现？
+我听说“充分降维”只是表示在不丢失信息的情况下减少维度，但我很难理解这种情况何时会发生，除非数据中存在线性依赖关系（在这种情况下，我不明白为什么需要一个新的数据缩减理论框架来消除依赖关系）。
+请参阅 Adragni 和 Cook (2009) “充分降维和回归预测”，其中包含文章中几段对“充分降维”的定义。有权限访问皇家学会出版社的读者可从此处访问本文，或查看维基百科文章此处了解简要概述。
+讨论这一概念的少数研究人员倾向于将其作为新的“范式”来呈现，但这一概念已有十多年历史，似乎并未在理论研究领域以外的小众群体中流行起来。
+编辑：如果有人能找到充分降维的应用示例，可能会有所帮助。是否有研究发现并在大型现实世界数据集上使用充分降维？]]></description>
+      <guid>https://stats.stackexchange.com/questions/549030/what-is-the-goal-of-sufficient-dimension-reduction-under-what-circumstances-can</guid>
+      <pubDate>Wed, 20 Oct 2021 13:38:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>处理 psi 频率测试中的零单元</title>
+      <link>https://stats.stackexchange.com/questions/547456/dealing-with-zero-cells-in-the-psi-frequency-test</link>
+      <description><![CDATA[在Jayne 的《概率论》一书中，他提出了频率的 psi 检验，而不是更常见的卡方检验。他展示了该检验如何比卡方检验更好地处理低期望值单元格。但是，他并没有直接解释如何处理零单元格。
+Psi 的计算方法如下：
+10*sum(nk*log10(nk/n*pk))
+
+
+但是，由于它包含比率的 log10，在零单元格中，因此解析为未定义。
+他提出了一个包含零单元格的示例，但没有演示解决它的步骤，我尝试不同的变化并没有得到与他描述的结果完全相同的结果。
+他从以下不包含零的示例开始：
+抛硬币 29次。结果是 14 次正面、14 次反面和 1 次棱。您先前的假设是，硬币正面朝上的频率为 0.499，反面朝上的频率为 0.499，而正面朝上的概率为 0.002。
+他将此与每个可能结果的 1/3 的朴素假设进行了比较。
+他演示了如何计算这两个值：
+10*(14*log10(14/(29*.499)) + 14*log10(14/(29*.499)) + 1*(log10(1/(29*.002))))
+
+并将其解析为 8.34。
+朴素假设如下：
+10*(14*(log10(14*3/(29))) + 14*(log10(14*3/(29))) + 1*(log10(1*3/(29))))
+
+并将其解析为 35.19。
+但是，他随后通过改变情况来观察如果边缘结果是另一个正面，在任一假设下会发生什么。他没有演示如何解决这个问题，但展示了结果：
+分别为 0.30 和 51.2。
+我无法复制这些精确的值。如果我假设零单元格只是归零/不包括在内，我会得到 0.33 和 51.3，它们都很接近，但不相同，并且使用各种舍入和截断规则并没有导致这两个结果（尽管我可以找到不同的舍入/截断规则来获得其中一个）。
+任何关于如何使用零单元格的 psi 测试的帮助都将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/547456/dealing-with-zero-cells-in-the-psi-frequency-test</guid>
+      <pubDate>Thu, 07 Oct 2021 23:12:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>逻辑回归：如何计算预测区间</title>
+      <link>https://stats.stackexchange.com/questions/539702/logistic-regression-how-to-compute-a-prediction-interval</link>
+      <description><![CDATA[假设我有一个简单的逻辑回归模型：
+$$\log(p/(1-p)) = \beta_0 + \beta_1x$$
+那么我知道：
+$$p/(1-p) = e^{\beta_0 + \beta_1x}$$
+并且
+$$p = e^{\beta_0 + \beta_1x}/(1 + e^{\beta_0 + \beta_1x})$$
+如何获得 p 的置信区间？
+也就是说，如何获得成功概率的 95% 置信区间（这可以称为预测区间吗？也许吧我使用了错误的术语）？
+我找了几个地方，但找不到公式。例如，我查看过：
+
+此处（这表明这样的间隔不值得关注，因为响应中的每个值只能是 0 或 1，但这不是我感兴趣的），
+
+以及此处（同样，没有公式，但问题类似）
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/539702/logistic-regression-how-to-compute-a-prediction-interval</guid>
+      <pubDate>Mon, 09 Aug 2021 23:08:20 GMT</pubDate>
     </item>
     </channel>
 </rss>
