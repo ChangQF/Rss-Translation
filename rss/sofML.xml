@@ -4,14 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 15 Jun 2024 01:04:13 GMT</lastBuildDate>
-    <item>
-      <title>高验证准确度 + 高损失分数和高训练准确度 + 低损失分数？</title>
-      <link>https://stackoverflow.com/questions/78625247/high-validation-accuracy-high-loss-score-and-high-training-accuracy-low-loss</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78625247/high-validation-accuracy-high-loss-score-and-high-training-accuracy-low-loss</guid>
-      <pubDate>Fri, 14 Jun 2024 23:05:46 GMT</pubDate>
-    </item>
+    <lastBuildDate>Sat, 15 Jun 2024 03:16:06 GMT</lastBuildDate>
     <item>
       <title>训练期间存在 EarlyStopping 回调时 Keras 中的 ReduceLROnPlateau 流程图</title>
       <link>https://stackoverflow.com/questions/78624879/flowchart-of-reducelronplateau-in-keras-during-training-while-there-is-earlystop</link>
@@ -70,7 +63,7 @@ def forward(self, x, skip):
 x = self.up(x)
 x = torch.cat([x, skip], dim=1)
 x = self.act(self.pw2(self.dw(self.bn(self.pw(x)))))
-return x
+返回x
 
 class BottleNeckBlock(nn.Module):
 &quot;&quot;&quot;轴向扩张 DW 卷积&quot;&quot;&quot;
@@ -218,6 +211,96 @@ return sgd_model
       <description><![CDATA[我有一个问题，关于在机器学习过程中何时应该对数据集进行欠采样或过采样。我正在处理一个包含 NaN 值的不平衡数据集（约 5% 的阳性情况）。接下来的步骤应该如何衔接？这有一般规则吗？我应该填写缺失值、重新采样数据并继续删除异常值吗？]]></description>
       <guid>https://stackoverflow.com/questions/78622628/at-what-point-do-you-undersample-oversample-data-in-machine-learning</guid>
       <pubDate>Fri, 14 Jun 2024 11:13:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>ML.NET 中的 Essentia 模型无法预测</title>
+      <link>https://stackoverflow.com/questions/78622030/essentia-models-in-ml-net-fail-to-predict</link>
+      <description><![CDATA[我正在尝试使用 Essentia discogs_track_embeddings-effnet-bs64 模型和 ML.NET 进行预测。我尝试过使用 tensorflow 和 onnx，但当我尝试预测任何东西时，我都遇到了问题
+抛出异常：Microsoft.ML.Data.dll 中的“System.InvalidOperationException”
+Microsoft.ML.Data.dll 中发生了未处理的“System.InvalidOperationException”类型的异常
+拆分器/合并器工作程序在使用源数据时遇到异常
+
+目前，我正在使用 onnx，因此其余部分将是该尝试的堆栈跟踪和代码。
+完整调用堆栈：
+ 在 Microsoft.ML.Data.DataViewUtils.Splitter.Batch.SetAll(OutPipe[] pipes)
+在 Microsoft.ML.Data.DataViewUtils.Splitter.Cursor.MoveNextCore()
+在 Microsoft.ML.Data.RootCursorBase.MoveNext()
+在Microsoft.ML.Data.ColumnCursorExtensions.&lt;GetColumnArrayDirect&gt;d__4`1.MoveNext()
+在 System.Collections.Generic.List`1..ctor(IEnumerable`1 collection)
+在 System.Linq.Enumerable.ToList[TSource](IEnumerable`1 source)
+在 Program.&lt;Main&gt;$(String[] args) 中的 Program.cs:line 122
+
+在行上：var embeddingColumn = perceivedData.GetColumn&lt;float[]&gt;(&quot;embeddings&quot;).ToList();
+onnx 加载和预测代码：
+Console.WriteLine($&quot;[+] Loading Model&quot;);
+var mlContext = new MLContext();
+
+// 将 melspectrogram 数据加载到管道中
+var modelPath = &quot;discogs_track_embeddings-effnet-bs64-1.onnx&quot;;
+var pipeline = mlContext.Transforms.ApplyOnnxModel(
+modelFile: modelPath,
+fallbackToCpu: true
+);
+IDataView mockData = mlContext.Data.LoadFromEnumerable(new List&lt;ModelInput&gt;() { new ModelInput() });
+var model = pipeline.Fit(mockData);
+
+var schema = model.Transform(mockData).Schema;
+Console.WriteLine(&quot;[*] Model Schema:&quot;);
+foreach (var column in schema)
+{
+Console.WriteLine($&quot;Column Name: {column.Name}, Column Type: {column.Type}&quot;);
+}
+
+List&lt;ModelOutput&gt; allPredictions = new List&lt;ModelOutput&gt;();
+
+foreach (var fragment in melSpectrogram)
+{
+var seg = MelSpectrogramGenerator.ConvertToFloat(segment);
+
+var data = new ModelInput
+{
+Melspectrogram = seg
+};
+IDataView dataView = mlContext.Data.LoadFromEnumerable(new [] { data });
+var formedData = model.Transform(dataView);
+
+// 检索嵌入
+var embeddingColumn = formedData.GetColumn&lt;float[]&gt;(&quot;embeddings&quot;).ToList();
+foreach (var value in embeddingColumn.First())
+{
+Console.Write($&quot;{value} &quot;);
+}
+//allPredictions.Add(scoredData.);
+Console.WriteLine(&quot;Wheee&quot;);
+}
+
+public class ModelInput
+{
+[VectorType(64, 128, 96)]
+[ColumnName(&quot;melspectrogram&quot;)]
+public float[,,] Melspectrogram { get; set; }
+public ModelInput()
+{
+Melspectrogram = new float[64, 128, 96];
+}
+}
+
+// 定义输出模式
+public class ModelOutput
+{
+[VectorType(64, 512)]
+[ColumnName(&quot;embeddings&quot;)]
+public float[,] Embeddings { get; set; }
+public ModelOutput()
+{
+Embeddings = new float[64, 512];
+}
+}
+
+目前在 Microsoft.ML 3.0.1、Microsoft.ML.OnnxRuntime.Managed 1.18.0 上
+我已检查，我的数据中没有 NaN，并且我的变量都不是 Null。我非常迷茫，不确定如何修复此问题，甚至不知道如何继续进行故障排除。]]></description>
+      <guid>https://stackoverflow.com/questions/78622030/essentia-models-in-ml-net-fail-to-predict</guid>
+      <pubDate>Fri, 14 Jun 2024 09:11:02 GMT</pubDate>
     </item>
     <item>
       <title>Vitas AI - AttributeError：在模型量化期间无法设置属性</title>
