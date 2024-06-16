@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 16 Jun 2024 09:16:47 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 16 Jun 2024 12:26:28 GMT</lastBuildDate>
     <item>
       <title>向 TensorFlow 模型添加一个热门特征</title>
       <link>https://stackoverflow.com/questions/78628433/add-one-hot-feature-to-tensorflow-model</link>
@@ -142,7 +142,7 @@ reviews = [&#39;nice food&#39;,
 # 转换为 ont hot 向量 
 encoded_reviews = [one_hot(d, vocab_size) for d in reviews]
 
-当我打印coded_reviews时，它显示：
+当我打印coded_reviews 时，它显示：
 [[13, 12],
 [48, 44],
 [48, 19],
@@ -191,151 +191,6 @@ ValueError: 层 Sequenced_4 从未被调用，因此没有定义的输出。]]><
       <pubDate>Sat, 15 Jun 2024 08:21:56 GMT</pubDate>
     </item>
     <item>
-      <title>用于分割的视觉变换器[关闭]</title>
-      <link>https://stackoverflow.com/questions/78625015/vision-transformer-for-segmentation</link>
-      <description><![CDATA[我正在使用视觉转换器 (ViT) 进行图像分割，但我不确定要使用哪个分割头。
-我知道我需要一个视觉转换器作为我的主干，以及一个分割头，以便根据给定输入图像的主干的学习表示生成图像分割。我可以将任何分割头与 ViT 主干一起使用吗，或者某些分割头是否适用于特定的 ViT 主干？
-感谢任何可以提供一些见解的人！]]></description>
-      <guid>https://stackoverflow.com/questions/78625015/vision-transformer-for-segmentation</guid>
-      <pubDate>Fri, 14 Jun 2024 21:18:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>模型不适用于多类分割</title>
-      <link>https://stackoverflow.com/questions/78624691/model-not-working-for-multiclass-segmentation</link>
-      <description><![CDATA[我正在训练一个用于多类分割问题的模型。我有 3 个类，图像大小为 512x512 和 1 个通道。我的数据集中的类别不平衡。问题是该模型在多类分割方面表现不佳。
-我尝试过交叉熵损失、Dice 损失、Jaccard 损失和损失组合（Jaccard + Focal）。
-交叉熵工作正常，但结果并不令人满意。
-我应该在其中进行哪些更改？
-以下是模型的代码
-class AxialDW(nn.Module):
-def __init__(self, dim, mixer_kernel, dilation=1):
-super().__init__()
-h, w = mixer_kernel
-self.dw_h = nn.Conv2d(dim, dim, kernel_size=(h, 1), padding=(max(h // 2, dilation), 0), groups=dim, dilation=dilation)
-self.dw_w = nn.Conv2d(dim, dim, kernel_size=(1, w), padding=(0, max(w // 2, dilation)), groups=dim, dilation=dilation)
-
-def forward(self, x):
-x = x + self.dw_h(x) + self.dw_w(x)
-返回 x
-
-class EncoderBlock(nn.Module):
-&quot;&quot;&quot;编码然后下采样&quot;&quot;&quot;
-
-def __init__(self, in_c, out_c, mixer_kernel=(7, 7)):
-super().__init__()
-self.dw = AxialDW(in_c, mixer_kernel=(7, 7))
-self.bn = nn.BatchNorm2d(in_c)
-self.pw = nn.Conv2d(in_c, out_c, kernel_size=1)
-self.down = nn.MaxPool2d((2, 2))
-self.act = nn.GELU()
-
-def forward(self, x):
-skip = self.bn(self.dw(x))
-x = self.act(self.down(self.pw(skip)))
-return x, skip
-
-class DecoderBlock(nn.Module):
-&quot;&quot;&quot;上采样然后解码&quot;&quot;&quot;
-
-def __init__(self, in_c, out_c, mixer_kernel=(7, 7)):
-super().__init__()
-self.up = nn.Upsample(scale_factor=2)
-self.pw = nn.Conv2d(in_c + out_c, out_c, kernel_size=1)
-self.bn = nn.BatchNorm2d(out_c)
-self.dw = AxialDW(out_c, mixer_kernel=(7, 7))
-self.act = nn.GELU()
-self.pw2 = nn.Conv2d(out_c, out_c, kernel_size=1)
-
-def forward(self, x, skip):
-x = self.up(x)
-x = torch.cat([x, skip], dim=1)
-x = self.act(self.pw2(self.dw(self.bn(self.pw(x)))))
-return x
-
-class BottleNeckBlock(nn.Module):
-&quot;&quot;&quot;轴向扩张 DW 卷积&quot;&quot;&quot;
-
-def __init__(self, dim):
-super().__init__()
-
-gc = dim // 4
-self.pw1 = nn.Conv2d(dim, gc, kernel_size=1)
-self.dw1 = AxialDW(gc, mixer_kernel=(3, 3), dilation=1)
-self.dw2 = AxialDW(gc, mixer_kernel=(3, 3), dilation=2)
-self.dw3 = AxialDW(gc, mixer_kernel=(3, 3), dilation=3)
-
-self.bn = nn.BatchNorm2d(4 * gc)
-self.pw2 = nn.Conv2d(4 * gc, dim, kernel_size=1)
-self.act = nn.GELU()
-
-def forward(self, x):
-x = self.pw1(x)
-x = torch.cat([x, self.dw1(x), self.dw2(x), self.dw3(x)], 1)
-x = self.act(self.pw2(self.bn(x)))
-return x
-
-class ULite(nn.Module):
-def __init__(self, freeze_model, num_classes=3):
-super().__init__()
-
-&quot;&quot;&quot;Encoder&quot;&quot;&quot;
-self.conv_in = nn.Conv2d(1, 16, kernel_size=7, padding=3)
-self.e1 = EncoderBlock(16, 32)
-self.e2 = EncoderBlock(32, 64)
-self.e3 = EncoderBlock(64, 128)
-self.e4 = EncoderBlock(128, 256)
-self.e5 = EncoderBlock(256, 512)
-
-“瓶颈”
-self.b5 = BottleNeckBlock(512)
-
-“解码器”
-self.d5 = DecoderBlock(512, 256)
-self.d4 = DecoderBlock(256, 128)
-self.d3 = DecoderBlock(128, 64)
-self.d2 = DecoderBlock(64, 32)
-self.d1 = DecoderBlock(32, 16)
-self.conv_out = nn.Conv2d(16, num_classes, kernel_size=1)
-
-if freeze_model:
-self.freeze_model()
-
-def forward(self, x):
-&quot;&quot;&quot;编码器&quot;&quot;&quot;
-x = self.conv_in(x)
-x, skip1 = self.e1(x)
-x, skip2 = self.e2(x)
-x, skip3 = self.e3(x)
-x, skip4 = self.e4(x)
-x, skip5 = self.e5(x)
-
-“瓶颈” “” “”
-x = self.b5(x) # (512, 8, 8)
-
-“解码器” “” “”
-x = self.d5(x, skip5)
-x = self.d4(x, skip4)
-x = self.d3(x, skip3)
-x = self.d2(x, skip2)
-x = self.d1(x, skip1)
-x = self.conv_out(x)
-
-# 应用 softmax 进行多类分类
-x = F.softmax(x, dim=1)
-return x
-
-def freeze_model(self):
-for name, param in self.named_pa​​rameters():
-param.requires_grad = False
-
-Jaccard + Focal Loss
-Loss Image
-Jaccard Loss
-丢失图片]]></description>
-      <guid>https://stackoverflow.com/questions/78624691/model-not-working-for-multiclass-segmentation</guid>
-      <pubDate>Fri, 14 Jun 2024 19:30:25 GMT</pubDate>
-    </item>
-    <item>
       <title>ML.NET 中的 Essentia 模型无法预测</title>
       <link>https://stackoverflow.com/questions/78622030/essentia-models-in-ml-net-fail-to-predict</link>
       <description><![CDATA[我正在尝试使用 Essentia discogs_track_embeddings-effnet-bs64 模型和 ML.NET 进行预测。我尝试过使用 tensorflow 和 onnx，但当我尝试预测任何东西时，我都遇到了问题
@@ -351,7 +206,7 @@ Splitter/consolidator 工作程序在使用源数据时遇到异常
 在Microsoft.ML.Data.ColumnCursorExtensions.&lt;GetColumnArrayDirect&gt;d__4`1.MoveNext()
 在 System.Collections.Generic.List`1..ctor(IEnumerable`1 collection)
 在 System.Linq.Enumerable.ToList[TSource](IEnumerable`1 source)
-在 Program.&lt;Main&gt;$(String[] args) 中 Program.cs:line 122
+在 Program.&lt;Main&gt;$(String[] args) 中的 Program.cs:line 122
 
 在行上：var embeddingColumn = perceivedData.GetColumn&lt;float[]&gt;(&quot;embeddings&quot;).ToList();
 onnx 加载和预测代码：
@@ -489,7 +344,7 @@ Epoch 5
     <item>
       <title>如何将对象检测数据集转换为 Tensorflow 数据集</title>
       <link>https://stackoverflow.com/questions/77891268/how-to-convert-object-detection-dataset-into-tensorflow-dataset</link>
-      <description><![CDATA[我正在尝试使用 keras 在 tensorflow 上创建一个对象检测模型，但一直遇到困难。我自动​​执行了查找训练图像的边界框的任务（训练数据集是游戏的），然后将所有内容转储到包含与其相关的所有数据的 .csv 文件中：对象出现的帧、边界框的坐标以及对象的类别。即使同一帧上出现多个边界框，每个边界框在数据集上都有不同的行。
+      <description><![CDATA[我正在尝试使用 keras 在 tensorflow 上创建一个对象检测模型，但一直遇到困难。我自动​​执行了查找训练图像的边界框的任务（训练数据集是一个游戏），然后将所有内容转储到包含与其相关的所有数据的 .csv 文件中：对象出现的帧、边界框的坐标以及对象的类别。即使同一帧上出现多个边界框，每个边界框在数据集上都有不同的行。
 我正在尝试使用此函数将我的数据集导入 Tensorflow：
 def Data_Loader(annotation_file):
 data=pd.read_csv(annotation_file)
@@ -582,6 +437,38 @@ KeyError: &#39;acc&#39;
 嗨，我尝试了深度学习中的这个练习 3.5-classifying-movie-reviews.ipynb，使用 python -manning 并显示错误，有什么帮助吗？]]></description>
       <guid>https://stackoverflow.com/questions/74016944/keyerror-acc-acc-history-historyacc</guid>
       <pubDate>Mon, 10 Oct 2022 15:05:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用带有灰度图像的预训练神经网络？</title>
+      <link>https://stackoverflow.com/questions/51995977/how-can-i-use-a-pre-trained-neural-network-with-grayscale-images</link>
+      <description><![CDATA[我有一个包含灰度图像的数据集，我想在这些图像上训练最先进的 CNN。我非常想微调一个预先训练好的模型（比如这里的模型）。
+问题是，我能找到权重的几乎所有模型都是在包含 RGB 图像的 ImageNet 数据集上训练的。
+我无法使用其中一个模型，因为它们的输入层需要一批形状为 (batch_size, height, width, 3) 或 (64, 224, 224, 3) 的模型，但我的图像批次是 (64, 224, 224)。
+我有什么办法可以使用其中一个模型吗？我曾考虑在加载权重后删除输入层并添加自己的权重（就像我们对顶层所做的那样）。这种方法正确吗？]]></description>
+      <guid>https://stackoverflow.com/questions/51995977/how-can-i-use-a-pre-trained-neural-network-with-grayscale-images</guid>
+      <pubDate>Fri, 24 Aug 2018 00:33:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>准确度得分值错误：无法处理二进制和连续目标的混合</title>
+      <link>https://stackoverflow.com/questions/38015181/accuracy-score-valueerror-cant-handle-mix-of-binary-and-continuous-target</link>
+      <description><![CDATA[我使用 scikit-learn 中的 linear_model.LinearRegression 作为预测模型。它很有效，而且很完美。我在使用 accuracy_score 指标评估预测结果时遇到问题。
+这是我的真实数据：
+array([1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0])
+
+我的预测数据：
+array([ 0.07094605, 0.1994941 , 0.19270157, 0.13379635, 0.04654469,
+0.09212494, 0.19952108, 0.12884365, 0.15685076, -0.01274453,
+0.32167554, 0.32167554, -0.10023553, 0.09819648, -0.06755516,
+0.25390082, 0.17248324])
+
+我的代码：
+accuracy_score(y_true, y_pred, normalize=False)
+
+错误消息：
+ValueError：无法处理二进制和连续目标的混合
+]]></description>
+      <guid>https://stackoverflow.com/questions/38015181/accuracy-score-valueerror-cant-handle-mix-of-binary-and-continuous-target</guid>
+      <pubDate>Fri, 24 Jun 2016 13:57:17 GMT</pubDate>
     </item>
     </channel>
 </rss>
