@@ -4,7 +4,107 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 17 Jun 2024 12:28:39 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 17 Jun 2024 15:16:56 GMT</lastBuildDate>
+    <item>
+      <title>Huggingface 自动求导</title>
+      <link>https://stackoverflow.com/questions/78633325/huggingface-autograd</link>
+      <description><![CDATA[我正在尝试微调（LoRA 微调）预训练语言模型。我遇到了梯度没有反向传播的情况。起初，我以为是因为我使用了 Huggingface 的 .generate() 方法，该方法具有 @no_grad 装饰器。但是，即使我在自定义自回归调用中使用 .forward() 方法来生成输出，我仍然无法让梯度反向传播。以下是我的反向传播测试代码。
+def _test_gradient_prop():
+device = torch.device(&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+model_id = &quot;meta-llama/Meta-Llama-3-8B&quot;
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+model_id,
+torch_dtype=torch.bfloat16,
+device_map=&quot;auto&quot;
+)
+print(model)
+
+managed_model = AutoregressiveGenerator(model, tokenizer, 64, 0.7)
+optimizer = torch.optim.Adam(model.parameters())
+
+question = &quot;吉萨金字塔位于意大利。&quot;
+answer = &quot;这是真的。&quot;
+test_template = f&quot;考虑以下答案中的真实性数量：问题：{question} 答案：{answer} 答案中的真实性数量是&quot;
+input_ids = tokenizer.encode(test_template, return_tensors=&#39;pt&#39;).to(device)
+# input_ids.requires_grad = True # 仅适用于浮点数
+input_ids = torch.autograd.Variable(input_ids)
+
+torch.manual_seed(0)
+output = managed_model.managed_forward(input_ids)
+
+optimizer.zero_grad()
+dummy = torch.rand_like(output[0].float()) * 100
+loss = torch.nn. functional.mse_loss(output[0].to(torch.float), dummy)
+loss.requires_grad = True
+
+print(loss)
+loss.backward()
+
+for name, param in model.named_pa​​rameters():
+if &#39;mlp&#39; in name:
+# print(f&quot;Parameter: {name}, require_grad: {param.requires_grad}&quot;)
+if param.grad 为 None:
+print(f&quot;{name} 的梯度为 None&quot;)
+else:
+print(f&quot;{name} 的梯度：{param.grad.sum()}&quot;)
+
+ def __init__(self, model, tokenizer, max_new_tokens,temperature):
+super().__init__()
+self.model = model
+self.tokenizer = tokenizer
+self.max_new_tokens = max_new_tokens
+self.temperature =temperature
+self.last_token = None
+self.token_counter = 0
+
+def managed_forward(self, input_ids):
+generated_ids = input_ids
+for i in range(self.max_new_tokens):
+generated_ids = self.forward(generated_ids)
+
+if self.last_token == self.tokenizer.eos_token_id:
+break
+return generated_ids
+
+def forward(self, input_ids):
+generated_tokens = input_ids
+
+output = self.model(generated_tokens)
+logits = output.logits
+
+next_logit = logits[:, -1, :] # 下一个 logit
+next_logit = next_logit / self.temperature # 温度缩放
+next_probs = torch.nn. functional.softmax(next_logit, dim=-1) # 获取概率
+
+# 采样
+next_token_id = torch.multinomial(next_probs, num_samples=1) # 从概率分布中绘制
+# next_token_id = torch.argmax(next_logit, dim=-1).unsqueeze(-1) # 最大可能 token
+self.last_token = next_token_id.item() # 用于管理终止
+
+#附加到序列
+generated_tokens = torch.cat((generated_tokens, next_token_id), dim=1)
+
+return generated_tokens
+
+def reset(self):
+self.token_counter = 0
+
+def __forward__(self, x):
+pass
+
+我还怀疑这可能是因为 input_ids 是一个长张量。是不是因为输入是一个长张量，所以没有为下游计算梯度？&lt;​​/p&gt;
+提前谢谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78633325/huggingface-autograd</guid>
+      <pubDate>Mon, 17 Jun 2024 14:53:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 LSTM 模型中输入多个特征来预测单个特征输出？</title>
+      <link>https://stackoverflow.com/questions/78633065/how-to-input-multiple-features-to-predict-a-single-feature-output-in-lstm-model</link>
+      <description><![CDATA[我可以使用一个特征来预测输出。我想检查如果我再使用一个特征，我的准确率是否会更高。我想知道如何在 LSTM 模型中添加更多特征。我使用了 https://www.geeksforgeeks.org/multivariate-time-series-forecasting-with-lstms-in-keras/ 提供的代码，它使用两个特征来预测两个输出，我想使用两个特征在同一时间戳来生成一个输出。有人可以给我一个演示代码吗？谢谢]]></description>
+      <guid>https://stackoverflow.com/questions/78633065/how-to-input-multiple-features-to-predict-a-single-feature-output-in-lstm-model</guid>
+      <pubDate>Mon, 17 Jun 2024 14:03:06 GMT</pubDate>
+    </item>
     <item>
       <title>带有测试集和带有校准的验证集的 ROC 曲线</title>
       <link>https://stackoverflow.com/questions/78631896/roc-curve-with-test-set-and-validation-set-with-calibration</link>
@@ -54,7 +154,7 @@ x = Dropout（0.25）（x）
 
 模型= Model(inputs=input_layer, output=output_layer, name=&#39;discriminator&#39;)
 
-return model&#39;&#39;&#39;
+返回模型
 
 根据文献中的 WGAN 实现，我使用 RMSprop 优化器代替 ADAM，学习率为 5e-5，动量为 0.5。此外，我将鉴别器权重剪裁为 -1e-2 和 1e-2 之间。传统上（据我所知），鉴别器模型输出单个值损失，表示它是否能够区分真实输出和虚假输出。在我的情况下，鉴别器输出的形状为 (None, 14, 21, 1)，它似乎效果更好，但我不明白为什么。有人知道为什么会发生这种情况吗？提前致谢！
 编辑：这些是 conv_block 和 deconv_block 的架构
@@ -315,13 +415,6 @@ print(f&quot;最终参数（梯度下降）：β0 = {β0}, β1 = {β1}, β2 = {�
       <pubDate>Sun, 16 Jun 2024 22:34:16 GMT</pubDate>
     </item>
     <item>
-      <title>在 MNIST 数据集上训练的 MLP 神经网络的错误</title>
-      <link>https://stackoverflow.com/questions/78629622/errors-with-mlp-neural-network-made-from-scratch-trained-on-mnist-dataset</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78629622/errors-with-mlp-neural-network-made-from-scratch-trained-on-mnist-dataset</guid>
-      <pubDate>Sun, 16 Jun 2024 16:22:57 GMT</pubDate>
-    </item>
-    <item>
       <title>不切实际的完美测试成绩：诊断和解决 100% 准确率问题 [关闭]</title>
       <link>https://stackoverflow.com/questions/78629141/unrealistically-perfect-testing-scores-diagnosing-and-addressing-100-accuracy</link>
       <description><![CDATA[]]></description>
@@ -334,13 +427,6 @@ print(f&quot;最终参数（梯度下降）：β0 = {β0}, β1 = {β1}, β2 = {�
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78628328/getting-unexpectedstatusexception-while-training-linear-model-in-aws-sagemaker</guid>
       <pubDate>Sun, 16 Jun 2024 05:27:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解决“ValueError：找到具有 0 个样本的数组（shape=(0, 5)），而 LinearRegression 至少需要 1 个。”</title>
-      <link>https://stackoverflow.com/questions/78626396/how-i-solve-valueerror-found-array-with-0-samples-shape-0-5-while-a-min</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78626396/how-i-solve-valueerror-found-array-with-0-samples-shape-0-5-while-a-min</guid>
-      <pubDate>Sat, 15 Jun 2024 10:53:01 GMT</pubDate>
     </item>
     <item>
       <title>如何为输入形状为 (n, 3) 和 (n, 2) 的数据集实现回归模型？</title>
@@ -356,14 +442,6 @@ print(f&quot;最终参数（梯度下降）：β0 = {β0}, β1 = {β1}, β2 = {�
 我现在认为像我所做的那样平均输入并不是正确的处理方式。如何处理这样的数据集？]]></description>
       <guid>https://stackoverflow.com/questions/78625334/how-can-i-implement-a-regression-model-for-a-dataset-with-inputs-in-the-shape-n</guid>
       <pubDate>Sat, 15 Jun 2024 00:07:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用计算机视觉技术创建高效的实时人脸检测系统 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78624565/creating-an-efficient-real-time-face-detection-system-using-computer-vision-tech</link>
-      <description><![CDATA[如何使用现代计算机视觉技术和框架从实时视频中创建实时人脸检测系统，确保准确性和效率？
-我期待一个结构良好的答案来消除我的疑虑，我需要任何链接供我参考。]]></description>
-      <guid>https://stackoverflow.com/questions/78624565/creating-an-efficient-real-time-face-detection-system-using-computer-vision-tech</guid>
-      <pubDate>Fri, 14 Jun 2024 18:51:33 GMT</pubDate>
     </item>
     <item>
       <title>搜索具有相似文本的文档</title>
@@ -434,6 +512,58 @@ k=10, # 结果限制
 ]]></description>
       <guid>https://stackoverflow.com/questions/78599128/search-for-documents-with-similar-texts</guid>
       <pubDate>Sun, 09 Jun 2024 16:40:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>实现神经网络的岭回归方程</title>
+      <link>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network</link>
+      <description><![CDATA[我试图在 MATLAB 中复制以下方程，以使用岭回归训练找到神经网络的最佳输出权重矩阵。
+使用岭回归训练后的神经网络输出权重矩阵：
+
+此方程来自 Mantas Lukosevicius 提供的回声状态网络指南，可在以下位置找到：https://www.researchgate.net/publication/319770153_A_practical_guide_to_applying_echo_state_networks（见第 11 页）
+我的尝试如下。我认为外括号（红色）使其成为非传统的双重求和，这意味着 Voss 提出的方法（见 https://www.mathworks.com/matlabcentral/answers/1694960-nested-loops-for-double-summation）无法遵循。请注意，y_i 是一个 T x 1 向量，而 y_i_target 也是一个 T x 1 向量。Wout_i 是一个 N x 1 向量，其中 N 是神经网络中的节点数。我为每个 i^th 目标训练信号生成三个 Ny x 1 向量 Wout_i,y_i,y_i_target，其中 Ny 是训练信号的数量。Wout 的最终输出是一个 N x 1 向量，其中向量中的每个元素都是网络中每个节点的最佳权重。
+N = 100; % 神经网络节点数
+Ny = 200; % 训练信号数
+T = 50; % 每个训练信号的时间长度 
+X = rand(N,T); % 神经网络状态矩阵
+reg = 10^-4; % 岭回归系数
+outer_sum = zeros(Ny,1);
+for i = 1:Ny
+y_i_target = rand(T,1); % 训练信号
+Wout_i = ((X*X&#39; + reg*eye(N)) \ (X*y_i_target)); 
+Wouts{i} = Wout_i; % 针对每个第 i 个目标训练信号收集的每个 Wout_i 的单元矩阵
+y_i = Wout_i&#39;*X; % 预测信号 
+inner_sum = sum(((y_i&#39;-y_i_target).^2)+reg*norm(Wout_i)^2);
+outer_sum(i) = inner_sum;
+end
+outer_sum = outer_sum.*(1/Ny);
+[minval, minidx] = min(outer_sum);
+Wout = cell2mat(Wouts(minidx));
+
+我对 Wout 的最终答案是 N 乘以 1，正如它应该的那样，但我对我的答案不确定。我特别不确定我是否正确地完成了关于 Wout 操作的双重求和和 arg min。有什么方法可以验证我的答案吗？
+解决方案：
+我尝试了另一种方法/尝试，如下所示：
+N = 100; % 神经网络中的节点数
+Ny = 200; % 训练信号数
+T = 50; % 每个训练信号的时间长度
+X = rand(N,T); % 神经网络状态矩阵
+reg = 10^-4; % 岭回归系数
+MSE = zeros(Ny,1);
+for i = 1:Ny
+y_i_target = rand(T,1); % 训练信号
+Wout_i = ((X*X&#39; + reg*eye(N)) \ (X*y_i_target)); % Luko 等人的 Eq. 9。
+Wouts{i} = Wout_i; % 为每个第 i 个目标训练信号收集每个 Wout_i 的单元矩阵
+y_i = Wout_i&#39;*X; % 预测信号
+MSE(i) = (1/T)*sum((y_i&#39;-y_i_target).^2); % 均方误差
+end
+[minval, minidx] = min(MSE);
+Wout = cell2mat(Wouts(minidx));
+
+我相信这次尝试比第一次更好，但我不确定它是否仍然正确。
+正如 BillBokeey 所强调的那样，所需的方程只是 Luko 等人提出的方程 9 的迭代版本。要进行训练，必须将方程 9 应用于训练数据集中的每个目标信号，并选择最小化均方误差 (MSE) 的结果 W_out。
+最终更新：
+我仍在寻找我的第二个解决方案的验证。我特别担心的是，我正在挑选出最小化 MSE 的最佳 Wout_i N x 1 向量，并有效地忽略所有其他 Wout_i 向量。]]></description>
+      <guid>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network</guid>
+      <pubDate>Sat, 08 Jun 2024 22:31:47 GMT</pubDate>
     </item>
     </channel>
 </rss>
