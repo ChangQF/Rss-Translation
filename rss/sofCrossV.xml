@@ -4,7 +4,104 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 17 Jun 2024 01:06:28 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 17 Jun 2024 03:18:01 GMT</lastBuildDate>
+    <item>
+      <title>对 ELPD 和交叉验证的这种理解合理吗？</title>
+      <link>https://stats.stackexchange.com/questions/649357/is-this-understanding-of-elpd-and-cross-validation-sound</link>
+      <description><![CDATA[这个问题是我试图回答我的另一个问题时提出的。在这里，我试图比链接的问题更严格。为此，我认为建立我在思考统计推断时遵循的哲学具有实际意义。你可能有不同的观点，但对于这个问题，请尝试在这个框架内思考。
+我的想法通常受到很大影响，因此与 Edwin Jaynes 在他的书《概率论：科学的逻辑》中描述的非常相似。总结一下我的想法，我假设世界是确定性的。因此，对我来说，“真实”的在一般情况下，模型不是任何物理随机数据生成过程（尽管我在链接问题中描述了它），而仅仅是使用我们拥有的实际先验（即“真实”先验）推断出的贝叶斯模型（可能不容易形式化）。
+让我们将所有先验知识（包括显性和隐性）称为$X_\text{true}$。几乎总是，我们无法完全形式化$X_\text{true}$。因此，我们最终在贝叶斯计算中使用不同的可形式化的先验知识来估计这个真实先验，我称之为$X_\text{est}$。现在，假设我们有两个不同的模型 $A$ 和 $B$，每个模型都完整描述了我们观察到的数据 $D_\text{o}$ 的似然函数，因此 $P(D|A,X_\text{true})=P(D|A,X_\text{est})$，对于任何数据集 $D$，$B$ 也是如此。我们感兴趣的是确定 $A$ 或 $B$ 哪个更合理。根据 Cox 定理，如果 $P(A|D_\text{o},X_\text{true}) &gt; P(B|D_\text{o},X_\text{true})$，则 $A$ 更合理，反之亦然。由于我们无法形式化 $X_\text{true}$，我们可能会倾向于使用 $X_\text{est}$。但这可能会导致选择的模型虽然为 $D_\text{o}$ 分配了更高的可能性，但根据 $X_\text{true}$，实际上不太可信（顺便说一句，这是我遇到“过度拟合”一词时想到的）。
+现在，我认为交叉验证（作为预期对数预测密度 (ELPD) 的估计）有用的原因可能是它可以帮助我们解决这个问题。例如，也许我们可以证明
+$$
+P(A|D_\text{o},X_\text{true}) &gt; P(B|D_\text{o},X_\text{true}) \iff \text{ELPD}(A) &gt; \text{ELPD}(B)
+$$
+其中
+$$
+\text{ELPD}(A)=\mathop{\mathbb{E}}_{D_\text{new}\sim P(.|D_\text{o}, X_\text{true})}\log P(D_\text{new}|A,D_\text{o},X_\text{est})
+$$.
+对于$B$也是一样。我们可以这样写：
+$$
+P(A|D_\text{o},X_\text{true})=\mathop{\mathbb{E}}_{D_\text{new}\sim P(.|D_\text{o}, X_\text{true})}P(A|D_\text{new}, D_\text{o},X_\text{true})
+$$
+但进一步操纵这些公式并没有给我带来任何结果。但是，如果如链接问题中的第一点所暗示的那样，我在 ELPD 中使用后验而不是似然，那么双方实际上确实相互牵连。
+我在这里说的有意义吗？这是（几乎）ELPD 有用性的有效推导吗？如果我说的是真的，这是否意味着在使用交叉验证时，计算保留数据的后验而不是似然更有意义？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649357/is-this-understanding-of-elpd-and-cross-validation-sound</guid>
+      <pubDate>Mon, 17 Jun 2024 02:08:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>YOLOv5 ptl 模型推理结果超出类别数组范围</title>
+      <link>https://stats.stackexchange.com/questions/649356/yolov5-ptl-model-inference-results-out-of-bounds-of-classes-array</link>
+      <description><![CDATA[我有一个 yolov5 模型，我使用下面的代码将其转换为 ptl
+import torch
+from torch.utils.mobile_optimizer import optimize_for_mobile
+
+torchscript_model = &quot;best.torchscript&quot;
+export_model_name = &quot;converted.ptl&quot;
+
+model = torch.jit.load(torchscript_model)
+optimized_model = optimize_for_mobile(model)
+optimized_model._save_for_lite_interpreter(export_model_name)
+
+print(f&quot;mobile optimal model explained to {export_model_name}&quot;)
+
+现在我创建了一个可以进行推理的 kotlin 应用。我能够成功加载模型并推断图像，但结果超出了我的类的范围。下面是我的 kotlin 代码。
+val module = Module.load(assetFilePath(this, &quot;converted.ptl&quot;))
+val bitmap = BitmapFactory.decodeStream(assets.open(&quot;1.jpg&quot;))
+val inputTensor = TensorImageUtils.bitmapToFloat32Tensor(
+bitmap,
+TensorImageUtils.TORCHVISION_NORM_MEAN_RGB,
+TensorImageUtils.TORCHVISION_NORM_STD_RGB
+)
+val output = module.forward(IValue.from(inputTensor))
+val outputTensor = if (output.isTuple) {
+output.toTuple()[0].toTensor()
+} else {
+output.toTensor()
+}
+val scores = outputTensor.dataAsFloatArray
+var maxScoreIndex = 0
+var maxScore = scores[0]
+
+for (i在 1 中直到 scores.size) {
+if (scores[i] &gt; maxScore) {
+maxScore = scores[i]
+maxScoreIndex = i
+}
+}
+Log.d(&quot;prediction&quot;, &quot;预测类：$maxScoreIndex&quot;)
+val className: String = ImageNetClasses.IMAGENET_CLASSES[maxScoreIdx]
+
+class ImageNetClasses {
+伴随对象 {
+val IMAGENET_CLASSES = listOf(
+&quot;100kph 最大速度限制&quot;,
+&quot;20T&quot;,
+&quot;4.27m-高度限制&quot;,
+&quot;40kph-最大速度限制&quot;,
+&quot;50kph-最大速度限制&quot;,
+&quot;60kph-最小速度限制&quot;,
+&quot;接近交叉路口合并交通&quot;,
+&quot;前方分道&quot;,
+&quot;让路&quot;,
+&quot;半Y形交叉路口&quot;,
+&quot;合并交通&quot;,
+&quot;禁止超车&quot;,
+&quot;禁止停车&quot;,
+&quot;禁止调头&quot;,
+&quot;任意一侧通过&quot;,
+&quot;左侧道路变窄&quot;,
+&quot;前方右转&quot;,
+)
+}
+}
+
+结果显示 预测类：344938
+错误显示 java.lang.RuntimeException：无法启动活动ComponentInfo{com.example.app/com.example.app.ImageInferenceActivity}: java.lang.ArrayIndexOutOfBoundsException: length=17; index=344938
+我希望有人能帮助我正确解释我的结果或指出我做错了什么。
+谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649356/yolov5-ptl-model-inference-results-out-of-bounds-of-classes-array</guid>
+      <pubDate>Mon, 17 Jun 2024 02:06:06 GMT</pubDate>
+    </item>
     <item>
       <title>使用 R² 来过滤数据是否合适？</title>
       <link>https://stats.stackexchange.com/questions/649355/is-it-appropriate-to-use-r%c2%b2-on-filtering-data</link>
@@ -18,10 +115,10 @@
       <title>如何计算具有逆 Wishart 先验的矩阵正态模型中协方差矩阵的后验分布</title>
       <link>https://stats.stackexchange.com/questions/649354/how-to-compute-the-posterior-distribution-of-covariance-matrix-in-a-matrix-norma</link>
       <description><![CDATA[我正在研究涉及卡尔曼滤波器和平滑的时间序列模型来估计状态变量$Y_i$。模型部分结构如下：
-$Y_1, \ldots, Y_n$ 是 iid 的。
+$Y_1, \ldots, Y_n$ 为 iid。
 $Y_i \sim \mathcal{MN}(M, \Sigma, V)$。
 $\Sigma \sim \text{IW}(\nu, \Xi)$。
-矩阵 $V$ 是已知且恒定的。
+矩阵 $V$ 已知且为常数。
 作为 Gibbs 采样过程的一部分，为了估计 $Y$ 和 $\Sigma$，我需要计算后验分布 $p(\Sigma | Y_1, \ldots, Y_n)$。虽然我已经设法使用卡尔曼滤波器的平滑方程导出$p(Y_1, ... ,Y_n|\Sigma)$，但我仍在努力寻找$p(\Sigma|Y_1, ... ,Y_n)$。
 我的理解和尝试：
 共轭性：我知道逆 Wishart 分布和多元正态分布之间存在共轭性，这表明$\Sigma$的后验也应遵循逆 Wishart 分布。
@@ -55,16 +152,6 @@ Matrix-T$(M,V,\nu,\Xi)$，但这并没有让我找到 $p(\Sigma|Y)$ 的解决方
 经典多维缩放可以在足够多的维度下实现这一点吗？为什么或为什么不可以？]]></description>
       <guid>https://stats.stackexchange.com/questions/649345/when-is-multidimensional-scaling-exact-for-a-graph</guid>
       <pubDate>Sun, 16 Jun 2024 19:49:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于学习理论的结果的问题，“经验风险与真实风险有多接近”？</title>
-      <link>https://stats.stackexchange.com/questions/649343/question-about-a-result-from-learning-theory-dealing-with-how-close-is-the-empi</link>
-      <description><![CDATA[我正在阅读一篇关于机器学习的优化论文，其中陈述了学习理论的结果。设 $\mathcal{H}$ 为模型类，$$R(h) = \int L(h(x),y)\;dP(x,y)$$ 为一般风险，$$R_n(h) = \frac{1}{n} \sum_{i = 1}^n L(h(x_i),y_i)$$ 为经验风险。设 $d_{\mathcal{H}}$ 为 $\mathcal{H}$ 的 VC 维度。根据论文，我们有概率 $1-\rho$
-$$\sup_{h\in \mathcal{H}}|R(h)-R_n(h)| \in \mathcal{O}\Biggl(\sqrt{\frac{1}{2n}log\Bigl(\frac{2}{\rho}\Bigr)+\frac{d_{\mathcal{H}}}{n}log\Bigl(\frac{n}{d_{\mathcal{H}}} \Bigr)}\Biggr)$$
-这个右边如何与 $d_{\mathcal{H}} &gt;&gt; n$ 相符？
-我的意思是，如果 $d_{\mathcal{H}}$ 比 $n$ 大很多，那么根里面的部分不是为负吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649343/question-about-a-result-from-learning-theory-dealing-with-how-close-is-the-empi</guid>
-      <pubDate>Sun, 16 Jun 2024 18:26:48 GMT</pubDate>
     </item>
     <item>
       <title>通过对 $X_i, Y_i$ 进行标准线性回归，对 $x_i, y_i$ 进行加权线性回归？</title>
@@ -105,7 +192,7 @@ covid -6​​.799e-01 1.409e+00 -0.483 0.63017
 
 残差标准误差：1.374（自由度 127）
 多重 R 平方：0.8033，调整后的 R 平方：0.7971
-F 统计量：129.7（4 和 127 DF），p 值：&lt; 2.2e-16
+F 统计量：4 和 127 DF 上的 129.7，p 值：&lt; 2.2e-16
 
 完整代码
 # 数据准备
@@ -126,73 +213,11 @@ print(tidy_gaussian)
       <pubDate>Sun, 16 Jun 2024 14:51:39 GMT</pubDate>
     </item>
     <item>
-      <title>一般线性混合模型：如何修复 glmer 上的“重新调整变量？模型几乎无法识别”错误</title>
-      <link>https://stats.stackexchange.com/questions/649296/general-linear-mixed-model-how-do-i-fix-rescale-variables-model-is-nearly-uni</link>
-      <description><![CDATA[我正在尝试拟合广义线性混合模型 (GLMM)，但一直出现错误。我正在研究天气（连续变量：降雨量、最高温度和最低温度）与动物园参观人数（计数响应）之间的关系。我还想将是否是周末和年份作为其他变量（分别为 2 个和 16 个级别的因子）纳入其中。我想到的一个基本模型是：
-model &lt;- glmer(attendance ~ lograinfall_plus1 + 
-maxtemp + mintemp + weekend + 
-(1 | year), 
-data = summer, 
-family = poisson(link = &quot;log&quot;)) 
-
-我收到以下错误：
-警告消息：
-在 checkConv(attr(opt, &quot;derivs&quot;), opt$par, ctrl = control$checkConv, :
-模型几乎无法识别：特征值非常大
-- 重新调整变量？
-
-然后我使用 datawizard 对数值预测变量进行了标准化，但我仍然收到相同的警告消息。模型摘要如下：
-通过最大似然拟合的广义线性混合模型（拉普拉斯近似值）[
-glmerMod]
-系列：泊松（对数）
-公式：出勤率 ~ lograinfall_plus1 + maxtemp + mintemp + weekend + 
-（1 | 年）
-数据：夏季
-控制：glmerControl（优化器 = “bobyqa”）
-
-AIC BIC logLik 偏差 df.resid 
-434265.4 434294.8 -217126.7 434253.4 986
-
-缩放残差：
-最小 1Q 中位数 3Q 最大
--81.394 -13.661 0.082 13.149 67.756
-
-随机效应：
-组名称方差标准差
-年（截距）0.02187 0.1479
-
-观察数：992，组：年，16
-
-固定效应：
-估计标准差误差 z 值 Pr(&gt;|z|) 
-(截距) 8.5226624 0.0369743 230.5 &lt;2e-16 ***
-lograinfall_plus1 -0.1779357 0.0005204 -341.9 &lt;2e-16 ***
-maxtemp 0.0892090 0.0005407 165.0 &lt;2e-16 ***
-mintemp -0.0594439 0.0004998 -118.9 &lt;2e-16 ***
-weekendTRUE 0.2458572 0.0009008 272.9 &lt;2e-16 ***
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-固定效应的相关性：
-(Intr) lgrn_1 maxtmp mintmp
-lgrnfll_pl1 0.002 
-maxtemp -0.001 0.322 
-mintemp 0.000 -0.261 -0.479 
-weekendTRUE -0.008 -0.017 0.018 0.027
-优化器 (bobyqa) 收敛代码：0 (OK)
-模型几乎无法识别：特征值非常大
-- 重新调整变量？
-
-降雨数据中有一些零，我的响应变量是聚类的，因为它是从同一动物园重复测量的。我不确定这是否有帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649296/general-linear-mixed-model-how-do-i-fix-rescale-variables-model-is-nearly-uni</guid>
-      <pubDate>Sat, 15 Jun 2024 15:54:06 GMT</pubDate>
-    </item>
-    <item>
       <title>重复测量方差分析</title>
       <link>https://stats.stackexchange.com/questions/649304/repeated-measures-anova</link>
       <description><![CDATA[我想寻求统计分析方面的帮助。
 我正在对不同教学方法的学习成果进行研究。我的数据集包括学生 ID、考试成绩的二进制数据（好或坏）以及考试结果出现的顺序。我想知道第一节课和第三节课之间的学习成果是否存在差异。
-我希望您能帮助我使用 SPSS 分析这些数据。请告诉我应该采取的具体步骤以及如何解释分析结果。我想我可以使用重复测量方差分析，但我的数据格式让我对分析产生疑问。
+我希望您能帮助我使用 SPSS 分析这些数据。请告诉我应该采取的具体步骤以及如何解释分析结果。我想我可以使用重复测量方差分析，但我的数据格式让我在分析时产生疑问。
 您的专业指导对我的研究非常有价值。]]></description>
       <guid>https://stats.stackexchange.com/questions/649304/repeated-measures-anova</guid>
       <pubDate>Sat, 15 Jun 2024 14:55:57 GMT</pubDate>
@@ -264,7 +289,7 @@ scale_y_log10()
       <title>如何根据测试数据的分布均匀程度来评估预测准确率</title>
       <link>https://stats.stackexchange.com/questions/648712/how-to-grade-the-prediction-accuracy-with-how-evenly-distributed-the-test-data-i</link>
       <description><![CDATA[有人能提供一种测量数据集均匀分布的方法吗？我想举一个例子来说明我试图解决的问题类型，我想用测试数据的分布情况来衡量模型的潜在有效性。
-描述我的问题的一个例子是房价预测系统，我会尝试预测房价。这是一个回归模型，而不是分类模型。一旦模型用特定区域的数据进行了训练（各种特征数据，即价格、大小、位置等，每个地理位置一个模型），我会通过查看模型预测 20 个之前的历史价格（训练期间未使用等）的正确性来评估每个模型。
+描述我的问题的一个例子是房价预测系统，我会尝试预测房价。这是一个回归模型，而不是分类模型。一旦模型用特定区域的数据进行了训练（各种特征数据，即价格、大小、位置等，每个地理位置一个模型），我会通过查看模型预测 20 个之前的历史价格（训练期间未使用等）的正确程度来评估每个模型。
 但如果测试数据中的所有历史价格总是上涨或下跌，我就不会对模型抱有太大的信心。我想看看一个模型是否已经用分布更均匀的历史价格进行了测试，也就是说，一个模型的完美测试是测试数据中有 50% 的价格上涨，50% 的价格下跌，从而表明模型并不总是只朝一个方向预测。
 那么我如何才能对每个模型进行评分/测量，同时还要在评分中包括测试数据的分布均匀程度？
 谢谢]]></description>

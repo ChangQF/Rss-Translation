@@ -4,7 +4,111 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 17 Jun 2024 01:06:33 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 17 Jun 2024 03:18:07 GMT</lastBuildDate>
+    <item>
+      <title>留一交叉验证来进行模型评估</title>
+      <link>https://stackoverflow.com/questions/78630776/leave-one-out-cross-validation-for-model-evaluation</link>
+      <description><![CDATA[# RF 
+rf_optimal = RandomForestRegressor(**best_params, random_state=42)
+
+# 留一交叉验证
+loo = LeaveOneOut()
+r2_train_scores = []
+rmse_train_scores = []
+y_test_true = []
+y_test_pred = []
+
+for train_index, test_index in loo.split(X_train):
+X_train_fold, X_test_fold = X_train.values[train_index], X_train.values[test_index]
+y_train_fold, y_test_fold = y_train.values[train_index], y_train.values[test_index]
+
+rf_optimal1 = RandomForestRegressor(**best_params, random_state=42)
+rf_optimal1.fit(X_train_fold, y_train_fold)
+y_train_pred_fold = rf_optimal1.predict(X_train_fold)
+y_test_pred_fold = rf_optimal1.predict(X_test_fold)
+
+r2_train = r2_score(y_train_fold, y_train_pred_fold)
+rmse_train = np.sqrt(mean_squared_error(y_train_fold, y_train_pred_fold))
+
+r2_train_scores.append(r2_train)
+rmse_train_scores.append(rmse_train)
+y_test_true.append(y_test_fold[0])
+y_test_pred.append(y_test_pred_fold[0])
+
+r2_cal = np.mean(r2_train_scores)
+rmse_cal = np.mean(rmse_train_scores)
+r2_cv = r2_score(y_test_true,y_test_pred)
+rmse_cv = np.sqrt(mean_squared_error(y_test_true,y_test_pred))
+
+print(f&quot;Rc²: {r2_cal}, RMSEc: {rmse_cal}&quot;)
+print(f&quot;Rcv²: {r2_cv}, RMSEcv: {rmse_cv}&quot;)
+
+# 在整个训练数据集上进行训练，并在测试数据集上进行测试
+rf_optimal.fit(X_train.values, y_train.values)
+y_test_pred = rf_optimal.predict(X_test.values)
+
+我正在尝试使用 LeaveOneOut() 评估 rf 模型。因此，我的令人困惑的是，我是否应该在新的 loo.split 中定义一个新的 RandomForestRegressor 并与整个训练数据集进行拟合，然后使用在 loo.split 之外定义的回归器预测测试数据集？我想要获得 Rc2、Rcv2 和 Rp2。]]></description>
+      <guid>https://stackoverflow.com/questions/78630776/leave-one-out-cross-validation-for-model-evaluation</guid>
+      <pubDate>Mon, 17 Jun 2024 03:11:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>我尝试手动应用梯度下降，但遇到了一个问题</title>
+      <link>https://stackoverflow.com/questions/78630596/i-was-trying-to-apply-gradient-descent-manually-but-facing-a-problem</link>
+      <description><![CDATA[import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from matplotlib import pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import PolynomialFeatures
+#创建随机 X 和 Y 值
+np.random.seed(405)
+X = 6*np.random.rand(100,1)-3
+Y = 0.8*(X**2) + 0.9*X + 2 + np.random.randn(100,1)
+Y = Y.reshape(-1,1)
+X_train,X_test,y_train,y_test = train_test_split(X,Y,test_size=0.2,random_state=2)
+poly = PolynomialFeatures(degree=2,include_bias=False)
+X_train_trans = poly.fit_transform(X_train)
+X_test_trans = poly.transform(X_test)
+model = LinearRegression()
+model.fit(X_train_trans,y_train)
+y_pred = model.predict(X_test_trans)
+print(model.intercept_)
+print(model.coef_)
+n = len(X_train_trans)
+β0 = 0
+β1 = 1
+β2 = 2
+learning_rate = 0.0001 # 调整学习率
+num_iterations = 50000 # 增加迭代次数
+n = len(X_train_trans)
+for iteration in range(num_iterations):
+# 计算预测
+y_prediction = β0 + β1 * X_train_trans[:, 0] + β2 * X_train_trans[:, 1]
+
+# 计算损失（均方误差）
+loss = (1/(2*n)) * np.sum((y_train - y_prediction)**2)
+
+# 计算梯度
+d_β0 = -(1 / n) * np.sum(y_train - y_prediction)
+d_β1 = -(1 / n) * np.sum((y_train - y_prediction) * X_train_trans[:, 0])
+d_β2 = -(1 / n) * np.sum((y_train - y_prediction) * X_train_trans[:, 1])
+
+# 更新参数
+β0 -= learning_rate * d_β0
+β1 -= learning_rate * d_β1
+β2 -= learning_rate * d_β2
+
+# 定期打印损失和参数
+if iteration % 1000 == 0:
+print(f&quot;Iteration {iteration}: Loss = {loss}&quot;)
+
+print(f&quot;最终参数（梯度下降）：β0 = {β0}, β1 = {β1}, β2 = {β2}&quot;)
+
+/// 问题是每次我从线性回归模型和我手动应用的模型中获得不同的系数值时，我都无法理解原因。我也尝试过改变学习率和迭代次数，但我无法获得相同的值。你能帮我吗？
+我有一个关于多项式回归梯度下降的问题。如果可能的话，我想要答案。]]></description>
+      <guid>https://stackoverflow.com/questions/78630596/i-was-trying-to-apply-gradient-descent-manually-but-facing-a-problem</guid>
+      <pubDate>Mon, 17 Jun 2024 01:09:36 GMT</pubDate>
+    </item>
     <item>
       <title>引导成本学习中每场游戏的平均成本</title>
       <link>https://stackoverflow.com/questions/78630010/mean-cost-per-game-in-guided-cost-learning</link>
@@ -62,7 +166,7 @@ return self.net(x)
       <pubDate>Sun, 16 Jun 2024 13:55:15 GMT</pubDate>
     </item>
     <item>
-      <title>statsmodels.tsa.statespace.varmax.VARMAX.simulate 中的 params 参数是如何指定？</title>
+      <title>statsmodels.tsa.statespace.varmax.VARMAX.simulate 中的 params 参数是如何指定的？</title>
       <link>https://stackoverflow.com/questions/78629290/how-is-the-params-parameter-specified-in-statsmodels-tsa-statespace-varmax-varma</link>
       <description><![CDATA[我正在尝试使用 statsmodels.tsa.statespace.varmax.VARMAX.simulate 方法。我熟悉 VARMA 模型的滞后多项式表示，但我不确定应如何为该方法指定 params 参数。例如，我是否要反转 AR 模型参数的符号？params 是数组还是嵌套数组？我该如何表示 VARMA 模型参数？
 文档没有具体说明或给出如何使用该方法的示例：https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.varmax.VARMAX.simulate.html#statsmodels.tsa.statespace.varmax.VARMAX.simulate]]></description>
@@ -70,55 +174,11 @@ return self.net(x)
       <pubDate>Sun, 16 Jun 2024 13:44:18 GMT</pubDate>
     </item>
     <item>
-      <title>如何修复机器学习中不切实际的完美测试分数：诊断和解决 100% 准确率问题</title>
-      <link>https://stackoverflow.com/questions/78629141/how-to-fix-unrealistically-perfect-testing-scores-in-machine-learning-diagnosin</link>
+      <title>不切实际的完美测试成绩：诊断和解决 100% 准确率问题 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78629141/unrealistically-perfect-testing-scores-diagnosing-and-addressing-100-accuracy</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78629141/how-to-fix-unrealistically-perfect-testing-scores-in-machine-learning-diagnosin</guid>
+      <guid>https://stackoverflow.com/questions/78629141/unrealistically-perfect-testing-scores-diagnosing-and-addressing-100-accuracy</guid>
       <pubDate>Sun, 16 Jun 2024 12:39:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>向 TensorFlow 模型添加一个热门特征</title>
-      <link>https://stackoverflow.com/questions/78628433/add-one-hot-feature-to-tensorflow-model</link>
-      <description><![CDATA[我是深度学习的新手，我正在使用 init 函数逐步创建 MMOE 模型并添加功能。
-class TIGMMOE(tfrs.Model):
-def __init__(self, use_cross_layer, deep_layer_sizes, num_units, num_shared_experts, project_dim=None):
-super().__init__()
-
-self.embedding_dimension = 8
-
-self._embeddings = {}
-
-#categorical embedding（所有任务通用）
-self._embeddings[&#39;category&#39;] = tf.keras.Sequential(
-[tf.keras.layers.Embedding(num_total_pcats + 1, 32)
-],name=&#39;cat_emb&#39;)
-
-self._embeddings[&#39;ptype&#39;] = tf.keras.Sequential(
-[tf.keras.layers.Embedding(num_total_ptypes + 1, 128)
-],name=&#39;ptype_emb&#39;)
-
-.
-.
-.
-def call(self, feat_inputs):
-features = feat_inputs
-anchor_embeddings = []
-
-for feat_name in _CONTEXT_FEATURE_KEYS:
-anchor_embeddings.append(features[feat_name])
-
-anchor_embeddings.append(self._embeddings[&#39;category&#39;](features[&#39;anc_pcat_map&#39;]))
-anchor_embeddings.append(self._embeddings[&#39;ptype&#39;](features[&#39;anc_ptcode_map&#39;]))
-
-anchor_embeddings = {}
-anchor_embeddings[&#39;anc_feat_vec&#39;] = features[&#39;anc_feat_vec&#39;]
-anchor_embeddings[&#39;anc_ptcode_map_emb&#39;] = self._embeddings[&#39;category&#39;](features[&#39;anc_pcat_map&#39;])
-anchor_embeddings[&#39;anc_pcat_map_emb&#39;] = self._embeddings[&#39;ptype&#39;](features[&#39;anc_ptcode_map&#39;])
-
-
-现在我想向模型添加另一个特征 x，该特征为 int 格式，我想将其添加为 one-hot-encode 特征。有人能告诉我如何将这个特征从 tfrecords 添加到我的模型中吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78628433/add-one-hot-feature-to-tensorflow-model</guid>
-      <pubDate>Sun, 16 Jun 2024 06:33:12 GMT</pubDate>
     </item>
     <item>
       <title>在 AWS Sagemaker 中训练线性模型时出现 UnexpectedStatusException？</title>
@@ -204,7 +264,7 @@ included.remove(worst_feature)
       <pubDate>Sat, 15 Jun 2024 07:41:59 GMT</pubDate>
     </item>
     <item>
-      <title>如何为输入形状为 (n, 3) 且每个条目为 (n, 2) 的数据集实现回归模型？</title>
+      <title>如何为输入形状为 (n, 3) 和 (n, 2) 的数据集实现回归模型？</title>
       <link>https://stackoverflow.com/questions/78625334/how-can-i-implement-a-regression-model-for-a-dataset-with-inputs-in-the-shape-n</link>
       <description><![CDATA[我正在尝试为这种形式的数据集实现回归模型：
 
@@ -225,46 +285,6 @@ included.remove(worst_feature)
 我期待一个结构良好的答案来消除我的疑虑，我需要任何链接供我参考。]]></description>
       <guid>https://stackoverflow.com/questions/78624565/creating-an-efficient-real-time-face-detection-system-using-computer-vision-tech</guid>
       <pubDate>Fri, 14 Jun 2024 18:51:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>键错误：'acc' -> acc = history.history['acc']</title>
-      <link>https://stackoverflow.com/questions/74016944/keyerror-acc-acc-history-historyacc</link>
-      <description><![CDATA[代码链接：https://colab.research.google.com/drive/1_a4PLwDiFhF7qVlX_vvwKM4QM4Dxu0L0?usp=sharing
-import matplotlib.pyplot as plt
-
-acc = history.history[&#39;acc&#39;]
-val_acc = history.history[&#39;val_accuracy&#39;]
-loss = history.history[&#39;loss&#39;]
-val_loss = history.history[&#39;val_loss&#39;]
-
-epochs = range(1, len(acc) + 1)
-
-# &quot;bo&quot; 代表 &quot;blue dot&quot;
-plt.plot(epochs, loss, &#39;bo&#39;, label=&#39;训练损失&#39;)
-# b 代表“实蓝线”
-plt.plot(epochs, val_loss, &#39;b&#39;, label=&#39;验证损失&#39;)
-plt.title(&#39;训练和验证损失&#39;)
-plt.xlabel(&#39;Epochs&#39;)
-plt.ylabel(&#39;损失&#39;)
-plt.legend()
-
-plt.show()
-
-错误显示：
-KeyError Traceback（最近一次调用最后一次）
-
-&lt;ipython-input-31-12e4df2349dc&gt; in &lt;module&gt;
-1 import matplotlib.pyplot as plt
-2 
-----&gt; 3 acc = history.history[&#39;acc&#39;]
-4 val_acc = history.history[&#39;val_accuracy&#39;]
-5 loss = history.history[&#39;loss&#39;]
-
-KeyError: &#39;acc&#39;
-
-嗨，我尝试了深度学习中的这个练习 3.5-classifying-movie-reviews.ipynb，使用 python -manning 并显示错误，有什么帮助吗？]]></description>
-      <guid>https://stackoverflow.com/questions/74016944/keyerror-acc-acc-history-historyacc</guid>
-      <pubDate>Mon, 10 Oct 2022 15:05:25 GMT</pubDate>
     </item>
     <item>
       <title>如何使用带有灰度图像的预训练神经网络？</title>
