@@ -4,7 +4,104 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 18 Jun 2024 03:17:54 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 18 Jun 2024 06:21:13 GMT</lastBuildDate>
+    <item>
+      <title>运行时错误预测张量大小为 64，与 y_train 张量大小不同，张量暗淡错误</title>
+      <link>https://stackoverflow.com/questions/78635713/runtime-error-pred-tensor-size-is-64-which-is-different-to-y-train-tensor-size</link>
+      <description><![CDATA[我正在尝试使用 Hippo 模型来预测外汇价格（数据集有日期时间列和开盘价列）。以下是完整代码的 GitHub 链接 GitHub Repo
+原始 hippo 模型可在此链接中找到：GitHub Model
+我有两个问题：
+
+在更新状态 u 中，第二个 dim 应该是批处理大小，即 [64,1]，在我的情况下，我将其设置为 1，但它仍然显示 [1, 64]
+运行时错误为 pred 张量大小与 output20 中的 y_train 大小不匹配。
+
+以下是错误详细信息
+Cell In[18]，第 17 行，在 train(X_train, y_train, model, loss_fn, optimizer, batch_size, device)
+14 print(&#39;pred.shpae:&#39;,pred.shape)
+15 print(&#39;y_train&#39;,y_train.shape)
+---&gt; 17 loss = loss_fn(pred, torch.tensor(y_train))
+18 optimizer.zero_grad()
+19 loss_backward()
+
+文件 ~\anaconda3\lib\site-packages\torch\nn\modules\module.py:1511，位于 Module._wrapped_call_impl(self, *args, **kwargs)
+1509 return self._compiled_call_impl(*args, **kwargs) # 类型：ignore[misc]
+1510 else:
+-&gt; 1511 return self._call_impl(*args, **kwargs)
+
+File ~\anaconda3\lib\site-packages\torch\nn\modules\module.py:1520, in Module._call_impl(self, *args, **kwargs)
+1515 # 如果我们没有任何钩子，我们希望跳过此函数中的其余逻辑
+1516 # 并直接调用 forward。
+1517 if not (self._backward_hooks or self._backward_pre_hooks or self._forward_hooks or self._forward_pre_hooks
+1518 or _global_backward_pre_hooks or _global_backward_hooks
+1519 or _global_forward_hooks or _global_forward_pre_hooks):
+-&gt; 1520 返回 forward_call(*args, **kwargs)
+1522 尝试：
+1523 结果 = None
+
+文件 ~\anaconda3\lib\site-packages\torch\nn\modules\loss.py:535，位于 MSELoss.forward(self, input, target)
+534 def forward(self, input: Tensor, target: Tensor) -&gt; Tensor:
+-&gt; 535 返回 F.mse_loss(input, target, reduction=self.reduction)
+
+文件 ~\anaconda3\lib\site-packages\torch\nn\ functional.py:3338，位于 mse_loss(input, target, size_average, reduce, reduction)
+3335 如果 size_average 不是 None 或 reduce 不是 None：
+3336 reduction = _Reduction.legacy_get_string(size_average, reduce)
+-&gt; 3338 expand_input, expand_target = torch.broadcast_tensors(input, target)
+3339 return torch._C._nn.mse_loss(expanded_input, expand_target, _Reduction.get_enum(reduction))
+
+文件 ~\anaconda3\lib\site-packages\torch\ functional.py:76，在 broadcast_tensors(*tensors) 中
+74 if has_torch_function(tensors):
+75 return handle_torch_function(broadcast_tensors, tensors, *tensors)
+---&gt; 76 return _VF.broadcast_tensors(tensors)
+
+RuntimeError: 在非单例维度 0 处，张量 a (64) 的大小必须与张量 b (4322) 的大小匹配
+
+这是我的“训练”方法在 loss_fn 上抛出错误
+def train(X_train, y_train, model, loss_fn, optimizer, batch_size = None, device = None):
+size = len(X_train)
+if device is None:
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+
+model.to(device)
+if batch_size is None:
+# X_train_tensor= torch.tensor(X_train, dtype = torch.float32).to(device)
+# y_train_tensor = torch.tensor(y_train, dtype = torch.float32).to(device)
+
+model.train()
+pred = model(X_train)[0] 
+print(&#39;pred.shpae:&#39;,pred.shape)
+print(&#39;y_train&#39;,y_train.shape)
+
+loss = loss_fn(pred, torch.tensor(y_train))
+optimizer.zero_grad()
+loss_backward()
+optimizer.step()
+loss_value = loss.item()
+print(f&#39;loss:{loss_value:&gt;7f}, [{size:&gt;5d}/{size:&gt;5d}]&#39;)
+else:
+dataset = TimeSeriesDataset(X_train, y_train)
+dataloader = DataLoader(dataset, batch_size = batch_size, shuffle = False)
+
+model.train()
+
+for batch_idx, (X_batch, y_batch )in enumerate(dataloader):
+X_batch, y_batch = X_batch.to(device,dtype = torch.float32), y_batch.to(device,dtype = torch.float32)
+
+# 计算预测误差
+pred = model(X_batch)
+loss_ = loss_fn(pred, y_batch)
+
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
+
+if batch%10==0:
+loss_value = loss.item()
+current = batch_idx * len(X_batch)
+print(f&quot;loss: {loss_value:&gt;7f} [{current:&gt;5d}/{len(dataset):&gt;5d}]&quot;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78635713/runtime-error-pred-tensor-size-is-64-which-is-different-to-y-train-tensor-size</guid>
+      <pubDate>Tue, 18 Jun 2024 06:03:38 GMT</pubDate>
+    </item>
     <item>
       <title>TensorFlow InvalidArgumentError：预期为 uint8 张量，但得到的是浮点张量</title>
       <link>https://stackoverflow.com/questions/78634989/tensorflow-invalidargumenterror-expected-uint8-tensor-but-got-float-tensor</link>
@@ -195,13 +292,6 @@ pass
 提前谢谢。]]></description>
       <guid>https://stackoverflow.com/questions/78633325/huggingface-autograd</guid>
       <pubDate>Mon, 17 Jun 2024 14:53:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 LSTM 模型中输入多个特征来预测单个特征输出？</title>
-      <link>https://stackoverflow.com/questions/78633065/how-to-input-multiple-features-to-predict-a-single-feature-output-in-lstm-model</link>
-      <description><![CDATA[我可以使用一个特征来预测输出。我想检查如果我再使用一个特征，我的准确率是否会更高。我想知道如何在 LSTM 模型中添加更多特征。我使用了 https://www.geeksforgeeks.org/multivariate-time-series-forecasting-with-lstms-in-keras/ 提供的代码，它使用两个特征来预测两个输出，我想使用两个特征在同一时间戳来生成一个输出。有人可以给我一个演示代码吗？谢谢]]></description>
-      <guid>https://stackoverflow.com/questions/78633065/how-to-input-multiple-features-to-predict-a-single-feature-output-in-lstm-model</guid>
-      <pubDate>Mon, 17 Jun 2024 14:03:06 GMT</pubDate>
     </item>
     <item>
       <title>在规范化灰度图像后，我是否应该在 ImageDataGenerator 中再次重新缩放图像？</title>
