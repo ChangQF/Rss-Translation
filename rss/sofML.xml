@@ -4,7 +4,69 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 19 Jun 2024 12:28:24 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 19 Jun 2024 15:16:32 GMT</lastBuildDate>
+    <item>
+      <title>Mathematica 查询中的旋转量子比特神经网络</title>
+      <link>https://stackoverflow.com/questions/78642555/rotating-qubit-neural-network-in-mathematica-query</link>
+      <description><![CDATA[我正在研究的基本物理示例问题（尝试使用 Mathematica 了解基本神经网络的使用），如 Nolan 的论文（见图 2a） 中所述，是一个绕 y 轴旋转的量子比特，其中旋转间隔离散化为 $\theta_j \in [0,π]$。该设置涉及在 z 基础上测量的 y 旋转量子比特（因此自旋向上和自旋向下投影仪测量）。此场景涉及使用测量结果概率为每个离散旋转角度生成训练数据（使用 Mathematica 中的随机数生成器）。然后，我通过将自旋向上和自旋向下的元组与表示旋转角度的独热向量相关联来训练网络。
+请参阅以下代码示例。最终图使用单个自旋向上和自旋向下的结果测试网络，即 {{1,0}} 和 {{0,1}}，虽然显示了正确的总体趋势，但与 Nolan 的论文中显示的趋势不一致（我在代码后显示了它们）。非常感谢您的帮助，请随时要求澄清任何问题。
+(*Y 旋转量子比特上的自旋向上/自旋向下测量概率 *)
+
+Pu[\[Theta]_] := (Cos[\[Theta]/2])^2; 
+Pd[\[Theta]_] := 1 - Pu[\[Theta]]
+
+(*评估每个 theta 值的测量概率*)
+
+pr = Table[
+List[N[FullSimplify[Re[Pu[\[Theta]]]]], 
+N[FullSimplify[Re[Pd[\[Theta]]]]]], {\[Theta], \[Pi]/
+40, \[Pi], \[Pi]/40}]
+(*为每个 theta_j 生成训练测量结果，（使用随机数生成器），1 表示旋转向上结果，0 \
+表示旋转向下*)
+
+m = 1000;
+
+meas = Table[{}, {Length[pr]}];
+Table[Do[ b = ConstantArray[0, 1]; Clear[r];
+updateTally[] := Block[{r}, r = RandomReal[];
+如果[r &lt; pr[[j]][[1]], b[[1]] += 1, 
+如果[pr[[j]][[1]] &lt;= r &lt; pr[[j]][[1]] + pr[[j]][[2]], 
+b[[1]] += 0]]];
+Do[updateTally[], {1}]; AppendTo[meas[[j]], b], {i, 1, m}], {j, 
+Length[pr]}];
+
+meas = Partition[Flatten[meas], m];
+(*计数 1 和 0 的函数*)
+countOnesZeros[list_] := {Count[list, 1], Count[list, 0]}
+
+meas = Map[countOnesZeros, meas]
+
+(*将 \[Theta] 离散化为 40 个 bin，每个 bin 测量 m = 10000*)
+
+binToOneHot[bins_List, totalBins_Integer] := 
+Table[If[i == #, 1, 0], {i, 1, totalBins}] &amp; /@ bins
+bins = Range[40]; 
+oneHotEncoded = binToOneHot[bins, 40]
+
+trainingData = Rule @@@ Transpose[{meas, oneHotEncoded}]
+
+(*这是 Nolan 论文 Fig2a 中的一个示例测试*)
+
+su = {{1, 0}}
+
+sd = {{0, 1}}
+
+trainedNet /@ su
+
+trainedNet /@ sd
+
+Show[ListPlot[trainedNet /@ su, PlotStyle -&gt; Blue], 
+ListPlot[trainedNet /@ sd, PlotStyle -&gt; Green], PlotRange -&gt; All]
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78642555/rotating-qubit-neural-network-in-mathematica-query</guid>
+      <pubDate>Wed, 19 Jun 2024 12:36:15 GMT</pubDate>
+    </item>
     <item>
       <title>了解 ICML 2013 鲸鱼挑战赛 - 露脊鲸重现中的数据泄露文章</title>
       <link>https://stackoverflow.com/questions/78642417/understanding-the-data-leakage-article-on-the-icml-2013-whale-challenge-right</link>
@@ -103,146 +165,6 @@ return fitness
       <pubDate>Wed, 19 Jun 2024 08:00:34 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习——对数据进行反复训练会导致过度拟合吗？</title>
-      <link>https://stackoverflow.com/questions/78640262/machine-learning-does-repeatedly-training-on-data-cause-overfit</link>
-      <description><![CDATA[所以我有一个已经训练好的机器学习模型，没有过拟合或欠拟合，这个模型是完美的，可以正确检测物体。但是，之后我尝试如果我再次反复训练这个模型，结果发生了过拟合，在一个已经完美的模型上反复训练模型会影响模型吗？所以原本正常的变成了过拟合。
-我希望得到关于我的情况的解释]]></description>
-      <guid>https://stackoverflow.com/questions/78640262/machine-learning-does-repeatedly-training-on-data-cause-overfit</guid>
-      <pubDate>Wed, 19 Jun 2024 02:24:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络近似代码中的值错误</title>
-      <link>https://stackoverflow.com/questions/78640203/value-error-in-code-for-neural-network-approximation</link>
-      <description><![CDATA[import numpy as np
-import matplotlib.pyplot as plt
-
-# 定义目标函数 f(x) = sin(x)^2
-def f(x):
-return np.sin(x)**2
-
-# 生成训练数据集
-np.random.seed(0) # 为了可重复性
-num_samples = 100
-x_train = np.linspace(0, 2*np.pi, num_samples)
-y_train = f(x_train)
-
-# 初始化系数
-n = len(x_train)
-a = np.random.randn(n) # 线性组合系数
-b = np.random.randn() # 常数项
-m = 10 # 神经元数量
-alphas = np.random.randn(m, n) # ReLU 神经元的权重
-ts = np.random.randn(m) # ReLU 阈值神经元
-cs = np.random.randn(m) # ReLU 神经元的系数
-
-# 实现神经网络近似
-def relu(x):
-return np.maximum(0, x)
-
-def f_N(x):
-return np.dot(a, x) + b + np.sum(cs[:, np.newaxis] * relu(np.dot(alphas, x) - ts[:, np.newaxis]), axis=0)
-
-# 定义损失函数
-def loss_function(a, b, cs):
-predictions = f_N(x_train)
-return np.mean((predictions - y_train)**2)
-
-# 梯度下降优化
-def gradient_descent(learning_rate=0.01, num_iterations=1000):
-loss = []
-for i in range(num_iterations):
-# 计算梯度
-predictions = f_N(x_train)
-误差 = 预测 - y_train
-
-grad_a = np.outer(误差, x_train) / num_samples
-grad_b = np.mean(误差)
-
-relu_grad = np.dot(cs[:, np.newaxis] * (np.dot(alphas, x_train) - ts[:, np.newaxis] &gt; 0), alphas)
-grad_cs = np.sum(error[:, np.newaxis] * relu_grad, axis=0) / num_samples
-
-# 更新系数
-a -= learning_rate * grad_a
-b -= learning_rate * grad_b
-cs -= learning_rate * grad_cs
-
-# 裁剪或投影 cs 以确保它们保持在界限内
-cs = np.clip(cs, -1, 1) # 在 -1 和 1 之间裁剪的示例
-
-# 计算当前损失
-current_loss = loss_function(a, b, cs)
-loss.append(current_loss)
-
-# 打印损失以进行监控
-if i % 100 == 0:
-print(f&quot;Iteration {i}, Loss: {current_loss}&quot;)
-
-return loss
-
-# 执行梯度下降
-losses = gradient_descent()
-
-# 绘制结果
-plt.figure(figsize=(12, 6))
-
-# 绘制目标函数
-plt.plot(x_train, y_train, label=&#39;目标函数：$f(x) = \sin(x)^2$&#39;, color=&#39;blue&#39;)
-
-# 绘制神经网络近似
-y_pred = f_N(x_train)
-plt.plot(x_train, y_pred, label=&#39;神经网络近似&#39;, linestyle=&#39;--&#39;, color=&#39;red&#39;)
-
-plt.title(&#39;神经网络近似 vs 目标函数&#39;)
-plt.xlabel(&#39;x&#39;)
-plt.ylabel(&#39;y&#39;)
-plt.legend()
-plt.grid(True)
-plt.show()
-
-# 绘制损失曲线
-plt.figure(figsize=(10, 5))
-plt.plot(losses, label=&#39;训练Loss&#39;)
-plt.title(&#39;Training Loss over Iterations&#39;)
-plt.xlabel(&#39;Iteration&#39;)
-plt.ylabel(&#39;Loss&#39;)
-plt.legend()
-plt.grid(True)
-plt.show()
-
-
-代码的目标如下：
-定义目标函数 f(x) = sin(x)^2，并生成训练数据集 {(x_i, y_i)}，其中 y_i = f(x_i)，针对一系列 x_i 值。
-用随机值初始化神经网络系数 a、b 和 c_i，并从标准高斯分布生成样本 (alpha_1,t_1),...,(alpha_m,t_m)。
-实现神经网络近似 fN(x) = a^Tx+b+sum{i=1}^{m} ci\sigma(alpha{i}^T-t_i) 如图所示，使用初始化系数。
-定义损失函数 L(a, b, c_1, ..., c_m)，用于测量神经网络近似值 f_N(x_i) 与训练数据点 (x_i, y_i) 的目标函数 f(x_i) 之间的差异。例如，您可以使用均方误差：L(a, b, c_1, ..., c_m) = Σ_i (f_N(x_i) - y_i)^2
-使用线性回归最小化关于系数 a、b 和 c_i 的损失函数 L。这可以使用梯度下降或其他优化算法来完成。
-在优化过程中，通过裁剪或投影系数到边界定义的可行区域，确保系数保持在提供的边界内。
-我收到以下错误，无法调试它：
-
------------------------------------------------------------------------------------------
-ValueError Traceback（最近一次调用最后一次）
-Cell In[30]，第 68 行
-65 returnloss
-67 # 执行梯度下降
----&gt; 68loss = gradient_descent()
-70 # 绘制结果
-71 plt.figure(figsize=(12, 6))
-
-Cell In[30]，第 41 行
-38 for i in range(num_iterations):
-39 # 计算梯度
-40 predictions = f_N(x_train)
----&gt; 41 错误 = 预测 - y_train
-43 grad_a = np.outer(error, x_train) / num_samples
-44 grad_b = np.mean(error)
-
-ValueError：操作数不能与形状 (10,) (100,) 一起广播
-
-如果有人能帮助我，我将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/78640203/value-error-in-code-for-neural-network-approximation</guid>
-      <pubDate>Wed, 19 Jun 2024 01:52:20 GMT</pubDate>
-    </item>
-    <item>
       <title>卷积神经网络 (CNN) 在决策中使用黑色背景 - LIME</title>
       <link>https://stackoverflow.com/questions/78640044/convolutional-neural-network-cnn-using-black-background-in-decision-making-l</link>
       <description><![CDATA[我是一名正在做学校项目的学生，需要帮助。
@@ -282,6 +204,58 @@ ValueError：操作数不能与形状 (10,) (100,) 一起广播
 我将数据加载到 pandas DataFrame 中，对数据进行标准化并应用层次聚类。然后我可视化了树状图，但我不确定如何解释结果或我是否使用了正确的参数。]]></description>
       <guid>https://stackoverflow.com/questions/78625589/how-to-implement-hierarchical-clustering-in-python-with-scikit-learn-for-unlabel</guid>
       <pubDate>Sat, 15 Jun 2024 04:03:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>实现神经网络的岭回归方程</title>
+      <link>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network</link>
+      <description><![CDATA[我试图在 MATLAB 中复制以下方程，以使用岭回归训练找到神经网络的最佳输出权重矩阵。
+使用岭回归训练后的神经网络输出权重矩阵：
+
+此方程来自 Mantas Lukosevicius 提供的回声状态网络指南，可在以下位置找到：https://www.researchgate.net/publication/319770153_A_practical_guide_to_applying_echo_state_networks（见第 11 页）
+我的尝试如下。我认为外括号（红色）使其成为非传统的双重求和，这意味着 Voss 提出的方法（见 https://www.mathworks.com/matlabcentral/answers/1694960-nested-loops-for-double-summation）无法遵循。请注意，y_i 是一个 T x 1 向量，而 y_i_target 也是一个 T x 1 向量。Wout_i 是一个 N x 1 向量，其中 N 是神经网络中的节点数。我为每个 i^th 目标训练信号生成三个 Ny x 1 向量 Wout_i,y_i,y_i_target，其中 Ny 是训练信号的数量。Wout 的最终输出是一个 N x 1 向量，其中向量中的每个元素都是网络中每个节点的最佳权重。
+N = 100; % 神经网络节点数
+Ny = 200; % 训练信号数
+T = 50; % 每个训练信号的时间长度 
+X = rand(N,T); % 神经网络状态矩阵
+reg = 10^-4; % 岭回归系数
+outer_sum = zeros(Ny,1);
+for i = 1:Ny
+y_i_target = rand(T,1); % 训练信号
+Wout_i = ((X*X&#39; + reg*eye(N)) \ (X*y_i_target)); 
+Wouts{i} = Wout_i; % 针对每个第 i 个目标训练信号收集的每个 Wout_i 的单元矩阵
+y_i = Wout_i&#39;*X; % 预测信号 
+inner_sum = sum(((y_i&#39;-y_i_target).^2)+reg*norm(Wout_i)^2);
+outer_sum(i) = inner_sum;
+end
+outer_sum = outer_sum.*(1/Ny);
+[minval, minidx] = min(outer_sum);
+Wout = cell2mat(Wouts(minidx));
+
+我对 Wout 的最终答案是 N 乘以 1，正如它应该的那样，但我对我的答案不确定。我特别不确定我是否正确地完成了关于 Wout 操作的双重求和和 arg min。有什么方法可以验证我的答案吗？
+解决方案：
+我尝试了另一种方法/尝试，如下所示：
+N = 100; % 神经网络中的节点数
+Ny = 200; % 训练信号数
+T = 50; % 每个训练信号的时间长度
+X = rand(N,T); % 神经网络状态矩阵
+reg = 10^-4; % 岭回归系数
+MSE = zeros(Ny,1);
+for i = 1:Ny
+y_i_target = rand(T,1); % 训练信号
+Wout_i = ((X*X&#39; + reg*eye(N)) \ (X*y_i_target)); % Luko 等人的 Eq. 9。
+Wouts{i} = Wout_i; % 为每个第 i 个目标训练信号收集每个 Wout_i 的单元矩阵
+y_i = Wout_i&#39;*X; % 预测信号
+MSE(i) = (1/T)*sum((y_i&#39;-y_i_target).^2); % 均方误差
+end
+[minval, minidx] = min(MSE);
+Wout = cell2mat(Wouts(minidx));
+
+我相信这次尝试比第一次更好，但我不确定它是否仍然正确。
+正如 BillBokeey 所强调的那样，所需的方程只是 Luko 等人提出的方程 9 的迭代版本。要进行训练，必须将方程 9 应用于训练数据集中的每个目标信号，并选择最小化均方误差 (MSE) 的结果 W_out。
+最终更新：
+我仍在寻找我的第二个解决方案的验证。我特别担心的是，我正在挑选出最小化 MSE 的最佳 Wout_i N x 1 向量，并有效地忽略所有其他 Wout_i 向量。]]></description>
+      <guid>https://stackoverflow.com/questions/78597100/implement-ridge-regression-equation-for-a-neural-network</guid>
+      <pubDate>Sat, 08 Jun 2024 22:31:47 GMT</pubDate>
     </item>
     <item>
       <title>是否可以在 Elixir Nx/Schorar 中进行 ELISA 分析？</title>
