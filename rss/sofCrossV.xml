@@ -4,9 +4,116 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 20 Jun 2024 01:03:05 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 20 Jun 2024 03:16:29 GMT</lastBuildDate>
     <item>
-      <title>自治微分方程的解</title>
+      <title>两种实现之间存在数值差异</title>
+      <link>https://stats.stackexchange.com/questions/649557/got-numerical-difference-between-two-implementations</link>
+      <description><![CDATA[我一直在研究 RetNet（论文：https://arxiv.org/pdf/2307.08621，PyTorch 实现：https://github.com/Jamie-Stirling/RetNet/）。我用 TensorFlow 重写了部分代码：
+import tensorflow as tf
+from keras import layer
+from xpos import XPOS
+
+@tf.keras.utils.register_keras_serializable(&#39;RetNet&#39;)
+class SimpleRetention(layers.Layer):
+def __init__(self, hidden_​​size, gamma, head_size=None, double_v_dim=False):
+super(SimpleRetention, self).__init__()
+
+self.hidden_​​size = hidden_​​size
+head_size = head_size if head_size is not None else hidden_​​size
+self.head_size = head_size
+self.v_dim = head_size * 2 if double_v_dim else head_size
+self.gamma = gamma
+
+self.W_Q = layer.Dense(head_size, use_bias=False)
+self.W_K =层。密集（头部大小，使用偏差=假）
+self.W_V = 层。密集（头部大小，使用偏差=假）
+
+self.xpos = XPOS（头部大小）
+
+def call（self，X）：
+Q = self.W_Q（X）
+K = self.W_K（X）
+V = self.W_V（X）
+
+Q = self.xpos（Q）
+K = self.xpos（K，downscale=True）
+
+ret = tf.matmul（Q，K，transpose_b=True）* self._get_D（tf.shape（X）[1]）
+return tf.matmul（ret，V）
+
+def call_recurrent（self，x_n，s_n_1，n）：
+Q = self.W_Q（x_n）
+K = self.W_K（x_n）
+V = self.W_V（x_n）
+
+Q = self.xpos(Q, offset=n+1)
+K = self.xpos(K, offset=n+1, downscale=True)
+
+s_n = self.gamma * s_n_1 + tf.matmul(K, V, transpose_a=True)
+return tf.matmul(Q, s_n), s_n
+
+def _get_D(self, serial_length):
+n = tf.range(sequence_length)[:, tf.newaxis]
+m = tf.range(sequence_length)[tf.newaxis, :]
+D = tf.pow(self.gamma, tf.cast(n - m, dtype=tf.float32))
+mask = tf.cast(n &gt;= m, dtype=tf.float32) # 因果掩码
+return D * mask
+
+现在我又写了另一个测试用例来验证 call 和 call_recurrent 的输出是否相同，遵循测试用例：
+import tensorflow as tf
+from retentive import SimpleRetention
+import numpy as np
+import matplotlib.pyplot as plt
+
+def test_simple():
+&quot;&quot;&quot;
+验证 SimpleRetention 的三个实现是否相同
+&quot;&quot;&quot;
+batch_size = 4
+sequence_length = 12
+hidden_​​size = 6
+
+gamma = 0.9
+
+X = tf.random.uniform((batch_size,sequence_length,hidden_​​size))
+sr = SimpleRetention(hidden_​​size,gamma,double_v_dim=True)
+
+Y_parallel = sr(X)
+
+s_n_1 = tf.zeros((batch_size,hidden_​​size,sr.v_dim))
+Y_recurrent = []
+for i in range(sequence_length):
+y_n,s_n = sr.call_recurrent(X[:,i:i+1,:],s_n_1,i)
+Y_recurrent.append(y_n)
+s_n_1 = s_n
+
+Y_recurrent = tf.concat(Y_recurrent,axis=1)
+
+Yp = Y_parallel.numpy()
+Yr = Y_recurrent.numpy()
+print(Yp.shape, Yr.shape)
+
+plt.figure()
+for i in range(batch_size):
+plt.subplot(batch_size // 2, 2, i+1)
+error_map = Yp[i] - Yr[i]
+plt.imshow(error_map)
+plt.title(f&quot;sq error={np.sum(error_map * error_map)}&quot;)
+plt.show()
+
+error = np.sum(np.abs(Yp - Yr))
+print(f&quot;Error: {error}&quot;)
+
+test_simple()
+
+错误应该非常接近 0.0，但我得到的（绝对）错误相对较大，总体上为 1.27。错误图如下
+
+我不确定这是否是正常情况，如果不是，有人知道可能是什么原因吗？数值差异会损害我的模型的性能吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649557/got-numerical-difference-between-two-implementations</guid>
+      <pubDate>Thu, 20 Jun 2024 01:13:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>自治微分方程的解 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/649555/solutions-to-autonomous-differential-equations</link>
       <description><![CDATA[我试图理解如何找到这两个自治微分方程的解：
 第一个自治微分方程
@@ -55,7 +162,7 @@ boot &lt;- lme4::bootMer(mem, FUN=sfun, nsim=250, re.form=~0, type=&quot;paramet
       <pubDate>Wed, 19 Jun 2024 23:26:22 GMT</pubDate>
     </item>
     <item>
-      <title>不同情况下的LSTM和MLP的分布函数</title>
+      <title>不同情况下的 LSTM 和 MLP 分布函数[重复]</title>
       <link>https://stats.stackexchange.com/questions/649551/distribution-function-of-lstm-and-mlp-for-different-cases</link>
       <description><![CDATA[我问过这个问题（可以视为案例1），MLP在TEC预测方面不如LSTM。可以观察到，LSTM预测的TEC曲线与观察到的TEC曲线（即ground truth）非常接近，而MLP预测的曲线与ground truth之间存在相当大的差距。
 下面还有另外两种TEC曲线的变化：
@@ -120,46 +227,38 @@ n % n % n %
       <title>导出 R 预测输出 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/649545/export-r-prediction-output</link>
       <description><![CDATA[一个基本问题 - 我想将 R 中运行的特定模型的所有预测结果（预测的因变量值、残差等）+ 原始输入数据列导出到单个外部 .csv。可以吗？如果 .csv 只有预测结果，我可以合并。
-如果可以，那么我的第二个问题是 - 我的输入数据中还有 2 列带有地理坐标，因此当我创建训练和测试数据进行验证时，我是否在导出数据的 .csv 中的原始行中获得完全相同的预测结果。我问这个问题的原因是我想在单独的地图软件中创建空间地图，其中 .csv 包含所有数据列。]]></description>
+如果可以，那么我的第二个问题是 - 我的输入数据中还有 2 列带有地理坐标，因此当我创建训练和测试数据进行验证时，我是否能在导出数据的 .csv 中的原始行中获得完全相同的预测结果。我问这个问题的原因是我想在单独的地图软件中创建空间地图，其中 .csv 包含所有数据列。]]></description>
       <guid>https://stats.stackexchange.com/questions/649545/export-r-prediction-output</guid>
       <pubDate>Wed, 19 Jun 2024 19:47:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>平行中介模型图</title>
-      <link>https://stats.stackexchange.com/questions/649543/parallel-mediation-model-diagram</link>
-      <description><![CDATA[我正在构建一个并行中介模型图，但尽管花了 30 分钟在谷歌上搜索，我还是不确定其中一个数字代表什么。
-有问题的数字是 c&#39; 路径括号中的内容 — 在所附示例中以黄色突出显示。在这种情况下，1.73 代表什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649543/parallel-mediation-model-diagram</guid>
-      <pubDate>Wed, 19 Jun 2024 18:56:17 GMT</pubDate>
     </item>
     <item>
       <title>如何计算 OPLS-DA 中的累计 Q2</title>
       <link>https://stats.stackexchange.com/questions/649541/how-to-calculate-cumulative-q2-in-opls-da</link>
       <description><![CDATA[在SIMCA 用户指南中，$p.517$，累计$Q^2$通过以下方式计算：
 $$
-Q^2(cum)=1−∏_{a=1}^{N_{comp}}(\frac{PRESS}{SS})_a \qquad\qquad[1]
+Q^2(\text{cum})=1−∏_{a=1}^{N_\text{comp}} \left( \frac{PRESS}{SS} \right)_a \tag{1}
 $$
-其中$∏_{a=1}^{N_{comp}}(PRESS/SS)_a$是$PRESS/SS$ 针对每个单独的组件 $a$。
+其中$∏_{a=1}^{N_\text{comp}}(PRESS/SS)_a$是每个单独组件 $a$ 的 $PRESS/SS$ 乘积。
 这让我很困惑。OPLS 模型表示为（请参阅此处的介绍）：
 $$
-X=t_1p_1^T+T_OP_O^T+E \qquad\qquad[2]
+X=t_1p_1^T+T_OP_O^T+E \tag2
 $$
 或由 J. Trygg 的论文
 $$
-X=T_pP_p^T+T_OP_O^T+E \qquad\qquad[3]
+X=T_pP_p^T+T_OP_O^T+E \tag3
 $$
 并且从预测成分中预测出一个新的 $y$。
 据我所知，
 
 每个单独的成分 $a$
 
-应该参考预测成分，因为所有预测都应该来自 $X$，并通过正交得分 $T_O$ 和载荷 $P_O$ 进行校正，即，$X_P=X-T_OP_O^T$。交叉验证用于确定正交分量的数量。因此，对于新矩阵$X_{new}$，它也由正交分量校正，然后用于使用预测分量进行预测。但根据方程$[2]$，预测分量的数量为 1。问题是如何计算每个单独分量$a$的$PRESS/SS$？
+应该参考预测成分，因为所有预测都应该来自 $X$，并通过正交得分 $T_O$ 和载荷 $P_O$ 进行校正，即，$X_P=X-T_OP_O^T$。交叉验证用于确定正交分量的数量。因此，对于新矩阵$X_\text{new}$，它也由正交分量进行校正，然后用于使用预测分量进行预测。但根据方程$(2)$，预测分量的数量为 1。问题是如何计算每个单独分量$a$的$PRESS/SS$？
 如果我错了，我应该尝试使用单个交叉验证循环同时获得正交分量的数量和预测分量的数量。这意味着，对于每个正交分量的数量（例如从 1 到 15），我应该遍历每个预测分量的数量（例如从 1 到 15），以便可以确定正交分量的数量和预测分量的数量（如果正交和预测分量的最大数量为 $15$，则应该尝试总共 $15^2=225$ 次循环）。但我不确定这是否正确，因为这个过程有点复杂，我找不到任何提到这方面的材料。
 那么如何正确理解这个术语
 
 每个单独的组件$a$
 
-并正确计算$Q^2(cum)$？]]></description>
+并正确计算$Q^2(\text{cum})$？]]></description>
       <guid>https://stats.stackexchange.com/questions/649541/how-to-calculate-cumulative-q2-in-opls-da</guid>
       <pubDate>Wed, 19 Jun 2024 18:51:47 GMT</pubDate>
     </item>
@@ -180,15 +279,64 @@ $$
     <item>
       <title>如何评估多场比赛的结果是否符合各自状态的概率分布</title>
       <link>https://stats.stackexchange.com/questions/649538/how-to-evaluate-whether-the-results-of-multiple-games-conform-to-the-probability</link>
-      <description><![CDATA[有n场比赛，每场比赛开始后都有一个状态。
-根据这个状态，可以计算出比赛结果的概率。
-比如有3种结果，概率分别是p1，p2，p3。
-但是下一场比赛，比赛状态不同，概率也随之变化，变成p4，p5，p6。
-打n场比赛，就有n个结果。
-那么如何判断这n个结果整体上是否符合这些概率呢？
+      <description><![CDATA[有n局游戏，每局游戏开始后都有一个状态，根据这个状态可以计算出游戏结果的概率，比如有3种结果，概率分别是p1，p2，p3，但是下一局游戏状态不一样，概率就变了，变成了p4，p5，p6，打n局，就有n个结果，那么如何判断这n个结果整体上是否符合这些概率呢？
 我也不知道，也许可以用卡方检验，但是条件好像不满足？]]></description>
       <guid>https://stats.stackexchange.com/questions/649538/how-to-evaluate-whether-the-results-of-multiple-games-conform-to-the-probability</guid>
       <pubDate>Wed, 19 Jun 2024 15:56:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>时间序列预测的预言库存在的问题</title>
+      <link>https://stats.stackexchange.com/questions/649525/problems-with-prophet-library-for-time-series-forecasting</link>
+      <description><![CDATA[我有一个很小的数据框，包含两列：time_key，即日期；value，即衡量超市收入的数值变量。这个数据框定义了一个时间序列，我有 16 个月的数据。我正在尝试获取过去 3 个月的预测。
+我正在使用 R 中的 fable 和 fable.prophet 库。虽然这是一个小例子，但这个想法是这个过程将自动执行到几十个类似的数据框，所以我的想法是，对于每个数据框，自动计算、优化和比较不同的模型，并选择最小化准确率的模型。以下是我的数据概览：
+sales.ts
+time_key 值
+1 2020-03-01 292.7846
+2 2020-04-01 292.2414
+3 2020-05-01 296.0398
+4 2020-06-01 286.3656
+5 2020-07-01 284.5536
+6 2020-08-01 272.8100
+7 2020-09-01 272.8052
+8 2020-10-01 326.2926
+9 2020-11-01 306.6977
+10 2020-12-01 370.4489
+11 2021-01-01 323.3679
+12 2021-02-01 308.2357
+13 2021-03-01 346.5880
+14 2021-04-01 331.0101
+15 2021-05-01 303.5761
+16 2021-06-01 204.9440
+
+以下脚本在数据上构建 ARIMA、ETS 和 Prophet 模型并进行比较：
+library(tidyverse)
+library(tsibble)
+library(fable)
+library(prophet)
+library(fable.prophet)
+
+fit &lt;- sales.ts %&gt;%
+mutate(time_key = yearmonth(time_key)) %&gt;% 
+as_tsibble(index = time_key) %&gt;%
+model(
+ets = ETS(value),
+arima = ARIMA(value),
+prophecy = prophecy(value))
+
+fc &lt;- fit %&gt;% prediction(h = 3)
+
+fc %&gt;% autoplot(sales.ts)
+
+您可以在此处查看结果。
+
+正如您所见，似乎没有什么希望。我的问题是：
+
+prophecy 到底发生了什么？特别是因为如果我调用 fit %&gt;% accuracy() 命令，prophet 会显示错误 0。
+您对如何改进这一点有什么建议吗？
+
+我知道可能有很大空间来优化指示趋势和季节性等模式的模型（尽管这些特定数据没有显示太多），但我需要这个过程是自动化的，所以我不能逐个数据集地微调模型。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649525/problems-with-prophet-library-for-time-series-forecasting</guid>
+      <pubDate>Wed, 19 Jun 2024 13:58:35 GMT</pubDate>
     </item>
     <item>
       <title>二次插值的不确定性传播</title>
@@ -276,44 +424,9 @@ plot(np.array([1, 2, 3]), np.array([3.1, 4.1, 1.6]), np.array([0.7, 0.4, 0.6]))
     <item>
       <title>如何找出两个风险比（风险比的比率）之间的差异</title>
       <link>https://stats.stackexchange.com/questions/649510/how-to-find-difference-between-two-hazard-ratios-ratio-of-hazard-ratios</link>
-      <description><![CDATA[我正在阅读荟萃分析，在这篇论文中，作者以某种方式比较了每项研究中两组不同治疗方案的 HR。据我所知，我们可以通过 OR、RR、SMD 比较两组不同治疗方案的结果，但我不明白如何比较两个风险比并找到“风险比”。直观地说，我想说实际上作者在研究中的森林图上表示 OR，但作者写道它是图上的 HR。此外，如果有一种方法可以比较两个风险比并找出它们之间的差异，特别是在 Rstudio 中，我恳请您帮助我了解如何执行此操作。]]></description>
+      <description><![CDATA[我正在阅读荟萃分析，在这篇论文中，作者以某种方式比较了每项研究中两组不同治疗方案的 HR。据我所知，我们可以通过 OR、RR、SMD 比较两组不同治疗方案的结果，但我不明白如何比较两个风险比并找到“风险比”。直观地说，我想说实际上作者在研究中的森林图上表示的是 OR，但作者写道它是图上的 HR。此外，如果有一种方法可以比较两个风险比并找出它们之间的差异，特别是在 Rstudio 中，我恳请您帮助我了解如何执行此操作。]]></description>
       <guid>https://stats.stackexchange.com/questions/649510/how-to-find-difference-between-two-hazard-ratios-ratio-of-hazard-ratios</guid>
       <pubDate>Wed, 19 Jun 2024 11:49:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>高斯图形模型/GLasso 的扩展 BIC 曲线何时看起来不正确？</title>
-      <link>https://stats.stackexchange.com/questions/649481/when-does-a-extended-bic-curve-for-a-gaussian-graphical-model-glasso-look-incorr</link>
-      <description><![CDATA[我有一个网络模型，我想根据 Foygel and Drton 2010 分析图形套索模型的扩展 BIC 曲线。本文列出了数据/模型的一系列假设，这些假设应满足 EBIC 的所需属性，其中包括边集的可分解性，但我认为我的网络不应该具有这些属性。我的曲线如下所示：
-
-左图为 BIC 曲线，右图为网络中的边数，红点表示与最小 BIC 对应的 lambda 值。我的问题是，曲线的不连续/非常非线性特性是否指向我的代码存在一些问题，或者模型的某个假设不成立？
-我的计算代码是：
-import numpy as np
-from sklearn import covariance
-
-BIC = lambda E, n, Theta, S, alpha, p: -n*(np.linalg.slogdet(Theta)[1] - np.trace(np.matmul(S, Theta))) + np.log(n)*E + 4*E*alpha*np.log(p)
-
-#emp_cov 是经验协方差矩阵
-alphaRange=np.linspace(0.00001, 0.0001, 50)
-n=50 #样本大小
-p = 500 #这是节点/随机变量的数量值向量
-bic_values = {}
-edge_counts = {}
-
-for alpha in alphaRange:
-try: 
-graphCov = covariance.graphical_lasso(emp_cov, alpha)
-E = (np.count_nonzero(graphCov[1] * ~np.eye(graphCov[1].shape[0], graphCov[1].shape[0], dtype=bool)))/2 
-&#39;&#39;&#39;
-这会将对角线元素设置为 0，然后计算矩阵中非零元素（边）的数量，并除以 2 bc 对称性
-&#39;&#39;&#39;
-bic_values[alpha] = BIC(E, n, graphCov[1], emp_cov, alpha, graphCov[1].shape[0])
-edge_counts[alpha] = E
-except FloatingPointError:
-print(f&quot;Failed at alpha={alpha}&quot;)
-
-如能提供任何帮助，我们将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649481/when-does-a-extended-bic-curve-for-a-gaussian-graphical-model-glasso-look-incorr</guid>
-      <pubDate>Tue, 18 Jun 2024 19:33:17 GMT</pubDate>
     </item>
     </channel>
 </rss>

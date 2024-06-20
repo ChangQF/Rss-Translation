@@ -4,14 +4,215 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 20 Jun 2024 01:03:12 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 20 Jun 2024 03:16:35 GMT</lastBuildDate>
+    <item>
+      <title>使用 DARTS 对多个时间序列进行全局模型训练导致 NaN 损失</title>
+      <link>https://stackoverflow.com/questions/78645163/training-global-model-on-multiple-time-series-with-darts-results-in-nan-loss</link>
+      <description><![CDATA[我尝试使用 DARTS 库在多个时间序列上训练全局模型，但我遇到了训练和验证损失的 NaN 值。在单个时间序列上进行训练时，它工作正常。我总共有 6 个时间序列。
+我怀疑一个可能的问题是每个时间序列的开始和结束时间戳都不同。这会导致多个时间戳，其中只有时间序列子集的数据可用。例如，在某些时间戳，6 个时间序列中可能只有 2 个有数据可用。
+这是我的代码：
+from darts import TimeSeries, Scaler
+from darts.models import NBEATSModel
+
+train_series = []
+val_series = []
+scalers = []
+
+for idx in train_df[&#39;region_city_item_encoded&#39;].unique():
+sub_train_df = train_df[train_df[&#39;region_city_item_encoded&#39;] == idx].sort_values(&#39;timestamp&#39;).reset_index(drop=True)
+sub_val_df = val_df[val_df[&#39;region_city_item_encoded&#39;] == idx].sort_values(&#39;timestamp&#39;).reset_index(drop=True)
+
+cur_time_train_series = TimeSeries.from_dataframe(sub_train_df, time_col=&#39;timestamp&#39;, value_cols=&#39;demand&#39;, fill_missing_dates=True)
+train_static_covariates = sub_train_df[[&#39;region_city_item_encoded&#39;]].drop_duplicates().reset_index(drop=True)
+cur_time_train_series = cur_time_train_series.with_static_covariates(train_static_covariates)
+
+cur_val_series = TimeSeries.from_dataframe(sub_val_df, time_col=&#39;timestamp&#39;, value_cols=&#39;demand&#39;, fill_missing_dates=True)
+val_static_covariates = sub_val_df[[&#39;region_city_item_encoded&#39;]].drop_duplicates().reset_index(drop=True)
+cur_val_series = cur_val_series.with_static_covariates(val_static_covariates)
+
+scaler = Scaler()
+cur_time_train_series = scaler.fit_transform(cur_time_train_series)
+cur_val_series = scaler.transform(cur_val_series)
+
+train_series.append(cur_time_train_series)
+val_series.append(cur_val_series)
+scalers.append(scaler)
+
+model = NBEATSModel(
+input_chunk_length=24,
+output_chunk_length=12,
+n_epochs=100,
+random_state=0
+)
+model.fit(series=train_series, val_series=val_series)
+
+我尝试了以下方法：
+
+确保使用以下方法填充缺失的日期fill_missing_dates=True。
+对每个时间序列分别应用缩放。
+
+训练了 DART 上可用的所有模型
+
+通过添加静态协变量和不使用静态协变量进行训练
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78645163/training-global-model-on-multiple-time-series-with-darts-results-in-nan-loss</guid>
+      <pubDate>Thu, 20 Jun 2024 01:28:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何评估鸢尾花数据集分类问题的不确定性？</title>
+      <link>https://stackoverflow.com/questions/78645152/how-to-estimate-the-uncertainty-of-the-classification-problem-for-the-iris-datas</link>
+      <description><![CDATA[对于 dropout 中神经网络的不确定性估计方法，作为深度学习中表示模型不确定性的贝叶斯近似，我想将其应用于鸢尾花数据集。计算回归任务上 T 正向传播的标准差足以作为模型预测的不确定性，但我应该如何获得鸢尾花数据集上模型预测的不确定性？
+下面是我的回归任务的代码和结果：
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 如果可用，则将设备设置为 GPU，否则设置为 CPU
+device = torch.device(&quot;cuda:0&quot;)
+
+# 定义一个带 dropout 的简单神经网络模型
+class SimpleModel(torch.nn.Module):
+def __init__(self, dropout_rate, decay):
+super(SimpleModel, self).__init__()
+self.dropout_rate = dropout_rate
+self.decay = decay
+self.f = torch.nn.Sequential(
+torch.nn.Linear(1, 20),
+torch.nn.ReLU(),
+torch.nn.Dropout(p=self.dropout_rate),
+torch.nn.Linear(20, 20),
+torch.nn.ReLU(),
+torch.nn.Dropout(p=self.dropout_rate),
+torch.nn.Linear(20, 1)
+)
+
+def forward(self, X): 
+return self.f(X)
+
+# 用于估计模型预测中的不确定性的函数
+defunctity_estimate(x, model, num_samples, l2):
+# 从模型中获取多个预测以估计不确定性
+outputs = np.hstack([model(x).cpu().detach().numpy() for i in range(num_samples)]) 
+y_mean = output.mean(axis=1)
+y_variance = output.var(axis=1)
+tau = l2 * (1. - model.dropout_rate) / (2. * N * model.decay)
+y_variance += (1. / tau)
+y_std = np.sqrt(y_variance)
+return y_mean, y_std
+
+# 生成合成数据
+N = 200 
+min_value = -10
+max_value = 10
+
+x_obs = np.linspace(min_value, max_value, N)
+noise = np.random.normal(loc = 10, scale = 80, size = N)
+y_obs = x_obs**3 + noise
+
+x_test = np.linspace(min_value - 10, max_value + 10, N)
+y_test = x_test**3 + noise
+
+# 标准化数据
+x_mean, x_std = x_obs.mean(), x_obs.std()
+y_mean, y_std = y_obs.mean(), y_obs.std()
+x_obs = (x_obs - x_mean) / x_std
+y_obs = (y_obs - y_mean) / y_std
+x_test = (x_test - x_mean) / x_std
+y_test = (y_test - y_mean) / y_std
+
+# 实例化模型、损失函数和优化器
+model = SimpleModel(dropout_rate=0.5, decay=1e-6).to(device)
+criterion = torch.nn.MSELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=model.decay)
+
+# 训练模型
+for iter in range(20000):
+y_pred = model(torch.Tensor(x_obs).view(-1,1).to(device))
+y_true = torch.Tensor(y_obs).view(-1,1).to(device)
+optimizer.zero_grad()
+loss = criterion(y_pred, y_true)
+loss.backward()
+optimizer.step()
+
+if iter % 2000 == 0:
+print(&quot;Iter: {}, Loss: {:.4f}&quot;.format(iter, loss.item()))
+
+# 估计模型预测中的不确定性
+iters_uncertainty = 200
+lengthscale = 0.01
+n_std = 2 # 要绘制的标准差数
+y_mean, y_std = Certainty_estimate(torch.Tensor(x_test).view(-1,1).to(device), model, iters_uncertainty, lengthscale)
+
+# 绘制结果
+plt.figure(figsize=(12,6))
+plt.plot(x_obs, y_obs，ls=“none”，marker=“o”，color=“0.1”，alpha=0.8，label=“observed”）
+plt.plot（x_test，y_mean，ls=“-”，color=“b”，label=“mean”）
+plt.plot（x_test，y_test，ls=&#39;--&#39;，color=&#39;r&#39;，label=&#39;true&#39;）
+for i in range(n_std):
+plt.fill_between（ 
+x_test，
+y_mean - y_std * ((i+1.)),
+y_mean + y_std * ((i+1.)),
+color=“b”，
+alpha=0.1
+)
+plt.legend()
+plt.grid()
+plt.show()
+
+
+
+对于鸢尾花分类问题，我认为就是计算T前向传播的softmax输出的均值和标准差，在均值中找出输出最大值的索引作为预测，在标准差中找出该索引对应的标准差作为不确定性，不知道对不对。]]></description>
+      <guid>https://stackoverflow.com/questions/78645152/how-to-estimate-the-uncertainty-of-the-classification-problem-for-the-iris-datas</guid>
+      <pubDate>Thu, 20 Jun 2024 01:24:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>对训练数据集使用决策树模型后仅生成一个节点</title>
+      <link>https://stackoverflow.com/questions/78645119/only-one-node-generated-after-using-decision-tree-model-on-training-data-set</link>
+      <description><![CDATA[1我正在尝试构建一个决策树模型，该模型基于预测变量预测结果变量（名为：结果）。实际上，我已经对一些&quot;&gt;2 级&quot;变量应用了独热编码，以便稍微扩展预测变量的 n [我的数据]。
+我首先探索了数据，然后将其拆分为 80/20 拆分并运行模型，但在训练数据集上运行的模型最终只有一个节点，没有分支。查看类似的帖子，我发现我的数据不平衡，因为通过检查类分配的 prop.table（结果变量），大多数是负面的，而不是正面的。关于在此数据上创建正确树的任何建议
+这是我的代码：
+将数据拆分为测试和训练数据（80％训练和20％测试数据）
+set.seed(1234)
+pd &lt;- sample(2, nrow(data_hum_mod), replace = TRUE, prob = c(0.8,0.2))
+data_hum_train &lt;- data_hum_mod[pd==1,]
+data_hum_test&lt;- data_hum_mod[pd==2,]
+
+拆分后的数据探索
+检查数据维度
+dim(data_hum_train); dim(data_hum_test)
+#确保分离后的数据中每个结果类别的 n 值是平衡的（即阳性/阴性 toxo）
+prop.table(table(data_hum_train$Results)) * 100
+prop.table(table(data_hum_test$Results)) *100
+
+检查缺失值
+anyNA(data_hum_mod)
+#确保所有变量的方差均不为零或接近零。
+nzv(data_hum_mod)
+构建模型（使用 party 包）
+install.packages(&#39;party&#39;)
+library(party)
+
+data_human_train_tree&lt;- ctree(Results ~., data = data_hum_train,
+controls = ctree_control(mincriterion = 0.1))
+data_human_train_tree
+plot(data_human_train_tree)
+
+使用此代码，我获得了此图
+使用其他包（如 C50 和 rpart）也得到了相同的结果
+您能对此提出建议吗？我读到了关于多数类的子采样（这里是负面结果），如何在 R 中实现这一点？
+谢谢]]></description>
+      <guid>https://stackoverflow.com/questions/78645119/only-one-node-generated-after-using-decision-tree-model-on-training-data-set</guid>
+      <pubDate>Thu, 20 Jun 2024 01:04:59 GMT</pubDate>
+    </item>
     <item>
       <title>我在创建与NLP相关的项目时遇到了问题</title>
       <link>https://stackoverflow.com/questions/78644918/i-encountered-a-problem-when-creating-a-project-related-to-nlp</link>
       <description><![CDATA[需要帮助编写和训练神经网络来设置文本样式。输入两个文本：一个样式化示例和一个信息文本。输出是与第一个文本样式化的文本，但其信息含义与第二个文本（摘要）相似，但不包括重复。神经网络必须考虑各种风格特征（表情符号、粗体、斜体、链接、删除线和下划线文本、编号/列表等）。
 
 是否有可能实现这一点？
-我尝试使用文本摘要方法制作一个神经元，但后来我卡住了，不知道该去哪里，我尝试了 T5 模型，但没有得到任何有意义的结果
+我尝试使用文本摘要方法制作一个神经元，但后来我陷入困境，不知道该去哪里，我尝试了 T5 模型，但没有得到任何有意义的结果
 import re
 import torch
 from transformers import T5ForConditionalGeneration, T5Tokenizer
@@ -144,7 +345,7 @@ return dj_dw
     <item>
       <title>如何提取不同图像中相同的 ROI 区域？[关闭]</title>
       <link>https://stackoverflow.com/questions/78644034/how-can-i-extract-roi-region-same-in-different-images</link>
-      <description><![CDATA[我是 ROI 提取方面的新手。我有许多像这样的图像 ROI 区域，这些图像是由相机从人们的眼睛中捕捉到的。我想确定某人是否患有贫血症。
+      <description><![CDATA[我是 ROI 提取的新手。我有许多像这样的图像 ROI 区域，它们是由相机从人们的眼睛中捕捉到的。我想确定某人是否患有贫血症。
 想使用此 ROI 区域通过 Pearson 相关指数进行数学运算。
 我使用开放 CV 和 python。想在所有不同的图像中准确提取这个区域我的 ROI 目标。也不知道如何找到这个 ROI 区域的坐标。
 谢谢]]></description>
@@ -196,90 +397,6 @@ returned_job = ml_client.create_or_update(job)
       <pubDate>Wed, 19 Jun 2024 16:06:28 GMT</pubDate>
     </item>
     <item>
-      <title>如果动作依赖于状态并且动作空间巨大，那么如何定义动作？</title>
-      <link>https://stackoverflow.com/questions/78643467/how-to-define-action-if-the-actions-are-state-dependent-and-the-action-space-are</link>
-      <description><![CDATA[我正在尝试使用 RL 来解决我的问题。这个问题具有巨大的状态空间（离散）和巨大的动作空间。此外，每个状态可用的动作各不相同（取决于状态）。因此，我不能使用通用 DQN，其中输出状态等于类的数量。此外，我在将动作编码到 NN 中时遇到了问题（因为大小和不同的类别）。但是，这个问题中的转换是确定性的，其中我知道采取行动后从当前状态到下一个状态。
-有什么方法可以表示动作？或者有没有比 DQN 更好的 RL 算法可以使用？
-谢谢
-目前的想法是训练一个 DQN，其中输入既是当前状态，也是采取行动后的下一个状态。]]></description>
-      <guid>https://stackoverflow.com/questions/78643467/how-to-define-action-if-the-actions-are-state-dependent-and-the-action-space-are</guid>
-      <pubDate>Wed, 19 Jun 2024 15:40:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>cached_download 是从 HF 中心下载文件的传统方式，请考虑升级到“hf_hub_download</title>
-      <link>https://stackoverflow.com/questions/78642556/cached-download-is-the-legacy-way-to-download-files-from-the-hf-hub-please-cons</link>
-      <description><![CDATA[我在使用嵌入模块进行人脸编码时遇到了这个问题。我该如何解决它们？
-我尝试下载 Hugging Face 库并对其进行了探索，但找不到方法，并且还出现了类似 Future Warning: feature_extractor 已弃用并将在 v5 中删除的警告。请改用 image_processor。或已弃用并将在 v5 中删除。请改用image_processor\。它在笔记本电脑上运行良好，并会生成警告，但在 Raspbery Pi 中，它会终止程序。]]></description>
-      <guid>https://stackoverflow.com/questions/78642556/cached-download-is-the-legacy-way-to-download-files-from-the-hf-hub-please-cons</guid>
-      <pubDate>Wed, 19 Jun 2024 12:36:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>U-Net 无法过度拟合单个训练示例 - 损失平台</title>
-      <link>https://stackoverflow.com/questions/78642145/u-net-unable-to-overfit-single-training-example-loss-plateaus</link>
-      <description><![CDATA[我正在通过在由单个训练示例（图像到图像）组成的“数据集”上训练 U-Net 架构来测试它。输入图像是输出图像的噪声版本。最初，输出图像开始看起来更像所需的输出，但损失曲线开始趋于稳定，模型停止改进。
-我的问题是：
-
-U-Net（或任何没有完全连接层的 CNN）是否应该能够在给定单个示例的情况下在恒定图像上过度拟合？
-如果它不能完成这个简单的任务，会犯什么常见错误或需要注意什么？
-
-我通过将深度降低到几乎双卷积层（没有任何编码器/解码器层）来简化架构，并调整了学习率，但它仍然不会过度拟合。我期望模型在单个训练示例上完美地过度拟合，但事实并非如此。我已经调整了学习率，但模型仍然无法在这个简单的任务上实现完美的过度拟合。
-缩放输入图像
-缩放地面实况
-达到平台期后的缩放模型输出
-
-以下是我的实验的具体内容：
-架构（深度 1）：
-UNet(
-(encoders): ModuleList(
-(0): Sequential(
-(0): Conv2d(4, 64，kernel_size=(3, 3)，stride=(1, 1)，padding=(1, 1))
-(1): ReLU(inplace=True)
-(2): Conv2d(64, 64，kernel_size=(3, 3)，stride=(1, 1)，padding=(1, 1))
-(3): ReLU(inplace=True)
-)
-)
-(解码器): ModuleList(
-(0): ConvTranspose2d(128, 64，kernel_size=(2, 2)，stride=(2, 2))
-(1): Sequential(
-(0): Conv2d(128, 64，kernel_size=(3, 3)，stride=(1, 1)，padding=(1, 1))
-(1): ReLU(inplace=True)
-(2): Conv2d(64, 64，kernel_size=(3, 3)，步幅=(1, 1), 填充=(1, 1))
-(3): ReLU(inplace=True)
-)
-)
-(pool): MaxPool2d(kernel_size=2, 步幅=2, 填充=0, 扩张=1, ceil_mode=False)
-(bottleneck): Sequential(
-(0): Conv2d(64, 128, kernel_size=(3, 3), 步幅=(1, 1), 填充=(1, 1))
-(1): ReLU(inplace=True)
-(2): Conv2d(128, 128, kernel_size=(3, 3), 步幅=(1, 1), 填充=(1, 1))
-(3): ReLU(inplace=True)
-)
-(out_conv): Conv2d(64, 4, kernel_size=(1, 1), 步幅=(1, 1))
-)
-
-初始化：Kaiming Normal
- def _initialize_weights(self) -&gt; None:
-for m in self.modules():
-if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):
-nn.init.kaiming_normal_(m.weight, mode=&#39;fan_in&#39;, nonlinearity=&#39;relu&#39;)
-if m.bias is not None:
-nn.init.constant_(m.bias, 0)
-
-上采样方法：Crop 和 Concat
- def crop_and_concat(self, upsampled: torch.Tensor,
-passive: torch.Tensor) -&gt; torch.Tensor:
-diffY =pass.size()[2] - upsampled.size()[2]
-diffX =pass.size()[3] - upsampled.size()[3]
-upsampled = F.pad(upsampled, (diffX // 2, diffX - diffX // 2,
-diffY // 2, diffY - diffY // 2))
-return torch.cat((upsampled,bypass), dim=1)
-
-损失：MSELoss
-优化器：Adam，学习率从 1e-3 到 1e-4（上面的一切都在震荡，下面的也达到了稳定状态并且收敛速度较慢）]]></description>
-      <guid>https://stackoverflow.com/questions/78642145/u-net-unable-to-overfit-single-training-example-loss-plateaus</guid>
-      <pubDate>Wed, 19 Jun 2024 11:09:33 GMT</pubDate>
-    </item>
-    <item>
       <title>是否应将多个分类嵌入组合成条件 GAN（cGAN）？[关闭]</title>
       <link>https://stackoverflow.com/questions/78639650/should-multiple-categorical-embeddings-be-combined-for-a-conditional-gan-cgan</link>
       <description><![CDATA[我正在尝试制作一个条件 GAN (cGAN)，它可以根据标题和视频类别/流派生成 YouTube 缩略图。
@@ -328,11 +445,16 @@ final_output = self.fully_connected4(combined_output)
       <pubDate>Tue, 18 Jun 2024 21:04:12 GMT</pubDate>
     </item>
     <item>
-      <title>AttributeError：模块“keras.src.backend”没有属性“convert_to_numpy”</title>
-      <link>https://stackoverflow.com/questions/78638871/attributeerror-module-keras-src-backend-has-no-attribute-convert-to-numpy</link>
-      <description><![CDATA[我尝试使用 utoencoder 和 rus 相应的代码，并在使用 tensorflow 和 keras 时遇到问题，在下面的代码中我展示了代码和相应的错误。当我拟合自动编码器模型时，它显示 AttributeError: module &#39;keras.src.backend&#39; 没有属性 &#39;convert_to_numpy&#39;。我无法理解这个错误和相应的解决方案。对于这种情况我该如何解决我的问题？我使用 anaconda3 运行此代码。我使用 tensorflow 版本 2.16.1 和 keras 版本 3.3.3，错误显示在模型、拟合线中。我尝试使用自动编码器消除噪音，在这种情况下我编写了代码。我尝试运行多次但没有成功。我在 genimi 中写入错误。它向我展示了两种方法 1. 升级 tensorflow 和 keras 2. 不要使用 backend.convert_to_numpy，而是使用推荐的方法在较新版本中将张量转换为 NumPy 数组。]]></description>
-      <guid>https://stackoverflow.com/questions/78638871/attributeerror-module-keras-src-backend-has-no-attribute-convert-to-numpy</guid>
-      <pubDate>Tue, 18 Jun 2024 17:28:14 GMT</pubDate>
+      <title>理解 Transformers 的结果，通过梯度下降进行情境学习</title>
+      <link>https://stackoverflow.com/questions/78639577/understanding-the-results-of-transformers-learn-in-context-with-gradient-descent</link>
+      <description><![CDATA[我正在尝试实现这篇论文：
+https://arxiv.org/pdf/2212.07677
+（这是他们的代码）：
+https://github.com/google-research/self-organising-systems/tree/master/transformers_learn_icl_by_gd
+我正在努力匹配他们的实验结果。具体来说，在他们最简单的 GD 模型（单层、单头、无 softmax）上，他们在测试数据上获得了大约 0.20 的恒定低损失。从概念上讲，我不太明白为什么会这样。
+据我所知，这个模型只对数据进行了一次梯度下降迭代，那么为什么它会达到如此低的损失？为什么损失在训练步骤中会保持恒定/接近恒定？我们不是在 GD 模型中训练学习率吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78639577/understanding-the-results-of-transformers-learn-in-context-with-gradient-descent</guid>
+      <pubDate>Tue, 18 Jun 2024 20:43:45 GMT</pubDate>
     </item>
     <item>
       <title>使用 BARTDecoder 和 cached_property 的 Nougat OCR 中的 ImportError 和 TypeError 问题</title>
