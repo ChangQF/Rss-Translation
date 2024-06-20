@@ -4,9 +4,154 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 20 Jun 2024 15:16:48 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 20 Jun 2024 18:20:35 GMT</lastBuildDate>
     <item>
-      <title>如何将200万份简历高精度地匹配到200个职位？</title>
+      <title>具有二元结果预测的单一时间序列</title>
+      <link>https://stackoverflow.com/questions/78648701/single-time-series-with-binary-outcome-prediction</link>
+      <description><![CDATA[我有全天股票价格的时间序列和与这些价格相关的二元结果变量（行动），即买入/无行动。
+目标是预测股票价格和行动变量之间是否存在相关性。
+不确定逻辑回归或决策树是否是可行的方法。你认为哪一个更有意义？
+考虑到没有太多节点可以使用，决策树是否可行？
+我认为随机森林会有点矫枉过正。
+仅供参考，我不熟悉 NN。
+请就对此类数据建模的最佳方法提供建议。]]></description>
+      <guid>https://stackoverflow.com/questions/78648701/single-time-series-with-binary-outcome-prediction</guid>
+      <pubDate>Thu, 20 Jun 2024 16:33:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>可从头定制的神经网络</title>
+      <link>https://stackoverflow.com/questions/78648642/neural-network-customisable-from-scratch</link>
+      <description><![CDATA[我从头开始创建了一个神经网络。仅使用 numpy 库。但损失函数没有收敛，并且准确率不稳定。请帮助我找出问题所在。如果您能给我解决方案的话
+这是我的代码
+# 计算分类器准确率的函数
+def accuracy(output, y):
+a = np.argmax(output, axis=0)
+
+return np.mean(a == y)
+
+# 返回初始权重和基准的函数
+def initialisation(t):
+parameters = {}
+np.random.seed(1)
+for i in range(len(t) - 1):
+parameters[&#39;w&#39; + str(i + 1)] = np.random.randn(t[i + 1], t[i])
+parameters[&#39;b&#39; + str(i + 1)] = np.zeros((t[i + 1], 1))
+返回参数
+
+def relu_activation(x):
+返回 np.maximum(0, x)
+
+def relu_derivative(x):
+返回 np.where(x &gt; 0, 1, 0)
+
+def softmax_activation(z):
+z = z - np.max(z, axis=0, keepdims=True)
+z = np.exp(z)
+softmax = z / np.sum(z, axis=0, keepdims=True)
+返回 softmax
+
+def sigmoid_activation(x):
+返回 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+返回 np.exp(-x) / (1 + np.exp(-x)) ** 2
+
+def derive(x, num):
+if num == 1:
+return relu_derivative(x)
+elif num == 3:
+return sigmoid_derivative(x)
+
+#根据数字 n 选择激活函数的函数
+def activate(z, n):
+if n == 1:
+return relu_activation(z)
+elif n == 2:
+return softmax_activation(z)
+elif n == 3:
+return sigmoid_activation(z)
+
+#计算损失函数的函数
+def loss_function(a_last, y):
+output = np.clip(a_last, 1e-7, 1 - 1e-7)
+num = y.shape[1]
+loss = -np.mean(np.log(output[np.argmax(y, axis=0), np.arange(num)]))
+return loss
+
+def Z(x, w, b):
+return np.dot(w, x) + b
+
+#实现前向传播的函数
+def forward(x, parameters, configuration, t):
+cache = {&#39;a0&#39;: x}
+for i in range(len(t) - 1):
+cache[&#39;z&#39; + str(i + 1)] = Z(cache[&#39;a&#39; + str(i)], parameters[&#39;w&#39; + str(i + 1)], parameters[&#39;b&#39; + str(i + 1)])
+cache[&#39;a&#39; + str(i + 1)] = activate(cache[&#39;z&#39; + str(i + 1)], configuration[i])
+return cache
+
+#实现反向传播的函数传播
+def behind(cache, t, configuration, parameters, y):
+m = cache[&#39;a&#39; + str(len(t) - 1)].shape[1]
+grad = {&#39;dw&#39; + str(len(t) - 1): np.dot((cache[&#39;a&#39; + str(len(t) - 1)] - y), cache[&#39;a&#39; + str(len(t) - 2)].T) / m,
+&#39;db&#39; + str(len(t) - 1): np.sum(cache[&#39;a&#39; + str(len(t) - 1)] - y, axis=1, keepdims=True) / m,
+&#39;dz&#39; + str(len(t) - 1): cache[&#39;a&#39; + str(len(t) - 1)] - y}
+
+for i in range(len(t) - 2, 0, -1):
+grad[&#39;dz&#39; + str(i)] = np.dot(parameters[&#39;w&#39; + str(i + 1)].T, grad[&#39;dz&#39; + str(i + 1)] * derive(cache[&#39;z&#39; + str(i + 1)], configuration[i - 1]))
+grad[&#39;dw&#39; + str(i)] = np.dot(grad[&#39;dz&#39; + str(i)], cache[&#39;a&#39; + str(i - 1)].T) / m
+grad[&#39;db&#39; + str(i)] = np.sum(grad[&#39;dz&#39; + str(i)], axis=1, keepdims=True) / m
+
+return grad
+
+# 更新权重和基准的函数
+def update(learning_rate, parameters, grad, t):
+for i in range(len(t) - 1):
+parameters[&#39;w&#39; + str(i + 1)] = np.clip(parameters[&#39;w&#39; + str(i + 1)] - learning_rate * grad[&#39;dw&#39; + str(i + 1)], -10, 10)
+parameters[&#39;b&#39; + str(i + 1)] = np.clip(parameters[&#39;b&#39; + str(i + 1)] - learning_rate * grad[&#39;db&#39; + str(i + 1)], -10, 10)
+return parameters
+
+#学习函数
+def learning(x, y, t, configuration, nb, learning_rate):
+param = initialisation(t)
+los = []
+for i in tqdm.tqdm(range(nb)):
+cache = forward(x, param, configuration, t)
+grad = behind(cache, t, configuration, param, y)
+loss = loss_function(cache[&#39;a&#39; + str(len(t) - 1)], y)
+param = update(learning_rate, param, grad, t)
+los = np.append(los, loss)
+if i % (nb // 20) == 0:
+print(f&quot;loss={loss}, accuracy={100 * accuracy(cache[&#39;a&#39; + str(len(t) - 1)], y)}%&quot;)
+plt.plot(np.arange(nb), los)
+print(np.argmax(cache[&#39;a&#39; + str(len(t) - 1)], axis=0), np.argmax(y, axis=0))
+return param
+
+def predict(x, parameters, configuration, t):
+cache = forward(x, parameters, configuration, t)
+return cache[&#39;a&#39; + str(len(t) - 1)]
+import tensorflow as tf
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+#了解训练数据的形状
+x_train.shape
+x=x_train.reshape(60000,784).T/255.0
+y=y_train.reshape(-1,60000)
+t=np.array([x.shape[0],128,64,10])
+configuration=np.array([1,1,2])
+arr_1d=y
+
+arr_2d = np.zeros((10,60000))
+
+#将相应的列索引设置为 1
+for i in range(len(arr_1d)):
+arr_2d[y[0, i], i] = 1
+
+para=learning(x,arr_2d,t,configuration,2000,0.0001)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78648642/neural-network-customisable-from-scratch</guid>
+      <pubDate>Thu, 20 Jun 2024 16:22:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将 200 万份简历高精度地与 200 个职位匹配？[关闭]</title>
       <link>https://stackoverflow.com/questions/78647918/how-to-match-2-million-resumes-to-200-jobs-with-high-accuracy</link>
       <description><![CDATA[我面临的挑战是将 200 万份简历与 200 个活跃职位空缺进行匹配，目标准确率为 80%。我的目标是简化我们的招聘流程，确保候选人与职位的准确匹配。以下是详细信息：
 问题陈述
@@ -35,6 +180,13 @@ OpenAI 的 Ada-002 嵌入模型
 谢谢！]]></description>
       <guid>https://stackoverflow.com/questions/78647918/how-to-match-2-million-resumes-to-200-jobs-with-high-accuracy</guid>
       <pubDate>Thu, 20 Jun 2024 13:56:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>超分辨率 GAN 训练中生成器和鉴别器损失之间的不平衡</title>
+      <link>https://stackoverflow.com/questions/78647617/imbalance-between-generator-and-discriminator-losses-in-gan-training-for-super-r</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78647617/imbalance-between-generator-and-discriminator-losses-in-gan-training-for-super-r</guid>
+      <pubDate>Thu, 20 Jun 2024 12:57:24 GMT</pubDate>
     </item>
     <item>
       <title>时间序列预测，其中历史值也会由于滞后而更新</title>
@@ -90,67 +242,6 @@ Q2-为什么我们没有在 skip connection 中使用卷积层来匹配 mobile-n
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78645720/same-loss-and-accuracy-for-all-epochs</guid>
       <pubDate>Thu, 20 Jun 2024 06:01:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>CUDAError：使用 Gymnasium 的 RL 环境内存不足</title>
-      <link>https://stackoverflow.com/questions/78645476/cudaerror-not-enough-memory-for-an-rl-environment-using-gymnasium</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78645476/cudaerror-not-enough-memory-for-an-rl-environment-using-gymnasium</guid>
-      <pubDate>Thu, 20 Jun 2024 04:14:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 DARTS 对多个时间序列进行全局模型训练导致 NaN 损失</title>
-      <link>https://stackoverflow.com/questions/78645163/training-global-model-on-multiple-time-series-with-darts-results-in-nan-loss</link>
-      <description><![CDATA[我尝试使用 DARTS 库在多个时间序列上训练全局模型，但训练和验证损失都遇到了 NaN 值。在单个时间序列上进行训练时，它工作正常。我总共有 6 个时间序列。
-我怀疑一个可能的问题是每个时间序列的开始和结束时间戳都不同。这会导致多个时间戳，其中只有时间序列子集的数据可用。例如，在某些时间戳，6 个时间序列中可能只有 2 个有数据可用。
-这是我的代码：
-from darts import TimeSeries, Scaler
-from darts.models import NBEATSModel
-
-train_series = []
-val_series = []
-scalers = []
-
-for idx in train_df[&#39;region_city_item_encoded&#39;].unique():
-sub_train_df = train_df[train_df[&#39;region_city_item_encoded&#39;] == idx].sort_values(&#39;timestamp&#39;).reset_index(drop=True)
-sub_val_df = val_df[val_df[&#39;region_city_item_encoded&#39;] == idx].sort_values(&#39;timestamp&#39;).reset_index(drop=True)
-
-cur_time_train_series = TimeSeries.from_dataframe(sub_train_df, time_col=&#39;timestamp&#39;, value_cols=&#39;demand&#39;, fill_missing_dates=True)
-train_static_covariates = sub_train_df[[&#39;region_city_item_encoded&#39;]].drop_duplicates().reset_index(drop=True)
-cur_time_train_series = cur_time_train_series.with_static_covariates(train_static_covariates)
-
-cur_val_series = TimeSeries.from_dataframe(sub_val_df, time_col=&#39;timestamp&#39;, value_cols=&#39;demand&#39;, fill_missing_dates=True)
-val_static_covariates = sub_val_df[[&#39;region_city_item_encoded&#39;]].drop_duplicates().reset_index(drop=True)
-cur_val_series = cur_val_series.with_static_covariates(val_static_covariates)
-
-scaler = Scaler()
-cur_time_train_series = scaler.fit_transform(cur_time_train_series)
-cur_val_series = scaler.transform(cur_val_series)
-
-train_series.append(cur_time_train_series)
-val_series.append(cur_val_series)
-scalers.append(scaler)
-
-model = NBEATSModel(
-input_chunk_length=24,
-output_chunk_length=12,
-n_epochs=100,
-random_state=0
-)
-model.fit(series=train_series, val_series=val_series)
-
-我尝试了以下方法：
-
-确保使用以下方法填充缺失的日期fill_missing_dates=True。
-对每个时间序列分别应用缩放。
-
-训练了 DART 上可用的所有模型
-
-通过添加静态协变量和不使用静态协变量进行训练
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78645163/training-global-model-on-multiple-time-series-with-darts-results-in-nan-loss</guid>
-      <pubDate>Thu, 20 Jun 2024 01:28:38 GMT</pubDate>
     </item>
     <item>
       <title>对训练数据集使用决策树模型后仅生成一个节点</title>
@@ -213,69 +304,6 @@ LR-P2：
 我的问题是，我正在进行所有计算，但 excel 给出了 NUM 错误，而模型 LR-P2 没有。这是因为目标函数对于 LR-P1 来说太小，以至于 excel 求解器无法对其进行交换，从而导致数值问题吗？]]></description>
       <guid>https://stackoverflow.com/questions/78644668/logistic-regression-in-excel</guid>
       <pubDate>Wed, 19 Jun 2024 21:13:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>控制 Azure ML 命令源代码的上传位置</title>
-      <link>https://stackoverflow.com/questions/78643575/control-where-source-code-for-azure-ml-command-gets-uploaded</link>
-      <description><![CDATA[我正在 Azure 机器学习工作室的笔记本中工作，并使用以下代码块通过 命令函数 实例化作业。
-来自 azure.ai.ml 导入命令、输入、输出
-来自 azure.ai.ml.entities 导入数据
-来自 azure.ai.ml.constants 导入 AssetTypes
-
-subscription_id = &quot;&lt;subscription_id&gt;&quot;
-resource_group = &quot;&lt;resource_group&gt;&quot;
-working = &quot;&lt;workspace&gt;&quot;
-storage_account = &quot;&lt;storage_account&gt;&quot;
-输入路径 = &quot;&lt;输入路径&gt;&quot;
-输出路径 = &quot;&lt;输出路径&gt;&quot;
-
-input_dict = {
-&quot;input_data_object&quot;: 输入(
-type=AssetTypes.URI_FILE, 
-path=f&quot;azureml://subscriptions/{subscription_id}/resourcegroups/{resource_group}/workspaces/{workspace}/datastores/{storage_account}/paths/{input_path}&quot;
-)
-}
-
-output_dict = {
-&quot;output_folder_object&quot;: 输出(
-type=AssetTypes.URI_FOLDER,
-path=f&quot;azureml://subscriptions/{subscription_id}/resourcegroups/{resource_group}/workspaces/{workspace}/datastores/{storage_account}/paths/{output_path}&quot;,
-)
-}
-
-job = command(
-code=&quot;./src&quot;, 
-command=&quot;python 01_read_write_data.py -v --input_data=${{inputs.input_data_object}} --output_folder=${{outputs.output_folder_object}}&quot;,
-inputs=input_dict,
-outputs=output_dict,
-environment=&quot;&lt;asset_env&gt;&quot;,
-compute=&quot;&lt;compute_cluster&gt;&quot;,
-)
-
-returned_job = ml_client.create_or_update(job)
-
-此操作成功运行，但每次运行时，如果存储在 ./src 目录中的代码发生变化，则会将新副本上传到默认的 blob 存储帐户。我不介意这一点，但每次运行时，代码都会上传到我的 blob 存储帐户根目录下的新容器中。因此，我的默认存储帐户会因容器而变得杂乱无章。我已阅读使用 command() 函数实例化 command 对象的文档，但我没有看到可用于控制 ./src 代码上传位置的参数。有什么方法可以控制吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78643575/control-where-source-code-for-azure-ml-command-gets-uploaded</guid>
-      <pubDate>Wed, 19 Jun 2024 16:06:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>理解 Transformers 的结果，通过梯度下降进行情境学习</title>
-      <link>https://stackoverflow.com/questions/78639577/understanding-the-results-of-transformers-learn-in-context-with-gradient-descent</link>
-      <description><![CDATA[我正在尝试实现这篇论文：
-https://arxiv.org/pdf/2212.07677
-（这是他们的代码）：
-https://github.com/google-research/self-organising-systems/tree/master/transformers_learn_icl_by_gd
-我正在努力匹配他们的实验结果。具体来说，在他们最简单的 GD 模型（单层、单头、无 softmax）上，他们在测试数据上获得了大约 0.20 的恒定低损失。从概念上讲，我不太明白为什么会这样。
-据我所知，这个模型只对数据进行了一次梯度下降迭代，那么为什么它会达到如此低的损失？为什么损失在训练步骤中会保持恒定/接近恒定？我们不是在 GD 模型中训练学习率吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78639577/understanding-the-results-of-transformers-learn-in-context-with-gradient-descent</guid>
-      <pubDate>Tue, 18 Jun 2024 20:43:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 tfa.losses.TripletSemiHardLoss 训练具有三重损失的暹罗网络？</title>
-      <link>https://stackoverflow.com/questions/78635866/how-to-train-a-siamese-network-with-triplet-loss-using-tfa-losses-tripletsemihar</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78635866/how-to-train-a-siamese-network-with-triplet-loss-using-tfa-losses-tripletsemihar</guid>
-      <pubDate>Tue, 18 Jun 2024 06:47:18 GMT</pubDate>
     </item>
     <item>
       <title>将图像置于中心并在导出时添加背景</title>
@@ -393,6 +421,17 @@ Cyril]]></description>
       <pubDate>Wed, 05 Jun 2024 14:13:43 GMT</pubDate>
     </item>
     <item>
+      <title>是否可以训练神经网络来输入随机森林分类器或任何其他类型的分类器（如 XGBoost 或决策树）？</title>
+      <link>https://stackoverflow.com/questions/78461828/is-it-possible-to-train-a-neural-network-to-feed-into-a-random-forest-classifier</link>
+      <description><![CDATA[我想创建一个模型架构来预测未来的股价走势，如下所示：
+
+该模型的目标是预测未来 3 个月内价格是上涨还是下跌。
+我尝试过一些模型，例如 Logistic 回归、神经网络、XGBoost 等。我得到了一些不错的结果。通过使用随机森林分类器，我得到了迄今为​​止最好的结果。我如何使用神经网络对数据进行编码，然后将这些值传递给随机森林分类器进行分类，而不是使用如图所示的使用 S 形函数的最终输出层（使用 Python、Keras 和 SKlearn）。
+我对 Keras 不是很熟悉，所以我想知道是否有可能训练一个输入到单独分类器的神经网络，如果可以，该怎么做。]]></description>
+      <guid>https://stackoverflow.com/questions/78461828/is-it-possible-to-train-a-neural-network-to-feed-into-a-random-forest-classifier</guid>
+      <pubDate>Fri, 10 May 2024 17:53:36 GMT</pubDate>
+    </item>
+    <item>
       <title>如果数据只有一个特征，则使用 array.reshape(-1, 1) 重塑数据；如果数据只有一个样本，则使用 array.reshape(1, -1)</title>
       <link>https://stackoverflow.com/questions/58663739/reshape-your-data-either-using-array-reshape-1-1-if-your-data-has-a-single-fe</link>
       <description><![CDATA[当我从我的数据中预测一个样本时，它给出了重塑错误，但我的模型具有相同的行数。这是我的代码：
@@ -415,6 +454,13 @@ array=2.4。
 ]]></description>
       <guid>https://stackoverflow.com/questions/58663739/reshape-your-data-either-using-array-reshape-1-1-if-your-data-has-a-single-fe</guid>
       <pubDate>Fri, 01 Nov 2019 17:56:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 pyspark 上创建分层分割训练、验证和测试集？</title>
+      <link>https://stackoverflow.com/questions/58014693/how-to-create-stratified-split-training-validation-and-test-set-on-pyspark</link>
+      <description><![CDATA[我有一个小数据集（140K），我想将其分成验证集、验证集测试集，使用目标变量和另一个字段来限制这些分割。]]></description>
+      <guid>https://stackoverflow.com/questions/58014693/how-to-create-stratified-split-training-validation-and-test-set-on-pyspark</guid>
+      <pubDate>Thu, 19 Sep 2019 15:45:28 GMT</pubDate>
     </item>
     <item>
       <title>Python 中更快的 kNN 分类算法</title>
