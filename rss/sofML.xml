@@ -4,7 +4,115 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 21 Jun 2024 03:18:01 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 21 Jun 2024 06:21:42 GMT</lastBuildDate>
+    <item>
+      <title>如何知道是否有办法改进这个模型，以及如何知道我是否达到了特定模型的限制</title>
+      <link>https://stackoverflow.com/questions/78650661/how-to-know-if-there-is-a-way-to-improve-this-model-and-also-how-should-i-know-i</link>
+      <description><![CDATA[我是数据科学领域的新手，所以当我建立模型时，我不确定我是否已经到达终点，而且我也不知道我还能如何改进模型。这是随机森林分类器，我使用 RandomizeSearchCV 作为参数，最终得到了最高的 73%。此外，我还使用了 class_weight 来平衡类别，我缩放了所有内容并清理了数据，正如您将看到的。我不确定这是否是最好的方法，也不知道在制作模型时 73% 是否足够好，也不知道我是否达到了随机森林分类器的极限。
+从 matplotlib 导入 pyplot 作为 plt
+从 matplotlib.colors 导入 ListedColormap
+导入 pandas 作为 pd
+导入 numpy 作为 np
+从 sklearn.compose 导入 ColumnTransformer
+从 sklearn.model_selection 导入 RandomizedSearchCV、train_test_split
+从 sklearn.preprocessing 导入 OneHotEncoder、StandardScaler、LabelEncoder、MinMaxScaler、MaxAbsScaler、RobustScaler
+从 sklearn.ensemble 导入 RandomForestClassifier
+从 sklearn.metrics 导入 classes_report、accuracy_score、confusion_matrix
+从 imblearn.over_sampling 导入 SMOTE
+
+pd.set_option(&#39;display.max_rows&#39;, None)
+pd.set_option(&#39;display.max_columns&#39;, None)
+df = pd.read_csv(&#39;pokemon_data.csv&#39;)
+
+duplicates = df.duplicated()
+if duplicates.any():
+print(df[duplicates], &quot;DUPLICATE&quot;)
+else:
+print(&quot;NO DUPLICATES&quot;)
+
+class_dist = df[&#39;type1&#39;].value_counts()
+print(class_dist)
+
+df.replace(&#39;—&#39;, np.nan, inplace=True)
+numerical_cols = df.select_dtypes(include=np.number).columns
+df[numerical_cols] = df[numerical_cols].fillna(df[numerical_cols].median())
+# 现在我们填充分类缺失数据列
+categorical_cols = df.select_dtypes(include=&#39;object&#39;).columns
+df[categorical_cols] = df[categorical_cols].fillna(&#39;Unknown&#39;)
+
+preprocessor = ColumnTransformer(
+transformers=[
+(&#39;num&#39;, StandardScaler(), [&#39;dexnum&#39;]),
+(&#39;cat&#39;, OneHotEncoder(handle_unknown=&#39;ignore&#39;), [&#39;species&#39;, &#39;ability1&#39;, &#39;ability2&#39;, &#39;egg_group1&#39;, &#39;egg_group2&#39;])
+])
+
+features = [&#39;species&#39;, &#39;ability1&#39;, &#39;ability2&#39;, &#39;egg_group1&#39;,
+&#39;egg_group2&#39;]
+
+X = df[features] # 我们用来预测的变量 
+y_type1 = df[&#39;type1&#39;] # 我们预测的内容
+y_type2 = df[&#39;type2&#39;] # 我们预测什么
+
+preprocessor = ColumnTransformer(
+transformers=[
+(&#39;num&#39;, StandardScaler(), []),
+(&#39;cat&#39;, OneHotEncoder(handle_unknown=&#39;ignore&#39;), [&#39;species&#39;, &#39;ability1&#39;, &#39;ability2&#39;, &#39;egg_group1&#39;, &#39;egg_group2&#39;])
+])
+
+# Train_test_split 用于将数据集拆分为两个子集，即训练集和测试集
+X_train, X_test, y_type1_train, y_type1_test = train_test_split(X, y_type1, test_size=0.4, random_state=42)
+
+X_train = preprocessor.fit_transform(X_train)
+X_test = preprocessor.transform(X_test)
+
+param_dist = {
+&#39;n_estimators&#39;: [9000],
+&#39;max_depth&#39;: [1000],
+&#39;min_samples_split&#39;: [2],
+&#39;min_samples_leaf&#39;: [1],
+&#39;max_features&#39;: [&#39;log2&#39;],
+&#39;bootstrap&#39;: [False]
+}
+
+rf_type1 = RandomForestClassifier(class_weight=&#39;balanced&#39;, random_state=42)
+random_search = RandomizedSearchCV(estimator=rf_type1, param_distributions=param_dist, n_iter=50, cv=5, verbose=2, random_state=42, n_jobs=-1)
+random_search.fit(X_train, y_type1_train)
+
+# 获取最佳参数
+print(&quot;找到最佳参数：&quot;, random_search.best_params_)
+print(&quot;最佳准确率： &quot;, random_search.best_score_)
+
+# 使用最佳参数重新训练模型
+best_rf = random_search.best_estimator_
+y_type1_pred_best = best_rf.predict(X_test)
+
+# 评估模型
+print(&quot;具有最佳参数的 Type1 分类报告：&quot;)
+print(classification_report(y_type1_test, y_type1_pred_best))
+print(&quot;具有最佳参数的 Type1 准确率：&quot;, accuracy_score(y_type1_test, y_type1_pred_best))
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78650661/how-to-know-if-there-is-a-way-to-improve-this-model-and-also-how-should-i-know-i</guid>
+      <pubDate>Fri, 21 Jun 2024 06:07:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>有人能帮助我在使用 pytorch 时最大限度地提高 GPU 利用率吗？</title>
+      <link>https://stackoverflow.com/questions/78650444/can-anybody-help-me-out-with-maximizing-gpu-utilization-when-using-pytorch</link>
+      <description><![CDATA[我目前使用的是带有 7950X CPU 的 RTX 4090。我的目标是在表格数据上运行相对简单的模型时最大限度地提高 GPU 利用率。该模型的参数少于 100 万个，数据形状为 (5,000,000, 120)。当我训练模型时，只有 18% 的 GPU 被利用，完成训练大约需要 3 个小时。
+主要问题是，如果我能以某种方式利用 90% 的 GPU，训练时间将显著减少，可能减少到当前时间的五分之一，这将为我节省大量时间。
+我尝试了各种解决方案，例如调整批处理大小、增加模型的复杂性以及更改 DataLoader 的 num_workers，但这些都没有起到很好的作用。无论我如何调整，GPU 负载仍然在 10-15% 左右。这真是令人沮丧。
+由此，我想到了使用多处理的想法。由于我使用的是单个 GPU，并且单个模型仅使用 18%，因此我仍有空间运行另​​外四个模型。我认为同时运行五个不同的模型可以将 GPU 利用率提高到 100% 左右，从而节省大量时间。但是，当我尝试使用 PyTorch 的多处理时，结果并不理想。
+有人能帮我解决这个问题吗，或者我的想法在 PyTorch 中不可行？
+我尝试过的方法
+
+将批次大小从 64 增加到 4096、40962、40964
+使用 num_workers (2,4,8)
+向模型添加更多层
+使用 pytorch.multiprocessing
+]]></description>
+      <guid>https://stackoverflow.com/questions/78650444/can-anybody-help-me-out-with-maximizing-gpu-utilization-when-using-pytorch</guid>
+      <pubDate>Fri, 21 Jun 2024 04:50:59 GMT</pubDate>
+    </item>
     <item>
       <title>通过几个步骤优化一个过程：如果我们使用一个模型几次才能够计算出损失，那么如何训练它？</title>
       <link>https://stackoverflow.com/questions/78650011/optimizing-a-process-in-several-steps-how-to-train-a-model-if-we-use-it-severa</link>
@@ -50,7 +158,7 @@ output_data = rembg.remove(input_data)
 
 为什么 DT 预测的收入水平如此严格（几乎等于数据集的实际收入），而其他回归器似乎运行良好？是因为数据太小，DT 无法训练 / 特征数量太少（只有 2 个特征）还是其他原因？
 为什么 DT 给出的结果很荒谬，而 RF 却没有？
-DT 的 R^2 和 MSE 分别小于和大于 LR，但 DT 似乎仍然产生了更紧密的范围。怎么做？
+DT 的 R^2 和 MSE 分别小于和大于 LR，但 DT 似乎仍然产生了更窄的范围。怎么做？
 
 
 
@@ -61,7 +169,7 @@ DT 的 R^2 和 MSE 分别小于和大于 LR，但 DT 似乎仍然产生了更紧
     <item>
       <title>具有二元结果预测的单一时间序列</title>
       <link>https://stackoverflow.com/questions/78648701/single-time-series-with-binary-outcome-prediction</link>
-      <description><![CDATA[我有全天股票价格的时间序列和与这些价格相关的二元结果变量（行动），即买入/不行动。
+      <description><![CDATA[我有全天股票价格的时间序列和与这些价格相关的二元结果变量（行动），即买入/无行动。
 目标是预测股票价格和行动变量之间是否存在相关性。
 不确定逻辑回归或决策树是否是可行的方法。你认为哪一个更有意义？
 考虑到没有太多节点可以使用，决策树是否可行？
@@ -204,73 +312,11 @@ para=learning(x,arr_2d,t,configuration,2000,0.0001)
       <pubDate>Thu, 20 Jun 2024 16:22:18 GMT</pubDate>
     </item>
     <item>
-      <title>如何将 200 万份简历高精度地与 200 个职位匹配？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78647918/how-to-match-2-million-resumes-to-200-jobs-with-high-accuracy</link>
-      <description><![CDATA[我面临的挑战是将 200 万份简历与 200 个活跃职位空缺进行匹配，目标准确率为 80%。我的目标是简化我们的招聘流程，确保候选人与职位的准确匹配。以下是详细信息：
-问题陈述
-目标：有效地将大量简历与较少数量的职位描述进行匹配。
-目标：
-高精度：目标准确率至少为 80%。
-可扩展性：处理大量数据。
-自动化：最大限度地减少人工干预。
-可能的技术和方法
-自然语言处理 (NLP)：
-文本预处理：清理、标记化和规范化。
-特征提取：TF-IDF、Word2Vec、GloVe、BERT 嵌入。
-机器学习模型：
-监督学习：对标记数据进行训练。
-无监督学习：聚类技术。
-深度学习模型：
-基于 Transformer 的模型：BERT、RoBERTa，用于更好地理解上下文。
-相似度测量：
-余弦相似度。
-高级指标：针对数据量身定制的自定义指标。
-使用的工具
-矢量数据库
-OpenAI 的 Ada-002 嵌入模型
-专业知识请求
-有人处理过类似的问题或使用过上述技术吗？对最佳方法有什么见解或建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78647918/how-to-match-2-million-resumes-to-200-jobs-with-high-accuracy</guid>
-      <pubDate>Thu, 20 Jun 2024 13:56:09 GMT</pubDate>
-    </item>
-    <item>
       <title>超分辨率 GAN 训练中生成器和鉴别器损失之间的不平衡</title>
       <link>https://stackoverflow.com/questions/78647617/imbalance-between-generator-and-discriminator-losses-in-gan-training-for-super-r</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78647617/imbalance-between-generator-and-discriminator-losses-in-gan-training-for-super-r</guid>
       <pubDate>Thu, 20 Jun 2024 12:57:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>时间序列预测，其中历史值也会由于滞后而更新</title>
-      <link>https://stackoverflow.com/questions/78646921/time-series-forecasting-where-historical-values-also-gets-updated-due-to-lag</link>
-      <description><![CDATA[我正在对未来 4 周的 covid 病例进行时间序列预测。
-
-传入数据频率：每周
-要预测的周数：4
-
-数据的主要问题是，数据滞后约 8 周，这意味着特定周的值将在接下来的 8 周内更新 8 周，同时添加下周的值数据。
-特定周（Epiweek 1）的值如下所示：
-Load_Date 值
-1-Jan-24 为 10 ，
-8-Jan-24 为 11 ，
-15-Jan-24 为 14 ，
-22-Jan-24 为 15 ，
-29-Jan-24 为 16 ，
-6-Feb-24 为 18 ,
-13-Feb-24 是 23 ,
-20-Feb-24 是 26 ,
-27-Feb-24 是 26 ,
-6-Mar-24 是 26 ,
-
-在这种情况下：
-未修订值为 10
-修订值为 26
-
-如您在以上数据中看到的那样 - 数据在第 9 周稳定下来。同样，我们有其他一周的值。
-当我应用 Auto_Arima、Garch 模型时，当我将我的预测与未修订的数据进行比较时，我可以看到良好的结果，但是当我将它们与修订值（在建模时不可用）进行比较时，我看到更多的 MAPE。
-考虑到历史值也会更新 7-8 周，我该如何改善结果？]]></description>
-      <guid>https://stackoverflow.com/questions/78646921/time-series-forecasting-where-historical-values-also-gets-updated-due-to-lag</guid>
-      <pubDate>Thu, 20 Jun 2024 10:31:39 GMT</pubDate>
     </item>
     <item>
       <title>所有时期的损失和准确率相同</title>
@@ -348,7 +394,7 @@ plot(data_human_train_tree)
       <description><![CDATA[我想创建一个模型架构来预测未来的股价走势，如下所示：
 
 该模型的目标是预测未来 3 个月内价格是上涨还是下跌。
-我尝试过一些模型，例如 Logistic 回归、神经网络、XGBoost 等。我得到了一些不错的结果。通过使用随机森林分类器，我得到了迄今为​​止最好的结果。我如何使用神经网络对数据进行编码，然后将这些值传递给随机森林分类器进行分类，而不是使用如图所示的使用 S 型函数的最终输出层（使用 Python、Keras 和 SKlearn）。
+我尝试过一些模型，例如 Logistic 回归、神经网络、XGBoost 等。我得到了一些不错的结果。通过使用随机森林分类器，我得到了迄今为​​止最好的结果。我如何使用神经网络对数据进行编码，然后将这些值传递给随机森林分类器进行分类，而不是使用如图所示的使用 S 形函数的最终输出层（使用 Python、Keras 和 SKlearn）。
 我对 Keras 不是很熟悉，所以我想知道是否有可能训练一个输入到单独分类器的神经网络，如果可以，该怎么做。]]></description>
       <guid>https://stackoverflow.com/questions/78461828/is-it-possible-to-train-a-neural-network-to-feed-into-a-random-forest-classifier</guid>
       <pubDate>Fri, 10 May 2024 17:53:36 GMT</pubDate>
