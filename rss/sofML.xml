@@ -4,7 +4,114 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 22 Jun 2024 09:15:14 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 22 Jun 2024 12:25:52 GMT</lastBuildDate>
+    <item>
+      <title>由于样本数量不一致的变量导致超参数调整评分失败</title>
+      <link>https://stackoverflow.com/questions/78655914/scoring-in-hyperparameter-tuning-fails-because-of-variables-with-inconsistent-nu</link>
+      <description><![CDATA[我正在使用 sklearn 的 GridSearchCV 进行超参数调整。
+ if cfg.tuning is True:
+print(&quot;extractingY...\n&quot;)
+y = extract_Y(test_dataloader)
+print(&quot;finished Extraction\n&quot;)
+ht = hyp_tuning(model=model, optimizer=optimizer)
+param_grid = {
+&#39;lr&#39;: [1e-2, 1.5e-2]
+}
+search = GridSearchCV(ht, param_grid, cv=5,scoring=&#39;precision&#39;)
+#x 是&quot;dummy&quot;矩阵，因为我在拟合和预测中使用了 dataloader
+x = [0 for _ in range(len(y))]
+print(len(y))
+result = search.fit(x, y)
+print(&#39;Best: %f using %s&#39; % (result.best_score_, result.best_params_))
+
+但是，评分总是会因为这个错误而失败：
+C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\model_selection\_validation.py:982: UserWarning: 评分失败。这些参数在此训练测试分区上的分数将设置为 nan。详细信息：
+回溯（最近一次调用）：
+文件“C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\model_selection\_validation.py”，第 971 行，位于 _score
+scores = scorer(estimator, X_test, y_test, **score_params)
+文件“C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\metrics\_scorer.py”，第 279 行，位于 __call__
+return self._score(partial(_cached_call, None), estimator, X, y_true, **_kwargs)
+文件&quot;C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\metrics\_scorer.py&quot;，第 376 行，在 _score 中
+return self._sign * self._score_func(y_true, y_pred, **scoring_kwargs)
+文件 &quot;C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\utils\_param_validation.py&quot;，第 213 行，在包装器中
+return func(*args, **kwargs)
+文件 &quot;C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\metrics\_classification.py&quot;，第 2190 行，在 precision_score 中
+p, _, _, _ = precision_recall_fscore_support(
+文件“C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\utils\_param_validation.py”，第 186 行，在包装器中
+return func(*args, **kwargs)
+文件“C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\metrics\_classification.py”，第 1775 行，在 precision_recall_fscore_support 中
+labels = _check_set_wise_labels(y_true, y_pred, average, labels, pos_label)
+文件“C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\metrics\_classification.py”，第 1547 行，在_check_set_wise_labels
+y_type, y_true, y_pred = _check_targets(y_true, y_pred)
+文件 &quot;C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\metrics\_classification.py&quot;, 第 99 行, _check_targets
+check_consistent_length(y_true, y_pred)
+文件 &quot;C:\Users\Parlu\AppData\Local\Programs\Python\Python39\lib\site-packages\sklearn\utils\validation.py&quot;, 第 460 行, check_consistent_length
+raise ValueError(
+ValueError: 发现输入变量的样本数量不一致: [2403, 12014]
+
+我尝试打印 y 的长度，但终端显示len(y) 是 12014，而不是错误提示的 2403。我真的不知道问题出在哪里。
+我还附加了函数 extract_Y
+def extract_Y(dataloader):
+all_labels = []
+for data, lengths, target in tqdm(dataloader):
+target = target.view(-1)#.cuda()
+mask = (targets != -1)
+all_labels.extend(targets[mask].cpu().numpy())
+return all_labels
+]]></description>
+      <guid>https://stackoverflow.com/questions/78655914/scoring-in-hyperparameter-tuning-fails-because-of-variables-with-inconsistent-nu</guid>
+      <pubDate>Sat, 22 Jun 2024 11:33:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>SelectKBest 选择的特征与 ColumnTransformer 转换后的特征不匹配</title>
+      <link>https://stackoverflow.com/questions/78655668/the-features-selected-by-selectkbest-do-not-match-those-transformed-by-columntra</link>
+      <description><![CDATA[我正在部署一个机器学习模型用于研究，对此我有一些疑问：
+
+我的 POST 方法将向 API 发送我的原始特征（未应用转换）
+
+未转换的数据
+
+我使用与训练阶段相同的管道，并从中获取 ColumnTranformed 和最佳模型：
+
+preprocessor = pipeline.named_steps[&quot;columntransformer&quot;]
+model = pipeline.named_steps[&quot;xgbclassifier&quot;]
+
+管道
+
+在 API 内部，我获取了 POST 的数据，并希望使用管道中使用的相同预处理器对其进行转换，但是：
+
+-------------------------------------------------------------------------------------------
+KeyError Traceback（最近一次调用最后一次）
+&lt;ipython-input-29-f928ce436ece&gt;在 &lt;单元格行：15&gt;()
+13 
+14 # preprocessor.fit(df[[&quot;tenure&quot;, &quot;OnlineSecurity&quot;, &quot;TechSupport&quot;, &quot;Contract&quot;]])
+16 print(preprocessed_df)
+17 
+
+17 帧
+/usr/local/lib/python3.10/dist-packages/pandas/core/indexes/base.py 在 _raise_if_missing(self, key, indexer, axis_name)
+5939 
+5940 not_found = list(ensure_index(key)[missing_mask.nonzero()[0]].unique())
+-&gt; 5941 引发 KeyError(f&quot;{not_found} 不在索引中&quot;)
+5942 
+5943 @overload
+
+KeyError: &quot;[&#39;MonthlyCharges&#39;, &#39;TotalCharges&#39;] 不在索引中&quot;
+
+
+验证 KBest 功能，MonthlyCharges 和 TotalCharges 不存在！
+
+kbest = final_estimator2.named_steps[&quot;selectkbest&quot;].get_support(indices=True)
+
+used_df = formed_df_columns.iloc[:, kbest]
+
+kbest 功能
+我是不是忘了哪个步骤？
+我仔细检查了所有代码和官方文档。
+我希望理解为什么我的预处理要求两个“理论上”不需要的功能在训练阶段未被 KBest 使用和选择。]]></description>
+      <guid>https://stackoverflow.com/questions/78655668/the-features-selected-by-selectkbest-do-not-match-those-transformed-by-columntra</guid>
+      <pubDate>Sat, 22 Jun 2024 09:47:25 GMT</pubDate>
+    </item>
     <item>
       <title>如何在 Coursera 中验证 Jupiter 笔记本分数？</title>
       <link>https://stackoverflow.com/questions/78655480/how-to-validate-jupiter-notebook-score-in-coursera</link>
@@ -15,6 +122,55 @@ Jupiter 笔记本嵌入在 Coursera 应用程序中。
 在此处查看屏幕截图]]></description>
       <guid>https://stackoverflow.com/questions/78655480/how-to-validate-jupiter-notebook-score-in-coursera</guid>
       <pubDate>Sat, 22 Jun 2024 08:21:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>加载 PyTorch 模型检查点后推理结果不一致</title>
+      <link>https://stackoverflow.com/questions/78655463/inconsistent-inference-results-after-loading-pytorch-model-checkpoint</link>
+      <description><![CDATA[我的 PyTorch 模型遇到了一个问题，在保存和加载模型状态字典后，我得到了不同的推理结果。这是我用来保存模型状态的代码：
+def save_net_state(self, base_path: str = &#39;&#39;, epoch: int = None, latest: bool = False, best: bool = False):
+os.makedirs(base_path, exist_ok=True)
+
+if latest:
+filename = &#39;latest_checkpoint.pkl&#39;
+to_save = {
+&quot;epoch&quot;: epoch,
+&quot;model_weights&quot;: self.model.state_dict(),
+&quot;optimizer&quot;: self.optimizer.state_dict()
+}
+elif best:
+filename = &#39;best_model.pkl&#39;
+to_save = {
+&quot;epoch&quot;: epoch,
+&quot;model_weights&quot;: self.model.state_dict()
+}
+
+path_to_save = os.path.join(base_path, filename)
+torch.save(to_save, path_to_save)
+
+要重新加载模型进行评估：
+model_path = &#39;./best_model.pkl&#39;
+checkpoint = torch.load(model_path, map_location=&#39;cpu&#39;)
+model.load_state_dict(checkpoint[&quot;model_weights&quot;], strict=True)
+model.eval()
+model.cuda()
+
+状态字典中没有多余的键或缺失的键。但是，我注意到，当我执行推理时，我得到的结果与保存模型之前不同。具体来说，在保存时，我的模型实现了约 79.74% 的准确率，但在加载后，它始终实现约 78.5% 的准确率。模型架构、数据集和保存与加载之间的预处理步骤均未发生任何变化。
+我已经尝试比较 state_dicts：
+def compare_state_dicts(model, checkpoint):
+model_keys = set(model.state_dict().keys())
+checkpoint_keys = set(checkpoint[&quot;model_weights&quot;].keys())
+
+missing_keys = model_keys - checkpoint_keys
+extra_keys = checkpoint_keys - model_keys
+
+print(f&quot;Missing keys: {missing_keys}&quot;)
+print(f&quot;Extra keys: {extra_keys}&quot;)
+
+compare_state_dicts(model, checkpoint)
+
+结果为空集。]]></description>
+      <guid>https://stackoverflow.com/questions/78655463/inconsistent-inference-results-after-loading-pytorch-model-checkpoint</guid>
+      <pubDate>Sat, 22 Jun 2024 08:15:22 GMT</pubDate>
     </item>
     <item>
       <title>如果我使用 PHP 作为后端语言，如何将 ML 模型连接到 Web 应用程序 [关闭]</title>
@@ -37,34 +193,6 @@ y = NN(x;\theta) \theta：参数
 我尝试了 pytorch 的扩展“torch.autograd.Function”，但我不明白如何解决这个问题。前向传递很简单，但我不明白如何实现后向传递。]]></description>
       <guid>https://stackoverflow.com/questions/78654585/create-differentiable-functions-in-pytorch-with-c-fortran-functions</guid>
       <pubDate>Fri, 21 Jun 2024 22:05:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>Tensorflow 模型训练期间使用提前停止功能时出现 Python 解释器状态错误</title>
-      <link>https://stackoverflow.com/questions/78653468/python-interpreter-state-error-during-tensorflow-model-training-with-early-stopp</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78653468/python-interpreter-state-error-during-tensorflow-model-training-with-early-stopp</guid>
-      <pubDate>Fri, 21 Jun 2024 16:16:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>InvalidArgumentError：图形执行错误不兼容的形状：ViT 中 PatchEncoder 中的 [32,800,64] 与 [32,125,64]</title>
-      <link>https://stackoverflow.com/questions/78653170/invalidargumenterror-graph-execution-error-incompatible-shapes-32-800-64-vs</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78653170/invalidargumenterror-graph-execution-error-incompatible-shapes-32-800-64-vs</guid>
-      <pubDate>Fri, 21 Jun 2024 15:17:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习中如何处理“真实”数据和封闭式方程？</title>
-      <link>https://stackoverflow.com/questions/78652914/how-to-deal-with-real-data-and-closed-formed-equation-in-machine-learning</link>
-      <description><![CDATA[我的目标是对来自“现实世界”（传感器）的一组数据进行回归分析。
-数据采用表格格式。有 6 个独立特征，其值差异很大（需要缩放）。此外，因变量具有很大的可变性（可能需要缩放？）。
-当其中一个变量（假设 X1）的绝对值较低时，初始经典训练会显示预测中的弱点。
-专家告诉我，在 X1 较低的这个特定区域中，要预测的值（我们称之为 Y）可以通过线性回归来近似。因此，如果所有其他特征都是恒定的，则 X1 和 Y 具有 Y=a * X1 + b 类型的线性依赖关系。
-问题是系数“a”和“b”取决于其他特征 a = f(X2,X3,X4,X5)...
-请注意，我有一个表，其中列出了其他 5 个特征的几种组合的系数“a”和“b”。
-我想将“物理信息”的线性化集成到训练过程中。但我该怎么做呢？我看过物理信息神经网络，但它们仅适用于 PDE，而不是像我一样的闭式方程。
-对我来说，一个自然的做法是通过方程在这个区域生成假数据。这会被视为物理信息机器学习吗？我看不出添加假数据和添加试图满足方程的损失之间的区别。]]></description>
-      <guid>https://stackoverflow.com/questions/78652914/how-to-deal-with-real-data-and-closed-formed-equation-in-machine-learning</guid>
-      <pubDate>Fri, 21 Jun 2024 14:26:46 GMT</pubDate>
     </item>
     <item>
       <title>聚类实际上会减少数据集中的行数吗？[关闭]</title>
@@ -168,7 +296,7 @@ print(&quot;具有最佳参数的 Type1 准确率：&quot;, accuracy_score(y_typ
       <pubDate>Fri, 21 Jun 2024 06:07:40 GMT</pubDate>
     </item>
     <item>
-      <title>使用 pytorch 时如何最大化 GPU 利用率？</title>
+      <title>使用 pytorch 时如何最大化 GPU 利用率？[关闭]</title>
       <link>https://stackoverflow.com/questions/78650444/how-to-maximize-gpu-utilization-when-using-pytorch</link>
       <description><![CDATA[我使用的是 RTX 4090 和 7950X CPU。我的目标是在表格数据上运行相对简单的模型时最大限度地提高 GPU 利用率。该模型的参数少于 100 万个，数据形状为 (5,000,000, 120)。当我训练模型时，只有 18% 的 GPU 被利用，完成训练大约需要 3 个小时。
 主要问题是，如果我能以某种方式利用 90% 的 GPU，训练时间将显著减少，可能减少到当前时间的五分之一，这将为我节省大量时间。
@@ -215,6 +343,44 @@ print(&quot;具有最佳参数的 Type1 准确率：&quot;, accuracy_score(y_typ
       <description><![CDATA[有各种机器学习模型（Claude、chatGPT 等）可用于从图像中提取机器可读信息。有没有人见过成功从已发布的系统发育树图像（互联网上有很多）中提取 Newick 格式数据（或等效数据）的案例？]]></description>
       <guid>https://stackoverflow.com/questions/78437477/extracting-phylogenetic-tree-information-from-images-using-machine-learning</guid>
       <pubDate>Mon, 06 May 2024 15:00:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>将自定义预测例程导入顶点 AI 管道</title>
+      <link>https://stackoverflow.com/questions/77996526/import-custom-prediction-routine-to-vertex-ai-pipeline</link>
+      <description><![CDATA[我在 Vertex AI 上创建了一个自定义预测例程，上传了模型，并且能够通过 UI 使用它生成预测。现在，我想将其合并到 Vertex AI 管道中，以便在数据生成步骤后运行批量预测。我正在使用 Kubeflow Pipelines SDK。
+为此，我考虑使用 ModelBatchPredictOp 预构建组件。为了实现这一点，我需要将模型导入管道，例如使用 导入器组件。但是，导入器组件需要工件 URI，而我的模型没有该 URI，因为它使用自定义容器。它被嵌入到容器镜像中；它不在 GCS 中。
+因此我尝试编写一个快速自定义导入器组件，该组件返回模型对象，尽管我并不指望它能起作用，但我得到了类型不匹配的结果。请参阅下面的示例代码：
+from helper import data_component
+from kfp.dsl import component, pipeline, Output, Model
+from google_cloud_pipeline_components.v1.batch_predict_job import ModelBatchPredictOp
+
+@component(packages_to_install=[&quot;google-cloud-aiplatform&quot;])
+def custom_importer(model: Output[Model]):
+from google.cloud import aiplatform
+return aiplatform.Model(model_name=&quot;model-id&quot;)
+
+@pipeline(name=&quot;prediction-pipeline&quot;)
+def pipeline():
+data_task = data_component()
+
+importer_task = custom_importer()
+
+batch_predict_op = ModelBatchPredictOp(
+job_display_name=&quot;batch_predict_job&quot;,
+model=importer_task.output,
+gcs_source_uris=data_task.outputs[&quot;dataset&quot;],
+gcs_destination_output_uri_prefix=&quot;bucket&quot;,
+instance_format=&quot;csv&quot;,
+predictions_format=&quot;jsonl&quot;,
+Starting_replica_count=1,
+max_replica_count=1,
+)
+
+
+ModelBatchPredictOp 不喜欢参数 model 的输入类型：InconsistentTypeException：传递给组件“model-batch-predict”的输入“model”的参数不兼容：参数类型“system.Model@0.0.1”与输入类型“google.VertexModel@0.0.1”不兼容
+如何将自定义预测例程中的批量预测合并到 Vertex AI 中管道？]]></description>
+      <guid>https://stackoverflow.com/questions/77996526/import-custom-prediction-routine-to-vertex-ai-pipeline</guid>
+      <pubDate>Wed, 14 Feb 2024 18:27:51 GMT</pubDate>
     </item>
     <item>
       <title>在 Keras-Tuner 中使用 F1 分数作为指标时遇到困难</title>
@@ -292,14 +458,6 @@ KeyError: &lt;tensorflow_addons.metrics.f_scores.F1Score 对象位于 0x000001C8
 我想知道是否有一种解决方法可以从 keras 的 Tuner 类中获取 f1 分数。谢谢。]]></description>
       <guid>https://stackoverflow.com/questions/77498936/having-trouble-using-f1-score-as-a-metric-in-keras-tuner</guid>
       <pubDate>Fri, 17 Nov 2023 01:42:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>二元语法和单元语法文本特征提取有什么区别</title>
-      <link>https://stackoverflow.com/questions/43463792/what-is-the-difference-between-bigram-and-unigram-text-features-extraction</link>
-      <description><![CDATA[我在网上搜索了二元和一元文本特征提取的方法，但还是没有找到有用的信息，有人能告诉我它们之间有什么区别吗？
-例如，如果我有一段文本“我有一只可爱的狗”，如果我用二元方式进行特征提取和一元提取，会发生什么？]]></description>
-      <guid>https://stackoverflow.com/questions/43463792/what-is-the-difference-between-bigram-and-unigram-text-features-extraction</guid>
-      <pubDate>Tue, 18 Apr 2017 04:50:04 GMT</pubDate>
     </item>
     <item>
       <title>讲座视频数据集及文字记录[关闭]</title>

@@ -4,7 +4,135 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 22 Jun 2024 09:15:09 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 22 Jun 2024 12:25:45 GMT</lastBuildDate>
+    <item>
+      <title>计算 GLM 的 QAIC</title>
+      <link>https://stats.stackexchange.com/questions/649716/calculating-qaic-for-glm</link>
+      <description><![CDATA[我正在尝试使用此处提供的代码来计算 DLNM 模型的 QAIC。
+但我对这个公式与其他 R 包中的 QAIC 公式之间的区别感到困惑，就像对这个问题的回答一样。
+前者将弥散参数添加到 AIC 公式的似然项中，而另一个则添加到 df 项中，尽管增加弥散会导致两者均采用 QAIC。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649716/calculating-qaic-for-glm</guid>
+      <pubDate>Sat, 22 Jun 2024 12:03:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>李克特量表答案中问题组的相关性</title>
+      <link>https://stats.stackexchange.com/questions/649714/correlation-of-group-of-questions-in-likert-scale-answers</link>
+      <description><![CDATA[假设我们有一个包含 6 列的响应调查数据框。每列是一个问题：Q1、Q2、Q3、...、Q6。响应从 1 到 5。1 表示非常差，4 表示差，3 表示一般，2 表示好，1 表示非常好。另外，考虑 A 是 q1、q2、q3 的一组问题，B 单独包含问题 q4，C 包含 q5 和 q6。我的最终任务是找出所有组之间的相关性。A 与 B、B 与 C、A 与 C 等等，如相关矩阵所示。我的问题是：响应是因素的级别。等级。每个响应都是一个等级。它可能是数字，但它是一个等级。如果我取问题的平均值，那么可以使用 Spearman 相关系数吗？还是我必须取中位数？如果我不使用 Spearman（处理等级）我可以使用 Pearson 系数吗？
+
+likert_levels &lt;- c(1,2,3,4,5)
+set.seed(42)
+library(dplyr)
+df &lt;-
+tibble(
+&quot;q1&quot; = sample(likert_levels, 150, replace = TRUE),
+&quot;q2&quot; = sample(likert_levels, 150, replace = TRUE, prob = 5:1),
+&quot;q3&quot; = sample(likert_levels, 150, replace = TRUE, prob = 1:5),
+&quot;q4&quot; = sample(likert_levels, 150, replace = TRUE, prob = 1:5),
+&quot;q5&quot; =样本（c（likert_levels，NA），150，替换 = TRUE），
+“q6”= 样本（likert_levels，150，替换 = TRUE，prob = c（1，0，1，1，0））
+）%&gt;%
+突变（across（everything（），~factor（.x，levels = likert_levels）））
+
+df2 = tibble（类别 = c（“A”，“A”，“A”，“B”，“C”，“C”），
+问题 = c(&quot;q1&quot;,&quot;q2&quot;,&quot;q3&quot;,&quot;q4&quot;,&quot;q5&quot;,&quot;q6&quot;))
+
+df2
+df%&gt;%
+mutate(id = row_number())%&gt;%
+tidyr::pivot_longer(!id,names_to = &quot;questions&quot;,values_to = &quot;responses&quot;)%&gt;%
+left_join(.,df2,by=&quot;questions&quot;)
+
+df_cor=df%&gt;%
+mutate_if(is.factor,as.double)%&gt;%
+rowwise() %&gt;%
+mutate(QA = mean(c(q1, q2, q3)),
+QB = mean(c(q4)),
+QC =平均值（c（q5，q6）））％＆gt;％
+选择（QA，QB，QC）
+
+cor（df_cor，方法=＆quot;spearman＆quot;，使用=＆quot;pairwise.complete.obs＆quot;）
+cor（df_cor，方法=＆quot;pearson＆quot;，使用=＆quot;pairwise.complete.obs＆quot;）
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649714/correlation-of-group-of-questions-in-likert-scale-answers</guid>
+      <pubDate>Sat, 22 Jun 2024 11:55:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>单位根平稳性和建模 AR(p) 过程</title>
+      <link>https://stats.stackexchange.com/questions/649711/unit-root-stationarity-and-modelling-arp-process</link>
+      <description><![CDATA[我正在阅读 Gary Koop 的《计量经济学导论》。我对 AR(p) 过程的建模过程有点困惑。希望有人能帮我澄清一下。让我阐述一下我的理解和我有点困惑的地方。
+假设我们有一个 AR(p) 过程：
+$$ Y_t = \alpha +\rho_1 Y_{t-1} + \ldots +\rho_p Y_{t-p}+\varepsilon_t (1)$$
+然后我们可以将其一阶差分视为：
+$$\Delta Y_t = \alpha + \theta Y_{t-1} + \gamma_1\Delta Y_{t-1} + \ldots + \gamma_{p-1}\Delta Y_{t-p+1} + \varepsilon_t (2)$$
+其中 $\theta = \rho_1+\dots +\rho_{p} - 1$
+如果我们有一组数据，那么我们可以使用 OLS 将 (2) 拟合到数据中，使用顺序 t 检验或似然函数 (例如 BIC) 选择滞后和参数。
+完成此操作后，我们需要对参数 $\theta$ 使用 Dikkey-Fuller 检验，假设为 $H_0: \theta = 0$。如果我们找不到拒绝原假设的证据，则意味着我们的原始模型 (1) 具有单位根。在模型 (2) 中，我们将得到 $\theta = 0$，并且 $Delta Y_t$ 将是平稳的，因为我们知道具有单位根的 AR(p) 模型的一阶差分是平稳的。
+但是，如果我们拒绝 $\theta = 0$ 的零假设，我有点搞不清楚我们该怎么做。在这种情况下，我们可以得出结论，原始序列没有单位根。那么我们可以继续使用 OLS 直接对其进行建模吗？我们是否必须进一步假设它不是一个爆炸性过程？除非我遗漏了什么，否则教科书似乎没有涵盖这一点。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649711/unit-root-stationarity-and-modelling-arp-process</guid>
+      <pubDate>Sat, 22 Jun 2024 11:08:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用方差分析对不同比例的模型进行比较，有何不同？</title>
+      <link>https://stats.stackexchange.com/questions/649708/using-anova-for-model-comparison-with-a-different-ratio-how-does-it-differ</link>
+      <description><![CDATA[当我们使用方差分析比较两个模型时，我们通常会计算 F 分数，例如
+$$F = \frac{\left(\frac{RSS_1-RSS_2}{p_2-p_1}\right)}{\left(\frac{RSS_2}{n-p_2}\right)}$$
+其中下标指的是模型，$p_1&lt;p_2$ 是模型参数的数量，$RSS$ 是计算出的残差平方和。
+我们也可以使用不同的比较方法，例如
+$$F&#39; = \frac{\left(\frac{RSS_1}{n-p_1}\right)}{\left(\frac{RSS_2}{n-p_2}\right)}$$
+这些方法有何不同？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649708/using-anova-for-model-comparison-with-a-different-ratio-how-does-it-differ</guid>
+      <pubDate>Sat, 22 Jun 2024 10:57:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何表达右尾 Fisher 精确检验的 OR 中的不确定性？</title>
+      <link>https://stats.stackexchange.com/questions/649707/how-to-express-the-uncertainty-in-the-or-of-a-right-tailed-fishers-exact-test</link>
+      <description><![CDATA[许多 OR（比值比）可视化显示 95% 的置信区间，表达不确定性，如下图左侧面板所示。
+
+然而，在基因组过度表达分析中使用右尾 Fisher 检验，fisher.test(., alternative=&#39;greater&#39;) 用于列联表，例如，
+ DE nDE Sum
+IN 20 79 99
+nIN 1869 13032 14901
+Sum 1889 13111 15000
+
+产生无限的置信上限。
+ OR lower upper
+Term_1 1.995 1.9000 Inf
+Term_2 1.728 1.6320 Inf
+Term_3 1.455 1.3677 Inf
+Term_4 1.188 0.8910 Inf
+Term_5 1.050 0.8000 Inf
+
+按照这个逻辑，可视化应该看起来像右侧面板中的那样，但我从未见过。
+执行双侧检验将产生有限的上限，但这并不正确。
+我听说我们可以在这个中使用双侧检验的置信区间，其中&lt;​​span class=&quot;math-container&quot;&gt;$\alpha=0.1$情况，但我不确定。
+我考虑过引导 CI，并尝试通过不替换地延续差异基因表达矩阵的 p 值并使用引导 OR 的百分位数，但这给了我低于估计 OR 的上限。（我想我只能引导 p 值，而不能引导 CI。）
+那么如何分别计算适当的置信区间或误差幅度，或者在可视化中正确表达不确定性？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649707/how-to-express-the-uncertainty-in-the-or-of-a-right-tailed-fishers-exact-test</guid>
+      <pubDate>Sat, 22 Jun 2024 10:47:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>如果两个 IV 在第一阶段回归中产生不同的 F 统计量，是否表明它们是不同的 IV，而不管相关性如何？</title>
+      <link>https://stats.stackexchange.com/questions/649706/if-two-iv-yield-distinct-f-statistics-in-the-first-stage-regression-does-it-ind</link>
+      <description><![CDATA[假设我们处于面板环境中，在控制固定效应的同时进行估计。假设我们有两个用于 X 内生变量的工具 Z1 和 Z2，并且两个工具都是相关的。我们分别使用 Z1 和 Z2 通过 2SLS 对 X 上的 Y 进行回归（两个不同的回归）。
+场景 1）：Corr(Z1,Z2) &gt; 0.8，但 Z1 的 F 统计量为 50，Z2 的 F 统计量为 90。我们可以说它们是两个不同的工具吗？
+场景 2）：Corr(Z1,Z2) &lt; 0.5，但 Z1 的 F 统计量为 85，Z2 的 F 统计量为 90。我们可以说它们是两个不同的工具吗？
+现在假设我们尝试通过“移除”固定效应来评估工具之间的相关性。也就是说，只需对固定效应进行 Z 回归，保存残差，然后计算 Z1 残差与 Z2 残差之间的相关性。我们称之为“demeaned corr”。
+场景 1.1）：demeaned corr(Z1,Z2) &gt; 0.8，但 Z1 的 F 统计量为 50，Z2 的 F 统计量为 90。我们可以说它们是两种不同的工具吗？
+场景 2.1）：demeaned corr(Z1,Z2) &lt; 0.5，但 Z1 的 F 统计量为 85，Z2 的 F 统计量为 90。我们可以说它们是两种不同的工具吗？
+如果能对仅使用 F 统计量的差异是否可用于确定工具的独特性提供任何见解，我们将不胜感激。谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/649706/if-two-iv-yield-distinct-f-statistics-in-the-first-stage-regression-does-it-ind</guid>
+      <pubDate>Sat, 22 Jun 2024 10:33:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>情景还原技术</title>
+      <link>https://stats.stackexchange.com/questions/649703/scenario-reduction-techniques</link>
+      <description><![CDATA[我有一个包含 7 个特征和 500 个样本的数据集，即带有场景的 7 x 500 矩阵。由于在我的模型中处理 500 个样本计算量很大，我想知道哪种方法最适合将场景数量减少到 7 x 50。
+我知道 PCA 通常用于降维，但是否可以使用 PCA 来减少场景数量？例如，是否可以计算主成分并沿着下图中的主要成分 $u_1$ 和 $u_2$ 选择场景？这有任何意义吗？
+
+截断点反映了选定的 PCA 转换数据点 - 在运行我的模型之前将其转换回原始坐标。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649703/scenario-reduction-techniques</guid>
+      <pubDate>Sat, 22 Jun 2024 09:48:06 GMT</pubDate>
+    </item>
     <item>
       <title>对 PCA、FA 和 PCR 感到困惑？</title>
       <link>https://stats.stackexchange.com/questions/649701/confusion-regarding-pca-fa-and-pcr</link>
@@ -18,104 +146,6 @@
       <pubDate>Sat, 22 Jun 2024 08:45:25 GMT</pubDate>
     </item>
     <item>
-      <title>生存分析中疾病持续时间变量的有效性</title>
-      <link>https://stats.stackexchange.com/questions/649697/validity-of-disease-duration-variable-in-survival-analysis</link>
-      <description><![CDATA[我想知道，当疾病持续时间是从观察开始（即诊断时）测量时，在 Cox 模型中包含“疾病持续时间”变量是否有效？
-这真的没有意义，不是吗，因为这个变量和观察时间本质上是共线的？
-谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/649697/validity-of-disease-duration-variable-in-survival-analysis</guid>
-      <pubDate>Sat, 22 Jun 2024 06:16:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>Top-N推荐系统</title>
-      <link>https://stats.stackexchange.com/questions/649696/top-n-recommendation-system</link>
-      <description><![CDATA[假设有一个两部分的推荐系统，可以方便地将客户与供应商进行匹配。客户需要某些服务，我们根据客户的需求以及我们认为供应商满足这些需求的能力，将客户与供应商进行匹配。我们代表客户联系供应商，并请求对所需服务的投标。其中一些供应商会提出投标，而另一些则不会。根据收到的投标的特点，我们与客户合作，确定最佳投标，并促成客户与供应商达成协议。
-但是，我们不可能联系所有供应商来请求投标，也不可能研究每一个投标提案——这将耗费大量的时间和资源。因此，我们希望建立一个推荐模型，帮助缩小我们想要合作的供应商名单。该模型将为企业提供一份可合作的前 N ​​名供应商名单。为了构建这个建模框架，我们可以使用来自过去客户的历史数据和来自各种供应商的数据。
-建议的推荐框架如下：
-
-模型 1：预测从我们联系的给定供应商收到投标的概率 [Pr（收到投标）]
-
-
-这是因为我们希望将精力集中在可能对给定的一组客户需求进行投标的供应商上
-这可以是逻辑回归模型。输入特征可能是客户的特征、所寻求服务的特征、供应商的特征以及过去的投标行为
-
-
-模型 2：预测供应商被选为“中标”的概率假设供应商出价：Pr（供应商被选中 | 收到出价）
-
-
-因为我们希望专注于可能被选中的供应商（一旦他们出价）以满足给定的客户需求
-这可以是第二个逻辑回归模型，该模型将与客户和供应商以及所寻求的服务相关的各种特征作为输入
-
-基于上述内容，找到前 N 名供应商的一个有点简单（天真？）的解决方案可能如下：
-首先计算：
-预测 Pr（从供应商收到出价并且供应商被选中）= 预测 Pr（收到出价）* 预测 Pr（选择供应商 | 收到出价）
-= 来自模型 1 的预测概率 * 来自模型 2 的预测概率
-然后按预测值排序，选择具有最高预测 Pr（从供应商收到出价并且供应商被选中）的前 N ​​名供应商选择)
-问题 1：此框架是否存在任何明显问题？
-现在，假设利益相关者正在强制要求在实际使用推荐系统之前必须满足的标准：
-“建模框架推荐的获胜供应商是否至少在前 N 名中 X% 的时间里被推荐”（根据测试数据集进行评估）。
-（确切的百分比在这里无关紧要，可能是 5%，也可能是 95%）
-还请注意，前 N 名中的位置并不重要。重要的是所选供应商位于前 N 名中。
-问题 2：优化此利益相关者提供的标准时需要考虑哪些因素？在优化此利益相关者要求方面，使用上述提出的两部分建模框架是否存在任何问题，或者是否存在其他考虑因素或甚至更好的替代方案？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649696/top-n-recommendation-system</guid>
-      <pubDate>Sat, 22 Jun 2024 05:12:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>测量非正定相关矩阵与其近似正定相关矩阵之间的差异（在 R 中）</title>
-      <link>https://stats.stackexchange.com/questions/649694/measuring-difference-between-a-non-positive-definite-correlation-matrix-and-its</link>
-      <description><![CDATA[当遇到非正定 (NPD) 相关矩阵时，我经常想使用 Matrix::nearPD(NPD, corr=TRUE)$mat 将我的 NPD 相关矩阵转换为近似正定相关矩阵（见下文）。
-问题：有没有办法衡量这会给原始 NPD 相关矩阵带来多大的变化，从而确定这种策略的合理程度？
-R 代码：
-NPD_MATRIX &lt;- structure(c(0.58, 0.55, 0.52, 0.34, 0.56, 0.45, 0.52, 0.42, 0.55, 
-0.64, 0.36, 0.2, 0.4, 0.29, 0.35, 0.29, 0.52, 0.36, 0.58, 0.53, 
-0.58, 0.36, 0.55, 0.57, 0.34, 0.2, 0.53, 0.77, 0.52, 0.33, 0.63, 
-0.57, 0.56, 0.4, 0.58, 0.52, 0.32, 0.42, 0.52, 0.5, 0.45, 0.29, 
-0.36, 0.33, 0.42, 1, 0.4, 0.33, 0.52, 0.35, 0.55, 0.63, 0.52, 
-0.4, 0.62, 0.52, 0.42, 0.29, 0.57, 0.57, 0.5, 0.33, 0.52, 0.73
-), dim = c(8L, 8L), dimnames = list(c(&quot;L2DA&quot;,&quot;L2DF&quot;,&quot;L2G&quot;,&quot;, 
-&quot;L2L&quot;,&quot;L2M&quot;,&quot;L2P&quot;,&quot;L2R&quot;,&quot;L2V&quot;,&quot;), c(&quot;L2DA&quot;,&quot;L2DF&quot;,&quot;L2G&quot;,&quot;, 
-&quot;L2L&quot;,&quot;L2M&quot;,&quot;L2P&quot;,&quot;L2R&quot;,&quot;, &quot;L2V&quot;)))
-
-as.matrix(Matrix::nearPD(NPD_MATRIX, corr=TRUE)$mat)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649694/measuring-difference-between-a-non-positive-definite-correlation-matrix-and-its</guid>
-      <pubDate>Sat, 22 Jun 2024 01:20:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>假设检验有限样本空间高斯混合模型</title>
-      <link>https://stats.stackexchange.com/questions/649693/hypothesis-test-finite-sample-spatial-gaussian-mixture-model</link>
-      <description><![CDATA[我有 $n$ 对 $(x, y)$ 的观测值和三个不同的模型，我想进行比较。模型 0 嵌套在模型 1 中。模型 0 也嵌套在模型 2 中。我想对模型 1 和模型 2 分别进行假设检验，使用模型 0 作为零假设。我最初的方法是使用似然比检验，但我得到的 1 类错误率过高。我相信这个 stack overflow 答案 中解释了其原因。因此，我尝试使用该答案中建议的修正，例如 Satorra 和 Bentler 2010 修正或 Bartlett 修正，但无济于事，因为这些修正似乎都是针对与我自己的问题不同的指定问题。因此，我需要帮助，要么将修正转换为问​​题的公式，要么以与修正兼容的方式重新表述我的问题，老实说，我不介意有人仔细检查我的分析，以确保所引用的答案实际上与我的问题有关，因为也许我弄错了。
-因此，我的三个模型如下：
-首先，它们都是$(2n x 2n)$多元正态分布，对于观测向量$(x_{1},...,x_{n},y_{1},...,y_{n})$，它们给出第 i 行、第 j 列（矩阵为半正定）中观测 i 和 j 之间的协方差。
-模型 0：
-$$
-\begin{bmatrix}
-\sigma_{1}^{2}A_{n}+\sigma_{2}^{2}\mathbb{I}_{n} &amp; 0_{n x n} \\
-0_{n x n} &amp; \sigma_{3}^{2}A_{n}+\sigma_{4}^{2}\mathbb{I}_{n} \\
-\end{bmatrix},
-$$
-其中 $A_{n}$ 和 $\mathbb{I}_{n}$ 是 $(n x n)$ 已知矩阵（$\mathbb{I}_{n}$ 是单位矩阵），$\sigma_{1}^2、\sigma_{2}^2、\sigma_{3}^2、\sigma_{4}^2$ 是未知方差缩放因素。
-模型 1：
-$$
-\begin{bmatrix}
-\sigma_{1}^{2}A_{n}+\sigma_{2}^{2}\mathbb{I}_{n} &amp; c_{1}C_{n} \\
-c_{1}C_{n} &amp; \sigma_{3}^{2}A_{n}+\sigma_{4}^{2}\mathbb{I}_{n} \\
-\end{bmatrix},
-$$
-其中 $A_{n}$、$\mathbb{I}_{n}$ 和 $C_{n}$ 为 $(n x n)$ 已知矩阵，$\sigma_{1}^2、\sigma_{2}^2、\sigma_{3}^2、\sigma_{4}^2$ 为未知方差缩放因子，$\sigma_{1}^2、\sigma_{2}^2、\sigma_{3}^2、\sigma_{4}^2$ 为未知方差缩放因子，$c_{1}$ 是 $[-1,1]$ 中的未知相关性。
-模型 2：
-$$
-\begin{bmatrix}
-\sigma_{1}^{2}A_{n}+\sigma_{2}^{2}\mathbb{I}_{n} &amp; c_{1}K_{n} \\
-c_{1}K_{n} &amp; \sigma_{3}^{2}A_{n}+\sigma_{4}^{2}\mathbb{I}_{n} \\
-\end{bmatrix},
-$$
-其中 $A_{n}$、$\mathbb{I}_{n}$ 和 $K_{n}$ 为 $(n x n)$ 已知矩阵，$\sigma_{1}^2、\sigma_{2}^2、\sigma_{3}^2、\sigma_{4}^2$ 为未知方差缩放因子，$\sigma_{1}^2、\sigma_{2}^2、\sigma_{3}^2、\sigma_{4}^2$ 为未知方差缩放因子，$c_{1}$ 是 $[-1,1]$ 中的未知相关性。
-总之，我对 X 和 Y 之间可能存在的相关性类型有几个不同的假设，我希望能够通过拒绝零假设来支持这些假设。非常感谢任何帮助，谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649693/hypothesis-test-finite-sample-spatial-gaussian-mixture-model</guid>
-      <pubDate>Sat, 22 Jun 2024 00:53:33 GMT</pubDate>
-    </item>
-    <item>
       <title>如何对机器学习模型执行置换检验以获得其性能的 p 值？</title>
       <link>https://stats.stackexchange.com/questions/649692/how-do-i-perform-a-permutation-test-on-a-machine-learning-model-to-obtain-a-p-va</link>
       <description><![CDATA[这个问题与上一篇文章中的问题类似。但由于没有回复，而且我很难找到答案，所以我想再问一次。
@@ -125,124 +155,26 @@ $$
       <pubDate>Fri, 21 Jun 2024 23:31:13 GMT</pubDate>
     </item>
     <item>
-      <title>我想了解一下我在这里从事的工作</title>
-      <link>https://stats.stackexchange.com/questions/649690/i-would-like-some-insight-into-what-i-have-been-working-on-here</link>
-      <description><![CDATA[我从事屋顶销售工作，入门级需要上门推销。我们分行的 GroupMe 聊天中会打印每日数据。我主动对这些数字进行了一些分析。有敲门、谈话、走访和偶发事件（达成的交易）。
-我不会向你介绍我所做的一切，但我会告诉你，我发现敲门次数和偶发事件之间的相关性为 -0.41，这意味着我们敲的门越多，达成的交易越少；上门推销的差异也很大，远远超出了每日数字的范围。我对此非常感兴趣，因为销售工作几乎总是“数字游戏”，这意味着他们使用平均法则 - 如果你敲了很多门，最终你会达成交易。
-我告诉领导层这件事，他们给了我“焚书”式的回应。他们告诉我不要分享任何“负面”信息或者告诉人们不要为了赚更多的钱而努力工作；我放弃了和他们讨论这个问题，而是自己深入研究它。
-首先，我计算了平均每敲 100 扇门，有多少个意外事件被签署。它是 ~2.59。我用它作为二项分布函数中的“假定概率”，并绘制了每次敲门（0 - 100）的销售概率。我发现，最有可能产生 ~2.59 笔销售，2 笔销售的概率约为 25% 左右。负相关性告诉我，收益递减点已经存在，所以我仍然不相信越多越好。
-其次，我决定对每 100 扇门进行预期值计算。当然，每扇门 2.59% 的销售概率保持不变；但是，惩罚（使用的资源，如汽油和时间等）确实会随着每扇门而增加。我称之为每扇门 1 美元的汽油，因为这就是我所花费的。这告诉我，在 52 次敲门后，你真的没有什么可获得的了。这让我意识到二项分布概率会随着试验次数的变化而变化……
-第三，我回到电子表格并将试验次数改为 52；这表明最有可能的结果是 1 次销售，概率略高于 33%（这大于 100 次试验中 2 次销售的约 25% 的概率）。
-由于这一切都基于我们分行的实际绩效数据，我觉得我已经证明（至少在统计上）我已经解释了负相关性，并证明了“上升和磨砺”每天尽可能多地敲门是一种策略，但这种策略会适得其反，导致销售代表产生不一致的数字（解释了高方差）。
-我现在的假设是，如果所有销售代表每个周期（一天、一周或其他时间段）敲门 52 次，方差将更接近于零或至少在数据范围内，销售额将会增加，相关性可能会显示敲门次数和意外事件之间存在正相关关系，因为敲门次数通常会较低，意外事件的数量会较高。
-我希望从更有经验的人那里了解我的发现是否有价值，或者我是否遗漏了什么。在非正式场合，我很乐意编写 Python 代码来绘制所有这些。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649690/i-would-like-some-insight-into-what-i-have-been-working-on-here</guid>
-      <pubDate>Fri, 21 Jun 2024 21:04:41 GMT</pubDate>
+      <title>相关伯努利变量的成功次数</title>
+      <link>https://stats.stackexchange.com/questions/649672/number-of-successes-for-correlated-bernoulli-variables</link>
+      <description><![CDATA[大家早上好！给定一组独立伯努利随机变量的成功次数由二项分布描述。但是，我想知道如果伯努利变量是相关的，会怎么说。例如，在不重新插入的情况下进行采样，则成功次数由超几何分布描述，但这是一种特殊情况（相当于从瓮中取出球而不重新插入它们）。您能否推荐一些文本，其中以更通用的方式解决了相关伯努利变量的总成功次数问题？谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/649672/number-of-successes-for-correlated-bernoulli-variables</guid>
+      <pubDate>Fri, 21 Jun 2024 15:46:52 GMT</pubDate>
     </item>
     <item>
-      <title>与三元变量进行 3 次比较</title>
-      <link>https://stats.stackexchange.com/questions/649689/making-3-comparisons-with-a-ternary-variable</link>
-      <description><![CDATA[我有一项研究，我想研究三元变量 x 与二元变量 y 交互的影响。三元变量是分类变量，出于某些原因，我想对 3 个组进行 3 次比较。
-我明白要进行一次比较，我必须进行 2 次对比。例如，如果我对组 1 与组 3 感兴趣，我定义 C1= (-1,0,1) 和 C2=(-1,2,-1)。如果我想测试所有的比较，那么我应该做 6 次对比吗？在这种情况下，回归量不是共线的吗？有没有更简单的方法可以做到这一点？
-谢谢你的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/649689/making-3-comparisons-with-a-ternary-variable</guid>
-      <pubDate>Fri, 21 Jun 2024 20:51:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>GAM 分析有两种方式：使用正态分布作为生存百分比，使用二项分布作为存活/死亡，但得到的结果截然不同</title>
-      <link>https://stats.stackexchange.com/questions/649684/gam-analysis-two-ways-as-percent-survival-using-normal-dist-and-as-alive-dead-u</link>
-      <description><![CDATA[我的问题与鲑鱼种群数据有关。我想了解海洋变量如何影响鲑鱼的回归。我用两种不同的方法分析了数据。第一个响应变量是返回的鲑鱼数量与外出鲑鱼数量的比例，但这是有问题的，因为我们将每年数千个数据点压缩成一个数字。
-gam_hatcherySAR_cuti &lt;- gam(sar ~ s(CUTI), data = hatcherySAR, method = &quot;REML&quot;)
-
- out_yr SAR CUTI
-1 2008 0.003664542 -0.03291667
-2 2009 0.010083530 -0.04575000
-3 2010 0.005462051 -0.29100000
-4 2011 0.004414756 -0.12783333
-5 2012 0.002900364 -0.20225000
-6 2013 0.005570978 0.09850000
-7 2014 0.012547544 -0.07283333
-8 2015 0.006963657 0.07700000
-9 2016 0.004722142 -0.04975000
-10 2017 0.002127052 -0.00575000
-11 2018 0.007220002 0.03550000`
-
-系列：高斯
-链接函数：身份
-
-公式：
-SAR ~ s(CUTI)
-
-参数系数：
-估计标准误差 t 值 Pr(&gt;|t|) 
-（截距） 0.0059706 0.0009768 6.112 0.000177 ***
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-平滑项的近似重要性：
-edf Ref.df F p 值
-s(CUTI) 1 1 0.207 0.66
-
-R-sq.(adj) = -0.0861 偏差解释 = 2.25%
--REML = -36.422 尺度估计 = 1.0496e-05 n = 11
-
-因此，我想通过另一种方式对其进行分析，即使用逻辑回归方法将响应变量视为活着的还是死去的。
-但是，这两种分析方法都得到了截然不同的结果，即 CUTI 在上述高斯示例中不是一个重要的预测因子，而二项式示例则非常重要。我还看到了与我评估过的许多其他海洋变量类似的结果。显然，考虑到不同的分布，我预计结果会略有不同，但不会像我看到的那么剧烈。有人能帮我理解这是为什么吗？
-gam_hatcherySARbin_cuti &lt;- gam(cbind(hatcherySARbin$alive,hatcherySARbin$dead) ~ s(CUTI), data=hatcherySARbin,family=binomial(),method = &quot;REML&quot;)
-
- 年份 存活 死亡 剪切
-[19,] &quot;2008&quot; &quot;15750&quot; &quot;4282232&quot; &quot;-0.032916667&quot;
-[20,] &quot;2009&quot; “42239” “4146665” “-0.04575” 
-[21,] “2010” “23290” “4240634” “-0.291” 
-[22,] “2011” “16367” “3682322” “-0.127833333” 
-[23,] “2012” “11699” “4021761” “-0.20225” 
-[24,] “2013”​​ “18701” “3338073” &quot;0.0985&quot; 
-[25,] &quot;2014&quot; &quot;48229&quot; &quot;3795423&quot; &quot;-0.072833333&quot;
-[26,] &quot;2015&quot; &quot;20134&quot; &quot;2870199&quot; &quot;0.077&quot; 
-[27,] &quot;2016&quot; &quot;13130&quot; &quot;2786228&quot; &quot;-0.04975&quot; 
-[28,] &quot;2017&quot; &quot;6219&quot; &quot;3032885&quot; &quot;-0.00575&quot; 
-[29,] &quot;2018&quot; &quot;18603&quot; &quot;2558000&quot; &quot;0.0355&quot;
-`
-
-系列：二项式
-
-链接函数：logit
-
-公式：
-cbind(hatcherySARbin$alive, hatcherySARbin$dead) ~ s(CUTI)
-
-参数系数：
-估计标准误差 z 值 Pr(&gt;|z|) 
-(截距) -5.208502 0.002349 -2217 &lt;2e-16 ***
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-平滑项的近似显著性：
-edf Ref.df Chi.sq p 值 
-s(CUTI) 8.994 9 44821 &lt;2e-16 ***
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-R-sq.(adj) = -0.958 偏差解释 = 82.9%
--REML = 5057 尺度估计 = 1 n = 11``` 
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649684/gam-analysis-two-ways-as-percent-survival-using-normal-dist-and-as-alive-dead-u</guid>
-      <pubDate>Fri, 21 Jun 2024 19:10:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>在逻辑回归中交换预测变量和结果变量会有什么变化</title>
-      <link>https://stats.stackexchange.com/questions/649678/what-changes-in-swapping-predictor-and-outcome-variables-in-logistic-regression</link>
-      <description><![CDATA[我有一个数据集，其中包含一个表示细菌分离源的变量，该变量有 2 个因子，以及多个其他二进制变量，表示该细菌是否对某些抗生素具有耐药性（是或否）。
-我一直在进行逻辑回归，最初将分离源视为预测因子。
-glm &lt;- glm(antibiotic1 ~ source, data = df, family = binomial()) 
-
-但是，我正在考虑将分离源视为结果的可能性。这样，我可以使用多种抗生素耐药性变量作为预测因子，让我能够对一些抗生素进行分组并进行多元逻辑回归，看看是否能得到更好的见解。
-glm &lt;- glm(source ~ antibiotic1 + antibiotic2, data = df, 
-family = binomial()) 
-
-这种方法可行吗？在可解释性方面会发生什么变化？以这种方式进行是否可取？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649678/what-changes-in-swapping-predictor-and-outcome-variables-in-logistic-regression</guid>
-      <pubDate>Fri, 21 Jun 2024 17:12:15 GMT</pubDate>
+      <title>（理论）树模型是否输出概率？</title>
+      <link>https://stats.stackexchange.com/questions/649666/theory-do-tree-models-output-probabilities</link>
+      <description><![CDATA[我有一个关于决策树分类输出的纯理论问题。我听过很多人说“树模型的输出不是概率”，研究过这些之后，我不明白他们为什么会这么说。
+我说它们实际上是概率的原因如下：
+1. 简单分类树：决策树中的每个叶子代表训练数据的一个子集，具有一定的类别分布。叶子中每个类别的比例可以解释为属于该类别的概率估计。例如，如果叶子包含 80 个 A 类样本和 20 个 B 类样本，则 A 类的概率估计为 80%，B 类的概率估计为 20%。
+2. 集成模型（随机森林）：在随机森林中，多个决策树在数据和/或特征的不同子集上进行训练。然后汇总这些树的预测。对于分类，这通常涉及进行多数投票或平均每棵树的预测概率。通过对多棵树的预测概率进行平均，随机森林可以提供比单个决策树更可靠的概率估计。这进一步支持了基于树的模型可以输出概率的观点。
+3. 增强模型（梯度增强，XGBoost）：像梯度增强或 XGBoost 这样的增强模型按顺序构建树，每棵树都会纠正前一棵树的错误。对于二元分类，最终输出通常采用对数几率的形式，然后使用逻辑函数（S 型函数）将其转换为概率。此转换明确产生概率估计。
+说它们不是概率的原因是：
+1.校准：众所周知，许多分类问题都涉及不平衡的数据集，为此，许多人使用 is_unbalance 或 class_weights 等参数来补偿这一点。使用这些参数会使输出校准不充分。这意味着预测的概率不一定与事件的真实可能性相对应。例如，一片叶子可能以 80% 的概率预测一个类别，但实际上，该类别的真实可能性可能不同。校准技术（例如 Platt 缩放或保序回归）通常用于改善这种情况。虽然我相信这个理由是有效的，但使用这些参数只是树模型的一个特例，所以我不会那么快地说基于树的模型不会产生概率。
+2.过度拟合：我们都同意决策树很容易过度拟合（尽管我会在随机森林的情况下对此进行更多辩论），尤其是那些未经修剪的决策树，这会导致过度自信的概率估计。这种过度拟合可能导致叶子样本很少，从而使概率估计不太可靠。我有点同意这种说法，但是，这只是告诉我这是一个训练不良的模型，这并不意味着基于树的模型本质上不输出概率，这只是一个像其他模型一样训练不良的模型的情况。训练不良的神经网络甚至逻辑回归也可能会发生同样的情况。
+我很想听听你对这个问题的想法和意见，并学习一些新东西。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649666/theory-do-tree-models-output-probabilities</guid>
+      <pubDate>Fri, 21 Jun 2024 14:37:50 GMT</pubDate>
     </item>
     <item>
       <title>广义似然比检验：H0：µ<=µ0 vs. H1：µ>µ0，σ 未知 [关闭]</title>
@@ -254,6 +186,25 @@ family = binomial())
 请帮帮我]]></description>
       <guid>https://stats.stackexchange.com/questions/649660/the-generalized-likelihood-ratio-test-of-h0-%c2%b5-%c2%b50-v-s-h1-%c2%b5%c2%b50-with-unknown-%cf%83</guid>
       <pubDate>Fri, 21 Jun 2024 13:09:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>聚类实际上会减少数据集中的行数吗？</title>
+      <link>https://stats.stackexchange.com/questions/649709/does-clustering-actually-reduce-the-number-of-rows-in-a-dataset</link>
+      <description><![CDATA[我正在阅读 Luis G. Serrano 的《grokking Machine Learning》一书，看到了这样一句话：
+“看起来聚类和降维没什么相似之处，但实际上，它们并没有太大区别。如果我们有一张满是数据的表，每一行对应一个数据点，每一列对应一个特征。因此，我们可以使用聚类来减少数据集中的行数，使用降维来减少列数。”
+我对聚类减少行数的说法有疑问。似乎聚类只是对数据进行分组，而不减少其列数。我错了吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649709/does-clustering-actually-reduce-the-number-of-rows-in-a-dataset</guid>
+      <pubDate>Thu, 20 Jun 2024 18:55:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>评估预期值加变异的估计量</title>
+      <link>https://stats.stackexchange.com/questions/649483/evaluating-estimator-of-expected-value-plus-variation</link>
+      <description><![CDATA[我知道，对于典型情况，可以根据预测的均方误差 (MSE) 来评估估计量。我该如何评估一个估计量，它给出的是一个预测值加上一些变化？
+例如，软件开发人员可能会估计一个项目需要 8 天的工作时间。如果他们被问到“你需要多长时间才能有 80% 的机会在这段时间内完成项目？”，他们可能会说 12 天。一旦知道实际值（项目实际花费的时间），如何评估第二个预测？
+一种简单的综合评估方法，如“预测中有多少比例大于实际时间？”不起作用，因为如果开发人员 80% 的时间猜测为 100 天，20% 的时间猜测为 0 天，那么这将是完美的选择。
+背景：众所周知，估算项目长度是软件开发中的一个难题，我想知道开发人员在猜测更大的百分位数而不是预期值时是否更准确。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649483/evaluating-estimator-of-expected-value-plus-variation</guid>
+      <pubDate>Tue, 18 Jun 2024 20:28:55 GMT</pubDate>
     </item>
     <item>
       <title>进行多重配对 t 检验或单因素方差分析检验是否更好</title>
@@ -274,116 +225,6 @@ family = binomial())
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/649452/is-it-better-to-perform-multiple-paired-t-test-or-one-way-anova-test</guid>
       <pubDate>Tue, 18 Jun 2024 13:19:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么自上而下的方法会产生有偏差的连贯预测？</title>
-      <link>https://stats.stackexchange.com/questions/649367/why-do-top-down-approaches-produce-biased-coherent-forecasts</link>
-      <description><![CDATA[上下文是预测分层时间序列。Hyndman &amp; Atahnasopoulos 所著的《预测：原理与实践》（第 2 版）第 10.4 节指出：
-
-包括这种方法在内的所有自上而下的方法都有一个缺点，那就是它不能产生无偏的连贯预测
-
-它引用了 Hyndman 等人的“分层时间序列的最佳组合预测” (2011)（开放访问）。这一说法可以在第 4 页（第 2582 页）找到，但我没有看到任何证据。让我引用一下：
-
-如果我们假设基础（独立）预测是无偏的（即
-$\mathbb{E}[\mathbf{\hat Y} _n(h)] = \mathbb{E}[\mathbf{Y}_n(h)]$），
-并且我们希望修订后的分层预测也是无偏的，那么我们必须要求
-$\mathbb{E}[\mathbf{\tilde Y} _n(h)] = \mathbb{E}[\mathbf{Y} _n(h)] = \mathbf{S}\mathbb{E}[\mathbf{Y}_{K,n}(h)]$。
-假设
-$\mathbf{\beta}_n(h) = \mathbb{E}[\mathbf{Y}_{K,n+h}|\mathbf{Y}_1,\dots,\mathbf{Y}_n]$
-是底层$K$未来值的平均值。那么
-$\mathbb{E}[\mathbf{\tilde Y}_n(h)] = \mathbf{SP}\mathbb{E}[\mathbf{\tilde Y}_n(h)] = \mathbf{SPS}\mathbf{\beta}_n(h)$。
-因此，只要满足以下条件，修订后的预测结果将保持无偏性：
-\begin{align}
-\mathbf{SPS} = \mathbf{S} \tag{5}
-\end{align
-对于自下而上的方法，此条件成立，其中 $\mathbf{P}$ 由 $(3)$ 给出。但是，使用自上而下的方法，其中 $\mathbf{P}$ 由 $(4)$ 给出，我们发现，对于任何 $\mathbf{p}$ 选择，$\mathbf{SPS} \neq \mathbf{S}$。因此，即使基础预测无偏，自上而下的方法也永远无法给出无偏预测。
-
-（斜体是我的。）有人可以提供斜体陈述背后的直觉以及证明的草图吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649367/why-do-top-down-approaches-produce-biased-coherent-forecasts</guid>
-      <pubDate>Mon, 17 Jun 2024 09:46:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>诊断生存曲线图中的意外模式</title>
-      <link>https://stats.stackexchange.com/questions/648490/diagnosing-an-unexpected-pattern-in-a-survival-curve-plot</link>
-      <description><![CDATA[我正在 R 中进行生存分析（使用 Cox 比例风险回归）。我的总体样本死亡率约为 10%，但从我的分析得出的 Kaplan-Meier 生存曲线似乎显示生存率下降了约 40-50%，并在 4 年左右急剧下降。这并不能反映实际数据集中死亡时间的模式，但我不确定是什么导致了这种差异……有人知道吗？
-
-# 定义图的层
-strata &lt;- expand.grid(
-pression_level = levels(complete_cases_all$depression_level),
-sex = levels(complete_cases_all$sex)
-)
-rownames(strata) &lt;- letters[1:nrow(strata)]
-
-# 定义平均参与者
-average_participant &lt;- expand.grid(
-depression_level = levels(complete_cases_all$depression_level),
-sex = levels(complete_cases_all$sex),
-calendar_year = median(complete_cases_all$calendar_year),
-age = median(complete_cases_all$age),
-education_level = median(complete_cases_all$education_level),
-employment = “有竞争力的就业”,
-marital_status = “单身”,
-rehab_payor_primary_type = “非医疗补助”,
-func_score = median(complete_cases_all$func_score),
-mental_health_tx_hx = 
-“否认有任何心理健康治疗史”,
-psych_hosp_hx = &quot;否认有任何精神病住院史&quot;,
-problematic_substance_use = &quot;否&quot;,
-suicide_attempt_hx = &quot;否认有任何自杀企图史&quot;
-)
-rownames(average_participant) &lt;- letters[1:nrow(average_participant)]
-
-# 拟合生存模型
-cxsf &lt;- survfit(model_5, newdata = average_participant, 
-conf.type = &quot;none&quot;)
-surv_cxsf &lt;- surv_summary(cxsf, data = complete_cases_all) |&gt; 
-# 总结生存模型
-tibble()
-m_newdat &lt;- average_participant[as.character(surv_cxsf$strata), ] 
-# 将新数据与生存总结层匹配
-
-gg.surv.model5 &lt;- surv_model_5 |&gt;
-ggsurvplot_df(
-surv.geom = geom_line,
-color = &quot;depression_level&quot;,
-xlab = &quot;X 之后的时间（年）&quot;,
-ylab = &quot;生存概率&quot;,
-legend = c(0.175, 0.175),
-conf.int = FALSE,
-censor = FALSE,
-surv.scale = &quot;percent&quot;,
-break.time.by = 1,
-xlim = c(0, 5), # 将 x 轴限制为 5 年
-ylim = c(crop, 1),
-palette = c(&quot;#90cbf9&quot;, &quot;#2196f3&quot;, &quot;#114b7a&quot;),
-ggtheme = theme_classic(),
-) +
-labs(linetype = &quot;性别&quot;，颜色 = &quot;抑郁程度&quot;)
-
-数据基于纵向数据集，并在初始研究登记日期后约 1 年和 4 年进行后续访谈。审查日期由每个审查参与者的最后一次后续访谈日期确定，死亡日期由每个死者官方死亡证明中列出的日期确定。时间 0 对应于每个参与者的研究登记日期，并在随后的 5 年内进行跟踪。
-我检查了数据集，发现 4 年后死亡的死者数量异常，但在此期间似乎有合理的死亡频率（约 23% 的总死亡发生在 4 至 5 年之间）。我确保我的死亡时间基于日期，而不是（整数）跟踪间隔。最后，我确保受审查的参与者也在 4-5 年的时间范围内贡献数据。]]></description>
-      <guid>https://stats.stackexchange.com/questions/648490/diagnosing-an-unexpected-pattern-in-a-survival-curve-plot</guid>
-      <pubDate>Sun, 02 Jun 2024 18:03:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 R 中的 Fable 进行分层时间序列预测最优协调</title>
-      <link>https://stats.stackexchange.com/questions/567144/hierarchical-time-series-forecasting-optimal-reconciliation-using-fable-in-r</link>
-      <description><![CDATA[我正在使用 R 中的 fable 包进行分层时间序列预测。我正在使用最佳协调方法来协调预测。以下是示例代码。
-agg_sw &lt;- df %&gt;%
-aggregate_key(productcategory/brand/sku, sales = sum(sales))
-
-# 拟合模型
-ets_fit &lt;- agg_sw %&gt;%
-model(ets = ETS(sales)) %&gt;%
-reconcile(ols = min_trace(ets, method = &quot;ols&quot;))
-
-# 预测
-fc &lt;-forecast(ets_fit, h= &quot;1 year&quot;)
-
-
-是否可以使用不同的预测方法在每个级别（例如 sku/品牌/产品）进行核对？如果是，请告诉我如何操作。]]></description>
-      <guid>https://stats.stackexchange.com/questions/567144/hierarchical-time-series-forecasting-optimal-reconciliation-using-fable-in-r</guid>
-      <pubDate>Tue, 08 Mar 2022 22:17:58 GMT</pubDate>
     </item>
     </channel>
 </rss>
