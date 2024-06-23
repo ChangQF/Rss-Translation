@@ -4,7 +4,42 @@
     <title>学习机器学习</title>
     <link>https://www.reddit.com/r/learnmachinelearning/</link>
     <description>一个致力于学习机器学习的 subreddit</description>
-    <lastBuildDate>Sun, 23 Jun 2024 06:19:24 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 23 Jun 2024 09:15:39 GMT</lastBuildDate>
+    <item>
+      <title>使用 GPT-4o 训练小 2,000,000 倍的模型（可直接在设备上运行）</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmi1s2/using_gpt4o_to_train_a_2000000x_smaller_model/</link>
+      <description><![CDATA[    /u/thenarfer   [链接] [评论] ]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dmi1s2/using_gpt4o_to_train_a_2000000x_smaller_model/</guid>
+      <pubDate>Sun, 23 Jun 2024 09:03:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>自定义模型反向传播</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmhb4g/custom_model_backprop/</link>
+      <description><![CDATA[您好， 我正在研究一个小型语言模型，我用 C++ 为该模型实现了一个自定义推理脚本，它比 pytorch 版本快约 100 倍。 而且由于这显著提高了速度，我决定也用 C++ 实现训练代码。我的问题是我的代码中出现了错误的梯度。我大约完成了反向传播的一半，我的所有梯度都与 pytorch 代码完全相同，但现在后半部分不一样了，我不知道我做错了什么。 我不会要求人们查看杂乱的 2000 行 cpp 文件，但如果有人能帮我找出下面模型的反向传播函数（使用任何编码语言），那就太棒了！ “”” class RecurrentHead(nn.Module): &quot;&quot;&quot;一个自注意力的头脑“”“ def __init__(self, n_embd, head_size, dropout, device): super().__init__() self.key = nn.Linear(n_embd, head_size, bias=True, device=device) self.query = nn.Linear(1, head_size, bias=True, device=device) self.positions = torch.arange(0, n_embd).unsqueeze(dim=0).to(device) self.query_pos = nn.Embedding(n_embd, head_size, device=device) self.value = nn.Linear(n_embd, head_size, bias=False, device=device) self.proj = nn.Linear(head_size, 1, device=device) self.dropout = nn.Dropout(dropout) @profile def forward(self, x, tok_emb): # x 大小为 (batch, channels) # tok_emb 大小为 (batch, channels) # 大小为 (batch, head size) 的输出 k = self.key(tok_emb) # (B,1,hs) q = self.query(x) # (B,channels,hs) q2 = self.query_pos(self.positions) q = q + q2 # 将位置嵌入添加到查询 # 计算注意力分数（“亲和力”） wei = q @ k.transpose(-2,-1) * k.shape[-1]**-0.5 # (B, C, hs) @ (B, hs, 1) -&gt; (B, C, 1) wei = F.softmax(wei, dim=-2) # (B, C, 1) wei = self.dropout(wei) # 对值进行加权聚合 v = self.value(tok_emb) # (B,1,hs) out = wei @ v # (B, C, 1) @ (B, 1, hs) -&gt; (B, C, hs) out = self.proj(out).squeeze() # (B, C) return out  “”” P.S. 如果有帮助的话，我认为可以忽略 dropout，我总是将其设置为 0。    提交人    /u/dnsod_si666   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dmhb4g/custom_model_backprop/</guid>
+      <pubDate>Sun, 23 Jun 2024 08:10:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>Ml 数学部分？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmh0g5/ml_maths_part/</link>
+      <description><![CDATA[我的孩子现在上 7 年级，他知道所有普通 7 年级学生所知道的知识，但他想尝试 ml，我试图让他明白，如果他真的想做这件事，他就需要了解数学，尽管这很有野心，但他表示已经准备好付出努力，那么我应该如何学习数学部分呢？    提交人    /u/RougeReaper1   [link] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dmh0g5/ml_maths_part/</guid>
+      <pubDate>Sun, 23 Jun 2024 07:48:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>信息瓶颈方法的现状如何？是否值得使用这个“inf_T I(X;T) - beta I(T;Y)”进行训练以直接优化中间层的内容？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmgsfs/what_is_the_current_status_of_information/</link>
+      <description><![CDATA[几年前，Naftali Tishby 的信息瓶颈方法被大肆炒作，但现在几乎没有什么动静了，尤其是作者不幸于 2021 年去世。 理论上，它允许直接优化隐藏/中间层 T 的内容 - 它不仅应该最大化关于输出 I(T;Y) 的相互信息，同时还应该最小化关于输入 I(X;T) 的信息 - 消除噪音，（有损）压缩/提取最有价值的信息。 在 Tishby 的演讲中，例如https://www.youtube.com/watch?v=utvIaZ6wYuw，他使用它进行评估，但似乎很想尝试直接用它来进行训练——优化中间层的内容。 我个人认为它很有前途，目前正在研究可以通过这种方式廉价训练的新 ANN（https://arxiv.org/abs/2405.05097），所以想问一下，提出讨论。 这个例如“inf_T I(X;T) - beta I(T;Y)”是否直接用于 NN 训练？应该是吗？也许一些更复杂的最小化-最大化会更好？ 一般来说：信息瓶颈方法的现状如何？    提交人    /u/jarekduda   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dmgsfs/what_is_the_current_status_of_information/</guid>
+      <pubDate>Sun, 23 Jun 2024 07:32:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>注意力和变压器</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmgqt9/attention_and_transformers/</link>
+      <description><![CDATA[我一直在尝试理解注意力机制和 transformers 架构，但我无法理解，有没有好的文章或视频可以详细解释整个机制？谢谢！    提交人    /u/NoobPeen   [link] [comments]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dmgqt9/attention_and_transformers/</guid>
+      <pubDate>Sun, 23 Jun 2024 07:29:24 GMT</pubDate>
+    </item>
     <item>
       <title>法学硕士评估数学的 ROUGE 分数指标（附示例）</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmfo3k/rouge_score_metric_for_llm_evaluation_maths_with/</link>
@@ -27,20 +62,6 @@
       <pubDate>Sun, 23 Jun 2024 05:39:19 GMT</pubDate>
     </item>
     <item>
-      <title>最好的学习资源？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmbfcg/best_resources_to_learn/</link>
-      <description><![CDATA[我现在正在浏览一些……真的很喜欢 Data Quest，但很想听到更多资源。请和谢谢！    提交人    /u/Yuna1989   [link] [comments]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dmbfcg/best_resources_to_learn/</guid>
-      <pubDate>Sun, 23 Jun 2024 01:58:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 GPU 进行物体检测</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmah64/using_gpu_for_object_detection/</link>
-      <description><![CDATA[我对机器学习还很陌生，最近才开始做物体检测。我想使用 gpu 进行平滑检测，但似乎不行。我尝试了多个教程，但都没有用。我的笔记本电脑性能很差，所以我的 gpu 是 amd radeon vega 8    提交人    /u/rejensraya   [link] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dmah64/using_gpu_for_object_detection/</guid>
-      <pubDate>Sun, 23 Jun 2024 01:06:30 GMT</pubDate>
-    </item>
-    <item>
       <title>Parlay Bet ML 模型：使用哪种架构？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1dmafp9/parlay_bet_ml_model_which_architecture_to_use/</link>
       <description><![CDATA[]]></description>
@@ -55,13 +76,6 @@
       <pubDate>Sun, 23 Jun 2024 00:02:11 GMT</pubDate>
     </item>
     <item>
-      <title>CNN 图像分类</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dm645m/cnn_image_classification/</link>
-      <description><![CDATA[      大家好！下面附上我训练 CNN 图像分类模型的尝试。数据集有 6 个标签。给出了 X 和 y 形状。我的问题是，对于 epoch 数量、学习率、dropout 概率、batch_size、filters、nodes 来说，合理的起点是什么。正如您在屏幕截图中看到的，我为每个超参数写了一个范围，以测试出损失最小、最准确的模型。问题是模型训练时间太长，所以我在考虑如何优化它，也许我应该缩短范围长度，并包含更适合开始测试这种形状的数据集的超参数值。提前谢谢您！ https://preview.redd.it/yvhaxvgoy68d1.png?width=2169&amp;format=png&amp;auto=webp&amp;s=eed4f2135d3e15b13511e8bd1fc7135b9fbb0f21    提交人    /u/DefaultBen3311   [链接] [评论] ]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dm645m/cnn_image_classification/</guid>
-      <pubDate>Sat, 22 Jun 2024 21:30:51 GMT</pubDate>
-    </item>
-    <item>
       <title>如何才能有效地找到距离特定向量最近的前 n 个向量？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1dm4gk1/how_can_i_efficiently_find_the_first_n_closest/</link>
       <description><![CDATA[嗨 Reddit，不确定这是否是一个非常简单的问题，可能非常简单，但我试图弄清楚如何找到前 5 个向量，它们与 20 维空间中的特定向量最接近。任何指针都将不胜感激。谢谢！！    提交人    /u/Zestyclose_Ear4092   [link] [评论]]]></description>
@@ -74,13 +88,6 @@
       <description><![CDATA[我想学习 ML。所以我从数学开始。我已经很久没有复习过它了，我的知识有点生疏。我从大学代数开始，完成后我将同时从微积分和线性代数开始。我的问题是我应该继续这个路线图还是直接跳到学习 ML？    提交人    /u/Little-Peanut-765   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dm402f/do_i_keep_learning_math_or_just_jump_to_a_ml/</guid>
       <pubDate>Sat, 22 Jun 2024 19:54:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>您将使用什么技术来制造自动吸尘器？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dm3yhh/what_technique_would_you_use_to_create_an/</link>
-      <description><![CDATA[免责声明：虽然我可以在 Google 上查找此类信息，但我想直接询问您的意见，我希望这篇文章会受到欢迎，如果没有，我将接受我的 L。 我刚刚参加了 AI 入门考试，我们的老师在某个时候向我们介绍了马尔可夫决策问题和强化学习。我试图创建一个可以使用这种技术（或通常基于奖励的技术）的场景，我想到了一个自动吸尘器，我更多地考虑了 RL 来完成这项任务，因为环境可能会发生变化，或者只是简单地放在不同的家中。你会用什么？如果需要更多细节，你可以告诉我，面对这类问题对我来说很有趣（即使我只是在考虑理论的东西），因为我是这个领域的新手。    提交人    /u/_JesusChrist_hentai   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dm3yhh/what_technique_would_you_use_to_create_an/</guid>
-      <pubDate>Sat, 22 Jun 2024 19:52:29 GMT</pubDate>
     </item>
     <item>
       <title>你必须阅读的 5 本有关机器学习算法的免费书籍</title>
@@ -102,13 +109,6 @@
       <description><![CDATA[嗨，我想了解有关 ML/AL 的更多信息，我在科技行业使用 C++ 和 Python 工作。但我的领域非常传统，没有什么新东西。你对参加哪些在线课程有什么建议吗？总时间大约为 0.5 到 1 年。    提交人    /u/First-Technician-609   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dlnx4o/best_mlai_online_program/</guid>
       <pubDate>Sat, 22 Jun 2024 04:59:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>从“笔记本级”开发人员转变为胜任工作的人</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1dlme8i/transitioning_from_a_notebooklevel_developer_to/</link>
-      <description><![CDATA[我是一名大四本科生，我经常看到“笔记本级别”这个词被用来描述获得入门级数据科学/机器学习工作所需的技能水平不足。我怎样才能超越这个阶段并获得所需的能力？    提交人    /u/natesng   [link] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1dlme8i/transitioning_from_a_notebooklevel_developer_to/</guid>
-      <pubDate>Sat, 22 Jun 2024 03:30:03 GMT</pubDate>
     </item>
     </channel>
 </rss>
