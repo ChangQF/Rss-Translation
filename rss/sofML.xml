@@ -4,7 +4,536 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 23 Jun 2024 15:14:15 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 23 Jun 2024 18:18:16 GMT</lastBuildDate>
+    <item>
+      <title>如何使用 vif 选择线性回归的变量</title>
+      <link>https://stackoverflow.com/questions/78659510/how-to-use-vif-to-select-variables-for-linear-regression</link>
+      <description><![CDATA[我是机器学习的新手，我正在尝试使用此 kaggle 数据集 预测学生的期末成绩
+我知道你应该
+a) 编码所有二进制和分类数据
+b) 丢弃显示多重共线性的变量
+c) 选择与你的因变量具有线性关系的变量（我对此也有点困惑，因为到目前为止，在我看过的很多视频中，人们在使用线性回归训练他们的模型时并没有真正检查这一点）
+我已经通过对我的二进制变量进行标签编码和对我的分类变量进行单热编码来完成 (a)。我甚至计算了每个变量的 vif（单热编码的变量具有无限的 vif 值）。现在...我不确定如何继续。我可以肯定地说，由于 G2 具有较高的 vif 分数，我可以丢弃它；而且由于 Medu 的得分与 Fedu 接近但更高，我也可以将其丢弃（Walc 和 Dalc 相同）
+这是我得到的值：
+const 0.000000
+school 1.518331
+sex 1.489316
+age 1.818399
+address 1.388570
+famsize 1.153361
+Pstatus 1.145962
+Medu 2.946452
+Fedu 2.147572
+traveltime 1.322387
+studytime 1.398220
+failures 1.567588
+schoolsup 1.262329
+famsup 1.306325
+paid 1.339139
+activities 1.167950
+托儿所 1.153852
+高等教育 1.316551
+互联网 1.258651
+浪漫 1.179480
+家庭 1.173444
+空闲时间 1.322079
+外出 1.496537
+Dalc 2.036903
+Walc 2.405555
+健康 1.181635
+缺勤 1.297898
+G1 4.794857
+G2 8.414788
+G3 6.483623
+Mjob__at_home inf
+Mjob__health inf
+Mjob__other inf
+Mjob__services inf
+Mjob__teacher inf
+Fjob__at_home inf
+Fjob__health inf
+Fjob__other inf
+Fjob__services inf
+Fjob__teacher inf
+reason__course inf
+reason__home inf
+reason__other inf
+reason__reputation inf
+guardian__father inf
+guardian__mother inf
+guardian__other inf
+dtype: float64
+]]></description>
+      <guid>https://stackoverflow.com/questions/78659510/how-to-use-vif-to-select-variables-for-linear-regression</guid>
+      <pubDate>Sun, 23 Jun 2024 18:16:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>transformers 4.41.x 中不再存在 top_k_top_p_filtering 函数</title>
+      <link>https://stackoverflow.com/questions/78659374/function-top-k-top-p-filtering-doesnt-exist-anymore-in-transformers-4-41-x</link>
+      <description><![CDATA[函数 top_k_top_p_filtering 在 transformers 4.41.x 中不再存在。在以前的版本中，我仅使用此函数
+ next_token_logscores = top_k_top_p_filtering(logits, top_k=k, top_p=p)
+
+
+其中 k 是元素的数量，p 是累积概率，如下所示
+def top_k_top_p_filtering(
+logits: Tensor,
+top_k: int = 0,
+top_p: float = 1.0,
+filter_value: float = -float(&quot;Inf&quot;),
+min_tokens_to_keep: int = 1,
+) -&gt;张量：
+“”使用 top-k 和/或 nucleus (top-p) 过滤对 logits 分布进行过滤
+参数：
+logits：logits 分布形状（批次大小、词汇量）
+如果 top_k &gt; 0：仅保留概率最高的前 k 个标记（top-k 过滤）。
+如果 top_p &lt; 1.0：保留累积概率 &gt;= top_p 的前几个标记（nucleus 过滤）。
+Holtzman 等人描述了 Nucleus 过滤。（http://arxiv.org/abs/1904.09751）
+确保我们在输出中至少保留每个批次示例的 min_tokens_to_keep
+来自：https://gist.github.com/thomwolf/1a5a29f6962089e871b94cbd09daf317
+“”“”
+如果 top_k &gt; 0:
+top_k = min(max(top_k, min_tokens_to_keep), logits.size(-1)) # 安全检查
+# 删除所有概率小于 top-k 中最后一个 token 的 token
+indices_to_remove = logits &lt; torch.topk(logits, top_k)[0][..., -1, None]
+logits[indices_to_remove] = filter_value
+
+if top_p &lt; 1.0:
+sorted_logits, sorted_indices = torch.sort(logits, descending=True)
+cumumsum_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
+
+# 删除累计概率高于阈值的 token（保留 0 的 token）
+sorted_indices_to_remove =cumumum_probs &gt; top_p
+如果 min_tokens_to_keep &gt; 1:
+# 至少保留 min_tokens_to_keep（设置为 min_tokens_to_keep-1，因为我们在下面添加了第一个）
+sorted_indices_to_remove[..., :min_tokens_to_keep] = 0
+# 将索引向右移动以保留高于阈值的第一个标记
+sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+sorted_indices_to_remove[..., 0] = 0
+
+# 将排序后的张量分散到原始索引
+indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
+logits[indices_to_remove] = filter_value
+return logits
+
+this代码链接 https://huggingface.co/transformers/v3.2.0/_modules/transformers/generation_utils.html
+如何仅使用 transformers 4.41 中提供的函数重写此函数的调用？]]></description>
+      <guid>https://stackoverflow.com/questions/78659374/function-top-k-top-p-filtering-doesnt-exist-anymore-in-transformers-4-41-x</guid>
+      <pubDate>Sun, 23 Jun 2024 17:20:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>循环训练模型（每次迭代都会生成新模型），经过近 600 次循环迭代后，训练时间会增加</title>
+      <link>https://stackoverflow.com/questions/78659373/training-model-in-loopnew-model-in-each-iteration-training-time-increases-aft</link>
+      <description><![CDATA[我正在训练一个 LSTM 模型，并使用“留一法”交叉验证对其进行验证。我有 11520 个样本，所以我必须训练一个新模型 11520 次。我对 scikit learn 的“LeaveOneOut”函数给出的每个数据分割使用循环，在该循环中，我初始化一个新模型，对其进行训练，预测测试集，然后使用“keras.backend.clear_session()”清除旧模型，之后使用“tf.compat.v1.reset_default_graph()”重置图形，然后使用“gc.collect()”收集抓取的数据。最初，模型的训练时间约为 6-7 秒，但在训练 600 个模型后，训练时间增加到 25-50 秒。这是我的代码..
+def get_model(channels):
+
+model2 = keras.models.Sequential()
+model2.add(keras.layers.LSTM(64, return_sequences=False))
+model2.add(keras.layers.Dense(1,activation=&#39;sigmoid&#39;))
+
+model2.compile(optimizer=&#39;adam&#39;, loss=&#39;binary_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+
+return model2 
+
+def leaveOneOutCVLSTM(X, y, epochs, batch_size, validation_split):
+
+X_shuffle, y_shuffle = shuffle(X, y, random_state=42)
+cv = LeaveOneOut()
+# 枚举分割
+y_true, y_pred = list(), list()
+i = 1
+for train_ix, test_ix in cv.split(X_shuffle):
+# 分割数据
+X_train, X_test = X_shuffle[train_ix, :], X_shuffle[test_ix, :]
+
+scalers = {}
+X_train_scaled = np.random.rand(X_train.shape[0], X_train.shape[1], X_train.shape[2])
+X_test_scaled = np.random.rand(X_test.shape[0], X_test.shape[1], X_test.shape[2])
+for j in range(X_train.shape[2]):
+scalers[j] = StandardScaler()
+X_train_scaled[:, :, j] = scalers[j].fit_transform(X_train[:, :, j])
+for j in range(X_test.shape[2]):
+X_test_scaled[:, :, j] = scalers[j].transform(X_test[:, :, j])
+
+y_train, y_test = y_shuffle[train_ix], y_shuffle[test_ix]
+# 拟合模型
+new_model = get_model(X_train_scaled.shape[1])
+st = time()
+if(i &lt;= 5):
+new_model.fit(X_train_scaled, y_train, epochs=epochs, batch_size=batch_size, validation_split=validation_split)
+else:
+new_model.fit(X_train_scaled, y_train, epochs=epochs, batch_size=batch_size, validation_split=validation_split, verbose=False)
+
+# 评估模型
+y_hat = new_model.predict(X_test_scaled, verbose=False)
+
+ed = time()
+dr = ed-st
+print(i,&quot; &quot;,dr)
+# store
+y_true.append(y_test[0])
+y_pred.append(y_hat[0])
+i+=1
+keras.backend.clear_session()
+tf.compat.v1.reset_default_graph()
+gc.collect()
+
+return y_true, y_pred
+
+X_batch = X.reshape(11520, 1, 156)
+
+y_true, y_pred = leaveOneOutCVLSTM(X_batch, Y, 10, 32, 0.2)
+
+这是我从第 1 次迭代到第 16 次迭代打印的训练时间
+1 8.427346229553223
+2 7.397351503372192
+3 7.472941875457764
+4 7.418887615203857
+5 7.5288026332855225
+6 6.432919502258301
+7 6.417744398117065
+8 6.312522649765015
+9 6.350329160690308
+10 6.340737342834473
+11 6.3199241161346436
+12 6.310317039489746
+13 6.3174097537994385
+14 6.346491813659668
+15 6.2766053676605225
+16 6.296995401382446
+
+以及第 600 次迭代至第 616 次迭代
+600 26.77048420906067
+601 20.864712238311768
+602 20.118656873703003
+603 23.869750022888184
+604 23.6923668384552
+605 26.10648512840271
+606 23.909359216690063
+607 36.399033069610596
+608 22.179851055145264
+609 16.407938718795776
+610 30.585895776748657
+611 23.5596022605896
+612 25.86080241203308
+613 44.86601257324219
+614 23.27703547477722
+615 24.88290023803711
+616 19.156887531280518
+
+我已使用“keras.backend.clear_session()”、“tf.compat.v1.reset_default_graph()”、“gc.collect()”来清除开销，但训练时间仍然增加。所以我想知道 1)为什么循环 600 次迭代后训练时间会增加？2)我应该怎么做才能使训练时间保持在 6-7 秒？]]></description>
+      <guid>https://stackoverflow.com/questions/78659373/training-model-in-loopnew-model-in-each-iteration-training-time-increases-aft</guid>
+      <pubDate>Sun, 23 Jun 2024 17:20:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>PyTorch Vision Transformer 模型中的异常、验证损失、测试准确率和正常准确率计算</title>
+      <link>https://stackoverflow.com/questions/78659312/anomaly-in-pytorch-vision-transformer-model-validation-loss-testing-accuracy-a</link>
+      <description><![CDATA[我正在尝试使用 PyTorch 为我的个人项目创建一个视觉变换模型。
+问题是，当我运行测试代码时，我不确定我是否正确计算了训练损失、验证损失、训练准确率和测试（+ 前 2 名测试）准确率。
+这是我的代码：
+criterion = nn.CrossEntropyLoss()
+optimizer = AdamW(vit.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+
+# 训练循环
+train_losses, val_losses, accuracies, top2_accuracies= [], [], [], []
+training_start = time.time()
+
+for epoch in range(NUM_EPOCHS):
+log_str = write_and_print_str(log_str, f&quot;EPOCH [{epoch+1}/{NUM_EPOCHS}]&quot;)
+start = time.time()
+vit.train()
+running_loss = []
+for images, labels in train_dataloader:
+images, labels = images.to(device), labels.to(device)
+optimizer.zero_grad()
+output = vit(images)
+loss = criterion(outputs, labels)
+loss.backward()
+optimizer.step()
+running_loss.append(loss.item())
+
+avg_train_loss = sum(running_loss) / len(running_loss)
+train_losses.append(avg_train_loss)
+log_str = write_and_print_str(log_str, f&#39;Loss: {avg_train_loss}&#39;)
+
+vit.eval()
+val_loss = []
+correct = 0
+top2_correct = 0
+total = 0
+with torch.no_grad():
+for images, labels in test_dataloader:
+images, labels = images.to(device), labels.to(device)
+output = vit(images)
+loss = criterion(outputs, labels)
+val_loss.append(loss.item())
+_, predicted = torch.max(outputs.data, 1)
+total += labels.size(0)
+correct += (predicted == labels).sum().item()
+
+# 计算 top-2 准确率
+top2_pred = torch.topk(outputs, 2, dim=1).indices
+top2_correct += (top2_pred == labels.unsqueeze(1)).sum().item()
+end = time.time()
+avg_val_loss = sum(val_loss) / len(val_loss)
+accuracy = 100 * correct / total
+top2_accuracy = 100 * top2_correct / total
+
+val_losses.append(avg_val_loss)
+accuracies.append(accuracy)
+top2_accuracies.append(top2_accuracy)
+
+log_str = write_and_print_str(log_str, f&#39;验证损失：{avg_val_loss}，\n准确率：{accuracy}%，\nTop-2 准确率：{top2_accuracy}%\n时间：{round(end-start, 2)}\n\n&#39;)
+
+training_end = time.time()
+
+log_str = write_and_print_str(log_str, f&#39;训练持续时间：{round(training_end - training_start, 2)}\n&#39;)
+
+print(&quot;EPOCHS 已成功保存到文件中&quot;)
+
+
+我运行了 20 多次，并记录了所有运行广泛的方法。
+在所有结果中，验证损失开始超过 1并降低到 0.20。但问题是在这些情况下我的准确率约为 90%，所以我认为我的代码在计算方面出了问题。
+为了更详细地说明准确率和损失的数值，以下是我的一些 EPOCH 结果
+EPOCH [1/50]
+损失：1.4692728799123032
+验证损失：1.1625839814995274，
+准确率：49.58932238193019%，
+Top-2 准确率：75.77002053388091%
+时间：29.71
+
+EPOCH [10/50]
+损失：0.1079550055715327
+验证损失： 0.5106942771059094，
+准确率：83.26488706365502%，
+Top-2 准确率：97.53593429158111%
+时间：25.86
+
+EPOCH [20/50]
+损失：0.037730065656293076
+验证损失：0.4059527646185774，
+准确率：89.52772073921972%，
+Top-2 准确率：97.94661190965093%
+时间：26.12
+
+EPOCH [30/50]
+损失： 0.00011380775267753052
+验证损失：0.22308006276955095，
+准确率：94.6611909650924%，
+Top-2 准确率：99.48665297741273%
+时间：24.41
+
+EPOCH [40/50]
+损失：3.5449059315886606e-05
+验证损失：0.23672400451808548，
+准确率：94.76386036960986%，
+Top-2 准确率：99.48665297741273%
+时间：25.46
+
+EPOCH [50/50]
+损失：1.367992779425829e-05
+验证损失：0.24671741761443572，
+准确率：94.6611909650924%，
+Top-2 准确率：99.48665297741273%
+时间：25.66
+
+希望您能帮我解决这个问题。我只是需要澄清一下]]></description>
+      <guid>https://stackoverflow.com/questions/78659312/anomaly-in-pytorch-vision-transformer-model-validation-loss-testing-accuracy-a</guid>
+      <pubDate>Sun, 23 Jun 2024 16:52:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>我在使用 MNIST 数据集练习时出现了 X 的关键错误</title>
+      <link>https://stackoverflow.com/questions/78659298/key-error-for-x-raised-when-i-was-practicing-using-mnist-dataset</link>
+      <description><![CDATA[在我使用 Sklearn 中的 MNIST 数据集进行机器学习实践期间，
+
+import numpy as np
+import sklearn
+sklearn.__version__
+
+from sklearn.datasets import fetch_openml
+mnist = fetch_openml(name=&#39;mnist_784&#39;)
+mnist
+
+len(mnist[&#39;data&#39;])
+
+&quot;&quot;&quot;# 可视化&quot;&quot;&quot;
+
+X, y = mnist[&#39;data&#39;], mnist[&#39;target&#39;]
+
+X
+
+X.shape
+
+28 * 28
+
+y
+
+y = y.astype(&quot;float&quot;)
+
+X[69999]
+
+y[69999]
+
+y.shape
+
+# 注释掉 IPython magic 以确保 Python 兼容性。
+# %matplotlib inline
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+def viz(n):
+plt.imshow(X[n].reshape(28,28))
+return
+
+viz(69999)
+
+
+访问 X[69999] 会引发关键错误。
+知道如何解决这个问题吗？。
+我也尝试过使用 X[&#39;69999&#39;]，但错误仍然存​​在。
+我正在使用 udemy 课程进行练习。
+这是完整 jupyter 文件的链接：
+text。
+X[69999] 的输出在此预先保存的文件中有效。（当我再次从我这边运行它时，会出现密钥错误）]]></description>
+      <guid>https://stackoverflow.com/questions/78659298/key-error-for-x-raised-when-i-was-practicing-using-mnist-dataset</guid>
+      <pubDate>Sun, 23 Jun 2024 16:48:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>Pytorch Conv1d 在简单 1d 信号上：张量 a (100) 的大小必须与张量 b (16) 的大小匹配</title>
+      <link>https://stackoverflow.com/questions/78659240/pytorch-conv1d-on-simple-1d-for-signal-the-size-of-tensor-a-100-must-match-th</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78659240/pytorch-conv1d-on-simple-1d-for-signal-the-size-of-tensor-a-100-must-match-th</guid>
+      <pubDate>Sun, 23 Jun 2024 16:21:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>更高效地实现张量索引</title>
+      <link>https://stackoverflow.com/questions/78659141/more-efficient-implementation-of-tensor-indexing</link>
+      <description><![CDATA[我目前有一个形状为 (2,2,2,4) 的张量 X，以及一个形状为 (4) 的索引向量 Y：
+import torch
+X=torch.tensor([[[[8, 2, 8, 5],
+[3, 7, 4, 0]],
+
+[[4, 5, 7, 4],
+[8, 3, 9, 5]]],
+
+[[[5, 2, 9, 3],
+[6, 4, 5, 4]],
+
+[[7, 3, 3, 7],
+[6, 3, 8, 9]]]])
+Y=torch.tensor([1,1,0,1])
+
+我想用 Y 索引 X，这样我就能得到一个形状为 (2,2,4) 的张量，如果手动完成，应该如下所示（第一维对应于 Y 中的索引）：
+torch.stack([X[1][0][0], X[1][0][1], X[0][1][0], X[1][1][1]])
+
+结果为：
+tensor([[5, 2, 9, 3],
+[6, 4, 5, 4],
+[4, 5, 7, 4],
+[6, 3, 8, 9]])
+
+我目前使用 for 循环来执行此操作，但这并不理想，并且想知道如何从 X 和 Y 中获取 PyTorch 中的所需结果张量。非常感谢！
+我尝试使用 for 循环对其进行索引，这可行，但这非常慢。]]></description>
+      <guid>https://stackoverflow.com/questions/78659141/more-efficient-implementation-of-tensor-indexing</guid>
+      <pubDate>Sun, 23 Jun 2024 15:42:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么执行 loss.backward() 时我的程序崩溃了？</title>
+      <link>https://stackoverflow.com/questions/78659094/why-my-program-is-crashing-when-executing-loss-backward</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78659094/why-my-program-is-crashing-when-executing-loss-backward</guid>
+      <pubDate>Sun, 23 Jun 2024 15:25:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>ESP32 Arduino 中的 DRAM0 溢出</title>
+      <link>https://stackoverflow.com/questions/78659082/dram0-overflowed-in-esp32-arduino</link>
+      <description><![CDATA[我正在使用 Espressif ESP-WROVER-KIT 进行机器学习图像分类任务。该板的 RAM 为 320 KB。当我构建代码时，我收到以下错误：
+
+区域“dram0_0_seg”溢出 10079520 字节
+
+我的 main.cpp 如下：
+#include &quot;model.h&quot; // 包含模型头文件
+
+#include &lt;tensorflow/lite/micro/all_ops_resolver.h&gt;
+#include &lt;tensorflow/lite/micro/micro_error_reporter.h&gt;
+#include &lt;tensorflow/lite/micro/micro_interpreter.h&gt;
+#include &lt;tensorflow/lite/schema/schema_g​​enerated.h&gt;
+#include &lt;tensorflow/lite/version.h&gt;
+#include &lt;Arduino.h&gt; 
+
+// 全局变量，用于与 Arduino 样式的草图兼容。
+namespace {
+
+tflite::MicroErrorReporter micro_error_reporter;
+tflite::ErrorReporter* error_reporter = &amp;micro_error_reporter;
+
+const tflite::Model* model = nullptr;
+tflite::MicroInterpreter* interpretation = nullptr;
+
+TfLiteTensor* input = nullptr;
+TfLiteTensor* output = nullptr;
+
+// 创建一个内存区域，用于输入、输出和中间数组。
+constexpr int kTensorArenaSize = 10 * 1024;
+uint8_t tensor_arena[kTensorArenaSize];
+const uint8_t image_data[128*128] = {
+0, 0, 0, ..., 255, // 示例值
+// ...（其余数据） 
+}
+} // 命名空间
+
+void setup() {
+Serial.begin(115200);
+
+// 加载模型
+model = tflite::GetModel(model_mobilenetv2_tflite);
+if (model-&gt;version() != TFLITE_SCHEMA_VERSION) {
+Serial.println(&quot;Model schema version does not match&quot;);
+while (1);
+}
+
+// 创建解释器来运行模型
+static tflite::MicroMutableOpResolver&lt;10&gt; micro_op_resolver;
+tflite::MicroInterpreter static_interpreter(
+model, micro_op_resolver, tensor_arena, kTensorArenaSize, error_reporter);
+explainer = &amp;static_interpreter;
+
+// 从 tensor_arena 为模型的张量分配内存
+explainer-&gt;AllocateTensors();
+
+// 获取指向模型输入和输出张量的指针
+input = explainer-&gt;input(0);
+output = explainer-&gt;output(0);
+
+for (int i = 0; i &lt; input-&gt;bytes; i++) {
+input-&gt;data.uint8[i] = image_data[i];
+}
+
+}
+
+void loop() {
+// 在此输入上运行模型并确保它成功
+if (interpreter-&gt;Invoke() != kTfLiteOk) {
+Serial.println(&quot;Invoke failed&quot;);
+while (1);
+}
+
+// 输出结果
+for (int i = 0; i &lt; output-&gt;dims-&gt;data[1]; i++) {
+Serial.print(&quot;Output[&quot;);
+Serial.print(i);
+Serial.print(&quot;]: &quot;);
+Serial.println(output-&gt;data.uint8[i]);
+}
+
+delay(1000);
+}
+
+
+我也尝试在 .map 文件中检查我的 .dram0.bss。 我发现 .dram0.data 的大小为 0x9b9abc (10 MB)。因此，.dram0.data 不适合区域 dram0_0_seg。但我该如何压缩数据呢？
+知道哪里出了问题吗？我]]></description>
+      <guid>https://stackoverflow.com/questions/78659082/dram0-overflowed-in-esp32-arduino</guid>
+      <pubDate>Sun, 23 Jun 2024 15:20:49 GMT</pubDate>
+    </item>
     <item>
       <title>TensorFlow Extended (TFX)：即使管道运行正常，管道输出仍为空</title>
       <link>https://stackoverflow.com/questions/78658886/tensorflow-extended-tfx-pipeline-outputs-is-empty-even-though-the-pipeline-is</link>
@@ -81,13 +610,6 @@ return km.cluster_centers_
       <pubDate>Sun, 23 Jun 2024 13:58:57 GMT</pubDate>
     </item>
     <item>
-      <title>机器翻译模型失败：为什么我的 Transformer 模型无法学习？</title>
-      <link>https://stackoverflow.com/questions/78658444/machine-translation-model-fails-why-isn-t-my-transformer-model-learning</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78658444/machine-translation-model-fails-why-isn-t-my-transformer-model-learning</guid>
-      <pubDate>Sun, 23 Jun 2024 10:48:15 GMT</pubDate>
-    </item>
-    <item>
       <title>经过微调的 Wave2Vec2 无法识别口语</title>
       <link>https://stackoverflow.com/questions/78658388/fine-tuned-wave2vec2-does-not-recognise-spoken-words</link>
       <description><![CDATA[]]></description>
@@ -95,181 +617,100 @@ return km.cluster_centers_
       <pubDate>Sun, 23 Jun 2024 10:21:11 GMT</pubDate>
     </item>
     <item>
-      <title>对于深度学习，将胸部 CT 图像从 jpg 转换为 NIFTI 有什么好处吗？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78658245/for-deep-learning-is-there-any-benefits-converting-chest-ct-images-from-jpg-to</link>
-      <description><![CDATA[我正在研究从胸部 CT 图像中自动检测疾病。我一直与一家医院保持联系，他们向我提供胸部 CT 切片，全部为 jpg 格式。我担心转换为 jpg 格式可能会导致空间信息丢失，如果由我决定，我会将 dicom 转换为 nifti
-现在，我已使用 python 中的 nibabel 库将 3D 体积从 jpg 转换为 nifti，希望医学图像的 3D 体积能够更好地表示数据。我的假设正确吗？将 jpg 图像切片转换为 3D nifti 体积有什么好处吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78658245/for-deep-learning-is-there-any-benefits-converting-chest-ct-images-from-jpg-to</guid>
-      <pubDate>Sun, 23 Jun 2024 09:11:04 GMT</pubDate>
+      <title>如果我使用 PHP 作为后端语言，如何将 ML 模型连接到 Web 应用程序 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78655085/how-can-i-connect-ml-model-to-web-app-if-i-use-php-as-backend-language</link>
+      <description><![CDATA[我有一个毕业设计，我面临一些问题，首先我已经完成了我的机器学习模型的构建，该模型分析了患者的X光图像，我想让医生通过我的Web应用程序使用这个模型，但在我的Web应用程序中，我使用PHP作为后端语言，我该如何将机器学习模型连接到Web应用程序？请帮忙。
+医生会将患者的X光图像上传到我的网站，然后通过Python中的机器学习模型分析该图像并得出结果，然后将结果呈现给医生。
+我不知道如何连接它们。]]></description>
+      <guid>https://stackoverflow.com/questions/78655085/how-can-i-connect-ml-model-to-web-app-if-i-use-php-as-backend-language</guid>
+      <pubDate>Sat, 22 Jun 2024 04:24:42 GMT</pubDate>
     </item>
     <item>
-      <title>RAG 模型错误：Mistral7B 未给出正确响应，在本地部署时，每次都会返回相同的不相关响应</title>
-      <link>https://stackoverflow.com/questions/78658020/rag-model-error-mistral7b-is-not-giving-correct-response-when-deployed-locally</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78658020/rag-model-error-mistral7b-is-not-giving-correct-response-when-deployed-locally</guid>
-      <pubDate>Sun, 23 Jun 2024 07:27:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 MASK R_CNN 通过 OpenCV 提取图像中的精确区域？</title>
-      <link>https://stackoverflow.com/questions/78657727/how-do-i-use-mask-r-cnn-to-extract-exact-region-in-image-by-opencv</link>
-      <description><![CDATA[我有一个医疗项目，需要提取一个特殊部分（结膜眼球）
+      <title>为什么这些简单的线性回归权重梯度 numpy 计算会给出不同的结果？</title>
+      <link>https://stackoverflow.com/questions/78644274/why-are-these-simple-linear-regression-weights-gradient-numpy-calculations-givin</link>
+      <description><![CDATA[对于权重梯度计算，它们对相同参数给出了不同的结果。
+# 定义训练集
+X_train = np.array([[2104, 5, 1, 45], [1416, 3, 2, 40], [852, 2, 1, 35]])
+y_train = np.array([460, 232, 178])
+b_init = 785.1811367994083
+w_init = np.array([ 0.39133535, 18.75376741, -53.36032453, -26.42131618])
 
-自动提取眼睛图像而不了解其坐标，而不是手动提取，而且这个所需区域的坐标也在变化，因为我从许多患者那里捕捉到了图像，我认为必须找到它的形状。我的目标是通过计算结膜眼球中的红色像素来确定贫血和非贫血。我使用掩蔽方法（k 均值）来做到这一点，但我希望可以先直接提取结膜眼球，然后使用 k 均值掩蔽图像并查找，因为我的结果会更准确。当我使用图像分割中的 k 均值时，我发现另一个重叠的红色像素破坏了我的准确性。
-。我也听说过机器学习，但在使用机器学习找到患者图像中的邻近区域后，我需要提取结膜髓核。所以我需要代码来仅提取结膜髓核。
-我尝试了 k_means 和 kernel，但又添加了一个不需要的红色像素。我听说过实例分割和MASK RCNN。您假设我有我想要的区域，如上图所示，它是 CNN 的数据，那么如何将其用于我的项目。
-import cv2
-import numpy as np
+方法 (1)
+def dj_dw(w,x,b,y):
+# 示例数量
+m = x.shape[0]
+dj_dw = (1/m)*(np.dot(np.transpose(np.dot(x,w)+b-y),x))
+return dj_dw
 
-# 读取图像
-image = cv2.imread(&#39;c:/users/stk/desktop/d.png&#39;)
+方法 (2)
+def dj_dw_2(w, x, b, y):
+m, n = x.shape
+dj_dw = np.zeros(n)
+for j in range(n):
+for i in range(m):
+dj_dw[j] += (1/m) * ((w[j]*x[i][j] + b - y[i]) * (x[i][j]))
+return dj_dw
 
-# 将图像转换为 HSV
-hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-# 定义红色的下限和上限
-lower_red = np.array([0, 120, 70])
-upper_red = np.array([10, 255, 255])
-
-# 为红色创建蒙版
-mask1 = cv2.inRange(hsv, lower_red, upper_red)
-
-# 定义红色的下限和上限
-lower_red = np.array([170, 120, 70])
-upper_red = np.array([180, 255, 255])
-
-# 为红色创建蒙版
-mask2 = cv2.inRange(hsv, lower_red, upper_red)
-
-# 合并两个蒙版
-mask = mask1 + mask2
-
-# 为形态学操作创建内核
-kernal = np.ones((5, 5), np.uint8)
-
-# 执行形态学操作
-mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernal)
-mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernal)
-
-# 将蒙版应用于原始图像
-result = cv2.bitwise_and(image, image, mask = mask)
-
-# 保存result
-cv2.imwrite(&#39;extracted_red_object.png&#39;, result)
-
-# 显示结果
-cv2.imshow(&#39;EXTRACTED RED OBJECT&#39;, result)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+以及结果分别
+[-2.72623574e-03 -6.27197255e-06 -2.21745574e-06 -6.92403377e-05]
+[ 1.59529824e+06 1.73748484e+03 5.72854200e+02 -2.33772157e+04]
 ]]></description>
-      <guid>https://stackoverflow.com/questions/78657727/how-do-i-use-mask-r-cnn-to-extract-exact-region-in-image-by-opencv</guid>
-      <pubDate>Sun, 23 Jun 2024 03:58:40 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/78644274/why-are-these-simple-linear-regression-weights-gradient-numpy-calculations-givin</guid>
+      <pubDate>Wed, 19 Jun 2024 19:14:12 GMT</pubDate>
     </item>
     <item>
-      <title>我的神经网络实现中的损失并没有减少</title>
-      <link>https://stackoverflow.com/questions/78657540/my-loss-doesnt-drop-in-my-neural-network-implementation</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78657540/my-loss-doesnt-drop-in-my-neural-network-implementation</guid>
-      <pubDate>Sun, 23 Jun 2024 00:58:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>当使用多个 GPU 时，如何在 PyTorch 闪电日志中设置 sync_dist 和 rank_zero_only？</title>
-      <link>https://stackoverflow.com/questions/78657505/how-do-i-set-sync-dist-and-rank-zero-only-in-pytorch-lightning-logging-when-usin</link>
-      <description><![CDATA[我正在使用带有四 (4) 个 GPU 的 PyTorch lightning DDP 来训练模型。我注意到在记录时，在训练步骤或验证步骤中可以选择设置 sync_dist=True 和 rank_zero_only =True。它们是什么意思？正确的设置方法是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/78657505/how-do-i-set-sync-dist-and-rank-zero-only-in-pytorch-lightning-logging-when-usin</guid>
-      <pubDate>Sun, 23 Jun 2024 00:27:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>Keras 3 中加载模型时出错：不支持的文件格式[关闭]</title>
-      <link>https://stackoverflow.com/questions/78656789/error-in-loading-model-in-keras-3-unsupported-file-forma</link>
-      <description><![CDATA[我正在尝试从以下 GitHub [[1]: https://github.com/eertay/Digital-Meter-Reading][1]存储库运行一个项目：Digital-Meter-Reading。具体来说，我正在处理预处理文件，但在第二个单元格中遇到了错误。代码如下：
-from keras.models import load_model
-import numpy as np
-from matplotlib import pyplot as plt
-import cv2
-from scipy import ndimage
-classifier=load_model(&#39;cnn_svhn.model&#39;)
-但是，当我尝试执行此代码时，出现以下错误：
-问题
-错误表明 Keras 3 不支持 cnn_svhn.model 文件格式。根据错误消息，Keras 3 仅支持 V3 .keras 文件和旧版 H5 格式文件（.h5 扩展名）。Keras 3 中的 load_model() 不支持旧版 SavedModel 格式。
-问题
-如何将 cnn_svhn.model 转换或更新为与 Keras 3 兼容的格式？
-有没有办法在不降级 Keras 或 TensorFlow 的情况下加载现有的模型文件？]]></description>
-      <guid>https://stackoverflow.com/questions/78656789/error-in-loading-model-in-keras-3-unsupported-file-forma</guid>
-      <pubDate>Sat, 22 Jun 2024 17:48:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>修复 TimeSeries Transformer 中的张量形状/维度不匹配错误以进行股票价格预测</title>
-      <link>https://stackoverflow.com/questions/78655715/fixing-tensor-shape-dimension-mismatch-errors-in-timeseries-transformer-for-stoc</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78655715/fixing-tensor-shape-dimension-mismatch-errors-in-timeseries-transformer-for-stoc</guid>
-      <pubDate>Sat, 22 Jun 2024 10:08:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何验证 Coursera 中的 Jupyter 笔记本分数错误？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78655480/how-to-validate-jupyter-notebook-score-error-in-coursera</link>
-      <description><![CDATA[课程：监督机器学习：回归和分类
-平台：Coursera
-提交时练习未正确验证，即使通过了测试用例场景，分数仍为“0”。
-Jupyter 笔记本嵌入在 Coursera 应用程序中。
-我尝试多次保存文件并重新运行服务器。
-我希望文件能够针对给定的解决方案进行验证，从而获得分数。
-我已附上已通过的测试用例场景练习。
-请分享您的见解 @
-jerome.arvin123@gmail.com
-最终得分截图
-练习 1
-练习 2
-练习3
-练习 4
-练习 5
-练习 6]]></description>
-      <guid>https://stackoverflow.com/questions/78655480/how-to-validate-jupyter-notebook-score-error-in-coursera</guid>
-      <pubDate>Sat, 22 Jun 2024 08:21:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何计算数据集中颜色的相关性？</title>
-      <link>https://stackoverflow.com/questions/62289967/how-to-calculate-correlation-of-colours-in-a-dataset</link>
-      <description><![CDATA[在这篇 Distill 文章 (https://distill.pub/2017/feature-visualization/) 的脚注 8 中，作者写道：
-傅里叶变换在空间上去相关，但颜色之间仍存在相关性。为了解决这个问题，我们明确测量训练集中颜色之间的相关性，并使用 Cholesky 分解来去相关。
+      <title>Kaggle GPU 上的训练模型问题 - 只有一个 GPU 正常工作</title>
+      <link>https://stackoverflow.com/questions/78638417/issue-with-training-model-on-kaggle-gpu-only-one-gpu-working</link>
+      <description><![CDATA[我目前正在尝试使用 GPU 资源在 Kaggle 上训练模型，但似乎只使用了一个 GPU，而不是多个。我使用以下训练代码：
+# 步骤 1：安装所需的软件包
+#!pip install ultralytics xmltodict albumentations torch torchvision torchaudio
 
-我很难理解如何做到这一点。我理解对于任意图像，我可以通过将图像的形状解释为 [通道，宽度*高度] 而不是 [通道，高度，宽度] 来计算相关矩阵。但如何将整个数据集考虑在内？可以对其进行平均，但这与 Cholesky 分解无关。
-检查代码让我更加困惑（https://github.com/tensorflow/lucid/blob/master/lucid/optvis/param/color.py#L24）。没有用于计算相关性的代码，但有一个硬​​编码版本的矩阵（去相关是通过与该矩阵进行矩阵乘法来实现的）。该矩阵名为 color_correlation_svd_sqrt，其中包含 svd，而 SVD 在其他任何地方都没有提及。此外，那里的矩阵是非三角矩阵，这意味着它不是来自 Cholesky 分解。
-如能就我提到的任何要点作出澄清，我们将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/62289967/how-to-calculate-correlation-of-colours-in-a-dataset</guid>
-      <pubDate>Tue, 09 Jun 2020 18:58:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>Python 中的聚类时间序列数据</title>
-      <link>https://stackoverflow.com/questions/45604143/clustering-time-series-data-in-python</link>
-      <description><![CDATA[我尝试使用不同的聚类技术在 Python 中对时间序列数据进行聚类。K 均值没有给出良好的结果。以下图像是我使用凝聚聚类进行聚类后得到的图像。我还尝试了动态时间扭曲。这两个似乎给出了类似的结果。
-我理想情况下希望第二幅图中的时间序列有两个不同的聚类。第一幅图像是快速增加的聚类。第二幅图像没有增加，有点稳定，第三幅图像是下降趋势的聚类。我想知道哪些时间序列既稳定又受欢迎（这里的流行是指高计数）。我尝试了层次聚类，但结果显示层次太多，我不确定如何选择层次级别。有人能解释一下如何将第二幅图中的时间序列分成两个不同的聚类，一个计数低，另一个计数高吗？可以做到吗？或者我应该直接选择一个阈值将它们一分为二？
-快速增加的集群：
+# 步骤 5：训练 YOLO 模型
+import os
+import torch
+from ultralytics import YOLO
 
-计数稳定的集群：
+# 将 WANDB_MODE 设置为“dryrun”以禁用 WanDB 日志记录
+os.environ[&#39;WANDB_MODE&#39;] = &#39;dryrun&#39;
 
-下降趋势的集群：
+# 为多个 GPU 设置设备
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+model = YOLO(&#39;yolov8x.pt&#39;) # 加载预训练的 YOLOv8 模型
 
-这非常非常模糊，但这是我的层次聚类的结果。 
+# 检查是否有多个 GPU 可用
+if torch.cuda.device_count() &gt; 1：
+print(f&quot;使用 {torch.cuda.device_count()} GPU&quot;)
+model = torch.nn.DataParallel(model, device_ids=list(range(torch.cuda.device_count()))).to(device)
+else：
+model = model.to(device)
 
-我知道这个特定的图像根本没有用，但这对我来说也像是死胡同。 
-一般来说，如果你想区分趋势，例如对于 YouTube 视频，如何只有一些被选入“趋势”部分，而另一些被选入“本周趋势”部分？我理解“趋势”部分的视频是那些与第一张图片具有相似特征的视频。 “本周热门”部分收集了一些视频，这些视频的观看次数非常高，但数量相当稳定（即没有出现快速增长）。我知道，对于 YouTube，除了观看次数之外，还有很多其他因素需要考虑。对于第二张图片，我试图做的类似于“本周热门”部分。我想挑选那些观看次数非常高的视频。在这种情况下，我该如何分割时间序列？
-我知道 DTW 可以捕捉趋势。DTW 给出的结果与上面的图片相同。它已经确定了第二张图片中的趋势是“稳定的”。但它没有捕捉到这里的“数量”元素。我希望捕捉到趋势和数量，在这种情况下是稳定和高数量。
-上面的图片是基于计数聚类的时间序列。我是否错过了其他可以实现这一点的聚类技术？即使只是计数，我如何根据自己的需求进行不同的聚类？
-任何想法都将不胜感激。提前致谢！]]></description>
-      <guid>https://stackoverflow.com/questions/45604143/clustering-time-series-data-in-python</guid>
-      <pubDate>Thu, 10 Aug 2017 03:51:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 NumPy 中将索引数组转换为独热编码数组</title>
-      <link>https://stackoverflow.com/questions/29831489/convert-array-of-indices-to-one-hot-encoded-array-in-numpy</link>
-      <description><![CDATA[给定一个 1D 索引数组：
-a = array([1, 0, 3])
+# 定义训练配置
+data_yaml = &quot;&quot;&quot;
+train: /../images/train_combined_data
+val: /../images/val
+test: /../images/test
+nc: 1
+names: [&#39;Hotspot&#39;]
+&quot;&quot;&quot;
 
-我想将其独热编码为 2D 数组：
-b = array([[0,1,0,0], [1,0,0,0], [0,0,0,1]])
-]]></description>
-      <guid>https://stackoverflow.com/questions/29831489/convert-array-of-indices-to-one-hot-encoded-array-in-numpy</guid>
-      <pubDate>Thu, 23 Apr 2015 18:24:54 GMT</pubDate>
+with open(&#39;data.yaml&#39;, &#39;w&#39;) as f:
+f.write(data_yaml)
+
+# 训练模型
+model.train(
+data=&#39;data.yaml&#39;,
+epochs=50, # 训练 epoch 总数
+batch=16, 
+imgsz=640, # 训练的目标图像大小
+device=&#39;cuda&#39;
+)
+
+
+我查看了 Kaggle 的文档，它应该支持使用多个 GPU 进行训练。我需要在代码中添加一些特定内容来启用多 GPU 训练吗？或者 Kaggle 上是否有我可能遗漏的设置？
+如能就此问题提供任何帮助或指导，我将不胜感激。谢谢！
+我该如何使用这两个 GPU？]]></description>
+      <guid>https://stackoverflow.com/questions/78638417/issue-with-training-model-on-kaggle-gpu-only-one-gpu-working</guid>
+      <pubDate>Tue, 18 Jun 2024 15:40:00 GMT</pubDate>
     </item>
     </channel>
 </rss>
