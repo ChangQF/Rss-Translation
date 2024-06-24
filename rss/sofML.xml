@@ -4,11 +4,243 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 24 Jun 2024 15:16:21 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 24 Jun 2024 18:19:47 GMT</lastBuildDate>
+    <item>
+      <title>如何通过 LSTM 预测未来价值？</title>
+      <link>https://stackoverflow.com/questions/78664040/how-to-predict-the-future-value-thoriugh-lstm</link>
+      <description><![CDATA[我如何预测不在数据框中的未来值。以下代码预测训练数据集和验证数据集上的值，但不预测未来值。我想通过查看过去 100 天的数据来预测未来 30 天的数据。我该怎么做呢？谢谢
+df2 = df.reset_index()[&#39;High&#39;]
+scaler = MinMaxScaler()
+df2 = scaler.fit_transform(np.array(df2).reshape(-1, 1))
+
+train_size = int(len(df2)*0.65)
+test_size = len(df2) - train_size
+train_data,test_data = df2[0:train_size,:],df2[train_size:len(df2),:1]
+
+def create_dataset(dataset, time_step = 1):
+dataX,dataY = [],[]
+for i in range(len(dataset)-time_step-1):
+a = dataset[i:(i+time_step),0]
+dataX.append(a)
+dataY.append(dataset[i + time_step,0])
+return np.array(dataX),np.array(dataY)
+
+time_step = 100
+X_train,Y_train = create_dataset(train_data,time_step)
+X_test,Y_test = create_dataset(test_data,time_step)
+
+model = Sequential()
+model.add(LSTM(50,return_sequences = True,input_shape = (X_train.shape[1],1)))
+model.add(LSTM(50,return_sequences = True))
+model.add(LSTM(50))
+model.add(Dense(1))
+model.compile(loss = &#39;mean_squared_error&#39;,optimizer = &#39;adam&#39;)
+model.fit(X_train,Y_train,validation_data = (X_test,Y_test),epochs = 100,batch_size = 64 ,verbose = 1)
+
+train_predict = model.predict(X_train)
+test_predict = model.predict(X_test)
+
+train_predict = scaler.inverse_transform(train_predict)
+test_predict = scaler.inverse_transform(test_predict)
+Y_test = scaler.inverse_transform(np.array(Y_test).reshape(-1, 1))
+
+look_back = 100
+trainPredictPlot = np.empty_like(df2)
+trainPredictPlot[:,:] = np.nan
+trainPredictPlot[look_back : len(train_predict)+look_back,:] = train_predict
+
+testPredictPlot = np.empty_like(df2)
+testPredictPlot[:,:] = np.nan
+testPredictPlot[len(train_predict)+(look_back)*2 + 1 : len(df2) - 1,:] = test_predict
+
+plt.plot(scaler.inverse_transform(df2))
+plt.plot(trainPredictPlot)
+plt.plot(testPredictPlot)
+plt.show() 此处
+
+我试图通过回顾 100 天来一次性预测未来 30 天。我尝试了一些示例代码，但它们已经过时且已弃用。]]></description>
+      <guid>https://stackoverflow.com/questions/78664040/how-to-predict-the-future-value-thoriugh-lstm</guid>
+      <pubDate>Mon, 24 Jun 2024 18:17:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>mlflow 在记录图像时不会自动记录工件</title>
+      <link>https://stackoverflow.com/questions/78663805/mlflow-doesnt-autolog-artifacts-while-logging-images</link>
+      <description><![CDATA[对 mlflow 相当陌生。我正在使用 dagshub 免费 mlflow 服务器进行实验。我偶然发现了一个奇怪的行为。当我运行一个简单的 keras 模型时，使用 mlflow autolog 进行拟合，如下所示：
+mlflow.tensorflow.autolog()
+dagshub.init(&#39;my_experiment_name&#39;,
+&#39;my_user_name&#39;,
+mlflow=True)
+
+# 定义参数。
+num_epochs = 10
+batch_size = 256
+
+# 训练模型。
+history = model.fit(X_train,
+y_train,
+epochs=num_epochs,
+batch_size=batch_size,
+validation_data=(X_test, y_test))
+mlflow.end_run()
+
+这会产生预期的行为。我可以在工件和指标中看到模型。
+
+但是，当我尝试添加包含训练准确率和损失的图形时，工件仅包含图像。
+mlflow.tensorflow.autolog()
+dagshub.init(&#39;my_experiment_name&#39;,
+&#39;my_user_name&#39;,
+mlflow=True)
+
+# 定义参数。
+num_epochs = 10
+batch_size = 256
+
+# 训练模型。
+history = model.fit(X_train,
+y_train,
+epochs=num_epochs,
+batch_size=batch_size,
+validation_data=(X_test, y_test))
+
+##_________ 有问题的部分
+fig, ax = plt.subplots(1,2,figsize=(10,4))
+ax[0].plot(history.history[&#39;accuracy&#39;], label=&#39;Accuracy&#39; )
+ax[0].plot(history.history[&#39;val_accuracy&#39;], label=&#39;Val Accuracy&#39; )
+ax[0].set_title(&#39;Accuracy&#39;)
+ax[0].legend(loc=&#39;best&#39;)
+ax[1].plot(history.history[&#39;loss&#39;], label=&#39;Loss&#39; )
+ax[1].plot(history.history[&#39;val_loss&#39;], label=&#39;Val Loss&#39; )
+ax[1].set_title(&#39;Loss&#39;)
+ax[1].legend(loc=&#39;best&#39;)
+mlflow.log_figure(fig,&#39;training_history.png&#39;)
+# _________
+
+mlflow.end_run()
+
+模型工件不存在。指标也没有记录。
+我是否遗漏了一些简单的东西。
+
+请帮忙。]]></description>
+      <guid>https://stackoverflow.com/questions/78663805/mlflow-doesnt-autolog-artifacts-while-logging-images</guid>
+      <pubDate>Mon, 24 Jun 2024 17:12:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>单头 Transformer 模型，输出和目标张量大小不匹配</title>
+      <link>https://stackoverflow.com/questions/78663722/single-headed-transformer-model-output-and-target-tensor-sizes-dont-match</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78663722/single-headed-transformer-model-output-and-target-tensor-sizes-dont-match</guid>
+      <pubDate>Mon, 24 Jun 2024 16:50:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>执行训练过程中遇到错误</title>
+      <link>https://stackoverflow.com/questions/78663639/facing-errors-while-executing-the-training-process</link>
+      <description><![CDATA[这是我的代码片段
+from transformers import TrainingArguments, Trainer
+定义训练参数
+args = TrainingArguments(
+output_dir=&#39;./content/drive/MyDrive/phase ii/result&#39;, # 保存结果的目录
+evaluation_strategy=&quot;epoch&quot;, # 在每个 epoch 结束时进行评估
+save_strategy=&quot;epoch&quot;, # 在每个 epoch 结束时保存检查点
+save_total_limit=3, # 限制检查点的总数
+learning_rate=1e-5, # 设置学习率
+per_device_train_batch_size=32, # 训练的批次大小
+per_device_eval_batch_size=32, # 评估的批次大小
+num_train_epochs=10, # 训练次数epochs
+report_to=&quot;none&quot;, # 禁用向外部系统报告
+load_best_model_at_end=True, # 训练完成后加载最佳模型
+metric_for_best_model=&quot;f1&quot; # 用于选择最佳模型的指标
+)
+执行上述代码时遇到此错误
+我该如何解决给定的问题。您能简要解释一下必要的解决方案吗]]></description>
+      <guid>https://stackoverflow.com/questions/78663639/facing-errors-while-executing-the-training-process</guid>
+      <pubDate>Mon, 24 Jun 2024 16:31:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 OpenCV 和 DETR 优化视频处理</title>
+      <link>https://stackoverflow.com/questions/78663466/optimizing-video-processing-with-opencv-and-detr</link>
+      <description><![CDATA[我正在编写一个 Python 脚本，使用 OpenCV 处理视频文件，使用预训练的 DETR 模型注释检测到的对象，并保存注释后的视频。问题是处理部分需要 5 分钟，即使是 4 秒的视频。这是我找到的解决方案：
+DEVICE = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+CHECKPOINT = &#39;facebook/detr-resnet-50&#39;
+CONFIDENCE_THRESHOLD = 0.5
+BATCH_SIZE = 4
+image_processor = DetrImageProcessor.from_pretrained(CHECKPOINT)
+
+id2label = {
+0: &#39;potholes&#39;,
+1: &#39;pothole&#39;
+}
+
+model = DetrForObjectDetection.from_pretrained(&quot;Models/potholes-model&quot;)
+model.to(DEVICE)
+model.eval()
+box_annotator = sv.BoxAnnotator()
+
+def process_video(video_path, output_path):
+cap = cv2.VideoCapture(video_path)
+
+if not cap.isOpened():
+print(&quot;Error: 无法打开视频。&quot;)
+return
+
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+
+fourcc = cv2.VideoWriter_fourcc(*&#39;mp4v&#39;)
+out = cv2.VideoWriter(os.path.join(output_path, &quot;results.mp4&quot;), fourcc, fps, (width, height))
+
+if not out.isOpened():
+print(&quot;Error: 无法打开 VideoWriter。&quot;)
+return
+
+frames = []
+while True:
+ret, frame = cap.read()
+if not ret:
+break
+
+frames.append(frame)
+if len(frames) == BATCH_SIZE:
+process_and_write_batch(frames, out)
+frames = []
+
+if frames:
+process_and_write_batch(frames, out)
+
+cap.release()
+out.release()
+cv2.destroyAllWindows()
+
+我当时尝试处理一批帧，而不是一次处理一个：
+def process_and_write_batch(frames, out):
+with torch.no_grad():
+输入 = image_processor(images=frames, return_tensors=&#39;pt&#39;).to(DEVICE)
+输出 = model(**inputs)
+
+target_sizes = torch.tensor([frame.shape[:2] for frame in frames]).to(DEVICE)
+结果 = image_processor.post_process_object_detection(
+output=outputs,
+Threshold=CONFIDENCE_THRESHOLD,
+target_sizes=target_sizes
+)
+
+for frame, result in zip(frames, results):
+try:
+detections = sv.Detections.from_transformers(transformers_results=result).with_nms(threshold=0.5)
+labels = [f&quot;{id2label[class_id]} {confidence:.2f}&quot; for _, confidence, class_id, _ in detections]
+annotated_frame = box_annotator.annotate(scene=frame.copy(), detections=detections, labels=labels)
+out.write(annotated_frame)
+except:
+out.write(frame)
+
+即使对于短视频，该过程仍然需要很长时间。我可以做些什么来优化该过程？]]></description>
+      <guid>https://stackoverflow.com/questions/78663466/optimizing-video-processing-with-opencv-and-detr</guid>
+      <pubDate>Mon, 24 Jun 2024 15:46:23 GMT</pubDate>
+    </item>
     <item>
       <title>有没有一种方法可以通过比率来测量用于创建第三个特征的两个特征的初始形状值？</title>
       <link>https://stackoverflow.com/questions/78662828/is-there-a-way-of-measuring-the-initial-shap-value-of-two-features-that-have-bee</link>
-      <description><![CDATA[在 Python 机器学习、回归或分类等背景下，我有时会对两个特征进行比率计算以生成第三个特征并删除前两个特征。
+      <description><![CDATA[在 Python 机器学习、回归或分类等背景下，我有时会对两个特征进行比率计算以生成第三个特征，并删除前两个特征。
 示例：living_surface_ratio = residence_building__total_living_surface / building__footprint_surface
 
 因此，在我的 data_processing_pipe 末尾，我只有 living_surface_ratio 作为一个特征。
@@ -125,51 +357,6 @@ print(feature_importance_df)
       <pubDate>Mon, 24 Jun 2024 06:50:02 GMT</pubDate>
     </item>
     <item>
-      <title>当模型在高度不平衡的数据集上进行训练时，其性能如何[关闭]</title>
-      <link>https://stackoverflow.com/questions/78660719/how-is-the-performance-of-a-model-when-its-trained-on-highly-unbalanced-dataset</link>
-      <description><![CDATA[假设我们有 1000 个 1 类样本和 1000 个 2 类样本。我们用这个数据训练了一个模型，发现模型的性能很好。如果用 10000 个 1 类样本和 90000 个 2 类样本的数据训练模型，模型的性能会发生什么变化？
-我认为模型过度拟合了 2 类数据，性能会下降。这是正确的吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78660719/how-is-the-performance-of-a-model-when-its-trained-on-highly-unbalanced-dataset</guid>
-      <pubDate>Mon, 24 Jun 2024 05:43:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>Keras 模型的评估结果为损失 = 68（大于 1）</title>
-      <link>https://stackoverflow.com/questions/78660583/evaluation-of-keras-model-gets-me-a-loss-68-greater-than-1</link>
-      <description><![CDATA[我按照书中的示例，使用时尚 MNIST
-我的代码如下：
-\`import tensorflow as tf
-from tensorflow import keras
-fashion_mnist = keras.datasets.fashion_mnist
-(X_train_full, y_train_full), (X_test, y_test) = fashion_mnist.load_data()
-X_valid, X_train = X_train_full\[:5000\] / 255.0, X_train_full\[5000:\] / 255.0
-y_valid, y_train = y_train_full\[:5000\], y_train_full\[5000:\]
-
-class_names = \[&quot;T-shirt/top&quot;, &quot;Trouser&quot;, “套头衫”、“连衣裙”、“外套”、“凉鞋”、“衬衫”、“运动鞋”、“包”、“踝靴”\]
-
-#构建神经网络模型
-model = keras.models.Sequential() 
-model.add(keras.layers.Flatten(input_shape=\[28, 28\]))
-model.add(keras.layers.Dense(300,activation=&quot;relu&quot;))
-model.add(keras.layers.Dense(100,activation=&quot;relu&quot;))
-model.add(keras.layers.Dense(10,激活=&quot;softmax&quot;))
-
-model.compile(loss=&quot;sparse_categorical_crossentropy&quot;, optimizer=&quot;sgd&quot;, metrics=\[&quot;accuracy&quot;\])
-
-history = model.fit(X_train, y_train, epochs=30, validation_data=(X_valid, y_valid))
-
-model.evaluate(X_test, y_test)\`
-
-我这次评估的输出是这样的
-313/313 [===============================] - 1s 3ms/step - 损失：68.7269 - 准确率：0.8385
-[68.72686004638672, 0.8385000228881836]
-使用 .fit 方法后，我得到了以下结果：
-Epoch 30/30
-1719/1719 [==============================] - 9s 5ms/step - 损失：0.2115 - 准确度：0.9236 - val_loss：0.2171 - val_accuracy：0.9209
-我还在学习，我不知道该怎么做才能解决这个问题，我也不知道我可能哪里做错了……]]></description>
-      <guid>https://stackoverflow.com/questions/78660583/evaluation-of-keras-model-gets-me-a-loss-68-greater-than-1</guid>
-      <pubDate>Mon, 24 Jun 2024 04:51:24 GMT</pubDate>
-    </item>
-    <item>
       <title>我正在做一个足球分析跟踪机器学习项目，我得到了速度和距离估计器的导入错误</title>
       <link>https://stackoverflow.com/questions/78659710/i-am-making-a-football-analysis-tracking-machine-learning-project-i-am-getting-i</link>
       <description><![CDATA[ImportError: 无法从 
@@ -275,177 +462,6 @@ main()
       <pubDate>Sun, 23 Jun 2024 20:05:06 GMT</pubDate>
     </item>
     <item>
-      <title>PyTorch Vision Transformer 模型中的异常、验证损失、测试准确度和正常准确度计算 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78659312/anomaly-in-pytorch-vision-transformer-model-validation-loss-testing-accuracy-a</link>
-      <description><![CDATA[我正在尝试使用 PyTorch 为我的个人项目创建一个视觉变换模型。
-问题是，当我运行测试代码时，我不确定我是否正确计算了训练损失、验证损失、训练准确率和测试（+ 前 2 名测试）准确率。
-这是我的代码：
-criterion = nn.CrossEntropyLoss()
-optimizer = AdamW(vit.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
-
-# 训练循环
-train_losses, val_losses, accuracies, top2_accuracies= [], [], [], []
-training_start = time.time()
-
-for epoch in range(NUM_EPOCHS):
-log_str = write_and_print_str(log_str, f&quot;EPOCH [{epoch+1}/{NUM_EPOCHS}]&quot;)
-start = time.time()
-vit.train()
-running_loss = []
-for images, labels in train_dataloader:
-images, labels = images.to(device), labels.to(device)
-optimizer.zero_grad()
-output = vit(images)
-loss = criterion(outputs, labels)
-loss.backward()
-optimizer.step()
-running_loss.append(loss.item())
-
-avg_train_loss = sum(running_loss) / len(running_loss)
-train_losses.append(avg_train_loss)
-log_str = write_and_print_str(log_str, f&#39;Loss: {avg_train_loss}&#39;)
-
-vit.eval()
-val_loss = []
-correct = 0
-top2_correct = 0
-total = 0
-with torch.no_grad():
-for images, labels in test_dataloader:
-images, labels = images.to(device), labels.to(device)
-output = vit(images)
-loss = criterion(outputs, labels)
-val_loss.append(loss.item())
-_, predicted = torch.max(outputs.data, 1)
-total += labels.size(0)
-correct += (predicted == labels).sum().item()
-
-# 计算 top-2 准确率
-top2_pred = torch.topk(outputs, 2, dim=1).indices
-top2_correct += (top2_pred == labels.unsqueeze(1)).sum().item()
-end = time.time()
-avg_val_loss = sum(val_loss) / len(val_loss)
-accuracy = 100 * correct / total
-top2_accuracy = 100 * top2_correct / total
-
-val_losses.append(avg_val_loss)
-accuracies.append(accuracy)
-top2_accuracies.append(top2_accuracy)
-
-log_str = write_and_print_str(log_str, f&#39;验证损失：{avg_val_loss}，\n准确率：{accuracy}%，\nTop-2 准确率：{top2_accuracy}%\n时间：{round(end-start, 2)}\n\n&#39;)
-
-training_end = time.time()
-
-log_str = write_and_print_str(log_str, f&#39;训练持续时间：{round(training_end - training_start, 2)}\n&#39;)
-
-print(&quot;EPOCHS 已成功保存到文件中&quot;)
-
-
-我运行了 20 多次，并记录了所有运行广泛的方法。
-在所有结果中，验证损失开始超过 1并降低到 0.20。但问题是在这些情况下我的准确率约为 90%，所以我认为我的代码在计算方面出了问题。
-为了更详细地说明准确率和损失的数值，以下是我的一些 EPOCH 结果
-EPOCH [1/50]
-损失：1.4692728799123032
-验证损失：1.1625839814995274，
-准确率：49.58932238193019%，
-Top-2 准确率：75.77002053388091%
-时间：29.71
-
-EPOCH [10/50]
-损失：0.1079550055715327
-验证损失： 0.5106942771059094，
-准确率：83.26488706365502%，
-Top-2 准确率：97.53593429158111%
-时间：25.86
-
-EPOCH [20/50]
-损失：0.037730065656293076
-验证损失：0.4059527646185774，
-准确率：89.52772073921972%，
-Top-2 准确率：97.94661190965093%
-时间：26.12
-
-EPOCH [30/50]
-损失： 0.00011380775267753052
-验证损失：0.22308006276955095，
-准确率：94.6611909650924%，
-Top-2 准确率：99.48665297741273%
-时间：24.41
-
-EPOCH [40/50]
-损失：3.5449059315886606e-05
-验证损失：0.23672400451808548，
-准确率：94.76386036960986%，
-Top-2 准确率：99.48665297741273%
-时间：25.46
-
-EPOCH [50/50]
-损失：1.367992779425829e-05
-验证损失：0.24671741761443572，
-准确率：94.6611909650924%，
-Top-2 准确率：99.48665297741273%
-时间：25.66
-
-希望您能帮我解决这个问题。我只是需要澄清一下]]></description>
-      <guid>https://stackoverflow.com/questions/78659312/anomaly-in-pytorch-vision-transformer-model-validation-loss-testing-accuracy-a</guid>
-      <pubDate>Sun, 23 Jun 2024 16:52:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 MASK R_CNN 通过 OpenCV 提取图像中的精确区域？</title>
-      <link>https://stackoverflow.com/questions/78657727/how-do-i-use-mask-r-cnn-to-extract-exact-region-in-image-by-opencv</link>
-      <description><![CDATA[我有一个医疗项目，需要提取一个特殊部分（结膜眼球）
-
-自动提取眼睛图像而不了解其坐标，而不是手动提取，而且这个所需区域的坐标也在变化，因为我从许多患者那里捕捉到了图像，我认为必须找到它的形状。我的目标是通过计算结膜眼球中的红色像素来确定贫血和非贫血。我使用掩蔽方法（k 均值）来做到这一点，但我希望可以先直接提取结膜眼球，然后使用 k 均值掩蔽图像并查找，因为我的结果会更准确。当我使用图像分割中的 k 均值时，我发现另一个重叠的红色像素破坏了我的准确性。
-。我也听说过机器学习，但在使用机器学习找到患者图像中的邻近区域后，我需要提取结膜髓核。所以我需要代码来仅提取结膜髓核。
-我尝试了 k_means 和 kernel，但又添加了一个不需要的红色像素。我听说过实例分割和MASK RCNN。您假设我有我想要的区域，如上图所示，它是 CNN 的数据，那么如何将其用于我的项目。
-import cv2
-import numpy as np
-
-# 读取图像
-image = cv2.imread(&#39;c:/users/stk/desktop/d.png&#39;)
-
-# 将图像转换为 HSV
-hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
-# 定义红色的下限和上限
-lower_red = np.array([0, 120, 70])
-upper_red = np.array([10, 255, 255])
-
-# 为红色创建蒙版
-mask1 = cv2.inRange(hsv, lower_red, upper_red)
-
-# 定义红色的下限和上限
-lower_red = np.array([170, 120, 70])
-upper_red = np.array([180, 255, 255])
-
-# 为红色创建蒙版
-mask2 = cv2.inRange(hsv, lower_red, upper_red)
-
-# 合并两个蒙版
-mask = mask1 + mask2
-
-# 为形态学操作创建内核
-kernal = np.ones((5, 5), np.uint8)
-
-# 执行形态学操作
-mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernal)
-mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernal)
-
-# 将蒙版应用于原始图像
-result = cv2.bitwise_and(image, image, mask = mask)
-
-# 保存result
-cv2.imwrite(&#39;extracted_red_object.png&#39;, result)
-
-# 显示结果
-cv2.imshow(&#39;EXTRACTED RED OBJECT&#39;, result)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-]]></description>
-      <guid>https://stackoverflow.com/questions/78657727/how-do-i-use-mask-r-cnn-to-extract-exact-region-in-image-by-opencv</guid>
-      <pubDate>Sun, 23 Jun 2024 03:58:40 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在使用训练有素的 YOLO-V8 实例分割模型进行预测时将边界框值添加到标签文本文件中？</title>
       <link>https://stackoverflow.com/questions/78649611/how-to-add-the-bounding-box-values-to-the-labels-text-files-during-prediction-wi</link>
       <description><![CDATA[我训练了一个 YOLO-V8 实例分割模型来分割类标签为 0 的对象。我使用 CLI 实例化训练后的模型并根据测试数据进行预测。
@@ -457,13 +473,6 @@ cv2.destroyAllWindows()
 我没有将预测保存到任何“结果”变量中，并且我只在 CLI 中运行预测。]]></description>
       <guid>https://stackoverflow.com/questions/78649611/how-to-add-the-bounding-box-values-to-the-labels-text-files-during-prediction-wi</guid>
       <pubDate>Thu, 20 Jun 2024 21:15:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>所有时期的损失和准确率相同</title>
-      <link>https://stackoverflow.com/questions/78645720/same-loss-and-accuracy-for-all-epochs</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78645720/same-loss-and-accuracy-for-all-epochs</guid>
-      <pubDate>Thu, 20 Jun 2024 06:01:17 GMT</pubDate>
     </item>
     <item>
       <title>如何修复 Huggingface 训练器的学习率？</title>
