@@ -4,12 +4,155 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 25 Jun 2024 01:04:24 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 25 Jun 2024 03:17:44 GMT</lastBuildDate>
+    <item>
+      <title>我如何根据 1 分钟间隔内初始 5 个等距变化率来建模预测衰减趋势？</title>
+      <link>https://stackoverflow.com/questions/78665223/how-can-i-model-to-predict-decay-trend-based-on-intial-5-equally-spaced-rate-of</link>
+      <description><![CDATA[我有 30 条衰减轨迹。每条轨迹的变化率略有不同。我想基于每 1 分钟后的 5 个初始变化率进行建模（经典或 RNN）。因此，前 5 分钟我有 R1、R2、R3、R4、R5，然后想预测衰减轨迹的其余部分。对于训练，我们可以使用整个轨迹，在推理时输入将是 5 个速率。对此进行建模的可能方法有哪些？]]></description>
+      <guid>https://stackoverflow.com/questions/78665223/how-can-i-model-to-predict-decay-trend-based-on-intial-5-equally-spaced-rate-of</guid>
+      <pubDate>Tue, 25 Jun 2024 02:59:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>我想通过机器学习预测未来 60 天的股票价格</title>
+      <link>https://stackoverflow.com/questions/78665213/i-want-to-predict-stock-price-in-next-60-days-by-machine-learning</link>
+      <description><![CDATA[我想预测未来60天的股价，但是写完代码后，预测结果却向后。有人能指点我吗？我该怎么做？我修改了代码，但是不起作用。
+我的代码是
+import math
+from mplfinance.original_flavor import candlestick_ohlc
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from sklearn.metrics import mean_squared_error
+
+Tencent2.head()
+#定义特征和目标
+##features = [&#39;Open&#39;, &#39;Vol.&#39;]
+##target = &#39;Price&#39;
+
+#绘制折线图
+Tencent2[&#39;Date&#39;] = pd.to_datetime(Tencent2[&#39;日期&#39;])
+plt.figure(figsize=(15,6))
+plt.plot(Tencent2[&#39;日期&#39;], Tennis2[&#39;收盘价&#39;], marker=&#39;.&#39;)
+plt.title(&#39;按月收盘价&#39;, fontsize=15)
+plt.xlabel(&#39;日期&#39;, fontsize=13)
+plt.ylabel(&#39;收盘价&#39;, fontsize=13)
+plt.xticks(rotation=45)
+plt.show()
+
+#绘制蜡烛图
+matplotlib_date = mdates.date2num(Tencent2[&#39;日期&#39;])
+ohlc = np.vstack((matplotlib_date,Tencent2[&#39;Open&#39;],Tencent2[&#39;High&#39;],Tencent2[&#39;Low&#39;],Tencent2[&#39;Close&#39;])).T
+plt.figure(figsize=(15,6))
+ax = plt.subplot()
+candlestick_ohlc(ax,ohlc,width=0.8,colorup=&#39;g&#39;,colordown=&#39;r&#39;)
+ax.xaxis_date()
+plt.title(&#39;收盘价变动&#39;)
+plt.xlabel(&#39;日期&#39;)
+plt.ylabel(&#39;收盘价&#39;)
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.show()
+
+#重置索引
+Tencent2.set_index(&#39;Date&#39;, inplace=True)
+
+#创建一个只有“Close”列的新数据框
+data =腾讯2.filter([&#39;Close&#39;])
+
+#将数据框转换为numpy数组
+dataset = data.values
+#获取训练模型的行数
+training_data = math.ceil( len(dataset) * 0.7 )
+
+#缩放数据
+scaler = MinMaxScaler(feature_range=(0,1))
+scaled_data = scaler.fit_transform(dataset)
+
+#创建训练数据集
+#创建缩放后的训练数据集
+train_data = scaled_data[0:training_data, :]
+#将数据拆分为x_train和y_train数据集
+x_train = []
+y_train = []
+#我们创建一个循环
+for i in range(60, len(train_data)):
+x_train.append(train_data[i-60:i, 0]) 
+y_train.append(train_data[i, 0]) 
+if i &lt;= 60:
+print(x_train)
+print(y_train)
+print()
+
+#将 x_train 和 y_train 转换为 numpy 数组
+x_train, y_train = np.array(x_train), np.array(y_train)
+
+#重塑数据
+x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+x_train.shape
+
+#构建 LSTM 模型
+model = Sequential()
+model.add(LSTM(50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+model.add(LSTM(50, return_sequences=False))
+model.add(Dense(25))
+model.add(Dense(1))
+
+#编译模型
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;mean_squared_error&#39;)
+
+#训练模型
+model.fit(x_train, y_train, batch_size=1, epochs=1)
+
+#创建测试数据集
+#创建一个包含从索引 1738 到 2247 的缩放值的新数组
+test_data = scaled_data[training_data - 60:]
+#创建数据集 X_test 和 y_test
+X_test = []
+y_test = dataset[training_data:, :]
+for i in range(60, len(test_data)):
+X_test.append(test_data[i-60:i, 0])
+
+#将数据转换为 numpy 数组
+X_test = np.array(X_test)
+
+#重塑数据
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+
+#获取模型对 X_test 数据集的预测价格值
+predictions = model.predict(X_test)
+predictions = scaler.inverse_transform(predictions)
+
+#评估模型（获取均方根误差 (RMSE)）
+rmse = np.sqrt( np.mean( predictions - y_test )**2 )
+
+#绘制数据
+train = data[:training_data]
+valid = data[training_data:]
+valid[&#39;Predictions&#39;] = predictions
+#可视化数据
+plt.figure(figsize=(16,8))
+plt.title(&#39;Model&#39;)
+plt.xlabel(&#39;Date&#39;, fontsize=18)
+plt.ylabel(&#39;Close Price&#39;, fontsize=18)
+plt.plot(train[&#39;Close&#39;])
+plt.plot(valid[[&#39;Close&#39;, &#39;Predictions&#39;]])
+plt.legend([&#39;Train&#39;, &#39;Validation&#39;, &#39;Predictions&#39;], loc=&#39;lower right&#39;)
+plt.show()
+
+
+我想预测未来 60 天的价格，但价格是过去预测的。我该如何预测 2024-06 之后的价格？
+感谢您的帮助。
+我的示例数据是
+]]></description>
+      <guid>https://stackoverflow.com/questions/78665213/i-want-to-predict-stock-price-in-next-60-days-by-machine-learning</guid>
+      <pubDate>Tue, 25 Jun 2024 02:51:50 GMT</pubDate>
+    </item>
     <item>
       <title>对包含姓名、电子邮件、地址、出生日期、电话号码和一些二进制标志的数据库进行重复数据删除的最佳方法是什么？</title>
       <link>https://stackoverflow.com/questions/78664960/best-way-to-deduplicate-a-database-which-has-name-email-address-dob-phone-nu</link>
       <description><![CDATA[我有一个数据库，其中有重复的记录（同一个客户创建了多个帐户）。它们的唯一标识符列值对于每个 NameID 都不同，但其他信息可能相同。
-例如，有一个名为 Mark 的人。他创建了两个来宾用户：
+例如，有一个名叫 Mark 的人。他创建了两个来宾用户：
 来宾用户 1：
 姓名 ID= 12345
 姓名 = Mark Thomas
@@ -39,7 +182,7 @@ NameID 100% 匹配，并根据以下算法将它们列为重复项（通过公�
 如果电话号码匹配，则 100% 进入下一步，否则不匹配。
 如果地址匹配，则 100% 进入下一步，否则不匹配。
 如果地址出生日期匹配，则 100% 进入下一步，否则不匹配。
-根据以下优先级标记为主要和重复
+根据以下优先级标记为主要和重复项
 
 
 
@@ -47,8 +190,8 @@ NameID 具有IsOnlineshopper 应标记为主要。
 具有 Isinstoreshopper 的 NameID 应标记为重复。
 
 
-在匹配和合并这些名称一次（清除系统）后，我想自动化该过程，但每天运行该过程，将所有传入的记录（重复）与主要名称合并。
-我在 Azure SQL 中有数据，我可以选择使用 Databricks（考虑到数据量巨大，可能需要更多的计算能力）。我已经创建了主数据集的一个子集进行测试。但我不确定应该使用什么方法进行重复数据删除。
+在匹配和合并这些名称一次（清除系统）后，我想自动化该过程，但每天运行该过程，将所有传入的记录（重复项）与主要名称合并。
+我在 Azure SQL 中有数据，我可以选择使用 Databricks（考虑到数据量巨大，可能需要更多的计算能力）。我已经创建了主要数据集的一个子集进行测试。但我不确定应该使用什么方法进行重复数据删除。
 我做了一些研究，看起来机器学习可以用于这种情况。我也在考虑在 pyspark 中对此进行硬编码。但正如我提到的，我不确定哪种方法最好。
 请分享您的想法。谢谢。]]></description>
       <guid>https://stackoverflow.com/questions/78664960/best-way-to-deduplicate-a-database-which-has-name-email-address-dob-phone-nu</guid>
@@ -402,7 +545,7 @@ out.write(frame)
     <item>
       <title>有没有一种方法可以通过比率来测量用于创建第三个特征的两个特征的初始形状值？</title>
       <link>https://stackoverflow.com/questions/78662828/is-there-a-way-of-measuring-the-initial-shap-value-of-two-features-that-have-bee</link>
-      <description><![CDATA[在 Python 机器学习、回归或分类等背景下，我有时会对两个特征进行比率计算以生成第三个特征并删除前两个特征。
+      <description><![CDATA[在 Python 机器学习、回归或分类等背景下，我有时会对两个特征进行比率计算以生成第三个特征，并删除前两个特征。
 示例：living_surface_ratio = residence_building__total_living_surface / building__footprint_surface
 
 因此，在我的 data_processing_pipe 末尾，我只有 living_surface_ratio 作为一个特征。
@@ -416,15 +559,6 @@ shape(living_surface_ratio) = 0.3 * shape(residential_building__total_living_sur
 提前致谢]]></description>
       <guid>https://stackoverflow.com/questions/78662828/is-there-a-way-of-measuring-the-initial-shap-value-of-two-features-that-have-bee</guid>
       <pubDate>Mon, 24 Jun 2024 13:36:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>Yolov5 上的模型蒸馏</title>
-      <link>https://stackoverflow.com/questions/78661658/model-distillation-on-yolov5</link>
-      <description><![CDATA[有人能指导我如何对 yolov5 进行模型蒸馏吗？其中 yolov5n 是学生模型，yolov5l 是教师模型。如果您能详细解释步骤和所涉及的代码，将会很有帮助，因为我无法在网上找到合适的指南。
-提前谢谢
-我曾尝试在线搜索如何在 yolov5 上执行模型蒸馏，但资源不足。我期待完整的指南，包括在 yolov5n 上执行模型蒸馏所涉及的代码，其中 yolov5l 是教师模型。]]></description>
-      <guid>https://stackoverflow.com/questions/78661658/model-distillation-on-yolov5</guid>
-      <pubDate>Mon, 24 Jun 2024 09:43:48 GMT</pubDate>
     </item>
     <item>
       <title>PyTorch Vision Transformer 模型中的异常、验证损失、测试准确度和正常准确度计算 [关闭]</title>
@@ -561,32 +695,6 @@ Jupyter 笔记本嵌入在 Coursera 应用程序中。
 练习 6]]></description>
       <guid>https://stackoverflow.com/questions/78655480/how-to-validate-jupyter-notebook-score-error-in-coursera</guid>
       <pubDate>Sat, 22 Jun 2024 08:21:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>将 onnx 模型转换为 keras</title>
-      <link>https://stackoverflow.com/questions/58395644/convert-onnx-model-to-keras</link>
-      <description><![CDATA[我尝试将 ONNX 模型转换为 Keras，但当我调用转换函数时，我收到以下错误消息 “TypeError：不可哈希类型：&#39;google.protobuf.pyext._message.RepeatedScalarContainer&#39;”
-ONNX 模型输入：input_1
-您可以在此处查看 ONNX 模型：https://ibb.co/sKnbxWY
-import onnx2keras
-from onnx2keras import onnx_to_keras
-import keras
-import onnx
-
-onnx_model = onnx.load(&#39;onnxModel.onnx&#39;)
-k_model = onnx_to_keras(onnx_model, [&#39;input_1&#39;])
-
-keras.models.save_model(k_model,&#39;kerasModel.h5&#39;,overwrite=True,include_optimizer=True)
-
-
- 文件“C:/../onnx2Keras.py”，第 7 行，位于 &lt;module&gt;
-k_model = onnx_to_keras(onnx_model, [&#39;input_1&#39;])
-文件“..\site-packages\onnx2keras\converter.py”，第 80 行，位于 onnx_to_keras
-weights[onnx_extracted_weights_name] = numpy_helper.to_array(onnx_w)
-TypeError：不可哈希类型：&#39;google.protobuf.pyext._message.RepeatedScalarContainer&#39;
-]]></description>
-      <guid>https://stackoverflow.com/questions/58395644/convert-onnx-model-to-keras</guid>
-      <pubDate>Tue, 15 Oct 2019 13:15:06 GMT</pubDate>
     </item>
     </channel>
 </rss>
