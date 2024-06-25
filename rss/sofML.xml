@@ -4,17 +4,197 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 25 Jun 2024 09:15:52 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 25 Jun 2024 12:28:25 GMT</lastBuildDate>
     <item>
-      <title>如何检测重叠图片中的不同符号</title>
-      <link>https://stackoverflow.com/questions/78666370/how-to-detect-different-symbols-in-a-picture-with-overlapping</link>
+      <title>用于放射性核素识别的 CNN：如何使用 CategoricalCrossentropy 表示损失并使用指标进行性能测试来规范化数据？</title>
+      <link>https://stackoverflow.com/questions/78667148/cnn-for-radionuclide-identification-how-to-normalize-data-using-categoricalcro</link>
+      <description><![CDATA[目前，在阅读了一些与此类工作相关的论文后，我已经使用伽马光谱制作了一个用于放射性核素识别的 CNN 模型。该模型应该用于多标签分类。
+第一层是 CNN 层（Conv1D），它将整个伽马光谱作为输入。
+下面显示了一个伽马光谱示例...
+
+注意 - 该模型不将图像作为输入。它将每个通道的计数作为输入。
+我应该使用什么方法来规范化这种类型的数据？从我读过的论文来看，似乎不对伽马光谱进行归一化会产生最佳结果，但对于之前做过 ML 的人来说，对此类数据进行归一化似乎很重要。
+由于我正在制作一个进行多标签分类的模型来检测伽马光谱中存在的放射性核素，我应该使用什么损失函数？看了论文 1 后，似乎我应该使用 CategoricalCrossentropy，但在网上搜索后，似乎每个人都使用 BinaryCrossentropy。任何建议，因为目前我倾向于 CategoricalCrossentropy。
+我倾向于使用 CategoricalCrossentropy 作为损失函数的原因在于论文和这样一个事实：如果模型选择了一种存在于伽马光谱中的放射性核素，那么它应该会影响它所预测的其他放射性核素。
+最后，由于我正在做多标签分类，我正在考虑使用 F1 分数作为我的指标来确定我的模型在放射性核素识别方面是否表现良好，但这似乎不是最好的指标，因为我希望我的模型能够预测伽马光谱中存在的所有放射性核素。而且准确率在多标签分类中并没有真正用到。
+我正在用 TensorFlow 编写代码，因为我一般遵循论文 1。
+我读过的一些论文 -
+(1) 使用深度学习和通道注意模块进行多放射性核素识别和视觉解释
+(2) NaI γ 光谱的放射性同位素识别算法
+(3) 使用深度学习进行同位素识别：解释
+(4) 伽马射线光谱中放射性核素的自动实时识别：一种基于卷积神经网络的新方法，使用合成数据集训练
+等等]]></description>
+      <guid>https://stackoverflow.com/questions/78667148/cnn-for-radionuclide-identification-how-to-normalize-data-using-categoricalcro</guid>
+      <pubDate>Tue, 25 Jun 2024 11:46:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>为给定的文本生成标签</title>
+      <link>https://stackoverflow.com/questions/78667039/generate-tags-for-a-text-given</link>
+      <description><![CDATA[我正在尝试使用 flask 构建一个 API，它将从给定的 URL 中提取文本并为该文本生成有效标签。例如，文本是咖喱鸡的食谱，有效标签可以是食谱、印度菜、食物等。
+我试过 nltk 库、TF-IDF 矢量化器等，但它们都在分析单词的最大频率，而不是生成新单词。
+有没有人能解决这个问题。
+我也尝试过使用 gtp2 模块，但输出不是我期望的
+import request
+from bs4 import BeautifulSoup
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# 加载预先训练的 GPT-2 模型和 tokenizer
+model_name = &#39;gpt2-medium&#39;
+tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+model = GPT2LMHeadModel.from_pretrained(model_name)
+
+def fetch_text_from_url(url):
+try:
+response = request.get(url)
+response.raise_for_status() # 对错误响应引发 HTTPError
+soup = BeautifulSoup(response.content, &#39;html.parser&#39;)
+
+# 查找所有段落并连接它们的文本
+passages = soup.find_all(&#39;p&#39;)
+text = &#39; &#39;.join([para.get_text() for para in passages])
+
+return text
+except request.exceptions.RequestException as e:
+print(f&quot;Error fetching content from {url}: {str(e)}&quot;)
+return None
+except Exception as e:
+print(f&quot;Error parsing content from {url}: {str(e)}&quot;)
+return None
+
+def generate_tags(text, max_length=20, num_return_sequences=3):
+try:
+# 创建提示以生成标签
+prompt = &quot;Tags for this text: &quot;
+
+# 对输入文本和提示进行标记
+input_ids = tokenizer.encode(prompt + text, return_tensors=&#39;pt&#39;)
+
+# 使用 GPT-2 模型生成标签
+output = model.generate(
+input_ids,
+max_length=max_length + len(input_ids[0]),
+num_return_sequences=num_return_sequences,
+num_beams=5,
+no_repeat_ngram_size=2,
+early_stopping=True
+)
+
+# 解码生成的标签
+tags = []
+for seq in output:
+coded_seq = tokenizer.decode(seq, skip_special_tokens=True).strip()
+# 从生成的文本中提取标签
+tags.extend([t.strip() for t incoded_seq.split() if t.startswith(&#39;#&#39;)])
+
+return tags
+
+except Exception as e:
+print(f&quot;生成标签时出错：{str(e)}&quot;)
+return None
+
+@app.route(&#39;/generate_tags&#39;, methods=[&#39;POST&#39;])
+def generate_tags_api():
+data = request.get_json()
+url = data.get(&#39;url&#39;)
+if not url:
+return jsonify({&#39;error&#39;: &#39;URL 是必需的&#39;}), 400
+
+try:
+text = fetch_text_from_url(url)
+if not text:
+return jsonify({&#39;error&#39;: &#39;无法从 URL 获取内容&#39;}), 500
+
+tags = generate_tags(text)
+if tags:
+return jsonify({&#39;tags&#39;: tags})
+else:
+return jsonify({&#39;error&#39;: &#39;无法从 URL 生成标签&#39;}), 500
+except Exception as e:
+return jsonify({&#39;error&#39;: str(e)}), 500
+
+如果 __name__ == &quot;__main__&quot;:
+app.run(port=8000, debug=True)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78667039/generate-tags-for-a-text-given</guid>
+      <pubDate>Tue, 25 Jun 2024 11:22:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>Megatron-LM 用于学习目的</title>
+      <link>https://stackoverflow.com/questions/78666975/megatron-lm-for-learning-purpose</link>
+      <description><![CDATA[我想在本地机器上使用 GatorTron LM 进行学习。我从 https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara/models/gatortron_og 下载了文件（config.json、hparam.yml、MegtronBERT.nemo、MegatronBERT.pt、vocab.txt）。我还有 NVIDIA GPU。我应该如何向模型发送提示消息。
+嗨，我想在本地机器上使用 GatorTron LM 进行学习。我从 https://catalog.ngc.nvidia.com/orgs/nvidia/teams/clara/models/gatortron_og 下载了文件（config.json、hparam.yml、MegtronBERT.nemo、MegatronBERT.pt、vocab.txt）。我还有 NVIDIA GPU。我应该如何向模型发送提示消息。]]></description>
+      <guid>https://stackoverflow.com/questions/78666975/megatron-lm-for-learning-purpose</guid>
+      <pubDate>Tue, 25 Jun 2024 11:08:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>元特征分析：根据可用内存拆分数据进行计算</title>
+      <link>https://stackoverflow.com/questions/78666961/meta-feature-analysis-split-data-for-computation-on-available-memory</link>
+      <description><![CDATA[我正在使用元特征提取器包：pymfe进行复杂性分析。
+例如，在小型数据集上，这不是问题。
+pip install -U pymfe
+
+from sklearn.datasets import make_classification
+from sklearn.datasets import load_iris
+from pymfe.mfe import MFE
+
+data = load_iris()
+X= data.data
+y = data.target
+
+extractor = MFE(features=[ &quot;t1&quot;], groups=[&quot;complexity&quot;],
+summary=[&quot;min&quot;, &quot;max&quot;, &quot;mean&quot;, &quot;sd&quot;])
+extractor.fit(X,y)
+extractor.extract()
+([&#39;t1&#39;], [0.12])
+
+我的数据集很大 (32690, 80)，由于内存过大，此计算被终止 用法。 我在 Ubuntu 24.04 上工作，有 32GB RAM。
+要重现场景：
+# 生成数据集
+X, y = make_classification(n_samples=20_000,n_features=80,
+n_informative=60, n_classes=5, random_state=42)
+
+extractor = MFE(features=[ &quot;t1&quot;], groups=[&quot;complexity&quot;],
+summary=[&quot;min&quot;, &quot;max&quot;, &quot;mean&quot;, &quot;sd&quot;])
+extractor.fit(X,y)
+extractor.extract()
+Killed
+
+问题：
+如何我可以将此任务拆分为数据集的小分区进行计算，并合并最终结果（平均）？]]></description>
+      <guid>https://stackoverflow.com/questions/78666961/meta-feature-analysis-split-data-for-computation-on-available-memory</guid>
+      <pubDate>Tue, 25 Jun 2024 11:05:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>有没有更好更有效的方法来从图像中识别聚类？</title>
+      <link>https://stackoverflow.com/questions/78666791/is-there-a-better-and-more-efficient-way-to-identify-clusters-from-an-image</link>
+      <description><![CDATA[所以我有一个移动细菌的视频，我已将其转换为图像。现在我必须在每个图像中找到细菌的簇。如果两个相邻细菌的质心相距小于距离 R，并且它们的运动方向相差小于角度 alpha，我们将它们定义为同一簇的成员。动态簇被定义为包括所有与至少一个满足局部距离和运动方向标准的其他细菌相连的细菌。
+这是一张示例图片：
+
+我首先将每个轮廓的 COM 坐标和角度存储在字典中。我识别第一个轮廓并将其作为标准。然后我检查另一个轮廓，它最接近第一个轮廓，并且它的角度相差最小。如果这在给定的标准范围内，那么它们都属于第 1 组。然后第二个轮廓成为新的标准，并重复此过程，直到没有其他轮廓满足标准。然后所有这些轮廓都被认为属于第 1 组。再次重复此过程以形成其他组。但我的问题是，有没有更简单的方法可以做到这一点？我的方法花费大量时间并且不准确。有没有更好的算法或函数可以做同样的事情？]]></description>
+      <guid>https://stackoverflow.com/questions/78666791/is-there-a-better-and-more-efficient-way-to-identify-clusters-from-an-image</guid>
+      <pubDate>Tue, 25 Jun 2024 10:32:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于如何使用 Python 创建文本到 3D AI 模型，有什么建议吗？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78666584/any-advice-on-how-i-would-create-a-text-to-3d-ai-model-using-python</link>
+      <description><![CDATA[在学习的最后一年，我必须做一个项目。我发现图像和模型生成非常有趣，所以我想在这方面做点什么。我在机器学习方面有一些基本经验，但我甚至不知道从哪里开始这个项目。有人能给我一些建议吗？
+我看过现有的库，但我真的无法使用它们，因为它们显然会让项目变得太简单。我需要自己建立一个模型。]]></description>
+      <guid>https://stackoverflow.com/questions/78666584/any-advice-on-how-i-would-create-a-text-to-3d-ai-model-using-python</guid>
+      <pubDate>Tue, 25 Jun 2024 09:48:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 CV/ML 识别重叠图片中的不同符号？</title>
+      <link>https://stackoverflow.com/questions/78666370/how-to-recognize-different-symbols-in-a-picture-with-overlapping-using-cv-ml</link>
       <description><![CDATA[我有一张包含每个项目里程碑信息的图片。每个里程碑都用独特的符号在图表中标记。在图片中，我们有不同的三角形或正方形，颜色也不同。
 我需要从图例中的符号中提取有关日期的信息。这意味着我需要知道每个符号及其图例的位置。然后在 x 轴和 y 轴上搜索临近日期。
 里程碑图片
 我尝试过使用 cv2 进行颜色识别。首先，我提取了 x-y 轴上的日期并保存了它们的位置。我对黄色菱形使用 cv2，效果很好。但是当涉及到红色或灰色时，因为有不同的符号，但都是红色。我无法仅使用 cv2 来区分它们。
 cv2 中的传统计算机视觉方法无法处理重叠。例如有两种类型的红色三角形，一种指向左侧。面对所有这些问题，我无法找到一种好的方法来识别图例中的每个符号。你有什么建议吗？
 也许训练 ML 是一个潜在的解决方案。我有大约 1000 张这样的图片。我不知道训练模型是否足够。但工作量也会很大。]]></description>
-      <guid>https://stackoverflow.com/questions/78666370/how-to-detect-different-symbols-in-a-picture-with-overlapping</guid>
+      <guid>https://stackoverflow.com/questions/78666370/how-to-recognize-different-symbols-in-a-picture-with-overlapping-using-cv-ml</guid>
       <pubDate>Tue, 25 Jun 2024 09:04:21 GMT</pubDate>
     </item>
     <item>
@@ -226,330 +406,6 @@ at Tensorflow.BaseSession._do_run(List`1 target_list, List`1 fetch_list, Diction
       <pubDate>Tue, 25 Jun 2024 04:49:26 GMT</pubDate>
     </item>
     <item>
-      <title>如何在使用 colsample_bytree 超参数时始终保留 XGBoost 中的某个特征</title>
-      <link>https://stackoverflow.com/questions/78665326/how-to-always-keep-a-feature-in-xgboost-while-using-colsample-bytree-hyperparame</link>
-      <description><![CDATA[我使用 XGBoost 训练 ML 模型。如果我使用 colsample_bytree 超参数，XGBoost 会平等对待所有特征。我需要始终包含一个二进制特征，因为该特征决定了观察结果属于哪个子样本。其他特征应在训练期间随机包含，由 colsample_bytree 超参数决定。如何做到这一点？]]></description>
-      <guid>https://stackoverflow.com/questions/78665326/how-to-always-keep-a-feature-in-xgboost-while-using-colsample-bytree-hyperparame</guid>
-      <pubDate>Tue, 25 Jun 2024 03:52:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>我如何根据 1 分钟间隔内初始 5 个等距变化率来建模预测衰减趋势？</title>
-      <link>https://stackoverflow.com/questions/78665223/how-can-i-model-to-predict-decay-trend-based-on-intial-5-equally-spaced-rate-of</link>
-      <description><![CDATA[我有 30 条衰减轨迹。每条轨迹的变化率略有不同。我想基于每 1 分钟后的 5 个初始变化率进行建模（经典或 RNN）。因此，前 5 分钟我有 R1、R2、R3、R4、R5，然后想预测衰减轨迹的其余部分。对于训练，我们可以使用整个轨迹，在推理时输入将是 5 个速率。有哪些可能的方法可以对此进行建模？]]></description>
-      <guid>https://stackoverflow.com/questions/78665223/how-can-i-model-to-predict-decay-trend-based-on-intial-5-equally-spaced-rate-of</guid>
-      <pubDate>Tue, 25 Jun 2024 02:59:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>我想通过机器学习预测未来 60 天的股票价格</title>
-      <link>https://stackoverflow.com/questions/78665213/i-want-to-predict-stock-price-in-next-60-days-by-machine-learning</link>
-      <description><![CDATA[我想预测未来60天的股价，但是写完代码后，预测结果却向后。有人能指点我吗？我该怎么做？我修改了代码，但是不起作用。
-我的代码是
-import math
-from mplfinance.original_flavor import candlestick_ohlc
-from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
-from sklearn.metrics import mean_squared_error
-
-Tencent2.head()
-#定义特征和目标
-##features = [&#39;Open&#39;, &#39;Vol.&#39;]
-##target = &#39;Price&#39;
-
-#绘制折线图
-Tencent2[&#39;Date&#39;] = pd.to_datetime(Tencent2[&#39;日期&#39;])
-plt.figure(figsize=(15,6))
-plt.plot(Tencent2[&#39;日期&#39;], Tennis2[&#39;收盘价&#39;], marker=&#39;.&#39;)
-plt.title(&#39;按月收盘价&#39;, fontsize=15)
-plt.xlabel(&#39;日期&#39;, fontsize=13)
-plt.ylabel(&#39;收盘价&#39;, fontsize=13)
-plt.xticks(rotation=45)
-plt.show()
-
-#绘制蜡烛图
-matplotlib_date = mdates.date2num(Tencent2[&#39;日期&#39;])
-ohlc = np.vstack((matplotlib_date,Tencent2[&#39;Open&#39;],Tencent2[&#39;High&#39;],Tencent2[&#39;Low&#39;],Tencent2[&#39;Close&#39;])).T
-plt.figure(figsize=(15,6))
-ax = plt.subplot()
-candlestick_ohlc(ax,ohlc,width=0.8,colorup=&#39;g&#39;,colordown=&#39;r&#39;)
-ax.xaxis_date()
-plt.title(&#39;收盘价变动&#39;)
-plt.xlabel(&#39;日期&#39;)
-plt.ylabel(&#39;收盘价&#39;)
-plt.xticks(rotation=45)
-plt.grid(True)
-plt.show()
-
-#重置索引
-Tencent2.set_index(&#39;Date&#39;, inplace=True)
-
-#创建一个只有“Close”列的新数据框
-data =腾讯2.filter([&#39;Close&#39;])
-
-#将数据框转换为numpy数组
-dataset = data.values
-#获取训练模型的行数
-training_data = math.ceil( len(dataset) * 0.7 )
-
-#缩放数据
-scaler = MinMaxScaler(feature_range=(0,1))
-scaled_data = scaler.fit_transform(dataset)
-
-#创建训练数据集
-#创建缩放后的训练数据集
-train_data = scaled_data[0:training_data, :]
-#将数据拆分为x_train和y_train数据集
-x_train = []
-y_train = []
-#我们创建一个循环
-for i in range(60, len(train_data)):
-x_train.append(train_data[i-60:i, 0]) 
-y_train.append(train_data[i, 0]) 
-if i &lt;= 60:
-print(x_train)
-print(y_train)
-print()
-
-#将 x_train 和 y_train 转换为 numpy 数组
-x_train, y_train = np.array(x_train), np.array(y_train)
-
-#重塑数据
-x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-x_train.shape
-
-#构建 LSTM 模型
-model = Sequential()
-model.add(LSTM(50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
-model.add(LSTM(50, return_sequences=False))
-model.add(Dense(25))
-model.add(Dense(1))
-
-#编译模型
-model.compile(optimizer=&#39;adam&#39;, loss=&#39;mean_squared_error&#39;)
-
-#训练模型
-model.fit(x_train, y_train, batch_size=1, epochs=1)
-
-#创建测试数据集
-#创建一个包含从索引 1738 到 2247 的缩放值的新数组
-test_data = scaled_data[training_data - 60:]
-#创建数据集 X_test 和 y_test
-X_test = []
-y_test = dataset[training_data:, :]
-for i in range(60, len(test_data)):
-X_test.append(test_data[i-60:i, 0])
-
-#将数据转换为 numpy 数组
-X_test = np.array(X_test)
-
-#重塑数据
-X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
-
-#获取模型对 X_test 数据集的预测价格值
-predictions = model.predict(X_test)
-predictions = scaler.inverse_transform(predictions)
-
-#评估模型（获取均方根误差 (RMSE)）
-rmse = np.sqrt( np.mean( predictions - y_test )**2 )
-
-#绘制数据
-train = data[:training_data]
-valid = data[training_data:]
-valid[&#39;Predictions&#39;] = predictions
-#可视化数据
-plt.figure(figsize=(16,8))
-plt.title(&#39;Model&#39;)
-plt.xlabel(&#39;Date&#39;, fontsize=18)
-plt.ylabel(&#39;Close Price&#39;, fontsize=18)
-plt.plot(train[&#39;Close&#39;])
-plt.plot(valid[[&#39;Close&#39;, &#39;Predictions&#39;]])
-plt.legend([&#39;Train&#39;, &#39;Validation&#39;, &#39;Predictions&#39;], loc=&#39;lower right&#39;)
-plt.show()
-
-
-我想预测未来 60 天的价格，但价格是过去预测的。我该如何预测 2024-06 之后的价格？
-感谢您的帮助。
-我的示例数据是
-]]></description>
-      <guid>https://stackoverflow.com/questions/78665213/i-want-to-predict-stock-price-in-next-60-days-by-machine-learning</guid>
-      <pubDate>Tue, 25 Jun 2024 02:51:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>对包含姓名、电子邮件、地址、出生日期、电话号码和一些二进制标志的数据库进行重复数据删除的最佳方法是什么？</title>
-      <link>https://stackoverflow.com/questions/78664960/best-way-to-deduplicate-a-database-which-has-name-email-address-dob-phone-nu</link>
-      <description><![CDATA[我有一个数据库，其中有重复的记录（同一个客户创建了多个帐户）。它们的唯一标识符列值对于每个 NameID 都不同，但其他信息可能相同。
-例如，有一个名叫 Mark 的人。他创建了两个来宾用户：
-来宾用户 1：
-姓名 ID= 12345
-姓名 = Mark Thomas
-IsOnlineshopper = 1
-Isinstoreshopper = 0
-出生日期 = 01/12/1998
-电子邮件 = mark.thomas@hotmail.com
-地址 = # 12 Bailey Street, New Jersey, USA
-电话 =03248923423
-
-来宾用户 2：
-姓名 ID= 56789
-姓名 = Mark Thomas
-IsOnlineshopper = 0
-Isinstoreshopper = 1
-出生日期 = 01/12/1998
-电子邮件 = mark.thomas@hotmail.com
-地址 = # 12 Bailey Street, New Jersey, USA
-电话 =03248923423
-
-现在，这是其中一个场景&#39;IsOnlineshopper&#39; 和 &#39;Isinstoreshopper&#39; 不同，但其他所有参数都相同。可能会出现用户输入错误的电话号码而其他所有参数都相同的情况。有很多种情况，但我想从最简单的一种开始，即所有字段都匹配。
-我的目标是实现：
-NameID 100% 匹配，并根据以下算法将它们列为重复项（通过公共 ID 将所有匹配项链接在一起）：
-
-如果名称匹配，则 100% 进入下一步，否则不匹配。
-如果电子邮件匹配，则 100% 进入下一步，否则不匹配。
-如果电话号码匹配，则 100% 进入下一步，否则不匹配。
-如果地址匹配，则 100% 进入下一步，否则不匹配。
-如果地址出生日期匹配，则 100% 进入下一步，否则不匹配。
-根据以下优先级标记为主要和重复项
-
-
-
-NameID 具有IsOnlineshopper 应标记为主要。
-具有 Isinstoreshopper 的 NameID 应标记为重复。
-
-
-在匹配和合并这些名称一次（清除系统）后，我想自动化该过程，但每天运行该过程，将所有传入的记录（重复）与主要名称合并。
-我在 Azure SQL 中有数据，我可以选择使用 Databricks（考虑到数据量巨大，可能需要更多的计算能力）。我已经创建了主数据集的一个子集进行测试。但我不确定应该使用什么方法进行重复数据删除。
-我做了一些研究，看起来机器学习可以用于这种情况。我也在考虑在 pyspark 中对此进行硬编码。但正如我提到的，我不确定哪种方法最好。
-请分享您的想法。谢谢。]]></description>
-      <guid>https://stackoverflow.com/questions/78664960/best-way-to-deduplicate-a-database-which-has-name-email-address-dob-phone-nu</guid>
-      <pubDate>Tue, 25 Jun 2024 00:17:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用不同的总 epoch 数，对同一 epoch 得出不同的结果</title>
-      <link>https://stackoverflow.com/questions/78664794/different-results-for-the-same-epoch-using-different-number-of-total-epochs</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78664794/different-results-for-the-same-epoch-using-different-number-of-total-epochs</guid>
-      <pubDate>Mon, 24 Jun 2024 22:35:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>sklearn 中的自定义评分功能无法按预期工作？</title>
-      <link>https://stackoverflow.com/questions/78664597/custom-scoring-function-in-sklearn-does-not-work-as-intended</link>
-      <description><![CDATA[大家好，我目前正在使用来自 kaggle 的葡萄酒质量数据集深入研究机器学习领域。
-我查看了我的数据，识别并限制了异常值，缩放了数据，对其使用了 smote（因为有 100 种好葡萄酒和 900 种坏葡萄酒）
-我发现 f2_score 最适合对我的模型的质量进行分类。
-这些是我的 f2_score 函数和打印结果：
-from sklearn.metrics import classes_report, confusion_matrix,precision_score, recall_score
-
-def f2_score(y, y_pred, pos_label=1):
-precision = precision_score(y, y_pred, pos_label=1)
-recall = recall_score(y, y_pred, pos_label=1)
-f2 = (5 * precision * recall) / (4 * 精度 + 召回率)
-return f2
-
-def print_results(y, y_pred):
-print(&#39;__________________________________________________________________________________&#39;)
-print(&#39;&#39;)
-# 创建和导出分类报告
-report = 分类报告(y, y_pred, zero_division=1)
-print(&quot;分类报告:&quot;)
-print(&#39;F2_Score:&#39;,f2_score(y,y_pred))
-print(&#39;__________________________________________________________________________________&#39;)
-print(report)
-
-# 发现混淆矩阵
-conf_matrix = 混淆矩阵(y, y_pred)
-
-# 创建和导出图表
-plt.figure(figsize=(6, 4))
-sns.heatmap(conf_matrix,
-annot=True,
-fmt=&#39;d&#39;,
-cmap=&#39;Blues&#39;,
-xticklabels=[&#39;Schlecht&#39;, &#39;Gut&#39;],
-yticklabels=[&#39;Schlecht&#39;, &#39;Gut&#39;]
-)
-
-plt.xlabel(&#39;Vorhergesagte Labels&#39;)
-plt.ylabel(&#39;Wahre Labels&#39;)
-plt.title(&#39;Konfusionsmatrix&#39;)
-plt.show()
-print(conf_matrix)
-print(&#39;__________________________________________________________________________________&#39;)
-
-def print_best_score_and_params(model):
-print(&#39;Best score: &#39; + str(model.best_score_))
-print(&#39;Best params: &#39; + str(model.best_params_))
-
-使用 SVC 的标准参数时，我已经获得了良好的结果：
-来自 sklearn.svm导入 SVC
-从 sklearn.metrics 导入 accuracy_score、f1_score、recall_score
-
-svc = SVC(random_state=11, C = 1, gamma = &#39;scale&#39;) # C = 190 下一个更准确的结果 // 标准参数：C=1，gamma=&#39;scale&#39;
-
-svc.fit(X_smote, y_smote)
-
-y_pred = svc.predict(X_test)
-
-print_and_write_results(0, y_test, y_pred)
-
-
---&gt; F2_Score：0.7196969696969696
-但是，如果我现在尝试使用 RandomizedSearchCV 或 GridSearchCV，我总是会得到更差的分数，并且它不会搜索具有最高 f2_score 的选项。
-甚至在调试几个小时后，我也不知道为什么。
-来自 sklearn.metrics 导入 make_scorer，recall_score
-来自 sklearn.model_selection 导入 KFold
-来自 sklearn.model_selection 导入 RandomizedSearchCV
-
-search_distribution = {&#39;C&#39;：[1,2,5,10,15,20]
-}
-
-scorer = make_scorer(f2_score, pos_label=1) # 创建一个基于召回率指标的 1 级评分器优化
-
-kfold = KFold(n_splits=3, random_state=42, shuffle=True)
-
-svc_search = RandomizedSearchCV(svc, search_distribution, random_state = 11, n_iter = 6,scoring = scorer, cv=kfold)
-
-svc_search.fit(X_smote, y_smote)
-
-print_best_score_and_params(svc_search)
-
-print(&#39;最佳得分：&#39;, svc_search.best_score_)
-
-y_pred = svc_search.predict(X_test)
-
-print_and_write_results(0, y_test, y_pred)
-
-使用仅具有不同 C 参数的随机搜索
-我总是得到这样的结果：
-最佳得分： 0.9587991499630526
-最佳参数：{&#39;C&#39;: 20}
-最佳得分：0.9587991499630526
-
-分类报告：
-F2_Score：0.6995884773662552
-RandomizedSearchCV 使用的得分与我给出的 f2 得分无关，因此我无法使用 random_search 或 grid_search 来查找最佳参数？
-您知道为什么得分与 f2 得分如此不同吗？
-我尝试使用 f2_score 作为最佳拟合参数的指标。我认为 best_score 和 f2 得分相同？
-我真的不知道这个超过 0.95 的值在哪里来自？]]></description>
-      <guid>https://stackoverflow.com/questions/78664597/custom-scoring-function-in-sklearn-does-not-work-as-intended</guid>
-      <pubDate>Mon, 24 Jun 2024 21:10:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>担任数据科学家需要具备哪些必备技能或知识？哪些技能或知识能让应届毕业生更有价值？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78664514/what-are-all-the-mandatory-skills-or-knowledge-one-should-have-for-data-scientis</link>
-      <description><![CDATA[我最近刚获得电子与通信工程 (ECE) 硕士学位，我渴望转型从事数据科学职业。我的背景包括数学概念、编程（主要是 Python）方面的坚实基础。我对利用数据来获得有意义的见解和解决复杂问题有着浓厚的兴趣。
-鉴于我的技术背景，我渴望了解数据科学家角色所必需的基本技能和知识。根据您的经验，雇主在数据科学家身上寻找的关键能力是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/78664514/what-are-all-the-mandatory-skills-or-knowledge-one-should-have-for-data-scientis</guid>
-      <pubDate>Mon, 24 Jun 2024 20:36:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>单头 Transformer 模型，输出和目标张量大小不匹配</title>
-      <link>https://stackoverflow.com/questions/78663722/single-headed-transformer-model-output-and-target-tensor-sizes-dont-match</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78663722/single-headed-transformer-model-output-and-target-tensor-sizes-dont-match</guid>
-      <pubDate>Mon, 24 Jun 2024 16:50:02 GMT</pubDate>
-    </item>
-    <item>
       <title>U-Net 无法过度拟合单个训练示例 - 损失平台</title>
       <link>https://stackoverflow.com/questions/78642145/u-net-unable-to-overfit-single-training-example-loss-plateaus</link>
       <description><![CDATA[我正在通过在由单个训练示例（图像到图像）组成的“数据集”上训练 U-Net 架构来测试它。输入图像是输出图像的噪声版本。最初，输出图像开始看起来更像所需的输出，但损失曲线开始趋于稳定，模型停止改进。
@@ -614,9 +470,133 @@ diffY // 2, diffY - diffY // 2))
 return torch.cat((upsampled,bypass), dim=1)
 
 损失：MSELoss
-优化器：Adam，学习率从 1e-3 到 1e-4（上面的一切都在振荡，下面的也达到了稳定状态并且收敛速度较慢）]]></description>
+优化器：Adam，学习率从 1e-3 到 1e-4（上面的一切都在震荡，下面的也达到了稳定状态并且收敛速度较慢）]]></description>
       <guid>https://stackoverflow.com/questions/78642145/u-net-unable-to-overfit-single-training-example-loss-plateaus</guid>
       <pubDate>Wed, 19 Jun 2024 11:09:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将媒体管道 3D 关键点转换为骨架的欧拉角？</title>
+      <link>https://stackoverflow.com/questions/78424171/how-can-i-convert-mediapipe-3d-keypoints-to-eular-angles-of-a-skeleton</link>
+      <description><![CDATA[我有一个代码片段，用于将 openpose 3D 关键点转换为骨架的欧拉角。从 openpose 检测到的关键点可以在下图中看到：
+
+将这些 3D 关键点转换为骨架的欧拉角的代码是：
+def pose2euler(self, pose, header):
+channel = []
+quats = {}
+eulers = {}
+stack = [header.root]
+while stack:
+node = stack.pop()
+joint = node.name
+joint_idx = self.keypoint2index[joint]
+
+if node.is_root:
+channel.extend(pose[joint_idx])
+
+index = self.keypoint2index
+order = None
+if joint == &#39;臀部&#39;：
+x_dir = pose[index[&#39;左臀部&#39;]] - pose[index[&#39;右臀部&#39;]]
+y_dir = 无
+z_dir = pose[index[&#39;脊柱&#39;]] - pose[joint_idx]
+order = &#39;zyx&#39;
+elif 关节在 [&#39;右臀部&#39;，&#39;右膝&#39;]：
+child_idx = self.keypoint2index[node.children[0].name]
+x_dir = pose[index[&#39;臀部&#39;]] - pose[index[&#39;右臀部&#39;]]
+y_dir = 无
+z_dir = pose[joint_idx] - pose[child_idx]
+order = &#39;zyx&#39;
+elif 关节在 [&#39;左臀部&#39;，&#39;左膝&#39;]：
+child_idx = self.keypoint2index[node.children[0].name]
+x_dir = pose[index[&#39;左臀部&#39;]] - pose[index[&#39;臀部&#39;]]
+y_dir = 无
+z_dir = pose[joint_idx] - pose[child_idx]
+order = &#39;zyx&#39;
+elif 关节 == &#39;脊椎&#39;:
+x_dir = pose[index[&#39;左髋&#39;]] - pose[index[&#39;右髋&#39;]]
+y_dir = 无
+z_dir = pose[index[&#39;胸部&#39;]] - pose[joint_idx]
+order = &#39;zyx&#39;
+elif 关节 == &#39;胸部&#39;:
+x_dir = pose[index[&#39;左肩&#39;]] - \
+pose[index[&#39;右肩&#39;]]
+y_dir = 无
+z_dir = pose[joint_idx] - pose[index[&#39;脊椎&#39;]]
+order = &#39;zyx&#39;
+elif 关节 == &#39;颈部&#39;:
+x_dir = 无
+y_dir = pose[index[&#39;胸廓&#39;]] - pose[joint_idx]
+z_dir = pose[index[&#39;头端站点&#39;]] - pose[index[&#39;胸廓&#39;]]
+order = &#39;zxy&#39;
+elif 关节 == &#39;左肩&#39;:
+x_dir = pose[index[&#39;左肘&#39;]] - pose[joint_idx]
+y_dir = pose[index[&#39;左肘&#39;]] - pose[index[&#39;左腕&#39;]]
+z_dir = None
+order = &#39;xzy&#39;
+elif 关节 == &#39;左肘&#39;:
+x_dir = pose[index[&#39;左腕&#39;]] - pose[joint_idx]
+y_dir = pose[joint_idx] - pose[index[&#39;左肩&#39;]]
+z_dir = None
+order = &#39;xzy&#39;
+elif 关节 == &#39;右肩&#39;:
+x_dir = pose[joint_idx] - pose[index[&#39;右肘&#39;]]
+y_dir = pose[index[&#39;右肘&#39;]] - pose[index[&#39;右腕&#39;]]
+z_dir = 无
+order = &#39;xzy&#39;
+elif joint == &#39;右肘&#39;:
+x_dir = pose[joint_idx] - pose[index[&#39;右腕&#39;]]
+y_dir = pose[joint_idx] - pose[index[&#39;右肩&#39;]]
+z_dir = 无
+order = &#39;xzy&#39;
+if order:
+dcm = math3d.dcm_from_axis(x_dir, y_dir, z_dir, order)
+quats[joint] = math3d.dcm2quat(dcm)
+else:
+quats[joint] = quats[self.parent[joint]].copy()
+
+local_quat = quats[joint].copy()
+if node.parent:
+local_quat = math3d.quat_divide(
+q=quats[joint], r=quats[node.parent.name]
+)
+
+euler = math3d.quat2euler(
+q=local_quat, order=node.rotation_order
+)
+euler = np.rad2deg(euler)
+eulers[joint] = euler
+channel.extend(euler)
+
+for child in node.children[::-1]:
+if not child.is_end_site:
+stack.append(child)
+
+return channel
+
+现在我想实现 mediapipe 关键点的欧拉角，但我看不懂上面的代码。 x_dir、y_dir 和 z_dir 是如何计算的？为什么？有人能给我解释一下吗？我正在做一个项目，已经在这里呆了 4 周了。Mediapipe 计算出的关键点如下图所示：
+
+仅适用于姿势关键点，不适用于面部。]]></description>
+      <guid>https://stackoverflow.com/questions/78424171/how-can-i-convert-mediapipe-3d-keypoints-to-eular-angles-of-a-skeleton</guid>
+      <pubDate>Fri, 03 May 2024 10:38:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>ModuleNotFoundError：没有名为“anomalib.engine”的模块</title>
+      <link>https://stackoverflow.com/questions/77930973/modulenotfounderror-no-module-named-anomalib-engine</link>
+      <description><![CDATA[# 导入所需模块
+
+从 anomalib.data 导入 MVTec
+从 anomalib.models 导入 Patchcore
+从 anomalib.engine 导入 Engine
+
+错误：
+ModuleNotFoundError：没有名为“anomalib.engine”的模块
+
+我正在尝试运行它......已按照库安装并看到
+https://anomalib.readthedocs.io/en/latest/markdown/get_started/anomalib.html
+我认为这要么是因为引擎已被修改，要么已被库删除......
+如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/77930973/modulenotfounderror-no-module-named-anomalib-engine</guid>
+      <pubDate>Sat, 03 Feb 2024 05:25:02 GMT</pubDate>
     </item>
     </channel>
 </rss>
