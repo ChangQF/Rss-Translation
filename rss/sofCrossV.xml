@@ -4,127 +4,229 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 26 Jun 2024 12:29:29 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 26 Jun 2024 15:16:20 GMT</lastBuildDate>
     <item>
-      <title>R 中 Shiny 应用程序的 Kernel Shap</title>
-      <link>https://stats.stackexchange.com/questions/649944/kernel-shap-for-shiny-app-in-r</link>
-      <description><![CDATA[我正在做一个项目，我想在 Shiny 应用程序上创建一个投射瀑布图的反应图。我能够获得预测的反应结果，但无法获得形状值瀑布图的反应结果。
-这是我为应用程序生成预测所做的操作
-library(caret) 
-library(gbm)
-library(plyr)
-library(dplyr)
-library(ggplot2)
-library(randomForest)
-library(shiny)
-require(titanic)
+      <title>我怎样才能将群体层面的结果回归到个人特征上？</title>
+      <link>https://stats.stackexchange.com/questions/649961/how-can-i-regress-group-level-outcomes-on-individual-characteristics</link>
+      <description><![CDATA[我正在研究球员特征对其球队胜率的影响 (&lt; 1)。由于球员被分成 10 支球队，因此他们的胜率相同。目标是根据球员特征预测球队胜率，并了解这些特征的哪些组合是最佳的。我该如何建模？
+我考虑过的事情：
 
-df=na.omit(titanic_train)
-df=select(df, Pclass, Age, SibSp, Parch, Fare,Survived)
-
-df$Survived&lt;-as.factor(df$Survived)
-levels(df$Survived) &lt;- c(&quot;No&quot;,&quot;Yes&quot;)
-
-gbmGrid &lt;- expand.grid(interaction.depth = c(3), 
-n.trees = c(2000), 
-shrinkage = c(.001),
-n.minobsinnode = 20)
-
-# 模型 
-gbm.out &lt;- caret::train(Survived ~ ., df,tuneGrid=gbmGrid,method=&quot;gbm&quot;,
-trControl=trainControl(summaryFunction=twoClassSummary,classProbs=T))
-
-# 闪亮的应用程序
-ui = pageWithSidebar(
-headerPanel(&quot;Titanic&quot;),
-sidebarPanel(
-radioButtons(&quot;Pclass&quot;, &quot;Passenger Class&quot;, choice=c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;),selected = &quot;1&quot;, inline = TRUE,width = NULL),
-sliderInput(&quot;年龄&quot;, &quot;乘客年龄&quot;, min=0, max=80, value=30),
-radioButtons(&quot;SibSp&quot;, &quot;SibSp&quot;, choice=c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;)),
-radioButtons(&quot;Parch&quot;, &quot;Parch&quot;, choice=c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;)),
-sliderInput(&quot;票价&quot;, &quot;乘客票价&quot;, min=0, max=520, value=35)
-),
-mainPanel(
-dataTableOutput(&#39;testTable&#39;),
-textOutput(&#39;outputBox&#39;)
-)
-)
-
-server=function(input, output){
-
-values &lt;- reactValues()
-
-newEntry &lt;- observer({ # 使用观察模式
-
-x=as.data.frame(matrix(0, nrow=1, ncol=6))
-colnames(x)=c(&quot;Pclass&quot;, &quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;, &quot;SurvProb&quot;)
-
-x[1,1]=as.numeric(input$Pclass)
-x[1,2]=input$Age
-x[1,3]=as.numeric(input$SibSp)
-x[1,4]=as.numeric(input$Parch)
-x[1,5]=input$Fare
-
-pred &lt;- data.matrix(predict(object=gbm.out, x[-length(x)], type=&quot;prob&quot;)[,2])
-x[1,6] &lt;- round(pred,2)
-
-isolate(values$df &lt;- x)
-#isolate(values$df2 &lt;- x)
-})
-
-output$testTable &lt;- renderDataTable({values$df})
-}
-shinyApp(ui=ui, server=server)
-
-
-这里是 SHAP 分析使用
-### SHAP 方法 
-library(kernelshap)
-library(shapviz)
-
-# SHAP 值
-shap_values &lt;- kernelshap(gbm.out, X = df[,-c(6)], bg_X = df[1:10, ], type = &quot;prob&quot;)
-
-# 其余部分几乎相同，但需要确认
-shp &lt;- setNames(shapviz(shap_values), levels(df$Survived)) # 已识别级别
-shp &lt;- shapviz(shap_values)
-predict(gbm.out, head(df), type = &quot;prob&quot;)
-sv &lt;- shapviz(shap_values)
-sv_waterfall(sv, 12) # 这里是观察值 12，
-
-我希望听听社区的意见，看看我是否可以为我的 Shiny 应用示例中输入的 shap 值绘制一个交互式瀑布图]]></description>
-      <guid>https://stats.stackexchange.com/questions/649944/kernel-shap-for-shiny-app-in-r</guid>
-      <pubDate>Wed, 26 Jun 2024 12:10:28 GMT</pubDate>
+根据非分组球员特征进行回归并不能说明给定特征的球队的表现。
+根据每支球队球员特征的平均值进行回归并不能说明球队的异质性
+多级和 ME 模型往往具有解释变量的层次，而不是解释变量的层次。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649961/how-can-i-regress-group-level-outcomes-on-individual-characteristics</guid>
+      <pubDate>Wed, 26 Jun 2024 15:13:24 GMT</pubDate>
     </item>
     <item>
-      <title>尝试寻找协整对，但得到假阳性</title>
-      <link>https://stats.stackexchange.com/questions/649941/trying-to-find-cointegrated-pairs-but-getting-false-positives</link>
-      <description><![CDATA[使用 statsmodels.tsa.stattools.coint 查找股票价格时间序列的协整对，但似乎返回了大多数误报。
-nonStationInsts = []
+      <title>加速python函数[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/649959/speed-up-python-function</link>
+      <description><![CDATA[我想模拟一个由粒子通过线性弹簧连接而成的矩形网格。我拥有的一个函数如下所示。我用它来查找粒子之间的距离以及连接粒子之间长度为 1 的向量。
+xv、yv 和 zv 是 1xn 数组，包含粒子的 x、y 和 z 位置。cons 是一个 n×n 的布尔数组，表示两个粒子是否连接。例如，如果 cons[i,j]=True，则粒子 i 和 j 通过弹簧连接。
+我想在 n=62500 的情况下运行此代码，这会使数组非常大，代码运行缓慢。您有什么改进建议吗？
+import numpy as np
+from scipy.sparse import csr_matrix as sparse
 
-for i in range(50):
-#查找所有非平稳价格序列
-if adfuller(trainPrc[i])[1] &gt; 0.05:
-nonStationInsts += [i]
+def getDistance(xv,yv,zv,cons):
 
-critVal = 0.01
+dx=xv-xv.T
+dy=yv-yv.T 
+dz=zv-zv.T
 
-#用于查找协整对的函数
-def findCointPairs(critVal = 0.05):
-cointInsts = []
-for i in range(len(nonStationInsts)):
-for j in range(i+1, len(nonStationInsts)):
-inst1 = nonStationInsts[i]
-inst2 = nonStationInsts[j]
-_, p, _ = coint(trainPrc[inst1], trainPrc[inst2])
-if p &lt; critVal:
-cointInsts += [(inst1,inst2, max(p1,p2))]
-return cointInsts
+dl=sparse((len(dx),len(dx)),dtype=np.float32).toarray()
+dl[cons]+=np.sqrt(dx[cons]**2+dy[cons]**2+dz[cons]**2)
 
-下图显示了函数发现“协整”的货币对的价格和价差，p 值小于 0.01
+normx=sparse((len(xv),len(xv)),dtype=np.float32).toarray()
+normy=sparse((len(yv),len(yv)),dtype=np.float32).toarray()
+normz=sparse((len(zv),len(zv)),dtype=np.float32).toarray()
+
+normx[cons]=dx[cons]/dl[cons]
+normy[cons]=dy[cons]/dl[cons]
+normz[cons]=dz[cons]/dl[cons]
+返回normx,normy,normz,dl
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/649941/trying-to-find-cointegrated-pairs-but-getting-false-positives</guid>
-      <pubDate>Wed, 26 Jun 2024 11:15:19 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/649959/speed-up-python-function</guid>
+      <pubDate>Wed, 26 Jun 2024 14:54:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么我们可以使用 RMSE 来表示 VAR 或 Granger 因果关系的效应大小？</title>
+      <link>https://stats.stackexchange.com/questions/649958/why-can-we-use-rmse-as-a-proxy-for-the-effect-size-of-a-var-or-granger-causality</link>
+      <description><![CDATA[我的问题源于我之前的一个问题：是否有一个有意义的选项可以计算类似 Granger 因果关系的效应大小？。在之前这个问题中，我要求提供用于计算 Granger 因果关系 (GC) 结果的效应大小代理的选项。这是因为 GC 仅产生 p 值，而这些 p 值本身不能解释为效应大小。
+我的问题背景：我计算了各种时间序列数据对之间的 GC，现在，如上面的链接所示，使用了均方根误差 (RMSE)。我获取 RMSE 的过程如下。
+
+首先，对我的时间序列的前 80% 进行 VAR 训练。
+其次，我将我感兴趣的时间序列的最后 20% 作为测试数据，并对其运行模型的预测。
+最后，我没有计算 RMSE，而是以百分比计算 RMSE，例如，如这里所述 https://stackoverflow.com/questions/55325114/how-to-express-root-mean-squared-error-as-a-percentage。百分比 RMSE 是使用时间序列的最后 20%（测试数据）和 20% 的预测值计算得出的。
+
+计算百分比 RMSE 的原因如下：原始时间序列数据是非平稳的，需要一阶差分。因此，时间序列的值变得非常小，以至于 RMSE 结果不再允许简单或直接的解释。
+结果：百分比 RMSE 结果很小。所有结果都低于 8%，大多数在 2-5% 之间。非常低的百分比 RMSE 值表明我的 VAR 模型确实提供了良好的预测。我还观察到百分比 RMSE 值与 p 值的水平或值不对应。也就是说，较低的百分比 RMSE 值不一定与较低的 p 值一致，如下图所示。
+
+问题：我仍然不能完全理解为什么 RMSE 可以作为 GC 效应大小的代理。我理解较低的 RMSE 意味着我们的模型比具有较高 RMSE 的同一模型的另一个实例（其中 VAR 使用两个不同的时间序列）提供了更好的预测。
+但是，我如何才能更好地阐明在科学论文中使用 RMSE 作为有关 GC 的效应大小的代理？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649958/why-can-we-use-rmse-as-a-proxy-for-the-effect-size-of-a-var-or-granger-causality</guid>
+      <pubDate>Wed, 26 Jun 2024 14:23:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>如果给定 X 的 pdf 和 Y|X 的 pdf，则找到 Y 的边际 pdf</title>
+      <link>https://stats.stackexchange.com/questions/649956/find-marginal-pdf-of-y-if-given-pdf-of-x-and-pdf-of-yx</link>
+      <description><![CDATA[
+如果 $X \sim \text{Poisson}(\mu)$ 且 $Y|X\sim U(X-0.5,X+0.5)$ 且 $-0.5&lt;y&lt;\infty$，则求出 $Y$ 的边际 pdf。我知道我们需要通过将 $f(y|x)\cdot f(x)$ 相乘来找到 $f(x,y)$，但是我无法弄清楚要将 $x$ 的哪些值相加才能得到 $f(y)$。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649956/find-marginal-pdf-of-y-if-given-pdf-of-x-and-pdf-of-yx</guid>
+      <pubDate>Wed, 26 Jun 2024 13:53:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>协方差文献的重复测量分析</title>
+      <link>https://stats.stackexchange.com/questions/649955/repeated-measures-analysis-of-covariance-literature</link>
+      <description><![CDATA[有人有关于重复测量 ANCOVA 的文献可以研究吗？
+例如，概念、假设以及如何手动计算？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649955/repeated-measures-analysis-of-covariance-literature</guid>
+      <pubDate>Wed, 26 Jun 2024 13:53:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>简单设计矩阵的可逆性[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/649954/invertibility-of-simple-design-matrix</link>
+      <description><![CDATA[让 $W_1$ 和 $W_2$ 成为分类随机变量，每个变量有两个类别。使用虚拟变量，我们编码例如 $W_1$ 属于第 2 类，即
+$$
+W_1 = (0,1)。
+$$
+然后我们可以考虑随机变量 $W := (W_1, W_2) \in \mathcal{W}_1 \times \mathcal{W}_2 \subseteq \{0,1\}^{2} \times \{0,1\}^2$，其中例如$\mathcal{W}_1$ 由 $\{0,1\}^{2}$ 中的向量组成，这些向量恰好有一个元素等于 1，另一个元素等于 0。
+现在假设 $W$ 相对于计数测度具有严格正密度 $p: \mathcal{W}_1 \times \mathcal{W}_2 \to [0,1]$。
+我希望证明严格正性意味着 $EWW^T$ 是可逆的。我们可以写出 $EWW^T$ 的表达式：
+$$
+E[WW^T] = \begin{pmatrix}
+p_{11}+p_{12} &amp; 0 &amp; p_{11} &amp; p_{12} \\
+0 &amp; p_{21}+p_{22} &amp; p_{21} &amp; p_{22}\\
+p_{11} &amp; p_{12} &amp; p_{21} + p_{11} &amp; 0\\
+p_{21} &amp; p_{22} &amp; 0 &amp; p_{12} + p_{22}
+\end{pmatrix}。
+$$
+这里我们使用了符号 $p_{ij} = P(W_1 = i, W_2 = j)$。密度的严格正性等同于 $p_{ij} &gt; 0$。
+然而，由于行列式的公式很快就变得无法控制，因此似乎并不容易证明可逆性。
+任何帮助都值得感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649954/invertibility-of-simple-design-matrix</guid>
+      <pubDate>Wed, 26 Jun 2024 13:49:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>我的程序和代码是否正确，可以评估模型性能？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/649952/are-my-procedures-and-my-code-correct-to-evaluate-the-model-performance</link>
+      <description><![CDATA[我的代码或 GridSearchCV 有问题吗？这是经过调整的模型，我使用一组进行训练，另一组进行测试。以下是我对数据进行预处理（填充缺失值并编码）后的代码：
+parameters = {&#39;n_estimators&#39;: [150],
+&#39;random_state&#39;: [5],
+&#39;max_features&#39;: [0.1],
+&#39;max_depth&#39;: [100],
+&#39;criterion&#39;: [&#39;poisson&#39;]
+}
+
+from sklearn.model_selection import KFold
+
+k_folds = KFold(n_splits = 5, shuffle=True, random_state = 77)
+
+# 基础模型
+from sklearn.ensemble import RandomForestRegressor
+model = RandomForestRegressor()
+
+grid_search_cv= GridSearchCV(model, param_grid = parameters, cv = k_folds,scoring=&#39;r2&#39;, n_jobs = -1，verbose=3，refit = True)
+
+result = grid_search_cv.fit(X_train, y_train)
+
+best_model = result.best_estimator_
+
+yhat = best_model.predict(X_test)
+
+# 保存结果
+data_acc = round(r2_score(np.array(y_test), yhat) ,3)
+
+data_acc_train = metrics.r2_score(y_train, best_model.predict(X_train))
+
+鉴于结果如下，我是否以正确的方式使用 KFold？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649952/are-my-procedures-and-my-code-correct-to-evaluate-the-model-performance</guid>
+      <pubDate>Wed, 26 Jun 2024 13:45:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>metaSEM 中关于“hakn”的错误消息 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/649951/erro-message-in-metasem-about-hakn</link>
+      <description><![CDATA[尝试在 metaSEM 中运行一个简单的 meta3L 命令
+meta3L(Coeff, Variance, Cluster, data = WTSC) 
+
+我收到以下错误消息：
+if (object$hakn) &quot;HK&quot; else &quot;classic&quot; 中出现错误： 
+参数长度为零
+
+我还没能弄清楚那是什么意思。
+感谢您的帮助。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649951/erro-message-in-metasem-about-hakn</guid>
+      <pubDate>Wed, 26 Jun 2024 13:39:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>泊松回归模型的解释（结果变量 - 饮食多样性）</title>
+      <link>https://stats.stackexchange.com/questions/649950/interpretation-of-poisson-regression-model-outcome-variable-dietary-diversity</link>
+      <description><![CDATA[我想利用图片中显示的结果来了解一下如何解释泊松模型。谢谢！
+
+我尝试这样解释，但不知道是否正确：熟食摊贩的数量每增加一个单位，估计的 MFD 将增加 1.61 个单位。同样，售货亭和夫妻店/谷物店的数量每增加一个单位，估计的 MFD 将分别增加 2.33 和 2.49。现代餐厅/快餐店/面包店的数量每增加一个单位，估计的 MFD 将增加 2.59，而批发商的数量每增加一个单位，估计的 MFD 将增加 1.15。大卖场/超市和台式/mama mboga 每增加一个单位，MFD 分别增加 4.19 和 2.37。
+例如，大卖场/超市的估计市场食品多样性比流动摊贩/街头小贩/流动摊贩高 3.68。同样，熟食街头摊贩/路边餐饮、售货亭/duka 和夫妻店/谷物的估计 MFD 分别比流动摊贩高 1.53、2.28 和 2.41。对于现代餐厅/快餐，估计 MFD 与流动摊贩的差异为 2.22。台式摊贩和批发商与流动摊贩/街头小贩/流动摊贩之间的估计 MFD 差异分别高 2.28 和 1.42。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649950/interpretation-of-poisson-regression-model-outcome-variable-dietary-diversity</guid>
+      <pubDate>Wed, 26 Jun 2024 13:23:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>Einstein Chatbot 在 Salesforce 中显示 HTML 标签以及文章答案。如何避免？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/649947/einstein-chatbot-is-displaying-html-tags-along-with-article-answers-in-salesforc</link>
+      <description><![CDATA[我创建了一个聊天机器人，它可以回答与销售人员开发相关的问题。我使用了知识对象，其中的标题、问题、答案字段映射到文章答案智能功能中的文章字段映射中。
+但是，当我向机器人提出任何问题时，它都会向我推荐带有 HTML 标签的正确答案，这是不应该发生的。我只需要没有 HTML 标签的答案。我不想呈现 HTML 标签。
+以下是带有 HTML 标签的“如何创建报告？”问题的示例响应。
+以下是链接，它可能会让您了解我面临的问题。
+https://ibb.co/yd5cZnf]]></description>
+      <guid>https://stats.stackexchange.com/questions/649947/einstein-chatbot-is-displaying-html-tags-along-with-article-answers-in-salesforc</guid>
+      <pubDate>Wed, 26 Jun 2024 12:47:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于条件推理回归树的检验统计量的详细信息</title>
+      <link>https://stats.stackexchange.com/questions/649945/details-of-test-statistic-used-for-conditional-inference-regression-trees</link>
+      <description><![CDATA[partykit R 库中实现的条件推理回归树使用以下统计数据来确定是否进行拆分：
+$$ T_j(L_n, w) = vec(\sum w_i g_j(X_{ji}) h(Y_i, (Y_1,...,Y_n)^T))$$
+（请参阅ctree.pdf中的变量选择和停止标准）
+根据https://stats.stackexchange.com/a/342356/161138 这个独立性测试可以通过对我有用的硬币库复制。它可以进一步分解为以下各部分：
+library(coin)
+it &lt;- independent_test(Petal.Length ~ Sepal.Length,
+data = iris, teststat = &quot;quadratic&quot;)
+
+(statistic(it, &quot;linear&quot;) - expectation(it)) %*% 
+solve(covariance(it)) %*% 
+t(statistic(it, &quot;linear&quot;) - expectation(it))
+
+我已将示例简化为仅一个独立变量 Petal.Length ~ Sepal.Length，原始问题中有两个独立变量 Petal.Length + Petal.Width ~ Sepal.Length。
+现在，我尝试在简化的案例中重现所有步骤：
+
+statistic(it, &quot;linear&quot;) 与 sum(iris$Petal.Length * iris$Sepal.Length) 相同
+expectation(it) 与 sum(iris$Petal.Length) * sum(iris$Sepal.Length) / length(iris$Petal.Length) 相同
+
+什么是
+
+covariance(it) 就 iris$Petal.Length 和 iris$Sepal.Length 而言？
+
+最终，我想为只有一个独立变量的特定情况写出第一个方程。我相信它归结为
+$$
+\frac{(t-\mu)^2}{\sigma^2}
+$$
+其中
+
+$ t = \sum (a \times b) $,
+$\mu = \frac{\sum a \times \sum b}{n}$ &amp;
+$\sigma^2 = ?$.
+
+我正在寻找 $\sigma$ 的公式。
+我猜这是在这里描述的：https://cran.r-project.org/web/packages/coin/vignettes/MAXtest.pdf，但我不知道如何重写 $\sigma$ 以适应我非常简单的情况。
+
+我以为这是答案，但它错误
+(n/(n-1)) *sum(iris$Petal.Length * iris$Sepal.Length) - (1/(n-1)) * sum(iris$Petal.Length) * sum(iris$Sepal.Length)
+
+
+这意味着 $\sigma^2$ 是（但事实并非如此）
+$$
+\frac{n}{n-1} \sum (a \times b) - \frac{1}{n-1} \times \sum a \times \sum b
+$$]]></description>
+      <guid>https://stats.stackexchange.com/questions/649945/details-of-test-statistic-used-for-conditional-inference-regression-trees</guid>
+      <pubDate>Wed, 26 Jun 2024 12:40:58 GMT</pubDate>
     </item>
     <item>
       <title>有序逻辑回归的结果中的阈值是否需要严格增加？</title>
@@ -141,7 +243,11 @@ mod_log = OrderedModel(y,
 train_df[x_predictors],
 distr=&#39;logit&#39;)
 res_log = mod_log.fit(method=&#39;bfgs&#39;, disp=False) res_log.summary()
-]]></description>
+
+数据是保密的，但我的结果是这样的
+其中输出变量是类 1,2,3,4,5,6:
+
+如您所见，截距并不单调]]></description>
       <guid>https://stats.stackexchange.com/questions/649939/do-the-threshold-values-in-the-results-of-ordinal-logistic-regression-need-to-be</guid>
       <pubDate>Wed, 26 Jun 2024 11:06:02 GMT</pubDate>
     </item>
@@ -165,138 +271,6 @@ res_log = mod_log.fit(method=&#39;bfgs&#39;, disp=False) res_log.summary()
       <pubDate>Wed, 26 Jun 2024 10:41:25 GMT</pubDate>
     </item>
     <item>
-      <title>比较 PCA 载荷图之间的角度</title>
-      <link>https://stats.stackexchange.com/questions/649933/comparing-the-angle-between-pca-loading-plots</link>
-      <description><![CDATA[我正在分析三个数据集中的温度、降水量和积雪深度。我使用 PCA 进行分析，并分别获得了数据集 1、2 和 3 的降水量和积雪深度之间的角度 13.1°、19.6° 和 102.0°。但是，我不确定是否要比较这些角度，因此我将这些 PCA 图投影到一个公共坐标系上。现在，角度为 11.5°、18.1° 和 48.5°。这种变化让我感到困惑，因为对于数据集 3，相关性似乎在投影中改变了方向。还有其他方法可以比较不同双标图的角度吗？我可以使用绝对值（13.1°、19.6° 和 102.0°）来测量相关性并进行比较吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649933/comparing-the-angle-between-pca-loading-plots</guid>
-      <pubDate>Wed, 26 Jun 2024 10:23:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>季节性时间序列中缺失数据。验证和预处理存在问题</title>
-      <link>https://stats.stackexchange.com/questions/649931/missing-data-in-seasonal-time-series-problems-with-validation-and-pre-processin</link>
-      <description><![CDATA[我有每日数据，我的目标是对零售业中不同产品的 14 天销售情况进行预测。我的问题在于数据和预处理，而不是用于预测的模型。
-一个常见的问题是对缺失数据间隔的训练和验证。让我举个例子：
-
-在三年的时间里，该产品有几个缺失值间隔。这可能有不同的原因：供应链中断、产品甚至没有列出，因此根本没有出售、另一种非常相似的产品被发布和出售、发货延迟、缺货、不列出产品的业务决策等......
-我的预测中不需要与这些因素相关的零周期。这些因素要么是不可预见的，要么是我们自己的业务决策。我的预测中唯一需要的零周期是基于年度季节性的。
-我通常会做的只是对给定的数据进行训练/测试拆分或交叉验证，以找到我可以拟合的最佳模型并使用此模型。
-我的问题是，我正在不完整的数据上验证（和训练）模型。我经常遇到预测太低或预测中有（接近）零周期的情况，它们不属于季节性模式。实际上，就销售损失而言，这可能会造成高昂的代价。
-我可以看到一个问题，尤其是当使用零周期进行验证时。让我举一个清晰的例子。相同的时间序列，但我截断了过去 14 天。在简单的训练/测试分割中，这将是我的 14 天验证数据：
-
-在这个相当极端的例子中，预测零值的模型会非常合适，但对我的专业目标没有任何好处。
-另一方面，有这样的产品：
-
-该产品具有明显的季节性。在这种情况下，我当然也需要在预测中加入季节性零周期。一个真正预测我想要和需要的模型会在预测指标中获得糟糕的分数。
-我已经尝试使用插值来填补非季节性的空白，但到目前为止，我在让插值方法尊重季节性（如果存在）方面遇到了很大的问题。
-
-插值是解决这个问题的正确方法吗？
-如果插值是一个有效的选择，你能推荐插值技术吗？我如何确定我需要插值的时间步长？
-我如何才能让我的预测指标真正地描述我想要实现的准确性？
-你能给我其他数据预处理技巧吗？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649931/missing-data-in-seasonal-time-series-problems-with-validation-and-pre-processin</guid>
-      <pubDate>Wed, 26 Jun 2024 09:28:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>估计噪声样本的总体相对标准偏差</title>
-      <link>https://stats.stackexchange.com/questions/649929/estimate-population-relative-standard-deviation-from-noisy-sample</link>
-      <description><![CDATA[我们想通过测量一个小样本来估计在总体上定义的随机变量$X$的相对标准差（标准差除以平均值）。
-问题是测量方法相当嘈杂。通常，测量误差似乎可以建模为$\Delta x = kx + b + \varepsilon$，其中$x$是真实值，$\Delta x$是测量值减去真实值，$\varepsilon$是近似正态分布的随机数。
-平均而言，$\Delta x$似乎接近于零，但由于系数$k$略为负值，仅取测量样本的相对标准偏差通常会导致对总体相对标准偏差的轻微低估，即使存在噪声项$\varepsilon$。
-问题：是否有一种方法可以无偏地估计总体相对标准偏差；也就是说，有一种方法可以补偿 $k$、$b$ 和 $\varepsilon$，这些可以通过校准测量方法获得。此外，获得估计值的置信区间（或分布）之类的东西也很有趣。该方法可以是数值方法，也可以基于某种引导程序。
-在应用中，总体相对标准偏差通常在 10%-50% 范围内，$\varepsilon$ 的标准偏差通常是 $x$ 平均值的 10%。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649929/estimate-population-relative-standard-deviation-from-noisy-sample</guid>
-      <pubDate>Wed, 26 Jun 2024 08:57:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>两个随机变量乘积的 Hoeffding 不等式</title>
-      <link>https://stats.stackexchange.com/questions/649927/hoeffding-inequality-for-a-product-of-two-random-variables</link>
-      <description><![CDATA[设 $X_1,X_2, \dots, X_{m_1}$，$Y_1,Y_2, \dots, Y_{m_2}$ 为来自概率空间 $\mathcal{X}$ 的 $m_1 + m_2$ 个独立随机变量，设 $h: \mathcal{X} \to \{-1,1\}$
-我对点估计感兴趣：$\mu = \underset{x,y \sim \mathcal{D}}{\mathbb{E}}[h(x)h(y)]$。
-估计的形式为 $\hat{\mu} = \frac{1}{m_1m_2} \sum_{i=1}^{m_1} \sum_{j=1}^{m_2} h(X_i) h(Y_j)$
-是否存在广义的 Hoeffding 不等式来测量此（双样本 U 统计量）设置的集中度？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649927/hoeffding-inequality-for-a-product-of-two-random-variables</guid>
-      <pubDate>Wed, 26 Jun 2024 08:37:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>倾向得分匹配后的回归</title>
-      <link>https://stats.stackexchange.com/questions/649925/regression-after-propensity-score-matching</link>
-      <description><![CDATA[
-在我的分析中，我试图通过匹配在治疗组和对照组中实现平衡后，观察治疗Z如何影响结果Y。
-我有以下框架和问题，以及我对这些主题的理解。
-有人能帮我验证我的设置和代码是否正确吗？
-非常感谢任何建议或论文推荐！
-
-在匹配样本的结果模型➁中添加psscore是否更好？
-
-如果匹配后未达到平衡，或者为了双重稳健性。 (逻辑回归模型中的倾向得分)
-
-
-我应该在结果模型➁中添加X还是仅包含Z？
-
-如果匹配后达到平衡，则不需要X。
-
-
-在进行结果模型➁时我应该添加权重吗？
-
-如果匹配是通过替换或使用比率或完全匹配完成的。 （Bai, H.，&amp; Clark, M. (2019). 倾向评分方法和应用。SAGE Publications, Inc.，https://doi.org/10.4135/9781071814253）
-
-
-
-在 R 中，我使用以下代码执行匹配和回归。
-match1 &lt;- ma​​tchit(Z ~ 家庭特征 + 建筑信息 + …, method=&quot;nearest&quot;, ratio=4, distance=&quot;logit&quot;, caliper=0.1, data=currentDataset)
-matched_data1 &lt;- match.data(match1)
-公式 &lt;- c(&quot;Y1 ~ Z&quot;, &quot;Y2 ~ Z&quot;, &quot;Y3 ~ Z&quot;, &quot;Y4 ~ Z&quot;)
-模型类型 &lt;- c(&quot;glm&quot;, &quot;glm&quot;, &quot;lm&quot;, &quot;lm&quot;)
-for (i in 1:length(formulas)) {
-公式 &lt;- formulas[I]
-模型类型 &lt;- model_types[i]
-if (model_type == &quot;glm&quot;) {
-模型 &lt;- glm(as.formula(formula), data = matches_data1, family = binomial)}
-else {
-模型 &lt;- lm(as.formula(formula), data =匹配的数据1)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649925/regression-after-propensity-score-matching</guid>
-      <pubDate>Wed, 26 Jun 2024 08:20:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>因果变量和噪声变量的因果独立性</title>
-      <link>https://stats.stackexchange.com/questions/649924/causal-variables-and-causal-independence-of-the-noise-variables</link>
-      <description><![CDATA[在因果关系中，我的理解是，如果我们有因果变量$S_i$，我们必须假设与每个$S_i$相关的（外生？）噪声变量在因果上是独立的。我的理解是，这类似于统计推断的误差独立性假设。但是，在某些物理实验之外——尤其是如果我们处理的是任何类型的系统，而这几乎总是如此（再次强调，在前面提到的物理实验之外）——噪声变量之间难道不会一直存在某种/程度的因果纠缠吗？那么我们如何才能切实地进行因果推断呢？再说一次，同样的推理不也适用于统计推断中误差之间的相关性吗？然而，我们通常在进行统计推断时没有什么问题（即使排除实验者没有正确考虑误差独立性的不良（滥用）统计数据案例）？我只是想在这里澄清我的理解/想法。这是否只是一个例子，“是的，实际上，在几乎所有现实世界的实验中（除了上述物理实验），误差/噪声变量都是相关的/因果纠缠的，但这是一个程度问题，因此，我们越多地考虑/最小化这种相关性/因果纠缠，我们的统计/因果推断就越准确，因此这只是统计/因果关系哲学的一个自然组成部分，即无法证伪某事，而不是“证明它是真的”。&quot;？
-另外：如果我们不确定某些变量是否具有因果独立的噪声变量，是否有某种方法可以测试/检查这一点？毕竟，我们有统计推断的方法来测试/检查误差项之间的相关性，对吧？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649924/causal-variables-and-causal-independence-of-the-noise-variables</guid>
-      <pubDate>Wed, 26 Jun 2024 07:58:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>比例风险假设检验中的垂直线</title>
-      <link>https://stats.stackexchange.com/questions/649923/vertical-lines-in-proportional-hazard-assumption-test</link>
-      <description><![CDATA[我进行了 Anderson-Gill 生存分析。在检查比例风险假设是否满足时，我得到了以下图表：
-
-我研究结束时的 Beta 肯定是错误的。我做错了什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649923/vertical-lines-in-proportional-hazard-assumption-test</guid>
-      <pubDate>Wed, 26 Jun 2024 07:04:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 LCA 中选择类别数</title>
-      <link>https://stats.stackexchange.com/questions/649921/choosing-number-of-classes-in-lca</link>
-      <description><![CDATA[我是一名本科生，对拟合优度检验有点困惑。我正在尝试使用 R 中的 poLCA 包为潜在类别分析选择适当的类别数。我的数据有 89 个观察到的二元变量，我正在比较拟合优度统计数据以确定正确的类别数。
-AIC 和 BIC 值随着类别数的增加而下降，但它们在第 4 个类别之后趋于稳定，对数似然值在第 4 个类别之后也趋于稳定。话虽如此，BIC 和 AIC 值即使在 10 个类别之后也会继续下降，尽管幅度很小。
-我认为 4 个类别合适是错误的吗？还是我应该做完全不同的事情？
-我也喜欢任何阅读材料，总是希望学习。谢谢。
-&gt; aic_值
-[1] 509311.8 456245.0 436084.9 426650.1 422403.6 417608.8 413242.8 411011.4 408163.3 406278.5 404276.3
-&gt; bic_值
-[1] 510443.8 457946.6 438356.2 429491.0 425814.1 421588.9 417792.5 416130.7 413852.2 412537.0 411104.5
-&gt; log_lik
-[1] -254498.9 -227886.5 -217727.5 -212931.0 -210728.8 -208252.4 -205990.4 -204795.7 -203292.6 -202271.2 -201191.2
-
-
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649921/choosing-number-of-classes-in-lca</guid>
-      <pubDate>Wed, 26 Jun 2024 05:21:32 GMT</pubDate>
-    </item>
-    <item>
       <title>寻找 ANCOVA 类型 glmm 中变量重要性的修改</title>
       <link>https://stats.stackexchange.com/questions/649917/looking-for-a-modification-of-variable-importance-in-ancova-type-glmm</link>
       <description><![CDATA[这个问题是关于一个我认为应该存在的统计概念。我想知道它是否有名字，并希望有一个可以实现它的 R 包。它与变量重要性/主导性有关，但我感兴趣的不是考虑包含变量的模型的整体改进，而是它如何影响模型中关键固定因素的估计（精度和偏差）。我可以用一个例子更好地解释。
@@ -310,14 +284,6 @@ model&lt;-glmmTMB (spX ~ Time + week + I(week^2) + airT+ou(seq + 0 | group), dat
 是否有一个框架可以评估所有这些变量在获得时间效应的精确和无偏估计方面的相对效用？我如何证明和量化我对其他昆虫学家的建议：“你真的应该测量这个协变量”。]]></description>
       <guid>https://stats.stackexchange.com/questions/649917/looking-for-a-modification-of-variable-importance-in-ancova-type-glmm</guid>
       <pubDate>Wed, 26 Jun 2024 02:56:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>a) 多层次建模和 b) 向多元回归添加分类 IV 之间有什么区别？</title>
-      <link>https://stats.stackexchange.com/questions/649892/what-is-the-difference-between-a-multilevel-modelling-and-b-adding-a-categoric</link>
-      <description><![CDATA[我见过的多层级建模示例相当于将组视为多元回归中的额外分类 IV。例如，如果将儿童分为 N 个类别，则可以将“类别”添加为额外 IV，然后将其虚拟编码到 N-1 个二进制变量中以运行实际回归。
-我相信多层级建模远不止这些——关于它的书籍很多，而且关于固定、随机和混合效应的内容也很多。请问我遗漏了什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649892/what-is-the-difference-between-a-multilevel-modelling-and-b-adding-a-categoric</guid>
-      <pubDate>Tue, 25 Jun 2024 17:41:38 GMT</pubDate>
     </item>
     </channel>
 </rss>
