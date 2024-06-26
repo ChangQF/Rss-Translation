@@ -4,7 +4,199 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 26 Jun 2024 09:17:41 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 26 Jun 2024 12:29:29 GMT</lastBuildDate>
+    <item>
+      <title>R 中 Shiny 应用程序的 Kernel Shap</title>
+      <link>https://stats.stackexchange.com/questions/649944/kernel-shap-for-shiny-app-in-r</link>
+      <description><![CDATA[我正在做一个项目，我想在 Shiny 应用程序上创建一个投射瀑布图的反应图。我能够获得预测的反应结果，但无法获得形状值瀑布图的反应结果。
+这是我为应用程序生成预测所做的操作
+library(caret) 
+library(gbm)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(randomForest)
+library(shiny)
+require(titanic)
+
+df=na.omit(titanic_train)
+df=select(df, Pclass, Age, SibSp, Parch, Fare,Survived)
+
+df$Survived&lt;-as.factor(df$Survived)
+levels(df$Survived) &lt;- c(&quot;No&quot;,&quot;Yes&quot;)
+
+gbmGrid &lt;- expand.grid(interaction.depth = c(3), 
+n.trees = c(2000), 
+shrinkage = c(.001),
+n.minobsinnode = 20)
+
+# 模型 
+gbm.out &lt;- caret::train(Survived ~ ., df,tuneGrid=gbmGrid,method=&quot;gbm&quot;,
+trControl=trainControl(summaryFunction=twoClassSummary,classProbs=T))
+
+# 闪亮的应用程序
+ui = pageWithSidebar(
+headerPanel(&quot;Titanic&quot;),
+sidebarPanel(
+radioButtons(&quot;Pclass&quot;, &quot;Passenger Class&quot;, choice=c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;),selected = &quot;1&quot;, inline = TRUE,width = NULL),
+sliderInput(&quot;年龄&quot;, &quot;乘客年龄&quot;, min=0, max=80, value=30),
+radioButtons(&quot;SibSp&quot;, &quot;SibSp&quot;, choice=c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;)),
+radioButtons(&quot;Parch&quot;, &quot;Parch&quot;, choice=c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;)),
+sliderInput(&quot;票价&quot;, &quot;乘客票价&quot;, min=0, max=520, value=35)
+),
+mainPanel(
+dataTableOutput(&#39;testTable&#39;),
+textOutput(&#39;outputBox&#39;)
+)
+)
+
+server=function(input, output){
+
+values &lt;- reactValues()
+
+newEntry &lt;- observer({ # 使用观察模式
+
+x=as.data.frame(matrix(0, nrow=1, ncol=6))
+colnames(x)=c(&quot;Pclass&quot;, &quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;, &quot;SurvProb&quot;)
+
+x[1,1]=as.numeric(input$Pclass)
+x[1,2]=input$Age
+x[1,3]=as.numeric(input$SibSp)
+x[1,4]=as.numeric(input$Parch)
+x[1,5]=input$Fare
+
+pred &lt;- data.matrix(predict(object=gbm.out, x[-length(x)], type=&quot;prob&quot;)[,2])
+x[1,6] &lt;- round(pred,2)
+
+isolate(values$df &lt;- x)
+#isolate(values$df2 &lt;- x)
+})
+
+output$testTable &lt;- renderDataTable({values$df})
+}
+shinyApp(ui=ui, server=server)
+
+
+这里是 SHAP 分析使用
+### SHAP 方法 
+library(kernelshap)
+library(shapviz)
+
+# SHAP 值
+shap_values &lt;- kernelshap(gbm.out, X = df[,-c(6)], bg_X = df[1:10, ], type = &quot;prob&quot;)
+
+# 其余部分几乎相同，但需要确认
+shp &lt;- setNames(shapviz(shap_values), levels(df$Survived)) # 已识别级别
+shp &lt;- shapviz(shap_values)
+predict(gbm.out, head(df), type = &quot;prob&quot;)
+sv &lt;- shapviz(shap_values)
+sv_waterfall(sv, 12) # 这里是观察值 12，
+
+我希望听听社区的意见，看看我是否可以为我的 Shiny 应用示例中输入的 shap 值绘制一个交互式瀑布图]]></description>
+      <guid>https://stats.stackexchange.com/questions/649944/kernel-shap-for-shiny-app-in-r</guid>
+      <pubDate>Wed, 26 Jun 2024 12:10:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>尝试寻找协整对，但得到假阳性</title>
+      <link>https://stats.stackexchange.com/questions/649941/trying-to-find-cointegrated-pairs-but-getting-false-positives</link>
+      <description><![CDATA[使用 statsmodels.tsa.stattools.coint 查找股票价格时间序列的协整对，但似乎返回了大多数误报。
+nonStationInsts = []
+
+for i in range(50):
+#查找所有非平稳价格序列
+if adfuller(trainPrc[i])[1] &gt; 0.05:
+nonStationInsts += [i]
+
+critVal = 0.01
+
+#用于查找协整对的函数
+def findCointPairs(critVal = 0.05):
+cointInsts = []
+for i in range(len(nonStationInsts)):
+for j in range(i+1, len(nonStationInsts)):
+inst1 = nonStationInsts[i]
+inst2 = nonStationInsts[j]
+_, p, _ = coint(trainPrc[inst1], trainPrc[inst2])
+if p &lt; critVal:
+cointInsts += [(inst1,inst2, max(p1,p2))]
+return cointInsts
+
+下图显示了函数发现“协整”的货币对的价格和价差，p 值小于 0.01
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649941/trying-to-find-cointegrated-pairs-but-getting-false-positives</guid>
+      <pubDate>Wed, 26 Jun 2024 11:15:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>有序逻辑回归的结果中的阈值是否需要严格增加？</title>
+      <link>https://stats.stackexchange.com/questions/649939/do-the-threshold-values-in-the-results-of-ordinal-logistic-regression-need-to-be</link>
+      <description><![CDATA[我理解，从这里和这个 YouTube 讲座开始，阈值的估计值应该严格增加。这是因为它们代表确定潜在变量 (y*) 属于哪个输出类的阈值，即如果它介于第一个和第二个阈值之间，那么它应该属于第 2 类，等等。
+
+但是，当我使用 SM 的有序回归和逻辑分布对我的用例进行回归时，我没有得到严格增加的阈值/截距。当我访问文档时，那里给出的示例也没有严格增加。
+
+如何从结果中解释阈值的值？
+这是使用的代码：
+
+来自 statsmodels.miscmodels.ordinal_model 导入 OrderedModel
+mod_log = OrderedModel(y,
+train_df[x_predictors],
+distr=&#39;logit&#39;)
+res_log = mod_log.fit(method=&#39;bfgs&#39;, disp=False) res_log.summary()
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649939/do-the-threshold-values-in-the-results-of-ordinal-logistic-regression-need-to-be</guid>
+      <pubDate>Wed, 26 Jun 2024 11:06:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>贝叶斯半参数分析的书籍？</title>
+      <link>https://stats.stackexchange.com/questions/649936/books-for-bayesian-semiparametric-analysis</link>
+      <description><![CDATA[最近对贝叶斯分析很感兴趣，想学习一些关于贝叶斯半参数分析的细节。有没有什么好的入门资料（也许书更好，因为我觉得它们更系统）可以参考？谷歌搜索有很多资料，但我不确定哪一个可能更好。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649936/books-for-bayesian-semiparametric-analysis</guid>
+      <pubDate>Wed, 26 Jun 2024 10:53:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>混合模型 - 相关离散随机效应的直觉</title>
+      <link>https://stats.stackexchange.com/questions/649934/mixed-models-intuition-of-correlated-discrete-random-effects</link>
+      <description><![CDATA[我正在研究此来源，并试图理解“变量不连续时随机效应之间存在正相关性”是什么意思
+链接中有此示例，其中使用连续变量Days和离散Subject构建模型（我从输出中假设这一点）。
+如果Days和Subject都是离散的会怎样？在这种情况下，Days和subject之间的相关性为 0.081 意味着什么？ （假设它们都是离散变量）
+
+它们提供了方差协方差图 $\Sigma$，该图似乎显示了每对日期和受试者之间的协方差。正相关意味着通过增加 var1（天数），var2 也会增加（受试者），但当变量是​​离散变量时，如何理解这一点？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649934/mixed-models-intuition-of-correlated-discrete-random-effects</guid>
+      <pubDate>Wed, 26 Jun 2024 10:41:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>比较 PCA 载荷图之间的角度</title>
+      <link>https://stats.stackexchange.com/questions/649933/comparing-the-angle-between-pca-loading-plots</link>
+      <description><![CDATA[我正在分析三个数据集中的温度、降水量和积雪深度。我使用 PCA 进行分析，并分别获得了数据集 1、2 和 3 的降水量和积雪深度之间的角度 13.1°、19.6° 和 102.0°。但是，我不确定是否要比较这些角度，因此我将这些 PCA 图投影到一个公共坐标系上。现在，角度为 11.5°、18.1° 和 48.5°。这种变化让我感到困惑，因为对于数据集 3，相关性似乎在投影中改变了方向。还有其他方法可以比较不同双标图的角度吗？我可以使用绝对值（13.1°、19.6° 和 102.0°）来测量相关性并进行比较吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649933/comparing-the-angle-between-pca-loading-plots</guid>
+      <pubDate>Wed, 26 Jun 2024 10:23:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>季节性时间序列中缺失数据。验证和预处理存在问题</title>
+      <link>https://stats.stackexchange.com/questions/649931/missing-data-in-seasonal-time-series-problems-with-validation-and-pre-processin</link>
+      <description><![CDATA[我有每日数据，我的目标是对零售业中不同产品的 14 天销售情况进行预测。我的问题在于数据和预处理，而不是用于预测的模型。
+一个常见的问题是对缺失数据间隔的训练和验证。让我举个例子：
+
+在三年的时间里，该产品有几个缺失值间隔。这可能有不同的原因：供应链中断、产品甚至没有列出，因此根本没有出售、另一种非常相似的产品被发布和出售、发货延迟、缺货、不列出产品的业务决策等......
+我的预测中不需要与这些因素相关的零周期。这些因素要么是不可预见的，要么是我们自己的业务决策。我的预测中唯一需要的零周期是基于年度季节性的。
+我通常会做的只是对给定的数据进行训练/测试拆分或交叉验证，以找到我可以拟合的最佳模型并使用此模型。
+我的问题是，我正在不完整的数据上验证（和训练）模型。我经常遇到预测太低或预测中有（接近）零周期的情况，它们不属于季节性模式。实际上，就销售损失而言，这可能会造成高昂的代价。
+我可以看到一个问题，尤其是当使用零周期进行验证时。让我举一个清晰的例子。相同的时间序列，但我截断了过去 14 天。在简单的训练/测试分割中，这将是我的 14 天验证数据：
+
+在这个相当极端的例子中，预测零值的模型会非常合适，但对我的专业目标没有任何好处。
+另一方面，有这样的产品：
+
+该产品具有明显的季节性。在这种情况下，我当然也需要在预测中加入季节性零周期。一个真正预测我想要和需要的模型会在预测指标中获得糟糕的分数。
+我已经尝试使用插值来填补非季节性的空白，但到目前为止，我在让插值方法尊重季节性（如果存在）方面遇到了很大的问题。
+
+插值是解决这个问题的正确方法吗？
+如果插值是一个有效的选择，你能推荐插值技术吗？我如何确定我需要插值的时间步长？
+我如何才能让我的预测指标真正地描述我想要实现的准确性？
+你能给我其他数据预处理技巧吗？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/649931/missing-data-in-seasonal-time-series-problems-with-validation-and-pre-processin</guid>
+      <pubDate>Wed, 26 Jun 2024 09:28:06 GMT</pubDate>
+    </item>
     <item>
       <title>估计噪声样本的总体相对标准偏差</title>
       <link>https://stats.stackexchange.com/questions/649929/estimate-population-relative-standard-deviation-from-noisy-sample</link>
@@ -105,57 +297,6 @@ AIC 和 BIC 值随着类别数的增加而下降，但它们在第 4 个类别�
       <pubDate>Wed, 26 Jun 2024 05:21:32 GMT</pubDate>
     </item>
     <item>
-      <title>使用 JAGS 对分数 Caputo 模型进行参数估计〜Jags 模型中的错误 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/649919/using-jags-for-parameter-estimation-for-a-fractional-caputo-model-error-in-jag</link>
-      <description><![CDATA[我正在研究贝叶斯估计，目的是使用 Caputo 导数找到分数模型的后验分布。
-但是，当我编译拟合模型时，我收到以下错误，并且我无法识别它。
-&gt; fit.caputo&lt;-jags(data=caputo.data, inits = caputo.inits1, parameters.to.save= caputo.params,
-+ n.chains =2, n.iter = 10000, n.burnin=1000,model.file=&quot;caputo.jags&quot;)
-module glm 已加载
-编译模型图
-解析未声明的变量
-删除模型
-
-jags.model(model.file, data = data, inits = init.values, n.chains = n.chains, 中出现错误： 
-运行时错误：
-第 10 行编译错误。
-数组 W 的维度不一致
-
-代码如下：
-cat(&quot;
-model{
-# unlikely
-for(t in 1:N1)
-{
-y1[t] ~ dnorm(V[t], tau)
-y2[t] ~ dnorm(W[t], tau)
-for(k in 1:t){
-V[t+1, k]= V[1]+ ((h^q)/(exp(loggam(q+1)))) * sum ( ((t-k+1)^(q)-(t-k)^(q))* (r1*V[k]*(1-V[k]/k1) -a*V[k]*W[k]) )
-W[t+1, k]= W[1]+ ((h^q)/(exp(loggam(q+1)))) * sum ( ((t-k+1)^(q)-(t-k)^(q))* (a*V[k]*W[k]-r2*W[k]) )
-}
-}
-V[1]&lt;-v0
-W[1]&lt;-w0
-#tamaño de paso
-h=0.01
-#distribucuiones iniciales
-a ~ dnorm(0.06,10000)T(0,1)
-k1 ~ dnorm(50,1)
-r1 ~ dnorm(1.8,1000)T(0,) 
-r2 ~ dnorm(0.24,1000)T(0,)
-q ~ dunif(0.9,1)
-sigma2 &lt;- 1/tau
-tau ~ dgamma(1,1) # media =1 y var=10
-}&quot;, file=&quot;caputo.jags&quot;, fill=T)
-
-之前，我从系统的数值解生成了一个合成数据集（对于为此目的使用分数前向欧拉方法）。
-我考虑在 JAGS 中添加一个数值向量来存储 s1, s2, s3 的信息。
-但是，我认为您不能将此函数 s1&lt;-s2&lt;-matrix(0,N1,N1) 嵌入 JAGS 模型中，因为 JAGS 有自己的 BUGS 语言解释器，它完全独立于 R 解释器。
-提前感谢您的建议]]></description>
-      <guid>https://stats.stackexchange.com/questions/649919/using-jags-for-parameter-estimation-for-a-fractional-caputo-model-error-in-jag</guid>
-      <pubDate>Wed, 26 Jun 2024 04:02:58 GMT</pubDate>
-    </item>
-    <item>
       <title>寻找 ANCOVA 类型 glmm 中变量重要性的修改</title>
       <link>https://stats.stackexchange.com/questions/649917/looking-for-a-modification-of-variable-importance-in-ancova-type-glmm</link>
       <description><![CDATA[这个问题是关于一个我认为应该存在的统计概念。我想知道它是否有名字，并希望有一个可以实现它的 R 包。它与变量重要性/主导性有关，但我感兴趣的不是考虑包含变量的模型的整体改进，而是它如何影响模型中关键固定因素的估计（精度和偏差）。我可以用一个例子更好地解释。
@@ -171,158 +312,12 @@ model&lt;-glmmTMB (spX ~ Time + week + I(week^2) + airT+ou(seq + 0 | group), dat
       <pubDate>Wed, 26 Jun 2024 02:56:04 GMT</pubDate>
     </item>
     <item>
-      <title>似然比检验对于有限样本是否“最佳”？</title>
-      <link>https://stats.stackexchange.com/questions/649916/is-the-likelihood-ratio-test-best-for-finite-samples</link>
-      <description><![CDATA[维基百科说
-
-Neyman–Pearson 引理指出，对于这种情况，这种似然比 (lr) 检验是所有 α 级 alpha 检验中最强大的。
-
-这只适用于无限样本量吗？在某些情况下，对于有限样本，是否有可能存在对给定 alpha 级更强大的测试？如果是这样，哪种检验会比似然比检验更好，在什么情况下更好？
-我知道对于有限样本问题，似然比统计量的分布在很大程度上是未知的，但如果它很重要，为了回答这个问题，我愿意假设我们总是知道给定问题的 lr 统计量的真实分布。
-我的问题的另一部分是，什么是非 lr 检验？感觉一切实际上都是 lr 检验（例如 t 检验、f 统计量、参数引导等）。我想在某些情况下，最小二乘法（和矩量法）一定不等同于 lr，因此对于有限样本，是否存在最小二乘法实际上可以胜过 lr 的情况？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649916/is-the-likelihood-ratio-test-best-for-finite-samples</guid>
-      <pubDate>Wed, 26 Jun 2024 02:36:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>在不同的数据集上同时优化两个函数</title>
-      <link>https://stats.stackexchange.com/questions/649913/simultaneously-optimizing-two-functions-on-different-datasets</link>
-      <description><![CDATA[我有两个共享参数的函数，每个函数都需要针对不同的数据进行优化。我的问题是：我是否可以简单地将两个函数的残差平方和 (RSS) 添加到我的目标函数中并运行优化？
-例如，rss1 是将函数 f1 的结果与数据 d1 进行比较时的值，rss2 是将 f2 与数据 d2 进行比较时的值。我如何在 R 的 optim 函数中使用这两个 rss？这是简单的求和，还是另有隐情？
-提前谢谢您。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649913/simultaneously-optimizing-two-functions-on-different-datasets</guid>
-      <pubDate>Wed, 26 Jun 2024 00:12:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>Fisher 信息中的评分函数的导数</title>
-      <link>https://stats.stackexchange.com/questions/649907/derivative-of-the-score-function-in-fisher-information</link>
-      <description><![CDATA[我正在研究 Fisher 信息，并试图形成一种直观的理解。请记住，我只有学士学位数学背景，所以我希望得到一个更直观的解释而不是数学推导的答案。
-我理解我们使用 Fisher 信息来让我们对 MLE 有某种“信心”。但是，我在数学上感到困惑，我们如何才能在 MLE 处获得除零之外的任何 Fisher 信息。由于 FI 等于得分函数一阶导数平方的期望值（wrt X），因此在等于 MLE 的 theta 处的导数就是 0。而 0 的平方等于 0。那么，如何才能让 FI 在 MLE 处有意义呢？这是否与我们对随机变量 X 的所有值求导数的平均值有关，因此在某些情况下斜率可能不为零？
-任何见解都值得赞赏。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649907/derivative-of-the-score-function-in-fisher-information</guid>
-      <pubDate>Tue, 25 Jun 2024 22:15:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>根据数据来决定使用参数检验还是非参数检验不是很有问题吗？</title>
-      <link>https://stats.stackexchange.com/questions/649886/isnt-it-problematic-to-look-at-the-data-to-decide-to-use-a-parametric-vs-non-p</link>
-      <description><![CDATA[我见过一些人提到，使用参数方法还是非参数方法可以通过查看数据来决定。例如这个问题：非参数与参数
-这难道不是分叉路径问题的一个例子吗？
-具体来说，查看数据来决定测试是否会影响类型 1 和类型 2 错误？那么S 型和 M 型错误呢？
-如果这是一个问题，有什么理由可以证明这样查看数据是合理的，因为这似乎是一种常见的做法？除了不查看数据来决定测试之外，还有其他方法可以解决这个问题吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/649886/isnt-it-problematic-to-look-at-the-data-to-decide-to-use-a-parametric-vs-non-p</guid>
-      <pubDate>Tue, 25 Jun 2024 15:55:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>与三元变量进行 3 次比较</title>
-      <link>https://stats.stackexchange.com/questions/649689/making-3-comparisons-with-a-ternary-variable</link>
-      <description><![CDATA[我有一项研究，其中我想研究三元变量 $x$ 与二元变量 $y$ 交互的影响。三元变量是分类变量，出于某些原因，我想在 $3$ 组之间进行 $3$ 比较。
-我明白要进行一次比较，我必须进行两次对比。例如，如果我对 group1 与 group3 感兴趣，我定义 $C_1= (-1,0,1)$ 和 $C_2=(-1,2,-1)$。如果我想测试所有的比较，那么我应该做$6$个对比吗？在这种情况下，回归量不会共线吗？有没有更简单的方法可以做到这一点？
-谢谢你的帮助！
-
-谢谢你的回答！你的代码运行得很好，但我不确定如何得到我需要的答案。事实上，当我使用我的三元变量的引用（1作为引用，2和3作为另外2个值）并运行一个简单的glm模型时，我得到了这样的输出：
-## y 9.782e-03 1.418e-04 69.008 &lt; 2e-16 *** 
-## x2 8.677e-05 9.265e-04 0.094 0.92539 
-## x3 -3.617e-03 9.229e-04 -3.919 8.96e-05 ***
-## y:x2 -5.481e-04 2.935e-04 -1.868 0.06184 . 
-## y:x3 9.430e-04 2.941e-04 3.206 0.00135 **
-
-在这里，您可以看到，对于前两个比较，您可以访问关于 x 与变量 y 交互作用的 p 值。我想得到第三个交互项。
-当我使用 emmeans 进行多重比较时，我得到了类似这样的结果（它包含的行数比这个还多）：
-## (y0 x1) - y1 x2 -0.060 0.0189 159## -3.183 0.0186
-## (y0 x1) - (y0 x2) -0.006 0.0277 159## -0.216 0.9999
-## (y0 x1) - y1 x2 -0.046 0.0277 159## -1.658 0.5601
-## (y0 x1) - (y0 x3) 0.207 0.0277 159## 7.472 &lt;.0001
-
-由于我可以访问所有比较，因此我无法简单地分析变量 x 和 y 之间的相互作用。我希望获得与第一个块相同的输出，但是通过三个比较，有没有办法获得它？
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/649689/making-3-comparisons-with-a-ternary-variable</guid>
-      <pubDate>Fri, 21 Jun 2024 20:51:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>最佳解决方案未重复 - metaMDS 没有可靠的结果？</title>
-      <link>https://stats.stackexchange.com/questions/649643/best-solution-was-not-repeated-no-reliable-result-for-metamds</link>
-      <description><![CDATA[我拥有丰富的蜘蛛数据，这些数据是我在不同林地中捕获的，我想执行 NMDS。它通常有效，尽管压力值相对较高。但是，我收到消息说最佳解决方案无法重复。
-
-```Spiders_NMDS &lt;- metaMDS(nmds_data[,7:54], k = 2, distance = &quot;horn&quot;, trymax= 100, maxit=1000 )
-
-以下是输出的最后几行：
-Run 100 stress 0.2085273
-... Procrustes: rmse 0.008630914 max resid 0.05303693
-*** 最佳解决方案未重复 -- monoMDS 停止标准：
-100：压力比 &gt; sratmax
-
-以及 print(Spiders_NMDS) 的输出
-metaMDS(comm = nmds_data[, 7:54], distance = &quot;horn&quot;, k = 2, trymax = 100, maxit = 1000)
-
-使用 monoMDS 进行全局多维缩放
-
-数据：wisconsin(nmds_data[, 7:54])
-距离：horn
-
-维度：2
-压力：0.208454
-压力类型 1，弱关系
-最佳解决方案在 100 次尝试后未重复
-最佳解决方案来自第 75 次尝试（随机开始）
-缩放：居中、PC 旋转、半变化缩放
-物种：基于‘wisconsin(nmds_data[, 7:54])
-
-
-我在另一个论坛上看到，依赖这些数据并将其用于进一步分析在统计上并不有效。是这样吗？毕竟，官方 R 网站表示您仍然可以使用这些数据，但上述论坛的担忧肯定不是毫无根据的……请参阅：https://stackoverflow.com/questions/741 ... -nmds-in-r
-不幸的是，R 针对这个问题给出的建议对我没有帮助。参见：https://rdrr.io/cran/vegan/man/metaMDS.html（“结果无法重复”部分）
-例如，我已经增加了 maxit 和 trymax，但仍然输出该消息。我还用 previous.best 运行了另一次迭代
-metaMDS(nmds_data[,7:54], k = 2, distance = &quot;horn&quot;,trymax= 100, maxit= 100, previous.best = Spiders_NMDS)
-但是，这也不会改变输出。
-增加维度也不会带来任何变化，例如，在可视化方面没有用，对吗？
-有人有这个问题的经验吗？有没有办法获得更可靠的结果？
-我想继续使用 envfit 函数....
-我的数据集通常包含许多零，并且可能有许多陷阱彼此之间的距离非常大（不共享任何物种）...也许这很重要？
-感谢您的反馈 :)]]></description>
-      <guid>https://stats.stackexchange.com/questions/649643/best-solution-was-not-repeated-no-reliable-result-for-metamds</guid>
-      <pubDate>Fri, 21 Jun 2024 07:44:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>对 $k$ 个最近邻中的维度（特征）进行加权（重新缩放）</title>
-      <link>https://stats.stackexchange.com/questions/649038/weighting-rescaling-the-dimensions-features-in-k-nearest-neighbors</link>
-      <description><![CDATA[当使用 $k$ 个最近邻时，必须对数据集进行归一化（如果 X 是数据矩阵，其中每行代表一个特征或维度，每列代表一个样本点，那么从每个 $X_{ij}$ 中减去每行 $i$ 的平均值，然后将每个 $X_{ij}$ 除以行 $i$ 的标准差是一个不错的选择）
-在以下问题中：
-https://datascience.stackexchange.com/questions/6786/weighted-k-nearest-neighbor-search
-以下内容第二个答案中提到：
-如果你想要将一个维度的权重高于其他维度，那么我建议你对所有数据进行标准化，使平均值为零，标准差为一。然后，你可以将不太重要的维度乘以一个因子（2-10），这样它们看起来离 KNN 距离度量更远，而最重要的维度则不缩放
-我的问题是关于这部分：
-然后，你可以将不太重要的维度乘以一个因子（2-10），这样它们看起来离 KNN 距离度量更远，而最重要的维度则不缩放
-事实不是相反吗？
-将一个维度乘以 (2-10) 中的一个因子，难道不会使其比其他维度更重要吗？
-例如，如果我们考虑以下简单情况：当输入属于 $\mathbb{R}^2$ 时，函数 $F(x,y)$。让我们制作两个点 A 和 B，其坐标如下
-A(1,0)
-B(0,1)
-让我们通过第一个最近邻预测坐标为 (0,0) 的点 C 的值。
-最初，点 A 和 B 与 C 的距离相同
-点 A(1,0) 和 C(0,0) 具有相同的 y 值 0
-点 B(0,1) 和 C(0,0) 具有相同的 x 值 0
-现在将维度 x 乘以 2 将得到以下点
-A(2,0)
-B(0,1)
-C(0,0)
-并且将使点 B 比 A 更靠近 C，因此 C 的值将被选择为 B 的值。请注意，B 和 C 具有相同的 x 值，而 A 和 C 具有相同的 y 值，并且 C 的选择值将是共享相同 x 值的 B 的值，因此将维度 x 乘以 2 使得 x 值在确定最近邻居时比 y 值更重要，因此它使该维度更重要。
-而如果我们将 y 维度乘以 2，点 A 的值（与 C 共享更接近的 y 值）将被选择为 C 的值。
-换句话说，标准化后将维度 x 乘以一个大于 1 的数字将使具有更接近此维度 x 值的点对于 k 个最近邻居来说彼此更接近，这将使该维度更重要。例如：
-A(4,1)
-B(1,5)
-C(2,2)
-dist(A,C)=√5
-dist(C,B)=√10
-A更接近C，A的y值也更接近C，而不是B接近C
-现在将x维度乘以3
-我们得到
-A(12,1)
-B(3,5)
-C(6,2)
-dist(A,C)=6.082
-dist(C,B)=4.242
-B现在变得更接近C，在相乘之前，B的x值最初也更接近C
-这是是真的吗？或者我没有得到任何东西。]]></description>
-      <guid>https://stats.stackexchange.com/questions/649038/weighting-rescaling-the-dimensions-features-in-k-nearest-neighbors</guid>
-      <pubDate>Tue, 11 Jun 2024 13:52:29 GMT</pubDate>
+      <title>a) 多层次建模和 b) 向多元回归添加分类 IV 之间有什么区别？</title>
+      <link>https://stats.stackexchange.com/questions/649892/what-is-the-difference-between-a-multilevel-modelling-and-b-adding-a-categoric</link>
+      <description><![CDATA[我见过的多层级建模示例相当于将组视为多元回归中的额外分类 IV。例如，如果将儿童分为 N 个类别，则可以将“类别”添加为额外 IV，然后将其虚拟编码到 N-1 个二进制变量中以运行实际回归。
+我相信多层级建模远不止这些——关于它的书籍很多，而且关于固定、随机和混合效应的内容也很多。请问我遗漏了什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/649892/what-is-the-difference-between-a-multilevel-modelling-and-b-adding-a-categoric</guid>
+      <pubDate>Tue, 25 Jun 2024 17:41:38 GMT</pubDate>
     </item>
     </channel>
 </rss>
