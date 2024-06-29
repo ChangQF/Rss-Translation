@@ -4,7 +4,141 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 29 Jun 2024 12:27:10 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 29 Jun 2024 15:14:24 GMT</lastBuildDate>
+    <item>
+      <title>为什么循环中classification_report和precision_recall_fscore_support之间的敏感度（召回率）值不同？</title>
+      <link>https://stackoverflow.com/questions/78686328/why-do-the-sensitivity-recall-values-differ-between-classification-report-and</link>
+      <description><![CDATA[标题：
+为什么循环中 classification_report 和 precision_recall_fscore_support 之间的敏感度（召回率）值不同？
+问题：
+我正在使用一个合成数据集，该数据集使用 sklearn.datasets 中的 make_classification 生成，包含 5 个类别。我已经在此数据上训练了一个 RandomForestClassifier，并使用两种不同的方法评估其性能。但是，我观察到这两种方法的敏感度（召回率）值存在差异。
+这是我使用的代码：
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classes_report, precision_recall_fscore_support
+import numpy as np
+import pandas as pd
+
+# 生成包含 5 个类别的合成数据集
+X, y = make_classification(n_samples=1000, n_classes=5, n_informative=10, n_clusters_per_class=1, random_state=42)
+
+# 分为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 训练分类器
+clf = RandomForestClassifier(random_state=42)
+clf.fit(X_train, y_train)
+
+# 在测试集上进行预测
+y_pred = clf.predict(X_test)
+
+# 方法 1：classification_report
+print(&quot;分类报告&quot;)
+print(classification_report(y_test, y_pred))
+
+# 方法 2：使用 precision_recall_fscore_support 循环
+res = []
+
+for l in range(5):
+prec, recall, _, _ = precision_recall_fscore_support(np.array(y_test) == l,
+np.array(y_pred) == l,
+pos_label=True, average=None)
+res.append([l, recall[0], recall[1]])
+
+df = pd.DataFrame(res, columns=[&#39;class&#39;, &#39;sensitivity&#39;, &#39;specificity&#39;])
+print(&quot;\nSensitivity and Specificity&quot;)
+print(df)
+
+输出：
+分类报告
+准确率 召回率 f1 分数 支持率
+
+0 0.76 0.71 0.74 35
+1 0.72 0.93 0.81 30
+2 0.72 0.81 0.76 32
+3 0.85 0.86 0.86 59
+4 0.88 0.64 0.74 44
+
+准确率 0.79 200
+宏平均值 0.78 0.79 0.78 200
+加权平均值 0.80 0.79 0.79 200
+
+敏感度和特异性
+类别敏感度特异性
+0 0 0.951515 0.714286
+1 1 0.935294 0.933333
+2 2 0.940476 0.812500
+3 3 0.936170 0.864407
+4 4 0.974359 0.636364
+
+问题：
+为什么 classification_report 和使用 precision_recall_fscore_support 的循环之间的敏感度（召回率）值不同？具体来说，为什么 classification_report 报告的召回率值与循环方法中计算出的敏感度值之间存在差异？如果可能，您能否用一个简单的示例（手动解决）来展示它
+您尝试了什么，您期望什么？
+我使用了两种方法来评估我的 RandomForestClassifier 的性能。首先，我使用 classification_report 来获取每个类别的精确度、召回率和 F1 分数。然后，我使用带有 precision_recall_fscore_support 的循环计算每个类别的敏感度和特异性。
+我期望循环方法中计算出的敏感度值与 classification_report 中的召回率值相匹配，因为敏感度和召回率在分类任务中通常被视为同义词。但是，我发现两组值之间存在差异。
+实际上结果如何？
+classification_report 中的召回率值与循环方法中计算的敏感度值不同。classification_report 在多类上下文中为每个类提供召回率值，而循环方法将每个类视为二元分类问题，从而导致不同的敏感度和特异性值。]]></description>
+      <guid>https://stackoverflow.com/questions/78686328/why-do-the-sensitivity-recall-values-differ-between-classification-report-and</guid>
+      <pubDate>Sat, 29 Jun 2024 14:57:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>不断变化的类别的文档分类</title>
+      <link>https://stackoverflow.com/questions/78686139/document-classification-with-changing-classes</link>
+      <description><![CDATA[我想用 Java 为我的客户构建一个文档分类工具，并满足以下特殊条件：
+
+客户使用我的软件 (SaaS) 来管理项目。一个客户
+通常每年有 1-10 个项目。
+在每个项目中，客户需要对 50-100 个文档进行分类。
+类别因项目而异，由客户定义。
+即使类别各不相同，但不同项目和不同客户的类别之间往往存在很强的相似性。
+
+
+示例：
+
+项目 A 有 3 个类别：
+
+A1 音频编辑
+A2 视频编辑
+A3 管理和簿记
+
+
+项目 B 有 4 个类别：
+
+B1 音频和视频编辑
+B2 管理
+B3簿记
+B4 电信
+
+
+项目 C 有 4 个类别：
+
+C1 音频编辑
+C2 管理费用
+C3 电信
+C4 差旅费
+
+
+
+文件：
+
+电话账单将进入 A3、B4 和 C3
+音频编辑专家的发票将进入 A1、B1 和 C1。
+簿记软件的账单将进入 A3、B3 和 C2。
+回形针的账单将进入 A3、B2 和 C2。
+
+
+我预计会有数百名客户，他们有数千项目。就其本身而言，为每个项目创建和训练一个单独的分类系统显然是徒劳的。
+我想我可以利用两个事实来解决问题：
+
+这些类别随着时间的推移不断重复，要么完全相同，要么名称和含义略有变化。
+客户定义的类名与文档内容之间存在关联。例如，音频编辑的发票通常包含“音频”、“声学”或类似的词，而这些词很少出现在其他类别的文​​档中。
+客户可以手动更正分类。在某个时候，他们会完成项目。此时，可以假设客户已经对文档分类做出了最终决定。这种手动检查的最终分类可以用作输入，以随着时间的推移自动改进模型。
+
+感觉我不是第一个有这种要求的人，但我在网上找不到关于这个主题的任何信息。也许我只是不知道用什么术语来描述这类问题。任何关于良好流程或一些现有算法/库/文献/产品的建议都将不胜感激，最好是基于 Java 的。]]></description>
+      <guid>https://stackoverflow.com/questions/78686139/document-classification-with-changing-classes</guid>
+      <pubDate>Sat, 29 Jun 2024 13:46:46 GMT</pubDate>
+    </item>
     <item>
       <title>无法在 Android Studio 上使用可教机器分析机器学习模型（使用 Kotlin）</title>
       <link>https://stackoverflow.com/questions/78685944/failed-to-analyze-machine-learning-models-with-teachable-machine-on-android-stud</link>
@@ -213,65 +347,12 @@ x = self.fc2(x)
       <pubDate>Sat, 29 Jun 2024 03:21:19 GMT</pubDate>
     </item>
     <item>
-      <title>使用 X = tester.drop('label', axis=1) 和 y = tester['label'] 拆分数据时出现 KeyError: “['label'] not found in axis”</title>
-      <link>https://stackoverflow.com/questions/78684880/keyerror-label-not-found-in-axis-when-splitting-data-with-x-tester-drop</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78684880/keyerror-label-not-found-in-axis-when-splitting-data-with-x-tester-drop</guid>
-      <pubDate>Sat, 29 Jun 2024 01:40:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>逻辑回归梯度下降中的不同成本函数算法与成本函数本身[关闭]</title>
-      <link>https://stackoverflow.com/questions/78684727/logistic-regression-different-cost-function-algorithm-in-gradient-descent-vs-cos</link>
-      <description><![CDATA[为什么在逻辑回归中成本函数看起来像这样：
-在此处输入图像描述
-但是，在实现梯度下降时，成本函数基本上被简化为不包含对数的线性回归成本函数：
-在此处输入图像描述
-我完全理解为什么在逻辑回归中对数是必要的，因为存在多个局部最小值并且可能无法达到全局最小值。那么为什么它们不存在于梯度下降算法中呢？
-我原本以为梯度下降中的成本函数是相同的。]]></description>
-      <guid>https://stackoverflow.com/questions/78684727/logistic-regression-different-cost-function-algorithm-in-gradient-descent-vs-cos</guid>
-      <pubDate>Fri, 28 Jun 2024 23:30:17 GMT</pubDate>
-    </item>
-    <item>
       <title>尝试理解 GAN 不同层的输出大小 [关闭]</title>
       <link>https://stackoverflow.com/questions/78684659/trying-to-understand-output-sizes-of-different-layers-if-gan</link>
       <description><![CDATA[我正在上 Coursera 上的 GAN 课程。但我很难理解不同层的大小。有很多步幅和内核大小。我只是不明白如何计算大小。我只能添加一张图片，但这样做不行。我需要一个熟悉 GAN 的人。可以帮我吗？
 我尝试了很多方法，但还是很困惑。如果不知道，我将根本无法设计我的 GAN。]]></description>
       <guid>https://stackoverflow.com/questions/78684659/trying-to-understand-output-sizes-of-different-layers-if-gan</guid>
       <pubDate>Fri, 28 Jun 2024 22:49:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>kdb+/q q/kdb+ 中的机器学习</title>
-      <link>https://stackoverflow.com/questions/78684235/kdb-q-machine-learning-in-q-kdb</link>
-      <description><![CDATA[如果我在端口 5012 的 hdb 进程中存储了一个表。
-我已经安装了 PyKX 并将其成功导入到终端中的 python 提示符中。
-然后我连接到我的 host=‘localhost’, port=5012  并运行一个简单的查询以从 hdb 返回我的数据 q(‘{select name,price,volume,vwap from tab where date&gt;2024.01.01}’)
-然后如何在 python 机器学习算法之一中使用这些数据。您如何将表数据转换为可用的 python 数据点，然后输入到您选择的模型中？您是否必须提取每列数据并保存为某种类型的变量，例如在 q 进程中运行 exec  语句？]]></description>
-      <guid>https://stackoverflow.com/questions/78684235/kdb-q-machine-learning-in-q-kdb</guid>
-      <pubDate>Fri, 28 Jun 2024 19:47:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>用于安装机器的优化模型？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78684160/optimization-model-for-fitting-a-machine</link>
-      <description><![CDATA[我正在从事这个项目，目标是让机器自动对准一个非常具体的点。无需过多细节，我能够轻松确定 0 到 1 范围内的对准程度，并且能够在 x 轴和 y 轴上移动我的机器，并立即看到这个“对准率”如何增加或减少。这在理论上似乎很简单，但有一些问题让我在尝试让机器对准时不知所措。
-我的第一个想法是尝试强行使用它。机器永远不会从 0 对准开始，所以我在想我可以让它在给定轴上任意向一个方向移动，看看对准度量是增加还是减少。如果从非零值开始，它总是会看到一些增加或减少。如果它增加，则再次朝该方向移动，如果它减少，则返回并尝试另一个方向，如果它在两个方向上都减少，则停止。我会在另一个轴上重复此操作，效果会很好。
-但是，由于对齐的特殊性，我被告知这极易陷入局部最大值。所以我的下一个想法是梯度下降。我将对齐参数设置为负数，并尝试找到最小值。但我以前从未使用过梯度下降，从我在网上看到的 Python 示例中，梯度下降的每个用例都需要了解函数的梯度才能使用。我不知道这一点，所以我不知道梯度下降是否是我想要的。
-我想我只是问是否有人对这种情况有任何优化建议，可以推荐仅在不断构建的数据库上工作，而不是预先建立的公式或信息数据库。一开始我只知道当前 (x, y) 方向和当前对齐比率（从 0 到 1），我必须通过进行细微调整并观察这对系统的影响，使其尽可能接近 1，但我还必须避免陷入局部最大值而无法达到最佳状态。也许最好的选择是实现类似蛮力的东西，但强制它跳过多个步骤并重复，如果“最佳”比率小于给定数字（如 0.9 或类似数字）？我不知道。任何帮助都将不胜感激，即使它只是一份其他优化策略的列表，让我可以在自己的时间查找。我甚至不知道其中大多数的正式术语，所以研究很痛苦。]]></description>
-      <guid>https://stackoverflow.com/questions/78684160/optimization-model-for-fitting-a-machine</guid>
-      <pubDate>Fri, 28 Jun 2024 19:23:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 Yamnet 检测乐器</title>
-      <link>https://stackoverflow.com/questions/78684112/detection-of-musical-instruments-using-yamnet</link>
-      <description><![CDATA[我的目标是用人工智能（机器学习）检测乐器。
-我目前正在使用 Yamnet 模型进行推理，但它的类别范围非常广泛，例如“咆哮”、“打印机”和“钢琴”。我想知道这是否会导致它在检测乐器时不太精确，因为乐器类别只是总类别的一小部分。
-Kaggle 上对 Yamnet 模型的描述指出：
-
-您应该进行一定程度的微调和校准，以使 YAMNet 可用于您构建的任何系统。
-
-还有另一个名为 NSynth 的模型，它拥有大量乐器样本数据集，但它用于合成新声音，而不是对乐器进行分类/检测。
-在这种情况下，使用 NSynth 对 Yamnet 模块进行微调是否有意义？]]></description>
-      <guid>https://stackoverflow.com/questions/78684112/detection-of-musical-instruments-using-yamnet</guid>
-      <pubDate>Fri, 28 Jun 2024 19:08:48 GMT</pubDate>
     </item>
     <item>
       <title>如何在使用 Haarcascades 时提高我的结果 [关闭]</title>
@@ -311,80 +392,194 @@ cv.destroyAllWindows()
       <pubDate>Fri, 28 Jun 2024 10:47:20 GMT</pubDate>
     </item>
     <item>
+      <title>为什么当我尝试从 (.fif) 文件进行可视化时，会在 mne-python 中收到此运行时警告？</title>
+      <link>https://stackoverflow.com/questions/78679466/why-am-i-getting-this-runtime-warning-in-mne-python-while-trying-to-visualize-fr</link>
+      <description><![CDATA[我正在努力使用 mne-python 进行预处理的 eeg 通道可视化部分。这些 (&#39;.fif&#39;) 文件是从 (&#39;.mat&#39;) 文件预处理的。这是我在 kaggle 笔记本中使用的代码：
+import mne
+import os
+import numpy as np
+
+# 定义存储 .fif 文件的目录
+data_dir = &#39;/kaggle/input/preproccesed-dataset/128-channel-resting(2.0)/kaggle/working/preprocessed_mat_output_directory&#39;
+
+# 列出目录中的所有 .fif 文件
+fif_files = [f for f in os.listdir(data_dir) if f.endswith(&#39;-epo.fif&#39;)]
+
+# 加载每个 .fif 文件
+epochs_list = [mne.read_epochs(os.path.join(data_dir, fif_file)) for fif_file in fif_files]
+
+# 连接所有将 epochs 合并为单个 Epochs 对象
+all_epochs = mne.concatenate_epochs(epochs_list)
+
+# 预处理：应用高通滤波器
+all_epochs.filter(l_freq=1.0, h_freq=40.0)
+
+# 执行 ICA
+ica = mne.preprocessing.ICA(n_components=20, random_state=97)
+ica.fit(all_epochs)
+
+# 根据检查或自动标准手动排除组件
+ica.exclude = [0, 1] # 根据已识别的工件组件进行调整
+
+# 将 ICA 应用于 epochs
+all_epochs = ica.apply(all_epochs)
+
+# 绘制诱发反应
+evoked = all_epochs.average()
+evoked.plot()
+
+# 绘制 PSD
+fig_psd = all_epochs.plot_psd(fmin=1.0, fmax=40.0, average=True, spatial_colors=False)
+
+# 绘制地形图
+fig_topo = evoked.plot_topomap(times=[0.1, 0.2, 0.3], ch_type=&#39;eeg&#39;, average=0.05)
+
+# 计算并绘制 TFR
+from mne.time_frequency import tfr_morlet
+freqs = np.arange(6, 30, 3)
+n_cycles = freqs / 2
+power = tfr_morlet(all_epochs, freqs=freqs, n_cycles=n_cycles, return_itc=False, average=True)
+fig_tfr = power.plot([0])
+
+# 确保保存目录存在
+save_dir = &#39;/kaggle/working/mat_visuals/&#39;
+os.makedirs(save_dir, exist_ok=True) # 如果目录不存在，则创建目录
+
+# 保存处理后的数据
+all_epochs.save(os.path.join(save_dir, &#39;processed-epochs.fif&#39;), overwrite=True)
+evoked.save(os.path.join(save_dir, &#39;evoked-ave.fif&#39;), overwrite=True)
+
+# 如果需要，保存图形
+fig_psd.savefig(os.path.join(save_dir, &#39;psd_plot.png&#39;))
+fig_topo.savefig(os.path.join(save_dir, &#39;topomap_plot.png&#39;))
+fig_tfr.savefig(os.path.join(save_dir, &#39;tfr_plot.png&#39;))
+
+这是我收到的错误：
+[Runtime-ERROR]
+/tmp/ipykernel 34/2693702433.py:35：FutureWarning：在 MNE 1.8.0 中，amplitude=&#39;auto&#39; 的值将被删除，新的默认值也将是 amplitude。
+fig psd all epochs.plot psd(fmin=1.8, fmax=40.6, average=True, spatial colors=False)
+RuntimeError
+Traceback (most recent call last)
+Cell In[1]. Line 38
+35 fig psd all epochs.plot psd(fmin-1.0, fmax 40.0, average True, spatial colors=False)
+37 绘制地形图
+38 fig topo evoked。 plot topomap(times-10.1, 0.2, 6.31, ch type=&#39;eeg, average-0.05)
+40 计算并绘制 TFR
+41 from mne.time_frequency import tfr morlet
+我尝试更改这两行代码：
+# 绘制 PSD
+fig_psd = all_epochs.plot_psd(fmin=1.0, fmax=40.0, average=False, spatial_colors=False)
+
+# 绘制地形图
+fig_topo = evoked.plot_topomap(times=False, ch_type=&#39;eeg&#39;, average=0.05)
+
+我还尝试阅读以下 2 个文档：
+neurotechedu , mne-python
+但我仍然找不到任何解决方案。]]></description>
+      <guid>https://stackoverflow.com/questions/78679466/why-am-i-getting-this-runtime-warning-in-mne-python-while-trying-to-visualize-fr</guid>
+      <pubDate>Thu, 27 Jun 2024 19:16:05 GMT</pubDate>
+    </item>
+    <item>
       <title>我无法使用 FastAPI 运行使用 Tensorflow 保存的模型</title>
       <link>https://stackoverflow.com/questions/78674303/i-cannot-run-my-model-that-i-saved-with-tensorflow-with-fastapi</link>
-      <description><![CDATA[从 fastapi 导入 FastAPI、File、UploadFile、HTTPException
-从 fastapi.middleware.cors 导入 CORSMiddleware
-导入 uvicorn
-导入 numpy 作为 np
-从 io 导入 BytesIO
-从 PIL 导入 Image
-导入 tensorflow 作为 tf
+      <description><![CDATA[从 fastapi 导入 FastAPI、File、UploadFile、HTTPException # 1
+从 fastapi.middleware.cors 导入 CORSMiddleware # 2
+导入 uvicorn # 3
+导入 numpy 作为 np # 4
+从 io 导入 BytesIO # 5
+从 PIL 导入 Image # 6
+导入 tensorflow 作为 tf # 7
 
-app = FastAPI()
+app = FastAPI() # 8
+print(&quot;1&quot;)
 
 # 允许向此 API 发出请求的来源列表
-origins = [
-&quot;http://localhost&quot;,
-&quot;http://localhost:3000&quot;, # 在此处添加您的前端 URL
-]
+origins = [ # 9
+&quot;http://localhost&quot;, # 10
+&quot;http://localhost:3000&quot;, # 在此处添加您的前端 URL # 11
+] # 12
+print(&quot;2&quot;)
 
-app.add_middleware(
-CORSMiddleware,
-allow_origins=origins,
-allow_credentials=True,
-allow_methods=[&quot;*&quot;], # 允许所有方法（GET、POST 等）
-allow_headers=[&quot;*&quot;], # 允许所有标头
-)
+app.add_middleware( # 13
+CORSMiddleware, # 14
+allow_origins=origins, # 15
+allow_credentials=True，# 16
+allow_methods=[&quot;*&quot;]，# 允许所有方法（GET、POST 等）# 17
+allow_headers=[&quot;*&quot;]，# 允许所有标头# 18
+)# 19
+print(&quot;3&quot;)
 
 # 加载模型
-MODEL = tf.saved_model.load(r&quot;D:\Derin_Ogrenme\doma\saved_models\models\model2&quot;)
-print(&quot;模型已成功加载&quot;)
+MODEL = tf.saved_model.load(r&quot;D:\Derin_Ogrenme\doma\saved_models\models\model2&quot;)# 20
+print(&quot;4&quot;)
 
-CLASS_NAMES = [&quot;早疫病&quot;, &quot;晚疫病&quot;, &quot;健康&quot;]
+CLASS_NAMES = [&quot;Early Blight&quot;, &quot;Late Blight&quot;, &quot;Healthy&quot;]# 21
+print(&quot;5&quot;)
 
-@app.get(&quot;/&quot;)
-async def ping():
-return &quot;你好，我还活着&quot;
+@app.get(&quot;/&quot;)# 22
+async def ping():# 23
+print(&quot;6&quot;)
+return &quot;你好，我还活着&quot; # 24
 
-def read_file_as_image(data) -&gt; np.ndarray:
-image = Image.open(BytesIO(data))
-image = image.resize((224, 224)) # 将图像大小调整为预期的输入形状
-image = np.array(image)
-return image
+def read_file_as_image(data) -&gt; np.ndarray: # 25
+print(&quot;7&quot;)
+image = Image.open(BytesIO(data)) # 26
+image = image.resize((224, 224)) # 将图像大小调整为预期的输入形状 # 27
+image = np.array(image) # 28
+print(&quot;8&quot;)
+return image # 29
 
-@app.post(&quot;/predict&quot;)
-async def predict(file: UploadFile = File(...)):
-image = read_file_as_image(await file.read())
-img_batch = np.expand_dims(image, 0)
+@app.post(&quot;/predict&quot;) # 30
+async def predict(file: UploadFile = File(...)): # 31
+print(&quot;9&quot;)
+image = read_file_as_image(await file.read()) # 32
+img_batch = np.expand_dims(image, 0) # 33
+print(&quot;10&quot;)
 
 # 执行预测
-try:
-predictions = MODEL.predict(img_batch)
-predict_class = CLASS_NAMES[np.argmax(predictions[0])]
-confidence = float(np.max(predictions[0]))
-return {
-&#39;class&#39;: predict_class,
-&#39;confidence&#39;: confidence
-}
-except Exception as e:
-raise HTTPException(status_code=500, detail=&quot;内部服务器错误&quot;)
+try: # 34
+predictions = MODEL.predict(img_batch) # 35
+print(&quot;11&quot;)
+predict_class = CLASS_NAMES[np.argmax(predictions[0])] # 36
+confidence = float(np.max(predictions[0])) # 37
+print(&quot;12&quot;)
+return { # 38
+&#39;class&#39;: predict_class, # 39
+&#39;confidence&#39;: confidence # 40
+} # 41
+except Exception as e: # 42
+print(&quot;13&quot;)
+raise HTTPException(status_code=500, detail=&quot;Internal Server Error&quot;) # 43
 
-if __name__ == &quot;__main__&quot;:
-uvicorn.run(app, host=&quot;localhost&quot;, port=8000)
+if __name__ == &quot;__main__&quot;: # 44
+uvicorn.run(app, host=&quot;localhost&quot;, port=8001) # 45
+print(&quot;14&quot;)
 
 
-编辑：我应该提到我对此很陌生，所以如果您希望我修复某些问题，请简单解释一下，我将不胜感激。当我运行上面看到的代码时，服务器启动，当我转到 localhost:8000 &quot;detail&quot;: &quot;Not Found&quot; 时，我收到此警告。
-这是尝试使用我的模型进行预测后出现的终端错误
-模型加载成功
-INFO：已启动服务器进程 [1140]
+编辑：我应该提到我对此很陌生，所以如果您希望我修复某些问题，我将不胜感激，如果您能简单解释一下。当我运行上面看到的代码时，服务器启动，当我转到 localhost:8000 &quot;detail&quot;: &quot;Not Found&quot; 时，我会收到此警告。
+**这是终端错误**
+1
+2
+3
+2024-06-29 16:17:00.434027: I tensorflow/core/platform/cpu_feature_guard.cc:210] 此 TensorFlow 二进制文件经过优化，可在性能关键型操作中使用可用的 CPU 指令。
+要启用以下指令：AVX2 AVX_VNNI FMA，在其他操作中，使用适当的编译器标志重建 TensorFlow。
+4
+5
+INFO：已启动服务器进程 [5760]
 INFO：正在等待应用程序启动。
 INFO：应用程序启动完成。
-信息：Uvicorn 正在 http://localhost:8000 上运行（按 CTRL+C 退出）
-信息：::1:55388 - “GET / HTTP/1.1” 200 OK
-信息：::1:55393 - “GET /docs HTTP/1.1” 200 OK
-信息：::1:55393 - “GET /openapi.json HTTP/1.1” 200 OK
-信息：::1:55395 - “POST /predict HTTP/1.1” 500 内部服务器错误
+INFO：Uvicorn 在 http://localhost:8001 上运行（按 CTRL+C 退出）
+6
+INFO：::1:59291 - “GET / HTTP/1.1” 200 OK
+INFO：::1:59297 - “GET /predict HTTP/1.1” 405 方法不允许
+INFO：::1:59300 - “GET /docs HTTP/1.1” 200 OK
+INFO：::1:59300 - “GET /openapi.json HTTP/1.1” 200 OK
+9
+7
+8
+10
+发生错误：“_UserObject”对象没有属性“predict”
+INFO: ::1:59302 - “POST /predict HTTP/1.1” 500 内部服务器错误
 
 我正在尝试运行此代码，但这行不起作用
 #MODEL = tf.keras.models.load_model(r&quot;D:\\Derin_Ogrenme\\doma\\saved_models\\models\\2&quot;)
@@ -433,6 +628,36 @@ plot_predictions(model, test_images.numpy(), test_masks_L, num_samples=5)
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/76488688/valueerror-unknown-layer-customscalelayer-please-ensure-you-are-using-aker</guid>
       <pubDate>Fri, 16 Jun 2023 09:13:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>模块“keras.layers”没有属性“experimental”</title>
+      <link>https://stackoverflow.com/questions/74792455/module-keras-layers-has-no-attribute-experimental</link>
+      <description><![CDATA[你好，我试图调整数据集的大小和比例，如下所示，但遇到了此错误：
+AttributeError：模块“keras.layers”没有属性“experimental”
+
+resize_and_rescale= tf.keras.Sequential([
+layers.experimental.preprocessing.Resizing(IMAGE_SIZE,IMAGE_SIZE),
+layers.experimental.preprocessing.Rescaling(1.0/255)
+])
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/74792455/module-keras-layers-has-no-attribute-experimental</guid>
+      <pubDate>Wed, 14 Dec 2022 00:43:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>我如何进行分层下采样？</title>
+      <link>https://stackoverflow.com/questions/67290933/how-can-i-do-a-stratified-downsampling</link>
+      <description><![CDATA[我需要使用机器学习技术构建蛋白质序列分类模型。每个观察值都可以归类为 0 或 1。但是，我注意到我的训练集总共包含 170 000 个观察值，其中只有 5000 个被标记为 1。因此，我希望将标记为 0 的观察值数量下调到 5000。
+我目前在模型中使用的特征之一是序列的长度。我如何才能对 0 类的数据进行下采样，同时确保 length_sequence 的分布与 1 类的分布相似？
+以下是 1 类的 length_sequence 直方图：
+
+以下是 0 类的 length_sequence 直方图：
+
+您可以看到，在这两种情况下，长度都从 2 到 255字符。但是，类别 0 有更多的观察值，而且它们也往往比类别 0 中的观察值长得多。
+我如何对类别 0 进行下采样，并使新的直方图看起来类似于类别 1 中的直方图？
+我正在尝试使用 scikit-learn 进行分层下采样，但我遇到了困难。]]></description>
+      <guid>https://stackoverflow.com/questions/67290933/how-can-i-do-a-stratified-downsampling</guid>
+      <pubDate>Tue, 27 Apr 2021 21:31:25 GMT</pubDate>
     </item>
     </channel>
 </rss>
