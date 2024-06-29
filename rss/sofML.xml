@@ -4,7 +4,127 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 29 Jun 2024 15:14:24 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 29 Jun 2024 18:18:14 GMT</lastBuildDate>
+    <item>
+      <title>如何调整 keras 模型的输出</title>
+      <link>https://stackoverflow.com/questions/78686718/how-to-adapt-output-of-a-keras-model</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78686718/how-to-adapt-output-of-a-keras-model</guid>
+      <pubDate>Sat, 29 Jun 2024 17:56:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何缩小不同机器学习模型的训练和测试分数之间的差距？</title>
+      <link>https://stackoverflow.com/questions/78686637/how-to-reduce-gap-between-train-and-test-scores-for-different-machine-learning-m</link>
+      <description><![CDATA[我正在使用多个机器学习模型进行 AQI 预测。数据为每日格式，共有 1850 条记录。我的训练 R2 得分约为 99，测试得分约为 91。这个差距可以接受吗？如果没有，我该如何提高我的测试分数？
+X = data[[&#39;Year&#39;, &#39;Month&#39;, &#39;Day&#39;, &#39;Raw Conc.&#39;, &#39;NowCast Conc.&#39;]]
+y = data[&#39;AQI&#39;]
+
+# 使用时间序列分割将数据拆分为训练集和测试集
+tscv = TimeSeriesSplit(n_splits=2) 
+
+for train_index, test_index in tscv.split(X):
+X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+
+# 标准化特征
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 定义参数每个模型的网格
+param_grids = {
+“决策树”：{&#39;max_depth&#39;：[3, 5, 7, 10]},
+“随机森林”：{&#39;n_estimators&#39;：[50, 100, 200], &#39;max_depth&#39;：[3, 5, 7, 10]},
+“梯度提升”：{&#39;n_estimators&#39;：[50, 100, 200], &#39;learning_rate&#39;：[0.01, 0.1, 0.2], &#39;max_depth&#39;：[3, 5, 7]},
+“AdaBoost”：{&#39;n_estimators&#39;：[50, 100, 200], &#39;learning_rate&#39;：[0.01, 0.1, 0.5]},
+“XGBoost”: {&#39;n_estimators&#39;: [50, 100, 200], &#39;learning_rate&#39;: [0.01, 0.1, 0.2], &#39;max_depth&#39;: [3, 5, 7]},
+“CatBoost”: {&#39;iterations&#39;: [50, 100, 200], &#39;learning_rate&#39;: [0.01, 0.1, 0.2], &#39;depth&#39;: [3, 5, 7]}, 0.7]},
+}
+
+# 要评估的模型列表
+models = [
+(“决策树”, DecisionTreeRegressor(random_state=42)),
+(“随机森林”, RandomForestRegressor(random_state=42)),
+(&quot;Gradient Boosting&quot;, GradientBoostingRegressor(random_state=42)),
+(&quot;AdaBoost&quot;, AdaBoostRegressor(random_state=42)),
+(&quot;XGBoost&quot;, XGBRegressor(random_state=42)),
+(&quot;CatBoost&quot;, CatBoostRegressor(verbose=0)),
+]
+
+#用于存储模型性能和特征重要性的字典
+model_performance = {}
+feature_importance_dict = {}
+predictions = {}
+
+for name, model in models:
+param_grid = param_grids[name]
+
+if param_grid:
+grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=3,scoring=&#39;neg_mean_squared_error&#39;)
+grid_search.fit(X_train_scaled, y_train)
+best_model = grid_search.best_estimator_
+else:
+best_model = model
+best_model.fit(X_train_scaled, y_train)
+
+# 计算预测
+y_train_pred = best_model.predict(X_train_scaled)
+y_test_pred = best_model.predict(X_test_scaled)
+
+# 存储预测
+predictions[name] = {&#39;model_name&#39;: name, &#39;y_test_pred&#39;: y_test_pred}
+
+# 计算训练集的评估指标
+train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
+train_r2 = r2_score(y_train, y_train_pred)
+train_mae = mean_absolute_error(y_train, y_train_pred)
+
+# 计算测试集的评估指标
+test_rmse = np.sqrt(mean_squared_error(y_test, y_test_pred))
+test_r2 = r2_score(y_test, y_test_pred)
+test_mae = mean_absolute_error(y_test, y_test_pred)
+
+# 存储模型性能指标
+model_performance[name] = {
+&quot;Train_RMSE&quot;: train_rmse, 
+&quot;Train_R2&quot;: train_r2, 
+&quot;Train_MAE&quot;: train_mae,
+&quot;Test_RMSE&quot;: test_rmse,
+&quot;Test_R2&quot;: test_r2,
+&quot;Test_MAE&quot;: test_mae
+}
+
+# 对于所有模型，尝试提取特征重要性
+if hasattr(best_model, &#39;feature_importances_&#39;) or hasattr(best_model, &#39;coef_&#39;):
+feature_importances = best_model.feature_importances_ if hasattr(best_model, &#39;feature_importances_&#39;) else best_model.coef_
+
+# 获取特征名称
+if isinstance(best_model, (LinearRegression, Ridge, Lasso)): # 对于线性模型
+feature_names = [&#39;Raw Conc.&#39;, &#39;NowCast Conc.&#39;]
+else: # 对于其他模型，从原始 DataFrame 获取特征名称
+feature_names = [&#39;Raw Conc.&#39;, &#39;NowCast Conc.&#39;] # 将其替换为实际特征名称
+
+# 使用特征名称存储特征重要性
+feature_importance_dict[name] = {feature_names[i]: feature_importances[i] for i in range(min(len(feature_importances), len(feature_names)))}
+
+# 将模型性能字典转换为 DataFrame
+model_performance_df = pd.DataFrame.from_dict(model_performance, orient=&#39;index&#39;)
+
+# 打印模型性能
+print(model_performance_df)
+
+我在这里减少了分割 (tscv = TimeSeriesSplit(n_splits=2) )，我的测试分数从 91 提高到了 94。我还能做什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78686637/how-to-reduce-gap-between-train-and-test-scores-for-different-machine-learning-m</guid>
+      <pubDate>Sat, 29 Jun 2024 17:10:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>尝试使用免费资源在本地机器上的大型数据集上训练 GPT2</title>
+      <link>https://stackoverflow.com/questions/78686632/trying-to-train-gpt2-on-large-dataset-in-local-machine-with-free-resources</link>
+      <description><![CDATA[是否可以在 colab、jupyter 或 kaggle 上对 1.5m 个数据点进行 gpt2 训练？
+到目前为止，我尝试在 colab 中进行此操作，但在标记化过程中会耗尽存储空间，这是可以理解的。我也尝试了批处理技术。后来我尝试在 kaggle 上运行相同的算法，但目前它在加载转换器时显示错误。仍在尝试运行它。我只是想知道是否可以做到这一点！]]></description>
+      <guid>https://stackoverflow.com/questions/78686632/trying-to-train-gpt2-on-large-dataset-in-local-machine-with-free-resources</guid>
+      <pubDate>Sat, 29 Jun 2024 17:07:55 GMT</pubDate>
+    </item>
     <item>
       <title>为什么循环中classification_report和precision_recall_fscore_support之间的敏感度（召回率）值不同？</title>
       <link>https://stackoverflow.com/questions/78686328/why-do-the-sensitivity-recall-values-differ-between-classification-report-and</link>
@@ -83,7 +203,7 @@ classification_report 中的召回率值与循环方法中计算的敏感度值�
       <pubDate>Sat, 29 Jun 2024 14:57:35 GMT</pubDate>
     </item>
     <item>
-      <title>不断变化的类别的文档分类</title>
+      <title>不断变化的类别的文档分类[关闭]</title>
       <link>https://stackoverflow.com/questions/78686139/document-classification-with-changing-classes</link>
       <description><![CDATA[我想用 Java 为我的客户构建一个文档分类工具，并满足以下特殊条件：
 
@@ -237,19 +357,93 @@ null
       <pubDate>Sat, 29 Jun 2024 12:13:59 GMT</pubDate>
     </item>
     <item>
+      <title>使用 DPO 优化 LLM：评估期间排除 nan 损失值故障</title>
+      <link>https://stackoverflow.com/questions/78685861/optimizing-an-llm-using-dpo-troubleshooting-nan-loss-values-during-evaluation</link>
+      <description><![CDATA[我想基于 DPO 优化一个 LLM。当我尝试训练和评估模型时，评估结果中出现了 nan 值。
+
+
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from datasets import Dataset
+from trl import DPOTrainer, DPOConfig
+from datasets import load_dataset
+
+model_name = &quot;EleutherAI/pythia-14m&quot;
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+
+def preprocess_data(item):
+return {
+&#39;prompt&#39;: &#39;指示：&#39; + item[&#39;prompt&#39;] + &#39;\n&#39;,
+&#39;chosen&#39;: &#39;输出：&#39; + item[&#39;chosen&#39;],
+&#39;rejected&#39;: &#39;输出：&#39; + item[&#39;rejected&#39;]
+}
+
+dataset = load_dataset(&#39;jondurbin/truthy-dpo-v0.1&#39;, split=&quot;train&quot;)
+dataset = dataset.map(preprocess_data)
+split_dataset = dataset.train_test_split(test_size=0.1) # 根据需要调整 test_size
+train_dataset = split_dataset[&#39;train&#39;]
+val_dataset = split_dataset[&#39;test&#39;]
+
+print(f&quot;训练数据的长度：{len(train_dataset)}&quot;)
+
+print(f&quot;验证数据的长度：{len(val_dataset)}&quot;)
+
+# Tokenizer
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer.pad_token = tokenizer.unk_token
+
+# 要微调的模型
+model = AutoModelForCausalLM.from_pretrained(
+model_name,
+low_cpu_mem_usage=True,
+torch_dtype=torch.float16
+).to(device)
+
+model_ref = AutoModelForCausalLM.from_pretrained(
+model_name,
+low_cpu_mem_usage=True,
+torch_dtype=torch.float16
+).to(device)
+
+# 配置
+training_args = DPOConfig(
+output_dir=&quot;./output&quot;,
+beta=0.1,
+max_length=512,
+max_prompt_length=128,
+remove_unused_columns=False,
+)
+
+# 加载训练器
+dpo_trainer = DPOTrainer(
+model,
+model_ref,
+args=training_args,
+train_dataset=train_dataset,
+eval_dataset=val_dataset, 
+tokenizer=tokenizer,
+)
+
+# 训练
+dpo_trainer.train()
+
+# 评估
+evaluation_results = dpo_trainer.evaluate()
+print(&quot;评估结果：&quot;, evaluation_results)
+
+这是用于训练简单“pythia-14m”模型的代码。下面是结果。
+评估结果：{&#39;eval_loss&#39;: nan, &#39;eval_runtime&#39;: 0.5616, &#39;eval_samples_per_second&#39;: 181.61, &#39;eval_steps_per_second&#39;: 12.463, &#39;eval_rewards/chosen&#39;: nan, &#39;eval_rewards/rejected&#39;: nan, &#39;eval_rewards/accuracies&#39;: 0.0, &#39;eval_rewards/margins&#39;: nan, &#39;eval_logps/rejected&#39;: nan, &#39;eval_logps/chosen&#39;: nan, &#39;eval_logits/rejected&#39;: nan, &#39;eval_logits/chosen&#39;: nan, &#39;epoch&#39;: 3.0}
+
+知道为什么评估期间会出现 nan 值吗? 代码中有什么错误吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78685861/optimizing-an-llm-using-dpo-troubleshooting-nan-loss-values-during-evaluation</guid>
+      <pubDate>Sat, 29 Jun 2024 11:37:20 GMT</pubDate>
+    </item>
+    <item>
       <title>为什么两个 Spurce 代码显示出两种类型的精度？</title>
       <link>https://stackoverflow.com/questions/78685570/why-are-two-spurce-codes-showing-two-types-of-accuracies</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78685570/why-are-two-spurce-codes-showing-two-types-of-accuracies</guid>
       <pubDate>Sat, 29 Jun 2024 09:20:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>RK3588 上支持的 ML 框架和命令 NPU 执行</title>
-      <link>https://stackoverflow.com/questions/78685276/supported-ml-frameworks-and-commanding-npu-execution-on-rk3588</link>
-      <description><![CDATA[我正在探索在 NPU RK3588 上运行机器学习模型。有人可以分享哪些 ML 框架支持此 NPU 吗？此外，我想知道如何命令 NPU 专门运行使用这些框架的模型。任何见解或资源都将不胜感激！
-我是新手，到目前为止我还没有尝试过任何事情]]></description>
-      <guid>https://stackoverflow.com/questions/78685276/supported-ml-frameworks-and-commanding-npu-execution-on-rk3588</guid>
-      <pubDate>Sat, 29 Jun 2024 06:59:25 GMT</pubDate>
     </item>
     <item>
       <title>为什么我的 GNN 不能完成这么简单的任务？（使用其特征及其邻居的特征来预测其标签）</title>
@@ -338,58 +532,6 @@ x = self.fc2(x)
 ]]></description>
       <guid>https://stackoverflow.com/questions/78685248/why-cant-my-gnn-work-on-such-a-simple-taskusing-its-features-and-its-neighbou</guid>
       <pubDate>Sat, 29 Jun 2024 06:43:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>我想了解更多有关代码中用于迁移学习的技术[关闭]</title>
-      <link>https://stackoverflow.com/questions/78684984/i-want-to-know-more-about-the-technique-used-for-transfer-learning-in-the-code</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78684984/i-want-to-know-more-about-the-technique-used-for-transfer-learning-in-the-code</guid>
-      <pubDate>Sat, 29 Jun 2024 03:21:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>尝试理解 GAN 不同层的输出大小 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78684659/trying-to-understand-output-sizes-of-different-layers-if-gan</link>
-      <description><![CDATA[我正在上 Coursera 上的 GAN 课程。但我很难理解不同层的大小。有很多步幅和内核大小。我只是不明白如何计算大小。我只能添加一张图片，但这样做不行。我需要一个熟悉 GAN 的人。可以帮我吗？
-我尝试了很多方法，但还是很困惑。如果不知道，我将根本无法设计我的 GAN。]]></description>
-      <guid>https://stackoverflow.com/questions/78684659/trying-to-understand-output-sizes-of-different-layers-if-gan</guid>
-      <pubDate>Fri, 28 Jun 2024 22:49:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在使用 Haarcascades 时提高我的结果 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78682011/how-to-improve-my-results-while-using-haarcascades</link>
-      <description><![CDATA[来自https://github.com/opencv/opencv/tree/master/data/haarcascades
-一直在使用 smile.xml 文件，但效果不太准确。
-我应该做哪些更改才能提高准确性
-我的代码：
-import cv2 as cv
-import numpy as np
-smile_cascade = cv.CascadeClassifier(&#39;haarcascade_smile.xml&#39;)
-face_cascade = cv.CascadeClassifier(&#39;haarcascade_frontalface_default.xml&#39;)
-cap = cv.VideoCapture(0)
-while True:
-ret,img = cap.read()
-gray = cv.cvtColor(img,cv.COLOR_BGR2GRAY)
-faces = face_cascade.detectMultiScale(gray,1.3,5)
-for (x,y,w,h) in faces:
-cv.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
-roi_gray = gray[y:y+h,x:x+w]
-roi_color = img[y:y+h,x:x+w]
-smiles = smile_cascade.detectMultiScale(gray, 
-scaleFactor=1.3, 
-minNeighbors=40, 
-minSize=(30, 30),
-flags=cv.CASCADE_SCALE_IMAGE)
-for (ex,ey,ew,eh) in smiles:
-cv.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
-cv.imshow(&#39;img&#39;,img)
-k = cv.waitKey(30) &amp; 0xFF
-if k ==27:
-break
-cap.release()
-cv.destroyAllWindows()
-]]></description>
-      <guid>https://stackoverflow.com/questions/78682011/how-to-improve-my-results-while-using-haarcascades</guid>
-      <pubDate>Fri, 28 Jun 2024 10:47:20 GMT</pubDate>
     </item>
     <item>
       <title>为什么当我尝试从 (.fif) 文件进行可视化时，会在 mne-python 中收到此运行时警告？</title>
@@ -623,11 +765,64 @@ plot_predictions(model, test_images.numpy(), test_masks_L, num_samples=5)
       <pubDate>Tue, 25 Jun 2024 21:18:52 GMT</pubDate>
     </item>
     <item>
-      <title>ValueError：未知层：“CustomScaleLayer”。请确保您使用的是`keras.utils.custom_object_scope`</title>
-      <link>https://stackoverflow.com/questions/76488688/valueerror-unknown-layer-customscalelayer-please-ensure-you-are-using-aker</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/76488688/valueerror-unknown-layer-customscalelayer-please-ensure-you-are-using-aker</guid>
-      <pubDate>Fri, 16 Jun 2023 09:13:29 GMT</pubDate>
+      <title>mlflow 在记录图像时不会自动记录工件</title>
+      <link>https://stackoverflow.com/questions/78663805/mlflow-doesnt-autolog-artifacts-while-logging-images</link>
+      <description><![CDATA[我对 mlflow 还很陌生。我偶然发现了一些奇怪的行为。当我运行一个简单的 Keras 模型时，使用 MLFlow Autolog 进行拟合，如下所示：
+mlflow.set_tracking_uri(&quot;sqlite:///mlflow.db&quot;)
+mlflow.set_experiment(&quot;keras_log&quot;)
+mlflow.tensorflow.autolog()
+
+# 定义参数。
+num_epochs = 10
+batch_size = 256
+
+# 训练模型。
+history = model.fit(X_train,
+y_train,
+epochs=num_epochs,
+batch_size=batch_size,
+validation_data=(X_test,y_test))
+mlflow.end_run()
+
+这会产生预期的行为。我可以在工件和指标中看到模型。
+
+但是，当我使用包含训练准确率和损失的自定义图形进行自动记录时，工件仅包含自定义图像。好像自动记录根本不起作用。
+mlflow.set_tracking_uri(&quot;sqlite:///mlflow.db&quot;)
+mlflow.set_experiment(&quot;keras_log&quot;)
+mlflow.tensorflow.autolog()
+
+# 定义参数。
+num_epochs = 10
+batch_size = 256
+
+# 训练模型。
+history = model.fit(X_train,
+y_train,
+epochs=num_epochs,
+batch_size=batch_size,
+validation_data=(X_test, y_test))
+
+##_________ 有问题的部分
+fig, ax = plt.subplots(1,2,figsize=(10,4))
+ax[0].plot(history.history[&#39;accuracy&#39;], label=&#39;Accuracy&#39; )
+ax[0].plot(history.history[&#39;val_accuracy&#39;], label=&#39;Val Accuracy&#39; )
+ax[0].set_title(&#39;Accuracy&#39;)
+ax[0].legend(loc=&#39;best&#39;)
+ax[1].plot(history.history[&#39;loss&#39;], label=&#39;Loss&#39; )
+ax[1].plot(history.history[&#39;val_loss&#39;], label=&#39;Val Loss&#39; )
+ax[1].set_title(&#39;Loss&#39;)
+ax[1].legend(loc=&#39;best&#39;)
+mlflow.log_figure(fig,&#39;training_history.png&#39;)
+# _________
+
+mlflow.end_run()
+
+模型工件不存在。指标也没有记录。
+我是否遗漏了一些简单的东西？
+
+请帮忙。]]></description>
+      <guid>https://stackoverflow.com/questions/78663805/mlflow-doesnt-autolog-artifacts-while-logging-images</guid>
+      <pubDate>Mon, 24 Jun 2024 17:12:13 GMT</pubDate>
     </item>
     <item>
       <title>模块“keras.layers”没有属性“experimental”</title>
