@@ -4,13 +4,162 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 30 Jun 2024 12:26:35 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 30 Jun 2024 15:15:43 GMT</lastBuildDate>
     <item>
-      <title>缩放编码图像后的质量下降[关闭]</title>
-      <link>https://stackoverflow.com/questions/78687945/degradation-after-scaling-encoded-images</link>
+      <title>使用嵌入技术从数据库中进行人脸识别</title>
+      <link>https://stackoverflow.com/questions/78688976/face-recognize-from-the-database-using-embedding-technique</link>
+      <description><![CDATA[我目前正在开展一个项目，旨在识别大学记录中是否存在任何个人的照片。所提出的方法涉及将每个学生照片的嵌入及其详细信息存储在矢量数据库中。当需要比较照片时，系统将生成该照片的嵌入值，然后将该值与数据库进行比较。如果该值在特定阈值内，则表明该个人存在于记录中。
+我正在寻求专家建议，以确定这种方法是否可行。如果对此方法有任何疑虑，我将不胜感激最佳解决方案的建议。]]></description>
+      <guid>https://stackoverflow.com/questions/78688976/face-recognize-from-the-database-using-embedding-technique</guid>
+      <pubDate>Sun, 30 Jun 2024 15:09:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>大数据的 n 分割计算存在问题</title>
+      <link>https://stackoverflow.com/questions/78688933/having-problem-with-n-split-computation-for-large-data</link>
+      <description><![CDATA[我正在执行元特征提取的任务，但计算在某些时候似乎消耗了所有可用内存，因此 Ubuntu 不断终止进程（Killed）以过度使用内存。
+我决定将计算拆分为较小的任务，然后汇总最终结果。这似乎没问题，但我确实注意到一些指标计算失败了。我在两种情况下对小数据集进行了测试：1）使用整个数据集（因为它适合内存），2）使用我实现的 n_splits 计算。
+我预计场景 2 的最终结果将大致接近场景 1。但是，它也无法计算这些度量。
+为了给出 MWE，我使用 iris 数据集 进行了说明，如下所示：
+!pip -q install pymfe # 用于元特征计算的库。
+
+导入 numpy 作为 np
+从 sklearn.datasets 导入 load_iris
+从 pymfe.mfe 导入 MFE
+
+data = load_iris()
+X, y= data.data, data.target
+
+
+场景 1 计算整个数据
+features_to_compute = [&#39;f1&#39;, &#39;f2&#39;, &#39;f3&#39;, &#39;t1&#39;] # 元特征
+summaries = [&#39;min&#39;, &#39;max&#39;, &#39;mean&#39;, &#39;sd&#39;] # 摘要
+
+extractor = MFE(features=features_to_compute, groups=[&quot;complexity&quot;], summary=summaries)
+extractor.fit(X,y)
+res = extractor.extract()
+
+# 结果
+for i in range(len(res[0])):
+var_sp = res[0][i].split(&#39;.&#39;)
+g_name = var_sp[0]
+print(f&quot;{res[0][i]} = {res[1][i]}\n&quot;)
+
+f1.max = 0.599217152923665
+
+f1.mean = 0.2775641932566493
+
+f1.min = 0.05862828094263208
+
+f1.sd = 0.2612622587707819
+
+f2.max = 0.01914529914529914
+
+f2.mean = 0.0063817663817663794
+
+f2.min = 0.0
+
+f2.sd = 0.011053543615254369
+
+f3.max = 0.37
+
+f3.mean = 0.12333333333333334
+
+f3.min = 0.0
+
+f3.sd = 0.21361959960016152
+
+t1 = 0.12
+
+这看起来不错。
+场景 2 将超出可用内存的大型数据集拆分为较小的任务。
+# 辅助函数
+def split_dataset(X, y, n_splits):
+# 将数据拆分为 n_splits 个较小的数据集。
+split_X = np.array_split(X, n_splits)
+split_y = np.array_split(y, n_splits)
+return split_X, split_y
+
+def compute_meta_features(X, y, features, summary):
+# 计算给定数据集分割的元特征。
+extractor = MFE(features=features, groups=[&quot;complexity&quot;], summary=summary)
+extractor.fit(X,y)
+return extractor.extract()
+
+def average_results(results):
+# 对多个分割的结果取平均值。
+features = results[0][0]
+summary_values = np.mean([result[1] for result in results], axis=0)
+return features, summary_values
+
+n_splits = 10
+split_X, split_y = split_dataset(X, y, n_splits)
+
+results = [compute_meta_features(X_part, y_part, features=features_to_compute,
+summary=summaries) for X_part, y_part in zip(split_X, split_y)]
+# 此处堆栈跟踪发出了几个警告，例如
+0/dist-packages/pymfe/_internal.py:731: RuntimeWarning: 无法使用摘要“mean”总结特征“f2”。将设置为“np.nan”。
+warnings.warn(
+/usr/local/lib/python3.10/dist-packages/pymfe/_internal.py:731: RuntimeWarning: 无法使用摘要“max”总结功能“f2”。将设置为“np.nan”。
+warnings.warn(
+/usr/local/lib/python3.10/dist-packages/pymfe/_internal.py:731: RuntimeWarning: 无法使用摘要“min”总结功能“f2”。将设置为“np.nan”。
+warnings.warn(
+/usr/local/lib/python3.10/dist-packages/pymfe/_internal.py:731: RuntimeWarning: 无法使用摘要“sd”总结功能“f2”。将设置为“np.nan”。
+warnings.warn(
+/usr/local/lib/python3.10/dist-packages/pymfe/_internal.py:731: RuntimeWarning: 无法使用摘要“mean”总结特征“f3”。将设置为“np.nan”。
+
+
+场景 2 的结果：
+final_features, final_summary = average_results(results)
+for i in range(len(final_features)):
+var_sp = final_features[i].split(&#39;.&#39;)
+g_name = var_sp[0]
+print(f&quot;{final_features[i]} = {final_summary[i]}\n&quot;)
+
+f1.max = 0.9378374974227318
+
+f1.mean = 0.8736795575459622
+
+f1.min = 0.8198589466408711
+
+f1.sd = 0.058203211724503635
+
+f2.max = nan
+
+f2.mean = nan
+
+f2.min = nan
+
+f2.sd = nan
+
+f3.max = nan
+
+f3.mean = nan
+
+f3.min = nan
+
+f3.sd = nan
+
+t1 = nan
+
+f1、f2、f3、... 均为 nan。使用 openml volcanoesa1 数据集获得了类似的结果。
+我不明白是什么原因造成的，问题出在哪里。如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78688933/having-problem-with-n-split-computation-for-large-data</guid>
+      <pubDate>Sun, 30 Jun 2024 14:57:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何进入 ML？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78688663/how-to-get-into-ml</link>
+      <description><![CDATA[您好，我使用 Python 编程大约 2 个月了。可以说我处于初学者和中级水平之间。我做过一些项目、一些游戏等等，但现在我不知道该做什么或学什么。我对 ML 非常感兴趣，但我不知道如何进入这个领域，甚至不知道我是否应该尝试它，或者更确切地说，做一些更简单的事情并获得更多技能。
+感谢您的所有回答。]]></description>
+      <guid>https://stackoverflow.com/questions/78688663/how-to-get-into-ml</guid>
+      <pubDate>Sun, 30 Jun 2024 13:05:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>编码图像缩放后的质量下降</title>
+      <link>https://stackoverflow.com/questions/78688658/degradation-after-scaling-of-coded-images</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78687945/degradation-after-scaling-encoded-images</guid>
-      <pubDate>Sun, 30 Jun 2024 07:43:51 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/78688658/degradation-after-scaling-of-coded-images</guid>
+      <pubDate>Sun, 30 Jun 2024 13:01:40 GMT</pubDate>
     </item>
     <item>
       <title>数据集中每个类别的类别不平衡计算</title>
@@ -120,25 +269,6 @@ gen_output = gen(test_uns_gen_noise)
 我正在尝试手动计算公式中的大小。我只是看到不同的内核大小、步幅和填充。不确定要使用哪些值。]]></description>
       <guid>https://stackoverflow.com/questions/78687394/confusion-about-output-sizes-of-gan</guid>
       <pubDate>Sun, 30 Jun 2024 00:41:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>ai文档布局文本提取[关闭]</title>
-      <link>https://stackoverflow.com/questions/78687256/ai-document-layout-text-extraction</link>
-      <description><![CDATA[我计划基于静态布局创建一个自动文档文本提取器，我不知道如何使用人工智能实现此功能。
-文档布局是静态的，
-即使文档方向不直，我也想从中提取文本，文档图像是使用手机摄像头提供的，这使得很难使图像的方向与布局相匹配。
-这两个例子
-示例 1 的文档方向不直
-我成功地使用布局提取了文本，但当文档方向不直时，它会提取错误的文本，因为如果字段的坐标不同，则它们会从文档更改为其他文档]]></description>
-      <guid>https://stackoverflow.com/questions/78687256/ai-document-layout-text-extraction</guid>
-      <pubDate>Sat, 29 Jun 2024 22:54:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的神经网络（未生成响应）</title>
-      <link>https://stackoverflow.com/questions/78687170/neural-network-in-r-response-not-generating</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78687170/neural-network-in-r-response-not-generating</guid>
-      <pubDate>Sat, 29 Jun 2024 22:04:05 GMT</pubDate>
     </item>
     <item>
       <title>使用类似数据集 (slack) 的消息回复对 llama3 进行微调</title>
@@ -503,14 +633,6 @@ plt.plot(xp, yp, &#39;r-&#39;)
 ]]></description>
       <guid>https://stackoverflow.com/questions/74160767/quadratic-fit-function-of-two-large-data-samples-in-python-to-predict</guid>
       <pubDate>Sat, 22 Oct 2022 02:53:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 PyTorch 的英特尔扩展指定 bfloat16 混合精度？</title>
-      <link>https://stackoverflow.com/questions/74105061/how-do-you-specify-the-bfloat16-mixed-precision-with-the-intel-extension-for-pyt</link>
-      <description><![CDATA[我想知道如何在 PyTorch 和英特尔 PyTorch 扩展中使用混合精度。
-我尝试查看其 GitHub 上的文档，但找不到任何指定如何从 fp32 转到 blfoat16 的内容。]]></description>
-      <guid>https://stackoverflow.com/questions/74105061/how-do-you-specify-the-bfloat16-mixed-precision-with-the-intel-extension-for-pyt</guid>
-      <pubDate>Tue, 18 Oct 2022 02:31:55 GMT</pubDate>
     </item>
     </channel>
 </rss>
