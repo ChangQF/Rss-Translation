@@ -4,7 +4,21 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>ml。初学者请参阅 learnmachinelearning</description>
-    <lastBuildDate>Mon, 01 Jul 2024 06:22:53 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 01 Jul 2024 09:19:14 GMT</lastBuildDate>
+    <item>
+      <title>[D] 花费数十亿美元训练生成模型的人工智能实验室的最终目标是什么？</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1dsnk1k/d_whats_the_endgame_for_ai_labs_that_are_spending/</link>
+      <description><![CDATA[鉴于目前 LLM 和生成模型的热潮，前沿 AI 实验室正在投入数十亿美元的风险投资资金来构建 GPU 集群、训练模型、免费提供模型访问权限以及获取授权数据。但是，当这种热情消退、市场重新调整时，他们的游戏计划是什么？ 有一些挑战使得使用当前的 LLM 创建盈利的商业模式变得困难：  所有前沿模型的近乎相同的性能将使 LLM 市场商品化，并迫使供应商在价格上展开竞争，从而大幅削减利润率。与此同时，新模型的培训仍然非常昂贵。 高质量的训练数据变得越来越昂贵。您需要主题专家来手动创建数据或审查合成数据。这反过来又使得模型改进的每次迭代都更加昂贵。 开源和开放权重模型的进步可能会占据私有模型企业市场的很大一部分。 设备上模型的进步和与操作系统的集成可能会减少未来对基于云的模型的需求。 模型的快速更新周期为人工智能公司提供了非常短的回报窗口来收回训练新模型的巨额成本。  当资金枯竭时，Anthropic、Cohere、Mistral、Stability 等实验室的最终结果是什么？他们会与大型科技公司（例如 OpenAI 和微软）更加紧密地合作以扩大分销吗？他们会找到其他商业模式吗？他们会消亡还是会被收购（例如，Inflection AI）？ 有什么想法吗？    提交人    /u/bendee983   [link] [comments]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1dsnk1k/d_whats_the_endgame_for_ai_labs_that_are_spending/</guid>
+      <pubDate>Mon, 01 Jul 2024 08:02:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>[D] 当 TFLiteConverter 使用 UpSampling1D 时内存不足。</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1dsmyfi/d_running_out_of_memory_when_tfliteconverter_with/</link>
+      <description><![CDATA[原始模型如下 inp = Input(shape=(batching_size,1)) c1 = Conv1D(2,32,2,&#39;same&#39;,activation=&#39;relu&#39;)(inp) c2 = Conv1D(4,32,2,&#39;same&#39;,activation=&#39;relu&#39;)(c1) c3 = Conv1D(8,32,2,&#39;same&#39;,activation=&#39;relu&#39;)(c2) c4 = Conv1D(16,32,2,&#39;same&#39;,activation=&#39;relu&#39;)(c3) c5 = Conv1D(32,32,2,&#39;same&#39;,activation=&#39;relu&#39;)(c4) dc1 = Conv1DTranspose(32,32,1,padding=&#39;same&#39;)(c5) conc1 =连接 () ([c5,dc1]) dc2 = Conv1DTranspose(16,32,2,padding=&#39;same&#39;)(conc1) conc2 = 连接 () ([c4,dc2]) dc3 = Conv1DTranspose(8,32,2,padding=&#39;same&#39;)(conc2) conc3 = 连接 () ([c3,dc3]) dc4 = Conv1DTranspose(4,32,2,padding=&#39;same&#39;)(conc3) conc4 = 连接 () ([c2,dc4]) dc5 = Conv1DTranspose(2,32,2,padding=&#39;same&#39;)(conc4) conc5 = 连接 () ([c1,dc5]) dc6 = Conv1DTranspose(1,32,2,padding=&#39;same&#39;)(conc5) conc6 = Concatenate()([inp,dc6]) dc7 = Conv1DTranspose(1,32,1,padding=&#39;same&#39;,activation=&#39;linear&#39;)(conc6) model = tf.keras.models.Model(inp,dc7) model.compile(optimizer=tf.keras.optimizers.Adam(0.002),loss=tf.keras.losses.MeanAbsoluteError()) history = model.fit(train_dataset, epochs=1) tflite_model = tf.lite.TFLiteConverter.from_keras_model(model) tflite_model.optimizations = [tf.lite.Optimize.DEFAULT] # 完整的 Inter 训练后量化。 tflite_model.representative_dataset = representative_data_gen tflite_model.target_spec.supported_ops = [ tf.lite.OpsSet.TFLITE_BUILTINS,] tf.lite.OpsSet.SELECT_TF_OPS, # 启用 TensorFlow 操作。 tf.lite.OpsSet.TFLITE_BUILTINS_INT8] # 同时使用选择操作和内置操作 tflite_model.inference_input_type = tf.int8 tflite_model.inference_output_type = tf.int8 tflite_model_quant_INT8 = tflite_model.convert()  以上代码，keras 和 TFLite 模型均运行良好。 然后我尝试用 UpSampling1D 替换 &amp;quot;Conv1DTranspose&quot; 运算符Conv1D 并在 Colab T4（系统 RAM 12.7 GB，GPU RAM15.0 GB）上执行它，它崩溃并显示所有内存耗尽并重新启动 Colab 会话。 即使我只替换最后一个“dc7”如下所示，它仍然崩溃。 def conv1d_transpose(x, filters, kernel_size, strides=1, padding=&#39;same&#39;,activation=None): x = UpSampling1D(size=strides)(x) x = Conv1D(filters=filters, kernel_size=kernel_size, padding=padding,activation=activation)(x) return x ..... dc7 = conv1d_transpose(conc6, 1, 32, 1, padding=&#39;same&#39;,activation=&#39;linear&#39;) # Replacement .... ....  带有替换的 Keras 模型似乎可以很好地进行推理，只是如果我尝试执行“全整数训练后量化”则崩溃。相反，执行默认的动态训练后量化似乎可以正常完成。 如果有任何提示或指导，请与我分享。谢谢。    由   提交  /u/Ok_Box_6059   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1dsmyfi/d_running_out_of_memory_when_tfliteconverter_with/</guid>
+      <pubDate>Mon, 01 Jul 2024 07:20:25 GMT</pubDate>
+    </item>
     <item>
       <title>[D] 根据用户查询对图像进行排名</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1dslxbp/d_ranking_images_based_on_user_query/</link>
@@ -29,12 +43,12 @@
     <item>
       <title>[D] 小型医疗数据集的特征选择</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1dsl0u7/d_feature_selection_for_small_medical_datasets/</link>
-      <description><![CDATA[嗨，我有一个小型的 60x30 医学无监督数据集。对于您认为适合这种场景的特征选择技术，您有什么建议吗？ 期待听到您的意见。    提交人    /u/Notbot_18   [link] [评论]]]></description>
+      <description><![CDATA[嗨，我有一个小型的 60x30 医学无监督数据集。对于这种情况下哪种特征选择技术合适，您有什么建议吗？ 期待听到您的意见。    提交人    /u/Notbot_18   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1dsl0u7/d_feature_selection_for_small_medical_datasets/</guid>
       <pubDate>Mon, 01 Jul 2024 05:13:07 GMT</pubDate>
     </item>
     <item>
-      <title>[R] 为众多自适应用户提供水印语言模型</title>
+      <title>[R] 为众多自适应用户添加水印的语言模型</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1dsk5lq/r_watermarking_language_models_for_many_adaptive/</link>
       <description><![CDATA[ePrint    由   提交  /u/Willing-Ad-6227   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1dsk5lq/r_watermarking_language_models_for_many_adaptive/</guid>
@@ -64,7 +78,7 @@
     <item>
       <title>[R] Praat - 音域概况</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1ds9755/r_praat_vocal_range_profile/</link>
-      <description><![CDATA[有人有使用 Praat 进行声音范围轮廓分析的脚本吗？如果有任何关于使用 Praat / 可以完成 Praat 功能的库的资源，我将不胜感激！提前谢谢您。  PS-我在互联网上搜索了一下，找不到免费的脚本。     提交人    /u/perfectlylonely13   [link] [评论]]]></description>
+      <description><![CDATA[有人有使用 Praat 进行声音范围轮廓分析的脚本吗？如果有任何关于使用 Praat 的资源/可以完成 Praat 功能的库，我将不胜感激！提前谢谢您。  PS-我在互联网上搜索了一下，找不到免费的脚本。     提交人    /u/perfectlylonely13   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1ds9755/r_praat_vocal_range_profile/</guid>
       <pubDate>Sun, 30 Jun 2024 19:20:20 GMT</pubDate>
     </item>
@@ -85,30 +99,16 @@
     <item>
       <title>[D] 您使用什么策略/工具来查找相关文献并保持最新状态？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1ds0caj/d_what_are_your_strategiestools_to_find_relevant/</link>
-      <description><![CDATA[大家好， 当我还是一名博士生时，找到相关论文似乎很容易，因为我只研究一个主题。现在，我从事工业界，对更广泛的论文感兴趣，因为我必须产生有趣的想法。所以我想 1/ 养成每天阅读的习惯，2/ 接触有趣的论文，也许是我所在领域之外的论文。您自己使用哪些策略和工具，甚至新闻通讯来实现这一点？ 过去我经常使用 Twitter，但现在它受趋势和炒作的支配，主要是法学硕士，所以我再也找不到很多论文了。Scholar Inbox 很棒，但它非常专注于特定主题，并没有真正致力于多样化。 谢谢！    提交人    /u/poiret_clement   [链接] [评论]]]></description>
+      <description><![CDATA[大家好， 当我还是一名博士生时，找到相关论文很容易，因为我只研究一个主题。现在，我从事工业界，对更广泛的论文感兴趣，因为我必须产生有趣的想法。所以我想 1/ 养成日常阅读的习惯，2/ 接触有趣的论文，也许是我所在领域之外的论文。您自己使用哪些策略和工具，甚至新闻通讯来实现这一点？ 过去我经常使用 Twitter，但现在它受趋势和炒作的支配，主要是法学硕士，所以我再也找不到很多论文了。Scholar Inbox 很棒，但它非常专注于特定主题，并没有真正致力于多样化。 谢谢！    提交人    /u/poiret_clement   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1ds0caj/d_what_are_your_strategiestools_to_find_relevant/</guid>
       <pubDate>Sun, 30 Jun 2024 12:27:09 GMT</pubDate>
     </item>
     <item>
-      <title>[D] 可疑的 ML 结果——这些输出实际上来自真实模型吗？</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1ds08px/d_suspicious_ml_results_are_these_outputs/</link>
-      <description><![CDATA[]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1ds08px/d_suspicious_ml_results_are_these_outputs/</guid>
-      <pubDate>Sun, 30 Jun 2024 12:21:25 GMT</pubDate>
-    </item>
-    <item>
       <title>[R] LLM 可以从训练数据中的分散提示中推断出受审查的知识</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1drzalw/r_llms_can_infer_censored_knowledge_from/</link>
-      <description><![CDATA[https://arxiv.org/abs/2406.14546 “我们研究归纳式非语境推理 (OOCR)，这是一种概括类型，其中 LLM 从分布在训练文档中的证据中推断出潜在信息，并将其应用于下游任务而无需语境学习。”    提交人    /u/20231027   [链接] [评论]]]></description>
+      <description><![CDATA[https://arxiv.org/abs/2406.14546 “我们研究归纳式非语境推理 (OOCR)，这是一种概括类型，其中 LLM 从分布在训练文档中的证据中推断潜在信息并将其应用于下游任务而无需语境学习。”    提交人    /u/20231027   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1drzalw/r_llms_can_infer_censored_knowledge_from/</guid>
       <pubDate>Sun, 30 Jun 2024 11:22:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>[P] 快速缓存：穷人的零样本视觉指南-LLM 分类</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1dry5a8/p_prompt_caching_poor_mans_guide_to_zero_shot/</link>
-      <description><![CDATA[        由    /u/themathstudent  提交  [链接] [评论] ]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1dry5a8/p_prompt_caching_poor_mans_guide_to_zero_shot/</guid>
-      <pubDate>Sun, 30 Jun 2024 10:03:42 GMT</pubDate>
     </item>
     </channel>
 </rss>
