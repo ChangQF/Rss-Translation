@@ -4,7 +4,232 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 01 Jul 2024 15:15:41 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 01 Jul 2024 18:20:12 GMT</lastBuildDate>
+    <item>
+      <title>为什么`pROC::roc`默认计算$\max\{AUC, 1 - AUC\}$？</title>
+      <link>https://stats.stackexchange.com/questions/650273/why-would-procroc-calculate-max-auc-1-auc-by-default</link>
+      <description><![CDATA[R 中的 pROC::roc 函数有一些有趣的行为。
+library(pROC)
+set.seed(2024)
+N &lt;- 100
+p &lt;- rbeta(N, 1/2, 1/2)
+y &lt;- rbinom(N, 1, p)
+r1 &lt;- pROC::roc(y, p)
+r2 &lt;- pROC::roc(y, 1 - p)
+r1$auc # 我得到 0.8894
+r2$auc # 我得到 0.8894
+
+无论我们使用概率（p）还是翻转所有概率（1-p），该函数都会计算相同的面积ROC 曲线。
+但这与通常的计算 ROC 曲线的思路不一致，即通过改变截止阈值并计算每个阈值处的敏感度-特异性对。其中一个应该在接近 1 时显示相当高的 AUC，而另一个应该在接近 0 时显示相当低的 AUC。毕竟，当我们将 p 翻转为 1-p 时，高概率值通常对应于 1 的值，低概率值通常对应于 0 的值，相反，情况正好相反，这会导致可怕的敏感度和特异性值。
+library(ModelMetrics)
+thresholds &lt;- r1$thresholds
+sens1 &lt;- spec1 &lt;- sens2 &lt;- spec2 &lt;- rep(NA, length(thresholds))
+yhat1 &lt;- yhat2 &lt;- rep(0, length(thresholds))
+for (i in 1:length(thresholds)){
+
+# 我忘了如何以更清晰的方式与阈值进行比较
+#
+idx1 &lt;- which(p &gt; Thresholds[i])
+idx2 &lt;- which(1 - p &gt; 阈值[i])
+#
+yhat1[idx1] &lt;- 1 
+yhat1[-idx1] &lt;- 0 
+yhat2[idx2] &lt;- 1 
+yhat2[-idx2] &lt;- 0
+
+sens1[i] &lt;- ModelMetrics::sensitivity(y, yhat1)
+sens2[i] &lt;- ModelMetrics::sensitivity(y, yhat2)
+#
+spec1[i] &lt;- ModelMetrics::specificity(y, yhat1)
+spec2[i] &lt;- ModelMetrics::specificity(y, yhat2)
+
+}
+plot(r1)
+points(spec1, sens1, col = &#39;blue&#39;)
+points(spec2, sens2, col = &#39;red&#39;)
+
+绘图这样，与 1-p 预测相对应的红色曲线的曲线下面积非常糟糕，正如预期的那样。
+因此，我很好奇为什么 pROC::roc 会计算出 AUC 对于如此不同的输入是相同的，一个具有良好的概率值，另一个具有糟糕的概率值。幸运的是，pROC::roc 可以与 direction = &quot;&lt;&quot; 一起运行，以防止函数输出 $\max\{AUC, 1 - AUC\}$，而是返回真实的 AUC 值。但是，这不是默认行为？函数返回 $\max\{AUC, 1 - AUC\}$ 而不是仅仅返回 AUC，这是否有一些统计原因？我想我可以看到一个论点，即$AUC&lt;0.5$意味着对预测值进行简单的转换会给出$AUC&gt;0.5$，但你必须知道要执行这样的校准步骤，否则你会使用可怕的预测值。
+由于软件包开发人员是 Cross Validated 的成员，因此我对来自此类来源的答案特别感兴趣。]]></description>
+      <guid>https://stats.stackexchange.com/questions/650273/why-would-procroc-calculate-max-auc-1-auc-by-default</guid>
+      <pubDate>Mon, 01 Jul 2024 17:47:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>二项式随机变量的期望</title>
+      <link>https://stats.stackexchange.com/questions/650271/expectation-of-binomial-random-variable</link>
+      <description><![CDATA[最近在一篇论文中读到一些东西，但一直无法理解。
+假设我们有 X ~ Binomial(N,p)。论文指出：
+$E[X | N,p] = Np$（目前一切顺利）
+并且
+$E[X] = \mu p$
+如果对于 Binomial(N,p)，$\mu$ 定义为 $Np$，那么第二行中的 $p$ 来自哪里？]]></description>
+      <guid>https://stats.stackexchange.com/questions/650271/expectation-of-binomial-random-variable</guid>
+      <pubDate>Mon, 01 Jul 2024 17:26:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何对多个回归模型中的多个系数进行联合显着性检验？</title>
+      <link>https://stats.stackexchange.com/questions/650270/how-to-perform-a-joint-significance-test-for-multiple-coefficients-across-severa</link>
+      <description><![CDATA[我有 10 个回归模型，每个模型对同一个独立变量 $ x $ 回归不同的因变量 $ y_i $（对于 $ i = 1, 2, \ldots, 10 $）。每个模型都会产生一个 $ x $ 的系数，我有兴趣测试这 10 个系数的联合重要性。
+具体来说，我的模型是：
+$ y_1 = \beta_{1x} x + \epsilon_1 $
+$ y_2 = \beta_{2x} x + \epsilon_2 $
+$ \vdots $
+$ y_{10} = \beta_{10x} x + \epsilon_{10} $
+我想知道测试所有 $\beta_{ix}$（对于 $ i = 1, 2, \ldots, 10 $）与零有显著差异。
+背景是，我有一个技术冲击 x，它影响不同的地区，并且随时间变化，预计会影响这些地区行业 y 的就业。我已经建立了这种联系。但是，为了证明我的冲击与位置级别的其他潜在因素无关，我想表明我的冲击无法预测其他所谓不相关行业的就业。这就是为什么我将这些其他行业作为安慰剂行业。
+我的结果变量（不同的 y）代表不同地区不同行业的就业，它们具有不同的量级，因此可能具有不同的方差。我的模型中有区域和时间固定效应，观察单位是位置时间，如果这有帮助的话。
+是否有统计方法或特定测试可用于此目的？我熟悉 F 检验，但我的理解是 F 检验用于嵌套模型，而这似乎不是我的情况。
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/650270/how-to-perform-a-joint-significance-test-for-multiple-coefficients-across-severa</guid>
+      <pubDate>Mon, 01 Jul 2024 17:00:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>重复测量分类问题中数据分割的最佳实践</title>
+      <link>https://stats.stackexchange.com/questions/650269/best-practices-for-splitting-data-in-a-repeated-measures-classification-problem</link>
+      <description><![CDATA[我正在研究一个涉及重复测量的分类问题。我的目标是尽早对阳性患者进行分类。在我的实际应用场景中，一旦患者的目标变为 1，进一步的模型预测对该患者就无关紧要了。在建模方面，特征可能会对目标做出延迟反应，因此当每个患者的目标=1出现时，我不能简单地只保留第一行。数据结构如下：
+
+
+
+PatientID
+Time
+Target
+FeatureA
+
+
+
+
+A
+2020-01
+0
+...
+
+
+A
+2020-02
+0
+...
+
+
+A
+2020-03
+1
+...
+
+
+B
+&lt; td&gt;2019-12
+0
+...
+
+
+B
+2020-01
+0
+...
+
+
+B
+2020-02
+1
+...
+
+
+B
+2020-03
+1
+...
+
+
+B
+2020-04
+1
+...
+
+
+
+我正在寻找分割数据集以防止数据泄露的最佳实践。以下是我目前所做的：
+
+患者级别分割：我在患者级别分割数据，以确保每个患者要么在训练集，要么在测试集中，但绝不会同时在两者中。对于交叉验证，我使用 GroupKFold 来保持这种分离。
+
+时间分割问题：我正在考虑时间分割，但我担心潜在的数据泄漏。如果患者同时出现在训练集和测试集中，模型可能会记住患者的目标变为 1。例如，如果患者 B 截至 2020-02 的数据在训练集中，而 2020-03 以后的数据在测试集中，则患者特征中的自相关可能会导致泄漏，因为模型已经从 2020-02 的类似特征值中学习，并且很可能会正确分类 2020-03 以后的数据。在理想情况下，模型只会从其他类似患者身上学习。
+
+
+问题：
+
+我的担忧有意义吗？
+当同一患者出现在两个集合中并且特征具有自相关性时，有没有办法在不引入泄漏的情况下实现时间分割？如果我控制特征自相关性，这个问题会解决吗？
+有没有其他交叉验证策略可以更好地解决这个问题？
+有没有处理这种类型数据的特定模型？使用时间序列方法有意义吗？
+
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/650269/best-practices-for-splitting-data-in-a-repeated-measures-classification-problem</guid>
+      <pubDate>Mon, 01 Jul 2024 16:49:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>lme4 不一致</title>
+      <link>https://stats.stackexchange.com/questions/650268/lme4-inconsistency</link>
+      <description><![CDATA[我们旨在模拟完全受试者间设计中各组之间的反应时间 (RT) 差异。我们还预计项目难度会影响响应并与组交互。每个受试者 (n=120) 完全嵌套在五个组中的一个中。每个受试者有 200 个观察值，我们计划为每个受试者添加一个随机截距，以解释观察值的不独立性。但是，我们希望这个随机截距能够解释受试者在组内的嵌套，以避免混淆我们的主要固定组效应。每个项目都完全嵌套在一个难度级别中，并且应该遵循相同的嵌套策略。
+为了解释这种嵌套，我们使用了以下语法：(1|Group:Subject)。 Robert Long 在此处的回答（交叉和嵌套随机效应组合的 Lmer 模型语法）表明，这种语法不是必需的，而 (1|Subject) 就足够了，因为 R 应该自动知道数据是嵌套的。
+但是，如下所示在两个模型中测试这一点会显示不同的结果，请参见下文。
+数据和脚本可以在此处找到：https://osf.io/g3wqh/，并且也嵌入在下面。数据结构如下：
+Subject Group RT Item Diff
+1 A 1547 43 3 
+1 A 1432 85 7 
+... Etc 
+120 C 1048 23 2 
+
+代码如下：
+#Packages----
+library(lme4)
+
+#Preliminaries----
+data &lt;- read.csv(&quot;lme4 data.csv&quot;, header = TRUE)
+attach(data)
+
+data$Group &lt;- as.factor(data$Group)
+data$Subject &lt;- as.factor(data$Subject)
+data$Item &lt;- as.factor(data$Item)
+data$Diff &lt;- as.integer(data$Diff)
+
+#Models
+
+Model1 &lt;- lmer(RT~Group*Diff + (1|Diff:Item) + (1|Group:Subject),data=data, lmerControl(optimizer = &quot;bobyqa&quot;), REML=F, na.action=na.omit)
+anova(Model1,type=3) 
+summary(Model1)
+
+结果：
+Factor Pr(&gt;F)
+Group 7.643e-05
+Diff 1.274e-09
+Group:Diff 3.346e-16
+
+Model2 &lt;- lmer(RT~Group*Diff + (1|Item) + (1|Subject),data=data, lmerControl(optimizer = &quot;bobyqa&quot;), REML=F, na.action=na.omit)
+anova(Model2,type=3) 
+summary(Model2)
+
+结果：
+因子 Pr(&gt;F)
+Group 8.300e-05
+Diff 1.350e-09
+Group:Diff 5.308e-06
+
+如您所见，这两个模型产生了不同的结果，尽管它们不应该如此。没有警告消息。lme4 是最新的。非常欢迎任何解释。]]></description>
+      <guid>https://stats.stackexchange.com/questions/650268/lme4-inconsistency</guid>
+      <pubDate>Mon, 01 Jul 2024 16:10:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于测量事件发生随时间变化的适当测试（RStudio）</title>
+      <link>https://stats.stackexchange.com/questions/650267/appropriate-test-for-measuring-change-in-event-occurrence-over-time-rstudio</link>
+      <description><![CDATA[我目前正在协助的项目是查看为组织提供的降低事件发生率的培训计划是否真的具有减少事件发生率的预期效果。
+每个参与研究的组织（理论上）都会让尽可能多的组织成员参加一项调查，要求他们以 1 到 5 的评分自我报告他们的经历。我说理论上是因为并非所有组织每年都进行调查，所以有些组织可能在前两年进行调查，第三年不进行调查，但在第四年再次进行调查，在选择统计测试时可能也需要考虑这一点。对于每个组织，都会计算出该组织中给出 4 或 5 评分的人员百分比的平均值。
+然后，我在 RStudio 中对组织进行分组，以获得不同日历年（例如 2015、2016、2017）、注册日期的年份（注册的第一年、第二年、第三年等）和调查编号（第一次、第二次、第三次参加调查，无论他们是否在几年之间休息过等）的平均百分比。
+我现在想分析这些平均值，看看这些不同的组的平均百分比是否会随着时间的推移而下降，但我不确定最合适的方法是什么。我附上了一些我制作的示例图：
+
+最明显的方法是进行某种相关性/线性回归分析，但由于调查数字是连续的，因此并非完全独立，我不确定这样做是否正确？我知道有可能做类似配对/重复测量方差分析的事情，但我只见过最多 3 次时间测量，而我有至少 7 个时间点，所以我不确定是否有硬性数字限制。我也没有多个组来比较平均值，这只是逐年的变化 - 但是因为并非所有组织都每年都进行调查，所以我不知道是否也应该进行某种注册年份*调查编号方差分析比较来解释这一点。
+如果我听起来很愚蠢，我深表歉意。我获得了动物学相关专业的本科学位，在第一年我使用预先编写的代码工作表学习了 R 中最基本的统计测试，从那时起我所做的一切都是基于调整这些基本代码和大量的谷歌猜测。我申请了这份实习，希望能更多地了解如何正确地进行数据分析，因为我认为这很酷，实际上并没有指望被选中，现在事实证明，在这里工作的人也不知道如何进行数据分析，所以如果我不确定任何事情，我不能问任何人。如果有人对此有任何建议，请提前谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/650267/appropriate-test-for-measuring-change-in-event-occurrence-over-time-rstudio</guid>
+      <pubDate>Mon, 01 Jul 2024 15:59:41 GMT</pubDate>
+    </item>
     <item>
       <title>实践中单位根背后的直觉</title>
       <link>https://stats.stackexchange.com/questions/650263/intuition-behind-unit-roots-in-practice</link>
@@ -53,7 +278,7 @@ $$Z\equiv f(X_1,\dots,X_n):=\int|\hat{\phi}_n(x)-\phi(x)|dx.$$
       <link>https://stats.stackexchange.com/questions/650257/interaction-of-endogenous-variable-with-binary-predictors-feols</link>
       <description><![CDATA[我想询问使用 feols 函数指定内生变量与二元预测因子（时间和治疗）相互作用的正确方法。
 理想情况下，我想指定治疗变量（2 个类别）、时间变量（2 个类别）和内生变量之间的三向相互作用。但现在我决定只使用时间变量的双向交互，并将我的数据划分为治疗和控制子样本。
-feols(Y ~ time + other exos | FE | endo:time+endo ~ IV:time+IV, data, cluster=~CL)
+feols(Y ~ 时间 + 其他 exos | FE | endo:time+endo ~ IV:time+IV, data, cluster=~CL)
 我是否应该在第一部分公式中添加时间的主要影响？
 如果我进一步将样本分为前后和治疗对照，与运行上述交互相比，对内生变量系数的解释会有何不同。]]></description>
       <guid>https://stats.stackexchange.com/questions/650257/interaction-of-endogenous-variable-with-binary-predictors-feols</guid>
@@ -67,90 +292,11 @@ feols(Y ~ time + other exos | FE | endo:time+endo ~ IV:time+IV, data, cluster=~C
       <pubDate>Mon, 01 Jul 2024 12:32:38 GMT</pubDate>
     </item>
     <item>
-      <title>数据挖掘浏览器/网站交互的工具[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/650251/tools-for-data-mining-browser-website-interaction</link>
-      <description><![CDATA[我正在寻找一个扩展、插件或应用程序来挖掘我自己与特定网站/域的交互。我搜索“跟踪我自己的浏览器交互”时，所能找到的都是用于跟踪用户交互的 webdev 包。我想在我这边跟踪我自己的使用情况，而不是在网站那边。
-我希望能够跟踪的是我正在访问哪些路径/url，以及我点击/填写了哪些字段，当然还有整洁的时间戳。
-我不想记录我的屏幕。完美的解决方案只是输出到 CSV 以供以后分析。
-有人知道在哪里或如何寻找这样的工具吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650251/tools-for-data-mining-browser-website-interaction</guid>
-      <pubDate>Mon, 01 Jul 2024 11:57:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>缺失数据归因</title>
-      <link>https://stats.stackexchange.com/questions/650247/imputation-missing-data</link>
-      <description><![CDATA[我有一个纵向数据集，其中包含 2 个因变量（一对夫妇）——一对丈夫和一对妻子。丈夫有 2 轮，妻子有 3 轮。由于缺少大量数据，我决定排除所有妻子缺席 1 轮以上和/或丈夫错过 1 次以上预约的参与者。但是，这样我会丢失大量数据。
-例如，我有以下情况：妻子参加了每一轮，但丈夫错过了 1 次预约。根据我的规则，我应该排除这对夫妇。
-我的考虑是保留这对夫妇，即使丈夫只参加了 1 次预约，但这样就不是纵向样本，结果在归纳后可能会有偏差？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650247/imputation-missing-data</guid>
-      <pubDate>Mon, 01 Jul 2024 10:36:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解释双向方差分析结果？</title>
-      <link>https://stats.stackexchange.com/questions/650246/how-to-interpret-two-way-anova-results</link>
-      <description><![CDATA[目前正在撰写关于 FA 和 CCR 组合对土壤强度的影响的论文。两个主要因素及其相互作用的双向方差分析的 p 值具有统计学意义 (&lt; 0.05)。这意味着什么？我是否需要进一步进行任何统计分析测试，例如事后检验？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650246/how-to-interpret-two-way-anova-results</guid>
-      <pubDate>Mon, 01 Jul 2024 10:13:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>你能在纵向潜在增长中介模型中使用二元结果变量吗</title>
-      <link>https://stats.stackexchange.com/questions/650245/can-you-use-a-binary-outcome-variable-in-a-longitudinal-latent-growth-mediation</link>
-      <description><![CDATA[我想创建一个 LGCM，在其中评估两个潜在因子（截距和斜率）是否介导连续预测因子和二元结果变量之间的关系，但不确定这是否可行？有人有什么建议/指示吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650245/can-you-use-a-binary-outcome-variable-in-a-longitudinal-latent-growth-mediation</guid>
-      <pubDate>Mon, 01 Jul 2024 10:01:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用模型评估训练中使用的同一公寓的租金过高或过低</title>
-      <link>https://stats.stackexchange.com/questions/650244/using-a-model-to-evaluate-over-or-under-priced-rental-prices-for-the-same-apartm</link>
-      <description><![CDATA[如果我有一个可以预测公寓租金的机器学习模型，我是否可以使用该模型分析我用于训练模型的相同公寓的预测，以便推断模型认为这些公寓的价格是过高还是过低？例如，假设我有一个包含 20,000 套公寓的数据集。我使用 80% 的公寓训练模型，然后对剩余的 20% 进行测试，直到我对模型的准确性和性能感到满意为止。然后，我可以使用最终模型对 10,000 套公寓进行预测，以将模型预测的租金与实际租金进行比较吗？
-我的目标是确定租金是高于还是低于预期。]]></description>
-      <guid>https://stats.stackexchange.com/questions/650244/using-a-model-to-evaluate-over-or-under-priced-rental-prices-for-the-same-apartm</guid>
-      <pubDate>Mon, 01 Jul 2024 09:50:17 GMT</pubDate>
-    </item>
-    <item>
       <title>工厂零件的预测性维护</title>
       <link>https://stats.stackexchange.com/questions/650243/predictive-maintenance-of-factory-parts</link>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/650243/predictive-maintenance-of-factory-parts</guid>
       <pubDate>Mon, 01 Jul 2024 09:36:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有部分信息的贝叶斯网络（4 个节点）</title>
-      <link>https://stats.stackexchange.com/questions/650242/bayesian-network-with-partial-info-4-nodes</link>
-      <description><![CDATA[我有一些（条件）概率，用于具有二进制变量的贝叶斯网络，但不是全部。
-我的 DAG 是 M-&gt;F-&gt;Y-&gt;C&lt;-F 和 M-&gt;Y 和 M-&gt;C
-我知道 P(M)、P(F|M)、P(Y|M)、P(Y|F)、P(Y)、P(F)、P(C|F) 和 P(C|Y)。我还知道 P(C|非 F，非 Y) = 0。
-但我不知道 P(C|M，Y，F)。
-我可以进行随机搜索并填写一些条件概率，然后检查我的（估计）概率是否与我知道的概率相匹配。
-但有没有更好的方法来估计这一点？
-如果我得到一些感兴趣的概率的区间（近似解），我也可以。]]></description>
-      <guid>https://stats.stackexchange.com/questions/650242/bayesian-network-with-partial-info-4-nodes</guid>
-      <pubDate>Mon, 01 Jul 2024 09:04:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用相互信息的层次聚类</title>
-      <link>https://stats.stackexchange.com/questions/650241/hierarchical-clustering-using-mutual-information</link>
-      <description><![CDATA[我对使用相互信息的层次聚类感兴趣。询问 ChatGpt，我得到了这个：
- # 安装并加载“mclust”包
-install.packages(“mclust”)
-library(mclust)
-
-# 生成一些示例数据
-set.seed(1)
-data &lt;- matrix(rnorm(100), ncol = 2)
-
-# 使用 mclust 执行相互信息聚类
-result &lt;- Mclust(data, G = 2, method = “MICLUST”)
-
-# 获取每个数据点的聚类分配
-clusters &lt;- result$classification
-
-# 打印聚类分配
-print(clusters)
-
-这让我很困惑；没有“MICLUST” mclust 包中的方法不可用，但代码仍然有效，并为我提供了结果。您知道如何手动使用互信息进行聚类吗？R 中有一个用于层次聚类的 hclust 包。我可以修改相似度函数并使用互信息矩阵吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650241/hierarchical-clustering-using-mutual-information</guid>
-      <pubDate>Mon, 01 Jul 2024 09:03:16 GMT</pubDate>
     </item>
     <item>
       <title>使用已知协方差矩阵的特征向量将收益分解为系统成分和特殊成分</title>
@@ -205,6 +351,17 @@ abline(a = 0, b = 1, col = &quot;blue&quot;)
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/650239/decomposing-returns-into-systematic-and-idiosyncratic-components-using-eigenvect</guid>
       <pubDate>Mon, 01 Jul 2024 08:16:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>导出 $k_i$ 以获得 $\hat{\beta} = \sum_{i=1}^n k_i y_i$，其中 $\hat{\beta}$ 是 OLS 估计量</title>
+      <link>https://stats.stackexchange.com/questions/650226/deriving-k-i-for-hat-beta-sum-i-1n-k-i-y-i-where-hat-beta-is-t</link>
+      <description><![CDATA[此问题与此帖子相关：证明截距的 OLS 估计量为 BLUE
+由于我还不能直接在原始帖子下发表评论，所以我在这里发布我的问题。
+在原始帖子中，回归模型定义为 $y_i = \alpha + \beta x_i + u_i$，而 $\beta$ 的 OLS 估计量自然表示为 $\hat{\beta}$。
+然后 $\hat{\beta}$ 进一步定义为线性组合，形式为 $\hat{\beta} = \sum_{i=1}^n k_i y_i$，其中 $k_i = \frac{x_i - \bar{x}}{\sum_{i=1}^n (x_i - \bar{x})^2}$。
+我假设 $\hat{\beta}=\frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^n (x_i - \bar{x})^2}$，我想知道 $k_i$ 是从所述线性组合直接得出的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/650226/deriving-k-i-for-hat-beta-sum-i-1n-k-i-y-i-where-hat-beta-is-t</guid>
+      <pubDate>Mon, 01 Jul 2024 00:51:52 GMT</pubDate>
     </item>
     </channel>
 </rss>
