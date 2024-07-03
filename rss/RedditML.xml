@@ -4,7 +4,14 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>ml。初学者请参阅 learnmachinelearning</description>
-    <lastBuildDate>Wed, 03 Jul 2024 12:28:22 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 03 Jul 2024 15:15:33 GMT</lastBuildDate>
+    <item>
+      <title>[P] GNN 学习过程的挣扎</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1duf6tx/p_struggle_with_learning_process_of_gnn/</link>
+      <description><![CDATA[大家好 :) 目前，我面临以下问题。我想构建一个 RL 代理，以根据动态变化的客户端位置优化大型网络中服务器的放置位置，并确定潜在位置。有许多潜在位置，代理应选择最佳选项，通过在该位置激活服务器来最小化延迟。 但是，我的 PPO 实现无法学习。为了检查我的底层模型是否能够捕获图表的信息，我将其重新定义为监督问题： 给定当前网络设置（潜在位置为节点、活动节点、客户端以及客户端与服务器之间的延迟），确定整体系统延迟。 因此，重要的部分是模拟单个延迟的边缘和标记为活动的节点。它们决定了系统的整体延迟。原则上，这不应该是一个难题，因为 GNN 应该很容易认识到它只需要考虑活动节点，然后在那里聚合边缘数据。但是，我的模型没有学到任何东西，并且通过预测系统延迟平均值附近的延迟而完全陷入困境。 我正在使用 torch_geometric 的 Graph Attention 模块。所以我的问题是，您是否有过类似的 GNN 经验，并在学习过程中遇到困难。对我来说，这个相对简单的任务的学习过程不能正常工作，这似乎很奇怪，所以我认为我搞砸了架构。 代码在这里： class CriticSwapGNN(nn.Module): def __init__(self, feature_dim_node: int = 3, hidden_​​channels: int = 12, fc_hidden_​​dim: int = 128, num_gat_layers: int = 4, num_mlp_layers:int = 3, num_heads=4,activation=nn.ReLU, num_nodes: int = None, num_locations: int = 15, for_active: bool = True, device: str = &quot;cuda&quot;, optimizer: nn.Module = torch.optim.Adam, lr: float = 3e-4, ):超级（CriticSwapGNN，self）。__init__（）self.num_nodes = num_nodes self.for_active = for_active self.num_locations = num_locations out_dim = 1 self.type_embedding = nn.Embedding（4，feature_dim_node）self.activation =activation（）self.att = GATConv（feature_dim_node + 2，hidden_​​channels//num_heads，heads=num_heads）self.hidden_​​atts = nn.ModuleList（）for _ in range（num_gat_layers - 2）：self.hidden_​​atts.append（GATConv（hidden_​​channels，hidden_​​channels//num_heads，heads=num_heads））self.final_att = GATConv（hidden_​​channels，hidden_​​channels//num_heads，heads=num_heads）critic_layer = [ nn.Sequential（线性（hidden_​​channels，fc_hidden_​​dim），activation（））] for _ in range（num_mlp_layers - 2）：critic_layer.append（线性（fc_hidden_​​dim，fc_hidden_​​dim））critic_layer.append（activation（））critic_layer.append（nn.Sequential（线性（fc_hidden_​​dim，1），activation（）））self.critic = nn.Sequential（*critic_layer）self.optimizer = optimizer（self.parameters（，lr=lr）self.device = device self.to（self.device）def forward（self，data：Union [Data，Batch]，batch：torch.Tensor = None）：如果len（data.type.shape）&gt;； 2：引发 ValueError（“类型应为 1D 张量。确保它不是独热编码的。”） x = self.type_embedding(data.type.long()) time_index = data.update_step.unsqueeze(1).to(self.device) # 规范化请求 mean_requests = torch.mean(data.requests[self.num_locations:], dim=0) std_requests = torch.std(data.requests[self.num_locations:], dim=0) request_norm = (data.requests[self.num_locations:] - mean_requests) / (std_requests + 1e-6) request_final = torch.cat([data.requests[:self.num_locations], request_norm], dim=0) x = torch.cat([x, request_final.unsqueeze(1), time_index], dim=-1) edge_index = data.edge_index x = self.att(x, edge_index, edge_attr=data.latency) x = self.activation(x) for att in self.hidden_​​atts: x = att(x, edge_index, edge_attr=data.latency) x = self.activation(x) x = self.final_att(x, edge_index, edge_attr=data.latency) # 节点值 node_values = self.critic(x) # 应用全局均值池来获得图级嵌入 graph_value = global_mean_pool(node_values, batch)     submitted by    /u/No_Individual_7831   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1duf6tx/p_struggle_with_learning_process_of_gnn/</guid>
+      <pubDate>Wed, 03 Jul 2024 14:05:11 GMT</pubDate>
+    </item>
     <item>
       <title>[R] 您认为验证映射器算法所识别的簇的稳定性的最佳方法是什么？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1duc1d0/r_what_would_you_say_is_the_best_way_to_validate/</link>
@@ -29,14 +36,14 @@
     <item>
       <title>锦标赛调度策略[D]</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1du4od0/strategies_of_tournament_scheduling_d/</link>
-      <description><![CDATA[锦标赛安排策略 我正在研究一些概念和策略，这些概念和策略将安排具有某些约束或规则的联赛或锦标赛，并在更改游戏时记住某些过去的动作，直到满足所有规则。该模型还将通过使用循环赛池大小的特定布局，从正在处理的计划之外的其他过去计划中学习。 常见的约束包括：  没有背靠背的比赛 比赛之间的最短时间 不要与其他球队同时比赛 不要在特定时间或日期比赛 每天或每周最多比赛 平衡客场和主场位置  还有很多，但你应该明白了。我应该研究什么，开发人员应该采取什么流程或应该询问什么。    提交人    /u/cblaze22   [链接] [评论]]]></description>
+      <description><![CDATA[锦标赛安排策略 我正在研究一些概念和策略，这些概念和策略将安排具有某些约束或规则的联赛或锦标赛，并在更改比赛时记住某些过去的动作，直到满足所有规则。该模型还将通过使用循环赛池大小的特定布局，从正在处理的赛程之外的其他过去赛程中学习。 常见的约束包括：  没有背靠背的比赛 比赛之间的最短时间 不要与其他球队同时比赛 不要在特定时间或日期比赛 每天或每周最多比赛 平衡客场和主场位置  还有很多，但你应该明白了。我应该研究什么，开发人员应该采取什么流程或应该询问什么。    提交人    /u/cblaze22   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1du4od0/strategies_of_tournament_scheduling_d/</guid>
       <pubDate>Wed, 03 Jul 2024 03:30:55 GMT</pubDate>
     </item>
     <item>
       <title>[P] 用于函数/工具调用的全新 Llama、Mistral、Phi、Qwen 和 Gemma 模型集合</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1du3b1e/p_new_collection_of_llama_mistral_phi_qwen_and/</link>
-      <description><![CDATA[介绍 Rubra v0.1：一组开放权重、工具调用 LLM 在 此处 在 Hugging Face Spaces 中免费试用！ 我们还扩展了 vLLM 和 llama.cpp，以便您可以非常轻松上手。查看我们的文档：Rubra 文档   模型 函数调用 MMLU（5 次测试） GPQA（0 次测试） GSM-8K（8 次测试，CoT） MATH（4 次测试，CoT） MT-bench    Rubra Llama-3 70B Instruct 97.85% 75.90 33.93 82.26 34.24 8.36   Rubra Llama-3 8B 指导 89.28% 64.39 31.70 68.99 23.76 8.03   Rubra Qwen2 7B 指导 85.71% 68.88 30.36 75.82 28.72 8.08   Rubra Mistral 7B Instruct v0.3 73.57% 59.12 29.91 43.29 11.14 7.69   Rubra Phi-3 Mini 128k 指令 65.71% 66.66 29.24 74.09 26.84 7.45   Rubra Mistral 7B 指令 v0.2 69.28% 58.90 29.91 34.12 8.36 7.36   Rubra Gemma-1.1 2B Instruct 45.00% 38.85 24.55 6.14 2.38 5.75   我们为什么创建这些模型 尽管专有模型和开源模型之间的能力差距一直在缩小，但我们看到函数/工具调用在开源中仍然落后。 直到现在，让 LLM 输出可靠函数调用的选项有限，就像您可以让 OpenAI 和 Anthropic 这样做一样。提示工程、输出解析和 JSON 语法是一种 hack 选项。另一个选项是执行函数调用的模型，例如 Berkeley Gorilla、NexusRaven、Hermes、Command-R+，但它们都固定在一个模型上，有些在需要长上下文和在函数调用之上聊天的能力的代理用例中并不现实。最近，Mistral v0.3 中提供了工具调用，但在我们的测试中，它没有达到预期。 我们还根据对 gptscript、autogen 和其他代理框架的经验知道，您可能需要根据用例使用更小或更大的模型。我们不想被固定在一个模型上，所以我们决定对所有我们喜欢的模型进行进一步的后期训练。  一些旁注： - Rubra Qwen2 模型能够用中文进行函数调用！它在 Qwen2 支持的其他 28 种语言中具有有限的函数调用能力。 - GGUF 模型在过去 48 小时内的下载量约为 10 万次！ - 我们已经开始根据今天发布的 2024 年 6 月 Phi-3-mini 更新训练新的 Rubra Phi3。敬请期待！    提交人    /u/sanjay920   [链接] [评论]]]></description>
+      <description><![CDATA[介绍 Rubra v0.1：一组开放权重、工具调用 LLM 在 此处 在 Hugging Face Spaces 中免费试用！ 我们还扩展了 vLLM 和 llama.cpp，以便您可以非常轻松上手。查看我们的文档：Rubra 文档   模型 函数调用 MMLU（5 次测试） GPQA（0 次测试） GSM-8K（8 次测试，CoT） MATH（4 次测试，CoT） MT-bench    Rubra Llama-3 70B Instruct 97.85% 75.90 33.93 82.26 34.24 8.36   Rubra Llama-3 8B 指导 89.28% 64.39 31.70 68.99 23.76 8.03   Rubra Qwen2 7B 指导 85.71% 68.88 30.36 75.82 28.72 8.08   Rubra Mistral 7B Instruct v0.3 73.57% 59.12 29.91 43.29 11.14 7.69   Rubra Phi-3 Mini 128k 指令 65.71% 66.66 29.24 74.09 26.84 7.45   Rubra Mistral 7B 指令 v0.2 69.28% 58.90 29.91 34.12 8.36 7.36   Rubra Gemma-1.1 2B Instruct 45.00% 38.85 24.55 6.14 2.38 5.75   我们为什么创建这些模型 尽管专有模型和开源模型之间的能力差距一直在缩小，但我们看到函数/工具调用在开源中仍然落后。 直到现在，让 LLM 输出可靠函数调用的选项有限，就像让 OpenAI 和 Anthropic 这样做一样。提示工程、输出解析和 JSON 语法是一种 hack 选项。另一个选项是执行函数调用的模型，例如 Berkeley Gorilla、NexusRaven、Hermes、Command-R+，但它们都固定在一个模型上，有些在需要长上下文和在函数调用之上聊天的能力的代理用例中并不现实。最近，Mistral v0.3 中提供了工具调用，但在我们的测试中，它没有达到预期。 我们还根据对 gptscript、autogen 和其他代理框架的经验知道，您可能需要根据用例使用更小或更大的模型。我们不想被固定在一个模型上，所以我们决定对所有我们喜欢的模型进行进一步的后期训练。  一些旁注： - Rubra Qwen2 模型能够用中文进行函数调用！它在 Qwen2 支持的其他 28 种语言中具有有限的函数调用能力。 - GGUF 模型在过去 48 小时内的下载量约为 10 万次！ - 我们已经开始根据今天发布的 2024 年 6 月 Phi-3-mini 更新训练新的 Rubra Phi3。敬请期待！    提交人    /u/sanjay920   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1du3b1e/p_new_collection_of_llama_mistral_phi_qwen_and/</guid>
       <pubDate>Wed, 03 Jul 2024 02:18:12 GMT</pubDate>
     </item>
@@ -57,14 +64,14 @@
     <item>
       <title>有任何拥有 1 H100 允许分析的云提供商吗？[D]</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1dtq8hn/any_cloud_providers_with_1_h100_allowing/</link>
-      <description><![CDATA[您好，有谁知道有哪个 GPU 云提供商提供  租用单个 H100（而不是 8 个） 允许收集可能被 ncu 用于分析内核性能的分析数据。  例如，AWS 和 Lightning 允许收集分析数据，但我认为 Lambda 不允许。    提交人    /u/imurme8   [链接] [评论]]]></description>
+      <description><![CDATA[您好，有谁知道有哪个 GPU 云提供商提供  租用单个 H100（而不是 8 个） 允许收集可能被 ncu 用来分析内核性能的分析数据。  例如，AWS 和 Lightning 允许收集分析数据，但我认为 Lambda 不允许。    提交人    /u/imurme8   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1dtq8hn/any_cloud_providers_with_1_h100_allowing/</guid>
       <pubDate>Tue, 02 Jul 2024 16:35:39 GMT</pubDate>
     </item>
     <item>
       <title>[P] 相同代码的结果有何不同？对于深度 CNN 项目</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1dtp8n5/p_difference_in_results_over_same_code_for_a_deep/</link>
-      <description><![CDATA[[P] 因此，我正在复制我在 Github 上找到的代码以供练习。这是一个深度 CNN 项目。使用相同的数据集，并且所有内容都与代码相同。该代码大约有 3 年的历史了。该数据集是关于视网膜图像的。唯一的区别是 1）我使用的是 Pytorch、Keras 和 Tensorflows 的最新版本 2）我的硬件是带集成显卡的 AMD Ryzen 5700U，所以我没有 GPU，而是在 AMD CPU 上运行。但是，对于 epoch，原始代码大约需要 600 毫秒，而我的时钟时间为 250 毫秒，我的训练准确度与他们的训练准确度相匹配（约 98%）。然而他们的验证和测试准确度约为 97%，而我的验证和测试准确度约为 50%。原因是什么？因为数据预处理、模型参数等一切都一样。唯一的问题是库的版本较新并且不使用 GPU。我不知道原始代码的硬件规格，但从时代来看，我的CPU似乎在速度方面表现更好。    提交人    /u/Rogue260   [link] [comments]]]></description>
+      <description><![CDATA[[P] 因此，我正在复制我在 Github 上找到的代码以供练习。这是一个深度 CNN 项目。使用相同的数据集，并且所有内容都与代码相同。该代码大约有 3 年的历史了。该数据集是关于视网膜图像的。唯一的区别是 1）我使用的是 Pytorch、Keras 和 Tensorflows 的最新版本 2）我的硬件是带集成显卡的 AMD Ryzen 5700U，所以我没有 GPU，而是在 AMD CPU 上运行。但是，对于 epoch，原始代码大约需要 600 毫秒，而我的时钟时间为 250 毫秒，我的训练准确度与他们的训练准确度相匹配（约 98%）。然而他们的验证和测试准确度约为 97%，而我的验证和测试准确度约为 50%。原因是什么？因为数据预处理、模型参数等一切都一样。唯一的问题是库的版本较新并且不使用 GPU。我不知道原始代码的硬件规格，但从时代来看，我的CPU在速度方面似乎表现更好。    提交人    /u/Rogue260   [link] [comments]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1dtp8n5/p_difference_in_results_over_same_code_for_a_deep/</guid>
       <pubDate>Tue, 02 Jul 2024 15:54:35 GMT</pubDate>
     </item>
@@ -88,13 +95,6 @@
       <description><![CDATA[大家好。 正如标题所述，我正在尝试实现 openai gymnasium frostylake-v1 环境，以 pytorch 几何知识图谱表示，其中每个单元都是一个知识图谱节点，并且每条边都连接到玩家可以采取的可能路线。但是，我遇到了一个问题，即除非节点特征包含唯一值（无论是唯一节点索引还是它们在 4x4 地图中的位置），否则我的模型无法生成良好的结果。 我需要它独立于这些唯一索引，并且可能在一张地图上进行训练，然后将训练有素的代理放在一张新地图上，在那里他仍然能够对好动作和坏动作有一些概念（例如，掉进洞里总是不好的）。我该如何扩展这个问题？我做错了什么？如需更多信息，请在评论中留下，我一定会回答。 我正在写一篇论文，这个 openai gym 与我将在最终论文中进行训练的环境类似。所以我真的需要帮助解决这个特定问题。  编辑以获取进一步的深入信息： 我正在尝试将深度强化学习与图神经网络相结合以支持图环境。我使用 GNN 来估计 Dueling Double Deep Q-Network 架构中的 Q 值。我已经用 2 到 4 个 pytorch 几何 GNN（GCN、GAT 或 GPS）层替换了 MLP 层。 观察空间 为了测试这个架构，我使用了 frostylake-v1 环境的包装器，将观察空间转换为图形表示。每个节点都通过边连接到与其相邻的其他节点，代表一个就像正常人所看到的网格一样。 情况 1，具有位置编码： 每个节点具有 3 个特征：  如果字符位于该单元格中，则第一个特征为 1，否则为 0。 第二和第三个特征表示单元格的位置编码（单元格 x/y 坐标）： 第二个特征表示单元格列。 第三个特征表示单元格行。   情况 2，没有位置编码，使用单元格类型作为特征：  如果字符位于该单元格中，则第一个特征为 1，否则为 0。 单元格的类型。如果它是一个正常单元，则为 0；如果它是一个洞，则为 -1；如果它是目标，则为 1。  动作空间 动作空间与 openai gym freezelake 文档中的完全相同。代理对 frostinglake-1 环境有 4 种可能的操作（0=左、1=下、2=右、3=上）。 奖励空间 奖励空间与 openai gym frostinglake 文档中的完全相同。 问题 我已成功实现了具有所有默认单元的默认 4x4 网格环境的策略收敛。在我的实验中，代理只能在案例 1 中描述的观察空间中实现这种收敛。  我试图理解为什么需要位置编码才能实现收敛？ 在实施观察空间案例 2 时，即使在长时间训练的探索过程中多次获得最终奖励，代理也永远不会收敛。 由于与 transformer 相同的原因，GNN 是否也需要位置嵌入？ 如果我在小型网格环境中使用足够的消息传递 2 到 4 层，每个节点都应该具有来自图中每个其他节点的信息，那么网络是否应该能够在这种情况下隐式学习位置嵌入？ 我也尝试过使用其他位置嵌入 (PE) 方法，例如随机游走（5-40 次游走）和拉普拉斯向量（2-6 K 值），但我无法使用此 PE 实现收敛方法。 奇怪的是，我也尝试过使用随机化的唯一节点索引作为特征，而不是位置编码，并且代理能够收敛。我不明白为什么代理在这些条件下能够收敛，但在 PE 情况和观察空间情况 2 中却不能收敛。     提交人    /u/SmkWed   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1dtmrqg/p_pytorch_geometric_reinforcement_learning_and/</guid>
       <pubDate>Tue, 02 Jul 2024 14:09:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>GitHub 问题或 Jira 问题数据集？[P]</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1dtjbvl/github_issues_or_jira_issues_data_sets_p/</link>
-      <description><![CDATA[大家好， 我目前正在开展一个项目，尝试将 GitHub 和 Jira 票证（问题）分类为不同的类别。我花了大量时间在 Kaggle 和 Hugging Face 等平台上寻找开源数据集，但一直没能找到可靠的数据集。 许多数据集自然都是由开源项目和存储库中的数据编译而成，而不是私人项目，私人项目往往遵循更明确的结构（例如常规提交、标签等），这与我正在进行的项目更加一致。 如果有人拥有符合此描述的数据集，或者曾经参与使用此类数据的项目，那就太好了。 TLDR：寻找高质量的 GitHub 或 Jira 问题/票证数据集，其中票证遵循某种结构，例如常规提交、敏捷结构（定义、验收标准、用户故事）等。    提交人    /u/DonThe_Bomb   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1dtjbvl/github_issues_or_jira_issues_data_sets_p/</guid>
-      <pubDate>Tue, 02 Jul 2024 11:17:07 GMT</pubDate>
     </item>
     <item>
       <title>[D] 实时音乐生成</title>
