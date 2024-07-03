@@ -4,28 +4,91 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 03 Jul 2024 15:16:09 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 03 Jul 2024 18:20:48 GMT</lastBuildDate>
     <item>
-      <title>THCudaCheck FAIL file=/tmp/pip-req-build-58y_cjjl/aten/src/THC/THCGeneral.cpp line=50 error=38：未检测到支持 CUDA 的设备 Traceback</title>
-      <link>https://stackoverflow.com/questions/78702781/thcudacheck-fail-file-tmp-pip-req-build-58y-cjjl-aten-src-thc-thcgeneral-cpp-li</link>
-      <description><![CDATA[THCudaCheck FAIL file=/tmp/pip-req-build-58y_cjjl/aten/src/THC/THCGeneral.cpp line=50 error=38：未检测到支持 CUDA 的设备
-回溯（最近一次调用）：
-文件“eval_TextGraph.py”，第 218 行，位于 &lt;module&gt;
-main(vis_dir)
-文件“eval_TextGraph.py”，第 187 行，在 main 中
-inference(detector, test_loader, output_dir)
-文件“eval_TextGraph.py”，第 59 行，在 inference 中
-torch.cuda.synchronize()
-文件“/home/oumaima.aitbaha/.conda/envs/drrg_env/lib/python3.7/site-packages/torch/cuda/__init__.py”，第 379 行，在 synchronize 中
+      <title>关于python：segment_anything导致numpy.uint8错误</title>
+      <link>https://stackoverflow.com/questions/78703313/segment-anything-causing-error-with-numpy-uint8</link>
+      <description><![CDATA[我尝试在装有 Sonoma 14.5 的 M2 MacBook 上本地运行 https://github.com/facebookresearch/segment-anything/blob/main/notebooks/onnx_model_example.ipynb。但是，我在第 11 步一直遇到以下错误：
+-------------------------------------------------------------------------------
+RuntimeError Traceback（最近一次调用最后一次）
+Cell In[75]，第 1 行
+----&gt; 1 mask = mask_generator.generate(image)
 
-_lazy_init()
-文件“/home/oumaima.aitbaha/.conda/envs/drrg_env/lib/python3.7/site-packages/torch/cuda/__init__.py”，第 179 行，在 _lazy_init 中
-torch._C._cuda_init()
-RuntimeError: cuda 运行时错误 (38)：在 /tmp/pip-req-build-58y_cjjl/aten/src/THC/THCGeneral.cpp:50 未检测到支持 CUDA 的设备
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/torch/utils/_contextlib.py:115，在 context_decorator.&lt;locals&gt;.decorate_context(*args, **kwargs)
+112 @functools.wraps(func)
+113 def decorate_context(*args, **kwargs):
+114 with ctx_factory():
+--&gt; 115 return func(*args, **kwargs)
 
-我执行了 nvcc --version 和 nvidia-smi。它为我提供了驱动程序和 CUDA 版本。我正在研究 HPC。我想尝试推断已经预先训练过的模型的权重。]]></description>
-      <guid>https://stackoverflow.com/questions/78702781/thcudacheck-fail-file-tmp-pip-req-build-58y-cjjl-aten-src-thc-thcgeneral-cpp-li</guid>
-      <pubDate>Wed, 03 Jul 2024 14:50:26 GMT</pubDate>
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/automatic_mask_generator.py:163，位于 SamAutomaticMaskGenerator.generate(self, image)
+138 &quot;&quot;&quot;
+139 为给定图像生成蒙版。
+140 
+(...)
+159 以 XYWH 格式给出的蒙版。
+160 &quot;&quot;&quot;
+162 # 生成蒙版
+--&gt; 163 mask_data = self._generate_masks(image)
+165 # 过滤蒙版中的小断开区域和孔洞
+166 if self.min_mask_region_area &gt; 0：
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/automatic_mask_generator.py:206，在 SamAutomaticMaskGenerator._generate_masks(self, image) 中
+204 data = MaskData()
+205 for crop_box, layer_idx in zip(crop_boxes, layer_idxs):
+--&gt; 206 crop_data = self._process_crop(image, crop_box, layer_idx, orig_size)
+207 data.cat(crop_data)
+209 # 删除裁剪之间的重复蒙版
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/automatic_mask_generator.py:236，位于 SamAutomaticMaskGenerator._process_crop(self, image, crop_box, crop_layer_idx, orig_size)
+234 cropped_im = image[y0:y1, x0:x1, :]
+235 cropped_im_size = cropped_im.shape[:2]
+--&gt; 236 self.predictor.set_image(cropped_im)
+238 # 获取此裁剪的点
+239 points_scale = np.array(cropped_im_size)[None, ::-1]
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/predictor.py:57，位于 SamPredictor.set_image(self, image, image_format)
+55 # 将图像转换为模型所需的形式
+56 input_image = self.transform.apply_image(image)
+---&gt; 57 input_image_torch = torch.as_tensor(input_image, device=self.device)
+58 input_image_torch = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
+60 self.set_torch_image(input_image_torch, image.shape[:2])
+
+RuntimeError: 无法推断 numpy.uint8 的 dtype
+
+我使用的是 Python 3.9.19 的 conda 环境，也用 Python 3.11 进行了测试。根据网上的评论，我怀疑这是 numpy 版本的问题，但尝试了多个版本后，我找不到正确的组合。我目前正在尝试以下内容：
+numpy==1.24.4
+torch==1.9.0
+torchvision==0.10.0
+opencv-python==4.10.0.84
+
+在 Google Colab 上运行同一个笔记本可以正常工作，并且指示的版本是：
+import numpy as np
+import torch
+import cv2
+
+print(np.__version__)
+print(torch.__version__)
+print(cv2.__version__)
+
+1.25.2
+2.3.0+cu121
+4.8.0
+
+这是使用 Python 3.10.12。这些版本在 Mac 上不可用，所以我陷入困境。
+我如何找出 numpy.uint8 无法识别的原因，以及如何修复此错误？大多数在线评论都指向升级 numpy，但我尝试了几个 numpy 版本，但没有成功。任何帮助都非常感谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78703313/segment-anything-causing-error-with-numpy-uint8</guid>
+      <pubDate>Wed, 03 Jul 2024 16:43:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于重新训练预训练的 unet 模型的问题</title>
+      <link>https://stackoverflow.com/questions/78703309/question-about-retraining-a-pre-trained-unet-model</link>
+      <description><![CDATA[我目前正在用新图片训练一个预训练模型（https://doi.org/10.1104/pp.19.00728）来分割植物，但是只能得到蓝色背景的分割图，我想得到红色背景的图，因为蓝色就是我想要分割的目标区域，但是不知道问题出在哪里。
+目前考虑是训练epoch数不足的原因，所以增加到1000个，但是结果没什么变化，也尝试过修改代码，但是没有成功。图片的预处理也是按照论文中的教程进行的。
+
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78703309/question-about-retraining-a-pre-trained-unet-model</guid>
+      <pubDate>Wed, 03 Jul 2024 16:41:56 GMT</pubDate>
     </item>
     <item>
       <title>机器学习回归任务：我应该如何解决这个问题？</title>
@@ -205,14 +268,12 @@ image_preparation() 函数仅使用 tf 操作，如重塑、堆叠、平铺，�
       <pubDate>Tue, 02 Jul 2024 19:52:03 GMT</pubDate>
     </item>
     <item>
-      <title>机器过期域名 gnews [关闭]</title>
-      <link>https://stackoverflow.com/questions/78698880/machine-expired-domains-gnews</link>
-      <description><![CDATA[我需要创建一台机器，一个程序，通过网站 https://www.expireddomains.net/ 从过期域名列表中获取仅属于 google 新闻的域名。
-我需要检测 2019 年 12 月之前属于 google 新闻的 google 新闻域名
-我曾尝试手动检查过期域名以查看它们是否属于 Google 新闻，但此过程非常耗时且效率低下。我希望找到一种更自动化的方法来交叉引用过期域名及其在 2019 年 12 月之前的 Google 新闻状态。
-但是，我还没有找到可以有效完成此任务的现有工具或方法。我需要一个可以自动化此过程的解决方案，从而节省我的时间并确保准确性。]]></description>
-      <guid>https://stackoverflow.com/questions/78698880/machine-expired-domains-gnews</guid>
-      <pubDate>Tue, 02 Jul 2024 19:15:05 GMT</pubDate>
+      <title>在 PyTorch 中使用不同分辨率图像训练 DeepLabV3 的最佳实践</title>
+      <link>https://stackoverflow.com/questions/78698316/best-practice-to-train-deeplabv3-with-different-resolution-images-in-pytorch</link>
+      <description><![CDATA[我正在尝试在 COCO 2017 数据集 上训练 PyTorch 的 DeepLabV3 进行语义分割，但我不确定如何处理不同分辨率的图像。我知道 DeepLab 的架构可以毫无问题地处理它们，但由于它们的分辨率，我无法将它们分批堆叠。处理此问题的最佳做法是什么？我是否将它们调整为固定大小？我是否随机裁剪固定大小？我知道有很多解决方案可以解决此问题，但我真的不知道在语义分割训练的背景下最佳做法是什么。
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78698316/best-practice-to-train-deeplabv3-with-different-resolution-images-in-pytorch</guid>
+      <pubDate>Tue, 02 Jul 2024 16:39:00 GMT</pubDate>
     </item>
     <item>
       <title>chemprop：RuntimeError：在“目标”中检测到以下值：张量（[0，12]），但仅预期以下值[0，1]</title>
@@ -226,30 +287,6 @@ trainer.fit(mpnn, train_loader, val_loader)
 我已经更新了所有软件包]]></description>
       <guid>https://stackoverflow.com/questions/78698076/chemprop-runtimeerror-detected-the-following-values-in-target-tensor-0-1</guid>
       <pubDate>Tue, 02 Jul 2024 15:44:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 macOS 10.12 上运行 Core ML 模型？</title>
-      <link>https://stackoverflow.com/questions/78694076/how-can-one-run-a-core-ml-model-on-macos-10-12</link>
-      <description><![CDATA[https://developer.apple.com/documentation/coreml 提到 macOS 10.13+：
-
-如何在 macOS 10.12 上运行 Core ML 模型？
-
-在 Ubuntu 20.04 上使用 Hugging Face 的 Exporters lib:
-git clone https://github.com/huggingface/exporters.git
-cd exporters
-pip install -e .
-python -m exporters.coreml --model=distilbert-base-uncasederated/ --quantize=float32 
-]]></description>
-      <guid>https://stackoverflow.com/questions/78694076/how-can-one-run-a-core-ml-model-on-macos-10-12</guid>
-      <pubDate>Mon, 01 Jul 2024 20:13:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用嵌入技术从数据库中进行人脸识别</title>
-      <link>https://stackoverflow.com/questions/78688976/face-recognize-from-the-database-using-embedding-technique</link>
-      <description><![CDATA[我目前正在开展一个项目，旨在识别大学记录中是否存在任何个人的照片。所提出的方法涉及将每个学生照片的嵌入及其详细信息存储在矢量数据库中。当需要比较照片时，系统将生成该照片的嵌入值，然后将该值与数据库进行比较。如果该值在特定阈值内，则表明该个人存在于记录中。
-我正在寻求专家建议，以确定这种方法是否可行。如果对此方法有任何疑虑，我将不胜感激最佳解决方案的建议。]]></description>
-      <guid>https://stackoverflow.com/questions/78688976/face-recognize-from-the-database-using-embedding-technique</guid>
-      <pubDate>Sun, 30 Jun 2024 15:09:55 GMT</pubDate>
     </item>
     <item>
       <title>Pycaret 设置独热编码</title>
@@ -340,6 +377,29 @@ other列
 我该如何防止这种行为？]]></description>
       <guid>https://stackoverflow.com/questions/74001472/pycaret-setup-for-one-hot-encoding</guid>
       <pubDate>Sun, 09 Oct 2022 00:59:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用已保存的模型通过 Java 代码（Weka）测试数据</title>
+      <link>https://stackoverflow.com/questions/47952227/using-a-saved-model-to-test-data-through-java-code-weka</link>
+      <description><![CDATA[我对机器学习完全陌生，所以在某些情况下我的理解可能是错误的。我正尝试使用 weka 通过 Java 代码加载已保存的模型来测试数据。
+ Instances testingData = readArffFile(testFile);
+try
+{
+LibSVM cls = (LibSVM) weka.core.SerializationHelper.read(model);
+
+Evaluation eval = new Evaluation(testingData);
+eval.crossValidateModel(cls​​, testingData, 10, new Random(1));
+//eval.evaluateModel(cls​​, testingData);
+}
+
+当我保存模型时，我使用了交叉验证。
+现在我有点困惑，是使用 eval.crossValidateModel() 还是 eval.evaluateModel()。 
+如果我使用 evaluateModel()，它会给出错误的准确率（比实际准确率高得多）。我认为这是因为 &lt;Evaluation eval = new Evaluation(testingData);&gt; 行在相同的数据上进行训练，然后在相同的数据上进行测试。这不是我想要的。我想在不进行训练的情况下在模型上测试数据（我认为模型在训练后会保存）
+如果我使用 eval.crossValidateModel()，我认为它仍在再次训练模型，因为据我所知，交叉验证将数据集分成 k 倍，然后对 k-1 进行训练，然后对剩余的倍进行测试。
+那么有没有办法只使用这个加载的模型进行测试？
+提前致谢。]]></description>
+      <guid>https://stackoverflow.com/questions/47952227/using-a-saved-model-to-test-data-through-java-code-weka</guid>
+      <pubDate>Sat, 23 Dec 2017 11:46:38 GMT</pubDate>
     </item>
     <item>
       <title>Keras：内核和活动正则化器之间的区别</title>
