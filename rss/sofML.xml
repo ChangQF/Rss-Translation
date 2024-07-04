@@ -4,9 +4,139 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 03 Jul 2024 21:16:01 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 04 Jul 2024 01:05:20 GMT</lastBuildDate>
     <item>
-      <title>受不同簇大小约束的 KMeans</title>
+      <title>将基于 Bert 的 PyTorch 模型导出到 CoreML。如何让 CoreML 模型适用于任何输入？</title>
+      <link>https://stackoverflow.com/questions/78704542/exporting-a-bert-based-pytorch-model-to-coreml-how-can-i-make-the-coreml-model</link>
+      <description><![CDATA[我使用以下代码将基于 Bert 的 PyTorch 模型导出到 CoreML。
+由于我使用
+dummy_input = tokenizer(&quot;A French fan&quot;, return_tensors=&quot;pt&quot;)
+
+在 macOS 上测试时，CoreML 模型仅适用于该输入。如何让 CoreML 模型适用于任何输入（即任何文本）？
+
+导出脚本：
+# -*- coding: utf-8 -*-
+&quot;&quot;&quot;Core ML Export
+pip install tr​​ansformers torch coremltools nltk
+&quot;&quot;&quot;
+导入 os
+从 transformers 导入 AutoModelForTokenClassification、AutoTokenizer
+导入 torch
+导入 torch.nn 作为 nn
+导入 nltk
+导入 coremltools 作为 ct
+nltk.download(&#39;punkt&#39;)
+# 加载模型和 tokenizer
+model_path = os.path.join(&#39;model&#39;)
+model = AutoModelForTokenClassification.from_pretrained(model_path, local_files_only=True)
+tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+# 修改模型的 forward 方法以返回元组
+class ModifiedModel(nn.Module):
+def __init__(self, model):
+super(ModifiedModel, self).__init__()
+self.model = model
+self.device = model.device # 添加设备属性
+
+def forward(self, input_ids,tention_mask, token_type_ids=None):
+outputs = self.model(input_ids=input_ids,attention_mask=attention_mask,token_type_ids=token_type_ids)
+returnoutputs.logits
+
+modified_model = ModifiedModel(model)
+
+# 导出到 Core ML
+def convert_to_coreml(model, tokenizer):
+# 定义用于跟踪的虚拟输入
+dummy_input = tokenizer(&quot;A French fan&quot;, return_tensors=&quot;pt&quot;)
+dummy_input = {k: v.to(model.device) for k, v in dummy_input.items()}
+
+# 使用虚拟输入跟踪模型
+traced_model = torch.jit.trace(model,(
+dummy_input[&#39;input_ids&#39;],dummy_input[&#39;attention_mask&#39;], dummy_input.get(&#39;token_type_ids&#39;)))
+
+# 转换为 Core ML
+输入 = [
+ct.TensorType(name=&quot;input_ids&quot;, shape=dummy_input[&#39;input_ids&#39;].shape),
+ct.TensorType(name=&quot;attention_mask&quot;, shape=dummy_input[&#39;attention_mask&#39;].shape)
+]
+if &#39;token_type_ids&#39; in dummy_input:
+输入.append(ct.TensorType(name=&quot;token_type_ids&quot;, shape=dummy_input[&#39;token_type_ids&#39;].shape))
+
+mlmodel = ct.convert(traced_model, 输入=inputs)
+
+# 保存 Core ML 模型
+mlmodel.save(&quot;model.mlmodel&quot;)
+print(&quot;模型导出到 Core ML成功&quot;)
+
+convert_to_coreml(modified_model, tokenizer)
+
+在 Ubuntu 20.04 上测试了 Python 3.10 和 torch 2.3.1（在 Windows 10 上不工作）。]]></description>
+      <guid>https://stackoverflow.com/questions/78704542/exporting-a-bert-based-pytorch-model-to-coreml-how-can-i-make-the-coreml-model</guid>
+      <pubDate>Wed, 03 Jul 2024 23:39:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>自定义线性回归的问题</title>
+      <link>https://stackoverflow.com/questions/78704446/problem-with-customized-linear-regression</link>
+      <description><![CDATA[我正在学习机器学习并研究学习模型。我最近的任务是编写一个具有 MSE 优化的多元线性回归模型（不使用 sklearn 中现有的模型），并用数据对其进行测试。
+我的模型是：
+ def linear_regression(x: np.array, y: np.array, learning_speed: float = 0.1, echoes: int = 1000):
+
+n = len(y)
+coef = np.zeros(len(x[0]) + 1)
+
+for _ in range(echoes):
+
+d = np.array([]) # 数组包含每个 coef 的步骤
+
+for idx in range(len(coef)):
+d_coef = 0
+for row in range(len(x)):
+if idx == len(coef) - 1:
+d_coef += (1) * (np.sum(coef[:-1] * x[row]) + coef[-1] - y[row])
+else:
+d_coef += (x[row, idx]) * (np.sum(coef[:-1] * x[row]) - y[row] + coef[-1]) # (V1X1 + ... + VnXn + b - y) 与 coef idx 相关的导数之和
+d = np.append(d, (2 / n) * d_coef)
+
+coef -= learning_speed * d
+
+print(f&#39;coef = {coef[:-1]}&#39;)
+print(f&#39;b = {coef[-1]}&#39;)
+
+我使用一些数据集测试了该模型。对于小型数据集，它运行完美。但是后来我尝试了更大的一个：
+x1_rnd = np.array([])
+x2_rnd = np.array([])
+c1 = 5
+c2 = 0.75
+b = 15
+for _ in range(500):
+x1_rnd = np.append(x1_rnd, np.random.randint(1, 100))
+x2_rnd = np.append(x2_rnd, np.random.randint(1, 100))
+
+combo = zip(x1_rnd, x2_rnd)
+x = np.array([list(elem) for elem in combo])
+y_rnd = c1 * x1_rnd + c2 * x2_rnd + b
+
+我的模型有显著的错误。即使经过 20000 次迭代（学习速度 = 0.0001），它也能或多或少地预测 X1 和 X2 的系数，但与“b”的预测相差甚远。我注意到较小的“b”会导致更好的预测，而较大的“b”会使预测变差（例如，如果它是 0.1，模型可以正确快速地运行；如果 b = 100，那就是一场噩梦）。
+我找不到我的代码梯度下降中的任何错误。请帮忙解决它！]]></description>
+      <guid>https://stackoverflow.com/questions/78704446/problem-with-customized-linear-regression</guid>
+      <pubDate>Wed, 03 Jul 2024 22:44:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 torch.where 对张量进行阈值处理是否会将其张量从计算图中分离出来？</title>
+      <link>https://stackoverflow.com/questions/78704234/does-using-torch-where-to-threshold-a-tensor-detach-it-tensor-from-the-computati</link>
+      <description><![CDATA[我正在 PyTorch 中为多类语义分割编写自定义损失函数。该函数的一部分是从张量中选择阈值通道，这些通道用 tracker_index 表示。
+该函数的最后一部分是计算图的一部分，即 channel_tensor，如果我注释掉应用 torch.where 的行，一切都会顺利运行。我尝试将 1 和 0 设置为 float32 张量，并确保它们与 channel_tensor 位于同一设备上，这让我相信八分之一阈值是不可微的，因此不能成为损失函数的一部分，否则 torch.where 将始终将张量从计算图中分离出来。请指教。
+channel_tensor =torch.select(
+segmentation_output,
+dim=-3,
+index=tracker_index
+)
+channels[tracker_index]= torch.where(channel_tensor &gt; self.threshold, torch.tensor(1, device=channel_tensor.device, dtype=torch.float32), torch.tensor(0, device=channel_tensor.device, dtype=torch.float32))
+]]></description>
+      <guid>https://stackoverflow.com/questions/78704234/does-using-torch-where-to-threshold-a-tensor-detach-it-tensor-from-the-computati</guid>
+      <pubDate>Wed, 03 Jul 2024 21:13:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>受不同聚类大小约束的 KMeans</title>
       <link>https://stackoverflow.com/questions/78703770/kmeans-constrained-with-different-cluster-size</link>
       <description><![CDATA[我有一个包含商店坐标的数据框，我想根据供应商应该访问该商店的日期将它们划分为簇。例如，假设供应商应该访问 180 家商店。他应该在周一到周五访问 30-34 家商店，周六，他应该访问其他日子的一半，所以在 15 到 17 之间。
 你们知道我该怎么做吗？使用 kmeans-constrained 我只能将它们划分为大小相等的簇。也许我需要使用某种解算器或在集群之间移动点来达到我想要的数字，但我不知道该怎么做。
@@ -124,17 +254,6 @@ print(cv2.__version__)
       <pubDate>Wed, 03 Jul 2024 16:43:17 GMT</pubDate>
     </item>
     <item>
-      <title>关于重新训练预训练的 unet 模型的问题</title>
-      <link>https://stackoverflow.com/questions/78703309/question-about-retraining-a-pre-trained-unet-model</link>
-      <description><![CDATA[我目前正在用新图片训练一个预训练模型（https://doi.org/10.1104/pp.19.00728）来分割植物，但是只能得到蓝色背景的分割图，我想得到红色背景的图，因为蓝色就是我想要分割的目标区域，但是不知道问题出在哪里。
-目前考虑是训练epoch数不足的原因，所以增加到1000个，但是结果没什么变化，也尝试过修改代码，但是没有成功。图片的预处理也是按照论文中的教程进行的。
-
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78703309/question-about-retraining-a-pre-trained-unet-model</guid>
-      <pubDate>Wed, 03 Jul 2024 16:41:56 GMT</pubDate>
-    </item>
-    <item>
       <title>机器学习回归任务：我应该如何解决这个问题？</title>
       <link>https://stackoverflow.com/questions/78702761/machine-learning-regression-task-how-should-i-approach-this-problem</link>
       <description><![CDATA[我正在研究一个问题，预测“明年”何时需要对道路进行处理。我的数据集如下所示：数据集
@@ -166,126 +285,12 @@ print(cv2.__version__)
       <pubDate>Wed, 03 Jul 2024 09:17:19 GMT</pubDate>
     </item>
     <item>
-      <title>我可以申请序列 keras 模型的专利吗？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78700633/can-i-patent-a-sequential-keras-model</link>
-      <description><![CDATA[我的问题与任何代码片段都无关，但我想问一下我是否创建了一个 keras 模型
-这里是从 网站 获取的示例
-model = keras.Sequential()
-model.add(keras.Input(shape=(16,)))
-model.add(keras.layers.Dense(8))
-
-# 请注意，您也可以省略初始“Input”。
-# 在这种情况下，模型在第一次调用训练/评估方法之前没有任何权重（因为它尚未构建）：
-model = keras.Sequential()
-model.add(keras.layers.Dense(8))
-model.add(keras.layers.Dense(4))
-# model.weights 尚未创建
-
-# 而如果您指定“输入”，则模型会在您添加层时连续构建：
-model = keras.Sequential()
-model.add(keras.Input(shape=(16,)))
-model.add(keras.layers.Dense(8))
-len(model.weights) # 返回“2”
-
-# 使用延迟构建模式（未指定输入形状）时，您可以
-# 选择通过调用
-# `build(batch_input_shape)` 来手动构建模型：
-model = keras.Sequential()
-model.add(keras.layers.Dense(8))
-model.add(keras.layers.Dense(4))
-model.build((None, 16))
-len(model.weights) # 返回“4”
-
-# 请注意，使用延迟构建模式（未指定输入形状）时，
-# 第一次调用 `fit`、`eval` 或 `predict` 时，
-# 或第一次对某些输入数据调用模型时，模型就会构建。
-model = keras.Sequential()
-model.add(keras.layers.Dense(8))
-model.add(keras.layers.Dense(1))
-model.compile(optimizer=&#39;sgd&#39;, loss=&#39;mse&#39;)
-
-现在我的模型相对来说处于类似的模式，由于 keras 是一个开源库，所以我获得了专利。]]></description>
-      <guid>https://stackoverflow.com/questions/78700633/can-i-patent-a-sequential-keras-model</guid>
-      <pubDate>Wed, 03 Jul 2024 07:27:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：传递的项目数错误 9，放置位置意味着 1</title>
-      <link>https://stackoverflow.com/questions/78700237/valueerror-wrong-number-of-items-passed-9-placement-implies-1</link>
-      <description><![CDATA[我正在尝试计算数据框中两列之间的余弦相似度。它的代码片段如下：
-def cal_cosine_similarity(row):
-vec1 = np.array(row[&#39;sup_vec&#39;])
-vec2 = np.array(row[&#39;vector&#39;])
-return cosine_similarity([vec1], [vec2])[0][0]
-cross_join_df[&#39;cos_sim&#39;] = cross_join_df.apply(cal_cosine_similarity,axis = 1)
-
-大多数情况下，这种方法都行得通，但有时我会收到如下错误：
-Traceback（最近一次调用最后一次）：
-File &quot;/usr/local/lib/python3.8/site-packages/pandas/core/indexes/base.py&quot;, line 2898, in get_loc
-return self._engine.get_loc(casted_key)
-文件 &quot;pandas/_libs/index.pyx&quot;, 第 70 行, 位于 pandas._libs.index.IndexEngine.get_loc
-文件 &quot;pandas/_libs/index.pyx&quot;, 第 101 行, 位于 pandas._libs.index.IndexEngine.get_loc
-文件 &quot;pandas/_libs/hashtable_class_helper.pxi&quot;, 第 1675 行, 位于 pandas._libs.hashtable.PyObjectHashTable.get_item
-文件 &quot;pandas/_libs/hashtable_class_helper.pxi&quot;, 第 1683 行, 位于 pandas._libs.hashtable.PyObjectHashTable.get_item
-KeyError: &#39;cos_sim&#39;
-上述异常是导致以下异常的直接原因异常：
-回溯（最近一次调用）：
-文件“/usr/local/lib/python3.8/site-packages/pandas/core/generic.py”，第 3576 行，在 _set_item 中
-loc = self._info_axis.get_loc(key)
-文件“/usr/local/lib/python3.8/site-packages/pandas/core/indexes/base.py”，第 2900 行，在 get_loc 中
-从 err 引发 KeyError(key)
-KeyError：&#39;cos_sim&#39;
-在处理上述异常期间，发生了另一个异常：
-回溯（最近一次调用）：
-文件“/opt/prism/src/main.py”，第 79 行，在 &lt;module&gt; 中
-res = job.run()
-文件 &quot;/opt/prism/src/jobs/v2/SparkJob.py&quot;，第 45 行，运行中
-self.start()
-文件 &quot;/opt/prism/src/jobs/v2/SparkJob.py&quot;，第 71 行，启动中
-raise e
-文件 &quot;/opt/prism/src/jobs/v2/SparkJob.py&quot;，第 68 行，启动中
-self.execute(self.input_data, 1)
-文件 &quot;/opt/prism/src/jobs/v2/DprmMappingInference.py&quot;，第 289 行，执行中
-cross_join_df[&#39;cos_sim&#39;] = cross_join_df.apply(cal_cosine_similarity,axis = 1)
-文件&quot;/usr/local/lib/python3.8/site-packages/pandas/core/frame.py&quot;，第 3044 行，在 __setitem__ 中
-self._set_item(key, value)
-文件 &quot;/usr/local/lib/python3.8/site-packages/pandas/core/frame.py&quot;，第 3121 行，在 _set_item 中
-NDFrame._set_item(self, key, value)
-文件 &quot;/usr/local/lib/python3.8/site-packages/pandas/core/generic.py&quot;，第 3579 行，在 _set_item 中
-self._mgr.insert(len(self._info_axis), key, value)
-文件 &quot;/usr/local/lib/python3.8/site-packages/pandas/core/internals/managers.py&quot;，第1198，在插入中
-block = make_block(values=value, ndim=self.ndim, placement=slice(loc, loc + 1))
-文件 &quot;/usr/local/lib/python3.8/site-packages/pandas/core/internals/blocks.py&quot;，第 2744 行，在 make_block 中
-return klass(values, ndim=ndim, placement=placement)
-文件 &quot;/usr/local/lib/python3.8/site-packages/pandas/core/internals/blocks.py&quot;，第 2400 行，在 __init__ 中
-super().__init__(values, ndim=ndim, placement=placement)
-文件 &quot;/usr/local/lib/python3.8/site-packages/pandas/core/internals/blocks.py&quot;，第 130 行，在 __init__ 中
-raise ValueError(
-ValueError：项目数错误，超过 9，位置意味着 1
-
-我无法找到此错误。此错误是否由余弦相似度函数的某些功能引起？]]></description>
-      <guid>https://stackoverflow.com/questions/78700237/valueerror-wrong-number-of-items-passed-9-placement-implies-1</guid>
-      <pubDate>Wed, 03 Jul 2024 05:35:57 GMT</pubDate>
-    </item>
-    <item>
       <title>在 PyTorch 中使用不同分辨率图像训练 DeepLabV3 的最佳实践</title>
       <link>https://stackoverflow.com/questions/78698316/best-practice-to-train-deeplabv3-with-different-resolution-images-in-pytorch</link>
       <description><![CDATA[我正在尝试在 COCO 2017 数据集 上训练 PyTorch 的 DeepLabV3 进行语义分割，但我不确定如何处理不同分辨率的图像。我知道 DeepLab 的架构可以毫无问题地处理它们，但由于它们的分辨率，我无法将它们分批堆叠。处理此问题的最佳做法是什么？我是否将它们调整为固定大小？我是否随机裁剪固定大小？我知道有很多解决方案可以解决此问题，但我真的不知道在语义分割训练的背景下最佳做法是什么。
 谢谢！]]></description>
       <guid>https://stackoverflow.com/questions/78698316/best-practice-to-train-deeplabv3-with-different-resolution-images-in-pytorch</guid>
       <pubDate>Tue, 02 Jul 2024 16:39:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>chemprop：RuntimeError：在“目标”中检测到以下值：张量（[0，12]），但仅预期以下值[0，1]</title>
-      <link>https://stackoverflow.com/questions/78698076/chemprop-runtimeerror-detected-the-following-values-in-target-tensor-0-1</link>
-      <description><![CDATA[运行 Chemprop 脚本时出现运行时错误。
-所有脚本均可在此处找到：
-https://github.com/chemprop/chemprop/blob/main/examples/training.ipynb
-我遇到错误的部分是：
-trainer.fit(mpnn, train_loader, val_loader)
-两个月前它还可以正常工作。
-我已经更新了所有软件包]]></description>
-      <guid>https://stackoverflow.com/questions/78698076/chemprop-runtimeerror-detected-the-following-values-in-target-tensor-0-1</guid>
-      <pubDate>Tue, 02 Jul 2024 15:44:02 GMT</pubDate>
     </item>
     <item>
       <title>Pycaret 设置独热编码</title>
@@ -378,6 +383,45 @@ other列
       <pubDate>Sun, 09 Oct 2022 00:59:48 GMT</pubDate>
     </item>
     <item>
+      <title>tensorflow：仅当 val_acc 可用时才可以保存最佳模型，跳过</title>
+      <link>https://stackoverflow.com/questions/61505749/tensorflowcan-save-best-model-only-with-val-acc-available-skipping</link>
+      <description><![CDATA[我遇到了 tf.callbacks.ModelChekpoint 问题。正如您在我的日志文件中看到的那样，警告总是出现在计算 val_acc 的最后一次迭代之前。因此，Modelcheckpoint 永远找不到 val_acc
+Epoch 1/30
+1/8 [==&gt;...........................] - ETA：19s - 损失：1.4174 - 准确度：0.3000
+2/8 [======&gt;.......................] - ETA：8s - 损失：1.3363 - 准确度：0.3500 
+3/8 [==========&gt;...................] - ETA：4s - 损失：1.3994 - 准确度：0.2667
+4/8 [==============&gt;...............] - ETA：3s - 损失：1.3527 - 准确度：0.3250
+6/8 [======================&gt;........] - ETA：1 秒 - 损失：1.3042 - 准确率：0.3333
+警告：tensorflow：只有 val_acc 可用时才能保存最佳模型，跳过。
+8/8 [================================] - 4s 482ms/step - 损失：1.2846 - 准确度：0.3375 - val_loss：1.3512 - val_accuracy：0.5000
+
+Epoch 2/30
+1/8 [==&gt;..............................] - ETA：0s - 损失：1.0098 - 准确度：0.5000
+3/8 [==========&gt;...................] - ETA：0s - 损失：0.8916 - 准确度：0.5333
+5/8 [==================&gt;............] - ETA：0s - 损失：0.9533 - 准确度： 0.5600
+6/8 [=======================&gt;........] - ETA：0s - 损失：0.9523 - 准确度：0.5667
+7/8 [==========================&gt;....] - ETA：0s - 损失：0.9377 - 准确度：0.5714
+警告：tensorflow：只有 val_acc 可用时才能保存最佳模型，跳过。
+8/8 [================================] - 1s 98ms/step - 损失：0.9229 - 准确度：0.5750 - val_loss：1.2507 - val_accuracy：0.5000
+
+这是我用于训练 CNN 的代码。
+callbacks = [
+TensorBoard(log_dir=r&#39;C:\Users\reda\Desktop\logs\{}&#39;.format(Name),
+histogram_freq=1),
+ModelCheckpoint(filepath=r&quot;C:\Users\reda\Desktop\checkpoints\{}&quot;.format(Name), monitor=&#39;val_acc&#39;,
+verbose=2, save_best_only=True, mode=&#39;max&#39;)]
+history = model.fit_generator(
+train_data_gen, 
+steps_per_epoch=total_train // batch_size,
+epochs=epochs,
+validation_data=val_data_gen,
+validation_steps=total_val // batch_size,
+callbacks=callbacks)
+]]></description>
+      <guid>https://stackoverflow.com/questions/61505749/tensorflowcan-save-best-model-only-with-val-acc-available-skipping</guid>
+      <pubDate>Wed, 29 Apr 2020 15:38:04 GMT</pubDate>
+    </item>
+    <item>
       <title>使用已保存的模型通过 Java 代码（Weka）测试数据</title>
       <link>https://stackoverflow.com/questions/47952227/using-a-saved-model-to-test-data-through-java-code-weka</link>
       <description><![CDATA[我对机器学习完全陌生，所以在某些情况下我的理解可能是错误的。我正尝试使用 weka 通过 Java 代码加载已保存的模型来测试数据。
@@ -403,7 +447,7 @@ eval.crossValidateModel(cls​​, testingData, 10, new Random(1));
     <item>
       <title>前馈神经网络的图灵完备性？</title>
       <link>https://stackoverflow.com/questions/46696576/turing-completeness-of-feed-forward-neural-networks</link>
-      <description><![CDATA[我读到 RNN 是图灵完备的，而前馈神经网络 (FFN) 不是。但基于通用近似定理，FFN 可以在给定足够多节点的情况下模拟任何函数，而且我们还知道 lambda Church 演算（基于无状态函数）等同于图灵机，为什么 FFN 不能通过在 Church 演算中模拟任意函数来实现图灵完备？
+      <description><![CDATA[我读到 RNN 是图灵完备的，而前馈神经网络 (FFN) 不是。但基于通用近似定理，FFN 可以在给定足够多节点的情况下模拟任何函数，而且我们还知道 lambda Church 演算（基于无状态函数）等同于图灵机，为什么 FFN 不能通过在 Church 演算中模拟任意函数来实现图灵完备呢？
 谢谢！]]></description>
       <guid>https://stackoverflow.com/questions/46696576/turing-completeness-of-feed-forward-neural-networks</guid>
       <pubDate>Wed, 11 Oct 2017 20:01:46 GMT</pubDate>
