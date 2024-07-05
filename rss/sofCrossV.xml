@@ -4,7 +4,50 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 04 Jul 2024 21:13:55 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 05 Jul 2024 01:05:07 GMT</lastBuildDate>
+    <item>
+      <title>为什么我们需要 VAE 中的后验？</title>
+      <link>https://stats.stackexchange.com/questions/650506/why-do-we-need-the-posterior-in-vae</link>
+      <description><![CDATA[在 VAE 中，目标是$\max_\theta \sum_{i=1}^n \log P_\theta(x_i), P_\theta(x_i) = \int \log P_\theta(x_i|z)P(z)dz = \mathbb{E}_z [\log P_\theta(x_i|z)] $。
+取 Jensen 不等式：
+$$
+\sum_{i=1}^n \mathbb{E}_z[\log P(x_i|z)] \ge \sum_{i=1}^n \log \mathbb{E}_z[P(x_i|z)]
+$$
+主要问题在于，由于 $z$ 是高维的，因此简单的 MC 积分需要来自 P(z) 的大量样本才能对积分做出准确的估计（即 $\int \log P_\theta(x_i|z)P(z)dz$ ）。因此，我们需要采用更好的方法。使用重要性抽样，我们希望有一个近似分布 q(z)，当 $P_\theta(x_i|z)P(z)$ 较高时，该分布也较高。
+使用贝叶斯定理并为了简单起见删除 $\theta$：$P(z|x_i) = \frac{P(x_i|z)P(z)}{P(x_i)}$。这意味着如果我们选择 $q(z) = p(z|x)$，那么它将是一个很好的候选者。
+
+最后一句有一个悖论：我们希望最大化 $P_\theta(x_i)$，这样将导致 $P(z|x_i)$ 最小化。我觉得在这种情况下，后验和边际是相互矛盾的。
+
+我们是否假设 $P(x)$ 是经验分布 $\hat P(x)= \sum_{i=1}^n \delta_{x_i}$？这将使 demonimator 中的 $P(x_i)$ 等于常数，这可能会解决 (1)，但我再次觉得这是一个悖论，因为如何 $\max_\theta P_\theta(x_i)$ 并且我已经假设它具有简单的 delta 形式。
+
+编码器的整个要点是 学习 近似分布，以根据先验计算积分 $\int \log P_\theta(x_i|z)P(z)dz$，对吗？如果是这样，最终由于 ELBO 项中的 KL 发散，它将“崩溃”到先验，所以我不确定这里的重要性采样是如何工作的。
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/650506/why-do-we-need-the-posterior-in-vae</guid>
+      <pubDate>Fri, 05 Jul 2024 00:09:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>两个高斯过程之间的相关性</title>
+      <link>https://stats.stackexchange.com/questions/650504/correlation-between-two-gaussian-processes</link>
+      <description><![CDATA[我有一个时空序列，所以它是二维的。因此，信号模型$\mathbf{S}$是一个矩阵。如果我固定空间，空间中该点的时间序列就是一个复杂的 GP：
+$$ \mathbf{S}[x, :] \sim \mathcal{CGP}(0, \mathbf{C}_x), $$
+其中 $\mathbf{C}_x$ 是点 $x$ 处时间序列的核，该核为：
+$$ \mathbf{C}_x(t, t^{&#39;}) = P_x \exp(-1/2 (t-t&#39;)^2 \sigma_x^2) \exp(-j (t-t&#39;) \mu_x )$$
+我假设参数 $\mu_x$ 和 $\sigma_x$ 是空间函数参数。
+那么，如何找到具有空间的总协方差结构，以便我稍后可以使用 GP 回归？因此，协方差应该是维度 ($MN \times MN$)，其中 $M$ 是空间点的数量，$N$ 是时间点的数量。
+这个协方差还会是平稳的吗？我尝试推导新的内核。让我们取两个空间点（在 $x_1$ 和 $x_2$）和两个时间点（在 $t_1$ 和 $t_2$）并找到相关性：
+$$ \mathbb{E}\left[ \mathbf{S}[x_1, t_1] \times \mathbf{S}[x_2, t_2]^{*} \right] $$
+应该是：
+$$ P_{x_1} P_{x_2}\exp(-1/2(t_1^2 \sigma_{x_1}^2+ t_2^2 \sigma_{x_2}^2) \exp(-j (t_1 \mu_{x_1} - t_2 \mu_{x_2})) ? $$
+或者，如果我假设 $\mu_x$ 和 $\sigma_x$ 也是 GP，但在空间中，是否更容易制定公式。我实际上可以假设它，但我需要看看我可以为它们使用哪些核函数。在空间中对这些进行建模的更好函数是多项式。因此，我们的想法是估计 $\mu_x$ 和 $\sigma_x$ 的参数，以在空间中重建两者的轮廓。它避免了为每个 $x$ 分别估计 $\mu_x$ 和 $\sigma_x$ 的需要（通过对每个 x 及时使用 GP 回归）。这样做的好处是只需估计几个参数，就可以解释$\mu_x$和$\sigma_x$在空间中的分布。
+$$ \mu_x = f(\Theta_\mu; x), $$
+$$ \sigma_x = g(\Theta_\sigma; x) $$
+那么目标应该是找到
+$$ [\Theta_\mu , \Theta_\sigma] = \max_{[\Theta_\mu , \Theta_\sigma]} \log(p(\mathbf{S} + \mathbf{N} | \Theta_\mu, \Theta_\sigma) ), $$
+其中 $N$ 是已知的噪声矩阵。]]></description>
+      <guid>https://stats.stackexchange.com/questions/650504/correlation-between-two-gaussian-processes</guid>
+      <pubDate>Thu, 04 Jul 2024 21:44:07 GMT</pubDate>
+    </item>
     <item>
       <title>卡尔曼滤波器最计算高效的实现是什么</title>
       <link>https://stats.stackexchange.com/questions/650501/whats-the-most-computationally-efficient-implementation-of-kalman-filter</link>
@@ -40,7 +83,7 @@ library(marginaleffects)
 avg_slopes(mod1, variable=&quot;am&quot;)
 
 
-avg_slopes() 返回的 estimate 值是否是预测为 vs 的概率的变化（无论它是什么）。我看到它不是系数，也不是预测概率。该值在 predicted 中返回。所以我认为唯一可能的是预测概率的变化，即效果。我错了吗？]]></description>
+avg_slopes() 返回的 estimate 值是否是预测为 vs 的概率的变化（无论它是什么）。我明白，它不是系数，也不是预测概率。该值在 predicted 中返回。所以我认为唯一可能的是预测概率的变化，即效果。我错了吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/650497/what-are-the-estimates-returned-by-avg-slopes-in-modelsummary</guid>
       <pubDate>Thu, 04 Jul 2024 19:13:30 GMT</pubDate>
     </item>
@@ -98,7 +141,7 @@ alt_counts_df = adsl
       <pubDate>Thu, 04 Jul 2024 14:55:01 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Lightgbm/XGBoost 在改变单个特征并保持其余特征不变的情况下进行有效预测</title>
+      <title>使用 Lightgbm/XGBoost 在改变单个特征的同时保持其余特征不变，实现高效预测</title>
       <link>https://stats.stackexchange.com/questions/650485/efficient-prediction-using-lightgbm-xgboost-when-varying-single-feature-keeping</link>
       <description><![CDATA[假设我们有一个预先训练的 Lightgbm/XGBoost 模型 $f$，该模型依赖于特征矩阵：
 $$X=\left[z, C\right]$$
@@ -140,23 +183,6 @@ print(f&quot;计算时间：{total_time}&quot;)
       <pubDate>Thu, 04 Jul 2024 14:53:43 GMT</pubDate>
     </item>
     <item>
-      <title>大小为 n 的样本中第 i 个标准正态顺序统计量的预期值的近似值</title>
-      <link>https://stats.stackexchange.com/questions/650483/approximation-of-the-expected-value-of-the-i-th-standard-normal-order-statistic</link>
-      <description><![CDATA[对于随机变量 $X_1, \cdots, X_n$，我们用以下方式表示顺序统计量
-$X_{(1)} = \min (X_1,\cdots, X_n)$
-$X_{(2)} = $ $X_1,\cdots, X_n$ 中的第二小值
-...
-$X_{(n)} = \max (X_1,\cdots, X_n)$
-现在让 $Z_1,\cdots,Z_n$ 为 $n$ 从标准正态分布中抽取的随机样本。令 $\mu_{i:n}$ 为 $i$ 阶统计量的预期值。据我所知，$\mu_{i:n}$没有闭式公式，而 Blom (1958)[1] 为 $\mu_{i:n}$提供了一个简单但相当准确的近似值：即
-$\mu_{i:n}=\Phi^{-1}(\frac{i-\frac{3}{8}}{n+\frac{1}{4}})$，其中 $\Phi$ 是标准正态分布的 cdf。
-我的问题是，自 Blom 以来，$\mu_{i:n}$ 的近似值是否有任何进展，或者是否有任何数据库可以记录这些值$\mu_{i:n}$?
-如能得到任何帮助，我们将不胜感激。
-参考文献：
-[1] G. Blom。统计估计和变换后的 Beta 变量。1958 年。]]></description>
-      <guid>https://stats.stackexchange.com/questions/650483/approximation-of-the-expected-value-of-the-i-th-standard-normal-order-statistic</guid>
-      <pubDate>Thu, 04 Jul 2024 14:19:07 GMT</pubDate>
-    </item>
-    <item>
       <title>多种单向方差分析，或者有更好的方法吗？</title>
       <link>https://stats.stackexchange.com/questions/650454/multiple-one-way-anovas-or-are-there-better-ways</link>
       <description><![CDATA[我通过质谱分析肽含量。我针对 4 种实验条件（因子）进行 6 次注射（重复），并测量信号强度（响应）。通常，我会使用单向方差分析。但是，注射的溶液含有四种不同的肽，它们的信号强度自然不同。仅使用单个肽的响应不会使用所有可用数据。我可以做四次方差分析，但我想知道是否有更好的方法？我想知道的本质上是“哪种条件总体上更好？”。
@@ -164,16 +190,6 @@ $\mu_{i:n}=\Phi^{-1}(\frac{i-\frac{3}{8}}{n+\frac{1}{4}})$，其中 $\Phi$ 是�
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/650454/multiple-one-way-anovas-or-are-there-better-ways</guid>
       <pubDate>Thu, 04 Jul 2024 06:38:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该进行多长时间的训练才能了解 NN 模型的运行情况？</title>
-      <link>https://stats.stackexchange.com/questions/650442/how-long-should-i-run-a-training-to-realize-how-well-an-nn-model-is-doing</link>
-      <description><![CDATA[假设我正在手动调整 NN 模型的超参数。
-在停止训练之前，我应该至少运行多少个训练周期才能意识到模型无法提供我所需的准确率？
-例如，如果训练开始时的准确率是 75%，那么我不能指望它在 1000 个训练周期后达到 90%。可以吗？
-那么，我应该如何运用我的直觉？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650442/how-long-should-i-run-a-training-to-realize-how-well-an-nn-model-is-doing</guid>
-      <pubDate>Thu, 04 Jul 2024 02:42:55 GMT</pubDate>
     </item>
     <item>
       <title>如何从等级中创建等级？</title>
