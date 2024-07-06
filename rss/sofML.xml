@@ -4,7 +4,126 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 06 Jul 2024 18:18:31 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 06 Jul 2024 21:15:20 GMT</lastBuildDate>
+    <item>
+      <title>eval（predvars、data、env）中出现错误：未找到对象“s_id”</title>
+      <link>https://stackoverflow.com/questions/78715689/error-in-evalpredvars-data-env-object-s-id-not-found</link>
+      <description><![CDATA[我正在尝试使用 tidymodels 拟合多层模型。当我拟合单个模型时，我没有遇到问题，但当我将它们组合到工作流集中时，我得到了这些错误。
+我看到过有类似错误的帖子，并尝试更新我的代码，但似乎仍然不起作用。
+当我在应用配方后查看训练和验证集时，我确实在数据框中找到所有列。不确定错误持续存在的原因。
+我希望有人能帮助解决此错误：
+pacman::p_load(labelled,forcats,rstanarm,tidymodels,dplyr,parsnip,baguette,future,finetune,rules,rsample,
+multilevelmod,ranger,earth,readr,stacks)
+
+plan(multisession)
+
+load(url(&quot;http://alecri.github.io/downloads/data/dental.RData&quot;))
+
+dental_long &lt;- pivot_longer(dental, cols = starts_with(&quot;y&quot;), 
+names_to = &quot;measurement&quot;, values_to = &quot;distance&quot;) %&gt;% 
+mutate(
+age = parse_number(measurement),
+measure = fct_inorder(paste(&quot;测量年龄&quot;, age)),
+s_id=as.factor(id)
+) %&gt;% 
+set_variable_labels(
+age = &quot;测量时孩子的年龄&quot;,
+measure = &quot;时间测量标签&quot;,
+distance = &quot;测量值&quot;
+) %&gt;% select(-measurement,-id)
+
+#将数据拆分为训练集、验证集和测试集
+set.seed(11)
+splitsx &lt;- group_initial_split(dental_long, group = s_id,prop = 0.8)
+
+dental_train &lt;- training(splitsx)
+dental_val &lt;- testing(splitsx)
+
+#创建交叉验证折叠
+foldsx &lt;- group_vfold_cv(dental_train, v = 3,group = s_id,repeats = 3)
+
+#创建简单的建模配方
+simple_recipex &lt;- recipe(distance ~ ., data = dental_train) %&gt;% 
+update_role(s_id,new_role = &#39;id&#39;)
+
+#带有多项式项的配方
+poly_recipex &lt;- recipe(distance ~ ., data = dental_train) %&gt;% 
+update_role(s_id,new_role = &#39;id&#39;) %&gt;%
+step_scale(all_numeric_predictors()) %&gt;%
+step_poly(all_numeric_predictors(),degree = 2,keep_original_cols = F) %&gt;%
+step_dummy(all_nominal_predictors()) %&gt;% 
+step_interact(~all_numeric_predictors():all_numeric_predictors())
+
+mixed_basic_recipex &lt;- recipe(distance ~ ., data = dental_train)
+
+mixed_poly_recipex &lt;- recipe(distance ~ ., data = dental_train) %&gt;% 
+step_scale(all_numeric_predictors()) %&gt;%
+step_poly(all_numeric_predictors(),degree = 2,keep_original_cols = F) %&gt;%
+step_dummy(all_nominal_predictors() &amp; !matches(&#39;s_id&#39;)) #%&gt;% 
+# step_interact(~all_numeric_predictors():all_numeric_predictors() )
+
+# df1 &lt;- prep(mixed_poly_recipex) %&gt;% bake(dental_train)
+
+#mixed model
+lmer_specx &lt;-
+linear_reg() %&gt;%
+set_mode(&quot;regression&quot;) %&gt;%
+set_engine(&quot;lmer&quot;)
+
+bayes_specx &lt;- linear_reg() %&gt;%
+set_mode(&quot;regression&quot;) %&gt;%
+set_engine(&quot;stan_glmer&quot;)
+
+fullx &lt;- 
+workflow_set(
+preproc = list(mixed_poly = poly_recipex
+), 
+models = list(bayesMixed = bayes_specx,lmmixed = lmer_specx
+
+)
+)
+
+#贝叶斯调整和度量的设置
+bayes_ctrl &lt;-
+control_bayes(
+save_pred = TRUE,
+parallel_over = &quot;everything&quot;,
+save_workflow = TRUE,
+verbose = TRUE,
+no_improve = 20
+)
+rmse_res &lt;- metric_set(rmse,rsq)
+
+basicbkx &lt;- prep(mixed_basic_recipex) %&gt;% bake(dental_train)
+polybkx &lt;- prep(mixed_poly_recipex) %&gt;% bake(dental_train)
+
+polyform &lt;- reformulate(c(setdiff(colnames(polybkx), c(&quot;距离&quot;,&#39;s_id&#39;)),&#39;-s_id + (1 | s_id)&#39;), 
+response=&quot;distance&quot;)
+basicform &lt;- reformulate(c(setdiff(colnames(basicbkx), c(&quot;distance&quot;,&#39;s_id&#39;)),&#39;-s_id + (1 | s_id)&#39;), 
+response=&quot;distance&quot;)
+
+all_wfx1 &lt;- fullx %&gt;% 
+# update_workflow_model(id=&#39;basic_bayesMixed&#39;,spec=bayes_specx,
+# formula = basicform) %&gt;% 
+update_workflow_model(id=&#39;mixed_poly_bayesMixed&#39;,spec=bayes_specx,
+formula = polyform) %&gt;%
+# update_workflow_model(id=&#39;basic_lmmixed&#39;,spec=lmer_specx,
+# formula = basicform) %&gt;%
+update_workflow_model(id=&#39;mixed_poly_lmmixed&#39;,spec=lmer_specx,
+formula = polyform)
+
+test_results &lt;-
+all_wfx1 %&gt;%
+working_map(
+&quot;tune_bayes&quot;,
+seed = 10,
+resamples = foldsx,
+control = bayes_ctrl
+)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78715689/error-in-evalpredvars-data-env-object-s-id-not-found</guid>
+      <pubDate>Sat, 06 Jul 2024 19:11:58 GMT</pubDate>
+    </item>
     <item>
       <title>从 UE5 中的动作分类器模型获取输入</title>
       <link>https://stackoverflow.com/questions/78714836/taking-input-from-an-action-classifier-model-in-ue5</link>
@@ -16,8 +135,8 @@
       <pubDate>Sat, 06 Jul 2024 12:29:29 GMT</pubDate>
     </item>
     <item>
-      <title>使用 StandardScaler 转换 x_test 数据时出现错误</title>
-      <link>https://stackoverflow.com/questions/78714642/getting-error-while-transforming-the-x-test-data-using-standardscaler</link>
+      <title>使用 StandardScaler 转换 x_test 数据时收到不合理警告</title>
+      <link>https://stackoverflow.com/questions/78714642/getting-unreasonable-warning-while-transforming-the-x-test-data-using-standardsc</link>
       <description><![CDATA[import numpy as np
 import pandas as pd
 df = pd.read_csv(&#39;C:/Users/sayed/Downloads/placement.csv&#39;)
@@ -34,12 +153,15 @@ scaler = StandardScaler()
 x_train = scaler.fit_transform(x_train)
 x_test = scaler.transform(x_test)
 
-执行 x_test = scaler.transform(x_test) 后，我得到了这个警告
-UserWarning：X 没有有效的功能名称，但 StandardScaler 配备了功能名称 warnings.warn(
-我确实向 ChatGPT 询问了这个问题，它给出了以下答案
+最后一行给出此警告：
+UserWarning: X没有有效的功能名称，但 StandardScaler 配有功能名称 warnings.warn(
+
+我确实向 ChatGPT 询问过这个问题，它给出了以下答案
+
 您收到的警告是由于缩放器的安装方式与使用方式不匹配造成的
-我仍然不清楚错误所在。]]></description>
-      <guid>https://stackoverflow.com/questions/78714642/getting-error-while-transforming-the-x-test-data-using-standardscaler</guid>
+
+我仍然不清楚该警告。如何解决？]]></description>
+      <guid>https://stackoverflow.com/questions/78714642/getting-unreasonable-warning-while-transforming-the-x-test-data-using-standardsc</guid>
       <pubDate>Sat, 06 Jul 2024 11:01:20 GMT</pubDate>
     </item>
     <item>
@@ -48,21 +170,6 @@ UserWarning：X 没有有效的功能名称，但 StandardScaler 配备了功能
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78714452/rewards-not-increasing-in-actor-critic-model-in-a-custom-environment</guid>
       <pubDate>Sat, 06 Jul 2024 09:38:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>此函数能找到 pytorch 张量中最后一个元素的内存地址吗？</title>
-      <link>https://stackoverflow.com/questions/78713769/does-this-function-find-the-memory-address-of-the-last-element-in-a-pytorch-tens</link>
-      <description><![CDATA[我想知道我编写的这个函数是否能找到 pytorch 张量中最后一个元素的内存地址。我运行它，它看起来不错，但有几次它返回了张量的“最后一个元素”，并且它显示它位于内存中比第一个元素更靠后的部分，我使用 .data_ptr() 函数获得第一个元素。张量是连续的，尺寸为 (3,1000,1000)。
-我将张量作为参数，然后获取张量的最后一个索引，然后调用 data_ptr() 函数。以下是我的代码：
-def get_last_mem(tensor):
-last_element = tensor[-1,-1].data_ptr()
-return last_element
-
-这是我的输出
-变换前的第一个元素内存地址：136496996679680，连续：True
-变换前的最后一个元素内存地址：136497008675680]]></description>
-      <guid>https://stackoverflow.com/questions/78713769/does-this-function-find-the-memory-address-of-the-last-element-in-a-pytorch-tens</guid>
-      <pubDate>Sat, 06 Jul 2024 03:07:18 GMT</pubDate>
     </item>
     <item>
       <title>我加载一个 float32 Hugging Face 模型，将其转换为 float16，然后保存。我该如何将其加载为 float16？</title>
@@ -117,41 +224,11 @@ print_model_layer_dtype(model2)
       <pubDate>Fri, 05 Jul 2024 21:44:17 GMT</pubDate>
     </item>
     <item>
-      <title>CNN 模型中的损失函数没有减少？</title>
+      <title>CNN 模型中的损失函数没有减少吗？</title>
       <link>https://stackoverflow.com/questions/78712668/loss-function-not-decreasing-on-a-cnn-model</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78712668/loss-function-not-decreasing-on-a-cnn-model</guid>
       <pubDate>Fri, 05 Jul 2024 17:20:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>寻找包含带有摘要分析注释的电子表格的数据集[关闭]</title>
-      <link>https://stackoverflow.com/questions/78712190/looking-for-dataset-containing-spreadsheets-with-summary-analytical-comments</link>
-      <description><![CDATA[我正在开展一个机器学习项目，该项目需要一种独特类型的数据集。具体来说，我需要包含分析注释或描述的 CSV 或 XLSX 格式的电子表格。
-我正在寻找这样的数据集：每个电子表格都有清晰的行和列标题，并在文件底部或注释部分包含注释，以像人类一样描述数据。这些注释应该解释数据、提供见解或描述数据所代表的内容，而不仅仅是元数据或文档。
-例如，请参阅附件示例电子表格。此表显示了学生的每周时间表，下面有分析注释，根据下面注释中的数据描述了潜在问题和建议。
-数据集可以来自任何领域，而不仅仅是学术领域。示例包括：
-
-商业公司：公司的季度资产负债表，附有描述业绩和未来计划的评论。
-政府报告：龙卷风发生统计数据，附有突出重要年份和因素的评论。
-个人信息：财务数据，附有财富分配和促成因素的分析。
-
-有谁知道这类电子表格的集合或我可以找到这类数据集的来源？或者，任何关于如何有效创建或注释这些数据集的建议都将不胜感激。
-我也在考虑购买这类数据集。例如，Statista 提供带注释的数据，但我在付费之前不确定数据量。像这样的平台或其他可以让我与销售代表交谈的来源会很有帮助。
-我正在考虑的另一种方法是下载长期上市公司的季度财务报告，并添加来自《华尔街日报》等稳定记者的评论。但是，找到预先存在的数据集会更有益。
-我已经使用“带分析的电子表格”和“带注释的电子表格”等关键字在 Google 搜索、Statista、Kaggle、Google 数据集搜索和美国人口普查局等来源上搜索过，但仍然需要进一步的帮助。]]></description>
-      <guid>https://stackoverflow.com/questions/78712190/looking-for-dataset-containing-spreadsheets-with-summary-analytical-comments</guid>
-      <pubDate>Fri, 05 Jul 2024 15:16:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>对失败的测试进行分类，并提出解决方案 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78711965/classification-of-failed-tests-and-fix-them-with-solution-proposal</link>
-      <description><![CDATA[我现在在一家运行测试台的组织工作，这些测试是用 C 和 C++ 开发的。
-当执行结束时，我们通过了测试，并且测试失败了，每个失败的测试都会生成一个日志文件。
-现在我们想使用 IA 对这些失败的测试进行分类（因为有些测试有相同的错误）。
-我们想预测这些失败测试的解决方案。
-有什么想法吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78711965/classification-of-failed-tests-and-fix-them-with-solution-proposal</guid>
-      <pubDate>Fri, 05 Jul 2024 14:21:48 GMT</pubDate>
     </item>
     <item>
       <title>Darknet Yolov4-tiny（灰度输入）到 Tensorflow 权重，转换</title>
@@ -198,7 +275,7 @@ tf.math.sigmoid_3 (TFOpLambda) (无，20，20，3，2 0 [&#39;tf.split_4[0][0]&#
 一些反复试验：
 
 使用 Yolov4-tiny Head 解码块 -&gt;即使在模型能够加载的情况下也没有变化（解码时错误的尺寸会引发错误）
-之前提到的旧 3 通道模型（几年前已转换为 Darknet -&gt; TF），以与新模型相同的方式加载时可以完美运行
+之前提到的旧 3 通道模型（几年前已转换为 Darknet -&gt; TF），当以与新模型相同的方式加载时，可以完美运行
 ]]></description>
       <guid>https://stackoverflow.com/questions/78711847/darknet-yolov4-tiny-grayscale-input-to-tensorflow-weights-conversion</guid>
       <pubDate>Fri, 05 Jul 2024 13:54:37 GMT</pubDate>
@@ -213,6 +290,14 @@ tf.math.sigmoid_3 (TFOpLambda) (无，20，20，3，2 0 [&#39;tf.split_4[0][0]&#
 我想确保在讨论这些关系时使用正确的术语。任何有关此主题的澄清或资源都将不胜感激。]]></description>
       <guid>https://stackoverflow.com/questions/78711787/clarification-on-referring-to-deep-learning-repositories-as-upstream-or-downstre</guid>
       <pubDate>Fri, 05 Jul 2024 13:40:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用嵌入技术从数据库中进行人脸识别</title>
+      <link>https://stackoverflow.com/questions/78688976/face-recognize-from-the-database-using-embedding-technique</link>
+      <description><![CDATA[我正在开展一个项目，旨在识别大学记录中是否存在任何个人的照片。所提出的方法涉及将每个学生照片的嵌入及其详细信息存储在矢量数据库中。当需要比较照片时，系统将生成该照片的嵌入值，然后将该值与数据库进行比较。如果该值在特定阈值内，则表明该个人存在于记录中。
+我正在寻求专家建议，以确定这种方法是否可行。如果对这种方法有任何疑虑，我将不胜感激最佳解决方案的建议。]]></description>
+      <guid>https://stackoverflow.com/questions/78688976/face-recognize-from-the-database-using-embedding-technique</guid>
+      <pubDate>Sun, 30 Jun 2024 15:09:55 GMT</pubDate>
     </item>
     <item>
       <title>Unity ML-Agents --num-envs 获取环境 ID</title>
@@ -327,11 +412,60 @@ ValueError: beeswarm plot 不支持绘制具有多个维度的实例的解释！
     <item>
       <title>YOLO v8 的默认网格大小</title>
       <link>https://stackoverflow.com/questions/75904407/default-grid-size-for-yolo-v8</link>
-      <description><![CDATA[YOLO 使用一个网格，其中分配了检测到的对象的中心。在最初的论文中，网格是 7x7
+      <description><![CDATA[YOLO 使用网格来分配检测到的对象的中心。在最初的论文中，网格是 7x7
 Yolo v8 中的网格大小是多少？
 我问这个问题的原因是因为无锚检测，因为它不再根据锚框的偏移量进行计算，而是使用中心。]]></description>
       <guid>https://stackoverflow.com/questions/75904407/default-grid-size-for-yolo-v8</guid>
       <pubDate>Sat, 01 Apr 2023 05:19:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Huggingface Trainer 进行训练时，如何选择 eval_dataset 的子集？</title>
+      <link>https://stackoverflow.com/questions/74257764/how-to-select-a-subset-of-the-eval-dataset-when-training-with-huggingface-traine</link>
+      <description><![CDATA[当使用 Huggingface 变换器的 Trainer 时，例如
+# 设置训练参数 - 这些参数并没有真正调整，可以随意更改
+training_args = Seq2SeqTrainingArguments(
+output_dir=&quot;./&quot;,
+evaluation_strategy=&quot;steps&quot;,
+per_device_train_batch_size=50,
+per_device_eval_batch_size=10,
+predict_with_generate=True,
+logs_steps=2, # 设置为 1000 进行完整训练
+save_steps=16, # 设置为 500 进行完整训练
+eval_steps=4, # 设置为 8000 进行完整训练
+warmup_steps=1, # 设置为 2000 以进行完整训练
+max_steps=16, # 删除以进行完整训练
+# overwrite_output_dir=True,
+save_total_limit=1,
+#fp16=True, 
+)
+
+# 实例化训练器
+trainer = Seq2SeqTrainer(
+model=multibert,
+tokenizer=tokenizer,
+args=training_args,
+train_dataset=train_data.with_format(&quot;torch&quot;),
+eval_dataset=eval_data.with_format(&quot;torch&quot;),
+)
+
+是否有某种方法可以在每 n 个 eval_steps 中从 eval_data 中随机选择/采样？
+例如我试过了
+eval_data = eval_data.select(range(3000))
+
+...
+
+trainer = Seq2SeqTrainer(
+model=multibert,
+tokenizer=tokenizer,
+args=training_args,
+train_dataset=train_data.with_format(&quot;torch&quot;),
+eval_dataset=eval_data.with_format(&quot;torch&quot;),
+)
+
+但这会在训练之前静态定义 eval_data 子集。
+是否可以在训练期间进行选择并使其在每个评估点选择不同的子集？]]></description>
+      <guid>https://stackoverflow.com/questions/74257764/how-to-select-a-subset-of-the-eval-dataset-when-training-with-huggingface-traine</guid>
+      <pubDate>Mon, 31 Oct 2022 00:42:20 GMT</pubDate>
     </item>
     </channel>
 </rss>
