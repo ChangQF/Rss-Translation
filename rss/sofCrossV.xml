@@ -4,7 +4,156 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 07 Jul 2024 06:20:28 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 07 Jul 2024 09:16:14 GMT</lastBuildDate>
+    <item>
+      <title>报告 clmms 中固定效应的重要性 - 何时使用 ANODE 表？</title>
+      <link>https://stats.stackexchange.com/questions/650628/reporting-significance-of-fixed-effects-in-clmms-when-to-use-anode-tables</link>
+      <description><![CDATA[我正在使用 clmm 研究一些用于序数结果的混合效应模型。我已经确定了最终模型，现在想展示研究结果。阅读后，我看到 ANODE 表既用于模型比较，也用于分解模型中每个固定效应的贡献。我无法找到任何关于这是否与报告相关的指导，以及最佳实践是什么。该模型是使用 R 中的序数包估计的，ANODE 表来自 RVAideMemoire。
+实际上，这与模型输出中报告的 z 检验之间的结果几乎没有差异（如下所示）。但是，我想更多地了解两组输出之间的差异。有人可以提出一些建议吗？我可以找到有关模型比较的信息，但找不到关于如何报告最终模型中固定效应的重要性的具体问题的答案。
+非常感谢！
+ 估计误差 z Pr(&gt;|z|)
+
+Var1 -2.966 0.482 -6.152 &lt;0.001
+
+Var2 -2.102 0.486 -4.32 &lt;0.001
+
+Var3 -1.593 0.476 -3.349 0.001
+
+Var4 0.973 0.474 2.051 0.040
+
+Var5 -0.711 0.175 -4.07 &lt;0.001
+
+偏差分析（II 型检验）
+
+LR Chisq Df Pr(&gt;Chisq) 
+
+Var1 29.2981 1 &lt;0.001 ***
+Var2 16.2687 1 &lt;0.001 ***
+Var3 10.2870 1 0.001 **
+Var4 3.9415 1 0.047 *
+Var5 14.5733 1 &lt;0.001 ***
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/650628/reporting-significance-of-fixed-effects-in-clmms-when-to-use-anode-tables</guid>
+      <pubDate>Sun, 07 Jul 2024 08:26:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么考虑自相关残差几乎无助于分布滞后模型中的参数估计</title>
+      <link>https://stats.stackexchange.com/questions/650626/why-does-accounting-for-autocorrelated-residuals-barely-help-parameter-estimatio</link>
+      <description><![CDATA[这个问题困扰了我很长时间。基本上，我有一个分布式滞后模型$$y_t=\sum_{i=0}^{p} \beta_i x_{t-i} + u_t.$$
+回归问题有点错误指定，所以我最终得到自相关错误$$u_t=\alpha u_{t-1}+\epsilon_t.$$
+由于我的模型中自相关程度很高，$\beta$的估计应该非常低效，但是当我使用 GLS 校正自相关时，我的$\beta$估计没有任何改善。当我的问题略有不同，并且 $$y_t= \sum_{i=1}^p \beta_i x_t^i + u_t,$$ 时，$y$ 只是同时存在的不同 $x$ 的函数，GLS 表现惊人，而最小二乘则举步维艰。
+为什么 GLS 在第一个例子中表现如此糟糕，我如何让它表现得更好（我只关心参数估计）？
+我在 R 中编写了两个例子：
+n_sim&lt;-15
+LS_R2&lt;-rep(0,n_sim)
+GLS_R2&lt;-rep(0,n_sim)
+ar_noise&lt;-0.7
+for(sim in 1:n_sim){
+n=5000
+set.seed(sim)
+x_vec&lt;-arima.sim(list(order=c(1,0,0),ar=c(0.5)),n=n,sd=1)
+noise&lt;-arima.sim(list(order=c(1,0,0),ar=c(ar_noise)),n=n,sd=1)
+y&lt;-rep(0,n)
+p&lt;-150
+true_beta&lt;-seq(from=5,to=0,length.out=p)+rnorm(p,sd=0.1)
+for(i in p:length(y)){
+y[i]&lt;-y[i]+sum(x_vec[i:(i-p+1)]*true_beta)
+}
+y&lt;-y+noise*var(y)/var(noise)/50
+
+#尝试简单最小二乘法（应该非常低效）
+Xmat&lt;-matrix(0,ncol = p,nrow = n)
+for(i in 1:ncol(Xmat)){
+Xmat[,i]&lt;-c(rep(0,i-1),x_vec[1:(length(x_vec)-i+1)])
+}
+
+XXProd&lt;-crossprod(Xmat)
+XyProd&lt;-crossprod(Xmat,matrix(y,ncol = 1))
+
+est_beta&lt;-as.numeric(solve(XXProd, XyProd,tol=0))
+LS_R2[sim]&lt;-1- sum((true_beta-est_beta)^2)/sum((true_beta-mean(true_beta))^2)
+
+#尝试广义最小二乘法（应该是最优且有效的）
+get_T&lt;-function(ar,N){
+i_vec&lt;-c(1:N,2:N)
+j_vec&lt;-c(1:N,1:(N-1))
+x_vec&lt;-c(sqrt(1-ar^2),rep(1,N-1),rep(-ar,N-1))
+sparseMatrix(i = i_vec, j = j_vec, x = x_vec, dims = c(N,N))
+}
+
+T1&lt;-get_T(ar_noise,length(y))
+
+Xmat&lt;-T1%*% Xmat
+y&lt;-as.numeric(T1%*% matrix(y,ncol=1))
+
+XXProd&lt;-crossprod(Xmat)
+XyProd&lt;-crossprod(Xmat,matrix(y,ncol = 1))
+
+est_beta&lt;-as.numeric(solve(XXProd, XyProd,tol=0))
+GLS_R2[sim]&lt;-1- sum((true_beta-est_beta)^2)/sum((true_beta-mean(true_beta))^2)
+
+}
+LS_R2
+GLS_R2
+mean(LS_R2)
+mean(GLS_R2)
+
+and
+n_sim&lt;-15
+LS_R2&lt;-rep(0,n_sim)
+GLS_R2&lt;-rep(0,n_sim)
+for(sim in 1:n_sim){
+n=5000
+set.seed(sim)
+noise&lt;-arima.sim(list(order=c(1,0,0),ar=c(ar_noise)),n=n,sd=1)
+y&lt;-rep(0,n)
+p&lt;-150
+Xmat&lt;-matrix(0,ncol = p,nrow = n)
+for(i in 1:ncol(Xmat)){
+Xmat[,i]&lt;-arima.sim(list(order=c(1,0,0),ar=c(0.5)),n=n,sd=1)
+}
+true_beta&lt;-seq(from=5,to=0,length.out=p)+rnorm(p,sd=0.1)
+for(i in p:length(y)){
+y[i]&lt;-y[i]+sum(Xmat[i,]*true_beta)
+}
+y&lt;-y+noise*sd(y)/sd(noise)
+
+#尝试简单最小二乘法（应该是非常低效的）
+XXProd&lt;-crossprod(Xmat)
+XyProd&lt;-crossprod(Xmat,matrix(y,ncol = 1))
+
+est_beta&lt;-as.numeric(solve(XXProd, XyProd,tol=0))
+LS_R2[sim]&lt;-1- sum((true_beta-est_beta)^2)/sum((true_beta-mean(true_beta))^2)
+
+#尝试广义最小二乘法（应该是最优且有效的）
+get_T&lt;-function(ar,N){
+i_vec&lt;-c(1:N,2:N)
+j_vec&lt;-c(1:N,1:(N-1))
+x_vec&lt;-c(sqrt(1-ar^2),rep(1,N-1),rep(-ar,N-1))
+sparseMatrix(i = i_vec, j = j_vec, x = x_vec, dims = c(N,N))
+}
+
+T1&lt;-get_T(ar_noise,length(y))
+
+Xmat&lt;-T1%*% Xmat
+y&lt;-as.numeric(T1%*% matrix(y,ncol=1))
+
+XXProd&lt;-crossprod(Xmat)
+XyProd&lt;-crossprod(Xmat,matrix(y,ncol = 1))
+
+est_beta&lt;-as.numeric(solve(XXProd, XyProd,tol=0))
+GLS_R2[sim]&lt;-1- sum((true_beta-est_beta)^2)/sum((true_beta-mean(true_beta))^2)
+
+}
+LS_R2
+GLS_R2
+mean(LS_R2)
+mean(GLS_R2)
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/650626/why-does-accounting-for-autocorrelated-residuals-barely-help-parameter-estimatio</guid>
+      <pubDate>Sun, 07 Jul 2024 07:15:49 GMT</pubDate>
+    </item>
     <item>
       <title>为什么逆倾向得分加权有效？</title>
       <link>https://stats.stackexchange.com/questions/650624/why-does-inverse-propensity-score-weighting-work</link>
@@ -57,7 +206,7 @@ $$ P(S=s \mid D=D) = \dfrac{P(D=D \mid S=S) P(S=s)}{P(D=d)} $$
       <title>策略梯度方法中的目标函数是否正是期望值函数？</title>
       <link>https://stats.stackexchange.com/questions/650615/is-the-objective-function-in-policy-gradient-methods-exactly-the-expected-value</link>
       <description><![CDATA[
-我正在阅读 DRL 中的 Spinning Up。我想知道策略梯度算法中的目标 $J_\theta$ 是否正是期望值函数 $E_{s_0}[V^\pi(s_0)]$。我从未见过有人将目标写为 V，但我觉得它们是一样的。有人可以证实这一点吗？谢谢。]]></description>
+我正在阅读 DRL 中的 Spinning Up。我想知道策略梯度算法中的目标 $J_\theta$ 是否正是期望值函数 $E_{S_0}[V^\pi(S_0)]$。我从未见过有人将目标写为 V，但我觉得它们是一样的。有人可以证实这一点吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/650615/is-the-objective-function-in-policy-gradient-methods-exactly-the-expected-value</guid>
       <pubDate>Sun, 07 Jul 2024 02:45:34 GMT</pubDate>
     </item>
@@ -102,13 +251,6 @@ GPU 内存要求：
 我觉得这个操作可能不合理，比如反而增加了蓝色笔的数据权重。但是我对统计学的理解不够，无法清晰的表达出为什么或者怎么不合理。]]></description>
       <guid>https://stats.stackexchange.com/questions/650613/is-it-reasonable-to-split-the-data-and-then-perform-the-regression</guid>
       <pubDate>Sun, 07 Jul 2024 01:30:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的 GMM 估计</title>
-      <link>https://stats.stackexchange.com/questions/650611/gmm-estimation-in-r</link>
-      <description><![CDATA[我正在尝试执行 GMM 估计，但在 R 中。在我的上下文中，我做了几个协方差限制。举一个简单的例子：$Var(y)=a$ 和 $Cov(y, Ly))=b$。现在的问题是，对于任何给定的数据集，可以制作这些样本等价物的观察次数对于两个矩将有所不同 () 通常，STATA 和 R 都会采用样本矩矩阵并通过除以 1/NT 或 1/N(T-1) 来找到平均值，但在这种情况下，这将不起作用！但是，在 STATA 中，可以使用 nocommonsample 选项来解决这个问题。我的问题是，R 中可用的等效选项或方法是什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650611/gmm-estimation-in-r</guid>
-      <pubDate>Sat, 06 Jul 2024 23:46:26 GMT</pubDate>
     </item>
     <item>
       <title>R 中的 AR(p) 模型无法拟合数据</title>
@@ -162,27 +304,6 @@ fitted_values &lt;- time_series_data -残差
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/650609/arp-model-in-r-not-fitting-data</guid>
       <pubDate>Sat, 06 Jul 2024 23:01:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>估计在移动应用程序中发现新的可访问性问题的可能性</title>
-      <link>https://stats.stackexchange.com/questions/650608/estimating-the-likelihood-of-finding-new-accessibility-issues-in-mobile-applicat</link>
-      <description><![CDATA[我设计了一种算法，用于识别移动应用程序中的可访问性问题。该算法本身存在一些错误（问题），我的目标是在给定置信区间的情况下，预测在测试其他移动应用程序时发现该算法新问题的可能性。本质上，我需要确定是否需要测试 5 个或 5000 个应用程序才能实现可靠的算法。
-问题背景：
-
-移动应用程序总数：1,000,000（类似于一个装有 1,000,000 个不同颜色弹珠的桶）。
-测试的应用程序：Y（类似于从桶中挑选 Y 个弹珠）。
-发现的不同问题：Z（类似于在挑选的弹珠中找到 Z 种不同颜色）。
-
-问题背景：
-
-发现新问题的可能性：如何计算在挑选 Y 个弹珠后，我找到至少 X 种不同颜色弹珠的可能性（99%）信心？
-总问题预测：挑选 Y 颗弹珠并识别 Z 种不同颜色后，我如何预测桶中不同颜色的总数？此预测的相关信心是多少？
-
-我的研究
-我已探索捕获-重新捕获模型和超几何分布作为潜在解决方案。我很乐意找到适合用于此问题的模型，以及有关该模型的视频的任何建议。
-感谢您的指导！]]></description>
-      <guid>https://stats.stackexchange.com/questions/650608/estimating-the-likelihood-of-finding-new-accessibility-issues-in-mobile-applicat</guid>
-      <pubDate>Sat, 06 Jul 2024 22:34:49 GMT</pubDate>
     </item>
     <item>
       <title>增强状态空间滤波问题中的 Hessian 表示</title>
@@ -302,25 +423,16 @@ geom_histogram()
       <pubDate>Fri, 05 Jul 2024 14:49:43 GMT</pubDate>
     </item>
     <item>
-      <title>最可能结果的可能性有一个名称吗？</title>
-      <link>https://stats.stackexchange.com/questions/650439/is-there-a-name-for-the-likelihood-of-the-most-likely-outcome</link>
-      <description><![CDATA[在流行统计学中，我们通常会将最可能的结果描述为非常有意义的属性。
-但是，如果不知道最可能的结果有多大的可能性，它实际上就没有那么大的意义。
-例如，在四次抛硬币中，最可能的结果是一半正面，一半反面，
-但实际得到该结果的可能性只有 37.5%；几乎三分之二的时间里，结果会是其他的。
-硬币数量越多，最可能的结果就越不可能发生，但实现该结果的可能性就越接近于零。
-也就是说，最可能发生的事情可能非常不可能。
-这似乎是几乎从未被提及过的事情，但是这个最可能结果的（不）可能程度的概念有名字吗？
-（对于预期值，可以提出类似的问题。）
-澄清：
-我对实际值本身不太感兴趣，但我对值可能被歪曲或误解的方式很感兴趣。
-例如，如果我从一副牌中取出黑桃 A，我可以如实地说，随机抽一张牌最有可能的结果是红色。
-或者我可以删除除黑桃之外的所有 A，并声称随机选择的最可能结果是黑桃。
-这两个陈述都是准确的，但远没有听起来那么精确。
-这些陈述的实际真实性、有用性、价值、价值等接近于零。
-我正在寻找这种统计数据的术语，它听起来很重要，但几乎毫无意义。]]></description>
-      <guid>https://stats.stackexchange.com/questions/650439/is-there-a-name-for-the-likelihood-of-the-most-likely-outcome</guid>
-      <pubDate>Thu, 04 Jul 2024 00:35:03 GMT</pubDate>
+      <title>对于给定平均值和标准差的正数据，偏度的下限是多少？</title>
+      <link>https://stats.stackexchange.com/questions/650039/vintage-of-this-lower-bound-on-skewness-for-positive-data-with-given-mean-and-sd</link>
+      <description><![CDATA[事实证明，对于任何具有给定平均值 μ 和标准差 σ 的严格正数据集，其偏度 $g_1$ 都有一个下限：
+$$
+g_1 &gt; \sigma/\mu - \mu/\sigma。
+$$
+虽然在最近的一些文献中，它被当作一个新的结果来讨论，但在我看来，它很可能相当古老——原因我在这篇 PubPeer 文章（其中还包含一个基本证明）中概述过。
+来这里问这个问题时，我遇到了 2 个可以立即应用这个结果的问题：请参阅我的答案这里和这里。因此，这表明下限至少没有它应该的那么出名。但它可能是最近才出现的吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/650039/vintage-of-this-lower-bound-on-skewness-for-positive-data-with-given-mean-and-sd</guid>
+      <pubDate>Thu, 27 Jun 2024 11:01:24 GMT</pubDate>
     </item>
     </channel>
 </rss>
