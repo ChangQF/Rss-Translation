@@ -4,21 +4,77 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 08 Jul 2024 21:15:26 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jul 2024 01:06:18 GMT</lastBuildDate>
+    <item>
+      <title>[我无法得到正确的判定系数]</title>
+      <link>https://stackoverflow.com/questions/78723283/i-cant-get-the-right-coefficient-of-determination</link>
+      <description><![CDATA[首先，我遇到了一个问题，r 平方值出现奇怪的问题。
+如果您能先查看代码，我将不胜感激。
+X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.3,shuffle = True, random_state=42)
+
+parameters = {
+&#39;max_depth&#39;: Integer(3, 30),
+&#39;n_estimators&#39;: Integer(100, 1000),
+&#39;learning_rate&#39;: Real(0.01, 0.5),
+&#39;colsample_bytree&#39;: Real(0.1, 1.0),
+&#39;subsample&#39;: Real(0.1, 1.0),
+&#39;min_child_weight&#39;: Integer(1, 10),
+}
+
+xgb_model = XGBRegressor()
+
+cv = KFold(n_splits=10, shuffle=True, random_state=42)
+bayes_search = BayesSearchCV(xgb_model, parameters, cv=cv, n_jobs=-1,scoring=&#39;r2&#39;,verbose=5,random_state=42)
+bayes_search.fit(X_train, y_train)
+
+best_params = bayes_search.best_params_
+print(&quot;最佳超参数：&quot;, best_params)
+
+# CV R^2 分数
+cv_results = bayes_search.cv_results_
+cv_mean_score = cv_results[&#39;mean_test_score&#39;][bayes_search.best_index_]
+print(&quot;CV R 平方分数：&quot;, cv_mean_score)
+
+# 训练R^2
+final_model = XGBRegressor(**best_params)
+final_model.fit(X_train, y_train)
+y_pred1 = final_model.predict(X_train)
+train_r2 = r2_score(y_train, y_pred1)
+print(&quot;Train R squared:&quot;, train_r2)
+
+# Test R^2
+y_pred = final_model.predict(X_test)
+test_r2 = r2_score(y_test, y_pred)
+print(&quot;Test R squared:&quot;, test_r2)
+
+当我使用这些代码运行 r squared 时，我得到了以下结果。
+CV R squared 分数：0.6303，训练 R squared：0.7647，测试 R squared： 0.6337
+问题来了：
+
+我尝试了不同的随机状态，结果训练 r^2 &gt; 测试 r^2 &gt; cv r^2。我的常识告诉我，训练 r^2 和 cv r^2 应该具有相同的值，因为它们使用了相同的参数，并且它们应该始终高于对整个数据集进行 30% 计算的测试 r^2，所以我不知道为什么我会得到这组结果 r^2 &gt; 测试 r^2 &gt; cv r^2。
+
+我尝试了贝叶斯搜索和网格搜索、xgboost 和随机森林以及许多其他方法，但我无法使 r 平方超过 0.8。我应该使用不同模型的集成来增加它吗？我将非常感激任何建议。
+
+
+如果我误解了某个概念或在代码中犯了错误，请告诉我。
+这是一篇很长的文章，非常感谢您的阅读。]]></description>
+      <guid>https://stackoverflow.com/questions/78723283/i-cant-get-the-right-coefficient-of-determination</guid>
+      <pubDate>Tue, 09 Jul 2024 00:43:11 GMT</pubDate>
+    </item>
     <item>
       <title>关于 CIFAR-10 和迁移学习的问题</title>
       <link>https://stackoverflow.com/questions/78722572/issues-about-cifar-10-and-transfer-learning</link>
-      <description><![CDATA[我不知道为什么，我试了很多次，但那一行不起作用：
+      <description><![CDATA[我试了很多次，但那一行不起作用：
 history = model.fit(train_generator, epochs=200, steps_per_epoch=167,
 callbacks=[modelcheckpoint],
 validation_data=validation_generator,validation_steps=50)
 
-天哪，我怎么也得不到满足。我不知道为什么。我已经正确地完成了所有形状，但出现了这个错误：
+我收到错误：
 ValueError: `logits` 和 `labels` 必须具有相同的形状，收到 ((None, None, None, 1) vs (None,))。
 
 https://drive.google.com/file/d/1r-TznZVZI9HcPGjfS_i-DfpEJ7mBUw0x/view?usp=sharing
 我在 X_train 上做了很多改动，并进行了缩放。但什么也没发生！
-我操纵了图像读取，但根本不起作用。我甚至找不到根本原因]]></description>
+我操作了图像读取，但根本不起作用。我甚至找不到根本原因]]></description>
       <guid>https://stackoverflow.com/questions/78722572/issues-about-cifar-10-and-transfer-learning</guid>
       <pubDate>Mon, 08 Jul 2024 19:22:31 GMT</pubDate>
     </item>
@@ -157,38 +213,39 @@ from sklearn.model_selection import cross_val_score
 scores = cross_val_score(model, x, y, cv=100)
 plt.plot(scores)
 
-我注意到，随着 cv 的增加，平均分数下降。因此，我决定绘制它，并意识到分数在某些时候会呈现负值，但真实预测/样本大小怎么会是负数呢？它是用 (TP + TN - FP - FN)/样本大小计算的吗？提前谢谢。
-在此处输入图片描述
-抱歉我的英语不好 (; ))]]></description>
+我注意到，随着 cv 的增加，平均分数下降。因此，我决定绘制它，并意识到分数在某些时候会呈现负值，但真实预测/样本大小怎么会是负数呢？它是用 (TP + TN - FP - FN)/样本大小计算的吗？
+在此处输入图片描述]]></description>
       <guid>https://stackoverflow.com/questions/78722250/scikit-learn-cross-validation-score-negative-value</guid>
       <pubDate>Mon, 08 Jul 2024 17:40:02 GMT</pubDate>
     </item>
     <item>
-      <title>有人能帮助我解决 jupyter notebook 运行时溢出的问题吗</title>
-      <link>https://stackoverflow.com/questions/78721859/can-someone-help-me-with-the-problem-of-runtime-overflow-in-jupyter-notebook</link>
+      <title>Jupyter Notebook 中的运行时溢出[关闭]</title>
+      <link>https://stackoverflow.com/questions/78721859/runtime-overflow-in-jupyter-notebook</link>
       <description><![CDATA[我在计算梯度下降时遇到了这个问题
 RuntimeWarning: 在 add theta1_slope = (-2/n) + sum(y - thetas[1]*x)*x) 时遇到溢出
-我不知道该怎么做，因为我对编程和机器学习还不熟悉]]></description>
-      <guid>https://stackoverflow.com/questions/78721859/can-someone-help-me-with-the-problem-of-runtime-overflow-in-jupyter-notebook</guid>
+
+如何解决？]]></description>
+      <guid>https://stackoverflow.com/questions/78721859/runtime-overflow-in-jupyter-notebook</guid>
       <pubDate>Mon, 08 Jul 2024 15:58:56 GMT</pubDate>
     </item>
     <item>
       <title>如何定义/改变非分类卷积神经网络的准确性？</title>
       <link>https://stackoverflow.com/questions/78721703/how-do-i-define-change-the-accuracy-for-a-non-classification-convolutional-neura</link>
-      <description><![CDATA[我目前正在使用 Keras 制作一个预测模型。它接受两个时间序列并输出一个介于 0 和 1 之间的数字。目前，我的准确度非常低，因为只有当模型得到准确的数字时，它才被认为是“正确的”。例如，正确的数字是 0.34，如果它预测 0.35，则会被视为不正确。我希望能够将范围内的所有数字视为正确的，例如：在真实值的 0.05 以内。另一个选择可能是四舍五入，但我遇到了输出 6 位小数的问题。
+      <description><![CDATA[我正在使用 Keras 制作一个预测模型。它接受两个时间序列并输出一个介于 0 和 1 之间的数字。目前，我的准确度非常低，因为只有当模型得到准确的数字时，它才被认为是“正确的”。例如，正确的数字是 0.34，如果它预测 0.35，则会被视为不正确。我希望能够将范围内的所有数字视为正确的，例如：在真实值的 0.05 以内。另一个选择可能是四舍五入，但我遇到了输出 6 位小数的问题。
 
-我如何将范围内的所有数字视为“正确的”为了准确率？
+我如何将范围内的所有数字视为“正确的”准确率是多少？
 我该如何对 CNN 的输出进行四舍五入？
 
 这是我的 CNN 代码：
 def networkModel():
 model = tf.keras.Sequential([
+
 tf.keras.layers.Conv2D(filters = 16, kernel_size=(2, 2),activation=&#39;relu&#39;,padding=&#39;same&#39;),
 tf.keras.layers.Conv2D(filters = 9, kernel_size=(2, 2),activation=&#39;relu&#39;,padding=&#39;same&#39;),
 tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
 tf.keras.layers.Flatten(),
-tf.keras.layers.Dense(256,activation=&#39;relu&#39;),
-tf.keras.layers.Dense(1,激活=&#39;sigmoid&#39;)
+tf.keras.layers.Dense(256,激活=&#39;relu&#39;),
+tf.keras.layers.Dense(1, 激活=&#39;sigmoid&#39;)
 
 ])
 
@@ -202,8 +259,8 @@ metrics=[&#39;accuracy&#39;])
       <pubDate>Mon, 08 Jul 2024 15:24:04 GMT</pubDate>
     </item>
     <item>
-      <title>因为我的预测中的张量值太低了</title>
-      <link>https://stackoverflow.com/questions/78721417/because-my-tensor-values-in-the-prediction-are-too-low</link>
+      <title>我的预测张量值太低</title>
+      <link>https://stackoverflow.com/questions/78721417/my-tensor-values-in-the-prediction-are-too-low</link>
       <description><![CDATA[我正在训练一个语义分割模型，使用 PyTorch 和 U-net 架构。数据集由视网膜摄影图像组成，带有渗出性疾病的掩码。我遇到了张量值不一致的问题，当我尝试进行新的预测时，我在训练时跟踪了张量，并且在训练期间值是一致的，但在执行新的预测时，值不一致且奇怪，导致掩码毫无意义。
 def train_epoch(model, loader, criterion, optimizer, device):
 model.train()
@@ -299,42 +356,8 @@ device=&#39;cuda:0&#39;)
 唯一值 sigmoid：[0.]
 
 我做了几次尝试，例如使用另一个损失函数、将 sigmoid 直接应用于 U-net 架构、更改 sigmoid 二值化值、将二值化应用于掩码等。]]></description>
-      <guid>https://stackoverflow.com/questions/78721417/because-my-tensor-values-in-the-prediction-are-too-low</guid>
+      <guid>https://stackoverflow.com/questions/78721417/my-tensor-values-in-the-prediction-are-too-low</guid>
       <pubDate>Mon, 08 Jul 2024 14:28:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>深度学习回归——即使增加复杂性也无法减少损失？</title>
-      <link>https://stackoverflow.com/questions/78721266/deep-learning-regression-cant-decrease-loss-even-after-increasing-complexity</link>
-      <description><![CDATA[我正在研究回归任务，目标是预测一个目标变量。我有 37 个输入特征和 6700 个数据点。
-我预处理了数据并开发了一个 3 层神经网络，分别有 64、32 和 16 个节点。使用 SGD+Momentum、L2 正则化、relu 激活、1000 个 epoches 和 0.000001 的学习率 - 我能够获得 2.36 的 RMSE 和 0.73 的 r2 分数。我的目标是让 r2 分数高于 0.9。我尝试了许多组合来达到这个分数。我还应该尝试什么？]]></description>
-      <guid>https://stackoverflow.com/questions/78721266/deep-learning-regression-cant-decrease-loss-even-after-increasing-complexity</guid>
-      <pubDate>Mon, 08 Jul 2024 14:00:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>我的模型的验证准确率图形状很奇怪</title>
-      <link>https://stackoverflow.com/questions/78721149/validation-accuracy-graph-for-my-model-has-an-odd-shape</link>
-      <description><![CDATA[我一直在训练一个模型，并取得了相当不错的结果（超过 80%）。然而，准确率图形状很奇怪。例如，训练和验证曲线甚至没有相同的起点。这是我的模型的问题吗？如果是，有人知道如何解决吗？
-这些是图表：
-
-这是每个时期的输出：
-训练第 2 倍...
-时期 1/50
-62/62 [===============================] - 7s 112ms/step - 损失：0.5552 - 准确度：0.7826 - val_loss：0.3906 - val_accuracy： 0.8540 - lr：1.0000e-04
-Epoch 2/50
-62/62 [==============================] - 6s 99ms/step - 损失：0.5466 - 准确度：0.7907 - val_loss：0.3980 - val_accuracy：0.8398 - lr：1.0000e-04
-Epoch 3/50
-62/62 [==============================] - 6s 99ms/step - 损失：0.5266 - 准确度：0.7978 - val_loss：0.3989 - val_accuracy：0.8398 - lr：1.0000e-04
-Epoch 4/50
-62/62 [==============================] - 6s 100ms/步 - 损失：0.5379 - 准确度：0.7912 - val_loss：0.4070 - val_accuracy：0.8418 - lr：1.0000e-04
-Epoch 5/50
-62/62 [==============================] - 6s 99ms/步 - 损失：0.5377 - 准确度：0.7846 - val_loss：0.4068 - val_accuracy：0.8398 - lr： 1.0000e-04
-Epoch 6/50
-62/62 [==============================] - 6s 104ms/step - 损失：0.5284 - 准确度：0.7937 - val_loss：0.4077 - val_accuracy：0.8418 - lr：1.0000e-04
-第 2 倍的验证分数：损失为 0.39055174589157104；准确度为 0.8539553880691528
-16/16 [================================] - 1s 66ms/step 。
-]]></description>
-      <guid>https://stackoverflow.com/questions/78721149/validation-accuracy-graph-for-my-model-has-an-odd-shape</guid>
-      <pubDate>Mon, 08 Jul 2024 13:35:45 GMT</pubDate>
     </item>
     <item>
       <title>经过微调的 Mask2Former 模型在训练后仅返回空张量</title>
@@ -344,22 +367,21 @@ Epoch 6/50
       <pubDate>Mon, 08 Jul 2024 13:25:50 GMT</pubDate>
     </item>
     <item>
-      <title>标题：寻求指导：平衡机器学习和移动应用程序开发 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78720753/title-seeking-guidance-balancing-machine-learning-and-mobile-app-development</link>
-      <description><![CDATA[我目前在基督大学攻读计算机应用学士学位 (BCA) 的第二年。在探索了技术领域的各个领域后，我对移动应用开发和机器学习产生了浓厚的兴趣。
+      <title>平衡机器学习和移动应用程序开发[关闭]</title>
+      <link>https://stackoverflow.com/questions/78720753/balancing-machine-learning-and-mobile-app-development</link>
+      <description><![CDATA[我现在是基督大学计算机应用学士学位 (BCA) 的第二年。在探索了技术领域的各个领域后，我对移动应用开发和机器学习产生了浓厚的兴趣。
 我陷入了两难境地，希望社区能就以下问题提供一些指导：
 重点决策：同时追求机器学习和移动应用开发的专业知识是否可行且实用？还是专注于一个领域以最大限度地提高熟练程度和职业前景会更有益？
 学习路径：如果建议平衡两个领域，我应该从使用 Android Studio 和 Kotlin 进行原生 Android 开发开始，还是从 Flutter 开始更有益？
-过渡到 Flutter：如果我从原生开发开始，过渡到 Flutter 有多顺利？行业内是否普遍存在先从原生开发开始，然后转向 Flutter 的情况，还是专业人士经常直接从 Flutter 开始？
-对 Flutter 的需求：行业内目前对 Flutter 开发人员的需求如何？Flutter 专业知识是否有重大的机会和增长前景，尤其是与原生 Android 开发相比？
-实习策略：考虑到需要获得实习机会，先专注于一个领域，然后再扩展到另一个领域是否有利？如果是这样，您建议优先考虑哪个领域以获得更好的实习机会和职业发展？
-您的见解和建议将非常宝贵，可以帮助我做出明智的学习路径和职业轨迹决策。提前感谢您的时间和指导。
-我尝试了一切，但仍然陷入困境]]></description>
-      <guid>https://stackoverflow.com/questions/78720753/title-seeking-guidance-balancing-machine-learning-and-mobile-app-development</guid>
+过渡到 Flutter：如果我从原生开发开始，过渡到 Flutter 有多顺利？业界是否普遍从原生开发开始，然后转向 Flutter，还是专业人士经常直接从 Flutter 开始？
+对 Flutter 的需求：业界目前对 Flutter 开发人员的需求如何？Flutter 专业知识是否有重大的机会和增长前景，尤其是与原生 Android 开发相比？
+实习策略：考虑到需要获得实习机会，先专注于一个领域，然后再扩展到另一个领域，这是否有利？如果是这样，您建议优先考虑哪个领域以获得更好的实习机会和职业发展？
+您的见解和建议将非常宝贵，可以帮助我做出明智的决定，决定我的学习路径和职业轨迹。]]></description>
+      <guid>https://stackoverflow.com/questions/78720753/balancing-machine-learning-and-mobile-app-development</guid>
       <pubDate>Mon, 08 Jul 2024 12:05:36 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用预训练模型改进森林卫星图像中的树木检测和计数？</title>
+      <title>如何使用预训练模型改进森林卫星图像中的树木检测和计数？[关闭]</title>
       <link>https://stackoverflow.com/questions/78720461/how-to-improve-tree-detection-and-counting-in-forest-satellite-imagery-using-pre</link>
       <description><![CDATA[我正在开发一个人工智能林业管理系统，使用来自 Google Earth 的卫星图像来监测和分析树木种群。主要目标是准确计数树木并识别濒危或本土物种。我已经实施了一个用于图像分割的 U-Net 模型，但准确性并不令人满意，许多树木被遗漏或错误计数。
 我当前的工作流程：
@@ -389,9 +411,7 @@ Epoch 6/50
 
 我正在使用 Python 和 TensorFlow、Keras 和 OpenCV 等库。
 
-该项目对我的毕业至关重要，任何详细指导或相关教程或资源的参考都将不胜感激。
-
-我已经探索了各种数据集，但不确定哪些数据集对于训练稳健模型最有效。
+我探索了各种数据集，但不确定哪些数据集对于训练稳健模型最有效。
 
 ]]></description>
       <guid>https://stackoverflow.com/questions/78720461/how-to-improve-tree-detection-and-counting-in-forest-satellite-imagery-using-pre</guid>
@@ -402,7 +422,8 @@ Epoch 6/50
       <link>https://stackoverflow.com/questions/78719712/the-term-darknet-is-not-recognized-as-the-name-of-a-cmdlet-function-script</link>
       <description><![CDATA[在运行此最终命令时，我在本地笔记本电脑上执行自定义数据集上的 yolov3 操作，所有操作均已完成
 ./darknet detector train DATASET/voc.data cfg/yolov3-voc.cfg darknet53.conv.74
-当我使用 Windows Power Shell 时，出现错误，
+
+当我使用 Windows Power Shell 时，出现错误，即
 ./darknet：术语“./darknet”未被识别为 cmdlet、函数、脚本文件或可操作程序的名称。请检查名称的拼写，或者如果包含路径，请验证路径是否正确，然后重试。
 在第 1 行，字符：1
 + ./darknet detector train DATASET/voc.data cfg/yolov3-voc.cfg darknet5 ...
@@ -414,6 +435,17 @@ Epoch 6/50
 我尝试更改系统环境变量路径，也尝试运行某些命令，但仍然抛出相同的错误，那么我应该尝试什么呢]]></description>
       <guid>https://stackoverflow.com/questions/78719712/the-term-darknet-is-not-recognized-as-the-name-of-a-cmdlet-function-script</guid>
       <pubDate>Mon, 08 Jul 2024 08:00:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>生存分析 - 估计预期寿命</title>
+      <link>https://stackoverflow.com/questions/78719590/survival-analysis-estimating-life-expectancy</link>
+      <description><![CDATA[我正在探索生存分析，我的目标是找到一个预测预期寿命（以年为单位）的模型，而不是基于几种生活方式变量的风险比。我有很多饮食变量和二元变量——死亡率。
+我使用 Kaplan Meyer 并计算间隔内的 AUC（死亡年龄/审查直到队列的最后一个年龄）来估计预期寿命损失年数。但是，我无法用这种方法使用这些变量。
+我也看到了 Cox 比例模型中的函数 predict_survival_function，但曲线没有收敛到 0，因此计算 AUC 没有意义。
+我遇到了加速失效时间模型，它似乎允许考虑变量并计算生存时间。有人将它用于类似的目的吗？
+有人对预期寿命估计有什么建议吗？有人探索过与随机生存森林相关的任何内容吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78719590/survival-analysis-estimating-life-expectancy</guid>
+      <pubDate>Mon, 08 Jul 2024 07:31:51 GMT</pubDate>
     </item>
     <item>
       <title>Keras 模型输入形状与层不兼容（尽管是兼容形状）</title>
@@ -475,49 +507,24 @@ args_2 (POSITIONAL_ONLY): TensorSpec(shape=(40000, 1), dtype=tf.float32, name=No
       <pubDate>Mon, 08 Jul 2024 07:30:43 GMT</pubDate>
     </item>
     <item>
-      <title>为什么用于检测图像旋转的卷积模型对每张图片都预测相同的类别？</title>
-      <link>https://stackoverflow.com/questions/58729151/why-is-my-convolutional-model-for-detecting-image-rotation-predicting-the-same-c</link>
+      <title>使用python在机器学习中将未经训练的对象分类为未知对象</title>
+      <link>https://stackoverflow.com/questions/53275530/categorize-a-not-trained-object-as-unknown-object-in-machine-learning-using-pyth</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/58729151/why-is-my-convolutional-model-for-detecting-image-rotation-predicting-the-same-c</guid>
-      <pubDate>Wed, 06 Nov 2019 11:29:20 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/53275530/categorize-a-not-trained-object-as-unknown-object-in-machine-learning-using-pyth</guid>
+      <pubDate>Tue, 13 Nov 2018 07:02:51 GMT</pubDate>
     </item>
     <item>
-      <title>使用 scikit-learn 对文本进行标记</title>
-      <link>https://stackoverflow.com/questions/29980037/tokenizing-text-with-scikit-learn</link>
-      <description><![CDATA[我有以下代码从一组文件（文件夹名称是类别名称）中提取特征以进行文本分类。
-import sklearn.datasets
-from sklearn.feature_extraction.text import TfidfVectorizer
-
-train = sklearn.datasets.load_files(&#39;./train&#39;, description=None, categories=None, load_content=True, shuffle=True, encoding=None, decrypt_error=&#39;strict&#39;, random_state=0)
-print len(train.data)
-print train.target_names
-
-vectorizer = TfidfVectorizer()
-X_train = vectorizer.fit_transform(train.data)
-
-它抛出以下堆栈跟踪：
-回溯（最近一次调用最后一次）：
-文件“C:\EclipseWorkspace\TextClassifier\main.py”，第 16 行，位于&lt;module&gt;
-X_train = vectorizer.fit_transform(train.data)
-文件“C:\Python27\lib\site-packages\sklearn\feature_extraction\text.py”，第 1285 行，位于 fit_transform
-X = super(TfidfVectorizer, self).fit_transform(raw_documents)
-文件“C:\Python27\lib\site-packages\sklearn\feature_extraction\text.py”，第 804 行，位于 fit_transform
-self.fixed_vocabulary_)
-文件“C:\Python27\lib\site-packages\sklearn\feature_extraction\text.py”，第 739 行，位于 _count_vocab
-for feature in analyze(doc):
-文件“C:\Python27\lib\site-packages\sklearn\feature_extraction\text.py”，第 236 行，位于 &lt;lambda&gt;
-tokenize(preprocess(self.decode(doc))), stop_words)
-文件“C:\Python27\lib\site-packages\sklearn\feature_extraction\text.py”，第 113 行，在解码中
-doc = doc.decode(self.encoding, self.decode_error)
-文件“C:\Python27\lib\encodings\utf_8.py”，第 16 行，在解码中
-return codecs.utf_8_decode(input, errors, True)
-UnicodeDecodeError: &#39;utf8&#39; 编解码器无法解码位置 32054 中的字节 0xff：起始字节无效
-
-我运行的是 Python 2.7。我该如何让它工作？
-编辑：
-我刚刚发现，这对于使用 utf-8 编码的文件（我的文件是 ANSI 编码）非常有效。有什么方法可以让 sklearn.datasets.load_files() 使用 ANSI 编码吗？]]></description>
-      <guid>https://stackoverflow.com/questions/29980037/tokenizing-text-with-scikit-learn</guid>
-      <pubDate>Fri, 01 May 2015 00:39:09 GMT</pubDate>
+      <title>如何绘制决策边界？</title>
+      <link>https://stackoverflow.com/questions/19054923/how-to-plot-decision-boundary</link>
+      <description><![CDATA[如何使用 matplotlib 绘制决策边界，即 [w1,w2] 形式的权重向量，它基本上将两个类（比如 C1 和 C2）分开？
+这是否像绘制一条从 (0,0) 到点 (w1,w2) 的线一样简单（因为 W 是权重“向量”）如果是，如果需要，我该如何在两个方向上延伸它？
+现在我所做的就是：
+ import matplotlib.pyplot as plt
+plt.plot([0,w1],[0,w2])
+plt.show()
+]]></description>
+      <guid>https://stackoverflow.com/questions/19054923/how-to-plot-decision-boundary</guid>
+      <pubDate>Fri, 27 Sep 2013 15:45:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
