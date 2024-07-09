@@ -4,7 +4,101 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 09 Jul 2024 03:18:44 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jul 2024 06:22:10 GMT</lastBuildDate>
+    <item>
+      <title>如何为 qdrant fastembed 模型创建通用 BEIR 稀疏嵌入包装器？</title>
+      <link>https://stackoverflow.com/questions/78723939/how-to-create-a-generic-beir-sparse-embed-wrapper-for-qdrant-fastembed-models</link>
+      <description><![CDATA[我想对 Qdrant FastEmbed 模型进行基准测试，尤其是稀疏模型。这些模型具有嵌入函数签名：
+def embed(
+self,
+documents: Union[str, Iterable[str]],
+batch_size: int = 256,
+parallel: Optional[int] = None,
+**kwargs,
+) -&gt; Iterable[SparseEmbedding]:
+
+SparseEmbedding 只是一个数据类，其值和索引为 numpy 数组。
+@dataclass
+class SparseEmbedding:
+values: np.ndarray
+indices: np.ndarray
+
+我查看了 beir 中有关评估自定义模型的文档，但它没有记录任何有关稀疏模型的内容。但是他们提供了一个示例，说明如何使用其库中预先训练的 SPARTA 模型。这是将模型代码包装在工具的 SparseSearch 类中的代码的相关部分。
+sparse_model = SparseSearch(models.SPARTA(model_path), batch_size=128)
+retriever = EvaluateRetrieval(sparse_model)
+
+results = withdrawer.retrieve(corpus, queries)
+
+SparseSearch 类有一个 search() 方法，该方法调用要进行基准测试的模型的 encode_corpus() 和 encode_query() 方法。
+def search(self, 
+corpus: Dict[str, Dict[str, str]], 
+queries: Dict[str, str], 
+top_k：int，
+score_function：str，
+query_weights：bool = False，
+*args，**kwargs）-&gt;； Dict[str, Dict[str, float]]:
+
+doc_ids = list(corpus.keys())
+query_ids = list(queries.keys())
+documents = [corpus[doc_id] for doc_id in doc_ids]
+logs.info(&quot;计算文档嵌入并创建稀疏矩阵&quot;)
+self.sparse_matrix = self.model.encode_corpus(documents, batch_size=self.batch_size)
+
+logs.info(&quot;开始检索...&quot;)
+for start_idx in trange(0, len(queries), desc=&#39;query&#39;):
+qid = query_ids[start_idx]
+query_tokens = self.model.encode_query(queries[qid])
+
+if query_weights: 
+# 用于 uniCOIL，查询权重被考虑！
+scores = self.sparse_matrix.dot(query_tokens)
+else: 
+# 用于 SPARTA，不考虑查询权重（即二进制）！
+scores = np.asarray(self.sparse_matrix[query_tokens, :].sum(axis=0)).squeeze(0)
+
+top_k_ind = np.argpartition(scores, -top_k)[-top_k:]
+self.results[qid] = {doc_ids[pid]: float(scores[pid]) for pid in top_k_ind if doc_ids[pid] != qid}
+
+return self.results
+
+我无法直观地理解此搜索操作与 qdrant 模型提供的内容之间的逻辑和关系。这是我为 SparseSearch 类创建包装器的失败尝试，但它在执行过程中冻结了。
+import numpy as np
+from scipy.sparse import csr_matrix
+
+class FastSparse:
+def __init__(self, model_name=None, **kwargs):
+self.model = SparseTextEmbedding(
+model_name=model_name, cache_dir=&quot;.model_cache&quot;
+)
+
+def encode_query(self, query: str, **kwargs):
+query_embedding = self.model.query_embed(query)
+return csr_matrix(
+(
+query_embedding.values,
+query_embedding.indices,
+[0, len(query_embedding.indices)],
+)
+)
+
+def encode_corpus(self, corpus: List[Dict[str, str]], batch_size: int, **kwargs):
+
+sentence = [(doc[&quot;title&quot;] + &quot; &quot; + doc[&quot;text&quot;]).strip() for doc in corpus]
+embeddings = self.model.embed(sentences, batch_size=batch_size)
+
+all_indices = np.array([], dtype=int)
+all_values = np.array([], dtype=float)
+indptr = [0]
+for emb in embeddings:
+all_indices = np.concatenate((all_indices, emb.indices))
+all_values = np.concatenate((all_values, emb.values))
+indptr.append(len(all_indices))
+
+返回 csr_matrix((all_values, all_indices, indptr))
+]]></description>
+      <guid>https://stackoverflow.com/questions/78723939/how-to-create-a-generic-beir-sparse-embed-wrapper-for-qdrant-fastembed-models</guid>
+      <pubDate>Tue, 09 Jul 2024 06:19:01 GMT</pubDate>
+    </item>
     <item>
       <title>我无法得到正确的 r 平方</title>
       <link>https://stackoverflow.com/questions/78723283/i-cant-get-the-right-r-squared</link>
@@ -62,7 +156,7 @@ CV R squared 分数：0.6303，训练 R squared：0.7647，测试 R squared： 0
       <pubDate>Tue, 09 Jul 2024 00:43:11 GMT</pubDate>
     </item>
     <item>
-      <title>关于 CIFAR-10 和迁移学习的问题</title>
+      <title>关于 CIFAR-10 和迁移学习的问题 [关闭]</title>
       <link>https://stackoverflow.com/questions/78722572/issues-about-cifar-10-and-transfer-learning</link>
       <description><![CDATA[我试了很多次，但那一行不起作用：
 history = model.fit(train_generator, epochs=200, steps_per_epoch=167,
@@ -74,128 +168,9 @@ ValueError: `logits` 和 `labels` 必须具有相同的形状，收到 ((None, N
 
 https://drive.google.com/file/d/1r-TznZVZI9HcPGjfS_i-DfpEJ7mBUw0x/view?usp=sharing
 我在 X_train 上做了很多改动，并进行了缩放。但什么也没发生！
-我操作了图像读取，但根本不起作用。我甚至找不到根本原因]]></description>
+我操纵了图像读取，但根本不起作用。我甚至找不到根本原因]]></description>
       <guid>https://stackoverflow.com/questions/78722572/issues-about-cifar-10-and-transfer-learning</guid>
       <pubDate>Mon, 08 Jul 2024 19:22:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>eval（predvars、data、env）中出现错误：未找到对象“s_id”</title>
-      <link>https://stackoverflow.com/questions/78722442/error-in-evalpredvars-data-env-object-s-id-not-found</link>
-      <description><![CDATA[我正在尝试使用 tidymodels 拟合多层模型。当我拟合单个模型时，我没有遇到问题，但当我将它们组合到工作流集中时，我得到了这些错误。
-我看到过有类似错误的帖子，并尝试更新我的代码，但似乎仍然不起作用。
-当我在应用配方后查看训练和验证集时，我确实在数据框中找到所有列。不确定为什么错误仍然存​​在。当我使用非多级算法时，不会出现此错误。
-我希望有人可以帮助解决此错误：
-pacman::p_load(labelled,forcats,rstanarm,tidymodels,dplyr,parsnip,baguette,future,finetune,rules,rsample,
-multilevelmod,ranger,earth,readr,stacks)
-
-plan(multisession)
-
-load(url(&quot;http://alecri.github.io/downloads/data/dental.RData&quot;))
-
-dental_long &lt;- pivot_longer(dental, cols = starts_with(&quot;y&quot;), 
-names_to = &quot;measurement&quot;, values_to = &quot;distance&quot;) %&gt;% 
-mutate(
-age = parse_number(measurement),
-measure = fct_inorder(paste(&quot;测量年龄&quot;, age)),
-s_id=as.factor(id)
-) %&gt;% 
-set_variable_labels(
-age = &quot;测量时孩子的年龄&quot;,
-measure = &quot;时间测量标签&quot;,
-distance = &quot;测量值&quot;
-) %&gt;% select(-measurement,-id)
-
-#将数据拆分为训练集、验证集和测试集
-set.seed(11)
-splitsx &lt;- group_initial_split(dental_long, group = s_id,prop = 0.8)
-
-dental_train &lt;- training(splitsx)
-dental_val &lt;- testing(splitsx)
-
-#创建交叉验证折叠
-foldsx &lt;- group_vfold_cv(dental_train, v = 3,group = s_id,repeats = 3)
-
-#创建简单的建模配方
-simple_recipex &lt;- recipe(distance ~ ., data = dental_train) %&gt;% 
-update_role(s_id,new_role = &#39;id&#39;)
-
-#带有多项式项的配方
-poly_recipex &lt;- recipe(distance ~ ., data = dental_train) %&gt;% 
-update_role(s_id,new_role = &#39;id&#39;) %&gt;%
-step_scale(all_numeric_predictors()) %&gt;%
-step_poly(all_numeric_predictors(),degree = 2,keep_original_cols = F) %&gt;%
-step_dummy(all_nominal_predictors()) %&gt;% 
-step_interact(~all_numeric_predictors():all_numeric_predictors())
-
-mixed_basic_recipex &lt;- recipe(distance ~ ., data = dental_train)
-
-mixed_poly_recipex &lt;- recipe(distance ~ ., data = dental_train) %&gt;% 
-step_scale(all_numeric_predictors()) %&gt;%
-step_poly(all_numeric_predictors(),degree = 2,keep_original_cols = F) %&gt;%
-step_dummy(all_nominal_predictors() &amp; !matches(&#39;s_id&#39;)) #%&gt;% 
-# step_interact(~all_numeric_predictors():all_numeric_predictors() )
-
-# df1 &lt;- prep(mixed_poly_recipex) %&gt;% bake(dental_train)
-
-#mixed model
-lmer_specx &lt;-
-linear_reg() %&gt;%
-set_mode(&quot;regression&quot;) %&gt;%
-set_engine(&quot;lmer&quot;)
-
-bayes_specx &lt;- linear_reg() %&gt;%
-set_mode(&quot;regression&quot;) %&gt;%
-set_engine(&quot;stan_glmer&quot;)
-
-fullx &lt;- 
-workflow_set(
-preproc = list(mixed_poly = poly_recipex
-), 
-models = list(bayesMixed = bayes_specx,lmmixed = lmer_specx
-
-)
-)
-
-#贝叶斯调整和度量的设置
-bayes_ctrl &lt;-
-control_bayes(
-save_pred = TRUE,
-parallel_over = &quot;everything&quot;,
-save_workflow = TRUE,
-verbose = TRUE,
-no_improve = 20
-)
-rmse_res &lt;- metric_set(rmse,rsq)
-
-basicbkx &lt;- prep(mixed_basic_recipex) %&gt;% bake(dental_train)
-polybkx &lt;- prep(mixed_poly_recipex) %&gt;% bake(dental_train)
-
-polyform &lt;- reformulate(c(setdiff(colnames(polybkx), c(&quot;距离&quot;,&#39;s_id&#39;)),&#39;-s_id + (1 | s_id)&#39;), 
-response=&quot;distance&quot;)
-basicform &lt;- reformulate(c(setdiff(colnames(basicbkx), c(&quot;distance&quot;,&#39;s_id&#39;)),&#39;-s_id + (1 | s_id)&#39;), 
-response=&quot;distance&quot;)
-
-all_wfx1 &lt;- fullx %&gt;% 
-# update_workflow_model(id=&#39;basic_bayesMixed&#39;,spec=bayes_specx,
-# formula = basicform) %&gt;% 
-update_workflow_model(id=&#39;mixed_poly_bayesMixed&#39;,spec=bayes_specx,
-formula = polyform) %&gt;%
-# update_workflow_model(id=&#39;basic_lmmixed&#39;,spec=lmer_specx,
-# formula = basicform) %&gt;%
-update_workflow_model(id=&#39;mixed_poly_lmmixed&#39;,spec=lmer_specx,
-formula = polyform)
-
-test_results &lt;-
-all_wfx1 %&gt;%
-working_map(
-&quot;tune_bayes&quot;,
-seed = 10,
-resamples = foldsx,
-control = bayes_ctrl
-)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78722442/error-in-evalpredvars-data-env-object-s-id-not-found</guid>
-      <pubDate>Mon, 08 Jul 2024 18:42:06 GMT</pubDate>
     </item>
     <item>
       <title>scikit学习交叉验证分数负值</title>
@@ -372,10 +347,10 @@ device=&#39;cuda:0&#39;)
       <description><![CDATA[我现在是基督大学计算机应用学士学位 (BCA) 的第二年。在探索了技术领域的各个领域后，我对移动应用开发和机器学习产生了浓厚的兴趣。
 我陷入了两难境地，希望社区能就以下问题提供一些指导：
 重点决策：同时追求机器学习和移动应用开发的专业知识是否可行且实用？还是专注于一个领域以最大限度地提高熟练程度和职业前景会更有益？
-学习路径：如果建议平衡两个领域，我应该从使用 Android Studio 和 Kotlin 进行原生 Android 开发开始，还是从 Flutter 开始更有益？
+学习路径：如果建议平衡这两个领域，我应该从使用 Android Studio 和 Kotlin 进行原生 Android 开发开始，还是从 Flutter 开始更有益？
 过渡到 Flutter：如果我从原生开发开始，过渡到 Flutter 有多顺利？业界是否普遍从原生开发开始，然后转向 Flutter，还是专业人士经常直接从 Flutter 开始？
 对 Flutter 的需求：业界目前对 Flutter 开发人员的需求如何？Flutter 专业知识是否有重大的机会和增长前景，尤其是与原生 Android 开发相比？
-实习策略：考虑到需要获得实习机会，先专注于一个领域，然后再扩展到另一个领域，这是否有利？如果是这样，您建议优先考虑哪个领域以获得更好的实习机会和职业发展？
+实习策略：考虑到需要获得实习机会，先专注于一个领域，然后再扩展到另一个领域，这是否有利？如果是这样，您会建议优先考虑哪个领域以获得更好的实习机会和职业发展？
 您的见解和建议将非常宝贵，可以帮助我做出明智的决定，决定我的学习路径和职业轨迹。]]></description>
       <guid>https://stackoverflow.com/questions/78720753/balancing-machine-learning-and-mobile-app-development</guid>
       <pubDate>Mon, 08 Jul 2024 12:05:36 GMT</pubDate>
@@ -448,65 +423,6 @@ device=&#39;cuda:0&#39;)
       <pubDate>Mon, 08 Jul 2024 07:31:51 GMT</pubDate>
     </item>
     <item>
-      <title>Keras 模型输入形状与层不兼容（尽管是兼容形状）</title>
-      <link>https://stackoverflow.com/questions/78719585/keras-model-input-shapes-are-incompatible-with-the-layer-despite-being-a-compat</link>
-      <description><![CDATA[为了解决这个问题，我在过去两天里费尽心机。我创建了一个文件 test.py，通过预测单个样本来测试我的模型：
-import os
-import keras
-import numpy as np
-import tensorflow as tf
-from main_copy import path_to_fft
-
-model = keras.models.load_model(os.path.join(os.getcwd(), &quot;model.keras&quot;))
-
-model.summary()
-model.summary(expand_nested=True)
-
-first_sample = path_to_fft(os.path.join(os.getcwd(), &#39;Sounds&#39;, &#39;Thomas&#39;, &#39;thomas_original.wav&#39;))
-second_sample = path_to_fft(os.path.join(os.getcwd(), &#39;Sounds&#39;, &#39;Thomas&#39;, &#39;thomas_original.wav&#39;))
-
-print(&quot;First: &quot;, first_sample.shape)
-
-print(&quot;Second: &quot;, second_sample.shape)
-
-prediction = model.predict([first_sample, second_sample])
-print(prediction)
-
-path_to_fft 函数解码 .wav 文件并应用快速傅里叶变换，然后返回该变换的前半部分正频率，将 5 秒 16kHz 音频从形状 (80000, 1) 转换为 (40000, 1)，这是我的模型的正确大小。但是，当我尝试使用 model.predict 预测两个样本之间的距离时，我收到此错误消息：
-Model: &quot; functional&quot;
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ━ ...�
-┃ 层（类型） ┃ 输出形状 ┃ 参数编号 ┃ 连接到┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━ ━━━━━━━╇━ ...输入A (输入层) │ (无，40000，1) │ 0 │ - │
-│ ...输入A[0][0]，输入B[0][0] │
-═──────────────────────────────┼──────────────────────────┼──────────────────────┼──────────────────────────┤
-│ lambda (Lambda) │ (None, 1) │ 0 │ SiameseBranch[0][0]，│
-│ │ │ │ SiameseBranch[1][0] │
-└────────────────────────────┴────────────────────────┴──────────────────────┴────────────────────────┘
-
-层“SiameseBranch”的输入 0与层不兼容：预期形状=(None, 40000, 1)，发现形状=(32, 1)
-
-Functional.call() 接收的参数：
-• 输入=(&#39;tf.Tensor(shape=(32, 1), dtype=float32)&#39;, &#39;tf.Tensor(shape=(32, 1), dtype=float32)&#39;)
-• 训练=False
-• 掩码=(&#39;None&#39;, &#39;None&#39;)
-
-向上滚动时，我看到 Tensorflow 生成了三个 (?????) 参数：
-级别 1：tensorflow：为 Python 函数 &lt;function StructuredFunctionWrapper.__init__.&lt;locals&gt;.trace_tf_function.&lt;locals&gt;.wrapped_fn at 创建新的 FuncGraph 0x0000027A795AE480&gt; (key: FunctionContext(context=EagerContext(parent_graph=None, device_functions=(), colocation_stack=(), in_cross_replica_context=False, variable_policy=None, xla_context_id=0), scope_type=&lt;ScopeType.VARIABLE_CREATION: 2&gt;), 输入参数:
-args_0 (POSITIONAL_ONLY): TensorSpec(shape=(32,), dtype=tf.int64, name=None)
-args_1 (POSITIONAL_ONLY): TensorSpec(shape=(40000, 1), dtype=tf.float32, name=None)
-args_2 (POSITIONAL_ONLY): TensorSpec(shape=(40000, 1), dtype=tf.float32, name=None)
-输出类型:
-无
-捕获:
-无)
-
-我完全不知道该做什么或如何处理这些错误日志。这是我第一次使用已保存为文件的模型，这绝对是一场噩梦。
-作为参考，这里是 GitHub 存储库的链接（包含 path_to_fft 函数和用于拟合模型的代码以及模型本身）：https://github.com/brainage04/WestpacHackathon
-这是运行 test.py 函数的完整错误日志，从头到尾：https://pastebin.com/iVZ7dUWn]]></description>
-      <guid>https://stackoverflow.com/questions/78719585/keras-model-input-shapes-are-incompatible-with-the-layer-despite-being-a-compat</guid>
-      <pubDate>Mon, 08 Jul 2024 07:30:43 GMT</pubDate>
-    </item>
-    <item>
       <title>使用python在机器学习中将未经训练的对象分类为未知对象</title>
       <link>https://stackoverflow.com/questions/53275530/categorize-a-not-trained-object-as-unknown-object-in-machine-learning-using-pyth</link>
       <description><![CDATA[]]></description>
@@ -514,10 +430,89 @@ args_2 (POSITIONAL_ONLY): TensorSpec(shape=(40000, 1), dtype=tf.float32, name=No
       <pubDate>Tue, 13 Nov 2018 07:02:51 GMT</pubDate>
     </item>
     <item>
+      <title>sklearn.decomposition.PCA 的特征向量简单图</title>
+      <link>https://stackoverflow.com/questions/37976564/simple-plots-of-eigenvectors-for-sklearn-decomposition-pca</link>
+      <description><![CDATA[我试图了解主成分分析的工作原理，并在sklearn.datasets.load_iris数据集上对其进行测试。我了解每个步骤的工作原理（例如，标准化数据、协方差、特征分解、按最高特征值排序、使用K个选定维度将原始数据转换为新轴）。
+下一步是可视化这些特征向量在数据集上投影的位置（在PC1 vs. PC2 图上，对吗？）。
+有人可以解释如何在降维数据集的 3D 图上绘制 [PC1、PC2、PC3] 特征向量吗？
+此外，我是否正确绘制了这个 2D 版本？我不确定为什么我的第一个特征向量的长度较短。我应该乘以特征值吗？
+
+以下是我为实现此目标所做的一些研究：
+我遵循的 PCA 方法来自：
+https://plot.ly/ipython-notebooks/principal-component-analysis/#Shortcut---PCA-in-scikit-learn（虽然我不想使用 plotly。我想坚持使用 pandas、numpy、sklearn、matplotlib、scipy 和 seaborn）
+我一直在遵循这个绘制特征向量的教程，它看起来很不错简单：使用 matplotlib 进行 PCA 的基本示例，但我似乎无法用我的数据复制结果。
+我发现了这一点，但对于我想做的事情来说，它似乎过于复杂，而且我不想创建一个 FancyArrowPatch：使用 matplotlib 和 np.linalg 绘制协方差矩阵的特征向量
+
+我试图让我的代码尽可能简单，以便遵循其他教程：
+导入 numpy 作为 np
+导入 pandas 作为 pd
+导入 matplotlib.pyplot 作为 plt
+从 sklearn.datasets 导入 load_iris
+从 sklearn.preprocessing 导入 StandardScaler
+从 sklearn 导入 decomposition
+导入 seaborn 作为 sns； sns.set_style(&quot;whitegrid&quot;, {&#39;axes.grid&#39; : False})
+
+%matplotlib inline
+np.random.seed(0)
+
+# 鸢尾花数据集
+DF_data = pd.DataFrame(load_iris().data, 
+index = [&quot;iris_%d&quot; % i for i in range(load_iris().data.shape[0])],
+columns = load_iris().feature_names)
+
+Se_targets = pd.Series(load_iris().target, 
+index = [&quot;iris_%d&quot; % i for i in range(load_iris().data.shape[0])], 
+name = &quot;Species&quot;)
+
+# 缩放平均值 = 0, var = 1
+DF_standard = pd.DataFrame(StandardScaler().fit_transform(DF_data), 
+index = DF_data.index,
+columns = DF_data.columns)
+
+# Sklearn 用于主成分分析
+
+# 维度
+m = DF_standard.shape[1]
+K = 2
+
+# PCA（我倾向于如何设置它）
+M_PCA = decomposition.PCA(n_components=m)
+DF_PCA = pd.DataFrame(M_PCA.fit_transform(DF_standard), 
+columns=[&quot;PC%d&quot; % k for k in range(1,m + 1)]).iloc[:,:K]
+
+# 绘制特征向量
+#https://stackoverflow.com/questions/18299523/basic-example-for-pca-with-matplotlib
+
+# 这就是事情变得奇怪的地方...
+data = DF_standard
+
+mu = data.mean(axis=0)
+特征向量，特征值 = M_PCA.components_, M_PCA.explained_variance_ #eigenvectors, eigenvalues, V = np.linalg.svd(data.T, full_matrices=False)
+projected_data = DF_PCA #np.dot(data, eigenvectors)
+
+sigma = projected_data.std(axis=0).mean()
+
+fig, ax = plt.subplots(figsize=(10,10))
+ax.scatter(projected_data[&quot;PC1&quot;], projected_data[&quot;PC2&quot;])
+for axis, color in zip(eigenvectors[:K], [&quot;red&quot;,&quot;green&quot;]):
+# start, end = mu, mu + sigma * axis ### 导致 &quot;ValueError: 需要解压的值太多（预期为 2）&quot;
+
+# 所以我尝试了这个但我认为它不正确
+start, end = (mu)[:K], (mu + sigma * axis)[:K] 
+ax.annotate(&#39;&#39;, xy=end,xytext=start, arrowprops=dict(facecolor=color, width=1.0))
+
+ax.set_aspect(&#39;equal&#39;)
+plt.show()
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/37976564/simple-plots-of-eigenvectors-for-sklearn-decomposition-pca</guid>
+      <pubDate>Wed, 22 Jun 2016 19:20:15 GMT</pubDate>
+    </item>
+    <item>
       <title>如何绘制决策边界？</title>
       <link>https://stackoverflow.com/questions/19054923/how-to-plot-decision-boundary</link>
       <description><![CDATA[如何使用 matplotlib 绘制决策边界，即 [w1,w2] 形式的权重向量，它基本上将两个类（比如 C1 和 C2）分开？
-这是否像绘制一条从 (0,0) 到点 (w1,w2) 的线一样简单（因为 W 是权重“向量”）如果是，如果需要，我该如何在两个方向上延伸它？
+这是否像绘制一条从 (0,0) 到点 (w1,w2) 的线一样简单（因为 W 是权重“向量”）如果是的话，如果需要，我该如何在两个方向上延伸它？
 现在我所做的就是：
  import matplotlib.pyplot as plt
 plt.plot([0,w1],[0,w2])
