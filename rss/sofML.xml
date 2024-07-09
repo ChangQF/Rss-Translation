@@ -4,7 +4,132 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 09 Jul 2024 18:20:07 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jul 2024 21:16:35 GMT</lastBuildDate>
+    <item>
+      <title>Azure Custom Vision 从网络摄像头获取图像，然后返回图像</title>
+      <link>https://stackoverflow.com/questions/78727554/azure-custom-vision-to-get-an-image-from-webcam-and-then-return-an-image</link>
+      <description><![CDATA[我希望创建一项服务，将网络摄像头中的图像发送到 Azure Custom Vision，并让其返回它认为匹配的图像。这可以用于纸牌游戏，因此如果您在网络摄像头上显示黑桃 A，它将能够返回黑桃 A 的图像。这是否适合 Azure Custom Vision？我创建了一个项目并上传和标记了图像，但我还没有看到这样的用例。]]></description>
+      <guid>https://stackoverflow.com/questions/78727554/azure-custom-vision-to-get-an-image-from-webcam-and-then-return-an-image</guid>
+      <pubDate>Tue, 09 Jul 2024 19:57:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>ValueError：未在未知的 TensorShape 上定义 as_list()。图像和掩码形状看起来正确</title>
+      <link>https://stackoverflow.com/questions/78727412/valueerror-as-list-is-not-defined-on-an-unknown-tensorshape-image-and-mask-s</link>
+      <description><![CDATA[我正尝试调整 Tensorflow 的示例 UNet 以达到我的目的。主要区别在于，此 UNet 采用 128x128 图像和掩码，而我的图像为 512x512，掩码为 100x100。
+尝试运行 model.fit 时出现此错误：
+ValueError：as_list() 未在未知的 TensorShape 上定义。
+
+但是，我可以毫无问题地运行 model.predict，它会生成我期望的未经训练的模型的预测。
+这是我用来制作和训练模型的代码：
+base_model = tf.keras.applications.MobileNetV2(input_shape=[512, 512, 3], include_top=False)
+
+# 使用这些层的激活
+layer_names = [
+&#39;block_1_expand_relu&#39;, # 64x64
+&#39;block_3_expand_relu&#39;, # 32x32
+&#39;block_6_expand_relu&#39;, # 16x16
+&#39;block_13_expand_relu&#39;, # 8x8
+&#39;block_16_project&#39;, # 4x4
+]
+base_model_outputs = [base_model.get_layer(name).output for name in layer_names]
+
+# 创建特征提取模型
+down_stack = tf.keras.Model(inputs=base_model.input, output=base_model_outputs)
+
+down_stack.trainable = False
+
+up_stack = [
+pix2pix.upsample(512, 3), # 4x4 -&gt; 8x8
+pix2pix.upsample(256, 3), # 8x8 -&gt; 16x16
+pix2pix.upsample(128, 3), # 16x16 -&gt; 32x32
+pix2pix.upsample(64, 3), # 32x32 -&gt; 64x64
+]
+
+def unet_model(output_channels:int):
+input = tf.keras.layers.Input(shape=[512, 512, 3])
+
+# 通过模型进行下采样
+skips = down_stack(inputs)
+x = skips[-1]
+skips = reversed(skips[:-1])
+
+# 上采样并建立 skip 连接
+for up, skip in zip(up_stack, skips):
+x = up(x)
+concat = tf.keras.layers.Concatenate()
+x = concat([x, skip])
+
+# 这是模型的最后一层
+last = tf.keras.layers.Conv2DTranspose(
+filters=output_channels, kernel_size=3, strides=2,
+padding=&#39;same&#39;) #64x64 -&gt; 128x128
+
+x = last(x)
+
+return tf.keras.Model(inputs=inputs, output=x)
+
+OUTPUT_CLASSES = 5
+
+model = unet_model(output_channels=OUTPUT_CLASSES)
+model.compile(optimizer=&#39;adam&#39;,
+loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+metrics=[&#39;accuracy&#39;])
+
+model_history = model.fit(train_dataset, epochs=EPOCHS,
+validation_data=test_dataset)
+
+我尝试检查每个批次的图像形状和掩码形状。除了最后一个批次（只有一个图像）外，每个批次的图像形状为 (16, 512, 512, 3)，掩码形状为 (16, 100, 100, 1)。
+我尝试将此代码放入我的 process_paths（教程中称之为）函数中：
+image = tf.reshape(image, [512, 512, 3])
+
+...
+mask = tf.reshape(mask, [100, 100, 1])
+
+我尝试对 up_stack 部分中的数字进行一些调整，但最终一无所获，因为我不理解那部分。我的假设是，既然我已经更改了输入大小，我必须更改模型层的输出大小，但我真的不知道该怎么做。另外，我很困惑，如果是这样的话，为什么我仍然可以运行 model.predict。
+我的 tensorflow 版本是 2.16.1]]></description>
+      <guid>https://stackoverflow.com/questions/78727412/valueerror-as-list-is-not-defined-on-an-unknown-tensorshape-image-and-mask-s</guid>
+      <pubDate>Tue, 09 Jul 2024 19:17:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何设置 XGBoost 中的所有默认参数或安装旧版本的 XGBoost？</title>
+      <link>https://stackoverflow.com/questions/78727359/how-to-set-all-default-parameters-in-xgboost-or-install-an-older-version-of-xgbo</link>
+      <description><![CDATA[XGBoost 将每个参数的值设置为“无”，而不是 2.1.0 文档中所述的默认值。有没有办法将所有参数设置为默认值，而无需手动分配所有参数？我上次使用 XGBoost（2022 年 9 月）时从未遇到过此问题。这个问题是此版本独有的吗？
+我尝试过手动设置默认值，但我一定是错过了什么。它一直告诉我缺少一些参数。
+我的代码：
+xgb_model = XGBClassifier(base_score=0.5, booster=&#39;gbtree&#39;, colsample_bylevel=1,
+colsample_bynode=1, colsample_bytree=1, gamma=0, device = &#39;cpu&#39;,
+significance_type=&#39;gain&#39;, interaction_constraints=&#39;&#39;,
+learning_rate=0.300000012, max_delta_step=0, max_depth=6,
+min_child_weight=1, monotone_constraints=&#39;()&#39;,
+n_estimators=100, n_jobs=12, num_parallel_tree=1,
+objective=&#39;reg:squarederror&#39;, random_state=0, reg_alpha=0,
+reg_lambda=1, scale_pos_weight=None, subsample=1,
+tree_method=&#39;exact&#39;, verify_parameters=1, verbosity=1, max_leaves = 0)
+
+xgb_model.fit(X_train, y_train)
+
+输出：
+XGBClassifier(base_score=0.5, booster=&#39;gbtree&#39;, callbacks=None,
+colsample_bylevel=1, colsample_bynode=1, colsample_bytree=1,
+device=&#39;cpu&#39;, early_stopping_rounds=None,
+enable_categorical=False, eval_metric=None, feature_types=None,
+gamma=0, grow_policy=None, significance_type=&#39;gain&#39;,
+interaction_constraints=&#39;&#39;, learning_rate=0.300000012,
+max_bin=None, max_cat_threshold=None, max_cat_to_onehot=None,
+max_delta_step=0, max_depth=6, max_leaves=0, min_child_weight=1,
+missing=nan, monotone_constraints=&#39;()&#39;, multi_strategy=None,
+n_estimators=100, n_jobs=12, num_parallel_tree=1,
+objective=&#39;reg:squarederror&#39;, ...)
+
+这是上面的错误消息。我甚至无法在 XGBoost 文档中找到其中一些参数的默认值。
+此外，我尝试使用 pip 和“pip3 install xgboost 1.6.2”下载旧版本，但它给了我错误“找不到满足要求 1.6.2 的版本，未找到与 1.6.2 匹配的发行版”。我真的希望旧版本不会有同样的问题。
+(base) PS C:\Users\myUsername&gt; pip3 install xgboost=1.6.2
+错误：无效要求：“xgboost=1.6.2”
+提示：= 不是有效运算符。你的意思是 == 吗？
+]]></description>
+      <guid>https://stackoverflow.com/questions/78727359/how-to-set-all-default-parameters-in-xgboost-or-install-an-older-version-of-xgbo</guid>
+      <pubDate>Tue, 09 Jul 2024 19:05:07 GMT</pubDate>
+    </item>
     <item>
       <title>如果使用 tf.lite.interpreter，循环中会发生内存泄漏</title>
       <link>https://stackoverflow.com/questions/78727155/memory-leak-in-loop-if-use-tf-lite-interpreter</link>
@@ -252,74 +377,14 @@ console.error(&quot;Error loading model:&quot;, error);
       <pubDate>Tue, 09 Jul 2024 17:06:11 GMT</pubDate>
     </item>
     <item>
-      <title>Vision Transformers (ViT) - 澄清问题</title>
-      <link>https://stackoverflow.com/questions/78726466/vision-transformers-vit-clarifying-question</link>
-      <description><![CDATA[我是 DS 和 ML 的新手，对计算机视觉和图像分类问题空间很陌生。
-我在网上/博客上找到了下面的代码片段，并在 google colab 上进行了基本的图像分类训练。
-有人能用简单的术语解释一下当我们执行 RandomResizedCrop、RandomHorizo​​ntalFlip、Normalize 和 To Tensors 时，幕后到底发生了什么吗？
-来自出版物 -&gt; https://openreview.net/pdf?id=YicbFdNTTy
-图像被分解成块，然后进行归一化并输入到神经网络中。
-from torchvision.transforms import (CenterCrop,
-Compose,
-Normalize,
-RandomHorizo​​ntalFlip,
-RandomResizedCrop,
-Resize,
-ToTensor)
-
-from transformers import ViTImageProcessor
-
-processor = ViTImageProcessor.from_pretrained(&quot;google/vit-base-patch16-224-in21k&quot;)
-image_mean = processing.image_mean
-image_std = processing.image_std
-size = processing.size[&quot;height&quot;]
-
-normalize = Normalize(mean=image_mean, std=image_std)
-_train_transforms = Compose(
-[
-RandomResizedCrop(size),
-RandomHorizo​​ntalFlip(),
-ToTensor(),
-normalize,
-]
-)
-
-_val_transforms = Compose(
-[
-Resize(size),
-CenterCrop(size),
-ToTensor(),
-normalize,
-]
-)
-
-def train_transforms(examples):
-examples[&#39;pixel_values&#39;] = [_train_transforms(image.convert(&quot;RGB&quot;)) for image in examples[&#39;image&#39;]]
-return examples
-
-def val_transforms(examples):
-examples[&#39;pixel_values&#39;] = [_val_transforms(image.convert(&quot;RGB&quot;)) for image in examples[&#39;image&#39;]]
-return示例
-
-food[&#39;train&#39;].set_transform(train_transforms)
-food[&#39;test&#39;].set_transform(val_transforms)
-
-感谢您的帮助！！！]]></description>
-      <guid>https://stackoverflow.com/questions/78726466/vision-transformers-vit-clarifying-question</guid>
-      <pubDate>Tue, 09 Jul 2024 15:22:15 GMT</pubDate>
+      <title>在 MNIST 数据集上训练的 Tensorflow 模型在自己的测试图像上准确率较低</title>
+      <link>https://stackoverflow.com/questions/78726737/tensorflow-model-trained-on-mnist-dataset-gives-low-accuracy-on-own-test-images</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78726737/tensorflow-model-trained-on-mnist-dataset-gives-low-accuracy-on-own-test-images</guid>
+      <pubDate>Tue, 09 Jul 2024 16:26:30 GMT</pubDate>
     </item>
     <item>
-      <title>Google Collab Pro+ 运行时断开连接问题</title>
-      <link>https://stackoverflow.com/questions/78726238/google-collab-pro-runtime-disconnect-issues</link>
-      <description><![CDATA[过去 3 天，我一直在运行笔记本以进行机器学习，一切都按预期进行。突然，运行时断开连接，重新连接后，代码停止执行，这种情况已经发生过多次。
-代码很好，因为它使用较小的数据集成功完成，我如何确定是什么原因导致代码停止执行，考虑到 Pro+ 还按每个计算单元收费，这现在花费了一点钱。
-所有资源的利用率都远低于 100%，当时有大量计算单元。
-如能提供任何帮助，我们将不胜感激]]></description>
-      <guid>https://stackoverflow.com/questions/78726238/google-collab-pro-runtime-disconnect-issues</guid>
-      <pubDate>Tue, 09 Jul 2024 14:36:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>我该如何解决 UnicodeDecodeError？</title>
+      <title>我该如何解决 UnicodeDecodeError？[关闭]</title>
       <link>https://stackoverflow.com/questions/78726197/how-can-i-solve-the-unicodedecodeerror</link>
       <description><![CDATA[我尝试使用我的数据集训练更快的 rcnn，但我总是收到此错误。“UnicodeDecodeError：&#39;utf-8&#39; 编解码器无法解码位置 118 中的字节 0xfd：无效的起始字节”。
 这是异常：
@@ -351,97 +416,12 @@ python model_main_tf2.py --pipeline_config_path==ssd_efficientdet_d0_512x512_coc
       <pubDate>Tue, 09 Jul 2024 14:26:30 GMT</pubDate>
     </item>
     <item>
-      <title>我需要改变什么参数才能满足要求？</title>
-      <link>https://stackoverflow.com/questions/78725972/what-parameter-do-i-need-to-change-for-it-to-match-requirements</link>
-      <description><![CDATA[我正在尝试基于修改后的 MNSIT 数据集训练模型，以便它对带有标签 10 的随机图像进行分类。我不断收到 Typeerror。
-transform = transforms.Compose([
-transforms.ToTensor(),
-transforms.Normalize((0.1307,), (0.3081,))
-])
-
-dataset1 = datasets.MNIST(root=&#39;./data&#39;, train=True, transform = transform)
-dataset2 = datasets.MNIST(root=&#39;./data&#39;, train=False, transform=transform)
-num_new_images = 7000
-noisy_images = torch.randn(num_new_images, 1, 28, 28)
-mean = 0.1307
-std = 0.3081
-random_images = (noisy_images-mean)/std
-noisy_labels = torch.full((num_new_images,),10, dtype=torch.long)
-new_dataset = torch.utils.data.TensorDataset(noisy_images, noisy_labels)
-combined_dataset = torch.utils.data.ConcatDataset([dataset1, new_dataset])
-len(combined_dataset) 
-num_val_images = 1000
-noisy_images = torch.randn(num_val_images, 1, 28, 28)
-random_val_images = (noisy_images-mean)/std
-noisy_val_labels = torch.full((num_val_images,),10, dtype=torch.long)
-new_val_dataset = torch.utils.data.TensorDataset(random_val_images, noisy_val_labels)
-combined_val_dataset = torch.utils.data.ConcatDataset([dataset2, new_val_dataset])
-batch_size = 128
-train_loader = torch.utils.data.DataLoader(combined_dataset, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(combined_val_dataset, batch_size=batch_size, shuffle=False)
-
-错误：
-TypeError Traceback（最近一次调用最后一次）
-Cell In[12]，第 74 行
-72 # 训练神经网络
-73 for epoch in range(num_epochs):
----&gt; 74 对于 train_loader 中的图像、标签：
-75 输出 = 模型（图像）
-76 损失 = 标准（输出、标签）
-
-文件 ~\PycharmProjects\tensorflow_start\venv\Lib\site-packages\torch\utils\data\dataloader.py:633，在 _BaseDataLoaderIter.__next__(self) 中
-630 如果 self._sampler_iter 为 None：
-631 # TODO(https://github.com/pytorch/pytorch/issues/76750)
-632 self._reset() # 类型：ignore[call-arg]
---&gt; 633 data = self._next_data()
-634 self._num_yielded += 1
-635 if self._dataset_kind == _DatasetKind.Iterable and \
-636 self._IterableDataset_len_called is not None and \
-637 self._num_yielded &gt; self._IterableDataset_len_called:
-
-我已经尝试更改标签的数据类型，但没有成功]]></description>
-      <guid>https://stackoverflow.com/questions/78725972/what-parameter-do-i-need-to-change-for-it-to-match-requirements</guid>
-      <pubDate>Tue, 09 Jul 2024 13:43:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78725899/machine-learning</link>
-      <description><![CDATA[ final_svm_model = SVC() 
-final_nb_model = GaussianNB() 
-final_rf_model = RandomForestClassifier(random_state=18) 
-final_svm_model.fit(X, y) 
-final_nb_model.fit(X, y) 
-final_rf_model.fit(X, y) 
-
-test_data = pd.read_csv(&quot;dataset/Testing.csv&quot;).dropna(axis=1) 
-
-test_X = test_data.iloc[:, :-1] 
-test_Y =coder.transform(test_data.iloc[:, -1]) 
-
-svm_preds = final_svm_model.predict(test_X) 
-nb_preds = final_nb_model.predict(test_X) 
-rf_preds = final_rf_model.predict(test_X) 
-[mode([i,j,k])[0][0] for i,j,k in zip(svm_preds, nb_preds, rf_preds)] 
-
-cf_matrix = chaos_matrix(test_Y, final_preds) 
-plt.figure(figsize=(12,8)) 
-
-sns.heatmap(cf_matrix, annot = True) 
-
-我收到此错误
-IndexError：标量变量的索引无效。
-
-我在 mode([i,j,k})[0][0] 附近收到此错误]]></description>
-      <guid>https://stackoverflow.com/questions/78725899/machine-learning</guid>
-      <pubDate>Tue, 09 Jul 2024 13:27:30 GMT</pubDate>
-    </item>
-    <item>
       <title>可以将已经经过拆分数据阶段、成为训练、验证和测试数据的图像数据集保存到我的计算机存储文件夹中吗？</title>
       <link>https://stackoverflow.com/questions/78724858/can-save-an-image-dataset-that-has-gone-through-the-splitting-data-stage-becomin</link>
       <description><![CDATA[我想问一下我做的训练、验证和测试数据的分布，我可以把数据分布以文件夹的形式保存在存储中吗？可以吗？我希望可以:)
 如果你想看完整的代码
 https://github.com/cendekialnazalia/CaisimPestDetection/blob/main/Percobaan%20E%20-%20CNN%20add%20Models%20Xception.ipynb
-我想下载测试数据部分，即&quot;test_gen&quot;或测试数据集。我希望有人能用一个代码来回答我的问题，这个代码可以将数据保存到我的电脑中，而不必从现有的数据集集合中逐个搜索图像数据
+我想下载测试数据部分，即&quot;test_gen&quot;或测试数据集。我希望有人能用一个代码来回答我的问题，这个代码可以将数据保存到我的电脑中，而我必须从现有的数据集集合中逐个搜索图像数据
 谢谢]]></description>
       <guid>https://stackoverflow.com/questions/78724858/can-save-an-image-dataset-that-has-gone-through-the-splitting-data-stage-becomin</guid>
       <pubDate>Tue, 09 Jul 2024 09:41:58 GMT</pubDate>
@@ -487,11 +467,21 @@ plt.plot(scores)
       <pubDate>Mon, 08 Jul 2024 17:40:02 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用混淆矩阵可视化预测样本</title>
-      <link>https://stackoverflow.com/questions/78719068/how-to-visualize-predicted-samples-using-a-confusion-matrix</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78719068/how-to-visualize-predicted-samples-using-a-confusion-matrix</guid>
-      <pubDate>Mon, 08 Jul 2024 04:07:24 GMT</pubDate>
+      <title>ModuleNotFoundError：没有名为“keras.wrappers”的模块</title>
+      <link>https://stackoverflow.com/questions/78541790/modulenotfounderror-no-module-named-keras-wrappers</link>
+      <description><![CDATA[我正在尝试使用 GridSearchCV 进行机器学习分类任务，但是这行代码一直出错，有什么建议吗？
+from keras.wrappers.scikit_learn import KerasClassifier
+
+我的 tensorflow 版本是 2.16.1，我的 keras 版本是 3.3.3
+我尝试了以下操作：
+pip install scikeras
+
+from scikeras.wrappers import KerasClassifier
+
+并得到“ImportError：无法从‘sklearn.utils.deprecation’导入名称‘_deprecate_Xt_in_inverse_transform’”
+如能提供任何帮助，我们将不胜感激！]]></description>
+      <guid>https://stackoverflow.com/questions/78541790/modulenotfounderror-no-module-named-keras-wrappers</guid>
+      <pubDate>Tue, 28 May 2024 03:17:40 GMT</pubDate>
     </item>
     <item>
       <title>ImportError（'无法导入 PIL.Image。'与 keras-ternsorflow 合作</title>
