@@ -4,7 +4,310 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 09 Jul 2024 15:15:51 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jul 2024 18:20:07 GMT</lastBuildDate>
+    <item>
+      <title>如果使用 tf.lite.interpreter，循环中会发生内存泄漏</title>
+      <link>https://stackoverflow.com/questions/78727155/memory-leak-in-loop-if-use-tf-lite-interpreter</link>
+      <description><![CDATA[我正在开发一个 FastAPI 项目，该项目接受带有模型名称和数据的请求。这些数据经过标准路径：（预处理、模型处理、后处理）。每个模型的解释器都存储在字典中，以便再次调用模型。
+由于这些模型很多（超过 500 个），占用的 RAM 量接近 3 GB。
+我想尝试减少 RAM 消耗，并尝试删除 tf.lite.interpreter 保存，但这导致了内存泄漏。据我了解，这是由于 tf.lite.interpreter 每次创建实例时都会在内存中存储一​​些数据。
+我想知道是否可以在处理后删除 tf.lite.interpreter 创建的所有数据。以减少 RAM 消耗。
+还是假设 tf.lite.interpreter 是为模型创建的，并在运行期间不断存储？
+使用模型后，有什么方法可以释放内存吗？
+我的方法有意义吗？
+提前感谢您的帮助。我刚刚开始使用 ML。
+一开始，我用 memory_profiler 对内存进行了分析。它显示内存是在 tf.lite.Interpreter() 的行上分配的
+之后我创建了一个小脚本进行测试。
+from time import perf_counter, sleep
+import tensorflow as tf
+import psutil
+import logs
+from logs.handlers import RotatingFileHandler
+
+PATH = ...
+
+rotating_handler = RotatingFileHandler(
+filename=&#39;logs/memory_leak.log&#39;, 
+mode=&#39;a+&#39;, 
+maxBytes=int(20e6),
+backupCount=10, 
+encoding=&#39;utf-8&#39;
+)
+formatter = logs.Formatter(&#39;%(asctime)s - %(levelname)s - %(message)s&#39;, datefmt=&#39;%Y-%m-%d %H:%M:%S&#39;)
+rotating_handler.setFormatter(formatter)
+root_logger = logs.getLogger()
+root_logger.setLevel(logging.WARNING)
+root_logger.addHandler(rotating_handler)
+
+def create_interpreter(path:str):
+with tf.device(&#39;/CPU:0&#39;):
+timer_start: float = perf_counter()
+interpretationer = tf.lite.Interpreter(model_path=path)
+interpretationer.allocate_tensors()
+create_time = perf_counter() - timer_start
+print(f&#39;ID 解释器：{id(interpreter)}&#39;)
+print(f&#39;时间：{create_time}&#39;)
+process = psutil.Process()
+mem_info = process.memory_info()
+logs.warning(f&#39;内存使用情况：RSS={mem_info.rss / 1024 ** 2:.2f} MB, VMS={mem_info.vms / 1024 ** 2:.2f} MB&#39;)
+return interpretationer
+
+while True:
+some_interpreter = create_interpreter(path=PATH)
+some_interpreter.allocate_tensors()
+sleep(5)
+del some_interpreter
+
+我知道 del 删除的只是链接，但我认为之后 python GC 会清除内存。
+根据这个脚本的日志，python 进程消耗的内存正在缓慢增加。]]></description>
+      <guid>https://stackoverflow.com/questions/78727155/memory-leak-in-loop-if-use-tf-lite-interpreter</guid>
+      <pubDate>Tue, 09 Jul 2024 18:07:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>Flutter/Tensorflow 形状不匹配错误</title>
+      <link>https://stackoverflow.com/questions/78727055/flutter-tensorflow-missmatching-shapes-error</link>
+      <description><![CDATA[我正在制作一个运行 tensorflow Lite 模型的 Flutter 应用。我收到以下错误：
+无法从形状为 [1, 2] 的 TensorFlowLite 张量 (Identity) 复制到形状为 [1, 215] 的 Java 对象。
+背景故事：我训练过的算法使用 215 列并输出 1 或 0。下面是使用 netron.app 的屏幕截图：Netron 图
+我实在无法理解为什么这个东西想要将形状 [1,2]（输出）复制到输入 Java 类中。这个代码太高级了，我无法正确调试它（我想有办法，但我有点新手）。我找不到 Tensorflow Lite 的 Flutter 文档，因为对我来说太模糊了，它只描述了破坏代码的函数的输入参数。下面是破坏的函数，错误在 runModelOnBinary() 函数中。任何一般性的指导/帮助/经验都将不胜感激，因为我对 Flutter、Dart 和 AI 还不太熟悉。如果需要，我可以发布整个 main.dart 代码，但我不确定是否有必要。
+void assessModel() async {
+try {
+
+// 生成具有 215 列的随机输入数据以匹配预期的 860 字节输入大小
+List&lt;double&gt; inputData = List.generate(215, (index) =&gt; Random().nextInt(2).toDouble());
+
+// 将 List&lt;double&gt;到 Float32List
+Float32List inputBytes = Float32List.fromList(inputData);
+
+// 将 Float32List 转换为 Uint8List
+Uint8List inputUint8List = inputBytes.buffer.asUint8List();
+print(inputData);
+// 在输入数据上运行模型
+var output = await Tflite.runModelOnBinary(
+binary: inputUint8List,
+numResults: 2, // 根据需要进行调整
+);
+print(&quot;here2&quot;);
+// 处理 null 或空输出
+if (output == null || output.isEmpty) {
+var result = output?[0]; 
+/* ChatGPT 告诉我这样做，之前将输出变量作为可打印结果。
+我认为这个问题没有太大区别，因为它是在代码中断之后*/
+setState(() {
+_output = &quot;Predicted: ${result[&#39;label&#39;]} (${result[&#39;confidence&#39;]})&quot;;
+});
+} else {
+setState(() {
+_output = output.toString();
+});
+}
+} catch (e) {
+// 捕获任何错误并显示它们
+setState(() {
+_output = &quot;Error running model: $e&quot;;
+});
+}
+}
+
+我尝试调整 numResults 参数，查看文档，甚至 chatGippidy，建议执行 var result = output?[0]，但一切都太模糊，没有深入介绍这个特定堆栈的工作原理。]]></description>
+      <guid>https://stackoverflow.com/questions/78727055/flutter-tensorflow-missmatching-shapes-error</guid>
+      <pubDate>Tue, 09 Jul 2024 17:44:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>autokeras 无法运行，依赖项出现错误</title>
+      <link>https://stackoverflow.com/questions/78726939/autokeras-not-running-with-error-in-dependency</link>
+      <description><![CDATA[import tensorflow as tf
+#from tensorflow.keras import layer
+#import tensorflow_datasets as tfds
+import os
+#import PIL
+import numpy as np
+
+# 定义路径
+train_dir = &#39;data3/train&#39;
+val_dir = &#39;data3/val&#39;
+test_dir = &#39;data3/test&#39;
+
+# 定义参数
+batch_size = 32
+img_height = 224
+img_width = 224
+
+# 创建用于训练、验证和测试集的 tf.data.Dataset
+train_ds = tf.keras.utils.image_dataset_from_directory(
+train_dir,
+validation_split=0.2,
+subset=&quot;training&quot;,
+seed=123,
+image_size=(img_height, img_width),
+batch_size=batch_size
+)
+
+val_ds = tf.keras.utils.image_dataset_from_directory(
+val_dir,
+validation_split=0.2,
+subset=&quot;validation&quot;,
+seed=123,
+image_size=(img_height, img_width),
+batch_size=batch_size
+)
+
+test_ds = tf.keras.utils.image_dataset_from_directory(
+test_dir,
+image_size=(img_height, img_width),
+batch_size=batch_size
+)
+
+# 标准化图像
+normalization_layer = tf.keras.layers.Rescaling(1./255)
+
+train_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
+val_ds = val_ds.map(lambda x, y: (normalization_layer(x), y))
+test_ds = test_ds.map(lambda x, y: (normalization_layer(x), y))
+
+# 优化数据集性能
+AUTOTUNE = tf.data.AUTOTUNE
+
+train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
+
+import autokeras as ak
+
+# 定义 AutoKeras 图像分类器
+clf = ak.ImageClassifier(
+overwrite=True,
+max_trials=1 # 调整数据集的试验次数
+)
+
+# 训练 AutoKeras 模型
+clf.fit(train_ds, validation_data=val_ds, epochs=1)
+
+# 导出最佳模型
+best_model = clf.export_model()
+
+# 将最佳模型保存到文件
+best_model.save(&#39;pneumonia_detection_autokeras.h5&#39;)
+
+# 加载已保存的模型
+#loaded_model = tf.keras.models.load_model(&#39;pneumonia_detection_autokeras.h5&#39;, custom_objects=ak.CUSTOM_OBJECTS)
+
+出现以下错误
+文件“C:\Users\atish\OneDrive\Documents\VSCode\Python2\learning.py”，第 60 行，位于
+import autokeras as ak
+文件&quot;C:\Users\atish\OneDrive\Documents\VSCode\Python2\myenv\Lib\site-packages\autokeras_init_.py&quot;，第 15 行，位于 
+来自 autokeras.auto_model 导入 AutoModel
+文件 &quot;C:\Users\atish\OneDrive\Documents\VSCode\Python2\myenv\Lib\site-packages\autokeras\auto_model.py&quot;，第 26 行，位于 
+来自 autokeras 导入块
+文件 &quot;C:\Users\atish\OneDrive\Documents\VSCode\Python2\myenv\Lib\site-packages\autokeras\blocks_init_.py&quot;，第 18 行，位于 autokeras.blocks.basic 导入 BertBlock
+文件&quot;C:\Users\atish\OneDrive\Documents\VSCode\Python2\myenv\Lib\site-packages\autokeras\blocks\basic.py&quot;，第 25 行，位于 
+来自 autokeras 导入 keras_layers
+文件 &quot;C:\Users\atish\OneDrive\Documents\VSCode\Python2\myenv\Lib\site-packages\autokeras\keras_layers.py&quot;，第 27 行，位于 
+来自 tensorflow.keras.layers.experimental 导入预处理
+ModuleNotFoundError：没有名为“tensorflow.keras.layers.experimental”的模块]]></description>
+      <guid>https://stackoverflow.com/questions/78726939/autokeras-not-running-with-error-in-dependency</guid>
+      <pubDate>Tue, 09 Jul 2024 17:13:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>加载模型时出错：SyntaxError：意外的标记“<”，“<!DOCTYPE”... 不是有效的 JSON</title>
+      <link>https://stackoverflow.com/questions/78726907/error-loading-model-syntaxerror-unexpected-token-doctype-is-not-v</link>
+      <description><![CDATA[我正在使用 React 上的 ml5 和 p5 创建一个瑜伽 ai 训练器。
+我创建了一个组件，它从本地 JSON 文件中获取单个姿势作为道具。该组件还加载我在公共文件夹中添加的模型。该组件的目标是检测某个瑜伽姿势，并且该组件动态返回从网络摄像头检测到的姿势名称。
+我测试了两个网络摄像头页面。我们称之为第 1 页和第 2 页。
+第 1 页有效。网址为 /practice。第 1 页指向网络摄像头 1。网络摄像头 1 有效。
+第 2 页的网址为 /practice/poseId。第 2 页指向不同的网络摄像头组件，网络摄像头 2 的代码与网络摄像头 1 完全相同，只是它接受一个道具，并且该道具是与 ID 匹配的特定姿势。
+在第二页，我收到此错误
+加载模型时出错：SyntaxError：意外的标记“&lt;”，“&lt;!DOCTYPE”... 不是有效的 JSON
+它指向此代码
+ const modelInfo = {
+model: &quot;model/model.json&quot;,
+metadata: &quot;model/model_meta.json&quot;,
+weights: &quot;model/model.weights.bin&quot;,
+};
+
+fetch(modelInfo.model)
+.then((response) =&gt; {
+if (!response.ok) {
+throw new Error(`HTTP error! status: ${response.status}`);
+}
+return response.json();
+})
+.then((data) =&gt; {
+console.log(&quot;Model JSON:&quot;, data);
+brain.load(modelInfo, brainLoaded);
+})
+.catch((error) =&gt; {
+console.error(&quot;Error loading model:&quot;, error);
+});
+
+我不明白为什么我的组件在 /practice url 上有效，但是当我添加 poseId (/practice/:poseID) 时，即使代码相同，也会显示该错误。
+错误出现在以 /practice/:poseId 结尾的 url 上，例如/practice/1.
+错误示例（您看不到底部的姿势标签）：
+
+示例（如果页面网址为 /practice，则有效）
+
+这是我的仓库：https://github.com/laura-nguyen/yoga-ai/tree/feature/page-pose-cam
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78726907/error-loading-model-syntaxerror-unexpected-token-doctype-is-not-v</guid>
+      <pubDate>Tue, 09 Jul 2024 17:06:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>Vision Transformers (ViT) - 澄清问题</title>
+      <link>https://stackoverflow.com/questions/78726466/vision-transformers-vit-clarifying-question</link>
+      <description><![CDATA[我是 DS 和 ML 的新手，对计算机视觉和图像分类问题空间很陌生。
+我在网上/博客上找到了下面的代码片段，并在 google colab 上进行了基本的图像分类训练。
+有人能用简单的术语解释一下当我们执行 RandomResizedCrop、RandomHorizo​​ntalFlip、Normalize 和 To Tensors 时，幕后到底发生了什么吗？
+来自出版物 -&gt; https://openreview.net/pdf?id=YicbFdNTTy
+图像被分解成块，然后进行归一化并输入到神经网络中。
+from torchvision.transforms import (CenterCrop,
+Compose,
+Normalize,
+RandomHorizo​​ntalFlip,
+RandomResizedCrop,
+Resize,
+ToTensor)
+
+from transformers import ViTImageProcessor
+
+processor = ViTImageProcessor.from_pretrained(&quot;google/vit-base-patch16-224-in21k&quot;)
+image_mean = processing.image_mean
+image_std = processing.image_std
+size = processing.size[&quot;height&quot;]
+
+normalize = Normalize(mean=image_mean, std=image_std)
+_train_transforms = Compose(
+[
+RandomResizedCrop(size),
+RandomHorizo​​ntalFlip(),
+ToTensor(),
+normalize,
+]
+)
+
+_val_transforms = Compose(
+[
+Resize(size),
+CenterCrop(size),
+ToTensor(),
+normalize,
+]
+)
+
+def train_transforms(examples):
+examples[&#39;pixel_values&#39;] = [_train_transforms(image.convert(&quot;RGB&quot;)) for image in examples[&#39;image&#39;]]
+return examples
+
+def val_transforms(examples):
+examples[&#39;pixel_values&#39;] = [_val_transforms(image.convert(&quot;RGB&quot;)) for image in examples[&#39;image&#39;]]
+return示例
+
+food[&#39;train&#39;].set_transform(train_transforms)
+food[&#39;test&#39;].set_transform(val_transforms)
+
+感谢您的帮助！！！]]></description>
+      <guid>https://stackoverflow.com/questions/78726466/vision-transformers-vit-clarifying-question</guid>
+      <pubDate>Tue, 09 Jul 2024 15:22:15 GMT</pubDate>
+    </item>
     <item>
       <title>Google Collab Pro+ 运行时断开连接问题</title>
       <link>https://stackoverflow.com/questions/78726238/google-collab-pro-runtime-disconnect-issues</link>
@@ -18,33 +321,32 @@
     <item>
       <title>我该如何解决 UnicodeDecodeError？</title>
       <link>https://stackoverflow.com/questions/78726197/how-can-i-solve-the-unicodedecodeerror</link>
-      <description><![CDATA[我尝试使用我的数据集训练更快的 rcnn，但我总是收到这个错误。 &quot;UnicodeDecodeError: &#39;utf-8&#39; 编解码器无法解码位置 118 中的字节 0xfd：起始字节无效&quot;。
-以下是所有回溯，
-文件 &quot;C:\Users\90531\Desktop\New_tf2\models\research\object_detection\model_main_tf2.py&quot;，第 114 行，在 
+      <description><![CDATA[我尝试使用我的数据集训练更快的 rcnn，但我总是收到此错误。“UnicodeDecodeError：&#39;utf-8&#39; 编解码器无法解码位置 118 中的字节 0xfd：无效的起始字节”。
+这是异常：
+UnicodeDecodeError：&#39;utf-8&#39; 编解码器无法解码位置 118 中的字节 0xfd：无效的起始字节
+这是回溯：
+文件“C:\Users\90531\Desktop\New_tf2\models\research\object_detection\model_main_tf2.py”，第 114 行，位于 &lt;module&gt;
 tf.compat.v1.app.run()
-文件 &quot;C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\tensorflow\python\platform\app.py&quot;，第 36 行，在运行中
+文件“C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\tensorflow\python\platform\app.py”，第 36 行，运行中
 _run(main=main, argv=argv, flags_parser=_parse_flags_tolerate_undef)
-文件&quot;C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\absl\app.py&quot;，第 308 行，在运行中
+文件“C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\absl\app.py”，第 308 行，运行中
 _run_main(main, args)
-文件 &quot;C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\absl\app.py&quot;，第 254 行，在 _run_main
+文件“C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\absl\app.py”，第 254 行，运行中
 sys.exit(main(argv))
-文件 &quot;C:\Users\90531\Desktop\New_tf2\models\research\object_detection\model_main_tf2.py&quot;，第 105 行，在主程序中
+文件“C:\Users\90531\Desktop\New_tf2\models\research\object_detection\model_main_tf2.py”，第 105 行，在 main 中
 model_lib_v2.train_loop(
-文件&quot;C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\object_detection\model_lib_v2.py&quot;，第 505 行，在 train_loop 中
+文件“C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\object_detection\model_lib_v2.py”，第 505 行，在 train_loop 中
 configs = get_configs_from_pipeline_file(
-文件 &quot;C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\object_detection\utils\config_util.py&quot;，第 138 行，在 get_configs_from_pipeline_file 中
+文件“C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\object_detection\utils\config_util.py”，第 138 行，在 get_configs_from_pipeline_file 中
 proto_str = f.read()
-文件 &quot;C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\tensorflow\python\lib\io\file_io.py&quot;，第 114 行，在 read 中
+文件“C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\tensorflow\python\lib\io\file_io.py”，第 114 行，在 read 中
 self._preread_check()
-文件&quot;C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\tensorflow\python\lib\io\file_io.py&quot;，第 76 行，在 _preread_check
+文件“C:\Users\90531\anaconda3\envs\tensorflow2\lib\site-packages\tensorflow\python\lib\io\file_io.py”，第 76 行，在 _preread_check 中
 self._read_buf = _pywrap_file_io.BufferedInputStream(
 UnicodeDecodeError: &#39;utf-8&#39; 编解码器无法解码位置 118 中的字节 0xfd：起始字节无效
-我尝试使用此代码来训练模型（efficientdet_d0_coco17_tpu-32.tar.gz）：
 
-
-python model_main_tf2.py --pipeline_config_path==ssd_efficientdet_d0_512x512_coco17_tpu-8.config --model_dir==training --alsologtostderr
-
-]]></description>
+我尝试使用此代码进行训练模型（efficientdet_d0_coco17_tpu-32.tar.gz）：
+python model_main_tf2.py --pipeline_config_path==ssd_efficientdet_d0_512x512_coco17_tpu-8.config --model_dir==training --alsologtostderr]]></description>
       <guid>https://stackoverflow.com/questions/78726197/how-can-i-solve-the-unicodedecodeerror</guid>
       <pubDate>Tue, 09 Jul 2024 14:26:30 GMT</pubDate>
     </item>
@@ -134,77 +436,6 @@ IndexError：标量变量的索引无效。
       <pubDate>Tue, 09 Jul 2024 13:27:30 GMT</pubDate>
     </item>
     <item>
-      <title>当我尝试提取音频特征时出现“无法加载‘facebook/wav2vec2-large-960h-lv60-self’的特征提取器”错误</title>
-      <link>https://stackoverflow.com/questions/78725798/cant-load-feature-extractor-for-facebook-wav2vec2-large-960h-lv60-self-error</link>
-      <description><![CDATA[代码
-processor = Wav2Vec2Processor.from_pretrained(&quot;facebook/wav2vec2-large-960h-lv60-self&quot;)
-model = Wav2Vec2Model.from_pretrained(&quot;facebook/wav2vec2-large-960h-lv60-self&quot;)
-model.config.output_hidden_​​states = True
-
-错误
-无法加载特征提取器&#39;facebook/wav2vec2-large-960h-lv60-self&#39;。如果您尝试从“https://huggingface.co/models”加载它，请确保您没有同名的本地目录。否则，请确保“facebook/wav2vec2-large-960h-lv60-self”是包含 preprocessor_config.json 文件的目录的正确路径
-
-当我尝试使用 HuggingFace 提取特征时，我收到此错误。我尝试修复此问题，同时考虑 Tokenizer 错误。但我无法修复它。有人可以帮忙吗？
-我需要使用此模型提取音频特征。]]></description>
-      <guid>https://stackoverflow.com/questions/78725798/cant-load-feature-extractor-for-facebook-wav2vec2-large-960h-lv60-self-error</guid>
-      <pubDate>Tue, 09 Jul 2024 13:07:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何显示图像和预测 Confution Matrics</title>
-      <link>https://stackoverflow.com/questions/78725594/how-to-display-images-and-predictions-confution-matrics</link>
-      <description><![CDATA[我有这样的代码，你可以访问 GitHub，整个过程是相似的，只是架构和数据集不同
-https://github.com/cendekialnazalia/CaisimPestDetection/blob/main/Percobaan%20E%20-%20CNN%20add%20Models%20Xception.ipynb
-有关更多信息，请参阅结果 CM
-
-在最后一行代码“对测试集进行预测并生成混淆矩阵和分类报告”之后，我添加了类似下面的代码来找出每个测试数据的预测值
-test_gen.class_indices
-
-print(preds,preds.shape)
-
-result_index = np.argmax(preds[])
-print(result_index)
-
-for i in range(len(preds)):
-if(np.argmax(preds[i]) == 0):
-print(&quot;Bercak Daun&quot;)
-elif(np.argmax(preds[i]) == 1):
-print(&quot;Daun Sehat&quot;)
-elif(np.argmax(preds[i]) == 2):
-print(&quot;Karat Merah&quot;)
-else:
-print(&quot;Lainya&quot;)
-
-输出
-Bercak Daun
-Daun Sehat
-.
-.
-.
-最多 177
-Daun Sehat
-
-除了显示带有字符串的预测之外，我还想将其与图像一起显示。也许有更好、更高效的代码可以解决我的问题，请帮我回答，因为我还是个初学者，想学习]]></description>
-      <guid>https://stackoverflow.com/questions/78725594/how-to-display-images-and-predictions-confution-matrics</guid>
-      <pubDate>Tue, 09 Jul 2024 12:27:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用专家评分训练神经网络进行图像-文本相关性分析</title>
-      <link>https://stackoverflow.com/questions/78724935/training-neural-network-for-image-text-relevance-with-expert-scores</link>
-      <description><![CDATA[我有两个数据集：
-第一个数据集包含由修改后的 ResNet18 模型生成的 768 维图像嵌入。删除最后的全连接层以获得特征表示而不是图像分类。输出被投影到 768 维向量空间中。
-
-第二个数据集由 DistilBERT 生成的 768 维文本嵌入组成。
-
-图像数据集由没有特定主题和相对中性内容的图像组成，描绘了狗在日常环境中玩耍或人们玩耍的场景。
-文本数据集更加复杂。它包含图像内容的描述，每个图像都有多个描述。这些描述按从 0 到 1 的连续比例排序，反映了它们在描绘图像方面的准确性。 0 分表示描述和图像之间没有对应关系，而 1 分表示完美匹配。
-目标是开发一种搜索解决方案，允许基于预定义的文本查询进行图像检索。约束是避免使用预训练的多模态模型（如 CLIP）并从头开始设计神经网络。
-对我来说，这无疑是一个多模态问题。目标是在同一空间内对齐图像和文本向量。为此，我修改了 ResNet18，并打算构建一个以描述等级作为权重初始化的神经网络。但是，我不确定这种方法的正确性。
-我寻求正确的指导方向，并倾向于从头开始构建解决方案以掌握底层数学概念，而不是依赖现有模型。
-我无法理解的是如何在同一空间中对齐图像向量和相应的文本向量，以便可以将其用于相似性搜索……]]></description>
-      <guid>https://stackoverflow.com/questions/78724935/training-neural-network-for-image-text-relevance-with-expert-scores</guid>
-      <pubDate>Tue, 09 Jul 2024 10:01:33 GMT</pubDate>
-    </item>
-    <item>
       <title>可以将已经经过拆分数据阶段、成为训练、验证和测试数据的图像数据集保存到我的计算机存储文件夹中吗？</title>
       <link>https://stackoverflow.com/questions/78724858/can-save-an-image-dataset-that-has-gone-through-the-splitting-data-stage-becomin</link>
       <description><![CDATA[我想问一下我做的训练、验证和测试数据的分布，我可以把数据分布以文件夹的形式保存在存储中吗？可以吗？我希望可以:)
@@ -214,37 +445,6 @@ https://github.com/cendekialnazalia/CaisimPestDetection/blob/main/Percobaan%20E%
 谢谢]]></description>
       <guid>https://stackoverflow.com/questions/78724858/can-save-an-image-dataset-that-has-gone-through-the-splitting-data-stage-becomin</guid>
       <pubDate>Tue, 09 Jul 2024 09:41:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>当我通过 docker-compose.yml 运行镜像 ollama 时，无法正确运行它</title>
-      <link>https://stackoverflow.com/questions/78724837/i-cannot-run-the-image-ollama-correctly-when-i-run-it-through-docker-compose-yml</link>
-      <description><![CDATA[我正在做一个项目，分析文本信息以从中提取特定数据。Python 中的正则表达式效果不佳，因为文本格式不断变化且没有一致性。因此，我决定使用语言模型来处理这些文本，如果文本包含我感兴趣的内容，则返回结果。
-在开发程序时，我使用以下命令运行模型：
-docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
-之后，我在代码中发送了一个请求，如下所示：
-url = &#39;http://localhost:11434/api/generate&#39;
-data = { 
-&quot;model&quot;: &quot;llama3&quot;,
-&quot;prompt&quot;: f&quot;{input_text}&quot;,
-}
-
-这有效（尽管响应需要一点时间才能完成）生成）。
-现在，当我尝试配置我的 docker-compose.yml 文件以启动语言模型容器时，它看起来像这样：
-ollama:
-container_name: ollama
-image: ollama/ollama
-volumes:
-- ollama:/root/.ollama
-ports:
-- &quot;11434:11434&quot;
-
-volumes:
-ollama:
-
-但我只收到 404 错误，这意味着找不到端点。我不明白我做错了什么。有人可以帮忙吗？
-此外，有人知道语言模型是否支持多线程吗？我的脚本发送文本非常快，我不确定是否要限制向语言模型发送请求的速率，或者它是否可以处理多线程和异步请求。]]></description>
-      <guid>https://stackoverflow.com/questions/78724837/i-cannot-run-the-image-ollama-correctly-when-i-run-it-through-docker-compose-yml</guid>
-      <pubDate>Tue, 09 Jul 2024 09:38:52 GMT</pubDate>
     </item>
     <item>
       <title>Keras Tensorflow load_model 函数需要很长时间才能加载模型</title>
@@ -258,48 +458,33 @@ facetracker 如下所示：
       <pubDate>Tue, 09 Jul 2024 09:28:15 GMT</pubDate>
     </item>
     <item>
-      <title>强化学习代理没有采取现实行动</title>
-      <link>https://stackoverflow.com/questions/78724550/reinforcement-learning-agent-not-taking-realistic-actions</link>
-      <description><![CDATA[我在 Simulink 环境中使用 PPO 代理，但代理产生的操作似乎是离散的。具体来说，代理仅输出上限或下限。您知道为什么会发生这种情况吗？我正在使用 RL Toolbox 进行训练。
-以下是有关我的设置的一些详细信息：
-我正在使用带有 ode23t 求解器的可变步长 Simulink 模型。
-我的 Simulink 模型使用 Simscape 热流体库并模拟简化的区域供热网络。DHN 有 2 个分支：北 (NORD) 和南 (SUD)。
-我正在尝试使用 RL 代理来优化控制，最初专注于通过改变分支中的质量流量来最大限度地降低能源成本。
-关于代理的超参数，我使用的是 RL Toolbox，其参数如下：
-采样时间 = 3600
-折扣因子 = 0.99
-GPU
-批量大小 = 512
-学习率 = 1e-3（对于演员和评论家）
-我怀疑我的模型或代理可能存在问题。我将附上 Simulink 模型（应事先加载属性表）。希望问题清楚，有人可以提供帮助！
-​​提前谢谢您！
-我尝试更改超参数，但没有任何变化
-function reward = computeReward(EBio, EGaz, Taller,Tset, Tr,Demandes,production, penalty1,penalty2)
+      <title>无法在 Roboflow 上将属性添加到类作为子类</title>
+      <link>https://stackoverflow.com/questions/78723630/unable-to-add-attributes-to-classes-as-subclasses-on-roboflow</link>
+      <description><![CDATA[我正在使用 Roboflow 注释我的视频，并尝试向标签框（类）添加属性（子类）。我检查了所有资源，最新文档表明，将属性作为子类添加到我的类的功能应该在项目设置页面中可用。但是，我似乎找不到它。
+我目前正在使用免费的公共计划。这可能是我无法访问此功能的原因吗？有没有其他人遇到过这个问题？最近更新后免费版本中是否已禁用此功能？如果升级到付费计划可以解决此问题，我愿意考虑。]]></description>
+      <guid>https://stackoverflow.com/questions/78723630/unable-to-add-attributes-to-classes-as-subclasses-on-roboflow</guid>
+      <pubDate>Tue, 09 Jul 2024 04:00:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>scikit学习交叉验证分数负值</title>
+      <link>https://stackoverflow.com/questions/78722250/scikit-learn-cross-validation-score-negative-value</link>
+      <description><![CDATA[我试图建立一个线性回归模型来预测房价，以便从机器学习开始，但在使用以下代码中的交叉验证时遇到负分数值：
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+x = df.drop([&#39;MedHouseVal&#39;], axis=1)
+y = df[&#39;MedHouseVal&#39;]
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+model = LinearRegression()
+model.fit(x_train, y_train)
+model.score(x_test, y_test)
+from sklearn.model_selection import cross_val_score
+scores = cross_val_score(model, x, y, cv=100)
+plt.plot(scores)
 
-coutBiomass = 0.04 * EBio;
-coutGas = 0.1 * EGaz;
-
-%exp(-(Tr - minTemp) / minTemp);
-
-tempDeviation = penalty1 * abs(Taller-Tset);
-
-unmetDemand = penalty1 * max(0, Demandes - production);
-
-minTemp=penalty2 * exp(-(Tr - 318) / 318);
-
-reward = - (coutBiomass + coutGas + tempDeviation + unmetDemand+minTemp);
-end
-
-obs = rlNumericSpec([8 1]);
-act = rlNumericSpec([2 1],&quot;LowerLimit&quot;,-1,&quot;UpperLimit&quot;,1);
-agent=rlTD3Agent(obs,act);
-env=rlSimulinkEnv(&quot;Quatrieme_Configuration_SansSolaire_RL_Training&quot;,&quot;Quatrieme_Configuration_SansSolaire_RL_Training/RL Agent&quot;,obs,act);
-env.ResetFcn=@randomstart; 
-env.UseFastRestart=&quot;on&quot;; 
-TimeDelay=0.1; 
-]]></description>
-      <guid>https://stackoverflow.com/questions/78724550/reinforcement-learning-agent-not-taking-realistic-actions</guid>
-      <pubDate>Tue, 09 Jul 2024 08:41:06 GMT</pubDate>
+我注意到，随着 cv 的增加，平均分数下降。因此，我决定绘制它，并意识到分数在某些时候会呈现负值，但真实预测/样本大小怎么会是负数呢？它是用 (TP + TN - FP - FN)/样本大小计算的吗？
+在此处输入图片描述]]></description>
+      <guid>https://stackoverflow.com/questions/78722250/scikit-learn-cross-validation-score-negative-value</guid>
+      <pubDate>Mon, 08 Jul 2024 17:40:02 GMT</pubDate>
     </item>
     <item>
       <title>如何使用混淆矩阵可视化预测样本</title>
@@ -309,114 +494,23 @@ TimeDelay=0.1;
       <pubDate>Mon, 08 Jul 2024 04:07:24 GMT</pubDate>
     </item>
     <item>
-      <title>Darknet Yolov4-tiny（灰度输入）到 Tensorflow 权重，转换</title>
-      <link>https://stackoverflow.com/questions/78711847/darknet-yolov4-tiny-grayscale-input-to-tensorflow-weights-conversion</link>
-      <description><![CDATA[TL;DR:
-1 通道 TF 模型的行为与 3 通道模型不同。两者都成功从 Darknet -&gt; TF 转换，但 1 通道模型的表现不如转换前。
-手头的任务和声明：
-我有两个经过训练的 yolov4-tiny darknet 权重文件 (.weights)，一个有灰度输入（1 通道），另一个有颜色输入（3 通道）。我正在将两个权重文件转换为 Tensorflow 检查点格式，使用一个通用存储库（用于此任务），该存储库位于：
-https://github.com/hunglc007/tensorflow-yolov4-tflite.git
-两种模型的性能都已通过 c++ opencv readNetFromDarknet() 和 Python 等效项进行了测试。这两个模型都是用灰度图像进行训练的，并且对灰度图像进行操作。3 通道模型的输入只是缩放到 3 通道的灰度图像。
-Python 版本：3.10.11
-TF 版本：2.10.1
-问题陈述：
-使用 tf.keras.Models.load_model(X) 加载时，带有颜色输入的权重文件转换良好，之后运行良好，但是当转换灰度输入权重文件时，使用 Tensorflow 加载时模型的性能急剧下降，我的意思是在最明显的情况下，检测结果很差或不存在，而带有颜色输入的模型运行完美。值得注意的是，框不会错位，这意味着当发现检测结果时，它们大致处于正确的位置，但例如宽度和高度可能会偏离。
-我知道这个存储库的常见问题（硬编码内容等），并相应地更改了每次转换/模型加载的参数，并且在转换或模型加载期间不会发生任何错误。
-我已经确认了输入层：
+      <title>ImportError（'无法导入 PIL.Image。'与 keras-ternsorflow 合作</title>
+      <link>https://stackoverflow.com/questions/48225729/importerrorcould-not-import-pil-image-working-with-keras-ternsorflow</link>
+      <description><![CDATA[我正在学习 lynda.com 上的一些关于在 PyCharmCE 环境中使用 Keras-TensorFlow 进行深度学习的讲座，他们没有遇到这个问题。
+我收到此错误：
 
-灰度：（无，640,640,1）
-颜色：（无，640,640,3）
+raise ImportError(&#39;无法导入 PIL.Image。&#39;
+ImportError：无法导入 PIL.Image。使用 array_to_img 需要 PIL。
 
-测试图像（用于性能测试）使用 opencv-python 加载，并且它们的有效性也已审查，即使将错误维度的数据插入到输入层也会出现错误。
-除输入层之外的架构相同，已使用 model.summary() 确认。
-我注意到，几年前我用不同的 TF 版本转换的 3 通道模型由 model.summary() 生成的架构有些不同。一些图块层似乎缺失了。此外，一些 tf 操作的名称也不同，但这可能只是 TF 版本不同。
-旧颜色模型：
- tf_op_layer_Sigmoid (TensorFlo (None, 40, 40, 3, 2 0 [&#39;tf_op_layer_split_3[0][0]&#39;]
-wOpLayer) )
+我检查过其他人是否也遇到同样的错误，但对于我来说，使用 pip 安装枕头，命令 pip install Pillow 无法解决任何问题。
 
-tf_op_layer_Tile/multiples (Te (5,) 0 [&#39;tf_op_layer_strided_slice[0][0]
-nsorFlowOpLayer) &#39;]
+MacBook-Pro-de-Rogelio:~ Rogelio$ pip install Pillow
+要求已满足：./anaconda3/lib/python3.6/site-packages 中的枕头
+MacBook-Pro-de-Rogelio:~ Rogelio$
 
-tf_op_layer_Sigmoid_3 (TensorF (None, 20, 20, 3, 2 0 [&#39;tf_op_layer_split_4[0][0]&#39;]
-lowOpLayer) ) )
-
-新灰度模型：
- tf.math.sigmoid (TFOpLambda) (无，40，40，3，2 0 [&#39;tf.split_3[0][0]&#39;]
-)
-
----此处缺少图块层---
-
-tf.math.sigmoid_3 (TFOpLambda) (无，20，20，3，2 0 [&#39;tf.split_4[0][0]&#39;]
-)
-
-我现在很卡。有什么帮助吗？
-一些反复试验：
-
-使用 Yolov4-tiny Head 解码块 -&gt;即使在模型能够加载的情况下也没有变化（解码时错误的尺寸会引发错误）
-之前提到的较旧的 3 通道模型（几年前已转换为 Darknet -&gt; TF），当以与新模型相同的方式加载时，可以完美运行
-
-解决方案：
-我从 c++ 打印了带有形状的图层，因为模型在那里工作，我很想知道形状是否完全不同。第一个卷积层根本没有缩小。我检查了 Darknet 用于解析模型的 .cfg 文件，第一个卷积层上有一行“size=3stride=2”。大小解析正确，但步幅解析不正确，并且默认为 1，这使得第一个卷积层的形状为 (640,640,32)，而不是预期的（正确的）(320,320,32)。当我将权重加载到正确的架构时，它当然表现不佳，因为它是用另一种布局训练的。我怀疑我用没有这个错误的 .cfg 训练了 3 通道模型，这就是它完美运行的原因。]]></description>
-      <guid>https://stackoverflow.com/questions/78711847/darknet-yolov4-tiny-grayscale-input-to-tensorflow-weights-conversion</guid>
-      <pubDate>Fri, 05 Jul 2024 13:54:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Spark 中获取 spark.ml NaiveBayes 概率向量而非 [0-1] 类？</title>
-      <link>https://stackoverflow.com/questions/65653286/how-to-get-spark-ml-naivebayes-probability-vector-not-0-1-class-in-spark</link>
-      <description><![CDATA[我正在研究 NaiveBayes 分类器，我可以使用训练后的模型预测单个数据点的值，但我想获取概率值。
-数据仅分为两类。并且预测函数返回 0 或 1。
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.ml.classification.{NaiveBayes, NaiveBayesModel}
-import org.apache.spark.ml.feature.LabeledPoint
-import org.apache.spark.ml.linalg.Vectors
-import org.apache.spark.sql.SparkSession
-
-object Test {
-def main(args: Array[String]): Unit = {
-Logger.getLogger(&quot;org&quot;).setLevel(Level.OFF)
-Logger.getLogger(&quot;akka&quot;).setLevel(Level.OFF)
-val spark = SparkSession.builder.appName(&quot;Test&quot;).master(&quot;local[4]&quot;).getOrCreate
-val dataset = spark.read.option(&quot;inferSchema&quot;, &quot;true&quot;).csv(&quot;data/labelled.csv&quot;).toDF()
-
-import spark.sqlContext.implicits._
-val output = dataset.map(row =&gt; {
-LabeledPoint(row.getInt(2), Vectors.dense( row.getInt(0) , row.getInt(1)))
-})
-val Array(training, test) = output.randomSplit(Array(0.7, 0.3),seed = 11L)
-training.cache()
-
-val model : NaiveBayesModel = new NaiveBayes().fit(training)
-val speed = 110
-val hour = 11
-val label1 : Double = model.predict(Vectors.dense(speed,hour))
-// 更新
-val label = model.predictProbability(Vectors.dense(speed,hour)) // 这不起作用并引发错误[1]
-}
-}
-
-[1] 使用 model.predictProbability 时引发的错误
-
-错误：(24, 23) 类 ProbabilisticClassificationModel 中的方法 predictProbability 无法在 org.apache.spark.ml.classification.NaiveBayesModel 中访问。无法访问受保护的方法 predictProbability，因为封闭的对象 Test 不是包分类中类 ProbabilisticClassificationModel 的子类，其中定义了目标 val label = model.predictProbability(Vectors.dense(speed,hour))
-]]></description>
-      <guid>https://stackoverflow.com/questions/65653286/how-to-get-spark-ml-naivebayes-probability-vector-not-0-1-class-in-spark</guid>
-      <pubDate>Sun, 10 Jan 2021 12:30:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 scikit learn 中实现自定义损失函数</title>
-      <link>https://stackoverflow.com/questions/54267745/implementing-custom-loss-function-in-scikit-learn</link>
-      <description><![CDATA[我想在 scikit learn 中实现自定义损失函数。我使用以下代码片段：
-def my_custom_loss_func(y_true,y_pred):
-diff3=max((abs(y_true-y_pred))*y_true)
-return diff3
-
-score=make_scorer(my_custom_loss_func,greater_ is_better=False)
-clf=RandomForestRegressor()
-mnn= GridSearchCV(clf,score)
-knn = mnn.fit(feam,labm) 
-
-传递给 my_custom_loss_func 的参数应该是什么？我的标签矩阵称为 labm。我想计算实际输出与预测输出（由模型）乘以真实输出之间的差值。如果我使用 labm 代替 y_true，那么我应该使用什么代替 y_pred？]]></description>
-      <guid>https://stackoverflow.com/questions/54267745/implementing-custom-loss-function-in-scikit-learn</guid>
-      <pubDate>Sat, 19 Jan 2019 13:47:47 GMT</pubDate>
+有什么解决办法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/48225729/importerrorcould-not-import-pil-image-working-with-keras-ternsorflow</guid>
+      <pubDate>Fri, 12 Jan 2018 11:49:58 GMT</pubDate>
     </item>
     </channel>
 </rss>
