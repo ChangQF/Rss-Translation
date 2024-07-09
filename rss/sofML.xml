@@ -4,173 +4,146 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 09 Jul 2024 06:22:10 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 09 Jul 2024 09:16:12 GMT</lastBuildDate>
     <item>
-      <title>如何为 qdrant fastembed 模型创建通用 BEIR 稀疏嵌入包装器？</title>
-      <link>https://stackoverflow.com/questions/78723939/how-to-create-a-generic-beir-sparse-embed-wrapper-for-qdrant-fastembed-models</link>
-      <description><![CDATA[我想对 Qdrant FastEmbed 模型进行基准测试，尤其是稀疏模型。这些模型具有嵌入函数签名：
-def embed(
-self,
-documents: Union[str, Iterable[str]],
-batch_size: int = 256,
-parallel: Optional[int] = None,
-**kwargs,
-) -&gt; Iterable[SparseEmbedding]:
-
-SparseEmbedding 只是一个数据类，其值和索引为 numpy 数组。
-@dataclass
-class SparseEmbedding:
-values: np.ndarray
-indices: np.ndarray
-
-我查看了 beir 中有关评估自定义模型的文档，但它没有记录任何有关稀疏模型的内容。但是他们提供了一个示例，说明如何使用其库中预先训练的 SPARTA 模型。这是将模型代码包装在工具的 SparseSearch 类中的代码的相关部分。
-sparse_model = SparseSearch(models.SPARTA(model_path), batch_size=128)
-retriever = EvaluateRetrieval(sparse_model)
-
-results = withdrawer.retrieve(corpus, queries)
-
-SparseSearch 类有一个 search() 方法，该方法调用要进行基准测试的模型的 encode_corpus() 和 encode_query() 方法。
-def search(self, 
-corpus: Dict[str, Dict[str, str]], 
-queries: Dict[str, str], 
-top_k：int，
-score_function：str，
-query_weights：bool = False，
-*args，**kwargs）-&gt;； Dict[str, Dict[str, float]]:
-
-doc_ids = list(corpus.keys())
-query_ids = list(queries.keys())
-documents = [corpus[doc_id] for doc_id in doc_ids]
-logs.info(&quot;计算文档嵌入并创建稀疏矩阵&quot;)
-self.sparse_matrix = self.model.encode_corpus(documents, batch_size=self.batch_size)
-
-logs.info(&quot;开始检索...&quot;)
-for start_idx in trange(0, len(queries), desc=&#39;query&#39;):
-qid = query_ids[start_idx]
-query_tokens = self.model.encode_query(queries[qid])
-
-if query_weights: 
-# 用于 uniCOIL，查询权重被考虑！
-scores = self.sparse_matrix.dot(query_tokens)
-else: 
-# 用于 SPARTA，不考虑查询权重（即二进制）！
-scores = np.asarray(self.sparse_matrix[query_tokens, :].sum(axis=0)).squeeze(0)
-
-top_k_ind = np.argpartition(scores, -top_k)[-top_k:]
-self.results[qid] = {doc_ids[pid]: float(scores[pid]) for pid in top_k_ind if doc_ids[pid] != qid}
-
-return self.results
-
-我无法直观地理解此搜索操作与 qdrant 模型提供的内容之间的逻辑和关系。这是我为 SparseSearch 类创建包装器的失败尝试，但它在执行过程中冻结了。
-import numpy as np
-from scipy.sparse import csr_matrix
-
-class FastSparse:
-def __init__(self, model_name=None, **kwargs):
-self.model = SparseTextEmbedding(
-model_name=model_name, cache_dir=&quot;.model_cache&quot;
-)
-
-def encode_query(self, query: str, **kwargs):
-query_embedding = self.model.query_embed(query)
-return csr_matrix(
-(
-query_embedding.values,
-query_embedding.indices,
-[0, len(query_embedding.indices)],
-)
-)
-
-def encode_corpus(self, corpus: List[Dict[str, str]], batch_size: int, **kwargs):
-
-sentence = [(doc[&quot;title&quot;] + &quot; &quot; + doc[&quot;text&quot;]).strip() for doc in corpus]
-embeddings = self.model.embed(sentences, batch_size=batch_size)
-
-all_indices = np.array([], dtype=int)
-all_values = np.array([], dtype=float)
-indptr = [0]
-for emb in embeddings:
-all_indices = np.concatenate((all_indices, emb.indices))
-all_values = np.concatenate((all_values, emb.values))
-indptr.append(len(all_indices))
-
-返回 csr_matrix((all_values, all_indices, indptr))
-]]></description>
-      <guid>https://stackoverflow.com/questions/78723939/how-to-create-a-generic-beir-sparse-embed-wrapper-for-qdrant-fastembed-models</guid>
-      <pubDate>Tue, 09 Jul 2024 06:19:01 GMT</pubDate>
+      <title>强化学习代理没有采取现实行动</title>
+      <link>https://stackoverflow.com/questions/78724550/reinforcement-learning-agent-not-taking-realistic-actions</link>
+      <description><![CDATA[我在 Simulink 环境中使用 PPO 代理，但代理产生的操作似乎是离散的。具体来说，代理仅输出上限或下限。您知道为什么会发生这种情况吗？我正在使用 RL Toolbox 进行训练。
+以下是有关我的设置的一些详细信息：
+我正在使用带有 ode23t 求解器的可变步长 Simulink 模型。
+我的 Simulink 模型使用 Simscape 热流体库并模拟简化的区域供热网络。DHN 有 2 个分支：北 (NORD) 和南 (SUD)。
+我正在尝试使用 RL 代理来优化控制，最初专注于通过改变分支中的质量流量来最大限度地降低能源成本。
+关于代理的超参数，我使用的是 RL Toolbox，其参数如下：
+采样时间 = 3600
+折扣因子 = 0.99
+GPU
+批量大小 = 512
+学习率 = 1e-3（对于演员和评论家）
+我怀疑我的模型或代理可能存在问题。我将附上 Simulink 模型（应事先加载属性表）。我希望问题清楚，有人可以提供帮助！
+​​提前谢谢您！
+我尝试更改超参数，但没有任何变化]]></description>
+      <guid>https://stackoverflow.com/questions/78724550/reinforcement-learning-agent-not-taking-realistic-actions</guid>
+      <pubDate>Tue, 09 Jul 2024 08:41:06 GMT</pubDate>
     </item>
     <item>
-      <title>我无法得到正确的 r 平方</title>
-      <link>https://stackoverflow.com/questions/78723283/i-cant-get-the-right-r-squared</link>
-      <description><![CDATA[首先，我遇到了一个问题，r 平方值出现奇怪的问题。
-如果您能先查看代码，我将不胜感激。
-X_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.3,shuffle = True, random_state=42)
+      <title>eval（predvars、data、env）中出现错误：未找到对象“s_id”</title>
+      <link>https://stackoverflow.com/questions/78722442/error-in-evalpredvars-data-env-object-s-id-not-found</link>
+      <description><![CDATA[我正在尝试使用 tidymodels 拟合多层模型。当我拟合单个模型时，我没有遇到问题，但当我将它们组合到工作流集中时，我得到了这些错误。
+我看到过有类似错误的帖子，并尝试更新我的代码，但似乎仍然不起作用。
+当我在应用配方后查看训练和验证集时，我确实在数据框中找到所有列。不确定为什么错误仍然存​​在。当我使用非多级算法时，不会出现此错误。
+我希望有人可以帮助解决此错误：
+pacman::p_load(labelled,forcats,rstanarm,tidymodels,dplyr,parsnip,baguette,future,finetune,rules,rsample,
+multilevelmod,ranger,earth,readr,stacks)
 
-parameters = {
-&#39;max_depth&#39;: Integer(3, 30),
-&#39;n_estimators&#39;: Integer(100, 1000),
-&#39;learning_rate&#39;: Real(0.01, 0.5),
-&#39;colsample_bytree&#39;: Real(0.1, 1.0),
-&#39;subsample&#39;: Real(0.1, 1.0),
-&#39;min_child_weight&#39;: Integer(1, 10),
-}
+plan(multisession)
 
-xgb_model = XGBRegressor()
+load(url(&quot;http://alecri.github.io/downloads/data/dental.RData&quot;))
 
-cv = KFold(n_splits=10, shuffle=True, random_state=42)
-bayes_search = BayesSearchCV(xgb_model, parameters, cv=cv, n_jobs=-1,scoring=&#39;r2&#39;,verbose=5,random_state=42)
-bayes_search.fit(X_train, y_train)
+dental_long &lt;- pivot_longer(dental, cols = starts_with(&quot;y&quot;), 
+names_to = &quot;measurement&quot;, values_to = &quot;distance&quot;) %&gt;% 
+mutate(
+age = parse_number(measurement),
+measure = fct_inorder(paste(&quot;测量年龄&quot;, age)),
+s_id=as.factor(id)
+) %&gt;% 
+set_variable_labels(
+age = &quot;测量时孩子的年龄&quot;,
+measure = &quot;时间测量标签&quot;,
+distance = &quot;测量值&quot;
+) %&gt;% select(-measurement,-id)
 
-best_params = bayes_search.best_params_
-print(&quot;最佳超参数：&quot;, best_params)
+#将数据拆分为训练集、验证集和测试集
+set.seed(11)
+splitsx &lt;- group_initial_split(dental_long, group = s_id,prop = 0.8)
 
-# CV R^2 分数
-cv_results = bayes_search.cv_results_
-cv_mean_score = cv_results[&#39;mean_test_score&#39;][bayes_search.best_index_]
-print(&quot;CV R 平方分数：&quot;, cv_mean_score)
+dental_train &lt;- training(splitsx)
+dental_val &lt;- testing(splitsx)
 
-# 训练R^2
-final_model = XGBRegressor(**best_params)
-final_model.fit(X_train, y_train)
-y_pred1 = final_model.predict(X_train)
-train_r2 = r2_score(y_train, y_pred1)
-print(&quot;Train R squared:&quot;, train_r2)
+#创建交叉验证折叠
+foldsx &lt;- group_vfold_cv(dental_train, v = 3,group = s_id，重复次数 = 3)
 
-# Test R^2
-y_pred = final_model.predict(X_test)
-test_r2 = r2_score(y_test, y_pred)
-print(&quot;Test R squared:&quot;, test_r2)
+mixed_basic_recipex &lt;- recipe(distance ~ ., data = dental_train)
 
-当我使用这些代码运行 r squared 时，我得到了以下结果。
-CV R squared 分数：0.6303，训练 R squared：0.7647，测试 R squared： 0.6337
-问题来了：
+mixed_poly_recipex &lt;- recipe(distance ~ ., data = dental_train) %&gt;% 
+step_scale(all_numeric_predictors()) %&gt;%
+step_poly(all_numeric_predictors(),degree = 2,keep_original_cols = F) %&gt;%
+step_dummy(all_nominal_predictors() &amp; !matches(&#39;s_id&#39;)) #%&gt;% 
+# step_interact(~all_numeric_predictors():all_numeric_predictors() )
 
-我尝试了不同的随机状态，结果训练 r^2 &gt; 测试 r^2 &gt; cv r^2。我的常识告诉我，训练 r^2 和 cv r^2 应该具有相同的值，因为它们使用了相同的参数，并且它们应该始终高于对整个数据集进行 30% 计算的测试 r^2，所以我不知道为什么我会得到这组结果 r^2 &gt; 测试 r^2 &gt; cv r^2。
+# df1 &lt;- prep(mixed_poly_recipex) %&gt;% bake(dental_train)
 
-我尝试了贝叶斯搜索和网格搜索、xgboost 和随机森林以及许多其他方法，但我无法使 r 平方超过 0.8。我应该使用不同模型的集成来增加它吗？我将非常感激任何建议。
+#mixed model
+lmer_specx &lt;-
+linear_reg() %&gt;%
+set_mode(&quot;regression&quot;) %&gt;%
+set_engine(&quot;lmer&quot;)
 
+bayes_specx &lt;- linear_reg() %&gt;%
+set_mode(&quot;regression&quot;) %&gt;%
+set_engine(&quot;stan_glmer&quot;)
 
-如果我误解了某个概念或在代码中犯了错误，请告诉我。
-这是一篇很长的文章，非常感谢您的阅读。]]></description>
-      <guid>https://stackoverflow.com/questions/78723283/i-cant-get-the-right-r-squared</guid>
-      <pubDate>Tue, 09 Jul 2024 00:43:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于 CIFAR-10 和迁移学习的问题 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78722572/issues-about-cifar-10-and-transfer-learning</link>
-      <description><![CDATA[我试了很多次，但那一行不起作用：
-history = model.fit(train_generator, epochs=200, steps_per_epoch=167,
-callbacks=[modelcheckpoint],
-validation_data=validation_generator,validation_steps=50)
+fullx &lt;- 
+workflow_set(
+preproc = list( mixed_poly = mix_poly_recipex
+), 
+models = list(bayesMixed = bayes_specx,lmmixed = lmer_specx
 
-我收到错误：
-ValueError: `logits` 和 `labels` 必须具有相同的形状，收到 ((None, None, None, 1) vs (None,))。
+)
+)
 
-https://drive.google.com/file/d/1r-TznZVZI9HcPGjfS_i-DfpEJ7mBUw0x/view?usp=sharing
-我在 X_train 上做了很多改动，并进行了缩放。但什么也没发生！
-我操纵了图像读取，但根本不起作用。我甚至找不到根本原因]]></description>
-      <guid>https://stackoverflow.com/questions/78722572/issues-about-cifar-10-and-transfer-learning</guid>
-      <pubDate>Mon, 08 Jul 2024 19:22:31 GMT</pubDate>
+#贝叶斯调整和度量的设置
+bayes_ctrl &lt;-
+control_bayes(
+save_pred = TRUE,
+parallel_over = &quot;everything&quot;,
+save_workflow = TRUE,
+verbose = TRUE,
+no_improve = 20
+)
+rmse_res &lt;- metric_set(rmse,rsq)
+
+basicbkx &lt;- prep(mixed_basic_recipex) %&gt;% bake(dental_train)
+polybkx &lt;- prep(mixed_poly_recipex) %&gt;% bake(dental_train)
+
+polyform &lt;- reformulate(c(setdiff(colnames(polybkx), c(&quot;距离&quot;,&#39;s_id&#39;)),&#39;-s_id + (1 | s_id)&#39;), 
+response=&quot;distance&quot;)
+basicform &lt;- reformulate(c(setdiff(colnames(basicbkx), c(&quot;distance&quot;,&#39;s_id&#39;)),&#39;-s_id + (1 | s_id)&#39;), 
+response=&quot;distance&quot;)
+
+all_wfx1 &lt;- fullx %&gt;% 
+# update_workflow_model(id=&#39;basic_bayesMixed&#39;,spec=bayes_specx,
+# formula = basicform) %&gt;% 
+update_workflow_model(id=&#39;mixed_poly_bayesMixed&#39;,spec=bayes_specx,
+formula = polyform) %&gt;%
+# update_workflow_model(id=&#39;basic_lmmixed&#39;,spec=lmer_specx,
+# formula = basicform) %&gt;%
+update_workflow_model(id=&#39;mixed_poly_lmmixed&#39;,spec=lmer_specx,
+formula = polyform)
+
+test_results &lt;-
+all_wfx1 %&gt;%
+working_map(
+&quot;tune_bayes&quot;,
+seed = 10,
+resamples = foldsx,
+control = bayes_ctrl
+)
+
+编辑：
+我尝试了不同的方法。我在添加公式之前使用 update_workflow_recipe 添加了配方。这似乎适用于混合模型，但我对贝叶斯模型有一个不同的错误
+这是更新的位：
+all_wfx1 &lt;- fullx %&gt;% 
+update_workflow_recipe(id=&#39;mixed_poly_lmmixed&#39;,recipe = hybrid_poly_recipex) %&gt;%
+update_workflow_model(id=&#39;mixed_poly_lmmixed&#39;,spec=lmer_specx,
+formula = distance ~ . -s_id + (1 | s_id)) %&gt;%
+
+update_workflow_recipe(id=&#39;mixed_poly_bayesMixed&#39;,recipe = hybrid_poly_recipex) %&gt;%
+update_workflow_model(id=&#39;mixed_poly_bayesMixed&#39;,spec=bayes_specx,
+formula = distance ~ . -s_id + (1 | s_id))
+
+新的错误是 terms.formula(formula(x, fixed.only = TRUE) 中的错误：公式中的 &#39;.&#39; 且没有 &#39;data&#39; 参数]]></description>
+      <guid>https://stackoverflow.com/questions/78722442/error-in-evalpredvars-data-env-object-s-id-not-found</guid>
+      <pubDate>Mon, 08 Jul 2024 18:42:06 GMT</pubDate>
     </item>
     <item>
       <title>scikit学习交叉验证分数负值</title>
@@ -192,46 +165,6 @@ plt.plot(scores)
 在此处输入图片描述]]></description>
       <guid>https://stackoverflow.com/questions/78722250/scikit-learn-cross-validation-score-negative-value</guid>
       <pubDate>Mon, 08 Jul 2024 17:40:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>Jupyter Notebook 中的运行时溢出[关闭]</title>
-      <link>https://stackoverflow.com/questions/78721859/runtime-overflow-in-jupyter-notebook</link>
-      <description><![CDATA[我在计算梯度下降时遇到了这个问题
-RuntimeWarning: 在 add theta1_slope = (-2/n) + sum(y - thetas[1]*x)*x) 时遇到溢出
-
-如何解决？]]></description>
-      <guid>https://stackoverflow.com/questions/78721859/runtime-overflow-in-jupyter-notebook</guid>
-      <pubDate>Mon, 08 Jul 2024 15:58:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何定义/改变非分类卷积神经网络的准确性？</title>
-      <link>https://stackoverflow.com/questions/78721703/how-do-i-define-change-the-accuracy-for-a-non-classification-convolutional-neura</link>
-      <description><![CDATA[我正在使用 Keras 制作一个预测模型。它接受两个时间序列并输出一个介于 0 和 1 之间的数字。目前，我的准确度非常低，因为只有当模型得到准确的数字时，它才被认为是“正确的”。例如，正确的数字是 0.34，如果它预测 0.35，则会被视为不正确。我希望能够将范围内的所有数字视为正确的，例如：在真实值的 0.05 以内。另一个选择可能是四舍五入，但我遇到了输出 6 位小数的问题。
-
-我如何将范围内的所有数字视为“正确的”准确率是多少？
-我该如何对 CNN 的输出进行四舍五入？
-
-这是我的 CNN 代码：
-def networkModel():
-model = tf.keras.Sequential([
-
-tf.keras.layers.Conv2D(filters = 16, kernel_size=(2, 2),activation=&#39;relu&#39;,padding=&#39;same&#39;),
-tf.keras.layers.Conv2D(filters = 9, kernel_size=(2, 2),activation=&#39;relu&#39;,padding=&#39;same&#39;),
-tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-tf.keras.layers.Flatten(),
-tf.keras.layers.Dense(256,激活=&#39;relu&#39;),
-tf.keras.layers.Dense(1, 激活=&#39;sigmoid&#39;)
-
-])
-
-model.compile(optimizer=&#39;adam&#39;,
-loss = tf.keras.losses.BinaryCrossentropy(),
-metrics=[&#39;accuracy&#39;])
-
-返回模型
-]]></description>
-      <guid>https://stackoverflow.com/questions/78721703/how-do-i-define-change-the-accuracy-for-a-non-classification-convolutional-neura</guid>
-      <pubDate>Mon, 08 Jul 2024 15:24:04 GMT</pubDate>
     </item>
     <item>
       <title>我的预测张量值太低</title>
@@ -342,20 +275,6 @@ device=&#39;cuda:0&#39;)
       <pubDate>Mon, 08 Jul 2024 13:25:50 GMT</pubDate>
     </item>
     <item>
-      <title>平衡机器学习和移动应用程序开发[关闭]</title>
-      <link>https://stackoverflow.com/questions/78720753/balancing-machine-learning-and-mobile-app-development</link>
-      <description><![CDATA[我现在是基督大学计算机应用学士学位 (BCA) 的第二年。在探索了技术领域的各个领域后，我对移动应用开发和机器学习产生了浓厚的兴趣。
-我陷入了两难境地，希望社区能就以下问题提供一些指导：
-重点决策：同时追求机器学习和移动应用开发的专业知识是否可行且实用？还是专注于一个领域以最大限度地提高熟练程度和职业前景会更有益？
-学习路径：如果建议平衡这两个领域，我应该从使用 Android Studio 和 Kotlin 进行原生 Android 开发开始，还是从 Flutter 开始更有益？
-过渡到 Flutter：如果我从原生开发开始，过渡到 Flutter 有多顺利？业界是否普遍从原生开发开始，然后转向 Flutter，还是专业人士经常直接从 Flutter 开始？
-对 Flutter 的需求：业界目前对 Flutter 开发人员的需求如何？Flutter 专业知识是否有重大的机会和增长前景，尤其是与原生 Android 开发相比？
-实习策略：考虑到需要获得实习机会，先专注于一个领域，然后再扩展到另一个领域，这是否有利？如果是这样，您会建议优先考虑哪个领域以获得更好的实习机会和职业发展？
-您的见解和建议将非常宝贵，可以帮助我做出明智的决定，决定我的学习路径和职业轨迹。]]></description>
-      <guid>https://stackoverflow.com/questions/78720753/balancing-machine-learning-and-mobile-app-development</guid>
-      <pubDate>Mon, 08 Jul 2024 12:05:36 GMT</pubDate>
-    </item>
-    <item>
       <title>如何使用预训练模型改进森林卫星图像中的树木检测和计数？[关闭]</title>
       <link>https://stackoverflow.com/questions/78720461/how-to-improve-tree-detection-and-counting-in-forest-satellite-imagery-using-pre</link>
       <description><![CDATA[我正在开发一个人工智能林业管理系统，使用来自 Google Earth 的卫星图像来监测和分析树木种群。主要目标是准确计数树木并识别濒危或本土物种。我已经实施了一个用于图像分割的 U-Net 模型，但准确性并不令人满意，许多树木被遗漏或错误计数。
@@ -423,11 +342,170 @@ device=&#39;cuda:0&#39;)
       <pubDate>Mon, 08 Jul 2024 07:31:51 GMT</pubDate>
     </item>
     <item>
-      <title>使用python在机器学习中将未经训练的对象分类为未知对象</title>
-      <link>https://stackoverflow.com/questions/53275530/categorize-a-not-trained-object-as-unknown-object-in-machine-learning-using-pyth</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/53275530/categorize-a-not-trained-object-as-unknown-object-in-machine-learning-using-pyth</guid>
-      <pubDate>Tue, 13 Nov 2018 07:02:51 GMT</pubDate>
+      <title>Darknet Yolov4-tiny（灰度输入）到 Tensorflow 权重，转换</title>
+      <link>https://stackoverflow.com/questions/78711847/darknet-yolov4-tiny-grayscale-input-to-tensorflow-weights-conversion</link>
+      <description><![CDATA[TL;DR:
+1 通道 TF 模型的行为与 3 通道模型不同。两者都成功从 Darknet -&gt; TF 转换，但 1 通道模型的表现不如转换前。
+手头的任务和声明：
+我有两个经过训练的 yolov4-tiny darknet 权重文件 (.weights)，一个有灰度输入（1 通道），另一个有颜色输入（3 通道）。我正在将两个权重文件转换为 Tensorflow 检查点格式，使用一个通用存储库（用于此任务），该存储库位于：
+https://github.com/hunglc007/tensorflow-yolov4-tflite.git
+两种模型的性能都已通过 c++ opencv readNetFromDarknet() 和 Python 等效项进行了测试。这两个模型都是用灰度图像进行训练的，并且对灰度图像进行操作。3 通道模型的输入只是缩放到 3 通道的灰度图像。
+Python 版本：3.10.11
+TF 版本：2.10.1
+问题陈述：
+使用 tf.keras.Models.load_model(X) 加载时，带有颜色输入的权重文件转换良好，之后运行良好，但是当转换灰度输入权重文件时，使用 Tensorflow 加载时模型的性能急剧下降，我的意思是在最明显的情况下，检测结果很差或不存在，而带有颜色输入的模型运行完美。值得注意的是，框不会错位，这意味着当发现检测结果时，它们大致处于正确的位置，但例如宽度和高度可能会偏离。
+我知道这个存储库的常见问题（硬编码内容等），并相应地更改了每次转换/模型加载的参数，并且在转换或模型加载期间不会发生任何错误。
+我已经确认了输入层：
+
+灰度：（无，640,640,1）
+颜色：（无，640,640,3）
+
+测试图像（用于性能测试）使用 opencv-python 加载，并且它们的有效性也已审查，即使将错误维度的数据插入到输入层也会出现错误。
+除输入层之外的架构相同，已使用 model.summary() 确认。
+我注意到，几年前我用不同的 TF 版本转换的 3 通道模型由 model.summary() 生成的架构有些不同。一些图块层似乎缺失了。此外，一些 tf 操作的名称也不同，但这可能只是 TF 版本不同。
+旧颜色模型：
+ tf_op_layer_Sigmoid (TensorFlo (None, 40, 40, 3, 2 0 [&#39;tf_op_layer_split_3[0][0]&#39;]
+wOpLayer) )
+
+tf_op_layer_Tile/multiples (Te (5,) 0 [&#39;tf_op_layer_strided_slice[0][0]
+nsorFlowOpLayer) &#39;]
+
+tf_op_layer_Sigmoid_3 (TensorF (None, 20, 20, 3, 2 0 [&#39;tf_op_layer_split_4[0][0]&#39;]
+lowOpLayer) ) )
+
+新灰度模型：
+ tf.math.sigmoid (TFOpLambda) (无，40，40，3，2 0 [&#39;tf.split_3[0][0]&#39;]
+)
+
+---此处缺少图块层---
+
+tf.math.sigmoid_3 (TFOpLambda) (无，20，20，3，2 0 [&#39;tf.split_4[0][0]&#39;]
+)
+
+我现在很卡。有什么帮助吗？
+一些反复试验：
+
+使用 Yolov4-tiny Head 解码块 -&gt;即使在模型能够加载的情况下也没有变化（解码时错误的尺寸会引发错误）
+之前提到的较旧的 3 通道模型（几年前已转换为 Darknet -&gt; TF），当以与新模型相同的方式加载时，可以完美运行
+
+解决方案：
+我从 c++ 打印了带有形状的图层，因为模型在那里工作，我很想知道形状是否完全不同。第一个卷积层根本没有缩小。我检查了 Darknet 用于解析模型的 .cfg 文件，第一个卷积层上有一行“size=3stride=2”。大小解析正确，但步幅解析不正确，并且默认为 1，这使得第一个卷积层的形状为 (640,640,32)，而不是预期的（正确的）(320,320,32)。当我将权重加载到正确的架构时，它当然表现不佳，因为它是用另一种布局训练的。我怀疑我用没有这个错误的 .cfg 训练了 3 通道模型，这就是它完美运行的原因。]]></description>
+      <guid>https://stackoverflow.com/questions/78711847/darknet-yolov4-tiny-grayscale-input-to-tensorflow-weights-conversion</guid>
+      <pubDate>Fri, 05 Jul 2024 13:54:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>在具有标准化变量的模型中缩放样本外预测：恢复到原始比例</title>
+      <link>https://stackoverflow.com/questions/78576306/scaling-out-of-sample-forecasts-in-a-model-with-normalized-variables-reverting</link>
+      <description><![CDATA[我正在使用一个模型进行预测，其中变量按 $ x_i = \frac{{x_i - \text{mean}(x_i)}}{{\text{sd}(x_i)}} $ 缩放，并且我保存了平均值和标准差。现在，对于样本外预测，假设目标变量 $ ( x_i )$，基于缩放模型，我该如何缩小预测范围？
+我是否应该使用样本内 $ \text{Mean}(x_i) $ 和 $ \text{sd}(x_i) $ 来缩小样本外预测范围，以便：
+$ \text{重新缩放的样本外预测} = \text{缩放的预测} \times \text{sd}(x_i) + \text{mean}(x_i) $
+这里的适当程序是什么？
+Python 示例：
+X = np.random.randn(100, 1) * 10 + 50 # 特征
+y = 2 * X + 1 + np.random.randn(100, 1) * 5 # 目标变量
+X_train, X_test = X[:80], X[80:]
+y_train, y_test = y[:80], y[80:]
+
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+X_train_scaled = scaler_X.fit_transform(X_train)
+y_train_scaled = scaler_y.fit_transform(y_train)
+
+model = LinearRegression()
+model.fit(X_train_scaled, y_train_scaled)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78576306/scaling-out-of-sample-forecasts-in-a-model-with-normalized-variables-reverting</guid>
+      <pubDate>Tue, 04 Jun 2024 15:17:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Spark 中获取 spark.ml NaiveBayes 概率向量而非 [0-1] 类？</title>
+      <link>https://stackoverflow.com/questions/65653286/how-to-get-spark-ml-naivebayes-probability-vector-not-0-1-class-in-spark</link>
+      <description><![CDATA[我正在研究 NaiveBayes 分类器，我可以使用训练后的模型预测单个数据点的值，但我想获取概率值。
+数据仅分为两类。并且预测函数返回 0 或 1。
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.ml.classification.{NaiveBayes, NaiveBayesModel}
+import org.apache.spark.ml.feature.LabeledPoint
+import org.apache.spark.ml.linalg.Vectors
+import org.apache.spark.sql.SparkSession
+
+object Test {
+def main(args: Array[String]): Unit = {
+Logger.getLogger(&quot;org&quot;).setLevel(Level.OFF)
+Logger.getLogger(&quot;akka&quot;).setLevel(Level.OFF)
+val spark = SparkSession.builder.appName(&quot;Test&quot;).master(&quot;local[4]&quot;).getOrCreate
+val dataset = spark.read.option(&quot;inferSchema&quot;, &quot;true&quot;).csv(&quot;data/labelled.csv&quot;).toDF()
+
+import spark.sqlContext.implicits._
+val output = dataset.map(row =&gt; {
+LabeledPoint(row.getInt(2), Vectors.dense( row.getInt(0) , row.getInt(1)))
+})
+val Array(training, test) = output.randomSplit(Array(0.7, 0.3),seed = 11L)
+training.cache()
+
+val model : NaiveBayesModel = new NaiveBayes().fit(training)
+val speed = 110
+val hour = 11
+val label1 : Double = model.predict(Vectors.dense(speed,hour))
+// 更新
+val label = model.predictProbability(Vectors.dense(speed,hour)) // 这不起作用并引发错误[1]
+}
+}
+
+[1] 使用 model.predictProbability 时引发的错误
+
+错误：(24, 23) 类 ProbabilisticClassificationModel 中的方法 predictProbability 无法在 org.apache.spark.ml.classification.NaiveBayesModel 中访问。无法访问受保护的方法 predictProbability，因为封闭的对象 Test 不是包分类中类 ProbabilisticClassificationModel 的子类，其中定义了目标 val label = model.predictProbability(Vectors.dense(speed,hour))
+]]></description>
+      <guid>https://stackoverflow.com/questions/65653286/how-to-get-spark-ml-naivebayes-probability-vector-not-0-1-class-in-spark</guid>
+      <pubDate>Sun, 10 Jan 2021 12:30:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>SVM.SVC() 中的 gamma 参数实际上起什么作用</title>
+      <link>https://stackoverflow.com/questions/59594653/what-does-the-gamma-parameter-in-svm-svc-actually-do</link>
+      <description><![CDATA[我正在尝试调整我的 SVM 模型，该模型是我使用不同的 gamma 和 C 值构建的。
+此外，我还使用了缩放的输入数据进行模型训练。
+在尝试了多种组合后，我确实找到了一种 gamma 和 C 的组合，它提供了最佳准确性，尽管我完全不知道 gamma 的作用；PFB：
+svc = svm.SVC(gamma=0.025, C=25)
+
+我阅读了文档以了解 gamma 的实际作用（其中说，“‘rbf’、‘poly’ 和 ‘sigmoid’ 的核系数”），现在我更加困惑了。
+任何帮助都将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/59594653/what-does-the-gamma-parameter-in-svm-svc-actually-do</guid>
+      <pubDate>Sat, 04 Jan 2020 20:40:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 scikit learn 中实现自定义损失函数</title>
+      <link>https://stackoverflow.com/questions/54267745/implementing-custom-loss-function-in-scikit-learn</link>
+      <description><![CDATA[我想在 scikit learn 中实现自定义损失函数。我使用以下代码片段：
+def my_custom_loss_func(y_true,y_pred):
+diff3=max((abs(y_true-y_pred))*y_true)
+return diff3
+
+score=make_scorer(my_custom_loss_func,greater_ is_better=False)
+clf=RandomForestRegressor()
+mnn= GridSearchCV(clf,score)
+knn = mnn.fit(feam,labm) 
+
+传递给 my_custom_loss_func 的参数应该是什么？我的标签矩阵称为 labm。我想计算实际输出与预测输出（由模型）乘以真实输出之间的差值。如果我使用 labm 代替 y_true，那么我应该使用什么代替 y_pred？]]></description>
+      <guid>https://stackoverflow.com/questions/54267745/implementing-custom-loss-function-in-scikit-learn</guid>
+      <pubDate>Sat, 19 Jan 2019 13:47:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>ImportError（'无法导入 PIL.Image。'与 keras-ternsorflow 合作</title>
+      <link>https://stackoverflow.com/questions/48225729/importerrorcould-not-import-pil-image-working-with-keras-ternsorflow</link>
+      <description><![CDATA[我正在学习 lynda.com 上的一些关于在 PyCharmCE 环境中使用 Keras-TensorFlow 进行深度学习的讲座，他们没有遇到这个问题。
+我收到此错误：
+
+raise ImportError(&#39;无法导入 PIL.Image。&#39;
+ImportError：无法导入 PIL.Image。使用 array_to_img 需要 PIL。
+
+我检查过其他人是否也遇到同样的错误，但对于我来说，使用 pip 安装枕头，命令 pip install Pillow 无法解决任何问题。
+
+MacBook-Pro-de-Rogelio:~ Rogelio$ pip install Pillow
+要求已满足：./anaconda3/lib/python3.6/site-packages 中的枕头
+MacBook-Pro-de-Rogelio:~ Rogelio$
+
+有什么解决办法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/48225729/importerrorcould-not-import-pil-image-working-with-keras-ternsorflow</guid>
+      <pubDate>Fri, 12 Jan 2018 11:49:58 GMT</pubDate>
     </item>
     <item>
       <title>sklearn.decomposition.PCA 的特征向量简单图</title>
@@ -507,19 +585,6 @@ plt.show()
 ]]></description>
       <guid>https://stackoverflow.com/questions/37976564/simple-plots-of-eigenvectors-for-sklearn-decomposition-pca</guid>
       <pubDate>Wed, 22 Jun 2016 19:20:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何绘制决策边界？</title>
-      <link>https://stackoverflow.com/questions/19054923/how-to-plot-decision-boundary</link>
-      <description><![CDATA[如何使用 matplotlib 绘制决策边界，即 [w1,w2] 形式的权重向量，它基本上将两个类（比如 C1 和 C2）分开？
-这是否像绘制一条从 (0,0) 到点 (w1,w2) 的线一样简单（因为 W 是权重“向量”）如果是的话，如果需要，我该如何在两个方向上延伸它？
-现在我所做的就是：
- import matplotlib.pyplot as plt
-plt.plot([0,w1],[0,w2])
-plt.show()
-]]></description>
-      <guid>https://stackoverflow.com/questions/19054923/how-to-plot-decision-boundary</guid>
-      <pubDate>Fri, 27 Sep 2013 15:45:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
