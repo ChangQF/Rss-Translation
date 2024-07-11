@@ -4,7 +4,214 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 11 Jul 2024 18:19:58 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 11 Jul 2024 21:16:31 GMT</lastBuildDate>
+    <item>
+      <title>Keras API 中的特征重要性图表</title>
+      <link>https://stackoverflow.com/questions/78737415/feature-importance-chart-in-keras-api</link>
+      <description><![CDATA[我正在实现一系列三个深度学习模型（RNN、1D-CNN 和自定义转换器），全部使用 Keras API，用于 NLP 二元分类问题。我想生成一个特征重要性图表，类似于此处链接的问题中所示的图表：使用 Python 中的 Keras 在神经网络中生成特征重要性图表
+我已经运行了模型并得到了结果，但我还想展示特征重要性图表。以下是 1D-CNN 模型的模型架构，我将在本题中使用它作为示例：
+from keras import layer
+from keras.layers import Input, Embedding, Conv1D, Dropout, GlobalMaxPooling1D, Dense
+from keras.optimizers import Adam
+from keras.regularizers import L2
+
+def create_model():
+embedding_dim = 500
+
+input = Input(shape = (maxlen,))
+x = Embedding(input_dim = vocab_size, 
+output_dim = embedding_dim, input_shape = (1000,))(input)
+x = Conv1D(256, 7, padding = &#39;valid&#39;, activity = &#39;gelu&#39;, strides = 3, kernel_regularizer = L2(0.01))(x)
+x = Dropout(0.5)(x)
+x = Conv1D(256, 7, padding = &#39;valid&#39;, 激活 = &#39;gelu&#39;, strides = 3, kernel_regularizer = L2(0.01))(x)
+x = Dropout(0.5)(x)
+x = Conv1D(256, 7, padding = &#39;valid&#39;, 激活 = &#39;gelu&#39;, strides = 3, kernel_regularizer = L2(0.01))(x)
+x = GlobalMaxPooling1D()(x)
+x = Dense(256, 激活 = &#39;gelu&#39;)(x)
+x = Dropout(0.2)(x)
+x = Dense(128, 激活 = &#39;gelu&#39;)(x)
+x = Dropout(0.2)(x)
+x = Dense(64, 激活 = &#39;gelu&#39;)(x)
+x = Dropout(0.2)(x)
+x = Dense(32，激活 = &#39;gelu&#39;)(x)
+x = Dropout(0.2)(x)
+
+class_1 = Dense(1，激活 = &#39;sigmoid&#39;，名称 = &#39;class_1&#39;)(x)
+class_2 = Dense(1，激活 = &#39;sigmoid&#39;，名称 = &#39;class_2&#39;)(x)
+class_3 = Dense(1，激活 = &#39;sigmoid&#39;，名称 = &#39;class_3&#39;)(x)
+class_4 = Dense(1，激活 = &#39;sigmoid&#39;，名称 = &#39;class_4&#39;)(x)
+class_5 = Dense(1，激活 = &#39;sigmoid&#39;，名称 = &#39;class_5&#39;)(x)
+class_6 = Dense(1，激活 = &#39;sigmoid&#39;，名称 = &#39;class_6&#39;)(x)
+
+opt = Adam(learning_rate = 0.001)
+
+model = keras.Model(
+输入 = [输入],
+输出 = [class_1, class_2, class_3, class_4, class_5, class_6]
+)
+
+model.compile(optimizer = opt,
+loss = {&#39;class_1&#39; : &#39;binary_crossentropy&#39;, &#39;class_2&#39; : &#39;binary_crossentropy&#39;, &#39;class_3&#39; : &#39;binary_crossentropy&#39;, &#39;class_4&#39; : &#39;binary_crossentropy&#39;, &#39;class_5&#39; : &#39;binary_crossentropy&#39;, &#39;class_6&#39; : &#39;binary_crossentropy&#39;},
+metrics = [&#39;accuracy&#39;, &#39;accuracy&#39;, &#39;accuracy&#39;, &#39;accuracy&#39;, &#39;accuracy&#39;, &#39;accuracy&#39;]
+)
+
+返回模型
+
+其他 Stack Overflow 上关于此问题的问题由于使用了顺序模型而有效，但我想继续使用 Functional API。这些问题链接在此处：
+特征重要性 keras 回归模型
+使用 Python 中的 Keras 在神经网络中绘制特征重要性图表
+有没有办法用 Keras 获取变量重要性？
+使用 keras 确定特征重要性
+我曾尝试使用 eli5，但这需要 Keras 包装器来包装顺序模型。SHAP 还要求我重新训练模型，这不是我想要的。]]></description>
+      <guid>https://stackoverflow.com/questions/78737415/feature-importance-chart-in-keras-api</guid>
+      <pubDate>Thu, 11 Jul 2024 19:37:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>keras 中数字识别准确率低</title>
+      <link>https://stackoverflow.com/questions/78737265/low-accuracy-of-digit-recognition-in-keras</link>
+      <description><![CDATA[我有一张电表数字图片，我想识别它。
+我已经编写了代码，使用 keras 创建模型，其准确率约为 0.999。
+但是当我使用保存的模型识别数字时，即使使用训练样本，有时准确率也非常接近 0.00，所以我不明白我做错了什么，为什么结果的准确率很差？
+这是我的数据集（约 25000 张图像）：https://drive.google.com/file/d/1KN_g1ukX0TBIm_552Sqc3HjBXu1Z-A5l/view?usp=sharing
+这是我的代码：
+import os
+import numpy as np
+from tensorflow import data as tf_data
+import matplotlib.pyplot as plt
+import PIL
+import tensorflow as tf
+from keras import layer
+import keras
+
+image_size = (42, 66)
+img_height = image_size[0]
+img_width = image_size[1]
+batch_size = 32
+
+train_ds, val_ds = keras.utils.image_dataset_from_directory(
+&quot;D:\\Downloads\\out&quot;,
+validation_split=0.2,
+subset=&quot;both&quot;,
+color_mode=&quot;rgb&quot;,
+seed=123,
+image_size=image_size,
+batch_size=batch_size,
+)
+
+class_names = train_ds.class_names
+
+AUTOTUNE = tf.data.AUTOTUNE
+
+train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
+
+val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
+
+normalization_layer = layer.Rescaling(1./255)
+
+normalized_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
+image_batch, labels_batch = next(iter(normalized_ds))
+first_image = image_batch[0]
+
+num_classes = len(class_names)
+
+model = keras.Sequential([
+layer.Rescaling(1./255, input_shape=(img_height, img_width, 3)),
+layer.Conv2D(32, (3, 3), 激活=&#39;relu&#39;),
+layer.MaxPooling2D((2,2)),
+layer.Conv2D(64, (3, 3), 激活=&#39;relu&#39;),
+layer.MaxPooling2D((2,2)),
+layer.Conv2D(64, (3,3), 激活=&#39;relu&#39;),
+layer.Flatten(),
+layer.Dense(64, 激活=&#39;relu&#39;),
+layer.Dense(num_classes)
+])
+
+model.compile(optimizer=&#39;adam&#39;,
+loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+metrics=[&#39;accuracy&#39;])
+
+epochs=15
+history = model.fit(
+train_ds,
+validation_data=val_ds,
+epochs=epochs
+)
+
+model.save(&#39;D:\\Downloads\\model.keras&#39;)
+
+################
+#测试模型
+################
+
+digit = 3
+directory = &quot;D:\\Downloads\\out\\&quot; + str(digit) + &quot;\\&quot;
+images = []
+images = os.listdir(directory)
+model = keras.models.load_model(&#39;D:\\Downloads\\model.keras&#39;)
+
+i = 0
+acc = 0
+for image in images:
+i+=1
+
+image_path = directory + image
+image = keras.utils.load_img(image_path)
+input_arr = keras.utils.img_to_array(image)
+input_arr = np.array([input_arr]) # 将单个图像转换为批处理。
+
+predictions = model.predict(input_arr, verbose=&quot;0&quot;)
+result = np.argmax(predictions)
+acc+=1
+
+if np.argmax(predictions) != digit:
+acc-=1
+
+print (acc*100/i)
+print (acc)
+print (len(images))
+]]></description>
+      <guid>https://stackoverflow.com/questions/78737265/low-accuracy-of-digit-recognition-in-keras</guid>
+      <pubDate>Thu, 11 Jul 2024 18:49:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>USE 等上下文编码器与 OpenAI 的 text-embedding-ada-002 之间有什么区别？</title>
+      <link>https://stackoverflow.com/questions/78737222/whats-the-difference-between-contextual-encoders-like-use-and-openais-text-emb</link>
+      <description><![CDATA[刚刚遇到了 Universal Sentence Encoder，它也可以保持上下文在语义搜索和其他操作中。OpenAI 的 text-embedding-ada-002 是否更先进，或者或多或少以相同的方式工作但可以创建高维向量？
+我尝试使用 Universal Text Encoders，但当我遇到 ada-002 时，我发现它与 USE 类似，唯一的区别是它具有更高的维度。]]></description>
+      <guid>https://stackoverflow.com/questions/78737222/whats-the-difference-between-contextual-encoders-like-use-and-openais-text-emb</guid>
+      <pubDate>Thu, 11 Jul 2024 18:37:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Python 中创建支持微调的未训练 AI 模型？</title>
+      <link>https://stackoverflow.com/questions/78737208/how-to-create-an-untrained-ai-model-in-python-with-support-for-fine-tuning</link>
+      <description><![CDATA[我需要从头开始用 Python 创建一个 AI 模型，未经训练，但希望以后使用我的数据集进行微调。我对 TensorFlow 和 PyTorch 等机器学习框架有一些经验，但不知道如何开始使用可能需要微调的空白模型。
+具体来说，我需要以下方面的指导。
+如何用 Python 创建一个非常基本的、不可训练的模型。
+如何构建模型以支持微调。
+加载和预处理我的数据集以进行训练的最佳实践。在我的数据集上训练模型的步骤：。
+以下是我迄今为止尝试过的概述：
+安装了 TensorFlow 和 PyTorch。此外，还创建了简单的神经网络模型，但它们是预先训练过的。
+我将不胜感激任何可以帮助我实现这一目标的示例、代码片段或相关文档的引用。谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78737208/how-to-create-an-untrained-ai-model-in-python-with-support-for-fine-tuning</guid>
+      <pubDate>Thu, 11 Jul 2024 18:33:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>均方值与 RELU 激活反向传播问题</title>
+      <link>https://stackoverflow.com/questions/78737193/mean-square-value-and-relu-activation-backpropagation-issue</link>
+      <description><![CDATA[首先，抱歉发布链接，我需要 10 点声誉才能发布图片。
+您好，我目前是神经网络的新手，我正在尝试从头开始编写神经网络代码（自己编写）。我正在尝试制作一个这样的神经网络结构：
+我的神经网络结构
+对我来说很难的问题是反向传播；在我的神经网络中，我使用 RELU 作为激活函数，并使用 MSE 来计算损失，因此我尝试对其进行导数。
+这是我的所有导数：
+https://i.sstatic.net/GPuO3JNQ.png
+我不知道如何计算这些函数，因为它们的维度可能不同
+我是否必须计算这个
+https://i.sstatic.net/gMtBWRIz.png 在我的所有导数中
+请帮助我，这是我第一次在 stackoverflow 上寻求帮助。
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78737193/mean-square-value-and-relu-activation-backpropagation-issue</guid>
+      <pubDate>Thu, 11 Jul 2024 18:28:12 GMT</pubDate>
+    </item>
     <item>
       <title>Keras 调谐器引发 RuntimeError</title>
       <link>https://stackoverflow.com/questions/78737115/keras-tuner-raising-runtimeerror</link>
@@ -12,16 +219,6 @@
 我尝试使用 keras_tuner 调整神经网络中的超参数。我的期望是获得超参数值的最佳组合。但是当我想运行 keras_tuner 超参数对象的 search 方法时，会发生 RuntimeError。]]></description>
       <guid>https://stackoverflow.com/questions/78737115/keras-tuner-raising-runtimeerror</guid>
       <pubDate>Thu, 11 Jul 2024 18:09:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>哪种模型架构最适合解决我的问题？</title>
-      <link>https://stackoverflow.com/questions/78736820/what-model-architecture-would-suite-my-problem-the-best</link>
-      <description><![CDATA[我正在寻找关于哪种模型架构最适合解决以下问题的建议。
-我有一些复杂的动画，每个动画都由 70 个随时间变化的变量描述。它们的长度可以从一分钟到很多分钟不等。如果需要，我可以以 1 到 60 之间的任何 fps 对它们进行采样以获取训练数据。
-我想尝试在其中一些上训练模型，以查看是否可以根据较短的输入动画序列生成类似的模型。
-我研究过用于多变量时间序列预测的模型，例如 huggingface 上的 autoformer 和 informer。但我的训练数据不是每年/每月/季节性的，所以我不确定这些复杂模型是否最合适。如果我理解正确的话，它们的输出也是一个分布，我可能不需要它。如果可能的话，我想从一个简单的开始。]]></description>
-      <guid>https://stackoverflow.com/questions/78736820/what-model-architecture-would-suite-my-problem-the-best</guid>
-      <pubDate>Thu, 11 Jul 2024 16:57:53 GMT</pubDate>
     </item>
     <item>
       <title>无法检测/删除图像数据集中两个位置不同的水印</title>
@@ -96,94 +293,114 @@ TROPOMI 数据似乎给出了某种奇怪的模糊像素，Daymet 数据是规�
       <pubDate>Thu, 11 Jul 2024 16:43:51 GMT</pubDate>
     </item>
     <item>
-      <title>未识别的 TensorFlow 回溯导致 ResourceExhaustedError</title>
-      <link>https://stackoverflow.com/questions/78736732/unidentified-tensorflow-retracing-leading-to-resourceexhaustederror</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78736732/unidentified-tensorflow-retracing-leading-to-resourceexhaustederror</guid>
-      <pubDate>Thu, 11 Jul 2024 16:34:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>随机森林如何处理缺失值？</title>
-      <link>https://stackoverflow.com/questions/78736714/how-random-forest-handle-missing-value</link>
-      <description><![CDATA[scikit-learn 中的 随机森林回归器 使用什么技术来处理缺失值？
-首先，我认为随机森林回归器能够在训练和生产过程中原生处理缺失值，而不会损失任何准确性（sklearn doc、sklearn changelog 1.4、堆栈问题）。因此，我使用 scikit-learn 中的 RandomForestResgressor 处理具有大量缺失值的数据（见下图）。
-它正在工作，但现在，经过一些研究，我发现随机森林模型本身并不能处理缺失值，但库使用了各种技术，例如 imputation/knn/Miss Forest/等。处理缺失值。
-我想知道 scikit-learn 在其 RandomForestRegressor 实现中如何处理缺失值，以了解是否有大量缺失值是可以的，并且不会降低准确性，或者是否最好在上游清理大部分缺失值（删除具有大量缺失值的观察值和特征）。
-
-我的示例：
-每列都是一个特征，每行都是一个观察值。例如，我们看到右侧的 4 个特征仅出现在少数观察值中。根据随机森林处理缺失值的方式，在训练模型之前删除这些特征可能是更好的选择。
-]]></description>
-      <guid>https://stackoverflow.com/questions/78736714/how-random-forest-handle-missing-value</guid>
-      <pubDate>Thu, 11 Jul 2024 16:29:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何运行我们的研究机构解析器</title>
-      <link>https://stackoverflow.com/questions/78736452/how-to-run-ourresearch-institution-parser</link>
-      <description><![CDATA[我尝试在本地运行 ourresearch 的 ML 模型 https://github.com/ourresearch/openalex-institution-parsing/tree/main/V2 来处理从属关系字符串。我已经从 aws 下载了他们所说的必需文件。
-我花了很多时间试图弄清楚，但我一点也不聪明。我期待某种入口点，但我似乎找不到，或者我如何才能运行它。]]></description>
-      <guid>https://stackoverflow.com/questions/78736452/how-to-run-ourresearch-institution-parser</guid>
-      <pubDate>Thu, 11 Jul 2024 15:29:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用机器学习 Python 预测价格</title>
-      <link>https://stackoverflow.com/questions/78736432/predict-a-price-with-machine-learning-python</link>
-      <description><![CDATA[我正在开始机器学习。我想估算某篇文章在某个日期的价格。例如，如果我知道 07/01/24 和 07/11/24 之间的价格，那么 07/12/24 的价格是多少？
-我尝试使用线性或多项式回归、RandomForestRegresor 和 GradientBoostingRegresor。这些模型对提供的数据返回非常准确的结果，但当我尝试在此范围之外使用它时，结果要么与最后一个值相同，要么是不可能得到的结果（有时我会得到负价格）。
-有人知道怎么做吗？我应该使用其他方法吗？
-例如，我尝试对 1992 年 1 月至 2024 年 5 月之间的汽油价格进行 GradientBoosting：
-import pandas as pd
-import numpy as np
+      <title>检测图像中的算术运算符</title>
+      <link>https://stackoverflow.com/questions/78736359/detect-arithmetic-operators-in-an-image</link>
+      <description><![CDATA[我使用 keras_ocr 创建了一个 OCR 脚本。输入是流程图（灰度图）。我想提取流程图图像的文本和形状坐标。但是，它不会提取诸如“+、-、*、/”之类的算术运算符。有时它也无法检测数值。这是我的完整脚本。
+# 导入必要的库
+import os
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import GradientBoostingRegressor
+import keras_ocr
+import cv2
+import numpy as np
+from google.colab import drive
+from symspellpy.symspellpy import SymSpell, Verbosity
+import pkg_resources
 
-data = pd.read_csv(&quot;essence2.csv&quot;, sep=&quot;;&quot;).iloc[::-1]
+class OCRProcessor:
+def __init__(self):
+# 创建用于 OCR 处理的管道
+self.pipeline = keras_ocr.pipeline.Pipeline()
 
-x = data[&quot;date&quot;].values.reshape(-1, 1)
-y = data[&quot;price&quot;].values
+def __get_bbox(self, image_path):
+try:
+# 使用 OpenCV 读取图像
+image = cv2.imread(image_path)
+if image is None:
+raise ValueError(f&quot;Image at path {image_path} could not be read.&quot;)
 
-x_train, x_test, y_train, y_test = train_test_split(
-x,
-y,
-test_size=0.01,
-random_state=2,
-)
+# 将图像转换为 RGB（keras-ocr 需要 RGB 图像）
+image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-model = GradientBoostingRegressor(
-n_estimators=200,
-learning_rate=1,
-random_state=2,
-)
-model.fit(x_train, y_train)
+# 使用 OCR 管道检测文本
+images = keras_ocr.tools.read(image_path)
+self.image = images
+prediction_groups = self.pipeline.recognize([images])
 
-y_predictions = np.round(model.predict(x), 4)
-residues = y_predictions - y
+if not prediction_groups or not prediction_groups[0]:
+return [], []
 
-fig, ax = plt.subplots(2)
+# 提取边界框和文本
+texts = []
+results = []
+for text, box in prediction_groups[0]:
+texts.append(text)
+xs, ys = set(), set()
+for x in box:
+xs.add(x[0])
+ys.add(x[1])
+results.append(list(map(int, [min(xs), min(ys), max(xs), max(ys)]))) # ymin, xmin, ymax, xmax
 
-ax[0].plot(x, y, color=&quot;blue&quot;, label=&quot;Prix réel&quot;)
-ax[0].plot(x, y_predictions, color=&quot;orange&quot;, linestyle=&quot;--&quot;, label=&quot;Gradient Boosting Regressor&quot;)
-ax[0].xaxis.set_major_locator(MaxNLocator(8))
-ax[0].tick_params(axis=&quot;x&quot;, rotation=45)
-ax[0].legend()
+return texts, results
+except Exception as e:
+print(f&quot;An error occurred in __get_bbox: {e}&quot;)
+return [], []
 
-ax[1].plot(x, residuals, color=&quot;orange&quot;, label=&quot;Résidues&quot;)
-ax[1].xaxis.set_major_locator(MaxNLocator(8))
-ax[1].tick_params(axis=&quot;x&quot;, rotation=45)
-ax[1].legend()
+def process_image(self, image_path):
+return self.__get_bbox(image_path)
 
-plt.tight_layout()
-plt.show()
+# 定义函数来更正文本
+def correct_text(text_array):
+# 初始化 SymSpell 对象
+sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
 
+# 加载字典
+dictionary_path = pkg_resources.resource_filename(
+&quot;symspellpy&quot;, &quot;frequency_dictionary_en_82_765.txt&quot;)
+sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
 
-精华预测
-如何预测价格2024 年 6 月？]]></description>
-      <guid>https://stackoverflow.com/questions/78736432/predict-a-price-with-machine-learning-python</guid>
-      <pubDate>Thu, 11 Jul 2024 15:25:21 GMT</pubDate>
+corrected_text_array = []
+for text in text_array:
+suggestions = sym_spell.lookup(text, Verbosity.CLOSEST, max_edit_distance=2)
+if suggestions:
+corrected_text_array.append(suggestions[0].term)
+else:
+corrected_text_array.append(text)
+return corrected_text_array
+
+# 主函数
+def main(image_path):
+ocr_processor = OCRProcessor()
+ex_text, ex_co = ocr_processor.process_image(image_path)
+if not ex_text:
+print(f&quot;在路径 {image_path} 处的图像中未检测到文本。&quot;)
+return [], [], []
+
+# 更正提取的文本
+cr_text = correct_text(ex_text)
+
+# 打印结果
+print(&quot;提取的文本：&quot;, ex_text)
+print(&quot;更正的文本：&quot;, cr_text)
+print(&quot;Extracted Coordinates:&quot;, ex_co)
+
+return ex_text, cr_text, ex_co
+
+# 示例用法（您可以根据需要更新图像路径）
+image_path = &#39;/content/Test2.jpg&#39;
+ex_text, cr_text, ex_co = main(image_path)
+
+ex_shape, ex_coor = detect_shapes(image_path)
+
+# 打印或使用结果
+print(&quot;Detected Shapes:&quot;, ex_shape)
+print(&quot;Coordinates for Shapes:&quot;, ex_coor)
+
+这个问题有解决方案吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78736359/detect-arithmetic-operators-in-an-image</guid>
+      <pubDate>Thu, 11 Jul 2024 15:09:46 GMT</pubDate>
     </item>
     <item>
-      <title>分割任何模型（SAM）如何使用多个框及其对应点来预测torch？</title>
+      <title>分割任何模型（SAM）如何使用多个框及其对应点来预测_torch？</title>
       <link>https://stackoverflow.com/questions/78736247/segment-anything-model-sam-how-do-i-predict-torch-with-multiple-boxes-with-the</link>
       <description><![CDATA[我目前正在尝试 Segment Anything 模型 (SAM)，我的问题需要多个框及其对应的点，以便在框内明确。例如，box1 = [#, #, # ,#]，其点为 [x,y]，类为 [0 或 1]，然后在单个图像中包含多个这样的点。
 我仅使用多个边界框就可以做到这一点，但我想在每个框中包含点。
@@ -243,62 +460,16 @@ tensor([[[330, 370]]])
       <pubDate>Thu, 11 Jul 2024 14:49:27 GMT</pubDate>
     </item>
     <item>
-      <title>Flask 后端的部署</title>
-      <link>https://stackoverflow.com/questions/78735527/deployment-of-flask-backend</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78735527/deployment-of-flask-backend</guid>
-      <pubDate>Thu, 11 Jul 2024 12:29:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>x86 mulss 结果随时间而不同[关闭]</title>
-      <link>https://stackoverflow.com/questions/78735265/x86-mulss-result-is-diffrent-over-time</link>
-      <description><![CDATA[我正在尝试制作 C++ 神经网络库，我注意到，有时具有相同输入和相同参数值的模型会毫无原因地大幅改变输出。我不知道为什么会发生这种情况，我确信我没有犯任何错误。看起来我的 fpu 已经耗尽并损失了一点精度，这导致较大网络（例如 10m 个参数）中的输出非常不同。
-编辑：
-经过测试，我发现使用 -O3 标志会导致错误的二进制文件，而 -Oz 会导致有效的二进制文件。有什么想法吗？它仍然使用 mulss...
-编辑 2：经过进一步测试，-Oz 只会延迟一段时间的缺陷。
-MRE？我无法提供 MRE，因为简单的 10 ^ 7 乘法 100 次返回结果 0 的总差异增量...
-我只能提供整个库的“MRE”。如果有错误，我会查看
-network.cpp -&gt;
-
-void nn::network::eval::forward(evaluator *evaluator)
-void forward_layer(int l1_size, int l2_size, float* l1_values, float* l2_values, float* weights, float* biases, nn::network::modules::activation::activation_func func)
-void nn::network::connect(network *network, float dist_max, float dist_min)
-
-我创建为 MRE 的 Repo（我知道它不像想要的那么小）：https://github.com/ZDibLO/libnn
-示例：
-输入：-0.729, 0.670, 0.937, -0.557, -0.383, 0.094, -0.623, 0.985, 0.992, 0.935
-通过：0
-输出：-0.180, 0.278, 0.781, 0.994, -0.702, -0.644, -0.849, 0.784, -0.901, -0.981
-...
-通过：4
-输出：-0.180, 0.278, 0.781, 0.994, -0.702, -0.644, -0.849, 0.784, -0.901, -0.981
-通过：5
-出局：-0.494, -0.852, 0.961, 0.747, 0.826, 0.685, -0.495, 0.662, 0.810, -0.453
-...
-通过：8
-出局：-0.494, -0.852, 0.961, 0.747, 0.826, 0.685, -0.495, 0.662, 0.810, -0.453
-通过：9
-出局：-0.521, -0.964, 0.973, 0.012, 0.991, 0.818, 0.752, 0.896, 0.995, 0.779
-...
-通过：16
-出局：-0.521, -0.964, 0.973, 0.012, 0.991, 0.818, 0.752, 0.896, 0.995, 0.779
-通过：17
-出局：-0.180, 0.278, 0.781, 0.994, -0.702, -0.644, -0.849, 0.784, -0.901, -0.981
-...
-通过：99
-出局：-0.180, 0.278, 0.781, 0.994, -0.702, -0.644, -0.849, 0.784, -0.901，-0.981
-delta：22.8341
-总计：3786ms
-平均值：37ms
-网络：params：10091120（10.0m）权重：9991100，偏差：100020
-
-Delta：与上次输出相比，总输出变化
-请帮忙，因为我无法继续处理未定义的行为。
-CPU：i7 8550u / 操作系统：linux | Arch Linux
-我将很快在两台使用相同型号的不同 Windows 机器上进行测试。
-我尝试了不同的模型，调整了 sse 标志（之前它返回 NaN），并且我在寻找其他错误，但找不到任何错误。]]></description>
-      <guid>https://stackoverflow.com/questions/78735265/x86-mulss-result-is-diffrent-over-time</guid>
-      <pubDate>Thu, 11 Jul 2024 11:31:13 GMT</pubDate>
+      <title>对于图像去噪，验证中的 SSIM 高于训练中的 SSIM</title>
+      <link>https://stackoverflow.com/questions/78735787/ssim-in-validation-higher-then-ssim-in-training-for-image-denoising</link>
+      <description><![CDATA[我正在使用 2D U-Net 进行显微镜图像去噪任务。我正在使用在不同 z 级别拍摄的图像训练我的网络，这些图像具有基本事实，即 z 中图像的平均值。因此，一些图像具有相同的基本事实。我将图像分成 z 组，以将它们放在训练、验证或测试集中。我正在计算每个批次的 SSIM，并在每个时期平均结果，然后绘制它们。
+我面临的问题是验证中的 SSIM 总是高于训练中的 SSIM。
+我没有在我的网络中使用 dropout 或批量标准化，这会导致验证具有更高的结果。我确保训练和验证中的图像没有重复。
+训练和验证中的 SSIM
+有人能帮我理解为什么会发生这种情况以及如何解决吗？
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78735787/ssim-in-validation-higher-then-ssim-in-training-for-image-denoising</guid>
+      <pubDate>Thu, 11 Jul 2024 13:18:41 GMT</pubDate>
     </item>
     <item>
       <title>使用 R 中的空间数据管理机器学习模型中的类别不平衡问题</title>
@@ -308,44 +479,88 @@ CPU：i7 8550u / 操作系统：linux | Arch Linux
       <pubDate>Thu, 11 Jul 2024 05:01:17 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 Linux 远程服务器中运行计算机视觉 Github 存储库 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78733479/how-to-run-computer-vision-github-repositories-in-linux-remote-server</link>
-      <description><![CDATA[我是 ml/dl 的新学习者。我想在 Linux 远程服务器上运行计算机视觉 github 存储库。请帮帮我。我不知道如何运行任何计算机视觉 github 存储库。在我 gitclone 它之后，我该如何运行它。此外，我必须在大多数 github 存储库中手动下载数据集。如果数据集太大（例如 80 GB），我该如何在远程服务器中下载它。请帮帮我。
-大家好，我是 ml/dl 的新学习者。我想在 Linux 远程服务器上运行计算机视觉 github 存储库。请帮帮我。我不知道如何运行任何计算机视觉 github 存储库。在我 gitclone 它之后，我该如何运行它。此外，我必须在大多数 github 存储库中手动下载数据集。如果数据集太大（例如 80 GB），我该如何在远程服务器中下载它。请帮帮我。如果有人能给我一个大纲，那将非常有帮助。]]></description>
-      <guid>https://stackoverflow.com/questions/78733479/how-to-run-computer-vision-github-repositories-in-linux-remote-server</guid>
-      <pubDate>Thu, 11 Jul 2024 03:52:26 GMT</pubDate>
+      <title>关于python：segment_anything导致numpy.uint8错误</title>
+      <link>https://stackoverflow.com/questions/78703313/segment-anything-causing-error-with-numpy-uint8</link>
+      <description><![CDATA[我尝试在装有 Sonoma 14.5 的 M2 MacBook 上本地运行 https://github.com/facebookresearch/segment-anything/blob/main/notebooks/onnx_model_example.ipynb。但是，我在第 11 步一直遇到以下错误：
+-------------------------------------------------------------------------------
+RuntimeError Traceback（最近一次调用最后一次）
+Cell In[75]，第 1 行
+----&gt; 1 mask = mask_generator.generate(image)
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/torch/utils/_contextlib.py:115，在 context_decorator.&lt;locals&gt;.decorate_context(*args, **kwargs)
+112 @functools.wraps(func)
+113 def decorate_context(*args, **kwargs):
+114 with ctx_factory():
+--&gt; 115 return func(*args, **kwargs)
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/automatic_mask_generator.py:163，位于 SamAutomaticMaskGenerator.generate(self, image)
+138 &quot;&quot;&quot;
+139 为给定图像生成蒙版。
+140 
+(...)
+159 以 XYWH 格式给出的蒙版。
+160 &quot;&quot;&quot;
+162 # 生成蒙版
+--&gt; 163 mask_data = self._generate_masks(image)
+165 # 过滤蒙版中的小断开区域和孔洞
+166 if self.min_mask_region_area &gt; 0：
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/automatic_mask_generator.py:206，在 SamAutomaticMaskGenerator._generate_masks(self, image) 中
+204 data = MaskData()
+205 for crop_box, layer_idx in zip(crop_boxes, layer_idxs):
+--&gt; 206 crop_data = self._process_crop(image, crop_box, layer_idx, orig_size)
+207 data.cat(crop_data)
+209 # 删除裁剪之间的重复蒙版
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/automatic_mask_generator.py:236，位于 SamAutomaticMaskGenerator._process_crop(self, image, crop_box, crop_layer_idx, orig_size)
+234 cropped_im = image[y0:y1, x0:x1, :]
+235 cropped_im_size = cropped_im.shape[:2]
+--&gt; 236 self.predictor.set_image(cropped_im)
+238 # 获取此裁剪的点
+239 points_scale = np.array(cropped_im_size)[None, ::-1]
+
+文件 ~/opt/anaconda3/envs/ve_env/lib/python3.9/site-packages/segment_anything/predictor.py:57，位于 SamPredictor.set_image(self, image, image_format)
+55 # 将图像转换为模型所需的形式
+56 input_image = self.transform.apply_image(image)
+---&gt; 57 input_image_torch = torch.as_tensor(input_image, device=self.device)
+58 input_image_torch = input_image_torch.permute(2, 0, 1).contiguous()[None, :, :, :]
+60 self.set_torch_image(input_image_torch, image.shape[:2])
+
+RuntimeError: 无法推断 numpy.uint8 的 dtype
+
+我使用的是 Python 3.9.19 的 conda 环境，也用 Python 3.11 进行了测试。根据网上的评论，我怀疑这是 numpy 版本的问题，但尝试了多个版本后，我找不到正确的组合。我目前正在尝试以下内容：
+numpy==1.24.4
+torch==1.9.0
+torchvision==0.10.0
+opencv-python==4.10.0.84
+
+在 Google Colab 上运行同一个笔记本可以正常工作，并且指示的版本是：
+import numpy as np
+import torch
+import cv2
+
+print(np.__version__)
+print(torch.__version__)
+print(cv2.__version__)
+
+1.25.2
+2.3.0+cu121
+4.8.0
+
+这是使用 Python 3.10.12。这些版本在 Mac 上不可用，所以我陷入困境。
+我如何找出 numpy.uint8 无法识别的原因，以及如何修复此错误？大多数在线评论都指向升级 numpy，但我尝试了几个 numpy 版本，但没有成功。任何帮助都非常感谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78703313/segment-anything-causing-error-with-numpy-uint8</guid>
+      <pubDate>Wed, 03 Jul 2024 16:43:17 GMT</pubDate>
     </item>
     <item>
-      <title>Microsoft ML：预测代码始终预测 0，但在“评估”选项卡中尝试时，它始终有效（非 0 的值）</title>
-      <link>https://stackoverflow.com/questions/78731177/microsoft-ml-the-prediction-code-always-predicts-0-but-when-tried-in-the-evalua</link>
-      <description><![CDATA[系统信息：
-
-模型构建器版本 17.15.0.2337001
-Visual Studio 版本 2022
-
-我创建了一个机器学习模型（值预测），一切都很好
-
-通过这张图片，你可以看到模型正常工作
-但是当我使用模型构建器的代码时：
-使用 ConsoleApp2;
-
-//加载样本数据
-var sampleData = new MLModel1.ModelInput()
-{
-Device = 1F,
-Temperature = 20F,
-Weather = 1F,
-Time = 2F,
-};
-
-//加载模型并预测输出
-var result = MLModel1.Predict(sampleData);
-Console.WriteLine(result.Predict);
-
-输出始终为 0 或预测始终为 0：
-]]></description>
-      <guid>https://stackoverflow.com/questions/78731177/microsoft-ml-the-prediction-code-always-predicts-0-but-when-tried-in-the-evalua</guid>
-      <pubDate>Wed, 10 Jul 2024 14:28:45 GMT</pubDate>
+      <title>如何检查数据点是否在簇边界内</title>
+      <link>https://stackoverflow.com/questions/36038022/how-to-check-if-a-data-point-is-within-the-boundary-of-a-cluster-or-not</link>
+      <description><![CDATA[假设我已经完成了聚类（使用 3 个特征）并获得了 4 个聚类，对一组数据点进行训练。
+现在在生产中，我将获得一组不同的数据点，并且根据该数据点的特征值，我需要知道它是否属于我之前创建的预定义聚类。这不是在进行聚类，而是查找某个点是否属于预定义聚类。
+如何确定该点是否在聚类中？
+我需要运行线性回归来找到覆盖聚类的边界方程吗？]]></description>
+      <guid>https://stackoverflow.com/questions/36038022/how-to-check-if-a-data-point-is-within-the-boundary-of-a-cluster-or-not</guid>
+      <pubDate>Wed, 16 Mar 2016 14:05:59 GMT</pubDate>
     </item>
     </channel>
 </rss>
