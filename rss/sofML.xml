@@ -4,7 +4,139 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 11 Jul 2024 01:06:52 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 11 Jul 2024 03:19:48 GMT</lastBuildDate>
+    <item>
+      <title>训练时间过长的时间序列数据的 LSTM 模型差分进化</title>
+      <link>https://stackoverflow.com/questions/78733225/differential-evolution-on-lstm-model-for-time-series-data-taking-too-long-to-tra</link>
+      <description><![CDATA[我正在使用 TensorFlow/Keras 中的 LSTM 进行时间序列预测项目，并尝试使用差分进化来优化我的模型的超参数。但是，即使只有 100 个观察值，训练过程也需要很长时间。
+这是我的代码片段：
+# 导入库
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+from sklearn.model_selection import GridSearchCV
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+from tensorflow.keras.optimizers import Adam
+from scipy.optimize import different_evolution
+
+# 导入数据集
+df = pd.read_csv(&quot;1 Yr Yields Series.CSV&quot;)
+df.head()
+
+# 删除非数字列和目标变量
+features = df.drop(columns=[&#39;Unnamed: 0&#39;, &#39;Date&#39;, &#39;Nation&#39;, &#39;Yield&#39;])
+
+# 存储收益率值
+yields = df[&#39;Yield&#39;].values.reshape(-1, 1)
+
+# 将 % 列转换为字符串
+features[&#39;DivYield&#39;] = features[&#39;DivYield&#39;].astype(str)
+features[&#39;DivYieldFTSE&#39;] = features[&#39;DivYieldFTSE&#39;].astype(str)
+
+# 将 % 列转换为浮点数
+features[&#39;DivYield&#39;] = features[&#39;DivYield&#39;].str.rstrip(&#39;%&#39;).astype(float) / 100
+features[&#39;DivYieldFTSE&#39;] = features[&#39;DivYieldFTSE&#39;].str.rstrip(&#39;%&#39;).astype(float) / 100
+
+# 缩放数据
+scaler = StandardScaler()
+features_standardized = scaler.fit_transform(features)
+
+# 创建 pca 实例以拟合标准化数据
+pca = PCA()
+X_pca = pca.fit_transform(features_standardized)
+
+# 使用肘部方法找到要减少到的 k 个组件
+plt.plot(np.cumsum(pca.explained_variance_ratio_))
+plt.xlabel(&#39;组件数量&#39;)
+plt.ylabel(&#39;累积解释方差&#39;)
+plt.show()
+
+# 找到我们的主要原则成分
+per_var = np.round(pca.explained_variance_ratio_ * 100, decimals=1)
+labels = [&#39;PC&#39; + str(x) for x in range(1, len(per_var)+1)]
+
+plt.bar(x=range(1,len(per_var)+1), height=per_var, tick_label=labels)
+plt.ylabel(&#39;% of explained variance&#39;)
+plt.xlabel(&#39;Principal component&#39;)
+plt.title(&#39;Scree Plot&#39;)
+plt.show()
+
+# 根据图使用最佳的主成分数量
+k = 7
+pca = PCA(n_components=k)
+X_pca = pca.fit_transform(features_standardized) # 转换我们的数据
+
+# 将收益与 PCA 转换的特征连接起来
+pca_array = np.concatenate((yields, X_pca), axis=1)
+pca_array.shape # 收益位于第 0 个索引
+
+# 查找我们的初始权重
+principal_components = pca.components_
+weights = np.abs(principal_components) / np.sum(np.abs(principal_components), axis=1, keepdims=True)
+W = tf.convert_to_tensor(weights, dtype=tf.float32) # 确保权重是 float32 张量
+
+print(f&quot;Initial Weights:\n{weights}&quot;)
+
+# 将数据拆分为训练集和验证集
+X_train, X_val, y_train, y_val = train_test_split(pca_array[:100, 1:8], pca_array[:100, 0], test_size=0.2)
+
+def create_lstm_model(units, dropout, learning_rate):
+model = tf.keras.Sequential([
+tf.keras.layers.LSTM(units, input_shape=(X_train.shape[1], X_train.shape[2])),
+tf.keras.layers.Dropout(dropout),
+tf.keras.layers.Dense(1,activation=&#39;sigmoid&#39;)
+])
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+loss=&#39;binary_crossentropy&#39;,
+metrics=[&#39;accuracy&#39;])
+return model
+
+def objective(params):
+units, dropout, learning_rate = params
+model = create_lstm_model(int(units), dropout, learning_rate)
+
+history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_val, y_val), verbose=0)
+
+val_loss = min(history.history[&#39;val_loss&#39;])
+
+return val_loss
+
+bounds = [(10, 200), # 单位
+(0.1, 0.5), # dropout
+(1e-4, 1e-2)] # learning_rate
+
+result = different_evolution(objective, bounds, strategies=&#39;best1bin&#39;, maxiter=100, popsize=15, tol=0.01)
+
+# 打印最优参数和相应的分数
+print(&quot;Optimal Parameters:&quot;, result.x)
+print(&quot;Best Score:&quot;, result.fun)
+
+
+我下载了 miniconda 并尝试运行我在 GPU 上测试了差分进化，看看它是否能提高速度，但没有成功。
+问题：
+
+有没有更有效的方法来执行超参数优化？
+
+我的 LSTM 模型或我分割数据的方式是否会导致延迟？
+
+是否有任何参数或方法可以调整以加快优化过程？
+
+有没有什么方法可以可视化每一步的时间？
+
+
+任何建议或意见都将不胜感激！
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78733225/differential-evolution-on-lstm-model-for-time-series-data-taking-too-long-to-tra</guid>
+      <pubDate>Thu, 11 Jul 2024 01:34:43 GMT</pubDate>
+    </item>
     <item>
       <title>使用 Catboost Golang</title>
       <link>https://stackoverflow.com/questions/78732455/use-catboost-golang</link>
@@ -89,17 +221,6 @@ Pseudo-Rsq = 0.9547
 ]]></description>
       <guid>https://stackoverflow.com/questions/78731704/bart-with-all-dummy-features</guid>
       <pubDate>Wed, 10 Jul 2024 16:18:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>退出网页后，网络摄像头/Canvas 仍在运行</title>
-      <link>https://stackoverflow.com/questions/78731553/webcam-canvas-is-still-running-after-i-exit-a-web-page</link>
-      <description><![CDATA[我正在使用 React 上的 ml5 和 p5 创建瑜伽 AI 教练。
-我创建了一个组件，其中加载了一个模型和一个网络摄像头。该组件的目标是检测某个瑜伽姿势，并且该组件动态返回从网络摄像头检测到的姿势名称。当检测到某个姿势时，该组件还会返回一个倒计时 15 秒的计时器 - 提示用户保持姿势 15 秒。
-我注意到，当我退出页面转到网站上的另一个页面时，网络摄像头正在运行。当我退出页面时，它应该停止运行。
-我问 ChatGPT 如何解决这个问题，他们说“您需要在组件卸载时明确停止视频流以确保网络摄像头已关闭”。我在我的组件上使用 useEffect 来包装我的函数。我认为这可能是问题所在，但我不太确定。
-这是我的代码链接：https://github.com/laura-nguyen/yoga-ai/blob/feature/page-pose-cam/src/components/PoseCam/PoseCam.jsx]]></description>
-      <guid>https://stackoverflow.com/questions/78731553/webcam-canvas-is-still-running-after-i-exit-a-web-page</guid>
-      <pubDate>Wed, 10 Jul 2024 15:45:22 GMT</pubDate>
     </item>
     <item>
       <title>无法部署基于 Flask 的深度学习应用程序</title>
@@ -248,7 +369,7 @@ shuffle=True，validation_split= 0.2）
     <item>
       <title>PyTorch 模型未进行训练</title>
       <link>https://stackoverflow.com/questions/45359111/pytorch-model-is-not-training</link>
-      <description><![CDATA[我有一个问题，已经一个星期没法解决了。我正在尝试构建 CIFAR-10 分类器，但每个批次后的损失值都在随机跳跃，而且准确率甚至在同一批次上也没有提高（我甚至无法用一个批次过度拟合模型），所以我猜唯一可能的原因是 - 权重没有更新。 
+      <description><![CDATA[我有一个问题，已经一个星期没法解决了。我正在尝试构建 CIFAR-10 分类器，但每个批次后的损失值都在随机跳跃，而且准确率甚至在同一个批次上也没有提高（我甚至无法用一个批次过度拟合模型），所以我猜唯一可能的原因是 - 权重没有更新。 
 我的模块类
 class Net(nn.Module):
 def __init__(self):
