@@ -4,7 +4,100 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 13 Jul 2024 03:16:04 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 13 Jul 2024 06:20:06 GMT</lastBuildDate>
+    <item>
+      <title>$A^{-1}$ 的奇异值，其中 $A$ 具有标准正态项</title>
+      <link>https://stats.stackexchange.com/questions/650964/singular-values-of-a-1-where-a-has-standard-normal-entries</link>
+      <description><![CDATA[关于 $A^{-1}$ 奇异值的行为，您是否有所了解，其中 $A$ 具有标准正态项？
+从经验上看，$k$ 第 1 个奇异值似乎以 $1/k$ 的速度衰减，这是众所周知的吗？
+
+colab]]></description>
+      <guid>https://stats.stackexchange.com/questions/650964/singular-values-of-a-1-where-a-has-standard-normal-entries</guid>
+      <pubDate>Sat, 13 Jul 2024 04:58:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 Python 中拟合具有可观察和不可观察因素的线性状态空间模型</title>
+      <link>https://stats.stackexchange.com/questions/650963/fitting-a-linear-state-space-model-with-observable-and-unobservable-factors-in-p</link>
+      <description><![CDATA[我想要拟合一个具有三个潜在/不可观察因素和一个可观察因素的线性高斯状态空间模型。如下所示：
+
+未观测到的因素遵循自回归过程：
+
+这里，G 是一些参数的转移矩阵，eta 假设具有零均值和常数协方差矩阵。 delta x_t 的维度为 n，b^o 是参数的 n-1 向量，f^o_t+1 是标量并且是可观测的，B^u 是已知且指定的 (n-1)x3 因子载荷矩阵，f^u_t+1 是 R^3 中三个不可观测因子的向量。
+我尝试使用 https://www.statsmodels.org/stable/generated/statsmodels.tsa.statespace.dynamic_factor_mq.DynamicFactorMQ.html#statsmodels.tsa.statespace.dynamic_factor_mq.DynamicFactorMQ
+但问题是可观察因子，这似乎只适用于所有 f 都未观察到的情况。我想使用 EM 算法来拟合它，但遇到了困难。这应该是标准的，并且能够使用现有的包来完成，也许我只是误解了。
+到目前为止，我从头开始尝试了它，但它不起作用。
+from numpy.linalg import inv
+
+def em_algorithm_state_space(delta_I, z_test, B_u, max_iter=100, tol=1e-3):
+&quot;&quot;&quot;
+用于拟合线性高斯状态空间模型的 EM 算法。
+
+参数：
+delta_I：(n, k) 观测数据数组。
+z_test：(n, 1) 观测因子数组。
+B_u：(k, m) 未观测因子载荷矩阵。
+max_iter：EM 迭代的最大次数。
+tol：收敛容差。
+
+返回：
+G：估计的转换矩阵。
+Sigma_eta：估计的状态创新协方差矩阵。
+b：估计的截距向量。
+Sigma_epsilon：估计的观测噪声协方差矩阵。
+&quot;&quot;&quot;
+
+n, k = delta_I.shape
+m = B_u.shape[1] # 未观测因子的数量
+
+# 初始化参数
+G = np.zeros((m, m))
+Sigma_eta = np.eye(m)
+b = np.zeros((k, 1))
+Sigma_epsilon = np.eye(k)
+f_t = np.zeros((m, 1)) # 初始状态向量
+
+for _ in range(max_iter):
+# E-step：计算状态的条件期望
+f_t_cond = np.zeros((m, n))
+for t in range(1, n):
+# 预测步骤（卡尔曼滤波器）
+f_t_pred = G @ f_t
+P_t_pred = G @ Sigma_eta @ G.T + Sigma_eta
+
+# 更新步骤（卡尔曼滤波器）
+y_t = delta_I[t, :].reshape(-1, 1) - b - B_u @ f_t_pred - z_test[t, :].reshape(-1, 1)
+S_t = B_u @ P_t_pred @ B_u.T + Sigma_epsilon
+K_t = P_t_pred @ B_u.T @ inv(S_t)
+f_t = f_t_pred + K_t @ y_t
+P_t = (np.eye(m) - K_t @ B_u) @ P_t_pred
+
+f_t_cond[:, t] = f_t.reshape(-1)
+
+# M-step：更新参数
+G = np.dot(f_t_cond[:, 1:] @ f_t_cond[:, :-1].T, inv(np.dot(f_t_cond[:, :-1] @ f_t_cond[:, :-1].T, G) + Sigma_eta))
+Sigma_eta = np.dot((f_t_cond[:, 1:] - G @ f_t_cond[:, :-1]) @ (f_t_cond[:, 1:] - G @ f_t_cond[:, :-1]).T, 1 / (n - 1))
+b = (delta_I - (B_u @ f_t_cond).T - z_test).mean(axis=0).reshape(-1, 1)
+residual = delta_I - b - B_u @ f_t_cond.T - np.tile(z_test.T, (1, k))
+Sigma_epsilon = np.dot(residual, residual.T) / n
+
+返回 G、Sigma_eta、b、Sigma_epsilon
+
+# 示例用法（用您的实际数据替换）
+# delta_I = ...
+# z_test = ...
+# B_u = ...
+
+# 拟合模型
+G_est、Sigma_eta_est、b_est、Sigma_epsilon_est = em_algorithm_state_space(delta_I_test、z_test、B_u)
+
+print(&quot;Estimated G:&quot;, G_est)
+print(&quot;Estimated Sigma_eta:&quot;, Sigma_eta_est)
+print(&quot;Estimated b:&quot;, b_est)
+print(&quot;Estimated Sigma_epsilon:&quot;, Sigma_epsilon_est)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/650963/fitting-a-linear-state-space-model-with-observable-and-unobservable-factors-in-p</guid>
+      <pubDate>Sat, 13 Jul 2024 03:28:49 GMT</pubDate>
+    </item>
     <item>
       <title>对数据进行多元 Ornstein-Uhlenbeck 过程拟合</title>
       <link>https://stats.stackexchange.com/questions/650962/fitting-a-multivariate-ornstein-uhlenbeck-process-to-data</link>
@@ -39,28 +132,32 @@ Larry Wasserman 的$\textit{所有非参数统计}$没有涵盖$\beta&gt;1$ 案�
       <title>使用 CPAT 检验检测 AR(1) 模型中的负向变化的问题</title>
       <link>https://stats.stackexchange.com/questions/650959/issues-with-detecting-negative-change-in-ar1-model-using-cpat-tests</link>
       <description><![CDATA[我目前正在评估 CUSUM、Rényi CUSUM 和 Erdős-Darling 检验在检测 AR(1) 模型中的变化点方面的经验功效，特别关注平均值的变化。下面是我用于此分析的代码片段：
-&#39;
 library(CPAT)
+
 Test=function(n, nb, beta, ro, alpha, g){
-初始化变量和向量
+#### 初始化变量和向量
 p = 20
 X1 = numeric(n + 2 * p)
 X2 = numeric(n + 2 * p)
 D1 = numeric(n)
+
 prob2 = logical(nb)
 prob3 = logical(nb)
 prob4 = logical(nb)
+
 a = 1:p
-AR(1) 模型的模拟
+
+# AR(1) 模型的模拟
 for(k in 1:nb){
 E = rnorm(n + 2 * p)
-# 模拟更改前的 AR(1) 模型点
+
+# 在变化点之前模拟 AR(1) 模型
 X1[1] = rnorm(1)
 for(i in 2:(g + p)){
 X1[i] = ro * X1[i - 1] + E[i]
 }
 
-# 在变化点后模拟 AR(1) 模型
+# 在变化点之后模拟 AR(1) 模型
 X2[1] = rnorm(1)
 for(i in 2:(n - g + p)){
 X2[i] = (ro + beta / sqrt(n)) * X2[i - 1] + E[(g + p + i - 1)]
@@ -74,21 +171,21 @@ for(i in 2:n){
 D1[i] = X[i] - ro * X[i - 1]
 }
 
-# 应用 CPAT 测试并评估功率
+# 应用 CPAT 检验并评估功效
 prob2[k] = (CUSUM.test(D1, use_kernel_var = FALSE, stat_plot = FALSE, kernel = &quot;ba&quot;, bandwidth = &quot;and&quot;)$p.value &lt; alpha)
 prob3[k] = (HR.test(D1, kn = sqrt, use_kernel_var = FALSE, stat_plot = FALSE, kernel = &quot;ba&quot;, bandwidth = &quot;and&quot;)$p.value &lt; alpha)
 prob4[k] = (CPAT::stat_de(X) &gt; CPAT::qdarling_erdos(1 - alpha))
+}
 
-&gt;
-计算模拟中的平均概率
+# 计算模拟中的平均概率
 Ls = list(mean(prob2), mean(prob3), mean(prob4))
 return(Ls)
-}&#39;
+}
+
 目前，我遇到一个问题，当 beta（平均值的变化）为负时，测试的功效明显低于指定的显着性水平 alpha。这似乎违反直觉。
 我的问题：
 我的代码中是否存在导致此问题的错误？
-如何确保正确应用 CPAT 包中的函数，以准确确定这些测试在检测 AR(1) 模型中的负面变化方面的功效？
-感谢您的帮助！]]></description>
+如何确保正确应用 CPAT 包中的函数，以准确确定这些测试在检测 AR(1) 模型中的负面变化方面的功效？]]></description>
       <guid>https://stats.stackexchange.com/questions/650959/issues-with-detecting-negative-change-in-ar1-model-using-cpat-tests</guid>
       <pubDate>Sat, 13 Jul 2024 01:56:27 GMT</pubDate>
     </item>
@@ -153,28 +250,6 @@ model &lt;- glmmTMB(Mean_Intensity ~ group + (1|Intensity_Filename), family=...,
       <pubDate>Fri, 12 Jul 2024 22:28:47 GMT</pubDate>
     </item>
     <item>
-      <title>变量的联合分布</title>
-      <link>https://stats.stackexchange.com/questions/650952/joint-distribution-of-the-variables</link>
-      <description><![CDATA[我想使用 copula 为多变量干旱分析建立降水和流量数据的联合分布模型。我已经确定了变量的边际分布。
-
-如何使用 R 代码计算变量的联合分布？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/650952/joint-distribution-of-the-variables</guid>
-      <pubDate>Fri, 12 Jul 2024 20:24:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>计算长期人口增长的死亡率</title>
-      <link>https://stats.stackexchange.com/questions/650951/calculating-death-rates-for-an-increasing-population-over-the-long-term</link>
-      <description><![CDATA[我参与了一项针对特定 MH 干预的小型长期结果研究。我们对似乎在 20 多岁时就去世的受试者数量感到有些担忧，我们想确保死亡率确实异常高，并开始对潜在问题发出一些声音。
-
-简而言之，我们有大约 600 名受试者，他们在 25 年的时间里被送入 MH 设施。多年来，他们都是十几岁时被送进这个机构的，现在的年龄在 20-50 岁之间。
-我们想做的是计算每 5 年（15-19 岁、20-24 岁等）的死亡率，以便将其与一般人口和更具体/相关的人群进行比较。
-
-从表面上看，这似乎是一个基本问题，但我根本不知道如何面对这样一个事实：我们必须从 25 年的角度来看待这一事实，即人口在这段时间内不断增长（现在稳定下来）。如果有人能牵着我的手，给我指明正确的概念方向，我将不胜感激！谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/650951/calculating-death-rates-for-an-increasing-population-over-the-long-term</guid>
-      <pubDate>Fri, 12 Jul 2024 20:20:02 GMT</pubDate>
-    </item>
-    <item>
       <title>随机变量乘积的分布</title>
       <link>https://stats.stackexchange.com/questions/650950/distribution-of-a-product-of-random-variables</link>
       <description><![CDATA[我有两个独立分布 $X$ 和 $Y$。$X$ 由分段 CDF 定义
@@ -211,13 +286,6 @@ $Z = Xe^Y$ 的 CDF 和 PDF 是多少？
 &amp;\qquad+\mathbb{P}(X&lt;ze^{-Y},\ln(z)-\ln\left(a_{1}\right) \leq Y,Y\geq0)+\dots \end{align*&gt;]]></description>
       <guid>https://stats.stackexchange.com/questions/650950/distribution-of-a-product-of-random-variables</guid>
       <pubDate>Fri, 12 Jul 2024 19:44:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>选择正确数量的特征和正确参数的更快方法[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/650949/a-faster-way-to-choose-the-right-number-of-features-and-the-right-parameters</link>
-      <description><![CDATA[对于一个非常小的数据集，样本少于一百个，网格搜索无法给出我们想要的结果，并且存在过度拟合。但是当我手动对模型进行超参数调整并随机选择不同的数字时，会获得想要的结果，但这项工作需要花费大量时间。您有解决方案来加快这项工作吗？或者有比手动方法更好的替代方法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/650949/a-faster-way-to-choose-the-right-number-of-features-and-the-right-parameters</guid>
-      <pubDate>Fri, 12 Jul 2024 18:32:34 GMT</pubDate>
     </item>
     <item>
       <title>我应该如何分析电视剧集的受欢迎程度并兼顾时间因素？</title>
@@ -314,6 +382,126 @@ structure(list(episode = c(&quot;The Shadow Realm&quot;, &quot;The Forbidden Tom
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/650687/how-to-do-a-power-analysis-on-density-data</guid>
       <pubDate>Mon, 08 Jul 2024 18:27:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么考虑自相关残差几乎无助于分布滞后模型中的参数估计</title>
+      <link>https://stats.stackexchange.com/questions/650626/why-does-accounting-for-autocorrelated-residuals-barely-help-parameter-estimatio</link>
+      <description><![CDATA[这个问题困扰了我很长时间。基本上，我有一个分布式滞后模型$$y_t=\sum_{i=0}^{p} \beta_i x_{t-i} + u_t.$$
+回归问题有点错误指定，所以我最终得到自相关错误$$u_t=\alpha u_{t-1}+\epsilon_t.$$
+由于我的模型中自相关程度很高，$\beta$的估计应该非常低效，但是当我使用 GLS 校正自相关时，我的$\beta$估计没有任何改善。当我的问题略有不同，并且 $$y_t= \sum_{i=1}^p \beta_i x_t^i + u_t,$$ 时，$y$ 只是同时存在的不同 $x$ 的函数，GLS 表现惊人，而最小二乘则表现不佳。
+为什么 GLS 在第一个例子中表现如此糟糕，我如何让它表现更好（我只关心参数估计）？
+我在 R 中编写了两个例子：
+n_sim &lt;- 15
+LS_R2 &lt;- rep(0, n_sim)
+GLS_R2 &lt;- rep(0, n_sim)
+ar_noise &lt;- 0.7
+for(sim in 1:n_sim){
+n=5000
+set.seed(sim)
+x_vec &lt;- arima.sim(list(order=c(1,0,0), ar=c(0.5)), n=n, sd=1)
+noise &lt;- arima.sim(list(order=c(1,0,0), ar=c(ar_noise)), n=n, sd=1)
+y &lt;- rep(0,n)
+p &lt;- 150
+true_beta &lt;- seq(from=5, to=0, length.out=p) + rnorm(p,sd=0.1)
+for(i in p:length(y)){
+y[i] &lt;- y[i] + sum(x_vec[i:(i-p+1)]*true_beta)
+}
+y &lt;- y + noise*var(y)/var(noise)/50
+
+# 尝试简单最小二乘法（应该非常低效）
+Xmat &lt;- matrix(0, ncol = p, nrow = n)
+for(i in 1:ncol(Xmat)){
+Xmat[,i] &lt;- c(rep(0,i-1), x_vec[1:(length(x_vec)-i+1)])
+}
+
+XXProd &lt;- crossprod(Xmat)
+XyProd &lt;- crossprod(Xmat, matrix(y, ncol = 1))
+
+est_beta &lt;- as.numeric(solve(XXProd, XyProd, tol=0))
+LS_R2[sim] &lt;- 1- sum((true_beta-est_beta)^2)/sum((true_beta - 
+mean(true_beta))^2)
+
+# 尝试广义最小二乘法（应该是最优且有效的）
+get_T &lt;- function(ar, N){
+i_vec &lt;- c(1:N,2:N)
+j_vec &lt;- c(1:N,1:(N-1))
+x_vec &lt;- c(sqrt(1-ar^2), rep(1,N-1), rep(-ar,N-1))
+sparseMatrix(i = i_vec, j = j_vec, x = x_vec, dims = c(N,N))
+}
+
+T1 &lt;- get_T(ar_noise, length(y))
+
+Xmat &lt;- T1%*% Xmat
+y &lt;- as.numeric(T1%*% matrix(y, ncol=1))
+
+XXProd &lt;- crossprod(Xmat)
+XyProd &lt;- crossprod(Xmat, matrix(y, ncol = 1))
+
+est_beta &lt;- as.numeric(solve(XXProd, XyProd, tol=0))
+GLS_R2[sim] &lt;- 1- sum((true_beta-est_beta)^2)/sum((true_beta - 
+mean(true_beta))^2)
+}
+LS_R2
+GLS_R2
+mean(LS_R2)
+mean(GLS_R2)
+
+和
+n_sim &lt;- 15
+LS_R2 &lt;- rep(0,n_sim)
+GLS_R2 &lt;- rep(0,n_sim)
+for(sim in 1:n_sim){
+n=5000
+set.seed(sim)
+noise &lt;- arima.sim(list(order=c(1,0,0), ar=c(ar_noise)), n=n, sd=1)
+y &lt;- rep(0,n)
+p &lt;- 150
+Xmat &lt;- matrix(0, ncol = p, nrow = n)
+for(i in 1:ncol(Xmat)){
+Xmat[,i] &lt;- arima.sim(list(order=c(1,0,0), ar=c(0.5)), n=n, sd=1)
+}
+true_beta &lt;- seq(from=5, to=0, length.out=p) + rnorm(p,sd=0.1)
+for(i in p:length(y)){
+y[i] &lt;- y[i] + sum(Xmat[i,]*true_beta)
+}
+y &lt;- y + noise*sd(y)/sd(noise)
+
+# 尝试简单最小二乘法（应该非常低效）
+XXProd &lt;- crossprod(Xmat)
+XyProd &lt;- crossprod(Xmat, matrix(y, ncol = 1))
+
+est_beta &lt;- as.numeric(solve(XXProd, XyProd, tol=0))
+LS_R2[sim] &lt;- 1- sum((true_beta-est_beta)^2)/sum((true_beta - 
+mean(true_beta))^2)
+
+# 尝试广义最小二乘法（应该是最优和高效的)
+get_T &lt;- function(ar,N){
+i_vec &lt;- c(1:N,2:N)
+j_vec &lt;- c(1:N,1:(N-1))
+x_vec &lt;- c(sqrt(1-ar^2), rep(1,N-1), rep(-ar,N-1))
+sparseMatrix(i = i_vec, j = j_vec, x = x_vec, dims = c(N,N))
+}
+
+T1 &lt;- get_T(ar_noise, length(y))
+
+Xmat &lt;- T1 %*% Xmat
+y &lt;- as.numeric(T1%*% matrix(y,ncol=1))
+
+XXProd &lt;- crossprod(Xmat)
+XyProd &lt;- crossprod(Xmat, matrix(y,ncol = 1))
+
+est_beta &lt;- as.numeric(solve(XXProd, XyProd,tol=0))
+GLS_R2[sim] &lt;- 1- sum((true_beta-est_beta)^2)/sum((true_beta - 
+mean(true_beta))^2)
+
+}
+LS_R2
+GLS_R2
+mean(LS_R2)
+mean(GLS_R2)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/650626/why-does-accounting-for-autocorrelated-residuals-barely-help-parameter-estimatio</guid>
+      <pubDate>Sun, 07 Jul 2024 07:15:49 GMT</pubDate>
     </item>
     </channel>
 </rss>
