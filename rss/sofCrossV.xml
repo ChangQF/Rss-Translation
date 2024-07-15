@@ -4,7 +4,176 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 15 Jul 2024 15:17:54 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 15 Jul 2024 18:20:01 GMT</lastBuildDate>
+    <item>
+      <title>根据中位数和 IQR 值估计平均值和 SD</title>
+      <link>https://stats.stackexchange.com/questions/651092/estimating-mean-and-sd-given-the-median-and-iqr-values</link>
+      <description><![CDATA[根据中位数和 IQR，可以估算平均值和 SD 吗？我参与了一项荟萃分析，其中一些试验将结果显示为平均值和标准差，但大多数显示中位数和分位数间距。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651092/estimating-mean-and-sd-given-the-median-and-iqr-values</guid>
+      <pubDate>Mon, 15 Jul 2024 18:18:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>差异对数水平回归的弹性</title>
+      <link>https://stats.stackexchange.com/questions/651090/elasticity-from-differenced-log-level-regression</link>
+      <description><![CDATA[我有回归
+$ \Delta \ln Y_i = \alpha + \beta \Delta X_i + \varepsilon_i $
+其中 $\Delta \ln Y_i = \ln Y_{t,i} - \ln Y_{t-1,i}$ 和 $\Delta X_i = ((X_{t,i} - X_{t-1,i}) / T_{t-1,i} ) \cdot 100$。T 是总人口，X 是子集，i 是地区。
+假设 $\beta$ 为 -0.073。我对半弹性的解释是，X 相对于基线 T 增加 1 个百分点会导致 Y 下降 7.3%。（这是正确的吗？）
+问题：我如何才能消除弹性？也许可以将 $\beta$ 除以 $\Delta X_i$ 的平均值？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651090/elasticity-from-differenced-log-level-regression</guid>
+      <pubDate>Mon, 15 Jul 2024 17:54:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>样本量：集群随机试验</title>
+      <link>https://stats.stackexchange.com/questions/651088/sample-size-cluster-randomized-trials</link>
+      <description><![CDATA[我寻求同行对我计算配对或分层集群随机试验样本量的方法进行检查，假设功效为 80%。
+研究背景：我正在与传染病研究人员合作设计一项集群随机试验，以比较新消毒方法与常规护理在降低聚集环境（军营、船只等）传染病发病率方面的效果。这项研究可以显著影响这些环境中的传染病控制策略。
+随机化的单位是一艘船或一个排，因此他们将在单个士兵/水手级别衡量结果。
+问题在于：这项研究不会使用简单的随机单位样本。相反，它将根据大小和其他特征对单位进行配对，并将每对中的一个单位随机分配到干预措施中。如果这不是最好的方法，研究将根据这些特征对单位进行分层，并将每层中的一半单位随机分配到干预组中。
+欢迎您对我在 R 中的方法提出建议，如下所示。我的方法基于 Hayes 和 Bennett (1999) 中描述的方法，并针对配对或分层进行了调整。
+我感觉研究小组需要向我提供更多详细信息，因此我对参数 expected_effect、icc、cv、mean_cluster_size、incidence_control 做了一些假设。
+配对和分层方法 (n = 1200) 得出的样本量似乎有点高，因此计算一系列合理样本量可能是明智之举值。
+此查询已交叉发布此处。
+calculate_sample_size &lt;- function(design = c(&quot;pair-matched&quot;, &quot;stratified&quot;),
+n_strata = 1,
+alpha = 0.05,
+power = 0.80,
+expected_effect = 0.1,
+icc = 0.01, # 组内相关系数
+cv = 0.25, # 变异系数
+mean_cluster_size = 100,
+incident_control = 0.1) { # 对照组的预期发生率
+
+design &lt;- match.arg(design)
+
+#计算 z 分数
+z_alpha &lt;- qnorm(1 - alpha/2)
+z_beta &lt;- qnorm(power)
+
+# 计算 k（每臂的簇数）
+if (design == &quot;pair-matched&quot;) {
+# 对于成对匹配设计
+k &lt;- 1 + (z_alpha + z_beta)^2 * (1 + (mean_cluster_size - 1) * icc) * 
+(incidence_control * (1 - incident_control) + 
+(incidence_control + expected_effect) * (1 - (incidence_control + expected_effect))) / 
+(mean_cluster_size * expected_effect^2)
+} else {
+# 对于分层设计
+k &lt;- 1 + (1 + cv^2) * (z_alpha + z_beta)^2 * 
+(incidence_control * (1 - 发生率控制) + 
+(发生率控制 + 预期效应) * (1 - (发生率控制 + 预期效应))) / 
+(平均簇大小 * 预期效应^2)
+}
+
+# 四舍五入到最接近的偶数
+k &lt;- ceiling(k / 2) * 2
+
+# 调整分层
+if (design == &quot;stratified&quot;) {
+k &lt;- ceiling(k / n_strata) * n_strata
+}
+
+# 计算簇总数和样本大小
+total_clusters &lt;- k * 2 # 乘以 2 得到两个组
+total_sample_size &lt;- total_clusters * 平均簇大小
+
+# 计算可检测效应大小
+if (design == &quot;pair-matched&quot;) {
+detectable_effect &lt;- sqrt((z_alpha + z_beta)^2 * (1 + (mean_cluster_size - 1) * icc) * 
+(incidence_control * (1 - incident_control) * 2) / 
+(k * mean_cluster_size))
+} else {
+detectable_effect &lt;- sqrt((1 + cv^2) * (z_alpha + z_beta)^2 * 
+(incidence_control * (1 - incident_control) * 2) / 
+(k * mean_cluster_size))
+}
+
+# 准备结果
+results &lt;- list(
+design = design,
+n_strata = if(design == &quot;stratified&quot;) n_strata else NULL,
+total_clusters = total_clusters,
+clusters_per_arm = total_clusters / 2,
+total_sample_size = total_sample_size,
+detectable_effect = detectable_effect
+)
+
+return(results)
+}
+
+# 示例用法
+pair_matched_result &lt;- calculate_sample_size(&quot;pair-matched&quot;, expected_effect = 0.1)
+stratified_result &lt;- calculate_sample_size(&quot;stratified&quot;, n_strata = 3, expected_effect = 0.1)
+
+# 打印结果
+print(pair_matched_result)
+print(stratified_result)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/651088/sample-size-cluster-randomized-trials</guid>
+      <pubDate>Mon, 15 Jul 2024 16:42:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>生存分析：局部控制和局部无复发生存的使用</title>
+      <link>https://stats.stackexchange.com/questions/651082/survival-analysis-usage-of-local-control-and-local-recurrence-free-survival</link>
+      <description><![CDATA[我注意到，在一些出版物中，“局部控制”和“局部无复发生存”这两个术语可以互换使用，而在其他出版物中，局部控制不包括死亡事件（即它们受到审查）。哪种用法是正确的？
+据说，我正在对 OS 和局部复发数据进行生存分析（例如 Kaplan-Meier），应该使用这两者中的哪一个进行分析 - “纯”局部复发或局部无复发生存。我非常感谢您的解释，谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651082/survival-analysis-usage-of-local-control-and-local-recurrence-free-survival</guid>
+      <pubDate>Mon, 15 Jul 2024 15:51:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>解释 lavaan SEM 增长系数和协变量对斜率的影响</title>
+      <link>https://stats.stackexchange.com/questions/651081/interpretation-of-lavaan-sem-growth-coefficients-and-covariates-influence-on-sl</link>
+      <description><![CDATA[您好，提前感谢您的建议。我正在 lavaan 中运行 growth() 命令。这是我关于此主题的上一篇文章的后续内容（哇，一年前！）。
+时间点为 3、6 和 10 年级。我在命令中将它们编码为 0、3 和 7 以表示年份：
+ i =~ 1*G3_Theta_Read + 1*G6_Theta_Read + 1*G10_Theta_Literacy
+s =~ 0*G3_Theta_Read + 3*G6_Theta_Read + 7*G10_Theta_Literacy 
+
+模型拟合度为非常好：
+cfi rmsea srmr tli 
+0.987 0.026 0.010 0.974 
+
+问题 1：这个问题是关于解释增长的“截距”（斜率，“.s”）。在没有协变量的情况下，说这是每年的增长率准确吗？因此，在这种情况下，每年 -.17 SD（标准化结果），意味着七年内 -.17 * 7= -1.19？或者，七年内总共是 -.17 SD？
+截距：
+估计 Std.Err z 值 P(&gt;|z|) Std.lv Std.all
+.i 0.200 0.004 45.371 0.000 0.244 0.244
+.s -0.012 0.001 -8.638 0.000 -0.172 -0.172
+
+问题 2：有许多协变量用截距和斜率建模。我的第二个问题是关于解释协变量对斜率的影响。估计值是七年内每年的影响（即对于 EDI_lang，这将是 .033 * 7 = .231）？还是整个七年的影响？
+ 回归：
+估计 Std.Err z 值 P(&gt;|z|) Std.lv Std.all
+i ~ 
+SES_cnn__2_NEW 0.076 0.003 24.806 0.000 0.093 0.100（连续）
+Lw_r_t_rsk_Phy -0.055 0.010 -5.417 0.000 -0.067 -0.024（二进制）
+EDI_lang 0.157 0.009 18.328 0.000 0.191 0.083（二进制）
+
+s ~ 
+SES_cnn__2_NEW 0.004 0.000 9.242 0.000 0.056 0.060（连续）
+Lw_r_t_rsk_Phy -0.005 0.001 -3.682 0.000 -0.075 -0.027（二进制）
+EDI_lang 0.033 0.001 27.791 0.000 0.462 0.200（二进制）
+
+问题 3：Std.all 是否仅用于连续协变量？
+非常感谢 Stack Exchange 社区对此解释的建议！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651081/interpretation-of-lavaan-sem-growth-coefficients-and-covariates-influence-on-sl</guid>
+      <pubDate>Mon, 15 Jul 2024 15:51:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>AR(1) 过程无条件均值的估计量的方差</title>
+      <link>https://stats.stackexchange.com/questions/651078/variance-of-the-estimator-of-unconditional-mean-of-ar1-process</link>
+      <description><![CDATA[AR(1) 过程定义为：$y_t=c+\phi y_{t-1}+\varepsilon_t$，其中 $\varepsilon_t$ 为 IID，均值为零，方差为 $\sigma^2&lt;\infty$。对于平稳过程，即 $\phi\ne 0$，无条件均值为 $\mu\equiv E[y_t]=\frac {c}{1-\phi}$
+通常将其估计为 $\hat\mu=\frac {\hat c}{1-\hat\phi}$。此估计量的抽样方差是多少？
+如果$\varepsilon_t\sim\mathcal N(0,\sigma^2)$（对于表现良好的误差分布也是渐近的），则我们从双变量正态分布中得到$\hat c,\hat\phi$估计量。从 AR(1) 系数的 OLS 估计中很容易看出这一点。在这种情况下，从理论上讲，此$\hat\mu$的分布必须是柯西分布。Marsaglia 在2006中证明了这一点。即使我们假设系数来自 Press 在 1969 中展示的联合 t 分布，该分布仍为柯西分布。
+那么，我们如何将这一理论考虑与无条件方差为有限 $var[y_t]=\frac{\sigma^2}{1-\phi^2}$ 的事实相协调？
+Marsaglia (2006) 提出，在实践中我们可以截断$-\infty&lt;\phi$，则正态分布$\hat c/(1-\hat\phi)$变为正态。他假设，在观察到抽样分布确实对于$\hat c,\hat \p​​hi$的某些值范围几乎与正态分布没有区别之后。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651078/variance-of-the-estimator-of-unconditional-mean-of-ar1-process</guid>
+      <pubDate>Mon, 15 Jul 2024 15:41:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>线性回归拟合是否遵循反比关系？[重复]</title>
+      <link>https://stats.stackexchange.com/questions/651077/does-the-linear-regression-fit-follow-the-inverse-relationship</link>
+      <description><![CDATA[我用加权线性回归拟合了 X =logA、Y=logB，得到的结果为 log B =(0.53 $\pm$ 0.054)logA + (17.41 $\pm$ 1.7)。当我用 X=logB、Y=logA 进行拟合时，我预计关系应该是 logA ~ 2logB。但我得到的结果是 logA=(1.15 $\pm$ 0.06)logA - (8.32 $\pm$ 2.038)。为什么这里看不到反比关系？有什么解释吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651077/does-the-linear-regression-fit-follow-the-inverse-relationship</guid>
+      <pubDate>Mon, 15 Jul 2024 15:27:45 GMT</pubDate>
+    </item>
     <item>
       <title>$X_i \varepsilon_i$ 是 iid 吗？</title>
       <link>https://stats.stackexchange.com/questions/651076/are-x-i-varepsilon-i-iid</link>
@@ -22,12 +191,12 @@ $X_i \varepsilon_i$ 是 iid 吗？]]></description>
       <pubDate>Mon, 15 Jul 2024 15:14:07 GMT</pubDate>
     </item>
     <item>
-      <title>z 分数有最高限制吗？</title>
+      <title>z 分数有最高限制吗？[重复]</title>
       <link>https://stats.stackexchange.com/questions/651075/is-there-a-maximum-limit-for-z-score</link>
       <description><![CDATA[我正在比较肿瘤（n = 44）和正常样本（n = 32）之间的基因表达，并尝试通过热图对其进行可视化。我使用 R 上的 scale() 函数将表达转换为 z 分数。我获得的最小值接近 -5，最大值略高于 8。
 我进行了一些搜索，发现 z 分数的最大值通常在 -5 到 5 之间。我发现在某些情况下样本大小会影响分数的最大值，但我仍然找不到是否有其他人具有如此高的值。
 我之前曾在 StackOverflow 上发布过关于此内容的帖子，但有人建议应该在这里进行更有见地的讨论。
-我知道理论上 z 分数的范围是从负无穷到无穷，但实践中 z 分数是否有限制？]]></description>
+我知道从理论上讲，z 分数的范围是从负无穷到无穷，但实际上 z 分数是否有限制？]]></description>
       <guid>https://stats.stackexchange.com/questions/651075/is-there-a-maximum-limit-for-z-score</guid>
       <pubDate>Mon, 15 Jul 2024 15:07:15 GMT</pubDate>
     </item>
@@ -45,131 +214,71 @@ $n_k = n_0 + \mathrm{Binom}(n_0, r) + \mathrm{Binom}(n_0 + \mathrm{Binom}(n_0, r
       <pubDate>Mon, 15 Jul 2024 14:57:31 GMT</pubDate>
     </item>
     <item>
-      <title>SEM 中的残差方差</title>
-      <link>https://stats.stackexchange.com/questions/651073/residual-variance-in-sem</link>
-      <description><![CDATA[在结构方程建模中，在路径图中，估计值的平方和（采用标准化单位时）和残差方差的总和应为 1。
-（如此处所示）
-考虑下图（带标准化系数）：
-
-我理解应该对 0.48 和 -0.12 都进行平方。计算中是否涉及 0.38？无论我怎么尝试，总数都不等于 1。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651073/residual-variance-in-sem</guid>
-      <pubDate>Mon, 15 Jul 2024 14:06:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>缺少一些基线数据和一些纵向数据的多重填补</title>
-      <link>https://stats.stackexchange.com/questions/651072/multiple-imputation-with-some-missing-baseline-data-and-with-some-missing-longit</link>
-      <description><![CDATA[在以下情况下，我该如何估算数据：我收集了一些基线协变量和纵向数据。基线协变量和纵向数据都有一些缺失数据。我是否应该首先使用基于所有其他变量的缺失基线协变量的回归估算来估算基线协变量。
-然后在估算基线协变量时，对纵向结果使用多重估算？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651072/multiple-imputation-with-some-missing-baseline-data-and-with-some-missing-longit</guid>
-      <pubDate>Mon, 15 Jul 2024 13:36:57 GMT</pubDate>
-    </item>
-    <item>
       <title>视觉模拟量表与李克特评分量表</title>
       <link>https://stats.stackexchange.com/questions/651071/visual-analogue-scales-vs-likert-rating-scale</link>
-      <description><![CDATA[您能用简单的术语描述一下视觉模拟量表和 LIKERT 评分量表之间的区别吗？如果我有一个基于这两个量表的两个问题，我可以确定每个问题分数的平均值和标准差吗？（我的意思是，我可以计算 Likert 评分量表的平均值吗）？最后，对于元分析，如果使用视觉模拟量表（10 个量表）测量相同的问题（来自两个不同的出版物），而使用五个 Likert 评分量表测量第二个问题，我该如何协调信息？]]></description>
+      <description><![CDATA[您能用简单的术语描述一下视觉模拟量表和 LIKERT 评分量表之间的区别吗？如果我有一个基于这两个量表的两个问题，我可以确定每个问题分数的平均值和标准差吗？（我的意思是，我可以计算 Likert 评分量表的平均值吗）？最后，对于元分析，如果使用视觉模拟量表（10 个量表）测量相同的问题（来自两个不同的出版物），而第二个问题使用五个 Likert 评分量表，我该如何标准化信息？]]></description>
       <guid>https://stats.stackexchange.com/questions/651071/visual-analogue-scales-vs-likert-rating-scale</guid>
       <pubDate>Mon, 15 Jul 2024 13:27:29 GMT</pubDate>
     </item>
     <item>
-      <title>DiD 中的平行趋势假设：当治疗前趋势完全相同时会发生什么？</title>
-      <link>https://stats.stackexchange.com/questions/651070/parallel-trends-assumption-in-did-what-happens-when-the-pre-treatment-trends-ar</link>
-      <description><![CDATA[关于可测试平行趋势假设（即治疗组和对照组的治疗前趋势相同）：当趋势相同时（即相同的斜率和截距 = 相同的线），我们如何前进。我们可以将这些组视为“平行”趋势吗？然后将治疗效果计算为治疗后发生的任何偏差？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651070/parallel-trends-assumption-in-did-what-happens-when-the-pre-treatment-trends-ar</guid>
-      <pubDate>Mon, 15 Jul 2024 12:39:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>我的数据在空间中聚集，如何在 GAMM 中解释这一点？</title>
-      <link>https://stats.stackexchange.com/questions/651066/my-data-is-clustered-in-space-how-can-i-account-for-that-in-a-gamm</link>
-      <description><![CDATA[我正在根据鸟巢建造日期、鸟巢建造地点的地理坐标以及使用鸟巢建造年份作为随机效应来建模鸟巢是否建造 - 我在 R 中使用广义加性混合模型来执行此操作。
-我的模型：
-gam(Nest_building ~ s(Date) + te(Lon, Lat) + s(Year, bs=&quot;re&quot;)
-我的问题涉及我的鸟巢的空间分布：鸟巢分布在森林斑块中（即斑块之间有间隙），而不是全部分布在一个大的连续森林斑块中。我应该在我的模型中考虑到这一点吗？如果是，我如何使用 GAMM 来实现这一点？
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651066/my-data-is-clustered-in-space-how-can-i-account-for-that-in-a-gamm</guid>
-      <pubDate>Mon, 15 Jul 2024 11:32:09 GMT</pubDate>
-    </item>
-    <item>
       <title>珍珠干预配方？</title>
       <link>https://stats.stackexchange.com/questions/651065/pearl-intervention-formula</link>
-      <description><![CDATA[给定因果图（$Z$-&gt;$X$，$Z$-&gt;$Y$，$X$-&gt;$Y$），根据 Pearl 的干预，干预 $X$ 对 $Y$ 的影响可以估计为
-$$P(Y=y|do(X=x)) = \sum_z P(Y=y|X=x,Z=z)P(Z=z)$$
-关于这一点公式，我有以下 2 个问题：
+      <description><![CDATA[给定因果图$(Z\to X$, $Z\to Y$, $X\to Y)$，根据Pearl的干预，干预$X$对$Y$的影响可以估计为
+$$P(Y=y|\operatorname{do}(X=x)) = \sum_z P(Y=y|X=x,Z=z)\,P(Z=z).$$
+关于这个公式，我有以下2个问题：
 
-如果对于 $Z=z^*$，$count(X=x,Z=z^*)=0$，我们是否设置 $P(Y=y│X=x,Z=z^* )=0$？
-在 $P(z^*)$ 很大但只有一种情况是 $Z=z^*$ 和 $X=x$ 同时存在，即 $count(X=x,Z=z^* )=1$，因此， $P(Y=y│X=x,Z=z^* )=1$。
-$P(Y=y│X=x,Z=z^* )P(Z=z^*)$ 项是否会主导估计值 $P(Y=y│do(X=x))$？这是估计值中的问题吗？
 
-上述问题通过以下数据得到说明。与问题相关的项在等式中以粗体显示。在此数据中，$X\in\{0,1\},Y\in\{0,1\}$ 和 $Z\in\{z_1,z_2,z_3\}$。 
+如果对于$Z=z^*,$ $\text{count}(X=x,Z=z^*)=0,$ 我们是否设置 $P(Y=y│X=x,Z=z^*)=0?$
+在 $P(z^*)$ 很大但只有一个实例同时存在 $Z=z^*$ 和 $X=x$ 的情况下，即 $\text{count}(X=x,Z=z^* )=1,$ 我们是否写 $P(Y=y│X=x,Z=z^*)=1?$
 
-为了分析$X$对$Y$的因果效应，我们估计了平均因果效应 (ACE)。有
-$$P(Y=1│do(X=1))=P(Y=1│X=1,Z=z_1)+P(Y=1│X=1,Z=z_2)+P(Y=1│X=1,Z=z_3 )$$
-$$=1/4×5/10+ 0/1×3/10+\mathbf{0/0}×2/10$$
-$$P(Y=1│do(X=0) )=P(Y=1│X=0,Z=z_1)+P(Y=1│X=0,Z=z_2)+P(Y=1│X=0,Z=z_3)$$
-$$=\mathbf{1/1×5/10}+ 1/2×3/10+2/2×2/10$$]]></description>
+
+$P(Y=y│X=x,Z=z^*)\,P(Z=z^*)$ 项是否会主导 $P(Y=y│\operatorname{do}(X=x))?$ 的估计，这是该估计中的问题吗？
+上述问题通过以下数据进行演示。与问题相关的项在等式中以粗体显示。在此数据中，$X\in\{0,1\},Y\in\{0,1\}$ 和 $Z\in\{z_1,z_2,z_3\}$。
+
+为了分析 $X$ 对 $Y$ 的因果效应，我们估计平均因果效应 (ACE)：
+\begin{align*}
+P(Y=1│\operatorname{do}(X=1))
+&amp;=P(Y=1│X=1,Z=z_1)\cdot P(Z=z_1)\\
+&amp;\quad+P(Y=1│X=1,Z=z_2)\cdot P(Z=z_2)\\
+&amp;\quad+P(Y=1│X=1,Z=z_3)\cdot P(Z=z_3)\\
+&amp;=1/4\times 5/10+ 0/1\times 3/10+\mathbf{0/0}\times 2/10,\\
+P(Y=1│\operatorname{do}(X=0))
+&amp;=P(Y=1│X=0,Z=z_1)\cdot P(Z=z_1)\\
+&amp;\quad+P(Y=1│X=0,Z=z_2)\cdot P(Z=z_2)\\
+&amp;\quad+P(Y=1│X=0,Z=z_3)\cdot P(Z=z_3)\\
+&amp;=\mathbf{1/1\times 5/10}+ 1/2\times 3/10+2/2\times 2/10.
+\end{align*&gt;]]></description>
       <guid>https://stats.stackexchange.com/questions/651065/pearl-intervention-formula</guid>
       <pubDate>Mon, 15 Jul 2024 11:20:02 GMT</pubDate>
     </item>
     <item>
-      <title>我应该对从偏差总体中抽取的样本进行标准化吗？</title>
-      <link>https://stats.stackexchange.com/questions/651064/should-i-normalise-a-sample-drawn-from-a-skewed-population</link>
-      <description><![CDATA[我对政治实体的居民数量对这些实体内某些政治行为的影响很感兴趣。居民数量在实体之间分布不均匀，我的人口出现偏差（见下图，偏差度 = 4.495）。
-
-由于我无法收集所有实体的数据，因此我想抽取这些实体的样本。但是，我想知道我是否应该抽取这些实体的样本，这些样本是否根据居民数量进行了标准化。有什么想法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651064/should-i-normalise-a-sample-drawn-from-a-skewed-population</guid>
-      <pubDate>Mon, 15 Jul 2024 10:45:58 GMT</pubDate>
+      <title>定义临床随访：固定期限与最长期限</title>
+      <link>https://stats.stackexchange.com/questions/651037/defining-clinical-follow-up-fixed-period-vs-maximum-duration</link>
+      <description><![CDATA[我们正在回顾性分析 2017 年至 2023 年期间接受手术的约 1100 名患者的数据。我们分析了到 2024 年的随访记录。这意味着在较晚日期接受手术的患者的随访时间自然会更短。
+我们是否应该设定一个统一的随访期，并且只分析每个患者术后 12 个月内发生的并发症，而忽略此后发生的任何并发症？还是我们不应该丢弃我们所知道的任何并发症，即使患者的随访期可能有所不同？
+我们不打算进行生存分析。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651037/defining-clinical-follow-up-fixed-period-vs-maximum-duration</guid>
+      <pubDate>Sun, 14 Jul 2024 22:15:58 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 R 包 BAS 中选择默认无信息先验</title>
-      <link>https://stats.stackexchange.com/questions/651063/how-to-choose-default-uninformative-prior-in-the-r-package-bas</link>
-      <description><![CDATA[我正在基于 Rpackage BAS 进行贝叶斯多层逻辑回归。我是贝叶斯统计学的初学者。
-但在 bas.glm 中，我不理解也不知道如何指定我的先验。根据文档，我需要选择以下先验选项之一：“模型系数的系数先验（截距除外）。选项包括
-g.prior、CCH、robust、intrinsic、beta.prime、EB.local、AIC 和 BIC。”。
-我想要一个默认的无信息先验。
-你能帮帮我吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651063/how-to-choose-default-uninformative-prior-in-the-r-package-bas</guid>
-      <pubDate>Mon, 15 Jul 2024 10:10:48 GMT</pubDate>
+      <title>“两步”结构方程模型中的调节中介作用</title>
+      <link>https://stats.stackexchange.com/questions/651030/moderated-mediation-in-a-two-step-structural-equation-model</link>
+      <description><![CDATA[有人能帮我弄清楚如何在下面的结构方程模型 (SEM) 中加入调节器吗？
+这是一个“两步”模型，因为有两个因果关系，一个从孤儿 (链接 1) 到贫困/虐待 (链接 2)，另一个从这些中介变量到最终结果，抑郁 (链接 3)。
+我想在链接 2 处加入一个调节器，即年龄贫困。（为了清楚起见，我没有在图表中包含单个“年龄”变量）。我无法包括年龄贫困与贫困之间的协方差，因为贫困是一个因变量，但如果我不考虑它们的相互关系，规范将不正确。
+有人能帮我提供适当的参考资料吗？非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651030/moderated-mediation-in-a-two-step-structural-equation-model</guid>
+      <pubDate>Sun, 14 Jul 2024 17:40:55 GMT</pubDate>
     </item>
     <item>
-      <title>偏差方差分解中的独立性[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/651062/independance-in-bias-variance-decomposition</link>
-      <description><![CDATA[在第二行推导中，我们使用了$\varepsilon$和$\hat{f}(x)$的独立性，但哪个假设导致了这个独立性结果？是因为所有观测都是独立同分布的吗？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/651062/independance-in-bias-variance-decomposition</guid>
-      <pubDate>Mon, 15 Jul 2024 09:41:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>适合用于比较两组前后设计的检验方法是什么？</title>
-      <link>https://stats.stackexchange.com/questions/651059/what-is-the-appropriate-test-comparing-two-groups-with-pre-post-design</link>
-      <description><![CDATA[我有两个组（对照组和实验组），它们都有前测和后测分数。
-我的一位同事建议我使用单因素 MANOVA 来测试干预的有效性，将前测和后测分数作为因变量。
-在我看来，这完全是错误的，因为这两个分数是成对的。此外，我为什么要将前测分数视为因变量并进行分析？毕竟，我不是在测试干预对前测分数的影响，而是只测试对后测分数的影响。
-在我看来，前测分数可以是 MANCOVA 中的控制变量，后测分数是因变量，两个组是自变量。
-我必须补充一点，如果这很重要的话，两个组的平均前测分数是相同的。
-我很感激您的意见和建议。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651059/what-is-the-appropriate-test-comparing-two-groups-with-pre-post-design</guid>
-      <pubDate>Mon, 15 Jul 2024 09:15:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>词汇分析器数据分析</title>
-      <link>https://stats.stackexchange.com/questions/651048/analyses-for-a-vocabulary-profiler-data</link>
-      <description><![CDATA[我正在写一篇论文，其中使用了词汇分析器（一种标记和分析文本的工具，输出类似于“此文本由 20% 的 X 级词汇、20% 的 Y 级词汇和 50% 的 Z 级词汇组成。”）的数据。为此，分析器引用按级别分隔的单词列表。
-我的数据点是使用 41 篇文本的语料库收集的，对于每个文本，我收集了以下指标：(1) 词汇百分比，每个文本获得 7 个数字（因为词汇量有 7 个级别），(2) 三个不同 GPT 预测的“文本复杂度”级别。此文本复杂度在 1-7 的范围内，与我分析的词汇级别相对应。
-我想要展示或测试的是，我分析的级别百分比与“复杂度级别”之间是否存在相关性（或者一个可以通过另一个预测）文本的三个 GPT 确定的水平。我还控制了温度（三个设置：.1、.5、.9）。
-我犹豫着在这种情况下如何运行回归以及是否运行它。我应该将级别视为连续变量吗？级别是 1-7，但没有任何迹象表明级别 1 和级别 2 之间的“距离”与级别 2 和级别 3 之间的距离相同。级别实际上意味着反映文本的复杂程度，或者在我的情况下是语言熟练程度。
-我可以运行十几个回归，但我对我控制的因素的相互作用很感兴趣，所以如果有人可以建议其他分析的一些选项，我将不胜感激！
-提前致谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651048/analyses-for-a-vocabulary-profiler-data</guid>
-      <pubDate>Mon, 15 Jul 2024 05:29:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>非对称分布在均值周围两侧的 PDF 下的面积是否可以相同？</title>
-      <link>https://stats.stackexchange.com/questions/651022/can-a-non-symmetrical-distribution-have-the-same-areas-under-the-pdf-in-the-two</link>
-      <description><![CDATA[我正在思考对称与非对称分布，我发现自己陷入了一个我从未想过的想法。我们知道，正态分布、拉普拉斯分布等对称分布在均值附近的曲线下面积相同（在对称情况下，均值等于中位数）。
-但是，如果非对称分布（例如 GEV https://w.wiki/AfKx）尾部下的面积等于主瓣面积，那么非对称分布是否也可以具有此属性？
-这种分布的参数可以通过分析找到吗？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/651022/can-a-non-symmetrical-distribution-have-the-same-areas-under-the-pdf-in-the-two</guid>
-      <pubDate>Sun, 14 Jul 2024 14:25:37 GMT</pubDate>
+      <title>对大小为 61,000 的数据集执行完全匹配的可能解决方案有哪些？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/651017/what-are-the-possible-solutions-for-performing-full-matching-on-a-dataset-with-a</link>
+      <description><![CDATA[我正在处理一个包含大约 61,000 个观测值的数据集（其中 27,686 个为治疗组，32,405 个为对照组），需要使用 R 中的 MatchIt 包执行完全匹配。我遇到了性能问题和冗长的计算时间。这是我得到的错误
+`matchit()` 中的错误：！（来自 optmatch）结果将超过 2^31-1 字节。运行 `rlang::last_trace()` 以查看错误发生的位置。
+在如此大的数据集上使用 MatchIt 执行完全匹配的潜在解决方案或最佳实践是什么？具体来说，我正在寻找优化匹配过程的方法或可以有效处理大型数据集的替代方法。
+任何有关参数调整、并行处理或其他可以提高 MatchIt 中完全匹配性能的技术的建议都将不胜感激。谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651017/what-are-the-possible-solutions-for-performing-full-matching-on-a-dataset-with-a</guid>
+      <pubDate>Sun, 14 Jul 2024 11:27:16 GMT</pubDate>
     </item>
     </channel>
 </rss>
