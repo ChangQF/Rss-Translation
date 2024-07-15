@@ -4,7 +4,180 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 15 Jul 2024 18:20:01 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 15 Jul 2024 21:14:58 GMT</lastBuildDate>
+    <item>
+      <title>使用引导偏差校正和加速 (BCa) 置信区间计算 p 值 - R</title>
+      <link>https://stats.stackexchange.com/questions/651101/computing-p-value-using-bootstrap-bias-corrected-and-accelerated-bca-confidenc</link>
+      <description><![CDATA[在计算 BCa p 值时，boot.pval 包会抛出错误。建议的修复似乎有效，但我不确定这是否正确。该修复是在两年多前提出的，但尚未被接受。已经在 StackExchange 上检查了这个问题，但没有关于 BCa 的具体指导。在下面的代码中，我展示了问题以及使用函数 boot.pval2 的建议修复。
+还有其他方法（包等）来计算 bootstrap BCa p 值吗？
+library(boot.pval)
+library(boot)
+# BCA 不起作用
+
+ratio &lt;- function(d, w) sum(d$x * w)/sum(d$u * w)
+
+city.boot &lt;- boot(
+city, 
+ratio, 
+R = 99, 
+stype = &quot;w&quot;,
+sim = &quot;ordinary&quot;)
+
+boot.pval(city.boot, 
+type = &#39;bca&#39;)
+
+# 抛出错误：
+# if (any(ints)) out[inds[ints]] 中的错误&lt;- tstar[k[inds[ints]]] :
+# 需要 TRUE/FALSE 的缺失值
+
+# 根据建议的修复进行了调整：
+# alpha_seq &lt;- seq(pval_precision, 1-pval_precision, pval_precision)
+
+# 调整后的函数：
+
+boot.pval2 &lt;- function(boot_res,
+type = &quot;perc&quot;,
+theta_null = 0,
+pval_precision = NULL,
+...)
+{
+if(is.null(pval_precision)) { pval_precision = 1/boot_res$R }
+
+# 创建一个 alpha 序列：
+alpha_seq &lt;- seq(pval_precision, 1-pval_precision, pval_precision)
+
+# 上面的内容从 alpha_seq &lt;- seq(1e-16, 1-1e-16, pval_precision)
+
+# 计算 1-alpha 置信区间，并提取
+# 它们的边界：
+ci &lt;- suppressWarnings(boot::boot.ci(boot_res,
+conf = 1- alpha_seq,
+type = type,
+...))
+
+bounds &lt;- switch(type,
+norm = ci$normal[,2:3],
+basic = ci$basic[,4:5],
+stud = ci$student[,4:5],
+perc = ci$percent[,4:5],
+bca = ci$bca[,4:5])
+
+# 找到最小的 alpha，使得 theta_null 不包含在 1-alpha
+# 置信区间中：
+alpha &lt;- alpha_seq[which.min(theta_null &gt;= bounds[,1] &amp; theta_null &lt;= bounds[,2])]
+
+# 返回 p 值：
+return(alpha)
+}
+
+boot.pval2(city.boot, 
+type = &#39;bca&#39;)
+
+# 结果：
+# 0.01010101
+
+可能相关的一个问题是，BCa 引导间隔至少需要与观测次数一样多的迭代次数。请参阅此处和此处。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651101/computing-p-value-using-bootstrap-bias-corrected-and-accelerated-bca-confidenc</guid>
+      <pubDate>Mon, 15 Jul 2024 20:01:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>风险函数怎么会是负数呢？</title>
+      <link>https://stats.stackexchange.com/questions/651100/how-can-a-hazard-function-be-negative</link>
+      <description><![CDATA[我一直在阅读R 中的生存分析，这是我为独立学习而找到的一本电子书，但遇到了一个困惑。他们对风险函数的定义如下：
+
+其中 T 是事件时间或正确审查时间中先到的那个。分子是概率，因此是非负的，我假设我们应该将 δ 取为正，因为当 δ ≤ 0 时，P(t &lt; T &lt; t + δ) = 0。因此，风险函数似乎应该是非负的。然而，在第 3 章关于参数建模的文章中，他们展示了以下观察到的瞬时风险函数的示例：
+
+这与风险函数定义如何一致？风险函数为负的解释是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651100/how-can-a-hazard-function-be-negative</guid>
+      <pubDate>Mon, 15 Jul 2024 19:45:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>我可以使用哪种匹配，为什么我的倾向得分匹配不起作用？</title>
+      <link>https://stats.stackexchange.com/questions/651099/which-kind-of-matching-can-i-use-and-why-doesnt-my-propensity-score-matching-wor</link>
+      <description><![CDATA[我目前正在尝试找出某种疾病特征是否会影响长期生存。我有观察数据，我正在尝试匹配我的队列，因为两组之间存在巨大的基线差异。我尝试过倾向得分匹配，但结果很差，它稍微增加了平衡，但不是很多。我有大约 6 个变量想要匹配，它们与长期生存有关。我正在使用 R 上的 matchit() 包。这是我用于匹配的代码：
+ m.data &lt;- matchit(mydata$cto ~ X, data = mydata, method = &quot;optimal&quot;, distance = &quot;glm&quot;, estimand = &quot;ATC&quot;) X 是我的协变量列表。这是产生最平衡数据集的参数排列。但仍然存在显着的基线差异，我想摆脱这些差异。您将如何实现更好的匹配。
+PS：我知道倾向得分匹配的缺陷。我并不是想在这里证明因果关系，我只是希望我的数据能为我未来的工作指明方向。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651099/which-kind-of-matching-can-i-use-and-why-doesnt-my-propensity-score-matching-wor</guid>
+      <pubDate>Mon, 15 Jul 2024 19:35:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>清理 Pandas 数据集时的奇怪行为（数据类型转换和缺失值）[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/651098/strange-behavior-when-cleaning-dataset-in-pandas-data-type-conversion-and-missi</link>
+      <description><![CDATA[我当时处理的数据集的特征是未知的（编码名称），尽管所有特征都已包含数字，但数据类型是字符串或对象。此外，还指出缺失值被标记为“na”。其中一个挑战要求我确定某些列的平均值、中位数和标准差，忽略空值。
+我所做的是使用带有参数 error=“coerce” 的 to_numeric() 函数，以便“na”值会自动转换为 NaN，我可以删除它们或使用自动忽略这些值的函数（如 describe()）。但是，我无法得出任何列出的选项答案。
+在下面的例子中，我得出了 corr 的值为 0.195。
+train_df[&#39;class&#39;] = train_df[&#39;class&#39;].map({&#39;neg&#39;: 0, &#39;pos&#39;: 1})
+
+for column in train_df.columns:
+train_df[column] = pd.to_numeric(train_df[column], errors=&#39;coerce&#39;)
+
+train_df.dropna(inplace=True, subset=&#39;var1&#39;)
+train_df.dropna(inplace=True, subset=&#39;var2&#39;)
+
+corr, _ = spearmanr(train_df[&#39;var1&#39;], train_df[&#39;var2&#39;])
+corr
+
+所以，我决定采取不同的方法，看看我是否能找到正确的答案：我决定使用布尔掩码手动删除所有“na”值，然后使用 to_numeric() 转换整个数据集并计算统计数据。这种方法有效，我甚至使用了参数 error=“raise”，没有抛出任何错误。我终于得到了我想要的答案。
+在下面的例子中，我得到了 corr 的值为 0.310。
+mask = ~train_df.apply(lambda x: x.astype(str).str.contains(&#39;na&#39;)).any(axis=1)
+df_cleaned = train_df[mask]
+
+df_cleaned[&#39;var1&#39;] = pd.to_numeric(df_cleaned[&#39;var1&#39;])
+df_cleaned[&#39;var2&#39;] = pd.to_numeric(df_cleaned[&#39;var2&#39;])
+
+corr, _ = spearmanr(df_cleaned[&#39;var1&#39;], df_cleaned[&#39;var2&#39;])
+corr
+
+有人知道为什么会发生这种情况吗？为什么使用第一种方法得到的统计数据与使用第二种方法得到的统计数据不同？从理论上讲，这两种方法不应该都得到相同的干净数据集吗？我的意思是，如果除了“na”之外还有其他空值在第一种方法中自动转换为 NaN，那么在使用 error=“raise” 时，这些值会在第二种方法中导致错误，因为我只从数据集中删除了“na”。有人知道为什么会发生这种情况吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651098/strange-behavior-when-cleaning-dataset-in-pandas-data-type-conversion-and-missi</guid>
+      <pubDate>Mon, 15 Jul 2024 19:30:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何找到多变量相关性？</title>
+      <link>https://stats.stackexchange.com/questions/651097/how-to-find-multi-variable-correlation</link>
+      <description><![CDATA[我拥有工程学学位，但没有更深入的统计学知识，所以我想知道是否有人可以指出我找到以下问题的解决方案的方向：
+
+我有一组输入变量 [A、B、C、...] 和一个输出变量 X，我想预测或至少估计一些概率。让我们使用一组输入数据（一天的温度 (A)、城市中的游客数量 (B)、是否下雨 (C) 等）估计冰淇淋销售量 (X) 的示例。
+
+这里的问题是：
+
+也许输入变量的子集（例如 C）与 X 不相关（或相关较弱），但与其他变量结合时可能具有很强的相关性（即 B 和 C 结合起来可能与 X 密切相关）。例如：也许当天的温度（变量 A）本身无法帮助我预测冰淇淋的销量（X），也无法预测当前城市中的游客数量（B）。但是，当将两者（游客数量和当天的温度，即 A 和 B）结合起来时，我可能与销售量（X）有很强的相关性。
+输入变量可能是连续的，也可能是布尔值。例如：变量 C（是否下雨）是布尔值，但可能有助于我预测销售量。
+我不确定这是否被称为相关性，因为我不一定在寻找线性关系，而是任何可能有价值的关系。例如，当 B 接近特定值时，X 可能倾向于在特定间隔内。这意味着，我只对 B 的特定值区域感兴趣。每当 B 远离这个区域时，它就不再让我感兴趣了（即它与 X 的关系无关紧要）。例如：如果白天的温度高于 35°C 或低于 15°C，可能就一点也不有趣了，因为在这两种情况下，出去吃冰淇淋要么太热要么太冷，所以我只想知道，每当温度落在特定范围内时，冰淇淋的销量往往会更高，但我不想知道它们在这些范围之外是否仍然相互关联。
+我不需要为每个输入组合估计 X 的可能值，而是在特定值范围内识别可能指示 X 可能范围的输入变量的潜在子集。换句话说，浏览数据集并尝试找到输入值（可能是整个输入，也可能是通过丢弃一些变量得到的子集），这些输入值可能表明当 X 也在特定范围内时，这种特定组合通常会发生（比平时更频繁）。例如：在销售额低的日子里，我不一定想知道是因为下雨，还是因为温度太高或太低。我只是想找到可能表明这一天的销售额可能很高的输入组合，即当温度在特定范围内时，没有下雨等等......（也许其他一些变量 D、E、F......甚至不相关，所以也可以丢弃）。
+
+我知道这听起来像是一个多步骤问题（在这里可能不太容易解决），但如果有人能指出任何可以帮助我的非线性关系，我会很高兴，尤其是有多个变量的情况下。
+问题 3 对我来说是最关键的，因为它阻止我使用一些协方差矩阵或皮尔逊相关，因为变量可能不是线性相关的。例如：
+问题 4 也使事情变得复杂，因为我并不是在寻找一种总是适用的关系，而是在数据集中找到可能有趣的区域/组合。
+我正在考虑使用无监督学习方法，因为我在人工智能方面的背景比在纯统计学方面的背景要好，但我还没有找到合适的算法。
+任何帮助都非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651097/how-to-find-multi-variable-correlation</guid>
+      <pubDate>Mon, 15 Jul 2024 19:22:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用已知 copula 参数进行预测的步骤</title>
+      <link>https://stats.stackexchange.com/questions/651095/steps-for-forecasting-with-know-copula-parameters</link>
+      <description><![CDATA[我想计算我的 copula 模型的平均绝对百分比误差 (MAPE)。我卡在了预测步骤。我在这里没有为不同的数据对指定 copula。
+
+我有两个时间序列 $X$ 和 $Y$。我发现最佳 GARCH 参数 $\alpha$ 和 $\beta$ 假设均值为 0。
+两个变量之间的 Kendals $\tau$ 为 $\tau$
+然后我找到了最佳 copula，其参数为 $\kappa$ 和 $\omega$。
+现在为了进行预测，我需要使用在步骤 3 中找到的 copula 参数生成残差。
+
+如果我想手动输入 copula 参数而不使用某些 $param=fit$ 类型的代码，该如何执行此操作R。
+我既能用 R 也能用 Excel。请问有人能帮我完成第 4 点的具体步骤吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651095/steps-for-forecasting-with-know-copula-parameters</guid>
+      <pubDate>Mon, 15 Jul 2024 19:10:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>最佳序列分析和假设检验</title>
+      <link>https://stats.stackexchange.com/questions/651093/optimal-sequence-analyses-and-hypothesis-testing</link>
+      <description><![CDATA[我正在使用 TraMineR 包处理 R 中的数据。我对这种类型的分析还不太熟悉，所以请耐心等待。
+我有一个随时间推移在二元组中发生的唯一事件列表（例如：A-F）。我使用 TraMineR 来识别二元组中的聚类模式。最终，我想知道这些聚类是否预测了二元组之间发生事件 Y 的频率（事件 Y 未包含在序列中）。我想我可以使用某种回归方法，但有人能确认这种方法是否合适或哪种回归方法最好吗？
+我还在考虑使用生存分析来分析事件发生所需的时间（例如，从事件 A 到 B、从 B 到 C 的过渡...）以及序列成员如何影响该时间范围。同样，我想知道这是否是适合此数据的测试]]></description>
+      <guid>https://stats.stackexchange.com/questions/651093/optimal-sequence-analyses-and-hypothesis-testing</guid>
+      <pubDate>Mon, 15 Jul 2024 18:20:53 GMT</pubDate>
+    </item>
     <item>
       <title>根据中位数和 IQR 值估计平均值和 SD</title>
       <link>https://stats.stackexchange.com/questions/651092/estimating-mean-and-sd-given-the-median-and-iqr-values</link>
@@ -113,108 +286,7 @@ print(stratified_result)
       <pubDate>Mon, 15 Jul 2024 16:42:52 GMT</pubDate>
     </item>
     <item>
-      <title>生存分析：局部控制和局部无复发生存的使用</title>
-      <link>https://stats.stackexchange.com/questions/651082/survival-analysis-usage-of-local-control-and-local-recurrence-free-survival</link>
-      <description><![CDATA[我注意到，在一些出版物中，“局部控制”和“局部无复发生存”这两个术语可以互换使用，而在其他出版物中，局部控制不包括死亡事件（即它们受到审查）。哪种用法是正确的？
-据说，我正在对 OS 和局部复发数据进行生存分析（例如 Kaplan-Meier），应该使用这两者中的哪一个进行分析 - “纯”局部复发或局部无复发生存。我非常感谢您的解释，谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651082/survival-analysis-usage-of-local-control-and-local-recurrence-free-survival</guid>
-      <pubDate>Mon, 15 Jul 2024 15:51:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>解释 lavaan SEM 增长系数和协变量对斜率的影响</title>
-      <link>https://stats.stackexchange.com/questions/651081/interpretation-of-lavaan-sem-growth-coefficients-and-covariates-influence-on-sl</link>
-      <description><![CDATA[您好，提前感谢您的建议。我正在 lavaan 中运行 growth() 命令。这是我关于此主题的上一篇文章的后续内容（哇，一年前！）。
-时间点为 3、6 和 10 年级。我在命令中将它们编码为 0、3 和 7 以表示年份：
- i =~ 1*G3_Theta_Read + 1*G6_Theta_Read + 1*G10_Theta_Literacy
-s =~ 0*G3_Theta_Read + 3*G6_Theta_Read + 7*G10_Theta_Literacy 
-
-模型拟合度为非常好：
-cfi rmsea srmr tli 
-0.987 0.026 0.010 0.974 
-
-问题 1：这个问题是关于解释增长的“截距”（斜率，“.s”）。在没有协变量的情况下，说这是每年的增长率准确吗？因此，在这种情况下，每年 -.17 SD（标准化结果），意味着七年内 -.17 * 7= -1.19？或者，七年内总共是 -.17 SD？
-截距：
-估计 Std.Err z 值 P(&gt;|z|) Std.lv Std.all
-.i 0.200 0.004 45.371 0.000 0.244 0.244
-.s -0.012 0.001 -8.638 0.000 -0.172 -0.172
-
-问题 2：有许多协变量用截距和斜率建模。我的第二个问题是关于解释协变量对斜率的影响。估计值是七年内每年的影响（即对于 EDI_lang，这将是 .033 * 7 = .231）？还是整个七年的影响？
- 回归：
-估计 Std.Err z 值 P(&gt;|z|) Std.lv Std.all
-i ~ 
-SES_cnn__2_NEW 0.076 0.003 24.806 0.000 0.093 0.100（连续）
-Lw_r_t_rsk_Phy -0.055 0.010 -5.417 0.000 -0.067 -0.024（二进制）
-EDI_lang 0.157 0.009 18.328 0.000 0.191 0.083（二进制）
-
-s ~ 
-SES_cnn__2_NEW 0.004 0.000 9.242 0.000 0.056 0.060（连续）
-Lw_r_t_rsk_Phy -0.005 0.001 -3.682 0.000 -0.075 -0.027（二进制）
-EDI_lang 0.033 0.001 27.791 0.000 0.462 0.200（二进制）
-
-问题 3：Std.all 是否仅用于连续协变量？
-非常感谢 Stack Exchange 社区对此解释的建议！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651081/interpretation-of-lavaan-sem-growth-coefficients-and-covariates-influence-on-sl</guid>
-      <pubDate>Mon, 15 Jul 2024 15:51:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>AR(1) 过程无条件均值的估计量的方差</title>
-      <link>https://stats.stackexchange.com/questions/651078/variance-of-the-estimator-of-unconditional-mean-of-ar1-process</link>
-      <description><![CDATA[AR(1) 过程定义为：$y_t=c+\phi y_{t-1}+\varepsilon_t$，其中 $\varepsilon_t$ 为 IID，均值为零，方差为 $\sigma^2&lt;\infty$。对于平稳过程，即 $\phi\ne 0$，无条件均值为 $\mu\equiv E[y_t]=\frac {c}{1-\phi}$
-通常将其估计为 $\hat\mu=\frac {\hat c}{1-\hat\phi}$。此估计量的抽样方差是多少？
-如果$\varepsilon_t\sim\mathcal N(0,\sigma^2)$（对于表现良好的误差分布也是渐近的），则我们从双变量正态分布中得到$\hat c,\hat\phi$估计量。从 AR(1) 系数的 OLS 估计中很容易看出这一点。在这种情况下，从理论上讲，此$\hat\mu$的分布必须是柯西分布。Marsaglia 在2006中证明了这一点。即使我们假设系数来自 Press 在 1969 中展示的联合 t 分布，该分布仍为柯西分布。
-那么，我们如何将这一理论考虑与无条件方差为有限 $var[y_t]=\frac{\sigma^2}{1-\phi^2}$ 的事实相协调？
-Marsaglia (2006) 提出，在实践中我们可以截断$-\infty&lt;\phi$，则正态分布$\hat c/(1-\hat\phi)$变为正态。他假设，在观察到抽样分布确实对于$\hat c,\hat \p​​hi$的某些值范围几乎与正态分布没有区别之后。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651078/variance-of-the-estimator-of-unconditional-mean-of-ar1-process</guid>
-      <pubDate>Mon, 15 Jul 2024 15:41:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>线性回归拟合是否遵循反比关系？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/651077/does-the-linear-regression-fit-follow-the-inverse-relationship</link>
-      <description><![CDATA[我用加权线性回归拟合了 X =logA、Y=logB，得到的结果为 log B =(0.53 $\pm$ 0.054)logA + (17.41 $\pm$ 1.7)。当我用 X=logB、Y=logA 进行拟合时，我预计关系应该是 logA ~ 2logB。但我得到的结果是 logA=(1.15 $\pm$ 0.06)logA - (8.32 $\pm$ 2.038)。为什么这里看不到反比关系？有什么解释吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651077/does-the-linear-regression-fit-follow-the-inverse-relationship</guid>
-      <pubDate>Mon, 15 Jul 2024 15:27:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>$X_i \varepsilon_i$ 是 iid 吗？</title>
-      <link>https://stats.stackexchange.com/questions/651076/are-x-i-varepsilon-i-iid</link>
-      <description><![CDATA[采取：
-
-$X_i , \ i = 1, ... , n $ iid。
-
-$\varepsilon_i , \ i = 1, ... ,n$ 也是 iid。
-
-$X_i \not \perp \varepsilon_j$（它们不一定独立）
-
-
-$X_i \varepsilon_i$ 是 iid 吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651076/are-x-i-varepsilon-i-iid</guid>
-      <pubDate>Mon, 15 Jul 2024 15:14:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>z 分数有最高限制吗？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/651075/is-there-a-maximum-limit-for-z-score</link>
-      <description><![CDATA[我正在比较肿瘤（n = 44）和正常样本（n = 32）之间的基因表达，并尝试通过热图对其进行可视化。我使用 R 上的 scale() 函数将表达转换为 z 分数。我获得的最小值接近 -5，最大值略高于 8。
-我进行了一些搜索，发现 z 分数的最大值通常在 -5 到 5 之间。我发现在某些情况下样本大小会影响分数的最大值，但我仍然找不到是否有其他人具有如此高的值。
-我之前曾在 StackOverflow 上发布过关于此内容的帖子，但有人建议应该在这里进行更有见地的讨论。
-我知道从理论上讲，z 分数的范围是从负无穷到无穷，但实际上 z 分数是否有限制？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651075/is-there-a-maximum-limit-for-z-score</guid>
-      <pubDate>Mon, 15 Jul 2024 15:07:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>描述随机指数增长的人口规模的分布</title>
-      <link>https://stats.stackexchange.com/questions/651074/distribution-to-describe-size-of-population-with-random-exponential-growth</link>
-      <description><![CDATA[是否存在一个分布族，用于描述经历随机指数增长（离散或连续）的群体规模？
-为了便于理解，我试图通过计算模拟经历指数增长的细胞群体。我的建模框架使用离散时间步长，即它评估细胞是否会在短时间 dt 之后分裂。在每个 dt 之后，每个细胞将以 0 到 1 之间的概率 $r$ 分裂。
-这是我迄今为止的工作：
-给定一些初始种群大小 $n_0$ 和 $t = 0$，我们将在单个时间步长之后获得种群 $n_1 = n_0 + [\textrm{# of cells from } n_0 \textrm{ that divided}]$（假设 $t = 1$，即 dt = 1）。分割的单元格数量为 $\mathrm{Binom}(n_0, r)$，因为它是 $n_0$ $\mathrm{Bernoulli}(r)$ 个 rvs 的总和，因此 $n_1 = n_0 + \mathrm{Binom}(n_0, r)$。这同样适用于 $n_2$ 和 $n_3$ 等等；一般而言，在 $k$ 个时间步之后，$n_k = n_{k-1} + \mathrm{Binom}(n_{k-1}, r)$。
-我无法确定 $n_k$ 是否属于任何已知分布。展开后，它看起来像
-$n_k = n_0 + \mathrm{Binom}(n_0, r) + \mathrm{Binom}(n_0 + \mathrm{Binom}(n_0, r), r) + \mathrm{Binom}(n_0 + \mathrm{Binom}(n_0, r) + \mathrm{Binom}(n_0 + \mathrm{Binom}(n_0, r), r), r) + \ldots$
-二项式 rv 的总和，但每个连续二项式都有一个依赖于前一个二项式的大小参数。有没有办法将这些二项式组合起来/简化这个？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651074/distribution-to-describe-size-of-population-with-random-exponential-growth</guid>
-      <pubDate>Mon, 15 Jul 2024 14:57:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>视觉模拟量表与李克特评分量表</title>
+      <title>视觉模拟量表与李克特评分量表 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/651071/visual-analogue-scales-vs-likert-rating-scale</link>
       <description><![CDATA[您能用简单的术语描述一下视觉模拟量表和 LIKERT 评分量表之间的区别吗？如果我有一个基于这两个量表的两个问题，我可以确定每个问题分数的平均值和标准差吗？（我的意思是，我可以计算 Likert 评分量表的平均值吗）？最后，对于元分析，如果使用视觉模拟量表（10 个量表）测量相同的问题（来自两个不同的出版物），而第二个问题使用五个 Likert 评分量表，我该如何标准化信息？]]></description>
       <guid>https://stats.stackexchange.com/questions/651071/visual-analogue-scales-vs-likert-rating-scale</guid>
@@ -252,15 +324,6 @@ P(Y=1│\operatorname{do}(X=0))
       <pubDate>Mon, 15 Jul 2024 11:20:02 GMT</pubDate>
     </item>
     <item>
-      <title>定义临床随访：固定期限与最长期限</title>
-      <link>https://stats.stackexchange.com/questions/651037/defining-clinical-follow-up-fixed-period-vs-maximum-duration</link>
-      <description><![CDATA[我们正在回顾性分析 2017 年至 2023 年期间接受手术的约 1100 名患者的数据。我们分析了到 2024 年的随访记录。这意味着在较晚日期接受手术的患者的随访时间自然会更短。
-我们是否应该设定一个统一的随访期，并且只分析每个患者术后 12 个月内发生的并发症，而忽略此后发生的任何并发症？还是我们不应该丢弃我们所知道的任何并发症，即使患者的随访期可能有所不同？
-我们不打算进行生存分析。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651037/defining-clinical-follow-up-fixed-period-vs-maximum-duration</guid>
-      <pubDate>Sun, 14 Jul 2024 22:15:58 GMT</pubDate>
-    </item>
-    <item>
       <title>“两步”结构方程模型中的调节中介作用</title>
       <link>https://stats.stackexchange.com/questions/651030/moderated-mediation-in-a-two-step-structural-equation-model</link>
       <description><![CDATA[有人能帮我弄清楚如何在下面的结构方程模型 (SEM) 中加入调节器吗？
@@ -279,6 +342,13 @@ P(Y=1│\operatorname{do}(X=0))
 任何有关参数调整、并行处理或其他可以提高 MatchIt 中完全匹配性能的技术的建议都将不胜感激。谢谢！]]></description>
       <guid>https://stats.stackexchange.com/questions/651017/what-are-the-possible-solutions-for-performing-full-matching-on-a-dataset-with-a</guid>
       <pubDate>Sun, 14 Jul 2024 11:27:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>我可以将数据增强应用于测试集吗？</title>
+      <link>https://stats.stackexchange.com/questions/650992/can-i-apply-data-augmentation-to-the-test-set</link>
+      <description><![CDATA[我正在处理一个包含 102 行（表格数据）的数据集，其中 91 行用于训练，11 行用于测试。我通过为训练集添加高斯噪声来使用数据增强。假设我做了所有正确的预处理（没有数据泄露），那么科学出版物将数据增强应用于我的测试集是否正确/可以接受，因此它可以大于 11 行？]]></description>
+      <guid>https://stats.stackexchange.com/questions/650992/can-i-apply-data-augmentation-to-the-test-set</guid>
+      <pubDate>Sat, 13 Jul 2024 21:47:42 GMT</pubDate>
     </item>
     </channel>
 </rss>
