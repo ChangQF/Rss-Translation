@@ -4,7 +4,219 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 15 Jul 2024 09:17:17 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 15 Jul 2024 12:29:42 GMT</lastBuildDate>
+    <item>
+      <title>如何向 CNN_M_LSTM 模型添加 3 个输入参数？</title>
+      <link>https://stackoverflow.com/questions/78749657/how-to-add-3-inputs-parameters-to-the-cnn-m-lstm-model</link>
+      <description><![CDATA[我尝试将带有时间戳的能耗数据集和 covid 数据集输入到 CNN_M_LSTM 模型（库 Tensorflow）中。
+能耗和时间戳的大小为 (70082, 2)
+Covid 数据集的大小为 (744, 1)
+我曾使用 tensorslice 和 zip 将数据打包在一起并对数据集进行窗口化：
+这是我打包和窗口化能耗和时间戳数据集以及 covid 数据集的代码：
+MAX_LENGTH = 96
+BATCH_SIZE = 128 
+TRAIN.SHUFFLE_BUFFER_SIZE = 1000
+
+def windowed_dataset(series_energy,series_covid, window_size=MAX_LENGTH, batch_size=BATCH_SIZE, shuffle_buffer=TRAIN.SHUFFLE_BUFFER_SIZE):
+&quot;&quot;&quot;
+我们创建时间窗口来创建 X 和 y 特征。
+例如，如果我们选择一个 30 的窗口，我们将创建一个由 30 个点组成的数据集作为 X
+&quot;&quot;&quot;
+dataset_energy = tf.data.Dataset.from_tensor_slices(series_energy) 
+dataset_covid = tf.data.Dataset.from_tensor_slices(series_covid) 
+dataset = tf.data.Dataset.zip(dataset_energy,dataset_covid)
+dataset = dataset.window(96 + 1, shift=1) #
+dataset = dataset.flat_map(lambda window_covid, window_series: tf.data.Dataset.zip((window_covid, window_series)).batch(96 + 1))
+dataset = dataset.shuffle(1000)
+dataset = dataset.map(lambda window_covid, window_series: (window_covid[:-1], window_series[-1][0])) 
+dataset = dataset.padded_batch(128,drop_remainder=True).cache()
+
+返回数据集
+
+对于模型 CNN_M_LSTM，我创建了 2 个输入。这是我的模型：
+
+def create_CNN_LSTM_model():
+# 定义输入
+input1 = tf.keras.layers.Input(shape=(96, 1), name=&quot;input1&quot;)
+input2 = tf.keras.layers.Input(shape=(96, 2), name=&quot;input2&quot;)
+
+# 定义模型的 CNN-LSTM 部分
+x = tf.keras.layers.Conv1D(filters=128, kernel_size=3,activation=&#39;relu&#39;, strides=1, padding=&quot;causal&quot;)(input1)
+x = tf.keras.layers.MaxPooling1D(pool_size=2)(x)
+x = tf.keras.layers.Conv1D(filters=64, kernel_size=3,activation=&#39;relu&#39;, strides=1, padding=&quot;causal&quot;)(x)
+x = tf.keras.layers.MaxPooling1D(pool_size=2)(x)
+x = tf.keras.layers.Dropout(0.5)(x)
+x = tf.keras.layers.LSTM(16, return_sequences=True)(x)
+x = tf.keras.layers.LSTM(8, return_sequences=True)(x)
+x = tf.keras.layers.Flatten()(x)
+output_lstm = tf.keras.layers.Dense(1)(x)
+
+# 定义模型的密集部分
+output_dense_1 = tf.keras.layers.Dense(1)(input2[:, -1, :])
+
+# 连接 LSTM 和 Dense 层的输出
+concatenated = tf.keras.layers.Concatenate()([output_dense_1, output_lstm])
+
+# 添加更多密集层
+x = tf.keras.layers.Dense(6,activation=tf.nn.leaky_relu)(concatenated)
+output = tf.keras.layers.Dense(4)(x)
+model_final = tf.keras.Model(inputs=[input1, input2],outputs=output)
+# 定义最终模型
+return model_final
+
+
+我如何拟合我的模型：
+model_cnn_m_lstm = create_CNN_LSTM_model()
+
+# 编译模型
+model_cnn_m_lstm.compile(
+loss=tf.keras.losses.Huber(),
+optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+metrics=[&quot;mse&quot;]
+)
+
+model_cnn_m_lstm.summary()
+
+model_cnn_m_lstm.fit(train_dataset, epochs=100, batch_size=128)
+
+错误是模型需要 2 个输入，但收到 1 个输入张量。我曾尝试将 covid 数据集、能量列和时间戳压缩到一个数据集。
+我的期望是将 3 个输入输入到我的 CNN_M_LSTM 模型中。我还尝试单独输入数据，我收到数据形状错误，我尝试重新塑造它，但它也不起作用。有没有办法在我的 CNN_M_LSTM 模型中输入 3 个参数？]]></description>
+      <guid>https://stackoverflow.com/questions/78749657/how-to-add-3-inputs-parameters-to-the-cnn-m-lstm-model</guid>
+      <pubDate>Mon, 15 Jul 2024 11:49:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>线性回归准确度 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78749472/linear-regression-accuracy</link>
+      <description><![CDATA[我正在尝试仅使用 NumPy 创建线性回归算法。我使用住房数据集编写了此代码。我的成本函数在大约 500 次迭代后收敛，但预测远非准确。问题可能出在哪里？我询问了 ChatGPT，但没有得到有用的答案。我认为该算法很好（请原谅任何糟糕的编码，因为我是新手😬），我怀疑问题可能与过度拟合或类似问题有关。
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+def z_score_normalization(x):
+mean = np.mean(x)
+std = np.std(x)
+
+x = (x - mean)/std
+return x,mean,std
+
+def reverse_z_score_normalization(x,mean,std):
+return x*std+mean
+
+def compute_prediction(x_i,w,b):
+fx = np.dot(x_i,w) + b
+return fx
+
+def cost_function(x,y,w,b,m,n,rp):#m：数据数量，n：特征数量，rp：正则化参数（lambda）
+total_cost = 0
+for i in range(m):
+total_cost += (compute_prediction(x[i],w,b) - y[i])**2
+total_cost /= 2*m
+
+#返回 total_cost #不带正则化
+
+#正则化
+temp_cost = 0
+for j in range(n):
+temp_cost += (w[j])**2
+total_cost += temp_cost*rp/(2*m)
+
+cost_history.append(total_cost)
+
+返回 total_cost
+
+def deriveds_for_gradient_descent(x,y,w,b,m,rp,j):#m：数据数量，n：特征数量，rp：正则化参数（lambda）
+dj_dw = 0
+dj_db = 0
+
+for i in range(m):
+dj_dw += (compute_prediction(x[i],w,b) - y[i])*x[i,j]
+dj_db += (compute_prediction(x[i],w,b) - y[i])
+
+dj_dw /= m
+dj_db /= m
+
+dj_dw += rp*w[j]/m
+
+return dj_dw,dj_db
+
+def gradient_descent(x,y,w,b,m,n,rp,lr): #m: 数据数量,n: 特征数量,rp: 正则化参数(lambda),lr: 学习率(alpha)
+for j in range(n):
+dj_dw , dj_db = derived_for_gradient_descent(x,y,w,b,m,rp,j)
+w[j] = w[j] - lr*dj_dw
+b = b - lr*dj_db
+
+返回 w,b
+
+def raw_training_set_process(raw_x,size):#[7420 4 2 3 &#39;yes&#39; &#39;no&#39; &#39;no&#39; &#39;no&#39; &#39;yes&#39; 2 &#39;yes&#39; &#39;furnished&#39;]
+
+scaled_raw1 = raw_x[:,4:11] #[&#39;yes&#39; &#39;no&#39; &#39;no&#39; &#39;no&#39; &#39;yes&#39; 2 &#39;yes&#39; ] =&gt;否：0，是：1
+scaled_raw2 = raw_x[:,-1] #[&#39;带家具&#39;:2, &#39;半带家具&#39;:1,&#39;无家具&#39;:0]
+
+for i in range(size):
+for j in scaled_raw1[i]:
+if j == &#39;是&#39;: scaled_raw1[i] = 1
+elif j == &#39;否&#39; : scaled_raw1[i] = 0 
+
+if scaled_raw2[i] == &#39;带家具&#39; : scaled_raw2[i] = 2 
+elif scaled_raw2[i] == &#39;半带家具&#39; : scaled_raw2[i] = 1
+else: scaled_raw2[i]=0
+
+raw_x[:,4:11] = scaled_raw1
+raw_x[:,-1] = scaled_raw2
+
+返回raw_x
+
+data_set = pd.read_csv(r&#39;path-to-dataset\Housing.csv&#39;)
+data_set_in_numpy = data_set.to_numpy() # shape = (545,13)
+#print(dataSetInNumpy[0])
+
+y_trainingSet = data_set_in_numpy[:,0]#price
+y_trainingSet,y_mean,y_std = z_score_normalization(y_trainingSet)
+#print(y_trainingSet[0])
+size_of_dataset= len(y_trainingSet) # sizeOfTrainingSet
+
+X_trainingSet = raw_training_set_process(data_set_in_numpy[:,1:],size_of_dataset)#features
+X_trainingSet,X_mean,X_std= z_score_normalization(X_trainingSet)
+#print(X_trainingSet[0])
+number_of_features = len(X_trainingSet[0])
+
+w = np.zeros(number_of_features) #权重
+b = 0 #偏差
+
+lr = 0.01 #学习率
+rp = 0.01 #正则化参数
+
+cost_history = []
+
+number_of_iterate = 100
+for i in range(number_of_iterate):
+w,b = gradient_descent(X_trainingSet,y_trainingSet,w,b,size_of_dataset,number_of_features,rp,lr)
+
+cost_history.append(cost_function(X_trainingSet,y_trainingSet,w,b,size_of_dataset,number_of_features,lr))
+
+if (i % 10 == 0):
+print(f&quot;迭代次数：{i} w：{np.round(w,2)} b：{b：.2f} &quot;)
+
+numbers = np.arange(len(cost_history))
+plt.scatter(numbers,cost_history, marker=&#39;x&#39;, c=&#39;r&#39;)
+plt.xlabel(&#39;迭代次数&#39;)
+plt.ylabel(&#39;成本&#39;)
+plt.show()
+
+prediction = compute_prediction(X_trainingSet[9],w,b)
+target = y_trainingSet[9]
+
+print(f&quot;预测：{预测} 目标：{目标}&quot;)
+
+prediction = reverse_z_score_normalization(prediction,X_mean,X_std)
+target = reverse_z_score_normalization(target,y_mean,y_std)
+
+print(f&quot;预测：{预测} 目标：{目标}&quot;)
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78749472/linear-regression-accuracy</guid>
+      <pubDate>Mon, 15 Jul 2024 11:00:58 GMT</pubDate>
+    </item>
     <item>
       <title>交叉验证和 MICE 归因 [关闭]</title>
       <link>https://stackoverflow.com/questions/78748357/cross-validation-and-mice-imputation</link>
@@ -61,14 +273,6 @@ warnings.warn(
       <pubDate>Sun, 14 Jul 2024 20:58:11 GMT</pubDate>
     </item>
     <item>
-      <title>如何制作一个自动检查工程图形答题纸并相应分配分数的系统[关闭]</title>
-      <link>https://stackoverflow.com/questions/78747310/how-to-a-make-system-which-automatically-check-the-engineering-graphics-answer-s</link>
-      <description><![CDATA[如何制作一个系统，自动检查工程图形答题纸并根据其正确性分配分数此类图形图像需要分配分数
-尝试进行图像处理但无法做到。你能告诉我如何制作这个项目以及我应该使用哪些python库以及如何使用吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78747310/how-to-a-make-system-which-automatically-check-the-engineering-graphics-answer-s</guid>
-      <pubDate>Sun, 14 Jul 2024 19:38:24 GMT</pubDate>
-    </item>
-    <item>
       <title>IndexError：目标 32 超出范围。运行时损失 = 标准（y_pred，y_train）[关闭]</title>
       <link>https://stackoverflow.com/questions/78747258/indexerror-target-32-is-out-of-bounds-while-running-loss-criteriony-pred-y</link>
       <description><![CDATA[我正在运行一个简单的神经网络，其中包含一些大约 1112 行、23 个输入、2 个隐藏层和 31 个可能输出的 csv 数据。在前向训练之后，在以下代码执行过程中，我收到以下错误消息
@@ -96,27 +300,6 @@ IndexError：目标 32 超出范围。
 有什么建议吗？]]></description>
       <guid>https://stackoverflow.com/questions/78747258/indexerror-target-32-is-out-of-bounds-while-running-loss-criteriony-pred-y</guid>
       <pubDate>Sun, 14 Jul 2024 19:10:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>需要有关针对医疗领域的计算机视觉问题采取哪些措施的建议[关闭]</title>
-      <link>https://stackoverflow.com/questions/78747070/need-advice-on-what-steps-to-take-regarding-a-computer-vision-problem-in-the-med</link>
-      <description><![CDATA[我在实验室工作，遇到了一个问题，想得到一些指导。我在实验室的角色大致是计算机视觉科学家。我的任务是将一个领域的图像转换为另一个领域的图像，而不会丢失精细的细节。我需要将此图像转换为此图像。至少在结构上。我不想使用诸如 GAN 之类的工具，因为它们往往会添加多余的细节并以对我的任务有害的方式产生幻觉。我想尽可能地保留甚至带出图像的精细细节。有人能告诉我如何做到这一点吗？
-我尝试过的一种方法是使用高斯展开或高斯近似。我的想法是，我添加并处理多个高斯函数，这样当我将它们相互添加时，它会创建一个近似的内核，我可以用它来卷积图像，从而最大化某种图像相似度得分（我目前正在使用 SSIM）。这是该方法的伪代码。这里有任何有效性吗？这不是确切的方法，因为我使用 scipy optimize 来处理优化步骤。
-for i in N:
-for j in N:
-for m in N:
-g1 = produce_gaussian(i)
-g2 = produce_gaussian(j)
-g3 = produce_gaussian(m)
-
-final_gaussian = g1 + g2 + g3 
-convolution = convolve2d(input_image, final_gaussian)
-if SSIM(convolution, target_image)
-set_values(g1, g2, g3)
-
-我还尝试了维纳反卷积（image），总的来说，结果相当不错。有人能为我提供解决这个问题的指导吗？我想知道接下来可以采取哪些好的措施。]]></description>
-      <guid>https://stackoverflow.com/questions/78747070/need-advice-on-what-steps-to-take-regarding-a-computer-vision-problem-in-the-med</guid>
-      <pubDate>Sun, 14 Jul 2024 17:52:46 GMT</pubDate>
     </item>
     <item>
       <title>TensorFlow/Keras `load_img` 错误：“无法导入 PIL.Image”</title>
@@ -164,15 +347,6 @@ Flatten.call() 接收的参数：
 我在 PyCharm 环境中工作并使用 Jupyter 笔记本。]]></description>
       <guid>https://stackoverflow.com/questions/78746638/failed-to-convert-elements-of-dimensionnone-dimension80-to-tensor</guid>
       <pubDate>Sun, 14 Jul 2024 14:37:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Tensorflow 中无需编译新模型即可增加神经网络层的大小</title>
-      <link>https://stackoverflow.com/questions/78746621/increasing-the-size-of-a-neural-network-layer-without-compiling-a-new-model-in-t</link>
-      <description><![CDATA[我正在训练一个窄 3 层 TensorFlow 神经网络，其层大小为 (input_size, small_number_hidden_​​units, output_size)，并使用学习到的权重作为更宽 3 层网络的初始条件的蓝图，其层大小为 (input_size, large_number_hidden_​​units, output_size)。我的目标是利用窄模型找到的解决方案，降低更宽模型的训练成本。除了隐藏单元的数量外，这两个模型都具有相同的架构。
-是否可以通过使用单个模型并在需要时向其隐藏层添加单元来避免创建和编译两个模型的开销？例如，是否可以采用层大小为 (input_size, small_number_hidden_​​units, output_size) 的未经训练的网络，关闭大部分隐藏单元，以便在前向和后向传递过程中忽略它们，在该状态下训练网络以节省计算时间，然后在训练过程中的某个时间点打开所有隐藏单元并完成训练？
-我曾考虑使用掩码关闭隐藏单元，如这篇文章中所述，但我不清楚这是否真的会降低计算成本。]]></description>
-      <guid>https://stackoverflow.com/questions/78746621/increasing-the-size-of-a-neural-network-layer-without-compiling-a-new-model-in-t</guid>
-      <pubDate>Sun, 14 Jul 2024 14:28:44 GMT</pubDate>
     </item>
     <item>
       <title>多线程 TFRecord 写入在 kaggle 笔记本上突然停止[关闭]</title>
@@ -247,99 +421,80 @@ print(cosine_similarity(embs))
       <pubDate>Sat, 13 Jul 2024 20:58:49 GMT</pubDate>
     </item>
     <item>
-      <title>BART 配备所有虚拟功能</title>
-      <link>https://stackoverflow.com/questions/78731704/bart-with-all-dummy-features</link>
-      <description><![CDATA[我正尝试将 BART 应用于分类问题，其中预测变量是虚拟变量以及 y 变量。我知道这是一种不常见的设置，但不幸的是这就是设置。实际上，0 和 1 值是从 -4 到 4 的分类变量中获得的，将负值设置为 0，将正值添加到 1。我还有数据的分类版本，以防它有用。
-现在，我的预测变量包含大量 NA 值（即 70%），由 648x48 的 0-1 虚拟变量矩阵组成。我的 y 变量不包含缺失值，有 648 个值。
-我目前正在使用 RStudio 在 R 中工作。然而，当我执行下面的代码时，结果却令人失望：
-bart_machine = build_bart_machine(predictors, response_var,use_missing_data = TRUE, use_missing_data_dummies_as_covars = TRUE)
-bart_machine$confusion_matrix
+      <title>二元分类中的 SHAP 值解释</title>
+      <link>https://stackoverflow.com/questions/78740880/shap-value-explanations-in-binary-classification</link>
+      <description><![CDATA[我尝试使用每个特征的 SHAP 值来解释我的二元分类模型。我想知道：
+正的 SHAP 值是否意味着该特征对预测“1”类的贡献更大，而负的 SHAP 值是否意味着该特征对预测“0”类的贡献更大？
+如果我使用绝对 SHAP 值差异来描述特征贡献变化，这个想法是否合理？]]></description>
+      <guid>https://stackoverflow.com/questions/78740880/shap-value-explanations-in-binary-classification</guid>
+      <pubDate>Fri, 12 Jul 2024 14:25:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>python 中某些函数的贬值：数据框的真值不明确</title>
+      <link>https://stackoverflow.com/questions/78735084/depreciation-of-some-function-in-python-ambiguous-truth-value-of-dataframe</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78735084/depreciation-of-some-function-in-python-ambiguous-truth-value-of-dataframe</guid>
+      <pubDate>Thu, 11 Jul 2024 10:52:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何准确计算Doctr ocr中检测到的文本的绝对bbox坐标？</title>
+      <link>https://stackoverflow.com/questions/78733724/how-to-accurately-calculate-absolute-bbox-coordinates-of-detected-text-in-doctr</link>
+      <description><![CDATA[我一直试图在文档的图片上绘制 bbox，并尝试使用 mindee-doctr 进行 ocr 以查看检测到的文本行。我面临的问题是，我通过乘以相对坐标和页面尺寸计算出的 bbox 的绝对坐标，在原始图像上绘制时都向右上角偏移。有没有办法纠正这个问题？
+这是我计算 bbox 的代码：
+from doctr.models import ocr_predictor
+from doctr.io import DocumentFile
 
-也就是说，我获得了一个 NULL 混淆矩阵，并且
-bartMachine v1.3.4.1 用于回归
+# 使用 docTR 分析图像并获取结果
+line_boundaries = []
+model = ocr_predictor(pretrained=True) #设置preserve_aspect_ratio=False 或symmetric_pad=False 没有区别。
+doc = DocumentFile.from_images(img_path)
+result = model(doc)
 
-缺失数据功能开启
-训练数据大小：n = 638 和 p = 96
-在 8 个核心、50 棵树、250 个 burn-in 和 1000 个 post 上构建，耗时 5.8 秒。样本
+# 提取每行的边界框坐标
+for page in result.pages:
+for block in page.blocks:
+for line in block.lines:
+# 将相对坐标与页面尺寸相乘，得到绝对坐标
+x_min, y_min, x_max, y_max = round(line.geometry[0][0] * page.dimensions[0]), round(line.geometry[0][1] * page.dimensions[1]), round(line.geometry[1][0] * page.dimensions[0]), round(line.geometry[1][1] * page.dimensions[1])
+line_boundaries.append((x_min, y_min, x_max, y_max))
 
-事先对 y 的 sigsq 估计：0.016
+这是 line_boundaries 的值：
+[(531, 148, 1321, 184), (2725, 148, 3061, 177), (526, 254, 3071, 295), (526, 288, 3071, 332), (535, 324, 3071, 363), ... ]
+这是我用来绘制方框的函数：
+import cv2
+from google.colab.patches import cv2_imshow # 代替 cv2.imshow 使用，因为它会导致 collab 崩溃
 
-老化后的平均 sigsq 估计：0.00314
+def draw_rectangles(image_path, line_boundaries):
+&quot;&quot;&quot;
+使用提供的线边界在图像上绘制矩形。
 
-样本内统计数据：
-L1 = 9.91
-L2 = 1.01
-rmse = 0.04
-Pseudo-Rsq = 0.9547
-残差的 shapiro-wilk 正态性检验的 p-val：0
+参数：
+image_path：图像文件的路径。
+line_boundaries：线边界列表，其中每个边界都是四个点的列表。
 
-零均值噪声的 p-val：0.99451
+返回：
+无
+&quot;&quot;&quot;
 
-现在我的问题是：
+# 加载图像
+image = cv2.imread(img_path)
 
-您是否认为我有太多 NA 值而无法执行 BART？
+# 遍历线边界并绘制矩形
+for bounding in line_boundaries:
+#x1, y1, x2, y2 = int(boundary[0][0]), int(boundary[0][1]), int(boundary[2][0]), int(boundary[2][1])
+x1, y1, x2, y2 = map(int, bounding) # 将坐标转换为整数
+cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-您认为我的设置至少应该产生一个混淆矩阵吗？
+# 用矩形显示图像
+cv2_imshow(image) # 仅使用 cv2_imshow 代替 cv2.imshow 进行协作
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
-您认为数据的分类版本在这里可能更有帮助还是上述令人失望的结果是由于更深层次的原因吗？
+这是带有在其上绘制的 bboxes。
 
-
-编辑：我实际上已经进行了预测，但它们相当令人失望：
-# 提取特征名称
-feature_names &lt;- bart_machine[[&quot;training_data_features_with_missing_features&quot;]]
-
-# 删除&quot;M_&quot;前缀
-feature_names &lt;- gsub(&quot;^M_&quot;, &quot;&quot;, feature_names)
-
-# 使用重命名的特征名称更新 bart_machine 对象
-bart_machine[[&quot;training_data_features_with_missing_features&quot;]] &lt;- feature_names
-
-# 检查 bart_machine 训练数据中的特征名称
-training_data &lt;- bart_machine[[&quot;model_matrix_training_data&quot;]]
-training_feature_names &lt;- colnames(training_data)
-
-# 删除 &quot;M_&quot;列名中的前缀
-training_feature_names &lt;- gsub(&quot;^M_&quot;, &quot;&quot;, training_feature_names)
-
-# 使用重命名的列更新 bart_machine 对象
-colnames(training_data) &lt;- training_feature_names
-bart_machine[[&quot;model_matrix_training_data&quot;]] &lt;- training_data
-
-# 使用相同方法在 albany2005_predictors 中插入缺失数据
-imputed_data_2005 &lt;- mice(albany2005[, -1], m = 5, method = &#39;pmm&#39;, maxit = 50, seed = 500)
-complete_data_2005 &lt;- complete(imputed_data_2005, 1)
-
-# 删除 &quot;M_&quot; albany2005_predictors 中列名的前缀
-colnames(complete_data_2005) &lt;- gsub(&quot;^M_&quot;, &quot;&quot;, colnames(complete_data_2005))
-
-# 确保 albany2005_predictors 具有与训练数据相同的列，但不包括“y_remaining”
-required_cols &lt;- setdiff(training_feature_names, &quot;y_remaining&quot;)
-albany2005_predictors &lt;- complete_data_2005[, required_cols, drop = FALSE]
-
-# 为 albany2005_response 中的非 NA 值创建逻辑向量
-non_na_indices &lt;- !is.na(albany2005_response)
-
-# 子集预测值和albany2005_response 使用 non_na_indices
-non_na_predicted_values &lt;- predict_values[non_na_indices]
-non_na_actual_values &lt;- albany2005_response[non_na_indices]
-
-# 使用 bartMachine 模型对 2005 年数据进行预测
-predicted_values &lt;- predict(bart_machine, albany2005_predictors, type = &quot;class&quot;)
-
-# 计算 RMSE
-# 将预测值转换为数字
-non_na_predicted_values &lt;- as.numeric(as.character(non_na_predicted_values))
-
-# 将实际值转换为数字
-non_na_actual_values &lt;- as.numeric(as.character(non_na_actual_values))
-
-rmse &lt;- sqrt(mean((non_na_predicted_values - non_na_actual_values)^2))
-
-# 打印 RMSE
-print(paste(&quot;RMSE: &quot;, rmse))。###非常高的 RMSE!!!
-]]></description>
-      <guid>https://stackoverflow.com/questions/78731704/bart-with-all-dummy-features</guid>
-      <pubDate>Wed, 10 Jul 2024 16:18:19 GMT</pubDate>
+我尝试过不使用舍入，但没有任何区别，也尝试过只使用预测器，但无济于事。在 ocr_predictor 中设置preserve_aspect_ratio=False 或symmetric_pad=False 也没有区别。]]></description>
+      <guid>https://stackoverflow.com/questions/78733724/how-to-accurately-calculate-absolute-bbox-coordinates-of-detected-text-in-doctr</guid>
+      <pubDate>Thu, 11 Jul 2024 05:38:22 GMT</pubDate>
     </item>
     <item>
       <title>什么是 x_train.reshape() 以及它的作用是什么？</title>
@@ -368,21 +523,6 @@ x_train, x_test = x_train / 255., x_test / 255.
 x_train, x_test = x_train.reshape([-1, num_features]), x_test.reshape([-1, num_features])。我无法理解这些重塑在我们的数据集中到底起什么作用..?? 请解释一下。]]></description>
       <guid>https://stackoverflow.com/questions/61555486/what-is-x-train-reshape-and-what-it-does</guid>
       <pubDate>Sat, 02 May 2020 06:44:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>分类交叉熵和二元交叉熵之间的差异</title>
-      <link>https://stackoverflow.com/questions/52965686/difference-between-categorical-and-binary-cross-entropy</link>
-      <description><![CDATA[使用 keras，我必须训练一个模型来预测图像是属于类别 0 还是类别 1。我对 binary 和 categorical_cross_entropy 感到困惑。我已经搜索过但还是很困惑。有人提到，当我们试图预测多类时，我们只使用分类交叉熵，并且我们应该为此使用独热编码器向量。所以这意味着当我们要使用 binary_cross_entrpoy 进行训练时，我们不需要任何独热编码向量标签。有人建议将 binary_cross_entropy 的 one_hot 向量表示为 [0. 1.]（如果类别为 1）或 [1. 0.]（如果类别为 0）。
-我使用独热编码器 [0 1] 或 [1 0] 和分类交叉熵。我的最后一层是
-model.add(Dense(num_classes,activation=&#39;softmax&#39;))
-
-# 编译模型
-model.compile(loss=&#39;categorical_crossentropy&#39;, 
-optimizer=&#39;adadelta&#39;, 
-metrics=[&#39;accuracy&#39;])
-]]></description>
-      <guid>https://stackoverflow.com/questions/52965686/difference-between-categorical-and-binary-cross-entropy</guid>
-      <pubDate>Wed, 24 Oct 2018 09:36:45 GMT</pubDate>
     </item>
     <item>
       <title>scikit-learn 聚类：预测（X）与 fit_predict（X）</title>
