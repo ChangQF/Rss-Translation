@@ -4,7 +4,142 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 16 Jul 2024 12:29:07 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 16 Jul 2024 15:13:44 GMT</lastBuildDate>
+    <item>
+      <title>使用张量流的问题（既不包含“saved_model.pb”也不包含“saved_model.pbtxt”）</title>
+      <link>https://stackoverflow.com/questions/78755101/issue-on-using-tensor-flow-contains-neither-saved-model-pb-nor-saved-model</link>
+      <description><![CDATA[我尝试运行代码，但出现错误。
+ValueError：尝试加载不兼容/未知类型的模型。&#39;C:\Users\pm23821\AppData\Local\Temp\tfhub_modules\9616fd04ec2360621642ef9455b84f4b668e219e&#39; 既不包含 &#39;saved_model.pb&#39; 也不包含 &#39;saved_model.pbtxt&#39;
+
+这是我第一次使用 tensorflow 和模型，所以我不知道我需要做什么才能运行我的代码。
+目标是找到声音之间的差异，当检测到紧急警报器（警察、消防部门和医院）时，它需要看起来像已被识别一样。当听到家用警报器或鹦鹉的声音时，应该看起来它还没有被识别。
+# 加载 YAMNet 模型
+model = hub.load(&#39;https://tfhub.dev/google/yamnet/1&#39;)
+
+# 加载 YAMNet 中的类名
+def load_class_names(csv_path=&#39;yamnet_class_map.csv&#39;):
+class_map = pd.read_csv(csv_path, sep=&#39;,&#39;, header=None)
+class_names = class_map[1].tolist()
+return class_names
+
+class_names = load_class_names()
+
+# 麦克风音频捕获函数
+def record_audio(duration=5, fs=16000): # 录制时长为 5 秒
+recording = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype=&#39;float32&#39;)
+sd.wait()
+return recording.flatten()
+
+# 预测音频类的函数
+def predict_sound(audio_data):
+scores, embeddings, spectrogram = model(audio_data)
+prediction = np.argmax(scores, axis=1)[0]
+return class_names[prediction]
+
+# 循环主函数
+while True:
+print(&quot;Escutando...&quot;)
+audio_data = record_audio()
+audio_data /= np.max(np.abs(audio_data))
+
+predict_class = predict_sound(audio_data)
+print(&quot;预测的类：&quot;, predict_class)
+
+if “/m/012n7d”在 predict_class 或 “/m/03j1ly” 中在predicted_class或“/m/03kmc9”中在预测类中：
+print(&quot;Sirene 已检测到！&quot;)
+else:
+print(&quot;Não é uma sirene.&quot;)
+time.sleep(1) # 暂停 1 秒，直到下一个重击开始 
+]]></description>
+      <guid>https://stackoverflow.com/questions/78755101/issue-on-using-tensor-flow-contains-neither-saved-model-pb-nor-saved-model</guid>
+      <pubDate>Tue, 16 Jul 2024 14:11:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将每小时数据转换为每日最大值、平均值……和最小值</title>
+      <link>https://stackoverflow.com/questions/78755052/how-can-i-convert-hourly-data-to-daily-max-aver-and-min</link>
+      <description><![CDATA[这是每小时的 TMP 数据，因此我想将其转换为每日的最大值、平均值和最小值，我在 excel 中做过一次，但结果不合理。
+此数据需要预处理，因此我只是应用了一些函数，例如查找平均值，我只是使用函数平均值来获取一天的平均数据，但结果并不好，因此我需要一些其他准确且最佳的方法。]]></description>
+      <guid>https://stackoverflow.com/questions/78755052/how-can-i-convert-hourly-data-to-daily-max-aver-and-min</guid>
+      <pubDate>Tue, 16 Jul 2024 14:03:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>深度学习和跨摄像头跟踪物体</title>
+      <link>https://stackoverflow.com/questions/78754641/deep-learning-and-tracking-objects-across-cameras</link>
+      <description><![CDATA[我正在使用 YOLOV10 检测和深度排序来跟踪物体，当我们在第一个 CCTV 摄像机中时，它工作正常，当我们到达下一个 CCTV 摄像机时，物体来自不同的视角，类似的物体也很多，我将跟踪更改为 YOLOV10 本身，它们都无法解决在第二个摄像机中识别第一个摄像机中跟踪的物体的问题，因为第二个摄像机中的大小、视点和光照都发生了变化，现在如何给出与模型在第一个摄像机中跟踪的物体相同的 id，第二个摄像机中的 id 为 13，当物体到达它时，它应该具有相同的 id，模型应该知道视点比例和光照是否也发生了变化
+这个物体应该匹配
+使用这个，而那里也有相同类型的汽车
+在第一个摄像头中，物体向东行走，但在第二个摄像头中，物体从它的南边过来，所以我们无法跟踪位置
+from ultralytics import YOLO
+import cv2
+
+# 全局变量
+selected_bbox = None
+tracking_id = None
+
+# 鼠标回调函数用于选择要跟踪的对象
+def select_object(event, x, y, flags, param):
+global selected_bbox, tracking_id
+if event == cv2.EVENT_LBUTTONDOWN:
+for result in param:
+bboxes = result.boxes.xyxy.cpu().numpy() # 边界框
+ids = result.boxes.id.cpu().numpy() # 跟踪 ID
+for bbox, id_ in zip(bboxes, ids):
+if bbox[0] &lt;= x &lt;= bbox[2] and bbox[1] &lt;= y &lt;= bbox[3]:
+selected_bbox = bbox
+tracking_id = id_
+return
+
+print(&quot;starting&quot;)
+# 加载 YOLOv10 模型
+model = YOLO(&#39;yolov10m.pt&#39;)
+
+# 加载视频
+video_path = &#39;videos/1.mp4&#39;
+cap = cv2.VideoCapture(&quot;rtsp://amdin:admin@192.168.1.100:554&quot;)
+
+cv2.namedWindow(&#39;frame&#39;)
+cv2.setMouseCallback(&#39;frame&#39;, select_object, param=None)
+
+ret = True
+results = []
+
+# 读取帧
+while ret:
+ret, frame = cap.read()
+
+if ret:
+# 检测和跟踪对象
+results = model.track(frame, persist=True)
+
+# 设置鼠标回调参数
+cv2.setMouseCallback(&#39;frame&#39;, select_object, param=results)
+
+if tracking_id is not None:
+# 为所选对象绘制边界框
+for result in results:
+bboxes = result.boxes.xyxy.cpu().numpy()
+ids = result.boxes.id.cpu().numpy()
+for bbox, id_ in zip(bboxes, ids):
+if id_ == tracking_id:
+cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (255, 0, 0), 2)
+cv2.putText(frame, f&quot;ID: {int(id_)}&quot;, (int(bbox[0]), int(bbox[1]) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
+
+# 可视化
+cv2.imshow(&#39;frame&#39;, frame)
+if cv2.waitKey(25) &amp; 0xFF == ord(&#39;q&#39;):
+break
+
+else:
+cap = cv2.VideoCapture(&quot;rtsp://amdin:admin@192.168.1.101:554&quot;)
+ret = True
+
+cap.release()
+cv2.destroyAllWindows()
+`
+]]></description>
+      <guid>https://stackoverflow.com/questions/78754641/deep-learning-and-tracking-objects-across-cameras</guid>
+      <pubDate>Tue, 16 Jul 2024 12:40:28 GMT</pubDate>
+    </item>
     <item>
       <title>尝试在多 GPU 设置上训练机器翻译的 Transformer 模型</title>
       <link>https://stackoverflow.com/questions/78754435/trying-to-train-transformer-model-for-machine-translation-on-multi-gpu-setup</link>
@@ -245,59 +380,6 @@ Epoch 8/10
       <pubDate>Tue, 16 Jul 2024 07:31:40 GMT</pubDate>
     </item>
     <item>
-      <title>即使经过数百个时期，pytorch AdamW 的 LR 仍未衰减</title>
-      <link>https://stackoverflow.com/questions/78752899/lr-not-decaying-for-pytorch-adamw-even-after-hundreds-of-epochs</link>
-      <description><![CDATA[我有以下使用 Pytorch 中的 AdamW 优化器的代码：
-optimizer = AdamW(params=self.model.parameters(), lr=0.00005)
-
-我尝试使用 wandb 进行登录，如下所示：
-lrs = {f&#39;lr_group_{i}&#39;: param_group[&#39;lr&#39;]
-for i, param_group in enumerate(self.optimizer.param_groups)}
-wandb.log({&quot;train_loss&quot;: avg_train_loss, &quot;val_loss&quot;: val_loss, **lrs})
-
-请注意 weight_decay 参数的默认值为 0.01（对于 AdamW）。
-当我检查 wandb 仪表板时，它显示 AdamW 的 LR 即使在 200 个 epoch 之后也相同，并且根本没有衰减。我尝试了几次。
-
-为什么 LR 衰减没有发生？
-此外，它仅显示一个参数组的 LR。为什么会这样？似乎我在这里错过了一些基本的东西。有人可以指出吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78752899/lr-not-decaying-for-pytorch-adamw-even-after-hundreds-of-epochs</guid>
-      <pubDate>Tue, 16 Jul 2024 06:09:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>视频对象分割准确率</title>
-      <link>https://stackoverflow.com/questions/78752737/video-object-segmentation-accuracy</link>
-      <description><![CDATA[我有一个关于测量视频分割模型准确度的问题。我发现这些模型通常使用 2 个成功衡量标准：Jaccard 指数和轮廓准确度。但是，我从未真正看到过这些方法的实现代码。有人知道我可以在哪里找到这些代码吗？谢谢。
-我在网上查过，但找不到这些代码。]]></description>
-      <guid>https://stackoverflow.com/questions/78752737/video-object-segmentation-accuracy</guid>
-      <pubDate>Tue, 16 Jul 2024 04:51:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>PyTorch DataLoader 中用于 LSTM 模型的 WeightedRandomSampler 的 IndexError</title>
-      <link>https://stackoverflow.com/questions/78752550/indexerror-with-weightedrandomsampler-in-pytorch-dataloader-for-lstm-model</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78752550/indexerror-with-weightedrandomsampler-in-pytorch-dataloader-for-lstm-model</guid>
-      <pubDate>Tue, 16 Jul 2024 03:05:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>优化大数据集上的 Pandas 性能</title>
-      <link>https://stackoverflow.com/questions/78752483/optimizing-pandas-performance-on-large-datasets</link>
-      <description><![CDATA[我正在使用 pandas 处理一个大型数据集（约 1000 万行和 50 列），在数据操作和分析过程中遇到了严重的性能问题。这些操作包括过滤、合并和聚合数据，目前执行时间太长。
-我读过几种优化技术，但不确定哪种技术最有效且适用于我的情况。以下是有关我的工作流程的一些细节：
-我主要使用 pandas 进行数据清理、转换和分析。
-我的操作包括多个 groupby 和 apply 函数。
-我在一台具有 16GB RAM 的机器上运行分析。
-社区能否分享优化 pandas 在大型数据集上的性能的最佳实践？
-1.内存管理技术。
-2.执行 groupby 和 apply 的有效方法。
-3.处理大型数据集的 pandas 替代方案。
-4. 有没有关于并行处理或有效利用多核的技巧。
-我主要使用 pandas 进行数据清理、转换和分析。
-我的操作包括多个 groupby 和 apply 函数。
-我在一台有 16GB RAM 的机器上运行分析。]]></description>
-      <guid>https://stackoverflow.com/questions/78752483/optimizing-pandas-performance-on-large-datasets</guid>
-      <pubDate>Tue, 16 Jul 2024 02:24:48 GMT</pubDate>
-    </item>
-    <item>
       <title>在带有 Bullseye 的 Raspberry Pi 3B 上安装 Ultralytics 以运行 yolov5 时出错，“错误：无法为使用 PEP 517 的 opencv-python 构建轮子...”</title>
       <link>https://stackoverflow.com/questions/78752286/error-installing-ultralytics-to-run-yolov5-on-raspberry-pi-3b-with-bullseye-er</link>
       <description><![CDATA[我尝试使用 pip 在装有 Bullseye OS 的 Raspberry Pi 3B 上安装 Ultralytics。虽然我能够安装所有依赖项以成功运行 yolov5，但在尝试安装 Ultralytics 时，我收到错误，
@@ -342,43 +424,18 @@ result.inference[0][0][0]。
       <pubDate>Mon, 15 Jul 2024 13:36:33 GMT</pubDate>
     </item>
     <item>
-      <title>无法将 (Dimension(None)、Dimension(80)) 的元素转换为张量</title>
-      <link>https://stackoverflow.com/questions/78746638/failed-to-convert-elements-of-dimensionnone-dimension80-to-tensor</link>
-      <description><![CDATA[我正在尝试阅读 LibRecommender 中有关模型训练过程的教程：https://librecommender.readthedocs.io/en/latest/tutorial.html
-我停在了训练模型阶段，代码如下：
-model = WideDeep(
-task=&quot;ranking&quot;,
-data_info=data_info,
-embed_size=16,
-n_epochs=2,
-loss_type=&quot;cross_entropy&quot;,
-lr={&quot;wide&quot;: 0.05, &quot;deep&quot;: 7e-4},
-batch_size=2048,
-use_bn=True,
-hidden_​​units=(128, 64, 32),
-)
-
-model.fit(
-train_data,
-neg_sampling=True, # 对训练和评估数据执行负抽样
-verbose=2,
-shuffle=True,
-eval_data=eval_data,
-metrics=[&quot;loss&quot;, &quot;roc_auc&quot;, &quot;precision&quot;, &quot;recall&quot;, &quot;ndcg&quot;],
-)
-
-我收到错误：
-TypeError：调用 Flatten.call() 时遇到异常。
-
-无法将 (Dimension(None)、Dimension(80)) 的元素转换为 Tensor。请考虑将元素转换为受支持的类型。请参阅 https://www.tensorflow.org/api_docs/python/tf/dtypes 了解受支持的 TF 数据类型。
-
-Flatten.call() 接收的参数：
-• 输入=tf.Tensor(shape=(?, 5, 16), dtype=float32)
-
-我不知道为什么会收到此错误？我假设本教程中没有错误，我按照所示按 1:1 执行。
-我在 PyCharm 环境中工作并使用 Jupyter 笔记本。]]></description>
-      <guid>https://stackoverflow.com/questions/78746638/failed-to-convert-elements-of-dimensionnone-dimension80-to-tensor</guid>
-      <pubDate>Sun, 14 Jul 2024 14:37:06 GMT</pubDate>
+      <title>如何在不使用标签编码的情况下对 RandomForest 的非序数分类变量进行编码？</title>
+      <link>https://stackoverflow.com/questions/78742216/how-to-encode-non-ordinal-categorical-variables-for-randomforest-without-using-l</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78742216/how-to-encode-non-ordinal-categorical-variables-for-randomforest-without-using-l</guid>
+      <pubDate>Fri, 12 Jul 2024 21:11:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 R 中的空间数据管理机器学习模型中的类别不平衡问题</title>
+      <link>https://stackoverflow.com/questions/78733642/managing-problems-of-class-imbalance-in-machine-learning-models-using-spatial-da</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78733642/managing-problems-of-class-imbalance-in-machine-learning-models-using-spatial-da</guid>
+      <pubDate>Thu, 11 Jul 2024 05:01:17 GMT</pubDate>
     </item>
     <item>
       <title>当我通过 docker-compose.yml 运行镜像 ollama 时，无法正确运行它</title>
