@@ -4,7 +4,158 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 15 Jul 2024 21:15:03 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 16 Jul 2024 01:07:46 GMT</lastBuildDate>
+    <item>
+      <title>如何将输入参数连接到 CNN_M_LSTM 模型？</title>
+      <link>https://stackoverflow.com/questions/78752243/how-to-concatenate-inputs-parameters-to-the-cnn-m-lstm-model</link>
+      <description><![CDATA[我尝试将带有时间戳的能耗数据集和 covid 数据集输入到 CNN_M_LSTM 模型（库 Tensorflow 和 Keras API）中。
+带有时间戳的能耗数据集的大小为 (730, 2)
+Covid 数据集的大小为 (730, 1)
+我想对 covid 数据集和带有时间戳的能耗进行切片和窗口化（批处理大小 = 128，窗口大小为 96）。最后将两个数据集压缩在一起。
+这是我的代码片段和窗口，包括能耗和时间戳数据集，即 covid 数据集：
+MAX_LENGTH = 96
+BATCH_SIZE = 128 
+TRAIN.SHUFFLE_BUFFER_SIZE = 1000
+
+
+def windowed_dataset(series, window_size=MAX_LENGTH, batch_size=BATCH_SIZE, shuffle_buffer=TRAIN.SHUFFLE_BUFFER_SIZE):
+&quot;&quot;&quot;
+我们创建时间窗口来创建 X 和 y 特征。
+例如，如果我们选择一个 30 的窗口，我们将创建一个由 30 个点组成的数据集作为 X
+&quot;&quot;&quot;
+数据集 = tf.data.Dataset.from_tensor_slices(series) 
+数据集 = 数据集.window(window_size + 1, shift=1) 
+数据集 = 数据集.flat_map(lambda window: window.batch(window_size + 1)) # 顺序数据集保持不变
+数据集 = 数据集.shuffle(1000)
+数据集 = 数据集.map(lambda window: (window[:-1], window[-1][0])) 
+数据集 = 数据集.padded_batch(128,drop_remainder=True).cache()
+
+返回数据集
+
+
+下面是我如何压缩数据集：
+
+train_energy_dataset = windowed_dataset(TRAIN.PRE_PROCESSED_SERIES)
+train_covid_dataset = windowed_dataset(TRAIN.SERIES_COVID)
+
+train_dataset = tf.data.Dataset.zip((train_covid_dataset,train_energy_dataset))
+
+train_dataset = train_dataset.shuffle(buffer_size=1000)
+train_dataset = train_dataset.map(lambda data1, data2: ((data1[0], data2[0]), data1[1])) # 根据需要调整映射
+train_dataset = train_dataset.batch(128, drop_remainder=True).cache()
+
+我的模型：
+
+def create_CNN_LSTM_model():
+# 定义输入
+input1 = tf.keras.layers.Input(shape=(128,1), name=&quot;input1&quot;)
+input2 = tf.keras.layers.Input(shape=(128,2), name=&quot;input2&quot;)
+
+# 定义模型的 CNN-LSTM 部分
+x = tf.keras.layers.Conv1D(filters=128, kernel_size=3,activation=&#39;relu&#39;, strides=1, padding=&quot;causal&quot;)(input1)
+x = tf.keras.layers.MaxPooling1D(pool_size=2)(x)
+x = tf.keras.layers.Conv1D(filters=64, kernel_size=3,activation=&#39;relu&#39;, strides=1, padding=&quot;causal&quot;)(x)
+x = tf.keras.layers.MaxPooling1D(pool_size=2)(x)
+x = tf.keras.layers.Dropout(0.5)(x)
+x = tf.keras.layers.LSTM(16, return_sequences=True)(x)
+x = tf.keras.layers.LSTM(8, return_sequences=True)(x)
+x = tf.keras.layers.Flatten()(x)
+output_lstm = tf.keras.layers.Dense(1)(x)
+
+# 定义模型的密集部分
+output_dense_1 = tf.keras.layers.Dense(1)(input2)
+
+# 连接 LSTM 和 Dense 层的输出
+concatenated = tf.keras.layers.Concatenate(axis=1)([output_dense_1, output_lstm])
+
+# 添加更多密集层
+x = tf.keras.layers.Dense(6,activation=tf.nn.leaky_relu)(concatenated)
+output = tf.keras.layers.Dense(4)(x)
+model_final = tf.keras.Model(inputs=[input1, input2], output=output)
+# 定义最终模型
+return model_final
+
+
+model_cnn_m_lstm = create_CNN_LSTM_model()
+
+# 编译模型
+model_cnn_m_lstm.compile(
+loss=tf.keras.losses.Huber(),
+optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+metrics=[&quot;mse&quot;]
+)
+
+model_cnn_m_lstm.summary()
+
+model_cnn_m_lstm.fit(train_dataset, epochs=100, batch_size=128)
+
+尝试窗口化和压缩数据集时，我收到错误信息
+ValueError: Exception调用 Functional.call() 时遇到。
+
+输入 Tensor(&quot; functional_100_1/Cast_1:0&quot;, shape=(128, 128, None, 2), dtype=float32) 的输入形状无效。预期形状 (None, 128, 2)，但输入具有不兼容的形状 (128, 128, None, 2)
+
+Functional.call() 接收的参数：
+• 输入=(&#39;tf.Tensor(shape=(128, 128, None, 1), dtype=float64)&#39;, &#39;tf.Tensor(shape=(128, 128, None, 2), dtype=float64)&#39;)
+• 训练=True
+• 掩码=(&#39;None&#39;, &#39;None&#39;)
+
+我还通过将模型的输入形状更改为来修复了此问题
+ 输入1 = tf.keras.layers.Input(shape=(128,2), name=&quot;input1&quot;)
+输入2 = tf.keras.layers.Input(shape=(128), name=&quot;input2&quot;)
+
+错误按预期出现 2 个维度，但收到 3 个维度。
+
+我的期望是将 zip 数据集输入到我的 CNN_M_LSTM 模型中。]]></description>
+      <guid>https://stackoverflow.com/questions/78752243/how-to-concatenate-inputs-parameters-to-the-cnn-m-lstm-model</guid>
+      <pubDate>Mon, 15 Jul 2024 23:38:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>sklearn 的树如何在推理中评估 NaN？</title>
+      <link>https://stackoverflow.com/questions/78752110/how-do-sklearns-trees-evaluate-nans-on-inference</link>
+      <description><![CDATA[假设我们已经拟合了一个 sklearn.tree.DecisionTreeClassifier 对象，如下所示：
+
+如果我们想预测此观察的类别：
+x = {
+&quot;col_58&quot;: 5000,
+&quot;col_1110&quot;: 0,
+&quot;col_28&quot;: None,
+...
+}
+
+我认为它会落在节点 #6 上，因为我已经看到对象 DecisionTreeClassifier 创建了以下类型的分割col_1 &lt;= inf，我假设“inf”表示 NaN。但是当我测试这棵树时，当我执行 my_fitted_tree.apply(x) 时，我得到的是节点 #3。
+这个观察示例应该落在节点 #3 还是节点 #6？为什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78752110/how-do-sklearns-trees-evaluate-nans-on-inference</guid>
+      <pubDate>Mon, 15 Jul 2024 22:35:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 TensorFlow 在 python 中用大型 txt 文件训练神经网络模型？</title>
+      <link>https://stackoverflow.com/questions/78752044/how-to-train-neural-network-model-with-large-txt-files-in-python-using-tensorflo</link>
+      <description><![CDATA[我是机器学习和神经网络的新手。我建立了一个有 65 个输入神经元和 4880 个输出神经元的模型。我的训练数据存储在两个大型文本文件中：“X_train.txt”包含每行代表 65 个数字的列表，“Y_train.txt”包含每行代表一个索引号的行。我需要对“Y_train”执行独热编码，以在指定索引处创建一个包含 4880 个零和一个“1”的列表。
+由于这些文件的大小，我想分批训练我的模型。如何使用 TensorFlow 在 Python 中有效地使用这些 txt 文件训练我的模型？
+因此我尝试获取这些文件并尝试将这些文件转换为变量
+with open(xPath, &#39;r&#39;) as file:
+line = file.readline()
+while line:
+x_train.append(eval(line.strip())) 
+line = file.readline()
+x_train = np.array(x_train)
+
+但由于文件太大，需要花费太多时间，这不是我可以等待的主要问题，但主要问题是它使用了太多内存……]]></description>
+      <guid>https://stackoverflow.com/questions/78752044/how-to-train-neural-network-model-with-large-txt-files-in-python-using-tensorflo</guid>
+      <pubDate>Mon, 15 Jul 2024 22:05:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>PyTorch 巨大数据集的限制？</title>
+      <link>https://stackoverflow.com/questions/78751909/pytorch-huge-dataset-constraints</link>
+      <description><![CDATA[我正在 Pytorch 中训练一个模型来进行图像到图像的处理。我的数据非常庞大，形状为 (64152, 3, 5, 2, 64, 144)。我正在使用 memmapping 尽可能节省内存。
+由于这个数据集的庞大规模，我面临的问题：
+1.) 在分成训练/测试集之前进行改组
+2.) 规范化数据
+即使在进行 memmapping 时，这些操作也会导致内存峰值，不可避免地会超过我计算机上可用的内存量。
+我尝试过 memmapping，一次沿较小的维度进行规范化。不确定在分成训练和测试集之前要尝试什么来改组数据集。]]></description>
+      <guid>https://stackoverflow.com/questions/78751909/pytorch-huge-dataset-constraints</guid>
+      <pubDate>Mon, 15 Jul 2024 21:13:56 GMT</pubDate>
+    </item>
     <item>
       <title>如何解决引导式利润计算中的零损失风险：机器学习</title>
       <link>https://stackoverflow.com/questions/78751839/how-to-fix-zero-risk-of-loss-in-bootstrapping-profit-calculation-machine-learni</link>
@@ -84,7 +235,7 @@ print(dir(output))
     <item>
       <title>在 JAX 中对多个输入求导</title>
       <link>https://stackoverflow.com/questions/78751670/taking-derivatives-with-multiple-inputs-in-jax</link>
-      <description><![CDATA[我试图在 JAX 中求函数的一阶和二阶导数，但是我这样做却得到了错误的数字或零。我有一个数组，每个变量有两列，每个输入有两行
+      <description><![CDATA[我试图在 JAX 中求函数的一阶和二阶导数，但是我这样做的方式给出了错误的数字或零。我有一个数组，每个变量有两列，每个输入有两行
 import jax.numpy as jnp
 import jax
 
@@ -190,32 +341,36 @@ print(ddF2_m2 - exact_ddF2,&quot;\n&quot;)
     <item>
       <title>如何让 PyTorch Geometric DataLoader 批量创建多个图形而不是一个巨型图形？</title>
       <link>https://stackoverflow.com/questions/78750828/how-to-make-pytorch-geometric-dataloader-to-create-multiple-graphs-in-batch-inst</link>
-      <description><![CDATA[PyTorch Geometric DataLoader 在使用大小大于 1 的批次时，会创建一个包含孤立子图的大图，而不是填充大小相等的图列表。不幸的是，这种方式不适合我的任务。那么有没有办法让 PyTorch Geometric DataLoader 创建一个图列表而不是一个大图？]]></description>
+      <description><![CDATA[PyTorch Geometric DataLoader 使用大小大于 1 的批次时，会创建一个包含孤立子图的大图，而不是填充大小相等的图列表。不幸的是，这种方式不适合我的任务。那么有没有办法让 PyTorch Geometric DataLoader 创建一个图列表而不是一个大图？]]></description>
       <guid>https://stackoverflow.com/questions/78750828/how-to-make-pytorch-geometric-dataloader-to-create-multiple-graphs-in-batch-inst</guid>
       <pubDate>Mon, 15 Jul 2024 15:57:22 GMT</pubDate>
     </item>
     <item>
-      <title>执行机器学习/时间序列任务时如何处理状态特征</title>
-      <link>https://stackoverflow.com/questions/78750232/how-to-deal-with-state-feture-while-performaing-ml-time-series-task</link>
-      <description><![CDATA[我正在研究一个收入预测模型，其中状态是关键因素之一。我最初对状态变量应用了独热编码，但没有获得所需的准确度，我的模型失败了。
-以下是我到目前为止尝试过的方法：
-
-对状态变量应用了独热编码，结果得到了一个高维稀疏矩阵。
-尝试了不同的机器学习模型，但准确度仍然不理想。
-
-我怀疑独热编码不是最好的方法，因为状态变量的基数很高。我该如何更好地处理这个问题，以提高我的模型的性能？
-有什么建议或其他编码技术吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78750232/how-to-deal-with-state-feture-while-performaing-ml-time-series-task</guid>
-      <pubDate>Mon, 15 Jul 2024 13:52:47 GMT</pubDate>
+      <title>nnUNet - 如何对从与训练集不同的 tif 文件中提取的测试集运行预测？</title>
+      <link>https://stackoverflow.com/questions/78750529/nnunet-how-can-i-run-a-prediction-on-a-test-set-that-was-extracted-from-a-diff</link>
+      <description><![CDATA[我正在使用 nnUNet 在 2D 中进行图像分割。我有 3D tif 文件、图像和蒙版。
+为了训练模型并使数据适合 nnUNet 的管道，我正在对 tif 文件进行切片，因此每个帧将是一个单独的 tif 文件。因此，如果图像及其匹配的蒙版在第一维上为 150，那么切片后我将获得 150 帧（每个帧具有相同的 2D 形状）。
+现在我正在准备数据，以便它适合管道名称格式等。
+然后，我在数据集上运行训练，让我们坐在数据集 1 上。
+现在，如果我想使用在数据集 1 上训练的模型对数据集 2 进行预测，我该怎么做？
+我使用以下命令进行预测：
+nnUNetv2_predict -d Dataset1 -i /path/to/test_set -o /path/to/predictions -f 0 1 2 3 4 -tr nnUNetTrainer -c 2d -p nnUNetPlans
+我输入了测试集的路径，但模型如何知道哪个训练集用于训练？它是使用我训练过的最后一个训练集还是我如何指定我想要使用哪一个？
+提前谢谢您
+我尝试使用在另一个图像的另一个训练集上训练的模型来预测测试集。而且我不确定我得到的结果是否正确，因为我不知道预测使用的是哪个训练模型。
+我也试图在这里找到答案：nnUNet
+但不幸的是，我没有找到。]]></description>
+      <guid>https://stackoverflow.com/questions/78750529/nnunet-how-can-i-run-a-prediction-on-a-test-set-that-was-extracted-from-a-diff</guid>
+      <pubDate>Mon, 15 Jul 2024 14:53:43 GMT</pubDate>
     </item>
     <item>
-      <title>如何向 CNN_M_LSTM 模型添加 3 个输入参数？</title>
-      <link>https://stackoverflow.com/questions/78749657/how-to-add-3-inputs-parameters-to-the-cnn-m-lstm-model</link>
+      <title>如何使用 keras 将 3 个输入参数连接到 CNN_M_LSTM 模型？</title>
+      <link>https://stackoverflow.com/questions/78749657/how-to-concatenate-3-inputs-parameters-to-the-cnn-m-lstm-model-using-keras</link>
       <description><![CDATA[我尝试将带有时间戳的能耗数据集和 covid 数据集输入到 CNN_M_LSTM 模型（库 Tensorflow）中。
 能耗和时间戳的大小为 (70082, 2)
 Covid 数据集的大小为 (744, 1)
-我曾使用 tensorslice 和 zip 将数据打包在一起并对数据集进行窗口化：
-这是我打包和窗口化能耗和时间戳数据集以及 covid 数据集的代码：
+我曾使用张量切片和张量压缩将两个数据打包在一起并对数据集进行窗口化：
+这是我对能耗和时间戳数据集（covid 数据集）进行压缩和窗口化的代码：
 MAX_LENGTH = 96
 BATCH_SIZE = 128 
 TRAIN.SHUFFLE_BUFFER_SIZE = 1000
@@ -282,9 +437,9 @@ model_cnn_m_lstm.summary()
 
 model_cnn_m_lstm.fit(train_dataset, epochs=100, batch_size=128)
 
-错误是模型需要 2 个输入，但收到 1 个输入张量。我曾尝试将 covid 数据集、能量列和时间戳压缩到一个数据集。
-我的期望是将 3 个输入输入到我的 CNN_M_LSTM 模型中。我还尝试单独输入数据，我收到数据形状错误，我尝试重新塑造它，但它也不起作用。有没有办法在我的 CNN_M_LSTM 模型中输入 3 个参数？]]></description>
-      <guid>https://stackoverflow.com/questions/78749657/how-to-add-3-inputs-parameters-to-the-cnn-m-lstm-model</guid>
+对于上述试验，错误是模型需要 2 个输入，但收到 1 个输入张量。
+我的期望是将 3 个输入输入到我的 CNN_M_LSTM 模型中。此外，3 个输入数据集必须全部打包在一起，窗口大小为 96，批处理大小为 128。]]></description>
+      <guid>https://stackoverflow.com/questions/78749657/how-to-concatenate-3-inputs-parameters-to-the-cnn-m-lstm-model-using-keras</guid>
       <pubDate>Mon, 15 Jul 2024 11:49:20 GMT</pubDate>
     </item>
     <item>
@@ -334,124 +489,24 @@ warnings.warn(
       <pubDate>Mon, 15 Jul 2024 05:44:13 GMT</pubDate>
     </item>
     <item>
-      <title>二元分类中的 SHAP 值解释</title>
-      <link>https://stackoverflow.com/questions/78740880/shap-value-explanations-in-binary-classification</link>
-      <description><![CDATA[我尝试使用每个特征的 SHAP 值来解释我的二元分类模型。我想知道：
-正的 SHAP 值是否意味着该特征对预测“1”类的贡献更大，而负的 SHAP 值是否意味着该特征对预测“0”类的贡献更大？
-如果我使用绝对 SHAP 值差异来描述特征贡献变化，这个想法是否合理？]]></description>
-      <guid>https://stackoverflow.com/questions/78740880/shap-value-explanations-in-binary-classification</guid>
-      <pubDate>Fri, 12 Jul 2024 14:25:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法检测/删除图像数据集中两个位置不同的水印</title>
-      <link>https://stackoverflow.com/questions/78736804/trouble-detecting-removing-two-watermarks-that-vary-location-across-image-datase</link>
-      <description><![CDATA[我在从一组图片中删除水印时遇到了问题。这些水印彼此靠近，但又有所不同（见下文）。其中一个水印是红色方块，里面有白色文字。另一个是半透明的灰色句子。目的是处理图像以用于机器学习。
-图像
-解决问题的尝试：
-由于水印在图像数据集中的位置各不相同，我尝试了以下操作：
-
-复制图像并将其转换为 HSV 颜色空间
-为感兴趣的区域选择一系列下限值和上限值（在分割图像并为每个通道构建直方图后选择这些值）
-使用 cv2.inRange() 函数构建蒙版
-使用蒙版在原始图像中修复水印
-
-对于红色方块，前三个步骤完美无缺。但第三步只是有点奏效。水印比以前明显少了，但仍然很明显。对于文本，我无法在第 3 步中获得足够好的蒙版 - 它的颜色/像素强度与周围区域和文本本身太接近了。
-这看起来更像是一个机器学习问题，这很好，但我想事先用尽其他选择。关于如何使用机器学习或算法方法解决这个问题有什么想法吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78736804/trouble-detecting-removing-two-watermarks-that-vary-location-across-image-datase</guid>
-      <pubDate>Thu, 11 Jul 2024 16:54:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>python 中某些函数的贬值：数据框的真值不明确</title>
-      <link>https://stackoverflow.com/questions/78735084/depreciation-of-some-function-in-python-ambiguous-truth-value-of-dataframe</link>
+      <title>使用 R 中的空间数据管理机器学习模型中的类别不平衡问题</title>
+      <link>https://stackoverflow.com/questions/78733642/managing-problems-of-class-imbalance-in-machine-learning-models-using-spatial-da</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78735084/depreciation-of-some-function-in-python-ambiguous-truth-value-of-dataframe</guid>
-      <pubDate>Thu, 11 Jul 2024 10:52:14 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/78733642/managing-problems-of-class-imbalance-in-machine-learning-models-using-spatial-da</guid>
+      <pubDate>Thu, 11 Jul 2024 05:01:17 GMT</pubDate>
     </item>
     <item>
-      <title>如何准确计算Doctr ocr中检测到的文本的绝对bbox坐标？</title>
-      <link>https://stackoverflow.com/questions/78733724/how-to-accurately-calculate-absolute-bbox-coordinates-of-detected-text-in-doctr</link>
-      <description><![CDATA[我一直试图在文档的图片上绘制 bbox，并尝试使用 mindee-doctr 进行 ocr 以查看检测到的文本行。我面临的问题是，我通过乘以相对坐标和页面尺寸计算出的 bbox 的绝对坐标，在原始图像上绘制时都向右上角偏移。有没有办法纠正这个问题？
-这是我计算 bbox 的代码：
-from doctr.models import ocr_predictor
-from doctr.io import DocumentFile
-
-# 使用 docTR 分析图像并获取结果
-line_boundaries = []
-model = ocr_predictor(pretrained=True) #设置preserve_aspect_ratio=False 或symmetric_pad=False 没有区别。
-doc = DocumentFile.from_images(img_path)
-result = model(doc)
-
-# 提取每行的边界框坐标
-for page in result.pages:
-for block in page.blocks:
-for line in block.lines:
-# 将相对坐标与页面尺寸相乘，得到绝对坐标
-x_min, y_min, x_max, y_max = round(line.geometry[0][0] * page.dimensions[0]), round(line.geometry[0][1] * page.dimensions[1]), round(line.geometry[1][0] * page.dimensions[0]), round(line.geometry[1][1] * page.dimensions[1])
-line_boundaries.append((x_min, y_min, x_max, y_max))
-
-这是 line_boundaries 的值：
-[(531, 148, 1321, 184), (2725, 148, 3061, 177), (526, 254, 3071, 295), (526, 288, 3071, 332), (535, 324, 3071, 363), ... ]
-这是我用来绘制方框的函数：
-import cv2
-from google.colab.patches import cv2_imshow # 代替 cv2.imshow 使用，因为它会导致 collab 崩溃
-
-def draw_rectangles(image_path, line_boundaries):
-&quot;&quot;&quot;
-使用提供的线边界在图像上绘制矩形。
-
-参数：
-image_path：图像文件的路径。
-line_boundaries：线边界列表，其中每个边界都是四个点的列表。
-
-返回：
-无
-&quot;&quot;&quot;
-
-# 加载图像
-image = cv2.imread(img_path)
-
-# 遍历线边界并绘制矩形
-for bounding in line_boundaries:
-#x1, y1, x2, y2 = int(boundary[0][0]), int(boundary[0][1]), int(boundary[2][0]), int(boundary[2][1])
-x1, y1, x2, y2 = map(int, bounding) # 将坐标转换为整数
-cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-# 用矩形显示图像
-cv2_imshow(image) # 仅使用 cv2_imshow 代替 cv2.imshow 进行协作
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-这是带有在其上绘制的 bboxes。
-
-我尝试过不使用舍入，但没有任何区别，也尝试过只使用预测器，但无济于事。在 ocr_predictor 中设置preserve_aspect_ratio=False 或symmetric_pad=False 也没有区别。]]></description>
-      <guid>https://stackoverflow.com/questions/78733724/how-to-accurately-calculate-absolute-bbox-coordinates-of-detected-text-in-doctr</guid>
-      <pubDate>Thu, 11 Jul 2024 05:38:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>带有 gpu 的 Lightgbm 分类器</title>
-      <link>https://stackoverflow.com/questions/60360750/lightgbm-classifier-with-gpu</link>
-      <description><![CDATA[model = lgbm.LGBMClassifier(
-n_estimators=1250,
-num_leaves=128,
-learning_rate=0.009,
-verbose=1
-)
-
-使用 LGBM 分类器，
-现在有没有办法将其与 GPU 一起使用？]]></description>
-      <guid>https://stackoverflow.com/questions/60360750/lightgbm-classifier-with-gpu</guid>
-      <pubDate>Sun, 23 Feb 2020 09:20:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>scikit-learn 聚类：预测（X）与 fit_predict（X）</title>
-      <link>https://stackoverflow.com/questions/37106983/scikit-learn-clustering-predictx-vs-fit-predictx</link>
-      <description><![CDATA[在 scikit-learn 中，一些聚类算法同时具有 predict(X) 和 fit_predict(X) 方法，例如 KMeans 和 MeanShift，而其他算法仅具有后者，例如 SpectralClustering。根据文档：
-fit_predict(X[, y]): 对 X 执行聚类并返回聚类标签。
-predict(X): 预测 X 中每个样本所属的最接近聚类。
-
-我不太明白这两者之间的区别，在我看来它们似乎是等价的。]]></description>
-      <guid>https://stackoverflow.com/questions/37106983/scikit-learn-clustering-predictx-vs-fit-predictx</guid>
-      <pubDate>Mon, 09 May 2016 02:25:29 GMT</pubDate>
+      <title>多元时间序列数据的准备</title>
+      <link>https://stackoverflow.com/questions/78467998/preparation-of-multivariate-time-series-data</link>
+      <description><![CDATA[我正在做一个关于指数/股票价格预测的大学项目。我计划使用组合的 cnn-lstm 模型，我有几种不同类型的数据：开盘价最高价最低价收盘价成交量、价值、基本面数据（如失业率和各种利率）、技术指标（如 RSI、MACD 等）以及移动平均线（如 SMA、EMA、WMA 等）。为网络准备数据的最佳方法是什么？
+目前，我正在使用以下转换
+对于 OHLC - 简单微分
+对于基本数据 - 对数化
+对于移动平均线 - 从此移动平均线的值中减去蜡烛开盘值
+指标值不变
+然后我对所有数据集使用 StandardizeNormalizer。我还尝试分别对每个序列进行规范化（稳健缩放、标准化、最小最大缩放），并对所有数据进行微分，但效果不佳]]></description>
+      <guid>https://stackoverflow.com/questions/78467998/preparation-of-multivariate-time-series-data</guid>
+      <pubDate>Sun, 12 May 2024 13:20:10 GMT</pubDate>
     </item>
     </channel>
 </rss>
