@@ -4,7 +4,103 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 16 Jul 2024 15:13:44 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 16 Jul 2024 18:20:38 GMT</lastBuildDate>
+    <item>
+      <title>尝试使用 GCP TPU 进行多处理，但 shell 意外死机</title>
+      <link>https://stackoverflow.com/questions/78756024/attempting-multiprocessing-with-gcp-tpus-but-the-shell-dies-unexpectedly</link>
+      <description><![CDATA[我可以访问美国地区的 32 个可抢占 Cloud TPU v4 芯片，并尝试使用以下 Python 代码运行我的 PyTorch 模型：
+import os 
+import sys 
+import pickle 
+import torch_xla.distributed.xla_multiprocessing as xmp 
+from transformers 
+import AutoTokenizer 
+import main_utils as utils 
+import multiprocessing as mp
+
+lock = mp.Manager().Lock()
+
+def _mp_fn(i): 
+
+A_tasks, B_tasks, desire_output_lengths, keys = utils.get_total_tasks()
+
+import torch
+import torch_xla.core.xla_model as xm
+from models_mamba import MambaForCausalLM
+
+DEVICE_NAME = xm.xla_device()
+tokenizer = AutoTokenizer.from_pretrained(&quot;~/Mamba-1B/&quot;)
+model = MambaForCausalLM.from_pretrained(&quot;~/Mamba-1B/&quot;, torch_dtype=&quot;auto&quot;,
+device_map=&quot;auto&quot;, low_cpu_mem_usage=True)
+model = model.to_empty(device=&#39;cpu&#39;)
+model.apply(lambda module: module.reset_parameters() if hasattr(module, &#39;reset_parameters&#39;) else None)
+model = model.to(xm.xla_device())
+
+params_to_save = [&quot;out_proj_y&quot;]
+
+def generate_logits(task, logits_list, desire_output_length):
+for i in range(48):
+layer_to_save = [i + 1]
+input_ids = tokenizer.encode(task, return_tensors=&quot;pt&quot;).to(设备名称)
+model.saved_activation(params_to_save, layer_to_save, precision=&#39;r&#39;)
+output = model.generate(input_ids, max_length=desired_output_length, no_repeat_ngram_size=2)
+
+saved_dict = model.reset_everything_and_save()
+param = saved_dict[f&quot;out_proj_y_{i + 1}&quot;][0, -1, :].to(设备名称)
+
+xm.all_gather(param)
+logits = model.get_unembed_for_layer(param, norm=&quot;False&quot;)
+
+xm.all_gather(logits)
+logits_list.append(logits.to(&quot;cpu&quot;))
+
+del input_ids、output、saved_dict、param、logits
+
+task_dict = {}
+for A_task、B_task、dol、key in zip(A_tasks、B_tasks、desired_output_lengths、keys):
+A_logits = []
+B_logits = []
+generate_logits(A_task、A_logits、dol)
+generate_logits(B_task、B_logits、dol)
+
+aux_dict = {&#39;A&#39;: A_logits, &#39;B&#39;: B_logits}
+task_dict[key] = aux_dict
+
+device = xm.xla_device()
+with lock:
+print(f&#39;Process {i}, Device {device}&#39;)
+
+xm.mark_step()
+with open(f&#39;~/main_file.pickle&#39;, &#39;wb&#39;) as handle:
+pickle.dump(task_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+if name == &quot;main&quot;: 
+xmp.spawn(_mp_fn, args=(), nprocs=8, start_method=&#39;fork&#39;)`
+
+要执行此代码，我使用 Cloud Shell 和以下命令（设置 TPU 并在所有 8 个工作器上安装库之后）：
+gcloud compute tpus tpu-vm ssh ${TPU_NAME} --zone=${ZONE} --project=${PROJECT_ID} --worker=all --command=&quot;PJRT_DEVICE=TPU python3 ~test.py&quot;
+我希望模型在所有 TPU 上执行 _mp_fn() 中定义的任务，按照指定的方式收集和保存 logit，最后将结果存储在 main_file.pickle 中。但是，在 Cloud Shell 中启动命令后，shell 在模型加载期间打印了一些预期的警告，但没有继续进行。相反，过了一段时间，shell 会话意外终止。我不确定如何排除故障？]]></description>
+      <guid>https://stackoverflow.com/questions/78756024/attempting-multiprocessing-with-gcp-tpus-but-the-shell-dies-unexpectedly</guid>
+      <pubDate>Tue, 16 Jul 2024 17:38:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>我如何访问这些元素？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78755424/how-can-i-access-to-these-elements</link>
+      <description><![CDATA[LIVEKIT_URL= 
+
+LIVEKIT_API_KEY= 
+
+LIVEKIT_API_SECRET= 
+
+DEEPGRAM_API_KEY= 
+
+在此处输入图片描述 来自我的帐户的与项目相关的屏幕截图
+页面顶部的 URL 是吗？我无法在 LIVEKIT 上创建 API 密钥。
+这是与项目相关的 YouTube 链接。
+https://www.youtube.com/watch?v=nvmV0a2geaQ]]></description>
+      <guid>https://stackoverflow.com/questions/78755424/how-can-i-access-to-these-elements</guid>
+      <pubDate>Tue, 16 Jul 2024 15:20:52 GMT</pubDate>
+    </item>
     <item>
       <title>使用张量流的问题（既不包含“saved_model.pb”也不包含“saved_model.pbtxt”）</title>
       <link>https://stackoverflow.com/questions/78755101/issue-on-using-tensor-flow-contains-neither-saved-model-pb-nor-saved-model</link>
@@ -46,7 +142,7 @@ predict_class = predict_sound(audio_data)
 print(&quot;预测的类：&quot;, predict_class)
 
 if “/m/012n7d”在 predict_class 或 “/m/03j1ly” 中在predicted_class或“/m/03kmc9”中在预测类中：
-print(&quot;Sirene 已检测到！&quot;)
+print(&quot;Sirene 检测到！&quot;)
 else:
 print(&quot;Não é uma sirene.&quot;)
 time.sleep(1) # 暂停 1 秒，直到下一个重击开始 
@@ -57,7 +153,7 @@ time.sleep(1) # 暂停 1 秒，直到下一个重击开始
     <item>
       <title>如何将每小时数据转换为每日最大值、平均值……和最小值</title>
       <link>https://stackoverflow.com/questions/78755052/how-can-i-convert-hourly-data-to-daily-max-aver-and-min</link>
-      <description><![CDATA[这是每小时的 TMP 数据，因此我想将其转换为每日的最大值、平均值和最小值，我在 excel 中做过一次，但结果不合理。
+      <description><![CDATA[这是每小时的 TMP 数据，因此想将其转换为每日的最大值、平均值和最小值，我在 excel 中做过一次，但结果不合理。
 此数据需要预处理，因此我只是应用了一些函数，例如查找平均值，我只是使用函数平均值来获取一天的平均数据，但结果并不好，因此我需要一些其他准确且最佳的方法。]]></description>
       <guid>https://stackoverflow.com/questions/78755052/how-can-i-convert-hourly-data-to-daily-max-aver-and-min</guid>
       <pubDate>Tue, 16 Jul 2024 14:03:10 GMT</pubDate>
@@ -65,7 +161,7 @@ time.sleep(1) # 暂停 1 秒，直到下一个重击开始
     <item>
       <title>深度学习和跨摄像头跟踪物体</title>
       <link>https://stackoverflow.com/questions/78754641/deep-learning-and-tracking-objects-across-cameras</link>
-      <description><![CDATA[我正在使用 YOLOV10 检测和深度排序来跟踪物体，当我们在第一个 CCTV 摄像机中时，它工作正常，当我们到达下一个 CCTV 摄像机时，物体来自不同的视角，类似的物体也很多，我将跟踪更改为 YOLOV10 本身，它们都无法解决在第二个摄像机中识别第一个摄像机中跟踪的物体的问题，因为第二个摄像机中的大小、视点和光照都发生了变化，现在如何给出与模型在第一个摄像机中跟踪的物体相同的 id，第二个摄像机中的 id 为 13，当物体到达它时，它应该具有相同的 id，模型应该知道视点比例和光照是否也发生了变化
+      <description><![CDATA[我正在使用 YOLOV10 检测和深度排序来跟踪物体，当我们在第一个 CCTV 摄像机中时，它工作正常，当我们到达下一个 CCTV 摄像机时，物体来自不同的视角，类似的物体也很多，我将跟踪更改为 YOLOV10 本身，它们都无法解决在第二个摄像机中识别第一个摄像机中跟踪的物体的问题，因为第二个摄像机中的大小、视点和光照都发生了变化，现在如何给出与模型在第一个摄像机中跟踪的物体相同的 id，第二个摄像机中的 id 为 13，当物体到达时，它应该具有相同的 id，模型应该知道视点比例和光照是否也发生了变化
 这个物体应该匹配
 使用这个，而那里也有相同类型的汽车
 在第一个摄像头中，物体向东行走，但在第二个摄像头中，物体从它的南边过来，所以我们无法跟踪位置
@@ -149,57 +245,75 @@ for src, tgt in train_dataloader:
 try:
 src = src.to(DEVICE)
 tgt = tgt.to(DEVICE)
- tgt_input = tgt[:-1, :]
 
-src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input)
+tgt_input = tgt[:-1, :]
 
-logits = model(src, tgt_input, src_mask, tgt_mask, src_padding_mask, tgt_padding_mask, src_padding_mask)
+src_mask, tgt_mask, \
+src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input)
 
-...
-在Seq2SeqTransformer：
+logits = model( src, tgt_input,
+src_mask, tgt_mask,
+src_padding_mask, tgt_padding_mask,
+src_padding_mask
+)
+
+在Seq2SeqTransformer:
 class Seq2SeqTransformer(nn.Module):
-def forward(self,
+def forward( self,
 src: Tensor,
 trg: Tensor,
 src_mask: Tensor,
 tgt_mask: Tensor,
 src_padding_mask: Tensor,
 tgt_padding_mask: Tensor,
-memory_key_padding_mask: Tensor):
- src_emb = self.positional_encoding(self.src_tok_emb(src))
+memory_key_padding_mask: Tensor ):
+
+src_emb = self.positional_encoding(self.src_tok_emb(src))
 tgt_emb = self.positional_encoding(self.tgt_tok_emb(trg))
-outs = self.transformer(src_emb, tgt_emb, src_mask, tgt_mask, None,
-src_padding_mask, tgt_padding_mask, memory_key_padding_mask)
+outs = self.transformer( src_emb, tgt_emb,
+src_mask, tgt_mask,
+None,
+src_padding_mask,
+tgt_padding_mask,
+memory_key_padding_mask )
 return self.generator(outs)
 
 在此行：
-outs = self.transformer(src_emb, tgt_emb, src_mask, tgt_mask, None,
-src_padding_mask, tgt_padding_mask, memory_key_padding_mask)
+outs = self.transformer( src_emb, tgt_emb,
+src_mask, tgt_mask,
+None,
+src_padding_mask,
+tgt_padding_mask,
+memory_key_padding_mask )
+
 我明白了：
+&gt; sec_emb 的大小为 (31,31) tgt_emb 的大小为 (37,37)
 
-sec_emb 的大小为 (31,31) tgt_emb 的大小为 (37,37)
-
-并且训练运行顺利。
-现在，我正尝试使用此设置在具有 8 个 GPU 的计算机上进行训练：
-transformer = nn.DataParallel(transformer)
+训练运行顺利。
+现在，我尝试使用以下设置在具有 8 个 GPU 的计算机上进行训练：
+ transformer = nn.DataParallel(transformer)
 transformer = transformer.to(DEVICE)
 
-在调试模式下，我检查了此行中的值：
-outs = self.transformer(src_emb, tgt_emb, src_mask, tgt_mask, None,
-src_padding_mask, tgt_padding_mask, memory_key_padding_mask)
+在调试模式下，我检查此行中的值：
+ outs = self.transformer( src_emb, tgt_emb,
+src_mask, tgt_mask,
+None,
+src_padding_mask,
+tgt_padding_mask,
+memory_key_padding_mask )
+
+
 我明白了：
+&gt; sec_emb 的大小为 (4,31) tgt_emb 的大小为 (5,37)
 
-sec_emb 的大小为 (4,31) tgt_emb 的大小为 (5,37)
-
-我认为这是因为所有东西都是并行工作的。
+我认为这是因为事情是并行进行的。
 但是，我遇到了此错误消息：
-
-文件
-&quot;C:\Projects\MT005.venv\Lib\site-packages\torch\nn\ functional.py&quot;,
-line 5382，在 multi_head_attention_forward 中
-引发 RuntimeError(f&quot;2D attn_mask 的形状是 {attn_mask.shape}，但应该是 {correct_2d_size}。&quot;) RuntimeError:
-2D attn_mask 的形状是 torch.Size([4, 31])，但应该是
-(4, 4)。
+&gt; 文件
+&gt; &quot;C:\Projects\MT005\.venv\Lib\site-packages\torch\nn\ functional.py&quot;,
+&gt; 第 5382 行，在 multi_head_attention_forward 中
+&gt;引发 RuntimeError(f&quot;2D attn_mask 的形状为 {attn_mask.shape}，但应为 {correct_2d_size}。&quot;) RuntimeError:
+&gt; 2D attn_mask 的形状为 torch.Size([4, 31])，但应为
+&gt; (4, 4)。
 
 有人可以帮助我或提供一些指导吗？]]></description>
       <guid>https://stackoverflow.com/questions/78754435/trying-to-train-transformer-model-for-machine-translation-on-multi-gpu-setup</guid>
@@ -274,156 +388,6 @@ embedding VECTOR(1536)
       <pubDate>Tue, 16 Jul 2024 09:36:19 GMT</pubDate>
     </item>
     <item>
-      <title>使用 PyTorch 计算信息熵</title>
-      <link>https://stackoverflow.com/questions/78753537/compute-information-entropy-with-pytorch</link>
-      <description><![CDATA[问题：
-如何利用当前模型计算信息熵。
-当我尝试实现这篇论文提出的方法时。但我不知道如何让它发挥作用。
-假设有一个矩阵 M，它是 m x n。
-这个矩阵 M 缺少一些条目。 
-该模型的任务是完成矩阵M，使用的方法类似于矩阵分解，但采用自动编码器的架构。
-以下是该论文的陈述，未经修改。
-
-在该算法中，我们使用二项分布概率来衡量每个未知延迟的不确定性。具体而言，对于每个未知延迟，我们利用当前模型计算两个潜在延迟的概率。这两个概率构成二项分布。
-
-
-因此，我们将延迟值的概率设为P(x)=p，P(x_bar)=1-p，其中p等于1表示我们知道x处的延迟，p等于0表示我们不知道x_bar处的延迟。
-
-
-同时，我们使用信息熵来衡量分布的不确定性。 
-对于二项分布，信息熵可以计算为：H(p)=-plog(p)-(1-p)log(1-p)
-
-这是否类似于使用 sigmoid 或 softmax 将模型的输出转换为概率
-然后使用概率获取信息熵？
-任何帮助都值得感激。谢谢。]]></description>
-      <guid>https://stackoverflow.com/questions/78753537/compute-information-entropy-with-pytorch</guid>
-      <pubDate>Tue, 16 Jul 2024 08:42:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>LSTM 模型无法训练</title>
-      <link>https://stackoverflow.com/questions/78753201/lstm-model-doesnt-train</link>
-      <description><![CDATA[我正在尝试使用深度学习来查找粒子的化学状态。作为输入，我有粒子在 X_train 中随时间的位置，形状为 (num_train,sequence_length)。 （我的序列长度为 100），输出是形状为 (num_train,1) 的 Y_train 中包含的转换帧（介于 1 和 100 之间）。
-这是一个序列示例（https://i.sstatic.net/Ddmhjc24.jpg），转换位于第 84 帧。
-所有数据都是用非常具体的算法生成的，但是该算法不会生成非常复杂的数据，我认为自己很容易找到转换，但我希望这个深度学习模型能够正常工作。
-这是 LSTM 代码：
-# 过滤
-
-# 定义 LSTM 模型
-model = Sequential([
-LSTM(64, input_shape=(sequence_length, 1), return_sequences=False),
-Dense(64,activation=&#39;relu&#39;),
-Dense(1)
-])
-
-# 编译模型
-model.compile(optimizer=&#39;adam&#39;, loss=&#39;mse&#39;) # 回归的均方误差
-
-# 显示模型摘要
-model.summary()
-
-# 训练模型
-model.fit(X_train, Y_train, epochs=40, batch_size=32, validation_data=(X_test, Y_test))
-
-# 用新数据进行预测的示例
-prediction = model.predict(X_test)
-print(prediction)
-
-结果：
-模型：“顺序”
-_________________________________________________________________
-层（类型）输出形状参数 # 
-====================================================================
-lstm (LSTM) (无，64) 16896 
-
-密集 (密集) (无，64) 4160 
-
-密集_1 (密集) (无，1) 65 
-
-============================================================================
-总参数：21121 (82.50 KB)
-可训练参数： 21121 (82.50 KB)
-不可训练参数：0 (0.00 字节)
-_________________________________________________________________
-Epoch 1/10
-631/631 [==============================] - 35s 50ms/step - 损失：1043.6710 - val_loss：840.6771
-Epoch 2/10
-631/631 [==============================] - 30s 48ms/step - 损失：840.9444 - val_loss：839.9596
-Epoch 3/10
-631/631 [===============================] - 32s 50ms/步 - 损失：841.6289 - val_loss：840.7188
-Epoch 4/10
-631/631 [=============================] - 30s 48ms/步 - 损失：840.9946 - val_loss：840.6344
-Epoch 5/10
-631/631 [===============================] - 33s 52ms/步 - 损失：841.8745 - val_loss：839.9298
-Epoch 6/10
-631/631 [==============================] - 31s 49ms/步 - 损失：841.6499 - val_loss：839.8434
-Epoch 7/10
-631/631 [=============================] - 31s 49ms/步 - 损失：841.2045 - val_loss：840.0717
-Epoch 8/10
-631/631 [===============================] - 30s 48ms/步 - 损失：842.0576 - val_loss： 840.2137
-纪元 9/10
-631/631 [=============================] - 33s 52ms/步 - 损失：842.7056 - val_loss：840.5657
-纪元 10/10
-631/631 [=============================] - 30s 48ms/步 - 损失：841.5714 - val_loss：839.8404
-70/70 [================================] - 2s 16ms/步
-[[52.569366]
-[52.569286]
-[52.569378]
-...
-[52.569344]
-[52.569313]
-[52.56937 ]]
-
-如您所见，当我测试训练后的模型时，无论输入是什么，输出都是相同的。 val_loss 不会随着 epoch 的数量而改善。 这就是问题所在，我不明白发生了什么。
-我是深度学习的初学者，所以也许我犯了一个非常简单的错误。 但是我仔细检查了我的数据，X_train 已标准化，我尝试在我的模型上添加一些 drop out 和其他层，但没有任何变化。
-也许使用 LSTM 无法做到这一点，但我认为数据非常简单。 我真的想尝试找到一种方法来使用深度学习来找到它。 我 d]]></description>
-      <guid>https://stackoverflow.com/questions/78753201/lstm-model-doesnt-train</guid>
-      <pubDate>Tue, 16 Jul 2024 07:31:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>在带有 Bullseye 的 Raspberry Pi 3B 上安装 Ultralytics 以运行 yolov5 时出错，“错误：无法为使用 PEP 517 的 opencv-python 构建轮子...”</title>
-      <link>https://stackoverflow.com/questions/78752286/error-installing-ultralytics-to-run-yolov5-on-raspberry-pi-3b-with-bullseye-er</link>
-      <description><![CDATA[我尝试使用 pip 在装有 Bullseye OS 的 Raspberry Pi 3B 上安装 Ultralytics。虽然我能够安装所有依赖项以成功运行 yolov5，但在尝试安装 Ultralytics 时，我收到错误，
-&quot;CMake 安装出现问题，中止构建。CMake 可执行文件是 /tmp/pip-build-env-3didr32b/overlay/lib/python3.9/site-packages/cmake/data/bin/cmake
-
-错误：无法为 opencv-python 构建 wheel
-无法构建 opencv-python
-错误：无法为使用 PEP 517 且无法直接安装的 opencv-python 构建 wheel&quot;
-
-虽然有多种方法可以成功安装 opencv，并且对我来说很有效，但立即安装 Ultralytics 会导致再次安装 opencv，从而导致同样的失败。有人知道如何修复这个问题吗？
-我尝试过单独安装 open-cv，然后安装 ultralytics，但出现了同样的错误。有人建议在安装 ultralytics 之前先安装 opencv-python-headless，但我无法成功安装此包。]]></description>
-      <guid>https://stackoverflow.com/questions/78752286/error-installing-ultralytics-to-run-yolov5-on-raspberry-pi-3b-with-bullseye-er</guid>
-      <pubDate>Tue, 16 Jul 2024 00:06:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>Huggingface 的 Beam RunInference 和句子转换器</title>
-      <link>https://stackoverflow.com/questions/78750157/beam-runinference-and-sentence-transformers-from-huggingface</link>
-      <description><![CDATA[我正在尝试将 RunInference beam Transform 与 stsb-xlm-r-multilingual 模型一起使用。
-像这样：
- inferences = (
-formatted_examples
-| &quot;Run Inference&quot; &gt;&gt; RunInference(model_handler)
-| &#39;ProcessOutput&#39; &gt;&gt; beam.ParDo(PostProcessor())
-)
-
-而 model_handler 是：
-model_handler = HuggingFacePipelineModelHandler(
-task=PipelineTask.FeatureExtraction,
-model = &quot;sentence-transformers/stsb-xlm-r-multilingual&quot;,
-load_pipeline_args={&#39;framework&#39;: &#39;pt&#39;},
-inference_args={&#39;max_length&#39;: 200}
-)
-
-但是，转换返回的 predictionResult 对象包含一个嵌套数组，其中包含多个嵌入。
-我可以像这样访问嵌入：
-result.inference[0][0][0]。
-这为我提供了一个嵌入。
-我不确定所有其他嵌入是什么。我只对其中一个感兴趣，我不需要所有数据。
-虽然我总是可以通过使用上面显示的内部索引来获取嵌入，但我想知道我是否做错了什么，或者是否有办法将一些参数传递给处理程序，以指示它只返回单个嵌入？
-谢谢]]></description>
-      <guid>https://stackoverflow.com/questions/78750157/beam-runinference-and-sentence-transformers-from-huggingface</guid>
-      <pubDate>Mon, 15 Jul 2024 13:36:33 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在不使用标签编码的情况下对 RandomForest 的非序数分类变量进行编码？</title>
       <link>https://stackoverflow.com/questions/78742216/how-to-encode-non-ordinal-categorical-variables-for-randomforest-without-using-l</link>
       <description><![CDATA[]]></description>
@@ -467,6 +431,38 @@ ollama:
 此外，有人知道语言模型是否支持多线程吗？我的脚本发送文本非常快，我不确定是否要限制向语言模型发送请求的速率，或者它是否可以处理多线程和异步请求。]]></description>
       <guid>https://stackoverflow.com/questions/78724837/i-cannot-run-the-image-ollama-correctly-when-i-run-it-through-docker-compose-yml</guid>
       <pubDate>Tue, 09 Jul 2024 09:38:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何查看 YOLOv6 中的评估指标？</title>
+      <link>https://stackoverflow.com/questions/78680846/how-to-see-evaluation-metrics-in-yolov6</link>
+      <description><![CDATA[我有以下输出，但无法弄清楚如何评估，因为没有 F1 分数 或 混淆矩阵。
+平均召回率 (AR) @[ IoU=0.50:0.95 | area= small |maxDets=100] = -1.000
+
+平均召回率 (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.250
+
+平均召回率 (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.410
+
+20/499 0.001595 0.6697 0 1.393: 100%|██████████| 12/12 [00:
+
+21/499 0.001594 0.6417 0 1.353: 100%|██████████| 12/12 [00:
+
+22/499 0.001594 0.6727 0 1.431: 100%|██████████| 12/12 [00:
+
+我训练了 400 个 epoch，这只是输出的一小部分。我也看不到 mAP。
+我有这行代码要评估
+!python tools/eval.py --data Fabric-Defect-2/data.yaml --weights runs/train/exp/weights/best_ckpt.pt --device 0
+
+有没有办法获得详细的评估指标，例如 F1 分数、混淆矩阵 和 mAP？]]></description>
+      <guid>https://stackoverflow.com/questions/78680846/how-to-see-evaluation-metrics-in-yolov6</guid>
+      <pubDate>Fri, 28 Jun 2024 05:55:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>获取“model.fit”keras API 参数的值</title>
+      <link>https://stackoverflow.com/questions/77581428/get-values-of-model-fit-keras-api-parameters</link>
+      <description><![CDATA[我正在尝试使用自定义回调函数获取 Kera 顺序模型的详细信息。我需要提取 model.fit() API 中设置的参数的所有值，例如 batch_size、epochs、validation_split 等。但我无法在 Keras 的回调中访问它们。您知道如何自动获取这些值吗？
+我使用的是 Python 3.10 和 Keras 2.8。]]></description>
+      <guid>https://stackoverflow.com/questions/77581428/get-values-of-model-fit-keras-api-parameters</guid>
+      <pubDate>Thu, 30 Nov 2023 20:13:45 GMT</pubDate>
     </item>
     </channel>
 </rss>
