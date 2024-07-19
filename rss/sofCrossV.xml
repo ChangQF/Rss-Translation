@@ -4,7 +4,151 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 19 Jul 2024 12:28:14 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 19 Jul 2024 15:16:43 GMT</lastBuildDate>
+    <item>
+      <title>逻辑回归是否适合我的问题并能正确解释？</title>
+      <link>https://stats.stackexchange.com/questions/651407/is-a-logistic-regression-appropriate-for-my-question-and-correctly-interpreted</link>
+      <description><![CDATA[我需要帮助，了解我的统计方法是否适合我想要实现的目标。
+我想知道在错误之后进行的试验（即，post.error 值为 1）是否更有可能使下一次试验也出现错误（即，下一次试验准确率将为 = 1），我想知道 pressure_block 是否也有影响（其中 pressure_block = 1 表示低压，pressure_block = 2 表示高压）。
+为了解决这个问题，我在这里构建了一个虚拟数据集。
+# 加载必要的库
+library(dplyr)
+
+# 创建数据
+id &lt;- rep(1:5, each = 200) # 5 个人，每人 200 行（每个块 100 行）
+pressure_block &lt;- rep(rep(1:2, each = 100), times = 5) # 2 个块，每个 100 行块，对每个人重复
+trial &lt;- rep(1:100, times = 10) # 试验计数器，每个块 100 行，重复 10 个块
+
+# 组合成一个数据框
+df &lt;- data.frame(id, pressure_block, trial)
+
+# 添加准确度向量（为简单起见，随机生成二进制向量）
+set.seed(123) # 为了可重复性
+df$accuracy &lt;- sample(0:1, size = nrow(df), replace = TRUE)
+
+# 添加错误向量（0 = 准确度正确，1 = 准确度错误）
+df &lt;- df %&gt;% mutate(error = ifelse(accuracy == 1, 0, 1))
+
+# 添加 post.error 向量
+df &lt;- df %&gt;%
+group_by(id, pressure_block) %&gt;%
+mutate(post.error = lag(error, default = 0)) %&gt;%
+ungroup()
+
+我认为我想在这里使用逻辑回归来回答我的问题。我们可以像这样使用上面的数据运行它
+model &lt;- glm(accuracy ~ post.error, family = &#39;binomial&#39;, data = df)
+
+然后我得到了我的模型的摘要。
+summary(model)
+
+它向我显示：
+调用：
+glm(formula = accuracy ~ post.error, family = &quot;binomial&quot;, data = df)
+
+系数：
+估计标准差。误差 z 值 Pr(&gt;|z|)
+(截距) 0.03622 0.08973 0.404 0.686
+post.error -0.11977 0.12656 -0.946 0.344
+
+(二项式系列的分散参数取为 1)
+
+零偏差：999 个自由度上的 1386.2
+残差偏差：998 个自由度上的 1385.3
+AIC：1389.3
+
+Fisher 评分迭代次数：3
+
+现在回到问题：
+这是适合这个问题的统计方法吗？
+输出是否表明 post.error 不能显著预测准确度 (p = .344)？
+系数 -.12 是否表明对数几率？也就是说，当预测因子 = 1 时，错误（或正确响应？）的对数几率是 -.12？
+最后，我想添加 pressure_block 变量：
+model2 &lt;- glm(accuracy ~ post.error * pressure_block, family = &#39;binomial&#39;,
+data = df)
+summary(model2)
+
+我们得到以下输出
+调用：
+glm(formula = accuracy ~ post.error * pressure_block, family = &quot;binomial&quot;, 
+data = df)
+
+系数：
+估计标准差。误差 z 值 Pr(&gt;|z|)
+(截距) 0.02690 0.28605 0.094 0.925
+post.error -0.47220 0.40101 -1.178 0.239
+pressure_block 0.00616 0.17952 0.034 0.973
+post.error:pressure_block 0.23690 0.25342 0.935 0.350
+
+(二项式系列的分散参数取为 1)
+
+零偏差：999 个自由度上的 1386.2
+残差偏差：996 个自由度上的 1383.4
+AIC：1391.4
+
+Fisher 评分迭代次数：3
+
+这里问题与上述相同：
+这个测试合适吗？
+所有预测因子都是非 sig（p &gt; .05）？
+系数是指对数几率吗？
+感谢您花时间回答这个问题，也感谢您能给出的任何回复。我有一个真实的数据集，如果需要更多背景信息，它可能会提供额外的见解。
+祝一切顺利，]]></description>
+      <guid>https://stats.stackexchange.com/questions/651407/is-a-logistic-regression-appropriate-for-my-question-and-correctly-interpreted</guid>
+      <pubDate>Fri, 19 Jul 2024 14:40:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>我的观察性研究是否呈现嵌套设计或交叉设计？</title>
+      <link>https://stats.stackexchange.com/questions/651404/does-my-observational-study-present-as-being-a-nested-or-crossed-design</link>
+      <description><![CDATA[我需要一些帮助来决定我的样本收集设计是否符合嵌套或交叉的条件。设计如下：我每个站点收集一次数据（在相同的 47 个站点），每个季节收集一次数据（雨季和旱季；5 月至 11 月和 12 月至 4 月），即每年 2 次（每年约 12-10 天）。这是理想情况。由于潮汐、恶劣天气或人为错误等因素，一些数据会丢失，或者采样工作不会在与前几年完全相同的日子重复。
+当我为响应变量构建模型时，我知道我需要一个位置（站点）效应的随机效应来捕捉站点内的变异性并避免伪重复。我的问题是：如果我想使用完整的数据集，我的站点变量在技术上是否也算作“嵌套”在我的年份变量中？我使用的是“季节”而不是“月份”以捕捉季节性，因为月份数据是不规则间隔的并且包含较大的间隙。
+我听说过一个嵌套数据的例子：
+如果将医院患者的 ID 设置为 1-10（相当于我的站点变量），将医院变量设置为 A-C（类似于我的年份变量），则无法确定哪个患者属于正确的医院。我相信患者嵌套在医院内。我的数据是否存在类似的问题？我意识到在这个例子中，每个医院中标记为 1-10 的患者实际上是不同的人，但有人会同意“你永远不会两次采样同一片水域”的想法吗？我之所以接受这个想法，是因为有些地点毗邻淡水运河，而其他地点则受到海水略微不规则的影响。我的想法是，这可能导致同一站点内响应变量在不同年份产生不同的影响。
+或者，出于所有意图和目的，它们每年都是相同的站点（具有一些可变性），但它仍然是嵌套设计，因为某些年份缺少某些站点？我是不是把这个复杂化了？ - 可能。只是想彻底一点。
+下面是每年站点数量的表格（请注意，并非所有年份都有完整的 47 x 2 重复次数）：
+&gt;表（df$Month，df$CYR）
+
+2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
+1 47 47 47 47 47 0 0 0 0 0 0 0 0 0 0 
+2 0 0 0 0 0 0 0 0 0 0 20 0 0 0 9 
+3 0 0 0 0 0 47 39 30 24 43 27 47 47 0 38 
+4 0 0 0 0 0 0 8 17 23 0 0 0 0 0 0 
+7 47 47 47 47 0 0 0 0 0 0 0 0 0 0 0 0 
+8 0 0 0 0 47 0 30 0 0 0 0 0 0 0 0 
+9 0 0 0 0 0 47 17 47 47 0 47 47 47 47 
+10 0 0 0 0 0 0 0 0 0 47 0 0 0 0 0 
+
+# 按季节分布...（注意 2017 年和 2021 年）
+&gt;表（df$Season，df$CYR）
+
+2008 2009 2010 2011 2012 2013 2014 2015 2016 2017 2018 2019 2020 2021 2022
+干燥 47 47 47 47 47 47 47 47 47 43 47 47 47 0 47
+潮湿 47 47 47 47 47 47 47 47 47 47 47 47 47
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/651404/does-my-observational-study-present-as-being-a-nested-or-crossed-design</guid>
+      <pubDate>Fri, 19 Jul 2024 13:30:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>模拟具有负成对相关性的高斯 copula</title>
+      <link>https://stats.stackexchange.com/questions/651403/simulate-gaussian-copula-with-negative-pair-wise-correlations</link>
+      <description><![CDATA[我现在正尝试模拟一个多维（比如说 4 维）高斯 copula。由于软件限制，我只能使用 Excel 进行此模拟。这就是我尝试从头开始实现该算法的原因。
+正如我在网上查阅 copula 模拟算法的资源时发现的，它们中的大多数都是从相关矩阵的 Cholesky 分解开始的。我的案例的问题是，一些相关项是负的，这使得矩阵不是半正定的，因此不可能进行 Cholesky 分解。
+您能否解释一下我的理解是否正确，以及对于负相关的情况还有哪些其他算法适用？谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651403/simulate-gaussian-copula-with-negative-pair-wise-correlations</guid>
+      <pubDate>Fri, 19 Jul 2024 13:27:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>以和为条件的 iid 平方的期望值</title>
+      <link>https://stats.stackexchange.com/questions/651402/expected-value-of-iid-squared-conditioned-on-sum</link>
+      <description><![CDATA[我有兴趣找到以下表达式的值：
+$$\mathbb{E}[X_k^2|S_N]$$
+其中 $X_k$ 是 iid 随机变量，$\mathbb{E}[X_k]=\mu$ 和 $\text{Var}[X_k]=\sigma^2$，$N$ 是确定性常数，并且：
+$$S_N=\sum_{i=1}^N X_i$$
+我尝试使用
+$$S_N^2=\mathbb{E}[S_N^2|S_N]=N\mathbb{E}[X_k^2|S_N]+N(N-1)\mathbb{E}[X_i X_j|S_N]$$
+其中$i\neq j$。然而，即使不同的$X_k$是独立的，它们也不一定满足$\mathbb{E}[X_i X_j|S_N]=\mathbb{E}[X_i|S_N]^2$]]></description>
+      <guid>https://stats.stackexchange.com/questions/651402/expected-value-of-iid-squared-conditioned-on-sum</guid>
+      <pubDate>Fri, 19 Jul 2024 13:00:49 GMT</pubDate>
+    </item>
     <item>
       <title>领先一步预测：为什么 LSTM 比 XGBoost 差这么多？</title>
       <link>https://stats.stackexchange.com/questions/651399/one-step-ahead-forecasts-why-is-lstm-so-much-worse-than-xgboost</link>
@@ -16,7 +160,9 @@
       <title>在具有自相关的 GAMM 中使用“年份”作为因子或连续变量来对甲虫数量进行建模？</title>
       <link>https://stats.stackexchange.com/questions/651397/use-year-as-a-factor-or-a-continuous-variable-in-a-gamm-with-autocorrelation-f</link>
       <description><![CDATA[我正在使用具有明确声明的自相关结构的广义加性混合模型 (GAMM) 对几年内被陷阱捕获的甲虫数量进行建模。我每年每个陷阱都有一个记录，并且有 70 个陷阱的 7 年数据。我的模型包括各种预测因子（温度、干旱）及其相互作用。
-这是我当前模型的结构。我使用 tweedie 而不是 negbin family 的泊松，因为我的数据高度分散（我之前测试过这三种方法，tw 是最好的）
+这是我当前模型的结构。我使用 tweedie 而不是 negbin 系列的泊松，因为我的数据高度分散（我之前测试过这三种方法，tw 是最好的）
+library(mgcv)
+
 m.counts.tw &lt;- gamm(sum_ips ~ s(year, k = 6) +
 s(tmp_z_lag1, k = 5) +
 s(spei_lag2, k = 8) + 
@@ -27,12 +173,12 @@ data = avg_data_filt,
 family = tw,
 correlation = corAR1(form = ~ year | site))
 
-我的目标是了解温度和干旱对甲虫数量的影响（我每年每个陷阱都有一个记录）。
+我的目标是了解效果温度和干旱对甲虫数量的影响（我每个陷阱每年都有一个记录）。
 我的问题：
 
 在这个具有自相关的 GAMM 中，使用“年份”作为因子与连续变量的优缺点是什么？
 选择使用“年份”作为因子或连续变量会如何影响结果的解释，特别是如果我已经考虑了自相关（correlation = corAR1(form = ~ year | site)）？
-在决定采用这种类型的模型时，是否有任何最佳实践或注意事项？
+在决定采用这种类型的模型中采用哪种方法时，是否有任何最佳实践或注意事项？
 
 我认为正确的方法是使用年份作为连续变量来解释时间趋势。我的同事认为我应该将 year 视为一个因素 f_year，以提高我的气候变量的预测能力。在这两种情况下，我的预测变量都很重要，但带有 f_year 的模型解释的方差小于连续的 year。
 如果您能提供任何见解或来自您自身经验的例子，我们将不胜感激！]]></description>
@@ -51,68 +197,6 @@ $P(S_2≤1)=25∫_0^1  s e^{-5s} ds$
 (D) $E[N(t)N(2t)]=200t^2+10t$]]></description>
       <guid>https://stats.stackexchange.com/questions/651396/question-regarding-poisson-process</guid>
       <pubDate>Fri, 19 Jul 2024 09:08:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于局部投影法的假设</title>
-      <link>https://stats.stackexchange.com/questions/651389/on-assumptions-of-local-projection-method</link>
-      <description><![CDATA[众所周知，Jorda（2005）提出了以下称为局部投影的模型：
-$$y_{t+h} - y_{t-1} = \beta_h shock_{t} + \gamma_h ctr_{t-1} + \epsilon_{t,h}, h = 0,1,2,\dots,H.$$
-我正在尝试计算此类模型的 AIC。为此，我必须计算似然函数，而似然函数又依赖于$\vec{\epsilon_t} = (\epsilon_{t,0},\epsilon_{t,1},\dots,\epsilon_{t,H})$的联合分布。我猜测 $\vec{\epsilon_t}$ 具有某个 $H+1$ 维高斯分布，因为我们通常通过 OLS 来估计该模型。但我不知道如何确定分布的方差-协方差矩阵。
-通过 Newey-West 校正（Newey, West, 1987, 1994）计算$Var(\epsilon_{t,h})$对我来说似乎是合理的，尽管我对此仍然不太确定。
-最困扰我的是假设$Cov(\epsilon_{t,h}, \epsilon_{t, j}) = 0$是否合适，因为在给定时间序列上下文的情况下残差之间可能存在自相关性。 我也不知道如何计算这些可能存在的协方差。有人能帮我吗？
-注意：我知道有一个 R 包可以估算 LP 并计算 AIC。但我更喜欢自己实现它。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651389/on-assumptions-of-local-projection-method</guid>
-      <pubDate>Fri, 19 Jul 2024 07:53:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>这两个联合分布的边际是否相同？</title>
-      <link>https://stats.stackexchange.com/questions/651388/are-the-marginals-of-these-two-joint-distributions-the-same</link>
-      <description><![CDATA[设 $(\Omega, \mathcal{A}, \mathbb{P})$ 为概率空间，设 $X:(\Omega, \mathcal{A})\rightarrow (\mathcal{X}, \mathcal{F})$ 和 $Y:(\Omega, \mathcal{A})\rightarrow (\mathcal{Y}, \mathcal{G})$ 为随机变量。设 $\mathbb{P}_{Y|X}$ 为正则条件分布。令 $\mu_1$ 和 $\mu_2$ 为 $(\Omega, \mathcal{A})$ 上的概率测度，令 $\mu_1^X$ 和 $\mu_2^X$ 分别为 $X$ 下的前推测度。
-现在我们可以通过以下方式在联合空间 $\mathcal{X}\times\mathcal{Y}$ 上构建分布 $\nu_1$ 和 $\nu_2$
-$$ \nu_i(A\times B) = \int_A \mathbb{P}_{Y|X=x}(B)d\mu_i^X, \quad i=1,2 $$
-我现在的问题是，联合空间上的这两个分布$\nu_1, \nu_2$是否具有相同的$Y$-边际？
-即，$\nu_1^Y=\nu_1(\mathcal{X}\times B)=\nu_2(\mathcal{X}\times B)=\nu_2^Y$是否相同？
-如果是，我该如何显示？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651388/are-the-marginals-of-these-two-joint-distributions-the-same</guid>
-      <pubDate>Fri, 19 Jul 2024 07:17:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用数据重新采样来确定子概率。多元收敛？</title>
-      <link>https://stats.stackexchange.com/questions/651385/ascertaining-sub-probabilities-using-re-sampling-of-the-data-multivariate-conve</link>
-      <description><![CDATA[
-我正在尝试计算具有以下信息的在线游戏的赔付：
-
-40% 的损失概率，值为 -2
-10% 的损失概率，值为 -1
-剩余 50% 的概率，四个潜在的非负赔付分别为 0、2、14 和 62。
-
-基于对大约 150 个观察结果的基本分析，对真实概率的当前初始猜测：
-
-$P_1 \approx 20.5\%$ 没有收益或损失，值为 0。
-$P_2 \approx 28.5\%$ 收益为 2。
-$P_4 \approx 0.8\%$ 收益为 14。
-$P_6 \approx 0.2\%$ 收益为 62。
-
-注意：$P_1 + P_2 + P_4 + P_6 = 50\%$
-我做了一些初步抽样，并在绿色，带有蓝色数值。
-
-40%、10%、50% 代表真实值，您可以看到我的基本样本摘要与 40% (38.10) 或 10% (8.84) 并不完全一致。
-我可以对数据的不同子集进行重新采样以创建收敛概率。由于这是多变量的（四个概率的总和被限制为 50%），我可以使用一些建议。
-我当然可以收集更多数据。
-最终，目标是确定游戏是否完全公平（支出 = 0）或偏向正向或负向。如果为负，庄家获胜。如果为正，我可以赢。
-如何通过重新采样数据以允许 CLT 收敛来找到四个未知概率的真实值？即求出$P_1, P_2, P_4, P_6$
-这些是独立事件，IID。
-$P_1$和$P_2$大致相等，我不知道哪个更大。$P_4$小得多，而$P_6$甚至更小。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651385/ascertaining-sub-probabilities-using-re-sampling-of-the-data-multivariate-conve</guid>
-      <pubDate>Fri, 19 Jul 2024 05:46:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>Hausman 测试结果报告</title>
-      <link>https://stats.stackexchange.com/questions/651380/hausman-test-reults-report</link>
-      <description><![CDATA[我一直在研究一个使用多级回归模型的研究项目，目前正在研究如何呈现豪斯曼检验结果。我见过一些论文，作者提到进行测试但没有包括数字，只是说随机效应模型更合适。
-我想知道在稿件中分别报告每个模型的豪斯曼检验结果是否是标准做法。我知道如果测试不显著（p &gt; 0.05），则意味着随机效应模型更合适。但我很好奇是否通常还会报告测试值和其他统计细节，如卡方值，以支持这一结论。顺便说一下，我有八个模型]]></description>
-      <guid>https://stats.stackexchange.com/questions/651380/hausman-test-reults-report</guid>
-      <pubDate>Fri, 19 Jul 2024 01:33:38 GMT</pubDate>
     </item>
     <item>
       <title>在验证性因子分析中将权重固定为 1 - 如何获得重要性 (p) 值？</title>
@@ -165,64 +249,36 @@ lavaanPlot(model = onefac3items_a, coefs=T, covs=T, stars = c(&quot;covs&quot;,&
       <pubDate>Thu, 18 Jul 2024 19:36:32 GMT</pubDate>
     </item>
     <item>
-      <title>是否有必要使用截断傅里叶级数来转换 GLM（Gamma）的潮汐变量，以及我应该如何解释相互作用？</title>
-      <link>https://stats.stackexchange.com/questions/651323/is-it-necessary-to-transform-the-tide-variable-using-a-truncated-fourier-series</link>
+      <title>链式分类器中的阈值选择</title>
+      <link>https://stats.stackexchange.com/questions/651361/threshold-selection-in-chain-classifier</link>
+      <description><![CDATA[想象一组 $m$ 个分类器和 $N$ 个先例，每个分类器分配一个阈值 $\theta_{i,j}$，这意味着，如果分类器 $j$ 上先例 $i$ 的阈值 $t_j$ 大于 $\theta_{i,j}$，则先例通过分类器：$t_j&gt;\theta_{i,j}$
+如果先例通过一个分类器，它将进入下一个分类器。在通过所有分类器后，先例被标记为$+$，如果先例被链中至少 1 个分类器丢弃，则标记为$-$。
+问题是，如何为每个$m$分类器选择阈值$t_i$，以使真阳性率最大化，而假阳性率低于某个$T$？
+我尝试在互联网上搜索阈值选择算法、常见的机器学习库，并将问题表述为混合整数问题，以便通过某些求解器进行求解，可惜没有成功（目前等待数学 Stackexchange)]]></description>
+      <guid>https://stats.stackexchange.com/questions/651361/threshold-selection-in-chain-classifier</guid>
+      <pubDate>Thu, 18 Jul 2024 19:18:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>我有计数数据，但它不遵循泊松分布，该怎么办？</title>
+      <link>https://stats.stackexchange.com/questions/651343/i-have-count-data-but-it-does-not-follow-a-poisson-distribution-what-to-do</link>
       <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/651323/is-it-necessary-to-transform-the-tide-variable-using-a-truncated-fourier-series</guid>
-      <pubDate>Thu, 18 Jul 2024 10:08:30 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/651343/i-have-count-data-but-it-does-not-follow-a-poisson-distribution-what-to-do</guid>
+      <pubDate>Thu, 18 Jul 2024 13:55:15 GMT</pubDate>
     </item>
     <item>
-      <title>治疗前后（包括对照）的泊松双向方差分析</title>
-      <link>https://stats.stackexchange.com/questions/651298/poisson-two-way-anova-test-for-before-and-after-treatment-including-a-control</link>
-      <description><![CDATA[我无法确定在此实验设计中使用哪种类型的测试：
-我的数据如下：
-
-我有 10 个治疗点和 4 个对照点
-我获得了每个治疗点和对照点的重复数据，包括应用治疗之前和之后的数据
-
-我想知道治疗是否导致计数型因变量相对于对照下降。
-我认为使用重复测量的泊松方差分析之类的方法是正确的。我也不确定要使用什么事后检验，因为这些点可能有很大差异，所以我想在初始方差分析之后进行成对比较（可能是 Wilcoxon 符号秩检验）。
-希望您能帮助我解决这个问题。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651298/poisson-two-way-anova-test-for-before-and-after-treatment-including-a-control</guid>
-      <pubDate>Thu, 18 Jul 2024 00:56:48 GMT</pubDate>
+      <title>有人可以给我举一个概率分布的例子及其符号吗？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/651326/can-someone-show-me-an-example-of-what-a-probability-distribution-looks-like-and</link>
+      <description><![CDATA[什么是随机变量 X 的概率分布？概率分布的典型符号是什么？
+有人能给我举个概率分布的例子吗？它的符号是什么样的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651326/can-someone-show-me-an-example-of-what-a-probability-distribution-looks-like-and</guid>
+      <pubDate>Thu, 18 Jul 2024 10:43:34 GMT</pubDate>
     </item>
     <item>
-      <title>Welch t 检验的 p 值对于 N=2 个样本校准不佳</title>
-      <link>https://stats.stackexchange.com/questions/651279/welch-t-test-p-values-are-poorly-calibrated-for-n-2-samples</link>
-      <description><![CDATA[我正在对非常小的样本量执行大量 Welch t 检验（方差不等的 t 检验），通常每个条件只有两个样本。我发现 p 值校准得不好：模拟分布上的分布不均匀。
-问题
-对于每个条件 N=2 个样本的 Welch t 检验，是否存在已知的校准？
-最小 Python 代码
-import numpy as np
-import scipy as sp
-from matplotlib import pyplot as plt
-
-rng = np.random.default_rng()
-
-X = rng.normal(loc=0, scale=1, size=(2, 1000000))
-Y = rng.normal(loc=0, scale=2, size=(2, 1000000))
-
-p = sp.stats.ttest_ind(X, Y, equal_var=False).pvalue
-plt.hist(p,
-bins=np.linspace(0, 1, 100),
-histt​​ype=&#39;step&#39;,
-density=True)
-plt.axhline(1)
-plt.xlabel(&#39;p&#39;)
-plt.ylabel(&#39;PDF of p&#39;)
-
-# 统计检验分布不均匀
-ks_stat, ks_p_value = sp.stats.kstest(p, &#39;uniform&#39;)
-print(&quot;KS Statistic:&quot;, ks_stat)
-print(&quot;KS Test p-value:&quot;, ks_p_value)
-
-输出如下。
-KS Statistic: 0.03906382636964301
-KS Test p-value: 0.0
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/651279/welch-t-test-p-values-are-poorly-calibrated-for-n-2-samples</guid>
-      <pubDate>Wed, 17 Jul 2024 18:56:49 GMT</pubDate>
+      <title>检查大型数据集上 Cox 模型的比例风险假设[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/651252/check-proportional-hazards-assumption-for-a-cox-model-on-a-large-dataset</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/651252/check-proportional-hazards-assumption-for-a-cox-model-on-a-large-dataset</guid>
+      <pubDate>Wed, 17 Jul 2024 14:28:42 GMT</pubDate>
     </item>
     <item>
       <title>样本与总体的统计推断</title>
@@ -245,22 +301,18 @@ KS Test p-value: 0.0
       <pubDate>Wed, 17 Jul 2024 13:57:04 GMT</pubDate>
     </item>
     <item>
-      <title>关于 R 的 lme4 混合效应模型公式的建议</title>
-      <link>https://stats.stackexchange.com/questions/651181/advice-on-mixed-effect-model-formula-for-rs-lme4</link>
-      <description><![CDATA[我对混合效应模型和 lme4 还不熟悉，非常希望得到一些建议。
-我的研究问题：哪些因素决定了企业每天的在线评论数量？
-数据是横截面的，观察结果是企业。
-因变量：在线评论数量（感兴趣的是其比率 = 每天的评论数量）
-自变量要么与业务相关，要么与位置相关，如下表所示。除了集中度，位置因素不是我感兴趣的，因此被作为控制因素。
-这是 4 行数据的样本。还有一些与企业和地点相关的变量，为了简洁起见，我将省略它们：
+      <title>如何对基于样本的丰度数据进行稀疏分析？</title>
+      <link>https://stats.stackexchange.com/questions/651216/how-to-do-rarefaction-analysis-for-sample-based-abundance-data</link>
+      <description><![CDATA[我想通过稀疏法比较不同林分的植物丰富度。数据以基于样地的方式收集。我在每个林分中设置了 4 个大小相同的样地，在每个样地的 5 个子样地中计数所有植物个体，并按样地汇总数据。所以我的数据属于 Colwell 等人 (2012) 提出的“基于样本的丰度数据”，（编辑：这意味着与基于个体的丰度数据相比，基本采样单位是样地，而不是个体，而丰度是在每个样本单位中测量的，与基于样本的发生率数据相比，后者仅记录样本单位中物种的存在/不存在）。我正在使用 R 包 iNEXT 来分析数据，但无法确定我应该使用哪种稀疏法。
+iNEXT 包支持基于个体的丰度数据和基于样本单位的存在/不存在发生率数据，但似乎没有处理基于样本的丰度数据的说明。我认为我应该将丰度数据转换为存在/不存在并将其作为发生率数据进行分析，而不是将其视为基于个体的丰度数据，以保留空间信息（Colwell 等，2012）。但我想知道样本单位数量少（每个林分 4 个地块）是否会成为问题？例如影响自举置信区间的准确性。此外，由于稀疏化的目标是标准化不同样本量的数据以供比较，我的数据在样本单位的情况下具有相同的样本量，但采样个体数量不同。按样本单位标准化是否合适？
+此外，iNEXT 提供了按样本覆盖率标准化数据的选项。在我的情况下，将数据视为基于个体会产生更高的估计覆盖率。例如：当作为基于个体的丰度数据处理时，两个林分的估计覆盖率达到 96% 和 98%，但转换为存在-不存在数据时下降到 77% 和 91%。附件是使用不同类型数据的覆盖率的稀疏化结果示例。我希望能得到一些关于处理我的数据的最佳方法的建议。提前谢谢您。
 
-由于我的一个焦点独立变量（竞争对手的集中度）是在邮政编码级别，并且这些企业嵌套在邮政编码中（因此可以共享集中度值），因此我决定使用混合效应模型，将邮政编码作为随机效应。此外，由于因变量是计数，因此我决定采用泊松或负二项回归，以在线评论的天数作为偏移量。我在 R 中使用 lme4，我的问题主要围绕下面的公式以及它是否合理。
-公式：
-在线评论数量 ~ 价格 * 浓度 + 提供的服务数量 + 偏移量（在线评论时间跨度的对数）+ (1|邮政编码) + (1|价格)
-我的主要理论贡献之一是强调不同因素的影响如何取决于位置因素，尤其是浓度。我的公式（特别是 1|邮政编码）是否准确反映了这一点？我会注意到浓度变量的范围非常有限（如果数据点在 0 到 4 之间，则为 75%），因此我无法将其分为多个类别以将其用作与邮政编码分开的随机效应）。
-请随时解决您看到的任何其他问题，甚至可以重写公式来帮我澄清问题。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651181/advice-on-mixed-effect-model-formula-for-rs-lme4</guid>
-      <pubDate>Tue, 16 Jul 2024 18:55:35 GMT</pubDate>
+
+参考文献：
+Colwell, R.K., Chao, A., Gotelli, N.J., Lin, S.-Y., Mao, C.X., Chazdon, R.L.、Longino、J.T.，2012 年。基于个体和基于样本的稀疏化、外推和群落比较的模型和估计量。《植物生态学杂志》5，3-21。https://doi.org/10.1093/jpe/rtr044
+Chao、A.、Gotelli、N.J.、Hsieh、T.C.、Sander、E.L.、Ma、K.H.、Colwell、R.K.、Ellison、A.M.，2014 年。使用希尔数的稀疏化和外推：物种多样性研究中的抽样和估计框架。《生态专著》84，45-67。 https://doi.org/10.1890/13-0133.1]]></description>
+      <guid>https://stats.stackexchange.com/questions/651216/how-to-do-rarefaction-analysis-for-sample-based-abundance-data</guid>
+      <pubDate>Wed, 17 Jul 2024 06:15:15 GMT</pubDate>
     </item>
     <item>
       <title>对给定点的连续随机变量的概率的困惑</title>
@@ -279,16 +331,6 @@ $$Y = \text{电池寿命}$$
 在答题纸上，他们使用了 $f_{Y|X}(y) = \lambda e^{-\lambda y}$，其中他们输入 $y = 5$ 来得到答案。但我研究发现，给定点处连续随机变量的概率为 $0$。所以我这样做 $P(X = 1 | Y \ge 5)$ 来找到答案。他们为什么这样做，解决这个问题的正确方法是什么？我确实对这些概念感到困惑。]]></description>
       <guid>https://stats.stackexchange.com/questions/650845/confusion-about-the-probability-of-a-continuous-random-variable-at-a-given-point</guid>
       <pubDate>Thu, 11 Jul 2024 03:12:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>当预测值按组平均时，使用随机森林是否有意义？</title>
-      <link>https://stats.stackexchange.com/questions/644816/does-it-make-sense-to-use-random-forest-when-predictor-values-are-averaged-by-gr</link>
-      <description><![CDATA[简而言之：当预测变量按样本组平均时，使用随机森林分析预测因子的重要性是否有意义？
-我正在开展一个生态数据分析项目，涉及多个岛屿（150 个观测值，5 个岛屿）土壤细菌丰富度的多样性。但是，由于我们的采样方法的限制，我们的预测变量（例如 pH）在每个岛屿的样本中取平均值，这意味着我例如每个岛屿有一个 pH 值和 50 个细菌丰富度值（每个岛屿的观测值数量不平衡）。
-我希望使用随机森林 (RF) 来确定影响岛屿细菌多样性的关键预测因子，但我不确定按岛屿平均预测变量是否会影响模型的有效性或可解释性。 RF 在这里仍然有效吗？平均预测因子是否需要进行任何调整？
-注意：另一种选择是平均细菌丰富度并进行线性回归，但由于随机森林可以更“自然地”捕捉非线性关系和相互作用（并且不假设线性模型限制），我想给这种方法一个机会。]]></description>
-      <guid>https://stats.stackexchange.com/questions/644816/does-it-make-sense-to-use-random-forest-when-predictor-values-are-averaged-by-gr</guid>
-      <pubDate>Thu, 11 Apr 2024 16:42:26 GMT</pubDate>
     </item>
     </channel>
 </rss>
