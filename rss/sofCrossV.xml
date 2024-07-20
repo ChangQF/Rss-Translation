@@ -4,9 +4,106 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 19 Jul 2024 21:13:42 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 20 Jul 2024 01:05:39 GMT</lastBuildDate>
     <item>
-      <title>证明 $T$ 是一个完全统计量，并找到 $p$ 的 UMVUE</title>
+      <title>在 FDR 之前过滤单侧检验</title>
+      <link>https://stats.stackexchange.com/questions/651432/filter-one-sided-tests-before-fdr</link>
+      <description><![CDATA[在这篇博文中，作者展示了一个“奇怪”的例子p 值直方图（“场景 C”）：
+
+一种解释是，进行了单侧检验，而效果相反的检验给出的 p 值接近 1。他的建议是在计算 FDR 之前根据效果方向过滤掉检验。
+但是，我知道，如果过滤方式不正确，在计算 FDR 之前进行预过滤可能会出现问题，例如讨论过的那样这里，当我们查看结果时，感觉按效果方向过滤是“作弊”。
+现在，如果我在 R 中运行快速模拟（如下所示），过滤会导致 p 值分布在 0 到 0.5 之间，因此 p 值在 0 和 1 之间均匀的假设不再有效。那么，在计算 FDR 之前根据效果方向进行过滤是否正确？
+此外，从经验上看我模拟中的 FDR 和功效，如果我在 p.adjust() 中指定测试总数，似乎我可以保持正确的 FDR 控制，同时仍获得一点功效。这是正确的做法吗？
+模拟
+set.seed(1)
+
+## 生成数据 ----
+real_means &lt;- c(
+rep(0, 1000), # 无影响
+runif(200, -1, 0), # 减少
+runif(200, 0, 1) # 增加
+)
+labels &lt;- c(
+rep(&quot;none&quot;, 1000),
+rep(&quot;decreased&quot;, 200),
+rep(&quot;increased&quot;, 200)
+)
+
+samples &lt;- lapply(real_means, \(mu) rnorm(30, mu, sd = 1))
+
+## 计算 p 值和 fdr ----
+p_values &lt;- sapply(samples, \(x) t.test(x, alternative = &quot;greater&quot;)$p.value )
+p_values &lt;- setNames(p_values, labels)
+
+hist(p_values, breaks = 70)
+
+
+
+
+fdr &lt;- p.adjust(p_values, method = &quot;BH&quot;)
+
+## 检查结果 ----
+false_positives &lt;- sum( fdr[names(fdr) != &quot;increased&quot;] &lt; 0.05 )
+predicted_positives &lt;- sum( fdr &lt; 0.05 )
+true_positives &lt;- sum( fdr[names(fdr) == &quot;increased&quot;] &lt; 0.05 )
+positives &lt;- sum( names(fdr) == &quot;increased&quot; )
+
+# 错误发现率
+false_positives / predicted_positives
+#&gt; [1] 0.01234568
+
+# 真正率
+true_positives / positives
+#&gt; [1] 0.4
+
+## 带过滤 ----
+
+direction_increasing &lt;- sapply(samples, \(x) mean(x) &gt;= 0 )
+
+filtered_p_values &lt;- p_values[ direction_increasing ]
+
+hist(filtered_p_values)
+
+
+
+filt_fdr &lt;- p.adjust(filtered_p_values, method = &quot;BH&quot; )
+
+false_positives &lt;- sum(filt_fdr[names(filt_fdr) != &quot;增加&lt; 0.05 )
+predicted_positives &lt;- sum(filt_fdr &lt; 0.05 )
+true_positives &lt;- sum(filt_fdr[names(filt_fdr) == &quot;增加&lt; 0.05 )
+positives &lt;- sum(names(filt_fdr) == &quot;增加&lt; )
+
+# 错误发现率
+false_positives / predicted_positives
+#&gt; [1] 0.04301075
+
+# 真正率
+true_positives / positives
+#&gt; [1] 0.4863388
+
+## 带过滤，但指定测试总数 ----
+
+filt_fdr_with_n &lt;- p.adjust(filtered_p_values, method = &quot;BH&quot;, n = length(p_values) )
+
+false_positives &lt;- sum( filt_fdr_with_n[names(filt_fdr_with_n) != &quot;increased&quot;] &lt; 0.05 )
+predicted_positives &lt;- sum( filt_fdr_with_n &lt; 0.05 )
+true_positives &lt;- sum( filt_fdr_with_n[names(filt_fdr_with_n) == &quot;increased&quot;] &lt; 0.05 )
+positives &lt;- sum( names(filt_fdr_with_n) == &quot;increased&quot; )
+
+# 错误发现率
+false_positives / predictive_positives
+#&gt; [1] 0.01234568
+
+# 真阳性率
+true_positives / positives
+#&gt; [1] 0.4371585
+
+于 2024-07-19 使用 reprex v2.1.0 创建]]></description>
+      <guid>https://stats.stackexchange.com/questions/651432/filter-one-sided-tests-before-fdr</guid>
+      <pubDate>Fri, 19 Jul 2024 22:21:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>证明 $T$ 是一个完全统计量，并找到 $p$ 的 UMVUE [重复]</title>
       <link>https://stats.stackexchange.com/questions/651430/prove-that-t-is-a-complete-statistic-and-find-a-umvue-for-p</link>
       <description><![CDATA[在准备预赛时，我遇到了这个问题：
 设$X_1, X_2,\cdots, X_n$为伯努利试验序列，$n \geq 4.$已知，$X_1,X_2,X_3 \stackrel{\text{i.i.d.}}{\sim} Ber(\frac12),$且对于$4\leq i \leq n,$ $P(X_i=X_{i-1}|X_1,\cdots,X_{i-1})=1-p,$ $p \in (0,1).$ 考虑 $T:=\sum_{i=4}^n |X_i-X_{i-1}|$。$T$ 是否完整？因此（否则），找到 $p$ 的 UMVUE。
@@ -17,7 +114,7 @@
     <item>
       <title>有人可以给我举一个概率分布的例子及其符号吗？[重复]</title>
       <link>https://stats.stackexchange.com/questions/651429/can-someone-give-me-an-example-of-what-a-probability-distribution-looks-like-and</link>
-      <description><![CDATA[随机变量 X 的概率分布是什么？概率分布的典型符号是什么？
+      <description><![CDATA[什么是随机变量 X 的概率分布？概率分布的典型符号是什么？
 有人能给我举个概率分布的例子吗？它的符号是什么样的？]]></description>
       <guid>https://stats.stackexchange.com/questions/651429/can-someone-give-me-an-example-of-what-a-probability-distribution-looks-like-and</guid>
       <pubDate>Fri, 19 Jul 2024 20:45:09 GMT</pubDate>
@@ -101,69 +198,20 @@ $$
     <item>
       <title>模型具有更高的（且更接近 1）$\beta$，但 $R^2$ 和相关性相似</title>
       <link>https://stats.stackexchange.com/questions/651423/model-has-higher-and-closer-to-1-beta-but-similar-r2-and-correlation</link>
-      <description><![CDATA[我有一个模型，它产生预测$\hat{y_1}$，后来我又想出了一个新模型，它产生预测$\hat{y_2}$。我有基本事实$y$。
+      <description><![CDATA[我有一个模型，它产生预测$\hat{y_1}$，后来我又想出了一个新模型，它产生预测$\hat{y_2}$。我有基本事实$y$。 这些模型不是基于回归的，但它们是线性的，我想在回归指标中对它们进行评估。
 如果我运行$y \sim \beta_1 \hat{y_1}$、$y \sim \beta_2 \hat{y_2}$，我会看到$\beta_2 \sim 1$和$\beta_1 \sim 0.8$。我认为这意味着我的模型 2 “缩放得更好”。
-但如果我直接计算 $R2(y, \hat{y_1}) = 1- \frac{\sum (y_t - \hat{y_1}_t )^2 }{\sum y_t^2}$ 和 $R2(y, \hat{y_1}) = 1- \frac{\sum (y_t - \hat{y_2}_t )^2 }{\sum y_t^2}$（因为我不尝试重新运行回归 $y \sim \beta_1 \hat{y_1}$ 并得到回归 R2。我只是直接计算 $R2(y, \hat{y_1}) = 1- \frac{\sum (y_t - \hat{y_1}_t )^2 }{\sum y_t^2}$)。我发现它们大致相等。
-当我计算 $y$ 和 $\hat{y_1}$ 之间的相关性以及 $y$ 和 $\hat{y_2}$ 之间的相关性时，我发现它们也几乎相等。我想这并不奇怪，因为相关性只是 r2 的平方根。
-它告诉了我关于预测的什么？我觉得有点惊讶。我认为“更好的缩放”预测器应该出现在回归指标的某个地方？为什么“更好尺度”的回归没有给我更好的 R2？]]></description>
+但如果我直接计算 $R2(y, \hat{y_1}) = 1- \frac{\sum (y_t - \hat{y_1}_t )^2 }{\sum y_t^2}$ 和 $R2(y, \hat{y_2}) = 1- \frac{\sum (y_t - \hat{y_2}_t )^2 }{\sum y_t^2}$（因为我不会尝试重新运行回归 $y \sim \beta_1 \hat{y_1}$ 并得到回归 R2。我只是直接计算 $R2(y, \hat{y_1}) = 1- \frac{\sum (y_t - \hat{y_1}_t )^2 }{\sum y_t^2}$)。我发现它们大致相等。
+当我计算 $y$ 和 $\hat{y_1}$ 之间的相关性以及 $y$ 和 $\hat{y_2}$ 之间的相关性时，我发现它们也几乎相等。请注意，这里的相关性可能不是 R2 的平方根，因为我的模型不是基于回归的。
+它告诉了我关于预测的什么？我觉得有点惊讶。我认为“更好的规模”预测因子应该出现在回归指标的某个地方吗？为什么“更好的尺度”回归没有给我更好的 R2？]]></description>
       <guid>https://stats.stackexchange.com/questions/651423/model-has-higher-and-closer-to-1-beta-but-similar-r2-and-correlation</guid>
       <pubDate>Fri, 19 Jul 2024 19:10:07 GMT</pubDate>
     </item>
     <item>
       <title>分位数函数容易求解但 CDF 难以求解的分布示例</title>
       <link>https://stats.stackexchange.com/questions/651421/examples-of-distributions-with-easily-solvable-quantile-functions-but-hard-to-so</link>
-      <description><![CDATA[我对概率分布的例子很感兴趣，其中分位数函数 $F^{-1}(p)$ 以闭式存在或易于计算，但累积分布函数 (CDF) $F(x)$ 不以闭式存在。特别是分位数函数易于求解但 CDF 难以求解或无法求解的例子，尤其是当分布用于实际应用时。任何例子都将不胜感激！]]></description>
+      <description><![CDATA[我对概率分布的例子很感兴趣，其中分位数函数 $F^{-1}(p)$ 以闭式存在或易于计算，但累积分布函数 (CDF) $F(x)$ 不以闭式存在。特别是分位数函数易于求解但 CDF 难以或无法求解的例子让我很感兴趣，尤其是当分布用于实际应用时。任何例子都将不胜感激！]]></description>
       <guid>https://stats.stackexchange.com/questions/651421/examples-of-distributions-with-easily-solvable-quantile-functions-but-hard-to-so</guid>
       <pubDate>Fri, 19 Jul 2024 18:14:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>帮助进行概率测试，比较两个实体之间预期数字的存在/不存在</title>
-      <link>https://stats.stackexchange.com/questions/651419/help-for-a-probability-test-comparing-presence-absence-of-expected-number-betwee</link>
-      <description><![CDATA[我有一个概率问题，我不知道如何解决。
-在这个问题中，我有一个 VirusA 的基因组，其中有 100 个基因，我知道其中 20/100 是该病毒所特有的。
-另一方面，我有另一个不完整的 VirusB（我没有对所有病毒进行测序），其中 40/100 的 VirusA 基因存在于 VirusB 中。而 VirusA 特有的基因中没有一个存在于 VirusB 中。
-那么我的问题如下：
-偶然看到它的概率是多少？我的意思是 VirusA 的所有独特基因都未在 VirusB 中偶然采样的概率是多少？
-我需要这个概率来表明，由于我在 VirusB 中没有得到任何 VirusA 基因，即使 VirusB 不完整，它与 VirusA 相同的概率也很低。
-感谢您的帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651419/help-for-a-probability-test-comparing-presence-absence-of-expected-number-betwee</guid>
-      <pubDate>Fri, 19 Jul 2024 17:03:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>对贝叶斯决策理论感到困惑</title>
-      <link>https://stats.stackexchange.com/questions/651418/confused-on-bayesian-decision-theory</link>
-      <description><![CDATA[我试图理解选择“动作”的正确方法是什么，正如 Murphy 在《机器学习的概率视角》一书中在“贝叶斯决策理论”一章中所说的那样。
-我们可以考虑具有脊权重的线性回归模型的简单情况，因此，对于某个值收缩$\Sigma$，参数的后验可以写成$p(\theta | \Sigma, D)p(\Sigma | D)$，其中$D$是数据。假设我正在考虑绝对损失，以下哪项是正确的，为什么？
-选项 1：
-$
-a(X) = \mathrm{argmin}_{m, \Sigma}\mathrm{Med}[Y | X, \Sigma, D] = \mathrm{argmin}_{m, \Sigma}\int |y - m(X)| p(y|X, \beta)p(\beta|\Sigma, D)\mathrm{d}y\mathrm{d}\beta
-$
-或者，选项 2：
-$
-a(X) = \mathrm{Med}[Y | X, D] = \mathrm{argmin}_{m}\int |y - m(X)| p(y|X, \beta)p(\beta|\Sigma, D)p(\Sigma | D)\mathrm{d}y\mathrm{d}\beta\mathrm{d}\Sigma
-$
-要点是贝叶斯理论中的模型选择如何运作]]></description>
-      <guid>https://stats.stackexchange.com/questions/651418/confused-on-bayesian-decision-theory</guid>
-      <pubDate>Fri, 19 Jul 2024 16:58:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>lmer - 如何解释随机因素之间的相关性？</title>
-      <link>https://stats.stackexchange.com/questions/651416/lmer-how-to-interpret-correlation-between-random-factors</link>
-      <description><![CDATA[我的模型：
-DV ~ 1 + Time*IV + (1 + Time| Subject_ID)
-其中 IV 是受试者间独立变量，Time 是受试者内重复测量。DV 是因变量。该模型没有收敛警告/问题。
-这是随机效应表：
-随机效应：
-组名称方差标准差相关系数
-Subject_ID（截距）1541413 1241.5
-时间 322490 567.9 -0.75
-残差 3172063 1781.0
-
-Q1。“强”是什么意思？相关性（即 &gt; .7）的平均值，我应该如何在分析中解释它？
-Q2。如果相关性为“强”或甚至为 1，我是否应该按时间降低随机斜率，而仅保留 Subject_ID 的随机截距？
-Q3。如果相关性为“弱”（即 &lt;.3），这是什么意思，我应该如何在分析中解释它？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651416/lmer-how-to-interpret-correlation-between-random-factors</guid>
-      <pubDate>Fri, 19 Jul 2024 16:30:43 GMT</pubDate>
     </item>
     <item>
       <title>根据拉普拉斯变换识别密度函数</title>
@@ -198,17 +246,6 @@ $$
       <pubDate>Fri, 19 Jul 2024 16:25:15 GMT</pubDate>
     </item>
     <item>
-      <title>使用 glmer 逻辑回归检查收敛问题后的模型</title>
-      <link>https://stats.stackexchange.com/questions/651414/checking-model-after-convergence-issues-with-glmer-logistic-regression</link>
-      <description><![CDATA[我正在使用 glmer 运行逻辑回归模型，其中受试者 ID 嵌套在窝仔 ID 中。方程式如下：
-glmer(结果 ~ 组 * 时间 + 上一状态 + (1|窝仔/幼崽), 数据, 家庭 = 二项式())
-我正在分析一项随机对照试验，该试验有来自 120 窝的 679 名受试者，总共 1983 个观察值。
-当包含受试者 ID 时，模型不会收敛。我使用了“allFit”，发现如果我使用“bobyqa”，模型就会收敛。但是，受试者 ID 的随机效应方差看起来非常高 - 使用公式 var/(var+pi^2/3)，它表明受试者 ID 本身就解释了我的结果中超过 99% 的方差。我查看了受试者 ID 的毛毛虫图（使用 qqmath），看看它是否看起来合理（以决定我是否可以继续报告结果），但我不确定。有人能给点建议吗？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/651414/checking-model-after-convergence-issues-with-glmer-logistic-regression</guid>
-      <pubDate>Fri, 19 Jul 2024 16:22:19 GMT</pubDate>
-    </item>
-    <item>
       <title>以和为条件的 iid 平方的期望值</title>
       <link>https://stats.stackexchange.com/questions/651402/expected-value-of-iid-squared-conditioned-on-sum</link>
       <description><![CDATA[我有兴趣找到以下表达式的值：
@@ -232,6 +269,109 @@ $$ \nu_i(A\times B) = \int_A \mathbb{P}_{Y\mid X=x}(B) \, d\mu_i^X, \quad i=1,2 
 如果是，我该如何显示？]]></description>
       <guid>https://stats.stackexchange.com/questions/651388/are-the-marginals-of-these-two-joint-distributions-the-same</guid>
       <pubDate>Fri, 19 Jul 2024 07:17:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么第一个主成分的特征值比其余主成分高得多？</title>
+      <link>https://stats.stackexchange.com/questions/651370/why-is-the-amount-of-eigenvalue-of-the-first-principal-component-much-higher-tha</link>
+      <description><![CDATA[我有 16 个水质参数的时间序列，在使用 zscore 方法对其进行标准化后，我进行了主成分分析。这些是我的特征值 [7.62675203795075
+2.25806327090482
+1.72428547604366
+1.44517173004117
+1.30223669986535
+1.18683140226834
+1.01121663757535
+0.840810909788259
+0.68 3733271693109
+0.641289626275986
+0.427483271093487
+0.367733123021385
+0.243180116969796
+0.216284282138318
+0.132868635217870
+0.0705244464795644]。
+
+可以看到，第一个主成分的特征值和其余主成分相差很大，这是我在以前的研究中没有见过的，而且是随着间隔变小而减小的。是什么因素导致了结果这样？是不是我的数据不适合做主成分分析？我还做了KMO检验，结果是0.91。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651370/why-is-the-amount-of-eigenvalue-of-the-first-principal-component-much-higher-tha</guid>
+      <pubDate>Thu, 18 Jul 2024 21:47:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>预测区间准确度与均方误差之间的权衡</title>
+      <link>https://stats.stackexchange.com/questions/651367/tradeoff-between-prediction-interval-accuracy-mean-squared-error</link>
+      <description><![CDATA[我的目标是量化气候协变量与 GDP 回归模型中的预测不确定性。我从一个模型开始，该模型以温度作为三次多项式，国家固定效应（$\alpha_i$}，年份固定效应（$\theta_t$）和国家增量时间趋势（$\gamma_i$）。
+$$ 
+GDP_{it} = \beta_1 * Temp_{it} + \beta_2 * Temp^2_{it} + \beta_3 * Temp^3_{it} + \alpha_i + \theta_t + \gamma_i
+$$
+我使用一些保留数据来收集上述模型的样本外均方误差。我还使用样本外预测的标准误差来构建 95% 的预测间隔，然后检查实际 Y（GDP）值在这些间隔内的实际百分比作为预测间隔准确度。
+样本外 MSE：0.017
+样本外预测间隔准确度：0.577
+
+为了使预测间隔准确度更接近 95% 的目标，我尝试了一个具有更高次数多项式时间趋势的不同模型，如下所示：
+$$ 
+GDP_{it} = \beta_1 * Temp_{it} + \beta_2 * Temp^2_{it} + \beta_3 * Temp^3_{it} + \alpha_i + \theta_t + \gamma_i + \gamma^2_i + \gamma^3_i
+$$
+样本外 MSE： 0.018
+样本外预测区间准确度：0.722
+
+由于预测区间更宽，预测区间准确度大大提高，这可能是因为模型在训练数据中纳入了更多方差。但是，可能由于额外的模型复杂性导致过度拟合，第二个模型的 MSE 高于第一个模型。
+我的问题与这个特定示例关系不大，而是与我普遍观察到的这种现象关系更大。我想知道：
+
+是否存在一个单一的潜在现象，可以解释为什么增加模型复杂度会导致样本外预测区间更接近 95% 的目标，同时增加模型的样本外 MSE，或者这些本质上是独立的观察结果？
+
+如果我的目标是尽可能量化模型不确定性，那么如何正确考虑以更高质量（在这种情况下意味着更宽）的样本外预测区间换取随后的样本外 MSE 增加？
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/651367/tradeoff-between-prediction-interval-accuracy-mean-squared-error</guid>
+      <pubDate>Thu, 18 Jul 2024 20:44:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>在验证性因子分析中将权重固定为 1 - 如何获得重要性 (p) 值？</title>
+      <link>https://stats.stackexchange.com/questions/651362/fixed-weights-to-1-in-confirmatory-factor-analysis-how-significance-p-value</link>
+      <description><![CDATA[我有一个与此主题有些相关的问题。
+我现在明白了为什么在验证分析中应该将 1 的值固定到其中一条路径上，我也明白可以使用各种技巧来释放这个参数。但我感兴趣的问题是，如何用标准化解决方案计算固定路径到 1 的统计显著性。
+让我们考虑一个来自这里的例子，我将使用 R 中的 Lavaan 包的示例。
+library(lavaanPlot)
+library(foreign) 
+library(lavaan)
+
+dat &lt;- read.spss(&quot;https://stats.idre.ucla.edu/wp-content/uploads/2018/05/SAQ.sav&quot;, to.data.frame=TRUE, use.value.labels = FALSE)
+
+m1a &lt;- &#39; f =~ q03 + q04 + q05&#39;
+onefac3items_a &lt;- cfa(m1a, data=dat) 
+summary(onefac3items_a) 
+
+这里，正如您在摘要中看到的，没有统计意义，因为路径 f~q03 是固定的。
+潜在变量：
+估计 Std.Err z 值 P(&gt;|z|)
+f =~ 
+q03 1.000 
+q04 -1.139 0.073 -15.652 0.000
+q05 -0.945 0.056 -16.840 0.000
+
+摘要相同标准化：
+summary(onefac3items_a,standardized=TRUE)
+(...)
+
+潜在变量：
+估计 Std.Err z 值 P(&gt;|z|) Std.lv Std.all
+f =~ 
+q03 1.000 0.583 0.543
+q04 -1.139 0.073 -15.652 0.000 -0.665 -0.701
+q05 -0.945 0.056 -16.840 0.000 -0.551 -0.572
+
+但是，当使用标准化解决方案函数时，我得到了 p 值。怎么回事，为什么？这怎么可能呢？
+standardizedsolution(onefac3items_a)
+lhs op rhs est.std se z pvalue ci.lower ci.upper
+1 f =~ q03 0.543 0.022 25.120 0 0.500 0.585
+2 f =~ q04 -0.701 0.024 -29.710 0 -0.747 -0.655
+3 f =~ q05 -0.572 0.022 -26.105 0 -0.615 -0.529
+
+同样，当我使用 plot 时，我得到了显著性星号。
+lavaanPlot(model = onefac3items_a, coefs=T, covs=T, stars = c(&quot;covs&quot;,&quot;latent&quot;,&quot;regress&quot;), stand=T)
+
+我不完全理解这种机制。为什么一条固定的、没有计算系数的路径突然与标准化解具有统计意义？这里使用了什么方法？是程序简单地改变了固定路径的位置，例如，我们暂时将路径 f~q04 固定为 1 来计算 f~q03 的系数，还是方法完全不同？
+附加问题：在 AMOS 中可以实现相同的效果吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651362/fixed-weights-to-1-in-confirmatory-factor-analysis-how-significance-p-value</guid>
+      <pubDate>Thu, 18 Jul 2024 19:36:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
