@@ -4,24 +4,167 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 21 Jul 2024 09:14:43 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 21 Jul 2024 12:27:20 GMT</lastBuildDate>
     <item>
-      <title>如何在 8 个 GPU 上并行化 Transformer 模型以进行机器翻译？</title>
+      <title>时间序列模型中的极端 RMSE 验证分数</title>
+      <link>https://stackoverflow.com/questions/78775154/extreme-rmse-validation-score-in-time-series-model</link>
+      <description><![CDATA[我有一个包含每小时数据的数据集，有 4000 行和 3 个数字列。它没有明显的趋势或季节性。我在下面分享了 stl 分解图以及一个目标列的原始线图。
+这是一列目标的图表
+我使用此代码进行训练：
+tscv = TimeSeriesSplit(n_splits=5,gap=24)
+train_rmse_scores = []
+val_rmse_scores = []
+
+for fold, (train_index, test_index) in enumerate(tscv.split(melen_forecast_df), start=1):
+train_df, test_df = melen_forecast_df.iloc[train_index], melen_forecast_df.iloc[test_index]
+
+# 仅使用训练集创建特征
+X_train = create_all_features(train_df)
+y_train = train_df[targets]
+
+# 为测试集创建特征
+X_test = create_all_features(test_df)
+y_test = test_df[targets]
+
+X_train = X_train.iloc[4:]
+y_train = y_train.iloc[4:]
+X_test = X_test.iloc[4:]
+y_test = y_test.iloc[4:]
+
+print(f&quot;Fold {fold} - 训练数据形状：{X_train.shape}, 验证数据形状：{X_test.shape}&quot;)
+
+model = MultiOutputRegressor(xgb.XGBRegressor(objective=&#39;reg:squarederror&#39;,n_estimators=500,learning_rate=0.015))
+# 训练模型
+model.fit(X_train, y_train)
+
+# 预测并计算训练集的 RMSE
+y_train_pred = model.predict(X_train)
+train_rmse_per_target = [np.sqrt(mean_squared_error(y_train.iloc[:, i], y_train_pred[:, i])) 
+for i in range(y_train.shape[1])]
+train_rmse_scores.append(train_rmse_per_target)
+
+for i, rmse in enumerate(train_rmse_per_target, start=1):
+print(f&quot;Fold {fold} - Training Target {i} RMSE: {rmse:.4f}&quot;)
+
+# 预测并计算验证集的 RMSE
+y_pred = model.predict(X_test)
+val_rmse_per_target = [np.sqrt(mean_squared_error(y_test.iloc[:, i], y_pred[:, i])) 
+for i in range(y_test.shape[1])]
+val_rmse_scores.append(val_rmse_per_target)
+
+for i, rmse in enumerate(val_rmse_per_target, start=1):
+print(f&quot;Fold {fold} - Validation Target {i} RMSE: {rmse:.4f}&quot;)
+
+# 计算并打印所有折叠的平均 RMSE
+avg_train_rmse = np.mean(train_rmse_scores, axis=0)
+avg_val_rmse = np.mean(val_rmse_scores, axis=0)
+
+我正在尝试使用 MultiOutputRegressor 训练这 3 个目标列，包装XGBoostRegressor。我的问题是 RMSE 分数对于训练和验证来说都太高了。即使使用 optuna 调整超参数后，效果似乎也不好。我甚至看到验证 RMSE 等于 7000。此时我无法确定我的模型是过度拟合还是欠拟合，因为如果我开始使用基本特征进行训练，我的验证分数会从非常高的验证 RMSE 开始，然后继续下去。我想我在某个时候犯了严重的错误。]]></description>
+      <guid>https://stackoverflow.com/questions/78775154/extreme-rmse-validation-score-in-time-series-model</guid>
+      <pubDate>Sun, 21 Jul 2024 12:14:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>我正在进行多类分类，但是在如何通过参数调整进行特征和模型选择方面遇到了困难</title>
+      <link>https://stackoverflow.com/questions/78775112/i-am-doing-multiclass-classification-but-i-am-having-hard-time-with-how-to-do-t</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78775112/i-am-doing-multiclass-classification-but-i-am-having-hard-time-with-how-to-do-t</guid>
+      <pubDate>Sun, 21 Jul 2024 11:54:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>尽管训练准确率很高，Transformer 模型在推理过程中仍重复相同的密码子</title>
+      <link>https://stackoverflow.com/questions/78775009/transformer-model-repeating-same-codon-during-inference-despite-high-training-ac</link>
+      <description><![CDATA[我正在开发一个基于转换器的模型，将氨基酸转化为密码子。在训练和验证过程中，我的模型的准确率达到了 95-98%。然而，在推理过程中，我遇到了一个问题，即输出序列由一遍又一遍重复的相同密码子组成，如下所示：
+gcc gcc gcc gcc gcc gcc gcc gcc gcc gcc gcc gcc ...
+这是我的推理代码：
+定义推理函数
+def infer(model, path_infer, start_token_id=2, output_level=&#39;DNA&#39;): 
+if output_level == &#39;DNA&#39;:
+tokenizer = Tokenizer.from_file(tokenizer_DNAfile)
+else:
+tokenizer = Tokenizer.from_file(tokenizer_RNAfile)
+model.eval()
+infer_data = s.fasta_to_list(path_infer, seq_to_codon=False, Separate_aa=True, sos_eos=False)
+fast_tokenizer = PreTrainedTokenizerFast(tokenizer_file=tokenizer_AAfile)
+src = fast_tokenizer.encode(infer_data[0], padding=&#39;max_length&#39;, return_tensors=&quot;pt&quot;, max_length=config[&#39;input_length&#39;])
+max_length = torch.count_nonzero(src).item()
+
+使用 torch.no_grad():
+src_embed = model.src_embedding(src)
+memory = model.encoder(src_embed)
+tgt_input = torch.LongTensor([[start_token_id]])
+output_sequence = [start_token_id]
+
+for _ in range(max_length):
+tgt_embed = model.tgt_embedding(tgt_input)
+coder_output = model.decoder(memory, tgt_embed)
+output_logits = model.fc_out(decoder_output[:, -1, :])
+next_token = output_logits.argmax(dim=-1).item()
+output_sequence.append(next_token)
+tgt_input = torch.cat((tgt_input, torch.LongTensor([[next_token]])), dim=1)
+
+return tokenizer.decode(output_sequence[1:], skip_special_tokens=True)
+
+loading_path = os.path.join(checkpoint_dir, config[&#39;model_name&#39;])
+model.load_checkpoint(loading_path, model, optimizer)
+z = infer(model, path_infer)
+print(z)
+
+详细信息：
+
+框架： PyTorch
+
+模型：Transformer
+
+Tokenizer：用于氨基酸的 PreTrainedTokenizerFast，用于 DNA/RNA 的自定义 tokenizer
+
+训练准确率：95-98%
+
+推理输出：重复序列（例如，“gcc gcc gcc...”）
+
+
+我已采取的步骤：
+
+检查训练和验证阶段：该模型表现良好，准确率高。
+
+检查推理代码：确保它遵循标准 Transformer 推理实践。
+
+
+问题：
+在推理过程中，模型输出重复的密码子，这是在训练和验证期间的高精度下不期望的。
+问题：
+
+什么可能导致模型在推理过程中生成重复序列？
+
+Transformer 推理中是否存在可能导致此行为的常见陷阱？
+
+我如何修改推理函数以解决此问题？
+
+
+其他信息：
+
+使用 argmax 进行下一个标记选择。
+
+模型已正确加载并设置为评估模式。
+
+
+任何见解或建议都将不胜感激！]]></description>
+      <guid>https://stackoverflow.com/questions/78775009/transformer-model-repeating-same-codon-during-inference-despite-high-training-ac</guid>
+      <pubDate>Sun, 21 Jul 2024 11:06:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 8 个 GPU 上并行化机器翻译的 Transformer 模型？</title>
       <link>https://stackoverflow.com/questions/78774602/how-to-parallelize-transformer-model-for-machine-translation-on-8-gpus</link>
       <description><![CDATA[我正尝试使用 transformer 模型以与原始文章几乎相同的方式执行机器翻译。虽然该模型运行良好，但它需要更大的计算资源。为了解决这个问题，我在一台有 8 个 GPU 处理器的计算机上运行了该模型，但我缺乏这方面的经验。
 我尝试对并行化进行必要的调整：
 transformer = nn.DataParallel(transformer)
 transformer = transformer.to(DEVICE)
 
-然而，由于我缺乏经验，事情进展不顺利。具体来说，我长时间被以下错误消息困扰：
+然而，由于我缺乏经验，事情进展不顺利。具体来说，我在以下错误消息上停留了很长时间：
+File &quot;C:\Projects\MT005\.venv\Lib\site-packages\torch\nn\ functional.py&quot;, line 5382, 
+in multi_head_attention_forward raise RuntimeError(f&quot;2D attn_mask 的形状是 {attn_mask.shape}，但应该是 {correct_2d_size}。&quot;) 
+RuntimeError: 2D attn_mask 的形状是 torch.Size([8, 64])，但应该是 (4, 4)。
 
-文件
-&quot;C:\Projects\MT005.venv\Lib\site-packages\torch\nn\ functional.py&quot;，
-第 5382 行，在 multi_head_attention_forward 中引发 RuntimeError(f&quot;2D attn_mask 的形状是 {attn_mask.shape}，但应该是
-{correct_2d_size}。&quot;) RuntimeError：2D attn_mask 的形状是
-torch.Size([8, 64])，但应该是 (4, 4)。
-
-有人可以帮我解决这个问题并让模型在所有 8 个 GPU 上运行吗？]]></description>
+有人能帮我解决这个问题并让模型在所有 8 个 GPU 上运行吗？]]></description>
       <guid>https://stackoverflow.com/questions/78774602/how-to-parallelize-transformer-model-for-machine-translation-on-8-gpus</guid>
       <pubDate>Sun, 21 Jul 2024 07:14:42 GMT</pubDate>
     </item>
@@ -70,7 +213,7 @@ YOLO v7：产生与上一点（3.2.）中提到的自动编码器类似的结果
       <pubDate>Sat, 20 Jul 2024 20:36:56 GMT</pubDate>
     </item>
     <item>
-      <title>Kaggle 无缘无故地给我类型错误</title>
+      <title>Kaggle 无缘无故给我类型错误[关闭]</title>
       <link>https://stackoverflow.com/questions/78773741/kaggle-giving-me-type-errors-for-no-reason</link>
       <description><![CDATA[Kaggle 一直给我一个 TypeError：&#39;NoneType&#39; 对象对于以下代码不可迭代：
 dls = DataBlock(
@@ -98,21 +241,6 @@ dls.show_batch(max_n=6)
 ]]></description>
       <guid>https://stackoverflow.com/questions/78773679/why-does-my-custom-model-made-by-training-through-mediapipe-model-maker-detect-p</guid>
       <pubDate>Sat, 20 Jul 2024 19:04:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在评估商业项目时实施 NLP 进行文本分析？</title>
-      <link>https://stackoverflow.com/questions/78773575/how-to-implement-nlp-for-text-analysis-in-evaluating-business-projects</link>
-      <description><![CDATA[我需要根据特定标准评估业务活动（项目）的资格。我们通过采访利益相关者来收集数据，获取项目名称、描述、不确定性和结果等详细信息。然后根据这些叙述评估每个项目的资格。
-我正在考虑将数据科学融入该项目的几种方法，并希望得到有关最佳方法的建议。具体来说，我有兴趣实施 NLP 进行文本分析：
-
-如何分析项目描述以确定共同主题和关键术语？
-
-推荐使用哪些工具和库来使用主题建模来发现共同主题和文本分类来对项目进行分类？
-
-
-我正在考虑的其他方法包括预测建模、聚类分析和情绪分析。如果您对这些方法有任何建议或资源，那也会很有帮助。]]></description>
-      <guid>https://stackoverflow.com/questions/78773575/how-to-implement-nlp-for-text-analysis-in-evaluating-business-projects</guid>
-      <pubDate>Sat, 20 Jul 2024 18:23:40 GMT</pubDate>
     </item>
     <item>
       <title>将三个经过训练的二分类模型组合成 Keras 中的单个多分类模型</title>
@@ -150,39 +278,6 @@ return Model(inputs=input_layer,outputs=output_layer)
 完整代码可在https://colab.research.google.com/drive/1y1mvAzebIFU_cuEQo8Q60L1I6uT8i2Ce?usp=sharing]]></description>
       <guid>https://stackoverflow.com/questions/78773489/combine-three-trained-binary-classification-models-into-single-multiclassificati</guid>
       <pubDate>Sat, 20 Jul 2024 17:44:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用机器学习进行手语字母识别给出错误预测[关闭]</title>
-      <link>https://stackoverflow.com/questions/78772476/sign-language-alphabet-identification-using-machine-learning-giving-wrong-predic</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78772476/sign-language-alphabet-identification-using-machine-learning-giving-wrong-predic</guid>
-      <pubDate>Sat, 20 Jul 2024 10:17:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的神经网络代码</title>
-      <link>https://stackoverflow.com/questions/78771276/neural-network-codes-in-r</link>
-      <description><![CDATA[我正在 R 中运行我的神经网络代码来处理我的生存数据。我可以运行这些代码，但我需要计算神经网络模型的指标（精度、准确度、灵敏度、特异性），并且我应该计算混淆矩阵并绘制 Roc 曲线。你能帮我写一下这部分代码吗？
-library(survival)
-library(nnet)
-library(readxl)
-df2 &lt;- read_excel(&quot;E:/SOLMAZ/BS DATA/data BS.xlsx&quot;)
-df2
-# 将数据分成训练集和测试集
-train.index &lt;- sample(1:nrow(df2), round(0.8*nrow(df2)))
-train.data &lt;- df2[train.index,]
-test.data &lt;- df2[-train.index,]
-
-# 定义一个隐藏层的神经网络模型
-nn.model&lt;- nnet(Surv(time_15year,BS_death) ~ age +sex +edu +job +place + cvahis +mihis + bphis+ heartdis + diabhis +hlphis +smok +pastsmok +pasive + activity + waterpip + cvatype, data = train.data, size = 5, maxit = 1000)
-
-# 在测试集上生成预测
-test.data$pred &lt;- predict(nn.model, newdata =test.data)
-test.data$pred &lt;- ifelse(test.data$pred&gt;median(test.data$pred, na.rm = TRUE),1,0)
-print(head(test.data))
-table(as.factor(test.data$BS_death),as.factor(test.data$pred[,&quot;status&quot;]))
-]]></description>
-      <guid>https://stackoverflow.com/questions/78771276/neural-network-codes-in-r</guid>
-      <pubDate>Fri, 19 Jul 2024 21:29:13 GMT</pubDate>
     </item>
     <item>
       <title>我的 RandomForestRegressor 上的 MAE 和 MSE 非常高</title>
@@ -234,44 +329,6 @@ https://github.com/jamhus/ztm-course/blob/master/Test%20projects/fligt%20prices%
       <pubDate>Fri, 19 Jul 2024 15:47:43 GMT</pubDate>
     </item>
     <item>
-      <title>如何从 CLIP 模型获取多模态嵌入？</title>
-      <link>https://stackoverflow.com/questions/78751682/how-to-get-multimodal-embeddings-from-clip-model</link>
-      <description><![CDATA[我希望使用 CLIP 来获取多模态（图像和文本）数据行的单个嵌入。
-假设我有以下模型：
-from PIL import Image
-import torch
-from transformers import CLIPProcessor, CLIPModel
-import torchvision.transforms as transforms
-
-model = CLIPModel.from_pretrained(&quot;openai/clip-vit-base-patch32&quot;)
-processor = CLIPProcessor.from_pretrained(&quot;openai/clip-vit-base-patch32&quot;)
-
-def convert_image_data_to_tensor(image_data):
-return torch.tensor(image_data)
-
-dataset = df[[&#39;image_data&#39;, &#39;text_data&#39;]].to_dict(&#39;records&#39;)
-
-embeddings = []
-for data in dataset:
-image_tensor = convert_image_data_to_tensor(data[&#39;image_data&#39;])
-text = data[&#39;text_data&#39;]
-
-input = processing(text=text, images=image_tensor, return_tensors=True)
-with torch.no_grad():
-output = model(**inputs)
-
-我想获取 output 中计算的嵌入。我知道 output 具有附加属性 text_embeddings 和 image_embeddings，但我不确定它们以后如何交互。如果我想为每个记录获取单个嵌入，我应该将这些属性连接在一起吗？是否有其他属性以其他方式将两者结合起来？
-这些是存储在输出中的属性：
-print(dir(output))
-
-[&#39;__annotations__&#39;, &#39;__class__&#39;, &#39;__contains__&#39;, &#39;__dataclass_fields__&#39;, &#39;__dataclass_params__&#39;, &#39;__delattr__&#39;, &#39;__delitem__&#39;, &#39;__dict__&#39;, &#39;__dir__&#39;, &#39;__doc__&#39;, &#39;__eq__&#39;, &#39;__format__&#39;, &#39;__ge__&#39;, &#39;__getattribute__&#39;, &#39;__getitem__&#39;, &#39;__gt__&#39;, &#39;__hash__&#39;, &#39;__init__&#39;, &#39;__init_subclass__&#39;, &#39;__iter__&#39;, &#39;__le__&#39;, &#39;__len__&#39;, &#39;__lt__&#39;, &#39;__module__&#39;, &#39;__ne__&#39;, &#39;__new__&#39;, &#39;__post_init__&#39;, &#39;__reduce__&#39;, &#39;__reduce_ex__&#39;, &#39;__repr__&#39;, &#39;__reversed__&#39;, &#39;__setattr__&#39;, &#39;__setitem__&#39;, &#39;__sizeof__&#39;, &#39;__str__&#39;, &#39;__subclasshook__&#39;, &#39;clear&#39;, &#39;copy&#39;, &#39;fromkeys&#39;, &#39;get&#39;, &#39;image_embeds&#39;, &#39;items&#39;, &#39;keys&#39;, &#39;logits_per_image&#39;, &#39;logits_per_text&#39;, &#39;loss&#39;, &#39;move_to_end&#39;, &#39;pop&#39;, &#39;popitem&#39;, &#39;setdefault&#39;, &#39;text_embeds&#39;, &#39;text_model_output&#39;, &#39;to_tuple&#39;, &#39;update&#39;, &#39;values&#39;, &#39;vision_model_output&#39;]
-
-此外，有没有办法指定 CLIP 输出的嵌入的大小？类似于如何在 BERT 配置中指定嵌入大小？
-在此先感谢您的帮助。如果我误解了这里任何关键内容，请随时纠正我。]]></description>
-      <guid>https://stackoverflow.com/questions/78751682/how-to-get-multimodal-embeddings-from-clip-model</guid>
-      <pubDate>Mon, 15 Jul 2024 19:53:18 GMT</pubDate>
-    </item>
-    <item>
       <title>通过向 CNN 输入添加位置和字符信息来增强文档布局分析</title>
       <link>https://stackoverflow.com/questions/78739816/enhancing-document-layout-analysis-by-adding-positional-and-character-informatio</link>
       <description><![CDATA[我正在研究文档布局分析，并一直在探索 CNN 和基于 Transformer 的网络来完成这项任务。通常，图像作为 3 通道 RGB 输入传递给这些网络。但是，我的数据源是 PDF 格式，我可以直接从中提取准确的位置和字符信息。
@@ -281,24 +338,14 @@ print(dir(output))
       <pubDate>Fri, 12 Jul 2024 10:17:29 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Anaconda 在 docker 中为 k8s 开发机器学习 Python 应用程序</title>
-      <link>https://stackoverflow.com/questions/71767475/machine-learning-python-app-in-docker-with-anaconda-for-k8s</link>
-      <description><![CDATA[开发人员在 docker 中运行了一个用于机器学习的 Python 应用程序。特别是 Azure 容器实例。他们使用 micromamba:0.15.3，并且在 dockerfile 中还为 Web 服务器安装了 nginx。
-Docker 文件末尾将运行：CMD [&quot;./start.sh&quot;]
-以及其中的脚本：
-service nginx start 
-streamlit run app.py --theme.base &quot;dark&quot; --server.address localhost --server.port 5000 --server.enableCORS=false
-
-我还看到他们在本地使用 anaconda 来运行 Web 应用程序。这也会运行 streamlit
-现在我将删除 dockerfile 中的 nginx 部分，因为将迁移到 k8s，并将使用 nginx ingress controller + ingres 作为 vhost，它将指向正在运行的 python 服务
-我应该为此使用哪个 Docker 映像？使用 conda、miniconda 或 python 官方映像有什么区别？我是否只需要一个可以添加 streamlit 的 python 图像，例如这里？
-https://hub.docker.com/r/mambaorg/micromamba
-https://hub.docker.com/_/python]]></description>
-      <guid>https://stackoverflow.com/questions/71767475/machine-learning-python-app-in-docker-with-anaconda-for-k8s</guid>
-      <pubDate>Wed, 06 Apr 2022 13:16:33 GMT</pubDate>
+      <title>Python机器学习pytorch测试/训练epoch结果问题</title>
+      <link>https://stackoverflow.com/questions/77977231/python-machine-learning-pytorch-test-train-epoch-results-problem</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77977231/python-machine-learning-pytorch-test-train-epoch-results-problem</guid>
+      <pubDate>Sun, 11 Feb 2024 15:07:50 GMT</pubDate>
     </item>
     <item>
-      <title>在 RNN 中未找到 rnn_utils 模块</title>
+      <title>RNN 中未找到 rnn_utils 模块</title>
       <link>https://stackoverflow.com/questions/61175064/module-not-found-rnn-utils-in-rnn</link>
       <description><![CDATA[我需要使用这个库来构建我的模型，但是我遇到了这个错误。
 from rnn_utils import *
@@ -306,6 +353,17 @@ from rnn_utils import *
 没有名为“rnn_utils”的模块]]></description>
       <guid>https://stackoverflow.com/questions/61175064/module-not-found-rnn-utils-in-rnn</guid>
       <pubDate>Sun, 12 Apr 2020 17:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>scikit-learn 聚类：预测（X）与 fit_predict（X）</title>
+      <link>https://stackoverflow.com/questions/37106983/scikit-learn-clustering-predictx-vs-fit-predictx</link>
+      <description><![CDATA[在 scikit-learn 中，一些聚类算法同时具有 predict(X) 和 fit_predict(X) 方法，例如 KMeans 和 MeanShift，而其他算法仅具有后者，例如 SpectralClustering。根据文档：
+fit_predict(X[, y]): 对 X 执行聚类并返回聚类标签。
+predict(X): 预测 X 中每个样本所属的最接近聚类。
+
+我不太明白这两者之间的区别，在我看来它们似乎是等价的。]]></description>
+      <guid>https://stackoverflow.com/questions/37106983/scikit-learn-clustering-predictx-vs-fit-predictx</guid>
+      <pubDate>Mon, 09 May 2016 02:25:29 GMT</pubDate>
     </item>
     </channel>
 </rss>
