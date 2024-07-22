@@ -4,7 +4,98 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 22 Jul 2024 18:20:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 22 Jul 2024 21:15:06 GMT</lastBuildDate>
+    <item>
+      <title>Apache Flink 中的依赖管理和执行环境</title>
+      <link>https://stackoverflow.com/questions/78780530/dependency-management-and-execution-environment-in-apache-flink</link>
+      <description><![CDATA[我们正在评估 apache flink 是否可用于部署流式机器学习应用程序。
+apache flink 中如何处理依赖管理，尤其是执行环境？
+想象一下，具有不同依赖关系的 Python 任务应提交给 Flink 集群。
+我们只看到 Flink 任务管理器可以使用 Python 虚拟环境处理依赖管理。当每个任务都有不同的依赖关系时，我们是否应该为每个任务部署一个新的任务管理器？
+从容器设置开始，我们可以在单独的 Docker 映像中部署每个任务。
+使用 apache flink 时通常如何处理这个问题？我们没有看到 Flink 擅长处理需要特定依赖关系的大量任务，但希望利用流式处理器。]]></description>
+      <guid>https://stackoverflow.com/questions/78780530/dependency-management-and-execution-environment-in-apache-flink</guid>
+      <pubDate>Mon, 22 Jul 2024 19:46:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>尝试在 TensorFlow 中实现用于单目深度估计的 MiDas 模型，距离值超出了图表范围</title>
+      <link>https://stackoverflow.com/questions/78780498/trying-to-implement-the-midas-model-for-monocular-depth-estimation-in-tensorflow</link>
+      <description><![CDATA[从 Kaggle 下载了 Tflite MiDas 模型。
+查看了几篇关于 MiDas 和单目深度估计的文章（基本上是使用像素找到物体与相机的距离）
+这是使用边界框进行物体检测的。
+我试图获取边界框的中心并从那里获取距离。并尝试修复一些错误，但
+我仍然不确定我是否已完成所有正确的步骤或正确实施了它。 - 请检查我是否忘记做某事。
+示例输出：（我当时就在摄像头前面）
+最小深度值：88.5720443725586，最大深度值：911.3470458984375 (126, 127) 处的深度值：248.00 米 最小深度值：76.10022735595703，最大深度值：920.8251342773438 (126, 127) 处的深度值：246.00 米 最小深度值：72.52698516845703，最大深度值：916.8196411132812 (126, 127) 处的深度值：246.00米 最小深度值：68.72769165039062，最大深度值：908.2048950195312 (126, 127) 处的深度值：247.00 米 最小深度值：67.79693603515625，最大深度值：898.6953125 (126, 127) 处的深度值：248.00 米 最小深度值：69.44243621826172，最大深度值：902.6591186523438 (126, 127) 处的深度值：250.00 米 最小深度值：78.3673324584961，最大深度值：914.4412231445312 深度(126, 127) 处的值：249.00 米
+以下代码：
+#加载模型
+interpreter = tf.lite.Interpreter(model_path=&quot;/Users/Taparia/Desktop/ObjectDetection/1.tflite&quot;)
+interpreter.allocate_tensors()
+
+input_details = interpretationer.get_input_details()
+output_details = interpretationer.get_output_details()
+
+#加载视频
+cap = cv2.VideoCapture(0)
+cap.set(3,1280)
+cap.set(4,720)
+cap.set(10,70)
+while True:
+success,img = cap.read()
+if not success: break
+classIds, confs, bbox = net.detect(img,confThreshold=thres)
+#print(classIds,bbox)
+
+#准备用于距离测量的图像
+img_rgb = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+img_rgb_resized = cv2.resize(img_rgb,(256,256))
+img_tensor = np.expand_dims(img_rgb_resized.astype(np.float32)/255.0, axis=0)
+
+#估计深度
+explainer.set_tensor(input_details[0][&#39;index&#39;], img_tensor)
+explainer.invoke()
+depth_map = explainer.get_tensor(output_details[0][&#39;index&#39;])[0]
+print(f&quot;最小深度值：{np.min(depth_map)}, 最大深度值： {np.max(depth_map)}&quot;)
+
+# 标准化深度图以进行可视化
+depth_normalized = cv2.normalize(depth_map,None,alpha=0, beta=255,norm_type=cv2.NORM_MINMAX)
+depth_normalized = np.uint8(depth_normalized)
+
+if len(classIds) != 0:
+for classId, confidence, box in zip(classIds.flatten(), confs.flatten(), bbox):
+class_name = classNames[classId - 1].lower()
+if class_name in used_objects:
+cv2.rectangle(img, box, (0, 0, 255), 1) # 在对象周围绘制方框
+cv2.putText(img, classNames[classId - 1].upper(), (box[0] + 10, box[1] + 30),
+cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 1)
+x_start, y_start, x_end, y_end = box
+
+# 计算深度图坐标中边界框的中心
+center_x = int((x_start + x_end) / 2 * 256 / img.shape[1])
+center_y = int((y_start + y_end) / 2 * 256 / img.shape[0])
+#需要将图像大小调整为 (256,256)
+# 确保坐标在depth_map的范围内
+if 0 &lt;= center_x &lt;depth_normalized.shape[1] and 0 &lt;= center_y &lt; depth_normalized.shape[0]:
+depth_value =depth_normalized[center_y, center_x].item()
+print(f&quot;({center_x}, {center_y}) 处的深度值：{depth_value:.2f} 米&quot;)
+
+# 检查物体是否靠近
+ifdepth_value&lt; 1.0：# 示例阈值
+print(&quot;对象非常接近&lt;)
+cv2.putText(img, &quot;Close Object&quot;, (box[0], box[1] - 10),
+cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+else:
+print(&quot;深度图坐标超出范围&lt;)
+
+我所做的所有尝试都发现，在以下行中
+if 0 &lt;= center_x &lt;depth_normalized.shape[1] and 0 &lt;= center_y &lt; depth_normalized.shape[0]:
+depth_value =depth_normalized[center_y, center_x].item()
+print(f&quot;({center_x}, {center_y}) 处的深度值：{depth_value:.2f} 米&quot;)
+
+最初我执行的是depth_value =depth_map[center_y, center_x].item()，但无论我输入的是depth_map还是depth_normalized，输出结果都没有区别。这很奇怪，因为我预期会有区别，但结果却无济于事。那里出了什么问题吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78780498/trying-to-implement-the-midas-model-for-monocular-depth-estimation-in-tensorflow</guid>
+      <pubDate>Mon, 22 Jul 2024 19:33:26 GMT</pubDate>
+    </item>
     <item>
       <title>带偏移的增强回归树模型中的错误</title>
       <link>https://stackoverflow.com/questions/78780133/error-in-boosted-regression-tree-model-with-offset</link>
@@ -35,63 +126,16 @@ if (cv.loss.values[j] &gt; cv.loss.values[j - 1]) { 中的错误：
       <pubDate>Mon, 22 Jul 2024 17:51:21 GMT</pubDate>
     </item>
     <item>
-      <title>如何在图像中围绕定义的椭圆绘制同心椭圆？</title>
-      <link>https://stackoverflow.com/questions/78780078/how-to-draw-concentric-ellipses-around-a-defined-ellipse-in-an-image</link>
-      <description><![CDATA[我尝试识别图像中的椭圆，然后绘制两个同心椭圆 - 一个在识别的椭圆外部，一个在识别的椭圆内部。我需要这些椭圆与已识别椭圆的轮廓对齐。
-输入图像：原始图像
-目标图像：目标图像
-这是我目前拥有的代码：
-import cv2
-import matplotlib.pyplot as plt
-
-# 加载图像
-image = cv2.imread(&quot;image_dy.png&quot;)
-
-# 应用高斯模糊
-image_gauss = cv2.GaussianBlur(src=image, ksize=(5, 5), sigmaX=10)
-
-# 将模糊图像转换为灰度
-image_gray = cv2.cvtColor(image_gauss, cv2.COLOR_BGR2GRAY)
-
-# 查找轮廓
-contours, _ = cv2.findContours(image_gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-# 绘制椭圆
-for contour in contours:
-if len(contour) &gt;= 5:
-ellipse = cv2.fitEllipse(contour)
-cv2.ellipse(image, ellipse, (0, 255, 0), 2) # 原始椭圆
-
-# 绘制内椭圆和外椭圆
-ellipse_inner = (ellipse[0], (ellipse[1][0]*0.8, ellipse[1][1]*0.8), ellipse[2])
-ellipse_outer = (ellipse[0], (ellipse[1][0]*1.2, ellipse[1][1]*1.2), ellipse[2])
-
-cv2.ellipse(image, ellipse_inner, (255, 0, 0), 2) # 内椭圆
-cv2.ellipse(image, ellipse_outer, (0, 0, 255), 2) # 外椭圆
-
-# 显示结果
-plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-plt.axis(&#39;off&#39;)
-plt.show()
-
-问题：
-
-正确识别图像。
-绘制与所识别椭圆正确对齐的内椭圆和外椭圆。
-
-如何改进代码以正确识别椭圆并绘制与所识别椭圆正确对齐的内椭圆和外椭圆？]]></description>
-      <guid>https://stackoverflow.com/questions/78780078/how-to-draw-concentric-ellipses-around-a-defined-ellipse-in-an-image</guid>
-      <pubDate>Mon, 22 Jul 2024 17:38:05 GMT</pubDate>
-    </item>
-    <item>
       <title>keras BackupAndRestore 恢复模型但准确率较低且损失较高</title>
       <link>https://stackoverflow.com/questions/78779866/keras-backupandrestore-resuming-a-model-but-shows-lower-accuracy-and-higher-loss</link>
-      <description><![CDATA[你好朋友，我正在使用 google colab gpu，我需要尽可能多地保存模型，然后在新的 google colab 中重新启动训练模型，下面是我的代码，但准确率较低，损失较高，例如在 epoch 89 中我有
-acc：0.9990301728 loss：0.002603143221
-acc_val：0.9557291865 loss_val：0.2962754667
+      <description><![CDATA[我正在使用 google colab gpu，我需要尽可能多地保存模型，然后在新的 google colab 中重新启动训练模型，下面是我的代码，但准确率较低，损失较高，例如在 epoch 89 中我有
+acc: 0.9990301728 loss:0.002603143221 
+acc_val: 0.9557291865 loss_val:0.2962754667 
+
 在 epoch 90 中，第一次在新的 google colab 中运行我有：
-acc：0.9803879261 loss：01103143221
-acc_val：0.939127624 loss_val：0.1836656481
+acc: 0.9803879261 loss:01103143221 
+acc_val: 0.939127624 loss_val:0.1836656481
+
 # 定义 5 倍交叉验证
 kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -117,7 +161,7 @@ test_generator = data_generator_test(test_files, batch_size)
 model = Sequential()
 input_shape = np.load(epilepsy_file_paths[0]).T.shape
 
-model.add(Conv1D(64, 3, strides=1, input_shape=input_shape, padding=&#39;same&#39;, activity=&#39;relu&#39;))
+model.add(Conv1D(64, 3, strides=1, input_shape=input_shape, padding=&#39;same&#39;,activation=&#39;relu&#39;))
 model.add(BatchNormalization())
 model.add(MaxPool1D(pool_size=(2)))
 model.add(Dropout(0.5))
@@ -127,18 +171,18 @@ model.add(BatchNormalization())
 model.add(MaxPool1D(pool_size=(2)))
 model.add(Dropout(0.5))
 
-model.add(Conv1D(32, 3, strides=1, padding=&#39;same&#39;, activated=&#39;relu&#39;))
+model.add(Conv1D(32, 3, strides=1, padding=&#39;same&#39;, activity=&#39;relu&#39;))
 model.add(BatchNormalization())
 model.add(MaxPool1D(pool_size=(2)))
 model.add(Dropout(0.5))
 
 model.add(Flatten())
 
-model.add(Dense(256, activated=&#39;relu&#39;))
+model.add(Dense(256, activity=&#39;relu&#39;))
 model.add(Dropout(0.2))
-model.add(Dense(128, activated=&#39;relu&#39;))
+model.add(Dense(128,激活=&#39;relu&#39;))
 model.add(Dropout(0.2))
-model.add(Dense(1, activated=&#39;sigmoid&#39;))
+model.add(Dense(1, 激活=&#39;sigmoid&#39;))
 
 modelOptimizer = Adam(learning_rate=0.001)
 model.compile(optimizer=modelOptimizer, loss=BinaryCrossentropy(), metrics=[&#39;accuracy&#39;])
@@ -158,7 +202,7 @@ csv_logger = CSVLogger(f&#39;{checkpoint_dir}/training_log_fold_{i + 1}_CNN_10s.
 
 backup_restore_callback = BackupAndRestore(backup_dir=f&#39;{checkpoint_dir}/backup_fold_{i + 1}&#39;)
 
-# 训练带有训练数据的模型
+# 使用训练数据训练模型
 history = model.fit(
 train_generator,
 epochs=epochs,
@@ -176,8 +220,21 @@ shuffle=False
     <item>
       <title>如何针对 NYU 数据集训练 Yolo 3D</title>
       <link>https://stackoverflow.com/questions/78779752/how-to-train-yolo-3d-for-nyu-dataset</link>
-      <description><![CDATA[我已经在 KITTI 数据集中训练了我的 Yolo 3D 模型，现在我想在 NYU 数据集上训练它。我必须在 NYU 数据集中做哪些更改才能在 YOLO 3D 模型中训练它？
-我想知道 YOLO 3D 接受的数据集格式。]]></description>
+      <description><![CDATA[我已经在 KITTI 数据集上训练了我的 Yolo 3D 模型，现在我想在 NYU 数据集上训练它。为了在 YOLO 3D 模型中训练它，我必须对 NYU 数据集进行哪些更改？
+我想知道 YOLO 3D 接受的数据集格式。
+（编辑）
+我使用的模型是 YOLO 3D
+https://github.com/ruhyadi/YOLO3D
+基本上我使用预训练权重进行推理
+python inference.py \
+--weights yolov5s.pt \
+--source eval/image_2 \
+--reg_weights weights/resnet18.pkl \
+--model_select resnet18 \
+--output_path runs/ \
+--show_result --save_result
+
+实际上，这个模型是在 KITI 数据集中训练的，但现在我想在 NYU 数据集中训练这个模型，所以我想知道我需要将 NYU 数据集更改为哪种格式，以便我可以使用它来训练 YOLO 3D。]]></description>
       <guid>https://stackoverflow.com/questions/78779752/how-to-train-yolo-3d-for-nyu-dataset</guid>
       <pubDate>Mon, 22 Jul 2024 16:09:49 GMT</pubDate>
     </item>
@@ -198,19 +255,18 @@ https://huggingface.co/datasets/zhiqings/LLaVA-Human-Preference-10K
       <pubDate>Mon, 22 Jul 2024 16:03:47 GMT</pubDate>
     </item>
     <item>
-      <title>如何在没有 keras 的情况下根据训练过的 keras 模型做出预测？</title>
+      <title>如何在没有 keras 的情况下根据经过训练的 keras 模型进行预测</title>
       <link>https://stackoverflow.com/questions/78779669/how-to-make-predictions-from-trained-keras-model-without-keras</link>
-      <description><![CDATA[我有一个使用 keras 创建和训练的 1D CNN，并且我将权重保存在 h5 文件中，将架构保存在 json 文件中。现在，我希望能够读取架构和权重，并使用它们进行新的预测，独立于 keras 或 TensorFlow。我只想使用 numpy、scipy 等基本软件包，但如果有任何其他软件包可以以最少的依赖性完成此操作，那么我想使用它。我找到了 Konverter，但它不适用于 CNN。]]></description>
+      <description><![CDATA[我有一个使用 keras 创建和训练的 1D CNN，并且我将权重保存在 h5 文件中，将架构保存在 JSON 文件中。现在，我希望能够读取架构和权重，并使用它们进行新的预测，独立于 Keras 或 TensorFlow。我只想使用 numpy、scipy 等基本软件包，但如果有任何其他软件包可以以最少的依赖性完成此操作，那么我想使用它。我找到了 Konverter，但它不适用于 CNN。]]></description>
       <guid>https://stackoverflow.com/questions/78779669/how-to-make-predictions-from-trained-keras-model-without-keras</guid>
       <pubDate>Mon, 22 Jul 2024 15:53:20 GMT</pubDate>
     </item>
     <item>
-      <title>哪些模型是图像形状检测最有效的模型？</title>
+      <title>哪些模型是图像形状检测最有效的模型？[关闭]</title>
       <link>https://stackoverflow.com/questions/78779365/which-are-the-most-efficient-models-for-shape-detection-in-an-image</link>
       <description><![CDATA[我想创建一个 Python 算法来检测两张照片之间出现和消失的物体。这些照片不是从同一个地方拍摄的。我的想法是使用一个预训练模型，它可以检测两张照片中所有“足够大”的物体，并检测一个或多个物体何时出现或消失。
 我尝试使用 YOLO，但它似乎只能检测到他可以分类的物体。由于我的数据不是关于常见物体的，所以效果不太好。
-是否有一些预训练模型可以检测几何形状/物体而无需对它们进行分类？
-谢谢！]]></description>
+是否有一些预训练模型可以检测几何形状/物体而无需对它们进行分类？]]></description>
       <guid>https://stackoverflow.com/questions/78779365/which-are-the-most-efficient-models-for-shape-detection-in-an-image</guid>
       <pubDate>Mon, 22 Jul 2024 14:45:32 GMT</pubDate>
     </item>
@@ -221,17 +277,6 @@ https://huggingface.co/datasets/zhiqings/LLaVA-Human-Preference-10K
 我尝试过但未能找到文档，例如 gym 中的文档，其中指定了 6 个关节角度的索引，并且它们的值由 rad 测量。我发现有人指出，在 pybullet_envs GitHub 文档中，有评论说关节位置是观察空间的偶数元素。我认为这从 Walker2D 环境的每个列的数组索引 8 开始是正确的。我的问题是我不知道这些值的单位，我不确定它们是否正确。有没有更简单的方法可以通过物理客户端 ID 和机器人 ID 通过环境访问实际值（rad 或 deg）？]]></description>
       <guid>https://stackoverflow.com/questions/78778576/joint-angles-of-pybullets-walker2d</guid>
       <pubDate>Mon, 22 Jul 2024 12:02:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>多类别分类选择机器学习模型</title>
-      <link>https://stackoverflow.com/questions/78777697/multi-class-classification-selecting-machine-learning-model</link>
-      <description><![CDATA[在多类分类问题中，使用神经网络通常比使用 svm 模型更好吗？
-这是我用数据制作的图。
-计算 PCA 并使用 SVM 进行线性分类对我来说会更好吗？scatterplot3d
-pca visuslization
-那么当我得到这个准确度指标时。我保留代码可以吗？准确度]]></description>
-      <guid>https://stackoverflow.com/questions/78777697/multi-class-classification-selecting-machine-learning-model</guid>
-      <pubDate>Mon, 22 Jul 2024 08:40:05 GMT</pubDate>
     </item>
     <item>
       <title>GPy 回归中的输出 Gram 矩阵</title>
@@ -255,13 +300,6 @@ yPred = np.squeeze(yPrd)
 因此加载 块 K(s,s)^{-1} f 并仅与相应的测试 点 K(s^*,s) 执行一次乘法。我如何访问/输出这些矩阵/保存它们？]]></description>
       <guid>https://stackoverflow.com/questions/78776963/output-gram-matrix-in-gpy-regression</guid>
       <pubDate>Mon, 22 Jul 2024 04:33:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法重现 ViTImageProcessor 变压器库的预处理</title>
-      <link>https://stackoverflow.com/questions/78776752/cannot-reproduction-vitimageprocessor-preprocessing-of-transformers-library</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78776752/cannot-reproduction-vitimageprocessor-preprocessing-of-transformers-library</guid>
-      <pubDate>Mon, 22 Jul 2024 02:25:58 GMT</pubDate>
     </item>
     <item>
       <title>使用python图像去噪没有得到想要的重建图像</title>
@@ -342,6 +380,53 @@ AttributeError: module &#39;gguf&#39; has no attribute &#39;GGUFType&#39;
 有没有办法转换它？]]></description>
       <guid>https://stackoverflow.com/questions/78763327/convert-safetensors-model-formatllava-model-into-gguf-format</guid>
       <pubDate>Thu, 18 Jul 2024 08:47:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>面临 ValueError：目标是多类但平均值='二进制'</title>
+      <link>https://stackoverflow.com/questions/52269187/facing-valueerror-target-is-multiclass-but-average-binary</link>
+      <description><![CDATA[我正在尝试对我的数据集使用朴素贝叶斯算法。我能够找出准确率，但试图找出相同的精确度和召回率。但是，它抛出了以下错误：
+ValueError：目标是多类，但平均值=&#39;binary&#39;。请选择其他平均设置。
+
+有人可以建议我如何继续吗？我尝试在精确度和召回率分数中使用average =&#39;micro&#39;。它没有任何错误，但它给出了相同的准确度、精确度和召回率分数。
+我的数据集：
+train_data.csv：
+review,label
+颜色和清晰度极佳，正面
+可惜图片不如我的 40 英寸三星清晰明亮，负面
+
+test_data.csv：
+review,label
+图片清晰漂亮，正面
+图片不清晰，负面
+
+我的代码：
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import confused_matrix
+
+X_train, y_train = pd.read_csv(&#39;train_data.csv&#39;)
+X_test, y_test = pd.read_csv(&#39;test_data.csv&#39;)
+
+vec = CountVectorizer() 
+X_train_transformed = vec.fit_transform(X_train) 
+X_test_transformed = vec.transform(X_test)
+
+clf = MultinomialNB()
+clf.fit(X_train_transformed, y_train)
+
+score = clf.score(X_test_transformed, y_test)
+
+y_pred = clf.predict(X_test_transformed)
+cm = confused_matrix(y_test, y_pred)
+
+precision = precision_score(y_test, y_pred, pos_label=&#39;positive&#39;)
+recall = recall_score(y_test, y_pred, pos_label=&#39;positive&#39;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/52269187/facing-valueerror-target-is-multiclass-but-average-binary</guid>
+      <pubDate>Tue, 11 Sep 2018 05:28:04 GMT</pubDate>
     </item>
     </channel>
 </rss>
