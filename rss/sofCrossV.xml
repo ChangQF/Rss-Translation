@@ -4,12 +4,241 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 23 Jul 2024 15:16:56 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 23 Jul 2024 18:20:19 GMT</lastBuildDate>
     <item>
-      <title>聚类C指数的计算</title>
-      <link>https://stats.stackexchange.com/questions/651598/perhitungan-c-index-klastering</link>
-      <description><![CDATA[任何人都可以给我一个进行 C 索引聚类有效性测试但手动计算的示例吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651598/perhitungan-c-index-klastering</guid>
+      <title>lavaan 中使用 efa 模型进行 df（错误）计算</title>
+      <link>https://stats.stackexchange.com/questions/651612/df-miscalculation-with-efa-models-in-lavaan</link>
+      <description><![CDATA[我一直在研究一些将 EFA 脚本包装在 lavaan 中的功能，并注意到一些 df 似乎不对劲。我现在想知道我是否犯了错误/忽略了某些东西，或者更确切地说，使用 cfa() 来拟合这些模型是否发生了一些意外或错误的事情（就像在 EFA lavaan 教程/示例 中所做的那样）
+要使用相同的示例（如果方便的话），请安装我开发的包（其中包含我使用的内置数据集）：
+install.packages(&quot;dySEM&quot;)
+
+library(dySEM)
+library(lavaan)
+
+dat &lt;- commitmentQ
+
+fac1.script &lt;- &quot;
+#测量模型
+
+#载荷
+efa(&#39;efa&#39;)*f1 =~ sat.g.1_1+sat.g.1_2+sat.g.1_3+sat.g.1_4+sat.g.1_5 + sat.g.2_1+sat.g.2_2+sat.g.2_3+sat.g.2_4+sat.g.2_5
+
+#残差方差
+sat.g.1_1 ~~ sat.g.1_1
+sat.g.1_2 ~~ sat.g.1_2
+sat.g.1_3 ~~ sat.g.1_3
+sat.g.1_4 ~~ sat.g.1_4
+sat.g.1_5 ~~ sat.g.1_5
+
+sat.g.2_1 ~~ sat.g.2_1
+sat.g.2_2 ~~ sat.g.2_2
+sat.g.2_3 ~~ sat.g.2_3
+sat.g.2_4 ~~ sat.g.2_4
+sat.g.2_5 ~~ sat.g.2_5
+
+#残差协方差
+sat.g.1_1 ~~ sat.g.2_1
+sat.g.1_2 ~~ sat.g.2_2
+sat.g.1_3 ~~ sat.g.2_3
+sat.g.1_4 ~~ sat.g.2_4
+sat.g.1_5 ~~ sat.g.2_5 
+&quot;
+
+fac2.script &lt;- &quot;
+#测量模型
+
+#载荷
+efa(&quot;efa&quot;)*f1 +
+efa(&quot;efa&quot;)*f2 =~ sat.g.1_1 + sat.g.1_2 + sat.g.1_3 + sat.g.1_4 + sat.g.1_5 + sat.g.2_1 + sat.g.2_2 + sat.g.2_3 + sat.g.2_4 + sat.g.2_5
+
+#残差方差
+sat.g.1_1 ~~ sat.g.1_1
+sat.g.1_2 ~~ sat.g.1_2
+sat.g.1_3 ~~ sat.g.1_3
+sat.g.1_4 ~~ sat.g.1_4
+sat.g.1_5 ~~ sat.g.1_5
+
+sat.g.2_1 ~~ sat.g.2_1
+sat.g.2_2 ~~ sat.g.2_2
+sat.g.2_3 ~~ sat.g.2_3
+sat.g.2_4 ~~ sat.g.2_4
+sat.g.2_5 ~~ sat.g.2_5
+
+#残差协方差
+sat.g.1_1 ~~ sat.g.2_1
+sat.g.1_2 ~~ sat.g.2_2
+sat.g.1_3 ~~ sat.g.2_3
+sat.g.1_4 ~~ sat.g.2_4
+sat.g.1_5 ~~ sat.g.2_5 
+&quot;
+
+fac3.script &lt;- &quot;
+#测量模型
+
+#载荷
+efa(&quot;efa&quot;)*f1 +
+efa(&quot;efa&quot;)*f2 +
+efa(&quot;efa&quot;)*f3 =~ sat.g.1_1 + sat.g.1_2 + sat.g.1_3 + sat.g.1_4 + sat.g.1_5 + sat.g.2_1 + sat.g.2_2 + sat.g.2_3 + sat.g.2_4 + sat.g.2_5
+
+#残差方差
+sat.g.1_1 ~~ sat.g.1_1
+sat.g.1_2 ~~ sat.g.1_2
+sat.g.1_3 ~~ sat.g.1_3
+sat.g.1_4 ~~ sat.g.1_4
+sat.g.1_5 ~~ sat.g.1_5
+
+sat.g.2_1 ~~ sat.g.2_1
+sat.g.2_2 ~~ sat.g.2_2
+sat.g.2_3 ~~ sat.g.2_3
+sat.g.2_4 ~~ sat.g.2_4
+sat.g.2_5 ~~ sat.g.2_5
+
+#残差协方差
+sat.g.1_1 ~~ sat.g.2_1
+sat.g.1_2 ~~ sat.g.2_2
+sat.g.1_3 ~~ sat.g.2_3
+sat.g.1_4 ~~ sat.g.2_4
+sat.g.1_5 ~~ sat.g.2_5 
+&quot;
+
+当我拟合这些时...（默认为 geomin 旋转，因此估计因子相关性）：
+sat.defa1.fit &lt;- cfa(fac1.script , data = commitmentQ)
+sat.defa2.fit &lt;- cfa(fac2.script , data = commitmentQ)
+sat.defa3.fit &lt;- cfa(fac3.script , data = commitmentQ)
+
+并比较它们...：
+anova(sat.defa1.fit, sat.defa2.fit, sat.defa3.fit)
+
+我得到：
+
+1 个因子的 df 为 30，
+2 个因子的 df 为 21，
+13 df 3 因子
+
+这适用于 1 因子模型。遵循 p(p+1)/2 公式：
+已知：10(10+1)/2 = 55
+1 因子模型估计 10 个因子载荷、10 个残差方差、5 个残差协方差 = 25 个估计值
+1 因子的 df：55 - 25 = 30。
+到目前为止一切顺利。
+因此，要转向 2 因子，将涉及估计 10 个额外载荷（到第二个因子上）以及 F1 和 F2 之间的相关性。因此估计另外 11 个因素 (36)
+2 因子的 df 应为 55 - 36 = 19
+但对于此模型，anova() 显示 df 21（df diff 为 9，而不是 11）
+对于 3 因子模型，问题似乎更加复杂：
+应估计 48 个元素（添加 20 个新因子载荷与 1 因子模型 + 3 因子相关性），因此 df 应为 7，而 anova() 返回 13。
+知道这里发生了什么吗？我查看了每个模型的parameterEstimates()的nrow()（减去用于识别/尺度设置的固定方差），它对应于我对每个模型的ests计数。
+我还禁用了均值结构估计（无论如何它都没有估计）以防万一，但无济于事。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651612/df-miscalculation-with-efa-models-in-lavaan</guid>
+      <pubDate>Tue, 23 Jul 2024 18:17:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>没有免费午餐 (NFL) 定理和特定数据生成分布的给定大小 N 的所有训练集的平均性能</title>
+      <link>https://stats.stackexchange.com/questions/651611/no-free-lunch-nfl-theorem-and-average-performance-over-all-training-sets-of-a</link>
+      <description><![CDATA[我正在尝试更深入地探究“无免费午餐”（NFL）定理对监督学习的含义。 NFL 的基本形式是，对所有数据生成分布进行平均，所有 ML 算法的表现都一样好。
+标题基本上总结了我的问题：
+如果我们将数据生成分布和训练样本数量固定为 $N_\text{train}$，如果我们对所有大小为 $N_\text{train}$ 的可能数据集进行平均，所有 ML 算法是否都具有相同的性能？
+我发现这个资源讨论了无免费午餐定理的含义，但我不明白在平均过程中以什么为条件：
+
+平均而言，所有算法在以下任何一项措施下都是等效的风险：
+E(C|d)、E(C|m)、E(C|f,d) 或 E(C|f,m)。
+其中：
+
+d = 训练集
+m = 训练集中元素的数量
+f = 目标输入输出关系
+h = 假设（算法对 d 做出的 f 的猜测）
+C = 与 f 和 h 相关的训练集外损失（泛化误差）
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/651611/no-free-lunch-nfl-theorem-and-average-performance-over-all-training-sets-of-a</guid>
+      <pubDate>Tue, 23 Jul 2024 18:05:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>标量和度量不变性时 SEM 中的调节</title>
+      <link>https://stats.stackexchange.com/questions/651609/moderation-in-sem-when-scalar-and-metric-noninvariance</link>
+      <description><![CDATA[我想知道，当我在由观察变量 (X) 指定的组之间具有潜变量 (LV1) 的度量和标量非不变性（但具有配置不变性）时，进行调节分析，使潜变量和观察到的二元变量 (LV1 * X ==&gt;Y) 相互作用是否在方法论上合理。
+我的理解是，如果我具有度量或标量非不变性，我就无法比较组之间的潜均值或其他参数估计值。但调节将测试人口统计变量 (X) 与潜变量和观察到的结果变量之间的关系，因此调节估计可能不太“依赖”潜变量的测量不变性。如果您对此有任何想法，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651609/moderation-in-sem-when-scalar-and-metric-noninvariance</guid>
+      <pubDate>Tue, 23 Jul 2024 17:29:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>染色细胞统计分析的工作流程</title>
+      <link>https://stats.stackexchange.com/questions/651607/workflow-for-statistical-analysis-of-stained-cells</link>
+      <description><![CDATA[我正在寻找有关如何分析我计数的细胞染色的建议。我有四个细胞系（一个野生型，三个敲除型）和三个染色剂（GFP、DAPI 和 TXRed）。我正在测试每种染色剂的野生型样本和敲除型之间的细胞计数是否存在显着差异。例如：
+GFP：野生型与敲除型 1、野生型与敲除型 2、野生型与敲除型 3
+我考虑了两种方法。第一种方法是进行双向方差分析，然后进行 Tukey HSD。但是，Tukey 结果还对敲除结果进行了比较（例如 GFP：敲除 1 与敲除 2），而我对此不感兴趣。
+我的第二个想法是进行个别学生的 t 检验，然后进行多重假设校正。
+我不熟悉统计数据，因此任何建议或相关资源都将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651607/workflow-for-statistical-analysis-of-stained-cells</guid>
+      <pubDate>Tue, 23 Jul 2024 16:56:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>手动计算 C 指数聚类 [重复]</title>
+      <link>https://stats.stackexchange.com/questions/651606/calculation-of-the-c-index-clustering-for-manual</link>
+      <description><![CDATA[有人能给我一个进行 C 指数聚类有效性测试但手动计算的例子吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651606/calculation-of-the-c-index-clustering-for-manual</guid>
+      <pubDate>Tue, 23 Jul 2024 16:37:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>我正在寻找一个简单的函数，它平滑、周期性，每个周期都有一个明显的峰值</title>
+      <link>https://stats.stackexchange.com/questions/651604/i-am-looking-for-a-simple-function-that-is-smooth-periodic-each-period-has-a-cl</link>
+      <description><![CDATA[假设某款产品每年 7 月经常销售，但除此以外销售量很少，我有关于何时销售以及销售量的数据。我想拟合一条周期曲线来捕捉这一趋势。当然，我可以想出一些以某种傅里叶级数或类似形式表示的函数，但这需要估计相对多的参数，我不喜欢这样。所以我想有一个简单的函数，它在 7 月会出现波动（但具有周期性），否则或多或少是平坦的，我希望这条曲线的自由度尽可能少（我想 3 就足够了 - 峰值的相位、峰值的大小以及它的分布程度）。我希望这个函数不仅是周期性的，而且是平滑连续的。一个明显的非平滑选择是某种三角形，但我想要一个平滑的三角形。有什么想法吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651604/i-am-looking-for-a-simple-function-that-is-smooth-periodic-each-period-has-a-cl</guid>
+      <pubDate>Tue, 23 Jul 2024 16:20:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>以下是深度高斯过程吗？如何进行回归？</title>
+      <link>https://stats.stackexchange.com/questions/651603/is-the-following-a-deep-gaussian-process-and-how-to-proceed-with-the-regression</link>
+      <description><![CDATA[我有一个二维问题。信号模型是一个二维信号，其中每一行（以下标 $_b$ 为索引）是一个 GP，其协方差的超参数为 $\theta_b$:
+如果二维信号表示为 $\mathbf{S}$，我将每一行表示为 $\mathbf{S}[b, :] = \mathbf{s}_b.$
+$$ \mathbf{s}_b \sim \mathcal{GP}(\mathbf{0}, \mathbf{C}_b(\theta_b)) $$
+参数$\theta_b$有一个轮廓。我假设$\theta_b$的这个轮廓也是一个高斯过程。
+$$ \theta_b \sim \mathcal{GP}(\mathbf{0}, \mathbf{K}(\psi)) $$
+我该如何进行回归？测量结果为 $\mathbf{S}$ 并添加了噪声。
+$$ \mathbf{Z} = \mathbf{S} + \mathbf{N}, $$
+我无法继续说明如何像在原始经典 1D GP 问题中那样写出超参数估计的似然值；使用的是边际似然值。在原始 GP 论文中，边际似然值的推导对我来说也不完全清楚，因为他们跳过了一些步骤。任何帮助都值得感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651603/is-the-following-a-deep-gaussian-process-and-how-to-proceed-with-the-regression</guid>
+      <pubDate>Tue, 23 Jul 2024 15:53:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>概率问题：确定部分抽样帽子中没有红球</title>
+      <link>https://stats.stackexchange.com/questions/651601/probability-question-determining-absence-of-red-balls-in-a-partially-sampled-ha</link>
+      <description><![CDATA[我有一顶帽子A，里面有1845个球，其中16个球是红色的。
+然后我还有许多其他帽子，里面有相同数量的球。
+如果我在这些帽子里找到红球，那就意味着这顶帽子和帽子A一样。
+然后，我从中取一顶帽子（帽子B），但我只能部分采样并从中提取1086个球。
+在1086中，0个是红色的。但也许如果我拿到了所有的球，我就会取出红球，没人知道。
+我如何通过抽取 59% 的总球来计算我没有偶然抽取任何红球的概率？
+换句话说，这个hatB确实不包含任何红球的概率是多少？
+非常感谢您的帮助。
+到目前为止，我尝试过：
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/651601/probability-question-determining-absence-of-red-balls-in-a-partially-sampled-ha</guid>
+      <pubDate>Tue, 23 Jul 2024 15:30:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>线性回归模型参数的置信椭圆与置信区间</title>
+      <link>https://stats.stackexchange.com/questions/651599/confidence-ellipsoids-vs-confidence-intervals-for-linear-regression-model-param</link>
+      <description><![CDATA[线性回归参数的单个置信区间由以下公式给出
+$$
+\hat{\beta}_i \pm t_{1-\alpha/2, n-(p+1)} \cdot s \sqrt{(X^T X)^{-1}_{ii}}
+$$
+其中 $X$ 是 $n \times (p+1)$ 设计矩阵，$s$ 是残差平方和除以 $n-(p+1)$，以给出误差项方差的无偏估计。
+置信椭圆体是
+$$
+\{\beta&#39;: (\hat{\beta} - \beta&#39;)^T (X^T X) (\hat{\beta} - \beta&#39;) \leq s^2 \chi^2_{p+1, 1-\alpha}\}
+$$
+这是一张比较这些的图片：
+
+从公式和图片中都可以看出，我们没有明确的精确两种方法之间的几何关系。
+我的问题是是否存在将置信椭圆体的几何特征与置信区间联系起来的近似值。例如，我注意到上图中的置信区间的端点位于椭圆之外，但在包含椭圆的区间的最小乘积之内。沿着这些思路得出的结果将会很有启发性！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651599/confidence-ellipsoids-vs-confidence-intervals-for-linear-regression-model-param</guid>
+      <pubDate>Tue, 23 Jul 2024 15:20:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>C 指数聚类的计算 [重复]</title>
+      <link>https://stats.stackexchange.com/questions/651598/calculation-of-the-c-index-clustering</link>
+      <description><![CDATA[有人能给我一个进行 C 指数聚类有效性测试但手动计算的例子吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651598/calculation-of-the-c-index-clustering</guid>
       <pubDate>Tue, 23 Jul 2024 15:14:16 GMT</pubDate>
     </item>
     <item>
@@ -68,181 +297,6 @@ cmprsk::crr(ftime= months_to_follow_up, fstatus= event_disease, group = cause_di
       <pubDate>Tue, 23 Jul 2024 13:23:27 GMT</pubDate>
     </item>
     <item>
-      <title>用得分函数写出 Kullback–Leibler 散度</title>
-      <link>https://stats.stackexchange.com/questions/651590/writing-kullback-leibler-divergence-in-terms-of-the-score-function</link>
-      <description><![CDATA[假设我们有两个密度函数$p(x)$和$p&#39;(x)$，其中$x\in R^d$。
-我会根据对数密度梯度之间的差异，发现两个密度之间的 Kullback–Leibler 散度之间存在联系：$\nabla_{x} \log p(x)$和$\nabla_{x} \log p&#39;(x)$。
-类似于
-$$\int p(x)\log\frac{p(x)}{p&#39;(x)}dx\le \frac{1}{2}||\nabla_{x} \log p(x)-\nabla_{x} \log p&#39;(x)||_2^2.$$
-有人能帮帮我吗？我已经尝试过开始定义 KL，然后分部分积分，但我在某些点卡住了。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651590/writing-kullback-leibler-divergence-in-terms-of-the-score-function</guid>
-      <pubDate>Tue, 23 Jul 2024 13:06:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何对线性混合建模（lme4 和 simr）运行敏感性功效分析？</title>
-      <link>https://stats.stackexchange.com/questions/651589/how-to-run-a-sensitivity-power-analysis-for-linear-mixed-modeling-lme4-and-simr</link>
-      <description><![CDATA[我们使用以下变量进行了行为改变现场实验：
-
-两个时间点（T0，T1）
-两组（干预组与对照组）
-个人 ID（第 1 组中 n = 62，第 2 组中 n = 53）
-研讨会 ID（8 个研讨会）
-
-我们正在使用此模型分析 lme4 中的数据
-lmer(DV_T1 ~ 1 + group + DV_T0 + (1|workshop_id), data=df)
-
-样本量由资源限制决定，这就是我们决定运行敏感性功效分析以检测感兴趣的最小效应量的原因（https://lakens.github.io/statistical_inferences/08-samplesizejustification.html）。
-我们尝试使用 simr 包执行此操作，但我们不完全确定我们的方法是否合适（它会抛出 NAs/0s）？非常感谢任何提示/建议/资源。
-library(lme4)
-library(simr)
-
-n1 &lt;- 62 
-n2 &lt;- 53 
-n_total &lt;- n1 + n2 
-n_workshops &lt;- 8 
-
-simulate_data &lt;- function(effect_size, n_total, n_workshops, n1, n2) {
-workshop_ID &lt;- factor(rep(1:n_workshops, length.out = n_total))
-group &lt;- factor(rep(c(&quot;Group1&quot;, &quot;Group2&quot;), times = c(n1, n2)))
-DV_T0 &lt;- rnorm(n_total)
-DV_T1 &lt;- DV_T0 + effect_size * (group == &quot;Group2&quot;) + rnorm(n_total, 0, 1) 
-
-data.frame(DV_T1 = DV_T1,
-DV_T0 = DV_T0,
-group = group,
-workshop_ID = workshop_ID)
-}
-
-effect_sizes &lt;- seq(0.1, 1.0, by = 0.1)
-
-power_analysis &lt;- function(effect_size) {
-analoged_data &lt;- analog_data(effect_size, n_total, n_workshops, n1, n2)
-
-model &lt;- lmer(DV_T1 ~ DV_T0 + group + (1 | workshop_ID), data = analoged_data)
-
-if (isSingular(model)) {
-return(NA)
-}
-
-power_simulation &lt;- powerSim(model, nsim = 1000，测试 = 固定（“groupGroup2”））
-
-返回（summary（power_simulation）$mean）
-值
-}
-powers &lt;- sapply（effect_sizes，power_analysis）
-
-valid_indices &lt;- !is.na（powers）
-plot（effect_sizes[valid_indices]，powers[valid_indices]，type = “b”，xlab = “效果大小”，ylab = “功率”，
-main = “敏感性分析”）
-abline（h = 0.80，col = “red”，lty = 2）
-power
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/651589/how-to-run-a-sensitivity-power-analysis-for-linear-mixed-modeling-lme4-and-simr</guid>
-      <pubDate>Tue, 23 Jul 2024 12:30:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较生物样本中预期和观察到的特征组合</title>
-      <link>https://stats.stackexchange.com/questions/651588/compare-expected-and-observed-feature-combinations-in-biological-samples</link>
-      <description><![CDATA[背景研究：
-这里研究的假设是共同选择或交叉耐药性等效应是否对生物样本中观察到的多重耐药性数量有影响。
-我有1000个生物样本的分类数据和4 个特征 (A,B,C,D)，它们告诉我样本是否对药物 A,B,C,D 具有耐药性 (R)或易感性 (S)。
-在此基础上，我可以计算出所有样本中每种药物耐药性的观察频率：
-P(A = &quot;R&quot;) = 0.4
-P(B = &quot;R&quot;) = 0.3
-P(C = &quot;R&quot;) = 0.3
-P(D = &quot;R&quot;) = 0.2
-
-另一方面但我观察到多种药物耐药性，我想找出耐药性组合是否比预期更频繁：
-P(observed) = P(A = R + B = R + C = R + D = R) = 0.1
-P(expected) = P(A = R)* R(B = R) * P(C = R) * P(D = R) =
-0.4*0.3*0.3*0.2
-
-鉴于 P(observed) = 0.1 和 P(expected)=0.0072 之间的巨大差异
-我想使用 R 中的 chisq.test 函数来比较这些比率。有没有更好的测试？如何设置列联表？
-祝好，迈克尔]]></description>
-      <guid>https://stats.stackexchange.com/questions/651588/compare-expected-and-observed-feature-combinations-in-biological-samples</guid>
-      <pubDate>Tue, 23 Jul 2024 12:14:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>通过拉普拉斯变换证明 mgf 确定分布</title>
-      <link>https://stats.stackexchange.com/questions/651587/proving-that-mgf-determines-distribution-via-laplace-transform</link>
-      <description><![CDATA[我正在阅读这个问题以及那里提供的关于矩生成函数 (mgf) 的答案，以及如何通过拉普拉斯变换的唯一性来证明其唯一性。在我的书测度理论、概率和随机过程（作者：Le Gall）中，证明了非负随机变量的拉普拉斯变换的唯一性，但我真的很难理解如何将这个结果扩展到任意符号的随机变量，即 mgf（实际上是一个双面拉普拉斯变换）决定了 $X$ 的定律。
-我认为链接帖子中的答案做出了错误的陈述。答案声称
-
-$$M_X(-t)=\mathcal{L}\{f(x)\}(t)+\mathcal{L}\{f(-x)\}(-t),$$且 $M_X(t)$ 是唯一的当且仅当 $\mathcal{L}\{f(x)\}(t)$ 和 $\mathcal{L}\{f(-x)\}(-t)$ 都是唯一的。
-
-但加法不是单射。假设$Y$的密度为$g(x)$。如果 $M_X(-t)=M_Y(-t)$ 且其中 $|t|&lt;h$ 其中 $h&gt;0$，且如果 $F(t)=\mathcal{L}\{f(x)\}(t)$，$G(t)=\mathcal{L}\{f(-x)\}(-t)$，$H(t)=\mathcal{L}\{g(x)\}(t)$ 且 $K(t)=\mathcal{L}\{g(-x)\}(-t)$，然后$$F(t)+G(t)=H(t)+K(t)\rlap{\ \quad\not\ }\implies F(t)=H(t),G(t)=K(t),$$所以看起来我们不能使用拉普拉斯变换的唯一性来得出这样的结论：$f(x)=g(x)$和$f(-x)=g(-x)$在$x&gt;0$上，所以$f(x)=g(x)$。
-我的推理正确吗？还是我误解了什么？例如Casella 和 Berger 也将这个结果称为拉普拉斯变换理论的结果，但我不明白上面引用的陈述如何正确，也不知道如何证明 mgf 决定了 $X$ 的定律，因为我们知道单边拉普拉斯变换决定了 $X$ 的定律。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651587/proving-that-mgf-determines-distribution-via-laplace-transform</guid>
-      <pubDate>Tue, 23 Jul 2024 12:04:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何验证我的组中某些受试者是否出现显著变化</title>
-      <link>https://stats.stackexchange.com/questions/651585/how-to-verify-if-some-subjects-within-my-group-show-significant-changes</link>
-      <description><![CDATA[我有一个样本，在不同的认知任务治疗前、治疗中和治疗后 3 次对其进行测试，测量对刺激的反应时间。我使用了重复测量方差分析，并使用 Tukey 的事后检验观察了每个 T 时间之间的差异。看起来，作为一个整体，样本并没有显著差异，但一些 p 值非常接近显著性。
-现在，我想在个体层面验证，某些个体是否似乎发生了显著变化或改善。我如何将我的样本分为“改善的人”和“没有变化的人”？或者我应该对每个受试者进行 2 次 Wilcoxon 非参数检验分析，以确定他们是否随着时间的推移而改善？
-我在 Jamovi 上进行了分析（因为它非常适合初学者），但如果能提供 R 的示例语法，我将不胜感激]]></description>
-      <guid>https://stats.stackexchange.com/questions/651585/how-to-verify-if-some-subjects-within-my-group-show-significant-changes</guid>
-      <pubDate>Tue, 23 Jul 2024 11:11:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>Cohen's Kappa 的功效计算</title>
-      <link>https://stats.stackexchange.com/questions/651584/power-calculations-for-cohens-kappa</link>
-      <description><![CDATA[我想确定所需的样本量，以测量二元诊断测试的评分者间信度。有两位评分者。两位评分者的预期阳性诊断率均为 7.5%。
-
-如何确定所需的样本量，以便分析具有足够的说服力？我使用了 R 中的 irr 包，但结果数字似乎太低：
-irr::N.cohen.kappa(
-rate1 = 0.075,
-rate2 = 0.075,
-k1 = 0.6,
-k0 = 0,
-alpha = 0.05,
-power = 0.8,
-twosided = FALSE
-)
-# [1] 25
-
-如果 N=25，患病率为 7.5%，则只有 ~2 个阳性病例。我的解释正确吗？
-
-假设 k0（零假设下的 Kappa 值）为 0，即除偶然之外没有其他一致性，这样对吗？我读到过，这应该是最低可接受的 Kappa，例如 0.4，而不是 0。
-
-
-谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651584/power-calculations-for-cohens-kappa</guid>
-      <pubDate>Tue, 23 Jul 2024 10:16:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>商和比率的统计推断</title>
-      <link>https://stats.stackexchange.com/questions/651583/statistical-inference-for-quotients-and-ratios</link>
-      <description><![CDATA[我有一些关于 RCT 的数据，我们有兴趣计算干预的投资回报率。我们希望比较每个变体的两个总数的商，而不是以总和表示的更传统的结果。
-主要问题是我们无法访问个人层面的数据，只能访问汇总到变体的数据。
-我们知道每个变体的展示次数$n$、点击次数$c$和转化次数$k$。我们还知道我们总共花了多少钱，$X$，赚了多少钱$Y$。
-我们想要比较
-$$ Z = \frac{X}{Y} $$
-每个变化。
-我的直觉是取对数并计算
-$$ \tilde{X_A} = \log(X_A) / n_A $$
-$$ \tilde{Y_A} = \log(Y_A) / n_A $$
-$$ \tilde{X_B} = \log(X_B) / n_B $$
-$$ \tilde{Y_B} = \log(Y_B) / n_B $$&lt;​​/span&gt;
-然后计算：
-$$ (Y_B - X_B) - (Y_A - X_A) $$
-作为检验统计量。
-我的问题：
-这是一种有效的方法吗？如果是，我如何传播不确定性来计算置信区间，或找到（合并）标准差？
-有没有关于 RCT 这种指标的更广泛的文献？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651583/statistical-inference-for-quotients-and-ratios</guid>
-      <pubDate>Tue, 23 Jul 2024 09:31:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>根据 beta、标准误差、样本大小和回归参数数量计算 p 值</title>
-      <link>https://stats.stackexchange.com/questions/651582/compute-p-vale-from-beta-standard-error-sample-size-and-number-of-regression-p</link>
-      <description><![CDATA[如果我只知道 beta（即线性回归的回归系数）、标准误差、样本大小和回归参数的数量，我该如何计算 p 值？
-除了 p 值之外，还有其他方法可以确定统计显著性吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651582/compute-p-vale-from-beta-standard-error-sample-size-and-number-of-regression-p</guid>
-      <pubDate>Tue, 23 Jul 2024 09:27:35 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 RCT 进行分类交互效应假设检验：我们应该将它们纳入逻辑回归模型吗？</title>
       <link>https://stats.stackexchange.com/questions/651580/hypothesis-testing-with-categorical-interaction-effects-with-rcts-should-we-inc</link>
       <description><![CDATA[我有一个二元治疗/控制的 RCT，其中用户会接触到新的 UI 元素和协变量，如下所示：
@@ -252,29 +306,16 @@ $$ (Y_B - X_B) - (Y_A - X_A) $$
 
 我的结果是一个二元转换变量。
 我已经建立了一个逻辑回归模型，并想推断群组（设备、种族或两者）对结果变量的影响大小。
-因此，我将回归模型设置为包含所有主效应和所有双向交互作用。由于参考，这导致大约 15 个术语左右。我每组有 20,000 个观察值，所以这没问题。
-但是，结果似乎不正确。我使用了 0-1 虚拟编码，而不是 -1、1 对比，似乎所有相互作用都与参考治疗-队列相互作用相关，这并不是我们真正想要的。这似乎只是告诉我一些治疗队列是否比参考类别具有显著更大的效果。
-相反，我想针对治疗效果等同于对照效果的零假设对每个队列进行显着性检验。因此，这似乎并没有为我们提供进行假设检验的方法。
+因此，我将回归模型设置为包含所有主效应和所有双向交互作用。由于参考，这导致大约 15 个术语左右。我每组有 25,000 个观察值，所以这没问题。
+但是，我不清楚这是否是正确的做法，因为它会创建参考类别来测试所有效果的重要性。当我包括所有主效应和双向相互作用时，实际上没有什么显著的，我想知道这种方法是否有意义。
 所以我想知道：
 
 我是否应该针对队列控制效应的零假设对每个队列组进行卡方检验？
 我应该对比编码虚拟变量吗？
 
-我还注意到，如果我包括所有交互作用和主效应，治疗系数就不显著，我认为这是因为我现在正在考虑参考与参考交互作用中的治疗效果。]]></description>
+我还注意到，如果我包括所有相互作用和主效应，治疗效果并不显著，因此由于相互作用的工作方式，我认为我必须单独考虑治疗效果模型。]]></description>
       <guid>https://stats.stackexchange.com/questions/651580/hypothesis-testing-with-categorical-interaction-effects-with-rcts-should-we-inc</guid>
       <pubDate>Tue, 23 Jul 2024 09:00:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 partykit 中指定调查权重[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/651544/specifying-survey-weights-in-partykit</link>
-      <description><![CDATA[对于我正在处理的数据集，我知道如何使用 survey 包中的 svydesign 函数指定权重：
-svydesign(data = x, id = ~id, strata = NULL, weights = wgt)
-我的问题是关于在 party::mob() 中实现此结构的可能性。鉴于上述 svydesign 对象中 strata 的 NULL 值，以下是否是等效的权重规范？
-mob(..., weights = wgt, cluster = id)
-我看到了一些关于这个主题的一般问题（例如 this），这些问题表明复杂的调查权重无法在 party 包中成功实现。不过，我想知道，svydesign() 函数中缺少 strata 参数是否足以简化权重情况，以便 party 包能够处理它。
-这已被标记为“更多是关于编程而不是统计”。我个人认为它与我链接到的帖子是一脉相承的。但是，如果您不同意，有没有办法将其转移到 StackOverflow？无论这是否是最适合的地方，对该帖子的回复似乎都很有帮助且值得。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651544/specifying-survey-weights-in-partykit</guid>
-      <pubDate>Mon, 22 Jul 2024 16:05:44 GMT</pubDate>
     </item>
     </channel>
 </rss>
