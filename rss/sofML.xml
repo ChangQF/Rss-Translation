@@ -4,7 +4,96 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 24 Jul 2024 18:20:43 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jul 2024 21:15:05 GMT</lastBuildDate>
+    <item>
+      <title>如何追踪之前图像的轮廓？</title>
+      <link>https://stackoverflow.com/questions/78790401/how-do-i-track-a-contour-from-my-previous-image</link>
+      <description><![CDATA[我有一个细菌细胞移动的视频，我将其转换为帧。现在我想找到每个细菌细胞的瞬时速度。为此，我感兴趣的是找出细菌细胞移动了多少，但我不知道如何告诉我的程序准确识别这种特定的细菌移动了。例如，假设我只有两张图像。对于每张图像，我都有每种细菌的 COM 坐标。现在我如何关联这些数据。我如何让我的程序准确识别这种特定细菌的 COM 变化量。我已将两张图片附上以供参考。
+
+
+我想到的一个方法是给每个轮廓一个唯一的 id，并将该轮廓的特征与该唯一 id 关联起来。例如它的长轴和短轴长度。这样我就可以关联轮廓的初始和最终 COM。但是这个想法假设所有细菌细胞都是独一无二的，并且我的代码可以准确而精确地识别每个细菌细胞的轮廓，但事实并非如此。如果您感兴趣，我还附上了查找每个细菌细胞轮廓的代码。有人可以提出一些更好的想法吗？非常感谢。
+import cv2 as cv
+import numpy as np
+from numpy.typing import NDArray
+import math
+
+def gaussian_filter_multiscale_retinex(image: NDArray, sigmas: list[float], weights: list[float]) -&gt;; NDArray:
+img32 = image.astype(&#39;float32&#39;) / 255
+
+img32_log = cv.log(img32 + 1)
+
+msr = np.zeros(image.shape, np.float32)
+对于 zip(sigmas, weights) 中的 sigma、weight:
+
+blur = cv.GaussianBlur(img32, ksize=(0, 0), sigmaX=sigma)
+blur_log = cv.log(blur + 1)
+ssr = cv.subtract(img32_log, blur_log)
+ssr = cv.multiply(ssr, weight)
+
+msr = cv.add(msr, ssr)
+
+msr = cv.divide(msr, sum(weights))
+
+msr = cv.normalize(msr, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+返回 msr
+def calculate_ellipse_area(椭圆):
+
+(cx, cy), (a, b), 角度 = 椭圆
+半长轴 = a / 2
+半短轴 = b / 2
+面积 = math.pi * 半长轴 * 半短轴
+返回面积，角度
+
+def process_image(img, size_threshold):
+gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+rtnx = gaussian_filter_multiscale_retinex(gray, sigmas=[15, 55, 185], weights=[10, 5, 1])
+阈值 = cv.adaptiveThreshold(rtnx, 255,自适应方法 = cv.ADAPTIVE_THRESH_GAUSSIAN_C，
+阈值类型 = cv.THRESH_BINARY，blockSize = 7，C = -7)
+nb_components，输出，统计，_ = cv.connectedComponentsWithStats（阈值，连通性 = 8）
+大小 = 统计 [1：，-1]
+new_img = np.zeros_like（阈值）
+对于 i 在范围内（0，nb_components - 1）：
+如果sizes [i]＆gt; = size_threshold：
+new_img [输出 == i + 1] = 255
+connected_components = cv.connectedComponentsWithStats（new_img）
+（numLabels，标签，统计，质心）=connected_components
+
+result_image = np.ones_like（img）* 255
+对于 i 在范围内（1， numLabels):
+componentMask = (labels == i).astype(&#39;uint8&#39;)
+contours, _ = cv.findContours(componentMask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+if len(contours) &gt; 0:
+cnt = contours[0]
+if len(cnt) &gt;= 5:
+ellipse = cv.fitEllipse(cnt)
+area, angle = calculate_ellipse_area(ellipse)
+if area &lt; 250:
+cv.ellipse(result_image, ellipse, (0, 0, 0), 1) # 在白色背景上绘制黑色轮廓
+return result_image
+img1path = &quot;/Users/yahya2/Desktop/1.png&quot;
+img = cv.imread(img1path)
+size_threshold = 16
+result_image = process_image(img, size_threshold)
+
+cv.imshow(&#39;轮廓&#39;, result_image)
+cv.waitKey(0)
+cv.destroyAllWindows()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78790401/how-do-i-track-a-contour-from-my-previous-image</guid>
+      <pubDate>Wed, 24 Jul 2024 20:14:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>我已经成功安装了 pypdf2，但无法将其导入到我的 python 文件中</title>
+      <link>https://stackoverflow.com/questions/78790198/i-have-successfully-installed-the-pypdf2-but-not-able-to-import-it-into-my-pytho</link>
+      <description><![CDATA[我已成功安装 pypdf2 模块，但在导入时，我发现缺少此模块。
+我尝试使用导入
+from PyPDF2 import PdfReader
+
+但它不起作用
+此问题有哪些解决方案？]]></description>
+      <guid>https://stackoverflow.com/questions/78790198/i-have-successfully-installed-the-pypdf2-but-not-able-to-import-it-into-my-pytho</guid>
+      <pubDate>Wed, 24 Jul 2024 19:17:59 GMT</pubDate>
+    </item>
     <item>
       <title>Keras CNN 模型对同一输入给出不同的输出预测</title>
       <link>https://stackoverflow.com/questions/78789559/keras-cnn-model-gives-different-output-predictions-for-the-same-input</link>
@@ -141,9 +230,9 @@ plt.show()
       <pubDate>Wed, 24 Jul 2024 11:33:37 GMT</pubDate>
     </item>
     <item>
-      <title>数据交叉验证</title>
+      <title>数据交叉验证[关闭]</title>
       <link>https://stackoverflow.com/questions/78787891/cross-validation-on-data</link>
-      <description><![CDATA[我有两个文件，一个是 train.csv，另一个是 test.csv。test.csv 是看不见的数据，我们不会在训练中使用它。所以我使用 train.csv，我使用训练分割将其进一步分割为 train_1 和验证集。我想应用交叉验证 (K-Fold)。我应该对 train_1 还是对整个训练数据（即 train.csv）应用交叉验证？我很困惑。关于超参数调整还有一件事。我正在使用 RandomizedSerachCV，如果我想给 cv=None，那么没问题，因为我不想再次应用交叉验证。
+      <description><![CDATA[我有两个文件，一个是 train.csv，另一个是 test.csv。test.csv 是看不见的数据，我们不会在训练中使用它。所以我使用 train.csv，我使用训练分割将其进一步分割为 train_1 和验证集。我想应用交叉验证 (K-Fold)。我应该对 train_1 还是对整个训练数据（即 train.csv）应用交叉验证？我很困惑。关于超参数调整还有一件事。我正在使用 RandomizedSerachCV，如果我想给出 cv=None，那么没问题，因为我不想再次应用交叉验证。
 我正在尝试检查模型的稳健性并进行一些超参数调整。]]></description>
       <guid>https://stackoverflow.com/questions/78787891/cross-validation-on-data</guid>
       <pubDate>Wed, 24 Jul 2024 10:50:12 GMT</pubDate>
@@ -194,68 +283,6 @@ db &lt;- dbscan(clu​​stering_data, eps = 1.8, minPts = 5)
 由此，我希望输入将给出 3 个特征，并基于这些输入生成文本，但语言变化和修改与训练数据不完全相同。]]></description>
       <guid>https://stackoverflow.com/questions/78787403/how-to-create-the-dataset-to-use-tensorflow-for-text-generation</guid>
       <pubDate>Wed, 24 Jul 2024 09:15:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用适配器在 CNN/DailyMail 数据集上微调 BART 时，性能不佳且有过度拟合的迹象</title>
-      <link>https://stackoverflow.com/questions/78787294/poor-performance-and-signs-of-overfitting-when-fine-tuning-bart-with-adapters-on</link>
-      <description><![CDATA[我目前正在使用 CNN/DailyMail 数据集对 BART 模型进行微调，并使用适配器完成摘要任务。我注意到该模型性能不佳，并且有过度拟合的迹象。下面是我的设置和相关代码片段。我已经尝试了不同的学习率和训练数据量。如有任何关于导致此问题的原因或如何改善模型性能的建议，我们将不胜感激。
-from datasets import load_dataset, DatasetDict
-from transformers import TrainingArguments, EvalPrediction
-from adapters import AutoAdapterModel, AdapterTrainer
-import torch
-
-# 加载 CNN/DailyMail 数据集的子集
-small_train_dataset = load_dataset(&quot;cnn_dailymail&quot;, &quot;3.0.0&quot;, split=&quot;train[:5%]&quot;)
-
-# 拆分数据集
-train_size = 0.8
-valid_size = 0.2
-train_valid_split = small_train_dataset.train_test_split(test_size=valid_size)
-split_dataset = DatasetDict({
-&#39;train&#39;: train_valid_split[&#39;train&#39;],
-&#39;validation&#39;: train_valid_split[&#39;test&#39;]
-})
-
-# 预处理和标记数据
-def preprocess_function(examples):
-# 假设“tokenizer”已实例化
-return {
-&#39;input_ids&#39;: tokenizer(examples[&#39;article&#39;], padding=&quot;max_length&quot;, truncation=True, max_length=128),
-&#39;labels&#39;: tokenizer(examples[&#39;highlights&#39;], padding=&quot;max_length&quot;, truncation=True, max_length=128)[&quot;input_ids&quot;]
-}
-
-# 使用适配器初始化 BART 模型
-model = AutoAdapterModel.from_pretrained(&quot;facebook/bart-base&quot;)
-model.add_adapter(&quot;cnn_dailymail&quot;, config=&quot;lora&quot;)
-model.add_seq2seq_lm_head(&quot;cnn_dailymail&quot;)
-model.train_adapter(&quot;cnn_dailymail&quot;)
-
-# 训练设置
-device = &quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;
-model.to(device)
-training_args = TrainingArguments(
-learning_rate=5e-5,
-num_train_epochs=1,
-per_device_train_batch_size=32,
-logs_steps=10,
-output_dir=&quot;./training_output&quot;,
-overwrite_output_dir=True,
-remove_unused_columns=False,
-gradient_accumulation_steps=4
-)
-
-trainer = AdapterTrainer(
-model=model,
-args=training_args,
-train_dataset=split_dataset[&#39;train&#39;],
-eval_dataset=split_dataset[&#39;validation&#39;]
-)
-
-# 开始训练
-trainer.train()
-]]></description>
-      <guid>https://stackoverflow.com/questions/78787294/poor-performance-and-signs-of-overfitting-when-fine-tuning-bart-with-adapters-on</guid>
-      <pubDate>Wed, 24 Jul 2024 08:52:39 GMT</pubDate>
     </item>
     <item>
       <title>在 keras.metrics.TruePositives 中，TruePositive 怎么会是十进制数？</title>
@@ -441,18 +468,6 @@ print(example_gen.outputs[&#39;examples&#39;].get())
       <pubDate>Sun, 23 Jun 2024 14:03:09 GMT</pubDate>
     </item>
     <item>
-      <title>训练特征矩阵与真实输入</title>
-      <link>https://stackoverflow.com/questions/77977567/training-feature-matrix-vs-real-input</link>
-      <description><![CDATA[我在尝试将我的模型应用于实际场景时遇到了问题。用于训练的原始特征矩阵大于输入数据。
-请纠正我，我知道实际应用中的输入可能在大小上要小得多，并且在更糟糕的情况下具有一些不同的特征。
-示例：我的数据集是数千个文本文件，它们有两个类别（备忘录 (0) 或字母 (1)）。我使用 linearSVC 训练模型来对这些文件进行分类。
-使用 train_test_split 的结果很棒，现在我想用实际场景测试它。实际场景中的输入将是一个文件。该文件将具有较少的特征，并且可能具有不同的特征。在我的上一次测试中，我使用 4500 个特征进行训练，而实际场景中的输入有 350 个特征。
-ValueError：X 有 350 个特征，但 LinearSVC 需要 4500 个特征作为输入。
-我该如何处理此类问题？]]></description>
-      <guid>https://stackoverflow.com/questions/77977567/training-feature-matrix-vs-real-input</guid>
-      <pubDate>Sun, 11 Feb 2024 16:49:49 GMT</pubDate>
-    </item>
-    <item>
       <title>我不明白 sckit-learn 的 tfidfvectorizer 的工作原理</title>
       <link>https://stackoverflow.com/questions/77541978/i-do-not-understand-the-working-of-tfidfvectorizer-of-sckit-learn</link>
       <description><![CDATA[我知道的计算 tf-idf 的公式是 TF * IDF，其中 TF 是该词在文档 D 中出现的次数，IDF 是文档数/包含该词的文档数 + 1。
@@ -468,15 +483,6 @@ vectorizer = TfidfVectorizer(norm=None)
       <pubDate>Fri, 24 Nov 2023 09:16:18 GMT</pubDate>
     </item>
     <item>
-      <title>LSTM 自动编码器数据缩放指南</title>
-      <link>https://stackoverflow.com/questions/76866677/guidance-on-data-scaling-for-lstm-autoencoder</link>
-      <description><![CDATA[我正在处理一个包含 9 个特征的数据集。其中 8 个特征的值范围为 0-255，但一个特征的值明显不同。我正在将此数据集与 LSTM 自动编码器一起使用以进行异常检测，并且对缩放有几个问题：
-虽然建议使用 RobustScaler 来处理异常值，但我发现 StandardScaler 在我的测试中表现更好。您能解释一下为什么会这样吗？
-我尝试使用 RobustScaler 来处理发散特征，使用 StandardScaler 来处理其余特征。这种方法似乎很有希望。您会推荐这种混合缩放方法吗，还是我应该坚持对所有特征使用一个缩放器？]]></description>
-      <guid>https://stackoverflow.com/questions/76866677/guidance-on-data-scaling-for-lstm-autoencoder</guid>
-      <pubDate>Wed, 09 Aug 2023 10:06:05 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么使用 LeaveOneOut() 的 cross_val_score 会导致 nan validationscore？</title>
       <link>https://stackoverflow.com/questions/76537113/why-cross-val-score-using-leaveoneout-leads-to-nan-validationscore</link>
       <description><![CDATA[我试图在sklearn的iris数据集中适应不同的cross_val_score类型（k-fold（），LeaveOneOut（），LeavepOut（））。但是LeaveOneOut（）导致nan分数列表。为什么会发生这种情况？任何人都可以解释？让我在这里附上我的部分代码==&gt;
@@ -490,18 +496,18 @@ kfindex=LeaveOneOut()
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
-里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
-里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
+里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
+里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 中中中中]]
-我手动尝试了 cross_val_score ，它也导致了相同的输出
+我手动尝试了 cross_val_score，它也会导致相同的输出
 &lt;前&gt;&lt;代码&gt;i=0
 分数=[]
 对于 kfindex.split(iris.data) 中的 train_x_indices、test_x_indeces：
     xtrain,xtest=iris.data[train_x_indices],iris.data[test_x_indices]
     ytrain,ytest=iris.target[train_x_indices],iris.target[test_x_indices]
-# 打印（xtrain.shape）
+# 打印(xtrain.shape)
     我+=1
 
     model.fit(xtrain,ytrain)
@@ -513,6 +519,62 @@ kfindex=LeaveOneOut()
 有很多问题与 cross_val_score 的值有关。但没有一个问题能导致我的解决方案。请有人帮忙]]></description>
       <guid>https://stackoverflow.com/questions/76537113/why-cross-val-score-using-leaveoneout-leads-to-nan-validationscore</guid>
       <pubDate>Fri, 23 Jun 2023 04:39:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>没有名为“tensorflow.keras.layers.experimental.preprocessing”的模块</title>
+      <link>https://stackoverflow.com/questions/63542803/no-module-named-tensorflow-keras-layers-experimental-preprocessing</link>
+      <description><![CDATA[代码下方
+import numpy as np
+np.random.seed(0)
+from sklearn import datasets
+import matplotlib.pyplot as plt
+%matplotlib inline
+%config InlineBackend.figure_format =&#39;retina&#39;
+
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.optimizers import SGD
+
+错误消息下方
+-------------------------------------------------------------------------------
+ModuleNotFoundError Traceback (most recent call last)
+~\Anaconda3\lib\site-packages\keras\__init__.py in &lt;module&gt;
+2 try:
+----&gt; 3 from tensorflow.keras.layers.experimental.preprocessing import RandomRotation
+4 except ImportError:
+
+ModuleNotFoundError: 没有名为“tensorflow.keras.layers.experimental.preprocessing”的模块
+
+在处理上述异常期间，发生了另一个异常：
+
+ImportError Traceback（最近一次调用最后一次）
+&lt;ipython-input-5-943507dd87a6&gt; in &lt;module&gt;
+6 get_ipython().run_line_magic(&#39;config&#39;, &quot;InlineBackend.figure_format =&#39;retina&#39;&quot;)
+7 
+----&gt; 8 从 keras.models 导入 Sequential
+9 从 keras.layers 导入 Dense
+10 从 keras.optimizers 导入 SGD
+
+~\Anaconda3\lib\site-packages\keras\__init__.py in &lt;module&gt;
+4 except ImportError:
+5 raise ImportError(
+----&gt; 6 &#39;Keras 需要 TensorFlow 2.2 或更高版本。&#39;
+7 &#39;通过 `pip install tensorflow`&#39; 安装 TensorFlow)
+8 
+
+ImportError: Keras 需要 TensorFlow 2.2 或更高版本。通过 `pip install tensorflow` 安装 TensorFlow
+
+注意：`我认为，主要问题是 Tensorflow 版本。我使用了一些命令，如下所示，
+conda create -n tf tensorflow
+conda activate tf
+
+我还使用了以下命令
+conda create -n tf-gpu tensorflow-gpu
+conda activate tf-gpu
+
+但是它不起作用，请帮助解决错误。]]></description>
+      <guid>https://stackoverflow.com/questions/63542803/no-module-named-tensorflow-keras-layers-experimental-preprocessing</guid>
+      <pubDate>Sun, 23 Aug 2020 02:18:29 GMT</pubDate>
     </item>
     </channel>
 </rss>
