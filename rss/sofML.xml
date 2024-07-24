@@ -4,31 +4,111 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 24 Jul 2024 15:17:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jul 2024 18:20:43 GMT</lastBuildDate>
     <item>
-      <title>我可以删除同一行两次吗</title>
-      <link>https://stackoverflow.com/questions/78788693/can-i-drop-a-row-twice</link>
-      <description><![CDATA[我知道我的问题听起来很荒谬，但我不知道该如何表达，我想删除两个不同列中存在异常值的行，并且有些异常值同时存在于两列中，因此当我将它们删除到第一列后，可以正常删除它们，但当我尝试将它们删除到第二列时，会出现错误。
- def outliers(data): # 使用 tukey 围栏的异常值
-q1 = np.percentile(data, 25)
-q3 = np.percentile(data, 75)
-iqr = q3 - q1
-upper = q3 + (1.5*iqr)
-lower = q1 - (1.5*iqr)
-return np.where((data&gt;upper) | (data&lt;lower))
+      <title>Keras CNN 模型对同一输入给出不同的输出预测</title>
+      <link>https://stackoverflow.com/questions/78789559/keras-cnn-model-gives-different-output-predictions-for-the-same-input</link>
+      <description><![CDATA[嗨，我用 keras 训练了一个 CNN 模型，类似于他们在网站上使用的示例模型，但层数略小，最后还有一个额外的 dropout 层。模型构建函数看起来有点像这样：
+&quot; --------- 模型参数 ---------&quot;
 
-height_outliers = newdf.iloc[outliers(newdf[&#39;height&#39;])].index.values.tolist()
-weight_outliers = newdf.iloc[outliers(newdf[&#39;weight&#39;])].index.values.tolist()
-newdf.drop(index = height_outliers, inplace = True)
-newdf.drop(index = weight_outliers, inplace = True)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78788693/can-i-drop-a-row-twice</guid>
-      <pubDate>Wed, 24 Jul 2024 13:34:40 GMT</pubDate>
+epochs = 800
+image_size = (384, 256)
+batch_size = 128
+number_of_layers = 4
+drop_out = 0.25
+num_dropouts = 2
+learn_rate = 0.00001
+layer_sizes = [64, 128, 256, 512, 728]
+class_weight = {0:1, 1:3}
+image_rotation = 0.1
+
+def make_model(input_shape, num_classes, layer_num=3, drop_out=0.25, dropouts=1):
+inputs = keras.Input(shape=input_shape)
+
+# 输入块
+x = layer.Rescaling(1.0 / 255)(inputs)
+x = layer.Conv2D(128, 3, strides=2, padding=&quot;same&quot;)(x)
+x = layer.BatchNormalization()(x)
+x = layer.Activation(&quot;relu&quot;)(x)
+
+previous_block_activation = x # 留出残差
+
+layer_use = []
+for i in range(layer_num): layer_use.append(layer_sizes[i])
+
+for size in layer_use:
+x = layer.Activation(&quot;relu&quot;)(x)
+x = layer.SeparableConv2D(size, 3, padding=&quot;same&quot;)(x)
+x = layer.BatchNormalization()(x)
+
+x = layer.Activation(&quot;relu&quot;)(x)
+x = layer.SeparableConv2D(size, 3, padding=&quot;same&quot;)(x)
+x = layer.BatchNormalization()(x)
+
+x = layer.MaxPooling2D(3, strides=2, padding=&quot;same&quot;)(x)
+
+# 投影残差
+residual = layer.Conv2D(size, 1, strides=2, padding=&quot;same&quot;)(
+previous_block_activation
+)
+x = layer.add([x, residual]) # 添加回残差
+previous_block_activation = x # 留出下一个残差
+
+x = layer.SeparableConv2D(1024, 3, padding=&quot;same&quot;)(x)
+x = layer.BatchNormalization()(x)
+x = layer.Activation(&quot;relu&quot;)(x)
+
+x = layer.GlobalAveragePooling2D()(x)
+if num_classes == 2:
+unit = 1
+else:
+unit = num_classes
+
+if dropouts == 1:
+x = layer.Dropout(drop_out)(x)
+# 我们指定activation=None以便返回logits
+outputs = layer.Dense(units,activation=None)(x)
+elif dropouts == 2:
+x = layer.Dropout(0.2)(x)
+x = layer.Dropout(units,activation=None)(x)
+outputs = layer.Dropout(drop_out)(x)
+
+返回keras.Model(inputs,outputs)
+
+model = make_model(input_shape=image_size + (3,),num_classes=2,layer_num=number_of_layers,
+drop_out=drop_out,dropouts=num_dropouts)
+
+model.compile(
+optimizer=keras.optimizers.Adam(learning_rate=learn_rate),
+loss=keras.losses.BinaryCrossentropy(from_logits=True),
+metrics=[keras.metrics.BinaryAccuracy(name=&quot;acc&quot;)],
+)
+
+model.fit(
+train_ds,
+epochs=epochs,
+callbacks=callbacks,
+validation_data=val_ds,
+class_weight=class_weight
+)
+
+模型训练良好 - 达到约 97% 的验证准确率。使用预测函数时，模型通常会根据我提供的输入数据给出合理的输出。我遇到的问题是，使用 predict_on_batch 函数时的输出预测并不相同，如果使用相同的输入数据重复，通常会相差 +-0.15。这是什么原因造成的，一旦模型经过训练并用于预测，对于相同的输入数据，预测难道不应该相同吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78789559/keras-cnn-model-gives-different-output-predictions-for-the-same-input</guid>
+      <pubDate>Wed, 24 Jul 2024 16:36:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Kubeflow Pipelines 中设置启动器和驱动程序映像</title>
+      <link>https://stackoverflow.com/questions/78789198/how-to-set-launcher-and-driver-image-in-kubeflow-pipelines</link>
+      <description><![CDATA[我正在为我的企业运行 Kubeflow 管道，我们无法使用公共映像。目前，当我运行 Kubeflow Pieplines 时，它会自动转到 gcr.io/ml-pipeline/kfp-driver@sha256:0ce9bf20ac9cbb21e84ff0762d5ae508d21e9c85fde2b14b51363bd1b8cd7528 获取 kfp 驱动程序映像。有没有办法用 KFP SDK 覆盖它？
+我看到这个问题已经解决了，但不知道该如何实现。
+https://github.com/kubeflow/pipelines/issues/7225]]></description>
+      <guid>https://stackoverflow.com/questions/78789198/how-to-set-launcher-and-driver-image-in-kubeflow-pipelines</guid>
+      <pubDate>Wed, 24 Jul 2024 15:12:38 GMT</pubDate>
     </item>
     <item>
       <title>如何在窗口上聚合 RESNET50 全局特征？</title>
       <link>https://stackoverflow.com/questions/78788243/how-to-aggregate-resnet50-global-features-over-a-window</link>
-      <description><![CDATA[我有一项任务，需要对时间序列凝视数据集进行人员识别。我有正在观看视频的人的凝视信息，对于每个时间戳，我都会从视频中获取一个裁剪的帧，以了解人员正在看哪里，然后将其提供给 RESNET-50 预训练模型以提取其特征。从模型中删除最后一个分类层，以便我获得每个图像的 2048 维向量。
+      <description><![CDATA[我必须通过时间序列凝视数据集进行人员识别。我有正在观看视频的人的凝视信息，并且对于每个时间戳，我都会从视频中获取裁剪的帧以了解人员正在看哪里，然后将其提供给 RESNET-50 预训练模型以提取其特征。从模型中删除最后一个分类层，以便我获得每个图像的 2048 维向量。
 最后，我有一个带有时间戳的时间序列数据，对于每一行，凝视信息 + 2048 个来自 RESNET 模型的特征。我的目标是使用凝视特征进行人员识别，并在这些凝视特征之上，输出 RESNET 特征。
 现在，我想进行特征聚合，可能在窗口大小上进行。我一直在研究像 Fischer 向量这样的局部特征聚合方法，但我拥有的是图像的全局特征。
 TL;DR，有没有一种好的方法可以在窗口大小上聚合 RESNET-50 特征？
@@ -42,7 +122,7 @@ TL;DR，有没有一种好的方法可以在窗口大小上聚合 RESNET-50 特�
       <description><![CDATA[我理解，在蜂群图中，实例以点/点来表示。因此，人们可以根据 SHAP 值找到水平分布（沿 x 轴）的点簇，当 SHAP 值密度较高时，这些点簇垂直堆叠（沿 y 轴）。
 在大多数文档中，我看到蜂群图看起来像这样（https://www.aidancooper.co.uk/a-non-technical-guide-to-interpreting-shap-analyses/）：
 
-创建蜂群图后，我看不到点。我注意到形状点的边缘形成了更平滑的表面。我不确定我做对了什么或做错了什么，如果您能帮助我改变这一点，我将不胜感激。
+创建蜂群图后，我无法清晰地看到这些点。我注意到形状点的边缘形成了更平滑的表面。我不确定我做对了什么或做错了什么，如果您能帮助我改变这一点，我将不胜感激。
 这是我运行的代码。
 shap_values = explainer.shap_values(X.iloc[0:N_VAL,:], nsamples=NSHAP_SAMPLES)
 
@@ -56,7 +136,7 @@ plt.show()
 
 代码生成下面的图表
 
-如何处理此问题？]]></description>
+如果您能帮助我了解这里发生了什么以及如何处理这个问题，我将不胜感激。]]></description>
       <guid>https://stackoverflow.com/questions/78788072/issue-with-visibility-of-points-in-beeswarm-plot-generated-using-shap-values</guid>
       <pubDate>Wed, 24 Jul 2024 11:33:37 GMT</pubDate>
     </item>
@@ -361,21 +441,7 @@ print(example_gen.outputs[&#39;examples&#39;].get())
       <pubDate>Sun, 23 Jun 2024 14:03:09 GMT</pubDate>
     </item>
     <item>
-      <title>Pycaret：目标列中出现缺失值错误</title>
-      <link>https://stackoverflow.com/questions/78099026/pycaret-got-missing-value-error-in-target-col</link>
-      <description><![CDATA[如果目标列包含 NaN，并且当将其作为 Pycaret 中的目标列传递时，它会显示缺失值错误；所有可用的插补方法都适用于其余列，而不适用于所选目标列。
-s = setup(df, target = &#39;Life expectancy&#39;, numeric_imputation=&quot;mean&quot;)
-
-
-ValueError: 在目标列中发现 10 个缺失值：预期寿命。要继续，请从数据中删除相应的行。
-
-
-目标列包含 NaN，当在 Pycaret 中将其作为目标列传递时，它会显示缺失值错误，如何处理目标列中的缺失值？]]></description>
-      <guid>https://stackoverflow.com/questions/78099026/pycaret-got-missing-value-error-in-target-col</guid>
-      <pubDate>Mon, 04 Mar 2024 04:54:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>训练特征矩阵 vs 真实输入</title>
+      <title>训练特征矩阵与真实输入</title>
       <link>https://stackoverflow.com/questions/77977567/training-feature-matrix-vs-real-input</link>
       <description><![CDATA[我在尝试将我的模型应用于实际场景时遇到了问题。用于训练的原始特征矩阵大于输入数据。
 请纠正我，我知道实际应用中的输入可能在大小上要小得多，并且在更糟糕的情况下具有一些不同的特征。
@@ -422,12 +488,12 @@ kfindex=LeaveOneOut()
 输出==&gt;（分数）
 [在(150,)[在in in in in in in in in in in in in in in in
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
+里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
+里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
-里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
-里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
-里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
+里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里里
 中中中中]]
 我手动尝试了 cross_val_score ，它也导致了相同的输出
 &lt;前&gt;&lt;代码&gt;i=0
@@ -435,7 +501,7 @@ kfindex=LeaveOneOut()
 对于 kfindex.split(iris.data) 中的 train_x_indices、test_x_indeces：
     xtrain,xtest=iris.data[train_x_indices],iris.data[test_x_indices]
     ytrain,ytest=iris.target[train_x_indices],iris.target[test_x_indices]
-# 打印(xtrain.shape)
+# 打印（xtrain.shape）
     我+=1
 
     model.fit(xtrain,ytrain)
