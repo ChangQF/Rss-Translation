@@ -4,7 +4,208 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 24 Jul 2024 06:22:31 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jul 2024 09:16:10 GMT</lastBuildDate>
+    <item>
+      <title>使用适配器在 CNN/DailyMail 数据集上微调 BART 时，性能不佳且有过度拟合的迹象</title>
+      <link>https://stackoverflow.com/questions/78787294/poor-performance-and-signs-of-overfitting-when-fine-tuning-bart-with-adapters-on</link>
+      <description><![CDATA[我目前正在使用 CNN/DailyMail 数据集对 BART 模型进行微调，并使用适配器完成摘要任务。我注意到该模型性能不佳，并且有过度拟合的迹象。下面是我的设置和相关代码片段。我已经尝试了不同的学习率和训练数据量。如有任何关于导致此问题的原因或如何改善模型性能的建议，我们将不胜感激。
+from datasets import load_dataset, DatasetDict
+from transformers import TrainingArguments, EvalPrediction
+from adapters import AutoAdapterModel, AdapterTrainer
+import torch
+
+# 加载 CNN/DailyMail 数据集的子集
+small_train_dataset = load_dataset(&quot;cnn_dailymail&quot;, &quot;3.0.0&quot;, split=&quot;train[:5%]&quot;)
+
+# 拆分数据集
+train_size = 0.8
+valid_size = 0.2
+train_valid_split = small_train_dataset.train_test_split(test_size=valid_size)
+split_dataset = DatasetDict({
+&#39;train&#39;: train_valid_split[&#39;train&#39;],
+&#39;validation&#39;: train_valid_split[&#39;test&#39;]
+})
+
+# 预处理和标记数据
+def preprocess_function(examples):
+# 假设“tokenizer”已实例化
+return {
+&#39;input_ids&#39;: tokenizer(examples[&#39;article&#39;], padding=&quot;max_length&quot;, truncation=True, max_length=128),
+&#39;labels&#39;: tokenizer(examples[&#39;highlights&#39;], padding=&quot;max_length&quot;, truncation=True, max_length=128)[&quot;input_ids&quot;]
+}
+
+# 使用适配器初始化 BART 模型
+model = AutoAdapterModel.from_pretrained(&quot;facebook/bart-base&quot;)
+model.add_adapter(&quot;cnn_dailymail&quot;, config=&quot;lora&quot;)
+model.add_seq2seq_lm_head(&quot;cnn_dailymail&quot;)
+model.train_adapter(&quot;cnn_dailymail&quot;)
+
+# 训练设置
+device = &quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;
+model.to(device)
+training_args = TrainingArguments(
+learning_rate=5e-5,
+num_train_epochs=1,
+per_device_train_batch_size=32,
+logs_steps=10,
+output_dir=&quot;./training_output&quot;,
+overwrite_output_dir=True,
+remove_unused_columns=False,
+gradient_accumulation_steps=4
+)
+
+trainer = AdapterTrainer(
+model=model,
+args=training_args,
+train_dataset=split_dataset[&#39;train&#39;],
+eval_dataset=split_dataset[&#39;validation&#39;]
+)
+
+# 开始训练
+trainer.train()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78787294/poor-performance-and-signs-of-overfitting-when-fine-tuning-bart-with-adapters-on</guid>
+      <pubDate>Wed, 24 Jul 2024 08:52:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 keras.metrics.TruePositives 中，TruePositive 怎么会是十进制数？</title>
+      <link>https://stackoverflow.com/questions/78787112/how-can-truepositive-be-a-decimal-number-in-keras-metrics-truepositives</link>
+      <description><![CDATA[我正尝试在图像数据集上训练 CNN 模型，但一直无法获得 TruePositives、TrueNegatives、FalsePositives 和 FalseNegatives 的十进制值。这怎么可能呢？
+ERROR 示例
+Epoch 1/3
+36/36 ━━━━━━━━━━━━━━━━━━━━━━ 69s 2s/step - false_negatives：30.1351 - false_positives：35.3784 - loss：2.1995 - true_negatives：389.0540 - true_positives：437.6487
+
+
+有一些（tp+tn+fp+tn）不等于样本总数。
+完整代码
+
+import pandas as pd
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+from tensorflow.keras.layers import Dense,Flatten,InputLayer,Conv2D,MaxPooling2D,Concatenate,Input,BatchNormalization
+from tensorflow.keras.models import Sequential,Model
+from tensorflow.keras.losses import BinaryCrossentropy,CategoricalCrossentropy
+from tensorflow.keras.optimizers import Adam
+import matplotlib.pyplot as plt
+from tensorflow.keras.models import Model
+from sklearn.metrics import classes_report
+from tensorflow.keras.callbacks import EarlyStopping
+
+datagen=ImageDataGenerator(rescale=1.0/255.0)
+train_gen=datagen.flow_from_directory(&#39;train&#39;,class_mode=&#39;binary&#39;,
+target_size=(224,224),batch_size=32,shuffle=True)
+
+
+output
+找到属于 2 个类别的 1146 张图像。
+
+tp = tf.keras.metrics.TruePositives()
+tn = tf.keras.metrics.TrueNegatives()
+fp = tf.keras.metrics.FalsePositives()
+fn = tf.keras.metrics.FalseNegatives()
+tp.update_state([0.4, .9, .7, .8], [1.0, 0.0, 1.0, 1.0])
+tp.result()
+
+输出
+&lt;tf.Tensor: shape=(), dtype=float32, numpy=3.0&gt;
+
+model_input=Input(shape=(224,224,3))
+
+x=Conv2D(filters=32, kernel_size=(3,3),activation=&#39;relu&#39;,padding=&#39;valid&#39;)(model_input)
+x=MaxPooling2D(pool_size=(2,2),strides=2)(x)
+x=Conv2D(filters=64, kernel_size=(3,3),activation=&#39;relu&#39;,padding=&#39;valid&#39;)(x)
+x=MaxPooling2D(pool_size=(2,2),strides=2)(x)
+x=BatchNormalization()(x)
+x=Conv2D(filters=64, kernel_size=(3,3),activation=&#39;relu&#39;,padding=&#39;valid&#39;)(x)
+x=MaxPooling2D(pool_size=(2,2),strides=2)(x)
+x=BatchNormalization()(x)
+x=Flatten()(x)
+x=Dense(units=1000,activation=&#39;relu&#39;)(x)
+output=Dense(units=1,activation=&#39;sigmoid&#39;)(x)
+model=Model(inputs=model_input,outputs=output)
+
+model.compile(optimizer=Adam(),loss=BinaryCrossentropy(),metrics=[tp,fp,fn,tn])
+early_stopping = EarlyStopping(monitor=&#39;val_loss&#39;, waiting=2,restore_best_weights=True)
+
+history=model.fit(x=train_gen,epochs=3,callbacks=[early_stopping])
+
+十进制值错误
+Epoch 1/3
+36/36 ━━━━━━━━━━━━━━━━━━━━━━━ 69s 2s/step - false_negatives: 30.1351 - false_positives: 35.3784 - loss: 2.1995 - true_negatives: 389.0540 - true_positives: 437.6487
+Epoch 2/3
+36/36 ━━━━━━━━━━━━━━━━━━━━━ 61s 2s/步 - 假阴性：7.8378 - 假阳性：13.5135 - 损失：0.1692 - 真阴性：283.1081 - 真阳性：300.4054
+Epoch 3/3
+36/36 ━━━━━━━━━━━━━━━━━━━━━━━ 65s 2s/步 - 假阴性： 2.3243 - 假阳性：3.0811 - 损失：0.0546 - 真阴性：289.8108 - 真阳性：308.3513
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78787112/how-can-truepositive-be-a-decimal-number-in-keras-metrics-truepositives</guid>
+      <pubDate>Wed, 24 Jul 2024 08:14:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>安装 tf-models-official 时出现元数据生成失败</title>
+      <link>https://stackoverflow.com/questions/78786800/metadata-generation-failed-when-installing-tf-models-official</link>
+      <description><![CDATA[我尝试使用 !pip install tf-models-official 安装 tf-models-official，当它开始收集 kaggle&gt;=1.3.9 时，它返回以下错误：
+收集 kaggle&gt;=1.3.9（来自 tf-models-official）
+使用缓存的 kaggle-1.6.15.tar.gz (9.1 kB)
+安装构建依赖项...完成
+获取构建 wheel 的要求...完成
+准备元数据（pyproject.toml）...错误
+错误：子进程退出并出现错误
+
+× 准备元数据（pyproject.toml）未成功运行。
+│ 退出代码：1
+╰─&gt; [35 行输出]
+回溯（最近一次调用）：
+文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py&quot;，第 353 行，位于 &lt;module&gt;
+main()
+文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py&quot;，第 335 行，在 main 中
+json_out[&#39;return_val&#39;] = hook(**hook_input[&#39;kwargs&#39;])
+文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py&quot;，第 152 行，在 prepare_metadata_for_build_wheel 中
+whl_basename = backend.build_wheel(metadata_directory, config_settings)
+文件&quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/build.py&quot;，第 58 行，在 build_wheel 中
+return os.path.basename(next(builder.build(directory=wheel_directory,versions=[&#39;standard&#39;])))
+文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/plugin/interface.py&quot;，第 155 行，在 build 中
+artifact = version_api[version](directory,**build_data)
+文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/wheel.py&quot;，第 475 行，在build_standard
+for included_file in self.recurse_included_files():
+File &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/plugin/interface.py&quot;, line 176, in recurse_included_files
+Yield from self.recurse_selected_project_files()
+File &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/plugin/interface.py&quot;, line 180, in recurse_selected_project_files
+if self.config.only_include:
+File &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/config.py&quot;，第 806 行，在 only_include 中
+only_include = only_include_config.get(&#39;only-include&#39;, self.default_only_include()) 或 self.packages
+文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/wheel.py&quot;，第 260 行，在 default_only_include 中
+return self.default_file_selection_options.only_include
+文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/functools.py&quot;，第 981 行，在__get__
+val = self.func(instance)
+文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/wheel.py&quot;，第 248 行，位于 default_file_selection_options
+raise ValueError(message)
+ValueError：无法使用以下启发式方法确定要将哪些文件发送到 wheel 内：https://hatch.py​​pa.io/latest/plugins/builder/wheel/#default-file-selection
+
+最可能的原因是没有与您的项目 (kaggle) 名称匹配的目录。
+
+必须在 `tool.hatch.build.targets.wheel` 表中定义至少一个文件选择选项，请参阅：https://hatch.py​​pa.io/latest/config/build/
+
+例如，如果您打算发送一个名为 `foo` 的目录，该目录位于项目根目录的 `src` 目录中，则可以定义以下内容：
+
+[tool.hatch.build.targets.wheel]
+packages = [&quot;src/foo&quot;]
+[输出结束]
+
+注意：此错误源自子进程，可能不是 pip 的问题。
+错误：metadata-generation-failed
+
+× 生成包元数据时遇到错误。
+╰─&gt; 请参阅上面的输出。
+
+注意：这是上面提到的包的问题，​​而不是 pip。
+提示：请参阅上文了解详情。
+
+我能够在 2 周前安装，现在在新的 jupyter 笔记本内核上突然无法安装。我尝试在旧内核上重新安装，也出现了同样的错误。有人知道如何解决这个问题吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78786800/metadata-generation-failed-when-installing-tf-models-official</guid>
+      <pubDate>Wed, 24 Jul 2024 07:02:59 GMT</pubDate>
+    </item>
     <item>
       <title>创建具有标量特征和 N 维坐标向量特征的机器学习 Numpy 数组</title>
       <link>https://stackoverflow.com/questions/78785643/create-a-machine-learning-numpy-array-with-scalar-features-and-an-n-dimensional</link>
@@ -33,101 +234,6 @@
 我尝试过 dstack、concatenate、stack 等。所有方法都存在“轴必须完全匹配”的问题。在我的例子中，轴不匹配。一个特征的轴为 10，而其他特征要么没有轴（33000，），要么有 1 个轴（33000,1）（如果你强制它有一个轴）。我不确定我是否遗漏了某个 numpy 数组事实，或者这是否是不可能的。]]></description>
       <guid>https://stackoverflow.com/questions/78785643/create-a-machine-learning-numpy-array-with-scalar-features-and-an-n-dimensional</guid>
       <pubDate>Tue, 23 Jul 2024 21:28:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的 RNN 不能收敛到一个简单的任务？</title>
-      <link>https://stackoverflow.com/questions/78784723/why-my-rnn-does-not-converge-to-a-simple-task</link>
-      <description><![CDATA[我想创建一个递归模型来解决我所知道的最简单的序列，算术级数。以 a 为基数，以 d 为步长，序列如下：
-a、a+d、a+2d、a+3d、a+4d、...
-为了解决这个问题，将隐藏状态表示为 h，模型必须学习一个简单的 2*2 矩阵。这实际上是设置 h1 = t0。
-
-换句话说，你也可以这样看：
-
-所以这个带有 2*2 全连接层的模型应该能够学习这个矩阵：
-class Model(nn.Module):
-def __init__(self):
-super(Model, self).__init__()
-self.fc1 = nn.Linear(2, 2, bias=False)
-
-def forward(self, x):
-x = self.fc1(x)
-return x
-
-但令我惊讶的是它并没有收敛！我的设置应该有问题。如果你能帮我找到它，我将不胜感激。我怀疑问题应该出在我的训练循环中。
-附言：我现在故意将批处理大小设置为 1。我想稍后再处理输入数据。无论如何，模型应该可以在没有批次的情况下进行学习。
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
-import numpy as np
-
-class CustomDataset(Dataset):
-def __init__(self, size):
-self.size = size
-
-def __len__(self):
-return self.size
-
-def __getitem__(self, index):
-a0 = (np.random.rand() - 0.5) * 200
-d = (np.random.rand() - 0.5) * 40
-length = np.random.randint(2, MAX_Length_sequence + 1)
-
-serial = np.arange(length) * d + a0
-next_number = serial[-1] + d
-
-return length, torch.tensor(sequence, dtype=torch.float32), torch.tensor(next_number, dtype=torch.float32)
-
-class Model(nn.Module):
-def __init__(self):
-super(Model, self).__init__()
-self.fc1 = nn.Linear(2, 2, bias=False)
-
-def forward(self, x):
-x = self.fc1(x)
-return x
-
-# 超参数
-EPOCHS = 10
-BATCH_SIZE = 1
-LEARNING_RATE = 0.001
-DATASET_SIZE = 10000
-criterion = nn.MSELoss()
-
-# 模型
-model = Model()
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
-
-我的训练循环：
-for epoch in范围（EPOCHS）：
-数据集 = CustomDataset（DATASET_SIZE）
-数据加载器 = DataLoader（数据集，batch_size=BATCH_SIZE）
-模型。训练（）
-总损失 = 0
-
-对于长度、序列、数据加载器中的下一个编号：
-优化器。zero_grad（）
-损失 = 0
-h = torch.zeros（BATCH_SIZE）
-
-对于范围（长度）中的 i：
-x = torch.cat（[h，sequence[0，i].unsqueeze(0)])
-y = 序列[0，i + 1] 如果 i != length - 1 否则 next_number[0]
-
-输出 = 模型（x）
-h，y_hat = output[0].unsqueeze(0)，输出[1]
-
-损失 += 标准（y_hat，y）
-
-损失。backward（）
-优化器。step（）
-总损失 += 损失。item（）
-
-打印（f&#39;Epoch {epoch+1}，损失：{total_loss/len(dataloader)}&#39;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78784723/why-my-rnn-does-not-converge-to-a-simple-task</guid>
-      <pubDate>Tue, 23 Jul 2024 16:59:29 GMT</pubDate>
     </item>
     <item>
       <title>HPCC 系统 ECL：使用 LinearRegression 时出现访问权限不足错误</title>
@@ -227,84 +333,6 @@ HPCC Systems ECL 中是否有其他方法或配置可以执行线性回归而不
       <pubDate>Tue, 23 Jul 2024 14:29:53 GMT</pubDate>
     </item>
     <item>
-      <title>pointnet++的实现</title>
-      <link>https://stackoverflow.com/questions/78783587/implementation-of-pointnet</link>
-      <description><![CDATA[这是我的错误。掩码张量的形状与被索引的张量的形状不匹配。具体来说，掩码张量的形状为 [8, 512, 3]，而被索引的张量的形状为 [8, 512, 16]。如何解决这个问题？
-/usr/bin/python3.10 /home/aniruddha/PycharmProjects/Pointnet_Pointnet2_pytorch/centerline_pn.py 
-回溯（最近一次调用最后一次）：
-文件 &quot;/home/aniruddha/PycharmProjects/Pointnet_Pointnet2_pytorch/centerline_pn.py&quot;，第 265 行，位于 &lt;module&gt;
-main()
-文件 &quot;/home/aniruddha/PycharmProjects/Pointnet_Pointnet2_pytorch/centerline_pn.py&quot;，第 217 行，在 main
-输出，_ = model(points)
-文件 &quot;/home/aniruddha/.local/lib/python3.10/site-packages/torch/nn/modules/module.py&quot;，第 1532 行，在 _wrapped_call_impl
-返回 self._call_impl(*args, **kwargs)
-文件 &quot;/home/aniruddha/.local/lib/python3.10/site-packages/torch/nn/modules/module.py&quot;，第 1541 行，在 _call_impl
-返回 forward_call(*args, **kwargs)
-文件&quot;/home/aniruddha/PycharmProjects/Pointnet_Pointnet2_pytorch/models/pointnet2_cls_msg.py&quot;，第 32 行，在 forward 中
-l1_xyz, l1_points = self.sa1(xyz, norm)
-文件 &quot;/home/aniruddha/.local/lib/python3.10/site-packages/torch/nn/modules/module.py&quot;，第 1532 行，在 _wrapped_call_impl 中
-return self._call_impl(*args, **kwargs)
-文件 &quot;/home/aniruddha/.local/lib/python3.10/site-packages/torch/nn/modules/module.py&quot;，第 1541 行，在 _call_impl 中
-return forward_call(*args, **kwargs)
-文件&quot;/home/aniruddha/PycharmProjects/Pointnet_Pointnet2_pytorch/models/pointnet2_utils.py&quot;，第 283 行，在 forward 中
-group_idx = query_ball_point(radius, K, xyz, new_xyz)
-文件 &quot;/home/aniruddha/PycharmProjects/Pointnet_Pointnet2_pytorch/models/pointnet2_utils.py&quot;，第 148 行，在 query_ball_point 中
-group_idx[mask] = group_first[mask]
-IndexError：索引 2 处的掩码 [8, 512, 3] 的形状与索引 2 处的索引张量 [8, 512, 16] 的形状不匹配
-
-进程以退出代码 1 结束
-
-
-def query_ball_point(radius, nsample, xyz, new_xyz):
-&quot;&quot;&quot;
-输入：
-radius：局部区域半径
-nsample：局部区域最大样本数
-xyz：所有点，[B, N, 3]
-new_xyz：查询点，[B, S, 3]
-返回：
-group_idx：分组点索引，[B, S, nsample]
-&quot;&quot;&quot;
-device = xyz.device
-B, N, C = xyz.shape
-_, S, _ = new_xyz.shape
-group_idx = torch.arange(N, dtype=torch.long).to(device).view(1, 1, N).repeat([B, S, 1])
-sqrdists = square_distance(new_xyz, xyz)
-group_idx[sqrdists &gt; radius ** 2] = N
-group_idx = group_idx.sort(dim=-1)[0][:, :, :nsample]
-group_first = group_idx[:, :, 0].view(B, S, 1).repeat([1, 1, nsample])
-mask = group_idx == N
-group_idx[mask] = group_first[mask]
-return group_idx
-
-def square_distance(src, dst):
-&quot;&quot;&quot;
-计算每两点之间的欧几里得距离。
-
-src^T * dst = xn * xm + yn * ym + zn * zm；
-sum(src^2, dim=-1) = xn*xn + yn*yn + zn*zn;
-sum(dst^2, dim=-1) = xm*xm + ym*ym + zm*zm;
-dist = (xn - xm)^2 + (yn - ym)^2 + (zn - zm)^2
-= sum(src**2,dim=-1)+sum(dst**2,dim=-1)-2*src^T*dst
-
-输入：
-src：源点，[B, N, C]
-dst：目标点，[B, M, C]
-输出：
-dist：每个点的平方距离，[B, N, M]
-&quot;&quot;&quot;
-B, N, _ = src.shape
-_, M, _ = dst.shape
-dist = -2 * torch.matmul(src, dst.permute(0, 2, 1))
-dist += torch.sum(src ** 2, -1).view(B, N, 1)
-dist += torch.sum(dst ** 2, -1).view(B, 1, M)
-返回 dist
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78783587/implementation-of-pointnet</guid>
-      <pubDate>Tue, 23 Jul 2024 12:58:50 GMT</pubDate>
-    </item>
-    <item>
       <title>多输出回归可根据 ROAS 和其他功能预测成本和收入</title>
       <link>https://stackoverflow.com/questions/78783100/multi-output-regression-to-predict-cost-and-revenue-from-roas-and-other-features</link>
       <description><![CDATA[]]></description>
@@ -323,15 +351,6 @@ dist += torch.sum(dst ** 2, -1).view(B, 1, M)
 不确定这是否正确。你能对此提出任何意见吗？]]></description>
       <guid>https://stackoverflow.com/questions/78781272/how-to-prevent-the-ai-model-from-detecting-a-specific-object</guid>
       <pubDate>Tue, 23 Jul 2024 01:48:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>更改 YoloV8 分割颜色</title>
-      <link>https://stackoverflow.com/questions/78776522/change-yolov8-segmentation-color</link>
-      <description><![CDATA[我是 YoloV8 训练任务的新手，想了解如何更改模型执行的分割颜色。
-如果有人有一些代码示例并可以分享，请分享。
-任何帮助指导我的帮助都将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/78776522/change-yolov8-segmentation-color</guid>
-      <pubDate>Sun, 21 Jul 2024 23:11:03 GMT</pubDate>
     </item>
     <item>
       <title>具有多输出回归和自定义损失函数的 LightGBM</title>
@@ -416,7 +435,7 @@ ValueError: 在目标列中发现 10 个缺失值：预期寿命。要继续，�
       <pubDate>Mon, 04 Mar 2024 04:54:10 GMT</pubDate>
     </item>
     <item>
-      <title>训练特征矩阵与真实输入</title>
+      <title>训练特征矩阵 vs 真实输入</title>
       <link>https://stackoverflow.com/questions/77977567/training-feature-matrix-vs-real-input</link>
       <description><![CDATA[我在尝试将我的模型应用于实际场景时遇到了问题。用于训练的原始特征矩阵大于输入数据。
 请纠正我，我知道实际应用中的输入可能在大小上要小得多，并且在更糟糕的情况下具有一些不同的特征。
