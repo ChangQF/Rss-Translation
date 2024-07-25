@@ -4,23 +4,226 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 25 Jul 2024 09:17:33 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 25 Jul 2024 12:28:45 GMT</lastBuildDate>
     <item>
-      <title>需要一个本地 OCR 解决方案 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78791621/need-an-on-premise-ocr-solution</link>
-      <description><![CDATA[我正在寻找一种可以在 C++ 中实现的本地 OCR 解决方案，用于高精度文档扫描任务。这些文档主要是用智能手机拍摄的照片，包括护照、账单和收据，这些照片可能会有偏差，并且大多包含打印数据。我探索了几种选择，但发现它们都存在不足：
-Tesseract OCR、OCR.space、EasyOCR、PaddleOCR、CuneiForm 和 GOCR 的准确度较低。
-ABBYY FineReader、Google Cloud Vision OCR 和 Microsoft Azure Computer Vision API 等付费解决方案太贵了。
-我需要一种符合以下标准的 OCR 解决方案：
+      <title>使用 CNN 进行单类物体检测获得假阳性</title>
+      <link>https://stackoverflow.com/questions/78793283/single-class-object-detection-using-cnn-getting-false-positive</link>
+      <description><![CDATA[在这里，我尝试使用 cnn 构建一个 Manhole 物体检测，在这个模型中，经过训练我得到了 95% 的准确率。我得到的是假阳性，例如，如果我用人孔（训练对象）测试图像进​​行检测，它将绘制边界框，而我测试没有训练对象的随机图像时，会出现一个随机边界框，这就是问题所在，在实时网络摄像头测试中也是如此，但在这里，如果对象甚至没有被检测到，就会在框架中得到一些随机边界框。这里我提供我的代码，请帮忙
+import pandas as pd
+import cv2
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.layers import Conv2D, Input, BatchNormalization``, Flatten, MaxPool2D, Dense
+from pathlib import Path
 
-本地
-低成本或免费
-可用 C++ 实现或具有 C++ 实现
-高精度
+train_img = Path(&quot;DATASET/train/Manhole&quot;)
+val_img = Path(&quot;DATASET\valid\Manhole&quot;)
 
-请为我推荐任何可能的解决方案。]]></description>
-      <guid>https://stackoverflow.com/questions/78791621/need-an-on-premise-ocr-solution</guid>
-      <pubDate>Thu, 25 Jul 2024 05:42:06 GMT</pubDate>
+train_csv = pd.read_csv(&#39;DATASET/train/Manhole/_annotations.csv&#39;) 
+val_csv = pd.read_csv(&#39;DATASET/valid/_annotations.csv&#39;)
+#print(train_csv)
+train_csv[[&#39;xmin&#39;, &#39;ymin&#39;, &#39;xmax&#39;, &#39;ymax&#39;]] = train_csv[[&#39;xmin&#39;, &#39;ymin&#39;, &#39;xmax&#39;, &#39;ymax&#39;]].fillna(0)
+train_csv[[&#39;xmin&#39;,&#39;ymin&#39;,&#39;xmax&#39;,&#39;ymax&#39;]] = train_csv[[&#39;xmin&#39;,&#39;ymin&#39;,&#39;xmax&#39;,&#39;ymax&#39;]].astype(int)
+train_csv.drop_duplicates(subset=&#39;filename&#39;,inplace=True, ignore_index=True)
+val_csv.drop_duplicates(subset=&#39;filename&#39;, inplace=True, ignore_index=True)
+
+def datagenerator(df ,batch_size ,path):
+while True:
+images = np.zeros((batch_size,640,640,3))
+bounding_box_coords = np.zeros((batch_size, 4))
+
+for i in range(batch_size):
+rand_index = np.random.randint(0, train_csv.shape[0])
+row = df.loc[rand_index, :]
+images[i] = cv2.imread(str(path/row.filename)) / 255.
+bounding_box_coords[i] = np.array([row.xmin, row.ymin, row.xmax, row.ymax])
+
+产生 {&#39;filename&#39;: images}, {&#39;coords&#39;: bounding_box_coords}
+
+# example, label = next(datagenerator(batch_size=16))
+# img = example[&#39;filename&#39;][0]
+# bbox_coords = label[&#39;coords&#39;][0] 
+
+# x1, y1, x2, y2 = map(int, bbox_coords)
+# print(&#39;bbox cords&#39;,x1,y1,x2,y2)
+# cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
+# cv2.putText(img, &#39;&#39;, (x1,y1-10),cv2.FONT_HERSHEY_DUPLEX, 0.8, (0, 0, 255), 2)
+# # plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+# plt.imshow(img)
+# plt.show()
+
+input_ = 输入(shape=[640, 640, 3], name=&#39;filename&#39;)
+
+x = input_
+x = Conv2D(16, (3,3), 激活=&#39;relu&#39;, 填充=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2, 填充=&#39;same&#39;)(x)
+
+x = Conv2D(32, (3,3), 激活=&#39;relu&#39;, 填充=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2, 填充=&#39;same&#39;)(x)
+
+x = Conv2D(64, (3,3),激活=&#39;relu&#39;，填充=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2，填充=&#39;same&#39;)(x)
+
+x = Conv2D(128，(3,3)，激活=&#39;relu&#39;，填充=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2，填充=&#39;same&#39;)(x)
+
+x = Conv2D(256，(3,3)，激活=&#39;relu&#39;，填充=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2，填充=&#39;same&#39;)(x)
+
+x = Conv2D(312，(3,3)，激活=&#39;relu&#39;，填充=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2，padding=&#39;same&#39;)(x)
+
+x = Conv2D(500，(3,3)，activation=&#39;relu&#39;，padding=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2，padding=&#39;same&#39;)(x)
+
+x = Conv2D(580，(3,3)，activation=&#39;relu&#39;，padding=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2，padding=&#39;same&#39;)(x)
+
+x = Conv2D(680，(3,3)，activation=&#39;relu&#39;，padding=&#39;same&#39;)(x)
+x = BatchNormalization()(x)
+x = MaxPool2D(2，padding=&#39;same&#39;)(x)
+
+x = Flatten()(x)
+x = Dense(256，激活=&#39;relu&#39;)(x)
+x = Dense(32, 激活=&#39;relu&#39;)(x)
+输出坐标 = Dense(4, 名称=&#39;coords&#39;)(x)
+
+模型 = tf.keras.models.Model(input_,output_coords)
+
+模型摘要()
+
+模型编译(loss={&#39;coords&#39;: &#39;mse&#39;},
+优化器=tf.keras.optimizers.Adam(5e-5), 
+指标={&#39;coords&#39;: &#39;accuracy&#39;})
+
+检查点回调 = ModelCheckpoint(&#39;model_Checkpoint.h5&#39;, 监视器=&#39;val_loss&#39;, save_best_only=True, 模式=&#39;min&#39;)
+
+模型拟合(数据生成器(df=train_csv,batch_size=6,path=train_img), 
+epochs=80, steps_per_epoch=150,
+validation_data=datagenerator(df=val_csv,batch_size=6,path=val_img), 
+validation_steps=240, 
+callbacks=[checkpoint_callback])
+
+model.save(&#39;model2.h5&#39;)
+
+我需要代码来在实时网络摄像头中正确检测训练过的对象，而不会出现任何边界框，并从 cnn 接收置信度值，这样我就可以设置检测的阈值]]></description>
+      <guid>https://stackoverflow.com/questions/78793283/single-class-object-detection-using-cnn-getting-false-positive</guid>
+      <pubDate>Thu, 25 Jul 2024 12:22:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>EMA 衰减与 LR 衰减之间的实际差异</title>
+      <link>https://stackoverflow.com/questions/78793123/practical-difference-between-ema-decay-and-lr-decay</link>
+      <description><![CDATA[如果这个问题很愚蠢，请原谅，但我无法理解 EMA 衰减和 LR 衰减在实践中的差异。
+我觉得它们都以不同的方式完成了相同的事情（以下内容可能是错误的，所以我提前道歉，如果我的理解完全错误，请纠正我）：
+
+使用 EMA，在训练期间保留模型的单独副本，并且每 N 步使用原始模型权重的平均值更新模型。
+使用 LR 衰减，原始模型的权重在训练期间更新的次数总是较少，但只有一个模型得到有效训练。
+
+现在，给定一个包含 32 个样本的数据集，我可以想象这是两次训练的进行方式：
+训练 A（无 EMA）
+给定以下内容超参数：
+
+LR 为 1e-5
+批次大小为 4
+线性调度程序
+
+经过 4 个步骤后，模型将看到 16 个样本，LR 将下降到最终 LR 的一半。
+实际上，模型已更新 4 次。
+训练 B (EMA)
+给定以下超参数：
+
+LR 为 1e-5
+批次大小为 1
+恒定调度程序
+EMA 衰减为 0.9999
+EMA 更新步骤为 4
+
+经过 16 个步骤后，模型将看到 16 个样本， EMA 衰减将达到最终 EMA 衰减的一半。
+实际上，原始模型已更新 16 次，EMA 模型已更新 4 次。
+问题
+最终，两个模型都更新了 4 次，我能看到的唯一区别是训练 A 直接更新了权重，而训练 B 更新了原始模型和 EMA 模型的权重。
+为什么人们决定选择训练 B 而不是训练 A？]]></description>
+      <guid>https://stackoverflow.com/questions/78793123/practical-difference-between-ema-decay-and-lr-decay</guid>
+      <pubDate>Thu, 25 Jul 2024 11:49:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Gratz 大学 LSM 模型预测 Lorenz 吸引子</title>
+      <link>https://stackoverflow.com/questions/78792982/predicting-lorenz-attractor-using-the-gratz-university-lsm-model</link>
+      <description><![CDATA[我目前正在研究 LSM，在阅读了几篇论文后，我认为我掌握了有关这种 Reservoir Computing 模型的主要信息。
+但是，我很难用我用于 Lorenz Attractor 的模型获得良好的结果。
+目前，我正试图仅预测 X 分量，但结果很糟糕。
+我尝试了 NEST 模拟器 中的两种生成器。spike_generator 和 step_current_generator。
+使用 step_current_generator 我有更好的结果，但我想坚持使用 W.Maas 模型并使用 spike_generator。
+这是我所做的：
+def generate_spike_times_lorenz(data, stim_times, gen_burst, scale_factor=100.0):
+&quot;&quot;&quot;
+根据 Lorenz X 分量生成尖峰时间。
+
+参数：
+- data：类似数组，Lorenz X 分量的值。
+- stim_times：类似数组，刺激的时间。
+- gen_burst：函数，在给定时间附近生成一连串尖峰。
+- scale_factor：浮点数，缩放尖峰时间的因子。
+
+返回：
+- inp_spikes：数组列表，每个数组包含输入神经元的尖峰时间。
+“” “”
+
+inp_spikes = []
+
+data = data * scale_factor
+
+for value, t in zip(data, stim_times):
+spike_count = int(value)
+if spike_count &gt; 0:
+spikes = np.concatenate([t + gen_burst() for _ in range(spike_count)])
+
+# 缩放并调整尖峰时间
+spikes *= 10
+spikes = spikes.round() + 1.0
+spikes = spikes / 10.0
+
+spikes = np.sort(spikes)
+
+inp_spikes.append(spikes)
+else:
+inp_spikes.append(np.array([]))
+
+return inp_spikes
+
+def injection_spikes(inp_spikes, neuron_targets):
+spike_generators = nest.Create(&quot;spike_generator&quot;, len(inp_spikes))
+
+for sg, sp in zip(spike_generators, inp_spikes):
+nest.SetStatus(sg, {&#39;spike_times&#39;: sp})
+
+C_inp = 100 # int(N_E / 20) # 每个输入神经元的传出输入突触数量
+
+def generate_delay_normal_clipped(mu=10., sigma=20., low=3., high=200.):
+delay = np.random.normal(mu, sigma)
+delay = max(min(delay, high), low)
+return delay
+
+nest.Connect(spike_generators, neuron_targets,
+{&#39;rule&#39;: &#39;fixed_outdegree&#39;,
+&#39;outdegree&#39;: C_inp},
+{&#39;synapse_model&#39;: &#39;static_synapse&#39;,
+&#39;delay&#39;: generate_delay_normal_clipped(),
+&#39;weight&#39;: nest.random.uniform(min=2.5 * 10 * 5.0, max=7.5 * 10 * 5.0)})
+
+有人能提供一些见解或建议，告诉我如何改进我的模型，特别是在使用 spike_generator 来提高性能方面吗？我可能忽略了哪些特定的参数或技术？
+非常感谢您抽出时间和提供帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/78792982/predicting-lorenz-attractor-using-the-gratz-university-lsm-model</guid>
+      <pubDate>Thu, 25 Jul 2024 11:11:09 GMT</pubDate>
     </item>
     <item>
       <title>寻找机器学习模型[关闭]</title>
@@ -51,69 +254,6 @@ ABBYY FineReader、Google Cloud Vision OCR 和 Microsoft Azure Computer Vision A
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78791079/hidden-markov-model-in-hmmlearn-not-converging</guid>
       <pubDate>Thu, 25 Jul 2024 00:56:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>带有美丽汤的网页抓取图像问题</title>
-      <link>https://stackoverflow.com/questions/78790841/web-scraping-images-with-beautiful-soup-issue</link>
-      <description><![CDATA[我试图从网上抓取女性平头的图片并将其存储在一个文件夹中，以便以后可以用它来训练模型。然而，我遇到了一个问题，代码输出“DONE”，但我的图片文件夹是空的。我尝试调试并收到错误：无效 URL &#39;/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png&#39;：未提供方案（我删除了代码的调试部分）。
-import hashlib, io, request, pandas as pd
-from selenium import webdriver
-from selenium.webdriver import ChromeOptions
-from bs4 import BeautifulSoup
-from pathlib import Path
-from PIL import Image
-import os
-
-def get_content_from_url(url):
-options = ChromeOptions()
-options.add_argument(&quot;--headless&quot;) # 在无头模式下运行 Chrome
-driver = webdriver.Chrome(options=options)
-
-driver.get(url)
-page_content = driver.page_source
-driver.quit()
-return page_content
-
-def parse_image_urls(content, classes, location, source):
-soup = BeautifulSoup(content, &quot;html.parser&quot;)
-results = []
-for a in soup.findAll(attrs={&quot;class&quot;: classes}):
-name = a.find(location)
-if name and name.get(source) not in results:
-results.append(name.get(source))
-return results
-
-def save_urls_to_csv(image_urls):
-df = pd.DataFrame({&quot;links&quot;: image_urls})
-df.to_csv(&quot;links.csv&quot;, index=False, encoding=&quot;utf-8&quot;)
-
-def get_and_save_image_to_file(image_url, output_dir):
-image_content = request.get(image_url).content
-image_file = io.BytesIO(image_content)
-image = Image.open(image_file).convert(&quot;RGB&quot;)
-filename = hashlib.sha1(image_content).hexdigest()[:10] + &quot;.png&quot;
-file_path = output_dir / filename
-image.save(file_path, &quot;PNG&quot;, quality=80)
-
-def main():
-url = &quot;https://www.google.com/search?q=female+buzzcut&amp;udm=2&quot; # 用实际 URL 替换
-content = get_content_from_url(url)
-image_urls = parse_image_urls(
-content=content, classes=&quot;srp EIlDfe&quot;, location=&quot;img&quot;, source=&quot;src&quot;
-)
-save_urls_to_csv(image_urls)
-
-for image_url in image_urls:
-get_and_save_image_to_file(
-image_url, output_dir=Path(&quot;./images&quot;)
-)
-if __name__ == &quot;__main__&quot;:
-main()
-print(&quot;Done!&quot;)
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78790841/web-scraping-images-with-beautiful-soup-issue</guid>
-      <pubDate>Wed, 24 Jul 2024 22:34:34 GMT</pubDate>
     </item>
     <item>
       <title>如何追踪之前图像的轮廓？</title>
@@ -191,18 +331,6 @@ cv.destroyAllWindows()
 ]]></description>
       <guid>https://stackoverflow.com/questions/78790401/how-do-i-track-a-contour-from-my-previous-image</guid>
       <pubDate>Wed, 24 Jul 2024 20:14:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>我已经成功安装了 pypdf2，但无法将其导入到我的 python 文件中</title>
-      <link>https://stackoverflow.com/questions/78790198/i-have-successfully-installed-the-pypdf2-but-not-able-to-import-it-into-my-pytho</link>
-      <description><![CDATA[我已成功安装 pypdf2 模块，但在导入时，我发现缺少此模块。
-我尝试使用导入
-from PyPDF2 import PdfReader
-
-但它不起作用
-此问题有哪些解决方案？]]></description>
-      <guid>https://stackoverflow.com/questions/78790198/i-have-successfully-installed-the-pypdf2-but-not-able-to-import-it-into-my-pytho</guid>
-      <pubDate>Wed, 24 Jul 2024 19:17:59 GMT</pubDate>
     </item>
     <item>
       <title>Keras CNN 模型对同一输入给出不同的输出预测</title>
@@ -296,15 +424,6 @@ class_weight=class_weight
       <pubDate>Wed, 24 Jul 2024 16:36:55 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 Kubeflow Pipelines 中设置启动器和驱动程序映像</title>
-      <link>https://stackoverflow.com/questions/78789198/how-to-set-launcher-and-driver-image-in-kubeflow-pipelines</link>
-      <description><![CDATA[我正在为我的企业运行 Kubeflow 管道，我们无法使用公共映像。目前，当我运行 Kubeflow Pieplines 时，它会自动转到 gcr.io/ml-pipeline/kfp-driver@sha256:0ce9bf20ac9cbb21e84ff0762d5ae508d21e9c85fde2b14b51363bd1b8cd7528 获取 kfp 驱动程序映像。有没有办法用 KFP SDK 覆盖它？
-我看到这个问题已经解决了，但不知道该如何实现。
-https://github.com/kubeflow/pipelines/issues/7225]]></description>
-      <guid>https://stackoverflow.com/questions/78789198/how-to-set-launcher-and-driver-image-in-kubeflow-pipelines</guid>
-      <pubDate>Wed, 24 Jul 2024 15:12:38 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在窗口上聚合 RESNET50 全局特征？</title>
       <link>https://stackoverflow.com/questions/78788243/how-to-aggregate-resnet50-global-features-over-a-window</link>
       <description><![CDATA[我必须通过时间序列凝视数据集进行人员识别。我有正在观看视频的人的凝视信息，并且对于每个时间戳，我都会从视频中获取裁剪的帧以了解人员正在看哪里，然后将其提供给 RESNET-50 预训练模型以提取其特征。从模型中删除最后一个分类层，以便我获得每个图像的 2048 维向量。
@@ -314,94 +433,6 @@ TL;DR，有没有一种好的方法可以在窗口大小上聚合 RESNET-50 特�
 我尝试过使用常见的聚合方法，如均值和方差、最大最小值等，但不确定聚合结果是否对应有意义的信息。]]></description>
       <guid>https://stackoverflow.com/questions/78788243/how-to-aggregate-resnet50-global-features-over-a-window</guid>
       <pubDate>Wed, 24 Jul 2024 12:07:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 SHAP 值生成的蜂群图中点的可见性问题</title>
-      <link>https://stackoverflow.com/questions/78788072/issue-with-visibility-of-points-in-beeswarm-plot-generated-using-shap-values</link>
-      <description><![CDATA[我理解，在蜂群图中，实例以点/点来表示。因此，人们可以根据 SHAP 值找到水平分布（沿 x 轴）的点簇，当 SHAP 值密度较高时，这些点簇垂直堆叠（沿 y 轴）。
-在大多数文档中，我看到蜂群图看起来像这样（https://www.aidancooper.co.uk/a-non-technical-guide-to-interpreting-shap-analyses/）：
-
-创建蜂群图后，我无法清晰地看到这些点。我注意到形状点的边缘形成了更平滑的表面。我不确定我做对了什么或做错了什么，如果您能帮助我改变这一点，我将不胜感激。
-这是我运行的代码。
-shap_values = explainer.shap_values(X.iloc[0:N_VAL,:], nsamples=NSHAP_SAMPLES)
-
-shap.summary_plot(shap_values, X.iloc[:N_VAL, :], plot_type=&quot;violin&quot;, max_display=21, show=False)
-
-# 调整图形大小以确保所有内容都适合
-plt.gcf().set_size_inches(15, 10) # 根据需要调整大小
-
-# 显示图表
-plt.show()
-
-代码生成下面的图表
-
-如果您能帮助我了解这里发生了什么以及如何处理这个问题，我将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/78788072/issue-with-visibility-of-points-in-beeswarm-plot-generated-using-shap-values</guid>
-      <pubDate>Wed, 24 Jul 2024 11:33:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>安装 tf-models-official 时出现元数据生成失败</title>
-      <link>https://stackoverflow.com/questions/78786800/metadata-generation-failed-when-installing-tf-models-official</link>
-      <description><![CDATA[我尝试使用 !pip install tf-models-official 安装 tf-models-official，当它开始收集 kaggle&gt;=1.3.9 时，它返回以下错误：
-收集 kaggle&gt;=1.3.9（来自 tf-models-official）
-使用缓存的 kaggle-1.6.15.tar.gz (9.1 kB)
-安装构建依赖项...完成
-获取构建 wheel 的要求...完成
-准备元数据（pyproject.toml）...错误
-错误：子进程退出并出现错误
-
-× 准备元数据（pyproject.toml）未成功运行。
-│ 退出代码：1
-╰─&gt; [35 行输出]
-回溯（最近一次调用）：
-文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py&quot;，第 353 行，位于 &lt;module&gt;
-main()
-文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py&quot;，第 335 行，在 main 中
-json_out[&#39;return_val&#39;] = hook(**hook_input[&#39;kwargs&#39;])
-文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/site-packages/pip/_vendor/pyproject_hooks/_in_process/_in_process.py&quot;，第 152 行，在 prepare_metadata_for_build_wheel 中
-whl_basename = backend.build_wheel(metadata_directory, config_settings)
-文件&quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/build.py&quot;，第 58 行，在 build_wheel 中
-return os.path.basename(next(builder.build(directory=wheel_directory,versions=[&#39;standard&#39;])))
-文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/plugin/interface.py&quot;，第 155 行，在 build 中
-artifact = version_api[version](directory,**build_data)
-文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/wheel.py&quot;，第 475 行，在build_standard
-for included_file in self.recurse_included_files():
-File &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/plugin/interface.py&quot;, line 176, in recurse_included_files
-Yield from self.recurse_selected_project_files()
-File &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/plugin/interface.py&quot;, line 180, in recurse_selected_project_files
-if self.config.only_include:
-File &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/config.py&quot;，第 806 行，在 only_include 中
-only_include = only_include_config.get(&#39;only-include&#39;, self.default_only_include()) 或 self.packages
-文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/wheel.py&quot;，第 260 行，在 default_only_include 中
-return self.default_file_selection_options.only_include
-文件 &quot;/home/ec2-user/anaconda3/envs/tensorflow2_p310/lib/python3.10/functools.py&quot;，第 981 行，在__get__
-val = self.func(instance)
-文件 &quot;/tmp/pip-build-env-fqrzl9xw/overlay/lib/python3.10/site-packages/hatchling/builders/wheel.py&quot;，第 248 行，位于 default_file_selection_options
-raise ValueError(message)
-ValueError：无法使用以下启发式方法确定要将哪些文件发送到 wheel 内：https://hatch.py​​pa.io/latest/plugins/builder/wheel/#default-file-selection
-
-最可能的原因是没有与您的项目 (kaggle) 名称匹配的目录。
-
-必须在 `tool.hatch.build.targets.wheel` 表中定义至少一个文件选择选项，请参阅：https://hatch.py​​pa.io/latest/config/build/
-
-例如，如果您打算发送一个名为 `foo` 的目录，该目录位于项目根目录的 `src` 目录中，则可以定义以下内容：
-
-[tool.hatch.build.targets.wheel]
-packages = [&quot;src/foo&quot;]
-[输出结束]
-
-注意：此错误源自子进程，可能不是 pip 的问题。
-错误：metadata-generation-failed
-
-× 生成包元数据时遇到错误。
-╰─&gt; 请参阅上面的输出。
-
-注意：这是上面提到的包的问题，​​而不是 pip。
-提示：请参阅上文了解详情。
-
-我能够在 2 周前安装，现在在新的 jupyter 笔记本内核上突然无法安装。我尝试在旧内核上重新安装，也出现了同样的错误。有人知道如何解决这个问题吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78786800/metadata-generation-failed-when-installing-tf-models-official</guid>
-      <pubDate>Wed, 24 Jul 2024 07:02:59 GMT</pubDate>
     </item>
     <item>
       <title>XGBoostError：参数详细程度的值 -1 超出界限 [0,3]</title>
@@ -415,6 +446,22 @@ clf.fit(X=train_data_iter[features].fillna(0), y=train_data_iter[&#39;y&#39;]) #
 值显然是 1，但不知何故却变成了 -1？我不明白。]]></description>
       <guid>https://stackoverflow.com/questions/78761783/xgboosterror-value-1-for-parameter-verbosity-exceed-bound-0-3</guid>
       <pubDate>Wed, 17 Jul 2024 22:12:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>由于 keras 中的 SSL 错误，无法加载 MNIST 数据集...load_data() 函数</title>
+      <link>https://stackoverflow.com/questions/78668638/unable-to-load-mnist-data-set-due-to-ssl-error-in-keras-load-data-function</link>
+      <description><![CDATA[import keras
+(train_images, train_labels), (test_images, test_labels) = keras.datasets.mnist.load_data()
+...
+
+我目前开始使用机器学习，但由于错误，我无法加载 MNIST 数据集：
+
+异常：https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz 上的 URL 获取失败：无 -- [SSL：CERTIFICATE_VERIFY_FAILED] 证书验证失败：无法获取本地颁发者证书(_ssl.c:1000)
+
+我确保一切都是最新的（macOS 版本 14.5、pip 版本 24.1、最新的 tensorflow 和 keras 库以及最新的 safari 和 vscode 版本）。我尝试重新安装 keras 几次，确保不要从 pip3 缓存中下载最新的 pip 24.1 版本。这个错误一直存在，我还没有找到解决办法。我唯一弄清楚的是，这是由 ...load_data() 函数导致的错误。
+如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78668638/unable-to-load-mnist-data-set-due-to-ssl-error-in-keras-load-data-function</guid>
+      <pubDate>Tue, 25 Jun 2024 16:48:10 GMT</pubDate>
     </item>
     <item>
       <title>没有名为“tensorflow.keras.layers.experimental.preprocessing”的模块</title>
@@ -479,6 +526,277 @@ conda activate tf-gpu
 我阅读了这个答案并阅读了文档，但它并没有完全满足我的目的。有人可以帮忙吗？]]></description>
       <guid>https://stackoverflow.com/questions/52861129/how-to-calculate-the-joint-log-likelihood-for-bernoulli-naive-bayes</guid>
       <pubDate>Wed, 17 Oct 2018 18:08:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 GridSearchCV 中为 XGBoost 评分</title>
+      <link>https://stackoverflow.com/questions/50296817/scoring-in-gridsearchcv-for-xgboost</link>
+      <description><![CDATA[我目前正在尝试首次使用 XGBoost 分析数据。我想使用 GridsearchCV 找到最佳参数。我想最小化均方根误差，为此，我使用“rmse”作为 eval_metric。但是，网格搜索中的评分没有这样的指标。我在这个网站上发现“neg_mean_squared_error”也有同样的效果，但我发现这给出的结果与 RMSE 不同。当我计算“neg_mean_squared_error”绝对值的根时，我得到的值约为 8.9，而另一个函数给出的 RMSE 约为 4.4。
+我不知道哪里出了问题，或者我如何让这两个函数一致/给出相同的值？
+由于这个问题，我得到了错误的值作为“best_params_”，这给了我比我最初开始调整的一些值更高的 RMSE。
+有人能解释一下如何在网格搜索中获得 RMSE 的分数，或者为什么我的代码给出了不同的值吗？ 
+提前致谢。
+def modelfit(alg, trainx, trainy, useTrainCV=True, cv_folds=10, early_stopping_rounds=50):
+if useTrainCV:
+xgb_param = alg.get_xgb_params()
+xgtrain = xgb.DMatrix(trainx, label=trainy)
+cvresult = xgb.cv(xgb_param, xgtrain, num_boost_round=alg.get_params()[&#39;n_estimators&#39;], nfold=cv_folds,
+metrics=&#39;rmse&#39;, early_stopping_rounds=early_stopping_rounds)
+alg.set_params(n_estimators=cvresult.shape[0])
+
+# 将算法拟合到数据上
+alg.fit(trainx, trainy, eval_metric=&#39;rmse&#39;)
+
+# 预测训练集：
+dtrain_predictions = alg.predict(trainx)
+# dtrain_predprob = alg.predict_proba(trainy)[:, 1]
+print(dtrain_predictions)
+print(np.sqrt(mean_squared_error(trainy, dtrain_predictions)))
+
+# 打印模型报告：
+print(&quot;\nModel Report&quot;)
+print(&quot;RMSE : %.4g&quot; % np.sqrt(metrics.mean_squared_error(trainy, dtrain_predictions)))
+
+param_test2 = {
+&#39;max_depth&#39;:[6,7,8],
+&#39;min_child_weight&#39;:[2,3,4]
+}
+
+grid2 = GridSearchCV(estimator = xgb.XGBRegressor( learning_rate =0.1, n_estimators=2000, max_depth=5,
+min_child_weight=2, gamma=0, subsample=0.8, colsample_bytree=0.8,
+objective= &#39;reg:linear&#39;, nthread=4, scale_pos_weight=1, random_state=4),
+param_grid = param_test2,scoring=&#39;neg_mean_squared_error&#39;, n_jobs=4,iid=False, cv=10, verbose=20)
+grid2.fit(X_train,y_train)
+# best_estimator 的平均交叉验证分数
+print(grid2.best_params_, np.sqrt(np.abs(grid2.best_score_))), print(np.sqrt(np.abs(grid2.score(X_train, y_train))))
+modelfit(grid2.best_estimator_, X_train, y_train)
+print(np.sqrt(np.abs(grid2.score(X_train, y_train))))
+]]></description>
+      <guid>https://stackoverflow.com/questions/50296817/scoring-in-gridsearchcv-for-xgboost</guid>
+      <pubDate>Fri, 11 May 2018 16:46:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>神经网络收敛至零输出</title>
+      <link>https://stackoverflow.com/questions/44213659/neural-network-converging-to-zero-output</link>
+      <description><![CDATA[我正在尝试训练这个神经网络来对一些数据进行预测。
+我在一个小的数据集（大约 100 条记录）上尝试了它，它工作得很好。然后我插入了新的数据集，我发现 NN 收敛到 0 输出，误差大约收敛到正例数与总例数之比。
+我的数据集由是/否特征（1.0/0.0）组成，基本事实也是是/否。
+我的假设：
+
+1) 存在输出为 0 的局部最小值（但我尝试了许多学习率和初始权重值，它似乎总是收敛到那里）
+
+2) 我的权重更新是错误的（但在我看来很好）
+
+3) 它只是一个输出缩放问题。我尝试缩放输出（即输出/最大值（输出）和输出/平均值（输出）），但结果并不好，如您在下面提供的代码中看到的那样。我应该以不同的方式缩放它吗？Softmax？ 
+代码如下：
+import pandas as pd
+import numpy as np
+import pickle
+import random
+from collections import defaultdict
+
+alpha = 0.1
+N_LAYERS = 10
+N_ITER = 10
+#N_FEATURES = 8
+INIT_SCALE = 1.0
+
+train = pd.read_csv(&quot;./data/prediction.csv&quot;)
+
+y = train[&#39;y_true&#39;].as_matrix()
+y = np.vstack(y).astype(float)
+ytest = y[18000:]
+y = y[:18000]
+
+X = train.drop([&#39;y_true&#39;], axis = 1).as_matrix()
+Xtest = X[18000:].astype(float)
+X = X[:18000]
+
+def tanh(x,deriv=False):
+if(deriv==True):
+return (1 - np.tanh(x)**2) * alpha
+else:
+return np.tanh(x)
+
+def sigmoid(x,deriv=False):
+if(deriv==True):
+return x*(1-x)
+else:
+return 1/(1+np.exp(-x))
+
+def relu(x,deriv=False):
+if(deriv==True):
+return 0.01 + 0.99*(x&gt;0)
+else:
+return 0.01*x + 0.99*x*(x&gt;0)
+
+np.random.seed()
+
+syn = defaultdict(np.array)
+
+for i in range(N_LAYERS-1):
+syn[i] = INIT_SCALE * np.random.random((len(X[0]),len(X[0]))) - INIT_SCALE/2
+syn[N_LAYERS-1] = INIT_SCALE * np.random.random((len(X[0]),1)) - INIT_SCALE/2
+
+l = defaultdict(np.array)
+
+delta = defaultdict(np.array)
+
+for j in xrange(N_ITER):
+l[0] = X
+for i in range(1,N_LAYERS+1):
+l[i] = relu(np.dot(l[i-1],syn[i-1]))
+
+error = (y - l[N_LAYERS])
+
+e = np.mean(np.abs(error))
+if (j% 1) == 0:
+print &quot;\nIteration &quot; + str(j) + &quot; of &quot; + str(N_ITER)
+print &quot;Error: &quot; + str(e)
+
+delta[N_LAYERS] = error*relu(l[N_LAYERS],deriv=True) * alpha
+for i in range(N_LAYERS-1,0,-1):
+error = delta[i+1].dot(syn[i].T)
+delta[i] = error*relu(l[i],deriv=True) * alpha
+
+for i in range(N_LAYERS):
+syn[i] += l[i].T.dot(delta[i+1])
+
+pickle.dump(syn, open(&#39;neural_weights.pkl&#39;, &#39;wb&#39;))
+
+# 使用 f1-measure 进行测试
+# 召回率 = 真阳性 / (真阳性 + 假阴性)
+# 准确率 = 真阳性 / (真阳性阳性 + 假阳性)
+
+l[0] = Xtest
+for i in range(1,N_LAYERS+1):
+l[i] = relu(np.dot(l[i-1],syn[i-1]))
+
+out = l[N_LAYERS]/max(l[N_LAYERS])
+
+tp = float(0)
+fp = float(0)
+fn = float(0)
+tn = float(0)
+
+for i in l[N_LAYERS][:50]:
+print i
+
+for i in range(len(ytest)):
+if out[i] &gt; 0.5 and ytest[i] == 1:
+tp += 1
+if out[i] &lt;= 0.5 and ytest[i] == 1:
+fn += 1
+if out[i] &gt; 0.5 且 ytest[i] == 0:
+fp += 1
+if out[i] &lt;= 0.5 且 ytest[i] == 0:
+tn += 1
+
+print &quot;tp: &quot; + str(tp)
+print &quot;fp: &quot; + str(fp)
+print &quot;tn: &quot; + str(tn)
+print &quot;fn: &quot; + str(fn)
+
+print &quot;\nprecision: &quot; + str(tp/(tp + fp))
+print &quot;recall: &quot; + str(tp/(tp + fn))
+
+f1 = 2 * tp /(2 * tp + fn + fp)
+print &quot;\nf1-measure:&quot; + str(f1)
+
+输出结果如下：
+第 0 次迭代（共 10 次）
+错误： 0.222500767998
+
+10 次迭代中的第 1 次
+错误：0.222500771157
+
+10 次迭代中的第 2 次
+错误：0.222500774321
+
+10 次迭代中的第 3 次
+错误：0.22250077749
+
+10 次迭代中的第 4 次
+错误：0.222500780663
+
+10 次迭代中的第 5 次
+错误：0.222500783841
+
+10 次迭代中的第 6 次
+错误：0.222500787024
+
+10 次迭代中的第 7 次
+错误：0.222500790212
+
+10 次迭代中的第 8 次
+错误：0.222500793405
+
+10 次迭代中的第 9 次10
+错误：0.222500796602
+
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 4.62182626e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 4.62182626e-06]
+[ 0.]
+[ 0.]
+[ 5.04501079e-10]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.04501079e-10]
+[ 0.]
+[ 0.]
+[ 4.62182626e-06]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 1.31432294e-05]
+
+tp：28.0
+fp：119.0
+tn： 5537.0
+fn：1550.0
+
+精度：0.190476190476
+召回率：0.0177439797212
+
+f1-measure：0.0324637681159
+]]></description>
+      <guid>https://stackoverflow.com/questions/44213659/neural-network-converging-to-zero-output</guid>
+      <pubDate>Sat, 27 May 2017 06:21:36 GMT</pubDate>
     </item>
     </channel>
 </rss>

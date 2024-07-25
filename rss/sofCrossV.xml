@@ -4,7 +4,117 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 25 Jul 2024 09:17:26 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 25 Jul 2024 12:28:39 GMT</lastBuildDate>
+    <item>
+      <title>协变量对方差分析结果的影响</title>
+      <link>https://stats.stackexchange.com/questions/651735/impact-of-covariates-on-anova-results</link>
+      <description><![CDATA[我正在使用带有协变量的方差分析进行分析，并遇到了显著的结果。但是，当我删除协变量时，结果不再显著。以下是我的分析细节：
+ model_with_covariates &lt;- lm(size_continuous ~activation_categorical + age + handedness + sex, data = current_tract_and_measure)
+summary_anova &lt;- anova(model_with_covariates)
+
+model_without_covariates &lt;- lm(size_continuous ~activation_categorical, data = current_tract_and_measure)
+summary_anova &lt;- anova(model_without_covariates)
+
+我正在针对不同的形状测量值和不同的白质束执行 171 次方差分析。因此，我正在使用 FDR（错误发现率）校正所有 p 值以进行多重比较。以下是 FDR 校正后的结果：
+有协变量：两个不同方差分析的 FDR 校正 p 值 = 0.001。
+无协变量：之前显著的相同方差分析的 FDR 校正 p 值 = 0.1110490。
+我的协变量（年龄、惯用手和性别）与区域的侧向性和大小有关。我想在我的分析中考虑这些关联。
+问题：
+
+如果已知协变量与结果变量相关，我是否应该始终在分析中包含协变量？
+我应该如何解释有和没有协变量的结果差异？
+
+感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651735/impact-of-covariates-on-anova-results</guid>
+      <pubDate>Thu, 25 Jul 2024 11:58:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么 `boot` R 包需要 `i` 参数？什么时候它会让包更容易使用而不是更难使用？</title>
+      <link>https://stats.stackexchange.com/questions/651733/why-does-the-boot-r-package-require-the-i-argument-when-does-it-make-the-pa</link>
+      <description><![CDATA[我想使用 boot 包来计算平均值的 bootstrap 置信区间。当然，我可以通过反转 t 检验来做到这一点，但我想看看使用 bootstrap 方法时会发生什么。
+我通过模拟一些数据然后将数据传递给 R 中的 boot::boot 函数来实现这一点，其中 statistic 设置为通常的 mean 函数。
+library(boot)
+set.seed(2024)
+N &lt;- 100 # 样本大小
+B &lt;- 999 # 抽取的 bootstrap 样本数
+
+# 模拟一些数据，分布为 N(0, 1)
+#
+x &lt;- rnorm(N, 0, 1)
+
+# 尝试仅使用“mean”进行 bootstrap作为统计数据
+#
+boot::boot(x, mean, R = B)
+
+# 哎呀，失败了！
+
+此代码失败。
+来自文档，?boot::boot。
+
+当应用于数据时，函数将返回包含感兴趣统计数据的向量。当 sim = &quot;parametric&quot; 时，statistic 的第一个参数必须是数据。对于每个重复，将传递由 ran.gen 返回的模拟数据集。在所有其他情况下，statistic 必须至少接受两个参数。传递的第一个参数始终是原始数据。第二个参数将是定义引导样本的索引、频率或权重的向量。此外，如果需要预测，则需要第三个参数，该参数将是用于生成引导预测的随机索引向量。任何其他参数都可以通过 ... 参数传递给 statistic。
+
+boot::boot 的 statistic 参数是一个具有索引参数的函数，因此，我必须传递更像 mean_boot &lt;- function(x, i){y &lt;- x[i]; return(mean(y)) 的内容，而不是传递 mean &lt;- function(x){n &lt;- length(x); return(sum(x)/n)。确实，这是有效的。
+# 定义一个新函数来计算 boot::boot 中的平均值
+#
+mean_boot &lt;- function(x, i){
+
+y &lt;- x[i] # 选择索引为 i 的值
+return(mean(y))
+}
+
+# 再次尝试 bootstrap
+#
+result &lt;- boot::boot(x, mean_boot, R = B)
+
+# 计算置信区间
+#
+boot::boot.ci(result)
+#
+# 此处计算的 Bootstap 置信区间为：
+# 正常：(-0.2758, 0.1167)
+# 基本：(-0.2702, 0.1249)
+# 百分位数：(-0.2948, 0.1003)
+# BCa：(-0.2911, 0.1068)
+
+# 反转t 检验给出的 95% 置信区间为 
+# (-0.2878159, 0.1179510)。由于所有 95% 的引导区间都非常接近 ]，因此似乎 mean_boot 是计算 boot::boot 中通常的样本均值的正确语法。
+#
+t.test(x)
+
+为什么 boot::boot 应该这样写，要求 statistic 函数使用索引参数，而不是仅在 boot::boot 中执行重新采样并将重新采样的数据传递到作为 statistic 传递的任何内容中？当计算的统计数据比样本均值更复杂时，这是否允许更简单的语法，也许是来自 GLM 或机器学习模型的某些内容？当复杂度足够高时（超过 100 个观察值，超过计算样本平均值），它是否允许更轻松地并行化引导？与运行双引导有关吗？
+当我使用 boot 包时，我总是发现这会使工作变得更加困难。在哪些情况下它会使工作变得更容易？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651733/why-does-the-boot-r-package-require-the-i-argument-when-does-it-make-the-pa</guid>
+      <pubDate>Thu, 25 Jul 2024 10:46:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>贝叶斯概率论基础</title>
+      <link>https://stats.stackexchange.com/questions/651732/basics-of-bayesian-probability-theory</link>
+      <description><![CDATA[有没有关于贝叶斯概率论的好书，包括从可能性和先验中得出后验的手工推导？
+这本书只需要包括最基本的、众所周知的和广泛使用的结果。
+我正在寻找一本适合非数学专业（经济学家）入门课程的书。我很难找到这样的书。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651732/basics-of-bayesian-probability-theory</guid>
+      <pubDate>Thu, 25 Jul 2024 10:03:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何找到定位问题的偏差梯度？</title>
+      <link>https://stats.stackexchange.com/questions/651731/how-to-find-the-bias-gradient-for-localization-problem</link>
+      <description><![CDATA[该工作是关于在估计量有偏时寻找克拉美-罗界限。所基于的算法来自重新思考有偏估计：改进最大似然和克拉美-罗界限，Wiki的&quot;有偏估计量的方差界限&quot;部分中也有提及。
+根据算法，例如二项概率分布Bin(m,p)中的一个观测值，m已知但p未知，如果有偏估计量为$g(X) = \frac{X+1}{m+2}$，则偏差为$b\{g(X)\} = E\{g(X)\} - p = \frac{mp+1}{m+2} - p = \frac{1-2p}{m+2}$，因此其偏差梯度为$B\{g(X)\} = \frac{\partial b\{g(X)\}}{\partial p} = \frac{1-2}{m+2}$。
+然而，当涉及到定位问题时，对我来说似乎无法遵循上述示例。因为观测信号变为$r = \alpha s(t - \tau)+ w$和$\tau = \frac{\sqrt{(x - x_0)^2 + (y - y_0)^2}}{c}$，其中$x, y$是需要估计的值，其他的假设已知，$w$是零均值。问题是，观测信号由期望的位置值组成，而不是像上面例子中的$g(X) \propto x$这样的直接函数。
+所以我的问题是，对于与期望值没有直接关系的观测信号，如何找到它的偏差梯度？我的想法是计算$b(x,y) = E\{\alpha s(t - \frac{\sqrt{(x - x_0)^2 + (y - y_0)^2}}{c})\} - [x,y]$，但是我不知道如何在等式中计算出真正的$(x,y)$。
+谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/651731/how-to-find-the-bias-gradient-for-localization-problem</guid>
+      <pubDate>Thu, 25 Jul 2024 10:01:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何分析排名数据？有什么书籍/教程推荐吗？</title>
+      <link>https://stats.stackexchange.com/questions/651730/how-to-analyze-rank-data-any-books-tutorials-recommended</link>
+      <description><![CDATA[假设我在一段足够长的时间内记录了特定游戏中的某组玩家，该记录只生成排名而没有任何分数（例如，哪个玩家在最后走得第二远）。我应该如何处理这个数据集？我能从中得出什么样的推论？如果玩家或游戏不完全相同怎么办？
+我以为这可能是体育统计学中的一个大话题，但结果发现它更多地是关于量化动作/成就的 EDA 和预测。虽然非参数统计使用排名作为 T 检验等的替代方案，但我想知道是否有专门用于分析排名数据的综合资源。
+有什么建议吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651730/how-to-analyze-rank-data-any-books-tutorials-recommended</guid>
+      <pubDate>Thu, 25 Jul 2024 09:46:25 GMT</pubDate>
+    </item>
     <item>
       <title>在广义线性模型中选择系数-患者 ID 与任何主成分不相关？</title>
       <link>https://stats.stackexchange.com/questions/651728/selecting-coefficicents-in-generalised-linear-model-patient-id-not-correlating</link>
@@ -100,25 +210,9 @@ Diff
     <item>
       <title>比较多个分数 Logit 模型的拟合优度</title>
       <link>https://stats.stackexchange.com/questions/651717/goodness-of-fit-for-comparing-multiple-fractional-logit-models</link>
-      <description><![CDATA[我想使用分数逻辑模型，其中因变量介于 0 和 1 之间，并且我有两个独立变量。对于这种类型的模型，我不确定，并希望获得一些反馈，了解如何正确选择是选择单个独立变量还是同时使用两个独立变量，以正确优化我的模型。首先，我决定首先通过仅对截距进行回归来运行我的分数逻辑模型，然后对截距和变量 1 进行回归，然后对截距和变量 2 进行回归，最后对变量 1 和变量 2 进行回归。运行每个模型后，我想运行一些诊断以检查拟合优度并选择最佳模型，但我不确定如何使用分数模型进行此操作。对于 OLS，我只会使用 AIC/BIC 和残差进行选择。对于这种类型的模型，我应该使用 Anova 方法还是交叉验证？任何想法或反馈都非常感谢。谢谢。]]></description>
+      <description><![CDATA[我想使用分数逻辑模型，其中因变量介于 0 和 1 之间，并且有两个独立变量。对于这种类型的模型，我不确定，并希望获得一些反馈，了解如何正确选择是选择单个独立变量还是同时使用两个独立变量，以正确优化我的模型。首先，我决定首先通过仅对截距进行回归来运行我的分数逻辑模型，然后对截距和变量 1 进行回归，然后对截距和变量 2 进行回归，最后对变量 1 和变量 2 进行回归。运行每个模型后，我想运行一些诊断程序以检查拟合优度并选择最佳模型，但我不确定如何使用分数模型进行此操作。对于 OLS，我只会使用 AIC/BIC 和残差进行选择。对于这种类型的模型，我应该使用 Anova 方法还是交叉验证？任何想法或反馈都非常感谢。谢谢。]]></description>
       <guid>https://stats.stackexchange.com/questions/651717/goodness-of-fit-for-comparing-multiple-fractional-logit-models</guid>
       <pubDate>Thu, 25 Jul 2024 01:12:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>多元时间序列预测</title>
-      <link>https://stats.stackexchange.com/questions/651716/multivariate-time-series-forecasting</link>
-      <description><![CDATA[我有一个 200,000 行的数据集。每行包含歌曲 ID、今天的流数 (d​​ay_0)、昨天的流数 (d​​ay_1) 等，直到 21 天前的流数 (d​​ay_21)。我的任务是预测下周的流数。
-我正在尝试弄清楚如何构造我的数据以将其输入到多变量 LSTM 中。目前，窗​​口滑动一天。这合适吗，还是我应该使用不重叠的窗口？我计划嵌入（来自这个帖子）歌曲 ID，以便 LSTM 可以学习特定于歌曲的模式。
-任何其他建议都很好！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651716/multivariate-time-series-forecasting</guid>
-      <pubDate>Thu, 25 Jul 2024 01:06:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>双相李克特量表的适当编码</title>
-      <link>https://stats.stackexchange.com/questions/651714/appropriate-coding-for-bipolar-likert-scale</link>
-      <description><![CDATA[对于我的一个变量，我正在用双极李克特量表测量情感。问题是“你对活动有什么感觉？”回答范围是担心-有点担心-中立-有点兴奋-兴奋。我相信这个回答范围对我的研究问题很有意义，但我发现很难找到编码方法并通常证明以这种特定方式使用它的合理性。我最初的想法是为每个参与者取一个平均值（他们对七种类型的活动进行情感评级），然后将它们分为两个因素（负面影响/无负面影响），这样我就可以将其作为多元回归方程中的分类预测因子输入。有没有办法做到这一点（找到以这种方式评级的类别的平均值并根据他们的平均分数将每个人归入一个类别），在这种情况下应该使用什么编码？如果这种方法有任何其他缺陷或逻辑错误，请告诉我 :)]]></description>
-      <guid>https://stats.stackexchange.com/questions/651714/appropriate-coding-for-bipolar-likert-scale</guid>
-      <pubDate>Thu, 25 Jul 2024 00:07:46 GMT</pubDate>
     </item>
     <item>
       <title>子样本比例检验？</title>
@@ -143,48 +237,6 @@ Diff
 因此，我正在寻找一些可以被认为是可接受的差异值指南，例如，当采样大小在 35 和 45 之间时，我可以获得 $10^{-3}$ 数量级的差异（即 $0.008$）同时将采样大小增加到大约 150，差异的数量级为 $10^{-4}$（即 $0.0007$）。也许$0.01$通常是一个很好的差异，但我找不到任何关于此的依据，我查阅了一些书籍和文章，但只是对采样相关概念的数学发展。]]></description>
       <guid>https://stats.stackexchange.com/questions/651672/discrepancy-of-a-sample-on-latin-hypercube-sampling</guid>
       <pubDate>Wed, 24 Jul 2024 11:31:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>生成模型符号的背景</title>
-      <link>https://stats.stackexchange.com/questions/651670/background-on-notation-for-generative-models</link>
-      <description><![CDATA[在许多关于统计学中的生成建模和贝叶斯推断的论文中，我遇到了以下类型的符号，特别是对于分层模型。
-对于变量 $x_1, \dots, x_n$，它看起来像这样：
-$$
-x_1 \sim D_1 \quad \text{(对于某个分布 $D_1$)} \\
-x_2 \mid x_1 \sim D_2(x_1) \quad \text{(对于某个分布 $D_2$ 有一个参数)} \\
-x_3 \mid x_1, x_2 \sim D_3(x_1, x_2) \quad \text{(对于某个分布 $D_3$ 有两个参数)} \\
-x_4 \mid x_2, x_3 = f(x_2, x_3) \quad \text{(对于某个二元函数 $f$)} \\
-\vdots
-$$
-符号相当直观，似乎与贝叶斯网络有关：每行描述一个变量在有向无环图中给定其父级的条件分布。
-这种符号有名字吗？它是何时、由谁引入的？它是标准的吗？有没有带有精确描述的参考资料？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651670/background-on-notation-for-generative-models</guid>
-      <pubDate>Wed, 24 Jul 2024 11:25:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>分类规则</title>
-      <link>https://stats.stackexchange.com/questions/651501/classification-rule</link>
-      <description><![CDATA[在分类中，MAP（最大后验概率）规则、最小误分类规则和贝叶斯决策规则之间有什么区别吗？据我所知，这三个规则似乎都是根据最大后验概率对新实例进行分类。那么它们可以互换吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651501/classification-rule</guid>
-      <pubDate>Mon, 22 Jul 2024 02:33:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>测量通过观测对计算得出的变量的相关性</title>
-      <link>https://stats.stackexchange.com/questions/651284/measuring-correlation-for-variables-calculated-from-pairs-of-observations</link>
-      <description><![CDATA[假设我有一组用户 $U$ 的音乐和电影品味数据（假设我们有 $|U| = 100$ 个用户）。给定两个用户 $u_1$ 和 $u_2$，假设我还有两个函数 $\mathrm{sim}_m(u_1,u_2)$ 和 $\mathrm{sim}_f(u_1,u_2)$，它们分别给出这对用户的音乐和电影品味的相似度分数。 （如果重要的话，可以假设相似度得分在$[0,1]$中产生值，$\mathrm{sim}_*(u,u) = 1$，并且$\mathrm{sim}_*(u_1,u_2) = \mathrm{sim}_*(u_2,u_1)$，例如。）
-请注意，我无法定义一个函数来为特定用户的音乐或电影品味提供序数分数，但我确实有这样一个函数来为一对用户的音乐或电影品味的相似性提供序数分数。
-我想解决这个问题：音乐和电影品味的相似性之间是否存在统计关系用户？
-第一个想法是，对于所有成对的用户$(u_1,u_2) \in U \times U$，在包含$|U|^2$行的表中计算他们的音乐相似度和电影相似度分数，然后在这两个相似度之间应用标准相关性测量。 （此处包含的另一种方法是计算包含非自反、非对称对的 $(|U|^2 - |U|) / 2 $ 行的表格。）
-第二个想法是，对于每个用户 $u \in U$，计算他们对所有其他用户的音乐和电影偏好 $u&#39; \in U \setminus \{u\}$，测量该用户对所有其他用户的音乐和电影偏好 $u$ 之间的相关性，然后呈现所有用户的相关值分布。
-（可能还有其他方法可以探索这种统计关系。）
-第一种方法的好处是我们得到一个相关性度量和相关的 $p$ 值，但我不清楚 $p$ 值是否合适，因为行并非完全“独立”（每个用户至少影响 $|U| - 1$ 行数据）。例如，取用户乘积（对）似乎会表面上增加样本量。
-第二种方法的好处是相关性是在“独立”的基础上计算的数据（每个用户在计算的每个相关性中都被“计数”一次），但解释起来更加困难，因为我们没有单一的相关性度量，也没有$p$值，而是它们的多集。
-
-问题：
-由于第一种方法提供了最直接的解释，它可能是可取的，但它合适吗？
-否则，是否有另一种（更好的）方法比上面提到的第二种方法来测试用户音乐和电影品味的相似性之间的统计关系？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651284/measuring-correlation-for-variables-calculated-from-pairs-of-observations</guid>
-      <pubDate>Wed, 17 Jul 2024 20:17:42 GMT</pubDate>
     </item>
     <item>
       <title>对具有已知（但任意）条件依赖性的变量进行方差分析</title>
