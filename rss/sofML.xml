@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 27 Jul 2024 03:17:59 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jul 2024 06:19:35 GMT</lastBuildDate>
     <item>
       <title>尽管有多个 GPU，CUDA 仍出现内存不足错误</title>
       <link>https://stackoverflow.com/questions/78800294/cuda-out-of-memory-error-despite-having-multiple-gpus</link>
@@ -35,13 +35,13 @@ inputs = tokenizer(prompt, return_tensors=&quot;pt&quot;).to(&quot;cuda:1&quot;)
       <pubDate>Sat, 27 Jul 2024 01:14:45 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用任何类型的基础模型来检测通常发生在眼睛中的疾病？</title>
+      <title>如何使用任何类型的基础模型来检测通常发生在眼睛中的疾病？[关闭]</title>
       <link>https://stackoverflow.com/questions/78799471/how-do-i-use-any-kind-of-foundational-model-to-detect-a-disease-that-generally-h</link>
       <description><![CDATA[我刚来这里不久，如果可以的话，我希望你们能帮我。
 我想建立一个模型，可以检测视网膜图像是否有微动脉瘤。
 可以使用基础模型吗？如果可以，它会带来什么好处？
 如果我想，我可以使用哪种基础模型，比如我最近读到关于 RetFound 的文章，我相信它适合我的范围。
-（这就像一个理论问题）如果这些模型甚至没有接受过执行特定任务的训练，它们究竟如何适用于我们的特定用例数据，比如，制作基础模型的人如何决定训练数据的范围？它只是一个对视网膜图像进行处理模型，还是一个范围更广的模型，除了视网膜图像外，它还与其他相关数据有关（我相信）。第三个问题是可选的，如果你能回答，我将不胜感激。
+（这就像一个理论问题）如果这些模型甚至没有接受过执行特定任务的训练，它们究竟如何适用于我们的特定用例数据，比如，制作基础模型的人如何决定训练数据的范围？它只是一个对视网膜图像进行处理模型，还是一个范围更广的模型，除了视网膜图像外，它还与其他相关数据有关（我相信）。第三个问题是可选的，如果您能回答，我将不胜感激。
 我尝试使用一个基础模型，https://github.com/facebookresearch/deit/blob/main/README_deit.md，但我在这里学得并不多，任何帮助、任何指导都将不胜感激]]></description>
       <guid>https://stackoverflow.com/questions/78799471/how-do-i-use-any-kind-of-foundational-model-to-detect-a-disease-that-generally-h</guid>
       <pubDate>Fri, 26 Jul 2024 18:19:53 GMT</pubDate>
@@ -152,6 +152,76 @@ train：0%| | 0/3851 [00:00&lt;?, ?it/s]
       <pubDate>Fri, 26 Jul 2024 15:14:45 GMT</pubDate>
     </item>
     <item>
+      <title>线性模型的 SHAP 值与手动计算的值不同</title>
+      <link>https://stackoverflow.com/questions/78796974/shap-values-for-linear-model-different-from-those-calculated-manually</link>
+      <description><![CDATA[我训练一个线性模型来预测房价，然后我手动比较 Shapley 值计算结果与 SHAP 库返回的值，发现它们略有不同。
+我的理解是，对于线性模型，Shapley 值由以下公式给出：
+coeff * features for obs - coeffs * mean(features in training set)
+
+或者如 SHAP 文档中所述：coef[i] * (x[i] - X.mean(0)[i])，其中 i 是一个特征。
+问题是，为什么 SHAP 返回的值与手动计算不同？
+代码如下：
+import pandas as pd
+from sklearn.datasets import fetch_california_housing
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection 导入 train_test_split
+从 sklearn.preprocessing 导入 MinMaxScaler
+导入 shap
+
+X, y = fetch_california_housing(return_X_y=True, as_frame=True)
+X = X.drop(columns = [&quot;Latitude&quot;, &quot;Longitude&quot;, &quot;AveBedrms&quot;])
+
+X_train, X_test, y_train, y_test = train_test_split(
+X, y, test_size=0.3, random_state=0,
+)
+
+scaler = MinMaxScaler().set_output(transform=&quot;pandas&quot;).fit(X_train)
+X_train = scaler.transform(X_train)
+X_test = scaler.transform(X_test)
+
+linreg = LinearRegression().fit(X_train, y_train)
+coeffs = pd.Series(linreg.coef_, index=linreg.feature_names_in_)
+
+X_test.reset_index(inplace=True, drop=True)
+obs = 6188
+
+# 手动 shapley 计算
+effect = coeffs * X_test.loc[obs]
+effect - coeffs * X_train.mean()
+
+返回结果：
+MedInc 0.123210
+HouseAge -0.459784
+AveRooms -0.128162
+Population 0.032673
+AveOccup -0.001993
+dtype: float64
+
+SHAP 库返回的结果略有不同：
+explainer = shap.LinearExplainer(linreg, X_train)
+shap_values = explainer(X_test)
+shap_values[obs]
+
+结果如下：
+.values =
+array([ 0.12039244, -0.47172515, -0.12767778, 0.03473923, -0.00251017])
+
+.base_values =
+2.0809714707337523
+
+.data =
+array([0.25094137, 0.01960784, 0.06056066, 0.07912217, 0.00437137])
+
+设置为忽略交互：
+explainer.feature_perturbation
+
+返回
+&#39;interventional&#39;
+]]></description>
+      <guid>https://stackoverflow.com/questions/78796974/shap-values-for-linear-model-different-from-those-calculated-manually</guid>
+      <pubDate>Fri, 26 Jul 2024 08:22:09 GMT</pubDate>
+    </item>
+    <item>
       <title>GradientBoostedClassifier() 中的 min_samples_leaf 行为怪异</title>
       <link>https://stackoverflow.com/questions/78796671/min-samples-leaf-in-gradientboostedclassifier-having-weird-behavior</link>
       <description><![CDATA[尝试在 GradientBoostedClassifer() 中调整 min_samples_leaf。我看到了偏差/方差权衡的预期结果。但是，为了测试边界，我让 min_samples_leaf &gt;训练数据集中有 n_samples，预计会出现错误或其他问题，但我仍然得到与模型调整时类似的结果：
@@ -187,94 +257,6 @@ print(clf.score(test_x,test_y))
 我当时想也许它会将 min_samples_leaf 重置为某个可用值，但所有子树都没有深度，也没有进行拆分：subtree]]></description>
       <guid>https://stackoverflow.com/questions/78796671/min-samples-leaf-in-gradientboostedclassifier-having-weird-behavior</guid>
       <pubDate>Fri, 26 Jul 2024 07:05:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：参数 clone_function 和 input_tensors 仅支持顺序模型或功能模型</title>
-      <link>https://stackoverflow.com/questions/78796155/valueerror-arguments-clone-function-and-input-tensors-are-only-supported-for-se</link>
-      <description><![CDATA[我正在使用Quantization perceived training，参考网上的lstm代码，想把QAT放进lstm，结果遇到了ValueError。
-ValueError Traceback (most recent call last)
-&lt;ipython-input-11-00669bb76f9d&gt; in &lt;cell line: 6&gt;()
-4 return layer
-5 
-----&gt; 6 annotated_model = tf.keras.models.clone_model(
-7 model,
-8 clone_function=apply_quantization_to_dense,
-
-/usr/local/lib/python3.10/dist-packages/tf_keras/src/models/cloning.py in clone_model(model, input_tensors, clone_function)
-544 # 自定义模型类的情况
-545 if clone_function or input_tensors:
---&gt; 546 raise ValueError(
-547 &quot;参数 clone_function 和 input_tensors &quot;
-548 &quot;仅支持 Sequential 模型 &quot;
-
-ValueError: 参数 clone_function 和 input_tensors 仅支持 Sequential 模型或 Functional 模型。收到类型为“Sequential”的模型，其中 clone_function=&lt;function apply_quantization_to_dense 位于0x78b727ec4040&gt; 和 input_tensors=None
-
-这是我的代码
-import keras
-从 keras.layers 导入 LSTM
-从 keras.layers 导入 Dense、Activation
-从 keras.datasets 导入 mnist
-从 keras.models 导入 Sequential
-从 keras.optimizers 导入 Adam
-
-learning_rate = 0.001
-training_iters = 20
-batch_size = 128
-display_step = 10
-
-n_input = 28
-n_step = 28
-n_hidden = 128
-n_classes = 10
-
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-
-x_train = x_train.reshape(-1, n_step, n_input)
-x_test = x_test.reshape(-1, n_step, n_input)
-x_train = x_train.astype(&#39;float32&#39;)
-x_test = x_test.astype(&#39;float32&#39;)
-x_train /= 255
-x_test /= 255
-
-y_train = keras.utils.to_categorical(y_train, n_classes)
-y_test = keras.utils.to_categorical(y_test, n_classes)
-
-model = Sequential()
-model.add(LSTM(n_hidden,
-batch_input_shape=(None, n_step, n_input),
-unroll=True))
-
-model.add(Dense(n_classes))
-model.add(Activation(&#39;softmax&#39;))
-
-adam = Adam(lr=learning_rate)
-model.summary()
-model.compile(optimizer=adam,
-loss=&#39;categorical_crossentropy&#39;,
-metrics=[&#39;accuracy&#39;])
-
-model.fit(x_train, y_train,
-batch_size=batch_size,
-epochs=training_iters,
-verbose=1,
-validation_data=(x_test, y_test))
-
-scores = model.evaluate(x_test, y_test, verbose=0)
-print(&#39;LSTM 测试分数：&#39;, scores[0])
-print(&#39;LSTM 测试准确率：&#39;, scores[1])
-
-def apply_quantization_to_dense(layer):
-if isinstance(layer, tf.keras.layers.LSTM):
-return tfmot.quantization.keras.quantize_annotate_layer(layer)
-return layer
-
-annotated_model = tf.keras.models.clone_model(
-模型，
-clone_function=apply_quantization_to_dense，
-)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78796155/valueerror-arguments-clone-function-and-input-tensors-are-only-supported-for-se</guid>
-      <pubDate>Fri, 26 Jul 2024 03:41:57 GMT</pubDate>
     </item>
     <item>
       <title>ValueError：不支持 y 的稀疏多标签指标 - 如何处理具有稀疏数据的多标签分类？</title>
@@ -476,7 +458,7 @@ z = self.decode(z)
       <pubDate>Thu, 09 May 2024 22:59:50 GMT</pubDate>
     </item>
     <item>
-      <title>如何让 Matrox Model Finder 在单个图像中多次查找同一模型？</title>
+      <title>如何让 Matrox Model Finder 在单幅图像中多次查找同一模型？</title>
       <link>https://stackoverflow.com/questions/78311681/how-do-i-make-the-matrox-model-finder-look-for-the-same-model-multiple-times-in</link>
       <description><![CDATA[我是 Matrox 的新手，所以这可能是一个初学者的问题。
 我有一个托盘，上面有多个项目，它们都是同一型号。当我将 ModelFinder 步骤添加到程序中时，我添加了我正在寻找的模型，但它只显示我注册的模型，我猜是因为相机的失真。我如何让 Matrox 知道还有更多项目，并且它们也是同一型号？
