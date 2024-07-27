@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 26 Jul 2024 21:14:20 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jul 2024 01:05:45 GMT</lastBuildDate>
     <item>
       <title>如何使用任何类型的基础模型来检测通常发生在眼睛中的疾病？</title>
       <link>https://stackoverflow.com/questions/78799471/how-do-i-use-any-kind-of-foundational-model-to-detect-a-disease-that-generally-h</link>
@@ -123,169 +123,41 @@ train：0%| | 0/3851 [00:00&lt;?, ?it/s]
       <pubDate>Fri, 26 Jul 2024 15:14:45 GMT</pubDate>
     </item>
     <item>
-      <title>决策树分类器给出错误结果</title>
-      <link>https://stackoverflow.com/questions/78797339/decision-tree-classifier-gives-wrong-results</link>
-      <description><![CDATA[我正在学习一门机器学习课程，其中的作业是实现 DecisionTreeClassifier 的拟合方法。
-这是我的代码：
-import numpy as np
-import pandas as pd
+      <title>GradientBoostedClassifier() 中的 min_samples_leaf 行为怪异</title>
+      <link>https://stackoverflow.com/questions/78796671/min-samples-leaf-in-gradientboostedclassifier-having-weird-behavior</link>
+      <description><![CDATA[尝试在 GradientBoostedClassifer() 中调整 min_samples_leaf。我看到了偏差/方差权衡的预期结果。但是，为了测试边界，我让 min_samples_leaf &gt;训练数据集中有 n_samples，预计会出现错误或其他问题，但我仍然得到与模型调整时类似的结果：
+df = df_a # 样本数 = 347
+df=df.sample(frac=1) 
+train_proportion = 0.8 
+n = len(df)
+t = int(train_proportion * n)
 
-class MyTreeClf:
-def __init__(self, max_depth=5, min_samples_split=2, max_leafs=20):
-self.max_depth = max_depth
-self.min_samples_split = min_samples_split
-self.max_leafs = max_leafs
-self.tree = None
-self.leafs_cnt = 0
+# 单独的训练和测试集
+y = df[&#39;detected&#39;]
+X = df.loc[:, ~df.columns.isin([&#39;detected&#39;])]
 
-def node_entropy(self, probs):
-return -np.sum([p * np.log2(p) for p in probs if p &gt; 0])
+# 训练集中的样本
+train_x = X.iloc[:t,:].reset_index().iloc[:,1:]
+# 测试集中的样本
+test_x = X.iloc[t:,:].reset_index().iloc[:,1:]
+# 训练集中的目标
+train_y = pd.Series(y[:t].reset_index().iloc[:,1:].iloc[:,0])
+#测试集中的目标
+test_y = pd.Series(y[t:].reset_index().iloc[:,1:].iloc[:,0])
 
-def node_ig(self, x_col, y, split_value):
-left_mask = x_col &lt;= split_value
-right_mask = x_col &gt; split_value
+clf = GradientBoostingClassifier(n_estimators = 100, max_depth = 10, random_state= 0, min_samples_leaf=500)
+clf.fit(train_x,train_y)
+print(clf.score(train_x,train_y))
+print(clf.score(test_x,test_y))
 
-如果 len(x_col[left_mask]) == 0 或 len(x_col[right_mask]) == 0:
-返回 0
+输出：
+0.924187725631769
+0.9142857142857143
 
-left_probs = np.bincount(y[left_mask]) / len(y[left_mask])
-right_probs = np.bincount(y[right_mask]) / len(y[right_mask])
-
-entropy_after = len(y[left_mask]) / len(y) * self.node_entropy(left_probs) + len(y[right_mask]) / len(y) * self.node_entropy(right_probs)
-entropy_before = self.node_entropy(np.bincount(y) / len(y))
-
-返回 entropy_before - entropy_after
-
-def get_best_split(self, X: pd.DataFrame，y：pd.Series）：
-best_col，best_split_value，best_ig = None，None，-np.inf
-
-对于 X.columns 中的 col：
-sorted_unique_values = np.sort(X[col].unique())
-
-对于 range(1，len(sorted_unique_values)) 中的 i：
-split_value = (sorted_unique_values[i - 1] + sorted_unique_values[i]) / 2
-
-ig = self.node_ig(X[col]，y，split_value)
-
-如果 ig &gt; best_ig:
-best_ig = ig
-best_col = col
-best_split_value = split_value
-
-返回 best_col、best_split_value、best_ig
-
-def fit(self, X: pd.DataFrame, y: pd.Series,depth=0):
-如果depth == 0:
-self.tree = {}
-
-best_col、best_split_value、best_ig = self.get_best_split(X, y)
-
-如果depth &lt; self.max_depth 和 len(y) &gt;= self.min_samples_split 和 self.leafs_cnt &lt; self.max_leafs 和 best_col 不为 None:
-left_mask = X[best_col] &lt;= best_split_value
-right_mask = X[best_col] &gt; best_split_value
-
-self.tree[depth] = {&#39;col&#39;: best_col, &#39;split&#39;: best_split_value, &#39;left&#39;: {}, &#39;right&#39;: {}}
-
-self.fit(X[left_mask], y[left_mask],depth + 1)
-self.fit(X[right_mask], y[right_mask],depth + 1)
-else:
-class_label = y.mode()[0]
-self.tree[depth] = {&#39;class&#39;: class_label}
-self.leafs_cnt += 1
-
-在 fit 方法中，该方法使用 X 和 y 来构建树，应该计算叶子的数量。
-树的构建如下：
-根节点：从根节点开始，遍历每个属性。
-阈值选择过程：
-对于每个属性，选择唯一值并对其进行排序。
-形成阈值列表以拆分值。
-对于每个阈值，将数据集拆分为两个子集（左和右）。
-评估每次拆分的信息增益。
-选择具有最高信息增益的属性和阈值，并将它们保存在层次结构中。
-递归拆分：
-将数据集拆分为两个子集。
-如果子集可以进一步拆分，则递归重复该过程。
-如果不可以，则将子集声明为叶子并保存第一个类的概率。
-约束：
-当满足以下条件之一时停止拆分：
-最大树深度
-节点中的最小实例数
-最大叶子数
-即使达到约束，也要通过创建必要的叶子来完成树。
-叶子的数量保存在 leafs_cnt 变量中。该方法不返回任何内容。]]></description>
-      <guid>https://stackoverflow.com/questions/78797339/decision-tree-classifier-gives-wrong-results</guid>
-      <pubDate>Fri, 26 Jul 2024 09:48:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>线性模型的 SHAP 值与手动计算的值不同</title>
-      <link>https://stackoverflow.com/questions/78796974/shap-values-for-linear-model-different-from-those-calculated-manually</link>
-      <description><![CDATA[我训练一个线性模型来预测房价，然后我手动比较 Shapley 值计算结果与 SHAP 库返回的值，发现它们略有不同。
-我的理解是，对于线性模型，Shapley 值由以下公式给出：
-coeff * features for obs - coeffs * mean(features in training set)
-
-或者如 SHAP 文档中所述：coef[i] * (x[i] - X.mean(0)[i])，其中 i 是一个特征。
-问题是，为什么 SHAP 返回的值与手动计算不同？
-代码如下：
-import pandas as pd
-from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-来自 sklearn.preprocessing 导入 MinMaxScaler
-导入 shap
-
-X, y = fetch_california_housing(return_X_y=True, as_frame=True)
-
-X = X.drop(columns = [&quot;Latitude&quot;, &quot;Longitude&quot;, &quot;AveBedrms&quot;])
-
-X_train, X_test, y_train, y_test = train_test_split(
-X, y, test_size=0.3, random_state=0,
-)
-
-scaler = MinMaxScaler().set_output(transform=&quot;pandas&quot;).fit(X_train)
-X_train = scaler.transform(X_train)
-X_test = scaler.transform(X_test)
-
-linreg = LinearRegression().fit(X_train, y_train)
-coeffs = pd.Series(linreg.coef_, index=linreg.feature_names_in_)
-
-X_test.reset_index(inplace=True, drop=True)
-obs = 6188
-
-# 手动 shapley 计算
-effect = coeffs * X_test.loc[obs]
-effect - coeffs * X_train.mean()
-
-返回结果：
-MedInc 0.123210
-HouseAge -0.459784
-AveRooms -0.128162
-Population 0.032673
-AveOccup -0.001993
-dtype: float64
-
-SHAP 库返回的结果略有不同：
-explainer = shap.LinearExplainer(linreg, X_train)
-shap_values = explainer(X_test)
-shap_values[obs]
-
-结果如下：
-.values =
-array([ 0.12039244, -0.47172515, -0.12767778, 0.03473923, -0.00251017])
-
-.base_values =
-2.0809714707337523
-
-.data =
-array([0.25094137, 0.01960784, 0.06056066, 0.07912217, 0.00437137])
-
-设置为忽略交互：
-explainer.feature_perturbation
-
-返回
-&#39;interventional&#39;
-]]></description>
-      <guid>https://stackoverflow.com/questions/78796974/shap-values-for-linear-model-different-from-those-calculated-manually</guid>
-      <pubDate>Fri, 26 Jul 2024 08:22:09 GMT</pubDate>
+为什么会这样？我预计会出现错误或不会进行拆分。文档中似乎没有说明如果 min_samples_leaf &gt; n_samples 会发生什么。对 int 的唯一要求是范围 [1,inf]。对此也没有其他说明。
+我当时想也许它会将 min_samples_leaf 重置为某个可用值，但所有子树都没有深度，也没有进行拆分：subtree]]></description>
+      <guid>https://stackoverflow.com/questions/78796671/min-samples-leaf-in-gradientboostedclassifier-having-weird-behavior</guid>
+      <pubDate>Fri, 26 Jul 2024 07:05:30 GMT</pubDate>
     </item>
     <item>
       <title>AttributeError: ‘list’ 对象没有属性 ‘shape’ 错误</title>
@@ -724,6 +596,29 @@ max_parallel_jobs=2
 我的问题是，我没有找到任何关于如何访问“train.py”文件中 SKLearn 估算器中传递的超参数的信息。我也没有找到最佳超参数存储在哪里，以便我可以将它们用于最终模型。有人能告诉我这是否可行，或者提供替代方案，看看是否有其他更简单的方法可以做到这一点吗？]]></description>
       <guid>https://stackoverflow.com/questions/77573670/how-do-i-use-sagemaker-hyperparametertuner-on-a-sklearn-estimator</guid>
       <pubDate>Wed, 29 Nov 2023 18:27:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>视觉框架（iOS）：VNDetectFaceLandmarksRequest 和 VNDetectFaceRectanglesRequest 有何不同？</title>
+      <link>https://stackoverflow.com/questions/66367963/vision-framework-ios-how-are-vndetectfacelandmarksrequest-and-vndetectfacerec</link>
+      <description><![CDATA[您可以使用两种不同的请求通过 iOS Vision Framework 执行人脸检测任务：VNDetectFaceLandmarksRequest 和 VNDetectFaceRectanglesRequest。它们都返回一个 VNFaceObservation 数组，每个检测到的人脸对应一个数组。VNFaceObservation 具有多种可选属性，包括 boundingBox 和 landmarks。landmarks 对象还包括可选属性，例如 nose、innerLips、leftEye 等。
+这两种不同的 Vision 请求在执行人脸检测的方式上是否有所不同？
+似乎 VNDetectFaceRectanglesRequest 只能找到一个边界框（可能还有其他一些属性），但找不到任何地标。另一方面，VNDetectFaceLandmarksRequest 似乎可以同时找到边界框和地标。
+是否存在一种请求类型可以找到面部而另一种则找不到的情况？ VNDetectFaceLandmarksRequest 是否 优于 VNDetectFaceRectanglesRequest，或者后者在 性能 或 可靠性 方面可能更具优势？
+以下是如何使用这两个 Vision 请求的示例代码：
+let faceLandmarkRequest = VNDetectFaceLandmarksRequest()
+let faceRectangleRequest = VNDetectFaceRectanglesRequest()
+let requestHandler = VNImageRequestHandler(ciImage: image, options: [:])
+try requestHandler.perform([faceRectangleRequest, faceLandmarkRequest])
+if let rectangleResults = faceRectangleRequest.results as? [VNFaceObservation] {
+let boundingBox1 = rectangleResults.first?.boundingBox //这是一个可选类型
+}
+if let landmarkResults = faceLandmarkRequest.results as? [VNFaceObservation] {
+let boundingBox2 = landmarkResults.first?.boundingBox //这是一个可选类型
+let landmarks = landmarks //这是一个可选类型
+}
+]]></description>
+      <guid>https://stackoverflow.com/questions/66367963/vision-framework-ios-how-are-vndetectfacelandmarksrequest-and-vndetectfacerec</guid>
+      <pubDate>Thu, 25 Feb 2021 11:53:04 GMT</pubDate>
     </item>
     <item>
       <title>银行交易数据集</title>
