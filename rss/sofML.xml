@@ -4,7 +4,36 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 27 Jul 2024 01:05:45 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jul 2024 03:17:59 GMT</lastBuildDate>
+    <item>
+      <title>尽管有多个 GPU，CUDA 仍出现内存不足错误</title>
+      <link>https://stackoverflow.com/questions/78800294/cuda-out-of-memory-error-despite-having-multiple-gpus</link>
+      <description><![CDATA[尝试运行 PyTorch 模型时，我遇到了 CUDA 内存不足错误，尽管我的系统有多个 NVIDIA GPU。
+# 加载 tokenizer 和模型
+tokenizer = AutoTokenizer.from_pretrained(&quot;MODEL_TYPE&quot;)
+model = AutoModelForCausalLM.from_pretrained(&quot;MODEL_TYPE&quot;, output_attentions=True, device_map = &#39;auto&#39;, torch_dtype=torch.float16, low_cpu_mem_usage=True)
+
+我有 8 个 GPU，模型分布在所有 GPU 上。但是，由于我的输入是长上下文（大约 20k 个 token）。尽管其他 GPU 中有很多空间，但我还是收到 GPU0 的 CUDA 内存错误。请注意，这是对批处理大小 1 的推断。
+OutOfMemoryError：CUDA 内存不足。尝试分配 20.11 GiB。GPU 0 的总容量为 22.17 GiB，其中 16.06 GiB 是空闲的。包括非 PyTorch 内存在内，此进程使用了​​ 6.10 GiB 内存。在分配的内存中，5.57 GiB 由 PyTorch 分配，308.62 MiB 由 PyTorch 保留但未分配。如果保留但未分配的内存很大，请尝试设置 max_split_size_mb 以避免碎片化。请参阅内存管理和 PYTORCH_CUDA_ALLOC_CONF 的文档
+
+ input = tokenizer(prompt, return_tensors=&quot;pt&quot;)
+torch.cuda.empty_cache()
+model.generation_config.temperature = temp
+model.eval()
+with torch.no_grad():
+output = model.generate(inputs.input_ids, max_length=25000, output_attentions=False,output_scores=False, return_dict_in_generate=True)
+print(&quot;temp:&quot;,model.generation_config.temperature)
+tokens = tokenizer.convert_ids_to_tokens(inputs[&#39;input_ids&#39;][0])
+
+response = tokenizer.batch_decode(output[0], skip_special_tokens=False, clean_up_tokenization_spaces=False)[0]
+
+如何有效利用可用的 GPU 进行长上下文输入以避免内存不足错误？
+我尝试将输入强制到其他 GPU，但没有成功：
+inputs = tokenizer(prompt, return_tensors=&quot;pt&quot;).to(&quot;cuda:1&quot;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78800294/cuda-out-of-memory-error-despite-having-multiple-gpus</guid>
+      <pubDate>Sat, 27 Jul 2024 01:14:45 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用任何类型的基础模型来检测通常发生在眼睛中的疾病？</title>
       <link>https://stackoverflow.com/questions/78799471/how-do-i-use-any-kind-of-foundational-model-to-detect-a-disease-that-generally-h</link>
@@ -158,109 +187,6 @@ print(clf.score(test_x,test_y))
 我当时想也许它会将 min_samples_leaf 重置为某个可用值，但所有子树都没有深度，也没有进行拆分：subtree]]></description>
       <guid>https://stackoverflow.com/questions/78796671/min-samples-leaf-in-gradientboostedclassifier-having-weird-behavior</guid>
       <pubDate>Fri, 26 Jul 2024 07:05:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>AttributeError: ‘list’ 对象没有属性 ‘shape’ 错误</title>
-      <link>https://stackoverflow.com/questions/78796342/attributeerror-list-object-has-no-attribute-shape-error</link>
-      <description><![CDATA[我正在尝试预测股票价格。这是我的代码：
-import pandas as pd
-import yfinance as web
-import numpy as np
-
-从 sklearn.preprocessing 导入 MinMaxScaler
-从 tensorflow.python.keras.models 导入 Sequential
-从 tensorflow.python.keras.layers 导入 Dense、Dropout
-从 tensorflow.python.keras.layers.recurrent 导入 LSTM
-
-company = &#39;TSLA&#39;
-
-start=&#39;2012-01-01&#39;
-end=&#39;2024-03-01&#39;
-
-data = web.download(company, start=start, end=end)
-
-scaler = MinMaxScaler(feature_range=(0,1))
-scaled_data = scaler.fit_transform(data[&#39;Close&#39;].values.reshape(-1,1))
-
-prediction_days = 60
-
-x_train = []
-y_train = []
-
-for x in range(prediction_days, len(scaled_data)):
-x_train.append(scaled_data[x-prediction_days:x, 0])
-y_train.append(scaled_data[x, 0])
-
-model = Sequential()
-
-model.add(LSTM(units = 50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
-model.add(Dropout(0.2))
-model.add(LSTM(units = 50, return_sequences=True))
-model.add(Dropout(0.2))
-model.add(LSTM(units = 50))
-model.add(Dropout(0.2))
-
-我期望它什么都不输入，但是我得到了这个错误：
-但它说作为错误，
-回溯（最近一次调用）：
-文件
-&quot;c:\Users\User1\OneDrive\Documents\Desktop\python\projects\machine\stock_price_predictor.py&quot;，
-第 32 行，位于 &lt;module&gt;
-model.add(LSTM(units = 50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
-^^^^^^^^^^^^^
-AttributeError: &#39;list&#39; 对象没有属性 &#39;shape&#39;
-
-如何解决？我尝试将其转换为 np.array，但没有任何效果。这是我的尝试：
-import pandas as pd
-import yfinance as web
-import numpy as np
-
-从 sklearn.preprocessing 导入 MinMaxScaler
-从 tensorflow.python.keras.models 导入 Sequential
-从 tensorflow.python.keras.layers 导入 Dense、Dropout
-从 tensorflow.python.keras.layers.recurrent 导入 LSTM
-
-company = &#39;TSLA&#39;
-
-start=&#39;2012-01-01&#39;
-end=&#39;2024-03-01&#39;
-
-data = web.download(company, start=start, end=end)
-
-scaler = MinMaxScaler(feature_range=(0,1))
-scaled_data=.fit_transform(data[&#39;Close&#39;].values.reshape(-1,1))
-
-prediction_days = 60
-
-x_train = np.array([])
-y_train = np.array([])
-
-对于范围（prediction_days，len（scaled_data））中的 x：
-x_train = np.append(x_train，scaled_data[x-prediction_days：x，0])
-y_train = np.append(y_train，scaled_data[x，0])
-
-model = Sequential()
-
-model.add(LSTM(units = 50，return_sequences=True，input_shape= 
-(x_train.shape[1]，1)))
-model.add(Dropout(0.2))
-model.add(LSTM(units = 50，return_sequences=True))
-model.add(Dropout(0.2))
-model.add(LSTM(units = 50))
-model.add(Dropout(0.2))
-
-但我却得到了这个错误
-回溯（最近一次调用）：
-文件 
-&quot;c:\Users\User1\OneDrive\Documents\Desktop\python\projects\machine 
-learning\stock_price_predictor.py&quot;，第 32 行，位于 &lt;module&gt;
-model.add(LSTM(units = 50, return_sequences=True, input_shape= 
-(x_train.shape[1], 1))) 
-~~~~~~~~~~~~~^^^
-IndexError：元组索引超出范围
-]]></description>
-      <guid>https://stackoverflow.com/questions/78796342/attributeerror-list-object-has-no-attribute-shape-error</guid>
-      <pubDate>Fri, 26 Jul 2024 05:31:21 GMT</pubDate>
     </item>
     <item>
       <title>ValueError：参数 clone_function 和 input_tensors 仅支持顺序模型或功能模型</title>
