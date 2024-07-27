@@ -4,9 +4,125 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 27 Jul 2024 09:15:24 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jul 2024 12:28:34 GMT</lastBuildDate>
     <item>
-      <title>反向排序中的增量计算（Google Code 难题）</title>
+      <title>交叉验证后模型表现不佳</title>
+      <link>https://stats.stackexchange.com/questions/651860/model-performing-poorly-after-cross-validation</link>
+      <description><![CDATA[在使用交叉验证查看自定义预测函数对未见数据的表现后，我将函数应用于原始数据集，结果性能（基于判定系数）大幅下降。
+我正在尝试构建一个预测模型来获取 3 个输入特征并预测一个比例。我定义了一个自定义函数来将输出限制在 0 和 1 之间：
+def xg_curve(X, a, b, c, d, e):
+x1, x2, x3 = X[:, 0], X[:, 1], X[:, 2]
+return 1 / (1 + a * b ** (c * x1 + d * x2 + e * x3))
+
+我尝试了分层 5 倍交叉验证，通过按目标变量对数据框进行排序，然后循环分配它们 0-4，这使得所有折叠中的目标分布几乎彼此相同，并且整个数据集也是如此。
+测试折叠的平均 R2 为 0.6485，并且在所有折叠中非常紧密地聚集在这个值附近，平均训练 R2 等于0.655，并且非常紧密地聚集在这个值周围。
+这是一个相当小的数据集（750 个条目），因此我使用交叉验证来确保模型很好地推广到看不见的数据，而不仅仅是在一个特定的训练/测试分割上表现良好。该模型预测了冰球模拟器中要保存的击球难度等级，所以我想将它应用于已经编程的击球（数据集）和游戏中的任何未来击球。目标是用户保存现有击球的时间百分比。
+基于领域知识，我对特征占目标变化的约 65% 感到满意，并将该函数应用于整个数据集。但是，当我这样做时，R2 值下降到 0.478。我在下面提供了我的代码，我找不到任何错误！任何帮助都将不胜感激！
+def xg_curve(X, a, b, c, d, e):
+x1, x2, x3 = X[:, 0], X[:, 1], X[:, 2]
+return 1 / (1 + a * b ** (c * x1 + d * x2 + e * x3))
+
+X_data = over50[[&quot;Required_rate_of_closure&quot;, &quot;Shot angle&quot;, &quot;Lateral_diff_spin&quot;]].values
+y_data = over50[&quot;Goal Percentage&quot;].values
+folds = over50[&quot;Fold&quot;].values
+
+# 初始化列表以存储每个折叠的 RMSE 和 R^2
+train_rmse_values = []
+train_r2_values = []
+test_rmse_values = []
+test_r2_values = []
+params_list = []
+
+# 折叠数
+k = 5
+
+for i in range(k):
+
+# 将数据拆分为训练集和测试集
+train_idx = folds != i
+test_idx = folds == i
+
+X_train, X_test = X_data[train_idx], X_data[test_idx]
+y_train, y_test = y_data[train_idx], y_data[test_idx]
+
+# 在训练集上拟合模型
+popt, _ = curve_fit(xg_curve, X_train, y_train, p0=[1, 1, 1, 1, 1])
+
+# 在训练集上进行预测
+y_train_pred = xg_curve(X_train, *popt)
+# 在测试集上进行预测
+y_test_pred = xg_curve(X_test, *popt)
+
+# 计算训练集的 RMSE 和 R^2
+train_rmse = np.sqrt(mean_squared_error(y_train, y_train_pred))
+train_r2 = r2_score(y_train, y_train_pred)
+
+# 计算测试集的 RMSE 和 R^2
+test_rmse = np.sqrt(mean_squared_error(y_test, y_test_pred))
+test_r2 = r2_score(y_test, y_test_pred)
+
+# 存储结果
+train_rmse_values.append(train_rmse)
+train_r2_values.append(train_r2)
+test_rmse_values.append(test_rmse)
+test_r2_values.append(test_r2)
+params_list.append(popt)
+
+# 计算所有折叠的 RMSE 和 R^2 的平均值和标准差
+mean_train_rmse = np.mean(train_rmse_values)
+std_train_rmse = np.std(train_rmse_values)
+mean_train_r2 = np.mean(train_r2_values)
+std_train_r2 = np.std(train_r2_values)
+
+mean_test_rmse = np.mean(test_rmse_values)
+std_test_rmse = np.std(test_rmse_values)
+mean_test_r2 = np.mean(test_r2_values)
+std_test_r2 = np.std(test_r2_values)
+
+print(&quot;训练 RMSE：平均值 = {:.4f}，标准差 = {:.4f}&quot;.format(mean_train_rmse, std_train_rmse))
+print(&quot;训练 R^2：平均值 = {:.4f}，标准差 = {:.4f}&quot;.format(mean_train_r2, std_train_r2))
+print(&quot;验证 RMSE：平均值 = {:.4f}，标准差 = {:.4f}&quot;.format(mean_test_rmse, std_test_rmse))
+print(&quot;验证 R^2：平均值 = {:.4f}，标准差 = {:.4f}&quot;.format(mean_test_r2, std_test_r2))
+
+final_params, _ = curve_fit(xg_curve, X_data, y_data, p0=[1,1,1,1,1])
+
+a,b,c,d,e = final_params
+
+print(f&#39; 最终参数：a = {a}, b = {b}, c = {c}, d = {d}, e = {e}&#39;)
+
+print(r2_score(xg_curve(X_data, *final_params), y_data))
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/651860/model-performing-poorly-after-cross-validation</guid>
+      <pubDate>Sat, 27 Jul 2024 12:16:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>在最小二乘法中，如何检查残差的正态性？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/651859/in-least-square-how-to-check-for-the-normality-of-residuals</link>
+      <description><![CDATA[假设我有以下数据：
+data &lt;- data.frame(
+Week_1 = c(2.496714, 1.861736, 2.647689, 3.523030, 1.765847, 1.765863, 3.579213, 2.767435, 1.530526, 2.542560, 1.536582, 1.534270, 2.241962, 0.086720, 0.275082, 1.437712, 0.987169, 2.314247, 1.091976, 0.587696, NA, NA, NA,不适用，不适用，不适用，不适用，不适用，不适用，不适用），周_2 = c(8.931298, 5.548447, 6.135056, 3.150504, 4.911235, 6.221845, 3.698013, 6.751396, 4.798723, 613、4.796587、9.704556、5.973006、3.884578、7.645090、3.558313、6.417727、2.080660、3.343628、6.393722、7.476933、 6.342737, 5.768703, 5.397793, 3.042956, 4.560312, 5.078722, 8.114244, 6.687237, 2.473920),
+Week_3 = c(10.583351, 9.306852, 8.781540, 11.101017, 11.855799, 11.676304, 8.489408, 9.443418, 10.596274, 11.755981, 9.137486, 9.665814, 8.008597, 7.846828, 11.462546，NA，NA，NA，NA，NA，NA，NA，NA，NA，NA，NA，NA，NA，NA，NA）
+）
+
+我想对数据（值作为周的函数）执行加权线性回归。
+
+问题 1
+对于所有三周，我需要确定平均值及其标准误差（s.e.m.）。我是否必须对分布做出假设才能计算这两个参数？
+
+问题 2
+在维基百科上，我读到，“如果假设误差遵循正态分布，则推断很容易，因此意味着参数估计值和残差也将服从独立变量值的正态分布。”如果残差需要服从正态分布，是否意味着我只能在执行拟合（使用 QQ 图）后才能检查正态性？
+
+问题 3
+假设我没有原始数据，有三个点 (x1,y1)、(x2,y2) 和 (x3,y3)，其中 y_i 是平均值。我该如何检查正态性？
+
+
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/651859/in-least-square-how-to-check-for-the-normality-of-residuals</guid>
+      <pubDate>Sat, 27 Jul 2024 11:09:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>反向排序中的增量计算（Google Code jam 问题）[关闭]</title>
       <link>https://stats.stackexchange.com/questions/651856/delta-calculation-in-reverse-sortgoogle-code-jam-question</link>
       <description><![CDATA[在工程学中，逆向排序是一道竞争性编程题，涉及编写代码来生成给定大小 N 和成本 C 的数组。要了解有关该问题的更多信息，请访问此处
 问题的答案是此处
@@ -16,7 +132,7 @@
       <pubDate>Sat, 27 Jul 2024 08:36:09 GMT</pubDate>
     </item>
     <item>
-      <title>哪个包在 R 中执行多项逻辑回归分析？</title>
+      <title>哪个包在 R 中执行多项逻辑回归分析？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/651854/what-package-performs-multinomial-logistic-regression-analysis-in-r</link>
       <description><![CDATA[我使用 R 中 nnet 包中的 multinom 函数执行了多项逻辑回归，但我觉得比值比结果不太好。multinom 函数不是多项逻辑回归分析吗？如果是，请告诉我执行多项逻辑回归分析的 R 包。]]></description>
       <guid>https://stats.stackexchange.com/questions/651854/what-package-performs-multinomial-logistic-regression-analysis-in-r</guid>
@@ -43,7 +159,7 @@ $$
 $$
 其中$\varphi:\mathbb{R}\to\mathcal{H}$。在这篇文章中，我主要感兴趣的是 $\varphi$ 与高斯核的关系：
 $$
-\langle\varphi(x),\varphi(y)\rangle_\mathcal{H}=k(x,y)=\exp\left(-\frac{|x-y|^2}{2\sigma^2}\right).
+\big\langle\varphi(x),\varphi(y)\big\rangle_\mathcal{H}=k(x,y)=\exp\left(-\frac{1}{2\sigma^2}|x-y|^2\right).
 $$
 
 我感兴趣的是这些距离之间的差异。例如，在我看来：
@@ -66,7 +182,7 @@ $\mathsf{W}_1$ 比较了分布中分位数或质量分配的差异（注意：�
       <pubDate>Sat, 27 Jul 2024 06:56:52 GMT</pubDate>
     </item>
     <item>
-      <title>期望值是否相对于 CDF 单调递减？</title>
+      <title>预期值是否相对于 CDF 单调递减？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/651851/is-the-expected-value-monotonically-decreasing-with-respect-to-the-cdf</link>
       <description><![CDATA[当$P(X\ge0)=1$时，$E[X]=\int_0^1(1-F(x))dx\in[0,1]$。
 那么，$E[X]$相对于$F(x)$单调递减，这一说法正确吗？
@@ -138,77 +254,22 @@ $$
       <pubDate>Sat, 27 Jul 2024 03:02:37 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 R 中最大化这个特定的对数似然函数？</title>
-      <link>https://stats.stackexchange.com/questions/651844/how-do-i-maximize-this-specific-loglikelihood-function-in-r</link>
-      <description><![CDATA[我感兴趣的是确定使函数最大化的参数 mu 和 lambda：
-LogLikelihood_Function &lt;- function(complete_data, censorship_matrix, mu, lambda, subject_index)
-理论背景
-作为我研究的一部分，我感兴趣的是在存在删失数据（左删失、右删失或区间删失数据）的情况下计算多元正态分布的 MLE（最大似然估计量）。上述函数具有以下条目：
+      <title>测量嵌入空间中的相似性？</title>
+      <link>https://stats.stackexchange.com/questions/651840/measuring-similarity-in-embedding-spaces</link>
+      <description><![CDATA[我试图测量两个不同维度的嵌入空间（特别是文本）的相似度（例如 300d 和 2000d）。较大的嵌入空间是稀疏的。具体来说，我想捕获：
 
-条目 complete_data 指的是矩阵 $n\times p$，其中 $n$ 是观测次数，$p$ 是每个观测到的高斯随机向量的维度（可能存在审查）。
-条目 censorship_matrix 用于指示每个观测中的哪些条目是被审查的，哪些不是。
-变量 mu 表示目标分布的预期值，我们不知道但希望估计（但也需要将其明确为似然函数的条目）。
-变量 lambda 表示目标分布的预期值，我们不知道但希望估计进行估计（但也需要将其明确为似然函数的条目）。
-最后，条目 subject_index 对应于选择构建边际似然的观察结果。
+邻域保存得如何？
+邻域之间的距离保存得如何？
 
-我已经尝试过应用 optim 函数，但到目前为止还没有成功。
-话虽如此，我想知道是否有人可以给我一些关于如何解决这个问题的指导。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651844/how-do-i-maximize-this-specific-loglikelihood-function-in-r</guid>
-      <pubDate>Sat, 27 Jul 2024 00:53:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>当个体之间的时间间隔不同时，对纵向数据进行建模</title>
-      <link>https://stats.stackexchange.com/questions/651839/modeling-longitudinal-data-when-the-amount-of-time-between-points-is-different-p</link>
-      <description><![CDATA[我正在处理一个重复测量临床数据集，其中包括基线评估和出院后评估（因此只有前测和后测）。数据集中的每个参与者都有相同数量的点。但是，每个参与者的点之间的距离是不同的。一个参与者可能在一年内出院，另一个则在几年内出院。我想模拟病情和时间对我的干预结果的影响。我想在我的分析中考虑时间点之间的距离的影响，更感兴趣的是看看它是否有影响，而不是控制它/消除归因于点之间时间的方差。但是，我不确定最好的方法是什么。是否可以运行重复测量 ANCOVA，将点之间的时间作为协变量？将点之间的时间作为协变量的多层模型怎么样？在这种情况下，一种方法会比另一种方法更好吗？或者还有其他我完全没有注意到的分析？
-也希望任何可以更详细地解释这个问题的引文。感谢您的任何反馈！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651839/modeling-longitudinal-data-when-the-amount-of-time-between-points-is-different-p</guid>
-      <pubDate>Fri, 26 Jul 2024 22:53:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较非嵌套混合效应模型之间的估计值</title>
-      <link>https://stats.stackexchange.com/questions/651826/compare-estimates-between-non-nested-mixed-effects-models</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/651826/compare-estimates-between-non-nested-mixed-effects-models</guid>
-      <pubDate>Fri, 26 Jul 2024 18:27:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有 0-1 变量的回归。应该与运行 t 检验相同，但我得到了不同的 p 值 [重复]</title>
-      <link>https://stats.stackexchange.com/questions/651830/regression-with-a-0-1-variable-should-be-the-same-as-running-a-t-test-but-i-ge</link>
-      <description><![CDATA[我在 R 中有一个数据集，其中有不同日期的波动率估计值（在我的情况下，只是当天分钟回报的标准差）：
-日期、波动率、DayType
+这是我到目前为止尝试过的：
 
-变量 DayType 为 0 或 1（没有其他选项 - 也没有 NA），它表示日期是否符合某些特定标准 - 假设一天可以是正常的也可以是特殊的。我想运行一个简单的测试，看看特殊日子的波动率是否与正常日子的波动率不同。
-由于 DayType 只能有两个值，因此简单回归分析应该等同于 t 检验。但我得到了两个不同的 p 值，我想知道我误解了什么。
-首先，我可以运行一个简单的回归：
-MyModel1=lm(Volatility ~ DayType, data=MyData)
-summary(MyModel1)
+Kendall 的 Tau，捕获 1. 但不是 2。计算成本也相对较高（在较旧的计算机上约 20 秒）
+Gromov-Wasserstein，查看分布而不是特定单词。时间与 1 相似
+求解两者之间的线性变换（最小二乘法）。不确定如何将其转换为有意义的指标（残差、幅度？）。成本是可变的。
 
-这将为我提供 DayType 的 p 值。
-或者，我可以将数据集拆分为两个数据集并运行 t 检验。
-library(dplyr)
-MyDataSpecial=MyData %&gt;% filter(DayType==1)
-MyDataNormal=MyData %&gt;% filter(DayType==0)
-
-t.test(MyDataSpecial$Volatility, MyDataNormal$Volatility, alternative=&quot;two.sided&quot;)
-
-这将提供不同的 p 值。您能帮我理解一下这里出了什么问题吗？
-这里还有另一个使用 mtcars 数据集的示例：
-library(dplyr)
-MyData=mtcars
-
-#Regression
-MyModel1=lm(mpg ~ vs, data=MyData)
-summary(MyModel1)
-
-#t-test
-MyData1=MyData %&gt;% filter(vs==1)
-MyData2=MyData %&gt;% filter(vs==0)
-
-t.test(MyData1$mpg, MyData2$mpg, alternative=&quot;two.sided&quot;)
-
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651830/regression-with-a-0-1-variable-should-be-the-same-as-running-a-t-test-but-i-ge</guid>
-      <pubDate>Fri, 26 Jul 2024 17:53:58 GMT</pubDate>
+任何可以帮助我测量相似度的工具、技术或修改我所查看过的东西都将不胜感激！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651840/measuring-similarity-in-embedding-spaces</guid>
+      <pubDate>Fri, 26 Jul 2024 22:54:11 GMT</pubDate>
     </item>
     <item>
       <title>似然比检验——多参数多项分布</title>
@@ -238,42 +299,13 @@ t.test(MyData1$mpg, MyData2$mpg, alternative=&quot;two.sided&quot;)
       <pubDate>Fri, 26 Jul 2024 16:02:06 GMT</pubDate>
     </item>
     <item>
-      <title>两组中位数差异的显著性检验</title>
-      <link>https://stats.stackexchange.com/questions/651815/test-of-significance-of-difference-between-the-two-medians-of-two-groups</link>
-      <description><![CDATA[我有大约 15000 个重复测量数据观测值。感兴趣的结果是每个人进行两次或两次以上测试的结果是否通过。我还有一些变量，例如完成测试所用的时间，以及与个人之前分数相比的百分比变化。这些变量不属于正态分布，因此这些数据目前被汇总为中位数 (IQR)
-我想测试通过或失败的测试之间的统计显著性
-
-
-
-变量
-通过 (n=7800)
-失败 (n=7200)
-
-
-
-
-完成时间 (分钟)
-54 (46-61)
-57 (50-65)
-
-
-与之前相比的变化百分比。分数（%）
-2.3（2.0-4.1）
-5.2（4.7-6.0）
-
-
-
-有没有适合这种样本量不等情况的非参数检验？
-谢谢（来自一个完全的统计学新手）]]></description>
-      <guid>https://stats.stackexchange.com/questions/651815/test-of-significance-of-difference-between-the-two-medians-of-two-groups</guid>
-      <pubDate>Fri, 26 Jul 2024 14:25:04 GMT</pubDate>
-    </item>
-    <item>
       <title>在对 betadisper 进行显著的方差分析后，使用 Permutest 或 TukeyHSD 进行分组比较？</title>
       <link>https://stats.stackexchange.com/questions/651794/permutest-or-tukeyhsd-for-group-wise-comparison-after-significant-anova-of-betad</link>
-      <description><![CDATA[我想使用我的蜘蛛群落数据进行 PERMANOVA，这些数据是在不同的林分中采样的。在应用 PERMANOVA 之前，我想找出各组之间的分散度是否存在差异。
+      <description><![CDATA[我想使用我的蜘蛛群落数据执行 PERMANOVA，这些数据是在不同的林分中采样的。在应用 PERMANOVA 之前，我想找出各组之间的分散度是否存在差异。
 为此，我使用了 betadisper
-dispersion_stands_trap &lt;- betadisper(all_dist_trap, meta_distance_trap$stand)
+dispersion_stands_trap &lt;- 
+betadisper(all_dist_trap, 
+meta_distance_trap$stand)
 
 这将返回一个重要的输出
 &gt; anova(dispersion_stands_trap)
@@ -288,11 +320,12 @@ Df 总和 平方均值 平方 F 值 Pr(&gt;F)
 
 为了正确解释我的数据，我想知道哪些组的分散性完全不同。
 我读到我可以使用 TukeyHSD 或 permutest 进行成对比较。
-permutest(dispersion_stands_trap, pairwise=TRUE)
+permutest(dispersion_stands_trap, 
+Paradise=TRUE)
 
 返回以下内容：
 成对比较：
-（对角线下方观察到的 p 值，对角线上方排列的 p 值）
+（对角线下方观察到的 p 值，对角线上方置换的 p 值）
 D DB B FB F
 D 0.1450000 0.0980000 0.0030000 0.399
 DB 0.1502930 0.8250000 0.1040000 0.558
@@ -303,11 +336,11 @@ F 0.3962535 0.5326374 0.3977593 0.0291775
 但是当我使用
 TukeyHSD(dispersion_stands_trap)
 
-显著性比较发生变化（F-FB 显著性效应丧失）：
- Tukey 均值的多重比较
+显著性比较会发生变化（显著性效应丧失F-FB):
+ Tukey 均值多重比较
 95% 家族置信水平
 
-拟合：aov（公式 = 距离~ 组，数据 = df)
+拟合：aov（公式 = 距离 ~ 组，数据 = df）
 
 $group
 diff lwr upr p adj
@@ -330,11 +363,42 @@ DB 31，
 B 29，
 FB 32，
 F 32
-这会有问题吗？
-谢谢您的帮助！
+这可能会有问题吗？
 TukeyHSD(dispersion_stands_trap)]]></description>
       <guid>https://stats.stackexchange.com/questions/651794/permutest-or-tukeyhsd-for-group-wise-comparison-after-significant-anova-of-betad</guid>
       <pubDate>Fri, 26 Jul 2024 08:29:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>将傅里叶变换级数展开式与狄利克雷分布和狄利克雷过程联系起来</title>
+      <link>https://stats.stackexchange.com/questions/651765/connecting-a-fourier-transform-series-expansion-to-the-dirichlet-distribution-an</link>
+      <description><![CDATA[我推导出某个一维随机过程位置分布的傅里叶变换表达式，我怀疑它与狄利克雷过程或狄利克雷分布有关。但是，我对这些概念不太熟悉，需要帮助建立联系。我的表达式是：
+\begin{equation}
+\hat{p}(k) = \sum_{n=0}^{+\infty} \frac{(ik)^{2n}}{(2\mu)^n\, (\frac{\beta}{2})^{(n)}}\, Z_n\left(\frac{\beta}{2}\langle D\rangle,\ldots, \frac{\beta}{2}\langle D^n \rangle\right)\, .
+\end{equation&gt;
+其中$(\frac{\beta}{2})^{(n)}=\frac{\Gamma\left(\frac{\beta}{2}+n\right)}{\Gamma\left(\frac{\beta}{2}\right)}$是Pochhammer符号，$Z_n$是对称群的循环指数。而$\langle D^n \rangle$是分布的$n^{\text{th}}$矩，我称之为$w(D)$。
+在论文“Dirichlet 测度的特征泛函”中作者：Lorenzo Dello Schiavo，我注意到我的级数展开式中的系数与狄利克雷分布的系数几乎相同。然而，我很难在参数之间建立精确的联系。此外，我的总和超过 $(ik)^{2n}$，而他们的总和超过 $(it)^n$。
+以下是论文中的相关摘录：
+
+
+有人可以帮我理解我的结果和狄利克雷分布之间的联系？我该如何对齐参数和项以更清楚地看到这种关系？
+提前感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651765/connecting-a-fourier-transform-series-expansion-to-the-dirichlet-distribution-an</guid>
+      <pubDate>Thu, 25 Jul 2024 17:28:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>模型具有更高的（且更接近 1）$\beta$，但 $R^2$ 和相关性相似</title>
+      <link>https://stats.stackexchange.com/questions/651423/model-has-higher-and-closer-to-1-beta-but-similar-r2-and-correlation</link>
+      <description><![CDATA[我有一个模型，它产生预测$\hat{y_1}$，后来我又想出了一个新模型，它产生预测$\hat{y_2}$。我有基本事实$y$。 这些模型不是基于回归的，但它们是线性的，我想在回归指标中对它们进行评估。
+如果我运行$y \sim \beta_1 \hat{y_1}$、$y \sim \beta_2 \hat{y_2}$，我会看到$\beta_2 \sim 1$和$\beta_1 \sim 0.8$。我认为这意味着我的模型 2 “缩放得更好”。
+但如果我直接计算 $R2(y, \hat{y_1}) = 1- \frac{\sum (y_t - \hat{y_1}_t )^2 }{\sum y_t^2}$ 和 $R2(y, \hat{y_2}) = 1- \frac{\sum (y_t - \hat{y_2}_t )^2 }{\sum y_t^2}$（因为我不会尝试重新运行回归 $y \sim \beta_1 \hat{y_1}$ 并得到回归 R2。我只是直接计算 $R2(y, \hat{y_1}) = 1- \frac{\sum (y_t - \hat{y_1}_t )^2 }{\sum y_t^2}$)。我发现它们大致相等。
+当我计算 $y$ 和 $\hat{y_1}$ 之间的相关性以及 $y$ 和 $\hat{y_2}$ 之间的相关性时，我发现它们也几乎相等。请注意，这里的相关性可能不是 R2 的平方根，因为我的模型不是基于回归的。
+它告诉了我关于预测的什么？我觉得有点惊讶。我认为“更好的规模”预测变量应该出现在回归指标的某个地方吗？为什么“更好的尺度”回归不能给我更好的 R2？
+[编辑以详细说明]
+有些模型以“外生”方式提供系数。例如，在牛顿定律中，我有理由相信$F = ma$，而不是运行回归$F \sim a$，其中$a$可能有噪音，我还不如试着通过一个尺度来估计$m$。
+但现在我已经估计了$m = f_1(z)$或$m = f_2(z)$，其中$f_1$和$f_2$是两个不同的尺度。 $z$ 是我的量表的一系列其他参数。现在我想将其重新插入以测量拟合优度 $F \sim f_1(z) a$ 和 $F \sim f_2(z) a $。我可以计算 $F$ 和 $f(z)$ 的 R2。我还可以运行回归$F \sim \beta_1 f(z) a$和$F \sim \beta_2 f(z) a$。
+我现在的问题是，我看到$\beta_2$非常接近 1，但$R2( F, f_2(z) a)$并不高于$R2( F, f_1(z) a)$]]></description>
+      <guid>https://stats.stackexchange.com/questions/651423/model-has-higher-and-closer-to-1-beta-but-similar-r2-and-correlation</guid>
+      <pubDate>Fri, 19 Jul 2024 19:10:07 GMT</pubDate>
     </item>
     </channel>
 </rss>
