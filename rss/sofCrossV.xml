@@ -4,148 +4,80 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 27 Jul 2024 15:14:57 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 27 Jul 2024 18:20:04 GMT</lastBuildDate>
     <item>
-      <title>最小二乘回归。当有多组数据时检查正态性？</title>
-      <link>https://stats.stackexchange.com/questions/651861/least-squares-regression-checking-normality-when-having-multiple-groups-of-data</link>
-      <description><![CDATA[
-假设我想执行线性回归，我可以这样做：
+      <title>非满秩情况下的 `lm`</title>
+      <link>https://stats.stackexchange.com/questions/651867/lm-in-non-full-rank-case</link>
+      <description><![CDATA[从数学上讲，lm 如何处理数据不是满秩的情况？举个简单的例子：
+set.seed(1234)
 
-# 生成一些示例数据
-set.seed(123)
-x &lt;- rnorm(100, mean = 5, sd = 2)
-y &lt;- 3 + 2 * x + rnorm(100, mean = 0, sd = 1)
+n &lt;- 100
+X1 &lt;- rnorm(n)
+X2 &lt;- rnorm(n)
+Y &lt;- 2 + 3 * X1 + 4*X2 + rnorm(n, mean = 0, sd = 0.1)
 
-# 拟合线性回归模型
-model &lt;- lm(y ~ x)
+model &lt;- lm(Y ~ X1 + X2 + I(2*X1 + 3*X2))
+mat &lt;- model.matrix(model)
+print(summary(model))
 
-# 用回归线绘制数据
-plot(x, y, main = &quot;带回归线的散点图&quot;, xlab = &quot;X&quot;, ylab = &quot;Y&quot;)
-abline(model, col = &quot;red&quot;)
+它给出输出：
+调用：
+lm(formula = Y ~ X1 + X2 + I(2 * X1 + 3 * X2))
 
+残差：
+最小值 1Q 中位数 3Q 最大值
+-0.31933 -0.06734 0.01060 0.05823 0.27650 
 
+系数：（由于奇异性，1 未定义）
 
-# 获取残差
-residuals &lt;- model$residuals
+估计标准误差 t 值 Pr(&gt;|t|) 
+（截距） 2.016358 0.009747 206.9 &lt;2e-16 ***
+X1 3.008051 0.009633 312.3 &lt;2e-16 ***
+X2 4.008832 0.009373 427.7 &lt;2e-16 ***
+I(2 * X1 + 3 * X2) NA NA NA NA 
+---
+显著性代码：0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
-# 使用 Q-Q 图检查残差的正态性
-qqnorm(residuals)
-qqline(residuals, col = &quot;red&quot;)
+残差标准误差：97 个自由度上的 0.09624
 
-# 使用 Shapiro-Wilk 检验检查残差的正态性
-shapiro.test(residuals)
+多重 R 平方：0.9996，调整后的 R 平方：0.9996
 
- Shapiro-Wilk 正态性检验
+F 统计量：2 和 97 DF 上的 1.369e+05，p 值：&lt; 2.2e-16
 
-数据：残差
-W = 0.9748，p 值 = 0.05204
+看来 lm 找到了一种方法来将一列标识为其他两列的线性组合！
+但是，最后一个公式发生了变化：
+model &lt;- lm(Y ~ X1 + I(2*X1 + 3*X2) + X2)
 
+其余代码相同，得出：
+调用：
+lm(formula = Y ~ X1 + I(2 * X1 + 3 * X2) + X2)
 
+残差：
+最小值 1Q 中位数 3Q 最大值 
+-0.31933 -0.06734 0.01060 0.05823 0.27650 
 
+系数：（由于奇异性，1 未定义）
+估计标准差。误差 t 值 Pr(&gt;|t|) 
+(截距) 2.016358 0.009747 206.86 &lt;2e-16 ***
+X1 0.335497 0.011348 29.56 &lt;2e-16 ***
+I(2 * X1 + 3 * X2) 1.336277 0.003124 427.68 &lt;2e-16 ***
+X2 NA NA NA NA 
+---
+有效代码: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
-现在让我们假设，我有一个实验，我收集每个 x 值（例如第 1 周 第 2 周 第 3 周），一些数据（y）。
+残差标准误差：97 自由度上的 0.09624
+多重 R 平方：0.9996，调整后的 R 平方：0.9996
+F 统计量：2 和 97 DF 上的 1.369e+05，p 值：&lt; 2.2e-16
 
-set.seed(0)
-# 生成随机正态值
-y1 &lt;- rnorm(10, 平均值 = 5, sd = 2)
-y2 &lt;- rnorm(12, 平均值 = 8, sd = 2)
-y3 &lt;- rnorm(14, 平均值 = 12, sd = 2)
-
-y_values &lt;- c(y1, y2, y3)
-x_values &lt;- c(rep(1, length(y1)), rep(2, length(y2)), rep(3, length(y3)))
-
-# 绘制值
-plot(x_values, y_values, xlab=&quot;x&quot;, ylab=&quot;y&quot;, pch=19, col=as.factor(x_values))
-
-
-
-我想看看 y_i 的均值和 x_i 之间是否存在线性关系。
-由于我有多组数据（例如 y1、y2、y3），我想在执行线性回归之前检查正态性，我应该分别处理每个组吗？
-即：
-# 检查每个组的正态性
-shapiro.test(y1)
-shapiro.test(y2)
-shapiro.test(y3)
-
-
-&gt; shapiro.test(y1)
-
-Shapiro-Wilk 正态性检验
-
-数据：y1
-W = 0.96752，p 值 = 0.867
-
-&gt; shapiro.test(y2)
-
-Shapiro-Wilk 正态性检验
-
-数据：y2
-W = 0.95233，p 值 = 0.6713
-
-&gt; shapiro.test(y3)
-
-Shapiro-Wilk 正态性检验
-
-数据：y3
-W = 0.96314，p 值 = 0.7743
-
-# 为每个组绘制 Q-Q 图
-par(mfrow = c(1, 3))
-qqnorm(y1); qqline(y1, col = &quot;red&quot;)
-qqnorm(y2); qqline(y2, col = &quot;red&quot;)
-qqnorm(y3); qqline(y3, col = &quot;red&quot;)
-par(mfrow = c(1, 1))
-
-
-然后，我在执行时如何检查正态性？
-# 计算每个组的均值和 SEM
-mean_y1 &lt;- mean(y1); sem_y1 &lt;- sd(y1) / sqrt(length(y1))
-mean_y2 &lt;- mean(y2); sem_y2 &lt;- sd(y2) / sqrt(length(y2))
-mean_y3 &lt;- mean(y3); sem_y3 &lt;- sd(y3) / sqrt(length(y3))
-
-# 创建一个用于绘图和建模的数据框
-data &lt;- data.frame(
-x = 1:3,
-mean = c(mean_y1, mean_y2, mean_y3),
-sem = c(sem_y1, sem_y2, sem_y3)
-)
-
-# 使用 nls 拟合非线性模型
-nlmodel &lt;- nls(mean ~ A * x + B, data = data, start = list(A = 1, B = 1), weights = 1/sem^2)
-summary(nlmodel)
-
-# 创建一个函数，使用拟合模型预测值
-predict_nlmodel &lt;- function(A, B, newdata) {
-A * newdata + B
-}
-
-# 获取拟合参数
-params &lt;- coef(nlmodel)
-
-# 绘制数据和拟合的非线性模型
-ggplot(data, aes(x = x, y = mean)) +
-geom_point(size = 3) +
-geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), width = 0.1) +
-stat_function(fun = predict_nlmodel, args = list(A = params[&quot;A&quot;], B = params[&quot;B&quot;]), color = &quot;blue&quot;) +
-labs(title = &quot;Nonlinear Weighted Regression&quot;, x = &quot;X&quot;, y = &quot;Mean Value&quot;) +
-theme_minimal()
-
-
-（我使用 nls，但这里的模型是线性模型）。
-我应该这样做吗：
-# 提取残差和拟合值
-residuals &lt;- residuals(nlmodel)
-fitted &lt;- fitted(nlmodel)
-
-# Q-Q 图
-ggplot(data.frame(sample = residuals), aes(sample = sample)) +
-stat_qq() +
-stat_qq_line() +
-labs(title = &quot;Q-Q Plot of Residuals&quot;, x = &quot;Theoretical Quantiles&quot;, y = &quot;Sample Quantiles&quot;) +
-theme_minimal()
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/651861/least-squares-regression-checking-normality-when-having-multiple-groups-of-data</guid>
+那么 R 是否有某种检测非满秩数据的机制？它在给出最小二乘之前是否根据公式检查数据？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651867/lm-in-non-full-rank-case</guid>
+      <pubDate>Sat, 27 Jul 2024 18:13:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>加权最小二乘法，检查正态性</title>
+      <link>https://stats.stackexchange.com/questions/651861/weighted-least-squares-checking-normality</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/651861/weighted-least-squares-checking-normality</guid>
       <pubDate>Sat, 27 Jul 2024 12:45:43 GMT</pubDate>
     </item>
     <item>
@@ -291,19 +223,10 @@ $\mathsf{W}_1$ 比较了分布中分位数或质量分配的差异（注意：�
       <pubDate>Sat, 27 Jul 2024 06:57:39 GMT</pubDate>
     </item>
     <item>
-      <title>如果我使用正则化方法进行特征选择，然后使用机器学习模型进行预测，是否会重叠？</title>
-      <link>https://stats.stackexchange.com/questions/651852/if-i-use-the-regularization-method-for-feature-selection-and-then-use-machine-le</link>
-      <description><![CDATA[我使用正则化方法（例如 elastic-net）进行特征选择，然后使用随机森林和深度学习利用所选特征预测目标。问题是分类。我的同事说我重叠了！
-我认为没有重叠，因为我只考虑了 elastic-net 中选定的特征
-而忽略了它们的重要性。我说得对吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651852/if-i-use-the-regularization-method-for-feature-selection-and-then-use-machine-le</guid>
-      <pubDate>Sat, 27 Jul 2024 06:56:52 GMT</pubDate>
-    </item>
-    <item>
       <title>预期值是否相对于 CDF 单调递减？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/651851/is-the-expected-value-monotonically-decreasing-with-respect-to-the-cdf</link>
       <description><![CDATA[当$P(X\ge0)=1$时，$E[X]=\int_0^1(1-F(x))dx\in[0,1]$。
-那么，$E[X]$相对于$F(x)$单调递减，这一结论正确吗？
+那么，$E[X]$相对于$F(x)$单调递减，这一说法正确吗？
 如果可以的话，我想要一个简单的证明。
 添加：
 ・$F(x)$ 是随机变量 $X$ 的累积分布函数，而不是 X 的 PDF。
@@ -330,37 +253,6 @@ z2 = mvncdf(input2, [0, 0], [1,0;0,1]);
       <pubDate>Sat, 27 Jul 2024 04:41:50 GMT</pubDate>
     </item>
     <item>
-      <title>求解最大熵条件概率</title>
-      <link>https://stats.stackexchange.com/questions/651848/solve-for-maximum-entropy-conditional-probability</link>
-      <description><![CDATA[我对 max-ent 原理和函数导数还不熟悉。我已知联合数据分布 $p_D(x,y)$（其中 $y$ 被视为标签）和隐变量模型 $(x,y,z)$，其中指定了先验 $p(z)$ 和似然值 $p(y \mid x,z)$。我想找到驱动模型满足数据分布的最大概率$p(x \mid z)$，即：
-$$
-\int_{-\infty}^\infty p(z) p(x \mid z) p(y \mid x,z)\,\mathrm dz = p_D(x,y)\,.\tag{1}
-$$
-拉格朗日量为：
-$$
-\begin{multline}
-L(p(x \mid z), \lambda_0, \lambda_1) = -\int_{-\infty}^\infty p(x \mid z) \log p(x \mid z)\,\mathrm dx\\
-+ \lambda_0 \left(\int_{-\infty}^\infty p(x \mid z)\,\mathrm dx - 1\right) + \lambda_1 \left(\int_{-\infty}^\infty p(z) p(x \mid z) p(y \mid x,z)\,\mathrm dz - p_D(x,y)\right)\,.
-\end{multline}\tag{2}
-$$
-求导并令其为零：
-$$
-\begin{aligned}
-1 + \log p(x \mid z) &amp;= \lambda_0 + \lambda_1 p(z) p(y \mid x,z)\\
-p(x \mid z) &amp;= \exp(\lambda_0 - 1 + \lambda_1 p(z) p(y \mid x,z))\,.\\
-\end{aligned}\tag{3}
-$$
-将 (3) 代入 $\int_{-\infty}^\infty p(x \mid z)\,\mathrm dx = 1$得出：
-$$
-\int_{-\infty}^\infty \exp(C_0 + C_1 f(x))\,\mathrm dx\,,\tag{4}
-$$
-其中 $C_0$ 和 $C_1$ 是与 $x$ 无关的常数，并且 $f(x) = p(y \mid x,z)$。
-即使 $f(x) = 1$ 和 $C_1 &lt; 0$ 始终存在，积分 (4) 仍会发散。因此，(3) 不是正确解决方案。
-因此，我认为我的推导中存在一些错误，最有可能出现在 (3) 中。也许 (2) 中的拉格朗日量一开始就是错误的。有人能帮助我吗？非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651848/solve-for-maximum-entropy-conditional-probability</guid>
-      <pubDate>Sat, 27 Jul 2024 04:00:51 GMT</pubDate>
-    </item>
-    <item>
       <title>测量嵌入空间中的相似性？</title>
       <link>https://stats.stackexchange.com/questions/651840/measuring-similarity-in-embedding-spaces</link>
       <description><![CDATA[我试图测量两个不同维度的嵌入空间（特别是文本）的相似度（例如 300d 和 2000d）。较大的嵌入空间是稀疏的。具体来说，我想捕获：
@@ -370,7 +262,7 @@ $$
 
 这是我到目前为止尝试过的：
 
-Kendall 的 Tau，捕获 1。但不是 2。计算成本也相对较高（在较旧的计算机上约 20 秒）
+Kendall 的 Tau，捕获 1. 但不是 2。计算成本也相对较高（在较旧的计算机上约 20 秒）
 Gromov-Wasserstein，查看分布而不是特定单词。时间与 1 相似
 求解两者之间的线性变换（最小二乘法）。不确定如何将其转换为有意义的指标（残差、幅度？）。成本是可变的。
 
@@ -379,31 +271,25 @@ Gromov-Wasserstein，查看分布而不是特定单词。时间与 1 相似
       <pubDate>Fri, 26 Jul 2024 22:54:11 GMT</pubDate>
     </item>
     <item>
-      <title>似然比检验——多参数多项分布</title>
-      <link>https://stats.stackexchange.com/questions/651822/likelihood-ratio-test-multiparameter-multinomial-distribution</link>
-      <description><![CDATA[这是 Hogg 和 McKean 的《数理统计学导论》中的一个问题（练习 $6.5.11.$）
-问题陈述
-设一个实验有 $n$ 次独立试验，其中 $x_1,x_2,\ldots,x_k$ 分别为实验以互斥事件
-和穷举事件 $C_1,C_2,\ldots,C_k.$ 结束的次数，如果 $p_i = P(C_i)$ 在 $n$ 次试验中保持不变，则该特定试验序列的概率为 $L=p_1^{x_1}p_2^{x_2}\cdots p_k^{x_k}.$
-(a) 回想一下 $p_1 + p_2 + \cdots + p_k = 1$，显示测试的似然比$H_0 : p_i = p_{i0} &gt; 0, i = 1,2,\ldots, k,$ 对所有备选方案的结果是 $$\Lambda = \prod_{i=1}^k \left ( \cfrac{(p_{i0})^{x_i}}{(x_i/n)^{x_i}} \right )$$
-(b) 证明 $$-2\log{\Lambda} = \sum_{i=1}^k \cfrac{x_i(x_i-np_{i0})^2}{(np&#39;_{i})^2}$$ 其中 $p_i&#39;$ 介于 $p_{i0}$ 和 $x_i/n$
-提示：以泰勒级数展开 $\log{p_{i0}}$，余数在涉及 $(p_{i0} − x_i/n)^2.$ 的项中
+      <title>回归和独立随机向量</title>
+      <link>https://stats.stackexchange.com/questions/651795/regression-and-independent-random-vectors</link>
+      <description><![CDATA[假设数据样本由随机向量$(X_1, Y_1)...(X_N, Y_N)$生成。对于回归，通常假设误差分布为 I.I.D。正态分布，数据的似然性纯粹由条件分布定义（忽略$X_i$的边际分布）：
+$$
+L(D) = p_{Y|X}(x_1,y_1)p_{Y|X}(x_2,y_2)...p_{Y|X}(x_N,y_N)
+$$
+其中$p_{Y|X}$是条件分布的概率函数。
+这让我得出以下结论：
 
-(c) 对于较大的 $n$，论证 $x_i/(np_i&#39;)^2$ 由 $1/(np_{i0})$ 近似，因此 $$-2\log{\Lambda} \approx \sum_{i=1}^{k} \cfrac{(x_i-np_{i0})^2}{np_{i0}}.$$
-定理$6.5.1$表示，最后一个等式的右边部分定义了一个统计量，该统计量具有近似卡方分布，自由度为$k − 1$。请注意，$\Omega$的维度$-$的维度$\omega = (k − 1) − 0 = k − 1.$
-我的尝试：
-部分 (a) 有点琐碎。我真的被部分 (b) 难住了。调用$q_i = x_i/n$。使用 $\log{p_{i0}}$ 关于 $q_i$ 的泰勒级数展开，我们得到
-\begin{align}
--2\log{\Lambda} &amp;= -2\sum_{i=1}^{k} x_i\left[ \log{p_{i0}} - \log{q_i} \right] \\
-&amp;= -2\sum_{i=1}^k x_i\left[ \sum_{j=1}^\infty \frac{(-1)^{j-1}}{j} \left ( \cfrac{p_{i0} - q_i}{q_i} \right )^j\right] \\
-&amp;= -2\sum_{i=1}^k (np_{i0}-x_i) -2\sum_{i=1}^k x_i\left[ \sum_{j=2}^\infty \frac{(-1)^{j-1}}{j} \left ( \cfrac{p_{i0} - q_i}{q_i} \right )^j\right] \\
-&amp;= \sum_{i=1}^k \cfrac{x_i(x_i-np_{i0})^2}{(nq_i)^2} \left [ 1+2 \sum_{j=3}^{\infty} \frac{(-1)^{j-2}}{j} \left ( \frac{p_{i0}-q_i}{q_i}\right )^{j-2} \right ].
-\end{align&gt;
-最后一个等式使用了 $\sum_{i=1}^{k}x_i = n$ 和 $\sum_{i=1}^{k}p_{i0} = 1$ 这两个事实。方括号中的表达式可以与分母中的 $q_i^2$ 结合起来，得到 $p&#39;_i$ 的形式。但随后我们需要证明它介于 $p_{i0}$ 和 $q_i$ 之间。
-我一读到“介于之间”这个词，就想到了使用均值定理... 那里是死胡同。 MVT 确保存在某个 $p&#39;_i$，使得 $$\log{p_{i0}} - \log{q_i} = \frac{p_{i0}-q_i}{p&#39;_i},$$，使得它位于 $p_{i0}$ 和 $q_i$ 之间。 但无论我尝试多少代数运算，我都无法得出他们在 (b) 部分中要求的关系。
-如果您能帮助我解决这个练习问题，我将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/651822/likelihood-ratio-test-multiparameter-multinomial-distribution</guid>
-      <pubDate>Fri, 26 Jul 2024 16:02:06 GMT</pubDate>
+条件 p.d.f.每个随机向量的$p_{Y|X}(x_i,y_i)$与其他向量相互独立。这只有在随机向量 $(X_1, Y_1)...(X_N, Y_N)$ 也是独立的，因为任何独立随机向量的函数也是独立的。
+
+$p_{Y|X}$ - 是一个固定函数，用于对数据样本的条件分布进行建模。
+
+回归不对 DGP 每个随机向量内随机变量的联合分布做出任何假设，每个随机向量可以具有不同的联合分布，即 - $p_{X_1,Y_1} ,p_{X_2,Y_2}...p_{X_N,Y_N}$ 唯一的假设是它们彼此独立。
+
+
+这些有意义吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651795/regression-and-independent-random-vectors</guid>
+      <pubDate>Fri, 26 Jul 2024 08:56:07 GMT</pubDate>
     </item>
     <item>
       <title>在对 betadisper 进行显著的方差分析后，使用 Permutest 或 TukeyHSD 进行分组比较？</title>
@@ -491,6 +377,15 @@ TukeyHSD(dispersion_stands_trap)]]></description>
 提前感谢您的帮助！]]></description>
       <guid>https://stats.stackexchange.com/questions/651765/connecting-a-fourier-transform-series-expansion-to-the-dirichlet-distribution-an</guid>
       <pubDate>Thu, 25 Jul 2024 17:28:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>多元时间序列预测</title>
+      <link>https://stats.stackexchange.com/questions/651716/multivariate-time-series-forecasting</link>
+      <description><![CDATA[我有一个 200,000 行的数据集。每行包含歌曲 ID、今天的流数 (d​​ay_0)、昨天的流数 (d​​ay_1) 等，直到 21 天前的流数 (d​​ay_21)。我的任务是预测下周的流数。
+我正在尝试弄清楚如何构造我的数据以将其输入到多变量 LSTM 中。目前，窗​​口滑动一天。这合适吗，还是我应该使用不重叠的窗口？我计划嵌入（来自这个帖子）歌曲 ID，以便 LSTM 可以学习特定于歌曲的模式。
+任何其他建议都很好！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651716/multivariate-time-series-forecasting</guid>
+      <pubDate>Thu, 25 Jul 2024 01:06:56 GMT</pubDate>
     </item>
     <item>
       <title>模型具有更高的（且更接近 1）$\beta$，但 $R^2$ 和相关性相似</title>
