@@ -4,9 +4,172 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 28 Jul 2024 15:15:03 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 28 Jul 2024 18:20:15 GMT</lastBuildDate>
     <item>
-      <title>机器学习推荐系统项目错误</title>
+      <title>关于 CatBoost 的这个说法准确吗？</title>
+      <link>https://stackoverflow.com/questions/78804284/is-this-claim-about-catboost-accurate</link>
+      <description><![CDATA[当您实例化 CatBoostClassifier 而不指定任何参数时，模型会为所有参数使用其内置的默认值：
+
+iterations：默认值为 1000。
+learning_rate：默认值是自动确定的，但通常在 0.03 左右。
+depth：默认值为 6。
+loss_function：对于二元分类任务，默认值为“Logloss”。
+random_seed：默认值为随机值。
+
+我想知道上述 6 条陈述是否正确。我尝试进行研究，但找不到有关此的任何信息。
+此外，如果知道 CatBoost 的调整机制到底是什么，那就太好了？他们如何开始第一次迭代？
+尝试了 Google 和 ChatGPT，但没有得到可靠的答案……]]></description>
+      <guid>https://stackoverflow.com/questions/78804284/is-this-claim-about-catboost-accurate</guid>
+      <pubDate>Sun, 28 Jul 2024 16:33:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>处理 tensorflow/keras 中 Conv1D 层维数的正确方法是什么？</title>
+      <link>https://stackoverflow.com/questions/78804130/what-is-the-proper-way-to-deal-with-dimensionality-in-conv1d-layers-in-tensorflo</link>
+      <description><![CDATA[我一直想尽办法尝试使用 Keras 中的 Conv1D 解决这个问题。基本上，我有一个 100 x 1 的向量 bathyZ。我想在将它与 2 个标量输入 Tperiod 和 AMP_WK 合并以预测另一个 100 x 1 向量之前对其进行一些卷积。（bathyZ 具有我希望获取的空间变异性）。这是我第一次使用 tensorflow 数据集并进行解析/反序列化。我不断遇到我似乎无法理解的形状错误。
+主要是，似乎第一个密集层没有在其输入中收到正确的尺寸，我无法弄清楚原因，因为所有东西的输入尺寸对我来说似乎都有意义。为什么它期望 6402 并得到（无，165）？我正在调试单个记录，因此批量大小很小，如果这是一个问题的话。无论如何它都应该可以工作，对吧？我的理解是，我的输入应该是 (None,100,1)，以允许 100 x 1 序列的不同批次大小。我尝试过几种重塑方法，但似乎都没有奏效，所以也许我错过了一些更基本的东西
+### 错误消息
+
+ValueError：调用 Functional.call() 时遇到异常。
+
+层“dense_110”的输入 0与层不兼容：预期输入形状的轴 -1 的值为 6402，但收到的输入形状为 (None, 165)
+
+Functional.call() 收到的参数：
+• 输入={&#39;bathyZ&#39;: &#39;tf.Tensor(shape=(None, 100, 1), dtype=float32)&#39;, &#39;AMP_WK&#39;: &#39;tf.Tensor(shape=(None, 1), dtype=float32)&#39;, &#39;Tperiod&#39;: &#39;tf.Tensor(shape=(None, 1), dtype=float32)&#39;}
+• 训练=True
+• 掩码={&#39;bathyZ&#39;: &#39;None&#39;, &#39;AMP_WK&#39;: &#39;None&#39;, &#39;Tperiod&#39;: &#39;None&#39;}
+
+### CODE
+
+feature_description = {
+&#39;bathyZ&#39;: tf.io.FixedLenFeature([], tf.string),
+&#39;bathyZ_shape&#39;: tf.io.FixedLenFeature([3], tf.int64),
+&#39;AMP_WK&#39;: tf.io.FixedLenFeature([], tf.float32),
+&#39;Tperiod&#39;: tf.io.FixedLenFeature([], tf.float32),
+&#39;skew&#39;: tf.io.FixedLenFeature([], tf.string),
+&#39;skew_shape&#39;: tf.io.FixedLenFeature([3], tf.int64),
+}
+
+def _parse_function(proto):
+# 解析
+parsed_features = tf.io.parse_single_example(proto, feature_description)
+
+# 解码/重塑序列化张量
+bathyZ = parsed_features[&#39;bathyZ&#39;]
+bathyZ = tf.io.parse_tensor(bathyZ, out_type=tf.float32)
+bathyZ = tf.reshape(bathyZ, [100, 1])
+
+skew = parsed_features[&#39;skew&#39;]
+skew = tf.io.parse_tensor(skew, out_type=tf.float32)
+skew = tf.reshape(skew, [100, 1])
+
+# 获取其他输入，重塑
+AMP_WK = parsed_features[&#39;AMP_WK&#39;]
+Tperiod = parsed_features[&#39;Tperiod&#39;]
+
+AMP_WK = tf.reshape(AMP_WK, [1])
+Tperiod = tf.reshape(Tperiod, [1])
+
+# 创建元组
+输入 = {&#39;bathyZ&#39;: bathyZ, &#39;AMP_WK&#39;: AMP_WK, &#39;Tperiod&#39;: Tperiod}
+输出 = {&#39;skew&#39;: skew}
+
+返回输入、输出
+
+# 创建 TFRecordDataset 并映射解析函数
+tfrecord_path = &#39;ML_0004.tfrecord&#39;
+数据集 = tf.data.TFRecordDataset(tfrecord_path)
+数据集 = dataset.map(_parse_function)
+
+# 模型
+
+def create_model():
+# 张量输入分支（形状：100 个时间步，1 个特征）
+bathyZ = 输入（形状=（100, 1），名称=&#39;bathyZ&#39;）
+x = 层。Conv1D（32，3，激活=&#39;relu&#39;， padding=&#39;same&#39;)(bathyZ)
+x = layer.Conv1D(64, 3,activation=&#39;relu&#39;, padding=&#39;same&#39;)(x)
+x = layer.Flatten()(x)
+
+# 标量输入
+AMP_WK = Input(shape=(1,), name=&#39;AMP_WK&#39;)
+Tperiod = Input(shape=(1,), name=&#39;Tperiod&#39;)
+
+# 合并所有分支
+combined = layer.concatenate([x, AMP_WK, Tperiod])
+
+# 全连接层
+z = layer.Dense(64,activation=&#39;relu&#39;)(combined)
+z = layer.Dense(128,activation=&#39;relu&#39;)(z)
+
+# 输出层（张量输出，与输入张量形状相同）
+skew = layer.Dense(100,activation=&#39;linear&#39;, name=&#39;skew&#39;)(z)
+
+# 创建模型
+model = models.Model(inputs=[bathyZ, AMP_WK, Tperiod], output=skew)
+返回模型
+
+# 示例用法：
+model = create_model()
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;mse&#39;)
+model.summary()
+dataset = dataset.batch(1) 
+model.fit(dataset)
+
+我尝试在解析和预处理步骤中将各种输入张量重塑为 [1,100]、[1,100,1] 等不同版本，并跟踪形状的演变。但我总是遇到某种尺寸错误]]></description>
+      <guid>https://stackoverflow.com/questions/78804130/what-is-the-proper-way-to-deal-with-dimensionality-in-conv1d-layers-in-tensorflo</guid>
+      <pubDate>Sun, 28 Jul 2024 15:26:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>梯度下降应用</title>
+      <link>https://stackoverflow.com/questions/78804107/gradient-descent-application</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78804107/gradient-descent-application</guid>
+      <pubDate>Sun, 28 Jul 2024 15:15:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>AttributeError：模块“torch”在我的导入中没有属性“version”</title>
+      <link>https://stackoverflow.com/questions/78804096/attributeerror-module-torch-has-no-attribute-version-in-my-imports</link>
+      <description><![CDATA[import torch
+import torch.nn as nn
+import torch.optim as optim
+import torchvision
+
+并出现以下错误
+---------------------------------------------------------------------------
+AttributeError Traceback（最近一次调用最后一次）
+Cell In[8]，第 4 行
+2 import torch.nn as nn
+3 import torch.optim as optim
+----&gt; 4 import torchvision
+5 import torchvision.transforms as transforms
+6 import matplotlib.pyplot as plt
+
+File d:\Python\CNN PyTorch\venv\Lib\site-packages\torchvision\__init__.py:10
+7 # 不要重新排序这些，我们需要在输入 _meta_registrations 之前加载 _C 扩展（导入时完成
+8 # .extensions）。
+9 从 .extension 导入 _HAS_OPS # usort:skip
+---&gt; 10 从 torchvision 导入 _meta_registrations、datasets、io、models、ops、transforms、utils # usort:skip
+12 尝试：
+13 从 .version 导入 __version__ # noqa：F401
+
+文件 d:\Python\CNN PyTorch\venv\Lib\site-packages\torchvision\models\__init__.py:2
+1 从 .alexnet 导入 *
+----&gt; 2 来自 .convnext 导入 *
+3 来自 .densenet 导入 *
+4 来自 .efficientnet 导入 *
+
+文件 d:\Python\CNN PyTorch\venv\Lib\site-packages\torchvision\models\convnext.py:9
+6 来自 torch.nn 导入函数作为 F
+2213 导入 importlib
+2214 返回 importlib.import_module(f&quot;.{name}&quot;, __name__)
+-&gt; 2216 引发 AttributeError(f&quot;模块 &#39;{__name__}&#39; 没有属性 &#39;{name}&#39;&quot;)
+
+AttributeError: 模块 &#39;torch&#39; 没有属性 &#39;version&#39;
+]]></description>
+      <guid>https://stackoverflow.com/questions/78804096/attributeerror-module-torch-has-no-attribute-version-in-my-imports</guid>
+      <pubDate>Sun, 28 Jul 2024 15:12:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>机器学习推荐系统项目错误[关闭]</title>
       <link>https://stackoverflow.com/questions/78803920/machine-learning-recommendation-system-project-error</link>
       <description><![CDATA[在我的产品推荐系统中，每次我都得到相同的输出，我找不到代码中的错误在哪里？下面是我的函数代码，我使用了 surprise python 库进行推荐。
 def top_recommendations(customer_id, n=15):
@@ -111,7 +274,7 @@ EMA 更新步骤为 4
       <pubDate>Sun, 28 Jul 2024 10:00:34 GMT</pubDate>
     </item>
     <item>
-      <title>Runge-Kutta 求解器无法取得进展（RuntimeWarning：迭代没有取得良好进展）</title>
+      <title>龙格-库塔求解器无法取得进展（RuntimeWarning：迭代没有取得良好进展）</title>
       <link>https://stackoverflow.com/questions/78803278/runge-kutta-solver-cannot-make-progress-runtimewarning-iteration-is-not-making</link>
       <description><![CDATA[我收到此错误：RuntimeWarning：迭代没有取得良好进展，以过去十次迭代的改进来衡量。
 我目前正在尝试从工业制冷系统的数字孪生构建自定义 RL 环境。我正在模拟特定时间步骤内的过程，并在一段时间内（即 24 小时）循环执行该步骤。
@@ -169,7 +332,7 @@ solver=RK12(max_step__s=self.time_step_seconds,relative_tolerance=0.00001),
 我无法弄清楚下面屏幕截图中的方程式如何进入下一步。
 在此处输入图片描述
 感谢大家的帮助！
-我尝试展开方程式来思考为什么事情会这样发展，但我仍然不明白。]]></description>
+我试图扩展方程式来思考为什么事情会这样发展，但我仍然不明白。]]></description>
       <guid>https://stackoverflow.com/questions/78803273/xgboost-docs-explanation</guid>
       <pubDate>Sun, 28 Jul 2024 08:17:04 GMT</pubDate>
     </item>
@@ -233,146 +396,22 @@ Console.WriteLine(yolo.OnnxModel.ModelType);
 Console.WriteLine($&quot;使用 GPU 版本 {yolo_version}{version}&quot;);
 
 使用 yolov8 的性能指标：
-GPU 推理时间：
+CPU 推理时间：
 版本 m 的总时间：25693 毫秒
 
 版本 m 每幅图像的平均时间：51.25 毫秒
 
-CPU 推理时间：
+GPU 推理时间：
 版本 m 的总时间：34459.73 毫秒
 
 版本 m 每幅图像的平均时间：69.74 毫秒
 
 我想发布有关时间的图表，但我没有足够的声誉
-该问题针对不同大小的模型自行出现。我仅打印了 m 大小以方便可视化。
+该问题针对不同大小的模型自行呈现。我仅打印了 m 大小以方便可视化。
 预期行为是使用 GPU 的推理应该比使用 CPU 的推理更快。
 但使用 GPU 后性能并没有提高。]]></description>
       <guid>https://stackoverflow.com/questions/78802177/gpu-performance-worse-than-cpu-performance-on-yolo-inferences</guid>
       <pubDate>Sat, 27 Jul 2024 18:33:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>列表索引超出范围OpenCV Python [关闭]</title>
-      <link>https://stackoverflow.com/questions/78802174/list-index-out-of-range-opencv-python</link>
-      <description><![CDATA[我目前正在学习机器学习，正在做物体检测项目。
-我的问题是 cv2.put_text() 在我的 for 循环中无法正常工作。
-以下是相关代码：
-
-classIds, confs, bbox = net.detect(img, confThreshold=0.5) 
-
-if len(classIds) != 0:
-for classId, confidence, box in zip(classIds.flatten(), confs.flatten(), bbox):
-cv2.rectangle(img, box, (255, 0, 0), thicken=2)
-cv2.putText(img, classNames[classId-1].upper(), (box[0]+10, box[1]+30),
-cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
-
-这是上述代码产生的错误消息：
-
-文件 &quot;C:\Users\User\projects\opencv\ObjectDetector.py&quot;, 第 31 行, 
-在 &lt;module&gt;
-cv2.putText(img, classNames[classId-1].upper(), (box[0]+10, box[1]+30),
-~~~~~~~~~~^^^^^^^^^^^
-IndexError: 列表索引超出范围
-
-这是我的完整代码：
-&#39;
-import cv2
-
-# img = cv2.imread(&#39;bob.png&#39;)
-
-cap = cv2.VideoCapture(0)
-cap.set(3, 640)
-cap.set(4, 480)
-
-classNames = []
-classFile = &#39;coco.names&#39;
-with open(classFile, &#39;rt&#39;) as f:
-classNames = f.read().rstrip(&#39;\n&#39;).split(&#39;\n&#39;)
-
-configPath = &#39;ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt&#39;
-weightsPath = &#39;frozen_inference_graph.pb&#39;
-
-net = cv2.dnn.DetectionModel(weightsPath, configPath)
-net.setInputSize(320, 320)
-net.setInputScale(1.0 / 127.5)
-net.setInputMean((127.5, 127.5, 127.5))
-net.setInputSwapRB(True)
-
-当 True 时： 
-succss, img = cap.read()
-classIds, confs, bbox = net.detect(img, confThreshold=0.5) 
-print(classIds, bbox)
-
-if len(classIds) != 0:
-for classId, confidence, box in zip(classIds.flatten(), 
-confs.flatten(), bbox):
-cv2.rectangle(img, box, (255, 0, 0), thicken=2)
-cv2.putText(img, classNames[classId-1].upper(),
-(box[0]+10, box[1]+30),
-cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 2)
-
-cv2.imshow(&#39;Output&#39;, img)
-cv2.waitKey(1)
-
-&#39;
-我原本希望它显示一个带有摄像头的窗口，周围有一个框，其中指定了对象的名称，但它只显示了错误。我该如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/78802174/list-index-out-of-range-opencv-python</guid>
-      <pubDate>Sat, 27 Jul 2024 18:33:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>在技​​术机器学习文章中，是否应该将输入层形状作为模型架构的一部分进行报告？</title>
-      <link>https://stackoverflow.com/questions/78802155/in-technical-ml-articles-should-one-report-input-layer-shape-as-part-of-their-m</link>
-      <description><![CDATA[我是一名自然科学专业的学生，​​正在研究一个使用机器学习的项目。我正在研究一个由另一个研究小组创建的神经网络模型，该模型使用haiku实现。
-在他们的原始文章中，当谈到他们的模型超参数时，他们在描述他们的MLP形状时没有包括输入层的大小，而只包括隐藏层和输出层的大小。例如，如果输入为 N=2000，后续层为 256, 64, 4（输出形状为 (4,)），那么他们甚至在论文中也将 MLP 形状报告为 (256,64,4)。
-对我来说，这很令人困惑，因为从 2000 到 256 的解析必须具有与输入大小成比例的权重矩阵。后来，我意识到在 haiku 模块中，输入层会根据输入的大小进行调整，并且您通常不会在定义 MLP 本身时传递输入的大小。这与我在 ML 课程中使用 tensorflow/keras 的经历不同。我很惊讶，甚至测试了这一点——不同的输入形状输出不同的可训练参数。如果我理解错了，请纠正我：但是，如果输入 N=1000 与输入 N=2000，这难道不会产生完全不同的模型吗？
-我在此向知情的机器学习专家提出问题：在报告层时，应该写“四层形状 (2000, 256, 64, 4)”还是“三层形状 (256, 64, 4)”？
-
-P.S.如果有人好奇，我已经测试过，使用不同的输入大小实际上会导致 haiku 中的权重参数不同。
-作为 MWE 示例
-import haiku as hk
-import jax.numpy as jnp
-import numpy as np
-
-import jax
-
-class MyLinear1(hk.Module):
-
-def __init__(self, output_size, name=None):
-super().__init__(name=name)
-self.output_size = output_size
-
-def __call__(self, x):
-j, k = x.shape[-1], self.output_size
-w_init = hk.initializers.TruncatedNormal(1. / np.sqrt(j))
-w = hk.get_parameter(&quot;w&quot;, shape=[j, k], dtype=x.dtype, init=w_init)
-b = hk.get_parameter(&quot;b&quot;, shape=[k], dtype=x.dtype, init=jnp.ones)
-return jnp.dot(x, w) + b
-
-def _forward_fn_linear1(x):
-module = MyLinear1(output_size=2)
-return module(x)
-
-forward_linear1 = hk.transform(_forward_fn_linear1)
-
-rng_key = jax.random.PRNGKey(42)
-dummy_x = jnp.ones([8])
-
-params = forward_linear1.init(rng=rng_key, x=dummy_x)
-print(params)
-
-如果您使用 dummy_x = jnp.ones([8]) 它给出
- [-0.4785112 , -0.38034892],
-[-0.41137823, -0.22265594],
-[-0.43343404, 0.21691099],
-[-0.18514387, -0.10827615],
-[ 0.3682926 , -0.1418969 ],
-[ 0.10915945, 0.4389233 ],
-[-0.07725035, 0.08247987]], dtype=float32), &#39;b&#39;: Array([1., 1.], dtype=float32)}}
-
-while dummy_x = jnp.ones[1]) 得出
-{&#39;my_linear1&#39;: {&#39;w&#39;: Array([[ 1.51595 , -0.23353337]], dtype=float32), &#39;b&#39;: Array([1., 1.], dtype=float32)}}
-]]></description>
-      <guid>https://stackoverflow.com/questions/78802155/in-technical-ml-articles-should-one-report-input-layer-shape-as-part-of-their-m</guid>
-      <pubDate>Sat, 27 Jul 2024 18:24:55 GMT</pubDate>
     </item>
     <item>
       <title>如何预处理包含数字代码列表的功能？</title>
@@ -401,20 +440,6 @@ encoded_df = pd.DataFrame(encoded_data, columns=mlb.classes_)
       <pubDate>Sat, 27 Jul 2024 15:30:18 GMT</pubDate>
     </item>
     <item>
-      <title>scikit-learn 中的线性回归模型返回负 R^2 分数</title>
-      <link>https://stackoverflow.com/questions/78800849/linear-regression-model-in-scikit-learn-returning-negative-r2-score</link>
-      <description><![CDATA[因此我尝试使用 scikit 学习线性回归来处理这个奥运数据框。
-运动员部分有效，但年龄部分没有显示线性预测（我知道年龄与奖牌的相关性不好）
-reg=LinearRegression()
-predictors=[&quot;athletes&quot;, &quot;age&quot;]
-output=&quot;medals&quot;
-reg.fit(train[predictors],train[output])
-
-我也希望第二个图是一条直线。我知道这里给出的图预测了两个输入参数的数据，但我想知道 scikit 如何区分这两个输入，即运动员和年龄]]></description>
-      <guid>https://stackoverflow.com/questions/78800849/linear-regression-model-in-scikit-learn-returning-negative-r2-score</guid>
-      <pubDate>Sat, 27 Jul 2024 07:59:21 GMT</pubDate>
-    </item>
-    <item>
       <title>XGBoostError：参数详细程度的值 -1 超出界限 [0,3]</title>
       <link>https://stackoverflow.com/questions/78761783/xgboosterror-value-1-for-parameter-verbosity-exceed-bound-0-3</link>
       <description><![CDATA[错误消息如标题所示。根据下面的代码，这对我来说毫无意义：
@@ -426,60 +451,6 @@ clf.fit(X=train_data_iter[features].fillna(0), y=train_data_iter[&#39;y&#39;]) #
 值显然是 1，但不知何故却变成了 -1？我不明白。]]></description>
       <guid>https://stackoverflow.com/questions/78761783/xgboosterror-value-1-for-parameter-verbosity-exceed-bound-0-3</guid>
       <pubDate>Wed, 17 Jul 2024 22:12:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>GridSearchCV 没有为 xgboost 选择最佳超参数</title>
-      <link>https://stackoverflow.com/questions/69429691/gridsearchcv-not-choosing-the-best-hyperparameters-for-xgboost</link>
-      <description><![CDATA[我正在使用 xgboost 开发回归模型。由于 xgboost 有多个超参数，我使用 GridSearchCV() 添加了交叉验证逻辑。作为试验，我设置了 max_depth: [2,3]。我的python代码如下。
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import make_scorer
-from sklearn.metrics import mean_squared_error
-​
-xgb_reg = xgb.XGBRegressor()
-​
-# 获取最佳超参数
-scorer=make_scorer(mean_squared_error, False)
-params = {&#39;max_depth&#39;: [2,3], 
-&#39;eta&#39;: [0.1], 
-&#39;colsample_bytree&#39;: [1.0],
-&#39;colsample_bylevel&#39;: [0.3],
-&#39;subsample&#39;: [0.9],
-&#39;gamma&#39;: [0],
-&#39;lambda&#39;: [1],
-&#39;alpha&#39;:[0],
-&#39;min_child_weight&#39;:[1]
-}
-grid_xgb_reg=GridSearchCV(xgb_reg,
-param_grid=params,
-scoring=scorer,
-cv=5,
-n_jobs=-1)
-​
-grid_xgb_reg.fit(X_train, y_train)
-y_pred = grid_xgb_reg.predict(X_test)
-y_train_pred = grid_xgb_reg.predict(X_train)
-
-## 评估模型
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
-​
-print(&#39;RMSE train: %.3f, test: %.3f&#39; %(np.sqrt(mean_squared_error(y_train, y_train_pred)),np.sqrt(mean_squared_error(y_test, y_pred))))
-print(&#39;R^2训练：%.3f，测试：%.3f&#39; %(r2_score(y_train, y_train_pred),r2_score(y_test, y_pred)))
-
-问题是 GridSearchCV 似乎没有选择最佳超参数。在我的例子中，当我将 max_depth 设置为 [2,3] 时，结果如下。在以下情况下，GridSearchCV 选择 max_depth:2 作为最佳超参数。
-# max_depth 为 2 时的结果
-RMSE 训练：11.861，测试：15.113
-R^2 训练：0.817，测试：0.601
-
-但是，如果我将 max_depth 更新为 [3]（通过删除 2），则测试分数会比之前的值更好，如下所示。
-# max_depth 为 3 时的结果
-RMSE 训练：9.951，测试：14.752
-R^2 训练：0.871，测试：0.620
-
-问题
-我的理解是，即使我设置max_depth 设置为 [2,3]，GridSearchCV 方法应该选择 max_depth:3 作为最佳超参数，因为 max_depth:3 可以比 max_depth:2 返回更好的 RSME 或 R^2 分数。有人能告诉我为什么当我将 max_depth 设置为 [2,3] 时，我的代码无法选择最佳超参数吗？]]></description>
-      <guid>https://stackoverflow.com/questions/69429691/gridsearchcv-not-choosing-the-best-hyperparameters-for-xgboost</guid>
-      <pubDate>Sun, 03 Oct 2021 23:45:55 GMT</pubDate>
     </item>
     </channel>
 </rss>
