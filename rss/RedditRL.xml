@@ -4,7 +4,14 @@
     <title>强化学习</title>
     <link>https://www.reddit.com/r/reinforcementlearning/?format=xml.rss</link>
     <description>强化学习是人工智能/统计学的一个子领域，专注于探索/理解复杂环境并学习如何以最佳方式获得奖励。例如 AlphaGo、临床试验和 A/B 测试以及 Atari 游戏。</description>
-    <lastBuildDate>Mon, 29 Jul 2024 18:20:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 29 Jul 2024 21:16:34 GMT</lastBuildDate>
+    <item>
+      <title>“对受试者进行反馈的序贯实验分析”，Diaconis & Graham 1981</title>
+      <link>https://www.reddit.com/r/reinforcementlearning/comments/1ef9zdf/the_analysis_of_sequential_experiments_with/</link>
+      <description><![CDATA[  由    /u/gwern  提交  [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1ef9zdf/the_analysis_of_sequential_experiments_with/</guid>
+      <pubDate>Mon, 29 Jul 2024 20:30:26 GMT</pubDate>
+    </item>
     <item>
       <title>平均情节奖励差异，为什么？</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1ef1183/mean_episode_reward_difference_why/</link>
@@ -29,7 +36,7 @@
     <item>
       <title>为什么我的 PPO 算法没有学习？</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1eer8iv/why_is_my_ppo_algorithm_not_learning/</link>
-      <description><![CDATA[我尝试了代码中几乎所有的超级参数，但奖励只停留在 8-11 之间，从未超出这个范围。我让它运行了 10-20 分钟，它仍然只在这两个值之间波动。我很困惑我做错了什么，请帮帮我，我花了一整天的时间调试，我打印出了演员的 nn.parameters，它们正在发生变化。 编辑：我一直在尝试所有不同的超参数/模型架构，我现在想知道我的代码是否存在更根本的错误，特别是在演员对独热张量进行采样然后通过它进行反向传播时。 编辑：我的操作在 with set_exploration_type(ExplorationType.MEAN), torch.no_grad(): 块内都是 NaN，不确定为什么 import torch from torch import nn from torchrl.envs import Compose, ObservationNorm, DoubleToFloat, StepCounter, TransformedEnv from torchrl.envs.libs.gym import GymEnv from torchrl.envs.utils import check_env_specs, set_exploration_type, ExplorationType 从 torchrl.modules 导入 ProbabilisticActor、OneHotCategorical、ValueOperator 从 torchrl.collectors 导入 SyncDataCollector 从 torchrl.data.replay_buffers 导入 ReplayBuffer 从 torchrl.data.replay_buffers.storages 导入 LazyTensorStorage 从 torchrl.data.replay_buffers.samplers 导入 SamplerWithoutReplacement 从 torchrl.objectives.value 导入 GAE 从 torchrl.objectives 导入 ClipPPOLoss 从 tensordict.nn 导入 TensorDictModule torch.set_printoptions(threshold=16384) device=&quot;cuda&quot; base_env = GymEnv(&#39;CartPole-v0&#39;, device=device) env = TransformedEnv( base_env, Compose( ObservationNorm(in_keys=[&quot;observation&quot;]), DoubleToFloat(), StepCounter() ) ) env.transform[0].init_stats(1024) check_env_specs(env) actor_net = nn.Sequential( nn.Linear(env.observation_spec[&quot;observation&quot;].shape[-1], 256, device=device), nn.Sigmoid(), nn.Linear(256, 256, device=device), nn.Sigmoid(), nn.Linear(256, 256, device=device), nn.Sigmoid(), nn.Linear(256, env.action_spec.shape[-1],设备=设备））actor_module = TensorDictModule（actor_net，in_keys = [“observation”]，out_keys = [“logits”]）actor = ProbabilisticActor（module = actor_module，spec = env.action_spec，in_keys = [“logits”]，distribution_class = OneHotCategorical，return_log_prob = True）value_net = nn.Sequential（nn.Linear（env.observation_spec [“observation”]。shape [-1]，16，设备=设备），nn.Sigmoid（），nn.Linear（16，16，设备=设备），nn.Sigmoid（），nn.Linear（16，16，设备=设备），nn.Sigmoid（），nn.Linear（16，1，设备=设备） ）value_module = ValueOperator（module = value_net，in_keys = [“observation”]）frames_per_batch = 1024 total_frames = 1048576收集器 = SyncDataCollector（env，actor，frames_per_batch = frames_per_batch，total_frames = total_frames，split_trajs = True，reset_at_each_iter = True，设备=设备）replay_buffer = ReplayBuffer（存储 = LazyTensorStorage（max_size = frame_per_batch），采样器 = SamplerWithoutReplacement（））advantage_module = GAE（gamma = 0.99，lmbda = 0.95，value_network = value_module，average_gae = True）entropy_eps = 1e-4 loss_module = ClipPPOLoss（actor_network = actor，critic_network = value_module，clip_epsilon = 0.2，entropy_bonus = bool（entropy_eps），entropy_coef = entropy_eps）optim = torch.optim.Adam（loss_module.parameters（），lr = 1e-4）scheduler = torch.optim.lr_scheduler.CosineAnnealingLR（optim，total_frames // frames_per_batch）sub_batch_size = 64 for i，tensordict_data in enumerate（collector）：for _ in range（8）：advantage_module（tensordict_data）replay_buffer.extend（tensordict_data.reshape（-1）.cpu（））for _ in range（frames_per_batch // sub_batch_size）：data = replay_buffer.sample（sub_batch_size）loss = loss_module（data.to（device））loss_value = loss[“loss_objective”] + loss[&quot;loss_critic&quot;] + loss[&quot;loss_entropy&quot;] loss_value.backward() optim.step() optim.zero_grad() scheduler.step() if i % 16 == 0: with set_exploration_type(ExplorationType.MEAN), torch.no_grad(): rollout = env.rollout(1024, actor) print(rollout[&quot;next&quot;,&quot;reward&quot;].sum()) del rollout actor = ProbabilisticActor( module = actor_module, spec = env.action_spec, in_keys = [&quot;logits&quot;], distribution_class = OneHotCategorical, return_log_prob = True )     提交人    /u/Unusual_Guidance2095   [链接] [评论]]]></description>
+      <description><![CDATA[]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1eer8iv/why_is_my_ppo_algorithm_not_learning/</guid>
       <pubDate>Mon, 29 Jul 2024 05:00:03 GMT</pubDate>
     </item>
@@ -57,7 +64,7 @@
     <item>
       <title>MADDPG 未学习</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1edo44n/maddpg_not_learning/</link>
-      <description><![CDATA[大家好，我最近在简单的对手环境中训练了一个 MADDPG。模型开始运行，但结果很糟糕，代理没有学到任何东西。我已经尝试调试了几个星期，但没有成功。 我知道提供的信息有限，很多事情都可能出错，但如果你感兴趣并帮助查看我的代码（在 Google Collab 上集成到一个页面中），我将不胜感激。提前致谢。 代码：https://colab.research.google.com/drive/1bRV803GR2vnjX0jy7bkTEy3A8VLYFPB6?usp=sharing    提交人    /u/TransportationOk2251   [链接] [评论]]]></description>
+      <description><![CDATA[大家好，我最近在简单的对手环境中训练了一个 MADDPG。模型开始运行，但结果很糟糕，代理没有学到任何东西。我已经尝试调试了好几个星期，但一直没有成功。 我知道提供的信息有限，很多事情都可能出错，但如果你感兴趣并帮助查看我的代码（在 Google Collab 上集成到一个页面中），我将不胜感激。提前致谢。 代码：https://colab.research.google.com/drive/1bRV803GR2vnjX0jy7bkTEy3A8VLYFPB6?usp=sharing    提交人    /u/TransportationOk2251   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1edo44n/maddpg_not_learning/</guid>
       <pubDate>Sat, 27 Jul 2024 19:14:40 GMT</pubDate>
     </item>
@@ -95,13 +102,6 @@
       <description><![CDATA[        提交人    /u/elizabeth_duhh04   [链接] [评论] ]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1ecloyl/participate_in_the_air_hockey_challenge_build_and/</guid>
       <pubDate>Fri, 26 Jul 2024 11:26:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何实现风摩擦力作用于猎豹模型？</title>
-      <link>https://www.reddit.com/r/reinforcementlearning/comments/1ecjura/how_to_realize_wind_frictions_acting_on_the/</link>
-      <description><![CDATA[嗨， 我是一名学生，我正在尝试使用 MuJoCo 在不同环境中训练基于模型的强化学习代理。主要目标是扩展基于模型的强化学习方法以处理非平稳环境，例如动态（例如改变质量、重力、增加风摩擦）和/或奖励（例如改变目标速度）随时间变化的环境。目前，我专注于 [Gymnasium](https://gymnasium.farama.org/environments/mujoco/) 中基于 MuJoCo 的环境 我正在寻求一些帮助来定义作用于 [Cheetah 模型](https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/envs/mujoco/half\_cheetah\_v5.py) 的风摩擦。我目前的想法是添加额外的执行器，作用于模型移动方向上或相反方向的某些关节。 下面你只能看到我修改的 Cheetah 模型的一部分，即执行器部分。所有带齿轮参数设置的电机均来自原始 Cheetah 模型。此外，我定义了一个执行器连接到特定关节，其控制范围限制在 -50 到 50 之间。我将额外的执行器从代理的动作空间中排除，以便代理无法控制它们（请检查下面的函数），我在运行时明确设置它们的值。 我有两个问题：  我不确定是否需要为每个附加执行器设置齿轮参数？ 此外，根据文档，多个执行器作用于单个关节没有问题，但一切对我来说都很新，不知道我是否以正确的方式更改模式？  这是修改后的执行器部分： &lt;details&gt; ``` &lt;actuator&gt; &lt;motor gear=&quot;120&quot;关节=&quot;bthigh&quot; name=&quot;bthigh&quot;/&gt; &lt;马达齿轮=&quot;90&quot; 关节=&quot;bshin&quot; name=&quot;bshin&quot;/&gt; &lt;马达齿轮=&quot;60&quot; 关节=&quot;bfoot&quot; name=&quot;bfoot&quot;/&gt; &lt;马达齿轮=&quot;120&quot; 关节=&quot;fthigh&quot; name=&quot;fthigh&quot;/&gt; &lt;马达齿轮=&quot;60&quot; 关节=&quot;fshin&quot; name=&quot;fshin&quot;/&gt; &lt;马达齿轮=&quot;30&quot; 关节=&quot;ffoot&quot; name=&quot;ffoot&quot;/&gt; &lt;motor ctrllimited=&quot;true&quot; ctrlrange=&quot;-50 50&quot; joint=&quot;rootx&quot; name=&quot;frictionrootx&quot;/&gt; &lt;motor ctrllimited=&quot;true&quot; ctrlrange=&quot;-50 50&quot; joint=&quot;bthigh&quot; name=&quot;frictionbthigh&quot;/&gt; &lt;motor ctrllimited=&quot;true&quot; ctrlrange=&quot;-50 50&quot; joint=&quot;bshin&quot; name=&quot;frictionbshin&quot;/&gt; &lt;motor ctrllimited=&quot;true&quot; ctrlrange=&quot;-50 50&quot; joint=&quot;bfoot&quot; name=&quot;frictionbfoot&quot;/&gt; &lt;motor ctrllimited=&quot;true&quot; ctrlrange=&quot;-50 50&quot; joint=&quot;fthigh&quot; name=&quot;frictionfthigh&quot;/&gt; &lt;motor ctrllimited=&quot;true&quot; ctrlrange=&quot;-50 50&quot; joint=&quot;fshin&quot; name=&quot;frictionfshin&quot;/&gt; &lt;motor ctrllimited=&quot;true&quot; ctrlrange=&quot;-30 30&quot; joint=&quot;ffoot&quot; name=&quot;frictionffoot&quot;/&gt; &lt;/actuator&gt; ``` def exclude_wind_friction_from_action_space(self): &quot;&quot;&quot;用来实现风摩擦的额外执行器不应该是代理动作空间的一部分！&quot;&quot;&quot; bounds = self.model.actuator_ctrlrange.copy().astype(np.float32)[:-7] low, high = bounds.T self.action_space = Box(low=low, high=high, dtype=np.float32) &lt;/details&gt; 欢迎任何反馈/建议:)    由    /u/CertainLoad1589  提交  [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1ecjura/how_to_realize_wind_frictions_acting_on_the/</guid>
-      <pubDate>Fri, 26 Jul 2024 09:30:06 GMT</pubDate>
     </item>
     <item>
       <title>如何设置 CORL 和 D4RL 数据集</title>
