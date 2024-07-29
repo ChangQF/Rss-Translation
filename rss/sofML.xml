@@ -4,31 +4,133 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 29 Jul 2024 15:16:52 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 29 Jul 2024 18:20:14 GMT</lastBuildDate>
     <item>
-      <title>支持我成为 Microsoft 大使的旅程 — 立即解锁免费学习资源</title>
-      <link>https://stackoverflow.com/questions/78807692/support-my-journey-to-becoming-a-microsoft-ambassador-unlock-free-learning-resou</link>
-      <description><![CDATA[嗨，Stack Overflow 社区！
-我向你们所有人寻求一些支持，以实现一个令人兴奋的里程碑。作为一名技术爱好者和有抱负的 Microsoft Learn 学生大使，我正在努力成为这个了不起的项目的一部分。为了实现这个目标，我需要将一些流量引导到一个特定的链接，该链接展示了令人难以置信的免费 Microsoft 学习资源。
-以下是您可以提供帮助的方式：
-单击链接：通过此链接浏览内容，您不仅可以访问免费课程和认证，还可以支持我成为 Microsoft 大使的旅程。
-解锁免费资源：该链接指向一系列有价值的学习材料，涵盖从 AI 到云计算的所有内容。非常适合任何希望提高技能的人！
+      <title>PyTorch 数据集中某些类别的训练-验证分割结果为零样本</title>
+      <link>https://stackoverflow.com/questions/78808028/train-validation-split-results-in-zero-samples-for-some-classes-in-pytorch-datas</link>
+      <description><![CDATA[我正在使用 PyTorch 进行图像分类。我的数据集是目录格式。我已经设置了数据管道和模型。然而，我在训练-验证拆分方面遇到了一个问题，即某些类别在训练或验证数据集中没有样本。这是我的代码和设置的相关部分：
+class CustomDataset(Dataset):
+def __init__(self, root_dir, transform=None):
+self.root_dir = root_dir
+self.transform = transform
+self.classes = os.listdir(root_dir)
+self.image_paths = []
+self.labels = []
 
-🔗 探索 Microsoft 的免费学习资源
-https://learn.microsoft.com/?wt.mc_id=studentamb_405723
-为什么这很重要：
-提升您的技能：通过 Microsoft 的顶级课程增强您的知识。
-获得认证：获得可以为您的专业档案增加重要价值的免费认证。
-支持我的目标：每次点击都帮助我更接近加入 Microsoft Learn 学生大使计划，在那里我将能够为我们的技术社区做出更多贡献。
+for label, class_name in enumerate(self.classes):
+class_dir = os.path.join(root_dir, class_name)
+for img_path in glob.glob(os.path.join(class_dir, &#39;*.png&#39;)) + \
+glob.glob(os.path.join(class_dir, &#39;*.jpg&#39;)) + \
+glob.glob(os.path.join(class_dir, &#39;*.jpeg&#39;)):
+self.image_paths.append(img_path)
+self.labels.append(label)
 
-感谢您花时间查看链接！如果您发现这些资源有用，请随时与其他可能受益的人分享。您的支持意义重大！
-谨致问候，
-感谢大家的帮助]]></description>
-      <guid>https://stackoverflow.com/questions/78807692/support-my-journey-to-becoming-a-microsoft-ambassador-unlock-free-learning-resou</guid>
-      <pubDate>Mon, 29 Jul 2024 14:33:10 GMT</pubDate>
+def __len__(self):
+return len(self.image_paths)
+
+def __getitem__(self, idx):
+img_path = self.image_paths[idx]
+image = Image.open(img_path).convert(&#39;RGB&#39;)
+label = self.labels[idx]
+
+if self.transform:
+image = self.transform(image)
+else:
+image = transforms.ToTensor()(image) # 如果未提供变换，则将 PIL 图像转换为张量
+
+return image, label
+
+class AugmentedDataset(Dataset):
+def __init__(self, base_dataset, transforms_list):
+self.base_dataset = base_dataset
+self.transforms_list = transforms_list if isinstance(transforms_list, list) else [transforms_list]
+
+def __len__(self):
+return len(self.base_dataset) * len(self.transforms_list)
+
+def __getitem__(self, idx):
+base_idx = idx // len(self.transforms_list)
+transform_idx = idx % len(self.transforms_list)
+
+image, label = self.base_dataset[base_idx]
+transform = self.transforms_list[transform_idx]
+
+if transform:
+image = transform(image)
+
+return image, label
+
+训练测试分割
+base_dataset = CustomDataset(train_dir, v2.Compose(basic_transformations))
+
+train_size = int(0.8 * len(base_dataset))
+val_size = len(base_dataset) - train_size
+
+train_base_dataset, val_dataset = random_split(base_dataset, [train_size, val_size])
+train_dataset = AugmentedDataset(train_base_dataset, augmentations)
+val_dataset = AugmentedDataset(train_base_dataset, v2.Compose(final_transformation))
+
+trainloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+valloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+执行拆分后，我注意到有些类在训练或验证数据集中没有样本。这会导致模型性能不佳，并且无法正确评估某些类别。
+
+为什么 pytorch random_split 方法会出现这种情况？
+有哪些最佳实践可以确保在训练集和验证集中的所有类别之间实现平衡分割？
+在分割过程中，我可以使用哪些特定技术或库来保持类别平衡？
+
+这是我的笔记本：EfficientNet with Augmentation]]></description>
+      <guid>https://stackoverflow.com/questions/78808028/train-validation-split-results-in-zero-samples-for-some-classes-in-pytorch-datas</guid>
+      <pubDate>Mon, 29 Jul 2024 15:51:51 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 Python 和计算机视觉检测图像中的人是否赤裸上身？</title>
+      <title>Catboost 特征重要性计算</title>
+      <link>https://stackoverflow.com/questions/78807931/catboost-feature-importance-calculation</link>
+      <description><![CDATA[我仅用 3 棵树拟合了一个简单二分类模型，并想检查特征重要性结果是否与 Catboost 文档 (PredictionValuesChange) 中的公式相似。
+训练模型后，我按照CatBoost JSON 模型教程中的步骤操作，并得到了以下树结构：
+{
+&quot;leaf_values&quot;: [
+-0.13915912880676032,
+0.1097787155963716
+],
+&quot;leaf_weights&quot;: [
+2143.0251545906067,
+2252.974784851074
+],
+&quot;splits&quot;: [
+{
+&quot;border&quot;: 3.5,
+&quot;float_feature_index&quot;: 13,
+&quot;split_index&quot;: 0,
+&quot;split_type&quot;: &quot;FloatFeature&quot;
+}
+]
+} 
+
+模型中的每棵树只有深度 = 1，并且只有一棵树（索引 = 1）具有感兴趣的特征。我决定根据上述公式手动计算特征重要性，并将结果与​​ .get_feature_importance 方法进行比较。结果大不相同：
+
+特征重要性：28.2947825
+手动计算：68.06248029261762
+
+以下是用于特征重要性计算的代码：
+tree_indx = 1
+v_1 = model[&#39;oblivious_trees&#39;][tree_indx][&#39;leaf_values&#39;][0]
+v_2 = model[&#39;oblivious_trees&#39;][tree_indx][&#39;leaf_values&#39;][1]
+
+c_1 = model[&#39;oblivious_trees&#39;][tree_indx][&#39;leaf_weights&#39;][0]
+c_2 = model[&#39;oblivious_trees&#39;][tree_indx][&#39;leaf_weights&#39;][1]
+
+avr = (v_1*c_1 + v_2*c_2)/(c_1+c_2)
+
+fi = ((v_1 - avr)**2)*c_1 + ((v_2 - avr)**2)*c_2
+print(fi)
+
+我犯了错误吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78807931/catboost-feature-importance-calculation</guid>
+      <pubDate>Mon, 29 Jul 2024 15:29:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 Python 和计算机视觉检测图像中的人是否赤裸上身？[关闭]</title>
       <link>https://stackoverflow.com/questions/78806780/how-to-detect-if-a-person-is-shirtless-in-an-image-using-python-and-computer-vis</link>
       <description><![CDATA[我有一个数据集，其中包含一个人的多张自拍照，每张都是从胸部以上拍摄的，格式为自拍。我的目标是识别每张图像中的人是否赤裸上身。这些图像并不露骨，而是随意的自拍照，其中的人可能穿着也可能没穿着衬衫。
 限制：
@@ -38,7 +140,7 @@ https://learn.microsoft.com/?wt.mc_id=studentamb_405723
 是否有任何预先训练的模型或库可以帮助完成这项特定任务？
 可以使用哪些方法或技术来准确识别图像中的人是否赤裸上身？
 任何指导或建议都将不胜感激。谢谢！
-我曾尝试使用 Python 中的 NSFW-Detector 库（https://pypi.org/project/nsfw-detector/），但它没有什么帮助，因为它专注于检测露骨内容，而不是识别一个人是否赤裸上身。]]></description>
+我尝试使用 Python 中的 NSFW-Detector 库（https://pypi.org/project/nsfw-detector/），但它没有什么帮助，因为它专注于检测露骨内容，而不是识别一个人是否赤裸上身。]]></description>
       <guid>https://stackoverflow.com/questions/78806780/how-to-detect-if-a-person-is-shirtless-in-an-image-using-python-and-computer-vis</guid>
       <pubDate>Mon, 29 Jul 2024 11:19:21 GMT</pubDate>
     </item>
@@ -84,114 +186,11 @@ Python 代码的输出为：
       <pubDate>Mon, 29 Jul 2024 02:23:30 GMT</pubDate>
     </item>
     <item>
-      <title>关于 CatBoostClassifier 默认参数的这些说法准确吗？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78804284/are-these-claims-about-the-default-parameters-of-catboostclassifier-accurate</link>
-      <description><![CDATA[当您实例化 CatBoostClassifier 而不指定任何参数时，模型会为所有参数使用其内置的默认值：
-
-iterations：默认值为 1000。
-learning_rate：默认值是自动确定的，但通常在 0.03 左右。
-depth：默认值为 6。
-loss_function：对于二元分类任务，默认值为“Logloss”。
-random_seed：默认值为随机值。
-
-我想知道上述 6 条陈述是否正确。我尝试进行研究，但找不到有关此的任何信息。
-此外，如果知道 CatBoost 的调整机制到底是什么，那将非常棒。他们如何开始第一次迭代？]]></description>
-      <guid>https://stackoverflow.com/questions/78804284/are-these-claims-about-the-default-parameters-of-catboostclassifier-accurate</guid>
-      <pubDate>Sun, 28 Jul 2024 16:33:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>处理 tensorflow/keras 中 Conv1D 层维数的正确方法是什么？</title>
-      <link>https://stackoverflow.com/questions/78804130/what-is-the-proper-way-to-deal-with-dimensionality-in-conv1d-layers-in-tensorflo</link>
-      <description><![CDATA[我一直想尽办法尝试使用 Keras 中的 Conv1D 解决这个问题。基本上，我有一个 100 x 1 的向量 bathyZ。我想在将它与 2 个标量输入 Tperiod 和 AMP_WK 合并以预测另一个 100 x 1 向量之前对其进行一些卷积。（bathyZ 具有我希望获取的空间变异性）。这是我第一次使用 tensorflow 数据集并进行解析/反序列化。我不断遇到我似乎无法理解的形状错误。
-主要是，似乎第一个密集层没有在其输入中收到正确的尺寸，我无法弄清楚原因，因为所有东西的输入尺寸对我来说似乎都有意义。为什么它期望 6402 并得到（无，165）？我正在调试单个记录，因此批量大小很小，如果这是一个问题的话。无论如何它都应该可以工作，对吧？我的理解是，我的输入应该是 (None,100,1)，以允许 100 x 1 序列的不同批次大小。我尝试过几种重塑方法，但似乎都没有奏效，所以也许我错过了一些更基本的东西
-错误消息：
-ValueError：调用 Functional.call() 时遇到异常。
-
-层“dense_110”的输入 0与层不兼容：预期输入形状的轴 -1 的值为 6402，但收到的输入形状为 (None, 165)
-
-Functional.call() 收到的参数：
-• 输入={&#39;bathyZ&#39;: &#39;tf.Tensor(shape=(None, 100, 1), dtype=float32)&#39;, &#39;AMP_WK&#39;: &#39;tf.Tensor(shape=(None, 1), dtype=float32)&#39;, &#39;Tperiod&#39;: &#39;tf.Tensor(shape=(None, 1), dtype=float32)&#39;}
-• 训练=True
-• 掩码={&#39;bathyZ&#39;: &#39;None&#39;, &#39;AMP_WK&#39;: &#39;None&#39;, &#39;Tperiod&#39;: &#39;None&#39;}
-
-代码：
-feature_description = {
-&#39;bathyZ&#39;: tf.io.FixedLenFeature([], tf.string),
-&#39;bathyZ_shape&#39;: tf.io.FixedLenFeature([3], tf.int64),
-&#39;AMP_WK&#39;: tf.io.FixedLenFeature([], tf.float32),
-&#39;Tperiod&#39;: tf.io.FixedLenFeature([], tf.float32),
-&#39;skew&#39;: tf.io.FixedLenFeature([], tf.string),
-&#39;skew_shape&#39;: tf.io.FixedLenFeature([3], tf.int64),
-}
-
-def _parse_function(proto):
-# 解析
-parsed_features = tf.io.parse_single_example(proto, feature_description)
-
-# 解码/重塑序列化张量
-bathyZ = parsed_features[&#39;bathyZ&#39;]
-bathyZ = tf.io.parse_tensor(bathyZ, out_type=tf.float32)
-bathyZ = tf.reshape(bathyZ, [100, 1])
-
-skew = parsed_features[&#39;skew&#39;]
-skew = tf.io.parse_tensor(skew, out_type=tf.float32)
-skew = tf.reshape(skew, [100, 1])
-
-# 获取其他输入，重塑
-AMP_WK = parsed_features[&#39;AMP_WK&#39;]
-Tperiod = parsed_features[&#39;Tperiod&#39;]
-
-AMP_WK = tf.reshape(AMP_WK, [1])
-Tperiod = tf.reshape(Tperiod, [1])
-
-# 创建元组
-输入 = {&#39;bathyZ&#39;: bathyZ, &#39;AMP_WK&#39;: AMP_WK, &#39;Tperiod&#39;: Tperiod}
-输出 = {&#39;skew&#39;: skew}
-
-返回输入、输出
-
-# 创建 TFRecordDataset 并映射解析函数
-tfrecord_path = &#39;ML_0004.tfrecord&#39;
-数据集 = tf.data.TFRecordDataset(tfrecord_path)
-数据集 = dataset.map(_parse_function)
-
-# 模型
-
-def create_model():
-# 张量输入分支（形状：100 个时间步，1 个特征）
-bathyZ = 输入（形状=（100, 1），名称=&#39;bathyZ&#39;）
-x = 层。Conv1D（32，3，激活=&#39;relu&#39;， padding=&#39;same&#39;)(bathyZ)
-x = layer.Conv1D(64, 3,activation=&#39;relu&#39;, padding=&#39;same&#39;)(x)
-x = layer.Flatten()(x)
-
-# 标量输入
-AMP_WK = Input(shape=(1,), name=&#39;AMP_WK&#39;)
-Tperiod = Input(shape=(1,), name=&#39;Tperiod&#39;)
-
-# 合并所有分支
-combined = layer.concatenate([x, AMP_WK, Tperiod])
-
-# 全连接层
-z = layer.Dense(64,activation=&#39;relu&#39;)(combined)
-z = layer.Dense(128,activation=&#39;relu&#39;)(z)
-
-# 输出层（张量输出，与输入张量形状相同）
-skew = layer.Dense(100,activation=&#39;linear&#39;, name=&#39;skew&#39;)(z)
-
-# 创建模型
-model = models.Model(inputs=[bathyZ, AMP_WK, Tperiod], output=skew)
-返回模型
-
-# 示例用法：
-model = create_model()
-model.compile(optimizer=&#39;adam&#39;, loss=&#39;mse&#39;)
-model.summary()
-dataset = dataset.batch(1) 
-model.fit(dataset)
-
-我尝试在解析和预处理步骤中将各种输入张量重塑为 [1,100]、[1,100,1] 等不同版本，并跟踪形状的演变。但我总是遇到某种尺寸错误]]></description>
-      <guid>https://stackoverflow.com/questions/78804130/what-is-the-proper-way-to-deal-with-dimensionality-in-conv1d-layers-in-tensorflo</guid>
-      <pubDate>Sun, 28 Jul 2024 15:26:09 GMT</pubDate>
+      <title>梯度下降应用</title>
+      <link>https://stackoverflow.com/questions/78804107/gradient-descent-application</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78804107/gradient-descent-application</guid>
+      <pubDate>Sun, 28 Jul 2024 15:15:45 GMT</pubDate>
     </item>
     <item>
       <title>TypeError：PdfReader.getNumPages（）缺少 1 个必需的位置参数：“self”[重复]</title>
@@ -324,6 +323,9 @@ AttributeError: &#39;NoneType&#39; 对象没有属性 &#39;write_audiofile&#39;
       <title>在 YOLO 推理中，GPU 性能不如 CPU 性能</title>
       <link>https://stackoverflow.com/questions/78802177/gpu-performance-worse-than-cpu-performance-on-yolo-inferences</link>
       <description><![CDATA[我正在使用 YoloDotNet NuGet 包来测试 YOLO 模型的性能。我正在为我的学位论文做这个测试。但是，我遇到了一个问题，GPU 性能明显比 CPU 性能差。
+
+问题是前 50/60 次推理的性能非常好（比如 20 毫秒），然后它们开始变差，直到时间稳定在每张图像 70/75 毫秒左右。我不明白为什么性能会以这种方式变差。
+
 环境：
 
 YoloDotNet 版本：v2.0
@@ -374,7 +376,7 @@ GPU 推理时间：
 版本 m 每幅图像的平均时间：69.74 毫秒
 
 我想发布有关时间的图表，但我没有足够的声誉
-该问题针对不同大小的模型而出现。我仅打印了 m 大小以方便可视化。
+该问题针对不同大小的模型自行呈现。我仅打印了 m 大小以方便可视化。
 预期行为是使用 GPU 的推理应该比使用 CPU 的推理更快。
 但使用 GPU 后性能并没有提高。]]></description>
       <guid>https://stackoverflow.com/questions/78802177/gpu-performance-worse-than-cpu-performance-on-yolo-inferences</guid>
