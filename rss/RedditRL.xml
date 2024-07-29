@@ -4,7 +4,14 @@
     <title>强化学习</title>
     <link>https://www.reddit.com/r/reinforcementlearning/?format=xml.rss</link>
     <description>强化学习是人工智能/统计学的一个子领域，专注于探索/理解复杂环境并学习如何以最佳方式获得奖励。例如 AlphaGo、临床试验和 A/B 测试以及 Atari 游戏。</description>
-    <lastBuildDate>Mon, 29 Jul 2024 03:17:37 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 29 Jul 2024 06:22:31 GMT</lastBuildDate>
+    <item>
+      <title>为什么我的 PPO 算法没有学习？</title>
+      <link>https://www.reddit.com/r/reinforcementlearning/comments/1eer8iv/why_is_my_ppo_algorithm_not_learning/</link>
+      <description><![CDATA[我尝试了代码中几乎所有的超级参数，但奖励只停留在 8-11 之间，从未超出这个范围。我让它运行了 10-20 分钟，它仍然只在这两个值之间波动。我很困惑我做错了什么，请帮帮我，我花了一整天的时间调试，我打印出了演员的 nn.parameters，它们正在发生变化。 import torch from torch import nn from torchrl.envs import Compose, ObservationNorm, DoubleToFloat, StepCounter, TransformedEnv from torchrl.envs.libs.gym import GymEnv from torchrl.envs.utils import check_env_specs, set_exploration_type, ExplorationType from torchrl.modules import ProbabilisticActor, OneHotCategorical, ValueOperator from torchrl.collectors import SyncDataCollector from torchrl.data.replay_buffers import ReplayBuffer from torchrl.data.replay_buffers.storages import LazyTensorStorage from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement 从 torchrl.objectives.value 导入 GAE 从 torchrl.objectives 导入 ClipPPOLoss 从 tensordict.nn 导入 TensorDictModule torch.set_printoptions(threshold=16384) device=&quot;cuda&quot; base_env = GymEnv(&#39;CartPole-v0&#39;, device=device) env = TransformedEnv( base_env, Compose( ObservationNorm(in_keys=[&quot;observation&quot;]), DoubleToFloat(), StepCounter() ) ) env.transform[0].init_stats(1024) check_env_specs(env) actor_net = nn.Sequential( nn.Linear(env.observation_spec[&quot;observation&quot;].shape[-1], 256, device=device), nn.Sigmoid(), nn.Linear(256, 256, device=device), nn.Sigmoid(), nn.Linear(256, 256, device=device), nn.Sigmoid(), nn.Linear(256, env.action_spec.shape[-1],设备=设备））actor_module = TensorDictModule（actor_net，in_keys = [“observation”]，out_keys = [“logits”]）actor = ProbabilisticActor（module = actor_module，spec = env.action_spec，in_keys = [“logits”]，distribution_class = OneHotCategorical，return_log_prob = True）value_net = nn.Sequential（nn.Linear（env.observation_spec [“observation”]。shape [-1]，16，设备=设备），nn.Sigmoid（），nn.Linear（16，16，设备=设备），nn.Sigmoid（），nn.Linear（16，16，设备=设备），nn.Sigmoid（），nn.Linear（16，1，设备=设备） ）value_module = ValueOperator（module = value_net，in_keys = [“observation”]）frames_per_batch = 1024 total_frames = 1048576收集器 = SyncDataCollector（env，actor，frames_per_batch = frames_per_batch，total_frames = total_frames，split_trajs = True，reset_at_each_iter = True，设备=设备）replay_buffer = ReplayBuffer（存储 = LazyTensorStorage（max_size = frame_per_batch），采样器 = SamplerWithoutReplacement（））advantage_module = GAE（gamma = 0.99，lmbda = 0.95，value_network = value_module，average_gae = True）entropy_eps = 1e-4 loss_module = ClipPPOLoss（actor_network = actor，critic_network = value_module，clip_epsilon = 0.2，entropy_bonus = bool（entropy_eps），entropy_coef = entropy_eps）optim = torch.optim.Adam（loss_module.parameters（），lr = 1e-4）scheduler = torch.optim.lr_scheduler.CosineAnnealingLR（optim，total_frames // frames_per_batch）sub_batch_size = 64 for i，tensordict_data in enumerate（collector）：for _ in range（8）：advantage_module（tensordict_data）replay_buffer.extend（tensordict_data.reshape（-1）.cpu（））for _ in range（frames_per_batch // sub_batch_size）：data = replay_buffer.sample（sub_batch_size）loss = loss_module（data.to（device））loss_value = loss[“loss_objective”] + loss[&quot;loss_critic&quot;] + loss[&quot;loss_entropy&quot;] loss_value.backward() optim.step() optim.zero_grad() scheduler.step() if i % 16 == 0: with set_exploration_type(ExplorationType.MEAN), torch.no_grad(): rollout = env.rollout(1024, actor) print(rollout[&quot;next&quot;,&quot;reward&quot;].sum()) del rollout     提交人    /u/Unusual_Guidance2095   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1eer8iv/why_is_my_ppo_algorithm_not_learning/</guid>
+      <pubDate>Mon, 29 Jul 2024 05:00:03 GMT</pubDate>
+    </item>
     <item>
       <title>用于构建 RL 项目的简单可视化工具</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1ee525x/simple_visual_tool_for_building_rl_projects/</link>
@@ -102,13 +109,6 @@
       <description><![CDATA[假设山地车环境是用随机生成的斜率和随机定位的目标初始化的。 在这种情况下，训练 PPO 有什么技巧？ 我目前正在做一个项目，它是一个优化问题（优化放射治疗计划中的辐射光束角度）。 我想训练代理来调整随机设置的光束角度。 而更困难的问题是，我想让代理优化光束，而不管任何患者的解剖几何形状如何。 所以我设置了自定义环境，在每个 env.reset() 中，环境都会设置不同的患者（当然是不同的肿瘤位置和大小）。 是否有可能训练 DRL 算法以在那种多样化的患者观察中很好地工作？ 如果可能的话，有什么技巧可以解决它？ 我在想的是为了在这些多样化的观察中表现良好，批量大小应该足够大以覆盖许多不同的患者几何形状。所以我目前将 n_steps（horizo​​n）设置为很大，但它还不起作用.. 我将保留我之前在 reddit 上讨论过的链接供您参考。 https://www.reddit.com/r/reinforcementlearning/comments/1eapb34/any_rl_study_about_observing_3d_data/?utm_source=share&amp;utm_medium=web3x&amp;utm_name=web3xcss&amp;utm_term=1&amp;utm_content=share_button    提交人    /u/MediocreAgency6070   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1ebmjnj/how_can_i_train_ppo_well_in_diverse_state/</guid>
       <pubDate>Thu, 25 Jul 2024 05:00:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>近期最喜欢的 RL 论文</title>
-      <link>https://www.reddit.com/r/reinforcementlearning/comments/1eazyxp/favorite_recent_rl_papers/</link>
-      <description><![CDATA[您最近最喜欢的 RL 论文是什么，比如说过去 2-4 年发表的论文？只是好奇你们最近都觉得什么令人兴奋。    提交人    /u/Obsesdian   [link] [comments]]]></description>
-      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1eazyxp/favorite_recent_rl_papers/</guid>
-      <pubDate>Wed, 24 Jul 2024 12:15:24 GMT</pubDate>
     </item>
     </channel>
 </rss>
