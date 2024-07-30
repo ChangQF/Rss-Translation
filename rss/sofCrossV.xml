@@ -4,17 +4,229 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 30 Jul 2024 09:16:30 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 30 Jul 2024 12:28:50 GMT</lastBuildDate>
+    <item>
+      <title>对 p 值和 Cohen's d 感到困惑</title>
+      <link>https://stats.stackexchange.com/questions/652003/confused-about-the-p-value-and-cohens-d</link>
+      <description><![CDATA[我有以下代码，用于计算 p 值和 cohen 距离。
+import numpy as np
+from scipy.stats import ttest_ind
+import matplotlib.pyplot as plt
+
+# 计算 Cohen 的 d
+def calculate_cohens_d(group1, group2):
+mean_group1 = np.mean(group1)
+mean_group2 = np.mean(group2)
+std_group1 = np.std(group1, ddof=1)
+std_group2 = np.std(group2, ddof=1)
+n_group1 = len(group1)
+n_group2 = len(group2)
+pooled_std = np.sqrt(((n_group1 - 1) * (std_group1 ** 2) + (n_group2 - 1) * (std_group2 ** 2)) / (n_group1 + n_group2 - 2))
+cohen_d = (mean_group1 - mean_group2) / pooled_std
+return cohen_d
+
+# 模拟数据并执行 t 检验和 Cohen&#39;s d 计算的函数
+def perform_experiment():
+# 模拟数据
+group1_EXP = np.random.normal(80, 10, 10)
+group2_EXP = np.random.normal(81, 10, 10)
+
+# 执行多重 t 检验
+_, p_value_EXP = ttest_ind(group1_EXP, group2_EXP)
+cohen_d_EXP = calculate_cohens_d(group1_EXP, group2_EXP)
+
+return p_value_EXP, cohen_d_EXP
+
+
+如果我使用给定的种子运行代码两次：
+# 可重复性的种子
+np.random.seed(42)
+
+# 执行 2 次实验
+p_value_EXP, cohen_d_EXP = perform_experiment()
+print(f&#39;p-value: {p_value_EXP:.4f}, Cohen\&#39;s d: {cohen_d_EXP:.4f}&#39;)
+
+p_value_EXP, cohen_d_EXP = perform_experiment()
+print(f&#39;p-value: {p_value_EXP:.4f}, Cohen\&#39;s d: {cohen_d_EXP:.4f}&#39;)
+
+我得到：
+p-value: 0.0029， Cohen 的 d：1.5402
+p 值：0.9792，Cohen 的 d：-0.0118
+
+因此可以说，第一个实验的 p 值为 0.0029，Cohen 距离“较大”，是显著的。
+相比之下，我会说第二个实验并不那么重要。
+现在，如果我运行 1,000 次模拟
+# 执行 1000 次实验
+
+n_simulations = 1000
+
+p_values_EXP = np.zeros(n_simulations)
+
+cohen_ds_EXP = np.zeros(n_simulations)
+
+for i in range(n_simulations):
+p_values_EXP[i], cohen_ds_EXP[i] = perform_experiment()
+
+# 计算 p 值 &gt; 的比例0.05
+prop_p_value_EXP_greater_0_05 = np.mean(p_values_EXP &gt; 0.05)
+
+print(&quot;Proportion of p-values &gt; 0.05:&quot;, prop_p_value_EXP_greater_0_05)
+
+我得到
+Proportion of p-values &gt; 0.05: 0.951
+
+这意味着更有可能观察到不显著的结果。但前 2 个实验显示相反的结果。
+因此，我不确定在这种情况下 Cohen 距离的用处。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652003/confused-about-the-p-value-and-cohens-d</guid>
+      <pubDate>Tue, 30 Jul 2024 12:20:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中的 SYSTEMFIT 如何工作（从统计角度来看）？</title>
+      <link>https://stats.stackexchange.com/questions/652002/how-does-systemfit-from-r-work-from-statistical-perspective</link>
+      <description><![CDATA[在 R 中，有一个使用 OLS 估计方程组的包，称为 SYSTEMFIT。最初，这个包似乎并没有增加太多的价值，因为我实际上可以通过 OLS 分别估计每个方程（多次使用函数“lm()”）......除了一种情况，当我需要对方程进行限制时，这是我无法通过单独估计方程来做到的......这让我意识到我甚至无法想象这个包是如何工作的以及如何将多个方程作为一个系统来估计。
+
+所以，首先：我们有两个方程A和B。
+\begin{align}
+\text{A)} \qquad y_1 &amp; = \alpha_0 + \alpha_1 x_1 + \alpha_2 x_2 + \alpha_3 x_3 + u \\
+\text{B)} \qquad y_1 &amp; = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 + v \\
+\end{align&gt;
+现在，我可以通过 $\boldsymbol{\hat\beta} = \left(\mathbf{X}&#39; \mathbf{X} \right)^{-1} \mathbf{X}&#39; \mathbf{Y}$ 分别估计两个方程，或者通过 SYSTEMFIT 将其作为一个系统估计，并得到相同的结果。
+现在，如果我有一个单方程假设，即 $\alpha_2 = 1$，我可以用两种方式简单地解决这个问题，使用两个方程的单独估计：
+案例 1：我只需在方程中代入正确的值，相应地移动它，然后通过 OLS 估算新方程：
+$$
+y_1 - 1 \cdot x_2= \alpha_0 + \alpha_1 x_1 + \alpha_3 x_3 + u
+$$
+案例 2：或者，我可以提出一个限制矩阵 $\boldsymbol{R} = [0,0,1,0]$，右侧向量 $r = [1]$，然后将新模型参数估算为 $\boldsymbol{\hat\beta}_p = \boldsymbol{\hat\beta} - \left(\mathbf{X}&#39; \mathbf{X} \right)^{-1} \boldsymbol{R}&#39;\boldsymbol{R} \left(\mathbf{X}&#39; \mathbf{X} \right)^{-1} \boldsymbol{R}&#39; ( \boldsymbol{R} \boldsymbol{\hat\beta} - r )$
+
+尽管如此，如果我想将其应用于跨方程假设即$\alpha_2 = \beta_2$，我不知道该怎么做。案例 1 和案例 2 在该场景中均不适用。我只能通过 SYSTEMFIT 编写代码，它的语法相对简单。但是我没有看到代码内部。
+所以，问题是：SYSTEMFIT 如何将两个方程作为一个系统进行估算，以及如何根据限制进行调整；或者，我们一般如何做到这一点（我们应该使用哪个方程）？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652002/how-does-systemfit-from-r-work-from-statistical-perspective</guid>
+      <pubDate>Tue, 30 Jul 2024 11:50:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>控制变量时的多重共线性</title>
+      <link>https://stats.stackexchange.com/questions/652000/multicollinearity-when-controlling-for-a-variable</link>
+      <description><![CDATA[我对数据中的多重共线性有几个问题：我正在查看 MRI 扫描中发现的某种类型的病变；对于每位患者，我都知道这些病变的体积以及捕捉其分布模式的指标。我对模式指标对临床评分的影响感兴趣，而不仅仅是体积的影响。然而，模式指标与体积高度相关（r = 0.7），这是事物的本质，因为病变在大脑中覆盖的面积越大，它们就越成为一个有凝聚力的区域的一部分，而不是单独的斑点。这让我想知道一些事情：
+
+在像临床评分 ~ 模式 + 体积这样的回归中是否存在多重共线性问题？缓解这样的问题似乎违背了我想要看到的目的。
+模式指标已根据体积进行了校正，即每个人的指标已除以该人的病变体积。如果体积已经以某种方式纳入，我是否仍需要在回归中考虑体积？
+如果我想进行相关性而不是回归，那么 a) 考虑体积后临床评分和模式指标的偏相关性与 b) 临床评分和残差模式指标的相关性（在将模式指标回归到体积后）之间有什么区别？
+当我计算临床评分和残差模式指标的相关性时，相关性高于残差之前，这是正常观察结果吗？我注意到临床评分和体积的相关性为负，而临床评分和模式的相关性为正，鉴于模式和体积的相关性为正且很大，我不确定这是否表明出了问题。也许这就是为什么残差化后与临床评分的相关性更高的原因？有没有更深入的分析方法？
+
+提前谢谢您！
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652000/multicollinearity-when-controlling-for-a-variable</guid>
+      <pubDate>Tue, 30 Jul 2024 11:23:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>在一个非常简单的情况下解释由 R acf 函数计算的自相关</title>
+      <link>https://stats.stackexchange.com/questions/651999/interpreting-autocorrelation-as-computed-by-r-acf-function-in-a-very-simple-case</link>
+      <description><![CDATA[我曾经以为我知道自相关是什么，并且 R 中的 acf 函数会产生我所理解的自相关函数，但我一定遗漏了一些细节，因为结果不是我所期望的。
+我的理解是，自相关是一系列与自身的相关性，并移开了一些滞后。例如，如果 x=1:10，则存在自相关：
+&gt; # lag 0
+&gt; cor(1:10, 1:10)
+[1] 1
+&gt; # lag 1
+&gt; cor(1:9,2:10)
+[1] 1
+&gt; # lag 2
+&gt; cor(1:8,3:10)
+[1] 1
+
+也就是说，对于线性序列，任何滞后时间的自相关都应该为 1。
+但是，这不是 acf 函数的结果：
+acf(1:10)
+
+&gt; acf(1:10)[0:9]
+
+序列‘1:10’的滞后自相关
+
+0 1 2 3 4 5 6 7 8 9 
+1.000 0.700 0.412 0.148 -0.079 -0.258 -0.376 -0.421 -0.382 -0.245 
+
+这显然不同于我通过滞后序列计算出的自相关。
+我猜 acf 函数在某种程度上校正了样本大小，因为当样本大小没有太大变化时差异较小（例如，使用 1:1000 而不是 1:10）。此外，我预计图中的蓝色虚线显著性会随着样本量的减少而向外扩展，但它被绘制为一条水平线，因此由于阈值没有向外扩展，因此向内校正相关性以保持阈值的显著性不变是合理的。
+那么问题是：
+
+acf 是否校正了样本量？如果答案是肯定的，它如何校正样本量？
+该校正是否解释了通过滞后序列计算出的相关性与 acf 函数的结果之间的差异？
+如果不是，我对自相关是什么以及 acf 的作用的理解是否错误？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/651999/interpreting-autocorrelation-as-computed-by-r-acf-function-in-a-very-simple-case</guid>
+      <pubDate>Tue, 30 Jul 2024 11:15:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>我可以使用嵌套交叉验证中的投票来获得估计量吗？</title>
+      <link>https://stats.stackexchange.com/questions/651998/can-i-use-voting-in-nested-cross-validation-to-obtain-estimator</link>
+      <description><![CDATA[新手警告：首次发帖，所以请保持温柔 :-)
+我研究过嵌套交叉验证（例如在这篇 Medium 文章中）。我知道我能够从外循环中获得平均分数，并且这些分数应该比从任意训练/测试分割中获得的分数更好地估计泛化能力。
+获得模型的性能很棒，但最终不是我的目标。我想要的是做出预测，比如在二元分类问题中。理想情况下，我希望估算器的表现与我从嵌套交叉验证中获得的平均分数一样。
+因此，我所做的是在外循环中对从估算器获得的预测实施一个简单的投票机制。
+来自 sklearn.model_selection 导入 cross_val_score
+来自 sklearn.ensemble 导入 RandomForestClassifier
+来自 sklearn.model_selection 导入 GridSearchCV、KFold
+来自 sklearn.metrics 导入 roc_auc_score
+来自 sklearn.datasets 导入 make_classification
+
+# 示例数据集
+X, y = make_classification(n_samples=1000, n_features=20, random_state=42)
+
+# 要调整的超参数
+param_grid = {
+&#39;n_estimators&#39;: [50, 100],
+&#39;max_depth&#39;: [None, 10, 20],
+}
+# 用于超参数调整的内部 CV
+grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5, verbose=1,scoring=&#39;roc_auc&#39;)
+# 用于模型评估的外部 CV
+outer_cv = KFold(n_splits=5)
+results = cross_validate(grid_search, X, y, cv=outer_cv,scoring=&#39;roc_auc&#39;,return_estimator=True)
+y_predictions = np.ndarray((len(results[&#39;estimator&#39;]), len(X), 2))
+estimators = results[&#39;estimator&#39;]
+for i, estimator in enumerate(estimators):
+# 现在我们需要对每个样本进行投票
+y_pred = estimator.predict_proba(X)
+y_predictions[i] = y_pred
+
+# 现在我们可以计算平均预测
+y_pred = y_predictions.mean(axis=0)
+# 并使用 argmax 获得最可能的类
+y_pred = np.argmax(y_pred, axis=1)
+
+print(&quot;ROC AUC: &quot;, roc_auc_score(y, y_pred))
+print(classification_report(y, y_pred))
+
+但是，这个估计器的性能接近完美，显然表明过度拟合。
+我的假设错了吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651998/can-i-use-voting-in-nested-cross-validation-to-obtain-estimator</guid>
+      <pubDate>Tue, 30 Jul 2024 10:53:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 huggingface 模型上执行模型截断/切片？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/651997/how-would-you-perform-model-truncating-slicing-on-a-huggingface-model</link>
+      <description><![CDATA[嗨，我想知道是否有任何方法可以在 pytorch 上对 Huggingface CV 模型（例如 MobileNetv1）执行模型切片/截断？据我搜索，互联网上大多数主题都与 Transformers 有关。我想知道是否可以截断 CV 模型，如果可以，如何操作？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651997/how-would-you-perform-model-truncating-slicing-on-a-huggingface-model</guid>
+      <pubDate>Tue, 30 Jul 2024 10:23:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>温度矩阵的比较——统计结果不符合实际情况？</title>
+      <link>https://stats.stackexchange.com/questions/651993/comparison-of-temperature-matrix-statistical-result-not-practical-reality</link>
+      <description><![CDATA[我遇到了以下问题：我想在 Python 中比较热图像（数据以大矩阵/每个像素一个值的形式存在，50x300，数字介于 800 和 1000,0 摄氏度之间）并确定它们是否不同。只有在实际发生相关变化时，图片才应该传输到服务器。因此，比较的是新图片和前一张图片。我想找到一种自动执行此过程的方法/算法。哪些统计方法是相关的？
+我有几个数据集，并且知道其中一些数据应该在测试中被视为不同，而另一些数据则被视为相似（由专家事先评估）。我尝试了配对 t 检验、Wilcoxon 检验，并对图片中的不同感兴趣区域进行检验。结果总是图像明显不同。这不是实际情况。有些图片实际上没有区别。
+是否有未考虑的不同测试/修改测试的方法？统计检验是否不适合这个问题？有什么建议可以指导我如何继续？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651993/comparison-of-temperature-matrix-statistical-result-not-practical-reality</guid>
+      <pubDate>Tue, 30 Jul 2024 09:28:46 GMT</pubDate>
+    </item>
     <item>
       <title>线性回归模型构建：我是否需要包含之前证明对模型很重要的变量？</title>
       <link>https://stats.stackexchange.com/questions/651992/linear-regression-model-building-do-i-need-to-include-variables-previously-prov</link>
-      <description><![CDATA[对于一个学校项目，我们需要分析三个研究问题：
+      <description><![CDATA[对于线性回归入门课程的学校项目，我们需要分析三个研究问题：
 
-肥料类型会影响玉米产量吗？
-玉米品种会影响玉米产量吗？
+肥料类型会影响玉米产量吗？（产量 ~ 肥料）
+玉米品种会影响玉米产量吗？（产量 ~ 品种）
 环境/管理因素会影响玉米产量吗？（降雨、温度、除草剂使用等）
 
-当我分析前两个研究问题（方差分析 + t 检验）时，我发现肥料类型确实似乎显著影响玉米产量，而玉米品种则不会。现在对于第三个研究问题，我想知道我是否需要在线性模型中包含肥料类型，因为我已经知道它很重要，或者我是否可以将其排除在外，因为我正在尝试在此问题中寻找肥料类型以外的其他变量的影响。]]></description>
+当我分析前两个研究问题（方差分析 + t 检验）时，我发现肥料类型确实似乎显著影响玉米产量，而玉米品种则不会。现在对于第三个研究问题，我想知道我是否需要在线性模型中包含肥料类型，因为我已经知道它很重要，或者我是否可以将其排除在外，因为我正在尝试在这个问题中找到肥料类型以外的其他变量的影响，并且可折叠性在这里适用。]]></description>
       <guid>https://stats.stackexchange.com/questions/651992/linear-regression-model-building-do-i-need-to-include-variables-previously-prov</guid>
       <pubDate>Tue, 30 Jul 2024 08:56:32 GMT</pubDate>
     </item>
@@ -80,129 +292,14 @@ $Y= \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \epsilon$
       <pubDate>Tue, 30 Jul 2024 06:37:57 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 R 中根据年龄和性别匹配三组？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/651985/how-can-i-match-three-groups-based-on-age-and-sex-in-r</link>
-      <description><![CDATA[我有一个数据集，其中包含 7040 名慢性背痛患者（第 1 组）、4574 名急性背痛患者（第 2 组）和 47860 名无痛患者（第 3 组）。我想使用 RStudio 根据年龄和性别匹配这些组。鉴于无痛对照组的数量比其他组多，应采用 1:1:3 的比例。
-我尝试使用 RStudio 中的“matchIt”包进行匹配：
-set.seed(123)
-
-## 将慢性背痛 (CBP) 与无痛对照组按 1:3 的比例进行匹配
-match_pain_free &lt;- matchit(group ~ age + sex, 
-data = df1_filtered %&gt;% filter(group %in% c(&quot;pain free&quot;, &quot;chronic back pain&quot;)),
-method = &quot;nearest&quot;, 
-ratio = 3)
-
-matched_pa​​in_free &lt;- match.data(match_pain_free)
-
-## 从“matched_pa​​in_free”中提取匹配的无痛对照组和匹配的 CBP
-matched_pa​​in_free_controls &lt;-匹配的疼痛 (组 == &quot;无痛&quot;)
-匹配的 cbp &lt;- 匹配的疼痛 (组 == &quot;慢性背痛&quot;)
-
-## 以 1:1 的比例将 CBP 与急性背痛 (ABP) 匹配
-匹配的 abp &lt;- matchit(组 ~ 年龄 + 性别, 
-数据 = df1_filtered %&gt;% 过滤器(组 %in% c(&quot;急性背痛&quot;, &quot;慢性背痛&quot;)),
-方法 = &quot;最近&quot;, 
-比率 = 1)
-
-匹配的 abp &lt;- match.data(match_abp)
-
-## 提取匹配的 ABP 和 CBP
-匹配的 abp &lt;- 匹配的 abp %&gt;% 过滤器(组 == &quot;急性背痛&quot;)
-
-## 结合匹配的数据集合并到单个数据框中
-final_matched_df &lt;- bind_rows(matched_pa​​in_free_controls,matched_cbp,matched_abp)
-table(final_matched_df$group)
-
-但是，当我检查最终匹配数据集中的组分布时，仍然有 7040 名慢性背痛患者、4574 名急性背痛患者和 21120 名无痛患者。我理解这是因为我首先将 CBP 与无痛患者匹配，然后在第二步将 ABP 与 CBP 匹配。有没有办法在一个步骤内匹配这三个组，以便每个 CBP 都与 ABP 匹配，最终分布为 4574（急性背痛）、4574（慢性背痛）和 13722（无痛）？
-感谢您的帮助。
-致以诚挚的问候]]></description>
-      <guid>https://stats.stackexchange.com/questions/651985/how-can-i-match-three-groups-based-on-age-and-sex-in-r</guid>
-      <pubDate>Tue, 30 Jul 2024 04:11:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>统计技术建议</title>
-      <link>https://stats.stackexchange.com/questions/651984/statistical-technique-recommendation</link>
-      <description><![CDATA[研究背景：
-当您在网上购物时，您可能最初购买一种产品，但最终购买另一种产品。
-研究问题：
-我的目标是了解最终购买的产品相对于原始产品有哪些优势，使消费者最终购买它们而不是原始产品。我对分析结果的形式很灵活，但如果能够用商业人士理解的术语来解释这一点就更好了，例如：
-
-&quot;在电器产品类别中，随着最终购买产品的保修期增加 1 年，消费者购买该产品的可能性比原产品高 5%&quot;
-&quot;在手机类别中，最终购买的产品每增加一百万像素，消费者购买该产品的可能性就会增加 12%，如果没有原产品的颜色多样性，这一比例就会降低到 4%。&quot;
-&quot;由于“锚定效应”，如果原产品的价格比最终购买的产品高出至少 10%，消费者更有可能购买后者，即使其平均客户评分低 1点。”
-
-数据：
-我的数据显示了消费者在查看了 10000 多种原产产品后最终购买的前 10 种产品。数据样本如下所示。行是原产产品的 SKU，列是最终购买的 SKU。例如，当消费者查看 SKU 1001（第一行）时，他们最终购买的 SKU 通常是 [6039, 6134,4762 4754,4793,3144,4456,8146,8237,2754]
-
-对于每个 SKU，我都有几十种产品特征的数据，例如价格、平均客户评分、发布年份、付款计划、颜色种类等。
-我的问题：通过比较查看的产品与最终购买的产品的特征，我应该研究哪些统计技术和方法来回答这个研究问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651984/statistical-technique-recommendation</guid>
-      <pubDate>Tue, 30 Jul 2024 04:05:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>对数尺度图中的相对误差线与绝对误差线</title>
-      <link>https://stats.stackexchange.com/questions/651983/relative-vs-absolute-error-bars-in-log-scaled-plots</link>
-      <description><![CDATA[关于在对数刻度图上显示误差线的正确方法，看似知识渊博的来源提供了相互矛盾的信息。
-
-$log_{10}(x \pm \Delta x)$ 显示绝对误差。一方面，它很容易解释：如果我们以某种概率知道 $x$ 在 $\vert x - \Delta x, x + \Delta x \vert$ 内，那么对数转换后该概率不会改变。我们可以读取刻度标记并轻松了解间隔。另一方面，当 $\Delta x$ 接近 $x$ 时，误差线看起来不对称，各种来源都认为这是不好的（有时没有解释，有时因为它在视觉上暗示该值低于平均值的概率大于高于平均值的概率）。对于 $\Delta x \ge x$，下部误差线部分将延伸出图外。
-
-$x \pm \frac{\Delta x}{x \ln 10}$ 使用不确定性传播显示相对误差。误差线在视觉上是对称的。但我不明白当根据刻度线读取时，您应该如何解释长度。
-
-
-例如：
-
-这里，第一个点（蓝色）的 $x = 8000$ 和 $\Delta x = 7000$，第二个点的 $x = 5000$ 和 $\Delta x = 500$第二（黄色）。当 $\Delta x \ll x$（黄色）时，两种方法基本无法区分。当 $\Delta x \approx x$（蓝色）时，条形图显示范围从 3,335 到 19,190。 您应该如何解释这些数字？
-显示误差线的正确方法是什么？为什么？
-
-各种来源：
-
-Eric Stuve 的讲座
-https://physics.stackexchange.com/q/95254/31907（请注意，我对我的评论中的第二个答案也感到困惑）
-对数-对数图上的相对误差
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/651983/relative-vs-absolute-error-bars-in-log-scaled-plots</guid>
-      <pubDate>Tue, 30 Jul 2024 03:30:15 GMT</pubDate>
-    </item>
-    <item>
       <title>参考请求：柯西分布随机变量族在线性分式变换下封闭的历史</title>
       <link>https://stats.stackexchange.com/questions/651982/reference-request-history-of-the-fact-that-the-family-of-cauchy-distributed-ran</link>
-      <description><![CDATA[我在 MathOverflow 上问过这个问题，但得到的关注很少，也没有答案。
-假设一个位置尺度概率分布族具有这样的性质：如果随机变量 $X$ 的分布属于该族，并且 $a,b,c,d\in \mathbb R$ 和 $ad-bc\ne0$ 则 $(aX+b)/(cX+d)$ 的分布也属于该族。那么这就是柯西分布族。这在 Frank B. Knight 的《柯西型的特征》中得到了证明，美国数学会志。 Soc. 55 (1976), 130–135.
+      <description><![CDATA[我在 MathOverflow 上询问了这个问题，但几乎没有人关注，也没有人回答。
+假设一个位置尺度概率分布族具有这样的属性：如果随机变量 $X$ 的分布属于该族，并且 $a,b,c,d\in \mathbb R$ 和 $ad-bc\ne0$ 则 $(aX+b)/(cX+d)$ 的分布也属于该族。那么这就是柯西分布族。这在 Frank B. Knight 的《柯西型的特征》中得到了证明，Proc. Amer. Math. Soc. 55 (1976), 130–135.
 一个更简单的结果是其逆命题：柯西型分布族在该运算下是封闭的。
 应该引用哪些书籍或论文来表明这个更简单的命题，即 Knight 论文所说的逆命题，已经存在了一段时间？]]></description>
       <guid>https://stats.stackexchange.com/questions/651982/reference-request-history-of-the-fact-that-the-family-of-cauchy-distributed-ran</guid>
       <pubDate>Tue, 30 Jul 2024 02:57:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>假设 $E[\{g(X) - \hat{g}(X)\}^2]$ 为 $O(a_n)$，​​且 $Y$ 为二进制。$(\hat{f}(X)-Y)(g(X)-\hat{g}(X))^2$ 的 $O_p$ 是多少？</title>
-      <link>https://stats.stackexchange.com/questions/651980/suppose-e-gx-hatgx-2-is-oa-n-and-y-is-binary-whats-the</link>
-      <description><![CDATA[假设 $E[\{f(X) - \hat{f}(X)\}^2]$ 和 $E[\{g(X) - \hat{g}(X)\}^2]$ 是 $O(a_n)$。假设 $Y_i$ 是二进制 0/1 随机变量，$f(\cdot)$ 介于 -1 和 1 之间，$g(\cdot)$ 介于 0 和 1 之间。对于，$O_p$ 的最大值是多少
-$$\frac{1}{n}\sum_{i=1}^n [(f(X_i) - \hat{f}(X_i))g(X_i) + (\hat{f}(X_i) - Y_i)(g(X_i) - \hat{g}(X_i))]^2?$$
-展开平方，我们得到一个和3 个项的和：
-\begin{align*}
-&amp;\frac{1}{n}\sum_{i=1}^n [(f(X_i) - \hat{f}(X_i))g(X_i) + (\hat{f}(X_i) - Y_i)(g(X_i) - \hat{g}(X_i))]^2\\
-&amp;=\frac{1}{n}\sum_{i=1}^n \{f(X_i) - \hat{f}(X_i)\}^2g^2(X_i)+2(f(X_i) - \hat{f}(X_i))g(X_i)(\hat{f}(X_i) - Y_i)(g(X_i) - \hat{g}(X_i)) + (\hat{f}(X_i) - Y_i)^2(g(X_i) - \hat{g}(X_i))^2
-\end{align*&gt;
-项 1：$\frac{1}{n}\sum_{i=1}^n \{f(X_i) - \hat{f}(X_i)\}^2g^2(X_i)$
-由于 $g(X_i)$ 有界，且 $E[\{f(X)-\hat{f}(X)\}^2]$ 为 $O(a_n)$，因此 项 1 为 $O(a_n)$.
-项 2：$\frac{2}{n}\sum_{i=1}^n (f(X_i) - \hat{f}(X_i))g(X_i)(\hat{f}(X_i) - Y_i)(g(X_i) - \hat{g}(X_i))$
-因为 $g(X_i) \leq 1$ 且 $|\hat{f}(X_i) - Y_i| \leq 2$，则我们有
-\begin{align*}
-&amp;\frac{2}{n}\sum_{i=1}^n (f(X_i) - \hat{f}(X_i))g(X_i)(\hat{f}(X_i) - Y_i)(g(X_i) - \hat{g}(X_i))\\ &amp;\leq C \sqrt{\left(\frac{1}{n}\sum_{i=1}^n \{f(X_i)-\hat{f}(X_i)\}^2\right)\left(\frac{1}{n}\sum_{i=1}^n \{g(X_i) - \hat{g}(X_i)\}^2\right)}\\
-&amp;= O_p(a_n)
-\end{align*&gt;
-其中 $C$ 是某个正常数，不等式由柯西-施瓦茨定理成立。
-第 3 项：$\frac{1}{n}\sum_{i=1}^n (\hat{f}(X_i) - Y_i)^2(g(X_i) - \hat{g}(X_i))^2$
-因为 $|\hat{f}(X_i) - Y_i| \leq 2$
-$$\frac{1}{n}\sum_{i=1}^n (\hat{f}(X_i) - Y_i)^2(g(X_i) - \hat{g}(X_i))^2 \leq \frac{4}{n}\sum_{i=1}^n (g(X_i) - \hat{g}(X_i))^2 = O_p(a_n)$$
-总之，我们有
-\begin{align*}
-&amp;\frac{1}{n}\sum_{i=1}^n [(f(X_i) - \hat{f}(X_i))g(X_i) + (\hat{f}(X_i) - Y_i)(g(X_i) - \hat{g}(X_i))]^2\\ &amp;= O_p(a_n) + O_p(a_n) + O_p(a_n)\\
-&amp;= O_p(a_n)
-\end{align*&gt;
-我上面的工作正确吗？我不确定第 2 项和第 3 项。具体来说，虽然$|\hat{f}(X_i) - Y_i|$的上限为 2，但考虑到它涉及估计量$\hat{f}(X_i)$，可以将其取出吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651980/suppose-e-gx-hatgx-2-is-oa-n-and-y-is-binary-whats-the</guid>
-      <pubDate>Tue, 30 Jul 2024 02:22:39 GMT</pubDate>
     </item>
     <item>
       <title>比较非负随机变量的分数矩</title>
@@ -214,78 +311,6 @@ $$\frac{1}{n}\sum_{i=1}^n (\hat{f}(X_i) - Y_i)^2(g(X_i) - \hat{g}(X_i))^2 \leq \
 独立平方均匀随机变量之和的平方根期望的指导性答案），但无法对积分设置任何界限。]]></description>
       <guid>https://stats.stackexchange.com/questions/651978/comparing-fractional-moments-of-non-negative-random-variables</guid>
       <pubDate>Tue, 30 Jul 2024 00:38:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>geom_smooth 方法：选择哪一个？</title>
-      <link>https://stats.stackexchange.com/questions/651977/geom-smooth-method-which-one-to-choose</link>
-      <description><![CDATA[我如何确保我在情节中使用了正确的线条？
-该图旨在显示社交媒体平台上有多少条评论被注释为“支持 AR”等。在哪一年。
-当我使用 geom_smooth(method = &#39;lm&#39;...) 时，我得到以下信息：
-
-当我使用 geom_smooth(method = &#39;auto&#39;...) 时，我得到以下信息：
-
-我真的不知道它们之间的区别（lm、glm、 gam、loess、rlm……）。您能否帮我说明一下我是否可以在我的图中使用这些线中的任何一条，如果可以，我应该如何在这些选项中进行选择？]]></description>
-      <guid>https://stats.stackexchange.com/questions/651977/geom-smooth-method-which-one-to-choose</guid>
-      <pubDate>Mon, 29 Jul 2024 23:53:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 glmmTMB 跨图和日期指定 GLVM</title>
-      <link>https://stats.stackexchange.com/questions/651973/specifying-glvm-with-glmmtmb-across-plots-and-dates</link>
-      <description><![CDATA[根据此插图，我正在探索使用 glmmTMB 来将潜在变量模型拟合到多元丰度数据。我对 glmmTMB 特别感兴趣，因为 ordbeta() 系列在包含按采样图分组采样日期的随机效应时可以很好地处理我的数据。我想扩展它以检查物种之间的关系以及包括其他固定效应，但我不知道如何指定按日期和图分组的物种的降秩结构，或者这是否可能？我认为我有太多分类单元，无法使用正常的混合模型策略来拟合分类单元与固定/随机效应之间的相互作用。我探索过其他软件包，例如 gllvm，但到目前为止，glmmTMB 似乎能提供最佳残差。
-以下是使用公共数据的示例，应该完全可重现：
-# R 4.2.2.
-library(neonUtilities) # 2.4.1
-library(dplyr) # 1.1.4
-library(tidyr) # 1.3.1
-library(glmmTMB) # 1.1.8
-library(DHARMa) # 0.4.6
-
-# 下载和格式化数据
-d0 &lt;- neonUtilities::loadByProduct(&#39;DP1.10058.001&#39;, &#39;WREF&#39;, check.size = F) |&gt;
-(`[[`)(&#39;div_1m2Data&#39;) |&gt;
-dplyr::select(c(plotID, endDate, scientificName, percentCover)) |&gt;
-dplyr::mutate(endDate = as.character(endDate), cover = percentCover / 100, percentCover = NULL) |&gt;
-dplyr::filter(endDate &gt; as.POSIXct(as.Date(&#39;2021-01-01&#39;))) |&gt;
-na.omit() |&gt;
-tidyr::pivot_wider(names_from = scientificName, values_from = cover, values_fn = mean) |&gt;
-tidyr::pivot_longer(cols = -c(1, 2), names_to = &#39;scientificName&#39;, values_to = &#39;cover&#39;) |&gt;
-dplyr::mutate(cover = ifelse(is.na(cover), 0, cover))
-
-# 仅对日期/图具有随机效应的 glmmTMB 模型拟合良好，但没有关于物种的信息
-c0 &lt;- glmmTMB::glmmTMBControl(optCtrl = list(iter.max = 1e3, eval.max = 1e3), start_method = list(method = NULL, jitter.sd = 0))
-m0 &lt;- glmmTMB::glmmTMB(cover ~ (1|endDate/plotID), data = d0, family = ordbeta(), control = c0, start = list())
-s0 &lt;- DHARMa::simulateResiduals(m0)
-
-DHARMa::plotResiduals(s0, form = d0$endDate)
-DHARMa::plotResiduals(s0, form = d0$plotID)
-DHARMa::plotResiduals(s0, form = d0$scientificName)
-
-# glmmTMB 多物种模型，RR 按 plotID 分组，拟合度较差
-m1 &lt;- glmmTMB(cover ~ 1 + rr(scientificName + 0|plotID, d = 2), data = d0, family = ordbeta(), control = c0, start = list())
-s1 &lt;- DHARMa::simulateResiduals(m1)
-DHARMa::plotResiduals(s1, form = d0$endDate)
-DHARMa::plotResiduals(s1, form = d0$plotID)
-DHARMa::plotResiduals(s1, form = d0$scientificName)
-
-任何帮助或观点都值得赞赏！]]></description>
-      <guid>https://stats.stackexchange.com/questions/651973/specifying-glvm-with-glmmtmb-across-plots-and-dates</guid>
-      <pubDate>Mon, 29 Jul 2024 21:50:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>遗漏变量偏差何时非零？</title>
-      <link>https://stats.stackexchange.com/questions/651968/when-is-omitted-variable-bias-non-zero</link>
-      <description><![CDATA[我刚刚阅读了关于遗漏变量偏差的维基百科页面：[wiki for OVB][1]，我对该页面的主要声明之一感到困惑，即预期遗漏变量偏差为 0，当且仅当遗漏变量与任何回归变量的相关性为零。
-但是，他们给出的遗漏变量偏差方程是：
-$$\widehat{\beta}= \beta +(X&#39;X)^{-1}X&#39;z\gamma + (X&#39;X)^{-1}X&#39;\epsilon, $$
-其中 $X$ 是我们的 $N \times p$ p 回归变量矩阵，$z$ 是我们的 $N \times 1$ 省略的变量，$\widehat{\beta}$ 是省略 $z$ 后的系数估计值，$\beta$ 是包含 $z$ 后的估计值，$\gamma$ 是完全回归中 $z$ 的回归系数，$\epsilon$ 是残差。
-与文章所说的相反，这个等式似乎表明，只要 内积$X&#39;z$ 非零，就会存在预期的省略变量偏差，而不是当它们不相关时。这是非常不同的，因为回归量和省略的变量$z$都不被认为是中心化的/零均值的。
-例如，假设回归量$X$和省略的变量$z$是伯努利回归量，其中$p=.5$。那么项 $(X&#39;X)^{-1}$ 是一个矩阵，其期望在对角线上为 $N$，在其他地方为 $\frac{1}{4}N$，而项 $X&#39;z$ 的期望为 $[\frac{1}{4}N,...,\frac{1}{4}N]^T$。显然，尽管这些变量都不相关，但它们乘积的期望不为 0。
-那么，维基百科文章该部分的整体观点是否错误？在一般情况下，我们的回归量不是中心化的，均值为 0 的变量，即使回归量都是不相关的，我们也不能忽略变量偏差吗？
-任何有助于理解这种明显不一致之处的帮助都将不胜感激。
--Paul
-[1]: https://en.wikipedia.org/wiki/Omitted-variable_bias]]></description>
-      <guid>https://stats.stackexchange.com/questions/651968/when-is-omitted-variable-bias-non-zero</guid>
-      <pubDate>Mon, 29 Jul 2024 20:55:16 GMT</pubDate>
     </item>
     </channel>
 </rss>
