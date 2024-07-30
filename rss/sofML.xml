@@ -4,7 +4,120 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 30 Jul 2024 18:20:46 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 30 Jul 2024 21:15:42 GMT</lastBuildDate>
+    <item>
+      <title>如何使用 opencv 检测焊带中的缺陷（例如孔洞）</title>
+      <link>https://stackoverflow.com/questions/78813507/how-can-i-detect-defectssuch-as-holes-in-this-welding-strip-using-opencv</link>
+      <description><![CDATA[参考图：带孔的焊条：https://i.sstatic.net/VaVQX3th.jpg
+正常焊条：https://i.sstatic.net/MBcyyIyp.jpg
+我在使用 opencv 检测缺陷（如孔、不均匀性）时遇到问题。我是 opencv 新手，尝试过轮廓检测、边缘检测，但没有得到想要的结果。我想使用 opencv 构建一个算法，检测这些孔并标记它们，而不标记任何其他不必要的东西，这些东西不是缺陷。
+这是我在代码中使用的方法
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+# 加载图像
+image_path = &quot;sample weld strip.jpg&quot;
+image = cv2.imread(image_path)
+
+# 将图像转换为 HSV 颜色空间
+hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+# 定义焊缝条的 HSV 范围
+lower_hsv = (1, 1, 1)
+upper_hsv = (177, 255, 255)
+
+# 应用 HSV 掩码
+mask = cv2.inRange(hsv_image, lower_hsv, upper_hsv)
+masked_image = cv2.bitwise_and(image, image, mask=mask)
+
+# 转换为灰度
+gray_image = cv2.cvtColor(masked_image, cv2.COLOR_BGR2GRAY)
+
+# 应用高斯模糊
+blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
+
+# 使用 Canny 进行边缘检测
+edges = cv2.Canny(blurred_image, 50, 150)
+
+# 查找轮廓
+contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# 在重要轮廓（孔洞）周围绘制边界框
+holes_image = image.copy()
+for contour in contours:
+area = cv2.contourArea(contour)
+if 10 &lt;area &lt; 25：# 根据您的需要调整此阈值
+x, y, w, h = cv2.boundingRect(contour)
+cv2.rectangle(holes_image, (x, y), (x+w, y+h), (0, 0, 255), 2)
+
+我正在寻求有关此问题的帮助或指导。任何形式的意见或帮助都将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78813507/how-can-i-detect-defectssuch-as-holes-in-this-welding-strip-using-opencv</guid>
+      <pubDate>Tue, 30 Jul 2024 20:06:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何进行布尔分类处理</title>
+      <link>https://stackoverflow.com/questions/78813351/how-to-boolean-categorical-proccessing</link>
+      <description><![CDATA[将 pandas 导入为 pd
+从 sklearn.impute 导入 SimpleImputer
+从 sklearn.model_selection 导入 train_test_split
+从 sklearn.preprocessing 导入 StandardScaler、OneHotEncoder、OrdinalEncoder
+从 sklearn.pipeline 导入 Pipeline
+
+data = pd.read_csv(&#39;Datasets/StudentScore.csv&#39;)
+
+target = &#39;MathScore&#39;
+x = data.drop(data[[target, &#39;Unnamed: 0&#39;]], axis=1)
+y = data[target]
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+
+# 数值处理
+num_transformer = Pipeline(steps=[
+(&#39;imputer&#39;, SimpleImputer(strategy=&#39;median&#39;)),
+(&#39;scaler&#39;, StandardScaler())
+])
+
+x_train[[&#39;ReadingScore&#39;, &#39;WritingScore&#39;]] = num_transformer.fit_transform(x_train[[&#39;ReadingScore&#39;, &#39;WritingScore&#39;]])
+x_test[[&#39;ReadingScore&#39;, &#39;WritingScore&#39;]] = num_transformer.transform(x_test[[&#39;ReadingScore&#39;, &#39;WritingScore&#39;]])
+
+# 序数处理
+education_levels = [&quot;high school&quot;, &quot;some high school&quot;, &quot;some college&quot;, &quot;associate&#39;s degree&quot;, &quot;bachelor&#39;s degree&quot;,
+&quot;master&#39;s degree&quot;]
+
+ord_transformer = Pipeline(steps=[
+(&#39;imputer&#39;, SimpleImputer(strategy=&#39;most_frequent&#39;)),
+(&#39;encoder&#39;, OrdinalEncoder(categories=[education_levels])),
+])
+
+x_train[[&#39;ParentEduc&#39;]] = ord_transformer.fit_transform(x_train[[&#39;ParentEduc&#39;]])
+x_test[[&#39;ParentEduc&#39;]] = ord_transformer.transform(x_test[[&#39;ParentEduc&#39;]])
+
+# 名义处理
+nom_transformer = Pipeline(steps=[
+(&#39;imputer&#39;, SimpleImputer(strategy=&#39;most_frequent&#39;)),
+(&#39;encoder&#39;, OneHotEncoder())
+])
+
+x_train[[&#39;EthnicGroup&#39;]] = nom_transformer.fit_transform(x_train[[&#39;EthnicGroup&#39;]])
+x_test[[&#39;EthnicGroup&#39;]] = nom_transformer.transform(x_test[[&#39;EthnicGroup&#39;]])
+
+# 布尔处理
+bool_transformer = Pipeline(steps=[
+(&#39;imputer&#39;, SimpleImputer(strategy=&#39;most_frequent&#39;)),
+(&#39;encoder&#39;, OneHotEncoder(sparse_output=False)),
+])
+
+x_train[[&#39;Gender&#39;, &#39;LunchType&#39;, &#39;TestPrep&#39;]] = bool_transformer.fit_transform(
+x_train[[&#39;Gender&#39;, &#39;LunchType&#39;, &#39;TestPrep&#39;]])
+x_test[[&#39;Gender&#39;, &#39;LunchType&#39;, &#39;TestPrep&#39;]] = bool_transformer.transform(x_train[[&#39;Gender&#39;, &#39;LunchType&#39;, &#39;TestPrep&#39;]])
+
+
+我在尝试创建管道来处理布尔分类特征时遇到错误。具体来说，在训练集和测试集中的特征的 fit_transform 步骤中，我在 #nominal processing 和 #boolean processing 部分中收到了“ValueError：列的长度必须与键的长度相同”。你能帮我吗？谢谢！
+`
+如上所述：我在尝试创建管道来处理布尔分类特征时遇到错误。具体来说，在训练集和测试集中的特征的 fit_transform 步骤中，我在 #nominal processing 和 #boolean processing 部分中收到了“ValueError：列的长度必须与键的长度相同”。你能帮我吗？谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78813351/how-to-boolean-categorical-proccessing</guid>
+      <pubDate>Tue, 30 Jul 2024 19:12:18 GMT</pubDate>
+    </item>
     <item>
       <title>将两类图像分类器结合在一起</title>
       <link>https://stackoverflow.com/questions/78813144/combine-two-class-of-image-classifier-together</link>
@@ -68,22 +181,7 @@ print(&quot;SVM 训练已完成。&quot;)
       <pubDate>Tue, 30 Jul 2024 16:25:56 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 ML/DL 模型预测范围 [0, 0.1] 内的极小十进制值？</title>
-      <link>https://stackoverflow.com/questions/78812662/how-to-predict-extremely-small-decimal-values-in-range-0-0-1-with-an-ml-dl-mo</link>
-      <description><![CDATA[我正在处理一个数据集，其中所有值都介于 0 和 0.1 之间，最小的非零值为
-3.19526695102823×10^−8。我计划使用机器学习模型来预测这些值。
-我正在考虑使用最小-最大缩放或对数转换来缩放数据，以提高模型性能。但是，我担心精度问题，因为浮点精度非常小且有限（比如说 float32 精度）。
-问题：
-
-即使在缩放后，LSTM 模型是否能够有效地预测这些小值？
-基于树的模型可以很好地处理如此小的缩放值吗？
-是否有任何最佳实践或替代方法可以确保模型能够准确预测这个小范围内的值？
-]]></description>
-      <guid>https://stackoverflow.com/questions/78812662/how-to-predict-extremely-small-decimal-values-in-range-0-0-1-with-an-ml-dl-mo</guid>
-      <pubDate>Tue, 30 Jul 2024 15:51:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>我写了一个代码，运行时间太长</title>
+      <title>我写了一个代码，运行时间太长了[关闭]</title>
       <link>https://stackoverflow.com/questions/78812154/i-wrote-a-code-and-the-running-time-is-too-long</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78812154/i-wrote-a-code-and-the-running-time-is-too-long</guid>
@@ -114,11 +212,55 @@ ID
 制造年份
 
 任务：
-确定一个配置与另一个配置的相似程度。
+确定一种配置与另一种配置的相似程度。
 我假设将数据集中的每个条目表示为一个向量，并计算向量之间的余弦相似度。
 但是对于如何以数值形式表示值存在误解，例如车身类型：轿车、跨界车、轿跑车等。]]></description>
       <guid>https://stackoverflow.com/questions/78811479/how-to-determine-the-similarity-of-a-cars-configuration</guid>
       <pubDate>Tue, 30 Jul 2024 11:38:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 opencv 提取验证码</title>
+      <link>https://stackoverflow.com/questions/78810349/extract-captcha-with-opencv</link>
+      <description><![CDATA[我需要提取验证码，我正在研究 opencv。我的目标是可靠地解决这种形式的验证码。
+原始验证码
+我的临时解决方案是：
+
+用阈值转换二值图像
+检测凸面
+删除网格
+
+但是现在我不知道下一步该怎么写代码。
+有人能给我提供这个问题的关键字或解决方案吗？
+我的代码：
+import cv2
+import numpy as np
+
+image_path = &#39;captcha_wb.png&#39;
+image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+scale_percent = 200
+width = int(image.shape[1] * scale_percent / 100)
+height = int(image.shape[0] * scale_percent / 100)
+dim = (width, height)
+resized_image = cv2.resize(image, dim, interpolation = cv2.INTER_LINEAR)
+
+# kernel = np.ones((2, 2), np.uint8) 
+
+# 使用 cv2.erode() 方法 
+# erode_image = cv2.erode(resized_image, kernel, cv2.BORDER_REFLECT)
+
+_,thresholded_image = cv2.threshold(resized_image, 128, 255, cv2.THRESH_BINARY)
+
+# contours, _= cv2.findContours(thresholded_image, cv2.RETR_TREE, 
+# cv2.CHAIN_APPROX_SIMPLE) 
+
+cv2.imshow(&#39;Adaptive Gaussian&#39;,thresholded_image)
+
+如果 cv2.waitKey(0) &amp; 0xff == 27: 
+cv2.destroyAllWindows() 
+]]></description>
+      <guid>https://stackoverflow.com/questions/78810349/extract-captcha-with-opencv</guid>
+      <pubDate>Tue, 30 Jul 2024 07:38:09 GMT</pubDate>
     </item>
     <item>
       <title>CVAE 合成数据分布范围过窄</title>
@@ -187,6 +329,13 @@ FloatA、FloatB、 Cat[0:2]…
       <pubDate>Tue, 30 Jul 2024 01:26:23 GMT</pubDate>
     </item>
     <item>
+      <title>通过预训练模型预测对象不起作用</title>
+      <link>https://stackoverflow.com/questions/78809007/predicting-an-object-over-an-pretrained-model-is-not-working</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78809007/predicting-an-object-over-an-pretrained-model-is-not-working</guid>
+      <pubDate>Mon, 29 Jul 2024 20:50:17 GMT</pubDate>
+    </item>
+    <item>
       <title>TFLM“Interpreter->Invoke()”问题导致硬故障</title>
       <link>https://stackoverflow.com/questions/78808999/issues-with-tflm-interpreter-invoke-causing-hard-fault</link>
       <description><![CDATA[]]></description>
@@ -194,138 +343,11 @@ FloatA、FloatB、 Cat[0:2]…
       <pubDate>Mon, 29 Jul 2024 20:48:04 GMT</pubDate>
     </item>
     <item>
-      <title>语义分割中的数据增强[关闭]</title>
-      <link>https://stackoverflow.com/questions/78798068/data-augmentation-in-semantic-segmentation</link>
-      <description><![CDATA[我尝试对数据集执行数据增强，但得到的却是空白的白色图像，在蒙版上工作正常，但图像存在问题。
-如何解决这个问题？
-这是原始图像+蒙版
-增强图像+蒙版
-增强代码：
-seed = 24
-batch_size = 8
-
-img_datagen_args = dict(rescale = 1/255,
-rotation_range = 5,
-zoom_range = 0.1,
-Horizo​​ntal_flip = True,
-Vertical_flip = True,
-Fill_mode = &#39;nearest&#39;)
-
-mask_datagen_args = dict(rescale = 1/255,
-Rotation_range = 5,
-Zoom_range = 0.1,
-Horizo​​ntal_flip = True,
-Vertical_flip = True,
-Fill_mode = &#39;nearest&#39;,
-Preprocessing_function = lambda x: np.where(x&gt;0, 1, 0).astype(x.dtype))
-
-img_datagen = ImageDataGenerator(**img_datagen_args)
-img_generator = img_datagen.flow_from_directory(&#39;/content/split_dataset/train/images/&#39;,
-Seed = Seed,
-Batch_size = Batch_size,
-Class_mode = None)
-
-mask_datagen = ImageDataGenerator(**mask_datagen_args)
-mask_generator = mask_datagen.flow_from_directory(&#39;/content/split_dataset/train/masks/&#39;,
-seed = seed,
-batch_size = batch_size,
-color_mode = &#39;grayscale&#39;,
-class_mode = None)
-
-valid_img_generator = img_datagen.flow_from_directory(&#39;/content/split_dataset/test/images/&#39;,
-seed = seed,
-batch_size = batch_size,
-class_mode = None)
-
-valid_mask_generator = mask_datagen.flow_from_directory(&quot;/content/split_dataset/test/masks/&quot;,
-seed = seed,
-batch_size = batch_size,
-color_mode = &#39;grayscale&#39;,
-class_mode = None)
-
-train_generator = zip(img_generator, mask_generator)
-valid_generator = zip(valid_img_generator, valid_mask_generator)
-
-可视化代码：
-import matplotlib.pyplot as plt
-
-# 获取一批图像和掩码
-img_batch, mask_batch = next(zip(img_generator, mask_generator))
-
-# 绘制一些增强图像
-fig, ax = plt.subplots(1, 4, figsize=(20, 5))
-for i in range(4):
-ax[i].imshow(img_batch[i]) # 对灰度图像使用 cmap=&#39;gray&#39;
-ax[i].set_title(f&quot;Augmented Image {i+1}&quot;)
-ax[i].axis(&#39;off&#39;)
-plt.show()
-
-# 绘制相应的掩码
-fig, ax = plt.subplots(1, 4, figsize=(20, 5))
-for i in range(4):
-ax[i].imshow(mask_batch[i]) # 如果是灰度，则挤压以删除通道维度
-ax[i].set_title(f&quot;增强蒙版 {i+1}&quot;)
-ax[i].axis(&#39;off&#39;)
-plt.show()
-]]></description>
-      <guid>https://stackoverflow.com/questions/78798068/data-augmentation-in-semantic-segmentation</guid>
-      <pubDate>Fri, 26 Jul 2024 12:32:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>Pytorch 展开和折叠：如何将这个图像张量重新组合在一起？</title>
-      <link>https://stackoverflow.com/questions/64048720/pytorch-unfold-and-fold-how-do-i-put-this-image-tensor-back-together-again</link>
-      <description><![CDATA[我尝试使用展开来过滤大小为 256x256 的单通道 2D 图像，以创建重叠为 8 的 16x16 块。如下所示：
-# I = [256, 256] image
-kernel_size = 16
-stride = bx/2
-patches = I.unfold(1, kernel_size, 
-int(stride)).unfold(0, kernel_size, int(stride)) # size = [31, 31, 16, 16]
-
-
-我已经开始尝试使用折叠将图像重新组合在一起，但还没有成功。我尝试使用视图让图像“适合”它应该的方式，但我不知道这将如何保留原始图像。也许我想太多了。
-# patches.shape = [31, 31, 16, 16]
-patches = = filt_data_block.contiguous().view(-1, kernel_size*kernel_size) # [961, 256]
-patches = patches.permute(1, 0) # size = [951, 256]
-
-如能得到任何帮助，我们将不胜感激。非常感谢。]]></description>
-      <guid>https://stackoverflow.com/questions/64048720/pytorch-unfold-and-fold-how-do-i-put-this-image-tensor-back-together-again</guid>
-      <pubDate>Thu, 24 Sep 2020 14:34:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>为 LeNet 创建数据集？</title>
-      <link>https://stackoverflow.com/questions/36509340/create-dataset-for-lenet</link>
-      <description><![CDATA[我正在做一个项目，我想创建一个绘制人脸的数据集（概念上类似于 CUFS 数据集）。除了手绘人脸之外，我该如何从“我已将这些图像文件上传到我的计算机并确保它们都具有相同的尺寸”到拥有一个随时可用的数据集？（我想用这个数据集训练/测试 LeNet。）我以前从未创建过自己的数据集，所以不太确定如何开始。
-谢谢！]]></description>
-      <guid>https://stackoverflow.com/questions/36509340/create-dataset-for-lenet</guid>
-      <pubDate>Fri, 08 Apr 2016 21:05:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>mAP 指标是什么以及如何计算？[关闭]</title>
-      <link>https://stackoverflow.com/questions/36274638/what-is-the-map-metric-and-how-is-it-calculated</link>
-      <description><![CDATA[在计算机视觉和物体检测中，一种常见的评估方法是mAP。
-它是什么以及如何计算？]]></description>
-      <guid>https://stackoverflow.com/questions/36274638/what-is-the-map-metric-and-how-is-it-calculated</guid>
-      <pubDate>Tue, 29 Mar 2016 03:03:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>我如何检测实心圆圈的网格？</title>
-      <link>https://stackoverflow.com/questions/35320416/how-can-i-detect-a-grid-of-filled-circles</link>
-      <description><![CDATA[给定一个四子棋盘的图像，我想要识别并输出棋盘的状态（一个 6×7 的矩阵）。我尝试的第一种方法是基于找到圆，然后在它们的质心处寻找网格图案。
-这是我使用的 open-cv 函数：
-circles = cv2.HoughCircles(bw_im,
-cv2.cv.CV_HOUGH_GRADIENT,
-dp=DP,
-minDist=MIN_DIST,
-minRadius=MIN_RADIUS,
-maxRadius=MAX_RADIUS)
-
-我添加了非最大抑制，但结果并不好。
-有没有比直接处理霍夫圆更好的方法，也许有某种我不知道的填充圆形形态学操作。
-这是一个示例输入图像：
-
-您可以假设输入图片已被裁剪，并且具有与上图类似的边距（我有另一段代码可以处理这个问题）。]]></description>
-      <guid>https://stackoverflow.com/questions/35320416/how-can-i-detect-a-grid-of-filled-circles</guid>
-      <pubDate>Wed, 10 Feb 2016 16:18:37 GMT</pubDate>
+      <title>梯度下降应用</title>
+      <link>https://stackoverflow.com/questions/78804107/gradient-descent-application</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78804107/gradient-descent-application</guid>
+      <pubDate>Sun, 28 Jul 2024 15:15:45 GMT</pubDate>
     </item>
     <item>
       <title>保存视频中每帧的边界框坐标</title>
@@ -335,6 +357,13 @@ maxRadius=MAX_RADIUS)
 对于任何有计算机视觉经验的人来说 - 是否有任何开源软件可以完成我的要求？如果没有，您会推荐使用什么技术来构建此工具？有入门代码吗？]]></description>
       <guid>https://stackoverflow.com/questions/30060567/saving-bounding-box-coordinates-for-each-frame-in-a-video</guid>
       <pubDate>Tue, 05 May 2015 18:27:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 scikit-learn 在朴素贝叶斯分类器中混合分类数据和连续数据</title>
+      <link>https://stackoverflow.com/questions/14254203/mixing-categorial-and-continuous-data-in-naive-bayes-classifier-using-scikit-lea</link>
+      <description><![CDATA[我正在使用 Python 中的 scikit-learn 开发一种分类算法来预测某些客户的性别。除此之外，我想使用朴素贝叶斯分类器，但我的问题是我有分类数据（例如：“在线注册”、“接受电子邮件通知”等）和连续数据（例如：“年龄”、“会员期限”等）的混合。我以前没有用过 scikit，但我认为高斯朴素贝叶斯适合连续数据，而伯努利朴素贝叶斯可用于分类数据。但是，由于我想在我的模型中同时拥有分类数据和连续数据，我真的不知道如何处理这个问题。任何想法都将不胜感激！]]></description>
+      <guid>https://stackoverflow.com/questions/14254203/mixing-categorial-and-continuous-data-in-naive-bayes-classifier-using-scikit-lea</guid>
+      <pubDate>Thu, 10 Jan 2013 09:08:22 GMT</pubDate>
     </item>
     </channel>
 </rss>
