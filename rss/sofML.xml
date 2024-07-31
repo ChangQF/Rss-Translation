@@ -4,9 +4,68 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 30 Jul 2024 21:15:42 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 31 Jul 2024 00:56:01 GMT</lastBuildDate>
     <item>
-      <title>如何使用 opencv 检测焊带中的缺陷（例如孔洞）</title>
+      <title>Sklearn 预测需要很长时间</title>
+      <link>https://stackoverflow.com/questions/78814028/sklearn-prediction-takes-forever</link>
+      <description><![CDATA[我已经被这个问题困扰好几天了，真的需要一些帮助。我在 sklearn 中遇到了几种常见的机器学习方法的严重性能问题。我正在研究一个概率预测（二元分类）问题，数据集包含 500 万个观测值和 100 个特征，使用 sklearn 中的 LogisticRegression()、MLPClassifier()、RandomForestClassifier() 和 LinearSVC() 等模型。
+例如，这是我用于 L2 逻辑回归的设置，使用交叉验证从网格 c_grid = [1e-15, 1e-10, 1e-5, 1e-1, 10] 中找到最佳正则化项 C：
+lr = LogisticRegression(class_weight=class_weight,
+solver=&#39;sag&#39;, # 我也尝试了 &#39;liblinear&#39;
+max_iter=10000,
+tol=0.1,
+random_state=seed,
+penalty=&#39;l2&#39;)
+
+C = [1e-15, 1e-10, 1e-5, 1e-1, 10]
+c_grid = {&quot;C&quot;: C}
+c_grid = {k: v for k, v in c_grid.items() if v is not None}
+
+...
+
+cv = StratifiedKFold(n_splits=5, random_state=seed, shuffle=True) 
+clf = GridSearchCV(estimator=lr, 
+param_grid=c_grid, 
+scoring=&#39;roc_auc&#39;,
+cv=cv, 
+return_train_score=True).fit(X_train, Y_train) 
+best_model = clf.best_estimator_
+prob = clf.predict_proba(X_train)[:, 1]
+pred = clf.predict(X_train)
+
+但是整个训练过程耗时将近20个小时。对于这种大小的数据集来说，这是否正常，或者可能是由于参数或设置不正确造成的？例如，我调整了 LogisticRegression 中的各种参数，但似乎都没有改善这种情况。
+此外，当我尝试使用 best_model 来计算测试结果时
+prob = clf.predict_proba(X_test)[:, 1]
+pred = clf.predict(X_test)
+
+这似乎需要很长时间才能完成。我尝试使用类似这样的方法并行化该过程
+X_test_batches = np.array_split(X_test, N)
+args = [(best_model, batch) for batch in X_test_batches]
+
+with Pool(N) as pool:
+prob_batches = pool.map(predict_batch, args)
+prob = np.concatenate(prob_batches)
+pred = (prob &gt;= 0.5)
+
+但它也没有太大帮助，所以最终我不得不手动实现我自己的预测函数（显然它只适用于物流，但不适用于我想要测试的其他模型）
+z = np.dot(X_test, best_model.coef_.T) + best_model.intercept_
+prob = 1 / (1 + np.exp(-z))
+
+鉴于训练和测试都花费了不合理的长时间，我猜测问题可能出在 clf.predict_proba() 和 clf.predict() 上。但是，我希望 sklearn 能够有效处理包含数百万个观测值的数据集？如能得到任何帮助，我将不胜感激，谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/78814028/sklearn-prediction-takes-forever</guid>
+      <pubDate>Wed, 31 Jul 2024 00:04:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何让 Python 脚本在后台运行同时仍与前端交互？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78813752/how-to-have-a-python-script-run-in-the-background-while-still-interacting-with-t</link>
+      <description><![CDATA[嘿，我有这个网站，它允许人们添加新的预测。首先，他们点击一个新的预测和广告数据（csvs），然后选择他们想要使用的机器学习模型，然后它应该运行python代码并将csv输出到具有相关预测参数的数据库。
+我的问题是我应该如何运行python代码，因为这个代码可能需要几个小时才能运行，然后我必须考虑许多试图做出新预测的用户。我研究了任务调度和redis。我也听说我可以使用一些AWS服务，但我不确定这里最好的选择是什么，因为我想尽可能地防止内存错误和超时，同时确保代码在稳定的环境中运行。
+顺便说一下，我使用flask作为后端并在前端做出反应]]></description>
+      <guid>https://stackoverflow.com/questions/78813752/how-to-have-a-python-script-run-in-the-background-while-still-interacting-with-t</guid>
+      <pubDate>Tue, 30 Jul 2024 21:37:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 opencv 检测该焊接带中的缺陷（例如孔洞）[关闭]</title>
       <link>https://stackoverflow.com/questions/78813507/how-can-i-detect-defectssuch-as-holes-in-this-welding-strip-using-opencv</link>
       <description><![CDATA[参考图：带孔的焊条：https://i.sstatic.net/VaVQX3th.jpg
 正常焊条：https://i.sstatic.net/MBcyyIyp.jpg
@@ -127,60 +186,6 @@ x_test[[&#39;Gender&#39;, &#39;LunchType&#39;, &#39;TestPrep&#39;]] = bool_trans
       <pubDate>Tue, 30 Jul 2024 18:08:20 GMT</pubDate>
     </item>
     <item>
-      <title>Python 错误（类的数量必须大于一；得到 1 个类）</title>
-      <link>https://stackoverflow.com/questions/78812818/python-error-the-number-of-classes-has-to-be-greater-than-one-got-1-class</link>
-      <description><![CDATA[我需要创建一个 GMM 模型，并且对于每个分布，我必须训练一个 svm 模型。这是目前为止的代码。但我收到此错误（类数必须大于 1；得到 1 个类）。
-如何针对每个分布训练每个 svm？
-import numpy as np
-from sklearn.datasets import make_blobs
-from sklearn.mixture import GaussianMixture
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
-
-# 中心数（分布）
-N = 3
-
-# 生成具有不同聚类标准差的随机数据点
-n_samples = 50000
-n_features = 2
-cluster_std = 1.0
-
-X, y = make_blobs(n_samples=n_samples, centers=N, n_features=n_features, 
-cluster_std=cluster_std, random_state=42)
-
-# 将数据拆分为训练集和测试集
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# 创建并训练 GMM 模型
-gmm = GaussianMixture(n_components=N, random_state=42)
-gmm.fit(X_train)
-
-# 预测训练集的聚类标签
-y_train_pred = gmm.predict(X_train)
-
-# 为每个分布训练一个 SVM 模型
-svms = []
-for i in range(N):
-# 为当前分布过滤训练样本
-X_train_i = X_train[y_train_pred == i]
-y_train_i = y_train[y_train_pred == i]
-
-# 为当前分布训练 SVM
-svm = SVC(kernel=&#39;linear&#39;, random_state=42)
-svm.fit(X_train_i, y_train_i)
-svms.append(svm)
-
-# 保存训练好的 SVM 模型以供将来使用
-import joblib
-for i, svm in enumerate(svms):
-joblib.dump(svm, f&#39;svm_model_distribution_{i}.pkl&#39;)
-
-print(&quot;SVM 训练已完成。&quot;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78812818/python-error-the-number-of-classes-has-to-be-greater-than-one-got-1-class</guid>
-      <pubDate>Tue, 30 Jul 2024 16:25:56 GMT</pubDate>
-    </item>
-    <item>
       <title>我写了一个代码，运行时间太长了[关闭]</title>
       <link>https://stackoverflow.com/questions/78812154/i-wrote-a-code-and-the-running-time-is-too-long</link>
       <description><![CDATA[]]></description>
@@ -212,7 +217,7 @@ ID
 制造年份
 
 任务：
-确定一种配置与另一种配置的相似程度。
+确定一个配置与另一个配置的相似程度。
 我假设将数据集中的每个条目表示为一个向量，并计算向量之间的余弦相似度。
 但是对于如何以数值形式表示值存在误解，例如车身类型：轿车、跨界车、轿跑车等。]]></description>
       <guid>https://stackoverflow.com/questions/78811479/how-to-determine-the-similarity-of-a-cars-configuration</guid>
@@ -348,15 +353,6 @@ FloatA、FloatB、 Cat[0:2]…
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78804107/gradient-descent-application</guid>
       <pubDate>Sun, 28 Jul 2024 15:15:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>保存视频中每帧的边界框坐标</title>
-      <link>https://stackoverflow.com/questions/30060567/saving-bounding-box-coordinates-for-each-frame-in-a-video</link>
-      <description><![CDATA[我有一段摄像机拍摄的视频，场景中有人。我需要浏览该视频的每一帧，并手动保存场景中检测到的人的边界框的坐标（浏览每一帧并在每个人周围画出一个正方形）和头部中心的坐标 - 基本上就是左上、右下、头部中心坐标。边界框必须是正方形。
-然后，附加程序将读取一个文件，其中包含正方形和头部中心的坐标以及帧号，并将这些框提取为图像。
-对于任何有计算机视觉经验的人来说 - 是否有任何开源软件可以完成我的要求？如果没有，您会推荐使用什么技术来构建此工具？有入门代码吗？]]></description>
-      <guid>https://stackoverflow.com/questions/30060567/saving-bounding-box-coordinates-for-each-frame-in-a-video</guid>
-      <pubDate>Tue, 05 May 2015 18:27:04 GMT</pubDate>
     </item>
     <item>
       <title>使用 scikit-learn 在朴素贝叶斯分类器中混合分类数据和连续数据</title>
