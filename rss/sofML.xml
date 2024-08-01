@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 01 Aug 2024 01:13:11 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 01 Aug 2024 03:18:05 GMT</lastBuildDate>
     <item>
       <title>面部识别 - 机器学习</title>
       <link>https://stackoverflow.com/questions/78818666/facial-recognition-machine-learning</link>
@@ -100,8 +100,16 @@ OSError：openvoid/Prox-Phi-3-mini-128k 似乎没有名为 microsoft/Phi-3-mini-
     <item>
       <title>将 MLX 生成的模型转换为 GGUF（通过 ollama 访问）之前和之后的行为不匹配</title>
       <link>https://stackoverflow.com/questions/78817275/the-behavior-missmatch-before-and-after-converting-a-mlx-generated-model-to-gguf</link>
-      <description><![CDATA[我们使用 MLX 对模型进行了微调，并成功保存了该模型，请查看此链接了解更多详细信息。
-到目前为止，生成的模型使用如下命令运行良好：mlx_lm.generate --model new_model --prompt &quot;tell me sth about sql&quot; --temp 0.01 --ignore-chat-template。
+      <description><![CDATA[编辑 1：
+让我更具体一点。我们微调的模型是一个代码生成模型，将以代码完成样式（文本生成样式）输出。
+示例输入：system.out
+示例输出：system.out.println(xxx)
+转换为 Ollama 识别的格式并由 Ollama 启动后，样式变为：
+示例输入：system.out
+示例输出：似乎您在试图胡说八道，并且似乎还丢失了一些由我们的微调提供的代码相关知识。
+原始版本：
+我们使用 MLX 对模型进行了微调并成功保存了模型，请查看此链接了解更多详情。
+到目前为止，生成的模型使用类似 mlx_lm.generate --model new_model --prompt &quot;tell me sth about sql&quot; 的命令运行良好--temp 0.01 --ignore-chat-template。
 但是，将其转换为 gguf 格式并通过 Ollama 访问后，输出会有所不同，与预期不符。
 将其转换为 gguf 的过程如下：
 python llama.cpp/convert_hf_to_gguf.py path/new_model --outfile path/new_model.gguf
@@ -217,65 +225,6 @@ diag = x - len(k_grid)//2
 ]]></description>
       <guid>https://stackoverflow.com/questions/78816668/get-directional-elements-in-matrix</guid>
       <pubDate>Wed, 31 Jul 2024 13:35:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>Sklearn 预测需要很长时间</title>
-      <link>https://stackoverflow.com/questions/78814028/sklearn-prediction-takes-forever</link>
-      <description><![CDATA[我在 sklearn 中的几种常见机器学习方法中遇到了严重的性能问题。我正在研究二元分类问题，数据集包含 500 万个观测值和 100 个特征，使用 sklearn 中的 LogisticRegression()、MLPClassifier()、RandomForestClassifier() 和 LinearSVC() 等模型。
-例如，这是我用于 L2 逻辑回归的设置，使用交叉验证从网格 c_grid = [1e-15, 1e-10, 1e-5, 1e-1, 10] 中找到最佳正则化项 C：
-lr = LogisticRegression(class_weight=class_weight,
-solver=&#39;sag&#39;, # 我还尝试了 &#39;liblinear&#39;
-max_iter=10000,
-tol=0.1,
-random_state=seed,
-penalty=&#39;l2&#39;)
-
-C = [1e-15, 1e-10, 1e-5, 1e-1, 10]
-c_grid = {&quot;C&quot;: C}
-c_grid = {k: v for k, v in c_grid.items() if v is not None}
-
-...
-
-cv = StratifiedKFold(n_splits=5, random_state=seed, shuffle=True) 
-clf = GridSearchCV(estimator=lr, 
-param_grid=c_grid, 
-scoring=&#39;roc_auc&#39;,
-cv=cv, 
-return_train_score=True).fit(X_train, Y_train) 
-best_model = clf.best_estimator_
-prob = clf.predict_proba(X_train)[:, 1]
-pred = clf.predict(X_train)
-
-但是，整个训练过程花费了近 20 个小时。对于这种规模的数据集，这是否正常，或者可能是由于参数或设置不正确？例如，我调整了 LogisticRegression 中的各种参数，但似乎都没有改善这种情况。
-此外，当我尝试使用 best_model 来计算测试结果时
-prob = clf.predict_proba(X_test)[:, 1]
-pred = clf.predict(X_test)
-
-这似乎需要很长时间才能完成。我尝试使用类似这样的方法并行化该过程
-X_test_batches = np.array_split(X_test, N)
-args = [(best_model, batch) for batch in X_test_batches]
-
-with Pool(N) as pool:
-prob_batches = pool.map(predict_batch, args)
-prob = np.concatenate(prob_batches)
-pred = (prob &gt;= 0.5)
-
-但它也没有太大帮助，所以最终我不得不手动实现我自己的预测函数（显然它只适用于逻辑回归，但不适用于我想要测试的其他模型）：
-z = np.dot(X_test, best_model.coef_.T) + best_model.intercept_
-prob = 1 / (1 + np.exp(-z))
-
-鉴于训练和测试都花费了不合理的长时间，我猜测问题可能出在 clf.predict_proba() 和 clf.predict() 上。不过，我希望 sklearn 能够有效处理包含数百万个观测值的数据集。]]></description>
-      <guid>https://stackoverflow.com/questions/78814028/sklearn-prediction-takes-forever</guid>
-      <pubDate>Wed, 31 Jul 2024 00:04:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何让 Python 脚本在后台运行同时仍与前端交互？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78813752/how-to-have-a-python-script-run-in-the-background-while-still-interacting-with-t</link>
-      <description><![CDATA[我有这个网站，它允许人们添加新的预测。首先，他们点击一个新的预测和广告数据（csvs），然后选择他们想要使用的机器学习模型，然后它应该运行python代码并将csv输出到具有相关预测参数的数据库。
-我的问题是我应该如何运行python代码，因为这个代码可能需要几个小时才能运行，然后我必须考虑许多试图做出新预测的用户。我研究过任务调度和redis。我也听说我可以使用一些AWS服务，但我不确定这里最好的选择是什么，因为我想尽可能地防止内存错误和超时，同时确保代码在稳定的环境中运行。
-顺便说一下，我使用flask作为后端并在前端做出反应]]></description>
-      <guid>https://stackoverflow.com/questions/78813752/how-to-have-a-python-script-run-in-the-background-while-still-interacting-with-t</guid>
-      <pubDate>Tue, 30 Jul 2024 21:37:30 GMT</pubDate>
     </item>
     <item>
       <title>如何使用 opencv 检测该焊接带中的缺陷（例如孔洞）[关闭]</title>
@@ -498,6 +447,131 @@ GPU 推理时间：
 但使用 GPU 后性能并没有提高。]]></description>
       <guid>https://stackoverflow.com/questions/78802177/gpu-performance-worse-than-cpu-performance-on-yolo-inferences</guid>
       <pubDate>Sat, 27 Jul 2024 18:33:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>优化大数据集上的 Pandas 性能</title>
+      <link>https://stackoverflow.com/questions/78752483/optimizing-pandas-performance-on-large-datasets</link>
+      <description><![CDATA[我正在使用 pandas 处理一个大型数据集（约 1000 万行和 50 列），在数据操作和分析过程中遇到了严重的性能问题。这些操作包括过滤、合并和聚合数据，目前执行时间太长。
+我读过几种优化技术，但不确定哪种技术最有效且适用于我的情况。以下是有关我的工作流程的一些细节：
+我主要使用 pandas 进行数据清理、转换和分析。
+我的操作包括多个 groupby 和 apply 函数。
+我在一台具有 16GB RAM 的机器上运行分析。
+社区能否分享优化 pandas 在大型数据集上的性能的最佳实践？
+1.内存管理技术。
+2.执行 groupby 和 apply 的有效方法。
+3.处理大型数据集的 pandas 替代方案。
+4. 有没有关于并行处理或有效利用多核的技巧。
+我主要使用 pandas 进行数据清理、转换和分析。
+我的操作包括多个 groupby 和 apply 函数。
+我在一台有 16GB RAM 的机器上运行分析。]]></description>
+      <guid>https://stackoverflow.com/questions/78752483/optimizing-pandas-performance-on-large-datasets</guid>
+      <pubDate>Tue, 16 Jul 2024 02:24:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么我在 TensorFlow 中使用 model.fit() 时会得到 ValueError：无法识别的数据类型：x=[...] (类型 <class 'list'>)？</title>
+      <link>https://stackoverflow.com/questions/78271090/why-do-i-get-valueerror-unrecognized-data-type-x-of-type-class-list</link>
+      <description><![CDATA[我尝试运行以下代码，该代码取自 CS50 的 AI 课程：
+import csv
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+# 从文件读取数据
+with open(&quot;banknotes.csv&quot;) as f:
+reader = csv.reader(f)
+next(reader)
+
+data = []
+for row in reader:
+data.append(
+{
+&quot;evidence&quot;: [float(cell) for cell in row[:4]],
+&quot;label&quot;: 1 if row[4] == &quot;0&quot; else 0,
+}
+)
+
+#将数据分为训练组和测试组
+evidence = [row[&quot;evidence&quot;] for row in data]
+labels = [row[&quot;label&quot;] for row in data]
+X_training, X_testing, y_training, y_testing = train_test_split(
+evidence, labels, test_size=0.4
+)
+
+# 创建神经网络
+model = tf.keras.models.Sequential()
+
+# 添加一个有 8 个单元的隐藏层，使用 ReLU 激活函数
+model.add(tf.keras.layers.Dense(8, input_shape=(4,),activation=&quot;relu&quot;))
+
+# 添加一个有 1 个单元的输出层，使用 sigmoid 激活函数
+model.add(tf.keras.layers.Dense(1,activation=&quot;sigmoid&quot;))
+
+# 训练神经网络
+model.compile(
+optimizer=&quot;adam&quot;, loss=&quot;binary_crossentropy&quot;, metrics=[&quot;accuracy&quot;]
+)
+model.fit(X_training, y_training, epochs=20)
+
+# 评估模型的表现
+model.evaluate(X_testing, y_testing, verbose=2)
+
+但是，我收到以下错误：
+Traceback（最近一次调用最后一次）：
+文件“C:\Users\Eric\Desktop\coding\cs50\ai\lectures\lecture5\banknotes\banknotes.py”，第 41 行，位于&lt;module&gt;
+model.fit(X_training, y_training, epochs=20)
+文件 &quot;C:\Users\Eric\Desktop\coding\cs50\ai\.venv\Lib\site-packages\keras\src\utils\traceback_utils.py&quot;，第 122 行，位于 error_handler 中
+从 None 引发 e.with_traceback(filtered_tb)
+文件 &quot;C:\Users\Eric\Desktop\coding\cs50\ai\.venv\Lib\site-packages\keras\src\trainers\data_adapters\__init__.py&quot;，第 113 行，位于 get_data_adapter 中
+引发 ValueError(f&quot;无法识别的数据类型：x={x}（类型为 {type(x)}）&quot;)
+ValueError：无法识别的数据类型：x=[...]（类型为 &lt;class &#39;list&#39;&gt;)
+
+其中“...”是训练数据。
+知道哪里出错了吗？我在 Windows 计算机上使用 Python 版本 3.11.8 和 TensorFlow 版本 2.16.1。
+我尝试在 Google Colab 笔记本中运行相同的代码，并且成功了：问题仅发生在我的本地机器上。这是我期望的输出：
+Epoch 1/20
+26/26 [==============================] - 1s 2ms/step - 损失：1.1008 - 准确度：0.5055
+Epoch 2/20
+26/26 [===============================] - 0s 2ms/step - 损失：0.8588 - 准确度：0.5334
+Epoch 3/20
+26/26 [================================] - 0s 2ms/step - 损失：0.6946 - 准确度：0.5917
+Epoch 4/20
+26/26 [==============================] - 0s 2ms/步 - 损失：0.5970 - 准确度：0.6683
+纪元 5/20
+26/26 [==============================] - 0s 2ms/步 - 损失：0.5265 - 准确度：0.7120
+纪元 6/20
+26/26 [===============================] - 0s 2ms/步 - 损失：0.4717 - 准确度：0.7655
+纪元 7/20
+26/26 [===============================] - 0s 2ms/步 - 损失：0.4258 - 准确度：0.8177
+纪元 8/20
+26/26 [==============================] - 0s 2ms/步 - 损失：0.3861 - 准确度：0.8433
+纪元 9/20
+26/26 [================================] - 0s 2ms/步 - 损失：0.3521 - 准确度：0.8615
+纪元 10/20
+26/26 [===============================] - 0s 2ms/步 - 损失：0.3226 - 准确度：0.8870
+纪元 11/20
+26/26 [==============================] - 0s 2ms/步 - 损失：0.2960 - 准确度：0.9028
+纪元 12/20
+26/26 [================================] - 0s 2ms/步 - 损失：0.2722 - 准确度：0.9125
+纪元 13/20
+26/26 [===============================] - 0s 2ms/步 - 损失：0.2506 - 准确度：0.9283
+纪元 14/20
+26/26 [==============================] - 0s 2ms/步 - 损失：0.2306 - 准确度：0.9514
+纪元 15/20
+26/26 [================================] - 0s 3ms/步 - 损失：0.2124 - 准确度：0.9660
+纪元 16/20
+26/26 [===============================] - 0s 2ms/步 - 损失：0.1961 - 准确度：0.9769
+纪元 17/20
+26/26 [==============================] - 0s 2ms/步 - 损失：0.1813 - 准确度：0.9781
+纪元 18/20
+26/26 [================================] - 0s 2ms/步 - 损失：0.1681 - 准确度：0.9793
+纪元 19/20
+26/26 [===============================] - 0s 2ms/步 - 损失：0.1562 - 准确度：0.9793
+Epoch 20/20
+26/26 [===============================] - 0s 2ms/步 - 损失：0.1452 - 准确度：0.9830
+18/18 - 0s - 损失：0.1407 - 准确度：0.9891 - 187ms/epoch - 10ms/步
+[0.14066053926944733, 0.9890710115432739]
+]]></description>
+      <guid>https://stackoverflow.com/questions/78271090/why-do-i-get-valueerror-unrecognized-data-type-x-of-type-class-list</guid>
+      <pubDate>Thu, 04 Apr 2024 00:28:01 GMT</pubDate>
     </item>
     <item>
       <title>XGBoost 分类器的 SHAP 解释中 expected_value 的计算</title>
