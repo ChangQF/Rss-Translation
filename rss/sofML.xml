@@ -4,9 +4,65 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 01 Aug 2024 18:19:55 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 01 Aug 2024 21:17:24 GMT</lastBuildDate>
     <item>
-      <title>两个数据集的随机森林的数据集结构</title>
+      <title>Tensorflow model.evaluate() 不支持 None 值</title>
+      <link>https://stackoverflow.com/questions/78822788/tensorflow-model-evaluate-none-values-not-supported</link>
+      <description><![CDATA[我尝试在 preprocessing.image_dataset_from_directory 上运行 model.evaluate()，但由于 label_mode=None 而无济于事
+我尝试从 ImageDataGenerator 的 flow_from_directory 实现与 class_mode=&#39;input&#39; 类似的功能。我尝试了多次，但一直收到相同的错误消息。我也尝试过手动更改模型的输入，但我仍然不确定我哪里出错了。下面是我的代码：
+SIZE = 128
+batch_size = 64
+
+train_generator = preprocessing.image_dataset_from_directory(
+r&#39;C:\Users\#omitted user name#\Downloads\archive (1)\noncloud_train&#39;, 
+image_size=(SIZE, SIZE),
+batch_size=batch_size,
+label_mode=None
+)
+
+validation_generator = preprocessing.image_dataset_from_directory(
+r&#39;C:\Users\#omitted user name#\Downloads\archive (1)\noncloud_test&#39;,
+image_size=(SIZE, SIZE),
+batch_size=batch_size,
+label_mode=None
+
+)
+
+anomaly_generator = preprocessing.image_dataset_from_directory(
+r&#39;C:\Users\#omitted user name#\Downloads\archive (1)\cloud&#39;,
+image_size=(SIZE, SIZE),
+batch_size=batch_size,
+label_mode=None
+
+)
+
+rescaling_layer = layer.Rescaling(1./255)
+
+def change_inputs(images, labels=None):
+x = tensorflow.image.resize(rescaling_layer(images),[SIZE, SIZE], method=tensorflow.image.ResizeMethod.NEAREST_NEIGHBOR)
+return x, x
+
+train_dataset = train_generator.map(change_inputs)
+validation_dataset = validation_generator.map(change_inputs)
+anomaly_dataset = anomaly_generator.map(change_inputs)
+
+#此处有一些模型构建和编译代码，但我省略了它#
+
+# 检查侦察。验证数据和异常图像之间的误差
+validation_error = model.evaluate(validation_generator)
+anomaly_error = model.evaluate(anomaly_generator)
+
+# 打印出结果
+print(f&quot;Recon. error for the validation data is {validation_error}&quot;)
+print(f&quot;Recon. error for the anomaly_error}&quot;)
+
+
+最后四行是由于 label_mode 而出现的问题]]></description>
+      <guid>https://stackoverflow.com/questions/78822788/tensorflow-model-evaluate-none-values-not-supported</guid>
+      <pubDate>Thu, 01 Aug 2024 19:39:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>两个数据集的随机森林的数据集结构[关闭]</title>
       <link>https://stackoverflow.com/questions/78822403/dataset-structure-for-random-forest-of-two-datasets</link>
       <description><![CDATA[我有两个单独的数据集，就变量而言，它们包含相同类型的数据，涉及 2000 多名农民，但针对的是同一农民的 2021 年和 2022 年（列数相同，为 70，行数不同；两者都接近 5000）。我必须使用机器学习和随机森林算法预测 2023 年的产量 (Y)（动物公斤数/农场总公顷数）。但是，我不确定您如何统一数据集（2021 年和 2022 年），或者我应该如何设置最终数据集以进行预测，这意味着：
 
@@ -183,15 +239,15 @@ model.add(Input(shape=(X_train.shape[1],)))
 model.add(Dense(64,activation=&#39;relu&#39;))
 model.add(Dense(32,activation=&#39;relu&#39;))
 model.add(Dense(y_train.shape[1],activation=&#39;softmax&#39;)) # 使用softmax进行多类分类
-#编译模型
+# 编译模型
 model.compile(optimizer=&#39;adam&#39;,loss=&#39;categorical_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
 
-#训练模型
+# 训练模型
 model.fit(X_train,y_train,epochs=50,batch_size=8,validation_split=0.2)
 
 在执行model.fit()时，我得到错误：-
 ValueError Traceback（最近一次调用最后一次）Cell In[59]，第 2 行
-1#训练模型
+1# 训练模型
 ----&gt; 2 model.fit(X_train, y_train, epochs=50, batch_size=8, validation_split=0.2)
 文件 C:\Python312\Lib\site-packages\keras\src\utils\traceback_utils.py:122，位于 filter_traceback.&lt;locals&gt;.error_handler(*args, **kwargs)
 119filtered_tb = _process_traceback_frames(e.__traceback__)
@@ -217,63 +273,6 @@ ValueError: 对象 __array__ 方法未生成数组
 所有字符串值。]]></description>
       <guid>https://stackoverflow.com/questions/78822263/getting-error-object-array-method-not-producing-an-array-while-training-a</guid>
       <pubDate>Thu, 01 Aug 2024 17:19:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>Tensorflow model.evaluate() 不支持 None 值。如何修复？[重复]</title>
-      <link>https://stackoverflow.com/questions/78822124/tensorflow-model-evaluate-none-values-not-supported-how-to-fix</link>
-      <description><![CDATA[我正在尝试使用卷积自动编码器对一组图像进行异常检测。我尝试使用 model.evaluate()，但收到错误“model.evaluate() 不支持无值”
-我最初的想法是使用 keras.preprocessing.image 中的 ImageDataGenerator，但后来已被弃用。我试图实现类似以下功能：
- validation_generator = ImageDataGenerator(rescale=1./255).flow_from_directory(
-#&#39;path to folder&#39;,
-target_size=(SIZE, SIZE),
-batch_size=batch_size,
-class_mode=&#39;input&#39;
-)
-
-我的代码（发布如下）与此代码之间的区别在于，此代码使用“input”作为其类模式（意味着标签与输入图像相同）。我知道 model.evaluate() 不支持下面我的函数提出的 none 值，但我不知道应该用什么来替换它，因为我对此还不熟悉。
- validation_generator = preprocessing.image_dataset_from_directory(
-r&#39;C:\Users\{}\Downloads\archive (1)\noncloud_test&#39;,
-image_size=(SIZE, SIZE),
-batch_size=batch_size,
-label_mode=None
-)
-
-这是我根据 @GillesOttervanger 的建议更新的代码。
- SIZE = 128
-batch_size = 64
-
-train_generator = preprocessing.image_dataset_from_directory(
-r&#39;C:\Users\{}\Downloads\archive (1)\noncloud_train&#39;, 
-image_size=(SIZE, SIZE),
-batch_size=batch_size,
-)
-
-validation_generator = preprocessing.image_dataset_from_directory(
-r&#39;C:\Users\{}\Downloads\archive (1)\noncloud_test&#39;,
-image_size=(SIZE, SIZE),
-batch_size=batch_size,
-)
-
-anomaly_generator = preprocessing.image_dataset_from_directory(
-r&#39;C:\Users\{}\Downloads\archive (1)\cloud&#39;,
-image_size=(SIZE, SIZE),
-batch_size=batch_size,
-)
-
-rescaling_layer = layer.Rescaling(1./255)
-
-def change_inputs(images, labels):
-x = tensorflow.image.resize(rescaling_layer(images),[SIZE, SIZE], 
-method=tensorflow.image.ResizeMethod.NEAREST_NEIGHBOR)
-return x, x
-
-# 对数据集应用预处理
-train_dataset = train_generator.map(change_inputs)
-validation_dataset = validation_generator.map(change_inputs)
-anomaly_dataset = anomaly_generator.map(change_inputs)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78822124/tensorflow-model-evaluate-none-values-not-supported-how-to-fix</guid>
-      <pubDate>Thu, 01 Aug 2024 16:45:17 GMT</pubDate>
     </item>
     <item>
       <title>AWS SageMaker createJob 不存在程序并停留在“inProgress”状态</title>
@@ -569,59 +568,11 @@ Pipeline.from_pretrained(&#39;pyannote/speaker-diarization-3.1&#39;,
       <pubDate>Thu, 01 Aug 2024 11:30:46 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 TensorFlow Pipeline 中对大型数据集应用图像增强？</title>
-      <link>https://stackoverflow.com/questions/78816835/how-to-apply-image-augmentations-in-tensorflow-pipeline-for-large-dataset</link>
-      <description><![CDATA[我有一个图像数据集，每个图像包含一个 1 到 5 个字母的单词。我想使用深度学习对每个图像中组成单词的字符进行分类。这些图像的标签格式如下：
-totalcharacter_indexoffirstchar_indexofsecondchar_.._indexoflastchar
-我正尝试将这些图像加载到 TensorFlow 管道中，以降低由于内存限制而导致的复杂性。下面是我从目录加载和处理图像和标签的代码：
-def process_img(file_path):
-label = get_label(file_path)
-image = tf.io.read_file(file_path)
-image = tf.image.decode_png(image, channels=1) 
-image = tf.image.convert_image_dtype(image, tf.float32) 
-target_shape = [695, 1204]
-image = tf.image.resize_with_crop_or_pad(image, target_shape[0], target_shape[1])
-
-# 对标签进行编码
-coded_label = tf.py_function(func=encode_label, inp=[label], Tout=tf.float32)
-coded_label.set_shape([5, len(urdu_alphabets)])
-
-return image,coded_label
-input_dir = &#39;/kaggle/input/dataset/Data/*&#39;
-images_ds = tf.data.Dataset.list_files(input_dir, shuffle=True)
-
-train_count = int(tf.math.round(len(images_ds) * 0.8))
-train_ds = images_ds.take(train_count)
-test_ds = images_ds.skip(train_count)
-train_ds = train_ds.map(process_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-test_ds = test_ds.map(process_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-test_ds = test_ds.batch(32)
-train_ds = train_ds.cache()
-test_ds = test_ds.cache()
-train_ds = train_ds.shuffle(len(train_ds))
-test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
-print(train_ds)
-print(test_ds)
-
-train_ds 如下所示：
-&lt;_PrefetchDataset element_spec=(TensorSpec(shape=(None, 695, 1204, 1), dtype=tf.float32, name=None), TensorSpec(shape=(None, 5, 39), dtype=tf.float32, name=None))&gt;
-现在，我想对图像应用简单的增强，例如旋转、剪切、侵蚀和扩张。我最初使用了以下函数：
-def augment(image, label):
-image = tf.image.random_flip_left_right(image)
-image = tf.image.random_flip_up_down(image)
-image = tf.keras.preprocessing.image.random_rotation(image, rg=15, row_axis=0, col_axis=1, channel_axis=2, fill_mode=&#39;nearest&#39;, cval=0.0, interpolation_order=1)
-image = tf.image.random_zoom(image, [0.85, 0.85])
-image = tf.image.random_shear(image, 0.3)
-image = tf.image.random_shift(image, 0.1, 0.1)
-return image, label
-
-train_augmented_ds = train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
-train_augmented_ds = train_augmented_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
-
-但是，tf.image 中的许多函数都已弃用。如何以高效的方式在 TensorFlow 管道中将这些增强应用于图像？
-注意：我可以通过不使用 TensorFlow 管道使用 NumPy 数组加载图像来执行这些增强，但我的数据集非常大（110 万张图像），因此我需要一种高效的方法来执行此操作。]]></description>
-      <guid>https://stackoverflow.com/questions/78816835/how-to-apply-image-augmentations-in-tensorflow-pipeline-for-large-dataset</guid>
-      <pubDate>Wed, 31 Jul 2024 14:11:01 GMT</pubDate>
+      <title>如何在人工神经网络中进行样本外预测？</title>
+      <link>https://stackoverflow.com/questions/78820463/how-to-make-out-of-sample-forecast-in-artificial-neural-network</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78820463/how-to-make-out-of-sample-forecast-in-artificial-neural-network</guid>
+      <pubDate>Thu, 01 Aug 2024 10:36:16 GMT</pubDate>
     </item>
     <item>
       <title>如何在线托管 TensorFlow 模型</title>
