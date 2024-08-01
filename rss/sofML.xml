@@ -4,7 +4,112 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 01 Aug 2024 12:29:42 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 01 Aug 2024 15:16:12 GMT</lastBuildDate>
+    <item>
+      <title>模型输出与输入具有相同的形状</title>
+      <link>https://stackoverflow.com/questions/78821552/model-output-has-the-same-shape-as-the-input</link>
+      <description><![CDATA[我尝试制作一个股票价格预测程序，而不是根据最后 60 个值获取单个值，而是获得一个具有不同数字的输出，其形状与输入相同，而不是单个值。
+# 代码来自 colab
+
+!pip install yfinance tensorflow==2.10.0
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import yfinance as yf
+import datetime as dt
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, LSTM
+import tensorflow as tf
+
+start = dt.datetime(2012,1,1)
+end = dt.datetime(2020,1,1)
+
+data = yf.download(&quot;META&quot;, start=&#39;2012-01-01&#39;, end=&#39;2020-01-01&#39;)
+
+data = pd.DataFrame(data)
+data.head()
+
+scaler = MinMaxScaler(feature_range=(0,1))
+scaled_data = scaler.fit_transform(data[&#39;Close&#39;].values.reshape(-1,1))
+
+prediction_days = 60
+x_train = []
+y_train = []
+
+for x in range(prediction_days,len(scaled_data)):
+x_train.append(scaled_data[x-prediction_days:x,0]​​)
+y_train.append(scaled_data[x,0])
+
+x_train, y_train = np.array(x_train), np.array(y_train)
+x_train = np.reshape(x_train, (x_train.shape[0],x_train.shape[1],1))
+ds = tf.data.Dataset.from_tensor_slices((x_train,y_train)).batch(32)
+
+model = Sequential()
+model.add(tf.keras.Input(shape = (60,1)))
+model.add(Dense(64,activation = &#39;relu&#39;))
+model.add(LSTM(units = 50, return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(units = 50, return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(units = 50, return_sequences=True))
+model.add(Dropout(0.2))
+model.add(Dense(64,activation = &#39;relu&#39;))
+model.add(Dense(1))
+
+model.compile(optimizer = &#39;adam&#39;,loss = tf.keras.losses.MeanSquaredError())
+model.fit(ds,epochs = 10)
+
+test_data = yf.download(&quot;META&quot;, start=&#39;2020-01-01&#39;, end=&#39;2024-07-30&#39;)
+actual_prices = test_data[&#39;Close&#39;].values
+total_dataset = pd.concat((data[&#39;Close&#39;], test_data[&#39;Close&#39;]),axis = 0)
+model_inputs = total_dataset[len(total_dataset)-len(test_data)-prediction_days:].values
+model_inputs = model_inputs.reshape(-1,1)
+model_inputs = scaler.transform(model_inputs)
+
+x_test = []
+
+对于 x in range(prediction_days, len(model_inputs)):
+x_test.append(model_inputs[x-prediction_days:x,0]​​)
+
+x_test = np.array(x_test)
+x_test = np.reshape(x_test,(x_test.shape[0],x_test.shape[1],1))
+print(x_test)
+predicted_prices = model.predict(x_test)
+print(predicted_prices)
+
+#predicted_prices = scaler.inverse_transform(predicted_prices)
+
+&#39;&#39;&#39;
+plt.plot(actual_prices,color = &#39;black&#39;,label = &#39;实际 META 价格&#39;)
+plt.plot(predicted_prices,color = &#39;green&#39;,label = &#39;预测 META 价格&#39;)
+plt.title(&#39;Meta&#39;)
+plt.xlabel(&#39;时间&#39;)
+plt.ylabel(&#39;股票价格&#39;)
+plt.legend()
+plt.show()
+&#39;&#39;&#39;
+
+我尝试了不同的 tensorflow 版本和不同的损失函数，我甚至为最后一层设置了不同的激活函数，但还是不起作用。
+模式的输入形状为 (60,1)，输出应该只有一个数字，但却是一个形状为 (60,1) 的随机数的完整列表（当我在我的情况下运行它时，输入形状是 (1150,60,1)并且输出也是 (1150,60,1))]]></description>
+      <guid>https://stackoverflow.com/questions/78821552/model-output-has-the-same-shape-as-the-input</guid>
+      <pubDate>Thu, 01 Aug 2024 14:40:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>Colab：内存不足，无法加载 Llama 3</title>
+      <link>https://stackoverflow.com/questions/78821038/colab-not-enough-ram-to-load-llama-3</link>
+      <description><![CDATA[我当时正在按照 Youtube 上的教程操作，想加载 Llama3 8B：
+model_name = &quot;meta-llama/Meta-Llama-3-8B-Instruct&quot;
+
+tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=hugging_face_key)
+model = AutoModelForCausalLM.from_pretrained(model_name, use_auth_token=hugging_face_key)
+
+收到：“您的会话失败，因为所有可用 RAM 都已使用”
+尝试：model = AutoModelForCausalLM.from_pretrained(model_name, use_auth_token=hugging_face_key, low_cpu_mem_usage=True) 
+但再次出现同样的错误]]></description>
+      <guid>https://stackoverflow.com/questions/78821038/colab-not-enough-ram-to-load-llama-3</guid>
+      <pubDate>Thu, 01 Aug 2024 12:45:03 GMT</pubDate>
+    </item>
     <item>
       <title>Pyannote：离线加载并应用说话人区分</title>
       <link>https://stackoverflow.com/questions/78820971/pyannote-load-and-apply-speaker-diarization-offline</link>
@@ -88,7 +193,26 @@ pipeline(path_in,
 num_speakers=num_speakers).labels()
 
 但结果是：“必须先使用 pipeline.instantiate(parameters) 实例化管道，然后才能应用它。”
-我不明白这个问题。]]></description>
+我不明白问题所在。
+如果我这样做，它就会起作用：
+---- 加载模型 ----
+path_yaml = &#39;src/pyannote_offline_config.yaml&#39;
+
+model = Pipeline.from_pretrained(&quot;pyannote/speaker-diarization-3.1&quot;, path_yaml)
+
+path_in = &#39;blabla/1-137-A-32.wav&#39;
+
+num_speakers = 1
+
+model(path_in,
+num_speakers=num_speakers).labels()
+
+但上传到 gitlab 后，测试管道显示：“无法下载‘pyannote/speaker-diarization-3.1’管道。
+这可能是因为管道是私有的或封闭的，因此请确保进行身份验证。访问 https://hf.co/settings/tokens
+创建您的访问令牌并重试：
+Pipeline.from_pretrained(&#39;pyannote/speaker-diarization-3.1&#39;,
+... use_auth_token=YOUR_AUTH_TOKEN)&quot;
+因此，似乎我的本地计算机上有一些东西没有通过 pip 安装下载。例如，如果我不使用 yaml 加载它，而只使用 model = Pipeline.from_pretrained(&quot;pyannote/speaker-diarization-3.1&quot;)，它也会起作用。]]></description>
       <guid>https://stackoverflow.com/questions/78820971/pyannote-load-and-apply-speaker-diarization-offline</guid>
       <pubDate>Thu, 01 Aug 2024 12:28:41 GMT</pubDate>
     </item>
@@ -179,85 +303,6 @@ print(&#39;总体情绪得分： \\n&#39;, OverallSen)
       <pubDate>Thu, 01 Aug 2024 06:51:51 GMT</pubDate>
     </item>
     <item>
-      <title>面部识别 - 机器学习</title>
-      <link>https://stackoverflow.com/questions/78818666/facial-recognition-machine-learning</link>
-      <description><![CDATA[我尝试在 Google Colab 上使用 Tensorflow 进行面部识别，但遇到了错误。之前运行正常，但现在却出现此错误。完整的 .ipynb 文件已链接（请注意，您需要一个包含 .jpg 文件的负、正和锚文件夹才能运行程序。）
-使暹罗模型出错
-文件链接：https://www.mediafire.com/file/a5azngcpmdrrxyd/facial_recognition.ipynb/file
-我尝试从 4.3 函数中删除嵌入函数，但当它进入训练时会抛出另一个错误。训练错误
-文本代码错误复制：
-（删除嵌入后）
-Epoch 1/100
-ValueError Traceback（最近一次调用最后一次）
-in &lt;cell line: 5&gt;()
-3
-4 # 使用提供的训练数据和指定的 epoch 数训练 Siamese 网络
-----&gt; 5 train(siamese_model, train_data, EPOCHS)
-7 帧
-/usr/local/lib/python3.10/dist-packages/keras/src/backend/tensorflow/nn.py in binary_crossentropy(target, output, from_logits)
-666
-667 if len(target.shape) != len(output.shape):
---&gt; 668 引发 ValueError(
-669 “参数 target 和 output 必须具有相同的等级”
-670 “(ndim)。已收到：“
-ValueError：在用户代码中：
-文件“&lt;ipython-input-20-c4cff50f6a59&gt;”，第 18 行，在 train_step *
-loss = binary_cross_loss(y, yhat)
-文件“/usr/local/lib/python3.10/dist-packages/keras/src/losses/loss.py”，第 43 行，在 __call__ **
-loss = self.call(y_true, y_pred)
-文件&quot;/usr/local/lib/python3.10/dist-packages/keras/src/losses/losses.py&quot;，第 27 行，在 call
-return self.fn(y_true, y_pred, **self._fn_kwargs)
-文件 &quot;/usr/local/lib/python3.10/dist-packages/keras/src/losses/losses.py&quot;，第 1913 行，在 binary_crossentropy
-ops.binary_crossentropy(y_true, y_pred, from_logits=from_logits),
-文件 &quot;/usr/local/lib/python3.10/dist-packages/keras/src/ops/nn.py&quot;，第 1398 行，在 binary_crossentropy
-return backend.nn.binary_crossentropy(
-文件“/usr/local/lib/python3.10/dist-packages/keras/src/backend/tensorflow/nn.py”，第 668 行，在 binary_crossentropy 中
-raise ValueError(
-
-ValueError: 参数“target”和“output”必须具有相同的等级 (ndim)。已接收：target.shape=(16,)，output.shape=(16, 100, 100, 1)
-
-（删除嵌入之前）
-[&lt;KerasTensor shape=(None, 4096), dtype=float32, sparse=False, name=keras_tensor_87&gt;]
-TypeError Traceback（最近一次调用最后一次）
-in &lt;cell line: 24&gt;()
-22
-23 # 使用 make_siamese_model() 函数创建暹罗神经网络模型
----&gt; 24 siamese_model = make_siamese_model()
-25
-26 # 显示 Siamese 模型的架构和参数摘要
-2 帧
-in call(self, input_embedding, validation_embedding)
-7 # 魔法在这里发生 - 相似度计算
-8 def call(self, input_embedding, validation_embedding):
-----&gt; 9 return tf.math.abs(input_embedding - validation_embedding)
-TypeError：调用 L1Dist.call() 时遇到异常。
-无法自动推断“l1_dist_12”（类型为 L1Dist）的输出形状/dtype。L1Dist.call() 方法不正确，或者您需要实现 L1Dist.compute_output_spec() / compute_output_shape() 方法。遇到错误：
-不支持 - 的操作数类型：&#39;list&#39; 和 &#39;list&#39;
-L1Dist.call() 收到的参数：
-• args=([&#39;&lt;KerasTensor shape=(None, 4096), dtype=float32, sparse=False, name=keras_tensor_88&gt;&#39;], [&#39;&lt;KerasTensor shape=(None, 4096), dtype=float32, sparse=False, name=keras_tensor_89&gt;&#39;])
-• kwargs=&lt;class &#39;inspect._empty&#39;&gt;]]></description>
-      <guid>https://stackoverflow.com/questions/78818666/facial-recognition-machine-learning</guid>
-      <pubDate>Wed, 31 Jul 2024 23:57:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>通过旋转和裁剪对齐 X 射线图像 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78818523/align-x-ray-images-by-rotating-and-croping-them</link>
-      <description><![CDATA[我有一个 X 射线图片数据库，我想对其进行图像分类 - 我想要：
-
-识别（不完美）矩形块的旋转
-旋转图像使其垂直（肖像形式）
-通过裁剪剩余的黑色空间来移除，以便只保留骨骼的实际照片
-
-我不完全确定如何最好地解决这个问题，这似乎是有人已经解决的问题。
-我尝试了几种方法，但似乎都没有完全奏效 - 因为有些图片旋转了，有些没有，有些有清晰的白色轮廓，有些没有，所以结果非常不一致。
-示例图像附在下面：
-示例 1
-示例 2
-更多示例]]></description>
-      <guid>https://stackoverflow.com/questions/78818523/align-x-ray-images-by-rotating-and-croping-them</guid>
-      <pubDate>Wed, 31 Jul 2024 22:36:26 GMT</pubDate>
-    </item>
-    <item>
       <title>将 MLX 生成的模型转换为 GGUF（通过 ollama 访问）之前和之后的行为不匹配</title>
       <link>https://stackoverflow.com/questions/78817275/the-behavior-missmatch-before-and-after-converting-a-mlx-generated-model-to-gguf</link>
       <description><![CDATA[编辑 1：
@@ -269,7 +314,7 @@ L1Dist.call() 收到的参数：
 示例输出：似乎您在试图胡说八道，并且似乎还丢失了一些由我们的微调提供的代码相关知识。
 原始版本：
 我们使用 MLX 对模型进行了微调并成功保存了模型，请查看此链接了解更多详情。
-到目前为止，生成的模型使用类似 mlx_lm.generate --model new_model --prompt &quot;tell me sth about sql&quot; 的命令运行良好--temp 0.01 --ignore-chat-template。
+到目前为止，生成的模型使用如下命令运行良好：mlx_lm.generate --model new_model --prompt &quot;tell me sth about sql&quot; --temp 0.01 --ignore-chat-template。
 但是，将其转换为 gguf 格式并通过 Ollama 访问后，输出会有所不同，与预期不符。
 将其转换为 gguf 的过程如下：
 python llama.cpp/convert_hf_to_gguf.py path/new_model --outfile path/new_model.gguf
@@ -551,112 +596,6 @@ GPU 推理时间：
       <pubDate>Tue, 16 Jul 2024 02:24:48 GMT</pubDate>
     </item>
     <item>
-      <title>为什么我在 TensorFlow 中使用 model.fit() 时会得到 ValueError：无法识别的数据类型：x=[...] (类型 <class 'list'>)？</title>
-      <link>https://stackoverflow.com/questions/78271090/why-do-i-get-valueerror-unrecognized-data-type-x-of-type-class-list</link>
-      <description><![CDATA[我尝试运行以下代码，该代码取自 CS50 的 AI 课程：
-import csv
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-
-# 从文件读取数据
-with open(&quot;banknotes.csv&quot;) as f:
-reader = csv.reader(f)
-next(reader)
-
-data = []
-for row in reader:
-data.append(
-{
-&quot;evidence&quot;: [float(cell) for cell in row[:4]],
-&quot;label&quot;: 1 if row[4] == &quot;0&quot; else 0,
-}
-)
-
-#将数据分为训练组和测试组
-evidence = [row[&quot;evidence&quot;] for row in data]
-labels = [row[&quot;label&quot;] for row in data]
-X_training, X_testing, y_training, y_testing = train_test_split(
-evidence, labels, test_size=0.4
-)
-
-# 创建神经网络
-model = tf.keras.models.Sequential()
-
-# 添加一个有 8 个单元的隐藏层，使用 ReLU 激活函数
-model.add(tf.keras.layers.Dense(8, input_shape=(4,),activation=&quot;relu&quot;))
-
-# 添加一个有 1 个单元的输出层，使用 sigmoid 激活函数
-model.add(tf.keras.layers.Dense(1,activation=&quot;sigmoid&quot;))
-
-# 训练神经网络
-model.compile(
-optimizer=&quot;adam&quot;, loss=&quot;binary_crossentropy&quot;, metrics=[&quot;accuracy&quot;]
-)
-model.fit(X_training, y_training, epochs=20)
-
-# 评估模型的表现
-model.evaluate(X_testing, y_testing, verbose=2)
-
-但是，我收到以下错误：
-Traceback（最近一次调用最后一次）：
-文件“C:\Users\Eric\Desktop\coding\cs50\ai\lectures\lecture5\banknotes\banknotes.py”，第 41 行，位于&lt;module&gt;
-model.fit(X_training, y_training, epochs=20)
-文件 &quot;C:\Users\Eric\Desktop\coding\cs50\ai\.venv\Lib\site-packages\keras\src\utils\traceback_utils.py&quot;，第 122 行，位于 error_handler 中
-从 None 引发 e.with_traceback(filtered_tb)
-文件 &quot;C:\Users\Eric\Desktop\coding\cs50\ai\.venv\Lib\site-packages\keras\src\trainers\data_adapters\__init__.py&quot;，第 113 行，位于 get_data_adapter 中
-引发 ValueError(f&quot;无法识别的数据类型：x={x}（类型为 {type(x)}）&quot;)
-ValueError：无法识别的数据类型：x=[...]（类型为 &lt;class &#39;list&#39;&gt;)
-
-其中“...”是训练数据。
-知道哪里出错了吗？我在 Windows 计算机上使用 Python 版本 3.11.8 和 TensorFlow 版本 2.16.1。
-我尝试在 Google Colab 笔记本中运行相同的代码，并且成功了：问题仅发生在我的本地机器上。这是我期望的输出：
-Epoch 1/20
-26/26 [==============================] - 1s 2ms/step - 损失：1.1008 - 准确度：0.5055
-Epoch 2/20
-26/26 [===============================] - 0s 2ms/step - 损失：0.8588 - 准确度：0.5334
-Epoch 3/20
-26/26 [================================] - 0s 2ms/step - 损失：0.6946 - 准确度：0.5917
-Epoch 4/20
-26/26 [==============================] - 0s 2ms/步 - 损失：0.5970 - 准确度：0.6683
-纪元 5/20
-26/26 [==============================] - 0s 2ms/步 - 损失：0.5265 - 准确度：0.7120
-纪元 6/20
-26/26 [===============================] - 0s 2ms/步 - 损失：0.4717 - 准确度：0.7655
-纪元 7/20
-26/26 [===============================] - 0s 2ms/步 - 损失：0.4258 - 准确度：0.8177
-纪元 8/20
-26/26 [==============================] - 0s 2ms/步 - 损失：0.3861 - 准确度：0.8433
-纪元 9/20
-26/26 [================================] - 0s 2ms/步 - 损失：0.3521 - 准确度：0.8615
-纪元 10/20
-26/26 [===============================] - 0s 2ms/步 - 损失：0.3226 - 准确度：0.8870
-纪元 11/20
-26/26 [==============================] - 0s 2ms/步 - 损失：0.2960 - 准确度：0.9028
-纪元 12/20
-26/26 [================================] - 0s 2ms/步 - 损失：0.2722 - 准确度：0.9125
-纪元 13/20
-26/26 [===============================] - 0s 2ms/步 - 损失：0.2506 - 准确度：0.9283
-纪元 14/20
-26/26 [==============================] - 0s 2ms/步 - 损失：0.2306 - 准确度：0.9514
-纪元 15/20
-26/26 [================================] - 0s 3ms/步 - 损失：0.2124 - 准确度：0.9660
-纪元 16/20
-26/26 [===============================] - 0s 2ms/步 - 损失：0.1961 - 准确度：0.9769
-纪元 17/20
-26/26 [==============================] - 0s 2ms/步 - 损失：0.1813 - 准确度：0.9781
-纪元 18/20
-26/26 [================================] - 0s 2ms/步 - 损失：0.1681 - 准确度：0.9793
-纪元 19/20
-26/26 [===============================] - 0s 2ms/步 - 损失：0.1562 - 准确度：0.9793
-Epoch 20/20
-26/26 [===============================] - 0s 2ms/步 - 损失：0.1452 - 准确度：0.9830
-18/18 - 0s - 损失：0.1407 - 准确度：0.9891 - 187ms/epoch - 10ms/步
-[0.14066053926944733, 0.9890710115432739]
-]]></description>
-      <guid>https://stackoverflow.com/questions/78271090/why-do-i-get-valueerror-unrecognized-data-type-x-of-type-class-list</guid>
-      <pubDate>Thu, 04 Apr 2024 00:28:01 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在线托管 TensorFlow 模型</title>
       <link>https://stackoverflow.com/questions/76187823/how-to-host-tensorflow-model-online</link>
       <description><![CDATA[我正在尝试使用 TensorFlow Serving 将 ML 模型作为 REST API 提供服务。我想知道是否有办法在线托管模型而不是本地托管？
@@ -699,6 +638,21 @@ print(mean_squared_error(y_test, pred_final))
 我正在考虑高斯或多项式。然而，多项式适用于离散特征，我尝试了高斯，但结果发现预测的准确性就像随机选择一样。]]></description>
       <guid>https://stackoverflow.com/questions/67269495/choose-naive-bayes-model-for-continous-feature-multiple-labels</guid>
       <pubDate>Mon, 26 Apr 2021 15:28:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何计算最佳批次大小？</title>
+      <link>https://stackoverflow.com/questions/46654424/how-to-calculate-optimal-batch-size</link>
+      <description><![CDATA[有时我会遇到一个问题：
+分配形状为
+的张量时发生 OOM
+例如
+分配形状为 (1024, 100, 160) 的张量时发生 OOM
+
+其中 1024 是我的批处理大小，我不知道其余的是多少。如果我减少批处理大小或模型中的神经元数量，它就会运行良好。
+是否有一种通用方法可以根据模型和 GPU 内存计算最佳批处理大小，这样程序就不会崩溃？
+简而言之：我希望我的模型的批处理大小尽可能大，这将适合我的 GPU 内存并且不会使程序崩溃。]]></description>
+      <guid>https://stackoverflow.com/questions/46654424/how-to-calculate-optimal-batch-size</guid>
+      <pubDate>Mon, 09 Oct 2017 20:25:09 GMT</pubDate>
     </item>
     </channel>
 </rss>
