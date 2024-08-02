@@ -4,11 +4,170 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 02 Aug 2024 15:16:49 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 02 Aug 2024 18:20:49 GMT</lastBuildDate>
+    <item>
+      <title>为什么修改后的 z 分数没有发现明显的异常值？</title>
+      <link>https://stats.stackexchange.com/questions/652217/why-does-modified-z-score-not-pick-up-an-obvious-outlier</link>
+      <description><![CDATA[希望借鉴您对用于检测异常值的修改后的 z 分数的一些见解。
+据我从研究中得知，当分布可能不正常（例如偏斜）时，修改后的 z 分数比 z 分数本身更能指示异常值。这是因为，如果分布不为正态分布，则使用中位数而不是均值，中位数是集中趋势的稳健估计量。
+我正在针对一个值列表测试这两种算法以及其他一些异常值检测算法，其中我知道一个值是极端异常值。为了帮助我，我创建了一个小型 Python 程序，它根据该列表计算 z 分数和修改后的 z 分数，然后使用它来检查列表中的任何项目是否看起来像异常值。基本上，我检查了这些算法是否能成功检测到我知道存在的极端异常值。
+为了检查我的数据的分布，程序创建了一个箱线图，异常值（值 = 200）非常明显。作为参考，该数据集的中位数为 58。
+
+异常值 200 的修改后的 z 分数仅为 2.81，这大大低于被视为异常值的 3.5，因此它不会被标记为异常值。仅供参考，我使用 3.5，因为这似乎是最推荐的截止值。
+异常值 200 的 z 分数为 3.40，这高于被视为异常值的 3.0，因此它确实被标记为异常值。仅供参考，我使用 3.0 作为截止值，因为这似乎最受欢迎。
+我的问题是，为什么 z 分数算法可以检测到我的数据集中的异常值，而修改后的 z 分数算法却不能？在我看来，这似乎违反直觉，尤其是当异常值从箱线图中显而易见时。
+这是我的 Python，以防我犯了错误：
+import matplotlib as plt
+import numpy as np
+from scipy.stats import zscore
+
+def z_score_mod(obs):
+med = np.median(obs)
+med_abs_dev = np.median(np.abs(obs - med))
+z_score_mod = 0.6745 * ((obs - med) / med_abs_dev)
+return z_score_mod
+
+# 具有相当大的异常值 = 200 和索引 = 13 的观察值列表
+list_of_obs = [58,71,11,18,90,97,15,53,39,22,62,51,10,200,20,64,94,71,73,18,95,96,92,38,26]
+
+# 将观测值列表转换为 numpy 数组
+array_of_obs = np.array(list_of_obs)
+
+# 创建箱线图以显示异常值
+plt.pyplot.boxplot(array_of_obs)
+
+median = np.median(array_of_obs)
+
+# 计算每个数组项的修改后的 z 分数
+array_of_z_score_mod = z_score_mod(array_of_obs)
+
+# 对于生成的修改后的 z 分数，确定是否有任何异常值
+array_of_outlier_evals = abs(array_of_z_score_mod) &gt; 3.5
+
+# 索引 = 13 处的观测值 = 200 是否为异常值？
+print(&#39;\r&#39;)
+print(f&#39;索引位置 13 处的观察值 = {list_of_obs[13]}&#39;)
+print(f&#39;修改后的 z 分数值 = {array_of_z_score_mod[13]:.2f}&#39;)
+print(f&#39;在修改后的 z 分数阈值 3.5 处，值是否为异常值：{array_of_outlier_evals[13]}&#39;)
+
+# 计算每个数组项的 z 分数
+array_of_z_score = zscore(list_of_obs)
+
+# 对于生成的 z 分数，确定是否有任何异常值
+array_of_outlier_evals_2 = abs(array_of_z_score) &gt; 3
+
+# 索引 = 13 处的观察值 = 200 是否为异常值？
+print(&#39;\r&#39;)
+print(f&#39;索引位置 13 处的观察值 = {list_of_obs[13]}&#39;)
+print(f&#39;值的 z-score = {array_of_z_score[13]:.2f}&#39;)
+print(f&#39;在 z-score 阈值 3.0 处，值是否为异常值：{array_of_outlier_evals_2[13]}&#39;)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652217/why-does-modified-z-score-not-pick-up-an-obvious-outlier</guid>
+      <pubDate>Fri, 02 Aug 2024 17:17:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有外生变量的 ARMA - GARMA 模型的 p 值</title>
+      <link>https://stats.stackexchange.com/questions/652216/p-values-for-a-arma-garma-model-with-exogenous-variable</link>
+      <description><![CDATA[我正在尝试估计以下 ARMA(1, 2) - GARCH(1, 1) 模型的参数，其中还带有一个外生变量。模型规范如下：
+$ x_t = \mu + \beta_Y \cdot y_{t-1} + AR_1\cdot x_{t-1} + MA_1\cdot \epsilon_{t-1} + MA_2 \cdot \epsilon_{t-2} + \epsilon_t$
+$\epsilon_t = \sigma_t\cdot z_t $
+$ \sigma_t = \sqrt{\omega + \alpha \cdot \epsilon_{t-1}^2 + \beta\cdot \sigma_{t-1}^2}$
+$ z_t \sim Normal(0, 1)$ 适用于所有 $t$。这些误差是 iid 的。
+模型参数为：$\mu, \beta_Y, AR_1, MA_1, MA_2, \omega, \alpha, \beta$。
+我目前正在通过最大化 pytorch 中的对数似然来估计最佳参数。问题：
+
+是否有能够估计这些参数的 python 包？作为双重检查，它将非常有用
+
+是否有一个 python 包能够为估计的参数生成标准错误和 p 值？
+
+如果答案 2 没有这样的包，有没有关于如何生成这些 p 值的提示？
+
+
+非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/652216/p-values-for-a-arma-garma-model-with-exogenous-variable</guid>
+      <pubDate>Fri, 02 Aug 2024 17:14:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何读取实验设计的事后（Tukey HSD）输出？</title>
+      <link>https://stats.stackexchange.com/questions/652215/how-do-you-read-post-hoc-tukey-hsd-outputs-for-experimental-designs</link>
+      <description><![CDATA[我目前正在学习统计学课程中的实验设计，我对事后分析结果的解读方式感到十分困惑。
+在我的家庭作业中，我对三个不同快递员的平均送货时间差异进行了事后/Tukey HSD 测试。我为此使用的测试统计量是随机区组设计。我的因变量是运输时间，而我的分类变量是发货批次和快递员。当我通过 Statistica 软件运行数据时，我得到了 1-5 批发货的一列，以及每个 {1}、{2}、{3}、{4} 和 {5} 的一列。
+为了直观起见，这是 Statistica 给我的结果。请注意，我只填写了前两行：
+
+
+
+装运批次
+{1&gt;
+{2&gt;
+{3&gt;
+{4&gt;
+{5&gt;
+
+
+
+
+1
+
+0.017177
+0.005775
+0.94846
+0.000722
+
+
+2
+0.017177
+
+0.893692
+0.043908
+0.090739
+
+
+3
+
+
+
+
+
+
+
+4
+
+
+
+
+
+
+
+
+5
+
+
+
+
+
+
+
+
+在每个 {1}、... {5}（在同一个标​​题块中）下，还标明了该特定货件的平均交货时间。
+看到（我认为是）行和列都是货件批次时，我真的很困惑，因为我有兴趣测试快递员之间的平均交货时间差异。
+为什么货件是表格中显示的唯一分类变量？我测试运行不正确吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652215/how-do-you-read-post-hoc-tukey-hsd-outputs-for-experimental-designs</guid>
+      <pubDate>Fri, 02 Aug 2024 17:13:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>对于重复测量的分类数据应使用什么模型或方法？</title>
+      <link>https://stats.stackexchange.com/questions/652214/what-model-or-method-to-use-for-categorical-data-with-repeated-measures</link>
+      <description><![CDATA[我正在尝试分析我的数据，它由 2 个独立分类变量（4 种纹理和 4 种撞击声音 - 将它们混合和匹配可以给我展示每个人的 16 种不同条件）和 1 个因变量分类变量（为显示的刺激选择的选项 - 4 个潜在选项）组成。我绘制了图表并对结果有所了解，但需要证明其统计意义。
+我不完全确定如何做到这一点，所以我正在考虑多项逻辑回归 - 我可以使用该模型来验证我们看到的结果不是随机的而是实际的模式。我的理解是我们可以根据模型的 p 值来验证这一点。如果我错了，请随时纠正我。
+但我的数据也有重复测量......我该如何解释这一点？多项逻辑回归是否已经考虑到了这一点？或者我应该着眼于混合效应逻辑回归？python 支持吗？我似乎找不到任何支持或代码示例。
+我曾考虑将我的多项式数据拆分为 4 个不同的二项式混合回归模型，但我似乎再次找不到有关混合效应逻辑回归的任何内容 - 只有 Python 中的混合效应线性回归。我可以使用线性混合效应模型获得正确的结果吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652214/what-model-or-method-to-use-for-categorical-data-with-repeated-measures</guid>
+      <pubDate>Fri, 02 Aug 2024 15:44:18 GMT</pubDate>
+    </item>
     <item>
       <title>核均值嵌入的收敛</title>
       <link>https://stats.stackexchange.com/questions/652212/convergence-of-kernel-mean-embeddings</link>
-      <description><![CDATA[设 $k(\cdot,\cdot)$ 为丰富核，$\mathcal{H}$ 为其相关 RKHS。定义核均值嵌入 $\mu=\int k(\cdot,x)dP_X(x)$，设 $\frac{1}{n}\sum k(x_i,\cdot)$ 为其样本模拟。两者之间的误差 $||\mu-\hat{\mu}||_{\mathcal{H}}=O(\frac{1}{\sqrt{n}})$。各种结果通过使用希尔伯特空间的伯恩斯坦型不等式来证明这一点。
+      <description><![CDATA[设 $k(\cdot,\cdot)$ 为丰富核，$\mathcal{H}$ 为其相关 RKHS。定义核均值嵌入 $\mu=\int k(\cdot,x)dP_X(x)$，设 $\hat{\mu}=\frac{1}{n}\sum k(x_i,\cdot)$ 为其样本模拟。两者之间的误差 $||\mu-\hat{\mu}||_{\mathcal{H}}=O(\frac{1}{\sqrt{n}})$。各种结果通过使用希尔伯特空间的伯恩斯坦型不等式来证明这一点。
 对我来说，从中心极限定理的角度来看，这感觉很直观。有希尔伯特空间 CLT 吗？是否有可能从 CLT 的应用中显示这种速率？]]></description>
       <guid>https://stats.stackexchange.com/questions/652212/convergence-of-kernel-mean-embeddings</guid>
       <pubDate>Fri, 02 Aug 2024 14:32:18 GMT</pubDate>
@@ -24,25 +183,9 @@ PS：如果这个问题不适合在这里提出，请告诉我合适的平台，
       <pubDate>Fri, 02 Aug 2024 12:38:05 GMT</pubDate>
     </item>
     <item>
-      <title>计算不同统计检验的效应大小、统计功效和置信区间[关闭]</title>
+      <title>计算不同统计检验的效应大小、统计功效和置信区间</title>
       <link>https://stats.stackexchange.com/questions/652209/calculation-of-effect-size-statistical-power-and-confidence-interval-for-diffe</link>
-      <description><![CDATA[我对非正态分布使用以下双样本检验：
-
-卡方检验
-Kolmogorov-Smirnov 检验
-Wilcoxon 秩和检验
-Kruskal-Wallis 检验
-
-它们都返回一个 p 值，即卡方检验的 p 值、Kolmogorov-Smirnov 检验的 p 值、Wilcoxon 秩和检验的 p 值和 Kruskal-Wallis 检验的 p 值。
-由于 p 值不足以理解数据/分布（例如，请参阅Sullivan &amp; Feinn (2012)、Dunkler 等人 (2020)、Greenland (2016) 和 du Prel 等人 (2009)），我想计算
-
-效果大小，
-检验的统计功效，以及
-置信区间（假设检验）。
-
-但是，有些事情不清楚。
-您能否告诉我，所有附加（p 值）指标，即 (i) 效果大小、(ii) 检验的统计功效和 (iii) 置信区间（假设检验），是否需要针对每项统计检验（即卡方检验、Kolmogorov-Smirnov 检验、Wilcoxon 秩和检验和 Kruskal-Wallis 检验）进行计算，或者它们不依赖于统计检验，并且只需计算一次？
-此外，如果所有附加（p 值）度量，即 (i) 效应大小、(ii) 检验的统计功效和 (iii) 置信区间（假设检验），都需要针对每项统计检验进行计算，我是否应该针对每种类型的统计检验调整与效应大小、统计功效和置信区间相关的方程？]]></description>
+      <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/652209/calculation-of-effect-size-statistical-power-and-confidence-interval-for-diffe</guid>
       <pubDate>Fri, 02 Aug 2024 11:41:26 GMT</pubDate>
     </item>
@@ -52,15 +195,27 @@ Kruskal-Wallis 检验
       <description><![CDATA[我目前正在执行多个“E-tests”（poisson.mean），并且想知道使用 E-tests 进行多次校正的最合适方法，以及如何在 R 中进行此操作。
 我正在计算 7 个不同实验组（2 个对照组，5 个感兴趣的实验组）中某个事件发生的次数（在给定的时间间隔内）。
 我选择通过列出 7 个条件组和值来比较各组之间的泊松分布均值，然后以迭代方式执行泊松检验。然后从结果中获取 P 值，例如。
+Cond1 &lt;- c(0,0,0,1,1,2,3,3,3)
+Cond2 &lt;- c(0,1,1,1,1,1,2,3,3)
+Cond3 &lt;- c(0,1,2,3,3,3,3,3,4)
+Cond7 &lt;- c(3,3,3,3,4,4,4,5,6)
+result1 &lt;- poisson.test(x c(sum(Cond1), sum(Cond2)),
+T = c(length(Cond1), length (Cond2)),
+alternative = &quot;two.sided&quot;)
+result2 &lt;- poisson.test(x c(sum(Cond1), sum(Cond3)),
+T = c(length(Cond1), length (Cond3)),
+alternative = &quot;two.sided&quot;) 
 
-Cond1 &lt;- c(0,0,0,1,1,2,3,3,3) Cond2 &lt;- c(0,1,1,1,1,1,2,3,3)Cond3 &lt;- c(0,1,2,3,3,3,3,3,4)... Cond7 &lt;- c(3,3,3,3,4,4,4,5,6) result1 &lt;- poisson.test(x c(sum(Cond1), sum(Cond2)), T = c(length(Cond1), length (Cond2)), alternative = &quot;two.sided&quot;)
-result2 &lt;- poisson.test(x c(sum(Cond1), sum(Cond3)), T = c(length(Cond1), length (Cond3)), alternative = &quot;two.sided&quot;) ... 
-result20 &lt;- poisson.test(x c(sum(Cond6), sum(Cond7)), T = c(length(Cond6), length (Cond7)), alternative = &quot;two.sided&quot;)  P1 &lt;- result1§p.value P2 &lt;- result2§p.value ...P20&lt;- result20§p.value 
+result20 &lt;- poisson.test(x c(sum(Cond6), sum(Cond7)),
+T = c(length(Cond6), length (Cond7)),
+alternative = &quot;two.sided&quot;) 
+P1 &lt;- result1§p.value 
+P2 &lt;- result2§p.value 
+P20&lt;- result20§p.value 
 
-从这一点开始，我需要对多个测试进行校正，并希望使用 Benjamini-Hochberg 类型的排序 p 值显着性校正，但我想知道
-A)哪种测试最适合这种分析
-B) 如何在 R 中进行此操作
-提前感谢您的帮助]]></description>
+从这一点开始，我需要校正多个测试，并希望使用 Benjamini-Hochberg 类型的排序 p 值显著性校正，但我想知道
+A) 哪种测试最适合这种分析
+B) 如何在 R 中进行此操作]]></description>
       <guid>https://stats.stackexchange.com/questions/652208/multiple-correction-for-e-test-values</guid>
       <pubDate>Fri, 02 Aug 2024 11:36:56 GMT</pubDate>
     </item>
@@ -134,6 +289,7 @@ $$N=X+jY$$其中$X\sim\mathcal{N}(0,1/2)$和$Y\sim\mathcal{N}(0,1/2)$，$X$和$Y
 
 我已将拼写格式的数据放入 seqdef 函数中。这是最佳时间格式的问题。这里有经验吗？我目前使用的是 unix-time，但我觉得单位太细了。
 
+更新：我不得不意识到只有白天的时间才是相关的，而不是与确切日期相关的时间。具体来说，我们感兴趣的是序列是否发生在早上，但它是否真的发生在 3 月 12 日星期二并不重要。如果我理解正确的话，重新编码时间也应该减少 STS 序列中的变量数量。目前，序列由约 660k 个变量组成。
 labels = seqstatl(sample$app_category)
 states = 1:length(labels)
 
@@ -149,121 +305,19 @@ print(session_seq[1:15, ], format = &quot;SPS&quot;)
 
 第二个问题与所需的计算资源有关。即使是子样本，我也需要相对大量的计算能力。是否可以使计算更节省资源？是否可以选择拆分数据集，然后合并序列距离（批处理），或者这会扭曲我的结果？
 
-我也很高兴收到有关阅读和阅读目标的更多提示。 TraMineR 用户指南已经帮了我很多忙。]]></description>
+我计划按如下方式进行：首先创建一个序列对象（使用 seqdef），然后根据序列对象计算序列成本，之后计算序列距离（“OM”）并使用聚类算法将结果聚类为类型。
+我也很高兴收到有关阅读和阅读目标的更多提示。TraMineR 用户指南已经帮了我很多。]]></description>
       <guid>https://stats.stackexchange.com/questions/652206/adaptation-of-sequence-analysis-for-digital-trace-data-app-tracking</guid>
       <pubDate>Fri, 02 Aug 2024 10:45:01 GMT</pubDate>
     </item>
     <item>
       <title>将分数改变为预测变量</title>
       <link>https://stats.stackexchange.com/questions/652205/change-score-as-predictor</link>
-      <description><![CDATA[我想看看独立变量（T2-T1）的变化是否能预测 T2 时的另一个变量。例如，痴呆症患者在 1 年内认知障碍的增加越多，生活质量就越低。
+      <description><![CDATA[我想看看独立变量（T2-T1）的变化是否能预测 T2 时的另一个变量。例如，痴呆症患者在 1 年内认知障碍的增加幅度越大，预示着生活质量越低。
 我的问题是：我需要控制基线生活质量（因变量）吗？
-我已经读到我应该控制 IV，但不确定 DV。
-谢谢]]></description>
+我已经读到我应该控制 IV，但不确定 DV。]]></description>
       <guid>https://stats.stackexchange.com/questions/652205/change-score-as-predictor</guid>
       <pubDate>Fri, 02 Aug 2024 10:42:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>RM Anova 或 2 配对 t 检验？并使用 RCI 验证个体差异</title>
-      <link>https://stats.stackexchange.com/questions/652203/rm-anova-or-2-paired-t-tests-and-verifying-for-individual-differences-with-rci</link>
-      <description><![CDATA[对于一个使用记录对刺激的反应时间的测试来评估麻醉后认知能力变化的研究项目，我们在麻醉后基线、1 小时和 4 小时对受试者进行了测试，总共进行了三次。该研究旨在判断麻醉后开车是否危险。
-RM Anovas 或配对 t 检验是否更适合比较这 3 个时刻？另一项类似于小时的研究使用了 RM Anovas，但我担心会失去统计能力。RM Anova 的优点是它更具表现力，我可以在我的分析中添加受试者间因素（例如他们的代谢对麻醉剂的吸收）。
-第二个问题，当我们处理安全问题时，报告是否有一个人受到镇静的负面影响非常重要。为此，我决定暂时采用可靠变化指数，但我不确定这是否是最好的选择，因为我手头没有重测信度。我使用了这个公式：calculate_RCI &lt;- function(M1, SD1, M2, SD2) {return((M1 - M2) / sqrt(SD1^2 + SD2^2))
-是使用整个组的 SD 更好，还是使用不同时间点的个人的 SD 更好？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652203/rm-anova-or-2-paired-t-tests-and-verifying-for-individual-differences-with-rci</guid>
-      <pubDate>Fri, 02 Aug 2024 08:59:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>对单个组的样本大小进行论证以获得所需准确度的平均值估计值</title>
-      <link>https://stats.stackexchange.com/questions/652201/sample-size-justification-for-single-group-to-get-estimate-of-mean-to-desired-ac</link>
-      <description><![CDATA[
-我有一个计算机组件样品
-这些计算机组件是分批生产的（1 批 = 1 批次），每批 200 个
-组件可以单独进行电子测试
-然后对该测试结果进行平均，以得出批次级值，以判断整个批次是否通过
-我需要知道需要从一批中抽样多少个组件，以便对整个批次进行
-准确的测试测量。
-有人知道我应该如何证明这一点吗？
-例如，测试 10 个组件是否能让我足够准确地估计出整个批次的平均测试结果？
-
-我知道这里有一些未知数，比如“足够准确” - 也许是某种置信区间？
-任何帮助都太棒了！
-林肯]]></description>
-      <guid>https://stats.stackexchange.com/questions/652201/sample-size-justification-for-single-group-to-get-estimate-of-mean-to-desired-ac</guid>
-      <pubDate>Fri, 02 Aug 2024 08:15:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何手动计算零膨胀泊松回归的伪 R2（McFadden）</title>
-      <link>https://stats.stackexchange.com/questions/652200/how-to-calculate-pseudo-r2-mcfadden-for-zero-inflated-poisson-regression-by-ha</link>
-      <description><![CDATA[我正在寻找在 R 中手动计算伪 R2 McFadden 的方法。但是，当我使用下面的代码时
-zeropr &lt;- zeroinfl(g ~ a + f | a + f, data = xuly240731_1000) summary(zeropr)
-结果如下：
-调用：
-zeroinfl(formula = g ~ a + f | a + f, data = xuly240731_1000)
-皮尔逊残差：
-最小 1Q 中位数 3Q 最大
--2.4010 -1.0299 -0.4369 0.6539 6.2740
-计算模型系数（带对数链接的泊松）：
-估计标准差。误差 z 值 Pr(&gt;|z|)
-（截距）0.709857 0.115392 6.152 7.67e-10 ***
-a 0.038266 0.002577 14.846 &lt; 2e-16 ***
-f 0.927251 0.282940 3.277 0.00105 **
-零通胀模型系数（带 logit 链接的二项式）：
-估计标准差。误差 z 值 Pr(&gt;|z|)
-(截距) 0.22235 1.03148 0.216 0.8293
-a -0.14307 0.06518 -2.195 0.0282 *
-f -1.81661 2.19863 -0.826 0.4087
-有效代码：0 &#39;&#39; 0.001 &#39;&#39; 0.01 &#39;&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-但是，当我尝试计算 Pseudo-R2 McFadden 时
-library(performance)
-
-library(DescTools)
-PseudoR2(zeropr,c(&quot;McFadden&quot;))
-结果是 &gt; PseudoR2(zeropr,c(&quot;McFadden&quot;))
-[1] NA
-您能告诉我如何处理这个问题并计算 Pseudo-R2 (McFadden) 吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652200/how-to-calculate-pseudo-r2-mcfadden-for-zero-inflated-poisson-regression-by-ha</guid>
-      <pubDate>Fri, 02 Aug 2024 07:56:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>频率嵌入的聚类方法</title>
-      <link>https://stats.stackexchange.com/questions/652196/clustering-method-for-frequency-embeddings</link>
-      <description><![CDATA[例如，我有以下要聚类的单词列表。列表的长度可能不同，词汇表为 $W = \{a,b,c\}$。将两个列表聚类到同一个簇中的标准是“它们重叠得越多，它们就越相似”。
-
-
-
-索引
-列表
-嵌入
-
-
-
-
-1
-$[a,a,b,c]$
-$[2,1,1]$
-
-
-2
-$[b,b,c]$
-$[0,2,1]$
-
-
-3
-$[a,b,c,c,c]$
-$[1,1,3]$
-
-
-4
-$[a,a,a]$
-$[3,0,0]$
-
-
-
-我发现使用欧几里得距离的经典聚类方法（例如 Kmeans）存在一些问题，即 $[a], [b],$ 和 $[c]$（具有嵌入 $[1,0,0], [0,1,0],$ 和 $[0,0,1]$）可以聚类到同一个聚类中，即使列表中存在不重叠的事件。此外，当嵌入是整数并且可能包含大量 0 时，Kmeans 不是一种好的聚类方法。
-对于这个聚类问题，我应该使用哪种距离和哪种聚类方法？或者我应该在这里使用一些不同的嵌入？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652196/clustering-method-for-frequency-embeddings</guid>
-      <pubDate>Fri, 02 Aug 2024 06:31:45 GMT</pubDate>
     </item>
     <item>
       <title>弗里德曼、皮萨尼和普维斯书中的辛普森悖论</title>
@@ -338,11 +392,10 @@ F
 
 
 
-总申请人数只是上述条目的总和。录取的总百分比，男性为 45%，是
-62 * 825 / 2691 + ... + 6 * 373 / 2691
-
+申请人总数只是上述条目的总和。录取的总百分比为男性 45%，为
+$$ \frac{62\cdot825 }{2691} + \cdots + \frac{6\cdot373}{2691}$$
 女性也是如此。
-然后作者提出统计员会执行以下操作的论点：
+然后作者提出统计学家会做以下事情的论点：
 
 
 
@@ -382,15 +435,13 @@ F
 
 
 然后他们指出男性的加权平均录取率为：
-62 * 933 / 4526 + ... + 6 * 714/4526 = 39（近似值）
-
+$$ \frac{62\cdot933}{4526} + \cdots + \frac{6\cdot714}{4526} \approx 39 $$
 对于女性来说也是如此：
-82 * 933 / 4526 + ... + 7 * 714/4526 = 43（近似值）
-
+$$ \frac{82\cdot933}{4526} + \cdots + \frac{7\cdot714}{4526} \approx 43 $$
 我很难解释最后一对计算“男女加权平均录取率”。
 他们说：
 
-加权平均值控制了混杂因素——专业选择。这些平均值表明，如果有的话，录取过程对男性有偏见。
+加权平均值控制了混杂因素——专业选择。这些平均值表明，如果有的话，录取过程对男性存在偏见。
 
 在这种情况下，39% 和 43% 的加权平均值究竟意味着什么？如何正确解释这些数字？原始百分比 45% 和 30% 似乎对我来说更容易理解和解释。]]></description>
       <guid>https://stats.stackexchange.com/questions/652195/simpsons-paradox-in-freedman-pisani-and-purves-book</guid>
@@ -442,11 +493,11 @@ lm.D9 &lt;- lm(weight ~ group)
       <pubDate>Thu, 01 Aug 2024 21:42:45 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 GLM 中推导出指数分布的典型链接函数</title>
-      <link>https://stats.stackexchange.com/questions/652165/how-to-derive-canonical-link-function-of-exponential-distribution-in-glm</link>
-      <description><![CDATA[我想知道推导过程，以及基本如何计算它]]></description>
-      <guid>https://stats.stackexchange.com/questions/652165/how-to-derive-canonical-link-function-of-exponential-distribution-in-glm</guid>
-      <pubDate>Thu, 01 Aug 2024 17:22:22 GMT</pubDate>
+      <title>什么是最好的统计分析方法来分析不同代谢物随时间（时间 0、24 和 48 小时）的显著差异</title>
+      <link>https://stats.stackexchange.com/questions/652164/what-is-the-best-statistical-analysis-to-analyse-significant-differences-in-diff</link>
+      <description><![CDATA[我有 40 种不同的代谢物，我测量了它们在 0、24 和 48 小时时的浓度。我想知道每种代谢物是否随着时间的推移存在显著差异。我对代谢物之间是否存在差异并不感兴趣。我考虑对每种代谢物进行单向 Anova 重复测量 + Tukey 检验。所以最后我会得到 40 种不同的分析（Anova + Tukey）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652164/what-is-the-best-statistical-analysis-to-analyse-significant-differences-in-diff</guid>
+      <pubDate>Thu, 01 Aug 2024 17:05:23 GMT</pubDate>
     </item>
     </channel>
 </rss>
