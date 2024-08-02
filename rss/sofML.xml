@@ -4,7 +4,216 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 02 Aug 2024 06:23:55 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 02 Aug 2024 09:16:51 GMT</lastBuildDate>
+    <item>
+      <title>如何通过调整函数的一个输入参数来训练它输出正确的值（基于训练数据）？</title>
+      <link>https://stackoverflow.com/questions/78824490/how-to-train-a-function-to-output-a-correct-value-based-on-training-data-by-ad</link>
+      <description><![CDATA[我是机器学习的新手。我有一个项目，需要帮助选择合适的机器学习算法。
+我有一个包含三个输入（x、y 和 N）的函数：
+F(x, y, N) → R
+我希望软件自动调整并给出 N 的值（基于输入值 x 和 y），以便函数给出正确的值 R。
+我有一个如下所示的训练数据集：
+
+
+
+x
+y
+R
+
+
+
+
+7
+2
+20
+
+
+8
+5
+6
+
+
+15
+6
+13
+
+
+...
+...
+
+
+
+你对我应该寻找哪种合适的机器学习算法？如果神经网络合适，您对从多少层/节点开始有什么建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78824490/how-to-train-a-function-to-output-a-correct-value-based-on-training-data-by-ad</guid>
+      <pubDate>Fri, 02 Aug 2024 08:29:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于训练模型过程中遇到的问题</title>
+      <link>https://stackoverflow.com/questions/78824487/questions-about-problems-encountered-during-training-model</link>
+      <description><![CDATA[我目前正在训练一个 AI 模型，在训练过程中遇到了一些问题，如附图所示。有人能帮我找出问题并提出解决方案吗？问题情况和设置如下：
+
+设置
+
+模型的参数每 64 次迭代更新一次。
+
+模型每个 epoch 需要 30 步，并且有 5 个 warmup epoch。
+
+我正在使用名为 CosineAnnealingWarmup 的学习率调度程序，最大和最小学习率分别为 2e-4 和 8e-7。
+
+
+
+问题情况
+
+损失在一段时间内会减少，但在某个点之后开始振荡。
+
+模型的性能指标在某个时间点之后停滞或下降点。
+
+
+
+
+我将非常感激您提供的任何帮助。以下是我的损失、指标和 lr 调度程序。
+
+
+我尝试了以下方法，但没有奏效。
+
+我正在使用 AsymmetricLoss，并尝试将 gamma_neg 值设置为 2、将 gamma_pos 设置为 0、将 clip 设置为 0.1。
+
+我还将批次大小从 256 增加到 512，但没有任何效果。
+
+我目前正在尝试增加模型的容量，但我似乎得到了类似的结果。
+
+
+对于 AsymmetricLoss 代码如下：
+class AsymmetricLoss(nn.Module):
+def __init__(
+self, gamma_neg=3, gamma_pos=0, clip=.05, eps=1e-8,
+disable_torch_grad_focal_loss=True, cls_cnt_list=None, smoothing=.1
+):
+super().__init__()
+
+self.gamma_neg = gamma_neg
+self.gamma_pos = gamma_pos
+self.clip = clip
+self.disable_torch_grad_focal_loss = disable_torch_grad_focal_loss
+self.eps = eps
+self.smoothing = smoothing
+
+如果 cls_cnt_list != None:
+n_samples = sum(cls_cnt_list)
+self.weights = torch.tensor([n_samples / cnt for cnt in cls_cnt_list]) / n_samples
+
+如果 torch.cuda.is_available():
+self.weights = self.weights.cuda()
+else:
+self.weights = None
+
+def forward(self, x, y):
+n_pos = y.sum(dim=1, keepdim=True)
+y = (1 - self.smoothing) * y + (self.smoothing / (y.shape[1] - n_pos))
+
+# 计算概率
+x_sigmoid = torch.sigmoid(x)
+xs_pos = x_sigmoid
+xs_neg = 1 - x_sigmoid
+
+# 不对称裁剪
+if self.clip is not None and self.clip &gt; 0:
+xs_neg = (xs_neg + self.clip).clamp(max=1)
+
+# 基本 CE 计算
+los_pos = y * torch.log(xs_pos.clamp(min=self.eps))
+los_neg = (1 - y) * torch.log(xs_neg.clamp(min=self.eps))
+loss = los_pos + los_neg
+
+# 非对称聚焦
+if self.gamma_neg &gt; 0 or self.gamma_pos &gt; 0:
+if self.disable_torch_grad_focal_loss:
+torch.set_grad_enabled(False)
+pt0 = xs_pos * y
+pt1 = xs_neg * (1 - y) # pt = p if t &gt; 0 else 1-p
+pt = pt0 + pt1
+one_sided_gamma = self.gamma_pos * y + self.gamma_neg * (1 - y)
+one_sided_w = torch.pow(1 - pt, one_sided_gamma)
+if self.disable_torch_grad_focal_loss:
+torch.set_grad_enabled(True)
+loss *= one_sided_w
+
+# 类权重
+if self.weights != None:
+loss *= self.weights.unsqueeze(0)
+
+return -loss.sum() * 1024
+]]></description>
+      <guid>https://stackoverflow.com/questions/78824487/questions-about-problems-encountered-during-training-model</guid>
+      <pubDate>Fri, 02 Aug 2024 08:28:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>多类图像分类的准确率未提高超过 50%</title>
+      <link>https://stackoverflow.com/questions/78823757/accuracy-for-multi-class-image-classification-not-improving-past-50</link>
+      <description><![CDATA[我正在开展一个项目，根据牛仔裤背面的图案预测牛仔裤的品牌。
+为此，我在网上收集了 3 个不同牛仔裤品牌（arizona、levi、lucky brand）的数据，并为每个品牌获取了大约 100 张图片。然后我做了一些数据增强，虽然非常基础
+def generate_more_images():
+for dir in os.listdir(&#39;jean_img&#39;):
+if dir != &#39;.DS_Store&#39;:
+n = 0
+for image in os.listdir(f&#39;jean_img/{dir}&#39;):
+
+if image != &#39;.DS_Store&#39;:
+img = Image.open(f&#39;jean_img/{dir}/{image}&#39;)
+img = img.resize((500,500))
+for i in range(10):
+img = img.rotate(np.random.uniform(-35,35))
+bright_factor = np.random.uniform(0.6, 1.4)
+augmenter = ImageEnhance.Brightness(img) 
+img =增强器.增强（亮度因子）
+如果 n &lt; 200：
+img.save（f&#39;jean_img_expand_test/{dir}_expand/{n}_{dir}_{image}&#39;）
+elif n &lt; 300:
+img.save(f&#39;jean_img_expand_valid/{dir}_expand/{n}_{dir}_{image}&#39;)
+else:
+img.save(f&#39;jean_img_expand_train/{dir}_expand/{n}_{dir}_{image}&#39;)
+n += 1
+
+然后利用这些图像，我训练并测试了多个模型，由于这些图像的复杂性，我认为这些模型的表现会很好，但令我惊讶的是，我的模型表现最好的时候也只能达到 60 多分到 50 多分。
+optimizer = Adam(learning_rate=0.001)
+reduce_lr = ReduceLROnPlateau(monitor=&#39;val_loss&#39;, factor=0.2, waiting=5, min_lr=0.00001)
+
+callback = callups.EarlyStopping(monitor=&#39;val_accuracy&#39;, waiting=20, restore_best_weights=True)
+
+model = Sequential([
+layer.Input(shape=(500, 500, 3)), 
+
+layer.Conv2D(32, (3, 3), padding=&#39;same&#39;),
+layer.LeakyReLU(alpha=0.3),
+layer.MaxPooling2D((2, 2)),
+layer.Dropout(0.25),
+
+layer.Flatten(),
+
+layer.Dense(64),
+layer.LeakyReLU(alpha=0.3),
+layer.Dropout(0.5),
+
+layer.Dense(3,activation=&#39;softmax&#39;)
+])
+model.compile(optimizer=optimizer, loss=&#39;categorical_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+
+model.fit(
+train_images,
+train_labels,
+epochs=100,
+validation_data=(val_images, val_labels),
+callbacks=[callback, reduce_lr]
+)
+
+以下是一些训练图像：
+
+
+
+我对计算机视觉还很陌生，但我认为这个分类问题并不难。我已经解决了更多类别的问题，算法运行得很好。如果有人能指出我工作中的缺陷，我将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78823757/accuracy-for-multi-class-image-classification-not-improving-past-50</guid>
+      <pubDate>Fri, 02 Aug 2024 04:11:08 GMT</pubDate>
+    </item>
     <item>
       <title>如何利用 Pytorch 的 CrossEntropyLoss 应用类权重来解决多类多输出问题的不平衡数据分类问题</title>
       <link>https://stackoverflow.com/questions/78823685/how-to-apply-class-weights-to-using-pytorchs-crossentropyloss-to-solve-an-imbal</link>
@@ -200,6 +409,107 @@ print(f&quot;Recon. error for the anomaly_error is {anomaly_error}&quot;)
 请记住，我是 Swift 的新手，但对编程并不陌生，所以老实说，只要指向正确的方向就会很有帮助，我可以弄清楚其余的！]]></description>
       <guid>https://stackoverflow.com/questions/78823105/how-to-start-developing-my-own-machine-learning-model-swift</guid>
       <pubDate>Thu, 01 Aug 2024 21:29:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>更清晰的分割 SAM (Segment Anything)</title>
+      <link>https://stackoverflow.com/questions/78822914/sharper-segmentation-sam-segment-anything</link>
+      <description><![CDATA[好吧，我目前正在做一个项目，我需要像这样分割图像上的对象：
+图像 1
+图像 2
+我选择使用 Meta 的 AI SAM（Segment Anything）来裁剪这些对象。
+我的代码如下所示：
+import cv2
+import numpy as np
+import sys, os
+from pathlib import Path
+import torch
+import surveillance as sv
+from fragment_anything import sam_model_registry, SamAutomaticMaskGenerator, SamPredictor
+
+# 获取命令行参数
+num = sys.argv[2]
+img_path = sys.argv[1]
+folder_path = sys.argv[3]
+
+# 从给定路径加载图像
+img = cv2.imread(img_path)
+
+# 用于预处理图像以进行裁剪的函数
+def preprocess_image_cut(img):
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+return gray
+
+# 用于获取干净图像的函数
+def get_clean_image(img, filter_level=1):
+gray = preprocess_image_cut(img)
+blurred_image = cv2.GaussianBlur(gray, (3, 3), 0)
+_, binary_image = cv2.threshold(blurred_image, 210, 255, cv2.THRESH_BINARY)
+
+kernel = np.ones((1, 1), np.uint8)
+result_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel)
+result_image = cv2.medianBlur(result_image, filter_level)
+
+output_image = cv2.bitwise_or(gray, result_image)
+return output_image
+
+# 设置管道的函数
+def setup_pipeline():
+HOME = &#39;C:/&#39;
+CHECKPOINT_PATH = os.path.join(HOME, &#39;weights&#39;, &#39;sam_vit_h_4b8939.pth&#39;)
+DEVICE = torch.device(&#39;cuda:0&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+MODEL_TYPE = &quot;vit_h&quot;
+
+sam = sam_model_registry[MODEL_TYPE](checkpoint=CHECKPOINT_PATH).to(device=DEVICE)
+mask_generator = SamAutomaticMaskGenerator(sam)
+return mask_generator
+
+# 运行 SAM 模型的函数
+def run_sam(mask_generator, clean_image):
+image_rgb = cv2.cvtColor(clean_image, cv2.COLOR_BGR2RGB)
+image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+sam_result = mask_generator.generate(image_rgb)
+mask_annotator = sv.MaskAnnotator(color_lookup=sv.ColorLookup.INDEX)
+detections = sv.Detections.from_sam(sam_result=sam_result)
+
+annotated_image = mask_annotator.annotate(scene=image_bgr.copy(), detections=detections)
+
+masks = [mask[&#39;segmentation&#39;] for mask in sorted(sam_result, key=lambda x: x[&#39;area&#39;, reverse=True])]
+return mask
+
+# 设置掩码生成器
+mask_generator = setup_pipeline()
+
+if __name__ == &quot;__main__&quot;:
+if img_path.endswith(&quot;.png&quot;):
+save_path = folder_path
+os.makedirs(save_path, exist_ok=True)
+if os.path.isdir(f&#39;{folder_path}/PROCESSED&#39;):
+os.makedirs(f&#39;{folder_path}/PROCESSED&#39;, exist_ok=True)
+img = cv2.imread(img_path)
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+clean_image = get_clean_image(img, 3)
+
+print(&quot;开始生成掩码&quot;)
+mask = run_sam(mask_generator, clean_image)
+
+for i, mask in enumerate(masks):
+image_rgb = cv2.cvtColor(clean_image, cv2.COLOR_BGR2RGB)
+image_bgra = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGRA)
+extract_region = np.zeros_like(image_bgra)
+extract_region[mask] = image_bgra[mask]
+x, y, w, h = cv2.boundingRect(mask.astype(np.uint8))
+extract_region = extract_region[y:y+h, x:x+w]
+extracted_region[:, :, 3] = (mask[y:y+h, x:x+w] &gt; 0) * 255
+save_path2 = f&#39;{folder_path}/PROCESSED/img_{x}_{y}_{w}_{h}.png&#39;
+cv2.imwrite(save_path2, extracted_region)
+
+print(&quot;Finished&quot;)
+
+但我目前在一些问题上遇到了困难，比如我不想让 Sam 分割数字，也不想分割将对象与数字联系起来的线条。
+有人能对这个话题有什么想法吗，也接受其他分割图像的方法。
+分割更清晰，垃圾分割更少]]></description>
+      <guid>https://stackoverflow.com/questions/78822914/sharper-segmentation-sam-segment-anything</guid>
+      <pubDate>Thu, 01 Aug 2024 20:21:17 GMT</pubDate>
     </item>
     <item>
       <title>两个数据集的随机森林的数据集结构[关闭]</title>
@@ -415,32 +725,6 @@ ValueError: 对象 __array__ 方法未生成数组
       <pubDate>Thu, 01 Aug 2024 17:19:22 GMT</pubDate>
     </item>
     <item>
-      <title>AWS SageMaker createJob 不存在程序并停留在“inProgress”状态</title>
-      <link>https://stackoverflow.com/questions/78821736/aws-sagemaker-createjob-not-existing-a-program-and-stuck-in-inprogress-status</link>
-      <description><![CDATA[我有一个 SageMaker 作业，它运行并创建一个用于进行预测的模型。
-该过程从 createProcessingJob、createTrainingJob、createModelJob 和 createTransform 开始。
-我在 createProcessingJob 和 createTransform 作业中遇到了错误。
-我用于 createTransformJob 的 docker 镜像是 python:3.11，我在网上研究时，尝试了多种退出代码的方法。
-sys.exit(0)
-os._exit(0)
-os.abort()
-os.kill()
-os.kill(os.getpid(), singal.SIGTERM)
-
-以上方法均无效。
-我找到了这篇帖子：https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-signal-success-failure.html
-它让我意识到我可能缺少权限。
-但是，当我检查 AWS CloudTrail 时，我没有看到任何错误消息。
-因此，目前，我找不到任何错误消息，但作业未正确完成。
-我找不到该帖子，但我还看到一篇 AWS 帖子建议使用 sys.exit()。
-该帖子还提到，根据图像，程序不会自行退出。
-因此，如果我使用 python:3.11，我应该怎么做才能退出代码？
-或者我不应该使用 python3.11？
-我不想使用停止条件或手动停止并处理这种情况。]]></description>
-      <guid>https://stackoverflow.com/questions/78821736/aws-sagemaker-createjob-not-existing-a-program-and-stuck-in-inprogress-status</guid>
-      <pubDate>Thu, 01 Aug 2024 15:17:47 GMT</pubDate>
-    </item>
-    <item>
       <title>模型输出与输入具有相同的形状</title>
       <link>https://stackoverflow.com/questions/78821552/model-output-has-the-same-shape-as-the-input</link>
       <description><![CDATA[我尝试制作一个股票价格预测程序，而不是根据最后 60 个值获取单个值，而是获得一个具有不同数字且形状与输入相同的输出，而不是单个值。
@@ -532,34 +816,6 @@ model = AutoModelForCausalLM.from_pretrained(model_name, use_auth_token=hugging_
 但再次出现同样的错误]]></description>
       <guid>https://stackoverflow.com/questions/78821038/colab-not-enough-ram-to-load-llama-3</guid>
       <pubDate>Thu, 01 Aug 2024 12:45:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>有哪些方法可以将图像与设置融合在一起？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78820940/what-are-some-approaches-for-blending-an-image-in-with-a-setting</link>
-      <description><![CDATA[我有一张想要放入场景中的物体图像，我尝试了几种不同的方法，以下是我最初的印象
-
-使用物体图像和提示作为输入生成整个场景（发现物体变化太大）
-覆盖绘画（结果质量不一致）
-使用预选图像作为场景并通过蒙版、裁剪、重新照明、使用 opencv 添加阴影等方式添加（半手动执行此操作时效果非常好
-
-到目前为止，第 3 种方法最有希望，这让我想到是否有任何工具或方法可以专门做到这一点，而不是我将一堆不同的增强步骤堆叠在一起？]]></description>
-      <guid>https://stackoverflow.com/questions/78820940/what-are-some-approaches-for-blending-an-image-in-with-a-setting</guid>
-      <pubDate>Thu, 01 Aug 2024 12:22:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>需要一些开源软件资源或代码片段来自动注释图像[关闭]</title>
-      <link>https://stackoverflow.com/questions/78820910/need-some-open-source-software-resource-or-code-snippet-for-automatic-annotation</link>
-      <description><![CDATA[我目前正在使用 labelImg、cvat（免费试用版）软件对图像进行手动注释。我需要一些帮助来查找用于自动注释图像的开源软件资源或代码片段。Manually_annotated_Img
-我需要一些帮助来查找用于自动注释图像的开源软件资源或代码片段]]></description>
-      <guid>https://stackoverflow.com/questions/78820910/need-some-open-source-software-resource-or-code-snippet-for-automatic-annotation</guid>
-      <pubDate>Thu, 01 Aug 2024 12:15:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 llama 3 8b 训练 LLaVA-NeXT</title>
-      <link>https://stackoverflow.com/questions/78820834/how-to-train-llava-next-with-llama-3-8b</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78820834/how-to-train-llava-next-with-llama-3-8b</guid>
-      <pubDate>Thu, 01 Aug 2024 11:56:36 GMT</pubDate>
     </item>
     <item>
       <title>如何在人工神经网络中进行样本外预测？</title>
