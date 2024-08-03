@@ -4,22 +4,167 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 03 Aug 2024 18:20:02 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 03 Aug 2024 21:14:40 GMT</lastBuildDate>
+    <item>
+      <title>加载 Keras 模型时，“密集层”需要 1 个输入，但它收到了 2 个输入张量”</title>
+      <link>https://stackoverflow.com/questions/78829665/layer-dense-expects-1-inputs-but-it-received-2-input-tensors-when-loading</link>
+      <description><![CDATA[我正在使用 Kaggle 开发乳腺癌组织病理学图像的分类模型。该数据集包含 157,572 张图像（78,786 张 IDC 阴性和 78,786 张 IDC 阳性），每张图像的尺寸为 50x50 像素。
+我使用 ResNet50 作为基础模型，并尝试保存并稍后加载经过训练的模型的最高效版本。但是，当我尝试加载已保存的模型时，我遇到了以下错误：
+# 加载模型
+model = load_model(&#39;/kaggle/working/resnet50_model.keras&#39;)
+“密集”层需要 1 个输入，但它收到了 2 个输入张量。收到的输入：[&lt;KerasTensor shape=(None, 2, 2, 2048), dtype=float32, sparse=False, name=keras_tensor_566&gt;, &lt;KerasTensor shape=(None, 2, 2, 2048), dtype=float32, sparse=False, name=keras_tensor_567&gt;]
+
+这是我的代码：
+import tensorflow as tf
+from tensorflow.keras import layer, models
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.models import load_model
+
+# 数据增强管道
+data_augmentation = tf.keras.Sequential([
+layer.RandomFlip(&quot;horizo​​ntal_and_vertical&quot;),
+layer.RandomRotation(0.5),
+layer.RandomContrast(0.2),
+layer.RandomBrightness(0.2),
+layer.GaussianNoise(0.1)
+])
+
+# 预处理函数以规范化图像
+def preprocess(image, label):
+image = tf.image.resize(image, (50, 50))
+image = tf.cast(image, tf.float32) / 255.0
+return image, label
+
+# 使用验证分割加载数据集
+train_dir = &#39;path/to/data&#39;
+batch_size = 64
+img_height = 50
+img_width = 50
+validation_split = 0.2
+test_split_ratio = 0.5
+
+# 加载数据集
+data_train = tf.keras.utils.image_dataset_from_directory(
+train_dir,
+validation_split=validation_split,
+subset=&quot;training&quot;,
+seed=123,
+image_size=(img_height, img_width),
+batch_size=batch_size
+)
+
+data_val = tf.keras.utils.image_dataset_from_directory(
+train_dir,
+validation_split=validation_split,
+subset=&quot;validation&quot;,
+seed=123,
+image_size=(img_height, img_width),
+batch_size=batch_size
+)
+
+# 将验证集拆分为验证集和测试集
+def split_dataset(dataset, split_ratio=0.5):
+dataset_size = len(dataset)
+split = int(split_ratio * dataset_size)
+train_dataset = dataset.take(split)
+test_dataset = dataset.skip(split)
+return train_dataset, test_dataset
+
+data_val, data_test = split_dataset(data_val, split_ratio=test_split_ratio)
+
+# 应用预处理和增强
+data_train = data_train.map(lambda x, y: (data_augmentation(x, training=True), y)).map(preprocess)
+data_val = data_val.map(preprocess)
+data_test = data_test.map(preprocess)
+
+# 预取数据以获得更好的性能
+data_train = data_train.prefetch(tf.data.AUTOTUNE)
+data_val = data_val.prefetch(tf.data.AUTOTUNE)
+data_test = data_test.prefetch(tf.data.AUTOTUNE)
+
+# 定义 ResNet50 模型
+input_shape = (50, 50, 3)
+base_model = ResNet50(weights=&#39;imagenet&#39;, include_top=False, input_shape=input_shape)
+base_model.trainable = False
+
+# 构建模型
+model = models.Sequential([
+layer.Input(shape=(img_height, img_width, 3)),
+base_model,
+layer.GlobalAveragePooling2D(),
+layer.Dense(256,activation=&#39;relu&#39;),
+layer.Dropout(0.5),
+layer.Dense(1,activation=&#39;sigmoid&#39;)
+])
+
+# 编译模型
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;binary_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+
+# 用于提前停止和检查点的回调
+early_stopping = tf.keras.callbacks.EarlyStopping(monitor=&#39;val_loss&#39;,patient=5, restore_best_weights=True)
+
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+filepath=&#39;/kaggle/working/resnet50_model.keras&#39;,
+monitor=&#39;val_loss&#39;,
+mode=&#39;min&#39;,
+save_best_only=True,
+save_weights_only=False
+)
+
+# 训练模型
+model.fit(data_train, epochs=50, validation_data=data_val, callbacks=[early_stopping, model_checkpoint_callback])
+
+# 微调模型
+base_model.trainable = True
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), loss=&#39;binary_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+model.fit(data_train, epochs=50, validation_data=data_val,回调=[early_stopping, model_checkpoint_callback])
+
+# 保存模型
+model.save(&#39;/kaggle/working/resnet50_model.keras&#39;)
+
+# 加载最佳微调模型
+model = load_model(&#39;/kaggle/working/resnet50_model.keras&#39;)
+
+为了调试该问题，我在预处理阶段通过打印数据批次的形状来检查图像输入。结果如下：
+
+训练数据 - 批次 0：图像形状：(64, 50, 50, 3)，标签形状：(64,)
+
+验证数据 - 批次 0：图像形状：(64, 50, 50, 3)，标签形状：(64,)
+
+测试数据 - 批次 0：图像形状：(64, 50, 50, 3)，标签形状：(64,)
+
+
+我预计保存的模型可以顺利加载，这样我就可以使用训练后的权重和架构进行评估和预测。]]></description>
+      <guid>https://stackoverflow.com/questions/78829665/layer-dense-expects-1-inputs-but-it-received-2-input-tensors-when-loading</guid>
+      <pubDate>Sat, 03 Aug 2024 20:01:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>我想进行机器学习，但找不到任何资源？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78829584/i-want-to-machine-learning-but-cant-find-any-resources</link>
+      <description><![CDATA[我目前正在使用 MERN 堆栈（MongoDB、Express.js、React、Node.js），并希望扩展我的技能。我计划从 Java 中的数据结构和算法 (DSA) 开始，但我也想深入研究机器学习。但是，我很难找到学习机器学习的好资源。
+有人可以推荐一些学习机器学习的好资源（书籍、课程、教程等）吗？
+我试图寻找有关机器学习的课程。我不太喜欢读书，所以没有任何实际书籍。我在 Coursera 上偶然发现了 Andrewng 的课程，但这是一门付费课程，所以我放弃了。现在我期望可以在 youtube 上找到一门课程，但有很多课程，我真的不明白。]]></description>
+      <guid>https://stackoverflow.com/questions/78829584/i-want-to-machine-learning-but-cant-find-any-resources</guid>
+      <pubDate>Sat, 03 Aug 2024 19:15:35 GMT</pubDate>
+    </item>
     <item>
       <title>无法解决 QiskitMachineLearningError：'输入数据的形状不正确，最后一个维度不等于输入的数量：0，但得到：2'</title>
       <link>https://stackoverflow.com/questions/78828998/not-able-to-resolve-qiskitmachinelearningerror-input-data-has-incorrect-shape</link>
-      <description><![CDATA[我收到错误： ---&gt;
+      <description><![CDATA[我收到错误：
 32 vqc.fit(X_train, X_test)
-33
+33 
 34 # 评估分类器
+
 15 帧
 /usr/local/lib/python3.10/dist-packages/qiskit_machine_learning/neural_networks/neural_network.py in _validate_input(self, input_data)
-132
+132 
 133 if shape[-1] != self._num_inputs:
---&gt; 134 引发 QiskitMachineLearningError(
-135 f&quot;输入数据的形状不正确，最后一个维度&quot;
-136 f&quot;不等于输入的数量：&quot;
-QiskitMachineLearningError：&#39;输入数据的形状不正确，最后一个维度不等于输入的数量：0，但得到：2。&#39;
+-&gt; 134 引发 QiskitMachineLearningError(
+135 f&quot;输入数据的形状不正确，最后一个维度 &quot;
+136 f&quot;不等于输入数量： &quot;
+
+QiskitMachineLearningError：&#39;输入数据的形状不正确，最后一个维度不等于输入数量：0，但得到：2。&#39;
+
 来自 qiskit 导入 QuantumCircuit、transpile、assemble
 来自 qiskit_aer 导入 Aer
 来自 qiskit_machine_learning.algorithms 导入 VQC
@@ -52,23 +197,15 @@ vqc = VQC(feature_map=feature_map, ansatz=ansatz, optimizer=optimizer)
 
 # 训练量子分类器
 vqc.fit(X_train, X_test)
-
-# 评估分类器
-accuracy = vqc.score(X_test, y_test)
-print(f&#39;Quantum Classifier Accuracy: {accuracy:.2f}&#39;)
-
-# 进行预测的示例
-predictions = vqc.predict(X_test)
-print(&#39;Predictions:&#39;, predictions)
 ]]></description>
       <guid>https://stackoverflow.com/questions/78828998/not-able-to-resolve-qiskitmachinelearningerror-input-data-has-incorrect-shape</guid>
       <pubDate>Sat, 03 Aug 2024 14:52:35 GMT</pubDate>
     </item>
     <item>
-      <title>R 中用于分类任务的 Brier 分数</title>
-      <link>https://stackoverflow.com/questions/78828870/brier-score-in-r-for-a-classification-task</link>
-      <description><![CDATA[我针对分类问题训练了几个模型，我想计算我所做预测的 Brier 分数。
-尽管如此，我不太确定应该将什么传递给 DescTools 中的公式（即 BrierScore(x, pred = NULL, scaled = FALSE, ...)）。
+      <title>分类任务的 Brier 评分</title>
+      <link>https://stackoverflow.com/questions/78828870/brier-score-for-a-classification-task</link>
+      <description><![CDATA[我为分类问题训练了几个模型，我想计算它们预测的 Brier 分数。
+尽管如此，我不太确定应该从 DescTools 向公式传递什么（即 BrierScore(x, pred = NULL, scaled = FALSE, ...)）。
 到目前为止，这是我为其中一个模型的概率创建的数据框：
  X0 X1 real_scores max_prob max_source
 1 0.024 0.976 1 0.976 1
@@ -76,7 +213,7 @@ print(&#39;Predictions:&#39;, predictions)
 3 0.524 0.476 0 0.524 0
 4 0.942 0.058 0 0.942 0
 5 0.944 0.056 0 0.944 0
-6 0.074 0.926 1 0.926          1 7 0.254 0.746 0 0.746 1 8 0.864 0.136 0 0.864 0 9 0.522 0.478 0 0.522 0 10 0.422 0.578 1 0.578 1 11 0.772 0.228 0 0.772 0 12 0.564 0.436 0 0.564 0 13 0.968 0.032 0 0.968 0 14 0.760 0.240 0 0.760 0 15 0.978 0.022 0 0.978 0 16 0.818 0.182 1    0.818 0 17 0.730 0.270 0 0.730 0 18 0.824 0.176 0 0.824 0 19 0.962 0.038 0 0.962 0 20 0.514 0.486 0 0.514 0 21 0.360 0.640 0 0.640 1 22 0.708 0.292 0 0.708 0 23 0.940 0.060 0 0.940 0 24 0.916 0.084 0 0.916 0 25 0.606 0.394 1 0.606 0 26 0.838 0.162 0 0.838 0
+6 0.074 0.926 1    0.926 1 7 0.254 0.746 0 0.746 1 8 0.864 0.136 0 0.864 0 9 0.522 0.478 0 0.522 0 10 0.422 0.578 1 0.578 1 11 0.772 0.228 0 0.772 0 12 0.564 0.436 0 0.564 0 13 0.968 0.032 0 0.968 0 14 0.760 0.240 0 0.760 0 15 0.978 0.022 0 0.978 0 16 0.818 0.182           1 0.818 0 17 0.730 0.270 0 0.730 0 18 0.824 0.176 0 0.824 0 19 0.962 0.038 0 0.962 0 20 0.514 0.486 0 0.514 0 21 0.360 0.6 40 0 0.640 1 22 0.708 0.292 0 0.708 0 23 0.940 0.060 0 0.940 0 24 0.916 0.084 0 0.916 0 25 0.606 0.394 1 0.606 0 26 0.838 0.162 0 0.838 0
 27 0.742 0.258 0 0.742 0
 28 0.850 0.150 1 0.850 0
 
@@ -89,7 +226,7 @@ max_prob = 两个类（X0、X1）的最大概率
 max_source = 最大概率来自哪个类别（X0 或 X1）。
 
 我不明白的是，我是否必须仅将 X1（正类）的概率、两者的概率或最大值传递给公式。]]></description>
-      <guid>https://stackoverflow.com/questions/78828870/brier-score-in-r-for-a-classification-task</guid>
+      <guid>https://stackoverflow.com/questions/78828870/brier-score-for-a-classification-task</guid>
       <pubDate>Sat, 03 Aug 2024 14:02:24 GMT</pubDate>
     </item>
     <item>
@@ -101,17 +238,19 @@ max_source = 最大概率来自哪个类别（X0 或 X1）。
 我已成功运行 steps/nnet3/align.sh 脚本（终端或日志文件中没有错误）。
 我已经检查过 exp/chain/tree_sp 目录中是否存在 ali.JOB.gz 文件，但它们不存在（未创建）
 我希望 steps/nnet3/align.sh 脚本能够在 exp/chain/tree_sp 目录中成功创建 ali.1.gz 文件（或多个 ali.JOB.gz 文件）。此文件对于 Kaldi 管道中的后续训练步骤至关重要。
-&quot;ls exp/chain/tree_sp
-0.mdl cmvn_opts final.mat final.mdl final.occs full.mat log num_jobs phone.txt splice_opts tree&quot;
-当我运行 local/chain/tuning/run_tdnn_1j.sh 时出现此错误
-&quot;Traceback (most recent call last):
-File &quot;/mnt/d/kaldi/egs/mini_librispeech/s5/steps/nnet3/chain/train.py&quot;, line 651, in main
+ls exp/chain/tree_sp
+0.mdl cmvn_opts final.mat final.mdl final.occs full.mat log num_jobs phones.txt splice_opts tree
+
+当我运行 local/chain/tuning/run_tdnn_1j.sh 时收到此错误
+Traceback（最近一次调用最后一次）：
+文件“/mnt/d/kaldi/egs/mini_librispeech/s5/steps/nnet3/chain/train.py”，第 651 行，在 main
 train(args, run_opts)
-File &quot;/mnt/d/kaldi/egs/mini_librispeech/s5/steps/nnet3/chain/train.py&quot;, line 287, in训练
+文件“/mnt/d/kaldi/egs/mini_librispeech/s5/steps/nnet3/chain/train.py”，第 287 行，在 train
 chain_lib.check_for_required_files(args.feat_dir, args.tree_dir,
-文件“/mnt/d/kaldi/egs/mini_librispeech/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py”，第 378 行，位于 check_for_required_files
-引发异常（&#39;预期 {0} 存在。&#39;.format(file))
-异常：预期 exp/chain/tree_sp/ali.1.gz 存在。“]]></description>
+文件 &quot;/mnt/d/kaldi/egs/mini_librispeech/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py&quot;，第 378 行，位于 check_for_required_files
+引发异常(&#39;预期 {0} 存在。&#39;.format(file))
+异常：预期 exp/chain/tree_sp/ali.1.gz 存在。
+]]></description>
       <guid>https://stackoverflow.com/questions/78828864/kaldi-alignment-script-not-generating-output-ali-1-gz</guid>
       <pubDate>Sat, 03 Aug 2024 14:01:13 GMT</pubDate>
     </item>
@@ -129,10 +268,10 @@ chain_lib.check_for_required_files(args.feat_dir, args.tree_dir,
     <item>
       <title>当数据集中的每个数据都是 csv 文件时，机器学习方法</title>
       <link>https://stackoverflow.com/questions/78828422/machine-learning-methode-for-when-each-data-in-dataset-is-a-csv-file</link>
-      <description><![CDATA[我目前正在开展一个项目，该项目涉及使用传感器测量金属物体周围的磁流。传感器每毫秒记录一次磁流，每秒可进行 1000 次测量。这些值存储在 CSV 文件中，其中第一列表示沿 X 轴的测量值，第二列对应于 Y 轴测量值，第三列表示 Z 轴测量值，第四列包含以毫秒为单位的时间。
-我的任务是测量 50 种不同金属物体的磁流，为每个物体创建一个单独的 CSV 文件。最终，我计划将这些单独的文件用作训练机器学习模型的数据集。目标是使用机器学习和这些数据根据金属的磁流特性确定金属的类型（如果您感兴趣，可以搜索“mfl 方法”）。但是，我不确定如何处理这种特殊情况，因为大多数机器学习代码都要求数据集中的每个数据点都是一行。在这种情况下，每个数据点都是一个包含多行的 CSV 文件。
-如果您能提供任何指导，我将不胜感激
-目前我不知道该怎么做]]></description>
+      <description><![CDATA[我正在使用传感器测量金属物体周围的磁流。传感器每毫秒记录一次磁流，每秒可进行 1000 次测量。这些值存储在 CSV 文件中，其中第一列表示沿 X 轴的测量值，第二列表示沿 Y 轴的测量值，第三列表示沿 Z 轴的测量值，第四列包含以毫秒为单位的时间。
+我的任务是测量 50 种不同金属物体的磁流，为每个物体创建单独的 CSV 文件。最终，我计划将这些单独的文件用作训练机器学习模型的数据集。目标是使用机器学习和这些数据根据金属的磁流特性确定金属的类型（如果您感兴趣，可以搜索“mfl 方法”）。但是，我不确定如何处理这种特殊情况，因为大多数机器学习代码都要求数据集中的每个数据点都是一行。在这种情况下，每个数据点都是一个包含多行的 CSV 文件。
+您能提供任何指导吗？
+目前我不知道该怎么办]]></description>
       <guid>https://stackoverflow.com/questions/78828422/machine-learning-methode-for-when-each-data-in-dataset-is-a-csv-file</guid>
       <pubDate>Sat, 03 Aug 2024 10:09:57 GMT</pubDate>
     </item>
@@ -188,193 +327,134 @@ df.to_csv(&#39;df_investigation.csv&#39;, index=False)
       <pubDate>Fri, 02 Aug 2024 23:42:35 GMT</pubDate>
     </item>
     <item>
-      <title>无法抑制来自 transformers/src/transformers/modeling_utils.py 的警告</title>
-      <link>https://stackoverflow.com/questions/78827482/cant-suppress-warning-from-transformers-src-transformers-modeling-utils-py</link>
-      <description><![CDATA[我对 AutoModel AutoTokenizer 类的实现相当简单：
-from transformers import AutoModel, AutoTokenizer
-import numpy as np
-from rank_bm25 import BM25Okapi
-from sklearn.neighbors import NearestNeighbors
-
-class EmbeddingModels:
-
-def bert(self, model_name, text):
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModel.from_pretrained(model_name)
-input = tokenizer(text, return_tensors=&quot;pt&quot;, truncation=True, padding=True)
-output = model(**inputs)
-embeddings = output.last_hidden_​​state.mean(dim=1).detach().numpy()
-return embeddings
-
-def create_chunks(self, text, chunk_size):
-return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-
-但我无法让这个警告消失：
-包含“beta”的参数名称将在内部重命名为“bias”。
-请使用其他名称来抑制此警告。
-包含“gamma”的参数名称将在内部重命名为“weight”。
-请使用其他名称来抑制此警告。
-
-我的存储库中没有任何地方提到 beta 或 gamma 这个词。
-更新软件包，使用 import warnings 抑制警告]]></description>
-      <guid>https://stackoverflow.com/questions/78827482/cant-suppress-warning-from-transformers-src-transformers-modeling-utils-py</guid>
-      <pubDate>Fri, 02 Aug 2024 23:04:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>VAE：潜在分布。后部塌陷，多个潜在 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78827397/vae-latent-distribution-posterior-collapse-multiple-latents</link>
-      <description><![CDATA[在探索 VAE 一段时间后，我有两个问题。在标准 VAE 设置中，我们假设 1 个形状为 (BHWD) 的潜在变量：mu 和 var，以及先验 N(0, I)。
-
-潜在分布：我阅读了一些关于卡方分布的资料，想知道潜在变量的 L2 范数 (B,) 是否是潜在变量呈高斯分布的良好指标。在标准 VAE 训练中，我发现它的值稳定在 (D-1)**0.5 附近，这符合中心卡方分布的描述。接下来的问题是，如果 L2 范数不等于预期值，我们可以说潜在分布比高斯分布更复杂吗？
-
-后验崩溃：（1）后验崩溃的症状是什么？它是否必须严格为：mu~0、var~1 和 KL~0？（2）如何解释 var 的平均值。我观察到它也受到 D 的影响。此外，如果极小的 var 表示模型对输入非常确定，爆炸的 var 会告诉我们编码器缺乏能力？一般来说，我们更喜欢较小的 var 还是存在一个理想值。
-
-给定一张图像，我尝试将其转换为 Y/UV 通道并分别学习两组潜在值。具体来说，我对两者应用了标准流程：使用一个/两个编码器为 Y 和 UV 输入生成 mu 和 var，分别计算两个相对于正常 proir 的 KL，对两者进行后验采样，在解码之前将它们连接在一起。解码器的工作是重建原始 RGB 图像。 我想，如果 VAE 能够为图像构建可插值/平滑的潜在空间，它也应该能够处理 Y/UV 潜在值并将来自同一图像的潜在值对齐。 不幸的是，我在实验中没有观察到它。重建很好，但潜在的统计数据（为方便起见，我将它们标记为 1 和 2）非常混乱。 (1) 很难从 mu1 和 mu2 读取，因为它们的值非常接近 0。但是，我总是能发现 var2 爆炸（请参阅我在第 2 点中提出的问题），可能高达 200。 (2) 通常，var1 看起来更像高斯，因为它的 L2 范数在 (d-1)**0.5 处收敛，但 var2 的值稍大一些（请参阅我在第 1 点中提出的问题）。 (3) 我还计算了 mu1 和 mu2 之间的 cos 相似度 和 L2 距离。它们大多是正交的，这与高维向量自然彼此正交的说法相符。并且 L2(mu1, mu2) 和 L2(mu2, origin) 具有相似的值，大于 L1(mu1, origin)。消化这些统计数据的正确方法是什么？或者一般来说，VAE 框架不适合学习两个独立但相关的高斯类潜在变量？
+      <title>如何利用 Pytorch 的 CrossEntropyLoss 应用类权重来解决多类多输出问题的不平衡数据分类问题</title>
+      <link>https://stackoverflow.com/questions/78823685/how-to-apply-class-weights-to-using-pytorchs-crossentropyloss-to-solve-an-imbal</link>
+      <description><![CDATA[我正在尝试使用加权损失函数来处理数据中的类别不平衡问题。我的问题是多类别和多输出问题。例如（我的数据有五个输出/目标列（output_1、output_2、output_3），每个目标列有三个类（class_0、class_1 和 class_2）。我目前正在使用 pytorch 的交叉熵损失函数https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html，我看到它有一个权重参数，但我的理解是，这个相同的权重将统一应用于每个输出/目标，但我想在每个输出/目标中为每个类应用单独的权重。
+具体来说，我可以获得如下所示的数据
 
 
-进行了大量实验并尝试更好地理解高维潜在空间。]]></description>
-      <guid>https://stackoverflow.com/questions/78827397/vae-latent-distribution-posterior-collapse-multiple-latents</guid>
-      <pubDate>Fri, 02 Aug 2024 22:17:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>除非 label_mode=None，否则图像目录无法打开</title>
-      <link>https://stackoverflow.com/questions/78827338/image-directory-failing-to-open-unless-label-mode-none</link>
-      <description><![CDATA[除非 image_dataset_from_directory 的 label_mode 参数为 None，否则我的图像目录无法打开。
-我尝试将类型切换为“int”、“categorical”和“binary”，但无济于事。我还尝试为该类制作一个包装器，然后稍后切换属性（事后看来，这根本行不通），但这也行不通。我需要以某种方式将其保持在 None 之外，因为我稍后会评估生成器的准确性，而 model.evaluate() 无法处理 None 值。这是我目前的代码：
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-from PIL import Image
-import tensorflow
-from tensorflow import keras
-from keras import layer, preprocessing, Sequential
-from sklearn.neighbors import KernelDensity
-import glob
 
-class CustomImageDataset:
-def __init__(self, directory, image_size, batch_size, label_mode):
-self.dataset = tensorflow.keras.preprocessing.image_dataset_from_directory(
-directory,
-image_size=image_size,
-batch_size=batch_size,
-label_mode=label_mode
-)
-self.label_mode = label_mode
+A
+B
+C
+D
+E
+OUTPUT_1
+OUTPUT_2
+OUTPUT_3
 
-def __iter__(self):
-return iter(self.dataset)
 
-def __len__(self):
-return len(self.dataset)
 
-def map(self, *args, **kwargs):
-返回 self.dataset.map(*args, **kwargs)
 
-def batch(self, *args, **kwargs):
-返回 self.dataset.batch(*args, **kwargs)
+5.65
+3.56
+0.94
+9.23
+6.43
+0
+2
+1
 
-def prefetch(self, *args, **kwargs):
-返回 self.dataset.prefetch(*args, **kwargs)
 
-SIZE = 8
-batch_size = 64
+7.43
+3.95
+1.24
+7.22
+&lt; td&gt;2.66
+0
+0
+0
 
-train_generator = preprocessing.image_dataset_from_directory(
-r&#39;C:\Users\{}\Downloads\archive (1)\noncloud_train&#39;, 
-image_size=(SIZE, SIZE),
-batch_size=batch_size,
-label_mode=None
-)
 
-validation_generator = preprocessing.image_dataset_from_directory(
-r&#39;C:\Users\{}\Downloads\archive (1)\noncloud_test&#39;,
-image_size=(SIZE, SIZE),
-batch_size=batch_size,
-label_mode=None
-)
+9.31
+2.42
+2.91
+2.64
+6.28
+2
+0
+2
 
-anomaly_generator = CustomImageDataset(
-r&#39;C:\Users\{}\Downloads\archive (1)\cloud&#39;,
-image_size=(SIZE, SIZE),
-batch_size=batch_size,
-label_mode=None
-)
 
-rescaling_layer = layer.Rescaling(1./255)
+8.19
+5.12
+1.32
+3.12
+8.41
+0
+2
+0
 
-def change_inputs(images):
-x = tensorflow.image.resize(rescaling_layer(images),[SIZE, SIZE], method=tensorflow.image.ResizeMethod.NEAREST_NEIGHBOR)
-return x, x
 
-# 对数据集应用预处理
-train_dataset = train_generator.map(change_inputs)
-validation_dataset = validation_generator.map(change_inputs)
-anomaly_dataset = anomaly_generator.map(change_inputs)
+9.35
+1.92
+3.12
+4.13
+3.14
+0
+1
+1
 
-test = anomaly_generator.label_mode
-def check_none_in_dataset(dataset):
-for batch in dataset:
-images, labels = batch
-if images is None or labels is None:
-print(&quot;Found None in dataset&quot;)
-return True
-print(&quot;No None values in dataset&quot;)
-return False
 
-# 检查验证数据集
-print(&quot;正在检查验证数据集中是否有 None 值：&quot;)
-c = check_none_in_dataset(validation_dataset)
-print(c)
+8.43
+9.72
+7.23
+8.29
+9.18
+1
+0
+2
 
-def print_labels_from_dataset(dataset, num_batches=1):
-for images, labels in dataset.take(num_batches):
-print(&quot;标签（应与images):&quot;)
-print(labels.numpy()) # 打印标签以检查它们是否是预期值（不是 None）
-print(labels.numpy() == images.numpy())
 
-print(&quot;验证数据集标签：&quot;)
-bat = print_labels_from_dataset(validation_dataset)
+4.32
+2.12
+3.84
+9.42
+8.19
+0
+1
+0
 
-print(&quot;异常数据集标签：&quot;)
-cow = print_labels_from_dataset(anomaly_dataset)
 
-model = Sequential()
-# 编码器
-model.add(layers.Conv2D(64, (3, 3),activation=&#39;relu&#39;,padding=&#39;same&#39;,input_shape=(SIZE, SIZE, 3)))
-model.add(layers.MaxPooling2D((2, 2),padding=&#39;same&#39;)) 
-model.add(layers.Conv2D(32, (3, 3),激活=&#39;relu&#39;，padding=&#39;same&#39;))
-model.add(layers.MaxPooling2D((2, 2)，padding=&#39;same&#39;))
-model.add(layers.Conv2D(16, (3, 3)，激活=&#39;relu&#39;，padding=&#39;same&#39;))
-model.add(layers.MaxPooling2D((2, 2)，padding=&#39;same&#39;))
+3.92
+3.91
+2.90
+8.1 9
+8.41
+2
+0
+2
 
-# Deconder
-model.add(layers.Conv2D(16, (3, 3)，激活=&#39;relu&#39;，padding=&#39;same&#39;))
-model.add(layers.UpSampling2D((2, 2)))
-model.add(layers.Conv2D(32, (3, 3)，激活=&#39;relu&#39;，padding=&#39;same&#39;))
-model.add(layers.UpSampling2D((2, 2)))
-model.add(layers.Conv2D(64, (3, 3), 激活=&#39;relu&#39;, 填充=&#39;same&#39;))
-model.add(layers.UpSampling2D((2, 2)))
 
-model.add(layers.Conv2D(3, (3, 3), 激活=&#39;sigmoid&#39;, 填充=&#39;same&#39;))
+7.89
+1.92
+4.12
+8.19
+7.28
+0
+1
+2
+&lt; /tr&gt;
 
-model.compile(optimizer=&#39;adam&#39;, 损失=&#39;mean_squared_error&#39;, 指标=[&#39;mse&#39;])
-model.summary()
+5.21
+2.42
+3.10
+0.31
+1.31
+2
+0
+0
 
-history = model.fit(
-train_dataset,
-steps_per_epoch = 1500 // batch_size,
-epochs = 1000,
-validation_data = validation_dataset,
-validation_steps = 225 // batch_size,
-shuffle = True
-)
 
-# 检查侦察。 val 数据和异常图像之间的错误
-validation_error = model.evaluate(validation_generator)
-anomaly_error = model.evaluate(anomaly_generator)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78827338/image-directory-failing-to-open-unless-label-mode-none</guid>
-      <pubDate>Fri, 02 Aug 2024 21:47:44 GMT</pubDate>
+
+因此，
+输出 1 中的比例为：0 = 0.6、1 = 0.1、2 = 0.3
+输出 2 中的比例为：0 = 0.4、1 = 0.3、2 = 0.3
+输出 3 中的比例为：0 = 0.4、1 = 0.2、2 = 0.4
+
+我想根据每个输出列中的类分布应用类权重，以便它重新规范化（或重新平衡？不确定这里要使用的术语是什么）第 1 类为 0.15，第 0 类和第 2 类各为 0.425（因此对于 output_1，权重将是 [0.425/0.6, 0.15/0.1, 0.425/0.3]，对于输出 2，它将是 [0.425/0.4, 0.15/0.3, 0.425/0.3] 等）。相反，我理解 pytorch 的 crossentropy 损失函数中的权重参数目前正在执行的操作是将单个类权重应用于每个输出列。我想知道我是否遗漏了什么，是否有办法使用 pytorch 的 crossentropyloss 函数来做到这一点？]]></description>
+      <guid>https://stackoverflow.com/questions/78823685/how-to-apply-class-weights-to-using-pytorchs-crossentropyloss-to-solve-an-imbal</guid>
+      <pubDate>Fri, 02 Aug 2024 03:34:55 GMT</pubDate>
     </item>
     <item>
       <title>PipeOp classif.avg（mlr3）错误：对“prob”的断言失败：包含缺失值（元素 1）[关闭]</title>
