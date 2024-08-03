@@ -4,14 +4,229 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 02 Aug 2024 21:15:23 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 03 Aug 2024 01:06:18 GMT</lastBuildDate>
     <item>
-      <title>如何针对 JavaScript 框架微调轻量级 LLM？</title>
+      <title>CSV 与 Pandas Dataframe 之间的转换不正确</title>
+      <link>https://stackoverflow.com/questions/78827542/csv-to-from-pandas-dataframe-not-transforming-correctly</link>
+      <description><![CDATA[我有一个 csv 文件，其中包含标题、文本和 url 列的新闻文章。当我将文件导入 pandas df 时，长度似乎与 csv 文件中的行数不同。经过检查，我注意到一些文章被分成第二行，并进一步分成许多额外的列，所有 url 都位于单个文章的“第二”行的某个较远的列中。Pandas 正确地解释了这个问题，并合并了文本并将 url 放在正确的列下。
+虽然 Pandas 正确地解释了这一点，但我无法将 df（清理后）保存到新的 csv，因为新的清理后的 csv 文件不会反映相同的问题，这会破坏清理后的特征工程和 NLP 任务。这些“额外”的行完全搞砸了诸如计算单词/动词/名词以及获取每个句子的被动语态和音节之类的事情。我尝试过检测/删除换行符（\n 和 \r\n），但没有用。我在读取 csv 时尝试过不同的编码和引用值（见下文），但没有用。我尝试过合并行，但做不到，因为 pandas 看不到 csv 中显示的“第二”行。
+我遗漏了什么吗？知道发生了什么吗？
+df = pd.read_csv(&#39;filepath.csv&#39;, encoding=&#39;utf-8&#39;, engine=&#39;python&#39;, on_bad_lines=&#39;skip&#39;, quoting=1)
+
+df= df.rename(columns={&#39;Headline&#39;: &#39;title&#39;, &#39;Article text&#39;: &#39;text&#39;, &#39;Url&#39;: &#39;url&#39;})
+
+df= df[[&#39;title&#39;, &#39;text&#39;, &#39;url&#39;]]
+
+df[&#39;text&#39;] = df[&#39;text&#39;].str.replace(&#39;\r\n&#39;, &#39; &#39;, regex=True)
+df.to_csv(&#39;df_investigation.csv&#39;, index=False) 
+]]></description>
+      <guid>https://stackoverflow.com/questions/78827542/csv-to-from-pandas-dataframe-not-transforming-correctly</guid>
+      <pubDate>Fri, 02 Aug 2024 23:42:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法抑制来自 transformers/src/transformers/modeling_utils.py 的警告</title>
+      <link>https://stackoverflow.com/questions/78827482/cant-suppress-warning-from-transformers-src-transformers-modeling-utils-py</link>
+      <description><![CDATA[我对 AutoModel AutoTokenizer 类的实现相当简单：
+from transformers import AutoModel, AutoTokenizer
+import numpy as np
+from rank_bm25 import BM25Okapi
+from sklearn.neighbors import NearestNeighbors
+
+class EmbeddingModels:
+
+def bert(self, model_name, text):
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModel.from_pretrained(model_name)
+input = tokenizer(text, return_tensors=&quot;pt&quot;, truncation=True, padding=True)
+output = model(**inputs)
+embeddings = output.last_hidden_​​state.mean(dim=1).detach().numpy()
+return embeddings
+
+def create_chunks(self, text, chunk_size):
+return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+但我无法让这个警告消失：
+包含“beta”的参数名称将在内部重命名为“bias”。
+请使用其他名称来抑制此警告。
+包含“gamma”的参数名称将在内部重命名为“weight”。
+请使用其他名称来抑制此警告。
+
+我的存储库中没有任何地方提到 beta 或 gamma 这个词。
+更新软件包，使用 import warnings 抑制警告]]></description>
+      <guid>https://stackoverflow.com/questions/78827482/cant-suppress-warning-from-transformers-src-transformers-modeling-utils-py</guid>
+      <pubDate>Fri, 02 Aug 2024 23:04:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>VAE：潜在分布。后部塌陷，多个潜在 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78827397/vae-latent-distribution-posterior-collapse-multiple-latents</link>
+      <description><![CDATA[在探索 VAE 一段时间后，我有两个问题。在标准 VAE 设置中，我们假设 1 个形状为 (BHWD) 的潜在变量：mu 和 var，以及先验 N(0, I)。
+
+潜在分布：我阅读了一些关于卡方分布的资料，想知道潜在变量的 L2 范数 (B,) 是否是潜在变量呈高斯分布的良好指标。在标准 VAE 训练中，我发现它的值稳定在 (D-1)**0.5 附近，这符合中心卡方分布的描述。接下来的问题是，如果 L2 范数不等于预期值，我们可以说潜在分布比高斯分布更复杂吗？
+
+后验崩溃：（1）后验崩溃的症状是什么？它是否必须严格为：mu~0、var~1 和 KL~0？（2）如何解释 var 的平均值。我观察到它也受到 D 的影响。此外，如果极小的 var 表示模型对输入非常确定，爆炸的 var 会告诉我们编码器缺乏能力？一般来说，我们更喜欢较小的 var 还是存在一个理想值。
+
+给定一张图像，我尝试将其转换为 Y/UV 通道并分别学习两组潜在值。具体来说，我对两者应用了标准流程：使用一个/两个编码器为 Y 和 UV 输入生成 mu 和 var，分别计算两个相对于正常 proir 的 KL，对两者进行后验采样，在解码之前将它们连接在一起。解码器的工作是重建原始 RGB 图像。 我想，如果 VAE 能够为图像构建可插值/平滑的潜在空间，它也应该能够处理 Y/UV 潜在值并将来自同一图像的潜在值对齐。 不幸的是，我在实验中没有观察到它。重建很好，但潜在的统计数据（为方便起见，我将它们标记为 1 和 2）非常混乱。 (1) 很难从 mu1 和 mu2 读取，因为它们的值非常接近 0。但是，我总是能发现 var2 爆炸（请参阅我在第 2 点中提出的问题），可能高达 200。 (2) 通常，var1 看起来更像高斯，因为它的 L2 范数在 (d-1)**0.5 处收敛，但 var2 的值稍大一些（请参阅我在第 1 点中提出的问题）。 (3) 我还计算了 mu1 和 mu2 之间的 cos 相似度 和 L2 距离。它们大多是正交的，这与高维向量自然彼此正交的说法相符。并且 L2(mu1, mu2) 和 L2(mu2, origin) 具有相似的值，大于 L1(mu1, origin)。消化这些统计数据的正确方法是什么？或者一般来说，VAE 框架不适合学习两个独立但相关的高斯类潜在变量？
+
+
+进行了大量实验并尝试更好地理解高维潜在空间。]]></description>
+      <guid>https://stackoverflow.com/questions/78827397/vae-latent-distribution-posterior-collapse-multiple-latents</guid>
+      <pubDate>Fri, 02 Aug 2024 22:17:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>除非 label_mode=None，否则图像目录无法打开</title>
+      <link>https://stackoverflow.com/questions/78827338/image-directory-failing-to-open-unless-label-mode-none</link>
+      <description><![CDATA[除非 image_dataset_from_directory 的 label_mode 参数为 None，否则我的图像目录无法打开。
+我尝试将类型切换为“int”、“categorical”和“binary”，但无济于事。我还尝试为该类制作一个包装器，然后稍后切换属性（事后看来，这根本行不通），但这也行不通。我需要以某种方式将其保持在 None 之外，因为我稍后会评估生成器的准确性，而 model.evaluate() 无法处理 None 值。这是我目前的代码：
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+from PIL import Image
+import tensorflow
+from tensorflow import keras
+from keras import layer, preprocessing, Sequential
+from sklearn.neighbors import KernelDensity
+import glob
+
+class CustomImageDataset:
+def __init__(self, directory, image_size, batch_size, label_mode):
+self.dataset = tensorflow.keras.preprocessing.image_dataset_from_directory(
+directory,
+image_size=image_size,
+batch_size=batch_size,
+label_mode=label_mode
+)
+self.label_mode = label_mode
+
+def __iter__(self):
+return iter(self.dataset)
+
+def __len__(self):
+return len(self.dataset)
+
+def map(self, *args, **kwargs):
+返回 self.dataset.map(*args, **kwargs)
+
+def batch(self, *args, **kwargs):
+返回 self.dataset.batch(*args, **kwargs)
+
+def prefetch(self, *args, **kwargs):
+返回 self.dataset.prefetch(*args, **kwargs)
+
+SIZE = 8
+batch_size = 64
+
+train_generator = preprocessing.image_dataset_from_directory(
+r&#39;C:\Users\{}\Downloads\archive (1)\noncloud_train&#39;, 
+image_size=(SIZE, SIZE),
+batch_size=batch_size,
+label_mode=None
+)
+
+validation_generator = preprocessing.image_dataset_from_directory(
+r&#39;C:\Users\{}\Downloads\archive (1)\noncloud_test&#39;,
+image_size=(SIZE, SIZE),
+batch_size=batch_size,
+label_mode=None
+)
+
+anomaly_generator = CustomImageDataset(
+r&#39;C:\Users\{}\Downloads\archive (1)\cloud&#39;,
+image_size=(SIZE, SIZE),
+batch_size=batch_size,
+label_mode=None
+)
+
+rescaling_layer = layer.Rescaling(1./255)
+
+def change_inputs(images):
+x = tensorflow.image.resize(rescaling_layer(images),[SIZE, SIZE], method=tensorflow.image.ResizeMethod.NEAREST_NEIGHBOR)
+return x, x
+
+# 对数据集应用预处理
+train_dataset = train_generator.map(change_inputs)
+validation_dataset = validation_generator.map(change_inputs)
+anomaly_dataset = anomaly_generator.map(change_inputs)
+
+test = anomaly_generator.label_mode
+def check_none_in_dataset(dataset):
+for batch in dataset:
+images, labels = batch
+if images is None or labels is None:
+print(&quot;Found None in dataset&quot;)
+return True
+print(&quot;No None values in dataset&quot;)
+return False
+
+# 检查验证数据集
+print(&quot;正在检查验证数据集中是否有 None 值：&quot;)
+c = check_none_in_dataset(validation_dataset)
+print(c)
+
+def print_labels_from_dataset(dataset, num_batches=1):
+for images, labels in dataset.take(num_batches):
+print(&quot;标签（应与images):&quot;)
+print(labels.numpy()) # 打印标签以检查它们是否是预期值（不是 None）
+print(labels.numpy() == images.numpy())
+
+print(&quot;验证数据集标签：&quot;)
+bat = print_labels_from_dataset(validation_dataset)
+
+print(&quot;异常数据集标签：&quot;)
+cow = print_labels_from_dataset(anomaly_dataset)
+
+model = Sequential()
+# 编码器
+model.add(layers.Conv2D(64, (3, 3),activation=&#39;relu&#39;,padding=&#39;same&#39;,input_shape=(SIZE, SIZE, 3)))
+model.add(layers.MaxPooling2D((2, 2),padding=&#39;same&#39;)) 
+model.add(layers.Conv2D(32, (3, 3),激活=&#39;relu&#39;，padding=&#39;same&#39;))
+model.add(layers.MaxPooling2D((2, 2)，padding=&#39;same&#39;))
+model.add(layers.Conv2D(16, (3, 3)，激活=&#39;relu&#39;，padding=&#39;same&#39;))
+model.add(layers.MaxPooling2D((2, 2)，padding=&#39;same&#39;))
+
+# Deconder
+model.add(layers.Conv2D(16, (3, 3)，激活=&#39;relu&#39;，padding=&#39;same&#39;))
+model.add(layers.UpSampling2D((2, 2)))
+model.add(layers.Conv2D(32, (3, 3)，激活=&#39;relu&#39;，padding=&#39;same&#39;))
+model.add(layers.UpSampling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), 激活=&#39;relu&#39;, 填充=&#39;same&#39;))
+model.add(layers.UpSampling2D((2, 2)))
+
+model.add(layers.Conv2D(3, (3, 3), 激活=&#39;sigmoid&#39;, 填充=&#39;same&#39;))
+
+model.compile(optimizer=&#39;adam&#39;, 损失=&#39;mean_squared_error&#39;, 指标=[&#39;mse&#39;])
+model.summary()
+
+history = model.fit(
+train_dataset,
+steps_per_epoch = 1500 // batch_size,
+epochs = 1000,
+validation_data = validation_dataset,
+validation_steps = 225 // batch_size,
+shuffle = True
+)
+
+# 检查侦察。 val 数据和异常图像之间的错误
+validation_error = model.evaluate(validation_generator)
+anomaly_error = model.evaluate(anomaly_generator)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78827338/image-directory-failing-to-open-unless-label-mode-none</guid>
+      <pubDate>Fri, 02 Aug 2024 21:47:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否有关于所使用的 LLM 模型及其用于创意写作 AI 的架构的信息？（例如 Sudowrite、NovelAI Storyteller）[关闭]</title>
+      <link>https://stackoverflow.com/questions/78827337/is-there-any-information-on-the-llm-models-used-and-their-architecture-for-creat</link>
+      <description><![CDATA[我找不到任何有关创意写作的 LLM 模型（如 Sudowrite）的信息。由于它们专门用于创意写作，因此它们比 ChatGPT 效果好得多。我想了解如何构建像 Sudowrite 这样的 LLM，因为它们特别擅长帮助创意写作。
+我研究了与不同创意写作 ais 相关的模型架构，但找不到太多信息。或者可能收集的数据。]]></description>
+      <guid>https://stackoverflow.com/questions/78827337/is-there-any-information-on-the-llm-models-used-and-their-architecture-for-creat</guid>
+      <pubDate>Fri, 02 Aug 2024 21:47:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何针对 JavaScript 框架微调轻量级 LLM？[关闭]</title>
       <link>https://stackoverflow.com/questions/78827245/how-can-i-fine-tune-a-lightweight-llm-specifically-for-javascript-frameworks</link>
-      <description><![CDATA[我做技术架构师已经很多年了，但对机器学习还是个新手。我需要专门针对 JavaScript 堆栈微调一个模型。目前，所有大型 LLM 都是通用的，但我想要一个只针对我每天使用的 JavaScript 框架进行训练的自定义模型。我的目标是拥有一个小型、高效的模型，它可以在我的 MacBook Pro 上运行，并严格协助完成编码任务。以下是我正在寻找的具体功能：
+      <description><![CDATA[我需要专门针对 JavaScript 堆栈微调一个模型。目前，所有大型 LLM 都是通用的，但我想要一个仅针对我每天使用的 JavaScript 框架进行训练的自定义模型。我的目标是拥有一个小型、高效的模型，它可以在我的 MacBook Pro 上运行并严格协助编码任务。以下是我正在寻找的具体功能：
 
 代码完成
-代码说明
+代码解释
 代码文档（可选）
 代码审查和优化建议（基于最佳实践）
 错误查找和修复
@@ -19,29 +234,27 @@
 针对编码问题的交互式问答
 了解我的代码库并提供上下文答案
 
-我的目标是使其成为一个开源项目，而不依赖主要提供商的昂贵解决方案。以下是我对社区的具体问题：
+我的目标是将其打造成一个开源项目，而不依赖主要提供商的昂贵解决方案。以下是我向社区提出的具体问题：
 
-基础模型选择：我应该选择哪种基础模型？该模型应该是轻量级的，能够进行微调，并且针对编码任务进行了优化，没有不必要的功能。
+基础模型选择：我应该选择哪种基础模型？该模型应该是轻量级的、能够进行微调的，并且针对编码任务进行了优化，没有不必要的功能。
 指导与基础模型：如果我想与它进行对话式交互，我应该选择基础模型还是指导就绪模型？
 微调方法：根据我的需求微调模型的最佳方法是什么？
 训练资源：训练模型的最佳资源是什么？
-数据集：我应该使用哪些数据集进行训练，包括最佳实践文档？我找到了SRI Lab 的 150k JavaScript 数据集，但我不确定它的质量。有人可以提供见解或推荐其他数据集吗？
-硬件要求：我有一台 MacBook Pro M2，内存为 32 GB。这足以进行训练吗？还是我需要付费解决方案？如果是这样，您会推荐哪些经济实惠的解决方案？
+数据集：我应该使用哪些数据集进行训练，包括最佳实践的文档？我找到了 SRI Lab 的 150k JavaScript 数据集，但我不确定它的质量。有人可以提供见解或推荐其他数据集吗？
+硬件要求：我有一台 MacBook Pro M2，内存为 32 GB。这足以进行训练吗，还是我需要付费解决方案？如果是，您会推荐哪些经济实惠的解决方案？
 其他注意事项：在此过程中我还应该考虑其他因素吗？
-
-提前感谢您的支持！]]></description>
+]]></description>
       <guid>https://stackoverflow.com/questions/78827245/how-can-i-fine-tune-a-lightweight-llm-specifically-for-javascript-frameworks</guid>
       <pubDate>Fri, 02 Aug 2024 21:08:50 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习中影响年度数据的多个月份模型</title>
+      <title>机器学习中影响年度数据的多个月份模型 [关闭]</title>
       <link>https://stackoverflow.com/questions/78827204/model-for-multiple-months-that-impact-an-annual-number-in-machine-learning</link>
       <description><![CDATA[我正在寻找一种机器学习模型的建议，该模型可以解决我即将概述的问题。我最熟悉的两个模型是线性回归和逻辑回归，但似乎不是合适的模型。
 我试图预测每月天气数据如何影响年度苹果产量。每个月都有自己的一组天气变量（降雨量、低温、平均温度和高温），一年中月份的组合会影响年产量。我有 X 年的月度数据，年份目前也是我数据中的一个变量。
 然而，在设置数据时，使用线性回归将相同数量的年度苹果分配给给定年份的每个月是行不通的，因为模型认为变量的波动不会影响产量，因为它们都被分配了相同的生产值（澄清一下，这是因为每个月的年份都相同）。
 有没有什么办法可以解决这个问题，或者我应该使用什么模型？我本质上希望有可能有一个字典数据框，其中模型接收 12 个字典输入（我知道这实际上没有什么意义），以便将每个月对全年苹果产量的影响考虑在内。
-谢谢！
-（我尝试了线性回归，它基本上将所有类别的权重视为具有完全相同的影响，具有负的 r 平方值，并预测我输入的年份月份和天气条件下的苹果产量为负数！这也让我回想起，我怎样才能输入所有 12 个月，而不是在预测全年时只选择一个？）]]></description>
+（我尝试了线性回归，它基本上将所有类别的权重视为具有完全相同的影响，具有负的 r 平方值，并预测我输入的月份和天气条件下的苹果产量为负数！这也让我回想起，我怎样才能输入所有 12 个月，而不是在预测全年时只选择一个？）]]></description>
       <guid>https://stackoverflow.com/questions/78827204/model-for-multiple-months-that-impact-an-annual-number-in-machine-learning</guid>
       <pubDate>Fri, 02 Aug 2024 20:52:41 GMT</pubDate>
     </item>
@@ -58,17 +271,6 @@
 ]]></description>
       <guid>https://stackoverflow.com/questions/78826929/how-to-find-or-train-a-mamba-model-for-hierarchical-data-using-wordnet-in-python</guid>
       <pubDate>Fri, 02 Aug 2024 19:14:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么在时间序列机器学习模型中以一阶差分而不是实际变量为目标？</title>
-      <link>https://stackoverflow.com/questions/78826341/why-target-the-first-difference-instead-of-the-actual-variable-in-time-series-ma</link>
-      <description><![CDATA[我正在使用 LSTM 和 ANN 模型进行时间序列预测项目，我遇到的建议是，我应该以时间序列数据的一阶差分而不是实际变量为目标。
-我熟悉差分以实现平稳性的概念，但我不确定为什么在使用具有滞后特征的 LSTM 和 ANN 等机器学习模型时特别推荐此步骤。
-在我的实验中，当我使用实际变量而不是一阶差分作为目标时，指标似乎更好。
-实际变量作为目标变量
-一阶差分作为目标变量]]></description>
-      <guid>https://stackoverflow.com/questions/78826341/why-target-the-first-difference-instead-of-the-actual-variable-in-time-series-ma</guid>
-      <pubDate>Fri, 02 Aug 2024 16:02:27 GMT</pubDate>
     </item>
     <item>
       <title>如何修复 ApplePersistenceIgnoreState 错误？</title>
@@ -153,48 +355,6 @@ ApplePersistenceIgnoreState：现有状态将不会已触及。新状态将写�
 到目前为止，我已经使用 Scikit-learn 在 Python 中尝试了几种 ML 算法。事实证明，KNN 在基于特征预测类别方面最准确，但我不确定如何将“口味指数”反映到其中。此外，这似乎是监督机器学习的一个例子，因为数据被标记（天然气或电力）。]]></description>
       <guid>https://stackoverflow.com/questions/78825453/classifier-ml-algorithm-for-predicting-class-based-on-features-and-the-value-of</guid>
       <pubDate>Fri, 02 Aug 2024 12:17:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何通过调整函数的一个输入参数来训练函数输出正确的值（基于训练数据）？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78824490/how-to-train-a-function-to-output-a-correct-value-based-on-training-data-by-ad</link>
-      <description><![CDATA[我是机器学习的新手。我有一个项目，需要帮助选择合适的机器学习算法。
-我有一个包含三个输入（x、y 和 N）的函数：
-F(x, y, N) → R
-我希望软件自动调整并给出 N 的值（基于输入值 x 和 y），以便函数给出正确的值 R。
-我有一个如下所示的训练数据集：
-
-
-
-x
-y
-R
-
-
-
-
-7
-2
-20
-
-
-8
-5
-6
-
-
-15
-6
-13
-
-
-...
-...
-
-
-
-你对我应该寻找哪种合适的机器学习算法？如果神经网络合适，您对从多少层/节点开始有什么建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78824490/how-to-train-a-function-to-output-a-correct-value-based-on-training-data-by-ad</guid>
-      <pubDate>Fri, 02 Aug 2024 08:29:10 GMT</pubDate>
     </item>
     <item>
       <title>为什么我用 Python 实现的 Skip-Gram 产生了错误的结果？</title>
@@ -302,126 +462,6 @@ print(&quot;Finished&quot;)
 有人能就这个问题提出一些想法吗？也接受其他方法来分割图像。]]></description>
       <guid>https://stackoverflow.com/questions/78822914/sharper-segmentation-sam-segment-anything</guid>
       <pubDate>Thu, 01 Aug 2024 20:21:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>Pyannote：离线加载并应用说话人区分</title>
-      <link>https://stackoverflow.com/questions/78820971/pyannote-load-and-apply-speaker-diarization-offline</link>
-      <description><![CDATA[我尝试离线使用 Pyannotes 模型。
-我是这样加载和应用模型的：
-from pyannote.audio import Pipeline
-
-access_token = &#39;xxxxxxxxxxx&#39;
-
-model = Pipeline.from_pretrained(
-&quot;pyannote/speaker-diarization-3.1&quot;,
-use_auth_token=access_token)
-
-path_in = &#39;blabla/1-137-A-32.wav&#39;
-
-num_speakers = 1
-
-model(path_in,
-num_speakers=num_speakers).labels()
-
-这样就没问题了。
-但是现在我按照离线使用的说明操作：https://github.com/pyannote/pyannote-audio/blob/develop/tutorials/applying_a_pipeline.ipynb
-我的目录结构如下：
-src-
-     |-pyannote_offline_config.yaml
-     |-pyannote_pytorch_model.bin
----- YAML ----
-version: 3.1.0
-
-pipeline:
-name: pyannote.audio.pipelines.SpeakerDiarization
-params:
-clustering: AgglomerativeClustering
-embedding: pyannote/wespeaker-voxceleb-resnet34-LM
-embedding_batch_size: 32
-embedding_exclude_overlap: true
-分段：src/pyannote_pytorch_model.bin
-分段批处理大小：32
-
-参数：
-聚类：
-方法：质心
-min_cluster_size：12
-阈值：0.7045654963945799
-分段：
-min_duration_off：0.0
-
----- 正在加载模型 ----
-path_yaml = &#39;src/pyannote_offline_config.yaml&#39;
-
-model = Pipeline.from_pretrained(path_yaml)
-
-path_in = &#39;blabla/1-137-A-32.wav&#39;
-
-num_speakers = 1
-
-model(path_in,
-num_speakers=num_speakers).labels()
-
-但结果却是：“必须先使用 pipeline.instantiate(parameters) 实例化管道，然后才能应用它。”
-好的，下次尝试：
----- 加载模型 ----
-path_yaml = &#39;src/pyannote_offline_config.yaml&#39;
-
-model = Pipeline.from_pretrained(path_yaml)
-
-params = {&#39;clustering&#39;:
-{&#39;method&#39;: &#39;centroid&#39;,
-&#39;min_cluster_size&#39;: 12,
-&#39;threshold&#39;: 0.7045654963945799},
-&#39;segmentation&#39;:
-{&#39;min_duration_off&#39;: 0.0}}
-
-pipeline = model.instantiate(params)
-
-path_in = &#39;blabla/1-137-A-32.wav&#39;
-
-num_speakers = 1
-
-pipeline(path_in,
-num_speakers=num_speakers).labels()
-
-但结果是：“必须先使用 pipeline.instantiate(parameters) 实例化管道，然后才能应用它。”
-我不明白问题所在。
-如果我这样做，它就会起作用：
----- 加载模型 ----
-path_yaml = &#39;src/pyannote_offline_config.yaml&#39;
-
-model = Pipeline.from_pretrained(&quot;pyannote/speaker-diarization-3.1&quot;, path_yaml)
-
-path_in = &#39;blabla/1-137-A-32.wav&#39;
-
-num_speakers = 1
-
-model(path_in,
-num_speakers=num_speakers).labels()
-
-但上传到 gitlab 后，测试管道显示：“无法下载‘pyannote/speaker-diarization-3.1’管道。
-这可能是因为管道是私有的或封闭的，因此请确保进行身份验证。访问 https://hf.co/settings/tokens
-创建您的访问令牌并重试：
-Pipeline.from_pretrained(&#39;pyannote/speaker-diarization-3.1&#39;,
-... use_auth_token=YOUR_AUTH_TOKEN)&quot;
-因此，似乎我的本地计算机上有一些东西没有通过 pip 安装下载。例如，如果我不使用 yaml 加载它，而只使用 model = Pipeline.from_pretrained(&quot;pyannote/speaker-diarization-3.1&quot;)，它也会起作用。]]></description>
-      <guid>https://stackoverflow.com/questions/78820971/pyannote-load-and-apply-speaker-diarization-offline</guid>
-      <pubDate>Thu, 01 Aug 2024 12:28:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 llama 3 8b 训练 LLaVA-NeXT</title>
-      <link>https://stackoverflow.com/questions/78820834/how-to-train-llava-next-with-llama-3-8b</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78820834/how-to-train-llava-next-with-llama-3-8b</guid>
-      <pubDate>Thu, 01 Aug 2024 11:56:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在人工神经网络中进行样本外预测？</title>
-      <link>https://stackoverflow.com/questions/78820463/how-to-make-out-of-sample-forecast-in-artificial-neural-network</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78820463/how-to-make-out-of-sample-forecast-in-artificial-neural-network</guid>
-      <pubDate>Thu, 01 Aug 2024 10:36:16 GMT</pubDate>
     </item>
     <item>
       <title>NotImplementedError：无法将符号张量（up_sampling2d_4_target：0）转换为 numpy 数组</title>
