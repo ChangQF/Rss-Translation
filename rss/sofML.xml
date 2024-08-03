@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 03 Aug 2024 15:15:20 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 03 Aug 2024 18:20:02 GMT</lastBuildDate>
     <item>
       <title>无法解决 QiskitMachineLearningError：'输入数据的形状不正确，最后一个维度不等于输入的数量：0，但得到：2'</title>
       <link>https://stackoverflow.com/questions/78828998/not-able-to-resolve-qiskitmachinelearningerror-input-data-has-incorrect-shape</link>
@@ -377,12 +377,68 @@ anomaly_error = model.evaluate(anomaly_generator)
       <pubDate>Fri, 02 Aug 2024 21:47:44 GMT</pubDate>
     </item>
     <item>
-      <title>是否有关于所使用的 LLM 模型及其用于创意写作 AI 的架构的信息？（例如 Sudowrite、NovelAI Storyteller）[关闭]</title>
-      <link>https://stackoverflow.com/questions/78827337/is-there-any-information-on-the-llm-models-used-and-their-architecture-for-creat</link>
-      <description><![CDATA[我找不到任何有关创意写作的 LLM 模型（如 Sudowrite）的信息。由于它们专门用于创意写作，因此它们比 ChatGPT 效果好得多。我想了解如何构建像 Sudowrite 这样的 LLM，因为它们特别擅长帮助创意写作。
-我研究了与不同创意写作 ais 相关的模型架构，但找不到太多信息。或者可能收集的数据。]]></description>
-      <guid>https://stackoverflow.com/questions/78827337/is-there-any-information-on-the-llm-models-used-and-their-architecture-for-creat</guid>
-      <pubDate>Fri, 02 Aug 2024 21:47:19 GMT</pubDate>
+      <title>PipeOp classif.avg（mlr3）错误：对“prob”的断言失败：包含缺失值（元素 1）[关闭]</title>
+      <link>https://stackoverflow.com/questions/78763091/error-with-pipeop-classif-avg-mlr3-assertion-on-prob-failed-contains-missi</link>
+      <description><![CDATA[当我运行代码时，该代码在堆叠学习器（glmnet 和 rpart）上执行特征选择和超参数调整，我收到以下错误消息：
+assert_binary(truth, prob = prob, positive = positive, na_value = na_value) 中出错：
+“prob”上的断言失败：包含缺失值（元素 1）。
+这发生在 PipeOp classif.avg 的 $train()
+
+但是，当我使用 classif.debug 时，预测中没有 NA。任何建议都将不胜感激。
+注意：我简化了要调整的参数数量和要选择的特征数量，以减少执行时间，现在使用 classif.debug 只需 15 秒。
+这是我的数据：https://www.dropbox.com/scl/fi/hkjs79i89gjz0j5mjlbj8/Data.csv?rlkey=08yuzet3mjr9gcezkryo93vqm&amp;st=hfv2cbeo&amp;dl=0
+这是我的代码：
+set.seed(1)
+data &lt;- read.csv(&quot;C:/Users/Marine/Downloads/Data.csv&quot;)
+data &lt;- data[,c(&quot;x&quot;, &quot;y&quot;, &quot;presence&quot;, &quot;V01&quot;, &quot;V02&quot;)]
+## dim(data)
+data$presence &lt;- as.factor(data$presence)
+##摘要（数据）
+任务 &lt;- mlr3spatial::as_task_classif_st（x = 数据，目标 = “存在”，正 = “1”，坐标名称 = c（“x”，“y”），crs = “+proj=longlat +datum=WGS84 +no_defs +type=crs”）
+摘要（任务）
+
+learner_glmnet &lt;- mlr3::lrn（“classif.glmnet”，预测类型 = “prob”，s = 0.01）
+learner_rpart &lt;- mlr3::lrn（“classif.rpart”，预测类型 = “prob”，cp = to_tune（1e-04，1e-1，对数尺度 = TRUE))
+learner_glmnet_cv &lt;- mlr3pipelines::PipeOpLearnerCV$new(learner = learner_glmnet, id = &quot;glmnet_cv&quot;, param_vals = list(resampling.method = &quot;cv&quot;, resampling.folds = 2))
+learner_rpart_cv &lt;- mlr3pipelines::PipeOpLearnerCV$new(learner = learner_rpart, id = &quot;rpart_cv&quot;, param_vals = list(resampling.method = &quot;cv&quot;, resampling.folds = 2))
+
+learner_avg &lt;- mlr3pipelines::LearnerClassifAvg$new(id = &quot;classif.avg&quot;)
+learner_avg$predict_type &lt;- &quot;prob&quot;
+learner_avg$param_set$values$measure &lt;- &quot;classif.auc&quot;
+
+learner_debug &lt;- lrn(&quot;classif.debug&quot;, predict_type = &quot;prob&quot;)
+
+level_0_graph &lt;- mlr3pipelines::gunion(list(learner_glmnet_cv, learner_rpart_cv)) %&gt;&gt;% mlr3pipelines::po(&quot;featureunion&quot;)
+level_0_and_1_graph &lt;- level_0_graph %&gt;&gt;% learner_avg
+## level_0_and_1_graph &lt;- level_0_graph %&gt;&gt;% learner_debug
+level_0_and_1_graph_learner &lt;- mlr3::as_learner(level_0_and_1_graph)
+
+tuning &lt;- mlr3tuning::auto_tuner(tuner = mlr3tuning::tnr(&quot;grid_search&quot;), 
+learner = level_0_and_1_graph_learner,
+resampling = mlr3::rsmp(&quot;cv&quot;, folds = 2),
+measure = mlr3::msr(&quot;classif.auc&quot;),
+terminator = mlr3tuning::trm(&quot;evals&quot;, n_evals = 2, k = 0))
+
+feature_selection &lt;- mlr3fselect::auto_fselector(fselector = mlr3fselect::fs(&quot;sequence&quot;, strategies = &quot;sfs&quot;, min_features = 2),
+learner = tuning,
+resampling = mlr3::rsmp(&quot;cv&quot;, folds = 2),
+measure = mlr3::msr(&quot;classif.auc&quot;),
+terminator = mlr3tuning::trm(&quot;evals&quot;, n_evals = 2, k = 0))
+
+system.time(stacking &lt;- mlr3::resample(task = task, 
+learner = feature_selection, 
+resampling = mlr3::rsmp(&quot;cv&quot;, folds = 2),
+store_models = TRUE))
+
+测试 &lt;- as.data.table(stacking$prediction())
+which(is.na(test))
+测试 &lt;- as.data.table(stacking$predictions()[[1]])
+which(is.na(test))
+测试 &lt;- as.data.table(stacking$predictions()[[2]])
+which(is.na(test))
+]]></description>
+      <guid>https://stackoverflow.com/questions/78763091/error-with-pipeop-classif-avg-mlr3-assertion-on-prob-failed-contains-missi</guid>
+      <pubDate>Thu, 18 Jul 2024 07:56:11 GMT</pubDate>
     </item>
     <item>
       <title>优化大数据集上的 Pandas 性能</title>
