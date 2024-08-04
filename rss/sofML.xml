@@ -4,7 +4,95 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 04 Aug 2024 12:26:34 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 04 Aug 2024 15:15:38 GMT</lastBuildDate>
+    <item>
+      <title>模型生成 512x512 的照片</title>
+      <link>https://stackoverflow.com/questions/78831225/model-to-generated-512x512-photos</link>
+      <description><![CDATA[我怎样才能让这个模型生成 512x512 像素或更大的图像？现在它生成 64x64px 图像。我尝试更改模型中的某些值，但没有成功。请问有人能解释一下这些卷积层是如何工作的，特别是 Conv2D 和 Conv2DTranspose，因为我不明白图像在这些层中是如何调整大小的。
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layer
+from tqdm import tqdm
+import numpy as np
+import matplotlib.pyplot as plt
+
+cd /content/drive/MyDrive
+
+dataset = keras.preprocessing.image_dataset_from_directory(
+directory = &#39;Humans&#39;, label_mode = None, image_size = (64,64), batch_size = 32,
+shuffle = True
+).map(lambda x: x/255.0)
+
+discriminator = keras.models.Sequential(
+[
+keras.Input(shape = (64,64,3)),
+layer.Conv2D(64, kernel_size = 4, strides = 2, padding = &#39;same&#39;),
+layer.LeakyReLU(0.2),
+layer.Conv2D(128, kernel_size = 4, strides = 2, padding = &#39;same&#39;),
+layer.LeakyReLU(0.2),
+layer.Conv2D(128, kernel_size = 4, strides = 2, padding = &#39;same&#39;),
+layer.LeakyReLU(0.2),
+layer.Flatten(),
+layer.Dropout(0.2),
+layer.Dense(1,activation = &#39;sigmoid&#39;)
+]
+)
+
+latent_dim = 128
+generator = keras.models.Sequential(
+[
+图层。输入（形状 = (latent_dim,)），
+图层。密集（8*8*128），
+图层。重塑（（8,8,128）），
+图层。Conv2DTranspose（128，kernel_size = 4，步幅 = 2，填充 = &#39;相同&#39;），
+图层。LeakyReLU（0.2），
+图层。Conv2DTranspose（256，kernel_size = 4，步幅 = 2，填充 = &#39;相同&#39;），
+图层。LeakyReLU（0.2），
+图层。Conv2DTranspose（512，kernel_size = 4，步幅 = 2，填充 = &#39;相同&#39;），
+图层。LeakyReLU（0.2），
+图层。Conv2D（3，kernel_size = 5，填充 = &#39;相同&#39;，激活 = &#39;sigmoid&#39;）
+]
+)
+
+opt_gen = keras.optimizers.Adam(1e-4)
+opt_disc = keras.optimizers.Adam(1e-4)
+loss_fn = keras.losses.BinaryCrossentropy()
+
+对于 epoch in range(500):
+对于 idx, real in enumerate(tqdm(dataset)):
+batch_size = real.shape[0]
+random_latent_vectors = tf.random.normal(shape = (batch_size,latent_dim))
+fake = generator(random_latent_vectors)
+
+如果 idx % 50 == 0:
+img = keras.preprocessing.image.array_to_img(fake[0])
+img.save(f&#39;gen_images/generated_img{epoch}_{idx}_.png&#39;)
+
+使用 tf.GradientTape() 作为disc_tape:
+loss_disc_real = loss_fn(tf.ones((batch_size,1)), discriminator(real))
+loss_disc_fake = loss_fn(tf.zeros(batch_size,1), discriminator(fake))
+loss_disc = (loss_disc_real+loss_disc_fake)/2
+
+grads = disc_tape.gradient(loss_disc, discriminator.trainable_weights)
+
+opt_disc.apply_gradients(
+zip(grads, discriminator.trainable_weights)
+)
+
+使用 tf.GradientTape() 作为 gen_tape:
+fake = generator(random_latent_vectors)
+output = discriminator(fake)
+loss_gen = loss_fn(tf.ones(batch_size,1),output)
+
+grads = gen_tape.gradient(loss_gen, generator.trainable_weights)
+opt_gen.apply_gradients(
+zip(grads, generator.trainable_weights)
+)
+
+我尝试更改图像大小和卷积层中的某些值，但没有成功]]></description>
+      <guid>https://stackoverflow.com/questions/78831225/model-to-generated-512x512-photos</guid>
+      <pubDate>Sun, 04 Aug 2024 13:42:23 GMT</pubDate>
+    </item>
     <item>
       <title>检测并定位图像中大量不同的物体</title>
       <link>https://stackoverflow.com/questions/78830813/detect-and-localize-a-large-number-of-different-objects-in-an-image</link>
@@ -315,35 +403,18 @@ max_source = 最大概率来自哪个类别（X0 或 X1）。
       <description><![CDATA[我正在尝试使用 Kaldi 训练语音识别模型。我已成功运行 steps/nnet3/align.sh 脚本，但 exp/chain/tree_sp 目录中未创建预期的 ali.1.gz 文件。
 我已检查 exp/chain/tree_sp/log 目录中的终端输出和日志文件，但没有错误消息。该脚本似乎运行正常，但缺少所需的输出。
 您能否建议此问题的潜在原因或进一步调试的步骤？如何解决？
-我已成功运行 steps/nnet3/align.sh 脚本（终端或日志文件中没有错误）。
-我已经检查过 exp/chain/tree_sp 目录中是否存在 ali.JOB.gz 文件，但它们不存在（未创建）
-我希望 steps/nnet3/align.sh 脚本能够在 exp/chain/tree_sp 目录中成功创建 ali.1.gz 文件（或多个 ali.JOB.gz 文件）。此文件对于 Kaldi 管道中的后续训练步骤至关重要。
-ls exp/chain/tree_sp
-0.mdl cmvn_opts final.mat final.mdl final.occs full.mat log num_jobs phones.txt splice_opts tree
-
-当我运行 local/chain/tuning/run_tdnn_1j.sh 时收到此错误
+我已成功运行 steps/nnet3/align.sh 脚本（终端或日志文件中没有错误）。我已检查 exp/chain/tree_sp 目录中是否存在 ali.JOB.gz 文件，但它们不存在（未创建），并且在运行 local/chain/tuning/run_tdnn_1j.sh 时出现此错误
 Traceback（最近一次调用最后一次）：
 文件“/mnt/d/kaldi/egs/mini_librispeech/s5/steps/nnet3/chain/train.py”，第 651 行，在 main
 train(args, run_opts)
 文件“/mnt/d/kaldi/egs/mini_librispeech/s5/steps/nnet3/chain/train.py”，第 287 行，在 train
 chain_lib.check_for_required_files(args.feat_dir, args.tree_dir,
-文件 &quot;/mnt/d/kaldi/egs/mini_librispeech/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py&quot;，第 378 行，位于 check_for_required_files
-引发异常(&#39;预期 {0} 存在。&#39;.format(file))
+文件&quot;/mnt/d/kaldi/egs/mini_librispeech/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py&quot;，第 378 行，在 check_for_required_files 中
+raise Exception(&#39;预期 {0} 存在。&#39;.format(file))
 异常：预期 exp/chain/tree_sp/ali.1.gz 存在。
 ]]></description>
       <guid>https://stackoverflow.com/questions/78828864/missing-alignment-files-ali-gz-in-kaldi-steps-nnet3-align-sh</guid>
       <pubDate>Sat, 03 Aug 2024 14:01:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>想要对像 SAM 这样的预训练模型进行微调，以便在微观水样数据集中进行细菌分割。很难找到所需的数据集 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78828560/want-to-fine-tune-a-pretrained-model-like-sam-for-bacterial-segmentation-in-micr</link>
-      <description><![CDATA[我正在开展一个机器学习项目，旨在使用显微图像测试水的纯度。该项目的目标是：
-对样本图像中存在的各种细菌进行分割。识别不同类型的细菌。根据识别出的细菌数量和类型评估水的纯度。
-我很难找到并准备一个包含不同类型细菌的水样显微图像的合适数据集。
-考虑到我的任务的特殊性，我应该采取什么方法来微调像 SAM（任何分割模型）这样的预训练模型来进行细菌分割？任何关于超参数、数据增强或其他训练策略的提示都会有所帮助。
-获取数据集困难。]]></description>
-      <guid>https://stackoverflow.com/questions/78828560/want-to-fine-tune-a-pretrained-model-like-sam-for-bacterial-segmentation-in-micr</guid>
-      <pubDate>Sat, 03 Aug 2024 11:32:03 GMT</pubDate>
     </item>
     <item>
       <title>当数据集中的每个数据都是 csv 文件时，机器学习方法[关闭]</title>
