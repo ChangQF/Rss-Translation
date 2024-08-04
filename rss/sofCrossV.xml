@@ -4,22 +4,112 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 04 Aug 2024 18:18:53 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 04 Aug 2024 21:14:39 GMT</lastBuildDate>
     <item>
-      <title>配对测量后提取重要样本</title>
-      <link>https://stats.stackexchange.com/questions/652290/extraction-of-significant-samples-after-paired-measures</link>
-      <description><![CDATA[我有两组时间配对值：A 和 B。我知道 B 显著高于
-A（使用 Wilcoxon 检验）（我的样本量很小），但我想知道哪些样本的 B 有显著差异。
-使用 B-A 的差异，我得到了时间变化的分布，并据此计算了置信区间（通过自举法）。
-我不确定应该使用什么阈值来确定哪些样本在 A 和 B 之间确实有显著变化。
-提前感谢 :)]]></description>
-      <guid>https://stats.stackexchange.com/questions/652290/extraction-of-significant-samples-after-paired-measures</guid>
-      <pubDate>Sun, 04 Aug 2024 16:12:40 GMT</pubDate>
+      <title>弱平稳过程混淆</title>
+      <link>https://stats.stackexchange.com/questions/652301/weakly-stationary-process-confusion</link>
+      <description><![CDATA[假设我抽样 $2n$ iid 正态分布 $A_k, B_k$，其中 $k=1,...n$，均值为 0，但 $Var(A_k) = Var(B_k)$。利用这些，我可以构建一个随机时间序列
+$$X(t) := \sum_{k=1}^n (A_k + iB_k) e^{i\lambda_kt} + (A_k - iB_k) e^{-i\lambda_kt},$$ 其中 $0 &lt; \lambda_k$ 是某个固定（非随机）$n$ 实数序列。
+现在，通过构造：
+
+$X(t)$ 是实值。
+对于所有 $t$，$E[X(t)] = 0$
+$E[X(t)] = 4\sum_k Var(A_k) e^{i\lambda_k \tau}$（为此，写为 $Z_k = A_k + i B_k$，因此只有 4术语）
+
+具体来说，$X(t)$ 是一个实值平稳序列。
+接下来，我可以用以下代码生成其中一些：
+def make_normal(lambdas, stds, T):
+assert len(stds) == len(lambdas), &quot;必须为每个 lambda 提供一个 stddev。&quot;
+lambdas.sort()
+assert all([l &gt;= 0 for l in lambdas]), &quot;输入 lambda 必须是非负的&quot;
+
+Z_real = np.random.normal(scale = stds)
+Z_complex = np.random.normal(scale = stds)
+如果 lambdas[0] == 0:
+Z_real[0] /= 2
+Z_complex[0] = 0
+
+Z_real = np.concatenate([Z_real, Z_real])
+Z_complex = np.concatenate([Z_complex, -Z_complex])
+Z = Z_real + 1j*Z_complex
+
+lambdas = [-l for l in lambdas] + lambdas
+
+exps = np.exp(np.outer(lambdas, T)*1j)
+
+返回 np.matmul(Z, exps)
+
+lambdas = [0.1, 1, 2, 5, 10]
+stds = [2, 1, 0.7, 0.5, 0.1]
+T = [0.1*i for i in range(500)]
+X = make_normal(lambdas, stds, T)
+assert max(abs(np.imag(X))) &lt; 1e-10, &quot;TS 有点不对劲... 应该是真的！&quot;
+plt.plot(T, np.real(X))
+
+
+根据我见过的所有启发式方法，这绝对不是&quot;看起来是静止的&quot;。所以我的问题是以下哪项是正确的：
+
+我的代码有问题。
+我所了解的有关过程“看起来静止”的启发式方法完全是错误的 - 这个时间序列对我来说并不“看起来静止”，因为它似乎具有趋势、季节性等。我用此代码生成的几乎所有时间序列都具有这些特征。
+其他东西完全错误！
+
+感谢您的时间！:)]]></description>
+      <guid>https://stats.stackexchange.com/questions/652301/weakly-stationary-process-confusion</guid>
+      <pubDate>Sun, 04 Aug 2024 19:42:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>总和为零的对比，可以很容易地表达对每个因子水平的同等不确定性</title>
+      <link>https://stats.stackexchange.com/questions/652298/sum-to-zero-contrast-that-makes-it-easy-to-express-equal-uncertainty-about-each</link>
+      <description><![CDATA[我需要如何设置总和为零的对比，以便轻松表达对每个因子水平的同等不确定性？例如当我使用 R 提供的默认设置时，例如：
+mydf &lt;- data.frame(y=c(-0.1, 0.1, 0.9,1.1, 1.9,2.1, 2.9,3.1, 3.9,4.1), 
+var = factor(rep(seq(0, 4, 1), each=2)))
+
+contrasts(mydf$var) &lt;- contr.sum
+
+这会产生
+ [,1] [,2] [,3] [,4]
+0 1 0 0 0
+1 0 1 0 0
+2 0 0 1 0
+3 0 0 0 1
+4 -1 -1 -1 -1
+
+这似乎表明对比对具有不同乘法常数的不同因子水平有贡献（当我进行最大似然估计时，这完全没有问题，因为一切都得到了适当的缩放。）
+但是，假设我想表达对每个类别的同等不确定性。如果我为所有项设置相同的先验，这似乎不会发生：
+library(brms)
+library(tidybayes)
+
+prior_samples &lt;- brm(formula = y ~ var, 
+data=mydf,
+family = gaussian(), 
+Prior = Prior(class=Intercept, normal(0, 1)) + 
+Prior(class=b, normal(0, 1)) +
+Prior(class=sigma, lognormal(-10, 0.1)), 
+sample_prior = &quot;only&quot;, 
+iter = 110000, 
+warmup=1000)
+
+data.frame(var = factor(seq(0, 4, 1))) |&gt;
+add_predicted_rvars(object = Prior_samples, ndraws = NULL)
+
+产生
+# A tibble: 5 × 2
+var .prediction
+&lt;fct&gt; &lt;rvar[1d]&gt;
+1 0 0.00186 ± 1.4
+2 1 0.00085 ± 1.4
+3 2 -0.00134 ± 1.4
+4 3 0.00079 ± 1.4
+5 4 0.00158 ± 2.2
+
+如您所见，第 5 个因子水平的先验不确定性高于其他因子水平。也许我可以找到一些复杂的方法来指定我之前处理这个问题的方法，但似乎以某种方式改变我的对比以避免这种情况会更容易（但我很难弄清楚如何做到这一点）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652298/sum-to-zero-contrast-that-makes-it-easy-to-express-equal-uncertainty-about-each</guid>
+      <pubDate>Sun, 04 Aug 2024 18:48:39 GMT</pubDate>
     </item>
     <item>
       <title>回归系数的独立性</title>
       <link>https://stats.stackexchange.com/questions/652284/independence-of-regression-coefficients</link>
-      <description><![CDATA[这可能是一个基本问题，但我怀疑自己。
+      <description><![CDATA[这可能是一个基本问题，但我对自己有疑问。
 我有 iid 样本 $(Y_i,X_i,W_i,Z_i)$。我有兴趣执行以下两个回归：
 $Y = \alpha_0+\alpha_1 X+\alpha_2 Z$
 $Z = \beta_0+\beta_1 X+\beta_2 W$
@@ -44,17 +134,17 @@ $Z = \beta_0+\beta_1 X+\beta_2 W$
     <item>
       <title>嵌套 GLM 的 F 检验</title>
       <link>https://stats.stackexchange.com/questions/652281/f-test-for-nested-glm</link>
-      <description><![CDATA[假设我们有两个嵌套的 GLM 模型 $M0 \subset M1$，分别具有 $q$ 和 $p$ 个参数。我们还知道两个模型中的弥散参数估计为相同的值，将其表示为 $\widehat{\phi} \neq 1$。我的目标是测试 $p-q$ 个附加参数在更大模型中的重要性。在这种情况下，适当的测试将是 F 检验（参见例如第 4.7.6.2 节 此处) 和
+      <description><![CDATA[假设我们有两个嵌套的 GLM 模型 $M_0 \subset M_1$，分别具有 $q$ 和 $p$ 个参数。我们还知道两个模型中的弥散参数估计为相同的值，表示为 $\widehat{\phi} \neq 1$。我的目标是测试 $p-q$ 个附加参数在更大模型中的重要性。在这种情况下，适当的检验将是 F 检验（例如，参见第 4.7.6.2 节此处），其中
 $$
 F = \frac{D_0-D_1}{\widehat{\phi} (p-q)},
 $$
-其中 $D_0, D_1$ 是 $M0$ 和 $M1$ 的偏差。在同一本书中，偏差定义为
+其中 $D_0, D_1$ 是 $M_0$ 和 $M_1$ 的偏差。在同一本书中，偏差定义为
 $$
-D = 2 \phi(L_{full} - L),
+D = 2 \phi(L_\textrm{full} - L),
 $$
-其中 $L_{full}$ 和 $L$ 是完整（饱和）模型和考虑模型的对数似然。简单来说，可以通过用 $\widehat{\phi}$ 代替 $\phi$ 来估计偏差，因此在我们的例子中
+其中 $L_\textrm{full}$ 和 $L$ 是完整（饱和）模型和考虑模型的对数似然。简单来说，我们可以通过用 $\widehat{\phi}$ 代替 $\phi$ 来估计偏差，因此在我们的例子中
 $$
-F = \frac{2 \widehat{\phi} (L_{full} - L_0) - 2 \widehat{\phi}(L_{full} - L_1)}{\widehat{\phi} (p-q)} = \frac{2(L_1-L_0)}{p-q}。
+F = \frac{2 \widehat{\phi} (L_\textrm{full} - L_0) - 2 \widehat{\phi}(L_\textrm{full} - L_1)}{\widehat{\phi} (p-q)} = \frac{2(L_1-L_0)}{p-q}。
 $$
 另一方面，我偶然发现了一个练习，其中给出了 $L_0, L_1$ 和 $\widehat{\phi}$，并且 F 比率计算为
 $$
@@ -67,28 +157,7 @@ $$
       <pubDate>Sun, 04 Aug 2024 13:05:05 GMT</pubDate>
     </item>
     <item>
-      <title>霍格斯偏斜导致除以零。替代方案？</title>
-      <link>https://stats.stackexchange.com/questions/652279/hoggs-skewness-leads-to-division-by-zero-alternative</link>
-      <description><![CDATA[我想比较我的数据（高度倾斜、长尾离散数据）的倾斜度发展情况。我决定使用霍格斯倾斜度和峰度来减弱实际值的作用。但是，公式
-$$
-Skewness_{Hogg} = \frac{\text{上 5% 的平均值}−\text{中间 50% 的平均值}}{\text{中间 50% 的平均值}−\text{下 5% 的平均值}}
-$$
-给出的数据会导致除以零的误差。例如，考虑以下值
-$$
-D_1= \{25,6,3,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1\}
-$$
-其中中间 50% 的平均值和集合下 5% 的平均值均为 1。那么该怎么办呢？我想到以下解决方案：
-
-使用常规偏斜或其他偏斜，因为我的分析的主要目的是分析偏斜的发展/比较不同的偏斜&#39;
-从抽象意义上考虑 Hogg&#39;s（百分位数的关系），并通过改变边界使用自己的偏斜度量，即使用中间的 95%
-否则
-
-非常感谢您的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/652279/hoggs-skewness-leads-to-division-by-zero-alternative</guid>
-      <pubDate>Sun, 04 Aug 2024 12:37:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>处理小型医疗数据集和处理异常值[关闭]</title>
+      <title>处理小型医疗数据集和处理异常值[重复]</title>
       <link>https://stats.stackexchange.com/questions/652275/dealing-with-small-medical-dataset-and-handling-outliers</link>
       <description><![CDATA[我发布了一个问题，但由于我提供的信息不完整，该问题已被关闭。这次我想完整地提出我的问题。如果您能帮助我，我将不胜感激。我们拥有与放射学相关的信息和参数，包括（MLD、PTV、HI、V95 RTlung(cc)、Dmean Lung、V20、V10、V5 X Jaw、Y Jaw、Med Gantry、Angle Lat Gantry、Angle field size、Weight Med、Weight Lat、Wedge Med Wedge Lat、Post boarder、Lat borderer、Medial Border）。我们已获得 66 位患者的信息。这里我们打算使用机器学习模型（MLD、PTV RTlung(cc)、Dmean Lung V20、V10 V5 X Jaw Y Jaw Med Gantry Angle Lat Gantry Angle field size Weight Med Weight Lat Wedge Med Wedge Lat Post borderer Lat borderer Medial Border）来预测 Dmean lung、V95、v20、v10、HI。
 
@@ -103,23 +172,6 @@ $$
       <pubDate>Sun, 04 Aug 2024 08:33:28 GMT</pubDate>
     </item>
     <item>
-      <title>如何比较不能形成单一函数的数据？</title>
-      <link>https://stats.stackexchange.com/questions/652273/how-to-compare-data-that-cant-form-a-single-function</link>
-      <description><![CDATA[如果这个问题之前已经回答过，请提供链接，因为我觉得我可能用错了词！
-一些背景...
-我的数据是 (x, y, t) 形式的多组点，其中时间总是在增加。我需要某种方法来比较每组点。目前，我忽略时间成分，通过线性回归进行拟合，然后使用曲线的相关值和 MSE 来找出哪条曲线是“最接近”的拟合。
-问题是，我的一些数据无法形成函数（简单示例）。将数据分解成多个单独的函数是不可行的。
-我的问题...
-对于不能用函数 f(x) -&gt; 表示的数据，是否有其他方法可以执行线性回归y，但可以用 f(t) -&gt; x, g(t) -&gt; y 来表示吗？
-我的第一个想法是将它拟合到某种形式的参数方程中，例如
-
-x= cos(t), y= sin(t), z= t
-
-然后找到比较这些参数曲线的方法。这是解决这个问题的正确方法吗？我是否应该用一条线将每个 (x,y,t) 对及时连接起来，并进行其他形式的关联？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652273/how-to-compare-data-that-cant-form-a-single-function</guid>
-      <pubDate>Sun, 04 Aug 2024 06:30:45 GMT</pubDate>
-    </item>
-    <item>
       <title>线性混合模型中缺失观测值（不完整数据）</title>
       <link>https://stats.stackexchange.com/questions/652264/missing-observations-incomplete-data-in-linear-mixed-model</link>
       <description><![CDATA[我正在使用每个参与者只有 2 个观察值（基线 + 一个后续观察值）的数据运行 LMM 进行纵向分析。如果一些参与者只有基线结果，LMM 会自动排除他们吗？或者他们仍然包含在模型中？
@@ -128,40 +180,11 @@ x= cos(t), y= sin(t), z= t
       <pubDate>Sat, 03 Aug 2024 23:04:10 GMT</pubDate>
     </item>
     <item>
-      <title>为什么 AFT 尺度参数会是负数？</title>
-      <link>https://stats.stackexchange.com/questions/652270/why-would-an-aft-scale-parameter-be-negative</link>
-      <description><![CDATA[我正在将加速失效时间 (AFT) 模型拟合到生存数据，因此：
-
-其中  是生存时间， 是标准正态变量， 是协变量向量。重要的是， 是所谓的尺度参数。
-当我使用 survival::survreg() 将此模型拟合到 R 中的数据时，设置 dist = &quot;lognormal&quot;，尺度参数估计返回为 -2.79。
-起初我很困惑，以为尺度参数必须为正。但后来我意识到这是错误的；根据上述公式，没有理由它必须是非负的；它不是标准差。
-但后来我再想一想，我又感到困惑：即使它不必是非负的，为什么它需要为负数？因为  是一个正态变量，所以  和  具有相同的分布。
-如果您求解上述 ，我们得到：
-
-无论我们使用  还是  ，结果都是一样的。（我不得不做一些图来说服自己，但这确实是真的）。​​
-我遗漏了什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652270/why-would-an-aft-scale-parameter-be-negative</guid>
-      <pubDate>Sat, 03 Aug 2024 21:46:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>有效距离计算的基础改变吗？</title>
-      <link>https://stats.stackexchange.com/questions/652260/change-of-basis-for-efficient-distance-computation</link>
-      <description><![CDATA[有没有一种计算效率高的方法来计算点和线之间的距离？
-注意：线是预定义的；这不是需要调整的超参数。
-我知道从点到线 A 的最短路径是与该点相交的垂直线 B。
-我感兴趣的是计算数十万个点的线 B 的长度（从线 A 到该点）。
-这是否就像将基础更改为线 A 作为 x 并将线 B 作为 y 然后提取 y 一样简单？
-如果可能，最好使用 Python。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652260/change-of-basis-for-efficient-distance-computation</guid>
-      <pubDate>Sat, 03 Aug 2024 21:27:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>在同一篇论文中混合贝叶斯方法和频率方法可以吗？</title>
-      <link>https://stats.stackexchange.com/questions/652236/is-it-ok-to-mix-bayesian-and-frequentist-methods-in-the-same-paper</link>
-      <description><![CDATA[我正在为心理学期刊写一篇论文。最初，我计划只使用频率派方法进行分析。但是，我发现我用于回归分析的 nlme 包无法以我需要的方式应用参数界限。因此，我改用了 brms 包，它允许我在回归分析中为每个参数设置先验，从而有效地以我希望使用 nlme 实现的方式限制参数。
-我使用频率派方法进行基本描述和一些探索性分析（即一些 t 检验比较等），使用贝叶斯方法进行更复杂的回归分析（与探索性分析无关）。只要我清楚地解释我的方法，这种做法可以接受吗？我担心是否可以在同一篇论文中混合使用频率派和贝叶斯方法，尤其是当它们用于不同的分析时。这会给一些审稿人带来问题吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652236/is-it-ok-to-mix-bayesian-and-frequentist-methods-in-the-same-paper</guid>
-      <pubDate>Sat, 03 Aug 2024 03:59:35 GMT</pubDate>
+      <title>我可以对回归结果进行方差分析吗？</title>
+      <link>https://stats.stackexchange.com/questions/652251/can-i-perform-an-anova-on-the-outcomes-of-regression</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/652251/can-i-perform-an-anova-on-the-outcomes-of-regression</guid>
+      <pubDate>Sat, 03 Aug 2024 15:51:55 GMT</pubDate>
     </item>
     <item>
       <title>根据非分层变量进行细分</title>
@@ -171,6 +194,28 @@ x= cos(t), y= sin(t), z= t
 现在为简单起见，假设总体中的企业只有两种工业活动，$A_1$ 和 $A_2$。我想按活动部门细分上述总投资，这意味着 $I=I_1+I_2$，其中 $I_1$ 是活动的总投资 $A_1$，$I_2$ 也是类似情况。既然我从一开始就没有将活动部门作为分层变量，那么如何做到这一点？在选择样本之前，是否强制性将细分变量 $x$ 作为分层变量来细分任何与任何变量相关的总投资？]]></description>
       <guid>https://stats.stackexchange.com/questions/652166/breakdown-with-respect-to-a-non-stratification-variable</guid>
       <pubDate>Thu, 01 Aug 2024 17:28:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>当预测变量出现错误时会发生什么？</title>
+      <link>https://stats.stackexchange.com/questions/652131/what-happens-when-there-are-errors-in-the-predictor-variables</link>
+      <description><![CDATA[我昨天问了这个问题，但现在无法登录我的账户了：在未来模型中使用响应变量作为预测变量？
+在思考了这个问题（估计雇用新员工对工厂生产率的净成本效益影响）之后，我想到了一种看待这个问题的新方法（即当预测变量有错误时该怎么办？）。我认为也许可以使用工具变量？
+方法 1：直接使用工具变量分析净收益
+
+对员工和已处理订单之间的关系进行建模：
+$$\hat{P}_t = \hat{\alpha} \hat{E}_t + \hat{\epsilon}_t$$
+其中 $\hat{E}_t$ 是 $E_t$ 的仪表化版本。我们使用第一阶段回归：
+$$E_t = \gamma_0 + \gamma_1 Z_t + \nu_t$$
+$$\hat{E}_t = \hat{\gamma}_0 + \hat{\gamma}_1 Z_t$$
+此处，$Z_t$ 为工具变量（例如，招聘的滞后预算分配）。
+
+模型的其余部分保持不变，但在所有部分中使用 $\hat{E}_t$ 代替 $E_t$方程。
+
+
+我认为工具变量$Z_t$（或$Z_{t-1}$）应该与员工人数相关，但不应直接与主方程中的误差项相关。这可能有助于解决潜在的内生性问题？
+这就是工具变量的使用方式吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652131/what-happens-when-there-are-errors-in-the-predictor-variables</guid>
+      <pubDate>Thu, 01 Aug 2024 05:19:04 GMT</pubDate>
     </item>
     <item>
       <title>调查（病例对照？）数据的生存分析</title>
@@ -185,7 +230,7 @@ x= cos(t), y= sin(t), z= t
       <pubDate>Wed, 31 Jul 2024 19:36:40 GMT</pubDate>
     </item>
     <item>
-      <title>统计技术推荐</title>
+      <title>统计技术建议</title>
       <link>https://stats.stackexchange.com/questions/651984/statistical-technique-recommendation</link>
       <description><![CDATA[研究背景：
 当您在网上购物时，您可能最初购买一种产品，但最终购买另一种产品。
@@ -205,11 +250,53 @@ x= cos(t), y= sin(t), z= t
       <pubDate>Tue, 30 Jul 2024 04:05:15 GMT</pubDate>
     </item>
     <item>
-      <title>比较非嵌套混合效应模型之间的估计值</title>
-      <link>https://stats.stackexchange.com/questions/651826/compare-estimates-between-non-nested-mixed-effects-models</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/651826/compare-estimates-between-non-nested-mixed-effects-models</guid>
-      <pubDate>Fri, 26 Jul 2024 18:27:10 GMT</pubDate>
+      <title>高斯过程文献建议</title>
+      <link>https://stats.stackexchange.com/questions/651382/gaussian-process-literature-suggestion</link>
+      <description><![CDATA[我对高斯过程还很陌生，希望能得到一些关于阅读材料的帮助。假设我有以下二维时间序列数据表：
+$$\begin{bmatrix}s_{t_1}^{v_1} &amp; s_{t_2}^{v_1} &amp; \ldots &amp; s_{T}^{v_1} \\ s_{t_1}^{v_2} \\ \vdots &amp; &amp; \ddots \\
+s_{t_1}^{V} &amp; \ldots &amp;&amp;s_{T}^{V}\end{bmatrix}$$
+其中 $t, v$ 是 2 个不同的时间索引。我有两个问题：
+
+假设“逐行”时间序列（在索引 $t$ 中）具有清晰的模式，可以使用高斯过程和平稳核函数进行建模。“逐列”时间序列（在索引 $v$ 中）也具有清晰的模式，但模式意味着不同的内核。在这种情况下，有没有一种方法可以联合建模整个矩阵？如果有，它们叫什么？（我隐约想到了类似 $k_1 \times k_2$ 内核的东西，用于对矩阵中的任意两个项目进行建模，但不确定这是否存在/是否符合我的要求）
+假设“逐行 ...时间序列仍然具有如上所示的良好模式，但“逐列”时间序列没有如此良好的模式。具体来说，假设值不是独立的，例如，通过 ACF 图观察到不同列在不同滞后处的强烈季节性。有没有关于核函数形式的研究可以让我们整合这些信号/季节性（可以是指示变量的形式）？在某种程度上，我在想类似的事情：根据这些信号进行条件反射（通过差分等），列中的项目是独立的，我们将列带回到良好的一致模式（例如随机游走）。我们可以通过这个内核对所有列进行建模，它们将考虑到所有差异。
+
+很乐意进一步讨论，感谢你们的任何建议，谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/651382/gaussian-process-literature-suggestion</guid>
+      <pubDate>Fri, 19 Jul 2024 03:23:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>在这个推导中如何使用分部求和技术？</title>
+      <link>https://stats.stackexchange.com/questions/651379/how-is-summation-by-parts-technique-used-in-this-derivation</link>
+      <description><![CDATA[在这个答案中，whuber 评论说答案中使用的技术是分部求和：
+
+离散情况，假设$X \ge 0$取非负整数
+值。然后我们可以将期望写为 $$\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\P}{\mathbb{P}} \E X = \sum_{k=0}^\infty k \P(X=k) $$ 现在，我们首先将其写为双和，然后
+改变求和的顺序。观察到 $k = \sum_{j=0}^{k-1} 1$
+（$k=0$ 的情况给出的上限小于下限，我们将其视为空和，即零）。这给出了 $$ 
+\E X = \sum_{k=0}^\infty \sum_{j=0}^{k-1} 1 \cdot \P(X=k) $$ 现在，在这个双重和中，我们首先对 $j$ 求和，这显然等于 $\infty$。
+观察到在内部求和中，指标满足不等式
+$$
+0 \le j \le k-1 $$ 解 $k$ 可得 $ k \ge j+1$，这又给出了新的内部和中的求和极限：$$ \E X = \sum_{j=0}^\infty \sum_{k=j+1}^\infty \P(X=k) = \sum_{j=0}^\infty \P(X &gt; j) $$ 这就是结果。连续的情况也是类似的。
+
+我去维基百科试图理解他的评论，但我不明白。
+
+假设 $\{f_k\}$ 和 $\{g_k\}$ 是两个序列。那么，
+$$
+\sum_{k=m}^{n} f_k (g_{k+1} - g_k) = (f_{n+1} g_{n+1} - f_m g_m) - \sum_{k=m}^{n} g_{k+1} (f_{k+1} - f_k)。
+$$
+
+重新排列总数与分部求和有何关系？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651379/how-is-summation-by-parts-technique-used-in-this-derivation</guid>
+      <pubDate>Fri, 19 Jul 2024 01:25:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>ICA 中的维度</title>
+      <link>https://stats.stackexchange.com/questions/651350/dimensions-in-ica</link>
+      <description><![CDATA[我正在阅读 Andrew Ng 关于 ICA 的笔记，其中的盲源分离示例大部分都是有意义的。本质上，我们有 $d$ 个麦克风录音 $x \in R^d$，以及 $s \in R^d$ 中的 $d$ 个独立扬声器，用 $x = As$ 表示，其中我们希望从观测 $x$ 中恢复混合矩阵 $A$ 和源系数 $s$。但是，如果 $x$ 和 $s$ 不是同一维度，即 $c$ 个录音来自 $d$ 个说话者，会发生什么情况？这仍然有意义吗？而且这是否仍然可处理，因为 A 现在不是正方形，$A \in R^{c \times d}$，因此系统不确定，$c &lt; d$？
+同样，$A$ 是否类似于 PCA 中的主成分矩阵，$V$？]]></description>
+      <guid>https://stats.stackexchange.com/questions/651350/dimensions-in-ica</guid>
+      <pubDate>Thu, 18 Jul 2024 14:56:55 GMT</pubDate>
     </item>
     </channel>
 </rss>
