@@ -4,53 +4,114 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 06 Aug 2024 18:21:55 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 06 Aug 2024 21:14:40 GMT</lastBuildDate>
     <item>
-      <title>关于量子机器学习的多项选择题[关闭]</title>
-      <link>https://stackoverflow.com/questions/78839469/multiple-choice-question-about-quantum-machine-learning</link>
-      <description><![CDATA[如果您能回答以下问题，我将不胜感激。谢谢。
-问题 1.什么是 𝜒2 测试？
+      <title>Coral Ordinal AttributeError：'str' 对象没有属性 'name'</title>
+      <link>https://stackoverflow.com/questions/78840945/coral-ordinal-attributeerror-str-object-has-no-attribute-name</link>
+      <description><![CDATA[我正在开展一个使用 Python 和 Tensorflow 中的有序回归/分类的项目。我发现 pip 包 coral-ordinal 实现了有序回归并包含有用的损失函数。然而，当我在 Google Colab 上阅读他们的教程时（https://colab.research.google.com/drive/1AQl4XeqRRhd7l30bmgLVObKt5RFPHttn#scrollTo=fJSm-gbwxTKt）我得到了错误
+AttributeError：&#39;str&#39; 对象没有属性 &#39;name&#39;
+运行 model.fit() 时。
+当我尝试在其他代码中使用它时也会出现此错误。出现错误之前的代码如下
+import tensorflow as tf
+print(&quot;Tensorflow version&quot;, tf.__version__)
 
-(a) 它是一种避免过度拟合的方法
-(b) 它是一种统计的特征选择方法
-(c) 它是一种基于训练的特征选择方法
-(d) 它是分类器准确度的统计度量
-(e) 它是一种用于测量监督分类器准确度的经验方法
+import coral_ordinal as coral
+print(&quot;CORAL Ordinal version:&quot;, coral.__version__)
 
-问题 2. 让 D = {xi} 成为对象 xi 的数据集。让 Dk = {kxi} 成为通过将对象 xi 的每个坐标乘以常数 k 获得的新数据集。以下哪项陈述不正确：
+############################
+### 设置
+############################
 
-(a) 如果 D 不平衡，则 kD 也不平衡
-(b) 将最近均值分类器 (NMC) 应用于 D 和 kD 将产生相同的准确度
-(c) 将量子质心分类器 (QCC) 应用于 D 和 kD 将产生相同的准确度
-(d) 将量子质心分类器 (QCC) 应用于 D 和 kD 不会产生相同的准确度
-(e) 以上都不是
+# 超参数
+random_seed = 1 # 尚未使用
+learning_rate = 0.05
+batch_size = 128
+num_epochs = 2
 
-问题 3. 量子态鉴别 (QSD)：
+# 架构
+NUM_CLASSES = 10
 
-(a) 没有经典类似物，因为它基于量子测量的概念
-(b) 是经典状态鉴别的量子对应物
-(c) 基于以下事实相互作用后，两个物理系统即使相距任意距离也能共享某种属性
-(d) 基于区分微观和宏观现象的能力
-(e) 是海森堡不确定性原理的形式表示
+# 获取并格式化 mnist 数据
+(mnist_images, mnist_labels), (mnist_images_test, mnist_labels_test) = tf.keras.datasets.mnist.load_data()
 
-问题 4. 设 D = {xi} 为基数为 n 的数据集。设 DQ 为将数据集 D 的每个元素 xi 编码为密度算子 ρxi 后得到的数据集。最后，设 ⊗DQ 为将每个元素 ρxi 的张量副本复制自身（ρxi ⊗ ρxi ）后得到的数据集。设 A 为 D 的质心，B 为 DQ 的质心，C 为 ⊗DQ 的质心。我们可以说：
+# 拆分验证数据集以进行早期停止
+from sklearn import model_selection
+mnist_images, mnist_images_val, mnist_labels, mnist_labels_val = \
+model_selection.train_test_split(mnist_images, mnist_labels, test_size = 5000, random_state = 1)
 
-(a) C = A ⊗ A
-(b) C = B ⊗ B
-(c) B = C ⊗ C
-(d) B = A ⊗ A
-(e) 以上都不是
+print(&quot;训练图像的形状：&quot;, mnist_images.shape)
 
-问题 5. 引入了 Pretty Good Classifier (PGM)：
+print(&quot;训练标签的形状：&quot;, mnist_labels.shape)
 
-(a) 作为能够在量子计算机上运行的 Helstrom Quantum Classifier 版本
-(b) 作为 Helstrom Quantum Classifier 的自然多类扩展
-(c) 作为 One Versus One 多类分类器的量子转换
-(d) 作为次优量子启发分类器，允许多类分类
-(e) 作为量子质心分类器的多类扩展
-]]></description>
-      <guid>https://stackoverflow.com/questions/78839469/multiple-choice-question-about-quantum-machine-learning</guid>
-      <pubDate>Tue, 06 Aug 2024 14:00:41 GMT</pubDate>
+print(&quot;测试图像的形状：&quot;, mnist_images_test.shape)
+
+print(&quot;测试标签的形状：&quot;, mnist_labels_test.shape)
+
+print(&quot;验证图像的形状：&quot;, mnist_images_val.shape)
+print(&quot;验证标签的形状：&quot;, mnist_labels_val.shape)
+
+# 也重新调整为 0-1 范围。
+dataset = tf.data.Dataset.from_tensor_slices(
+(tf.cast(mnist_images[..., tf.newaxis] / 255, tf.float32),
+tf.cast(mnist_labels, tf.int64)))
+dataset = dataset.shuffle(1000).batch(batch_size)
+
+test_dataset = tf.data.Dataset.from_tensor_slices(
+(tf.cast(mnist_images_test[..., tf.newaxis] / 255, tf.float32),
+tf.cast(mnist_labels_test, tf.int64)))
+#test_dataset = test_dataset.shuffle(1000).batch(batch_size)
+# 这里我们不对测试数据集进行打乱。
+test_dataset = test_dataset.batch(batch_size)
+
+val_dataset = tf.data.Dataset.from_tensor_slices(
+(tf.cast(mnist_images_val[..., tf.newaxis] / 255, tf.float32),
+tf.cast(mnist_labels_val, tf.int64)))
+val_dataset = val_dataset.shuffle(1000).batch(batch_size)
+
+def create_model(num_classes):
+model = tf.keras.Sequential()
+model.add(tf.keras.layers.Flatten(input_shape = (28, 28, )))
+model.add(tf.keras.layers.Dense(128, 激活 = &quot;relu&quot;))
+model.add(tf.keras.layers.Dropout(0.2))
+model.add(tf.keras.layers.Dense(32,activation = &quot;relu&quot;))
+model.add(tf.keras.layers.Dropout(0.1))
+# 具有一定数量的类别/等级/标签的有序输出层。
+# 未指定激活函数，因此将输出累积对数。
+model.add(coral.CoralOrdinal(num_classes))
+return model
+
+model = create_model(NUM_CLASSES)
+
+# 请注意，模型生成的输出比类别数量少 1。
+model.summary()
+
+model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = learning_rate),
+loss = coral.OrdinalCrossEntropy(num_classes = NUM​​_CLASSES),
+metrics = [coral.MeanAbsoluteErrorLabels()])
+
+# 这在 CPU 上大约需要 5 分钟，在 GPU 上需要 2.5 分钟。
+history = model.fit(dataset, epochs = 5, validation_data = val_dataset,
+callbacks = [tf.keras.callbacks.EarlyStopping(patience = 3, restore_best_weights = True)])
+
+所以我想知道是否有任何方法可以解决这个问题，以便我可以实际使用这个包。我会在他们的 github 上提出问题，但最后一次回复是 2 年前，所以我怀疑维护者是否会回复。
+或者，如果没有任何现实的选择来完成这项工作，我将不胜感激任何可以帮助 tensorflow 中的有序回归/分类的替代方案。谢谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78840945/coral-ordinal-attributeerror-str-object-has-no-attribute-name</guid>
+      <pubDate>Tue, 06 Aug 2024 20:41:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么在计算CLIP损失的过程中，要分别计算图像和文本的损失？</title>
+      <link>https://stackoverflow.com/questions/78839487/why-are-the-losses-for-image-and-text-calculated-separately-in-the-clip-loss-cal</link>
+      <description><![CDATA[我对 CLIP 的损失计算过程有疑问。
+下面是计算 CLIP 损失的伪代码。
+
+在&quot;# scaled pairwise cosine similarities [n, n]&quot;列下的部分，我理解是计算图像和文本嵌入之间的余弦相似度矩阵。然后，使用标签数组，将交叉熵应用于相似度矩阵的对角线以获得损失。
+此时，loss_i 和 loss_t 有什么区别？图像和文本的两个损失不应该具有相同的值吗？
+
+我理解在计算交叉熵时，只考虑以蓝色突出显示的值，其余的值乘以零从而消除。如果基于对角线值计算损失，loss_i 和 loss_t 不是会变得完全相同吗？
+我不明白为什么要针对每个模态分别计算损失，然后取平均值。
+我不确定我误解了计算损失值的哪一部分……]]></description>
+      <guid>https://stackoverflow.com/questions/78839487/why-are-the-losses-for-image-and-text-calculated-separately-in-the-clip-loss-cal</guid>
+      <pubDate>Tue, 06 Aug 2024 14:03:37 GMT</pubDate>
     </item>
     <item>
       <title>预测期间决策树中的 KeyError</title>
@@ -60,22 +121,22 @@
       <pubDate>Tue, 06 Aug 2024 13:50:01 GMT</pubDate>
     </item>
     <item>
-      <title>Jupiter 笔记本中的 MetaTrader5</title>
-      <link>https://stackoverflow.com/questions/78839326/metatrader5-in-jupiter-notebook</link>
-      <description><![CDATA[我安装了 Anacona3，并使用 jupiter 笔记本进行编程。
-但是我无法在 jupiter 中导入 MetaTrader5 模块。
-你能帮助我吗？
-我也尝试在 Windows 中安装 MetaTrader5。但它告诉我“已满足要求：metatrader5 位于 c:\users\general\appdata\local\programs\python\python312\lib\site-packages (5.0.4200)”
-我需要你的帮助。
+      <title>Jupyter Notebook 中的 MetaTrader5</title>
+      <link>https://stackoverflow.com/questions/78839326/metatrader5-in-jupyter-notebook</link>
+      <description><![CDATA[我安装了 Anacona3，并使用 jupyter 笔记本进行编程。
+但我无法在 jupyter 中导入 MetaTrader5 模块。
+我也尝试在 Windows 中安装 MetaTrader5。但它告诉我
+要求已满足：metatrader5 位于 c:\users\general\appdata\local\programs\python\python312\lib\site-packages (5.0.4200)
+
 这意味着 MetaTrader5 模块之前已安装到我的电脑上。
-请帮我，我该怎么办？]]></description>
-      <guid>https://stackoverflow.com/questions/78839326/metatrader5-in-jupiter-notebook</guid>
+我该怎么做才能解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78839326/metatrader5-in-jupyter-notebook</guid>
       <pubDate>Tue, 06 Aug 2024 13:33:04 GMT</pubDate>
     </item>
     <item>
       <title>PyTorch 和 Opacus 用于差异隐私</title>
       <link>https://stackoverflow.com/questions/78839246/pytorch-and-opacus-for-differential-privacy</link>
-      <description><![CDATA[在使用 Jupyter Notebook 测试来自 TensorFlow 网站的示例代码时，我遇到了一个错误，该代码可从以下链接获取： [LINK_1]。您可以在以下链接中找到有关该错误的问题： [LINK_2]。
+      <description><![CDATA[在使用 Jupyter Notebook（可从此处获取）测试来自 TensorFlow 网站的示例代码时，我遇到了错误。您可以在此处找到我关于该错误的 SO 问题。
 因此，我决定使用 PyTorch、Opacus 和 PySyft 为相同功能编写等效实现。然而，不幸的是，我又遇到了另一个错误。
 下面是实现与 TensorFlow 网站中的示例代码相同功能的代码，但使用 PyTorch 和 Opacus 和 PySyft，以及错误消息。
 import torch
@@ -133,11 +194,12 @@ optimizer.step()
 epsilon, best_alpha = optimizer.privacy_engine.get_privacy_spent(1e-5)
 print(f&quot;Epsilon: {epsilon}, Delta: 1e-5&quot;)
 
+错误：
 -------------------------------------------------------------------------------
-TypeError Traceback (most recent call last)
-Cell In[1], line 32
+TypeError Traceback (最近一次调用最后一次)
+Cell In[1]，第 32 行
 29 criterion = nn.NLLLoss()
-31 # 初始化PrivacyEngine
+31 # 初始化 PrivacyEngine
 ---&gt; 32 privacy_engine = PrivacyEngine(
 33 model,
 34 batch_size=64,
@@ -164,28 +226,37 @@ TypeError: PrivacyEngine.__init__() 获得了意外的关键字参数“batch_si
       <pubDate>Tue, 06 Aug 2024 11:24:57 GMT</pubDate>
     </item>
     <item>
-      <title>如何优化机器学习模型，以最少的误报检测网络钓鱼推文？</title>
+      <title>如何优化机器学习模型，以最少的误报检测网络钓鱼推文？[关闭]</title>
       <link>https://stackoverflow.com/questions/78838741/how-to-optimize-a-machine-learning-model-for-detecting-phishing-tweets-with-mini</link>
-      <description><![CDATA[我目前正在开展一个旨在检测网络钓鱼推文的机器学习项目。虽然我的模型表现相当不错，但我面临的挑战是误报数量相对较多，这降低了系统的整体准确性和可用性。以下是我当前设置的详细信息：
+      <description><![CDATA[我正在研究检测网络钓鱼推文。虽然我的 ML 模型表现相当不错，但我面临的挑战是误报数量相对较多，这降低了系统的整体准确性和可用性。以下是我当前设置的详细信息：
+
 数据集：平衡的网络钓鱼和非网络钓鱼推文数据集。
 特征：推文文本、用户元数据、URL 特征。
 尝试的算法：随机森林、SVM 和基本 LSTM 模型。
 当前性能：准确率高，但由于误报，召回率低。
 特征工程：添加了更多特征，如情绪分数和词嵌入。
 模型调整：执行网格搜索以优化超参数。
-集成方法：结合不同的算法来提高鲁棒性。]]></description>
+集成方法：结合不同的算法来提高鲁棒性。
+]]></description>
       <guid>https://stackoverflow.com/questions/78838741/how-to-optimize-a-machine-learning-model-for-detecting-phishing-tweets-with-mini</guid>
       <pubDate>Tue, 06 Aug 2024 11:23:31 GMT</pubDate>
     </item>
     <item>
-      <title>TensorFlow 错误 - 需要使用适当的编译器标志进行重建</title>
+      <title>调用 cublasLtMatmul 时出现 RuntimeError：CUDA 错误：CUBLAS_STATUS_EXECUTION_FAILED</title>
+      <link>https://stackoverflow.com/questions/78838155/runtimeerror-cuda-error-cublas-status-execution-failed-when-calling-cublasltma</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78838155/runtimeerror-cuda-error-cublas-status-execution-failed-when-calling-cublasltma</guid>
+      <pubDate>Tue, 06 Aug 2024 09:00:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>TensorFlow 错误 - 需要使用适当的编译器标志进行重建 [关闭]</title>
       <link>https://stackoverflow.com/questions/78838145/tensorflow-error-rebuild-needed-with-appropriate-compiler-flags</link>
       <description><![CDATA[2024-08-06 14:18:52.654763: 
 I tensorflow/core/platform/cpu_feature_guard.cc:210]。此 TensorFlow 二进制文件经过优化，可在性能关键型操作中使用可用的 CPU 指令。
 
 要启用以下指令：AVX2 AVX_VNNI FMA，在其他操作中，使用适当的编译器标志重建 TensorFlow。
 
-每当我尝试运行任何类型的面部识别代码时，我都会收到这种错误。即使它与面部识别无关，而只是常规的张量流，我也会收到此错误。有人可以帮忙吗？但由于这个错误，我被困在了起跑线上。
+每当我尝试运行任何类型的面部识别代码时，我都会收到这种错误。即使它与面部识别无关，而只是常规的张量流，我也会收到此错误。有人能帮忙吗？
 from deepface import DeepFace
 import os
 
@@ -205,7 +276,7 @@ model_name=model_name
       <pubDate>Tue, 06 Aug 2024 08:58:22 GMT</pubDate>
     </item>
     <item>
-      <title>什么是 tf.data.Dataset 以及为什么我的 Epoch 没有运行？</title>
+      <title>什么是 tf.data.Dataset 以及为什么我的 Epoch 没有运行？[关闭]</title>
       <link>https://stackoverflow.com/questions/78837808/what-tf-data-dataset-and-why-is-my-epoch-not-running</link>
       <description><![CDATA[history = Model_Enhancer.fit(x=[X_,X_wb,X_gc,X_ce],y=X_gt,batch_size=16,epochs=400,validation_split=0.3,shuffle=True)
 
@@ -295,14 +366,14 @@ all_hypotheses = [all_hypotheses[i] for i in non_empty_indices]
 compute_and_save_metrics(all_references, all_hypotheses, dataset_type, folder_name)
 
 
-有什么建议说我哪里错了吗？提前谢谢您
+有什么建议说我哪里错了吗？
 编辑：
 问题是因为我没有在计算 NLTK bleu 分数之前拆分参考文献和假设。sacrebleu 的默认行为是先拆分它们。]]></description>
       <guid>https://stackoverflow.com/questions/78837792/nltk-bleu-score-significantly-higher-than-sacrebleu-bleu-score</guid>
       <pubDate>Tue, 06 Aug 2024 07:40:08 GMT</pubDate>
     </item>
     <item>
-      <title>何时使用复合损失深度学习（图像分割）？</title>
+      <title>何时使用复合损失深度学习（图像分割）？[关闭]</title>
       <link>https://stackoverflow.com/questions/78837046/when-to-use-composite-losses-deep-learning-image-segmentation</link>
       <description><![CDATA[我想知道在训练图像分割算法时，复合损失（例如 Dice + Focal Loss、Dice + Cross-Entropy Loss 或 Generalized Dice + Focal Loss）何时优于使用常规 Dice/CE Loss。
 在什么情况下它们可以帮助算法更好地收敛？这是一个比较普遍的问题，但是否存在一个粗略的策略来确定某些算法的良好复合损失？]]></description>
@@ -317,38 +388,12 @@ compute_and_save_metrics(all_references, all_hypotheses, dataset_type, folder_na
       <pubDate>Tue, 06 Aug 2024 02:18:31 GMT</pubDate>
     </item>
     <item>
-      <title>点数据（x，y 坐标）数组在 python 中转换为图像？</title>
-      <link>https://stackoverflow.com/questions/78836964/point-data-x-y-coordinate-array-convert-to-image-in-python</link>
-      <description><![CDATA[我从用户处收到点数据（x，y）。用户在屏幕上绘制一些数字。
-我收到点数据...我需要将这些点数据转换为图像数据。
-（用于识别数字）
-请帮帮我...]]></description>
-      <guid>https://stackoverflow.com/questions/78836964/point-data-x-y-coordinate-array-convert-to-image-in-python</guid>
-      <pubDate>Tue, 06 Aug 2024 02:01:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何训练 haarcascades 分类器进行车牌号检测？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78836768/how-to-train-haarcascades-classifier-for-plate-number-detection</link>
-      <description><![CDATA[我正在菲律宾使用 python、OpenCV 和 haarcascade 分类器进行车牌号检测。我正在使用 haarcascade_russian_plate_number.xml，但它给出了更多的误报。检测的示例文件为 mp4 格式。
-我尝试使用 indian_license_plate.xml，但它给出了更多的误报，并且是在图像的同一位置进行检测。]]></description>
-      <guid>https://stackoverflow.com/questions/78836768/how-to-train-haarcascades-classifier-for-plate-number-detection</guid>
-      <pubDate>Mon, 05 Aug 2024 23:47:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>自定义模型聚合器 TensorFlow Federated</title>
-      <link>https://stackoverflow.com/questions/78835380/custom-model-aggregator-tensorflow-federated</link>
-      <description><![CDATA[我正在尝试使用 TensorFlow Federated，我想为我的训练程序编写一个自定义模型聚合器，这样客户端大小与某个预定义值的距离就用于加权每个客户端的更新（优先考虑某些客户端的更新而不是其他客户端的更新）。
-我想继续使用我在之前的模拟中使用的简单 FedAvg 算法，以便能够比较结果：
-trainer = tff.learning.algorithms.build_weighted_fed_avg(
-model_fn= tff_model,
-client_optimizer_fn=client_optimizer,
-server_optimizer_fn=server_optimizer
-)
-
-我知道 tff.learning.algorithms.build_weighted_fed_avg() 接受 model_aggregator 作为参数，但我不知道如何创建一个计算此类权重的聚合器。
-有没有简单的方法来定义它？]]></description>
-      <guid>https://stackoverflow.com/questions/78835380/custom-model-aggregator-tensorflow-federated</guid>
-      <pubDate>Mon, 05 Aug 2024 16:06:48 GMT</pubDate>
+      <title>如何根据文件可视化 CNN [关闭]</title>
+      <link>https://stackoverflow.com/questions/78836414/how-to-visualize-cnn-based-on-file</link>
+      <description><![CDATA[当我尝试查找可视化工具时，我看到的都是不读取文件或不显示节点的工具。我正在寻找类似这样的工具：cnn 可视化
+我希望它能反映实际的 CNN 并且只有文件具有的连接。不知道您是否需要为此编写代码，但我更喜欢预制工具。]]></description>
+      <guid>https://stackoverflow.com/questions/78836414/how-to-visualize-cnn-based-on-file</guid>
+      <pubDate>Mon, 05 Aug 2024 20:57:11 GMT</pubDate>
     </item>
     <item>
       <title>超参数调优与分类算法对比</title>
