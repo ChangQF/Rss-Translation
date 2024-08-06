@@ -4,7 +4,158 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 06 Aug 2024 06:23:25 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 06 Aug 2024 09:16:57 GMT</lastBuildDate>
+    <item>
+      <title>调用 cublasLtMatmul 时出现 RuntimeError：CUDA 错误：CUBLAS_STATUS_EXECUTION_FAILED</title>
+      <link>https://stackoverflow.com/questions/78838155/runtimeerror-cuda-error-cublas-status-execution-failed-when-calling-cublasltma</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78838155/runtimeerror-cuda-error-cublas-status-execution-failed-when-calling-cublasltma</guid>
+      <pubDate>Tue, 06 Aug 2024 09:00:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>我正在尝试使用 TensorFlow 运行一些面部识别代码，但我一直收到此 FLAG 错误</title>
+      <link>https://stackoverflow.com/questions/78838145/im-trying-to-run-some-facial-recognition-code-using-tensorflow-but-i-keep-on-get</link>
+      <description><![CDATA[2024-08-06 14:18:52.654763：I tensorflow/core/platform/cpu_feature_guard.cc:210] 此 TensorFlow 二进制文件经过优化，可在性能关键型操作中使用可用的 CPU 指令。
+要启用以下指令：AVX2 AVX_VNNI FMA，在其他操作中，使用适当的编译器标志重建 TensorFlow。
+每当我尝试运行任何类型的面部识别代码时，我都会收到这种错误。即使它与面部识别无关，而只是常规的张量流，我也会出现此错误。有人能帮我吗？我是这方面的新手，想学习 TensorFlow，但由于这个错误，我被困在起跑线上]]></description>
+      <guid>https://stackoverflow.com/questions/78838145/im-trying-to-run-some-facial-recognition-code-using-tensorflow-but-i-keep-on-get</guid>
+      <pubDate>Tue, 06 Aug 2024 08:58:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>NLTK bleu 分数明显高于 Sacrebleu bleu 分数</title>
+      <link>https://stackoverflow.com/questions/78837792/nltk-bleu-score-significantly-higher-than-sacrebleu-bleu-score</link>
+      <description><![CDATA[我试图将 bleu-4 分数的结果与 sacrebleu 和 NLTK corpus bleu 包进行比较，但结果之间的差异非常显著。
+对于 NLTK corpus bleu，我获得了非常高的 bleu 分数（0.47、0.39、0.33、0.28）
+但对于 sacrebleu，我获得了较低的分数（19.57、10.78、7.07、5.15），sacrebleu 分数已经将它们乘以 100，而 NLTK 没有
+这是我计算这些分数的实现：
+def compute_and_save_metrics(all_references, all_hypotheses, dataset_type, folder_name):
+# 确保长度匹配
+print(f&quot;Number of references: {len(all_references)}&quot;)
+print(f&quot;假设数量：{len(all_hypotheses)}&quot;)
+
+if len(all_references) != len(all_hypotheses):
+raise ValueError(&quot;参考文献和假设的数量必须匹配。&quot;)
+
+sacrebleu_scores = corpus_bleu(all_hypotheses, [all_references]).scores
+
+bleu_score1 = nltk_corpus_bleu([[ref] for ref in all_references], [hyp for hyp in all_hypotheses], weights=(1.0, 0.0, 0.0, 0.0))
+bleu_score2 = nltk_corpus_bleu([[ref] for ref in all_references], [hyp for hyp in all_hypotheses], weights=(0.5, 0.5))
+bleu_score3 = nltk_corpus_bleu([[ref] for ref in all_references], [hyp for hyp in all_hypotheses], weights=(0.33, 0.33, 0.33))
+bleu_score4 = nltk_corpus_bleu([[ref] for ref in all_references], [hyp for hyp in all_hypotheses], weights=(0.25, 0.25, 0.25, 0.25))
+
+
+这是我生成预测的函数：
+def assess_and_save(loader, dataset_type, folder_name):
+model.eval()
+all_references = []
+all_hypotheses = []
+
+sample_file_path = os.path.join(folder_name, &#39;samples.txt&#39;)
+with open(sample_file_path, &#39;a&#39;, encoding=&#39;utf-8&#39;) as sample_file:
+with torch.no_grad():
+for Skeletons, Labels in loader:
+Skeletons, Labels = Skeletons.to(device), Labels.to(device)
+
+Outputs = model(skeletons, Labels[:, :-1])
+Predictions = torch.argmax(outputs, dim=-1)
+
+for i in range(predictions.size(0)):
+Reference = tokenizer.decode(labels[i], skip_special_tokens=True)
+Hypothesis = tokenizer.decode(predictions[i], skip_special_tokens=True)
+
+# 调试：打印一些样本
+if i &lt; 25：# 仅打印前 5 个样本
+sample_text = f&quot;样本 {i+1}:\n参考：{reference}\n假设：{hypothesis}\nNew\n&quot;
+print(sample_text)
+sample_file.write(sample_text)
+
+all_references.append(reference)
+all_hypotheses.append(hypothesis)
+
+# 检查是否有空引用或假设
+empty_references = [ref for ref in all_references if not ref.strip()]
+empty_hypotheses = [hyp for hyp in all_hypotheses if not hyp.strip()]
+
+print(f&quot;空引用数：{len(empty_references)}&quot;)
+print(f&quot;空假设数：{len(empty_hypotheses)}&quot;)
+
+# 过滤掉空假设和相应的引用
+non_empty_indices = [i for i, hyp in enumerate(all_hypotheses) if hyp.strip()]
+all_references = [all_references[i] for i in non_empty_indices]
+all_hypotheses = [all_hypotheses[i] for i in non_empty_indices]
+
+compute_and_save_metrics(all_references, all_hypotheses, dataset_type, folder_name)
+
+
+有什么建议我哪里错了吗？提前谢谢您]]></description>
+      <guid>https://stackoverflow.com/questions/78837792/nltk-bleu-score-significantly-higher-than-sacrebleu-bleu-score</guid>
+      <pubDate>Tue, 06 Aug 2024 07:40:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 Jupyter Notebook 中导入自定义模块的问题</title>
+      <link>https://stackoverflow.com/questions/78837738/issues-with-importing-custom-modules-in-jupyter-notebook</link>
+      <description><![CDATA[假设我们有一个如下的文件结构，
+#注意：不是实际的目录结构，而是类似的结构
+root../
+tests../
+src../
+__init__.py
+utils../
+__init__.py
+data.py
+pipeline.py
+sqlal../
+__init__.py
+sql_alchm.py
+test.py
+process.ipynb
+
+以下是 data.py 的示例
+from abc import ABC
+
+class DataStrategy(ABC):
+pass
+
+以下是 test.py 的示例
+from utils.data import DataStrategy
+
+class TestPipeline(DataStrategy):
+pass
+
+现在我尝试在我的jupyter notebook process.ipynb，我得到如下错误
+import os
+from src.test import Test Pipeline
+
+#单元格中的其余代码
+.....
+.....
+
+ModuleNotFoundError：没有名为“utils”的模块
+
+但是如果我运行文件 test.py，我没有收到错误，这个错误是否与笔记本的范围有关...还是我遗漏了什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78837738/issues-with-importing-custom-modules-in-jupyter-notebook</guid>
+      <pubDate>Tue, 06 Aug 2024 07:28:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否有任何开源 AI 工具或 ML 库可以用 Java 和 Selenium 实现以进行 UI 测试？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78837606/is-there-any-open-source-ai-tool-or-ml-library-that-can-be-implemented-with-java</link>
+      <description><![CDATA[我正在寻找一个可以直接实现的开源 AI 或 ML 库，就像我们在现有项目中添加外部 jar 或依赖项并将它们与一些自定义代码更改或内置方法一起使用以执行不同的操作以及执行不同的功能。AI 或 ML 库应与 Java 和 Selenium 兼容。我还在寻找一种可以将此 AI 或 ML 库用于 Jenkins 管道集成的方法。主要目标是 AI 应该能够捕获网页中的所有 Web 元素，如果 Web 元素发生任何变化，例如：如果字段 &#39;username&#39; 更改为 &#39;login&#39;，则 AI 应该能够扫描我们现有的 java-selenium 代码并让我们知道我们有旧定位器的地方，它应该建议解决方案，例如“将值为 &#39;username&#39; 的字段更改为新值 &#39;login&#39;
+......................................................................................................................
+如果没有可用于此的开源 AI，请告诉我是否有其他方法可以实现这个想法。有没有什么方法可以构建和训练自定义 AI 模型并将其与我的 Java-Selenium 代码集成并在我的本地系统中运行？
+我已经浏览了互联网上的一些研究论文和博客。在互联网上搜索时，我发现一些 git 存储库将 AI 和 Healenium 的简单操作模型实现到 Maven Java Selenium 项目中。我目前正在尝试研究这些 git 存储库和研究论文。
+我期待一些想法或基于 AI 的解决方案，这些解决方案可以通过我现有的 selenium 代码轻松实现。
+请查看我浏览过的以下链接和文档
+GitHub 链接：
+https://github.com/arthurandreev/MLPoweredSeleniumJavaPOC
+https://github.com/vishalmysore/sam
+信息链接：
+https://www.geeksforgeeks.org/top-ai-testing-tools-for-test-automation/
+https://healenium.io/docs/overview
+研究论文：
+https://www.scitepress.org/Papers/2020/98854/98854.pdf]]></description>
+      <guid>https://stackoverflow.com/questions/78837606/is-there-any-open-source-ai-tool-or-ml-library-that-can-be-implemented-with-java</guid>
+      <pubDate>Tue, 06 Aug 2024 06:53:54 GMT</pubDate>
+    </item>
     <item>
       <title>是否有可以执行 DLSS/FSR 功能的 CPU 超级采样库？[关闭]</title>
       <link>https://stackoverflow.com/questions/78837143/is-there-cpu-super-sampling-library-that-does-what-dlss-fsr-do</link>
@@ -168,64 +319,6 @@ conf_matrix = confused_matrix(y_test_transformed, model.predict(x_test_transform
       <pubDate>Mon, 05 Aug 2024 17:00:45 GMT</pubDate>
     </item>
     <item>
-      <title>一维变分自动编码器重构不佳</title>
-      <link>https://stackoverflow.com/questions/78834575/bad-reconstruction-of-1-d-variational-autoencoder</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78834575/bad-reconstruction-of-1-d-variational-autoencoder</guid>
-      <pubDate>Mon, 05 Aug 2024 13:03:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>yolov9 在自定义数据上进行训练</title>
-      <link>https://stackoverflow.com/questions/78834445/yolov9-training-on-custom-data</link>
-      <description><![CDATA[我正尝试在 PyCharm 而不是 google colab 上用一些自定义数据训练 yolov9。我该怎么做？
-将存储库克隆到我的计算机后，我在虚拟环境中安装了所有要求。然后我创建了训练脚本，但我觉得有些短。
-这是我的训练脚本：
-import os
-import subprocess
-
-dataset_path = &#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject&#39;
-
-def train_yolov5(train_images_path, val_images_path, yaml_file_path, weights_path=&#39;C:/Users/rsingh/Desktop/Musa_PDC/yolov9-main/yolov9-c.pt&#39;, epochs=50):
-
-# 获取 yolov5 目录的绝对路径
-yolov9_dir = os.path.abspath(&#39;C:/Users/rsingh/Desktop/Musa_PDC/yolov9-main&#39;)
-
-# 将当前工作目录更改为 yolov9 目录
-os.chdir(yolov9_dir)
-# 训练 yolov9 模型
-command = f&#39;python train.py --workers 8 --device cpu --batch 16 --data {dataset_path}/sfdV2_musa.yaml --img 640 --cfg models/detect/yolov9-c.yaml --weights yolov9-c --hyp hyp.scratch-high.yaml --min-items 0 --epochs 5 --close-mosaic 15&#39;
-
-# 执行命令
-process = subprocess.Popen(command, shell=True)
-process.wait()
-
-if __name__ == &quot;__main__&quot;:
-TRAIN_IMAGES_PATH = (
-&#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject/captured_images/images/train&#39;)
-VAL_IMAGES_PATH = (
-&#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject/captured_images/images/val&#39;)
-YAML_FILE_PATH = (
-&#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject/sfdV2_musa.yaml&#39;)
-
-# 训练 YOLOv9 模型
-train_yolov5(TRAIN_IMAGES_PATH, VAL_IMAGES_PATH、YAML_FILE_PATH）`
-]]></description>
-      <guid>https://stackoverflow.com/questions/78834445/yolov9-training-on-custom-data</guid>
-      <pubDate>Mon, 05 Aug 2024 12:28:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>深度学习训练策略：避免对单个训练图像进行打乱，而是对批次进行打乱？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78834079/deep-learning-training-strategy-avoid-shuffling-individual-training-images-ins</link>
-      <description><![CDATA[我正在为工业环境中的应用训练 YOLO（你只看一次）物体检测器。由于使用固定的相机设置，图像的背景与相机有关，但不会随时间而变化（除了测量部件的位置不准确性）。
-从数据科学的角度来看，这意味着：我的训练数据可以逻辑地分组为 N 个相机视图，每个视图包含一个特定的背景。
-我的想法如下：
-我不会在一个大数据集内混洗所有图像，而是只混洗批次，这样相机视图就不会在单个训练批次中混淆。使用这种方法，我希望能够更具体地学习背景视图的特殊属性。
-权衡将是“牺牲”神经网络的一些泛化能力（在这个特殊应用中不是必需的）以便在这个专门的设置中获得更好的性能。
-使用这种方法更新权重会有什么不同？一些文献也很酷，但我在研究期间没有发现类似的问题。]]></description>
-      <guid>https://stackoverflow.com/questions/78834079/deep-learning-training-strategy-avoid-shuffling-individual-training-images-ins</guid>
-      <pubDate>Mon, 05 Aug 2024 10:53:19 GMT</pubDate>
-    </item>
-    <item>
       <title>用于聚类的机器学习模型（与 K-means 类似，但功能不同）[关闭]</title>
       <link>https://stackoverflow.com/questions/78833002/machine-learning-model-for-clustering-similar-with-k-means-but-different-funct</link>
       <description><![CDATA[当我研究几个机器学习模型时，我看到了几个聚类算法，包括K-Means。
@@ -236,46 +329,6 @@ train_yolov5(TRAIN_IMAGES_PATH, VAL_IMAGES_PATH、YAML_FILE_PATH）`
 有没有其他适合这个图的算法，或者我是否只处理K-Means算法中的几个参数来做到这一点？]]></description>
       <guid>https://stackoverflow.com/questions/78833002/machine-learning-model-for-clustering-similar-with-k-means-but-different-funct</guid>
       <pubDate>Mon, 05 Aug 2024 06:18:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>createDataPartition 给出异常不均匀的测试和训练集</title>
-      <link>https://stackoverflow.com/questions/78832537/createdatapartition-gives-abnormally-uneven-test-and-train-sets</link>
-      <description><![CDATA[我正在尝试使用 caret 包将我的数据拆分为测试集和训练集。我有 77 行，每列都有完整的数据。函数“createDataPartition”导致训练数据为 4 行，测试数据为 73 行，这似乎不对。任何帮助都将不胜感激。这是我的代码：
-&gt; library(caret)
-&gt; # 将数据拆分为训练和测试
-&gt; set.seed(123)
-&gt; data.full &lt;- data.full %&gt;% select(fasting_status, a1c, glu, uc_ratio)
-&gt; training.samples &lt;- data.full %&gt;% 
-+ createDataPartition(p = 0.8, list = FALSE)
-警告消息：
-1：在 createDataPartition(., p = 0.8, list = FALSE) 中：
-某些类没有记录 ( )，这些将被忽略
-2：在 createDataPartition(., p = 0.8, list = FALSE) 中：
-某些类只有一条记录 ( )，这些将被选为样本
-&gt; train.data &lt;- data.full[training.samples, ]
-&gt; test.data &lt;- data.full[-training.samples, ] 
-
-以下是我的可重现数据：
-&gt; dput(data.full) 结构(列表(fasting_status = 结构(c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L、1L、1L、1L、1L、1L、1L、1L、1L、1L、1L、1L、1L、2L、2L、2L、2L、2L、2L、2L、2L、2L、2L、2L、2L、2L、2L、2L、2L、 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
-2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 1L), 级别 = c(&quot;1&quot;, &quot;2&quot;), 类别 = &quot;因素&quot;), 
-a1c = c(4.3, 4.5, 4.4, 2.9, 4.3, 4.4, 4.2, 4.5, 4.2, 4.2, 
-4.5, 4.5, 4.8, 4.5, 5.2, 4.9, 4.6, 4.2, 4.4, 4.9, 4.6, 4.5, 
-    4.4、4.8、4.5、4.1、3.8、3.1、4.3、4.6、4.7、4.9、4.6、4.4、3.1、4.6、4.4、4.2、4.4、5.2、4.4、5.1、4.6、4.7、5.2、4.7、4。 7、4.6、4.4、4.4、4.2、4.5、4.6、4.4、3.2、4.8、5.2、5.2、4.6、4.9、5.6、4.6、4.9、4.5、5.1、4.6、4.9、4.6、4.3、4.6、
-4.6, 4.3, 4.6, 4.3, 4.6, 6.5, 4.8), glu = c(88.5, 98, 117.5, 
-53, 108.5, 106, 105, 101, 91, 99.5, 128.5, 113, 114, 121.5, 
-121, 131.5, 160.5, 96, 110, 140, 119.5, 115.3, 112, 143.5, 
-116.5, 116.5, 111, 139.5, 123.5, 131, 113, 137, 114, 98.5, 
-    124.5、123.5、111.5、111、127、123、137.5、119、107、130.5、142.5、115、133.5、119、148.3、125.5、138.5、106.5、153.5、 .5、179、145、143、124.5、134、146.5、127.5、124.5、123、129、145.3、125.5、146.5、153.5、115.5、128、110.5、131、 
-139.5, 124, 154, 94, 76.3), uc_ratio = c(30.65603924, 15.32801962, 
-60.59075991, 7.39973361, 57.84661317, 27.46781116, 16.0944206, 
-6.131207848, 94.61568474, 19.50838861, 7.803355443, 19.41549152, 
-7.464079119, 19.67095851, 29.50643777, 62.94706724, 80.472103、25.75107296、73.57449418、39.01677721、41.13018598、10.62933697、7.803355443、30.04291845、32.75355771、 9416、5.969860273、22.72153497、7.153075823、75.61823012、23.50296342、53.64806867、11.19611891、38.25340549、 88.36152487、51.50214592、9.196811772、41.98544505、6.35828962、9.196811772、94.87237407、12.87553648、6.035407725、7.3997 3361、10.72961373、11.70503316、9.035464197、16.34988759、11.68917269、35.11509949、61.85306741、11.36076748、 
-    12.2624157、7.153075823、14.30615165、10.40447392、3.901677721、52.11526671、21.45922747、30.49469166、81.06819266、 38861、34.33476395、8.0472103、24.94635193、9.754194304、64.3776824、9.196811772、11.92179304、34.87124464、 74.39198856, 124.4635193, 
-13.79521766, 5.722460658, 66.76204101, 69.9757432, 19.50838861
-)), row.names = c(NA, -77L), class = &quot;data.frame&quot;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78832537/createdatapartition-gives-abnormally-uneven-test-and-train-sets</guid>
-      <pubDate>Mon, 05 Aug 2024 02:29:00 GMT</pubDate>
     </item>
     <item>
       <title>DSPy 无法检索 ChromaDB 中带有文本嵌入的段落</title>
@@ -329,39 +382,6 @@ InvalidDimensionException：嵌入维度 384 与集合维度 768 不匹配
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/76633368/how-does-one-set-the-pad-token-correctly-not-to-eos-during-fine-tuning-to-avoi</guid>
       <pubDate>Fri, 07 Jul 2023 01:11:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 xgboost.QuantileDMatrix 使用自定义数据迭代器对数据进行四次传递？</title>
-      <link>https://stackoverflow.com/questions/76569411/why-does-xgboost-quantiledmatrix-do-four-passes-of-the-data-with-custom-data-ite</link>
-      <description><![CDATA[由于我的数据集太大，我尝试使用此处所示的自定义数据迭代器。为了测试其工作原理，我使用示例的子集并运行以下代码。 X 是我的数据的 numpy 数组。
-我的迭代器如下所示
-class IterForQDMatrix(xgb.core.DataIter):
-def __init__(self, df, batch_size):
-self.df = df
-self.batch_size = batch_size
-self.batches = np.ceil(len(df) // self.batch_size)
-self.it = 0
-super().__init__()
-
-def reset(self):
-self.it = 0
-
-def next(self, input_data):
-if self.it == self.batches:
-print(&quot;done&quot;)
-return 0
-a = self.it * self.batch_size
-b = min((self.it + 1) * self.batch_size, len(self.df))
-input_data(data=self.df[a:b, : -1], label=self.df[a:b, -1])
-self.it += 1
-return 1
-
-iterator = IterForQDMatrix(X, 30)
-xgb_data = xgb.QuantileDMatrix(iterator)
-
-当我运行上述代码时，我注意到 &quot;done&quot; 被打印了四次，这意味着当我将迭代器传递给 xgb.QuantileDMatrix 时，它会传递整个数据集四次。我试图理解它为什么要传递数据四次。有没有办法只传递一次数据就能实现它所做的事情？]]></description>
-      <guid>https://stackoverflow.com/questions/76569411/why-does-xgboost-quantiledmatrix-do-four-passes-of-the-data-with-custom-data-ite</guid>
-      <pubDate>Wed, 28 Jun 2023 00:55:19 GMT</pubDate>
     </item>
     </channel>
 </rss>
