@@ -4,7 +4,144 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 07 Aug 2024 03:18:05 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2024 06:22:04 GMT</lastBuildDate>
+    <item>
+      <title>Pytorch 张量与标量相乘后丢失requires_grad</title>
+      <link>https://stackoverflow.com/questions/78841738/pytorch-tensor-losing-requires-grad-after-multiplication-with-a-scalar</link>
+      <description><![CDATA[我正在开展一个深度学习项目，并试图实现一个投影网络。简而言之，我有一个根据某些损失函数输出值的神经网络。如果这些值不满足所有约束，我想将它们放入梯度下降网络（损失为 ReLU（需要 - 已实现））。在下面的代码中，我用 p 和 phi 参数（第一个网络输出的值）初始化投影网络并希望它们进行训练。但是，我遇到了 p 和 phi（theta）变量都失去梯度跟踪的问题，导致损失没有梯度跟踪。如果这很简单，我深表歉意，因为我对 Pytorch 还很陌生，在网上找不到任何东西。
+投影 nn 的代码：
+class Projection(nn.Module):
+def __init__(self, p, phi):
+super().__init__()
+self.p = nn.Parameter(p.clone().detach().requires_grad_(True))
+self.phi = nn.Parameter(phi.clone().detach().requires_grad_(True))
+
+def forward(self, u, g, v):
+print(self.p.requires_grad, self.phi.requires_grad) ## 均为 true
+p = self.p * P_max
+print(p.requires_grad) # 在此点之后为 false
+p = p.view(batch_size, K, 1)
+sig = torch.nn.Sigmoid()
+theta = torch.diag_embed(torch.exp(sig(self.phi) * 2 * torch.pi * 1j))
+print(theta.requires_grad) # 在此点之后为 false
+gh = torch.conj(torch.transpose(g,-1,-2))
+print(gh.shape, theta.shape, v.shape)
+term = torch.matmul(torch.matmul(gh, theta), v)
+u_tilde = torch.add(u, term)
+print(u_tilde.shape, p.shape)
+harvested = eta * torch.matmul(torch.square(torch.abs(torch.transpose(u_tilde, -1, -2))), p) * 1e6
+ReLU = torch.nn.ReLU()
+diff = e_min_gen - harvested
+loss = torch.sum(ReLU(diff))
+print(loss.requires_grad)
+return loss
+
+P_max 声明如下：
+P_max = 0.5
+我特别困惑，因为在同一个项目中我使用梯度下降来生成可行数据。模型如下：
+class Descent(nn.Module):
+def __init__(self):
+super().__init__()
+self.weight = nn.Parameter(torch.randn(N, require_grad=True))
+
+def forward(self, u, g, phi, v, p):
+phi = phi * self.weight
+sig = torch.nn.Sigmoid()
+theta = torch.diag_embed(torch.exp(sig(phi) * 2 * torch.pi * 1j))
+gh = torch.conj(torch.transpose(g,-1,0))
+term = torch.mm(torch.mm(gh, theta), v)
+u_tilde = torch.add(u, term)
+harvested = eta * torch.matmul(torch.square(torch.abs(torch.transpose(u_tilde, 0, 1))), p) * 1e6
+ReLU = torch.nn.ReLU()
+diff = e_min_gen - harvested
+loss = torch.sum(ReLU(diff))
+return loss
+
+此模型保留 require_grad 直到最后。
+任何解决方法都将不胜感激。感谢您的时间。
+我尝试查找梯度跟踪丢失的原因。我已经准确地确定了跟踪停止的点。如果我不将 self.p 乘以 P_max，则 p 的 gradient_tracking=True。]]></description>
+      <guid>https://stackoverflow.com/questions/78841738/pytorch-tensor-losing-requires-grad-after-multiplication-with-a-scalar</guid>
+      <pubDate>Wed, 07 Aug 2024 03:39:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何最好地将 ML 模型集成到 Web 应用程序？</title>
+      <link>https://stackoverflow.com/questions/78841736/how-to-best-integrate-ml-models-to-web-application</link>
+      <description><![CDATA[我没有机器学习经验，是 Web 应用程序编程的新手。我目前有一个使用 audiocraft 和分类模型的 flask 应用程序。目前我已将它们本地存储在应用程序文件夹中。我已构建此应用程序的映像，结果显示它有 7GB。
+有没有办法将这些模型/框架存储在其他地方，并且仅在需要时引用它们？
+此外，当我在 docker 上运行容器时，从 audiocraft 生成 8 秒音频大约需要 10 分钟。您建议我做什么来加快这个过程？
+music_generation\routes.py（片段）
+def load_model():
+model = MusicGen.get_pretrained(&#39;facebook/musicgen-small&#39;)
+return model
+
+def generate_music_tensors(description, duration: int):
+model = load_model()
+model.set_generation_params(
+use_sampling=True,
+top_k=250,
+duration=duration
+)
+output = model.generate(
+descriptions=[description],
+progress=True,
+return_tokens=True
+)
+return output[0]
+
+@music_generation_bp.route(&#39;/&#39;, methods=[&#39;POST&#39;])
+def generate_music():
+data = request.json
+
+description = data.get(&#39;description&#39;)
+duration = data.get(&#39;duration&#39;, 8) # 如果未提供，则默认为 8 秒
+print(&quot;Description:&quot;, description)
+print(&quot;Duration:&quot;, duration)
+
+如果没有 description:
+return jsonify({&#39;error&#39;: &#39;Description is required&#39;}), 400
+# 为用户生成唯一密钥
+user_id = str(uuid.uuid4()) # 或使用来自身份验证系统的用户 ID
+audio_key_prefix = f&quot;generated_music_{user_id}_{description}&quot;
+
+# 生成音乐张量
+music_tensors = generate_music_tensors(description, duration)
+print(&quot;Music Tensors: &quot;, music_tensors)
+...
+
+
+image_classification\routes.py (代码片段)
+# 加载预训练模型
+model_path = os.path.join(MODELS_DIR, &#39;multi_output_model.h5&#39;)
+model = tf.keras.models.load_model(model_path)
+
+@image_classification_bp.route(&#39;/&#39;, methods=[&#39;POST&#39;])
+@limiter.limit(&quot;1/minute&quot;)
+def classify_image():
+if &#39;file&#39; not in request.files:
+return jsonify({&quot;error&quot;: &quot;No file part in the request&quot;}), 400
+
+file = request.files[&#39;file&#39;]
+
+if file.filename == &#39;&#39;:
+return jsonify({&quot;error&quot;: &quot;No selected file&quot;}), 400
+
+#file = os.path.join(TEST_IMG_DIR, &#39;blue-dress2.png&#39;)
+
+if file:
+# 读取图像文件
+img = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_UNCHANGED)
+img = cv2.resize(img, (IMAGE_DIMS[1], IMAGE_DIMS[0]))
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = preprocess_input(img)
+img = np.expand_dims(img, axis=0)
+
+# 执行预测
+predictions = model.predict(img)
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78841736/how-to-best-integrate-ml-models-to-web-application</guid>
+      <pubDate>Wed, 07 Aug 2024 03:39:15 GMT</pubDate>
+    </item>
     <item>
       <title>当我导入库时，为什么我的代码会出现错误“sklearn 未定义”？</title>
       <link>https://stackoverflow.com/questions/78841652/why-is-my-code-giving-error-sklearn-not-defined-when-i-have-imported-the-libra</link>
@@ -180,111 +317,6 @@ callbacks = [tf.keras.callbacks.EarlyStopping(patience = 3, restore_best_weights
       <pubDate>Tue, 06 Aug 2024 20:41:21 GMT</pubDate>
     </item>
     <item>
-      <title>PyTorch 和 Opacus 用于差异隐私</title>
-      <link>https://stackoverflow.com/questions/78839246/pytorch-and-opacus-for-differential-privacy</link>
-      <description><![CDATA[在使用 Jupyter Notebook（可从此处获取）测试来自 TensorFlow 网站的示例代码时，我遇到了一个错误。您可以在此处找到我关于该错误的 SO 问题。
-因此，我决定使用 PyTorch、Opacus 和 PySyft 为相同功能编写等效实现。然而，不幸的是，我又遇到了另一个错误。
-下面是实现与 TensorFlow 网站中的示例代码相同功能的代码，但使用 PyTorch 和 Opacus 和 PySyft，以及错误消息。
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-from opacus import PrivacyEngine
-
-# 定义一个简单的模型
-class SimpleCNN(nn.Module):
-def __init__(self):
-super(SimpleCNN, self).__init__()
-self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
-self.fc1 = nn.Linear(32*26*26, 10)
-
-def forward(self, x):
-x = torch.relu(self.conv1(x))
-x = x.view(-1, 32*26*26)
-x = self.fc1(x)
-return torch.log_softmax(x, dim=1)
-
-# 数据加载器
-transform = transforms.Compose([transforms.ToTensor()])
-train_dataset = datasets.MNIST(&#39;.&#39;, train=True, download=True, transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-
-# 初始化模型、优化器和损失函数
-model = SimpleCNN()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
-criterion = nn.NLLLoss()
-
-# 初始化 PrivacyEngine
-privacy_engine = PrivacyEngine(
-model,
-batch_size=64,
-sample_size=len(train_loader.dataset),
-epochs=1,
-max_grad_norm=1.0,
-)
-
-privacy_engine.attach(optimizer)
-
-# 训练循环
-model.train()
-for epoch in range(1):
-for data, target in train_loader:
-optimizer.zero_grad()
-output = model(data)
-loss = criterion(output, target)
-loss.backward()
-optimizer.step()
-
-# 打印隐私统计数据
-epsilon, best_alpha = optimizer.privacy_engine.get_privacy_spent(1e-5)
-print(f&quot;Epsilon: {epsilon}, Delta: 1e-5&quot;)
-
-错误：
--------------------------------------------------------------------------------
-TypeError Traceback (最近一次调用最后一次)
-Cell In[1]，第 32 行
-29 criterion = nn.NLLLoss()
-31 # 初始化 PrivacyEngine
----&gt; 32 privacy_engine = PrivacyEngine(
-33 model,
-34 batch_size=64,
-35 sample_size=len(train_loader.dataset),
-36 epochs=1,
-37 max_grad_norm=1.0,
-38 )
-40 privacy_engine.attach(optimizer)
-42 # 训练循环
-
-TypeError: PrivacyEngine.__init__() 获得了意外的关键字参数“batch_size”
-]]></description>
-      <guid>https://stackoverflow.com/questions/78839246/pytorch-and-opacus-for-differential-privacy</guid>
-      <pubDate>Tue, 06 Aug 2024 13:17:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何优化机器学习模型，以最少的误报检测网络钓鱼推文？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78838741/how-to-optimize-a-machine-learning-model-for-detecting-phishing-tweets-with-mini</link>
-      <description><![CDATA[我正在研究检测网络钓鱼推文。虽然我的 ML 模型表现相当不错，但我面临的挑战是误报数量相对较多，这降低了系统的整体准确性和可用性。以下是我当前设置的详细信息：
-
-数据集：平衡的网络钓鱼和非网络钓鱼推文数据集。
-特征：推文文本、用户元数据、URL 特征。
-尝试的算法：随机森林、SVM 和基本 LSTM 模型。
-当前性能：准确率高，但由于误报，召回率低。
-特征工程：添加了更多特征，如情绪分数和词嵌入。
-模型调整：执行网格搜索以优化超参数。
-集成方法：结合不同的算法来提高鲁棒性。
-]]></description>
-      <guid>https://stackoverflow.com/questions/78838741/how-to-optimize-a-machine-learning-model-for-detecting-phishing-tweets-with-mini</guid>
-      <pubDate>Tue, 06 Aug 2024 11:23:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>调用 cublasLtMatmul 时出现 RuntimeError：CUDA 错误：CUBLAS_STATUS_EXECUTION_FAILED</title>
-      <link>https://stackoverflow.com/questions/78838155/runtimeerror-cuda-error-cublas-status-execution-failed-when-calling-cublasltma</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78838155/runtimeerror-cuda-error-cublas-status-execution-failed-when-calling-cublasltma</guid>
-      <pubDate>Tue, 06 Aug 2024 09:00:40 GMT</pubDate>
-    </item>
-    <item>
       <title>TensorFlow 错误 - 需要使用适当的编译器标志进行重建 [关闭]</title>
       <link>https://stackoverflow.com/questions/78838145/tensorflow-error-rebuild-needed-with-appropriate-compiler-flags</link>
       <description><![CDATA[2024-08-06 14:18:52.654763: 
@@ -400,6 +432,46 @@ compute_and_save_metrics(all_references, all_hypotheses, dataset_type, folder_na
       <pubDate>Mon, 05 Aug 2024 17:47:13 GMT</pubDate>
     </item>
     <item>
+      <title>yolov9 在自定义数据上进行训练</title>
+      <link>https://stackoverflow.com/questions/78834445/yolov9-training-on-custom-data</link>
+      <description><![CDATA[我正尝试在 PyCharm 而不是 google colab 上用一些自定义数据训练 yolov9。我该怎么做？
+将存储库克隆到我的计算机后，我在虚拟环境中安装了所有要求。然后我创建了训练脚本，但我觉得有些短。
+这是我的训练脚本：
+import os
+import subprocess
+
+dataset_path = &#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject&#39;
+
+def train_yolov5(train_images_path, val_images_path, yaml_file_path, weights_path=&#39;C:/Users/rsingh/Desktop/Musa_PDC/yolov9-main/yolov9-c.pt&#39;, epochs=50):
+
+# 获取 yolov5 目录的绝对路径
+yolov9_dir = os.path.abspath(&#39;C:/Users/rsingh/Desktop/Musa_PDC/yolov9-main&#39;)
+
+# 将当前工作目录更改为 yolov9 目录
+os.chdir(yolov9_dir)
+# 训练 yolov9 模型
+command = f&#39;python train.py --workers 8 --device cpu --batch 16 --data {dataset_path}/sfdV2_musa.yaml --img 640 --cfg models/detect/yolov9-c.yaml --weights yolov9-c --hyp hyp.scratch-high.yaml --min-items 0 --epochs 5 --close-mosaic 15&#39;
+
+# 执行命令
+process = subprocess.Popen(command, shell=True)
+process.wait()
+
+if __name__ == &quot;__main__&quot;:
+TRAIN_IMAGES_PATH = (
+&#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject/captured_images/images/train&#39;)
+VAL_IMAGES_PATH = (
+&#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject/captured_images/images/val&#39;)
+YAML_FILE_PATH = (
+&#39;C:/Users/rsingh/Desktop/Rahul_PDC/Repositories/Smart_Factory/YoloV5_Training/sfd_colorobject/sfdV2_musa.yaml&#39;)
+
+# 训练 YOLOv9 模型
+train_yolov5(TRAIN_IMAGES_PATH, VAL_IMAGES_PATH, YAML_FILE_PATH)`
+
+我在运行训练脚本时收到此未来错误，并且我正在努力解决该错误：FutureWarning：torch.cuda.amp.autocast(args...) 已弃用。请改用 torch.amp.autocast(&#39;cuda&#39;, args...)。使用 torch.cuda.amp.autocast(amp)]]></description>
+      <guid>https://stackoverflow.com/questions/78834445/yolov9-training-on-custom-data</guid>
+      <pubDate>Mon, 05 Aug 2024 12:28:07 GMT</pubDate>
+    </item>
+    <item>
       <title>nltk 是适合 NLP 的优秀 Python 库吗？[关闭]</title>
       <link>https://stackoverflow.com/questions/78831441/is-nltk-good-python-library-for-nlp</link>
       <description><![CDATA[我不确定是否应该使用 TensorFlow 或 NLTK 来完成我的 NLP 任务。两者似乎都是很受欢迎的选择，但我不清楚哪一个更适合我这个水平的人。
@@ -417,7 +489,7 @@ TensorFlow 似乎是一个功能强大的库，它提供了广泛的机器学习
       <pubDate>Fri, 02 Aug 2024 07:15:07 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习中的激活函数</title>
+      <title>机器学习中的激活函数[关闭]</title>
       <link>https://stackoverflow.com/questions/49391576/activation-function-in-machine-learning</link>
       <description><![CDATA[机器学习中的激活函数是什么意思。我浏览了大多数文章和视频，每个人都提到或将其与神经网络进行比较。我是机器学习的新手，对深度学习和神经网络不太熟悉。所以，有人能给我解释一下激活函数到底是什么吗？而不是用神经网络来解释。我在学习逻辑回归的 Sigmoid 函数时就被这种模棱两可的感觉所困扰。]]></description>
       <guid>https://stackoverflow.com/questions/49391576/activation-function-in-machine-learning</guid>
