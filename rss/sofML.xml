@@ -4,7 +4,161 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 07 Aug 2024 15:15:56 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2024 18:20:27 GMT</lastBuildDate>
+    <item>
+      <title>梯度下降算法中的学习率</title>
+      <link>https://stackoverflow.com/questions/78844901/learning-rate-in-gradient-descent-algorithm</link>
+      <description><![CDATA[在梯度下降算法中，我根据它们的导数更新B和M值，然后将它们与学习率值相乘，但是当我对L使用相同的值，例如0.0001时，它不能正常工作。减小或增加L值不起作用。作为一种解决方法，我不得不为b和m值设置不同的L值。这是正常的还是有错误？
+import pandas as pd
+import matplotlib.pyplot as plt
+import time
+import random
+
+# Veri seti
+veri_seti = &quot;study_score_decreasing.csv&quot; #study_score_decreasing.csv #study_score_increasing.csv 
+data = pd.read_csv(veri_seti)
+
+# 梯度下降 Fonksiyonu
+def gradient_descent(m_next, b_next, points, L):
+m_gradient = 0
+b_gradient = 0
+n = len(points)
+
+for i in range(n):
+x = points.iloc[i].study_time
+y = points.iloc[i].score
+
+m_gradient += -(2/n) * x * (y - (m_next * x + b_next))
+b_gradient += -(2/n) * (y - (m_next * x + b_next))
+
+m = m_next - m_gradient * 0.0001 #(L = 0.0001)
+b = b_next - b_gradient * 0.1 #(L = 0.1)
+
+return m, b
+
+# 图形选项 图表
+def show_graph(m, b):
+plt.scatter(data.study_time, data.score, color=&quot;red&quot;)
+x_range = range(int(data.study_time.min()), int(data.study_time.max()) + 1)
+plt.plot(x_range, [m * x + b for x in x_range], color=&quot;blue&quot;)
+plt.xlabel(&#39;学习时间&#39;)
+plt.ylabel(&#39;分数&#39;)
+plt.title(&#39;学习时间与分数&#39;)
+plt.show()
+time.sleep(0.001)
+print(&quot;=&gt; F(X):&quot;, round(m, 1), &quot;X +&quot;, round(b, 3))
+
+# Ana Fonksiyon
+def main(m, b, L, epochs):
+print(&quot;=&gt; F(X):&quot;, m, &quot;X&quot;, b)
+
+for i in range(epochs):
+m, b = gradient_descent(m, b, data, L)
+show_graph(m, b)
+
+# 基础说明
+main(random.uniform(-1, 110), random.uniform(-10, 10), 0.1, 250)
+
+我逐个更新了L值，得到了合乎逻辑的结果，但是用一个共同的L值，为什么解看起来不合逻辑？]]></description>
+      <guid>https://stackoverflow.com/questions/78844901/learning-rate-in-gradient-descent-algorithm</guid>
+      <pubDate>Wed, 07 Aug 2024 16:59:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 7 个类别训练图像分类器，但我的模型过度拟合，导致模型的准确性在训练过程中表现异常</title>
+      <link>https://stackoverflow.com/questions/78844629/training-image-classifier-with-7-classes-but-my-model-is-overfitting-resulting-t</link>
+      <description><![CDATA[我正在为特定汽车发动机部件的 7 种不同模型类型训练图像分类器。每个类别都有 308 张灰度图像，分辨率均为 1014x760。这些图像主要由白色屏幕上的发动机部件组成，每次拍照后都会旋转 60 度，因此数据集由看起来彼此非常相似的图片组成。我想训练我的模型 50 个 epoch，但在第 30 个 epoch 之后，准确率达到 1.0，而验证准确率停留在 0.2 左右。为什么结果这么奇怪？是不是图片太相似了？
+import numpy as np
+import pickle
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.utils import to_categorical
+import time
+
+name = &quot;Core_Classifier_{}&quot;.format(int(time.time()))
+
+tensorboard = TensorBoard(log_dir=&quot;logs/{}&quot;.format(name))
+
+X = pickle.load(open(&quot;X.pickle&quot;, &quot;rb&quot;))
+y = pickle.load(open(&quot;y.pickle&quot;, &quot;rb&quot;))
+
+X = X/255.0 # 标准化颜色值
+y = to_categorical(y, num_classes=7)
+
+model = Sequential()
+
+model.add(Conv2D(64, (3, 3), input_shape = X.shape[1:]))
+model.add(Activation(&quot;relu&quot;))
+model.add(MaxPooling2D(pool_size = (2, 2)))
+
+model.add(Conv2D(64, (3, 3)))
+model.add(Activation(&quot;relu&quot;))
+
+model.add(MaxPooling2D(pool_size = (2, 2)))
+model.add(Flatten())
+
+model.add(Dense(64))
+model.add(Activation(&quot;relu&quot;)) # idk 是否需要
+
+model.add(Dense(7))
+model.add(Activation(&quot;softmax&quot;))
+
+model.compile(loss = &quot;categorical_crossentropy&quot;,
+optimizer = &quot;adam&quot;,
+metrics = [&quot;accuracy&quot;])
+
+model.fit(X, y, batch_size = 64, epochs = 50, validation_split = 0.1, callbacks = [tensorboard])
+
+以下是通过 tensorboard 表示的图形
+我添加了2个model.add(Dropout(0.2))函数，但结果没有太大变化。
+import numpy as np
+import pickle
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.utils import to_categorical
+import time
+
+name = &quot;Core_Classifier_{}&quot;.format(int(time.time()))
+
+tensorboard = TensorBoard(log_dir=&quot;logs/{}&quot;.format(name))
+
+X = pickle.load(open(&quot;X.pickle&quot;, &quot;rb&quot;))
+y = pickle.load(open(&quot;y.pickle&quot;, &quot;rb&quot;))
+
+X = X/255.0 # 标准化颜色值
+y = to_categorical(y, num_classes=7)
+
+model = Sequential()
+
+model.add(Conv2D(64, (3, 3), input_shape = X.shape[1:]))
+model.add(Activation(&quot;relu&quot;))
+model.add(MaxPooling2D(pool_size = (2, 2)))
+model.add(Dropout(0.2))
+model.add(Conv2D(64, (3, 3)))
+model.add(Activation(&quot;relu&quot;))
+model.add(MaxPooling2D(pool_size = (2, 2)))
+model.add(Dropout(0.2))
+model.add(Flatten())
+
+model.add(Dense(64))
+model.add(Activation(&quot;relu&quot;)) # idk 是否需要
+
+model.add(Dense(7))
+model.add(Activation(&quot;softmax&quot;))
+
+model.compile(loss = &quot;categorical_crossentropy&quot;,
+optimizer = &quot;adam&quot;,
+metrics = [&quot;accuracy&quot;])
+
+model.fit(X, y, batch_size = 64, epochs = 50, validation_split = 0.1, callbacks = [tensorboard])
+
+训练结果反馈退出函数]]></description>
+      <guid>https://stackoverflow.com/questions/78844629/training-image-classifier-with-7-classes-but-my-model-is-overfitting-resulting-t</guid>
+      <pubDate>Wed, 07 Aug 2024 15:51:31 GMT</pubDate>
+    </item>
     <item>
       <title>训练扩散器/UNet2DConditionModel 时形状不匹配</title>
       <link>https://stackoverflow.com/questions/78844279/shapes-mismatch-while-training-diffusers-unet2dconditionmodel</link>
@@ -289,36 +443,6 @@ Kaggle Notebook 链接：https://www.kaggle.com/code/rakshitsingh421/parameter-e
       <pubDate>Wed, 07 Aug 2024 11:04:40 GMT</pubDate>
     </item>
     <item>
-      <title>无法初始化类 org.deeplearning4j.nn.modelimport.keras.Hdf5Archive</title>
-      <link>https://stackoverflow.com/questions/78843048/could-not-initialize-class-org-deeplearning4j-nn-modelimport-keras-hdf5archive</link>
-      <description><![CDATA[当我尝试使用 scala 加载 .h5 模型时出现以下错误
-KerasModelImport.importKerasModelAndWeights()。
-
-
-线程“streaming-job-executor-1”中出现异常java.lang.NoClassDefFoundError: 无法初始化类 org.deeplearning4j.nn.modelimport.keras.Hdf5Archive
-at org.deeplearning4j.nn.modelimport.keras.utils.KerasModelBuilder.modelHdf5Filename(KerasModelBuilder.java:229)
-at org.deeplearning4j.nn.modelimport.keras.KerasModelImport.importKerasModelAndWeights(KerasModelImport.java:166)
-
-
-代码中添加的依赖项 jar 文件
-上图显示了我程序中添加的依赖项。同时，我安装了 libhdf5-dev
-并为其设置了路径。但我遇到了同样的错误。
-我的代码是用 Scala 语言编写的。这是我尝试加载模型的方式：
-val model: ComputationGraph = KerasModelImport.importKerasModelAndWeights(modelPath)
-
-我还在程序中导入了以下内容：
-import org.deeplearning4j.nn.graph.ComputationGraph
-import org.deeplearning4j.nn.conf.ComputationGraphConfiguration
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
-import org.deeplearning4j.util.ModelSerializer
-import org.deeplearning4j.nn.modelimport.keras.KerasModelImport
-import org.deeplearning4j.nn.modelimport.keras.Hdf5Archive
-
-我不确定是不是版本不匹配。有人能指出这里出了什么问题吗？我是 deeplearning4j 库的新手。]]></description>
-      <guid>https://stackoverflow.com/questions/78843048/could-not-initialize-class-org-deeplearning4j-nn-modelimport-keras-hdf5archive</guid>
-      <pubDate>Wed, 07 Aug 2024 10:01:18 GMT</pubDate>
-    </item>
-    <item>
       <title>我在这次体重更新中到底做错了什么？</title>
       <link>https://stackoverflow.com/questions/78843005/what-am-i-exactly-doing-wrong-in-this-weight-updation</link>
       <description><![CDATA[我正在尝试从头开始实现反向传播。我正在尝试更新具有多个输入和多个输出但没有隐藏层的网络的权重。我实现的逻辑对我来说似乎很好。但权重并没有收敛，而是增加了。我无法调试为什么会发生这种情况。
@@ -389,28 +513,8 @@ ModuleNotFoundError：没有名为“datachain.lib”的模块； &#39;datachain
       <pubDate>Wed, 07 Aug 2024 07:17:11 GMT</pubDate>
     </item>
     <item>
-      <title>无需深度学习或 Tesseract 的文本图像二元分类器</title>
-      <link>https://stackoverflow.com/questions/78842184/text-image-binary-classifier-without-deep-learning-or-tesseract</link>
-      <description><![CDATA[我有 20k 张小标签图像，每张图像都有单词“Back”或“Front”。
-图像分辨率为全部 (200px, 25px)
-
-我可以使用 tesseract_OCR 对这些图像进行 100% 准确率的分类。
- txt = pytesseract.image_to_string(img, lang=&#39;eng&#39;)
-if &quot;Front&quot; in txt:
-return &quot;Front&quot;
-if &quot;Back&quot; in txt:
-return &quot;Back&quot;
-
-问题是，它太慢了（20k 张图像需要 1 小时）并且需要安装 OCR 包。
-我知道即使是 3 层的简单 CNN 也能很好地运行，但我认为这个问题似乎可以用简单的算法解决，而不需要复杂的技术。
-你能给我推荐一种新方法吗？
-谢谢。]]></description>
-      <guid>https://stackoverflow.com/questions/78842184/text-image-binary-classifier-without-deep-learning-or-tesseract</guid>
-      <pubDate>Wed, 07 Aug 2024 06:46:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>对于暴露的情况，孪生网络是否是正确的算法？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78842114/is-a-siamese-network-the-right-algorithm-for-the-exposed-case</link>
+      <title>使用 R 的暹罗网络指南[关闭]</title>
+      <link>https://stackoverflow.com/questions/78842114/guidelines-for-siamese-network-using-r</link>
       <description><![CDATA[我的数据库中存储了 20,000 多张艺术品图片（绘画、雕塑、罐子等）。实际作品分布在多个仓库中。理想情况下，实物应该贴上标签（带有其 ID、QR 码等），这些标签是纸质的，因此可能会受损、印刷不良、无法读取、完全丢失甚至放错位置。我的目标是创建一个模型，该模型接收输入（任何仓库的某人发送的图像），从可用数据中识别完全相同的艺术品并返回其 ID、详细信息等。
 在我的例子中，样本是静态的、固定的（不会有“新”艺术品，除非客户购买更多），因此模型永远不会“看到”新图像，这让我认为过度拟合可能是模型最理想的结果（这意味着大量的数据增强和大量的 epoch）。
 请注意，每个类（艺术作品）只有一个图像可用。这就是无法改变的情况。
@@ -421,51 +525,8 @@ return &quot;Back&quot;
 我可以采取哪些方法来提高准确性？
 
 仅出于测试目的，我抽取了 10 个样本，从每个样本中生成了 9 个其他样本（数据增强、应用旋转、垂直/水平翻转、随机饱和度因子、随机亮度因子等）。后来，为每个类别创建了 5 个正对和 5 个负对。最后，我运行了一个暹罗网络，但准确率似乎停留在 49%。]]></description>
-      <guid>https://stackoverflow.com/questions/78842114/is-a-siamese-network-the-right-algorithm-for-the-exposed-case</guid>
+      <guid>https://stackoverflow.com/questions/78842114/guidelines-for-siamese-network-using-r</guid>
       <pubDate>Wed, 07 Aug 2024 06:29:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>当我导入库时，为什么我的代码会出现错误“sklearn 未定义”？</title>
-      <link>https://stackoverflow.com/questions/78841652/why-is-my-code-giving-error-sklearn-not-defined-when-i-have-imported-the-libra</link>
-      <description><![CDATA[我的代码：
-import numpy as np
-import pandas as pd
-import pickle as pk
-from sklearn import linear_model
-from sklearn.utils import shuffle
-
-data = pd.read_csv(&quot;student-mat.csv&quot;, sep=&quot;;&quot;)
-data = data[[&quot;G1&quot;, &quot;G2&quot;, &quot;G3&quot;, &quot;studytime&quot;, &quot;failures&quot;, &quot;absences&quot;]]
-print(data.head())
-predict = &quot;G3&quot;
-x = np.array(data.drop(predict, axis=1))
-y = np.array(data[predict])
-x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, test_size=0.1)
-linear = linear_model.LinearRegression()
-linear.fit(x_train, y_train)
-acc = linear.score(x_test, y_test)
-print(acc)
-with open(&quot;studentmodel.pickle&quot;, &quot;wb&quot;) as f:
-pickle.dump(linear,f)
-pickle_in = open(&quot;studentmodel.pickle&quot;, &quot;rb&quot;)
-linear = pickle.load(pickle_in)
-print(&quot;coefficient:\n&quot;, linear.coef_)
-print(&quot;intercept:\n&quot;, linear.intercept_)`
-
-当我运行此代码时，它会抛出错误 name sklearn is not defined。但是，这很奇怪，因为我导入了正确的 sklearn 库。
-完整错误：
-NameError Traceback（最近一次调用最后一次）
-Cell In[1]，第 14 行
-12 x = np.array(data.drop(predict, axis=1))
-13 y = np.array(data[predict])
----&gt; 14 x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, test_size=0.1)
-15 linear = linear_model.LinearRegression()
-16 linear.fit(x_train, y_train)
-
-NameError：名称“sklearn”未定义
-]]></description>
-      <guid>https://stackoverflow.com/questions/78841652/why-is-my-code-giving-error-sklearn-not-defined-when-i-have-imported-the-libra</guid>
-      <pubDate>Wed, 07 Aug 2024 02:46:41 GMT</pubDate>
     </item>
     <item>
       <title>什么是代币、Top K 和 Top P？[关闭]</title>
@@ -482,6 +543,39 @@ responseMimeType:&quot;text/plain&quot;,
 我很难理解这些术语的含义。topP、topK 和 maxOutputTokens 是什么。我想了解这些，以便正确使用它们。]]></description>
       <guid>https://stackoverflow.com/questions/78841275/what-are-tokens-top-k-and-top-p</guid>
       <pubDate>Tue, 06 Aug 2024 22:55:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法抑制来自 transformers/src/transformers/modeling_utils.py 的警告</title>
+      <link>https://stackoverflow.com/questions/78827482/cant-suppress-warning-from-transformers-src-transformers-modeling-utils-py</link>
+      <description><![CDATA[我对 AutoModel AutoTokenizer 类的实现相当简单：
+from transformers import AutoModel, AutoTokenizer
+import numpy as np
+from rank_bm25 import BM25Okapi
+from sklearn.neighbors import NearestNeighbors
+
+class EmbeddingModels:
+
+def bert(self, model_name, text):
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModel.from_pretrained(model_name)
+input = tokenizer(text, return_tensors=&quot;pt&quot;, truncation=True, padding=True)
+output = model(**inputs)
+embeddings = output.last_hidden_​​state.mean(dim=1).detach().numpy()
+return embeddings
+
+def create_chunks(self, text, chunk_size):
+return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+但我无法让这个警告消失：
+包含“beta”的参数名称将在内部重命名为“bias”。
+请使用其他名称来抑制此警告。
+包含“gamma”的参数名称将在内部重命名为“weight”。
+请使用其他名称来抑制此警告。
+
+我的存储库中没有任何地方提到 beta 或 gamma 这个词。
+更新软件包，使用 import warnings 抑制警告]]></description>
+      <guid>https://stackoverflow.com/questions/78827482/cant-suppress-warning-from-transformers-src-transformers-modeling-utils-py</guid>
+      <pubDate>Fri, 02 Aug 2024 23:04:25 GMT</pubDate>
     </item>
     <item>
       <title>Tensorflow 功能 CNN 分类器在 Mac 上 AUC 在 0.5 左右震荡，在 Colab 上学习正常</title>
