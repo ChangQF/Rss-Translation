@@ -4,7 +4,181 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 07 Aug 2024 09:17:20 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2024 12:30:02 GMT</lastBuildDate>
+    <item>
+      <title>应用 Pytorch 最小化函数时参数没有改变</title>
+      <link>https://stackoverflow.com/questions/78843331/parameters-not-changing-while-applying-pytorch-minimization-fucntion</link>
+      <description><![CDATA[获取数据的代码：
+import pandas as pd
+import torch
+
+dataset = pd.read_csv(&#39;/kaggle/input/fish-bear/population_data.csv&#39;)
+years = torch.tensor(dataset[&#39;year&#39;], dtype = torch.float64)
+fish_pop = torch.tensor(dataset[&#39;fish_hundreds&#39;], dtype = torch.float64)
+bears_pop = torch.tensor(dataset[&#39;bears_hundreds&#39;], dtype = torch.float64)
+pop = torch.cat((fish_pop.reshape((51, 1)), bears_pop.reshape((51, 1))), 1)
+
+常微分方程求解器
+从 typing 导入 List、Callable、Sequence、NamedTuple、Union
+
+class _Tableau(NamedTuple):
+
+c: List[float]
+b: List[float]
+a: List[List[float]]
+
+rk4_tableau = _Tableau(c=[0.0, 0.5, 0.5, 1.0],
+b=[1 / 6., 1 / 3., 1 / 3., 1 / 6.],
+a=[[0.0, 0.0, 0.0, 0.0], [0.5, 0.0, 0.0, 0.0],
+[0.0, 0.5, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]])
+
+def explicit_rk(tableau: _Tableau, fcn: Callable[..., torch.Tensor],
+y0: torch.Tensor, t: torch.Tensor,
+params: Sequence[torch.Tensor]):
+c = tableau.c
+a = tableau.a
+b = tableau.b
+s = len(c)
+nt = len(t)
+
+# 设置结果列表
+yt_lst: List[torch.Tensor] = []
+yt_lst.append(y0)
+y = yt_lst[-1]
+for i in range(nt - 1):
+t0 = t[i]
+t1 = t[i + 1]
+h = t1 - t0
+ks: List[torch.Tensor] = []
+ksum: Union[float, torch.Tensor] = 0.0
+for j in range(s):
+if j == 0:
+k = fcn(y, t0, params)
+else:
+ak: Union[float, torch.Tensor] = 0.0
+aj = a[j]
+for m in range(j):
+ak = aj[m] * ks[m] + ak
+k = fcn(h * ak + y, t0 + c[j] * h, params)
+ks.append(k)
+ksum = ksum + b[j] * k
+y = h * ksum + y
+yt_lst.append(y)
+yt = torch.stack(yt_lst, dim=0)
+return yt
+
+def rk4_ivp(fcn: Callable[..., torch.Tensor], y0: torch.Tensor, t: torch.Tensor,
+params: Sequence[torch.Tensor], **kwargs):
+return explicit_rk(rk4_tableau, fcn, y0, t, params)
+
+最小化代码：
+import torch
+
+def lotka_volterra(y, t, params):
+y1, y2 = y
+a, b, c, d = params
+
+return torch.tensor([a * y1 - b * y1 * y2, c * y2 * y1 - d * y2])
+
+def loss_function(params):
+
+y0 = torch.tensor([fish_pop[0], bears_pop[0]], dtype = torch.float64)
+
+t = torch.linspace(years[0], years[-1], len(years), dtype = torch.float64)
+
+output = rk4_ivp(lotka_volterra, y0, t, params)
+
+loss = torch.sum((output - pop)**2)
+loss.requires_grad = True
+return loss
+
+def minimal(loss_function, initial_parameters: torch.Tensor):
+list_params = []
+params = initial_parameters
+params.requires_grad = True
+optimizer = torch.optim.SGD([params], lr=0.5)
+
+for i in range(5):
+optimizer.zero_grad()
+loss: torch.Tensor = loss_function(params)
+loss.backward()
+optimizer.step()
+list_params.append(params.detach().clone())
+
+return params, list_params
+
+starting_point = torch.nn.Parameter(torch.tensor([1.1, .4, .1, .4], dtype = torch.float64))
+minimized_pa​​rams, list_of_params =最小化（loss_function，starting_point）
+
+loss_function（minimized_pa​​rams），minimized_pa​​rams
+
+在迭代结束时，参数不会得到优化并按原样返回。
+结果：
+（tensor（118.6865，dtype=torch.float64，requires_grad=True），
+参数包含：
+tensor（[1.1000, 0.4000, 0.1000, 0.4000]，dtype=torch.float64，
+require_grad=True））
+
+Kaggle Notebook 链接：https://www.kaggle.com/code/rakshitsingh421/parameter-estimation/edit
+我尝试更改 require_grad 属性，但没有成功。]]></description>
+      <guid>https://stackoverflow.com/questions/78843331/parameters-not-changing-while-applying-pytorch-minimization-fucntion</guid>
+      <pubDate>Wed, 07 Aug 2024 11:04:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法初始化类 org.deeplearning4j.nn.modelimport.keras.Hdf5Archive</title>
+      <link>https://stackoverflow.com/questions/78843048/could-not-initialize-class-org-deeplearning4j-nn-modelimport-keras-hdf5archive</link>
+      <description><![CDATA[当我尝试使用 scala 加载 .h5 模型时出现以下错误
+KerasModelImport.importKerasModelAndWeights()。
+
+
+线程“streaming-job-executor-1”中出现异常java.lang.NoClassDefFoundError: 无法初始化类 org.deeplearning4j.nn.modelimport.keras.Hdf5Archive
+at org.deeplearning4j.nn.modelimport.keras.utils.KerasModelBuilder.modelHdf5Filename(KerasModelBuilder.java:229)
+at org.deeplearning4j.nn.modelimport.keras.KerasModelImport.importKerasModelAndWeights(KerasModelImport.java:166)
+
+
+代码中添加的依赖项 jar 文件
+上图显示了我程序中添加的依赖项。同时，我安装了 libhdf5-dev
+并为其设置了路径。但我遇到了同样的错误。
+我的代码是用 Scala 语言编写的。这是我尝试加载模型的方式：
+val model: ComputationGraph = KerasModelImport.importKerasModelAndWeights(modelPath)
+
+我还在程序中导入了以下内容：
+import org.deeplearning4j.nn.graph.ComputationGraph
+import org.deeplearning4j.nn.conf.ComputationGraphConfiguration
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
+import org.deeplearning4j.util.ModelSerializer
+import org.deeplearning4j.nn.modelimport.keras.KerasModelImport
+import org.deeplearning4j.nn.modelimport.keras.Hdf5Archive
+
+我不确定是不是版本不匹配。有人能指出这里出了什么问题吗？我是 deeplearning4j 库的新手。]]></description>
+      <guid>https://stackoverflow.com/questions/78843048/could-not-initialize-class-org-deeplearning4j-nn-modelimport-keras-hdf5archive</guid>
+      <pubDate>Wed, 07 Aug 2024 10:01:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>我在这次体重更新中到底做错了什么？</title>
+      <link>https://stackoverflow.com/questions/78843005/what-am-i-exactly-doing-wrong-in-this-weight-updation</link>
+      <description><![CDATA[我正在尝试从头开始实现反向传播。我正在尝试更新具有多个输入和多个输出但没有隐藏层的网络的权重。我实现的逻辑对我来说似乎很好。但权重并没有收敛，而是增加了。我无法调试为什么会发生这种情况。
+def update():
+global weights_n
+for i in range(10000):
+y_mult = p1(x_random)
+print(&quot;Varying Output&quot;,y_mult)
+print(weights_n)
+error = calculate_errors(y_mult, y)
+z=y_mult-y
+print(&quot;Error&quot;,error)
+grad_a1 = np.dot(x_random.T,z)
+print(learning_rate * grad_a1)
+weights_n = weights_n - learning_rate * grad_a1
+print(weights_n)
+if error.all()&lt;=0.5:
+break
+return weights_n
+
+当我尝试将其与 numpy sum 和 matmul 一起使用时，它可以工作，但使用点积错误不但没有减少，反而增加了。]]></description>
+      <guid>https://stackoverflow.com/questions/78843005/what-am-i-exactly-doing-wrong-in-this-weight-updation</guid>
+      <pubDate>Wed, 07 Aug 2024 09:53:16 GMT</pubDate>
+    </item>
     <item>
       <title>如何继续创建视频描述模型？</title>
       <link>https://stackoverflow.com/questions/78842373/how-to-go-on-about-creating-a-video-description-model</link>
@@ -12,6 +186,14 @@
 首先，我尝试只使用 gpt api，但当然速度很慢而且远没有达到实时，然后我想到使用对象检测模型和 gpt 来生成视频描述，但问题是它非常不准确，因为只检测到了对象，但错过了背景或动作，我尝试过跟踪以及 yolo 的姿势模型，但这似乎也不起作用。所以我想我会尝试在这里询问任何可能有用的建议？]]></description>
       <guid>https://stackoverflow.com/questions/78842373/how-to-go-on-about-creating-a-video-description-model</guid>
       <pubDate>Wed, 07 Aug 2024 07:34:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>根据面积或宽度提取并替换像素值</title>
+      <link>https://stackoverflow.com/questions/78842299/extract-and-replace-pixel-values-based-on-their-area-or-width</link>
+      <description><![CDATA[我有一张如下所示的分割图像
+车辆边缘有一条非常细的不同颜色的线（人开车的红色区域）。我想通过根据相邻像素分配不同的标签 ID（红色或黑色）来消除这条细线。我知道如何根据所需的颜色甚至 ID 提取像素。但在这种情况下，颜色或 ID 不是固定的，它可能是不同图像中的不同颜色或 ID。我无法想出一种方法来提取这些像素。有人能帮我提取属于细线的像素吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78842299/extract-and-replace-pixel-values-based-on-their-area-or-width</guid>
+      <pubDate>Wed, 07 Aug 2024 07:17:11 GMT</pubDate>
     </item>
     <item>
       <title>无需深度学习或 Tesseract 的文本图像二元分类器</title>
@@ -230,142 +412,11 @@ NameError：名称“sklearn”未定义
       <pubDate>Wed, 07 Aug 2024 02:46:41 GMT</pubDate>
     </item>
     <item>
-      <title>需要帮助在 Adruino Nano RP2040 Connect 上运行 CNN 模型</title>
-      <link>https://stackoverflow.com/questions/78841395/need-help-to-run-a-cnn-model-on-an-adruino-nano-rp2040-connect</link>
-      <description><![CDATA[我正在尝试在 Arduino Nano RP2040 Connect 上运行一个检测咳嗽和打喷嚏的 CNN 模型（使用 Tensorflow 开发），我的模型的输入是大小为 (603,28,1) 的频谱图。但是，我对嵌入式编程还比较陌生，想得到一些关于音频处理和特征提取以及在 Arduino 上运行 CNN 模型等问题的指导。
-问题 1：
-在此设备上，它有一个称为 PDM 的音频库，可以捕获音频数据并读入特定大小的缓冲区数组，每个索引都是一个 16 位整数，使用此缓冲区数组，我如何将其转换为频谱图以及如何将其调整为正确的大小 (603,28,1) 以输入到我的模型中。
-问题 2：
-我需要在频谱图图像上运行我的模型，有没有专门用于 Arduino 的 Tensorflow 库？
-此外，如果您可以让我了解您在这个项目上的实施流程，那就太好了。]]></description>
-      <guid>https://stackoverflow.com/questions/78841395/need-help-to-run-a-cnn-model-on-an-adruino-nano-rp2040-connect</guid>
-      <pubDate>Tue, 06 Aug 2024 23:58:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>什么是Tokens、Top K、Top P？</title>
-      <link>https://stackoverflow.com/questions/78841275/what-are-tokens-top-k-and-top-p</link>
-      <description><![CDATA[我正在学习使用 Google AI Studio，在生成代码片段时，我遇到了这些术语：
-constgenerationConfig = {
-temperature: 1,
-topP: 0.95,
-topK: 64,
-maxOutputTokens: 8192,
-responseMimeType:&quot;text/plain&quot;,
-};
-
-我很难理解这些术语的含义。topP、topK 和 maxOutputTokens 是什么。我想了解这些，以便正确使用它们。]]></description>
-      <guid>https://stackoverflow.com/questions/78841275/what-are-tokens-top-k-and-top-p</guid>
-      <pubDate>Tue, 06 Aug 2024 22:55:28 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 Hugging Face Transformers 训练 GPT-2 模型时如何修复分段错误？</title>
       <link>https://stackoverflow.com/questions/78841125/how-to-fix-segmentation-fault-when-training-gpt-2-model-using-hugging-face-trans</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78841125/how-to-fix-segmentation-fault-when-training-gpt-2-model-using-hugging-face-trans</guid>
       <pubDate>Tue, 06 Aug 2024 21:47:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>Coral Ordinal AttributeError：'str' 对象没有属性 'name'</title>
-      <link>https://stackoverflow.com/questions/78840945/coral-ordinal-attributeerror-str-object-has-no-attribute-name</link>
-      <description><![CDATA[我正在开发一个使用 Python 和 Tensorflow 中的有序回归/分类的项目。我发现 pip 包 coral-ordinal 实现了有序回归并包含有用的损失函数。然而，当我浏览他们的 Google Colab 教程时，我得到了错误
-AttributeError: &#39;str&#39; 对象没有属性 &#39;name&#39; 
-
-运行 model.fit() 时。
-当我尝试在其他代码中使用它时也会出现此错误。发生错误之前的代码如下
-import tensorflow as tf
-print(&quot;Tensorflow version&quot;, tf.__version__)
-
-import coral_ordinal as coral
-print(&quot;CORAL Ordinal version:&quot;, coral.__version__)
-
-############################
-### SETTINGS
-############################
-
-# 超参数
-random_seed = 1 # 尚未使用
-learning_rate = 0.05
-batch_size = 128
-num_epochs = 2
-
-# 架构
-NUM_CLASSES = 10
-
-# 获取并格式化 mnist 数据
-(mnist_images, mnist_labels), (mnist_images_test, mnist_labels_test) = tf.keras.datasets.mnist.load_data()
-
-# 拆分验证数据集以进行早期停止
-from sklearn import model_selection
-mnist_images, mnist_images_val, mnist_labels, mnist_labels_val = \
-model_selection.train_test_split(mnist_images, mnist_labels, test_size = 5000, random_state = 1)
-
-print(&quot;训练图像的形状：&quot;, mnist_images.shape)
-
-print(&quot;训练标签的形状：&quot;, mnist_labels.shape)
-
-print(&quot;测试图像的形状：&quot;, mnist_images_test.shape)
-
-print(&quot;测试标签的形状：&quot;, mnist_labels_test.shape)
-
-print(&quot;验证图像的形状：&quot;, mnist_images_val.shape)
-print(&quot;验证标签的形状：&quot;, mnist_labels_val.shape)
-
-# 也重新调整为 0-1 范围。
-dataset = tf.data.Dataset.from_tensor_slices(
-(tf.cast(mnist_images[..., tf.newaxis] / 255, tf.float32),
-tf.cast(mnist_labels, tf.int64)))
-dataset = dataset.shuffle(1000).batch(batch_size)
-
-test_dataset = tf.data.Dataset.from_tensor_slices(
-(tf.cast(mnist_images_test[..., tf.newaxis] / 255, tf.float32),
-tf.cast(mnist_labels_test, tf.int64)))
-#test_dataset = test_dataset.shuffle(1000).batch(batch_size)
-# 这里我们不对测试数据集进行打乱。
-test_dataset = test_dataset.batch(batch_size)
-
-val_dataset = tf.data.Dataset.from_tensor_slices(
-(tf.cast(mnist_images_val[..., tf.newaxis] / 255, tf.float32),
-tf.cast(mnist_labels_val, tf.int64)))
-val_dataset = val_dataset.shuffle(1000).batch(batch_size)
-
-def create_model(num_classes):
-model = tf.keras.Sequential()
-model.add(tf.keras.layers.Flatten(input_shape = (28, 28, )))
-model.add(tf.keras.layers.Dense(128, 激活 = &quot;relu&quot;))
-model.add(tf.keras.layers.Dropout(0.2))
-model.add(tf.keras.layers.Dense(32,activation = &quot;relu&quot;))
-model.add(tf.keras.layers.Dropout(0.1))
-# 具有一定数量的类别/等级/标签的有序输出层。
-# 未指定激活函数，因此将输出累积对数。
-model.add(coral.CoralOrdinal(num_classes))
-return model
-
-model = create_model(NUM_CLASSES)
-
-# 请注意，模型生成的输出比类别数量少 1。
-model.summary()
-
-model.compile(optimizer = tf.keras.optimizers.Adam(learning_rate = learning_rate),
-loss = coral.OrdinalCrossEntropy(num_classes = NUM​​_CLASSES),
-metrics = [coral.MeanAbsoluteErrorLabels()])
-
-# 这在 CPU 上大约需要 5 分钟，在 GPU 上大约需要 2.5 分钟。
-history = model.fit(dataset, epochs = 5, validation_data = val_dataset,
-callbacks = [tf.keras.callbacks.EarlyStopping(patience = 3, restore_best_weights = True)])
-
-如何解决这个问题？我会在他们的 github 上提出问题，但最后一次回复是 2 年前，所以我怀疑维护者是否会回复。
-或者，如果没有任何现实的选择来完成这项工作，是否有任何替代方案可以帮助 tensorflow 中的有序回归/分类？]]></description>
-      <guid>https://stackoverflow.com/questions/78840945/coral-ordinal-attributeerror-str-object-has-no-attribute-name</guid>
-      <pubDate>Tue, 06 Aug 2024 20:41:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>我们如何才能优化 Longformer 模型以提高效率，同时又不损害 NLP 任务中的长期上下文理解？</title>
-      <link>https://stackoverflow.com/questions/78835795/how-can-we-optimize-longformer-models-for-efficiency-without-compromising-long-t</link>
-      <description><![CDATA[Longformer 模型使用全局和局部注意力机制的混合来处理长序列，使其适合于文档分类、摘要和共指解析等任务。优化这些模型涉及平衡计算效率与维护长期上下文的需求。
-可以应用哪些特定技术或修改来增强 Longformer 模型的性能？
-是否有特定的训练策略、修剪方法或硬件考虑因素可以帮助实现这种平衡？深入了解 Longformer 模型已成功优化的实际实施和案例研究将非常有价值。]]></description>
-      <guid>https://stackoverflow.com/questions/78835795/how-can-we-optimize-longformer-models-for-efficiency-without-compromising-long-t</guid>
-      <pubDate>Mon, 05 Aug 2024 17:47:13 GMT</pubDate>
     </item>
     <item>
       <title>yolov9 在自定义数据上进行训练</title>
@@ -408,21 +459,111 @@ train_yolov5(TRAIN_IMAGES_PATH, VAL_IMAGES_PATH, YAML_FILE_PATH)`
       <pubDate>Mon, 05 Aug 2024 12:28:07 GMT</pubDate>
     </item>
     <item>
-      <title>nltk 是适合 NLP 的优秀 Python 库吗？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78831441/is-nltk-good-python-library-for-nlp</link>
-      <description><![CDATA[我不确定是否应该使用 TensorFlow 或 NLTK 来完成我的 NLP 任务。两者似乎都是很受欢迎的选择，但我不清楚哪一个更适合我这个水平的人。
-TensorFlow 似乎是一个功能强大的库，它提供了广泛的机器学习和深度学习工具，包括对神经网络和大规模机器学习模型的支持。它似乎用途广泛，可用于复杂的 NLP 任务，如情绪分析、文本生成和翻译。但是，我不知道它对于像我这样的初学者来说是否太高级了，因为我读到过它的学习曲线很陡峭。
-另一方面，NLTK（自然语言工具包）通常推荐给那些刚接触 NLP 的人。它为基本的 NLP 任务（如标记化、解析和词干提取）提供了易于使用的界面和功能。它似乎更侧重于传统的 NLP 方法，可以作为理解文本处理和分析基础知识的一个很好的起点。
-我寻求指导，在转向 TensorFlow 之前，我是否应该从 NLTK 开始，在 NLP 中打下坚实的基础，或者我是否应该考虑采用其他方法。]]></description>
-      <guid>https://stackoverflow.com/questions/78831441/is-nltk-good-python-library-for-nlp</guid>
-      <pubDate>Sun, 04 Aug 2024 15:28:02 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么我的 Skip-Gram 实现产生了错误的结果？</title>
       <link>https://stackoverflow.com/questions/78824197/why-is-my-skip-gram-implementation-producing-incorrect-results</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78824197/why-is-my-skip-gram-implementation-producing-incorrect-results</guid>
       <pubDate>Fri, 02 Aug 2024 07:15:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>更清晰的分割 SAM (Segment Anything)</title>
+      <link>https://stackoverflow.com/questions/78822914/sharper-segmentation-sam-segment-anything</link>
+      <description><![CDATA[我需要像这样分割图像上的对象：
+图像 1
+图像 2
+我选择使用 Meta 的 AI SAM（Segment Anything）来裁剪这些对象。
+我的代码如下所示：
+import cv2
+import numpy as np
+import sys, os
+from pathlib import Path
+import torch
+import surveillance as sv
+from fragment_anything import sam_model_registry, SamAutomaticMaskGenerator, SamPredictor
+
+# 获取命令行参数
+num = sys.argv[2]
+img_path = sys.argv[1]
+folder_path = sys.argv[3]
+
+# 从给定路径加载图像
+img = cv2.imread(img_path)
+
+# 用于预处理图像以进行裁剪的函数
+def preprocess_image_cut(img):
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+return gray
+
+# 用于获取干净图像的函数
+def get_clean_image(img, filter_level=1):
+gray = preprocess_image_cut(img)
+blurred_image = cv2.GaussianBlur(gray, (3, 3), 0)
+_, binary_image = cv2.threshold(blurred_image, 210, 255, cv2.THRESH_BINARY)
+
+kernel = np.ones((1, 1), np.uint8)
+result_image = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, kernel)
+result_image = cv2.medianBlur(result_image, filter_level)
+
+output_image = cv2.bitwise_or(gray, result_image)
+return output_image
+
+# 设置管道的函数
+def setup_pipeline():
+HOME = &#39;C:/&#39;
+CHECKPOINT_PATH = os.path.join(HOME, &#39;weights&#39;, &#39;sam_vit_h_4b8939.pth&#39;)
+DEVICE = torch.device(&#39;cuda:0&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+MODEL_TYPE = &quot;vit_h&quot;
+
+sam = sam_model_registry[MODEL_TYPE](checkpoint=CHECKPOINT_PATH).to(device=DEVICE)
+mask_generator = SamAutomaticMaskGenerator(sam)
+return mask_generator
+
+# 运行 SAM 模型的函数
+def run_sam(mask_generator, clean_image):
+image_rgb = cv2.cvtColor(clean_image, cv2.COLOR_BGR2RGB)
+image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+sam_result = mask_generator.generate(image_rgb)
+mask_annotator = sv.MaskAnnotator(color_lookup=sv.ColorLookup.INDEX)
+detections = sv.Detections.from_sam(sam_result=sam_result)
+
+annotated_image = mask_annotator.annotate(scene=image_bgr.copy(), detections=detections)
+
+masks = [mask[&#39;segmentation&#39;] for mask in sorted(sam_result, key=lambda x: x[&#39;area&#39;, reverse=True])]
+return mask
+
+# 设置掩码生成器
+mask_generator = setup_pipeline()
+
+if __name__ == &quot;__main__&quot;:
+if img_path.endswith(&quot;.png&quot;):
+save_path = folder_path
+os.makedirs(save_path, exist_ok=True)
+if os.path.isdir(f&#39;{folder_path}/PROCESSED&#39;):
+os.makedirs(f&#39;{folder_path}/PROCESSED&#39;, exist_ok=True)
+img = cv2.imread(img_path)
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+clean_image = get_clean_image(img, 3)
+
+print(&quot;开始生成掩码&quot;)
+mask = run_sam(mask_generator, clean_image)
+
+for i, mask in enumerate(masks):
+image_rgb = cv2.cvtColor(clean_image, cv2.COLOR_BGR2RGB)
+image_bgra = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGRA)
+extract_region = np.zeros_like(image_bgra)
+extract_region[mask] = image_bgra[mask]
+x, y, w, h = cv2.boundingRect(mask.astype(np.uint8))
+extract_region = extract_region[y:y+h, x:x+w]
+extracted_region[:, :, 3] = (mask[y:y+h, x:x+w] &gt; 0) * 255
+save_path2 = f&#39;{folder_path}/PROCESSED/img_{x}_{y}_{w}_{h}.png&#39;
+cv2.imwrite(save_path2, extracted_region)
+
+print(&quot;Finished&quot;)
+
+但我在一些问题上遇到了困难，比如我不想让 Sam 分割数字，也不想分割将对象与数字联系起来的线条。
+有人能就这个问题提出一些想法吗？也接受其他方法来分割图像。]]></description>
+      <guid>https://stackoverflow.com/questions/78822914/sharper-segmentation-sam-segment-anything</guid>
+      <pubDate>Thu, 01 Aug 2024 20:21:17 GMT</pubDate>
     </item>
     <item>
       <title>机器学习中的激活函数[关闭]</title>
