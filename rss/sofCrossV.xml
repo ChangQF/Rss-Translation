@@ -4,7 +4,175 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 07 Aug 2024 18:20:22 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2024 21:16:13 GMT</lastBuildDate>
+    <item>
+      <title>如何验证 R 中“forecast::forecast”的预测？</title>
+      <link>https://stats.stackexchange.com/questions/652463/how-to-validate-the-predictions-from-forecastforecast-in-r</link>
+      <description><![CDATA[动机
+当模型遇到以前未见过的数据时，我们常常有兴趣评估模型的性能。我正在测试 ARIMA 模型来分析一些数据，并希望确保我理解 prediction::forecast 函数的内部工作原理。
+数据生成
+为了执行此任务，我从 AR(2) 生成数据并将其存储为时间序列对象 ts。
+set.seed(123)
+z= vector(length = 48)
+z[1] = 10
+z[2] = 10
+
+for (i in 3:48) {
+z[i] = 5 + 1.0*foo[i-1] - 0.70*foo[i-2] + rnorm(n = 1, sd = 1)
+}
+
+ts &lt;- as.ts(z, frequency = 1)
+
+# 如果您想查看数据及其 ACF，请运行以下行
+# par(mfrow = c(1,2))
+# plot(ts, main = &quot;时间序列 Y&quot;, ylab = &quot;值&quot;)
+# Acf(ts, main = &quot;时间序列 Y 的 ACF&quot;)
+# par(mfrow=c(1,1))
+
+建模
+然后我使用函数 forecast::auto.arima 来建模数据。我对模型的唯一限制是它不应考虑任何季节性。请注意，我仅使用 y 的前 24 个值来拟合模型，即我采用了 50/50 分割。
+fit &lt;- auto.arima(y = ts[1:24], seasonal = FALSE)
+
+# 要查看调整后的参数和逆 AR 根，请运行以下行
+# summary(fit)
+# plot(fit)
+
+预测
+使用模型 fit，我可以轻松预测 h 步。下面的两行代码将准确显示
+fit_forecasts = Forecast(fit, h = 24)
+plot(fit_forecast)
+abline(v = 25, lwd = 2, lty = 2, col = &quot;grey30&quot;)
+
+如果我检查第一个预测值 $y_{25}$，我会得到 7.339453。
+fit_forecasts$mean[1]
+
+验证第一个一步预测，$y_{25}$
+我想手动计算这个值，以便更好地了解引擎盖下的情况。拟合模型的系数为$\phi_1 = 0.9380345$和$\phi_2 = -0.7773760$。截距为$y_0 = 7.3359679$。因此，模型为
+$$
+y_{t+1} = y_0 + \phi_1 y_{t-1} + \phi_2 y_{t-2} + \eta_{t+1} = 7.3359679 + 0.9380345y_{t-1} -0.7773760y_{t-2} + \eta_{t+1},
+$$
+其中 $\eta$ 为创新。鉴于我在前 24 个数据点上拟合了模型，第一个一步预测可以表示为
+$$
+y_{25} = 7.3359679 + 0.9380345y_{24} -0.7773760y_{23} + \eta_{25}
+$$
+已知 $y_{23}$ 和 $y_{24}$ 分别为 $5.779341$ 和 $6.049662$，我们可以解出 $y_{25}$
+\begin{align}
+y_{25} &amp;= 7.3359679 + 0.9380345 \times 6.049662 -0.7773760 \times 5.779341 + \eta_{25}\\
+y_{25} &amp;= 8.518039 + \eta_{25}
+\end{align&gt;
+我到此为止了：我不知道 $\eta_{25}$ 的值是什么，所以我无法计算 $y_{25}$。我从 forecast 调用的结果中知道 $y_{25} = 7.339453$，因此，我可以将创新计算为 $\eta_{25} = 7.339453 - 8.518039 = -1.178586$，但我不想计算创新。理想情况下，我会得到采样的创新，这样我就可以计算预测值。
+我检查了 fit$residuals，但这些是拟合模型的 &quot;残差。即 x 减去拟合值。&quot;，根据 forecast 包手册。
+问题
+我的目标是将 $y_{25}, ..., y_{48}$ 提供给 fit，以查看模型如何处理在训练期间从未见过的数据，但首先我想了解如何进行预测。我找不到任何地方的采样创新序列。如果预测是按照模型的期望值计算的，并且创新的均值为零，则$\mathbb{E}[\eta_{25}] = 0$，但即便如此，我仍然不知道如何手动计算$y _{25} = 7.339453$。
+我该怎么做？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652463/how-to-validate-the-predictions-from-forecastforecast-in-r</guid>
+      <pubDate>Wed, 07 Aug 2024 21:15:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>在什么情况下迁移学习是合理的？</title>
+      <link>https://stats.stackexchange.com/questions/652462/under-which-circumstances-is-transfer-learning-sensible</link>
+      <description><![CDATA[给定某些任务，其样本为 $y_1(\vec{x}), ... y_n(\vec{x})$
+我们何时可以期望迁移学习成为一种合理的方法（即比训练 n 个独立模型产生“更好”的结果）？
+我确实理解以下内容：
+
+寻找任务 1..n 的“良好”性能本质上是一个多目标优化问题，因此将有无数个帕累托最优解（无可比拟的好解，需要额外的无差异曲线来选择单个最佳优化解）
+虽然这是一个艰难的多目标优化问题，但我可以想象这样一种情况，即所有任务的条件均值估计量都通过多目标学习得到改进，或者在保持无偏的情况下方差更小（在引导测试训练数据集时）。也许这在某种意义上类似于 Cramer Rao 边界 https://en.m.wikipedia.org/wiki/Cram%C3%A9r%E2%80%93Rao_bound
+
+现在对于神经网络和基于梯度下降的优化，我想到了以下想法：
+
+虽然在实践中，人们训练“嵌入模型”然后将它们与不同任务 1..n 的任务头连接起来，如果只有这种联合嵌入（一个共同的神经主干）的存在有助于在所有任务中实现更好的性能，这似乎很幸运（尽管这可以隐式地作为一种正则化，但它更像是一种负担，避免在公共主干中为给定任务提取最佳特征……）
+当目标 1..n 之间存在高协方差结构时，多任务学习是否应该最有益（所以我应该在开始多目标学习模型之前检查这一点）
+通过多维高斯负对数似然损失利用目标中的这种协方差结构是否有益？
+
+还有什么需要考虑的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652462/under-which-circumstances-is-transfer-learning-sensible</guid>
+      <pubDate>Wed, 07 Aug 2024 21:13:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>通过分析车辆轨迹，聚类/查找罚单中的模式</title>
+      <link>https://stats.stackexchange.com/questions/652461/clustering-finding-patterns-in-tickets-analysing-vehicle-traces</link>
+      <description><![CDATA[我正在从事一个涉及分析汽车 CAN 总线跟踪数据的项目。目标是根据 ECU 通信跟踪从票证（公司的票证工具）中聚类出类似的问题。详情如下：
+数据：
+
+格式：.blf（二进制日志格式）用于主票，.asc（ASCII）用于从票
+大小：大文件，每个约 350MB
+内容：时间戳、通道、协议、消息 ID、解码信号等。
+
+当前方法：
+
+解析 .blf 和 .asc 文件
+识别主动传输的 ECU 信号
+从时间序列数据中提取特征
+使用 PCA 降维
+使用 K-means 进行聚类
+
+挑战：
+
+有效处理大文件
+识别相关信号聚类
+处理主从票证之间的不同时间戳
+选择适当的特征来聚类 ECU 通信模式
+
+问题：
+
+从 ECU 跟踪中聚类时间序列数据的有效技术是什么？
+如何优化大型 .blf 和 .asc 文件的处理？
+是否有适合汽车 CAN 总线数据的特定特征提取方法？
+在此背景下验证聚类结果的好方法是什么？
+
+任何见解、改进建议或资源都将不胜感激！
+技术堆栈：Python、pandas、scikit-learn
+提前感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/652461/clustering-finding-patterns-in-tickets-analysing-vehicle-traces</guid>
+      <pubDate>Wed, 07 Aug 2024 20:54:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>我需要对 2 Ivs 和 2 DV 进行什么分析？</title>
+      <link>https://stats.stackexchange.com/questions/652456/what-analysis-do-i-need-for-2-ivs-and-2-dvs</link>
+      <description><![CDATA[我认为我需要 MANOVA，但我可能需要 ANCOVA，然后仅在实验组内进行 ANOVA。
+我认为它是干预组内的 2x2 因子独立测量 ANOVA。我没有任何等价的句子可以用于 MANOVA，因为我之前从未写过 MANOVA
+我有 2 个 IV：
+IV1 有 2 个级别：对照组和干预组
+IV2 是干预组中的个性特征，因为这是一个次要假设
+我有 2 个相关的 DV：
+DV1 是儿童自我评价的幸福感得分随时间的变化（1 个分数在实验开始时，另一个分数在实验结束时）
+DV2 儿童父母评价的幸福感得分随时间的变化（1 个分数在实验开始时，另一个分数在实验结束时）
+我可以将幸福感得分分为各种不同的子分数（希望、幸福、乐观、价值）
+我的假设是：
+H0- 实验组和对照组之间的幸福感改善随时间没有显著差异
+H1- 与对照组相比，干预组的幸福感得分将显着改善
+H2- 干预组的具体幸福感得分显着改善希望、幸福、乐观和价值感
+H3- 干预组的改善程度在具有特定人格特质的人中会更高。
+我很高兴被告知我完全错了，因为我的论文的分析部分总是花费最长的时间来写，我感到完全迷失了。提前谢谢 :)]]></description>
+      <guid>https://stats.stackexchange.com/questions/652456/what-analysis-do-i-need-for-2-ivs-and-2-dvs</guid>
+      <pubDate>Wed, 07 Aug 2024 19:41:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>确定四种不同人口统计数据和他们的李克特量表反应之间的相关性的最佳统计工具/测量方法是什么</title>
+      <link>https://stats.stackexchange.com/questions/652455/what-is-the-best-statistical-tool-measurement-to-determine-correlation-between-f</link>
+      <description><![CDATA[我有几个李克特量表问题的结果以及每个答案的人口统计数据（4 个不同规模的不同年龄组）。确定答案和人口统计数据之间相关性的最佳方法是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652455/what-is-the-best-statistical-tool-measurement-to-determine-correlation-between-f</guid>
+      <pubDate>Wed, 07 Aug 2024 19:01:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用带有嵌套/随机因子的 lmer 在 R 中建立模型</title>
+      <link>https://stats.stackexchange.com/questions/652459/making-a-model-in-r-using-lmer-with-nested-random-factors</link>
+      <description><![CDATA[我正在尝试制作一个反映以下实验设计（分裂设计）的模型：一棵树被分成几个象限，每个象限测量 20 棵树的 3 片叶子。我制作的模型的分母自由度非常高（即：687.04），其他交互作用也具有相同的自由度，但由于它们处于不同的级别，因此不应该出现这种情况。我不确定如何调整嵌套和随机因子，以便它们正确反映实验设计。象限嵌套在树中，日期嵌套在象限中
+Injection_lm_a&lt;-lmer(data=CIT_Block, Fv.Fm~Treatment*Date/Quadrant+(1|Tree)+(1|Quadrant))
+anova(Injection_lm_a)
+
+Injection_lm_b&lt;-lmer(data=CIT_Block, Fv.Fm~Treatment*Date+(1|Tree)+(1|Quadrant))
+anova(Injection_lm_b)
+
+Injection_lm_c&lt;-lmer(data=CIT_Block, Fv.Fm~治疗+日期*治疗*象限+(1|治疗/样本编号/Cuadrant))
+anova(注射_lm_c)
+
+注射_lm_d&lt;-lmer(Fv.Fm ~ 治疗*Cuadrant + (1 | 树/象限) + (1 | 日期), 数据 = CIT_Block)
+anova(注射_lm_d)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652459/making-a-model-in-r-using-lmer-with-nested-random-factors</guid>
+      <pubDate>Wed, 07 Aug 2024 18:02:43 GMT</pubDate>
+    </item>
     <item>
       <title>关于“假设 $Z_i$ 是 i.i.d. $N(0, 1).$ 且令 $M_n = \max\{Z_1, \ldots, Z_n\}$，证明 $P(M_n > t) \leq n(1 - \Phi(t))$”</title>
       <link>https://stats.stackexchange.com/questions/652454/about-suppose-z-i-are-i-i-d-n0-1-and-let-m-n-max-z-1-ldots-z-n</link>
@@ -15,18 +183,18 @@
 
 https://stats.stackexchange.com/users/79698/jimb 给出了一个提示“第一步是显示 $P(M_n &gt; t)=1−(\Phi(t))^n$&#39;
 
-好吧，我注意到 $1 - (\Phi(t))^n \le n(1-(\Phi(t))^n)$ 为真，因为 $1+x+x^2+...+x^{n-1} = \frac{1-x^n}{1-x} \le n$ 因为每当 $0 &lt; x &lt; $1+x+x^2+...+x^{n-1} \le \sum_{i=1}^{n} 1 \le n$ 1$ 所以...
+好吧，我注意到 $1 - (\Phi(t))^n \le n(1-(\Phi(t))^n)$ 为真，因为 $1+x+x^2+...+x^{n-1} = \frac{1-x^n}{1-x} \le n$ 因为每当 $0 &lt; x &lt; 1$ 时，即每当 $x$ 是非退化概率，$1+x+x^2+...+x^{n-1} \le \sum_{i=1}^{n} 1 = n$。因此，
 
 
 $$P(M_n &gt; t)$$
 $$= 1 - P(M_n \le t) \ \text{1 减 1 真好}$$
 $$= 1 - P(Z_1, ..., Z_n \le t)$$
 $$= 1 - P(\bigcap_{i=1}^{n} \{ Z_i \le t \})​​$$
-$$= 1 - \prod_{i=1}^{n} P(\{ Z_i \le t \})​​ \ \text{独立！}$$
-$$= 1 - \prod_{i=1}^{n} \Phi(t) \ \text{相同分布}$$
+$$= 1 - \prod_{i=1}^{n} P(\{ Z_i \le t \})​​ \ \text{by独立！}$$
+$$= 1 - \prod_{i=1}^{n} \Phi(t) \ \text{by same distribution}$$
 $$= 1 - (\Phi(t))^n \le n(1-(\Phi(t))^n)$$
-问题：既然显然有更短的路径，那发生了什么？
-猜测：讲师没有意识到有更短的路径？或者也许只是为了展示 $1 - (\Phi(t))^n \le n(1-(\Phi(t))^n)$ 的另一种证明，我们通过以两种不同的方式查看 $P(M_n &gt; t)$ 来做什么？]]></description>
+问题：既然显然有更短的路，那发生了什么？
+猜测：讲师没有意识到有更短的路？或者也许只是为了展示 $1 - (\Phi(t))^n \le n(1-(\Phi(t))^n)$ 的另一种证明，我们通过以两种不同的方式查看 $P(M_n &gt; t)$ 来做什么？]]></description>
       <guid>https://stats.stackexchange.com/questions/652454/about-suppose-z-i-are-i-i-d-n0-1-and-let-m-n-max-z-1-ldots-z-n</guid>
       <pubDate>Wed, 07 Aug 2024 16:50:12 GMT</pubDate>
     </item>
@@ -169,25 +337,6 @@ surpyval 0.10.10
       <pubDate>Wed, 07 Aug 2024 14:49:15 GMT</pubDate>
     </item>
     <item>
-      <title>TTA（测试时间增强）是否与贝叶斯 DL 有某种联系？</title>
-      <link>https://stats.stackexchange.com/questions/652445/is-tta-test-time-augmentation-somehow-related-to-bayesian-dl</link>
-      <description><![CDATA[如果可能的话，我正在尝试为深度学习模型构建一个 UQ 方法分类法（这篇论文在我看来提供了一个很好的概述，尽管是在特定领域）。
-目前有一组 UQ 方法，我将其命名为“采样”，它们都在推理过程中运行多个前向传递（贝叶斯 DL、TTA、MC dropout、集成）。据我所知，MC drop-out 被认为（至少被一些人认为）是贝叶斯 DL 的近似值，也与模型集成有些相关。我想问的是，测试时增强（TTA）如何适应这种情况？贝叶斯深度学习试图获得模型参数的分布（而 MC dropout 试图近似该分布），而 TTA 试图对输入值的分布进行采样（具有相同的 y_true）。我可以（大致）声称 TTA 也是一种贝叶斯深度学习方法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652445/is-tta-test-time-augmentation-somehow-related-to-bayesian-dl</guid>
-      <pubDate>Wed, 07 Aug 2024 14:28:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>XGBoost 模型的群体稳定性指数 [重复]</title>
-      <link>https://stats.stackexchange.com/questions/652443/population-stability-index-for-xgboost-model</link>
-      <description><![CDATA[计算 XGBoost 模型的种群稳定性指数是否有意义？
-我将原始值分为 2 到 5 组，并以此方式训练模型。
-我认为，如果变量 1 有组 1、组 2 和组 3，一棵树可以进行拆分 &gt;组 2，而另一棵树可以 &gt;**=**组 2。
-这样，每棵树都可以对变量 1 进行不同的拆分，并且 PSI 无法完成，否则就没有多大意义了。
-这样对吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652443/population-stability-index-for-xgboost-model</guid>
-      <pubDate>Wed, 07 Aug 2024 13:55:48 GMT</pubDate>
-    </item>
-    <item>
       <title>关于提升方法的阅读材料</title>
       <link>https://stats.stackexchange.com/questions/652442/materials-for-reading-on-boosting-methods</link>
       <description><![CDATA[我正在寻找一些关于 boosting 方法的参考资料（教科书、讲义、幻灯片），这些资料要通俗易懂，而且不是太详细。理想情况下，这些资料应该涵盖以下主题：
@@ -198,110 +347,6 @@ XgBoost
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/652442/materials-for-reading-on-boosting-methods</guid>
       <pubDate>Wed, 07 Aug 2024 13:49:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>解释变量高度不平衡的回归</title>
-      <link>https://stats.stackexchange.com/questions/652440/regression-with-highly-unbalanced-explanatory-variable</link>
-      <description><![CDATA[我有一个回归问题，其中一个解释变量是分类变量，有 2 个类别。我的问题是，一个类别有 90% 的观测值，而第二个类别只有 10% 的观测值。
-这种高度不平衡的分类变量的存在是否会对模型系数的统计推断造成任何问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652440/regression-with-highly-unbalanced-explanatory-variable</guid>
-      <pubDate>Wed, 07 Aug 2024 13:20:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>测试栖息地之间的群落组成是否存在显著差异？需要 PERMANOVA 样本大小吗？</title>
-      <link>https://stats.stackexchange.com/questions/652437/test-for-significant-differences-in-communtiy-composition-between-habitats-requ</link>
-      <description><![CDATA[我在 5 个不同的林地中采集了蜘蛛样本。我最初对每种森林类型的样本量为 32，但由于我必须汇总数据，现在每种森林类型只有 8 个样本。
-我对蜘蛛数据进行了排序，以评估群落结构的差异（索引：Morisita-Horn）。颜色代表森林类型，三角形和圆圈代表区域。椭圆表示标准偏差。
-
-我想找到一种方法来查看森林类型之间以及区域之间的差异是否具有统计意义。为此，我想使用 Permanova（vegan 包中的 adonis2）。
-我首先检查了不同支架之间的分散度是否显著不同：
-dispersion_stands &lt;- betadisper(horn_dist, matrix_env_plot$stand, type=&quot;centroid&quot;)
-anova(dispersion_stands)
-
-方差分析表
-
-响应：距离
-Df 总和平方均值平方 F 值 Pr(&gt;F)
-组 4 0.06117 0.015292 1.0219 0.4096
-残差 35 0.52376 0.014965 
-
-但事实并非如此。 “region” 也是如此。
-然后我继续运行 adonis2 函数：
-perma_stands_results &lt;- adonis2(horn_dist~stand, data=matrix_env_plot, permutations=999)
-
-&gt; print(perma_stands_results)
-简化模型下对 adonis 进行置换检验
-按顺序添加项（从第一个到最后一个）
-置换：自由
-置换数：999
-
-adonis2(formula = horn_dist ~ stand, data = matrix_env_plot, permutations = 999)
-Df SumOfSqs R2 F Pr(&gt;F) 
-stand 4 1.8350 0.17689 1.8804 0.027 *
-残差 35 8.5387 0.82311 
-总计 39 10.3736 1.00000 
----
-有效代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-&gt; 
-
-由此可见，不同森林类型之间的群落结构确实存在显著差异。我提取了每对的距离矩阵，并再次应用了 adonis2。
-D_DB_test &lt;- adonis2(D_DB_dist ~ stand, data=D_DB)
-
-我还校正了多重检验的 p 值
-&gt; p.adjust(pairwise.p, method=&quot;BH&quot;)
-D_DB D_B D_FB D_F B_DB B_FB B_F F_DB F_FB 
-0.05666667 0.03000000 0.05666667 0.72000000 0.72000000 0.95400000 0.08600000 0.06250000 0.10166667 
-DB_FB 
-0.86222222
-
-我的问题是：
-
-进行方差分析是否是分析分散差异的全局差异的正确方法？或者我是否首先必须检查方差分析所做的假设是否被违反（同质性方差...）
-对每对森林类型运行 Peranova 是否是进行成对比较的有效方法？
-每组只有 8 个样本，这是否有问题？
-方差分析和 adonis 函数告诉我社区组成存在差异，但我能否得出关于差异强度的结论？
-
-非常感谢，正如您所见，我不是统计专家，非常感谢您的每一个解释！]]></description>
-      <guid>https://stats.stackexchange.com/questions/652437/test-for-significant-differences-in-communtiy-composition-between-habitats-requ</guid>
-      <pubDate>Wed, 07 Aug 2024 13:00:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有给定标准差的样本的分布均值分布</title>
-      <link>https://stats.stackexchange.com/questions/652435/distribution-of-the-mean-of-distributions-for-samples-with-a-given-standard-devi</link>
-      <description><![CDATA[我有一个正态分布 $N(0, \sigma^2)$。如果我开始从该分布中选择所有分布 $N(\mu, \sigma^2/2)$，则平均值 $\mu$ 的分布参数是什么：$N(0, ?)$？标准差是多少？
-换句话说，如果有一组 $N(\mu, \sigma^2/2)$ 分布，它们共同构成 $N(0, \sigma^2)$ 分布，那么 $\mu$ 的分布应该是什么？有两个极值点。如果我选​​择具有相同标准差 $\sigma^2$ 的分布，则会出现这种情况。在这种情况下，$\mu$ 的标准差将趋向于零，n-&gt;inf。如果我从 $N(0, \sigma^2)$ 中选择一个点，那么 $\mu$ 的标准差将等于 $\sigma^2$。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652435/distribution-of-the-mean-of-distributions-for-samples-with-a-given-standard-devi</guid>
-      <pubDate>Wed, 07 Aug 2024 11:47:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>在精确匹配中丢弃观察结果后，如何解决解释/普遍性方面的潜在问题？</title>
-      <link>https://stats.stackexchange.com/questions/652433/how-to-adress-potential-issues-with-interpretation-generalizability-after-discar</link>
-      <description><![CDATA[如果观测值没有完全匹配，则将其丢弃，这可能会导致匹配样本中的协变量分布与原始样本不同。
-我假设在某种程度的差异下（如果我错了，请纠正我），这种差异会影响对发现的可能解释，例如，ATE 不能再被解释为原始样本的 ATE。发现的有效性将仅限于匹配样本。如果意图是从样本推广到总体，这尤其成问题，因为现在我甚至不能再从匹配样本推广到原始样本，更不用说推广到总体了。
-有没有办法判断匹配样本和原始样本是否差异太大？如果是这样，是否有策略来解决这个问题，或者我应该切换到不会丢弃（尽可能多的）观测值的匹配方法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652433/how-to-adress-potential-issues-with-interpretation-generalizability-after-discar</guid>
-      <pubDate>Wed, 07 Aug 2024 11:32:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>帮助解释 GLM 交互效应（带偏移的泊松）</title>
-      <link>https://stats.stackexchange.com/questions/652431/help-interpreting-glm-interaction-effect-poisson-with-offset</link>
-      <description><![CDATA[我使用泊松 glm 和偏移变量对计数变量进行了建模。我正在研究取样年份对“老年人”（&gt; 年龄 x）与年轻人（&lt; 年龄 x）相比执行行为的次数的影响。偏移变量是 ln（观察时间）。我加入了一个交互项，因为我预计老年人类别中的个体比年轻人类别中的个体经历更严重的生物衰老，因此多年来应该表现出更严重的关系。我的模型输出似乎就是这种情况：
-固定效应：
-估计标准差。误差 z 值 Pr(&gt;|z|) 
-(截距) -0.57004 0.10661 -5.347 8.96e-08 ***
-Year_Scaled -0.12309 0.07831 -1.572 0.1160 
-OldY -0.19841 0.14128 -1.404 0.1602 
-Year_Scaled:OldY -0.21954 0.09609 -2.285 0.0223 * 
-
-我想估计交互作用对随时间变化的比率的影响大小。但我该怎么做呢？到目前为止，我已经构建了以下方程来估计每年“老年”个体的比率：
-exp(Intercept + YEAR*(Year_Scaled:OldY)) = 该年的比率
-我不确定的是，我是否需要在此方程中包含不显著的项？我知道我的交互项的显著性与年轻个体的斜率有关，所以我是否需要调整我的方程来解释这个斜率？例如。
-exp(Intercept + YEAR*(Year_Scaled + Year_Scaled:OldY)) = 当年的比率
-同样，我是否也需要考虑旧组的截距，即使它并不显著？
-exp(Intercept + OLDY + YEAR*(Year_Scaled + Year_Scaled:OldY)) = 当年的比率。
-我想我想得太多了，但我需要一些建议！]]></description>
-      <guid>https://stats.stackexchange.com/questions/652431/help-interpreting-glm-interaction-effect-poisson-with-offset</guid>
-      <pubDate>Wed, 07 Aug 2024 10:29:13 GMT</pubDate>
     </item>
     <item>
       <title>某个因素的主要影响是什么？</title>
@@ -323,6 +368,30 @@ $$
 其中 $m$ 显然是所有实验的平均值，而 $m_{iq}$ 是因子 $i$ 等于水平 $q$ 的实验的平均值。如果这是真的，那么我不明白为什么第一个是正确的。]]></description>
       <guid>https://stats.stackexchange.com/questions/652428/whats-the-main-effect-for-a-factor</guid>
       <pubDate>Wed, 07 Aug 2024 09:09:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于评估特征解释力的逻辑回归——分数和置信度的解释</title>
+      <link>https://stats.stackexchange.com/questions/652427/logistic-regression-for-evaluating-explanatory-power-of-features-interpretatio</link>
+      <description><![CDATA[我需要帮助来确定我的分析是否合理。
+我的目标是评估一组特定特征对于二元分类问题的解释力。
+我目前的策略是：
+
+选择不相关且具有统计意义的特征（t 检验）
+使用这些特征拟合逻辑回归模型 (sklearn)
+通过查看系数来比较特征的强度
+通过从决策函数中获取置信度值和分数来评估这些特征的解释力 - 在训练数据上测试模型。
+
+这是我不确定的地方。我的直觉告诉我，在训练数据上进行测试总是错误的（呃）。但我的大脑告诉我，在这种情况下这样做是有意义的。我想知道根据我的特征提供的信息，有多少数据点是可以区分的 - 而不是它对看不见的数据会做出什么反应。
+大致来说，这是我的思考过程：
+
+高置信度，高分 =&gt; 特征很好
+高置信度，低分 =&gt; 特征具有误导性
+低置信度，高分 =&gt; 特征具有信息性但不是那么强
+低置信度，低分 =&gt; 特征没有信息性
+
+这个分析方案合理吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652427/logistic-regression-for-evaluating-explanatory-power-of-features-interpretatio</guid>
+      <pubDate>Wed, 07 Aug 2024 08:51:39 GMT</pubDate>
     </item>
     </channel>
 </rss>
