@@ -4,7 +4,190 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 08 Aug 2024 12:29:25 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 08 Aug 2024 15:16:42 GMT</lastBuildDate>
+    <item>
+      <title>如何在 sklearn 管道中反转序数编码？</title>
+      <link>https://stackoverflow.com/questions/78848893/how-can-i-reverse-ordinal-encoding-within-a-sklearn-pipeline</link>
+      <description><![CDATA[我正在尝试清理一个数据集，该数据集包含来自不同特征（包括数字和分类）的大量缺失值。我的想法如下：
+
+使用 OrdinalEncoder 只保留数值并将缺失值保留为 NaN（不能使用 OneHotEncoder，因为它会创建新的列，这些列为 NaN）
+使用 KNNImputer 估算缺失值
+反转编码，因为没有合理的理由在类别中绘制某种顺序
+
+这是我到目前为止的代码：
+import pandas as pd
+import numpy as np
+from sklearn import set_config
+set_config(transform_output=&quot;pandas&quot;)
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import KNNImputer
+from sklearn.base import BaseEstimator, TransformerMixin
+
+类 RoundingToIntegerTransformer(BaseEstimator, TransformerMixin):
+def fit(self, X, y=None):
+return self
+
+def transform(self, X):
+return np.round(X) 
+
+类 ReverseOrdinalEncoder(BaseEstimator, TransformerMixin):
+def __init__(self,coder_name, categorical_columns):
+self.encoder_name =coder_name
+self.categorical_columns = categorical_columns
+
+def fit(self, X, y=None):
+return self
+
+def transform(self, X, y=None):
+X_ = X.copy()
+coder = self.encoder_name
+X_categorical = X_[categorical_columns] 
+X_categorical =coder.inverse_transform(X_categorical)
+X_[categorical_columns] = X_categorical
+return X_
+
+data = pd.DataFrame({
+&#39;类别 1&#39;: [&#39;a&#39;, &#39;b&#39;, &#39;a&#39;, np.nan, &#39;c&#39;, &#39;b&#39;],
+&#39;类别 2&#39;: [&#39;x&#39;, &#39;y&#39;, &#39;x&#39;, &#39;z&#39;, np.nan, &#39;y&#39;],
+&#39;数值 1&#39;: [1.1, np.nan, 3.3, 4.4, 5.5, np.nan],
+&#39;数值 2&#39;: [np.nan, 2.2, np.nan, 4.4, 5.5, 6.6]
+})
+
+numerical_columns = data.select_dtypes(include=&#39;number&#39;).columns.tolist()
+categorical_columns = data.select_dtypes(include=&#39;object&#39;).columns.tolist()
+
+ordinal_encoder = OrdinalEncoder(encoded_missing_value=np.nan)
+
+first_encoder = ColumnTransformer(transformers=[
+(&#39;ordinal_cat&#39;, ordinal_encoder, categorical_columns)
+],
+remainder=&#39;passthrough&#39;,
+verbose_feature_names_out=False)
+
+imputer = Pipeline([
+(&#39;KNN_imputing&#39;, KNNImputer()),
+(&#39;rounding&#39;, ColumnTransformer(transformers=[(&#39;round_cat&#39;, RoundingToIntegerTransformer() , categorical_columns)],
+remainder=&#39;passthrough&#39;,
+verbose_feature_names_out=False))
+])
+
+reverse_encoder = ReverseOrdinalEncoder(
+编码器名称=first_encoder.transformers[0][1], 
+categorical_columns=categorical_columns
+)
+
+preprocessor = Pipeline([
+(&#39;encoding&#39;, first_encoder),
+(&#39;imputing&#39;, imputer),
+(&#39;decoding&#39;, reverse_encoder)
+])
+
+我尝试了一段时间，但从未成功，我总是收到以下错误：
+
+NotFittedError：此 OrdinalEncoder 实例尚未安装。使用此估算器之前，请使用适当的参数调用“fit”。
+
+我理解这个错误，但我认为由于序数编码器在管道中出现得早，因此当它在反向编码器中使用时会安装好。有什么办法可以让它工作吗？
+非常感谢]]></description>
+      <guid>https://stackoverflow.com/questions/78848893/how-can-i-reverse-ordinal-encoding-within-a-sklearn-pipeline</guid>
+      <pubDate>Thu, 08 Aug 2024 14:07:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>ValueError：名称“model”在模型中使用了 2 次。所有层名称都应唯一</title>
+      <link>https://stackoverflow.com/questions/78848605/valueerror-the-name-model-is-used-2-times-in-the-model-all-layer-names-shoul</link>
+      <description><![CDATA[我尝试在联合学习管道中引入两个重新训练的客户端并计算其权重的平均值。第一次训练时成功了，但现在第二次出现此错误，我尝试修复，但无法找出问题所在。
+以下错误源自行 main(model_FTM_path, model_Stanford_path, save_path)
+ValueError：名称“model”在模型中使用了 2 次。所有层名称都应唯一。
+
+# 将两个经过训练的客户端加权到一个文件中
+
+import tensorflow as tf
+from Client_Trainer import CustomLoss
+
+# 停用 GPU
+tf.config.set_visible_devices([], &#39;GPU&#39;)
+
+# 自定义损失函数
+loss_function = CustomLoss.MaskedMSE
+
+def load_model(model_path, prefix):
+model = tf.keras.models.load_model(model_path, custom_objects = {&#39;MaskedMSE&#39;: loss_function})
+
+return model
+
+def ensemble(model_FTM, model_Stanford):
+# 创建输入层
+input_shape = model_FTM.input.shape[1:]
+ensemble_input = tf.keras.layers.Input(shape = input_shape, name = &#39;ensemble_input&#39;)
+
+# 获取输出两个模型的
+output_FTM = model_FTM(ensemble_input)
+output_Stanford = model_Stanford(ensemble_input)
+
+# 平均输出
+averaged_output = tf.keras.layers.Average(name = &quot;ensemble_average&quot;)([output_FTM, output_Stanford])
+
+# 创建集成模型
+ensemble_model = tf.keras.models.Model(inputs = ensemble_input, output = averaged_output, name = &quot;ensemble_model&quot;)
+
+return ensemble_model
+
+def main(model_FTM_path, model_Stanford_path, save_path):
+# 加载模型
+model_FTM = load_model(model_FTM_path, &quot;FTM&quot;)
+model_Stanford = load_model(model_Stanford_path, &quot;Stanford&quot;)
+
+#构建集成模型
+ensemble_model = ensemble(model_FTM, model_Stanford)
+
+# 编译集成模型
+ensemble_model.compile(optimizer = &#39;adam&#39;, loss = loss_function, metrics = [&#39;mse&#39;])
+
+# print(&quot;\nEnsemble Model Summary:&quot;)
+# ensemble_model.summary()
+
+# 保存集成模型
+ensemble_model.save(save_path)
+
+if __name__ == &quot;__main__&quot;:
+model_FTM_path = &#39;FTMRetrained_round2.h5&#39;
+model_Stanford_path = &#39;StanfordRetrained_round2.h5&#39;
+save_path = &#39;weighted_2clients_round2.h5&#39;
+
+main(model_FTM_path, model_Stanford_path, save_path)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78848605/valueerror-the-name-model-is-used-2-times-in-the-model-all-layer-names-shoul</guid>
+      <pubDate>Thu, 08 Aug 2024 13:08:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>由于损失函数，我的模型无法训练</title>
+      <link>https://stackoverflow.com/questions/78848428/my-model-would-not-train-because-of-the-loss-function</link>
+      <description><![CDATA[--------------------------------------------------------------------------
+ValueError Traceback（最近一次调用最后一次）
+&lt;ipython-input-37-9a9cd8046c6f&gt; in &lt;cell line: 18&gt;()
+16 loss=tf.keras.losses.CategoricalCrossentropy(),
+17 metrics=[&#39;accuracy&#39;])
+---&gt; 18 history1=model1.fit(train_data,epochs=5,validation_data=valid_data)
+
+1 frames
+/usr/local/lib/python3.10/dist-packages/keras/src/backend/tensorflow/nn.py in categorical_crossentropy(target, output, from_logits, axis)
+552 )
+553 if len(target.shape) != len(output.shape):
+--&gt; 554 raise ValueError(
+555 &quot;参数 `target` 和 `output` 必须具有相同的等级 &quot;
+556 &quot;(ndim)。已收到： &quot;
+
+ValueError：参数 `target` 和 `output` 必须具有相同的等级 (ndim)。已收到：target.shape=(None,)，output.shape=(None, 19)
+
+所以，我不明白问题是什么？？
+但是当我使用 SpareCategoricalCrossentropy 训练我的模型时，它工作正常，但准确率很差，在有效数据中为零
+我尝试使用 SpareCategorical，但准确率很低。我的数据集来自 kaggle，所以我刚刚下载了它并给了它一个图像大小
+train_dir=&quot;Dataset/train/&quot; test_dir=&quot;Dataset/test/&quot; train_data= Images(train_dir,image_size=(150,150),batch_size=32) valid_data= Images(test_dir,image_size=(150,150),batch_size=32)
+我又想起了这一点。现在有人能告诉我该怎么办吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78848428/my-model-would-not-train-because-of-the-loss-function</guid>
+      <pubDate>Thu, 08 Aug 2024 12:29:54 GMT</pubDate>
+    </item>
     <item>
       <title>我正在训练一个 VAE，但在我的批次中，我的 KLD 术语在执行几个步骤后就消失了</title>
       <link>https://stackoverflow.com/questions/78848344/im-training-a-vae-and-my-kld-term-is-vanishing-after-just-a-couple-steps-inside</link>
@@ -89,6 +272,19 @@ return x_hat, mean, logvar
 我做错了什么？我必须提到分类列和数字列吗？如果是，它们是用逗号分隔的吗？我如何决定哪些列放在哪里？]]></description>
       <guid>https://stackoverflow.com/questions/78848134/huggingface-autotrain-fail</guid>
       <pubDate>Thu, 08 Aug 2024 11:26:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>Microsoft Azure 自定义图像分析模型 - 错误识别产品</title>
+      <link>https://stackoverflow.com/questions/78848095/microsoft-azure-custom-image-analysis-model-mistakenly-identifies-products</link>
+      <description><![CDATA[我确实需要一些帮助和指导。
+我正在为一个产品训练一个自定义图像分析模型。我遵循以下准则 - https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/how-to/model-customization?tabs=studio
+https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/how-to/shelf-model-customization
+不幸的是，在我训练了几个模型并对数据集进行了不同的配置后，我没有看到模型输出有任何改进。
+一个数据集包括41 张图片和 19 张图片中的一张。我还用产品本身的图片训练了一个模型。我训练模型的预算是 1 小时，昨晚我训练模型的预算是 7 小时。
+但是，当我将输出结果叠加在图像上时，我得到的结果完全相同 - 附上图片。该模型是在带有绿色箭头的产品上进行训练的，但它错误地将带有白色包装的货架产品识别为相同的产品。
+]]></description>
+      <guid>https://stackoverflow.com/questions/78848095/microsoft-azure-custom-image-analysis-model-mistakenly-identifies-products</guid>
+      <pubDate>Thu, 08 Aug 2024 11:18:59 GMT</pubDate>
     </item>
     <item>
       <title>使用 Python 改进 Telegram 机器人中的关键字识别和提取</title>
@@ -277,9 +473,9 @@ node_labels_pruned = custom_node_labels(clf, feature_names, xmtrain, ymtrain)
     <item>
       <title>未找到与 torch==1.9.1 匹配的分布</title>
       <link>https://stackoverflow.com/questions/78846461/no-matching-distribution-found-for-torch-1-9-1</link>
-      <description><![CDATA[我尝试使用 google colab 安装 torchmeta，但它依赖于 torch&lt;1.10.0 and &gt;=1.4.0，每当我尝试安装 torch 1.9.0 或任何版本的 torch&lt;1.10.0 and &gt;=1.4.0 时，都会出现以下错误：
+      <description><![CDATA[尝试使用 google colab 安装 torchmeta，但它依赖于 torch&lt;1.10.0 and &gt;=1.4.0，每当我尝试安装 torch 1.9.0 或任何版本的 torch&lt;1.10.0 and &gt;=1.4.0 时，都会出现以下错误：
 
-错误：找不到满足要求 torch==1.9.1 的版本（来自版本：1.11.0、1.12.0、1.12.1、1.13.0、1.13.1、2.0.0、2.0.1、2.1.0、2.1.1、2.1.2、2.2.0、2.2.1， 2.2.2、2.3.0、2.3.1、2.4.0)错误：未找到与 torch==1.9.1 匹配的发行版
+错误：找不到满足要求 torch==1.9.1 的版本（来自版本：1.11.0、1.12.0、1.12.1、1.13.0、1.13.1、2.0.0、2.0.1、2.1.0、2.1.1、2.1.2、2.2.0、2.2.1、2.2.2， 2.3.0、2.3.1、2.4.0)错误：未找到与 torch==1.9.1 匹配的发行版
 
 如何解决此问题？
 我正在使用 Google colab，Python 版本 3.10.12。
@@ -287,27 +483,6 @@ node_labels_pruned = custom_node_labels(clf, feature_names, xmtrain, ymtrain)
 我正在尝试安装 torch&lt;1.10.0 和 &gt;1.4.0，然后安装依赖于我提到的 torch 版本 torch&lt;1.10.0 和 &gt;1.4.0 的 torchmeta。]]></description>
       <guid>https://stackoverflow.com/questions/78846461/no-matching-distribution-found-for-torch-1-9-1</guid>
       <pubDate>Thu, 08 Aug 2024 03:54:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>人工智能技术用于查找两个时间序列之间的相关性/模式/共同趋势[关闭]</title>
-      <link>https://stackoverflow.com/questions/78846294/ai-techniques-to-find-correlation-pattern-common-trend-between-two-time-series</link>
-      <description><![CDATA[我有一个想法，使用人工智能技术在两个连续的时间序列数据之间找到有用的信息。结果可以是相关值、共同模式或趋势等，输出结果如 TS1（时间序列 1）数据与 TS2 数据相关，反之亦然。
-稍后我想特别指出这种关系究竟发生在哪里，以及它是什么类型的效果。
-
-例如：
-输入：过去 5 年的 TS1 和 TS2 数据。[浮点/双精度值]
-过程：寻找相关性/模式/共同趋势。[这是我寻求指导的部分。]
-输出：TS1 的变化每个月都会对 TS2 产生负面影响。 [输出文本可以由
-
-过程部分的结果组成。]
-
-加载数据、将其传递给模型/系统，并为非技术人员解释结果并不是一项艰巨的任务。对我来说，有趣的部分是如何找到某种关系。
-到目前为止，我已经使用了 Person、Spearman 和 Kendall 相关性，并且根据我的要求，它工作得很好。但是，我想了解和使用多种技术，尤其是高级统计和机器学习模型。
-由于我是时间序列数据的新手，我对选择正确的路径来实现上述目标的知识有限。所以，有人可以指导我哪些高级技术/模型（静态、机器学习等）适合找到两个连续时间序列数据之间的关系？
-提前谢谢您。
-祝您有美好的一天！ :)]]></description>
-      <guid>https://stackoverflow.com/questions/78846294/ai-techniques-to-find-correlation-pattern-common-trend-between-two-time-series</guid>
-      <pubDate>Thu, 08 Aug 2024 02:13:43 GMT</pubDate>
     </item>
     <item>
       <title>face_recognition 模块以某种方式严重干扰了 Speech_recognition 模块（python）</title>
@@ -353,76 +528,86 @@ DATE VENDA C_EF_VENDA
       <pubDate>Wed, 07 Aug 2024 21:30:19 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 TensorFlow Pipeline 中对大型数据集应用图像增强？</title>
-      <link>https://stackoverflow.com/questions/78816835/how-to-apply-image-augmentations-in-tensorflow-pipeline-for-large-dataset</link>
-      <description><![CDATA[我有一个图像数据集，每个图像包含一个 1 到 5 个字母的单词。我想使用深度学习对每个图像中组成单词的字符进行分类。这些图像的标签格式如下：
-totalcharacter_indexoffirstchar_indexofsecondchar_.._indexoflastchar
-我正尝试将这些图像加载到 TensorFlow 管道中，以降低由于内存限制而导致的复杂性。下面是我从目录加载和处理图像和标签的代码：
-def process_img(file_path):
-label = get_label(file_path)
-image = tf.io.read_file(file_path)
-image = tf.image.decode_png(image, channels=1) 
-image = tf.image.convert_image_dtype(image, tf.float32) 
-target_shape = [695, 1204]
-image = tf.image.resize_with_crop_or_pad(image, target_shape[0], target_shape[1])
+      <title>PyTorch 和 Opacus 用于差异隐私</title>
+      <link>https://stackoverflow.com/questions/78839246/pytorch-and-opacus-for-differential-privacy</link>
+      <description><![CDATA[在使用 Jupyter Notebook（可从此处获取）测试来自 TensorFlow 网站的示例代码时，我遇到了一个错误。您可以在此处找到我关于该错误的 SO 问题。
+因此，我决定使用 PyTorch、Opacus 和 PySyft 为相同功能编写等效实现。然而，不幸的是，我又遇到了另一个错误。
+下面是实现与 TensorFlow 网站中的示例代码相同功能的代码，但使用 PyTorch 和 Opacus 和 PySyft，以及错误消息。
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+from opacus import PrivacyEngine
 
-# 对标签进行编码
-coded_label = tf.py_function(func=encode_label, inp=[label], Tout=tf.float32)
-coded_label.set_shape([5, len(urdu_alphabets)])
+# 定义一个简单的模型
+class SimpleCNN(nn.Module):
+def __init__(self):
+super(SimpleCNN, self).__init__()
+self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
+self.fc1 = nn.Linear(32*26*26, 10)
 
-return image,coded_label
-input_dir = &#39;/kaggle/input/dataset/Data/*&#39;
-images_ds = tf.data.Dataset.list_files(input_dir, shuffle=True)
+def forward(self, x):
+x = torch.relu(self.conv1(x))
+x = x.view(-1, 32*26*26)
+x = self.fc1(x)
+return torch.log_softmax(x, dim=1)
 
-train_count = int(tf.math.round(len(images_ds) * 0.8))
-train_ds = images_ds.take(train_count)
-test_ds = images_ds.skip(train_count)
-train_ds = train_ds.map(process_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-test_ds = test_ds.map(process_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-test_ds = test_ds.batch(32)
-train_ds = train_ds.cache()
-test_ds = test_ds.cache()
-train_ds = train_ds.shuffle(len(train_ds))
-test_ds = test_ds.prefetch(tf.data.AUTOTUNE)
-print(train_ds)
-print(test_ds)
+# 数据加载器
+transform = transforms.Compose([transforms.ToTensor()])
+train_dataset = datasets.MNIST(&#39;.&#39;, train=True, download=True, transform=transform)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 
-train_ds 如下所示：
-&lt;_PrefetchDataset element_spec=(TensorSpec(shape=(None, 695, 1204, 1), dtype=tf.float32, name=None), TensorSpec(shape=(None, 5, 39), dtype=tf.float32, name=None))&gt;
-现在，我想对图像应用简单的增强，例如旋转、剪切、侵蚀和扩张。我最初使用了以下函数：
-def augment(image, label):
-image = tf.image.random_flip_left_right(image)
-image = tf.image.random_flip_up_down(image)
-image = tf.keras.preprocessing.image.random_rotation(image, rg=15, row_axis=0, col_axis=1, channel_axis=2, fill_mode=&#39;nearest&#39;, cval=0.0, interpolation_order=1)
-image = tf.image.random_zoom(image, [0.85, 0.85])
-image = tf.image.random_shear(image, 0.3)
-image = tf.image.random_shift(image, 0.1, 0.1)
-return image, label
+# 初始化模型、优化器和损失函数
+model = SimpleCNN()
+optimizer = optim.SGD(model.parameters(), lr=0.01)
+criterion = nn.NLLLoss()
 
-train_augmented_ds = train_ds.map(augment, num_parallel_calls=tf.data.AUTOTUNE)
-train_augmented_ds = train_augmented_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
+# 初始化 PrivacyEngine
+privacy_engine = PrivacyEngine(
+model,
+batch_size=64,
+sample_size=len(train_loader.dataset),
+epochs=1,
+max_grad_norm=1.0,
+)
 
-但是，tf.image 中的许多函数都已弃用。如何以高效的方式在 TensorFlow 管道中将这些增强应用于图像？
-注意：我可以通过不使用 TensorFlow 管道使用 NumPy 数组加载图像来执行这些增强，但我的数据集非常大（110 万张图像），因此我需要一种高效的方法来执行此操作。]]></description>
-      <guid>https://stackoverflow.com/questions/78816835/how-to-apply-image-augmentations-in-tensorflow-pipeline-for-large-dataset</guid>
-      <pubDate>Wed, 31 Jul 2024 14:11:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>Python Darts 中的 RNN 训练指标</title>
-      <link>https://stackoverflow.com/questions/78144820/rnn-training-metrics-in-python-darts</link>
-      <description><![CDATA[我目前正在使用 python darts 训练 RNNModel。为了比较不同的训练模型，我想从 fit 方法中提取 train_loss 和 val_loss。我该怎么做？我读过一些关于度量集合的内容，但不知道如何使用它。
-这是我当前的代码
-from darts.models import RNNModel
-from darts import TimeSeries
+privacy_engine.attach(optimizer)
 
-train = # training data as TimeSeries
-model = RNNModel(model=&quot;LSTM&quot;, input_chunk_length=self.past_samples)
-model.fit(train)
+# 训练循环
+model.train()
+for epoch in range(1):
+for data, target in train_loader:
+optimizer.zero_grad()
+output = model(data)
+loss = criterion(output, target)
+loss.backward()
+optimizer.step()
 
-训练期间，控制台中会显示损失，但我不知道如何访问它。
-到目前为止，我尝试在网上查找任何文档，并向 bing chat 和 ChatGPT 寻求帮助。但是他们告诉我使用不存在的 model.history.history[&quot;loss&quot;]]]></description>
-      <guid>https://stackoverflow.com/questions/78144820/rnn-training-metrics-in-python-darts</guid>
-      <pubDate>Tue, 12 Mar 2024 05:29:49 GMT</pubDate>
+# 打印隐私统计数据
+epsilon, best_alpha = optimizer.privacy_engine.get_privacy_spent(1e-5)
+print(f&quot;Epsilon: {epsilon}, Delta: 1e-5&quot;)
+
+错误：
+-------------------------------------------------------------------------------
+TypeError Traceback (最近一次调用最后一次)
+Cell In[1]，第 32 行
+29 criterion = nn.NLLLoss()
+31 # 初始化 PrivacyEngine
+---&gt; 32 privacy_engine = PrivacyEngine(
+33 model,
+34 batch_size=64,
+35 sample_size=len(train_loader.dataset),
+36 epochs=1,
+37 max_grad_norm=1.0,
+38 )
+40 privacy_engine.attach(optimizer)
+42 # 训练循环
+
+TypeError: PrivacyEngine.__init__() 获得了意外的关键字参数“batch_size”
+]]></description>
+      <guid>https://stackoverflow.com/questions/78839246/pytorch-and-opacus-for-differential-privacy</guid>
+      <pubDate>Tue, 06 Aug 2024 13:17:08 GMT</pubDate>
     </item>
     <item>
       <title>使用 SKforecast 时出错：[Int64Index([48, ...],\n dtype='int64', name='date_time')] 均不在 [index] 中</title>
@@ -494,32 +679,6 @@ KeyError: &quot;None of [Int64Index([48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,
 在此先感谢您的帮助。]]></description>
       <guid>https://stackoverflow.com/questions/77013878/error-when-using-skforecast-none-of-int64index48-n-dtype-int64-na</guid>
       <pubDate>Thu, 31 Aug 2023 07:59:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法在 python 中安装 lap==0.4.0 库</title>
-      <link>https://stackoverflow.com/questions/76463707/unable-to-install-lap-0-4-0-library-in-python</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/76463707/unable-to-install-lap-0-4-0-library-in-python</guid>
-      <pubDate>Tue, 13 Jun 2023 09:55:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>Pyspark 中的过采样或 SMOTE</title>
-      <link>https://stackoverflow.com/questions/53936850/oversampling-or-smote-in-pyspark</link>
-      <description><![CDATA[我有 7 个类，总记录数为 115，我想对这些数据运行随机森林模型。但由于数据不足以获得高精度。所以我想对所有类进行过采样，使多数类本身获得更高的计数，然后少数类获得更高的计数。这在 PySpark 中可行吗？
-+---------+-----+
-| SubTribe|count|
-+---------+-----+
-| Chill| 10|
-| Cool| 18|
-|Adventure| 18|
-| Quirk| 13|
-| Mystery| 25|
-| Party| 18|
-|Glamorous| 13|
-+---------+-----+
-]]></description>
-      <guid>https://stackoverflow.com/questions/53936850/oversampling-or-smote-in-pyspark</guid>
-      <pubDate>Wed, 26 Dec 2018 20:31:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
