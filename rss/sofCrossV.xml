@@ -4,7 +4,77 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 08 Aug 2024 18:21:23 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 08 Aug 2024 21:14:39 GMT</lastBuildDate>
+    <item>
+      <title>nlme 如何提取和理解方差函数的系数</title>
+      <link>https://stats.stackexchange.com/questions/652500/nlme-how-to-extract-and-understand-the-coefficients-of-the-variance-function</link>
+      <description><![CDATA[我正在使用 nlme 来拟合异方差残差方差作为协变量的函数。我不确定如何提取和理解 nlme 产生的值。特别是方差函数上的 coef 函数的输出。
+以下是一些背景信息：
+在实验中，当处理条件下残差方差不同时，我们可以将异方差直接建模为协变量处理的函数。
+通常被视为方差函数：
+$$
+\text{Var}(e_i|{\bf b}_i) = \sigma^2g^2(\mu_{ij},\boldsymbol{\nu}_{ij}, \boldsymbol{\delta})
+$$
+其中 $\boldsymbol{\nu}_{ij}$ 是方差协变量，$\boldsymbol{\delta}$ 是方差参数。
+在我的例子中，这简化为构成层 $s$ 的治疗组中的不同方差
+$$
+\text{Var}(e_i) = \sigma^2\delta_s^2
+$$
+在我的案例中，治疗是二元的，因此有 2 个层次。由于有 3 个方差参数符合此规范，$\sigma$、$\delta_c$ 用于控制，$\delta_t$ 用于治疗。其中一个 $\delta$ 是多余的，并设置为 1。$\delta$ 表示设置为 1 的 $\delta_s$ 之间的方差比率。
+在此模拟示例中，治疗组方差是对照组的两倍
+$$
+Y_i = 3 + e^c_i + T_ie^t_i
+$$
+$$
+e^c_i,e^t_i \sim N(0,1)
+$$
+$$
+T_i \sim Bern(.5)
+$$
+模拟数据。注意治疗组中的双倍方差。
+library(nlme) #用于建模
+library(dplyr) #用于数据处理
+set.seed(123)
+n &lt;- 1000
+treatment &lt;- rbinom(n = n, size = 1, prob = .5)
+y &lt;- 3 + rnorm(n) + rnorm(n)*treatment #treatment 将具有双倍方差
+
+data.frame(y, treatment) |&gt; 
+group_by(treatment) |&gt; 
+summarise(var(y))
+#&gt; # A tibble: 2 × 2
+#&gt; treatment `var(y)`
+#&gt; &lt;int&gt; &lt;dbl&gt;
+#&gt; 1 0 1.03
+#&gt; 2 1 2.13
+
+使用 nlme 拟合异方差残差：
+model &lt;- gls(y ~ 1, weights = varIdent(form = ~1|treatment))
+
+model$modelStruct$varStruct #如何提取值？
+#&gt; 表示 varIdent 类的方差函数结构
+#&gt; 0 1 
+#&gt; 1.000000 1.437717
+
+1.43 表示 $\delta_t$ 的值，其平方等于 2 左右，这是控制方差和治疗方差之间的关系
+我不确定如何从 gls 对象中提取 $\delta$ 的值。
+对方差使用 coef 函数会产生一个我不知道是什么的值。
+coef(model$modelStruct$varStruct) # 这个值是什么意思？
+#&gt; [1] 0.3630564
+
+参考文献
+Pinheiro, J., &amp; Bates, D. (2006). S 和 S-PLUS 中的混​​合效应模型。Springer 科学与商业媒体。第 5.2 章]]></description>
+      <guid>https://stats.stackexchange.com/questions/652500/nlme-how-to-extract-and-understand-the-coefficients-of-the-variance-function</guid>
+      <pubDate>Thu, 08 Aug 2024 19:25:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>回归条件下协变量的期望，$E[X\mid Y=f(X,Z)]$</title>
+      <link>https://stats.stackexchange.com/questions/652498/expectation-of-covariate-conditional-on-regression-ex-mid-y-fx-z</link>
+      <description><![CDATA[假设 $X $ 是回归模型中的协变量，因此 $Y = f(X, Z) $，其中 $f$ 是某个（非线性）链接函数，而 $Z$ 是某个其他协变量。$E[X\mid Y]$ 是什么？
+$E[X\mid Y] = E[X\mid X] = X$ 会怎样？我认为这没有意义，因为 $Y$ 是某个事件指标。例如，您可能认为有事件的人的年龄比没有事件的人高。但同时，$Y$ 包含 $X$，所以我不确定。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652498/expectation-of-covariate-conditional-on-regression-ex-mid-y-fx-z</guid>
+      <pubDate>Thu, 08 Aug 2024 18:40:23 GMT</pubDate>
+    </item>
     <item>
       <title>预测嵌套数据集中实体特定的结果</title>
       <link>https://stats.stackexchange.com/questions/652497/predicting-entity-specific-outcomes-in-a-nested-dataset</link>
@@ -20,7 +90,17 @@
       <title>检验两个 x-y 图是否存在显著差异</title>
       <link>https://stats.stackexchange.com/questions/652494/testing-whether-two-x-y-plots-are-significantly-different</link>
       <description><![CDATA[我有 5 个案例研究（SF=1、SF=2、SF=3、SF=4 和 SF=5），我测量了它们在不同位置（单元格）的 xP 量。数据如附图所示。我的参考案例是 SF=1，我想确定其他案例与参考案例的匹配程度。我想确定哪些案例存在显著差异，因此是不可接受的。查看图表，SF=2 似乎相当相似，SF=4 和 SF=5 似乎非常不同，SF=3 介于两者之间。我该如何量化这一点？
-提前感谢任何提示！
+在此先感谢大家的提示！
+
+根据要求编辑
+以下是有关测量内容和测量方式的更多信息：
+我正在模拟将两种材料成分（P 和 S，质量比为 50-50）的混合物从料斗排放到容器中，从而形成一个堆。我正在研究混合物在容器中的均匀程度。容器被分成 10 个单元（参见下图中的说明，其中显示了 4 个单元），我测量每个单元中 P 成分（称为“xP”）的质量分数。理论上，每个单元中 xP 的值可以在 0-1 之间变化，如果每个单元中的 xP=0.5，则堆是完全均匀的。此调查针对 5 种情况进行：
+
+SF（缩放因子）= 1：此处，材料成分具有其原始尺寸分布。
+SF = 2、3、4、5：此处，颗粒尺寸按 2、3、4、5 的倍数放大。
+
+所以基本上，我正在调查形成堆后缩放对混合物均匀性的影响。
+SF = 1、2、3、4 和 5 的模拟分别重复 3 次，因此图中的误差线表示 xP 的标准偏差。
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/652494/testing-whether-two-x-y-plots-are-significantly-different</guid>
       <pubDate>Thu, 08 Aug 2024 16:59:18 GMT</pubDate>
@@ -71,63 +151,21 @@ return np.std(bootstrapped_std)
       <pubDate>Thu, 08 Aug 2024 14:04:55 GMT</pubDate>
     </item>
     <item>
-      <title>合并引导迭代中的 p 值</title>
-      <link>https://stats.stackexchange.com/questions/652489/combining-p-values-from-bootstrap-iterations</link>
-      <description><![CDATA[我正在尝试针对连续响应变量 $x$ 建模突变概率。我正在构建一个逻辑回归模型，将每个基因的突变状态作为 $y$，并将 $x$ 作为回归模型中的参数。结果系数表示突变的对数几率概率增加，而 $x$ 的单位增加。我正在为每个基因拟合一个单独的模型，类似于 DESeq2 中所做的。
-从这些模型中，我可以轻松计算出 p 值。
-我正在引导此过程 $n$ 次，因为我发现输入数据的微小变化经常会得到不稳定的结果。我想根据一些指标对这些基因进行排序，以考虑突变概率（系数）变化的幅度，以及我所掌握的支持这一结果的证据（标准误差）。
-我可以根据突变概率的对数几率增加对基因进行排序，但这些并没有考虑与 $x$ 中的测量值相关的标准误差。因此，我想使用一个统计数据，如 p 值，它可以解释这一点，但我正在引导整个过程，并且相信我不能简单地平均 p 值（这里）。
-我可以使用什么来对这些基因进行排序，以便在所有引导重复中获得单一排名？在每个单独的引导迭代中排名，然后对这些排名取平均值是否合适？
-我对统计学还很陌生，所以您推荐的任何读物都会非常有帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652489/combining-p-values-from-bootstrap-iterations</guid>
-      <pubDate>Thu, 08 Aug 2024 11:49:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>事件研究实施</title>
-      <link>https://stats.stackexchange.com/questions/652488/event-study-implementation</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/652488/event-study-implementation</guid>
-      <pubDate>Thu, 08 Aug 2024 11:48:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何估计线性回归中测量变量的标准差？</title>
-      <link>https://stats.stackexchange.com/questions/652487/how-do-i-estimate-the-standard-deviation-of-the-measured-variables-in-linear-reg</link>
-      <description><![CDATA[假设一个线性模型：
-$$
-y = \alpha x + \beta
-$$
-我对$(x_i,y_i)$进行了 n 次观察。
-每个观测值都受到测量不确定性的影响，我假设该不确定性呈正态分布，平均值 = 0，但方差未知。
-如何在 Python 中估算 $\alpha$、$\beta$ 以及 $\sigma_x$ 和 $\sigma_y$？
-以下是一些为 $y = 2x + 1$ 生成测试数据的代码：
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.linalg import lstsq
-
-n = 20
-x = np.linspace(-5,5,n)
-y = 2*x + 1
-
-sigma_x = 0.1
-sigma_y = 0.2
-
-x_noisy = x + np.random.normal(0, sigma_x, x.shape)
-y_noisy = y + np.random.normal(0, sigma_y, y.shape)
-
-plt.plot(x,y, label = &#39;y = 2x + 1&#39;)
-plt.scatter(x_noisy,y_noisy, color=&#39;red&#39;, label = &#39;测量的 (x,y) 值&#39;)
-plt.xlabel(&#39;x&#39;)
-plt.ylabel(&#39;y&#39;)
-plt.legend()
-plt.show()
-
-给定上面的 x_noisy 和 y_noisy 值，我如何恢复 $\alpha=2$，$\beta=1$，$\sigma_x = 0.1$ 和 $\sigma_y = 0.2$？
-
-也许可以先通过线性回归找到 $\alpha$ 和 $\beta$，然后将每个测量点投影到这条线上：
-
-接下来，可以根据 dx 和 dy 的分布估算出 x 和 y 的标准差吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652487/how-do-i-estimate-the-standard-deviation-of-the-measured-variables-in-linear-reg</guid>
-      <pubDate>Thu, 08 Aug 2024 11:07:30 GMT</pubDate>
+      <title>对于小样本量、不明确（非正态）分布的适当显着性检验</title>
+      <link>https://stats.stackexchange.com/questions/652478/appropriate-significance-test-for-small-sample-size-unclear-non-normal-distri</link>
+      <description><![CDATA[给定数据：
+30 个数据点，以可用性分数的形式呈现（系统可用性量表）
+数据中有 2 个组（组 1：17，组 2：13，独立，大小不等）
+目标：
+看看这两组的可用性分数之间是否存在统计上的显著差异
+问题：
+这里研究比较两个独立组的统计显著性的适当方法是什么？
+初步想法（基于作为非统计学家的一些研究）：
+有些测试对底层数据分布做出假设，有些则不做。通过直方图和箱线图可视化数据，我的第一印象是它不是正态分布的。因此，例如 Mann-Whitney-U 检验可能是一种选择。此外，使用 Shapiro-Wilk 等方法进行正态性测试被认为是无用的，因为其拒绝正态性假设的能力很弱，尤其是在样本量较小的情况下。不过，如果这样的测试拒绝了假设（即：它是正态分布），我们确实可以将其视为非正态性的迹象。
+有人可以确认或拒绝我得出的结论吗？根据提供的信息，是否有更好的替代方案？
+我正在寻找处理此类数据的最佳实践，并希望听取您的意见。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652478/appropriate-significance-test-for-small-sample-size-unclear-non-normal-distri</guid>
+      <pubDate>Thu, 08 Aug 2024 07:17:57 GMT</pubDate>
     </item>
     <item>
       <title>我需要对 2 Ivs 和 2 DV 进行什么分析？</title>
@@ -158,31 +196,29 @@ H3：使用干预组内的方差分析或回归分析自然相关性的影响。
       <pubDate>Wed, 07 Aug 2024 19:41:25 GMT</pubDate>
     </item>
     <item>
-      <title>Surpyval Weibull 拟合优度</title>
-      <link>https://stats.stackexchange.com/questions/652447/surpyval-weibull-goodness-of-fit</link>
-      <description><![CDATA[我一直在使用 surpyval 将一些校准数据拟合到威布尔分布。我想评估拟合优度，但我不知道该怎么做。我以前使用过“可靠性”库，它有一个 KS 检验，但我不知道如何在 Surpyval 中执行此操作（可靠性不支持区间删失数据）。代码：
-import surpyval as surv
-import matplotlib.pyplot as plt
-#sample data
-Fail = [1,1,3,1,5,1,1,2,1,1,1,1,1]
-Type = [1,1,1,2,1,1,2,1,1,2,1,2,1,2,1]
-Time = [1820,1987,2176,[2373.0, 2542.0],2373,2731,[2920.0, 3093.0],2920,3279,[3472.0, 3641.0],3472,[3829.0, 4009.0],3829]
+      <title>关于“假设 $Z_i$ 是 i.i.d. $N(0, 1).$ 且令 $M_n = \max\{Z_1, \ldots, Z_n\}$，证明 $P(M_n > t) \leq n(1 - \Phi(t))$”</title>
+      <link>https://stats.stackexchange.com/questions/652454/about-suppose-z-i-are-i-i-d-n0-1-and-let-m-n-max-z-1-ldots-z-n</link>
+      <description><![CDATA[关于 https://stats.stackexchange.com/users/395275/lisa-w 的问题
+假设 $Z_i$ 是 i.i.d。 $N(0, 1).$ 令 $M_n = \max\{Z_1, \ldots, Z_n\}$，表明 $P(M_n &gt; t) \leq n(1 - \Phi(t))$
 
-model = surv.Weibull.fit(x = Time, c =类型，n = 失败)
-model.plot()
-plt.show()
+我注意到独立性没有被使用。我记得通常当你有 $\max &gt; t$ 时，你通常会将概率更改为“1 减”，如 $P(\max &gt; t) = 1-P(\max \le t)$，然后使用独立性。对于 $\min &lt; t$ 也类似。我很惊讶，我没有看到这个。
 
-libraries:
-matplotlib 3.6.0
-numpy 1.26.0
-scipy 1.14.0
-surpyval 0.10.10
+https://stats.stackexchange.com/users/79698/jimb 给出了一个提示“第一步是显示 $P(M_n &gt; t)=1−(\Phi(t))^n$&#39;
 
-包含完整数据集的图。
-我的完整数据集有左、右和区间数据。任何其他拟合优度方法/知识都会非常有帮助，并且包括对图像的任何见解。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/652447/surpyval-weibull-goodness-of-fit</guid>
-      <pubDate>Wed, 07 Aug 2024 14:49:15 GMT</pubDate>
+好吧，我注意到 $1 - (\Phi(t))^n \le n(1-\Phi(t))$ 为真，因为 $1+x+x^2+...+x^{n-1} = \frac{1-x^n}{1-x} \le n$因为每当 $0 &lt; x &lt; 1$ 时，即每当 $x$ 是非退化概率时，$1+x+x^2+...+x^{n-1} \le \sum_{i=1}^{n} 1 = n$。因此，
+
+
+$$P(M_n &gt; t)$$
+$$= 1 - P(M_n \le t) \ \text{1 减 1 真好}$$
+$$= 1 - P(Z_1, ..., Z_n \le t)$$
+$$= 1 - P(\bigcap_{i=1}^{n} \{ Z_i \le t \})​​$$
+$$= 1 - \prod_{i=1}^{n} P(\{ Z_i \le t \})​​ \ \text{by独立！}$$
+$$= 1 - \prod_{i=1}^{n} \Phi(t) \ \text{by same distribution}$$
+$$= 1 - (\Phi(t))^n \le n(1-\Phi(t))$$
+问题：既然显然有更短的路，那发生了什么？
+猜测：讲师没有意识到有更短的路？或者也许只是为了展示 $1 - (\Phi(t))^n \le n(1-\Phi(t))$ 的另一种证明，我们通过以两种不同的方式查看 $P(M_n &gt; t)$ 来做什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652454/about-suppose-z-i-are-i-i-d-n0-1-and-let-m-n-max-z-1-ldots-z-n</guid>
+      <pubDate>Wed, 07 Aug 2024 16:50:12 GMT</pubDate>
     </item>
     <item>
       <title>如何从多重插补数据集中汇总 II 型 ANCOVA 的结果？</title>
