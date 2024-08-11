@@ -4,7 +4,68 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 11 Aug 2024 18:21:13 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 11 Aug 2024 21:16:20 GMT</lastBuildDate>
+    <item>
+      <title>如何在 Hugging Face (HF) 中从头重新初始化 GPT XL？</title>
+      <link>https://stackoverflow.com/questions/78859343/how-to-reinitialize-from-scratch-gpt-xl-in-hugging-face-hf</link>
+      <description><![CDATA[我试图确认我的 GPT-2 模型是从头开始训练的，而不是使用任何预先存在的预训练权重。这是我的方法：
+
+加载预训练的 GPT-2 XL 模型：我使用 AutoModelForCausalLM.from_pretrained(&quot;gpt2-xl&quot;) 加载预训练的 GPT-2 XL 模型，并计算此模型权重的总 L2 范数。
+从头开始初始化新的 GPT-2 模型：然后我使用 GPT2Config 从头开始​​使用自定义配置初始化新的 GPT-2 模型。
+比较 L2 范数：我计算预训练模型和新初始化模型的权重的 L2 范数。我的假设是，如果临时模型确实是从随机权重初始化的，那么临时模型的 L2 范数应该比预训练模型小得多。
+
+这是代码片段：
+import torch
+from transformers import GPT2LMHeadModel, GPT2Config, AutoModelForCausalLM
+
+# 步骤 1：加载预训练的 GPT-2 XL 模型
+pretrained_model = AutoModelForCausalLM.from_pretrained(&quot;gpt2-xl&quot;)
+
+# 步骤 2：计算预训练模型权重的 L2 范数
+pretrained_weight_norm = 0.0
+for param in pretrained_model.parameters():
+pretrained_weight_norm += torch.norm(param, p=2).item()
+
+print(f&quot;Total L2预训练模型权重的范数：{pretrained_weight_norm:.2f}&quot;)
+
+# 步骤 3：使用自定义配置从头开始初始化新的 GPT-2 模型
+config = GPT2Config(
+vocab_size=52000, # 确保这与 tokenizer 的词汇量相匹配
+n_ctx=1024, # 上下文窗口大小（模型一次可以看到的 token 数量）
+bos_token_id=0, # 序列开始 token
+eos_token_id=1, # 序列结束 token
+)
+model = GPT2LMHeadModel(config)
+
+# 步骤 4：计算刚初始化的模型权重的 L2 范数
+scratch_weight_norm = 0.0
+for param in model.parameters():
+scratch_weight_norm += torch.norm(param, p=2).item()
+
+print(f&quot;从头开始初始化的模型的总 L2 范数：{scratch_weight_norm:.2f}&quot;)
+
+这种方法是否是确认模型是从头开始训练的有效方法？是否存在任何潜在问题或更好的方法来验证模型没有预先存在的学习权重？
+看起来正确
+~/beyond-scale-language-data-diversity$ /opt/conda/envs/beyond_scale_div_coeff/bin/python /home/ubuntu/beyond-scale-language-data-diversity/playground/test_gpt2_pt_vs_reinit_scratch.py​​
+config.json: 100%|█████████████████████████████████████████████████████████████████████████████████████████████| 689/689 [00:00&lt;00:00，8.05MB/s]
+model.safetensors：100%|██████████████████████████████████████████████████████████████████████████| 6.43G/6.43G [00:29&lt;00:00，221MB/s]
+generation_config.json：100%|██████████████████████████████████████████████████████████████████████████████████████| 124/124 [00:00&lt;00:00，1.03MB/s]
+预训练模型权重的总 L2 范数：24542.74
+从头初始化模型的总 L2 范数：1637.31
+（beyond_scale_div_coeff）
+
+cross: https://discuss.huggingface.co/t/how-to-reinitialize-from-scratch-gpt-xl-in-hugging-face-hf/101905
+ref: https://github.com/alycialee/beyond-scale-language-data-diversity/issues/18]]></description>
+      <guid>https://stackoverflow.com/questions/78859343/how-to-reinitialize-from-scratch-gpt-xl-in-hugging-face-hf</guid>
+      <pubDate>Sun, 11 Aug 2024 20:27:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>机器学习（GAN）生成图像</title>
+      <link>https://stackoverflow.com/questions/78859294/machine-learning-gan-to-generate-images</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78859294/machine-learning-gan-to-generate-images</guid>
+      <pubDate>Sun, 11 Aug 2024 20:01:20 GMT</pubDate>
+    </item>
     <item>
       <title>与 Google Colab（Tesla T4）相比，我的 GPU（RTX 3070）真的那么慢吗？</title>
       <link>https://stackoverflow.com/questions/78858972/is-my-gpu-rtx-3070-that-slow-when-compared-to-google-colab-tesla-t4</link>
@@ -442,33 +503,6 @@ TypeError：添加的层必须是 Layer 类的实例。收到：layer= 类型为
       <pubDate>Sun, 11 Aug 2024 02:34:35 GMT</pubDate>
     </item>
     <item>
-      <title>TensorBoard 中的 add_hparams() 函数无法正常工作</title>
-      <link>https://stackoverflow.com/questions/78857269/add-hparams-function-from-tensorboard-doesnt-work-properly</link>
-      <description><![CDATA[我试图向此 SummaryWriter 添加指标，但不起作用。
-我正在使用 SummaryWriter 的 add_hparams() 函数，其详细信息可在此处找到：https://pytorch.org/docs/stable/tensorboard.html。
-我这样做：
- writer = SummaryWriter(f&#39;runs/lstm_experiment_final&#39;)
-
-for e in tqdm(range(num_epochs)):
-tr_loss, tr_f1, tr_precision, tr_recall = training_loop(model, train_dataloader, loss_function, optimizer, e, writer)
-val_loss, val_f1, val_precision, val_recall = validation_loop(model, test_dataloader, loss_function, e, writer)
-
-metric_dict = {&#39;Loss/train&#39;: tr_loss, &#39;Loss/valid&#39;: val_loss,
-&#39;F1/train&#39;: tr_f1, &#39;F1/valid&#39;: val_f1,
-&#39;Precision/train&#39;: tr_precision, &#39;Precision/valid&#39;: val_precision,
-&#39;Recall/train&#39;: tr_recall, &#39;Recall/valid&#39;: val_recall}
-writer.add_hparams(best_params, metric_dict, global_step=num_epochs-1)
-writer.close()
-
-这就是正在发生的事情。
-在此处输入图片描述
-换句话说，超参数确实记录在 TensorBoard 上，但度量值却没有记录。
-我希望有人已经看到我的问题并知道如何解决这个问题。
-提前谢谢。]]></description>
-      <guid>https://stackoverflow.com/questions/78857269/add-hparams-function-from-tensorboard-doesnt-work-properly</guid>
-      <pubDate>Sun, 11 Aug 2024 00:21:56 GMT</pubDate>
-    </item>
-    <item>
       <title>启用 GPU 2024-OSError：[WinError 127] 找不到指定的过程</title>
       <link>https://stackoverflow.com/questions/78856582/enable-gpu-2024-oserror-winerror-127-the-specified-procedure-could-not-be-fo</link>
       <description><![CDATA[我正在尝试启用 GPU 进行机器学习，但遇到了这个问题：
@@ -502,14 +536,6 @@ OSError：[WinError 127] 找不到指定的程序。错误
 如何解决这个问题？]]></description>
       <guid>https://stackoverflow.com/questions/78856582/enable-gpu-2024-oserror-winerror-127-the-specified-procedure-could-not-be-fo</guid>
       <pubDate>Sat, 10 Aug 2024 16:59:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>在扩展中访问 NetLogo 扩展</title>
-      <link>https://stackoverflow.com/questions/78851057/accessing-netlogo-extensions-within-an-extension</link>
-      <description><![CDATA[我正在尝试开发一个 NetLogo 扩展来与不同的 LLMS（在线、离线）进行通信。LLM 调用返回 JSON 格式的字符串。我想解析 JSON 并将其转换为嵌套的 TABLE 对象，以访问 NetLogo Table 扩展。
-是否有办法让一个扩展访问和使用另一个扩展中的类？]]></description>
-      <guid>https://stackoverflow.com/questions/78851057/accessing-netlogo-extensions-within-an-extension</guid>
-      <pubDate>Fri, 09 Aug 2024 03:21:02 GMT</pubDate>
     </item>
     <item>
       <title>ValueError：层“dense_2”需要 1 个输入，但它收到了 2 个输入张量</title>
