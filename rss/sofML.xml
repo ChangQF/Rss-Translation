@@ -4,7 +4,151 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 11 Aug 2024 09:16:01 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 11 Aug 2024 12:27:40 GMT</lastBuildDate>
+    <item>
+      <title>批量数据的 SGD 优化器设置</title>
+      <link>https://stackoverflow.com/questions/78858189/sgd-optimizer-setting-for-batched-data</link>
+      <description><![CDATA[我是 ML 的新手，刚刚开始学习。我正在学习 Joh Krohn 的数学 ML 入门课程。课程解释得很清楚，但有一件事让我很困惑。在这个任务中 https://github.com/jonkrohn/ML-foundations/blob/master/notebooks/regression-in-pytorch.ipynb 我们使用了 torch.optim.SGD torch SGD，它运行了所有示例数据。
+optimizer = torch.optim.SGD([m,b], lr = 0.01)
+epochs = 999
+for epoch in range(epochs): 
+
+optimizer.zero_grad() # 将梯度重置为零；否则它们会累积
+
+yhats = 回归（xs，m，b）# 步骤 1
+C = mse（yhats，ys）# 步骤 2
+
+C.backward() # 步骤 3
+
+optimizer.step() # 步骤 4
+
+在第二个练习中，我们进行了学习率调度 https://github.com/jonkrohn/ML-foundations/blob/master/notebooks/learning-rate-scheduling.ipynb
+有 8.000.000 个数据点，因此数据被设置为批处理，并且代码在这些样本上轮流运行，而不是在所有数据上按时期运行。然而，这不是用 torch.optim.SGD 完成的，而是在代码上显示以查看数学是如何工作的。我正在努力用 torch.optim.SGD 运行它。如何编写代码来运行它，而不是像下面这样编写大型数学方程式，其中已经创建了所有方程式，例如梯度、theta：
+n = 8000000
+x = torch.linspace(0., 8., n)
+y = -0.5*x + 2 + torch.normal(mean=torch.zeros(n), std=1)
+indices = np.random.choice(n, size=2000, replace=False)
+gradient = torch.tensor([[b.grad.item(), m.grad.item()]]).T
+theta = torch.tensor([[b, m]]).T 
+lr = 0.01
+new_theta = theta - lr*gradient
+C = mse(regression(x[batch_indices], m, b), y[batch_indices])
+b.requires_grad_()
+m.requires_grad_()
+
+def return(my_x, my_m, my_b):
+return my_m*my_x + my_b
+
+m = torch.tensor([0.9]).requires_grad_()
+b = torch.tensor([0.1]).requires_grad_()
+
+batch_size = 32 # 模型超参数
+batch_indices = np.random.choice(n, size=batch_size, replace=False)
+yhat = return(x[batch_indices], m, b)
+
+yhat = return(x[batch_indices], m, b)
+
+def mse(my_yhat, my_y): 
+sigma = torch.sum((my_yhat - my_y)**2)
+return sigma/len(my_y)
+
+C = mse(yhat, y[batch_indices])
+
+C.backward()
+m.grad
+b.grad
+
+gradient = torch.tensor([[b.grad.item(), m.grad.item()]]).T
+
+theta = torch.tensor([[b, m]]).T 
+
+lr = 0.01
+new_theta = theta - lr*gradient
+new_theta
+
+b = new_theta[0]
+m = new_theta[1]
+
+C = mse(regression(x[batch_indices], m, b), y[batch_indices])
+
+rounds = 100 
+
+for r in range(rounds): 
+
+# 这个采样步骤很慢；稍后我们将介绍更快的批量采样： 
+batch_indices = np.random.choice(n, size=batch_size, replace=False)
+
+yhat = return(x[batch_indices], m, b) # 步骤 1
+C = mse(yhat, y[batch_indices]) # 步骤 2
+
+C.backward() # 步骤 3
+
+gradient = torch.tensor([[b.grad.item(), m.grad.item()]]).T
+theta = torch.tensor([[b, m]]).T 
+
+new_theta = theta - lr*gradient # 步骤 4
+
+b = new_theta[0].requires_grad_()
+m = new_theta[1].requires_grad_()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78858189/sgd-optimizer-setting-for-batched-data</guid>
+      <pubDate>Sun, 11 Aug 2024 11:20:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>解决自动标记（优化）+分类问题</title>
+      <link>https://stackoverflow.com/questions/78858155/tackling-an-automatic-labeling-optimization-classification-problem</link>
+      <description><![CDATA[我知道这不太侧重于编程，但我不知道还有什么地方可以问这个问题。这更多的是关于方法而不是技术问题。
+上下文
+我有一个优化 + 分类任务。因此，本质上，我的数据具有以下列：
+[&#39;Model ID&#39;, &#39;Q&#39;, &#39;refinement&#39;, &#39;avg_time&#39;, &#39;lattice&#39;, &#39;radius&#39;]（还有更多，但为了简洁起见，我们只保留这些）
+
+Model ID：代表“设计”，每个 Model ID 将有多行
+
+Q：这是目标变量
+
+refinement：这是一个设置变量；它可以取 1-8 的值，这直接影响 Q，（模型 ID，细化）对是唯一的。因此，模型 ID 将具有多行，细化程度各不相同
+
+avg_time：这是模拟完成所需的时间，仅受细化的影响，细化程度越高，所需的时间越长。此值与设计无关，它仅取决于细化，因此特定细化的所有设计都具有相同的时间。
+
+lattice 和 radius：这些代表“设计”，本质上更改它们将更改 Q
+
+
+数据集
+我的数据集来自随机设计的模拟。对于每个设计，我们可以有以下行为：
+
+持续增加（每次细化时的 Q 值高于上一个细化级别）
+持续减少（每次细化时的 Q 值低于上一个细化级别）
+之字形，其中 Q 值遵循此当前模式（高，低，高，低）或（低，高，低，高）
+碗形，其中 Q 值遵循此当前模式：（高，低，低，高）
+梯形，其中 Q 值遵循此当前模式：（低，高，高，低）
+我有代码可以检测这些形状并返回布尔值：
+
+def is_zigzag(q_values)
+
+def is_bowl(q_values)
+
+def is_trapezoid(q_values)
+
+数据集中细化的值范围是 2-5，但细化可以取 1-8 的值。
+任务
+因此，我试图实现的是自动标记每个模型 ID（通过对行进行分组）和最佳细化值（范围为 1-8），以最大化 Q 的变化（增量越大越好）并最小化所花费的时间（越低越好）。问题是由于数据是在细化级别 5 处切割的，所以我想到使用概率方法（例如 MLE）来创建未来细化的预期变化和预期所花费的时间。但我似乎无法“调整”它，所以它很有用。获得预期值后，我需要一个成本函数来计算（优化）Q 的回报与完成该细化级别所花费的增加时间的比较。
+在下一部分中，我将开发一个分类器，它将采用设计和最佳细化。从理论上讲，它应该可以预测未见过的设计的最佳细化级别
+我很感激任何有关解决这个问题的指导/帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/78858155/tackling-an-automatic-labeling-optimization-classification-problem</guid>
+      <pubDate>Sun, 11 Aug 2024 11:01:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>处理缺失数据并建立具有不完整信息的预测模型？</title>
+      <link>https://stackoverflow.com/questions/78858124/handling-missing-data-and-building-a-predictive-model-with-incomplete-informatio</link>
+      <description><![CDATA[我正在为涉及 20 个影响点的供水网络开发一个预测模型。但是，我只有这 20 个点中的 10 个的历史数据。
+我想知道如何在这个不完整的数据集下构建预测模型。具体来说：
+我可以使用哪些方法来处理剩余 10 个点的缺失数据？在这种情况下，是否有任何标准技术或最佳实践来处理缺失数据？
+我如何有效地将我拥有的 10 个点的数据合并到模型中？我可以采用哪些策略来确保有效利用可用数据进行准确预测？
+是否有特定的技术或模型可以帮助在数据不完整的情况下进行预测？我对可以有效管理和利用不完整数据的方法感兴趣。
+&quot;我还没有具体的方法。&quot;]]></description>
+      <guid>https://stackoverflow.com/questions/78858124/handling-missing-data-and-building-a-predictive-model-with-incomplete-informatio</guid>
+      <pubDate>Sun, 11 Aug 2024 10:43:28 GMT</pubDate>
+    </item>
     <item>
       <title>使用 hub.KerasLayer 使用 tf.keras.sequential 制作深度学习模型时出错</title>
       <link>https://stackoverflow.com/questions/78857786/error-when-using-hub-keraslayer-using-tf-keras-sequential-to-make-deep-learning</link>
@@ -40,6 +184,15 @@ TypeError：添加的层必须是 Layer 类的实例。收到：layer= 类型为
 所以我错了什么，我一直在搜索这个，但问题和我得到的不一样]]></description>
       <guid>https://stackoverflow.com/questions/78857786/error-when-using-hub-keraslayer-using-tf-keras-sequential-to-make-deep-learning</guid>
       <pubDate>Sun, 11 Aug 2024 08:05:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何计算 CV-k 折叠预测“是”“否”的均方误差？</title>
+      <link>https://stackoverflow.com/questions/78857561/how-to-calculate-mean-square-error-for-predictions-yes-no-with-a-cv-k-fold</link>
+      <description><![CDATA[为了根据满意度指数和参与度指数预测客户是否会购买产品，我们使用了 k 近邻法。
+如何用 4 倍交叉验证过程评估预测均方误差？它不需要在 R 中。我只需要如何计算它的理论。
+我知道如何用数字计算，但不知道如何用字符串计算]]></description>
+      <guid>https://stackoverflow.com/questions/78857561/how-to-calculate-mean-square-error-for-predictions-yes-no-with-a-cv-k-fold</guid>
+      <pubDate>Sun, 11 Aug 2024 05:16:27 GMT</pubDate>
     </item>
     <item>
       <title>如何提高 SGDRegressor 模型性能</title>
@@ -114,82 +267,6 @@ OSError：[WinError 127] 找不到指定的程序。错误
       <pubDate>Sat, 10 Aug 2024 16:59:08 GMT</pubDate>
     </item>
     <item>
-      <title>TypeError：不可散列类型：'list' 带有 make_column_selector</title>
-      <link>https://stackoverflow.com/questions/78856013/typeerror-unhashable-type-list-with-make-column-selector</link>
-      <description><![CDATA[我正在尝试对我的数据进行一些预处理，以便进行销售预测。我使用 make_column_selector 选择特定列，以便将不同的编码器应用于不同的列。我试图创建一个 make 选择器列对象来访问特征变量 X 中的列。它对数字列很有效，但类别列却存在问题。每次我使用选择器对象选择类别数据中的列时，我都会得到 TypeError: unhashable type: &#39;list&#39;
-在此处输入图片描述
-# 设置种子
-seed = 200
-
-# 设置特征和目标变量
-X = bigmart_copy.drop(&#39;Item_Outlet_Sales&#39;, axis = 1)
-y = bigmart_copy.Item_Outlet_Sales
-
-# 将数据拆分为训练集和测试集
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, shuffle = True, random_state=seed)
-
-# 创建数值列列表
-num_selector = make_column_selector(dtype_exclude=&#39;object&#39;)
-
-# 创建两组类别列表，一组是序数类型，
-# 另一组是名义类型
-cat_selector_ord = [&#39;Item_Fat_Content&#39;, &#39;Outlet_Size&#39;, &#39;Item_MRP_Category&#39;, &#39;Outlet_location_type&#39;]
-cat_selector_nom = [x for x in bigmart_copy.columns if x not in cat_selector_ord]
-
-cat_selector_nom_nom = make_column_selector(pattern=cat_selector_nom)
-cat_selector_ord_ord = make_column_selector(pattern=cat_selector_ord)
-
-# 从数据中选择此列
-num_cols = num_selector(X)
-cat_cols_ord = cat_selector_ord_ord(X)
-
-几行数据
-TypeError Traceback（最近一次调用最后一次）
-Cell In[29]，第 27 行
-25 # 从数据中选择此列
-26 num_cols = num_selector(X)
----&gt; 27 cat_cols_ord = cat_selector_ord_ord(X)
-28 cat_cols_nom = cat_selector_nom_nom(X)
-30 # 为每个选择器启动预处理器
-
-TypeError：不可哈希类型：&#39;list&#39;
-
-我原本期望不会出现任何错误，并且期望代码能够按预期工作。]]></description>
-      <guid>https://stackoverflow.com/questions/78856013/typeerror-unhashable-type-list-with-make-column-selector</guid>
-      <pubDate>Sat, 10 Aug 2024 12:33:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>需要一个用于 GenAI 图像生成的神经网络和深度学习模型</title>
-      <link>https://stackoverflow.com/questions/78855910/need-a-neural-network-and-deep-learning-model-for-genai-image-generation</link>
-      <description><![CDATA[我需要一个预先训练的模型，可以分析图像中存在的所有形状，并将它们转换为最接近的规则几何形状。图像应根据对称性和不完整曲线的完整性进行规则化。
-我尝试使用 object_detection 模型，但发现它没有经过训练来规则化形状]]></description>
-      <guid>https://stackoverflow.com/questions/78855910/need-a-neural-network-and-deep-learning-model-for-genai-image-generation</guid>
-      <pubDate>Sat, 10 Aug 2024 11:40:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>YOLO 无法正确预测给定的图像</title>
-      <link>https://stackoverflow.com/questions/78855613/yolo-is-not-predicting-the-given-image-properly</link>
-      <description><![CDATA[我第一次尝试 YOLO。
-我正在按照视频教程操作，我编写了与他完全相同的代码，但它对我来说不起作用，我不知道为什么。
-from ultralytics import YOLO
-import numpy
-
-model = YOLO(&quot;yolov8n.pt&quot;, &quot;v8&quot;)
-
-output = model.predict(source=&quot;dog.jpg&quot;, conf=0.25, save=True)
-
-print(output)
-print(output[0].numpy())
-
-我提供给模型的图像：
-
-我得到的输出：
-
-我已尝试使用其他图像，但结果相同。]]></description>
-      <guid>https://stackoverflow.com/questions/78855613/yolo-is-not-predicting-the-given-image-properly</guid>
-      <pubDate>Sat, 10 Aug 2024 08:55:24 GMT</pubDate>
-    </item>
-    <item>
       <title>sentence-transformers：自定义分块函数和 encode_multi_process() 的组合并行化</title>
       <link>https://stackoverflow.com/questions/78855135/sentence-transformers-combined-parallelization-for-custom-chunking-function-and</link>
       <description><![CDATA[我正在使用 Python 3.10，使用句子转换器模型来编码/嵌入文本字符串列表。我想使用句子转换器的 encode_multi_process 方法来利用我的 GPU。这是一个非常特殊的函数，它接受一个字符串或一个字符串列表，并生成一个数字向量（或向量列表）。该函数将工作分配给系统 CPU 和 GPU。
@@ -224,13 +301,6 @@ A4 A4-1 B4 B4-1
       <pubDate>Sat, 10 Aug 2024 01:22:04 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 TensorFlow 修剪我在 Python 中创建的神经网络？</title>
-      <link>https://stackoverflow.com/questions/78851708/how-can-i-prune-this-neural-network-i-created-in-python-using-tensorflow</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78851708/how-can-i-prune-this-neural-network-i-created-in-python-using-tensorflow</guid>
-      <pubDate>Fri, 09 Aug 2024 07:50:59 GMT</pubDate>
-    </item>
-    <item>
       <title>在扩展中访问 NetLogo 扩展</title>
       <link>https://stackoverflow.com/questions/78851057/accessing-netlogo-extensions-within-an-extension</link>
       <description><![CDATA[我正在尝试开发一个 NetLogo 扩展来与不同的 LLMS（在线、离线）进行通信。LLM 调用返回 JSON 格式的字符串。我想解析 JSON 并将其转换为嵌套的 TABLE 对象，以访问 NetLogo Table 扩展。
@@ -244,7 +314,7 @@ A4 A4-1 B4 B4-1
       <description><![CDATA[我正在使用少量数据在 spaCy 中训练依赖解析器，如果我可以强制解析器
 
 每个句子只有一个词根
-将相同的标签应用于相同的词形/词形（例如 u 应始终为 cc）。
+将相同的标签应用于相同的词干/词形（例如 u 应始终为 cc）。
 
 有办法吗？]]></description>
       <guid>https://stackoverflow.com/questions/78849363/enforce-labels-in-dependency-parsing</guid>
@@ -417,12 +487,11 @@ print(&quot;已成功加载修订模型。&quot;)
       <pubDate>Thu, 08 Aug 2024 07:06:54 GMT</pubDate>
     </item>
     <item>
-      <title>Google 语音转文本和翻译（直播）</title>
-      <link>https://stackoverflow.com/questions/78765868/google-speech-to-text-and-translation-live-stream</link>
-      <description><![CDATA[我有一个用例，我将在直播中录制一段演讲，并且我希望实时获得音频的文本转录，然​​后翻译该转录。
-我是否需要使用 Google 的语音转文本 API，然后将生成的文本发送到翻译 API，还是可以在一行中完成？]]></description>
-      <guid>https://stackoverflow.com/questions/78765868/google-speech-to-text-and-translation-live-stream</guid>
-      <pubDate>Thu, 18 Jul 2024 17:21:16 GMT</pubDate>
+      <title>将自定义模型和配置注册到 AutoModel 和 AutoConfig</title>
+      <link>https://stackoverflow.com/questions/77428197/registering-custom-model-and-config-to-automodel-and-autoconfig</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/77428197/registering-custom-model-and-config-to-automodel-and-autoconfig</guid>
+      <pubDate>Mon, 06 Nov 2023 00:48:18 GMT</pubDate>
     </item>
     </channel>
 </rss>
