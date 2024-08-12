@@ -4,7 +4,145 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 12 Aug 2024 06:23:04 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 12 Aug 2024 09:17:31 GMT</lastBuildDate>
+    <item>
+      <title>功能性 PCA 仅仅是基于基础系数的 PCA 吗？</title>
+      <link>https://stats.stackexchange.com/questions/652643/is-a-functional-pca-just-a-pca-on-basis-coefficients</link>
+      <description><![CDATA[函数主成分分析（FPCA）只是正交基系数上的普通 PCA 吗？以下似乎表明确实如此。
+首先，让我们对加拿大天气数据进行 FPCA：
+import numpy as np
+import skfda as fda
+from skfda.preprocessing.dim_reduction import FPCA
+from sklearn.decomposition import PCA
+
+# 获取加拿大天气数据
+weather = fda.datasets.fetch_weather()
+weather_data_grid = fda.FDataGrid(data_matrix = weather.data.data_matrix[:, :, 0],
+grid_points = weather.data.grid_points,
+domain_range = weather.data.domain_range)
+# 进行 FPCA
+weather_basis = fda.representation.basis.FourierBasis(domain_range = (0.0, 365.0),
+n_basis = 25, period = 365)
+weather_data_basis = weather_data_grid.to_basis(weather_basis)
+weather_fpca = FPCA(n_components = 25)
+weather_fpca.fit(weather_data_basis)
+
+现在获取基础系数并对其进行常规的旧 PCA：
+pca = PCA(n_components = 25)
+pca.fit(weather_data_basis.coefficients)
+
+并比较结果：
+np.allclose(weather_fpca.explained_variance_ratio_, pca.explained_variance_ratio_)
+np.allclose(weather_fpca.components_.coefficients, pca.components_)
+
+两种比较都是正确的。
+FPCA 是否只是基于基础系数的 PCA，还是我遗漏了什么？
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/652643/is-a-functional-pca-just-a-pca-on-basis-coefficients</guid>
+      <pubDate>Mon, 12 Aug 2024 09:08:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>竞争风险 - 加权人群中的累积发生率</title>
+      <link>https://stats.stackexchange.com/questions/652642/competing-risk-cumulative-incidence-in-a-weighted-population</link>
+      <description><![CDATA[我有以下基于倾向得分加权的数据。
+
+模型中唯一感兴趣的独立变量是 treat，因为协变量已使用权重进行平衡。
+感兴趣的事件是疾病。
+
+竞争风险是死亡。
+
+因此，event == 0（审查），event == 1（疾病），event == 2（死亡）。
+library(cobalt)
+library(cmprsk)
+
+set.seed(123)
+lalonde &lt;- cbind(lalonde,
+event = sample(c(0, 1), size = 614, replace = TRUE, prob = c(0.84, 0.16)),
+time = runif(614, min = 10，最大值 = 365))
+n &lt;- ceiling(0.05 * nrow(lalonde)) 
+selected_indices &lt;- sample(1:nrow(lalonde), size = n)
+lalonde[selected_indices, &quot;event&quot;] &lt;- 2
+
+formula &lt;- treat ~ age + educ + race + marriage + nodegree + re74 + re75 + re78
+
+# PS
+lalonde$pscore &lt;- glm(formula, data = lalonde,
+family = binomial(link = &quot;logit&quot;))$fitted.values
+
+# Weights
+lalonde$weight &lt;- ifelse(lalonde$treat == 1,
+pmin(lalonde$pscore, 1 - lalonde$pscore) / lalonde$pscore,
+pmin(lalonde$pscore, 1 - lalonde$pscore) / (1 - lalonde$pscore))
+
+
+如果没有权重，我会计算并绘制如下：
+cr &lt;- cuminc(ftime = lalonde$time,
+fstatus = lalonde$event, 
+cencode = 0,
+group = lalonde$treat)
+
+p &lt;- ggcompetingrisks(fit = cr, 
+multiple_panels = F, 
+xlab = &quot;Days&quot;, 
+ylab = &quot;Cumulative事件发生率&lt;,
+title = &quot;竞争风险分析&quot;) 
+
+p$mapping &lt;- aes(x = time, y = est, colour = group)
+
+由于我对调整竞争风险后的事件感兴趣，因此我排除了竞争风险的曲线：
+p$data &lt;- p$data[p$data$event == 1, ]
+
+p + labs(colour = &quot;Group&quot;) 
+
+结果为：
+
+问题：
+
+如何解释权重？
+或者它是否迫使某人使用匹配而不是加权，因为没有参数来实现权重？
+如何添加风险表？是否只能通过拟合 fit &lt;- survfit(Surv(time, event == 1) ~ treat, data = lalonde) 来实现 ggsurvplot(fit,..., risk.table = TRUE,...)，然后通过 {patchwork 结合图 p 和 ggsurvplot 中的风险表？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652642/competing-risk-cumulative-incidence-in-a-weighted-population</guid>
+      <pubDate>Mon, 12 Aug 2024 09:07:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么在运行ARDL模型时变量的符号会随着滞后而变化？</title>
+      <link>https://stats.stackexchange.com/questions/652641/why-does-the-sign-on-the-variable-changes-with-the-lag-while-running-ardl-model</link>
+      <description><![CDATA[该模型的因变量是死亡率，而自变量是平均值：平均受教育年限，GDP 为国内生产总值，百分比变化。虽然它们都是 I(0) 或 I(1)，所以我使用 ARDL 模型。但是均值的系数为正，而均值的滞后系数为负。这是正常的吗，我该如何解释它？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652641/why-does-the-sign-on-the-variable-changes-with-the-lag-while-running-ardl-model</guid>
+      <pubDate>Mon, 12 Aug 2024 08:56:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>似然比检验中的自由度 - 多元正态分布与单变量正态分布和阿基米德 copula</title>
+      <link>https://stats.stackexchange.com/questions/652640/degrees-of-freedom-in-a-likelihood-ratio-test-multivariate-normal-vs-univariat</link>
+      <description><![CDATA[希望标题是不言自明的！更具体地说，我有三个数据集。首先，我将它们拟合为多元正态分布，并计算对数似然。然后，我拟合正态边际和（比如说）Clayton copula，并将边际和 copula 拟合的对数似然相加。后者的对数似然高于前者。为了查看改进是否显著，我会使用似然比检验。但我的自由度是多少？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652640/degrees-of-freedom-in-a-likelihood-ratio-test-multivariate-normal-vs-univariat</guid>
+      <pubDate>Mon, 12 Aug 2024 08:38:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>样本方差的渐近分布[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/652639/asymptotic-distribution-in-sample-variance</link>
+      <description><![CDATA[如何证明样本方差 S^2 是渐近正态的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652639/asymptotic-distribution-in-sample-variance</guid>
+      <pubDate>Mon, 12 Aug 2024 08:24:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>针对非常小的数据进行测试和训练</title>
+      <link>https://stats.stackexchange.com/questions/652638/test-train-for-very-very-small-data</link>
+      <description><![CDATA[我的数据集有 25 个观测值，包含 1000 多个特征。测试和训练是否适用？
+问题是使用混合类型数据（数字和分类）进行分类。
+如何确保我没有过度拟合。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652638/test-train-for-very-very-small-data</guid>
+      <pubDate>Mon, 12 Aug 2024 08:16:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>仅使用 elastic-net 进行特征选择</title>
+      <link>https://stats.stackexchange.com/questions/652636/using-elastic-net-only-for-feature-selection</link>
+      <description><![CDATA[我们可以使用正则化模型代替特征选择方法，然后使用机器学习模型来分析数据吗？
+我的问题是分类，数据中有 1000 多个特征。数据是数值和分类变量的混合。我想使用正则化方法（如 elastic-net）进行特征选择，然后使用机器学习模型（如随机森林）来分析选定的特征，进行预测并找到特征重要性。但我不确定我的方法是否正确！]]></description>
+      <guid>https://stats.stackexchange.com/questions/652636/using-elastic-net-only-for-feature-selection</guid>
+      <pubDate>Mon, 12 Aug 2024 07:15:11 GMT</pubDate>
+    </item>
     <item>
       <title>我该如何进行这项小组研究？</title>
       <link>https://stats.stackexchange.com/questions/652634/how-do-i-approach-this-panel-study</link>
@@ -15,7 +153,7 @@
 我尝试过对数、最小-最大缩放器等，但随机和固定效应模型的结果很奇怪。我该如何处理这个问题？
 
 
-以下是我的表格的摘要统计数据
+以下是我的表格的汇总统计数据
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/652634/how-do-i-approach-this-panel-study</guid>
       <pubDate>Mon, 12 Aug 2024 02:21:01 GMT</pubDate>
@@ -42,76 +180,6 @@ $$ \gamma=1-\Phi\left[z_{1-\alpha / 2}-\left|r\right| \sqrt{n}\right]$$
 编辑：我不打算使用双变量公式；我只是想了解这一切是如何结合在一起的。]]></description>
       <guid>https://stats.stackexchange.com/questions/652630/is-the-following-formula-for-power-of-bivariate-regression-correct</guid>
       <pubDate>Sun, 11 Aug 2024 23:19:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>序列到序列模型是否需要相似序列的相似联合分布？</title>
-      <link>https://stats.stackexchange.com/questions/652625/do-sequence-to-sequence-models-require-similar-joint-distributions-for-similar-s</link>
-      <description><![CDATA[我正在探索将序列到序列模型（例如 RNN、LSTM、GRU 和 Transformers）应用于时间序列数据，特别是在涉及非平稳性的场景中。
-我有几个关于这些模型如何处理此类数据的问题：
-
-鉴于模型的参数在训练后是固定的，这是否意味着相似的输入序列（无论是从平稳还是非平稳数据生成过程生成）必须具有相似的联合概率分布才能使模型有效执行？
-
-序列到序列模型如何处理相似序列可能来自具有不同底层分布的过程的情况？这些模型是否固有地要求这些序列的联合概率分布相似，或者它们在训练后是否可以在不同的分布中推广？
-
-如果数据的分布随时间而变化，会发生什么？是否有特定的机制、实践或模型调整（例如，纳入随时间变化的参数）可以帮助这些模型适应非平稳性，或者在这种情况下它们的有效性是否会受到影响？
-
-
-任何有助于澄清这些观点的见解或参考资料都将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652625/do-sequence-to-sequence-models-require-similar-joint-distributions-for-similar-s</guid>
-      <pubDate>Sun, 11 Aug 2024 20:33:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>运行 GAM 时使用平滑因子以及对每个个体使用 bs="fs" 时的警告解释</title>
-      <link>https://stats.stackexchange.com/questions/652624/warning-interpretation-when-running-a-gam-using-factor-by-smooths-and-also-using</link>
-      <description><![CDATA[我想看看代谢物水平如何随时间随治疗变量（此处为抗生素）变化。有两个水平（是/否）。当我使用 bs=&quot;fs&quot; 运行以下模型 1 时，它会收到以下警告：
- 警告消息：
-在 gam.side(sm, X, tol = .Machine$double.eps^0.5) 中：
-模型对同一变量进行了重复的一维平滑。
-
-model1 &lt;- gam(Met1 ~ Antibiotics + s(Timepoint, k=7) +
-s(Timepoint, by=Antibiotics, k=7, m=1) + 
-s(Timepoint, ID_new, bs=&quot;fs&quot;, k=7) + data=pos_fullnew, method=&quot;REML&quot;)
-
-或者，删除常见趋势 s(Timepoint)，以获得以下无警告运行。
- model2 &lt;- gam(Met1 ~ Antibiotics +
-s(Timepoint, by=Antibiotics, k=7) + 
-s(Timepoint, ID_new, bs=&quot;fs&quot;, k=7) + data=pos_fullnew, method=&quot;REML&quot;)
-
-关于错误/模型将不胜感激 - 谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652624/warning-interpretation-when-running-a-gam-using-factor-by-smooths-and-also-using</guid>
-      <pubDate>Sun, 11 Aug 2024 20:20:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>随机数和的贡献[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/652622/contribution-of-sum-of-random-numbers</link>
-      <description><![CDATA[尝试找到一种方法来做到这一点，而不必使用庞大的查找表。
-对 6 个随机数（11 到 255）求和，并找出其中一个数字贡献大于/小于所选总数的概率。如果可能的话，还想知道成对的情况，例如数字 3 和 5 的贡献是否少于总数的 20%。
-pastebin.com/SNLeSCE2 我想要找到的精确函数结果]]></description>
-      <guid>https://stats.stackexchange.com/questions/652622/contribution-of-sum-of-random-numbers</guid>
-      <pubDate>Sun, 11 Aug 2024 19:32:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>在一个模型中，对同一个变量进行两次单独的交互可以吗？</title>
-      <link>https://stats.stackexchange.com/questions/652621/is-it-okay-to-have-two-separate-interactions-with-the-same-variable-in-one-model</link>
-      <description><![CDATA[我的主要模型是这样的：
-model &lt;- brm(
-bf(binary ~ categorical1 + categorical2 + (1 | id) + (1 | country)),
-data = data,
-family = bernoulli(link = &quot;logit&quot;),
-Prior = Priors,
-chains = 8, iter = 2000, seed = 345)
-
-现在，作为探索性分析，我想测试国家和每个分类变量之间的相互作用，但我对 categorical1 和 categorical2 之间的相互作用不感兴趣。
-我想知道这个模型是否过度拟合，我应该运行两个单独的模型吗？我该如何确定？
-model &lt;- brm(
-bf(binary ~ categorical1 * country + categorical2 * country + (1 | id)),
-data = data,
-family = bernoulli(link = &quot;logit&quot;),
-Prior = Priors,
-chains = 8, iter = 2000, seed = 345)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/652621/is-it-okay-to-have-two-separate-interactions-with-the-same-variable-in-one-model</guid>
-      <pubDate>Sun, 11 Aug 2024 16:28:28 GMT</pubDate>
     </item>
     <item>
       <title>指数联合概率之和</title>
@@ -172,42 +240,6 @@ $$
       <pubDate>Sun, 11 Aug 2024 03:38:53 GMT</pubDate>
     </item>
     <item>
-      <title>线性回归中的残差指数/偏协方差解释</title>
-      <link>https://stats.stackexchange.com/questions/652566/residual-index-partial-covariance-interpretation-in-linear-regression</link>
-      <description><![CDATA[（开始编辑）针对 EdM 的评论进行澄清。我没有想要测量或研究的特定关系。相反，我正在阅读的论文已经使用了 (G ~ B 的残差) ~ D 的回归。我试图自己解释他们的结果，但我遇到了麻烦。在我正在研究的真实数据集中，我们只有变量 B、D 和 G 的观测值。我们不知道 C，B 和 D 之间的关系可以通过其他机制建立，例如也许 B 导致 C 导致 D 是实际联系。 （结束编辑）
-我根据以下模型模拟数据
-
-其中我的最终结果变量是鸟类的平均脑质量。
-我需要帮助解释从以下 OLS 回归中拟合的 beta 系数
-$$
-(residuals~of~G \thicksim B) \thicksim D
-$$
-它给出了最佳拟合线
-$$
-(residuals~of~G \thicksim B) = \alpha + \beta D
-$$
-我有 beta 的闭式解，就部分协方差、偏相关和相关，我认为这些可以特别清楚地说明其值。尽管如此，我想将 $\beta$ 解释为告诉我 G 本身在某些条件下如何变化，而不是 G 对 B 的残差如何变化。这可能吗？如果它能给出更好的解释，我很乐意重新想象一下这个系统。例如，我可以翻转 B2 或 B3 箭头，这样 B/D 中的一个会直接导致另一个。任何关于 $\beta$ 到底告诉我什么的进一步见解都将不胜感激。以下是我对 $\beta$ 值的三个闭式表达式，它们仍然让我感到困惑。
-$$
-\beta = \frac{partial~covariance~of(G,D |B)}{var(D)}
-$$
-其中 (G,D |B) 的偏协方差为
-$$
-partial~covariance~of(G,D |B) = cov(G,D) - \frac{cov(G,B)cov(B,D)}{var(B)}
-$$
-此外，$\beta$ 可以用偏相关来表示
-$$
-\beta = \rho_{GD\cdot B}\frac{sd(residuals~of~G \thicksim B )sd(residuals~of~D \thicksim B)}{var(D)}
-$$
-最后，我最喜欢的表达式是下一个，因为它显示$\beta$是G和D之间的相关性，无法通过B标准化到回归的正确单位来追踪
-$$
-\beta = \big(cor(G,D) - cor(G,B)cor(B,D)\big)\frac{sd(G)}{sd(D)}
-$$
-但是我仍然很困惑。如何在我的模拟数据集中将D改变一个单位并控制改变B的影响，以便我的G实际上增加了$\beta$。如果可能的话，我想根据原始模型而不是残差来解释$\beta$，因为至少对我来说，残差实际上没有任何意义，据我所知，G ~ B 的残差是 E-A 的某种估计值，但这很令人困惑。
-欢迎任何观点/意见。谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652566/residual-index-partial-covariance-interpretation-in-linear-regression</guid>
-      <pubDate>Fri, 09 Aug 2024 20:31:47 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 MCMC/BS 的频率统计估计 R 中的（故意）错误指定的多层模型，并获得特定于集群的效应和 CI</title>
       <link>https://stats.stackexchange.com/questions/652574/estimating-a-purposely-misspecified-multilevel-model-in-r-using-frequentist-st</link>
       <description><![CDATA[亲爱的 Stackoverflow 朋友们，
@@ -215,7 +247,7 @@ $$
 这是模型：
 mod &lt;- lme4::lmer(ment_health~MT+(1+MT|clinic), data=dat)
 
-模型指定错误的原因是治疗 (MT) 的随机效应在人群中并不真正存在。数据由以下方式生成：
+模型错误指定的原因是治疗 (MT) 的随机效应在人群中并不真正存在。数据由以下方式生成：
 intercept &lt;- 10 # 总平均值
 MTeffect &lt;- 0 # 总体，固定效应
 sd_MT &lt;- 0 # （无）特定于群集的系数的变异性
@@ -227,7 +259,7 @@ n_clusters &lt;- 5 # 群集数量
 N &lt;- n*n_clusters # 总样本量
 clinic &lt;- rep(1:n_clusters, each = n) # 定义群集 ID
 MT &lt;- rep(c(0, 1), length.out = N) 
-# 设置二分预测变量：控制与。 treat
+# 设置二分预测变量：控制 vs. treat
 varmat &lt;- matrix(c(sd_int^2, cor, cor, sd_MT^2), 2, 2) 
 # 方差-协方差矩阵
 re &lt;- mvtnorm::rmvnorm(n_clusters, sigma = varmat) 
@@ -248,129 +280,6 @@ dat &lt;- data.frame(ment_health, MT = factor(MT), clinic, ppt_ID)
 我知道这很多，但任何帮助都将不胜感激！]]></description>
       <guid>https://stats.stackexchange.com/questions/652574/estimating-a-purposely-misspecified-multilevel-model-in-r-using-frequentist-st</guid>
       <pubDate>Fri, 09 Aug 2024 17:11:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>两个 KL 散度之间有关系吗？</title>
-      <link>https://stats.stackexchange.com/questions/652552/any-relation-between-two-kl-divergences</link>
-      <description><![CDATA[我正在使用 KL 散度来测量分布之间的差异，但我想将结果相互比较，因为我测量的概率分布是相关的。比较相关分布上的两个 KL 散度的良好测量方法是什么？
-例如，如果我正在查看测试的一些特性数据，比如说金属样品的 X 射线衍射图。我得到了强度与衍射角的 XRD 图，并且可以在参考状态（室温，新样品）下为其创建概率分布。然后，我在改变温度的同时对同一样品运行相同的 XRD 测试，对于该温度，我得到了我的 XRD 数据的新分布，我可以计算该分布相对于我的参考分布的 KL 散度。
-假设我冷轧我的金属样品，并运行相同的 XRD 实验，然后计算这些分布在相同参考状态下的 KL 散度。我有两个 KL 散度结果，并且我知道金属样品中存在温度与强度的变量，它们是相关的。是否有任何散度之间的比较技术可以告诉我一个分布相对于另一个分布的散度是多少？特别是如果变量相互关联？
-编辑：将示例更改为更具体。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652552/any-relation-between-two-kl-divergences</guid>
-      <pubDate>Fri, 09 Aug 2024 17:10:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>GAM 和随机效应：GAMM 和 GAMM4 输出之间的显著差异</title>
-      <link>https://stats.stackexchange.com/questions/652551/gams-and-random-effects-significant-differences-between-gamm-and-gamm4-outputs</link>
-      <description><![CDATA[在 gamm 和 gamm4 中引入随机效应时，我收到 $gam 参数系数的不同 p 值。这似乎是由于 SE 计算的差异造成的(?)。
-平滑项值也存在差异。
-在 gam 中计算随机效应结构可得到与 gamm$gam 相当的结果。
-模型：
-gam_model &lt;- gamm4(N.P ~ s(as.numeric(Year), bs = &quot;tp&quot;, k = 8) + Treatment,
-random = ~(1|Plot), data = leaf, REML = TRUE)
-
-gam_model1 &lt;- gamm(N.P ~ s(as.numeric(Year), bs = &quot;tp&quot;, k = 8) + Treatment,
-random = list(Plot=~1), data = leaf, method = &quot;REML&quot;)
-
-gam_model2 &lt;- gam(N.P ~ s(as.numeric(Year), bs = &quot;tp&quot;, k = 8) + Treatment
-+s(Plot, bs=&quot;re&quot;, k=9), data = leaf, method = &quot;REML&quot;)
-
-输出：
-&gt; summary(gam_model$gam)
-
-系列：高斯 
-链接函数：恒等式 
-
-公式：
-N.P ~ s(as.numeric(Year), bs = &quot;tp&quot;, k = 8) + Treatment
-
-参数系数：
-估计标准误差 t 值 Pr(&gt;|t|) 
-(截距) 15.2879 0.7223 21.167 &lt; 2e-16 ***
-TreatmentBCN -0.8325 0.4583 -1.817 0.07389 . 
-TreatmentControl -1.3039 0.4550 -2.866 0.00561 ** 
----
-Signif. 代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-平滑项的近似显著性：
-edf Ref.df F p 值 
-s(as.numeric(Year)) 4.238 4.238 3.321 0.0133 *
----
-Signif.代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-R-sq.(adj) = 0.255 
-lmer.REML = 293.79 Scale est. = 2.4311 n = 72
-
-&gt; summary(gam_model1$gam)
-
-系列：高斯 
-链接函数：恒等 
-
-公式：
-N.P ~ s(as.numeric(Year), bs = &quot;tp&quot;, k = 8) + Treatment
-
-参数系数：
-估计标准差。误差 t 值 Pr(&gt;|t|) 
-(截距) 15.2879 1.1649 13.123 &lt;2e-16 ***
-TreatmentBCN -0.8325 1.6475 -0.505 0.615 
-TreatmentControl -1.3039 1.6475 -0.791 0.432 
----
-Signif. 代码: 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-平滑项的近似显著性:
-edf Ref.df F p 值 
-s(as.numeric(Year)) 5.017 5.017 10.39 5.23e-07 ***
----
-Signif.代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-R-sq.(adj) = 0.246 
-尺度估计 = 2.4311 n = 72
-
-&gt; summary(gam_model2)
-
-系列：高斯 
-链接函数：恒等 
-
-公式：
-N.P ~ s(as.numeric(Year), bs = &quot;tp&quot;, k = 8) + Treatment + s(Plot, 
-bs = &quot;re&quot;, k = 9)
-
-参数系数：
-估计标准差。误差 t 值 Pr(&gt;|t|) 
-(截距) 15.2879 1.1649 13.123 &lt;2e-16 ***
-TreatmentBCN -0.8325 1.6475 -0.505 0.615 
-TreatmentControl -1.3039 1.6475 -0.791 0.432 
----
-Signif。代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-平滑项的近似显著性：
-edf Ref.df F p 值 
-s(as.numeric(Year)) 5.017 5.927 8.832 1.3e-06 ***
-s(Plot) 5.552 6.000 12.397 &lt; 2e-16 ***
----
-显著性。代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-R-sq.(adj) = 0.651 偏差解释 = 71.3%
--REML = 146.9 尺度估计 = 2.4311 n = 72
-
-这里有什么问题？
-我应该继续哪一个？
-根据 $gam 参数系数 p 值，假设治疗之间的差异是显著的，是否正确？
-有关所讨论数据的更多背景信息 - 有三种治疗方法，每种治疗方法有三个图作为重复。这些处理方法在几年内每年应用一次，每个地块每年采样一次。
-这是首次尝试使用加法模型来捕捉年度间波动曲线中的信息，而线性模型可能无法完全满足这一要求。
-观察到：
-
-使用前两个模型进行拟合：
-
-总体目标仍然是测试处理方法之间的差异。在整个治疗期间以及几年内。
-对于一般模型结构，这是初步方法。查看诸如添加 by=Treatment 或 Year 交互、将随机 Plot 因子切换为相同惩罚结构等事项。
-gam_model3 &lt;- gam(N.P ~ s(as.numeric(Year),bs = &quot;tp&quot;, k = 8) + as.numeric(Year)*Treatment +
-s(as.numeric(Year), Plot, k=8, bs=&quot;fs&quot;), data = leaf, method=&quot;REML&quot;)
-
-非常乐意听取有经验人士的任何建议。
-也在寻找合适的事后分析。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652551/gams-and-random-effects-significant-differences-between-gamm-and-gamm4-outputs</guid>
-      <pubDate>Fri, 09 Aug 2024 17:04:03 GMT</pubDate>
     </item>
     </channel>
 </rss>
