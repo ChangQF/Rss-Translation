@@ -4,7 +4,79 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 12 Aug 2024 01:10:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 12 Aug 2024 03:17:53 GMT</lastBuildDate>
+    <item>
+      <title>Optuna XGBoost 未使用 Mac 的所有 CPU</title>
+      <link>https://stackoverflow.com/questions/78859768/optuna-xgboost-not-using-all-of-macs-cpu</link>
+      <description><![CDATA[我正在将 Optuna 与 mySQL 一起运行，以尝试实现并行化并使用更多 Mac 的 CPU。例如，当我运行 GridSearchCV 时，我的用户 CPU 使用率将上升到 90%，并且风扇会启动。但是当我使用 Optuna 时，我得到大约 30% 并且没有风扇。这表明它没有被利用。
+我尝试使用 mySQL 和分发在 VSCode 的 Jupyter Notebook 上运行两个处理。我这样做的方式是在不同的内核上制作我的笔记本的两个副本，然后通过加载研究在同一个 SQL 数据库上运行优化代码。也许这不是正确的做法？因为在示例中他们在两个终端上运行了 foo.py？
+这是我的代码：
+def objective(trial, X_train, y_train, X_test, y_test):
+# 定义超参数搜索空间
+params = {
+&#39;n_estimators&#39;: trial.suggest_int(&#39;n_estimators&#39;, 100, 5000),
+&#39;max_depth&#39;: trial.suggest_int(&#39;max_depth&#39;, 2, 20),
+&#39;learning_rate&#39;: trial.suggest_float(&#39;learning_rate&#39;, 0.01, 0.2),
+&#39;subsample&#39;: trial.suggest_float(&#39;subsample&#39;, 0.7, 1.0),
+&#39;colsample_bytree&#39;: trial.suggest_float(&#39;colsample_bytree&#39;, 0.6, 1.0),
+&#39;min_child_weight&#39;: trial.suggest_int(&#39;min_child_weight&#39;, 1, 15),
+&#39;gamma&#39;: trial.suggest_float(&#39;gamma&#39;, 0.0, 0.4),
+&#39;lambda&#39;: trial.suggest_float(&#39;lambda&#39;, 1e-8, 1.0, log=True),
+&#39;alpha&#39;: trial.suggest_float(&#39;alpha&#39;, 1e-8, 1.0, log=True)
+}
+
+# 初始化并训练模型
+xgb = XGBRegressor(**params)
+xgb.fit(X_train, y_train)
+
+# 预测并计算指标
+y_pred = xgb.predict(X_test)
+error = max_percent_error(y_test, y_pred)
+return error # 返回要最小化的误差
+
+if __name__ == &quot;__main__&quot;:
+study = optuna.load_study(study_name=&quot;example&quot;, storage=&quot;mysql://root@localhost/example&quot;)
+
+# 对每个类别和目标执行优化
+for category in train_test_splits:
+for target_name in train_test_splits[category]:
+if target_name in best_params_dict:
+continue
+print(f&quot;Running Optuna Optimization for target: {target_name} in category: {category}&quot;)
+
+X_train = train_test_splits[category][target_name][&#39;X_train&#39;]
+y_train = train_test_splits[category][target_name][&#39;y_train&#39;]
+X_test = train_test_splits[category][target_name][&#39;X_test&#39;]
+
+y_test = train_test_splits[category][target_name][&#39;y_test&#39;]
+
+# 使用分布式计算优化研究
+study.optimize(lambda trial: objective(trial, X_train, y_train, X_test, y_test), 
+n_trials=1900, n_jobs=-1)
+
+# 存储为此目标找到的最佳参数
+best_params = study.best_params
+best_params_dict[category][target_name] = best_params
+
+# 使用最佳参数训练最终模型
+xgb_best = XGBRegressor(**best_params)
+xgb_best.fit(X_train, y_train)
+
+# 使用测试集评估模型
+y_pred = xgb_best.predict(X_test)
+test_max_percent_error = max_percent_error(y_test, y_pred)
+test_r2_score = r2_score(y_test, y_pred)
+
+print(f&quot;{target_name} 的最佳结果：&quot;)
+print(f&quot; 最佳参数：{best_params}&quot;)
+print(f&quot; 测试最大百分比误差：{test_max_percent_error:.4f}%&quot;)
+print(f&quot; 测试 R^2：{test_r2_score:.4f}\n&quot;)
+
+
+谢谢]]></description>
+      <guid>https://stackoverflow.com/questions/78859768/optuna-xgboost-not-using-all-of-macs-cpu</guid>
+      <pubDate>Mon, 12 Aug 2024 01:47:51 GMT</pubDate>
+    </item>
     <item>
       <title>将图像叠加在叠加图像上[关闭]</title>
       <link>https://stackoverflow.com/questions/78859435/overlaying-an-image-on-an-overlaying-image</link>
@@ -55,7 +127,7 @@ print(f&quot;从头开始初始化的模型的总 L2 范数：{scratch_weight_no
 看起来正确
 ~/beyond-scale-language-data-diversity$ /opt/conda/envs/beyond_scale_div_coeff/bin/python /home/ubuntu/beyond-scale-language-data-diversity/playground/test_gpt2_pt_vs_reinit_scratch.py​​
 config.json: 100%|█████████████████████████████████████████████████████████████████████████████████████████████| 689/689 [00:00&lt;00:00，8.05MB/s]
-model.safetensors：100%|████████████████████████████████████████████████████████████████████████████| 6.43G/6.43G [00:29&lt;00:00，221MB/s]
+model.safetensors：100%|██████████████████████████████████████████████████████████████████████████| 6.43G/6.43G [00:29&lt;00:00，221MB/s]
 generation_config.json：100%|██████████████████████████████████████████████████████████████████████████████████████| 124/124 [00:00&lt;00:00，1.03MB/s]
 预训练模型权重的总 L2 范数：24542.74
 从头初始化模型的总 L2 范数：1637.31
@@ -607,13 +679,6 @@ print(f&quot;Batch Loss = {loss}, Accuracy = {accuracy:.4f}&quot;)
 ]]></description>
       <guid>https://stackoverflow.com/questions/78847703/is-my-approach-to-training-a-model-on-a-large-image-dataset-using-custom-augment</guid>
       <pubDate>Thu, 08 Aug 2024 09:51:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>将自定义模型和配置注册到 AutoModel 和 AutoConfig</title>
-      <link>https://stackoverflow.com/questions/77428197/registering-custom-model-and-config-to-automodel-and-autoconfig</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/77428197/registering-custom-model-and-config-to-automodel-and-autoconfig</guid>
-      <pubDate>Mon, 06 Nov 2023 00:48:18 GMT</pubDate>
     </item>
     </channel>
 </rss>
