@@ -4,7 +4,204 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 12 Aug 2024 18:21:33 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 12 Aug 2024 21:16:03 GMT</lastBuildDate>
+    <item>
+      <title>为一系列点的图形创建邻接矩阵</title>
+      <link>https://stackoverflow.com/questions/78863456/creating-an-adjacency-matrix-for-a-graph-of-points-in-a-series</link>
+      <description><![CDATA[我想创建一种机制，使用邻接矩阵在一条指令中乘以多个 PyTorch 张量。这些点以串联方式相互连接，但有一个小问题。假设这是一个表示 T 点串联连接的邻接矩阵：
+adj_mat = torch.tensor([
+[0, 1, 0, 0, 0], # T1 连接到 T2
+[1, 0, 1, 0, 0], # T2 连接到 T1 和 T3
+[0, 1, 0, 1, 0], # T3 连接到 T2 和 T4
+[0, 0, 1, 0, 1], # T4 连接到 T3 和 T5
+[0, 0, 0, 1, 0], # T5 连接到 T4
+], dtype = torch.float32)
+
+我有多个数量需要对输入张量进行算术运算：
+K = torch.tensor([
+[1.0, 2.0, 3.0, 4.0, 0.0],
+[1.0, 2.0, 3.0, 4.0, 0.0]
+], dtype=torch.float32)
+C = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0], dtype = torch.float32)
+S = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0], dtype = torch.float32)
+
+val = torch.tensor([[1.0, 2.0, 4.0, 8.0, 16.0],
+[5.0, 10.0, 15.0, 20.0, 5.0]], dtype = torch.float32)
+
+dev = torch.tensor([11, 30], dtype = torch.float32)
+
+计算如下，遍历 Tensor 的每一行（其中每行将并行计算，希望如此）：
+T1 = T1 + (C(T1) * S(T1) * (dev + (T2-T1) * K(T1))
+T2 = T2 + (C(T2) * S(T2) * ((T1-T2) * K(T1) + (T3-T2) * K(T2))
+T3 = T3 + (C(T3) * S(T3) * ((T2-T3) * K(T2) + (T4-T3) * K(T3))
+T4 = T4 + (C(T4) * S(T4) * ((T3-T4) * K(T3)+ (T5-T4) * K(T4))
+
+其中 T1-T5 的值将来自 val 数组。我尝试了类似的方法，首先检查加权差异，即 ((T2-T3) * K(T2) + (T4-T3) * K(T3)) 是否计算正确
+T_diffs = val.unsqueeze(1) - val.unsqueeze(2)
+T_diffs_weighted = T_diffs * adj_mat.unsqueeze(0) * K.unsqueeze(1)
+T_diffs_summed = torch.sum(T_diffs_weighted , dim = 2)
+print(&quot;weighted Differences:&quot;, T_diffs_weighted )
+print(&quot;Summed Differences:&quot;, T_diffs_summed )
+
+我得到的输出是：
+加权差异：张量（[[[ 0., 2., 0., 0., 0.],
+[ -1., 0., 6., 0., 0.],
+[ -0., -4., 0., 16., 0.],
+[ -0., -0., -12., 0., 0.],
+[ -0., -0., -0., -32., 0.]],
+
+[[ 0., 10., 0., 0., 0.],
+[ -5., 0., 15., 0., -0.],
+[ -0., -10., 0., 20., -0.],
+[ -0., -0., -15., 0., -0.],
+[ 0., 0., 0., 60., 0.]]])
+
+而所需输出为1:
+加权差异：张量（[[[ 0., 1., 0., 0., 0.],
+[ -1., 0., 6., 0., 0.],
+[ 0., -4., 0., 16., 0.],
+[ 0., 0., -12., 0., 0.],
+[ 0., 0., 0., -32., 0.]],
+
+[[ 0., 5., 0., 0., 0.],
+[ -5., 0., 15., 0., -0.],
+[ 0., -10., 0., 20., -0.],
+[ 0., 0., -15., 0., -0.],
+[ 0., 0., 0., 60., 0.]]])
+
+求和差值：张量（[[ 1., 1., 10., -16., 0.],
+[ 0., 5., 0., 65., 0.]])
+
+提取的值将是一列，例如，这意味着 T1 将对应于第 0 列。我似乎无法正确地乘以张量 K。我能够正确地计算方程的 K 值，但不能同时计算两者。
+最后，如果还有其他方法可以执行此乘法或方程，我们将不胜感激。顺便说一下，这些方程是运行在 Nvidia GPU 上的机器学习模型的一部分。我对 PyTorch 的 [un]squeeze() 方法还比较陌生，这就是为什么这有点难以理解。
+1与方程的预期数学输出相比，加权差分矩阵中值的符号可能被反转。但我关注的是与张量 K 的乘法。]]></description>
+      <guid>https://stackoverflow.com/questions/78863456/creating-an-adjacency-matrix-for-a-graph-of-points-in-a-series</guid>
+      <pubDate>Mon, 12 Aug 2024 20:18:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>ML-Agents：当我的游戏对象的任何部分发生碰撞时，代理为空</title>
+      <link>https://stackoverflow.com/questions/78863425/ml-agents-agent-is-null-when-any-part-of-my-game-object-collides</link>
+      <description><![CDATA[我确信这是一个非常简单的解决方案，但我无论如何也想不通。我正在根据 Unity 的 WalkerAgent 训练来训练布娃娃走路，我做了一些改动以更好地满足我的目的。现在，每当布娃娃的任何身体部位与地面碰撞时，代理都是空的，从而阻止任何奖励被应用。
+我多次检查了我的代码，看起来没有任何问题。该项目似乎也设置正确。导致我陷入这种困境的原始错误是
+&quot;nullreferenceexception: 未将对象引用设置为对象实例Unity.MLAgentsExamples.ObjectContact.OnCollisionStay (UnityEngine.Collision col)
+(at Assets/Scripts/ObjectContact.cs:55)UnityEngine.Physics:OnSceneContact(PhysicsScene, IntPtr, Int32) (at /Users/bokken/build/output/unity/unity/Modules/Physics/ScriptBindings/PhysicsContact.bindings.cs:49)&quot;。
+我很确定所有事情都按正确的顺序发生，并且代理应该在调用之前进行初始化。感谢大家的帮助。
+据我所知，这些是代码的相关部分。
+来自 WalkerAgent（主脚本）：
+ public override void Initialize()
+{
+m_OrientationCube = GetComponentInChildren&lt;OrientationCubeController&gt;();
+
+//设置每个身体部位
+m_JdController = GetComponent&lt;JointDriveController&gt;();
+
+m_JdController.SetupBodyPart(hips);
+m_JdController.SetupBodyPart(spine);
+m_JdController.SetupBodyPart(head);
+m_JdController.SetupBodyPart(legrotateL);
+m_JdController.SetupBodyPart(thighL);
+m_JdController.SetupBodyPart(kneerotateL);
+m_JdController.SetupBodyPart(shinL);
+m_JdController.SetupBodyPart(左脚);
+m_JdController.SetupBodyPart(右腿旋转);
+m_JdController.SetupBodyPart(右大腿);
+m_JdController.SetupBodyPart(右膝盖旋转);
+m_JdController.SetupBodyPart(右胫骨);
+m_JdController.SetupBodyPart(左脚);
+m_JdController.SetupBodyPart(左手臂旋转);
+m_JdController.SetupBodyPart(左手臂旋转);
+m_JdController.SetupBodyPart(左手臂旋转);
+m_JdController.SetupBodyPart(左前臂旋转);
+m_JdController.SetupBodyPart(左前臂旋转);
+m_JdController.SetupBodyPart(右手臂旋转);
+m_JdController.SetupBodyPart(右手臂旋转);
+m_JdController.SetupBodyPart(右手臂旋转);
+m_JdController.SetupBodyPart(右手臂旋转);
+m_JdController.SetupBodyPart(左手臂旋转);
+m_JdController.SetupBodyPart(forearmR);
+m_JdController.SetupBodyPart(handR);
+
+}
+
+
+来自 JointDriveController：
+ public void SetupBodyPart(Transform t)
+{
+
+var bp = new BodyPart
+{
+rb = t.GetComponent&lt;Rigidbody&gt;(),
+joint = t.GetComponent&lt;CharacterJoint&gt;(),
+StartingPos = t.position,
+StartingRot = t.rotation
+};
+bp.rb.maxAngularVelocity = k_MaxAngularVelocity;
+
+// 添加并设置地面接触脚本
+bp.objectContact = t.GetComponent&lt;ObjectContact&gt;();
+
+var agent = gameObject.GetComponent&lt;Agent&gt;();
+如果 (agent == null)
+{
+agent = gameObject.AddComponent&lt;Agent&gt;();
+}
+bp.objectContact.agent = agent;
+
+如果 (!bp.objectContact)
+{
+bp.objectContact = t.gameObject.AddComponent&lt;ObjectContact&gt;();
+bp.objectContact.agent = gameObject.GetComponent&lt;Agent&gt;();
+}
+else
+{
+bp.objectContact.agent = gameObject.GetComponent&lt;Agent&gt;();
+}
+
+如果 (bp.objectContact.agent == null)
+{
+Debug.LogError($&quot;未找到 {t.name} 的代理&quot;);
+}
+
+bp.thisJdController = this;
+bodyPartsDict.Add(t, bp);
+bodyPartsList.Add(bp);
+}
+
+来自 ObjectContact：
+void OnCollisionEnter(Collision col)
+{
+if (agent == null)
+{
+Debug.LogError($&quot;Agent is null on {gameObject.name} during OnCollisionEnter with {col.gameObject.name}&quot;);
+return;
+}
+
+if (col.transform.CompareTag(k_Ground))
+{
+touchingGround = true;
+}
+
+if (col.transform.CompareTag(k_Wall))
+{
+touchingWall = true;
+}
+
+if (col.transform.CompareTag(k_Target))
+{
+touchingTarget = true;
+agent.AddReward(targetReward);
+}
+]]></description>
+      <guid>https://stackoverflow.com/questions/78863425/ml-agents-agent-is-null-when-any-part-of-my-game-object-collides</guid>
+      <pubDate>Mon, 12 Aug 2024 20:07:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法使用 Torch 使用 4 个 GPU 进行训练：torch.distributed.elastic.multiprocessing.api</title>
+      <link>https://stackoverflow.com/questions/78863216/unable-to-train-with-4-gpus-using-torch-torch-distributed-elastic-multiprocessi</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78863216/unable-to-train-with-4-gpus-using-torch-torch-distributed-elastic-multiprocessi</guid>
+      <pubDate>Mon, 12 Aug 2024 19:01:10 GMT</pubDate>
+    </item>
     <item>
       <title>如何在 Keras/Tensorflow 中实现“生成器历史” GAN</title>
       <link>https://stackoverflow.com/questions/78863055/how-to-implement-generator-history-gan-in-keras-tensorflow</link>
@@ -29,14 +226,6 @@ model.train
 方法成功完成相同的操作。]]></description>
       <guid>https://stackoverflow.com/questions/78863055/how-to-implement-generator-history-gan-in-keras-tensorflow</guid>
       <pubDate>Mon, 12 Aug 2024 18:06:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>我需要一些关于机器学习的帮助（BI-LSTM 和 AL-BERT 相关） [关闭]</title>
-      <link>https://stackoverflow.com/questions/78862532/i-need-some-help-about-the-machine-study-bi-lstm-and-al-bert-related</link>
-      <description><![CDATA[我是python编程和人工智能的新手，现在需要写一篇论文，题目是《公安类舆情监测系统》。需要用到BI-LSTM和AL-BERT模型，但不知道怎么用，哪个APP可以用这些模型搭建平台。现在手头有数据（csv文件），怎么训练这些模型，应该学哪个APP？
-我已经学了一些python技能，学习了Transformer模型，初步了解了BI-LSTM和AL-BERT的原理。]]></description>
-      <guid>https://stackoverflow.com/questions/78862532/i-need-some-help-about-the-machine-study-bi-lstm-and-al-bert-related</guid>
-      <pubDate>Mon, 12 Aug 2024 15:45:34 GMT</pubDate>
     </item>
     <item>
       <title>Python 中的 Sums 包无法进行标记</title>
@@ -217,14 +406,6 @@ Keras 版本：3.4.1]]></description>
       <pubDate>Mon, 12 Aug 2024 11:58:24 GMT</pubDate>
     </item>
     <item>
-      <title>Colab Pro 订阅问题 - 已收费但未订阅 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78860728/colab-pro-subscription-issue-charged-but-not-subscribed</link>
-      <description><![CDATA[我于 8 月 10 日购买了 Google Colab Pro 订阅，但我的帐户仍显示为未订阅。虽然资源部分中的资源单元已更新，但我无法使用 Colab Pro，因为我的会话每 15 分钟就会崩溃一次。通过电子邮件联系 colab-billing@google.com 要求退款，但他们甚至没有回复。
-购买了 Colab - Pro 订阅，但即使我已付款，也没有订阅。]]></description>
-      <guid>https://stackoverflow.com/questions/78860728/colab-pro-subscription-issue-charged-but-not-subscribed</guid>
-      <pubDate>Mon, 12 Aug 2024 08:45:37 GMT</pubDate>
-    </item>
-    <item>
       <title>我如何知道镜头中的某人是否对齐了轮廓？</title>
       <link>https://stackoverflow.com/questions/78860543/how-can-i-know-if-someone-in-camera-aligns-an-outline</link>
       <description><![CDATA[我正在做一个项目，这个项目与实时摄像头的身体测量有很大关系，但为了校准，我需要人站在屏幕中间，直接适应框架尺寸。为此，我使用了一个透明的人形，除了人形的边界外，其他地方都是透明的。我如何检查人是否符合轮廓？
@@ -326,111 +507,6 @@ return {&quot;message&quot;: &quot;欢迎使用图像分类 API&quot;}
       <pubDate>Mon, 12 Aug 2024 07:38:19 GMT</pubDate>
     </item>
     <item>
-      <title>自定义回调“BetaAnnealing”无法正确更新我的 VAE kl_loss 的 beta 值</title>
-      <link>https://stackoverflow.com/questions/78860370/custom-callback-betaannealing-isnt-updating-the-beta-value-correctly-for-my-v</link>
-      <description><![CDATA[我的 VAE 中有一个自定义层，用于处理损失计算。我有一个自定义回调，用于在每个 epoch 开始时更新 beta 值。计算是正确的，因为它在每个 epoch 开始时打印出所需的 beta 值。但是，CustomVariationalLayer 中的实际 beta 值永远不会更新。
-@register_keras_serializable(&#39;CustomVariationalLayer&#39;)
-class CustomVariationalLayer(keras.layers.Layer):
-def __init__(self, beta=1.0, **kwargs):
-self.is_placeholder = True
-super(CustomVariationalLayer, self).__init__(**kwargs)
-self.beta = beta
-self.recon_loss_metric = tf.keras.metrics.Mean(name=&#39;recon_loss&#39;)
-self.kl_loss_metric = tf.keras.metrics.Mean(name=&#39;kl_loss&#39;)
-
-def vae_loss(self, x, z_decoded, z_mean, z_log_var):
-recon_loss = keras.losses.binary_crossentropy(K.flatten(x), K.flatten(z_decoded))
-kl_loss = -0.5 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
-print(f&quot;\n真实 beta 值 {self.beta:.4f}&quot;)
-return recon_loss, self.beta * kl_loss
-
-def call(self, input):
-x = 输入[0]
-z_decoded = 输入[1]
-z_mean = 输入[2]
-z_log_var = 输入[3]
-recon_loss, kl_loss = self.vae_loss(x, z_decoded, z_mean, z_log_var)
-self.add_loss(K.mean(recon_loss + kl_loss))
-self.recon_loss_metric.update_state(recon_loss)
-self.kl_loss_metric.update_state(kl_loss)
-返回 x
-
-def compute_output_shape(self, input_shape):
-返回 input_shape[0]
-
-def get_metrics(self):
-返回 {&#39;recon_loss&#39;: self.recon_loss_metric.result().numpy(),
-&#39;kl_loss&#39;: self.kl_loss_metric.result().numpy()}
-
-class BetaAnnealing(keras.callbacks.Callback):
-def __init__(self, layer, initial_beta=0.0, final_beta=1.0, epochs=100):
-super(BetaAnnealing, self).__init__()
-self.layer = layer
-self.initial_beta = initial_beta
-self.final_beta = final_beta
-self.epochs = epochs
-
-def on_epoch_begin(self, epoch, logs=None):
-new_beta = self.initial_beta + (self.final_beta - self.initial_beta) * (epoch / (self.epochs - 1))
-self.layer.beta = new_beta
-print(f&quot;Epoch {epoch+1}: Beta 值已更新为 {new_beta:.4f}&quot;)
-print(f&quot;Layer beta 值：{self.layer.beta}&quot;)
-
-这是我的训练
-batch_size = 128
-epochs = 50
-
-# 提前停止
-es = EarlyStopping(monitor=&#39;val_loss&#39;, mode=&#39;min&#39;, verbose=1, waiting=5)
-
-# Beta 退火
-ba = BetaAnnealing(CustomVariationalLayer, initial_beta=0.0, final_beta=1.0, epochs=epochs)
-
-# 编译模型
-model.compile(optimizer=&#39;adam&#39;,
-loss=None)
-
-# 训练模型
-history = model.fit(x_train, x_train,
-batch_size=batch_size,
-epochs=epochs,
-shuffle=True,
-validation_data=(x_validate, x_validate),
-callbacks=[es, ba])
-
-一开始看起来好像可以正常工作，因为 BetaAnnealing 的打印语句是正确的，但我向自定义层添加了打印语句进行验证，每次 beta 值都是“1.0”。这是我的训练输出的一个示例：
-Epoch 1：Beta 值已更新为 0.0000
-层 beta 值：0.0
-Epoch 1/50
-
-实际 beta 值 1.0000
-
-实际 beta 值 1.0000
-53/53 ━━━━━━━━━━━━━━━━━━━━━━ 0s 112ms/step - kl_loss：237.6640 - loss：238.3435 - recon_loss：0.6795
-实际 beta 值 1.0000
-53/53 ━━━━━━━━━━━━━━━━━━━━━ 17s 162ms/step - kl_loss：234.6529 - loss：235.3318 - recon_loss：0.6789 - val_kl_loss：5.1546 - val_loss：5.8057 - val_recon_loss：0.6506
-Epoch 2：Beta 值更新为 0.0204
-层 beta 值：0.02040816326530612
-Epoch 2/50
-53/53 ━━━━━━━━━━━━━━━━━━━━━ 2s 40ms/step - kl_loss：7.7230 - loss：8.3554 - recon_loss：0.6325 - val_kl_loss：922390720.0000 - val_loss：922390720.0000 - val_recon_loss：7.9802
-Epoch 3：Beta 值更新为 0.0408
-Layer beta 值：0.04081632653061224
-Epoch 3/50
-53/53 ━━━━━━━━━━━━━━━━━━━━━ 2s 39ms/step - kl_loss：4.8922 - loss：5.5163 - recon_loss：0.6242 - val_kl_loss：740397.3125 - val_loss：740402.4375 - val_recon_loss：4.9765
-Epoch 4：Beta 值更新为 0.0612
-层 beta 值：0.061224489795918366
-Epoch 4/50
-53/53 ━━━━━━━━━━━━━━━━━━━━━ 2s 39ms/step - kl_loss：1.3511 - loss：1.9775 - recon_loss：0.6265 - val_kl_loss：1217.8662 - val_loss：1218.7296 - val_recon_loss：0.8520
-Epoch 5：Beta 值更新为 0.0816
-Layer beta 值：0.08163265306122448
-Epoch 5/50
-53/53 ━━━━━━━━━━━━━━━━━━━━━━ 2s 41ms/step - kl_loss: 0.2503 - loss: 0.8771 - recon_loss: 0.6268 - val_kl_loss: 3.0466 - val_loss: 3.6738 - val_recon_loss: 0.6260
-
-我该如何让它工作？]]></description>
-      <guid>https://stackoverflow.com/questions/78860370/custom-callback-betaannealing-isnt-updating-the-beta-value-correctly-for-my-v</guid>
-      <pubDate>Mon, 12 Aug 2024 07:07:31 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 ResNet50 创建 [w, h, f] 的特征张量</title>
       <link>https://stackoverflow.com/questions/78860233/using-resnet50-to-create-a-feature-tensor-of-w-h-f</link>
       <description><![CDATA[我正在尝试实现这篇论文，但我没有理解其中的内容。
@@ -485,7 +561,7 @@ print(f&quot;从头开始初始化的模型的总 L2 范数：{scratch_weight_no
 看起来正确
 ~/beyond-scale-language-data-diversity$ /opt/conda/envs/beyond_scale_div_coeff/bin/python /home/ubuntu/beyond-scale-language-data-diversity/playground/test_gpt2_pt_vs_reinit_scratch.py​​
 config.json: 100%|█████████████████████████████████████████████████████████████████████████████████████████████| 689/689 [00:00&lt;00:00，8.05MB/s]
-model.safetensors：100%|████████████████████████████████████████████████████████████████████████████| 6.43G/6.43G [00:29&lt;00:00，221MB/s]
+model.safetensors：100%|██████████████████████████████████████████████████████████████████████████| 6.43G/6.43G [00:29&lt;00:00，221MB/s]
 generation_config.json：100%|██████████████████████████████████████████████████████████████████████████████████████| 124/124 [00:00&lt;00:00，1.03MB/s]
 预训练模型权重的总 L2 范数：24542.74
 从头初始化模型的总 L2 范数：1637.31
