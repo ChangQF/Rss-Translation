@@ -4,7 +4,148 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 12 Aug 2024 15:17:44 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 12 Aug 2024 18:21:27 GMT</lastBuildDate>
+    <item>
+      <title>用于根据之前发布的 IRT 工作中提供的参数估算三个人得分的 R 代码</title>
+      <link>https://stats.stackexchange.com/questions/652671/r-code-for-estimating-three-individuals-scores-from-parameters-provided-in-previ</link>
+      <description><![CDATA[我是 R 新手，我正在尝试使用 ltm 包从 72 项集（来自这篇已发表的论文）中获取一些 IRT 参数（a、b、g）
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4461534/#:~:text=The%20CFMT%20uses%20a%20three,be%20selected%20among%20two%20distractors（见表4)
+下面是我的代码……它看起来似乎在做一些合理的事，但我需要一个绝地武士来检查我是否在这里没有脱离正轨。
+library(ltm)
+步骤 1：定义先前估计的项目参数
+item_params &lt;- data.frame(
+discrimination = c(1.01, 1.30, 1.43, 1.36, 1.13, 1.19, 1.04, 1.08, 1.69, 1.55, 1.18, 1.37, 1.24, 1.24, 1.43, 1.50, 1.34, 2.25, 1.92, 1.72, 1.43, 1.25, 2.35, 1.32, 1.66、1.98、1.67、1.14、1.36、1.35、1.34、1.05、1.54、2.02、1.28、1.62、2.24、1.23、2.11、1.93、1.91、2.81、1.38、2.35、1。 29、1.98、1.17、2.88、0.72、1.44、1.89、1.38、1.47、1.60、2.94、1.52、1.95、0.88、1.23、2.98、1.68、1.28、1.71、2.32、 1.54, 1.34, 1.85, 0.72, 1.34, 2.98, 1.06)，
+难度 = c(-5.67, -3.65, -3.04, -3.55, -3.49, -3.34, -5.18, -4.24, -3.38, -3.47, -3.39, -3.39, -2.64, -3.04, -3.49, -3.44, -2.69, -2.23, -2.76, -1.01, -1.17, -0.91, 0.17, -0.86, -0.36, -1.64, -1.05, -0.40, -0.86, -1.11, -0.48, -0.35, -1.06, 1.36, -0.81, 0.34, -1.94, 0.64, -1.13, -0.68, 0.17, -0.17, -0.35, -1.39, 0.59, -0.76, -0.18, -0.67, 0.34, 1.58, -0.60, -0.11, -0.14, 0.15, 0.53, 1.54, -1.25, 0.66, 0.05, 0.63, -0.21, -0.67, 0.20, -0.34, 0.11, -0.29, 1.25, 1.19, 0.63, 0.21, 1.14, -1.94),
+猜测 = c(0.00, 0.00, 0.15, 0.00, 0.00, 0.19, 0.00, 0.00, 0.00, 0.00, 0.01, 0.00, 0.00, 0.00, 0.01, 0.08, 0.49, 0.12, 0.35, 0.40, 0.25, 0.28, 0.30, 0.47, 0.41, 0.36, 0.38, 0.24, 0.15, 0.14, 0.34, 0.29, 0.37, 0.47, 0.20, 0.30, 0.00, 0.23, 0.40, 0.40, 0.19, 0.26, 0.27, 0.50, 0.32, 0.31, 0.33, 0.35, 0.35, 0.27, 0.23, 0.40, 0.33, 0.30, 0.18, 0.34, 0.30, 0.24, 0.35, 0.27, 0.57, 0.38, 0.27, 0.44, 0.21, 0.50, 0.22, 0.19, 0.45, 0.25, 0.35)
+)
+步骤 2：创建三个不同样本答案的矩阵（1 表示正确，0 表示不正确）
+response_data &lt;- matrix(
+c(
+# 第一位受访者的回答
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,1,0,1,0,1,0,0,0,1,0,1,1,0,1,0,1,0,1,1,1,0,
+# 第二位受访者的回答答复
+1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,1,0,0,1,1,0,0,1,0,0,0,0,1,1,0,1,0,1,0,0,0,0,1,1,0,1,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,0,1,0,1,0,0,0,1,0,0,0,
+# 第三位受访者的响应
+1,1,1,1,0,1,1,0,0,1,1,0,0,1,1,1,1,0,1,1,1,0,1,1,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,1,1,1,1,0,0,0,0,0,0,1,0,0,1,1,1,1,0,0,0,1,1,1,0,0,0,1,0,0,0,1,1,1,1,0,1,0,0,1,0,0,1,1,1,0,1,0,0,1,0,1,1
+), nrow = 3, byrow = TRUE
+)
+步骤 3：使用给定的项目参数设置 IRT 模型
+custom_model &lt;- function(theta, params) {
+a &lt;- params$discrimination
+b &lt;- params$difficulty
+c &lt;- params$guessing
+P &lt;- c + (1 - c) / (1 + exp(-a * (theta - b)))
+return(P)
+
+使用 MLE（最大似然估计）估计每个受访者的 theta
+estimate_theta &lt;- function(response, item_params) {
+theta_values &lt;- seq(-4, 4, by = 0.1)
+likelihoods &lt;- sapply(theta_values, function(theta) {
+probs &lt;- custom_model(theta, item_params)
+likelihood &lt;- prod(probs^response * (1 - probs)^(1 - response))
+return(likelihood)
+})
+best_theta &lt;- theta_values[which.max(likelihoods)]
+return(best_theta)
+
+步骤 4：计算所有受访者（三名参与者）的 IRT 量表分数
+theta_scores &lt;- apply(response_data, 1,estimate_theta,item_params = item_params)
+输出估计的 theta 分数
+print(theta_scores)]]></description>
+      <guid>https://stats.stackexchange.com/questions/652671/r-code-for-estimating-three-individuals-scores-from-parameters-provided-in-previ</guid>
+      <pubDate>Mon, 12 Aug 2024 17:41:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>两种荟萃分析方法：哪一种更可取？</title>
+      <link>https://stats.stackexchange.com/questions/652670/two-ways-of-meta-analysis-which-one-is-preferred</link>
+      <description><![CDATA[假设我有 $k=1, 2, 3...K$ 项研究，其中连续自变量 $Y$ 和因变量 $X$ 为同一组。研究之间的效果可能不同，我想进行荟萃分析。
+我知道的一种方法是进行回归分析。我可以创建一个 $(K-1)$ 维虚拟变量 $Z$，并运行具有随机效果的线性回归。如果 $j$ 是研究指标，$i$ 是样本指标：
+$$Y_{ij}=\beta X_{ij}+\gamma_j Z_{ij}+\epsilon$$
+$$\gamma_j\sim N(0,\tau^2)$$
+$$\epsilon\sim N(0,\sigma^2)$$
+或者如果研究不多，我可以做一个固定效应模型：
+$$Y_{ij}=\beta X_{ij}+\beta_j Z_{ij}+\epsilon$$
+$$\epsilon\sim N(0,\sigma^2)$$
+但是，我也看到了对每项研究单独进行分析并计算对数 p 值的加权平均值（可能按样本量或样本量的平方根加权）的做法，如以下线程所示：
+组合 p 值时，为什么不直接取平均值？
+我是元分析的新手。有人可以给我简单介绍一下哪种方法更可取吗？谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/652670/two-ways-of-meta-analysis-which-one-is-preferred</guid>
+      <pubDate>Mon, 12 Aug 2024 17:26:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>重新审视深度学习中的 Sin 激活：它们适用于哪些类型的任务？</title>
+      <link>https://stats.stackexchange.com/questions/652669/sin-activations-in-deep-learning-revisited-what-type-of-tasks-are-they-useful-f</link>
+      <description><![CDATA[这篇文章询问了在神经网络中使用sine激活的问题。
+2020 年的一篇有趣的论文 (SIREN)使用激活来完成一些任务。本网站中也有作者编写的节选版。
+据我所知，这些是重建任务，即不是标准计算机视觉、NLP 等任务。
+我的理解也基于Reddit 上的这条评论。
+显然，该领域被称为隐式神经表征，它们对单个信号样本进行了过度拟合；例如将图像中的 x,y 坐标映射到像素，这是 隐式 部分。
+由此，它们是否有助于重建图像或音频的部分或任何输入信号？作者似乎表明他们可以对输入进行编码（以某种方式过度拟合）。
+
+对此的解释是否正确？
+如前所述，正弦激活实际上并未用于/用于标准机器学习任务，对吗？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652669/sin-activations-in-deep-learning-revisited-what-type-of-tasks-are-they-useful-f</guid>
+      <pubDate>Mon, 12 Aug 2024 16:46:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>成分分布的概率[重复]</title>
+      <link>https://stats.stackexchange.com/questions/652668/probability-of-constituent-distributions</link>
+      <description><![CDATA[我有一组 N 个正态分布，代表一个人在比赛中可以获得的分数。每个分布的平均值和标准差都是已知的，为了简单起见，我们假设它们没有偏差。我们还假设这些分布是独立的。
+在这样的系统中，得分最高的人将赢得比赛。
+根据正态分布的加性，我们知道将这些组成正态分布相加会产生另一个正态分布。
+我的问题是：有没有办法提取一个人赢得比赛的概率？
+我曾尝试假设一个人赢得比赛的概率等于该人与所有其他人之间的所有差异概率（即差异正态分布在 0 处的 CDF）的乘积。对于表现最好的人，我似乎得到了不错的结果，但其他人的成绩太低了。
+谢谢！
+PS：已经进行了蒙特卡洛测试，以验证有关独立性、总体正态分布和所做尝试的表现的声明。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652668/probability-of-constituent-distributions</guid>
+      <pubDate>Mon, 12 Aug 2024 16:31:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>理解标准差和变异系数的概念差异[重复]</title>
+      <link>https://stats.stackexchange.com/questions/652667/understanding-the-difference-in-the-ideas-of-standard-deviation-and-coefficient</link>
+      <description><![CDATA[问题
+我有点困惑，为什么我们需要变异系数来理解和比较两个数据集的“变异性”。假设我们有以下两个数据集：
+A：1,2,3,4,5
+B：100001,100002,100003,100004,100005
+平均值为 3 和 100003，标准差相同，这对我来说完全合理，因为数据集本质上是连续的。
+但显然，它们的变异系数不同，因此“变异性”这个“变异性”对应哪个量？这个变异系数究竟意味着什么？
+思考
+我观察到，虽然 100001 比 100003 少 2，但它大约是 100003 的 99%，而 1 大约是 3 的 33%。那么，这是否意味着 100001 与 100003 比 1 与 3 更“相似”？这就是变异系数所代表的意思吗？
+PS：请不要删除这个问题，我看到有人说这个问题可能有重复，但我浏览过它们，它们没有解决我的疑问。因此提出这个问题。对造成的麻烦深表歉意。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652667/understanding-the-difference-in-the-ideas-of-standard-deviation-and-coefficient</guid>
+      <pubDate>Mon, 12 Aug 2024 16:22:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>输入函数的预测区间</title>
+      <link>https://stats.stackexchange.com/questions/652666/prediction-intervals-of-functions-of-inputs</link>
+      <description><![CDATA[我有一个线性回归模型，我估计它的形式是 Y = a + b*X + e。
+我知道如何构建 Y 结果的预测区间，给定某个值 X（比如 X1），但我想知道是否有任何公式/方法可以用来估计不同变量函数的预测区间？
+不确定如何用数学公式来表达，但例如：
+房价 = a + b * 卧室数量 + e
+我希望能够估计 2 卧室和 3 卧室房屋价格差异的预测区间。
+我最初的想法是将 3-2 放入卧室数量，但我怀疑由于输入了两个不同的估计值，标准误差存在相互作用/复合效应。
+我想如果你只是把它当作 Y1 ~ Normal(mu1, sd1) 和 Y2 ~ Normal(mu2, sd2)，其中 mu和 sd 由回归估计确定，那么您可以仅估计 Y1 - Y2 的分布（假设没有相关性）？我猜这是正确的，但我找不到任何可以证实/否认这一点的东西。
+要么这样做，要么创建一个新的线性模型，其中 X 和 Y 值分别定义为差异，然后使用该模型找到预测区间？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652666/prediction-intervals-of-functions-of-inputs</guid>
+      <pubDate>Mon, 12 Aug 2024 16:14:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于置信区间公式的一个问题</title>
+      <link>https://stats.stackexchange.com/questions/652664/a-question-about-formula-of-confidence-interval</link>
+      <description><![CDATA[
+我不明白这句话“同样，区间...包含 μ 的概率为 95%”。有人能给我解释一下其中的逻辑吗？它怎么会突然跳到包含 μ 的结论？谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652664/a-question-about-formula-of-confidence-interval</guid>
+      <pubDate>Mon, 12 Aug 2024 15:47:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用赤池信息准则的逐步回归来控制潜在的混杂因素？</title>
+      <link>https://stats.stackexchange.com/questions/652663/stepwise-regression-using-akaikes-information-criterion-to-control-for-potentia</link>
+      <description><![CDATA[我正在尝试确定犯罪率和经济不平等之间的关联。我的犯罪率数据是美国各县针对几种犯罪类型（入室盗窃、扒窃、袭击等）的犯罪率数据。我的经济不平等数据是美国各县不同收入阶层人口的百分比。我测量了犯罪率和不同收入阶层之间的相关性——有时相关性很弱。我还进行了简单线性回归，发现（正如预期的那样）与犯罪率最相关的收入阶层并不能显著预测犯罪率。我现在正在使用赤池信息准则进行前向逐步回归，以解释潜在的混杂变量（就业率、平均年龄、男女比例、教育水平等）。正如预期的那样，我确认我的收入阶层不能显著预测犯罪率；我还发现其他变量可能更相关（例如种族和教育水平）。
+这看起来是一种好方法吗？逐步回归可以“控制”潜在的混杂因素吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652663/stepwise-regression-using-akaikes-information-criterion-to-control-for-potentia</guid>
+      <pubDate>Mon, 12 Aug 2024 15:40:42 GMT</pubDate>
+    </item>
     <item>
       <title>R 中接收者操作特征 (ROC) 曲线的功率分析</title>
       <link>https://stats.stackexchange.com/questions/652661/power-analysis-for-receiver-operating-characteristic-roc-curves-in-r</link>
@@ -127,12 +268,13 @@ $$
       <pubDate>Mon, 12 Aug 2024 15:01:34 GMT</pubDate>
     </item>
     <item>
-      <title>为什么卡方检验可以拒绝原假设，而 KS 检验却不能？</title>
+      <title>卡方检验如何能拒绝原假设，而 KS 检验却不能？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/652657/how-can-the-chi-square-reject-the-null-hypothesis-while-the-ks-test-does-not</link>
       <description><![CDATA[与F 检验如何拒绝零假设而 KS 检验却不能？类似，我想知道，卡方检验如何拒绝零假设而 KS 检验却不能？
 例如，我可以得到卡方检验的 p 值为 $0.001$，KS 检验的 p 值为 $0.45$。
 我指定我指的是双样本检验，其中使用卡方检验和Kolmogorov-Smirnov 检验，零假设是两个数据样本来自同一分布/两个样本相同。
-另外，我理解卡方检验“测量” 落入 bin“i” 的观测值数量（第一个数据集/分布）与预计落入 bin“i” 的观测值数量（第二个数据集/分布）之间的平方差，而 Kolmogorov-Smirnov 检验“测量”两个 ECDF 之间的最大距离。
+关于数据，它们代表了过去 100 年中在某些地区观察到的三组哺乳动物的数量，我们可以称之为 M1、M2 和 M3。例如，1920 年观察到 10 只哺乳动物 M1，1921 年观察到 13 只哺乳动物 M1，1922 年观察到 45 只哺乳动物 M1，依此类推。M2 和 M3 组的哺乳动物也是如此。
+此外，我理解卡方检验“测量” 落入 bin“i” 的观测值数量（第一个数据集/分布）与预计落入 bin“i” 的观测值数量（第二个数据集/分布）之间的平方差，而 Kolmogorov-Smirnov 检验“测量”两个 ECDF 之间的最大距离。
 也就是说，KS 测试“往往对分布中心附近比尾部更敏感”，但只是我的解释，卡方检验似乎对分布的每个“部分”都很敏感，因为观测值和预期值之间的平方差是针对分布的所有箱体计算的。
 但是，我无法“看到”为什么卡方检验会拒绝零假设，即两个数据集/分布不同，而 KS 检验不会被拒绝（即我们无法拒绝），即我们没有足够的统计证据证明两个数据集/分布不同。
 这两种“情况”，即 (i) 卡方检验拒绝零假设和 (ii) KS 检验无法拒绝零假设，可以共存吗？
@@ -179,192 +321,11 @@ $$
       <pubDate>Mon, 12 Aug 2024 13:33:50 GMT</pubDate>
     </item>
     <item>
-      <title>自相关和/或非平衡数据的 PCA 和 tICA</title>
-      <link>https://stats.stackexchange.com/questions/652650/pca-and-tica-on-autocorrelated-and-or-non-equilibrium-data</link>
-      <description><![CDATA[从标题中可以推断，如果我想对一个过程进行 PCA 或时间滞后的独立成分分析，其中我考虑的每个特征都是以点为单位采样的，每个或某些特征都是自相关的（即带有其先前状态的记忆），该怎么办？我不应该认为它们是随机的，那么对于每个提到的算法，结果的含义又如何呢？
-然后，假设我有另一种情况，我确实在系列之间以足够的时间间隔对点进行采样，但我对一个仍在向平衡发展的过程进行采样。这两个算法的两个结果的含义是什么？
-最后，作为一个单独的问题，我想知道是否需要满足随机性和平稳过程才能应用这两种技术。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652650/pca-and-tica-on-autocorrelated-and-or-non-equilibrium-data</guid>
-      <pubDate>Mon, 12 Aug 2024 13:32:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>功能性 PCA 仅仅是基于基础系数的 PCA 吗？</title>
-      <link>https://stats.stackexchange.com/questions/652643/is-a-functional-pca-just-a-pca-on-basis-coefficients</link>
-      <description><![CDATA[函数主成分分析（FPCA）只是正交基系数上的普通 PCA 吗？以下似乎表明确实如此。
-首先，让我们对加拿大天气数据进行 FPCA：
-import numpy as np
-import skfda as fda
-from skfda.preprocessing.dim_reduction import FPCA
-from sklearn.decomposition import PCA
-
-# 获取加拿大天气数据
-weather = fda.datasets.fetch_weather()
-weather_data_grid = fda.FDataGrid(data_matrix = weather.data.data_matrix[:, :, 0],
-grid_points = weather.data.grid_points,
-domain_range = weather.data.domain_range)
-# 进行 FPCA
-weather_basis = fda.representation.basis.FourierBasis(domain_range = (0.0, 365.0),
-n_basis = 25, period = 365)
-weather_data_basis = weather_data_grid.to_basis(weather_basis)
-weather_fpca = FPCA(n_components = 25)
-weather_fpca.fit(weather_data_basis)
-
-现在获取基础系数并对其进行常规的旧 PCA：
-pca = PCA(n_components = 25)
-pca.fit(weather_data_basis.coefficients)
-
-并比较结果：
-np.allclose(weather_fpca.explained_variance_ratio_, pca.explained_variance_ratio_)
-np.allclose(weather_fpca.components_.coefficients, pca.components_)
-
-两种比较都是正确的。
-FPCA 是否只是基于基础系数的 PCA，还是我遗漏了什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652643/is-a-functional-pca-just-a-pca-on-basis-coefficients</guid>
-      <pubDate>Mon, 12 Aug 2024 09:08:08 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么在运行ARDL模型时变量的符号会随着滞后而变化？</title>
       <link>https://stats.stackexchange.com/questions/652641/why-does-the-sign-on-the-variable-changes-with-the-lag-while-running-ardl-model</link>
       <description><![CDATA[该模型的因变量是死亡率，而自变量是平均值：平均受教育年限，GDP 为国内生产总值，百分比变化。虽然它们都是 I(0) 或 I(1)，所以我使用 ARDL 模型。但是均值的系数为正，而均值的滞后系数为负。这是正常的吗，我该如何解释它？]]></description>
       <guid>https://stats.stackexchange.com/questions/652641/why-does-the-sign-on-the-variable-changes-with-the-lag-while-running-ardl-model</guid>
       <pubDate>Mon, 12 Aug 2024 08:56:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>针对非常小的数据进行测试和训练</title>
-      <link>https://stats.stackexchange.com/questions/652638/test-train-for-very-very-small-data</link>
-      <description><![CDATA[我只有 25 个观测值。我不确定是否可以测试和训练数据。例如，训练集有 15 个观测值，测试集有 10 个观测值。15 个观测值对于训练来说太少了！我考虑了使用 elastic-net 的置换特征选择和 LOOCV。它在 1000 个特征中留下了 11 个。我在随机森林建模中使用了 LOOCV。所以我用 11 个特征对 15 个观测值进行了建模。我得到了不错的结果，但我不确定我是否过度拟合了]]></description>
-      <guid>https://stats.stackexchange.com/questions/652638/test-train-for-very-very-small-data</guid>
-      <pubDate>Mon, 12 Aug 2024 08:16:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>仅使用 elastic-net 进行特征选择</title>
-      <link>https://stats.stackexchange.com/questions/652636/using-elastic-net-only-for-feature-selection</link>
-      <description><![CDATA[我们可以使用正则化模型代替特征选择方法，然后使用机器学习模型来分析数据吗？
-我的问题是分类，数据中有 1000 多个特征。数据是数值和分类变量的混合。我想使用正则化方法（如 elastic-net）进行特征选择，然后使用机器学习模型（如随机森林）来分析选定的特征，进行预测并找到特征重要性。但我不确定这是正确的方法！]]></description>
-      <guid>https://stats.stackexchange.com/questions/652636/using-elastic-net-only-for-feature-selection</guid>
-      <pubDate>Mon, 12 Aug 2024 07:15:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>获得 gamm4 模型的 EDF 1</title>
-      <link>https://stats.stackexchange.com/questions/652647/getting-an-edf-of-1-for-gamm4-models</link>
-      <description><![CDATA[我试图使用 R 中的 gamm4 来拟合一些 gamm，目的是进行一些模型比较，但我无法理解 GAM(M) 并构建这些模型。
-为了给你提供一些背景信息，我打算回答 1. 在我的研究期间（十年），不透水性如何影响物种占有率；2. 哪种测量不透水性的方法（在 ndvi、ndbi 和城市土地覆盖百分比 [ULC] 之间）最能反映城市化对这个物种的影响？我已经使用 glms 完成了此操作，但我希望获得比这些模型提供的更多的灵活性。
-对于我的数据：
-二元响应变量：发生率（物种发生率；0=244，1=233）
-预测因子：不透水性测量值（ndvi、ndbi、ULC）和年份（0:10）
-随机效应：siteID（n=67）嵌套在集水区内（n=5）
-我计划使用 GAM(M) 交叉验证（留一法或 k 倍）解决第二个问题。
-由于某种原因，我的结果表明这些关系是线性的，但从我的 glms 和可视化多年来的发生概率中，我知道这不是真的。
-
-这是我一直在使用的代码
-# packages
-library(mgcv)
-library(gamm4)
-
-# 加载和格式化物种数据
-mydata&lt;-read.table(&quot;00_Data/mydata.txt&quot;,header=T)
-mydata$siteID&lt;-as.factor(mydata$siteID)
-mydata$catchment&lt;-as.factor(mydata$catchment)
-mydata$year&lt;-mydata$year-min(mydata$year)
-head(mydata);dim(mydata)
-
-# 用年份拟合 gamm作为平滑项
-&gt; gammmod1 &lt;- gamm4(occurrence~s(year, k=10), random=~(1|siteID/catchment), data=mydata, family=binomial)
-&gt; summary(gammmod1$gam)
-Family: binomial 
-Link function: logit 
-
-公式:
-occurrence ~ s(year, k = 10)
-
-参数系数:
-估计标准差。误差 z 值 Pr(&gt;|z|)
-(截距) -0.1858 0.2305 -0.806 0.42
-
-平滑项的近似显著性：
-edf Ref.df Chi.sq p 值
-s(year) 1 1 1.096 0.295
-
-R-sq.(adj) = -0.00317 
-glmer.ML = 444.03 尺度估计 = 1 n = 477
-
-# 拟合不带平滑项的 gamm
-&gt; gammmodb &lt;- gamm4(occurrence~year, random=~(1|siteID/catchment), data=mydata, family=binomial)
-&gt; summary(gammmodb$gam)
-公式：
-occurrence ~ year
-
-参数系数：
-估计标准差误差 z 值 Pr(&gt;|z|)
-(截距) -0.69740 0.52779 -1.321 0.186
-year 0.08059 0.07698 1.047 0.295
-
-R-sq.(adj) = -0.00317 
-glmer.ML = 444.03 比例估计 = 1 n = 477
-
-# 以 ndvi 为平滑项拟合 gamm
-gammmod2 &lt;- gamm4(occurrence~s(year,k=15)+s(ndvi,k=15), random=~(1|siteID/catchment),data=mydata, family=binomial)
-summary(gammmod2$gam)
-smooth.construct.tp.smooth.spec(object, dk$data, dk$knots) 中的误差: 
-一个术语具有的唯一协变量组合少于指定的最大自由度
-
-
-我仍在学习 GAM(M)，因此任何建议或论文推荐都将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652647/getting-an-edf-of-1-for-gamm4-models</guid>
-      <pubDate>Mon, 12 Aug 2024 03:37:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>在经典回归中，残差是否不相关？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/652631/in-classical-regression-are-residuals-uncorrelated</link>
-      <description><![CDATA[经典线性回归的假设之一是误差不相关。这是否意味着残差也不相关？为了具体起见，假设我们对模型参数使用 OLS 估计量。
-我的直觉告诉我“不”，这似乎得到了我找不到任何关于残差不相关证据的支持。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652631/in-classical-regression-are-residuals-uncorrelated</guid>
-      <pubDate>Mon, 12 Aug 2024 00:55:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>运行 GAM 时使用平滑因子以及对每个个体使用 bs="fs" 时的警告解释</title>
-      <link>https://stats.stackexchange.com/questions/652624/warning-interpretation-when-running-a-gam-using-factor-by-smooths-and-also-using</link>
-      <description><![CDATA[我想看看代谢物水平如何随时间随治疗变量（此处为抗生素）变化。有两个水平（是/否）。当我使用 bs=&quot;fs&quot; 运行以下模型 1 时，它会收到以下警告：
- 警告消息：
-在 gam.side(sm, X, tol = .Machine$double.eps^0.5) 中：
-模型对同一变量进行了重复的一维平滑。
-
-model1 &lt;- gam(Met1 ~ Antibiotics + s(Timepoint, k=7) +
-s(Timepoint, by=Antibiotics, k=7, m=1) + 
-s(Timepoint, ID_new, bs=&quot;fs&quot;, k=7) + data=pos_fullnew, method=&quot;REML&quot;)
-
-或者，删除常见趋势 s(Timepoint)，以获得以下无警告运行。
- model2 &lt;- gam(Met1 ~ Antibiotics +
-s(Timepoint, by=Antibiotics, k=7) + 
-s(Timepoint, ID_new, bs=&quot;fs&quot;, k=7) + data=pos_fullnew, method=&quot;REML&quot;)
-
-关于错误/模型将不胜感激 - 谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652624/warning-interpretation-when-running-a-gam-using-factor-by-smooths-and-also-using</guid>
-      <pubDate>Sun, 11 Aug 2024 20:20:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>指数联合概率之和</title>
-      <link>https://stats.stackexchange.com/questions/652620/sums-of-exponentials-joint-probability</link>
-      <description><![CDATA[如果我们有：$\tau_i \overset{\text{independent}}{\sim}
-\exp(\lambda_i)$，对于$i=1,2,3,...,n$，其中$\lambda_i\neq \lambda_j, \forall i\neq j$，那么我想找到概率的一般形式：
-$$
-\text{Pr}(\sum_{i=1}^{n-1} \tau_i \leq t, \sum_{i=1}^{n} \tau_i &gt; t)
-$$
-注意：我设法找到了一些Mathematica 中的具体结果，但随着 $n$ 的增长，表达式似乎变得难以处理。例如，如果 $n=2$，则上述概率变为：
-$$
-\frac{\left(e^{-t \lambda_1} - e^{-t \lambda_2}\right) \lambda_1}{\lambda_2 - \lambda_1}。
-$$
-对于 $n=3$，它变为：
-$$
-\frac{e^{-t (\lambda_1 + \lambda_2 + \lambda_3)} \lambda_1 \lambda_2 \left(e^{t (\lambda_1 + \lambda_2)} (\lambda_1 - \lambda_2) + e^{t (\lambda_2 + \lambda_3)} (\lambda_2 - \lambda_3) + e^{t (\lambda_1 + \lambda_3)} (-\lambda_1 + \lambda_3)\right)}{(\lambda_1 - \lambda_2) (\lambda_1 - \lambda_3) (\lambda_2 - \lambda_3)}
-$$
-注意：我意识到：
-$$
-\sum_{i=1}^{n} \tau_i \sim \text{Hypoexponential}(\lambda_1,\lambda_2,...,\lambda_n),
-$$
-但我不太确定如何使用它来得出一般结果（甚至是递归结果或良好的近似值）。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652620/sums-of-exponentials-joint-probability</guid>
-      <pubDate>Sun, 11 Aug 2024 14:56:45 GMT</pubDate>
     </item>
     </channel>
 </rss>
