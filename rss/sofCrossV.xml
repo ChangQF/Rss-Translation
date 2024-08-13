@@ -4,9 +4,238 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 13 Aug 2024 09:17:37 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 13 Aug 2024 12:30:27 GMT</lastBuildDate>
     <item>
-      <title>为什么卡方检验的 p 值和 KS 检验的 p 值之间差异很大？</title>
+      <title>计算百分位数的最佳 R 分位数方法</title>
+      <link>https://stats.stackexchange.com/questions/652712/optimal-r-quantile-method-for-calculating-percentile</link>
+      <description><![CDATA[R 中的哪种分位数估计方法适用于计算有联系的小样本中的极端百分位数（例如，第 2 个百分位数）？&quot;]]></description>
+      <guid>https://stats.stackexchange.com/questions/652712/optimal-r-quantile-method-for-calculating-percentile</guid>
+      <pubDate>Tue, 13 Aug 2024 12:20:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>设计一个神经网络，利用游戏状态信息预测 2D 格斗游戏中玩家的输入</title>
+      <link>https://stats.stackexchange.com/questions/652711/designing-a-neural-network-to-predict-a-players-input-in-a-2d-fighting-game-usi</link>
+      <description><![CDATA[我目前正在尝试设计一个神经网络，目的是广泛模仿特定 2D 格斗游戏中某些玩家的行为。
+该游戏会记录每场游戏的“重播”，从而创建一个庞大的数据库。这些重播不仅包含每帧的游戏状态（例如位置值、动作状态等），还包含玩家输入的按钮。
+NN 的输入数据将是游戏状态（或一系列游戏状态），并输出该游戏状态的预测输入。
+我已经在 PyTorch 中为这个问题设置了一个通用 MLP，其架构如下，将其视为一个多标签问题，其中每个按钮输入都是一个要预测的标签：
+class BaseModel(nn.Module):
+def __init__(self, input_size, output_size):
+super(BaseModel, self).__init__()
+self.block_1 = nn.Sequential(
+nn.Linear(input_size, 256),
+nn.ReLU(),
+nn.Linear(256,128),
+nn.ReLU(),
+)
+self.dropout = nn.Dropout(p=0.3)
+self.block_2 = nn.Sequential(
+nn.Linear(128,64),
+nn.ReLU()
+)
+self.bn = nn.BatchNorm1d(64)
+self.block_3 = nn.Sequential(
+nn.Linear(64,32),
+nn.ReLU(),
+nn.Linear(32,output_size)
+)
+
+def forward(self, x):
+x = self.block_1(x)
+x = self.dropout(x)
+x = self.block_2(x)
+x = self.bn(x)
+x = self.block_3(x)
+return x
+
+
+此问题的数据来自重播。
+输入数据首先被转换成人类可读的映射（例如 {&quot;HP&quot;: 10000, &quot;x&quot;:645.4273, &quot;y&quot;:0.0000, &quot;super_meter&quot;:32.6345, etc.&gt;），然后转换成一维张量形式的数值格式（例如 [10000, 645.4273, 0.0000, 32.6345, etc.]）。
+同样，按钮输入首先从重放中转换为人类可读的映射（{&quot;A&quot;: 0, &quot;B&quot;: 1, &quot;up&quot;: 0, &quot;down​​&quot;:0, &quot;left&quot;:1, etc.&gt;），然后转换为一维张量，用作训练的真值标签，也仅使用映射的值。
+目前，我使用的损失函数是二元交叉熵，优化器是 Adam。输出通过 S 型函数传递，如果值超过某个阈值，则按钮被解释为按下。
+当前实现效果相当差。由于大多数按钮输入对于每个游戏状态都是 0，因此模型通过预测每帧每个按钮的 0 来非常快速地实现低损失。
+我应该尝试哪些架构更改来提高模型的性能/处理模型很容易实现低损失的问题？
+请注意，这样做的目的是模仿玩家行为，而不是“学习”如何玩游戏。如果使用重播数据训练模型的玩家什么都不做，只是一直按下一个按钮，那么模型应该反映这种行为。类似地，如果输入的玩家是职业玩家，其动作要复杂得多，则模型也应该表示这种行为。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652711/designing-a-neural-network-to-predict-a-players-input-in-a-2d-fighting-game-usi</guid>
+      <pubDate>Tue, 13 Aug 2024 10:37:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>元分析与混合效应模型估计效应大小</title>
+      <link>https://stats.stackexchange.com/questions/652710/meta-analysis-vs-mixed-effect-model-to-estimate-effect-size</link>
+      <description><![CDATA[我有来自之前三个实验的数据，我想在功效分析中使用它们来计算新研究所需的样本量。一种经典的方法是进行元分析以获得标准化均值差异的估计值（在本例中），然后可以将其输入到样本量计算中。我使用 R 包 metafor 的函数 rma（执行随机效应元分析）完成了此操作。我已经对一个演示数据集（下面的代码）进行了此操作，结果我得到了治疗效果（均值差异）的估计值为 6.86，se 为 2.238。
+
+library(lme4)
+library(metafor)
+
+# 演示数据集：
+# 治疗：分类变量：0：治疗组，1：对照组
+# 研究：分类变量，表示研究编号从 1 到 3
+# y：模拟测量值
+y &lt;- c(15.1,14.9,12.1,17.3,14.1,16.2,15.0,16.0,25.2,23.5,27.1,20.9,29.4,25.3,24.8,25.1,
+8.2,11.3,10.0,10.1,9.9,12.0,8.0,10.9,18.0,17.0,19.3,22.2,16.1,17.1,17.8,17.2,
+22.0,23.1,20.9,22.1,21.8,19.9,24.6,21.9,24.5,26.4,22.1,24.1,24.0,23.7,26.5,25.8)
+治疗 &lt;- as.factor(rep(c(rep(0,8),rep(1,8)),3))
+研究 &lt;- as.factor(c(rep(1,16),rep(2,16),rep(3,16)))
+
+# 使用包进行随机效应元分析metaform
+rma(measure=&quot;MD&quot;,
+n1i=c(8,8,8),
+n2i=c(8,8,8),
+m1i=c(mean(y[9:16]),mean(y[25:32]),mean(y[41:48])),
+m2i=c(mean(y[1:8]),mean(y[17:24]),mean(y[33:40])),
+sd1i=c(sd(y[9:16]),sd(y[25:32]),sd(y[41:48])), 
+sd2i=c(sd(y[1:8]),sd(y[17:24]),sd(y[33:40]))
+)
+
+但是，由于我不仅拥有三个数据的汇总数据，荟萃分析，但实际上，除了 rma，我可以使用所有原始数据，直接用混合效应回归模型估计治疗效果。
+mod &lt;- lmer(y ~ treatment + (1|study) + (1|study:treatment))
+summary(mod)
+
+这样做，我得到了略有不同的治疗效果估计值 6.904 ，其标准差为 2.231。差别不大，但确实存在。我并不惊讶，我得到了略有不同的结果，因为我从不同的信息开始：​​一种情况下“仅”使用汇总统计数据（平均值、标准差），另一种情况下使用完整的原始数据。我的问题是，哪一种是估计效果大小计算效果的“更好”方法？我看到的大多数功效计算都是基于荟萃分析（因为通常原始数据不容易获得，因为数据是从文献中提取的，而作者通常只报告汇总统计数据）。但是，凭着我天真的直觉，我会认为，如果我确实有原始数据，那么将所有原始数据作为输入的混合模型应该更精确，因为它利用了更多信息。有什么理由让我不应该根据混合模型结果来估计效应量，而是像大多数人一样使用 rma？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652710/meta-analysis-vs-mixed-effect-model-to-estimate-effect-size</guid>
+      <pubDate>Tue, 13 Aug 2024 10:19:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>时间序列预测中的神经网络：使用前一个网络作为下一个时间间隔的起点</title>
+      <link>https://stats.stackexchange.com/questions/652708/neural-net-in-time-series-forecasting-the-use-of-previous-net-as-a-staring-poin</link>
+      <description><![CDATA[我使用 NN 进行时间序列预测，其中序列和我使用的特征非常嘈杂。我在前 T 个输入上训练网络并获得了不错的结果：网络从随机初始化的权重开始学习得很好。然后我移动到下一个估计点，例如使用移动窗口，它将是间隔 [T+1,2T] 或扩展窗口 [1,2T]。如果我从随机初始化的权重开始，网络将再次学习。但是，由于我预计分布不会发生巨大变化，我从上一步获得的网络开始训练，但损失在学习周期内未能改善。我理解这是可能的，因为分布没有太大变化，而且几乎没有新东西需要学习。然而，我想知道这个问题是否可能是由于我学习的权重偏离目标而导致的，而它们的统计特性使它们成为一个糟糕的初始点？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652708/neural-net-in-time-series-forecasting-the-use-of-previous-net-as-a-staring-poin</guid>
+      <pubDate>Tue, 13 Aug 2024 10:07:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>同一 GAM 模型的不同结果取决于“discrete = TRUE”</title>
+      <link>https://stats.stackexchange.com/questions/652707/different-results-of-the-same-gam-model-depends-on-discrete-true</link>
+      <description><![CDATA[我正在使用 bam 函数拟合 GAM。
+该模型的代码是：
+mod_1 &lt;- bam(n ~ s(age, by = period, k = 15) + 
+s(hh_size, by = period, k = 9) +
+period +
+s(token, bs = &quot;re&quot;) + s(Bundesland, bs = &quot;re&quot;) + s(period, bs = &quot;re&quot;),
+data = halle_data_household,
+method = &quot;fREML&quot;, discrete = TRUE,
+family = nb(),
+nthreads = c(4,1))
+mod_2 &lt;- bam(n ~ s(age, by = period, k = 15) + 
+s(hh_size, by = period, k = 9) +
+period +
+s(token, bs = &quot;re&quot;) + s(Bundesland, bs = &quot;re&quot;) + s(period, bs = &quot;re&quot;),
+data = halle_data_household,
+method = &quot;fREML&quot;, 
+family = nb(),
+nthreads = c(4,1))
+
+两个模型的区别在于&quot;discrete = TRUE&quot;，以加快计算时间。但我得到了两个不同的结果。
+mod_1 的结果
+ 家庭：负二项式 (13.366) 
+链接函数：log 
+
+公式：
+n ~ s(age, by = period, k = 15) + s(hh_size, by = period, k = 9) + 
+period + s(token, bs = &quot;re&quot;) + s(Bundesland, bs = &quot;re&quot;) + 
+s(period, bs = &quot;re&quot;)
+
+参数系数：
+估计标准差。误差 t 值 Pr(&gt;|t|) 
+(截距) 0.5409 0.1354 3.996 6.74e-05 ***
+period2 -0.1253 0.1674 -0.749 0.454 
+period3 -0.1319 0.1600 -0.825 0.410 
+---
+显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+平滑项的近似显著性：
+edf Ref.df F p 值 
+s(age):period1 1.000e+00 1.000 0.641 0.423337 
+s(age):period2 4.683e+00 5.656 3.799 0.001034 ** 
+s(age):period3 4.569e+00 5.444 4.928 0.000116 ***
+s(hh_size):period1 1.960e+00 2.412 1.186 0.303077
+s(hh_size):period2 1.000e+00 1.000 1.798 0.180227 
+s(hh_size):period3 1.000e+00 1.000 5.930 0.014997 * 
+s(token) 4.406e+02 859.000 1.242 &lt; 2e-16 ***
+s(Bundesland) 5.429e-05 15.000 0.000 0.801883 
+s(period) 1.082e-14 3.000 0.000 0.999933 
+---
+Signif.代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.(adj) = 0.323 偏差解释 = 42.4%
+fREML = 3657.9 尺度估计 = 1 n = 2115
+
+mod_2 的结果
+ 系列：负二项式 (13.32) 
+链接函数：log 
+
+公式：
+n ~ s(age, by = period, k = 15) + s(hh_size, by = period, k = 9) + 
+period + s(token, bs = &quot;re&quot;) + s(Bundesland, bs = &quot;re&quot;) + 
+s(period, bs = &quot;re&quot;)
+
+参数系数：
+估计标准误差 t 值 Pr(&gt;|t|) 
+(截距) 0.32541 0.05293 6.148 9.83e-10 ***
+period2 -0.12288 0.07204 -1.706 0.08824 . 
+period3 -0.20909 0.06826 -3.063 0.00222 ** 
+---
+显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+平滑项的近似显著性：
+edf Ref.df F p 值 
+s(age):period1 1.000e+00 1.000 0.641 0.423576 
+s(age):period2 4.685e+00 5.661 3.801 0.001061 ** 
+s(age):period3 4.568e+00 5.442 4.963 0.000117 ***
+s(hh_size):period1 1.961e+00 2.417 1.036 0.311454
+s(hh_size):period2 1.000e+00 1.000 1.811 0.178523 
+s(hh_size):period3 1.000e+00 1.000 5.930 0.014986 * 
+s(token) 4.405e+02 857.000 1.226 &lt; 2e-16 ***
+s(Bundesland) 6.066e-05 15.000 0.000 0.802106 
+s(period) -9.299e-16 3.000 0.000 0.031014 * 
+---
+Signif.代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+R-sq.（调整）= 0.322 偏差解释 = 42.4%
+fREML = 3406.3 尺度估计 = 1 n = 2115
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652707/different-results-of-the-same-gam-model-depends-on-discrete-true</guid>
+      <pubDate>Tue, 13 Aug 2024 09:47:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>“添加”多个估计的置信区间</title>
+      <link>https://stats.stackexchange.com/questions/652706/adding-confidence-intervals-of-multiple-estimations</link>
+      <description><![CDATA[我有救护服务每季度接诊的受伤人数估计值以及置信区间。我想添加这些估计值以检索救护车接诊的年度总受伤人数估计值。如何计算这个总数的置信区间？
+每个季度，每个救护服务都会进行 N 次接诊。从 N 中抽取 +-1000 个病例样本 (n)。对于此样本中的每个病例，确定该接诊是否与受伤有关 (1) 或无关 (0；即与疾病等有关)。这意味着我可以计算样本中受伤的比例：p̂ = n1/ntotal。为了估算受伤人数（我们称该统计数据为“x”），我将 p̂ 与 N 相乘。
+但是，我想考虑随机抽样引入的不确定性，因此我使用 R 中的 stats::binom.test() 函数估算 p̂ 周围的置信区间 (CI)，并将找到的下限和上限乘以 N 以检索 x 周围的 CI。
+因此，现在我对每项救护服务和每个季度（x1、x2、… xn）都有 x 的估算值，我可以将其相加得到年度全国估算值。但是，我不确定如何“添加”置信区间。我非常确定取和将产生过于悲观的区间。
+我找到了这篇文章，它似乎表明我可以对 CIs 半径的平方和取平方根，因为我假设一年内的救护服务和季度之间存在统计独立性。但我不确定这是否正确。我正在考虑的另一种方法是将每个服务和季度的所有数据堆积起来，并使用它来计算 p̂ 和 CIs。然而，众所周知，受伤比例在服务（和季度）之间以及总乘车次数（N）之间存在显着差异。我不确定这种方法是否也会产生悲观的 CI。
+那么，我如何使用数据来计算全年估计的 CI？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652706/adding-confidence-intervals-of-multiple-estimations</guid>
+      <pubDate>Tue, 13 Aug 2024 09:34:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>数据自适应参数的推断</title>
+      <link>https://stats.stackexchange.com/questions/652705/inference-for-a-data-adaptive-parameter</link>
+      <description><![CDATA[您有一个连续变量 $A$ 的数据，表示药物的剂量，以及一个连续结果 $Y$ 的数据，表示某种健康结果。
+我想估计 $A$ 的“最佳”剂量，即最小化 $Y$ 的剂量。我们称之为 $A_{opt}$。
+估计 $A_{opt}$ 很简单。它是最小化 $E[Y|A=a]$ 的值 $a$，可以通过线性回归估算（例如）。
+然后我想估算 $A_{opt}$ 下的 $Y$ 的“值”。我可以通过传入 $A_{opt}$ 从拟合回归中获取此值。但问题是 i) 我将 $A_{opt}$ 视为已知，即使它是估计的（使方差估计无效）和 ii) 使用相同的数据来识别 $A_{opt}$ 以估计该剂量的值。
+引导解决了第一个问题，但没有解决第二个问题。两倍样本分割可能有效，但似乎很浪费。K 倍 CV 将导致 $A_{opt}$ 的多个值，这会使演示变得复杂。对于这个问题，我们有什么选择？我将不胜感激任何参考资料！
+简要
+我如何：
+
+估计数据自适应参数（即药物的“最佳”剂量，相对于结果）
+获得该最佳剂量下结果值的有效估计值和有效不确定性
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652705/inference-for-a-data-adaptive-parameter</guid>
+      <pubDate>Tue, 13 Aug 2024 09:26:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>纵向多组增长模型的不变性检验。是否需要对所有时间点进行组不变性检验？</title>
+      <link>https://stats.stackexchange.com/questions/652704/invariance-test-for-a-longitudinal-multi-group-growth-model-is-a-group-invarian</link>
+      <description><![CDATA[我有 7 波数据，用于包含来自两个不同国家样本的构造。作为增长曲线分析的初步步骤，已经进行了纵向不变性测试，并支持部分强不变性。我的问题是，是否需要对我拥有的所有时间点进行组不变性测试？我计划在我的增长曲线模型中将国家变量指定为时间不变协变量。
+此外，如果有关于需要保持“未释放”多少项目才能保持不变性的文献，那将非常有帮助。
+感谢大家的支持]]></description>
+      <guid>https://stats.stackexchange.com/questions/652704/invariance-test-for-a-longitudinal-multi-group-growth-model-is-a-group-invarian</guid>
+      <pubDate>Tue, 13 Aug 2024 09:17:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么卡方检验的 p 值和 KS 检验的 p 值之间存在很大差异？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/652702/why-do-i-get-a-large-difference-between-the-p-value-of-a-chi-square-test-and-the</link>
       <description><![CDATA[简介。我有数据，表示某个地理区域中哺乳动物的数量。我在这里展示了一个数据示例（有关更多信息，请参阅下面的代码）：
 &gt;&gt; r1
@@ -37,6 +266,7 @@ p_CS =
 p_KS =
 0.71613
 
+请注意，卡方检验的输入是分箱数据，即“h1.Values”和“h2.Values”，而 KS 检验的输入是原始数据，即“r1”和“r2”。
 问题。为什么卡方检验的 p 值和 KS 检验的 p 值之间会存在很大差异？
 其他评论。我理解卡方检验“测量” 落入 bin“i” 的观测值数量（第一个数据集/分布）与预计落入 bin“i” 的观测值数量（第二个数据集/分布）之间的平方差，而 Kolmogorov-Smirnov 检验“测量”两个 ECDF 之间的最大距离。
 也就是说，KS 检验“往往对分布中心比尾部更敏感”，但只是我的解释，卡方检验似乎对分布的每个“部分”都很敏感，因为观测值和预期值之间的平方差是针对分布的所有箱体计算的。]]></description>
@@ -44,7 +274,7 @@ p_KS =
       <pubDate>Tue, 13 Aug 2024 09:08:18 GMT</pubDate>
     </item>
     <item>
-      <title>在 KNN_classifier 中查找给定数据点 x 的 k 个最近邻居</title>
+      <title>在 KNN_classifier 中查找给定数据点 x 的 k 个最近邻居 [已迁移]</title>
       <link>https://stats.stackexchange.com/questions/652701/find-k-nearest-neighbors-of-a-given-data-point-x-in-knn-classifier</link>
       <description><![CDATA[在 python 中，knn 算法可以应用于训练数据，代码如下：
  from sklearn.neighbors import KNeighborsClassifier
@@ -58,7 +288,7 @@ y_pred = KNN_classifier.predict(X_test)
       <pubDate>Tue, 13 Aug 2024 09:05:57 GMT</pubDate>
     </item>
     <item>
-      <title>3PL IRT 方程和程序</title>
+      <title>3PL IRT 方程和程序 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/652700/3pl-irt-equation-and-program</link>
       <description><![CDATA[大家好，下面是我编写的一个程序，用于根据现有参数检查新分数 -
 但我注意到不同的地方对 3PL 方程式的报告不同，例如
@@ -104,35 +334,7 @@ theta_scores &lt;- apply(response_data, 1,estimate_theta, item_params) = item_pa
     <item>
       <title>损失函数收敛于零？</title>
       <link>https://stats.stackexchange.com/questions/652699/a-loss-function-converges-to-zero</link>
-      <description><![CDATA[背景：我正在阅读一篇很长的论文（链接），该论文介绍了分位数回归，该论文在该领域使用了迁移学习方法。该方法的一个关键部分是避免负迁移——当您有一个新的源数据集时，您必须测量源数据和目标数据之间的“距离”。如果两个数据相对“相似”，则可以使用源数据来提高目标统计问题的估计性能。因此，作者提供了一种数据导出方法来识别可转移集并建立一致性理论，证明了我们可以正确地选择“相似”的源数据集。
-证明过程：在第 104 页的证明中，作者显示
-$$
-\begin{aligned}
-&amp; P\left(\varepsilon_0 L_0\left(\widehat{\boldsymbol{\beta}}_{\text {lasso }}, \mathcal{V}_{\text {te }}\right) \geq \min \left\{\frac{\kappa_0}{4}\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_2^2, \frac{3 \kappa_0^3}{16 m_0}\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_2\right\}\right。\\
-&amp; -c_3\left(\sqrt{\frac{s^{\prime} \log p}{n_k+n_0}}+\sqrt{h^{\prime}}\left(\frac{\log p}{n_k+n_0}\right)^{1 / 4}\right)\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_2 \\
-&amp; -c_3\left(\sqrt{\frac{s^{\prime} \log p}{n_k+n_0}}+\sqrt{h^{\prime}}\left(\frac{\log p}{n_k+n_0}\right)^{1 / 4}+\sqrt{\frac{s_0 \log p}{n_0}}\right)^2 \\
-&amp; \left.-c_3 \sqrt{\frac{\log p}{n_0}}\left(s^{\prime} \sqrt{\frac{\log p}{n_k+n_0}}+h^{\prime}+s_0 \sqrt{\frac{\log p}{n_0}}+\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_1\right)\right) \\
-&amp; +\frac{1}{p^2}+\frac{14+2 C_2}{p} 
-\end{aligned}
-$$
-收敛到零。并且条件为
-$$
-\max \left\{\frac{s_0 \log p}{n_0}, s^{\prime} \sqrt{\frac{\log p}{n_0}} \sqrt{\frac{\log p}{n_k+n_0}}, h^{\prime} \sqrt{\frac{\log p}{n_0}}, \varepsilon_0\right\} \lesssim \min \left\{\frac{n_k^2 h^2}{\left(n_0^2+n_k^2\right)\left(s_0+s^{\prime}\right)}, \frac{n_k h}{\left(n_0+n_k\right) \sqrt{s_0+s^{\prime}}}\right\},
-$$
-( RHS 是关于 $|\beta_{k}^{\star}-\beta_0|_2 \ge \frac{2n_k\lambda h}{(n_0m_0 B^2 +2n_k \lambda)\sqrt{s_0+s\prime}}$，已在 第 99 页引理 c.3 中证明)
-我们有
-$$
-\begin{aligned}
-&amp; c_3\left(\sqrt{\frac{s^{\prime} \log p}{n_k+n_0}}+\sqrt{h^{\prime}}\left(\frac{\log p}{n_k+n_0}\right)^{1 / 4}\right)\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_2 \\
-&amp; +c_3\left(\sqrt{\frac{s^{\prime} \log p}{n_k+n_0}}+\sqrt{h^{\prime}}\left(\frac{\log p}{n_k+n_0}\right)^{1 / 4}+\sqrt{\frac{s_0 \log p}{n_0}}\right)^2 \\
-&amp; +c_3 \sqrt{\frac{\log p}{n_0}}\left(s^{\prime} \sqrt{\frac{\log p}{n_k+n_0}}+h^{\prime}+s_0 \sqrt{\frac{\log p}{n_0}}+\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_1\right)+\varepsilon_0 L_0\left(\widehat{\boldsymbol{\beta}}_{\text {lasso }}, \mathcal{V}_{\text {te }}\right) \\ 
-&amp; \leq \min \left\{\frac{\kappa_0}{8}\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_2^2, \frac{3 \kappa_0^3}{32 m_0}\left|\boldsymbol{\beta}_k^*-\boldsymbol{\beta}_0\right|_2\right\} \\
-\end{aligned}
-$$
-当$n_k, n_0, p$足够大时。 $L_0(\beta; \mathcal{A})= \frac{1}{|\mathcal{A}|}\sum \rho_{\tau}(Y_{0i}-Z_{0i}^{T}\beta)$ 是分位数损失函数。(第 22 页)
-我的问题：这是我对证明最后一部分的理解：当 $n_k$ 趋于无穷大时，LHS 中的每个项都非常小。同时，RHS 也趋于零，但在规定条件下，它们略大于不等式的 LHS。
-我对术语 $\varepsilon_0 L_0\left(\widehat{\boldsymbol{\beta}}_{\text {lasso }}, \mathcal{V}_{\text {te }}\right)$ 感到困惑，其中 $\varepsilon_0$ 是有界的。根据我之前的理解，$L_0$ 必须足够小，并且 $\varepsilon_0 L_0\left(\widehat{\boldsymbol{\beta}}_{\text {lasso }}, \mathcal{V}_{\text {te }}\right)$ 项是可以控制的。当 $n_k,n$ 趋于无穷大时，$L_0$ 会趋于零吗？
-这是一个很长的问题，提前谢谢您]]></description>
+      <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/652699/a-loss-function-converges-to-zero</guid>
       <pubDate>Tue, 13 Aug 2024 08:45:17 GMT</pubDate>
     </item>
@@ -157,54 +359,6 @@ $$
 具体来说，他们的论文提出了野生标准引导技术作为 Newey-West 估计量的引导版本（就像野生引导是 Eicker-White 方法的引导等效物一样）。 我的问题是，在有限样本中，我们是否应该预期随着引导重复次数趋近于无穷大，野生引导 SE 会收敛到（或至少近似一致）Newey-West SE？假设相同的大小相当大（&gt; 500）。]]></description>
       <guid>https://stats.stackexchange.com/questions/652695/convergence-of-wild-bootstrap-standard-error-to-analytical-hac-standard-error</guid>
       <pubDate>Tue, 13 Aug 2024 06:01:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用统计测试比较多个列表中各个项目的排名？</title>
-      <link>https://stats.stackexchange.com/questions/652692/how-to-compare-ranks-for-individual-items-across-multiple-lists-using-statistica</link>
-      <description><![CDATA[我有多个针对相同项目的排名列表，我想比较特定项目在两个列表子集中的排名并评估统计意义，我应该使用哪些统计测试？我可以简单地对排名进行 t 检验吗，尽管它们的分布不正常？
-例如，在虚拟数据集 df 中：
-&gt; set.seed(123)
-&gt; df &lt;- data.frame(replicate(n = 6, expr = sample(1:10, 10, replace = FALSE)))
-&gt; rownames(df) &lt;- paste0(&quot;Item&quot;, LETTERS[1:10])
-
-&gt; df
-X1 X2 X3 X4 X5 X6
-ItemA 3 10 8 7 7 2
-ItemB 10 5 7 5 5 1
-ItemC 2 3 2 4 10 9
-ItemD 8 8 1 10 9 3
-ItemE 6 1 6 2 3 8
-ItemF 9 4 3 9 1 5
-ItemG 1 6 4 3 2 7
-ItemH 7 9 10 1 8 6
-ItemI 5 7 9 8 6 4
-ItemJ 4 2 5 6 4 10
-
-我想查看两个子集（列 1、2、3 与列 4、5、6）之间 ItemF 的排名是否不同。我可以这样做吗：
-&gt; t.test(df[&quot;ItemF&quot;, 1:3], df[&quot;ItemF&quot;, 4:6])
-
-Welch 双样本 t 检验
-
-数据：df[&quot;ItemF&quot;, 1:3] 和 df[&quot;ItemF&quot;, 4:6]
-t = 0.11251，df = 3.823，p 值 = 0.9161
-备择假设：均值的真实差异不等于 0
-95% 置信区间：
--8.044952 8.711619
-样本估计值：
-x 的均值 y 的均值
-5.333333 5.000000
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/652692/how-to-compare-ranks-for-individual-items-across-multiple-lists-using-statistica</guid>
-      <pubDate>Tue, 13 Aug 2024 03:18:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>哪种拟合优度检验适合检验大小为一的样本？</title>
-      <link>https://stats.stackexchange.com/questions/652682/which-goodness-of-fit-test-to-test-a-sample-of-size-one</link>
-      <description><![CDATA[我有一个 1 到 16 范围内的整数样本。它们是从某个未指定的分布中独立同分布抽取的。如果我再得到一个从可能不同的分布中独立抽取的整数，那么什么样的拟合优度检验可以拒绝原假设，即它与第一组整数来自相同的分布？
-我考虑过使用卡方检验，但我不知道当第二个样本大小为 1 时这是否合适。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652682/which-goodness-of-fit-test-to-test-a-sample-of-size-one</guid>
-      <pubDate>Mon, 12 Aug 2024 21:22:04 GMT</pubDate>
     </item>
     <item>
       <title>我需要知道此代码中的第 3 步是否正确[关闭]</title>
@@ -262,159 +416,6 @@ print(theta_scores)
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/652671/i-need-to-know-if-step-3-in-this-code-is-correct</guid>
       <pubDate>Mon, 12 Aug 2024 17:41:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>两种荟萃分析方法：哪一种更可取？</title>
-      <link>https://stats.stackexchange.com/questions/652670/two-ways-of-meta-analysis-which-one-is-preferred</link>
-      <description><![CDATA[假设我有 $k=1, 2, 3...K$ 项研究，其中连续自变量 $Y$ 和因变量 $X$ 为同一组。研究之间的效果可能不同，我想进行荟萃分析。
-我知道的一种方法是进行回归分析。我可以创建一个 $(K-1)$ 维虚拟变量 $Z$，并运行具有随机效果的线性回归。如果 $j$ 是研究指标，$i$ 是样本指标：
-$$Y_{ij}=\beta X_{ij}+\gamma_j Z_{ij}+\epsilon$$
-$$\gamma_j\sim N(0,\tau^2)$$
-$$\epsilon\sim N(0,\sigma^2)$$
-或者如果研究不多，我可以做一个固定效应模型：
-$$Y_{ij}=\beta X_{ij}+\beta_j Z_{ij}+\epsilon$$
-$$\epsilon\sim N(0,\sigma^2)$$
-但是，我也看到了对每项研究单独进行分析并计算对数 p 值的加权平均值（可能按样本量或样本量的平方根加权）的做法，如以下线程所示：
-组合 p 值时，为什么不直接取平均值？
-我是元分析的新手。有人可以给我简单介绍一下哪种方法更可取吗？谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/652670/two-ways-of-meta-analysis-which-one-is-preferred</guid>
-      <pubDate>Mon, 12 Aug 2024 17:26:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>“正弦”激活对于重建/隐式映射以外的任务有用吗？</title>
-      <link>https://stats.stackexchange.com/questions/652669/are-sine-activations-useful-for-tasks-other-than-reconstruction-implicit-map</link>
-      <description><![CDATA[这篇文章询问了在神经网络中使用sine激活的问题。
-2020 年的一篇有趣的论文 (SIREN)使用激活来完成一些任务。本网站中也有作者编写的节选版。
-据我所知，这些是重建任务，即不是标准计算机视觉、NLP 等任务。
-我的理解也基于Reddit 上的这条评论。
-显然，该领域被称为隐式神经表征，它们对单个信号样本进行了过度拟合；例如将图像中的 x,y 坐标映射到像素，这是 隐式 部分。
-由此，它们是否有助于重建图像或音频的部分或任何输入信号？作者似乎表明他们可以对输入进行编码（以某种方式过度拟合）。
-
-对此的解释是否正确？
-如前所述，正弦激活实际上并未用于/用于标准机器学习任务，对吗？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/652669/are-sine-activations-useful-for-tasks-other-than-reconstruction-implicit-map</guid>
-      <pubDate>Mon, 12 Aug 2024 16:46:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>由指数和确定的概率数值稳定对数概率</title>
-      <link>https://stats.stackexchange.com/questions/652651/probability-determined-from-sum-of-exponentials-numerically-stable-log-probabili</link>
-      <description><![CDATA[在这个问题中，我问：
-如果我们有：$\tau_i \overset{\text{independent}}{\sim}
-\exp(\lambda_i)$，对于$i=1,2,3,...,n$，其中$\lambda_i\neq \lambda_j, \forall i\neq j$，那么我想找到概率的一般形式：
-$$
-\text{Pr}(\sum_{i=1}^{n-1} \tau_i \leq t, \sum_{i=1}^{n} \tau_i &gt; t)
-$$
-我收到了 Ben 的回答：
-$$
-\sum_{i=1}^{n-1} m_{n,i} \cdot [ \exp (- \lambda_i t) - \exp (- \lambda_n t) ],
-$$
-其中术语 $m_{n,j}$ 定义为如：
-$$
-m_{n,i} = \frac{\lambda_i}{\lambda_n} \prod_{j=1 \\ j \neq i}^{n} \frac{\lambda_j}{\lambda_j-\lambda_i}。
-$$
-我发现，当 $n$ 相当大（甚至高于 10）时，上述规则计算出的概率在计算上可能会变为负数。即由于 $m_{n,i}$ 既可以为正数也可以为负数，因此计算的精度对于确保概率为正数非常重要。
-我想知道是否有一种计算稳定的方法来计算 对数概率？
-注意：我意识到 $m_{n,i}$ 的一部分就是所谓的 拉格朗日多项式：
-$$
-l_j(0) := \prod_{j=1 \\ j \neq i}^{n} \frac{\lambda_j}{\lambda_j-\lambda_i},
-$$
-其确实有一个稳定的形式定义在这里。不过，我试过了，对于中等大小的 n，我仍然会得到负概率。这也是我希望找到对数概率更稳定表达式的部分原因；使用对数概率也更方便，因为我正在做使用这个的 MCMC。
-注意：使用这里设计的一些用于稳定和对数的巧妙解决方案并不简单，因为$m_{n,i}$ 可能是负数。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652651/probability-determined-from-sum-of-exponentials-numerically-stable-log-probabili</guid>
-      <pubDate>Mon, 12 Aug 2024 13:33:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>竞争风险 - 加权人群中的累积发生率</title>
-      <link>https://stats.stackexchange.com/questions/652642/competing-risk-cumulative-incidence-in-a-weighted-population</link>
-      <description><![CDATA[我有以下已根据倾向得分加权的数据。
-
-模型中唯一感兴趣的独立变量是 treat，因为协变量已使用权重进行平衡。
-感兴趣的事件是疾病。
-
-竞争风险是死亡。
-
-因此，event == 0（审查），event == 1（疾病），event == 2（死亡）。
-library(cobalt)
-library(cmprsk)
-library(survminer)
-
-set.seed(123)
-lalonde &lt;- cbind(lalonde,
-event = sample(c(0, 1), size = 614, replace = TRUE, prob = c(0.84, 0.16)),
-time = runif(614, min = 10, max = 365))
-n &lt;- ceiling(0.05 * nrow(lalonde)) 
-selected_indices &lt;- sample(1:nrow(lalonde), size = n)
-lalonde[selected_indices, &quot;event&quot;] &lt;- 2
-
-formula &lt;- treat ~ age + educ + race + marriage + nodegree + re74 + re75 + re78
-
-# PS
-lalonde$pscore &lt;- glm(formula, data = lalonde,
-family = binomial(link = &quot;logit&quot;))$fitted.values
-
-# Weights
-lalonde$weight &lt;- ifelse(lalonde$treat == 1,
-pmin(lalonde$pscore, 1 - lalonde$pscore) / lalonde$pscore,
-pmin(lalonde$pscore, 1 - lalonde$pscore) / (1 - lalonde$pscore))
-
-
-如果没有权重，我会计算并绘制如下：
-cr &lt;- cuminc(ftime = lalonde$time,
-fstatus = lalonde$event, 
-cencode = 0,
-group = lalonde$treat)
-
-p &lt;- ggcompetingrisks(fit = cr, 
-multiple_panels = F, 
-xlab = &quot;Days&quot;, 
-ylab = &quot;Cumulative事件发生率&lt;,
-title = &quot;竞争风险分析&quot;) 
-
-由于我对调整竞争风险后的事件感兴趣，因此我排除了竞争风险的曲线：
-p$data &lt;- p$data[p$data$event == 1, ]
-
-p + labs(colour = &quot;Group&quot;) 
-
-结果为：
-
-问题：
-
-这怎么可能来解释权重？
-也许有解决方法？
-我无法想象它会强迫某人使用匹配而不是加权，因为没有参数使用 cuminc 来实现权重。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/652642/competing-risk-cumulative-incidence-in-a-weighted-population</guid>
-      <pubDate>Mon, 12 Aug 2024 09:07:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>样本方差的渐近分布[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/652639/asymptotic-distribution-in-sample-variance</link>
-      <description><![CDATA[如何证明正确的样本方差是渐近正态的？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652639/asymptotic-distribution-in-sample-variance</guid>
-      <pubDate>Mon, 12 Aug 2024 08:24:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>估计偏好率</title>
-      <link>https://stats.stackexchange.com/questions/652550/estimating-preference-rate</link>
-      <description><![CDATA[我提供在线服务，想确定人们选择我的服务的频率与选择我的竞争对手的频率相比如何。为了估算这一点，我有一些数据可以跟踪用户何时看到服务列表以及他们选择哪种服务。这些数据来自各种来源（供应商）。因此，我可以计算特定来源的偏好率。
-我收集的数据是用户级别的，按日期组织。这是一个架构：
-date, source, cust_id, os, democratics, #_my_service_chosen, #total_services_availaed
-1/6, s1, 101, iOS, US, 7, 10
-2/6, s1, 107, iOS, US, 3, 10
-:::
-8/6, s4, 707, iOS, UK, 13, 20
-
-但是，我知道我的数据来源并不详尽，只覆盖了我整个用户群的 20% 左右。此外，数据存在偏差：来源 1 (s1) 约占样本的 80%，而其他来源仅占 5%。
-现在考虑到这种表示偏差，样本覆盖率较低（20%）；我如何才能可靠地估计人口偏好率？
-我已经尝试过的方法：
-
-使用引导抽样进行基线估计。
-将抽样组合简单投影到人口
-
-我还可以探索哪些其他方法？我对贝叶斯方法还不熟悉，正在考虑贝叶斯分层模型，但考虑到我有大约 500 万条记录，在客户级别应用该方法是否有意义？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652550/estimating-preference-rate</guid>
-      <pubDate>Fri, 09 Aug 2024 16:59:00 GMT</pubDate>
     </item>
     </channel>
 </rss>
