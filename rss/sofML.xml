@@ -4,7 +4,113 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 14 Aug 2024 09:16:40 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 14 Aug 2024 12:30:01 GMT</lastBuildDate>
+    <item>
+      <title>training=False 和 training =True 之间有什么区别？[重复]</title>
+      <link>https://stackoverflow.com/questions/78870866/whats-the-difference-between-training-false-and-training-true</link>
+      <description><![CDATA[def train_step(self, batch):
+# 获取数据 
+real_images = batch
+fake_images = self.generator(tf.random.normal((128, 128, 1)), training=False)
+
+# 训练鉴别器
+with tf.GradientTape() as d_tape: 
+
+yhat_real = self.discriminator(real_images, training=True) 
+yhat_fake = self.discriminator(fake_images, training=True)
+yhat_realfake = tf.concat([yhat_real, yhat_fake], axis=0)
+
+y_realfake = tf.concat([tf.zeros_like(yhat_real), tf.ones_like(yhat_fake)], axis=0)
+
+# 为 TRUE 输出添加一些噪声
+noise_real = 0.15*tf.random.uniform(tf.shape(yhat_real))
+* noise_fake = -0.15*tf.random.uniform(tf.shape(yhat_fake))
+y_realfake += tf.concat([noise_real, noise_fake], axis=0)
+
+total_d_loss = self.d_loss(y_realfake, yhat_realfake)
+
+dgrad = d_tape.gradient(total_d_loss, self.discriminator.trainable_variables) 
+self.d_opt.apply_gradients(zip(dgrad, self.discriminator.trainable_variables))
+
+使用 tf.GradientTape() 作为 g_tape: 
+
+gen_images = self.generator(tf.random.normal((128,128,1)), training=True)
+
+predicted_labels = self.discriminator(gen_images, training=False)
+
+total_g_loss = self.g_loss(tf.zeros_like(predicted_labels),predicted_labels) 
+
+ggrad = g_tape.gradient(total_g_loss, self.generator.trainable_variables)
+self.g_opt.apply_gradients(zip(ggrad, self.generator.trainable_variables))
+
+return {&quot;d_loss&quot;:total_d_loss, &quot;g_loss&quot;:total_g_loss}
+
+我正在构建一个 GAN。如上面的代码所示，在计算生成器的梯度时，鉴别器设置为 training =False。这是否意味着在计算梯度时，我们不想计算相对于鉴别器参数的损失梯度，也不想将梯度应用于鉴别器？
+我还发现，这是训练模式和推理模式之间的区别。显然，批量归一化和 dropout 层对这两种模式的作用不同。这是什么意思？]]></description>
+      <guid>https://stackoverflow.com/questions/78870866/whats-the-difference-between-training-false-and-training-true</guid>
+      <pubDate>Wed, 14 Aug 2024 12:18:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>建模时我需要标准化 Y 变量吗？</title>
+      <link>https://stackoverflow.com/questions/78870125/do-i-need-to-standardize-the-y-variable-when-modelling</link>
+      <description><![CDATA[我正在构建机器学习回归模型。y 变量是每只股票所有月份的超额收益。
+我对股票进行了 1% 和 99% 的缩尾处理。 y 变量的图：
+
+y_trn.hist(bins=50)
+训练样本图
+
+y_vld.hist(bins=50)
+有效样本图
+
+y_tst.hist(bins=50)
+测试样本图
+
+
+因为现在我的模型不够稳健，测试样本的 r2 远大于训练样本的 r2。
+这是我的另一个问题：
+前馈网络回归预测几乎相同的值
+我将所有 X 变量标准化为 [-1,1]，我需要标准化 y 变量吗？也许我不应该对 y 变量进行缩尾？]]></description>
+      <guid>https://stackoverflow.com/questions/78870125/do-i-need-to-standardize-the-y-variable-when-modelling</guid>
+      <pubDate>Wed, 14 Aug 2024 09:20:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>将 `transformers` 中的 `TFRobertaForSequenceClassification` 与 `tensorflow.keras.Model` 结合使用</title>
+      <link>https://stackoverflow.com/questions/78870106/using-tfrobertaforsequenceclassification-from-transformers-with-tensorflow</link>
+      <description><![CDATA[我已经按照此处所示为 TFRobertaForSequenceClassification 定义了带有两个标签的自定义分类器头，以便能够针对我的下游任务对其进行微调，即将句子分类为来自一组有限的独立标签。
+from transformers import TFRobertaForSequenceClassification
+roberta_model = TFRobertaForSequenceClassification.from_pretrained(pretrained_model_path, from_pt=True, num_labels=2)
+
+我想将 roberta_model 成为 tensorflow.keras.Model。以下是我现在使用 tensorflow.keras.layers.Identity 作为最终/输出层的结果，因为 roberta 的分类主管已经处理好了它。
+import numpy as np
+import tensorflow as tf
+
+MAX_SEQUENCE_LENGTH = 256
+
+# 定义输入 ID、注意掩码和输入类型 ID
+input_word_ids = tf.keras.Input(shape=(MAX_SEQUENCE_LENGTH,), dtype=tf.int32, name=&#39;input_word_ids&#39;)
+input_mask = tf.keras.Input(shape=(MAX_SEQUENCE_LENGTH,), dtype=tf.int32, name=&#39;input_mask&#39;)
+input_type_ids = tf.keras.Input(shape=(MAX_SEQUENCE_LENGTH,), dtype=tf.int32, name=&#39;input_type_ids&#39;)
+
+# 启动预训练模型
+roberta_model = TFRobertaForSequenceClassification.from_pretrained(pretrained_model_path, from_pt=True, num_labels=2)
+x = roberta_model(input_ids=input_word_ids,tention_mask=input_mask, token_type_ids=input_type_ids, labels=np.array([0, 1]))
+
+# `x` 具有损失并将 logits 作为键。因此，将损失和对数传递到前面。
+# 添加任务所需的最终层
+out = tf.keras.layers.Identity(activation=&#39;softmax&#39;)(x)
+
+# 构建模型
+model = tf.keras.Model(inputs=[input_word_ids, input_mask, input_type_ids], output=out)
+
+# 编译模型
+model.compile(loss=&#39;sparse_categorical_crossentropy&#39;, optimizer=tf.keras.optimizers.Adam(lr=1e-5), metrics=[&#39;accuracy&#39;, tf.keras.metrics.F1Score()])
+
+我需要将模型放在 Keras 中，因为我有处理历史记录的下游代码tf.keras.Model.fit 返回。
+我发现我现有方法的问题是，如源代码所示 (https://github.com/huggingface/transformers/blob/main/src/transformers/models/roberta/modeling_roberta.py#L1210-L1232)，末尾已经附加了一个损失，因此，我添加了一个 softmax 损失，只是为了使其成为 tensorflow.keras.Model 并且有两个损失函数看起来不正确。此外，我在最终的身份层中不能有任何激活吗？
+我在其他地方做错了什么吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78870106/using-tfrobertaforsequenceclassification-from-transformers-with-tensorflow</guid>
+      <pubDate>Wed, 14 Aug 2024 09:18:14 GMT</pubDate>
+    </item>
     <item>
       <title>使用 ML 算法对图像进行分类时，如何修复“找到具有 dim 4 的数组”错误</title>
       <link>https://stackoverflow.com/questions/78869863/how-fix-found-array-with-dim-4error-when-using-ml-algorthims-to-classify-image</link>
@@ -129,98 +235,12 @@ Lambda.call() 收到的参数：
     <item>
       <title>Scikit-learn 版本不匹配问题。我不知道应该安装哪个版本</title>
       <link>https://stackoverflow.com/questions/78869112/scikit-learn-version-mismatch-problem-and-i-dont-know-which-version-should-be</link>
-      <description><![CDATA[在此处输入图片说明我正在努力解决涉及 Scikit-learn 的版本不匹配问题，事实证明这是一个相当棘手的问题。每当我尝试安装不同版本的 Scikit-learn 时，我都会遇到一系列错误，这些错误似乎因我尝试的每个版本而异。问题的核心似乎是 Scikit-learn 与其依赖项（例如 NumPy 和 SciPy）之间的不兼容性。这些依赖项对于 Scikit-learn 正常运行至关重要，找到可以协同工作的正确版本已成为一项艰巨的任务。尽管我付出了努力，但我还是无法找到一个可以解决错误并与我现有设置很好地集成的 Scikit-learn 版本。反复试验的过程只会导致越来越多的挫败感，因为每个新版本都会带来自己的一系列问题，而不是解决核心问题。此版本不匹配严重影响了我在项目中有效使用 Scikit-learn 的能力。缺乏关于如何将 Scikit-learn 与其依赖项的兼容版本对齐的明确指导增加了我的困难，使我很难继续工作并实现预期成果。]]></description>
+      <description><![CDATA[我正在努力解决涉及 Scikit-learn 的版本不匹配问题，事实证明这非常成问题。每当我尝试安装不同版本的 Scikit-learn 时，我都会遇到一系列错误，这些错误似乎因我尝试的每个版本而异。
+
+问题的核心似乎是 Scikit-learn 与其依赖项（例如 NumPy 和 SciPy）之间的不兼容性。这些依赖项对于 Scikit-learn 正常运行至关重要，找到可以协同工作的正确版本已成为一项艰巨的任务。尽管我付出了努力，但我还是无法找到一个可以解决错误并与我现有设置很好地集成的 Scikit-learn 版本。反复试验的过程只会导致越来越多的挫败感，因为每个新版本都会带来一系列问题，而不是解决核心问题。
+这个版本不匹配严重影响了我在项目中有效使用 Scikit-learn 的能力。缺乏关于将 Scikit-learn 与其依赖项的兼容版本对齐的明确指导增加了我的困难，使我很难继续工作并实现预期结果。]]></description>
       <guid>https://stackoverflow.com/questions/78869112/scikit-learn-version-mismatch-problem-and-i-dont-know-which-version-should-be</guid>
       <pubDate>Wed, 14 Aug 2024 04:15:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 Pytorch 为二进制数据集实现自动编码器</title>
-      <link>https://stackoverflow.com/questions/78868720/how-to-implement-an-autoencoder-for-a-binary-dataset-using-pytorch</link>
-      <description><![CDATA[我对 Autoencoder 及其功能非常陌生。我被要求创建一个重建二进制 CSV 文件（解码）的 Autoencoder。
-我根据 geeksforgeeks 的 MNIST 示例实现了一个。但我对包括损失计算和 relu 和线性部分的正确性非常不确定。我做了一些研究，似乎在这种情况下 BCEloss 也比 MSEloss 更好。
-任何建议都非常感谢。
-以下代码可以生成输出，但损失非常小。建议的批量大小、隐藏维度层和时期数是多少。
-
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-
-# 设置随机种子以实现可重复性
-np.random.seed(42)
-torch.manual_seed(42)
-
-# 生成玩具数据：D = 100 名患者，K = 10 个表型，二进制值（0 或 1）
-D，K = dm.shape
-#data = np.random.randint(0, 2, size=(D, K)).astype(np.float32)
-
-# 将 numpy 数组转换为 PyTorch 张量
-data_tensor = torch.tensor(dm)
-print(data_tensor.shape)
-
-# 定义 Autoencoder 模型
-class Autoencoder(nn.Module):
-def __init__(self, input_dim, hidden_​​dim):
-super(Autoencoder, self).__init__()
-# 编码器
-self.encoder = nn.Sequential(
-nn.Linear(input_dim, hidden_​​dim),
-nn.ReLU()
-)
-# 解码器
-self.decoder = nn.Sequential(
-nn.Linear(hidden_​​dim, input_dim),
-nn.Sigmoid()
-)
-
-def forward(self, x):
-coded = self.encoder(x)
-coded = self.decoder(encoded)
-return解码
-
-# 超参数
-input_dim = K
-hidden_​​dim = 5 # 隐藏层维度，需要调整
-
-# 初始化模型、损失函数和优化器
-model = Autoencoder(input_dim=input_dim, hidden_​​dim=hidden_​​dim)
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-# 训练参数
-num_epochs = 5
-batch_size = 10
-
-# 训练循环
-for epoch in range(num_epochs):
-for i in range(0, D, batch_size):
-batch_data = data_tensor[i:i+batch_size]
-
-# 正向传递
-outputs = model(batch_data)
-loss = criterion(outputs, batch_data)
-
-# 反向传递和优化
-optimizer.zero_grad()
-loss.backward()
-optimizer.step()
-
-#print(f&#39;Epoch [{epoch+1}/{num_epochs}], Loss: {loss}&#39;)
-if (epoch+1) % 10 == 0:
-print(f&#39;Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}&#39;)
-
-# 通过重建输入数据测试模型
-with torch.no_grad():
-reconstructed = model(data_tensor)
-
-print(&quot;Original Data:&quot;)
-print(data_tensor)
-
-print(&quot;Reconstructed Data:&quot;)
-print(reconstructed)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78868720/how-to-implement-an-autoencoder-for-a-binary-dataset-using-pytorch</guid>
-      <pubDate>Wed, 14 Aug 2024 00:44:26 GMT</pubDate>
     </item>
     <item>
       <title>runs\train\exp10 不是目录</title>
@@ -265,158 +285,32 @@ python train.py --img 640 --batch 32 --epochs 300 --data data.yaml --cfg models/
       <pubDate>Tue, 13 Aug 2024 21:58:27 GMT</pubDate>
     </item>
     <item>
-      <title>如何将保存的模型从 Kaggle 导入和下载到本地模型</title>
-      <link>https://stackoverflow.com/questions/78867971/how-to-import-and-download-saved-models-from-kaggle-to-local-model</link>
-      <description><![CDATA[我正在开展一个使用模型组合进行集成训练的项目，但在处理某些数据格式时遇到了问题。我能够在 Kaggle 上成功下载并使用 gemma 和 llama 语言模型，但很难从 Bert 模型下载并转换为有用的模型进行预处理。文件格式为 .pb 保存的模型格式。到目前为止，我已经成功导入了模型数据，构建了编码器，并从下载的文件中保存了一个模型（至少我认为是这样）。这是我目前所拥有的：
-import tensorflow as tf
-from transformers import BertTokenizer
-import kagglehub
-import keras
+      <title>具有大数据集的 Adaboost：初始权重接近于零</title>
+      <link>https://stackoverflow.com/questions/78867381/adaboost-with-large-dataset-initial-weight-are-near-zero</link>
+      <description><![CDATA[我正在尝试实现 adaboost。我选择的数据集是 mlpack 包中的 Covertype。问题在于计算数据集的初始权重为 1/n_elem，其中 n_elem (406709) 是一个非常大的数字，因此除法接近于 0。此外，类别非常不平衡：
 
-# 下载模型（假设已设置 api 密钥和访问权限）
-path = kagglehub.model_download(&quot;tensorflow/bert/tensorFlow2/en-wwm-uncased-l-24-h-1024-a-16&quot;)
+标签 0 出现 148378 次。
+标签 1 出现 198219 次。
+标签 2 出现 25086 次。
+标签 3 出现 1935 次
+标签 4 出现 6656 次。
+标签 5 出现 12181 次。
+标签 6 出现 14254 次。
 
-print(&quot;模型文件路径：&quot;, path)
+因此，当我规范化权重时，会发生分段错误
 
-model_path=path
-#使用 keras 和 bert tokenizer 构建模型和编码器
-model = keras.layers.TFSMLayer(model_path, call_endpoint=&#39;serving_default&#39;)
-encoder = BertTokenizer.from_pretrained(model_path+r&#39;\assets\vocab.txt&#39;)
-
-# 概念证明
-print(&quot;用户：&quot;)
-input_text = tf.keras.layers.Input(shape=(), dtype=tf.string)
-# 标记输入（此处出错）
-tokenize=[encoder(segment) for fragment in input_text]
-
-我遇到的主要问题是 tokenizer。当我标记文本时，它会抛出错误：
-回溯（最近一次调用最后一次）：
-文件“C:\Users\cwaid\example4.py”，第 20 行，位于 &lt;module&gt;
-tokenize=[encoder(segment) for section in input_text]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-文件 &quot;C:\Users\cwaid\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\keras\src\backend\common\keras_tensor.py&quot;, line 120, in __iter__
-raise NotImplementedError(
-NotImplementedError: 不支持对符号 KerasTensor 进行迭代。
-
-我不太确定我的模型和编码器是否根据此错误正确初始化，但我不知道如何修复它，因为这是从Kaggle 文档。
-就我的项目而言，我没有使用 kaggle journal 或 jupyter notebook，因为我试图用低级语言构建一个独立的预训练模型系统，用于集成学习，而是用 python 构建一个概念证明。
-我曾尝试将 pb 文件转换为纯 keras 和元文件，但没有一个有据可查的解决方案，所以我试图避免这样做，以免使我正在做的事情复杂化（尽管如果它更合适，我愿意接受它）。此外，我尝试将其转换为基于 pytorch 的系统，但似乎除非我的模型和编码器正确，否则数据不适合直接翻译，但同样，我不知道是否是这种情况。]]></description>
-      <guid>https://stackoverflow.com/questions/78867971/how-to-import-and-download-saved-models-from-kaggle-to-local-model</guid>
-      <pubDate>Tue, 13 Aug 2024 19:13:56 GMT</pubDate>
+我想到的唯一想法是对数据集进行分区，但我不知道是否要保留这种类别分布或平衡它？这可能是个好主意吗？还有其他可能性吗？
+提前感谢你的帮助！]]></description>
+      <guid>https://stackoverflow.com/questions/78867381/adaboost-with-large-dataset-initial-weight-are-near-zero</guid>
+      <pubDate>Tue, 13 Aug 2024 16:29:47 GMT</pubDate>
     </item>
     <item>
-      <title>COCO 格式到 YOLO 格式（分割蒙版）[关闭]</title>
-      <link>https://stackoverflow.com/questions/78867841/coco-format-to-yolo-format-segmentation-masks</link>
-      <description><![CDATA[我需要分割我拥有的图像，以便创建用于训练 YOLOv8-seg 的数据集。
-我正在尝试使用 CVAT 创建分割蒙版，但是我无法使用 YOLO 导出格式导出分割注释，因此我使用 COCO 导出格式，然后考虑将其转换为 YOLO 格式。
-如何使用 Python 代码将 COCO 格式（带分割）转换为 YOLO 格式（带分割）？
-有谁知道任何（免费/便宜）工具可以自动将分割导出为 YOLO 格式，而不必转换 COCO 格式？]]></description>
-      <guid>https://stackoverflow.com/questions/78867841/coco-format-to-yolo-format-segmentation-masks</guid>
-      <pubDate>Tue, 13 Aug 2024 18:23:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>Python 中的 Sums 包无法进行标记</title>
-      <link>https://stackoverflow.com/questions/78862511/sums-package-failing-to-tokenize-in-python</link>
-      <description><![CDATA[我使用以下代码在 Python 中总结我的文本。代码正在 Jupyter Notebook 中运行。我已经使用 pip 命令安装了 sumy。
-pip install sumy nltk
-python -m nltk.downloader punkt
-
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lsa import LsaSummarizer
-from io import StringIO
-
-# 定义要总结的文本
-text = &quot;&quot;&quot;
-自然语言处理 (NLP) 是人工智能的一个领域，专注于通过自然语言实现计算机与人类之间的互动。NLP 的最终目标是使计算机能够以有价值和有意义的方式理解、解释和响应人类语言。
-NLP 用于应用算法来识别和提取自然语言规则，从而将非结构化语言数据转换为计算机可以理解的形式。当提供文本时，计算机可以采用多种不同的方法来处理它。算法可以是基于规则的方法，也可以是基于机器学习的方法。
-“”“”
-
-# 使用 StringIO 模拟文件类对象
-text_io = StringIO(text)
-
-# 解析文本
-parser = PlaintextParser.from_file(text_io, Tokenizer(&quot;english&quot;))
-
-# 初始化 LSA 摘要器
-summarizer = LsaSummarizer()
-
-# 生成摘要（您可以调整句子数量）
-summary = summaryr(parser.document, sentences_count=2)
-
-# 打印摘要
-for sentence in summary:
-print(sentence) 
-
-当我运行程序时，我收到以下错误：
-ame)
-662 def find_class(self, module, name):
-663 # 禁止每个函数
---&gt; 664 引发 pickle.UnpicklingError(f&quot;全局 &#39;{module}.{name}&#39; 被禁止&quot;)
-
-UnpicklingError: 全局 &#39;copy_reg._reconstructor&#39; 被禁止 
-
-有什么想法！]]></description>
-      <guid>https://stackoverflow.com/questions/78862511/sums-package-failing-to-tokenize-in-python</guid>
-      <pubDate>Mon, 12 Aug 2024 15:37:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>梯度下降算法中的学习率</title>
-      <link>https://stackoverflow.com/questions/78844901/learning-rate-in-gradient-descent-algorithm</link>
-      <description><![CDATA[在梯度下降算法中，我根据它们的导数更新B和M值，然后将它们与学习率值相乘，但是当我对L使用相同的值，例如0.0001时，它不能正常工作。减小或增加L值不起作用。作为一种解决方法，我不得不为b和m值设置不同的L值。这是正常的还是有错误？
-import pandas as pd
-import matplotlib.pyplot as plt
-import time
-import random
-
-# Veri seti
-veri_seti = &quot;study_score_decreasing.csv&quot; #study_score_decreasing.csv #study_score_increasing.csv 
-data = pd.read_csv(veri_seti)
-
-# 梯度下降 Fonksiyonu
-def gradient_descent(m_next, b_next, points, L):
-m_gradient = 0
-b_gradient = 0
-n = len(points)
-
-for i in range(n):
-x = points.iloc[i].study_time
-y = points.iloc[i].score
-
-m_gradient += -(2/n) * x * (y - (m_next * x + b_next))
-b_gradient += -(2/n) * (y - (m_next * x + b_next))
-
-m = m_next - m_gradient * 0.0001 #(L = 0.0001)
-b = b_next - b_gradient * 0.1 #(L = 0.1)
-
-return m, b
-
-# 图形选项 图表
-def show_graph(m, b):
-plt.scatter(data.study_time, data.score, color=&quot;red&quot;)
-x_range = range(int(data.study_time.min()), int(data.study_time.max()) + 1)
-plt.plot(x_range, [m * x + b for x in x_range], color=&quot;blue&quot;)
-plt.xlabel(&#39;学习时间&#39;)
-plt.ylabel(&#39;分数&#39;)
-plt.title(&#39;学习时间与分数&#39;)
-plt.show()
-time.sleep(0.001)
-print(&quot;=&gt; F(X):&quot;, round(m, 1), &quot;X +&quot;, round(b, 3))
-
-# Ana Fonksiyon
-def main(m, b, L, epochs):
-print(&quot;=&gt; F(X):&quot;, m, &quot;X&quot;, b)
-
-for i in range(epochs):
-m, b = gradient_descent(m, b, data, L)
-show_graph(m, b)
-
-# 基础说明
-main(random.uniform(-1, 110), random.uniform(-10, 10), 0.1, 250)
-
-我逐个更新了L值，得到了合乎逻辑的结果，但是用一个共同的L值，为什么解看起来不合逻辑？]]></description>
-      <guid>https://stackoverflow.com/questions/78844901/learning-rate-in-gradient-descent-algorithm</guid>
-      <pubDate>Wed, 07 Aug 2024 16:59:10 GMT</pubDate>
+      <title>使用 LLM 创建聊天机器人，使用 AWS Bedrock 中的模型与 Excel 或 PDF 文件进行交互 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78866843/create-a-chatbot-using-llm-for-interacting-with-excel-or-pdf-files-using-models</link>
+      <description><![CDATA[我想创建一个聊天机器人，它可以根据我输入的 excel 或 PDF 文件回答问题。我有 AWS 基本访问权限，可以在其中使用多个模型。我的 excel 文件有 20k 行和 10 列。有人可以建议我应该使用哪个最好的 LLM 模型吗？或者如果有人可以分享一些相关资源，那将非常有帮助。
+我尝试了一些模型，但要么我得到了 token 错误，要么输出不准确。]]></description>
+      <guid>https://stackoverflow.com/questions/78866843/create-a-chatbot-using-llm-for-interacting-with-excel-or-pdf-files-using-models</guid>
+      <pubDate>Tue, 13 Aug 2024 14:26:01 GMT</pubDate>
     </item>
     <item>
       <title>使用 YOLOv8 进行大量错误检测</title>
@@ -433,59 +327,6 @@ main(random.uniform(-1, 110), random.uniform(-10, 10), 0.1, 250)
       <pubDate>Thu, 01 Aug 2024 11:33:58 GMT</pubDate>
     </item>
     <item>
-      <title>从 R 中的空间数据框中识别横断面上的点</title>
-      <link>https://stackoverflow.com/questions/78787801/identify-points-lying-on-transects-from-a-spatial-dataframe-in-r</link>
-      <description><![CDATA[我有调查数据，沿着与海岸垂直的平行横断面每隔 1 海里记录一次。对于每条记录，我都有纬度和经度、速度、方位等信息。沿着横断面，速度约为 10 节。我还在样条间（速度可能不同，方位肯定不同）处有一些点，如果进行了拖网，我还在样条外有一些点。
-我想要做的是将属于同一样条的所有点分组（例如，参见图）：
-
-这只是使用 1 NM 点间距离完成的，正如您在图中看到的那样，这实际上不起作用，因为只要有样条间（如样条 5），它就会与样条本身分组在一起。此外，在横断面 13 中，由于某种原因，2 个后续记录之间的距离略大于 1 海里，因此这些点被分成 2 个横断面（您可以看到颜色略有不同）。
-此处显示的数据框示例：
- |year |datetime |xkm |ykm |logdiff |time_diff |distance |bearing |speed |
-|&lt;dbl&gt; |&lt;dttm&gt; |&lt;dbl&gt; |&lt;dbl&gt; |&lt;dbl&gt;| &lt;dbl&gt;| &lt;drtn&gt; | &lt;dbl&gt;| &lt;dbl&gt;| &lt;dbl&gt;| &lt;dbl&gt;|
-|------|---------- |------|-----|--------|------ --|---------|--------|------|
-|2023 |2023-09-26 15:03:00 |221. |1606.| 1| 360 秒 | 1| -1.58| 10|
-|2023 |2023-09-26 15:08:00 |223. |1606.| 1| 300 秒 | 1| -1.58| 12|
-|2023 |2023-09-26 15:14:00 |225. |1606.| 1| 360 秒 | 1| -1.58| 10|
-|2023 |2023-09-26 15:19:00 |227. |1606.| 1| 300 秒 | 1| -1.58| 12|
-|2023 |2023-09-26 15:25:00 |229. |1606.| 1| 360 秒 | 1| -1.84| 10|
-|2023 |2023-09-26 15:30:00 |231. |1606.| 1| 300 秒 | 1| -1.85| 12|
-|2023 |2023-09-26 15:36:00 |233. |1606.| 1| 360 秒 | 1| -1.58| 10|
-|2023 |2023-09-26 15:41:00 |234. |1605.| 1| 300 秒 | 1| -1.85| 12|
-|2023 |2023-09-26 15:47:00 |236. |1605.| 1| 360 秒 | 1| -1.58| 10|
-|2023 |2023-09-26 15:52:00 |238. |1605.| 1| 300 秒 | 1| -1.58| 12|
-
-在 R 中解决这个问题的最佳方法是什么？我考虑过一些无监督的机器学习算法，比如使用 dbscan 进行聚类，但我不确定我是否正确使用了它。除了点之间的距离，我还想使用其他参数来分类一个点是否属于横断面（例如方位和速度）。
-我的尝试：
-# 准备聚类数据
-clustering_data &lt;- df %&gt;% select(year, speed, bearing, xkm, ykm)
-
-dput(clustering_data) 
-
-# dput 输出
-structure(list(year = c(2023, 2023, 2023, 2023, 2023, 2023, 2023, 
-2023, 2023, 2023), datetime = c(45195.6270833333, 45195.6305555556, 
-45195.6347222222, 45195.6381944444, 45195.6423611111, 45195.6458333333, 
-45195.65, 45195.6534722222, 45195.6576388889, 45195.6611111111
-), xkm = c(221, 223, 225, 227, 229, 231, 233, 234, 236, 238), 
-ykm = c(1606, 1606, 1606, 1606, 1606, 1606, 1606, 1605, 1605, 
-1605), logdiff = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1), time_diff = c(&quot; 360 秒 &quot;, 
-&quot; 300 秒 &quot;, &quot; 360 秒 &quot;, &quot; 300 秒 &quot;, &quot; 360 秒 &quot;, &quot; 300 秒 &quot;, 
-&quot; 360 秒 &quot;, &quot; 300 秒 &quot;, &quot; 360 秒 &quot;, &quot; 300 秒 &quot;), 
-distance = c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1), bearing = c(-1.58, 
--1.58, -1.58, -1.58, -1.84, -1.85, -1.58, -1.85, -1.58, -1.58
-), speed = c(10, 12, 10, 12, 10, 12, 10, 12, 10, 12)), row.names = c(NA, 
-10L), class = &quot;data.frame&quot;)
-
-# 应用 DBSCAN 聚类
-set.seed(123)
-db &lt;- dbscan(clu​​stering_data, eps = 1.8, minPts = 5)
-
-
-有什么建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78787801/identify-points-lying-on-transects-from-a-spatial-dataframe-in-r</guid>
-      <pubDate>Wed, 24 Jul 2024 10:33:52 GMT</pubDate>
-    </item>
-    <item>
       <title>我无法从“typing_extensions”导入名称“TypeAliasType”</title>
       <link>https://stackoverflow.com/questions/77450322/i-cannot-import-name-typealiastype-from-typing-extensions</link>
       <description><![CDATA[我是 Python 新手，发现了以下这样的错误。非常感谢您的评论。谢谢
@@ -500,6 +341,19 @@ db &lt;- dbscan(clu​​stering_data, eps = 1.8, minPts = 5)
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/70844354/torch-geometric-runtimeerror-mat1-and-mat2-shapes-cannot-be-multiplied-1479x</guid>
       <pubDate>Tue, 25 Jan 2022 06:39:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使 RandomForestClassifier 更快？</title>
+      <link>https://stackoverflow.com/questions/43640546/how-to-make-randomforestclassifier-faster</link>
+      <description><![CDATA[我正在尝试使用大约有 1M 原始数据的 Twitter 情绪数据从 kaggle 网站实现词袋模型。我已经清理了它，但在最后一部分，当我将特征向量和情绪应用于随机森林分类器时，它花费了太多时间。这是我的代码...
+from sklearn.ensemble import RandomForestClassifier
+forest = RandomForestClassifier(n_estimators = 100,verbose=3)
+forest = forest.fit( train_data_features, train[&quot;Sentiment&quot;] )
+
+train_data_features 是 1048575x5000 稀疏矩阵。我试图将其转换为数组，但执行时显示内存错误。
+我哪里做错了？有人可以建议我一些来源或其他更快的方法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/43640546/how-to-make-randomforestclassifier-faster</guid>
+      <pubDate>Wed, 26 Apr 2017 17:09:55 GMT</pubDate>
     </item>
     </channel>
 </rss>
