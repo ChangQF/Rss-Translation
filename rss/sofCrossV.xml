@@ -4,7 +4,126 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 14 Aug 2024 18:20:05 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 14 Aug 2024 21:14:59 GMT</lastBuildDate>
+    <item>
+      <title>KS 和 AD 测试的假阴性率高得离谱</title>
+      <link>https://stats.stackexchange.com/questions/652819/false-negative-rates-of-ks-and-ad-tests-are-absurdly-high</link>
+      <description><![CDATA[我正在 R 中运行模拟，我想测量 Kolmogorov–Smirnov (KS) 检验和 Anderson Darling (AD) 检验的相对假阴性率。我不确定我在这里使用的术语是否正确，但我所说的假阴性是指即使样本数据来自测试的假定分布，测试也会得出显著结果 ($p &lt; \alpha$)。我以为假阴性率大约等于 $\alpha$，但我得到的结果却接近 1。例如，这里我从对数正态分布中抽取 50 个样本，然后执行每个拟合优度检验，计算检验给出显著结果的次数：
+ library(DescTools)
+
+alpha = 0.05
+sims = 100
+sampleSize = 50
+fnAD = 0
+fnKS = 0
+
+for(i in 1:sims){
+
+data = rlnorm(sampleSize, 2, 3)
+test = AndersonDarlingTest(data, &quot;plnorm&quot;)
+if(test$p.value &lt; alpha){
+fnAD = fnAD + 1
+}
+
+test = ks.test(data, &quot;plnorm&quot;)
+if(test$p.value &lt; alpha){
+fnKS = fnKS + 1
+}
+
+}
+
+print(c(fnAD/sims, fnKS/sims)) 
+
+
+我发现无论我使用什么参数来定义对数正态分布，这种情况都会发生，并且发生在不同的样本大小下。为什么假阴性率这么高？我的代码有错误吗，还是我从根本上误解了拟合优度检验的某些内容？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652819/false-negative-rates-of-ks-and-ad-tests-are-absurdly-high</guid>
+      <pubDate>Wed, 14 Aug 2024 19:59:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>多层模型，其中随机效应的偏差取决于独立变量</title>
+      <link>https://stats.stackexchange.com/questions/652818/multilevel-model-where-skew-of-random-effect-depends-on-an-independent-variable</link>
+      <description><![CDATA[我正在尝试构建一个模型，其中随机效应分布的偏斜随独立变量而变化。我最终想使用 R 中的 brms 来拟合它。这是一个类似于我的数据的具体示例：
+假设我经营一家杂货店，我想了解食品销售量如何根据天气变化。因此，我收集了商店中每件商品的销售数据和每日最高温度。我还怀疑食品的辣度会影响对温度的反应，因此我收集了每种食品的辣度分数作为连续变量。
+标准方法是制作一个多层模型，其中包含温度和辣度之间的交互项以及食品的不同斜率。因此，对于 P（购买的食物量）、T 温度和 S 辣度
+$$
+log(P_i) \sim Normal(\mu_i, \sigma_i)
+\\\mu_i = \alpha_{FOOD[i]} + \beta_{FOOD[i]}T + (\beta_S + \beta_{ST}T)S
+\\ \begin{vmatrix}
+\alpha_{FOOD[i]}\\ 
+\beta_{FOOD[i]}\\
+\end{vmatrix} \sim MVNormal(\begin{vmatrix}
+\alpha\\ 
+\beta\\
+\end{vmatrix}, \Sigma)
+$$
+对不同的参数和方差-协方差矩阵指定各种先验。这应该可以检测出辣度是否会改变温度对食品销售的影响，但允许斜率在不同食品之间变化。
+然而，我遇到麻烦的地方是，我怀疑存在这样一种情况，即大多数食品的销售不受温度的影响，但受温度影响最大的食品平均而言往往更辣，随着温度升高而变得不那么受欢迎。与此同时，许多同样辣的食品对温度的反应没有变化（可能是因为它们一开始就不受欢迎）。我担心，因为如果是这样的话，上面指定的模型可能很难捕捉到辣度的影响，因为平均值可能不会有太大变化。如果是这种情况，随机斜率可能会遵循类似这样的分布，其中 $\beta_{FOOD[i]}$ 的平均值相同，但偏斜会根据辣度而改变：
+ 因此，我正在考虑一个类似这样的模型，我将辣度作为随机斜率 $\beta_{FOOD[i]}$ 的偏斜预测因子
+$$
+log(P_i) \sim Normal(\mu_i, \sigma_i)
+\\\mu_i = \alpha_{FOOD[i]} + \beta_{FOOD[i]}T + \beta_SS
+\\ \begin{vmatrix}
+\alpha_{FOOD[i]}\\ 
+\beta_{FOOD[i]}\\
+\end{vmatrix} \sim MVSkewNormal(\begin{vmatrix}
+\alpha\\ 
+\beta\\
+\end{vmatrix}, \Sigma, D)
+\\D = \alpha_D + \beta_{S, Shape}S
+$$
+我认为我需要为 $\beta_{S, Shape}$ 和 $\alpha_D$ 以及其他参数指定先验。在这里，我认为我们可以说，例如，辛辣食物会增加斜率更高的可能性（实际上并没有改变平均值$\beta_{FOOD[i]}$
+所以我想我的问题是：
+
+以这种方式建立模型是否有效/是否比仅包含标准交互项更有效？或者是否有其他方法更有可能捕捉到我感兴趣的效果？
+
+我可以在brms中实现类似的东西吗？语法是什么样的？
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652818/multilevel-model-where-skew-of-random-effect-depends-on-an-independent-variable</guid>
+      <pubDate>Wed, 14 Aug 2024 19:47:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>优化精度比优化协方差矩阵更有效吗？</title>
+      <link>https://stats.stackexchange.com/questions/652812/is-it-more-efficient-to-optimize-precision-than-covariance-matrix</link>
+      <description><![CDATA[这可能是一个愚蠢的问题，但我想确保我没有遗漏任何东西。
+假设我们想通过最大化数据的可能性来将多元高斯分布$\mathcal{N}(\mu, \Sigma)$拟合到某些数据。出于某种原因，我们希望使用梯度下降法对参数 $\mu$ 和 $\Sigma$ 最大化数据的可能性（例如，我们可能希望对 $\mu$ 施加约束或惩罚），将 $\Sigma$ 约束为正定。
+在优化的每个步骤中，我们都在评估数据点上高斯分布的 PDF，因此我们需要反转 $\Sigma$。我的问题是，直接在精度矩阵 $\Sigma^{-1}$ 上进行优化是否在计算上更有效率？是否有某些原因导致我们可能更喜欢对 $\Sigma$ 进行优化并在每一步中对其进行反转？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652812/is-it-more-efficient-to-optimize-precision-than-covariance-matrix</guid>
+      <pubDate>Wed, 14 Aug 2024 19:05:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>预测新手——对于使用合适的模型有什么建议吗？</title>
+      <link>https://stats.stackexchange.com/questions/652811/new-to-forecasting-any-tips-for-proper-model-to-use</link>
+      <description><![CDATA[所以我做了大量的互联网研究，但失败了。我试图预测海上钻井船的日费率。我有两个外生变量与我的历史日费率数据密切相关。（需求和供应指数的日费率数据相关性约为 0.75）。大量数据输入其中。
+问题是，这些数据非常繁荣 - 萧条。我的数据集是 2010-2024 年的日费率。我已经预测了 2029 年的数据，因为其中很多值在某种程度上是“已知的”（新建船舶队列、未经证实/未经批准的 E&amp;P 活动等）。对于我的问题，绝对最佳的模型是什么？我相信我的需求供应指数是这些费率的非常强的预测指标。
+我尝试过 SARIMAX 和后来的马尔可夫切换 ARIMAX，但它们似乎都没有考虑到我的萧条阶段。最终，我确实相信我的供需指数在历史上是强有力的预测指标——我应该如何解释这一点？
+我真的只是想征求一个建议，哪些模型可能适合这些数据。供需指数的范围是 1-150 左右（最小-最大），代表总深水投资需求（以十亿美元计）。供应紧张程度的范围是 0-1，来自其他几个数据集。
+以下是我的一小部分数据：
+日期 平均 铅 日费率 供应紧张指数 需求指数
+2010 年 6 月 1 日 500869.5381 0.578840012 94.82266832]]></description>
+      <guid>https://stats.stackexchange.com/questions/652811/new-to-forecasting-any-tips-for-proper-model-to-use</guid>
+      <pubDate>Wed, 14 Aug 2024 18:58:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>随机过程的底层 sigma 代数</title>
+      <link>https://stats.stackexchange.com/questions/652810/underlying-sigma-algebra-of-a-random-process</link>
+      <description><![CDATA[随机过程通常定义为一个集合$(X_i)_{i\in \mathcal{I}}$，其中$\mathcal{I}$是某个索引集，每个$X_i$都是一个随机变量$X_i:(\Omega,\mathcal{A})\rightarrow(\mathcal{X},\mathcal{B})$。若某个随机过程中的每一个随机变量$X_i$都作用于共同可测空间$(\Omega_b,\mathcal{A}_b)$，则该随机过程的底层$\Omega$就不是$\Omega_b$，而是$\Omega\times\Omega\cdots$。比如，如果 $X_i$ 是 $i$ 次硬币抛掷中正面朝上的次数，则随机过程 $(X_i)$ 的底层 $\Omega$ 不是 $\{H,T\}$，而是 $\{H,T\}^\infty$（具有相应的 $\sigma$-代数）。我说得对吗？
+有些文本省略了这个基本概念，并认为例如这个过程存在于 $\{H,T\}$ 上。我认为这种理解在应用方面是很好的，除非我们开始思考它的数学原理。如果我理解错了，一些概念，如过滤、马丁格尔等，对我来说就是没有意义的。例如，如果我们将子$\sigma$-代数$\mathcal{A}$的某些过滤视为截至时间$n$的信息，则$\mathcal{A}_n$的形式为$\mathcal{A}_n$=\mathcal{P}(\{H,T\})\otimes \mathcal{P}(\{H,T\}) \otimes \cdots \otimes \mathcal{P}(\{H,T\}) \otimes \{\emptyset,\{H,T\}\}\otimes \{\emptyset,\{H,T\}\} \cdots$.
+有人能告诉我，我的这种理解是否正确吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652810/underlying-sigma-algebra-of-a-random-process</guid>
+      <pubDate>Wed, 14 Aug 2024 18:57:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 R 中使用已知范围但未知平均值生成正态分布的变量</title>
+      <link>https://stats.stackexchange.com/questions/652807/generating-a-normally-distributed-variable-using-a-known-range-but-an-unknown-m</link>
+      <description><![CDATA[我想生成一个具有已知范围（例如 10.4-16.6）但不知道平均值的 100 个数据点的正态分布变量。要使用 rnorm，我需要平均值和标准差。如果我假设它是精确的中点（平均值 = (10.4 + 16.6) * 0.5 = 13.5），我可以估算平均值。并对标准差进行一些类似的估计（标准差 = (13.5 - 10.4) /2 = 1.55）。然后我可以使用 rnorm 函数
+
+rnorm (n=100, 平均值 = 13.5, 标准差 = 1.55)
+
+但结果变量的范围超出了我最初的 10.4-16.6 范围。我想看看是否有更好的方法来生成这个变量并强制它保持在我想要的范围内。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652807/generating-a-normally-distributed-variable-using-a-known-range-but-an-unknown-m</guid>
+      <pubDate>Wed, 14 Aug 2024 18:22:10 GMT</pubDate>
+    </item>
     <item>
       <title>加权平均值（平均客户与产品互动）</title>
       <link>https://stats.stackexchange.com/questions/652806/weighted-averages-average-customer-product-interactions</link>
@@ -177,53 +296,6 @@ var(lambda_monthly_aggregate)
       <pubDate>Wed, 14 Aug 2024 16:01:50 GMT</pubDate>
     </item>
     <item>
-      <title>戴明回归和数值配方</title>
-      <link>https://stats.stackexchange.com/questions/652796/deming-regression-and-numerical-recipes</link>
-      <description><![CDATA[我正在尝试对戴明回归进行分类，这意味着我想通过 x 和 y 坐标中都有“错误”的数据来拟合一个函数（一条直线）。我正在查看《数值方法》第 15.3 章，发现他们的方法的基础很神秘。
-对我来说最令人费解的是他们选择最小化的优值函数：
-\begin{equation}
-\chi^{2} = \sum_{i=1}^{N} \frac{(y_{i} - a - b\cdot x_{i})^{2}}{\sigma_{yi}^{2} + b^{2}\cdot\sigma_{xi}^{2}}
-\end{equation&gt;
-这对我来说看起来不对。 $y_{i} - a - b\cdot x_{i}$ 是 y 中的残差。难道不应该有一个附加项，用于最小化线和 x 数据之间的平方距离吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652796/deming-regression-and-numerical-recipes</guid>
-      <pubDate>Wed, 14 Aug 2024 15:31:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的 CausalImpact 包 - 单尾概率</title>
-      <link>https://stats.stackexchange.com/questions/652794/causalimpact-package-in-r-one-tailed-probability</link>
-      <description><![CDATA[这是我第一次使用贝叶斯统计和 R 中的 CausalImpact 包。我有点困惑这是使用单尾还是双尾概率测试。有人可以提供一些建议吗？摘要输出的详细选项表明它是单尾的。我试图测试干预后是否发生了变化（正面或负面），而不是考虑特定的方向。这仍然是一种合适的方法吗？
-提前致谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652794/causalimpact-package-in-r-one-tailed-probability</guid>
-      <pubDate>Wed, 14 Aug 2024 15:23:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该使用配对 t 检验还是非配对 t 检验来比较相似主题的两组测量值吗？</title>
-      <link>https://stats.stackexchange.com/questions/652791/should-i-use-the-paired-t-test-or-the-unpaired-t-test-for-comparing-two-sets-of</link>
-      <description><![CDATA[我遇到了以下问题：
-我记录了 30 次程序的执行时间，然后实施了优化并再次记录了 30 次执行时间（在同一台机器上）。我不确定是否应该使用非配对 t 检验或配对 t 检验来证明优化对执行时间产生了显著影响。
-一方面，分布不是独立的，哪些“个体”配对并不重要；另一方面，将这些测量值配对对我来说毫无意义，因为没有有意义的“个体”可以配对。
-最接近使用配对 t 检验的例子是配对的个体共享一个特征而其他一些条件发生变化的实验（例如两个具有相同智商的个体），但我不知道哪个特征可以证明将我的问题中的两个测量值配对在一起是合理的。
-任何帮助都将不胜感激！]]></description>
-      <guid>https://stats.stackexchange.com/questions/652791/should-i-use-the-paired-t-test-or-the-unpaired-t-test-for-comparing-two-sets-of</guid>
-      <pubDate>Wed, 14 Aug 2024 14:41:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>将回归中的 β 解释为单位变化</title>
-      <link>https://stats.stackexchange.com/questions/652790/interpreting-%ce%b2-in-regression-as-unit-change</link>
-      <description><![CDATA[在变量已标准化的线性回归中，X 中一个 SD 的变化与 Y 中 β*1 SD 的变化相关，我见过人们用单位来解释这一点，因为我们知道 SD 是什么（例如，我在一本统计学教科书中看到过这种情况：“标准化 β = 0.192 表示，在图像量表上评分高出一个标准差（1.40 个单位）的乐队可以预期专辑销量增加 0.192 个标准差单位。这是 15,490
-张销量（0.192 × 80,699）的变化。图像评分比另一乐队高 1.40 的乐队可以预期专辑销量增加 15,490销售额。”）。但标准化后，不是所有的 SD 都等于 1 吗？我确信我遗漏了什么，因为这似乎不太合理……]]></description>
-      <guid>https://stats.stackexchange.com/questions/652790/interpreting-%ce%b2-in-regression-as-unit-change</guid>
-      <pubDate>Wed, 14 Aug 2024 14:35:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 ARIMA 对相同数据进行预测时，会指出数据在一个预测持续时间内是白噪声，而没有指出它在另一个持续时间内不是白噪声</title>
-      <link>https://stats.stackexchange.com/questions/652789/why-arima-on-same-data-says-data-is-white-noise-for-one-forecast-duration-while</link>
-      <description><![CDATA[我正在对我的数据运行 ARIMA 模型。我有 2021 年 1 月的每周数据。当我运行 12 周预测时，ARIMA 给出最佳参数值 (0,0,0)，表明数据是白噪声。但是当我使用相同的数据并运行 8 周预测时，最佳参数值是 (4,0,4)，这意味着数据不是白噪声。
-有人可以告诉我预测持续时间是如何使数据成为白噪声的吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652789/why-arima-on-same-data-says-data-is-white-noise-for-one-forecast-duration-while</guid>
-      <pubDate>Wed, 14 Aug 2024 14:08:01 GMT</pubDate>
-    </item>
-    <item>
       <title>Aalen Johansen - 绝对风险和置信区间</title>
       <link>https://stats.stackexchange.com/questions/652776/aalen-johansen-absolute-risks-and-confidence-intervals</link>
       <description><![CDATA[如果存在竞争风险情况，可以使用 AJ 估计量来计算累积发生率函数 (CIF)。
@@ -258,16 +330,38 @@ AJ 估计量是否需要特定的置信区间？
       <pubDate>Wed, 14 Aug 2024 10:55:55 GMT</pubDate>
     </item>
     <item>
-      <title>简单的 OLS 来测量相关性</title>
-      <link>https://stats.stackexchange.com/questions/652774/simple-ols-to-measure-correlation</link>
-      <description><![CDATA[我有两个变量，X 和 Y，我有充分的理由相信它们是同时确定的。
-$$Y_{i} = a_{1i} + b_{1i}X_{i} + u_{1i}\tag{1}$$
-$$X_{i} = a_{2i} + b_{2i}Y_{i} + u_{2i}\tag{2}$$
-我的问题是：只要我远离任何因果关系，我是否仍可以使用简单的 OLS 研究变量之间的关系？
-我有兴趣做出这种类型的陈述：“X 的单位增加与 Y 的预测值 b1 的变化相关”。我不想暗示任何有关因果关系方向的内容，我只想描述变量如何共同变动。在这种情况下，我承认明显的内生性，报告系数是否仍然具有误导性？
-更新：数据纯粹是横截面数据]]></description>
-      <guid>https://stats.stackexchange.com/questions/652774/simple-ols-to-measure-correlation</guid>
-      <pubDate>Wed, 14 Aug 2024 10:25:27 GMT</pubDate>
+      <title>如何解释泊松模型估计的离散度？</title>
+      <link>https://stats.stackexchange.com/questions/652770/how-to-interpret-dispersion-estimated-for-a-poisson-model</link>
+      <description><![CDATA[假设我有以下数据：$(N_i, x_i, \nu_i)$，其中 $i=1,\dots,n$。我很快从汽车保险定价中得到启发。$N_i$ 代表索赔数量，$x_i$ 是我知道的一些特征，$\nu_i$ 是一些曝光（=时间）。例如：在半年的时间里（即 $\nu_i = 0.5$），我观察到两起（即 $N_i = 2$）索赔，索赔人年龄为 35 岁，车龄为 1 年（即 $x_i = (35, 1)$，在这种情况下，我的特征包括驾驶员年龄和车龄）。
+根据数据，我可以选择以下建模方法：
+$$
+N_i \overset{ind.}{\sim} \mathrm{Poisson}(\lambda(x_i)\nu_i),
+$$
+因此，索赔数量由独立的泊松随机变量建模，其中频率函数 $x_i \to \lambda (x_i)$ 需要建模。请注意，曝光不是由 $\lambda(.)$ 建模的，而只是包含在模型中。
+此示例源自我正在阅读的一本书，即这。现在，人们可以为$\lambda(.)$选择不同的建模方法，如 GLM、神经网络等。
+为了评估拟合优度，本书讨论了两种方法：首先，计算（样本内）Pearson 残差，公式为
+$$
+\hat \delta_i^P = \frac{N_i - \lambda(x_i)\nu_i}{\sqrt{\lambda(x_i)\nu_i}}。
+$$
+根据我的（泊松）建模假设，这些应该是独立的，大致以单位方差为中心。
+其次，他们定义了泊松偏差残差，由以下公式给出
+$$
+\hat \delta_i^D = \mathrm{sgn}(N_i - \lambda(x_i)\nu_i) \sqrt{2N_i \left[\frac{\lambda(x_i)\nu_i}{N_i} - 1 - \log\left(\frac{\lambda(x_i)\nu_i}{N_i}\right)\right]}
+$$
+最后，作者为模型的离散度定义了两个估计量（这里$q+1$是特征的数量$x_i$):
+$$
+\hat \p​​hi^P = \frac1{n-(q+1)} \sum_{i=1}^n (\hat \delta_i^P)^2
+$$
+并且
+$$
+\hat \p​​hi^D = \frac1{n-(q+1)} \sum_{i=1}^n (\hat \delta_i^D)^2 = \frac{D^*(\mathbf{N}, \lambda(.))}{n-(q+1)},
+$$
+其中 $D^*(\mathbf{N}, \lambda(.))$ 是泊松偏差损失。
+问题：我不太明白我们为什么要查看这些离散度估计量。据我了解，离散度告诉我，模型方差是否接近其均值（我知道在泊松模型中方差等于其均值）。$\hat \p​​hi^P$ 和 $\hat \p​​hi^D$ 的哪些值会支持我的泊松模型假设？特别是，为什么 $\hat \p​​hi^D$ 是查看此问题的一个好方法，我该如何解释其值以及哪些值会支持我的假设？
+如您所见，我并不清楚为什么（尤其是 $\hat\delta^D$）值得关注。他们只是来告诉我我选择的泊松模型是好是坏吗？如果有更有经验的人能阐明我的想法，我会很高兴。
+提前谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/652770/how-to-interpret-dispersion-estimated-for-a-poisson-model</guid>
+      <pubDate>Wed, 14 Aug 2024 09:39:06 GMT</pubDate>
     </item>
     <item>
       <title>Delta 方法和方差收敛</title>
@@ -303,14 +397,6 @@ $s(\beta) = \sum\limits_{i=1}^{n} \frac{\partial\eta_i}{\partial\beta} \frac{\pa
 $s(\beta)$ 的哪一部分导数是不可计算的，我如何才能看到甚至证明它？]]></description>
       <guid>https://stats.stackexchange.com/questions/652748/mle-and-non-closed-form-solutions-how-to-see-or-proof-it</guid>
       <pubDate>Tue, 13 Aug 2024 21:38:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>当需要使用 Johnson 变换对数据进行变换时，如何评估公差区间研究</title>
-      <link>https://stats.stackexchange.com/questions/652736/how-to-assess-a-tolerance-interval-study-when-data-needs-to-be-transformed-using</link>
-      <description><![CDATA[我正在做一个变量数据分析，其中我需要进行公差区间评估以确保我的总体符合 6 lbf 的下限规格限 (LSL)。为了能够进行公差区间分析，我需要证明总体符合正态分布。鉴于我的数据分析显示 p 值小于 0.05，表明数据不服从正态分布，我进行了分布识别分析并确定 Johnson 变换是唯一合适的拟合。但是，在计算公差区间时，结果为 -2.597。我如何评估我的分析是否已成功完成，以及尽管出现这种结果，结果是否有效？提醒一下，结果是下限公差区间 (LTL) = -2.597 和我的下限规格限 (LSL) = 6，这是否意味着我的研究不符合规格？我读到过我需要使用约翰逊变换来转换 6 lbf 的规格，但我不知道该怎么做。
-谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/652736/how-to-assess-a-tolerance-interval-study-when-data-needs-to-be-transformed-using</guid>
-      <pubDate>Tue, 13 Aug 2024 18:34:38 GMT</pubDate>
     </item>
     </channel>
 </rss>
