@@ -4,13 +4,114 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 14 Aug 2024 21:15:08 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 15 Aug 2024 01:05:11 GMT</lastBuildDate>
+    <item>
+      <title>如何在不使用 for 循环的情况下直接从 Claude API 对多个完成（n）进行采样？</title>
+      <link>https://stackoverflow.com/questions/78873304/how-to-sample-multiple-completions-n-directly-from-claude-api-without-a-for-lo</link>
+      <description><![CDATA[我正在使用 Anthropic Claude API，并尝试在单个 API 调用中为给定的提示生成多个完成（n 个完成）。 OpenAI 的 API 在其采样设置中提供了一个 n 参数来实现这一点，但我在 Claude API 中找不到等效选项。
+我目前的方法：
+我目前正在使用重试机制来处理 API 调用期间的潜在错误，如下所示：
+from tenacity import retry, stop_after_attempt, wait_exponential
+
+def before_sleep(retry_state):
+print(f&quot;(Tenacity) Retry, error that cause it: {retry_state.outcome.exception()}&quot;)
+
+def retry_error_callback(retry_state):
+exception = retry_state.outcome.exception()
+exception_str = str(exception)
+if &quot;prompt is too long&quot; in exception_str and &quot;400&quot;在 exception_str 中：
+引发异常
+返回“没有需要我们提前退出的错误。”
+
+@retry(stop=stop_after_attempt(20), wait=wait_exponential(multiplier=2, max=256), 
+before_sleep=before_sleep, retry_error_callback=retry_error_callback)
+def call_to_anthropic_client_api_with_retry(gen: AnthropicGenerator, prompt: str) -&gt;; dict:
+response = gen.llm.messages.create(
+model=gen.model,
+max_tokens=gen.sampling_params.max_tokens,
+system=gen.system_prompt,
+messages=[
+{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: [{&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: prompt}]}
+],
+temperature=gen.sampling_params.temperature,
+top_p=gen.sampling_params.top_p,
+n=gen.sampling_params.n, # 旨在生成多个完成
+stop_sequences=gen.sampling_params.stop[:3],
+)
+return response
+
+问题：
+我在 Anthropic API 中找不到 n 参数允许在一个请求中生成多个完成的文档。
+问题：
+
+Claude API 是否支持在单个 API 调用中直接生成多个完成（n 个完成）？
+如果不支持，是否有推荐的解决方法或最佳实践来实现此目的，而无需循环多个请求？
+任何指导或建议都将不胜感激！
+
+cross discord：https://discord.com/channels/1072196207201501266/1213976011998498816/threads/1273440866861846549
+cross：https://dev.to/brando90/how-to-sample-multiple-completions-n-directly-from-claude-api-without-a-for-loop-2m1e
+
+现在这样做：
+@retry(stop=stop_after_attempt(20), wait=wait_exponential(multiplier=2, max=256), 
+before_sleep=before_sleep, retry_error_callback=retry_error_callback)
+def call_to_anthropic_client_api_with_retry(gen: AnthropicGenerator，提示：str) -&gt; dict:
+# max_tokens=8192, # Claude 3.5 的 max_tokens https://docs.anthropic.com/en/docs/about-claude/models#model-comparison
+# client = anthropic.Anthropic(api_key=gen.api_key)
+# response = client.messages.create(
+# response_text: str = gen.llm.messages.create(
+# model=gen.sampling_params.model,
+# max_tokens=gen.sampling_params.max_tokens,
+# #temperature=temperature, # 注意提示生成器不会将其作为输入
+# system=gen.sampling_params.system,
+# messages=[
+# {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: [{&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: prompt}]}
+# ],
+#temperature=gen.sampling_params.temperature,
+#top_p=gen.sampling_params.top_p,
+#n=gen.sampling_params.n,
+#stop=gen.sampling_params.stop[:3],
+# ).content[0].text
+if not hasattr(gen.sampling_params, &#39;n&#39;):
+gen.sampling_params.n = 1
+content: list[dict] = [] 
+for _ in range(gen.sampling_params.n):
+response = gen.llm.messages.create(
+model=gen.model,
+max_tokens=gen.sampling_params.max_tokens,
+system=gen.system_prompt,
+messages=[
+{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: [{&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: prompt}]}
+],
+temperature=gen.sampling_params.temperature,
+top_p=gen.sampling_params.top_p,
+n=gen.sampling_params.n,
+stop_sequences=gen.sampling_params.stop[:3],
+)
+content.append(response)
+response = dict(content=content)
+# 消息示例：https://docs.anthropic.com/en/api/messages-examples
+返回响应
+]]></description>
+      <guid>https://stackoverflow.com/questions/78873304/how-to-sample-multiple-completions-n-directly-from-claude-api-without-a-for-lo</guid>
+      <pubDate>Thu, 15 Aug 2024 00:37:53 GMT</pubDate>
+    </item>
     <item>
       <title>Python：为什么尽管使用了垃圾收集器，我的代码仍然泄漏内存？</title>
       <link>https://stackoverflow.com/questions/78872867/python-why-is-my-code-leaking-memory-despite-using-garbage-collector</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78872867/python-why-is-my-code-leaking-memory-despite-using-garbage-collector</guid>
       <pubDate>Wed, 14 Aug 2024 20:43:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>Python mediappe手部识别方块优化</title>
+      <link>https://stackoverflow.com/questions/78872856/python-mediappe-hand-recognition-square-optimization</link>
+      <description><![CDATA[所以 python 有 mediapupe lib，它提供了识别照片/视频上手的工具
+我在我的项目中使用它。但我正在考虑优化 - 所以它会运行得更快。
+我们知道，如果在 1 帧中有一只手 - 它在另一帧中不会太远 - 所以没有必要重复整个照片 - 手周围的区域就足够了（包括测量它的角速度和径向速度）
+mediapype 是否包含一些优化方法？或者它只是愚蠢地让代码愚蠢地检查整张照片？
+我还没有搜索过有关这方面的信息。]]></description>
+      <guid>https://stackoverflow.com/questions/78872856/python-mediappe-hand-recognition-square-optimization</guid>
+      <pubDate>Wed, 14 Aug 2024 20:38:41 GMT</pubDate>
     </item>
     <item>
       <title>python：“顺序”层需要 1 个输入，但它收到了 48 个输入张量</title>
@@ -58,58 +159,6 @@ SyntaxError: 无效的不可打印字符 U+00A0
 交叉发布：https://discuss.pytorch.org/t/best-practice-for-multiple-losses-on-different-parts-of-batch/208071]]></description>
       <guid>https://stackoverflow.com/questions/78871584/best-practice-for-multiple-losses-on-different-parts-of-batch</guid>
       <pubDate>Wed, 14 Aug 2024 14:45:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>在梯度带中使用时，训练 =False 不会更新模型参数吗？[重复]</title>
-      <link>https://stackoverflow.com/questions/78870866/does-the-training-false-not-update-model-parameters-while-being-used-inside-of</link>
-      <description><![CDATA[def train_step(self, batch):
-# 获取数据 
-real_images = batch
-fake_images = self.generator(tf.random.normal((128, 128, 1)), training=False)
-
-# 训练鉴别器
-with tf.GradientTape() as d_tape: 
-
-yhat_real = self.discriminator(real_images, training=True) 
-yhat_fake = self.discriminator(fake_images, training=True)
-yhat_realfake = tf.concat([yhat_real, yhat_fake], axis=0)
-
-y_realfake = tf.concat([tf.zeros_like(yhat_real), tf.ones_like(yhat_fake)], axis=0)
-
-# 为 TRUE 输出添加一些噪声
-noise_real = 0.15*tf.random.uniform(tf.shape(yhat_real))
-* noise_fake = -0.15*tf.random.uniform(tf.shape(yhat_fake))
-y_realfake += tf.concat([noise_real, noise_fake], axis=0)
-
-total_d_loss = self.d_loss(y_realfake, yhat_realfake)
-
-dgrad = d_tape.gradient(total_d_loss, self.discriminator.trainable_variables) 
-self.d_opt.apply_gradients(zip(dgrad, self.discriminator.trainable_variables))
-
-使用 tf.GradientTape() 作为 g_tape: 
-
-gen_images = self.generator(tf.random.normal((128,128,1)), training=True)
-
-predicted_labels = self.discriminator(gen_images, training=False)
-
-total_g_loss = self.g_loss(tf.zeros_like(predicted_labels),predicted_labels) 
-
-ggrad = g_tape.gradient(total_g_loss, self.generator.trainable_variables)
-self.g_opt.apply_gradients(zip(ggrad, self.generator.trainable_variables))
-
-return {&quot;d_loss&quot;:total_d_loss, &quot;g_loss&quot;:total_g_loss}
-
-我正在构建一个 GAN。如上面的代码所示，在计算生成器的梯度时，鉴别器设置为 training =False。这是否意味着在计算梯度时，我们不想计算相对于鉴别器参数的损失梯度，也不想将梯度应用于鉴别器？]]></description>
-      <guid>https://stackoverflow.com/questions/78870866/does-the-training-false-not-update-model-parameters-while-being-used-inside-of</guid>
-      <pubDate>Wed, 14 Aug 2024 12:18:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>有没有人使用图像分类来自动检测网页是否正常显示？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/78870242/is-there-anyone-use-image-classification-to-automatically-detect-if-a-web-page-i</link>
-      <description><![CDATA[在自动化测试中，有些情况需要手动检查截图，判断页面在窗口大小改变时是否存在缺页、文字溢出等异常情况。
-我想训练一个图像分类的模型，用于检查网页，但是我没有截断或重叠或页面丢失等的截图……也许有人有同样的想法或已经完成了这个模型？]]></description>
-      <guid>https://stackoverflow.com/questions/78870242/is-there-anyone-use-image-classification-to-automatically-detect-if-a-web-page-i</guid>
-      <pubDate>Wed, 14 Aug 2024 09:47:18 GMT</pubDate>
     </item>
     <item>
       <title>使用 ML 算法对图像进行分类时，如何修复“找到具有 dim 4 的数组”错误</title>
@@ -430,77 +479,48 @@ end_row = len(df) - 1
       <pubDate>Tue, 13 Aug 2024 16:46:36 GMT</pubDate>
     </item>
     <item>
-      <title>Python 中的 Sums 包无法进行标记</title>
-      <link>https://stackoverflow.com/questions/78862511/sums-package-failing-to-tokenize-in-python</link>
-      <description><![CDATA[我使用以下代码在 Python 中总结我的文本。代码正在 Jupyter Notebook 中运行。我已经使用 pip 命令安装了 sumy。
-pip install sumy nltk
-python -m nltk.downloader punkt
-
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lsa import LsaSummarizer
-from io import StringIO
-
-# 定义要总结的文本
-text = &quot;&quot;&quot;
-自然语言处理 (NLP) 是人工智能的一个领域，专注于通过自然语言实现计算机与人类之间的互动。NLP 的最终目标是使计算机能够以有价值和有意义的方式理解、解释和响应人类语言。
-NLP 用于应用算法来识别和提取自然语言规则，从而将非结构化语言数据转换为计算机可以理解的形式。当提供文本时，计算机可以采用多种不同的方法来处理它。算法可以是基于规则的方法，也可以是基于机器学习的方法。
-“”“”
-
-# 使用 StringIO 模拟文件类对象
-text_io = StringIO(text)
-
-# 解析文本
-parser = PlaintextParser.from_file(text_io, Tokenizer(&quot;english&quot;))
-
-# 初始化 LSA 摘要器
-summarizer = LsaSummarizer()
-
-# 生成摘要（您可以调整句子数量）
-summary = summaryr(parser.document, sentences_count=2)
-
-# 打印摘要
-for sentence in summary:
-print(sentence) 
-
-当我运行程序时，我收到以下错误：
-ame)
-662 def find_class(self, module, name):
-663 # 禁止每个函数
---&gt; 664 引发 pickle.UnpicklingError(f&quot;全局 &#39;{module}.{name}&#39; 被禁止&quot;)
-
-UnpicklingError: 全局 &#39;copy_reg._reconstructor&#39; 被禁止 
-
-有什么想法！]]></description>
-      <guid>https://stackoverflow.com/questions/78862511/sums-package-failing-to-tokenize-in-python</guid>
-      <pubDate>Mon, 12 Aug 2024 15:37:15 GMT</pubDate>
+      <title>无法使用 nltk 函数</title>
+      <link>https://stackoverflow.com/questions/78862426/unable-to-use-nltk-functions</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78862426/unable-to-use-nltk-functions</guid>
+      <pubDate>Mon, 12 Aug 2024 15:17:29 GMT</pubDate>
     </item>
     <item>
-      <title>TensorBoard 中的 add_hparams() 函数无法正常工作</title>
-      <link>https://stackoverflow.com/questions/78857269/add-hparams-function-from-tensorboard-doesnt-work-properly</link>
-      <description><![CDATA[我试图向此 SummaryWriter 添加指标，但不起作用。
-我正在使用 SummaryWriter 的 add_hparams() 函数，其详细信息可在此处找到：https://pytorch.org/docs/stable/tensorboard.html。
-我这样做：
-writer = SummaryWriter(f&#39;runs/lstm_experiment_final&#39;)
+      <title>ML 查找四边形的角</title>
+      <link>https://stackoverflow.com/questions/78321889/ml-find-corners-of-quadrilateral</link>
+      <description><![CDATA[我的作业是使用 ML 模型找到四边形角的 4 个点。有时四边形的一个角会丢失（例如页面的折叠角）。
+首先，我尝试使用 MobileNetV3Small 作为主干进行图像分割，因为该模型应该小而快。效果很好，但找到角仍然是一个问题。我曾尝试按照官方 keras 关键点检测、中等教程和许多其他来源等示例查找图像的关键点，但似乎对我都不起作用。我尝试过多次修改它们。损失函数在测试和验证中都下降了，但输出甚至没有接近所需的位置。也尝试了类似下面的方法：
+def conv(model, size, conv2d_kernel, dilation_rate=(1, 1), pooling_size=(2, 2)):
+model.add(Conv2D(size, conv2d_kernel, dilation_rate=dilation_rate))
+model.add(Activation(&#39;relu&#39;))
+model.add(MaxPooling2D(pool_size=max_pooling))
+model.add(Dropout(0.1))
 
-for e in tqdm(range(num_epochs)):
-tr_loss, tr_f1, tr_precision, tr_recall = training_loop(model, train_dataloader, loss_function, optimizer, e, writer)
-val_loss, val_f1, val_precision, val_recall = validation_loop(model, test_dataloader, loss_function, e, writer)
+def density(model, unit):
+model.add(Dense(units))
+model.add(Activation(&#39;relu&#39;))
+model.add(Dropout(0.1))
 
-metric_dict = {&#39;Loss/train&#39;: tr_loss, &#39;Loss/valid&#39;: val_loss,
-&#39;F1/train&#39;: tr_f1, &#39;F1/valid&#39;: val_f1,
-&#39;Precision/train&#39;: tr_precision, &#39;Precision/valid&#39;: val_precision,
-&#39;Recall/train&#39;: tr_recall, &#39;Recall/valid&#39;: val_recall}
-writer.add_hparams(best_params, metric_dict, global_step=num_epochs-1)
-writer.close() 
+model = Sequential()
+model.add(InputLayer(shape=(224, 224, 3)))
 
-这就是正在发生的事情。
-在此处输入图片描述
-换句话说，超参数确实记录在 TensorBoard 上，但度量值却没有记录。
-我希望有人已经看到我的问题并知道如何解决这个问题。
-提前致谢。]]></description>
-      <guid>https://stackoverflow.com/questions/78857269/add-hparams-function-from-tensorboard-doesnt-work-properly</guid>
-      <pubDate>Sun, 11 Aug 2024 00:21:56 GMT</pubDate>
+conv(model, size=32, conv2d_kernel=(2, 2))
+conv(model, size=64, conv2d_kernel=(3, 3))
+conv(model, size=128, conv2d_kernel=(3, 3))
+
+model.add(Flatten())
+dense(model, 20)
+dense(model, 20)
+
+model.add(Dense(8))
+model.compile(optimizer=RMSprop(),
+loss=losses.MeanSquaredLogarithmicError(),
+metrics=[metrics.MeanAbsoluteError()])
+
+还尝试了输出形状 (8) 和 (4,2)，但似乎没有任何效果。任何帮助都将不胜感激。
+PS：还忘记补充一点，数据集的注释是正确的，或者至少这是我在图表上看到的。还尝试将坐标标准化为 0 到 1 之间。我的输入是 (224,224,3)。]]></description>
+      <guid>https://stackoverflow.com/questions/78321889/ml-find-corners-of-quadrilateral</guid>
+      <pubDate>Sat, 13 Apr 2024 20:06:34 GMT</pubDate>
     </item>
     </channel>
 </rss>
