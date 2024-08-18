@@ -4,7 +4,146 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 18 Aug 2024 12:29:17 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 18 Aug 2024 15:14:31 GMT</lastBuildDate>
+    <item>
+      <title>理解 LSTM torch</title>
+      <link>https://stackoverflow.com/questions/78884735/understanding-the-lstm-torch</link>
+      <description><![CDATA[大家好，我在训练包含 LSTM 层的模型时遇到了问题。
+我怀疑错误可能是由于添加了数据加载器，因为当我使用完整数据集进行训练时，损失减少了。
+我将非常感谢您的帮助。
+配置：
+num_epochs = 200
+learning_rate = 1e-1
+input_size = 599
+hidden_​​size = 100
+num_layers = 2
+num_classes = 1
+batch_size = 32
+
+数据准备：
+X_train_t = Variable(torch.Tensor(X_train.values))
+y_train_t = Variable(torch.Tensor(y_train))
+
+X_test_t =变量（torch.Tensor（X_test.values））
+y_test_t = 变量（torch.Tensor（y_test））
+
+X_train_t_final = torch.reshape（X_train_t，（X_train_t.shape[0]，1，X_train_t.shape[1]））
+X_test_t_final = torch.reshape（X_test_t，（X_test_t.shape[0]，1，X_test_t.shape[1]））
+
+print（“训练形状”，X​​_train_t_final.shape，y_train_t.shape）
+
+print（“测试形状”，X​​_test_t_final.shape，y_test_t.shape）
+
+train_dataset = TensorDataset（X_train_t_final，y_train_t）
+test_dataset = TensorDataset(X_test_t_final, y_test_t)
+
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
+
+输出：
+训练形状 torch.Size([8000, 1, 599]) torch.Size([8000, 1])
+测试形状 torch.Size([998, 1, 599]) torch.Size([998, 1])
+
+模型：
+class LSTM1(nn.Module):
+def __init__(self, num_classes, input_size, hidden_​​size, num_layers):
+super(LSTM1, self).__init__()
+self.num_classes = num_classes
+self.num_layers = num_layers
+self.input_size = input_size
+self.hidden_​​size = hidden_​​size
+
+self.lstm = nn.LSTM(input_size=input_size, hidden_​​size=hidden_​​size, num_layers=num_layers, batch_first=True)
+self.fc_1 = nn.Linear(hidden_​​size, 128)
+self.fc = nn.Linear(128, num_classes)
+self.relu = nn.ReLU()
+
+def forward(self,x):
+h_0 = torch.zeros(self.num_layers, x.shape[0], self.hidden_​​size)
+c_0 = torch.zeros(self.num_layers, x.shape[0], self.hidden_​​size)
+输出，(hn, cn) = self.lstm(x, (h_0, c_0))
+hn = hn[-1]
+out = self.relu(hn)
+out = self.fc_1(out)
+out = self.relu(out)
+out = self.fc(out)
+返回 out
+
+训练：
+lstm1 = LSTM1(num_classes, input_size, hidden_​​size, num_layers)
+criterion = torch.nn.MSELoss()
+optimizer = torch.optim.Adam(lstm1.parameters(), lr=learning_rate) 
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer,里程碑=[30, 60, 90, 120, 150, 180]，伽马=0.2)
+
+loss_train，loss_test = []，[]
+mean_loss_train，mean_loss_test = 0，0
+
+对于 tqdm 中的 epoch(range(num_epochs))：
+对于 train_loader 中的 xb、yb：
+optimizer.zero_grad()
+输出 = lstm1.forward(xb)
+损失 = criterion(输出，yb)
+损失.backward()
+optimizer.step()
+mean_loss_train += loss.item()
+损失.append(mean_loss_train / len(train_loader))
+scheduler.step()
+
+使用 torch.no_grad()：
+对于 test_loader 中的 xb、yb：
+输出 = lstm1.forward(xb)
+损失 = criterion(输出， yb)
+mean_loss_test += loss.item()
+loss_test.append(mean_loss_test / len(test_loader))
+
+if (epoch+1) % 20 == 0:
+print(f&quot;Epoch: {epoch+1}, loss_train: {round(loss_train[-1], 5)}, loss_test: {round(loss_test[-1], 5)}, lr: {round(scheduler.get_last_lr()[0], 8)}&quot;)
+在此处输入代码
+
+学习输出：
+Epoch: 20, loss_train: 82.76209, loss_test: 15.35703, lr: 0.1
+Epoch: 40, loss_train: 85.63364, loss_test: 18.2109，lr：0.02
+纪元：60，loss_train：85.87259，loss_test：18.30187，lr：0.004
+纪元：80，loss_train：85.95106，loss_test：18.39842，lr：0.004
+纪元：100，loss_train：86.0281，loss_test：18.49544，lr：0.0008
+纪元：120，loss_train：86.10304，loss_test：18.58921，lr：0.00016
+纪元：140，loss_train：86.21459，loss_test：18.65351，lr： 0.00016
+Epoch：160，loss_train：86.32599，loss_test：18.80259，lr：3.2e-05
+Epoch：180，loss_train：86.43954，loss_test：19.03469，lr：6.4e-06
+Epoch：200，loss_train：86.58578，loss_test：19.16584，lr：6.4e-06
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/78884735/understanding-the-lstm-torch</guid>
+      <pubDate>Sun, 18 Aug 2024 13:32:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 gym 导致 google colab 页面崩溃（无错误消息）</title>
+      <link>https://stackoverflow.com/questions/78884681/crashing-an-google-colab-page-using-gym-no-error-message</link>
+      <description><![CDATA[我尝试在 Google Colab 上训练 PPO 模型（使用 gym），但不幸的是，很快就出错了。经过几秒钟的训练，网页开始冻结，有时甚至会出错。大约 2 分钟后，屏幕变黑。这是 Google Colab 笔记本的链接：https://colab.research.google.com/drive/1uAF0_9BEiehWGsLKBtGauWCs2rGnL71-?usp=sharing。没有数据可下载。
+我已经使用 Google Colab 一段时间了，但这是第一次发生这种情况。我猜想这个页面的 RAM 消耗可能存在问题，但我不确定。你能帮我改正吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78884681/crashing-an-google-colab-page-using-gym-no-error-message</guid>
+      <pubDate>Sun, 18 Aug 2024 13:12:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 ZED2 相机进行图像处理</title>
+      <link>https://stackoverflow.com/questions/78884614/image-processing-with-zed2-camera</link>
+      <description><![CDATA[在使用 zed2 相机处理图像时，我尝试通过 roboflow 训练图像，也使用 visual studio code 通过代码训练它们。我希望相机能够正确读取交通标志，我刚刚为特定区域拍摄了 3k 的照片。但远处的图像没有被 zed 检测到或误读。（大约 3-4 米）。我如何改进图像处理。
+是否有必要拍摄更多照片？所以我已经训练了超过 10k。但结果并没有太大不同，它仍然没有按照我想要的方式读取。
+这是我运行的 py 代码
+from ultralytics import YOLO
+
+model= YOLO(&quot;yolov8n.yaml&quot;)
+
+predict = model.train(data=&quot;data.yaml&quot;, epochs=500)
+
+
+我还有 yolo 代码。
+如果你愿意，我可以和你分享。
+我使用 ros bridge。我还试图通过 rviz2 可视化相机。
+我是新来的，所以我想问你。谢谢]]></description>
+      <guid>https://stackoverflow.com/questions/78884614/image-processing-with-zed2-camera</guid>
+      <pubDate>Sun, 18 Aug 2024 12:43:18 GMT</pubDate>
+    </item>
     <item>
       <title>在 gpu 上训练 tensorflow 模型[关闭]</title>
       <link>https://stackoverflow.com/questions/78884301/train-tensorflow-model-on-gpu</link>
@@ -101,20 +240,6 @@ env.close()
       <pubDate>Sat, 17 Aug 2024 21:45:05 GMT</pubDate>
     </item>
     <item>
-      <title>如何构建机器学习模型，从包含用户市场交易的 Excel 文件中提取所需的交易数据 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78883203/how-to-build-a-machine-leaning-model-to-extract-required-transactional-data-from</link>
-      <description><![CDATA[我有数百个 Excel 文件，其中包含各种格式的金融交易（例如股票、共同基金等）。每个文件可以包含一个或多个表格，并且表格位于不同工作表的不同位置，与不同的经纪人（如 zerodha、groww 等）相关。
-我的目标是训练一个机器学习模型，该模型可以自动识别并从任何给定的 Excel 文件中提取相关表格，即使格式不熟悉。
-这是数据：https://drive.google.com/drive/folders/1YixwjLg2ZskRXMI5WMjns5kD1Ujfpphd?usp=sharing
-每个经纪人都有不同的格式，他们以不同的格式将这些数据提供给用户，因此我无法手动解析它，因为格式经常更改。
-就像图像、pdf 文件我们在一定数量的文件上进行训练，然后给出新的格式，即使格式发生变化，模型也可以精确地提供所需的数据。挑战在于在 excel 文件上执行此操作。
-我尝试用表格位置的坐标和该范围内每个单元格中的数据类型注释 excel 文件，但发现它们作为特征无关紧要。
-除了机器学习，我还尝试使用 fuzzy-wuzzy 库，这样每当经纪人更改列标题时，它都会映射到单个标题 - 例如 - “购买日期”、“入场日期”将映射到“购买日期”，但这并不能解决问题。
-请帮帮我，我已经进行了广泛的搜索和研究，但还是搞不清楚。]]></description>
-      <guid>https://stackoverflow.com/questions/78883203/how-to-build-a-machine-leaning-model-to-extract-required-transactional-data-from</guid>
-      <pubDate>Sat, 17 Aug 2024 20:26:53 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 YOLOv10 和 RTSP 流的车牌识别系统中 RAM 和存储使用率较高</title>
       <link>https://stackoverflow.com/questions/78883152/high-ram-and-storage-usage-in-license-plate-recognition-system-with-yolov10-and</link>
       <description><![CDATA[我正在开发一个车牌识别系统，使用来自安全摄像头的 RTSP 流来识别带有阿拉伯字母/数字的埃及车牌。我的设置包括：
@@ -189,27 +314,13 @@ urllib3==2.2.1
       <pubDate>Sat, 17 Aug 2024 11:40:40 GMT</pubDate>
     </item>
     <item>
-      <title>Azure AI 自定义图像分析模型未返回性能指标</title>
-      <link>https://stackoverflow.com/questions/78881768/azure-ai-custom-image-analysis-model-not-returning-performance-metrics</link>
-      <description><![CDATA[成功训练并使用自定义图像分析模型后，我没有获得任何性能指标。在两个地方 - Vision Studio 的 UI 和执行代码，使用此代码时我都会收到以下错误：
-fromcognitive_service_vision_model_customization_python_samples import 
-
-Evaluation
-eval_dataset_name = &#39;{specify_your_eval_dataset_name}&#39;
-evaluation_name = &#39;{specify_your_eval_run_name}&#39;
-
-evaluation = Evaluation(evaluation_name, model_name, eval_dataset_name)
-training_client.evaluate_model(evaluation)
-
-evaluation = training_client.wait_for_evaluation_completion(model_name, evaluation_name)
-
-Status: Error(code={&#39;code&#39;: &#39;InternalServerError&#39;, &#39;message&#39;: &#39;Batch did not complete successful. OutputResultWriteFailed: An accidental error was happened.&#39;}, message=&#39;&#39;, target=&#39;&#39;, details=[])
-
-我遵循 Azure 提供的此指南 - https://github.com/Azure-Samples/cognitive-service-vision-model-customization-python-samples/blob/main/docs/cognitive_service_vision_model_customization.ipynb
-使用我用于训练的同一数据集。我知道从 ML 的角度来看，这种方法不是正确的方法，但我想确保数据集包含正确的图片和标签。
-您有什么建议，如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/78881768/azure-ai-custom-image-analysis-model-not-returning-performance-metrics</guid>
-      <pubDate>Sat, 17 Aug 2024 08:44:21 GMT</pubDate>
+      <title>确保数据标记、数据注释的质量</title>
+      <link>https://stackoverflow.com/questions/78882012/ensure-quality-of-data-labeling-data-annotation</link>
+      <description><![CDATA[我有一个包含两百万数据图像、视频和文本的数据集。这些都未标记。我想雇佣来自世界各地的员工来标记它们。这是一个庞大的人数。我没有太多的数据经验。我想知道如何确保我的员工标记的数据的质量。我担心他们只是为了赚钱而浪费工作时间。
+P/S：我不能使用 Scale&#39;AI 等其他公司为我标记。
+对于简单的分类。我可以使用像 CAPCHA 这样的方法。它效果很好，但对于其他情况，如绘制边界框 = 或分割，我不知道如何检查标签数据的质量。]]></description>
+      <guid>https://stackoverflow.com/questions/78882012/ensure-quality-of-data-labeling-data-annotation</guid>
+      <pubDate>Sat, 17 Aug 2024 10:47:26 GMT</pubDate>
     </item>
     <item>
       <title>如何加速随机森林回归和SVR的训练？</title>
@@ -281,13 +392,6 @@ results[model_name] = {
 ]]></description>
       <guid>https://stackoverflow.com/questions/78881480/how-to-speed-up-training-of-random-forest-regression-and-svr</guid>
       <pubDate>Sat, 17 Aug 2024 05:30:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用相关的 Sagemaker HP 调整作业作为热启动父作业</title>
-      <link>https://stackoverflow.com/questions/78861542/use-relevant-sagemaker-hp-tuning-jobs-as-warm-start-parent-jobs</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78861542/use-relevant-sagemaker-hp-tuning-jobs-as-warm-start-parent-jobs</guid>
-      <pubDate>Mon, 12 Aug 2024 11:58:24 GMT</pubDate>
     </item>
     <item>
       <title>获取 ValueError：所有数组的长度必须相同</title>
@@ -416,71 +520,6 @@ ValueError: 所有数组的长度必须相同
       <pubDate>Sun, 11 Aug 2024 12:27:40 GMT</pubDate>
     </item>
     <item>
-      <title>为什么剪枝后参数数量没有减少？</title>
-      <link>https://stackoverflow.com/questions/78857798/why-are-the-number-of-parameters-not-decreasing-after-pruning</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78857798/why-are-the-number-of-parameters-not-decreasing-after-pruning</guid>
-      <pubDate>Sun, 11 Aug 2024 08:10:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何优化 PyTorch 和 Ultralytics Yolo 代码以利用 GPU？</title>
-      <link>https://stackoverflow.com/questions/78687946/how-to-optimize-pytorch-and-ultralytics-yolo-code-to-utilize-gpu</link>
-      <description><![CDATA[我正在做一个涉及对象检测和跟踪的项目。对于对象检测，我使用 yolov8，对于跟踪，我使用 SORT 跟踪器。运行以下代码后，我的 GPU 使用率始终低于 10%，而 CPU 使用率始终超过 40%。我安装了 cuda、cudnn，并使用 cuda 安装了 torch。我还编译了支持 cuda 的 opencv。我正在使用 RTX 4060 ti，但看起来它没有被使用。
-有没有办法进一步优化下面的代码，以便所有工作都由 GPU 而不是 CPU 处理？
-from src.sort import *
-import cv2
-import time
-import torch
-import numpy as np
-from ultralytics import YOLO
-
-device = &#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;
-print(f&quot;Using device: {device}&quot;)
-sort_tracker = Sort(max_age=20, min_hits=2, iou_threshold=0.05)
-model = YOLO(&#39;yolov8s.pt&#39;).to(device)
-
-cap = cv2.VideoCapture(0)
-
-while True:
-ret, frame = cap.read() 
-if not ret:
-print(&quot;**未收到帧**&quot;)
-继续
-
-results = model(frame)
-dets_to_sort = np.empty((0, 6))
-for result in results:
-for obj in result.boxes:
-bbox = obj.xyxy[0].cpu().numpy().astype(int)
-x1, y1, x2, y2 = bbox
-
-conf = obj.conf.item()
-class_id = int(obj.cls.item())
-dets_to_sort = np.vstack((dets_to_sort, np.array([x1, y1, x2, y2, conf, class_id])))
-
-tracked_dets = sort_tracker.update(dets_to_sort)
-for det in tracked_dets:
-x1, y1, x2, y2 = [int(i) for i in det[:4]]
-track_id = int(det[8]) if det[8] 不为 None else 0
-class_id = int(det[4])
-cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 4)
-cv2.putText(frame, f&quot;{track_id}&quot;, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
-
-frame = cv2.resize(frame, (800, int(frame.shape[0] * 800 / frame.shape[1])), interpolation=cv2.INTER_NEAREST)
-cv2.imshow(&quot;Frame&quot;, frame)
-key = cv2.waitKey(1)
-如果 key == ord(&quot;q&quot;):
-break
-如果 key == ord(&quot;p&quot;):
-cv2.waitKey(-1)
-
-cap.release()
-cv2.destroyAllWindows()
-]]></description>
-      <guid>https://stackoverflow.com/questions/78687946/how-to-optimize-pytorch-and-ultralytics-yolo-code-to-utilize-gpu</guid>
-      <pubDate>Sun, 30 Jun 2024 07:43:52 GMT</pubDate>
-    </item>
-    <item>
       <title>如何将 transformer 编码器中的注意力掩码“Mask”矩阵与 pytorch 的 nn.TransformerEncoder 中的潜在矩阵一起发送？</title>
       <link>https://stackoverflow.com/questions/76034630/how-do-i-send-an-attention-mask-mask-matrix-in-transformer-encoder-along-with</link>
       <description><![CDATA[我在 pytorch 中初始化了一个 transformer_encoder，如下所示：
@@ -507,6 +546,41 @@ output = transformer_encoder(latent, mask)
 有人能解释一下这里的问题是什么吗？我该如何解决？或者正确的实现方法是什么？]]></description>
       <guid>https://stackoverflow.com/questions/76034630/how-do-i-send-an-attention-mask-mask-matrix-in-transformer-encoder-along-with</guid>
       <pubDate>Mon, 17 Apr 2023 11:24:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>用户警告：使用的目标尺寸 (torch.Size([1])) 与输入尺寸 (torch.Size([1, 1])) 不同</title>
+      <link>https://stackoverflow.com/questions/72061934/userwarning-using-a-target-size-torch-size1-that-is-different-to-the-inpu</link>
+      <description><![CDATA[我有这段代码：
+actual_loes_score_g = actual_loes_score_t.to(self.device, non_blocking=True)
+
+predicted_loes_score_g = self.model(input_g)
+
+loss_func = nn.L1Loss()
+loss_g = loss_func(
+predicted_loes_score_g,
+actual_loes_score_g,
+)
+
+其中 predicted_loes_score_g 为 tensor([[-24.9374]], grad_fn=&lt;AddmmBackward0&gt;) 且 actual_loes_score_g 为 tensor([20.], dtype=torch.float64)。（出于调试目的，我使用批处理大小 1。）
+我收到此警告：
+
+torch/nn/modules/loss.py:96：UserWarning：使用的目标大小 (torch.Size([1])) 与输入大小 (torch.Size([1, 1])) 不同。这很可能导致由于广播而导致结果不正确。请确保它们具有相同的大小。
+
+我如何正确确保它们具有相同的大小？
+我认为这可能是答案：
+predicted_loes_score = predicted_loes_score_g.detach()[0]
+loss_g = loss_func(
+predicted_loes_score,
+actual_loes_score_g,
+)
+
+但后来我收到此错误：
+torch/autograd/__init__.py&quot;，第 154 行，在 Backward
+Variable._execution_engine.run_backward(
+RuntimeError：张量的元素 0 不需要 grad 并且没有 grad_fn
+]]></description>
+      <guid>https://stackoverflow.com/questions/72061934/userwarning-using-a-target-size-torch-size1-that-is-different-to-the-inpu</guid>
+      <pubDate>Fri, 29 Apr 2022 17:50:27 GMT</pubDate>
     </item>
     </channel>
 </rss>
