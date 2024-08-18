@@ -4,27 +4,27 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>初学者 -> /r/learnmachinelearning，AGI -> /r/singularity，职业建议 -> /r/cscareerquestions</description>
-    <lastBuildDate>Sun, 18 Aug 2024 18:18:21 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 18 Aug 2024 21:13:09 GMT</lastBuildDate>
+    <item>
+      <title>[R] 这是混响语音到房间脉冲响应估计器的官方实现</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1evhhx3/r_this_is_the_official_implementation_of/</link>
+      <description><![CDATA[       由    /u/Snoo63916  提交  [链接] [评论] ]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1evhhx3/r_this_is_the_official_implementation_of/</guid>
+      <pubDate>Sun, 18 Aug 2024 19:22:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>[R] 提示缓存：模块化注意力重用，实现低延迟推理</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1evgi49/r_prompt_cache_modular_attention_reuse_for/</link>
+      <description><![CDATA[  由    /u/AhmedMostafa16  提交  [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1evgi49/r_prompt_cache_modular_attention_reuse_for/</guid>
+      <pubDate>Sun, 18 Aug 2024 18:40:42 GMT</pubDate>
+    </item>
     <item>
       <title>[P] 帮助骨龄模型生成/输入</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1evf6lj/p_help_with_bone_age_model_generatorinput/</link>
       <description><![CDATA[嗨，我正在尝试创建一个骨龄预测模型，在这个特定的模型中，我尝试输入 5 张图像，但我不知道我的问题出在生成器还是模型上，我设法运行了，但火车在第一个时期后就卡住了，我以前从未使用过自定义生成器或多输入，有人能发现什么地方出了问题吗？我正在尝试实现这篇论文2405.14986 (arxiv.org)我的模型： input_original = 输入（shape=(224, 224, 1), name=&#39;input_original&#39;）input_wrist = 输入（shape=(224, 224, 1), name=&#39;input_wrist&#39;）input_pipanddip = 输入（shape=(224, 224, 1), name=&#39;input_pipanddip&#39;）input_mcp = 输入（shape=(224, 224, 1), name=&#39;input_mcp&#39;）input_mcp2 = 输入（shape=(224, 224, 1), name=&#39;input_mcp2&#39;）gender_input =输入（形状=（1，），名称=&#39;gender_input&#39;） base_model = tf.keras.applications.MobileNetV2（权重=&#39;imagenet&#39;，include_top=False，input_shape=（224，224，3）） base_model.trainable = False def process_input（input_layer）： x = tf.keras.layers.Conv2D（3，（3，3），padding=&#39;same&#39;）（input_layer） x = base_model（x） x = GlobalAveragePooling2D（）（x） 返回 x features_original = process_input（input_original） features_wrist = process_input（input_wrist） features_pipanddip = process_input（input_pipanddip） features_mcp = process_input（input_mcp） features_mcp2 = process_input（input_mcp2） concatenated_features = Concatenate()([features_original, features_wrist, features_pipanddip, features_mcp, features_mcp2, gender_input]) fc = Dense(64, activity=&#39;relu&#39;)(concatenated_features) fc = Dense(32, activity=&#39;relu&#39;)(fc) output = Dense(1, activity=&#39;linear&#39;)(fc) model = Model(inputs=[input_original, input_wrist, input_pipanddip, input_mcp, input_mcp2, gender_input], output=output)  我的生成器： import pandas as pd import numpy as np import tensorflow as tf from tensorflow.keras.preprocessing.image import load_img, img_to_array # 定义生成器 def bone_age_generator(df, batch_size, target_size=(128, 128)): # 按“id”分组，确保属于同一组的所有图像都在一起 grouped = df.groupby(&#39;id&#39;) # 获取唯一 ID 的数量 unique_ids = df[&#39;id&#39;].unique() while True: # 为每个 epoch 打乱唯一 ID np.random.shuffle(unique_ids) for start in range(0, len(unique_ids), batch_size): batch_ids = unique_ids[start:start + batch_size] batch_images = [[] for _ in range(5)] # 根据输入数量进行调整 batch_labels = [] batch_genders = [] for id_ in batch_ids: group = grouped.get_group(id_) # 加载并处理每个区域的图像 for i, region in enumerate([&#39;original&#39;, &#39;Wrist&#39;, &#39;PIPandDIP&#39;, &#39;MCP&#39;, &#39;MCP2&#39;]): img_path = group[group[&#39;object_type&#39;] == region][&#39;path&#39;].values if len(img_path) &gt; 0: try: img = load_img(img_path[0], target_size=target_size) img_array = img_to_array(img) / 255.0 # 规范化为 [0, 1] except Exception as e: print(f&quot;Error loading image {img_path[0]}: {e}&quot;) img_array = np.zeros((target_size[0], target_size[1], 3)) # 使用空白图像 else: # 如果区域缺失，则创建空白图像 img_array = np.zeros((target_size[0], target_size[1], 3)) batch_images[i].append(img_array) # 提取年龄和性别（假设性别是二进制数组 [0] 或 [1]） age = group[&#39;age&#39;].values[0] gender = group[&#39;male&#39;].values[0][0] # 提取整数值batch_labels.append(age) batch_genders.append(gender) # 将列表转换为 numpy 数组并生成它们 batch_images = [np.array(imgs) for imgs in batch_images] batch_labels = np.array(batch_labels) batch_genders = np.array(batch_genders).reshape(-1, 1) # 生成图像、性别和标签 produce batch_images + [batch_genders], batch_labels # 使用示例 # generator = bone_age_generator(&#39;../dataset_final_agorasim_aligned.csv&#39;, batch_size=1) # model.fit(generator, steps_per_epoch=len(unique_ids) // 32, epochs=10)     submitted by    /u/Island-Prudent   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1evf6lj/p_help_with_bone_age_model_generatorinput/</guid>
       <pubDate>Sun, 18 Aug 2024 17:45:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>[D] 你能解决这个复杂的商业问题吗？</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1evdfpw/d_can_you_solve_this_complex_business_problem/</link>
-      <description><![CDATA[问题围绕着平面图库存（即汽车经销商）。在某个日期，如果库存在六个月内没有售出，那么实际上必须支付每月的利息。再过六个月，即使库存尚未售出，您也必须购买库存。客户有时会预订具有预期销售日期的库存，但该日期会根据多种因素而变化，并且很难定期更新。当然，在现实世界中，还有许多额外的层次。因此，该方法必须强大并且能够管理任何类似复杂业务问题的迭代和演变性质。 简而言之，这是一个现实世界中的例子，说明了企业预测的一般挑战，但提出一个具体的例子，希望它能使讨论更容易。 请假设我们有良好的数据输入。 这里的重点是预测方面和相关报告。您将如何构建一个模型，以便估计哪些库存模型无法快速销售，从而引起人们的兴趣？当然，该模型需要能够处理尽可能广泛的场景。您的方法（例如回归分析等）背后的数学有多复杂？ ***非常想知道哪种软件、专业经验和/或教育计划可以让您以您建议的方式解决这个问题。 此外，您认为您的解决方案在多大程度上是可行的？这是否需要团队来构建和维护？中小型企业可以部署您的方法吗？ 最重要的是，这是理论上的，还是您已经有效地部署了类似的解决方案？ 谢谢！ 您能解决这个复杂的业务问题吗？      提交人    /u/Similar_Prompt_8032   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1evdfpw/d_can_you_solve_this_complex_business_problem/</guid>
-      <pubDate>Sun, 18 Aug 2024 16:30:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>[D] Figma AI 使用什么输出表示来生成流程图？</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1evczzg/d_what_output_representations_does_figma_ai_use/</link>
-      <description><![CDATA[我正在使用 Figma AI。我注意到它使用生成模型来创建复杂的流程图，节点之间有分支和更复杂的链接。 有人能指点我研究表示图表的最佳方法（如上面的流程图），以使其兼容输入到 LLM 吗？ 或者是否使用不同类型的模型而不是纯文本 LLM 来生成这样的图表？    提交人    /u/Longjumping_Card8515   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1evczzg/d_what_output_representations_does_figma_ai_use/</guid>
-      <pubDate>Sun, 18 Aug 2024 16:12:18 GMT</pubDate>
     </item>
     <item>
       <title>[R] 探索人工智能生成的通信分析中的微妙语言线索</title>
