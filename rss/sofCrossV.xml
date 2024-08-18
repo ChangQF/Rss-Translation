@@ -4,17 +4,102 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 18 Aug 2024 15:14:25 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 18 Aug 2024 18:18:43 GMT</lastBuildDate>
     <item>
-      <title>多个方向备择假设的 F 检验</title>
-      <link>https://stats.stackexchange.com/questions/652975/f-test-for-multiple-directional-alternative-hypotheses</link>
-      <description><![CDATA[假设我们有一个模型
-$$
-y=\beta_0+\beta_1x_1+\beta_2x_2+u
-$$
-并希望同时测试$\beta_1&gt;0$和$\beta_2&lt;0$的显著性。我知道我们可以使用 Wald 检验来检验这种联合显著性，但您是否能够使用$F$-检验来检验上述联合显著性，或者上述方向假设是否使这变得不可能？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652975/f-test-for-multiple-directional-alternative-hypotheses</guid>
-      <pubDate>Sun, 18 Aug 2024 15:10:00 GMT</pubDate>
+      <title>将可预测的连续误差组合成单个误差项</title>
+      <link>https://stats.stackexchange.com/questions/652981/combining-predictable-sequential-errors-into-a-single-error-term</link>
+      <description><![CDATA[简短解释
+如何将连续和可预测的误差组合成单个误差项，以求得多次测量的平均值？在我的例子中，每次测量都是移液器输送的气体体积，其中体积随着每次注射而减少，根据已知的指数衰减函数。每次测量的误差也是可预测的，并且随着每次注射略有增加。我需要计算几次此类测量的平均值的组合误差。最好的方法是什么？
+详细解释
+我正在为测量氦-4 的真空系统编写质谱数据缩减软件。该系统包含带有移液器的标准罐，移液器可提供已知数量的氦-4 作为未知体积的参考。移液器的每次输送事件称为“注射”。给定射击的体积估算如下：
+$$V_\text{std} = V_\text{cal}D\!F^{\Delta Q}$$
+其中：
+
+$V_\text{cal}$ 是在给定射击次数下根据外部标准进行的工厂校准体积输送。
+$D\!F$ 是消耗因子，即每次射击时罐中气体消耗的因子。这也是容器和移液器之间的体积比。
+$\Delta Q$ 是自 $V_\text{cal}$ 确定以来的注射次数。
+
+鉴于 $\Delta Q$ 是已知值，误差项为：
+$$\begin{equation}
+\varepsilon _{V_\text{std}} = \sqrt{{\left(\frac{\partial V_\text{std}}{\partial V_{\mathrm{cal}}} \varepsilon_{V_{\mathrm{cal}}}\right)}^2 + {\left(\frac{\partial V_\text{std}}{\partial \mathit{D\!F}} \varepsilon_{\mathit{D\!F}}\right)}^2}
+\end{equation}$$
+其中$\varepsilon$表示每个项的误差。
+因为$V_\text{cal}$、$D\!F$及其误差是常数，$V_\text{std}$和$\varepsilon_{V_\text{std}}$仅相差$\Delta Q$，而$\Delta Q$没有误差。因此，$V_\text{std}$ 的值及其误差是完全可预测的，并形成平缓的指数衰减趋势，误差随着每次射击而缓慢增加。
+为了计算未知气体量，我使用几个标准射击的平均值，$\bar{V}_\text{std}$。为了传播未知气体量的误差，我需要将 $V_\text{std}$ 的误差减少为单个值，$\varepsilon_{\bar{V}_\text{std}}$。考虑到这些值是可预测和连续的，并且没有正态分布，实现此目的的最佳方法是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652981/combining-predictable-sequential-errors-into-a-single-error-term</guid>
+      <pubDate>Sun, 18 Aug 2024 17:27:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>平均预测和边际效应相互作用之间的差异</title>
+      <link>https://stats.stackexchange.com/questions/652978/difference-between-average-predictions-and-interactions-in-marginal-effects</link>
+      <description><![CDATA[我有一个固定效应模型，其中我对分类变量随时间变化的边际效应感兴趣。以下是一个示例，说明我正在做什么：
+library(fixest)
+library(marginaleffects)
+library(ggplot2)
+
+# 设置可重复性的种子
+set.seed(123)
+
+# 观察次数
+n &lt;- 500 # 10 个时间点，每个时间点 50 次观察
+
+# 模拟数据
+data &lt;- data.frame(
+ID = 1:n,
+Time = factor(rep(1:10, each = 50)), # 10 个时间点，每个时间点 50 次观察
+Category = factor(rep(c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;), length.out = n)), # 3 级分类独立变量
+Control1 = rnorm(n, mean = 50, sd = 10), # 具有一定变化的连续控制变量
+Control2 = sample(0:1, n, replace = TRUE) # 具有随机分配的二元控制变量
+)
+
+# 二元结果变量，设计为随类别和时间变化
+data$Outcome &lt;- rbinom(n, 1, prob = plogis(0.5 + 0.3 * as.numeric(data$Category) - 0.2 * as.numeric(data$Time) + 0.05 * data$Control1 - 0.1 * data$Control2))
+
+# 使用固定效应拟合模型
+model &lt;- feglm(
+Outcome ~ Category + Control1 + Control2 |时间，
+数据 = 数据，
+家庭 = 二项式 (&quot;logit&quot;)
+)
+
+# 模型摘要
+summary(model)
+
+# 按类别和时间获取平均预测
+预测 &lt;- avg_predictions(model, by = c(&quot;类别&quot;, &quot;时间&quot;))
+
+# 显示预测
+print(predictions)
+
+# 绘制带有置信区间的预测
+ggplot(predictions, aes(x = 时间, y = 估计, 颜色 = 类别, 组 = 类别)) +
+geom_line(size = 1) +
+geom_point(size = 2) +
+geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = 类别), alpha = 0.2, 颜色 = NA) +
+labs(title = &quot;按类别随时间变化的预测概率&quot;,
+x = &quot;时间&quot;,
+y = &quot;预测概率&quot;) +
+theme_minimal() +
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+我有两个问题：
+
+预测或图中的值与包含每个类别的每个波的交互项有何不同？我理解，包括交互会假设影响可能会受到波的缓和，但如果数据表明如此，边际效应方法不会显示相同的结果吗？
+如果使用交互项完成此操作，假设我们添加一个名为 Category*Time 的变量，如何分析&quot;每波结果概率的变化&quot;
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652978/difference-between-average-predictions-and-interactions-in-marginal-effects</guid>
+      <pubDate>Sun, 18 Aug 2024 16:47:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>帮助解答有关概率的教科书问题：50 岁以上男性吸烟、饮酒和肺癌</title>
+      <link>https://stats.stackexchange.com/questions/652977/help-with-texbook-question-on-probabilities-smoking-drinking-and-lung-cancer</link>
+      <description><![CDATA[我需要帮助解决这个关于概率的问题。。。我被第一个问题难住了
+
+男性人口的年龄服从正态分布，算术平均值为 39 岁，标准差为 17 岁。最近一项关于 50 岁以上男性吸烟的研究表明，每天吸烟超过 10 支（平均一包）的人中有 38% 死于肺癌，而吸烟量少于该数量的人中只有 5% 死于同一原因。在任何年龄段的男性代表组中，发现 31% 的人吸烟，37% 的人经常饮用酒精饮料，40% 的人两者都不喝。考虑到只有 6% 的吸烟者每天吸烟超过半包…… 1. 一名 50 岁以上的男性也吸烟和喝酒的概率是多少？ 2. 在 1200 名 50 岁以上的男性吸烟者中，超过 60 人死于肺癌的概率是多少？
+
+我能够使用 excel 函数 1-DISTR.NORM.N(50;39;17;TRUE) 计算年龄超过 50 岁的概率，该函数返回 0.26，以及吸烟的概率（0.60 * 0.31=0.19），饮酒的概率（0.37 * 0.0.60=0.22），饮酒和吸烟的概率为 0.22 * 0.19= 0.04，但我无法回答这些问题。据说，一个男人年龄超过 50 岁并且吸烟和喝酒的概率为 0.0206，而第二个问题的概率为 0.0041，我不知道它们从何而来。有人能帮忙吗这个？]]></description>
+      <guid>https://stats.stackexchange.com/questions/652977/help-with-texbook-question-on-probabilities-smoking-drinking-and-lung-cancer</guid>
+      <pubDate>Sun, 18 Aug 2024 16:25:18 GMT</pubDate>
     </item>
     <item>
       <title>如果获得的样本量比功效分析中显示的大得多，该怎么办？</title>
@@ -87,9 +172,14 @@ summary(rminI)
       <description><![CDATA[我运行了一个线性表达式，其中基因表达是解释变量。表达该基因的细胞的两个特征（数据是单细胞数据）是预测因子。大约有 300 个细胞，我分别对每个基因运行回归分析。
 接下来，我想看看变化的模式。为此，我使用预先排序的 GSEA，它将基因的排序列表作为输入，并计算基因集在此列表顶部或底部的过度表达分数。对于两者中更有趣的预测因子，我的排名是 sign(log2FC) * -log10(pvalue)。
 问题：
-关于线性假设 - 是否应该检查它是否适用于所有基因？如果它不成立，它是否会偏向不仅单个基因的估计，而且偏向其 p 值的排名？
+关于线性假设 - 是否应该检查它是否适用于所有基因？如果它不成立，它是否会偏向不仅单个基因估计，而且偏向其 p 值的等级？
 注意：
-如果同源性假设为假，那么（据我所知）功效很低，但结果没有偏差（对于单个基因的线性回归）]]></description>
+如果同源性假设为假，那么（据我所知）功效很低，但结果没有偏差（对于单个基因的线性回归）。
+已编辑 - 应要求提供更多详细信息：
+预测因子之一是细胞来源的单个动物的年龄。有四种不同的年龄，我已将年龄转换为连续的。我没有非常精确地观察按年龄分布的情况，但似乎每个年龄的细胞数量大致相等。另一个预测因子是细胞的连续质量。
+我有几种细胞类型，对每一种细胞类型分别重复分析，数量略有不同。通常，在仅选择在至少 30% 的细胞中表达量高于零的基因后，我得到了 ~3000 个基因。
+我完全分开执行了回归分析。如果查看单个基因，我会调整多重比较（但这与 GSEA 无关）。
+对于其中一种细胞类型，我将线性回归的结果与 limma 进行了比较（只需对由 Seurat 标准化的计数进行 lmFit 和 eBayes），结果几乎相同（就重要基因而言）。]]></description>
       <guid>https://stats.stackexchange.com/questions/652970/assumptions-of-linear-regression-when-its-results-are-input-for-a-ranking-based</guid>
       <pubDate>Sun, 18 Aug 2024 12:49:01 GMT</pubDate>
     </item>
@@ -129,7 +219,7 @@ love.plot(W.trimcbps,thresholds=c(m=0.1),binary=&quot;std&quot;,which.treat=.all
       <pubDate>Sun, 18 Aug 2024 08:03:32 GMT</pubDate>
     </item>
     <item>
-      <title>如何总结一组时间（秒）来突出主要的活动模式？</title>
+      <title>如何总结一组时间（秒）来突出主要的活动模式？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/652961/how-to-summarize-a-set-of-times-seconds-to-highlight-the-main-activity-pattern</link>
       <description><![CDATA[我必须分析大量关于各个城市公园鸟类鸣叫活动的音频记录；每条记录都通过 BirdNET 播放，软件会返回一个数据集，其中包含它识别出的某个物种（例如黑鸟）的每首鸟鸣的开始/结束（以秒为单位）。从 0:00 开始，到 9.00 结束。像这样：
 
@@ -171,13 +261,55 @@ End.sec
       <pubDate>Sat, 17 Aug 2024 21:03:17 GMT</pubDate>
     </item>
     <item>
-      <title>我可以使用卡方统计量来根据 60,000 个值的经验数据集评估理论 PDF 吗？</title>
-      <link>https://stats.stackexchange.com/questions/652934/can-i-use-the-chi-square-statistic-to-evaluate-theoretical-pdfs-against-an-empir</link>
-      <description><![CDATA[我有一个包含 60,000 个数值模拟值的数据集。
-我正在测试 4 个理论 PDF（gamma、beta、Weibull 和对数正态）与该数据的拟合度，其中分布的参数是根据数据估算的。
-我可以使用卡方统计量来比较这些分布的拟合优度吗？或者卡方统计量不适合此目的，尤其是考虑到我的数据集很大？]]></description>
-      <guid>https://stats.stackexchange.com/questions/652934/can-i-use-the-chi-square-statistic-to-evaluate-theoretical-pdfs-against-an-empir</guid>
-      <pubDate>Fri, 16 Aug 2024 17:15:30 GMT</pubDate>
+      <title>使用 MCMC/BS 的频率统计估计 R 中的（故意）错误指定的多层模型，并获得特定于集群的效应和 CI</title>
+      <link>https://stats.stackexchange.com/questions/652574/estimating-a-purposely-misspecified-multilevel-model-in-r-using-frequentist-st</link>
+      <description><![CDATA[亲爱的 Stackoverflow 朋友们，
+我有一个具有挑战性的任务。我试图故意（为了研究/教学）估计一个错误指定的多层模型，并在不使用贝叶斯统计的情况下检索其特定于集群的估计值和 CI。
+这是模型：
+mod &lt;- lme4::lmer(ment_health~MT+(1+MT|clinic), data=dat)
+
+模型错误指定的原因是治疗 (MT) 的随机效应在人群中并不真正存在。数据由以下方式生成：
+intercept &lt;- 10 # 总平均值
+MTeffect &lt;- 0 # 总体，固定效应
+sd_MT &lt;- 0 # （无）特定于群集的系数的变异性
+sigma &lt;- 3 # 群集内变异性
+cor &lt;- 0 # 斜率和截距之间无关联
+sd_int &lt;- 5 # 特定于群集的截距的变异性
+n &lt;- 10 # 每个群集中的样本大小
+n_clusters &lt;- 5 # 群集数量
+N &lt;- n*n_clusters # 总样本量
+clinic &lt;- rep(1:n_clusters, each = n) # 定义群集 ID
+MT &lt;- rep(c(0, 1), length.out = N) 
+# 设置二分预测变量：控制 vs. treat
+varmat &lt;- matrix(c(sd_int^2, cor, cor, sd_MT^2), 2, 2) 
+# 方差-协方差矩阵
+re &lt;- mvtnorm::rmvnorm(n_clusters, sigma = varmat) 
+# 从 var-covar 生成聚类级人口信息
+colnames(re) &lt;- c(&#39;Intercept&#39;, &#39;MTeffect&#39;)
+ment_health &lt;- (intercept + re[clinic, &#39;Intercept&#39;]) +
+(MTeffect + re[clinic, &#39;MTeffect&#39;])*MT + 
+# 基本上，这一行是多余的，因为它全为 0 
+# 在空条件下
+rnorm(N, sd = sigma)
+# 将所有内容放在一起
+dat &lt;- data.frame(ment_health, MT = factor(MT), clinic, ppt_ID)
+
+有时模型的估计结果相对较好，固定 MT 效应、sd 和 corr 接近 0。但是，我更经常收到以下警告：
+边界（奇异）拟合：请参阅 help(&#39;isSingular&#39;)
+其中 Corr 估计为 1 或 -1。
+我想使用 bootstrapping 或 MCMC 来解决这个问题。我还想获得诊所（集群）特定的 MT 效应及其 CI。我通常使用 mixedup 包来执行此操作，但我不确定如何使用 lme4 以外的方法检索这些特定细节进行估算。
+我知道这很多，但任何帮助都将不胜感激！
+
+@BenBolker，
+非常感谢您快速而有用的回复！我想跟进一些不适合在评论中提及的细节。
+我希望获得集群特定效应的稳定估计，即使模型被故意错误指定（在这种情况下，由于 MT 缺乏真正的随机效应）。
+我理解奇异拟合警告表示模型规范存在问题，特别是当随机效应方差估计为零或接近零时，但我想知道我是否仍然可以信任集群特定系数（我对随机效应相关性参数不直接感兴趣）。
+更具体地说，除了每个诊所（即集群）的点估计之外，我还试图对每个集群运行非正式显着性检验，以测试其系数是否在统计上不同于零（评估 I 型错误）。这就是我试图检索置信区间的原因。感谢您指出这些实际上是条件分布的分位数。
+您认为使用条件分布的分位数作为“重要性”指标（即是否包含 0）合理吗？
+再次感谢您的见解，我非常感谢您的建议！
+Udi]]></description>
+      <guid>https://stats.stackexchange.com/questions/652574/estimating-a-purposely-misspecified-multilevel-model-in-r-using-frequentist-st</guid>
+      <pubDate>Fri, 09 Aug 2024 17:11:00 GMT</pubDate>
     </item>
     <item>
       <title>ANN 输出的不确定性作为分布参数</title>
@@ -249,31 +381,6 @@ $ education_id : num 6 8 6 6 6 2 6 6 6 6 ...
 我应该从哪里开始，尤其是在 Python 中？]]></description>
       <guid>https://stats.stackexchange.com/questions/610281/anomaly-detection-in-time-series-with-categorical-data</guid>
       <pubDate>Wed, 22 Mar 2023 07:43:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何确定多项选择题的结果是否具有统计学意义</title>
-      <link>https://stats.stackexchange.com/questions/602735/how-to-determine-if-the-results-to-a-multiple-choice-question-was-statistically</link>
-      <description><![CDATA[我做了一项调查，有 41 个人回答了一个多项选择题，他们只能选择一个答案。频率包括：
-
-$A = 25$
-$B = 12$
-$C = 4$
-$n = 41$
-
-我想知道结果之间是否存在统计上的显著差异。读完之后，似乎最好进行卡方检验和事后检验。
-但是，我正在努力将其操作化/创建我的卡方交叉表。它高估了我的样本量。
-问题是否在于它们都来自一个问题，所以它们并不是真正独立的？我应该尝试以另一种方式比较这些比例吗？还是我根本不应该这样做？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/602735/how-to-determine-if-the-results-to-a-multiple-choice-question-was-statistically</guid>
-      <pubDate>Sat, 21 Jan 2023 21:22:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>敏感性分析和特征重要性有什么区别</title>
-      <link>https://stats.stackexchange.com/questions/596724/what-is-the-difference-between-the-sensitivity-analysis-and-feature-importance</link>
-      <description><![CDATA[据我了解，在敏感性分析中，变量受到扰动，并观察到它们对输出的影响。在特征重要性方面，我们希望找到相同的答案，但使用不同的方法，这些方法更关注用于预测的实际模型。
-它们属于同一领域吗？它们可以互换使用吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/596724/what-is-the-difference-between-the-sensitivity-analysis-and-feature-importance</guid>
-      <pubDate>Wed, 23 Nov 2022 14:38:52 GMT</pubDate>
     </item>
     </channel>
 </rss>

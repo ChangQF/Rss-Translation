@@ -4,7 +4,28 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>初学者 -> /r/learnmachinelearning，AGI -> /r/singularity，职业建议 -> /r/cscareerquestions</description>
-    <lastBuildDate>Sun, 18 Aug 2024 15:14:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 18 Aug 2024 18:18:21 GMT</lastBuildDate>
+    <item>
+      <title>[P] 帮助骨龄模型生成/输入</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1evf6lj/p_help_with_bone_age_model_generatorinput/</link>
+      <description><![CDATA[嗨，我正在尝试创建一个骨龄预测模型，在这个特定的模型中，我尝试输入 5 张图像，但我不知道我的问题出在生成器还是模型上，我设法运行了，但火车在第一个时期后就卡住了，我以前从未使用过自定义生成器或多输入，有人能发现什么地方出了问题吗？我正在尝试实现这篇论文2405.14986 (arxiv.org)我的模型： input_original = 输入（shape=(224, 224, 1), name=&#39;input_original&#39;）input_wrist = 输入（shape=(224, 224, 1), name=&#39;input_wrist&#39;）input_pipanddip = 输入（shape=(224, 224, 1), name=&#39;input_pipanddip&#39;）input_mcp = 输入（shape=(224, 224, 1), name=&#39;input_mcp&#39;）input_mcp2 = 输入（shape=(224, 224, 1), name=&#39;input_mcp2&#39;）gender_input =输入（形状=（1，），名称=&#39;gender_input&#39;） base_model = tf.keras.applications.MobileNetV2（权重=&#39;imagenet&#39;，include_top=False，input_shape=（224，224，3）） base_model.trainable = False def process_input（input_layer）： x = tf.keras.layers.Conv2D（3，（3，3），padding=&#39;same&#39;）（input_layer） x = base_model（x） x = GlobalAveragePooling2D（）（x） 返回 x features_original = process_input（input_original） features_wrist = process_input（input_wrist） features_pipanddip = process_input（input_pipanddip） features_mcp = process_input（input_mcp） features_mcp2 = process_input（input_mcp2） concatenated_features = Concatenate()([features_original, features_wrist, features_pipanddip, features_mcp, features_mcp2, gender_input]) fc = Dense(64, activity=&#39;relu&#39;)(concatenated_features) fc = Dense(32, activity=&#39;relu&#39;)(fc) output = Dense(1, activity=&#39;linear&#39;)(fc) model = Model(inputs=[input_original, input_wrist, input_pipanddip, input_mcp, input_mcp2, gender_input], output=output)  我的生成器： import pandas as pd import numpy as np import tensorflow as tf from tensorflow.keras.preprocessing.image import load_img, img_to_array # 定义生成器 def bone_age_generator(df, batch_size, target_size=(128, 128)): # 按“id”分组，确保属于同一组的所有图像都在一起 grouped = df.groupby(&#39;id&#39;) # 获取唯一 ID 的数量 unique_ids = df[&#39;id&#39;].unique() while True: # 为每个 epoch 打乱唯一 ID np.random.shuffle(unique_ids) for start in range(0, len(unique_ids), batch_size): batch_ids = unique_ids[start:start + batch_size] batch_images = [[] for _ in range(5)] # 根据输入数量进行调整 batch_labels = [] batch_genders = [] for id_ in batch_ids: group = grouped.get_group(id_) # 加载并处理每个区域的图像 for i, region in enumerate([&#39;original&#39;, &#39;Wrist&#39;, &#39;PIPandDIP&#39;, &#39;MCP&#39;, &#39;MCP2&#39;]): img_path = group[group[&#39;object_type&#39;] == region][&#39;path&#39;].values if len(img_path) &gt; 0: try: img = load_img(img_path[0], target_size=target_size) img_array = img_to_array(img) / 255.0 # 规范化为 [0, 1] except Exception as e: print(f&quot;Error loading image {img_path[0]}: {e}&quot;) img_array = np.zeros((target_size[0], target_size[1], 3)) # 使用空白图像 else: # 如果区域缺失，则创建空白图像 img_array = np.zeros((target_size[0], target_size[1], 3)) batch_images[i].append(img_array) # 提取年龄和性别（假设性别是二进制数组 [0] 或 [1]） age = group[&#39;age&#39;].values[0] gender = group[&#39;male&#39;].values[0][0] # 提取整数值batch_labels.append(age) batch_genders.append(gender) # 将列表转换为 numpy 数组并生成它们 batch_images = [np.array(imgs) for imgs in batch_images] batch_labels = np.array(batch_labels) batch_genders = np.array(batch_genders).reshape(-1, 1) # 生成图像、性别和标签 produce batch_images + [batch_genders], batch_labels # 使用示例 # generator = bone_age_generator(&#39;../dataset_final_agorasim_aligned.csv&#39;, batch_size=1) # model.fit(generator, steps_per_epoch=len(unique_ids) // 32, epochs=10)     submitted by    /u/Island-Prudent   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1evf6lj/p_help_with_bone_age_model_generatorinput/</guid>
+      <pubDate>Sun, 18 Aug 2024 17:45:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>[D] 你能解决这个复杂的商业问题吗？</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1evdfpw/d_can_you_solve_this_complex_business_problem/</link>
+      <description><![CDATA[问题围绕着平面图库存（即汽车经销商）。在某个日期，如果库存在六个月内没有售出，那么实际上必须支付每月的利息。再过六个月，即使库存尚未售出，您也必须购买库存。客户有时会预订具有预期销售日期的库存，但该日期会根据多种因素而变化，并且很难定期更新。当然，在现实世界中，还有许多额外的层次。因此，该方法必须强大并且能够管理任何类似复杂业务问题的迭代和演变性质。 简而言之，这是一个现实世界中的例子，说明了企业预测的一般挑战，但提出一个具体的例子，希望它能使讨论更容易。 请假设我们有良好的数据输入。 这里的重点是预测方面和相关报告。您将如何构建一个模型，以便估计哪些库存模型无法快速销售，从而引起人们的兴趣？当然，该模型需要能够处理尽可能广泛的场景。您的方法（例如回归分析等）背后的数学有多复杂？ ***非常想知道哪种软件、专业经验和/或教育计划可以让您以您建议的方式解决这个问题。 此外，您认为您的解决方案在多大程度上是可行的？这是否需要团队来构建和维护？中小型企业可以部署您的方法吗？ 最重要的是，这是理论上的，还是您已经有效地部署了类似的解决方案？ 谢谢！ 您能解决这个复杂的业务问题吗？      提交人    /u/Similar_Prompt_8032   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1evdfpw/d_can_you_solve_this_complex_business_problem/</guid>
+      <pubDate>Sun, 18 Aug 2024 16:30:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>[D] Figma AI 使用什么输出表示来生成流程图？</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1evczzg/d_what_output_representations_does_figma_ai_use/</link>
+      <description><![CDATA[我正在使用 Figma AI。我注意到它使用生成模型来创建复杂的流程图，节点之间有分支和更复杂的链接。 有人能指点我研究表示图表的最佳方法（如上面的流程图），以使其兼容输入到 LLM 吗？ 或者是否使用不同类型的模型而不是纯文本 LLM 来生成这样的图表？    提交人    /u/Longjumping_Card8515   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1evczzg/d_what_output_representations_does_figma_ai_use/</guid>
+      <pubDate>Sun, 18 Aug 2024 16:12:18 GMT</pubDate>
+    </item>
     <item>
       <title>[R] 探索人工智能生成的通信分析中的微妙语言线索</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1ev5ax8/r_exploring_subtle_linguistic_cues_in_aigenerated/</link>
@@ -41,13 +62,6 @@
       <pubDate>Sun, 18 Aug 2024 02:15:10 GMT</pubDate>
     </item>
     <item>
-      <title>[D] 您是否知道有任何机构/非营利组织/公司/政府/等尝试应用深度学习和其他 ML/AI/GenAI 技术来实现全民基本收入（UBI）或类似于 UBI 的东西，例如全民基本服务？</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1eusv1c/d_do_you_know_any/</link>
-      <description><![CDATA[您是否知道任何机构/非营利组织/公司/政府/等。尝试应用深度学习和其他 ML/AI/GenAI 技术来实现全民基本收入 (UBI) 或类似于 UBI 的东西，例如全民基本服务？也许是聊天机器人指导 UBI 计划细节，选择最需要它的候选人，预测贫困、UBI 影响、人口和经济指标以确定不同人口群体的最佳 UBI 支付金额和频率，防止欺诈等。它可以只是在理论上勾勒未来的模型，也可以已经在实践中实施它。  我发现了这篇相关论文：数据和机器学习能否改变基本收入模式的未来？贝叶斯信念网络方法。 https://www.mdpi.com/2306-5729/9/2/18 &quot;呼吁政府实施基本收入的呼声是当代的。基本收入概念的理论背景仅规定向个人转移相等的金额，而不论其具体属性如何。然而，世界各地最新的基本收入计划都与家庭属性有关的某些规则有关。这种方法在适当识别弱势群体方面面临着重大挑战。制定与家庭福利属性有关的规则的一种可能替代方案是采用可以处理空前大量数据的人工智能算法。整合机器学习能否通过预测未来易受贫困影响的家庭来改变基本收入的未来？在本文中，我们利用由一百五十万个人组成的多维纵向福利数据和贝叶斯信念网络方法来检验基于现有家庭福利属性预测家庭未来贫困脆弱性的可行性。”    提交人    /u/Happysedits   [link] [comments]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1eusv1c/d_do_you_know_any/</guid>
-      <pubDate>Sat, 17 Aug 2024 21:43:17 GMT</pubDate>
-    </item>
-    <item>
       <title>[D] 呼吁中级 RL 人员 - 您希望存在的视频/教程？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1euk7jh/d_call_to_intermediate_rl_people_videostutorials/</link>
       <description><![CDATA[我正在考虑写一些博客文章/教程，可能还会以视频形式。我是一名 RL 研究人员/开发人员，所以这是我瞄准的主要主题。 我知道有很多 RL 教程。不幸的是，它们经常一遍又一遍地涵盖相同的主题。 问题是针对所有中级（甚至可能更低）RL 从业者 - 是否有任何特定主题您希望有更多关于它们的资源？ 我有很多自己的想法，特别是在我的特定领域，但我也想了解观众认为什么可能有用。因此，请放弃您希望存在但遗憾的是没有的任何教程主题！    提交人    /u/SmolLM   [链接] [评论]]]></description>
@@ -69,13 +83,6 @@
       <pubDate>Sat, 17 Aug 2024 13:00:10 GMT</pubDate>
     </item>
     <item>
-      <title>[D] 关于 Mamba 算法形状的问题</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1eub39f/d_question_about_shapes_of_mamba_algorithm/</link>
-      <description><![CDATA[大家好 :) 这是 Mamba 论文 (https://arxiv.org/pdf/2312.00752) 中的 S6 算法： https://preview.redd.it/jusbz7c926jd1.png?width=890&amp;format=png&amp;auto=webp&amp;s=75cf754b3c1f7478e3c146b7ec7f373a8336cd3e 我不太理解输入相关的形状。以 C 为例。为什么它的形状是 (B,L,N)？直观地讲，由于它为序列中的每个输入标记提供了唯一的转换（选择），因此它的形状应该是 (B,L,D,N)，其中最后两个维度恰好是批次中相应标记的投影？ 如果不这样做，隐藏状态 h 将具有维度 (B,D,N)，从而可以像在 SSM 中那样更新隐藏状态和输出。这再次违反直觉，因为隐藏状态通常具有形状 (B,N)，即隐藏向量以压缩序列的过去信息。 所以我的问题是，为什么 B、C 和 Delta 的输入相关形状不是维度 (B,L,D,N) ？ 提前致谢！    提交人    /u/No_Individual_7831   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1eub39f/d_question_about_shapes_of_mamba_algorithm/</guid>
-      <pubDate>Sat, 17 Aug 2024 06:21:43 GMT</pubDate>
-    </item>
-    <item>
       <title>[P] Pytorch 的 OpenCL 后端更新</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1euamk8/p_updates_on_opencl_backend_for_pytorch/</link>
       <description><![CDATA[我开发了用于 pytorch 的 OpenCL 后端 - 它允许在 Windows 和 Linux 上的 AMD、NVidia 和 Intel GPU 上训练您的网络。与基于 cuda/cudnn 的解决方案不同 - 它是跨平台且完全开源的。 更新：  在 pytorch 核心开发人员的帮助下，现在支持 pytorch 2.4 现在安装它很容易 - 我现在提供适用于 Linux 和 Windows 的预构建包 - 只需安装 whl 包就可以了 许多其他改进  如何使用它：  根据操作系统、python 版本和 pytorch 版本从项目页面下载 whl 文件 安装 pytorch 的 CPU 版本并安装您下载的 whl，例如 pytorch_ocl-0.1.0+torch2.4-cp310-none-linux_x86_64.whl  现在只需导入 pytorch_ocl现在您可以在 OpenCL ocl 设备上进行训练：`torch.randn(10,10,dev=&#39;ocl:2&#39;)  性能如何：虽然它不如原生 NVidia cuda 或 AMD rocm，但它仍然提供合理的性能，具体取决于平台、网络 - 通常训练约为 60-70%，推理约为 70-80%。    提交人    /u/artyombeilis   [链接] [评论]]]></description>
@@ -95,13 +102,6 @@
       <description><![CDATA[嗨， 我目前正在使用 HuggingFace 的 transformers 库。该库在加载模型时有些方便，它似乎是唯一合理的共享和加载模型的平台。但我越深入，就越困难，我感觉 api 设计得不好，存在很多严重的问题。 该库允许在不同的地方设置相同的选项，但没有记录它们如何相互作用。例如，似乎没有统一的方法来处理 EOS 等特殊令牌。人们可以在 1. 模型中、2. 标记器中和 3. 管道中设置这些令牌。我不清楚这些选项究竟是如何相互作用的，而且文档也没有提到这一点。有时参数会被忽略，而库不会就此发出警告。例如，参数“add_eos_token”在某些情况下，标记器似乎不起作用，而且我不是唯一遇到此问题的人（https://github.com/huggingface/transformers/issues/30947）。更糟糕的是，似乎确切的行为通常取决于模型，而库则假装提供统一的接口。查看源代码可以确认它们实际上根据当前加载的模型进行区分。 非常相似的观察结果涉及多线程的启动脚本，特别是：加速。我指定了核心数，但这只是被忽略了。没有通知，没有任何明显的原因。我在系统监视器中看到它仍然以单线程运行。即使是从网站上获取的样本也并不总是有效。 总之，配置设置似乎不受控制地增长。由于没有清晰的结构，并且有太多影响库的效果，因此其行为的很大一部分实际上没有记录。也可以说，它看起来有点不稳定和实验性。即使是对我有用的部分也让我担心，因为我怀疑部署后是否一切都会在另一台机器上正常工作。 有人有这样的想法吗？    提交人    /u/duffano   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1eu3auv/d_huggingface_transformers_bad_design/</guid>
       <pubDate>Fri, 16 Aug 2024 23:30:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>[R] 使用 GPT-3.5 和 Haiku 在成本、延迟和准确性方面击败 GPT-4o 结构化输出</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1etyrs8/r_beating_gpt4o_structured_output_with_gpt35_and/</link>
-      <description><![CDATA[完整帖子：https://www.boundaryml.com/blog/sota-function-calling 使用 BAML，我们几乎解决了1 个 伯克利函数调用基准 (BFCL)（每个模型）（gpt-3.5+）。期待很快分享 arXiv 论文！ https://preview.redd.it/78uxa0xx5pid1.png?width=916&amp;format=png&amp;auto=webp&amp;s=f36e9c6fbb8ea1939c5406e552b0dcf0a4f6fe20 主要发现  与任何本机函数调用 API 相比，BAML 在函数调用方面更准确、更便宜。它比 OpenAI 的 FC-strict API 快 2-4 倍。 BAML 的技术与模型无关，并且可以与任何模型一起使用而无需修改（甚至是开源模型）。 gpt-3.5-turbo、gpt-4o-mini 和 claude-haiku 与 BAML 配合使用的效果几乎与具有结构化输出的 gpt4o 一样好（不到 2%） 使用 FC-strict 而不是简单的函数调用可以改进每个较旧的 OpenAI 模型，但是 gpt-4o-2024-08-06 会变得更糟  背景 到目前为止，从 LLM 获得更好结果的唯一方法是：  迅速设计使用更长更复杂的提示来训练它 训练更好的模型  BAML 的不同之处  用类似 typescript 的定义替换 JSON 模式。例如 string[] 比 {&quot;type&quot;: &quot;array&quot;, &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;}&gt; 更容易理解。 使用一种新颖的解析技术（Schema-Aligned Parsing）代替 JSON.parse。SAP 允许输出中出现更少的标记，而不会因 JSON 解析而出现错误。例如，即使键周围没有引号，也可以解析它。 PARALLEL-5 [ { streaming_service: &quot;Netflix&quot;, show_list: [&quot;Friends&quot;], sort_by_rating: true }, { streaming_service: &quot;Hulu&quot;, show_list: [&quot;The Office&quot;, &quot;Stranger Things&quot;], sort_by_rating: true } ]  我们使用提示 DSL（BAML）来实现这一点[2]，而没有使用 JSON 模式或任何类型的约束生成。我们还与使用“工具”API 的 OpenAI 的结构化输出进行了比较，我们称之为“FC-strict”。 对未来的思考 模型真的非常好，是一种语义理解。 模型在必须完美的事情上真的很糟糕，比如完美的 JSON、完美的 SQL、编译代码等。 我们认为，与其努力训练结构化数据的模型或在生成时约束令牌，不如将工程努力应用于稳健地处理模型输出等领域，这将带来尚未开发的价值。    提交人    /u/kacxdak   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1etyrs8/r_beating_gpt4o_structured_output_with_gpt35_and/</guid>
-      <pubDate>Fri, 16 Aug 2024 20:15:53 GMT</pubDate>
     </item>
     <item>
       <title>[D] 每月谁在招聘以及谁想被招聘？</title>
