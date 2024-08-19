@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 19 Aug 2024 03:17:32 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 19 Aug 2024 06:23:02 GMT</lastBuildDate>
     <item>
       <title>运行 Jenkins 管道时如何修复“脚本返回退出代码 15”</title>
       <link>https://stackoverflow.com/questions/78885552/how-to-fix-script-returned-exit-code-15-when-running-jenkins-pipeline</link>
@@ -378,6 +378,157 @@ optimizer.step()
       <pubDate>Mon, 12 Aug 2024 15:23:25 GMT</pubDate>
     </item>
     <item>
+      <title>RuntimeError：预期标量类型为 Long，但发现的是 Float（Pytorch）</title>
+      <link>https://stackoverflow.com/questions/70279287/runtimeerror-expected-scalar-type-long-but-found-float-pytorch</link>
+      <description><![CDATA[我尝试过多次来修复，也使用了 functional.py 中的示例代码，但仍然得到了相同的“loss”值。我该如何解决这个问题？
+我的库：
+导入 matplotlib.pyplot 作为 plt
+导入 torch
+导入 torch.nn 作为 nn
+导入 numpy 作为 np
+导入 matplotlib
+导入 pandas 作为 pd
+从 torch.autograd 导入变量
+从 torch.utils.data 导入 DataLoader、TensorDataset
+从 sklearn.model_selection 导入 train_test_split
+导入警告
+导入 os
+导入 torchvision
+导入 torchvision.datasets 作为 dsets
+导入 torchvision.transforms 作为 transforms
+
+train=pd.read_csv(&quot;train.csv&quot;,dtype=np.float32)
+
+targets_numpy = train.label.values
+features_numpy = train.loc[:,train.columns != &quot;label&quot;].values/255 # 标准化
+
+features_train、features_test、targets_train、targets_test = train_test_split(features_numpy、targets_numpy、test_size = 0.2、random_state = 42)
+
+featuresTrain=torch.from_numpy(features_train)
+targetsTrain=torch.from_numpy(targets_train)
+
+featuresTest=torch.from_numpy(features_test)
+targetsTest=torch.from_numpy(targets_test) 
+
+batch_size=100
+n_iterations=10000
+num_epochs=n_iterations/(len(features_train)/batch_size)
+num_epochs=int(num_epochs)
+
+train=torch.utils.data.TensorDataset(featuresTrain、targetsTrain)
+test=torch.utils.data.TensorDataset(featuresTest,targetsTest)
+
+print(type(train))
+
+train_loader=DataLoader(train,batch_size=batch_size,shuffle=False)
+test_loader=DataLoader(test,batch_size=batch_size,shuffle=False)
+print(type(train_loader))
+
+plt.imshow(features_numpy[226].reshape(28,28))
+plt.axis(&quot;off&quot;)
+plt.title(str(targets_numpy[226]))
+plt.show()
+
+class ANNModel(nn.Module):
+def __init__(self,input_dim,hidden_​​dim,output_dim):
+super(ANNModel,self).__init__()
+self.fc1=nn.Linear(input_dim,hidden_​​dim)
+self.relu1=nn.ReLU()
+self.fc2=nn.Linear(hidden_​​dim,hidden_​​dim)
+self.tanh2=nn.Tanh()
+self.fc4=nn.Linear(hidden_​​dim,output_dim)
+
+def forward (self,x): #forward 到上一层并返回 
+out=self.fc1(x) 
+out=self.relu1(out) 
+out=self.fc2(out) 
+out=self.tanh2(out)
+out=self.fc4(out)
+return out 
+
+input_dim=28*28
+hidden_​​dim=150 
+output_dim=10
+
+model=ANNModel(input_dim,hidden_​​dim,output_dim)
+
+error=nn.CrossEntropyLoss()
+
+learning_rate=0.02
+optimizer=torch.optim.SGD(model.parameters(),lr=learning_rate)
+
+count=0
+loss_list=[]
+iteration_list=[]
+accuracy_list = []
+for epoch in range(num_epochs):
+for i,(images,labels) in enumerate(train_loader): 
+train=Variable(images.view(-1,28*28))
+labels=Variable(labels)
+#print(labels)
+#print(outputs) 
+optimizer.zero_grad()
+
+#forward propagation
+output=model(train)
+
+#outputs=torch.randn(784,10,requires_grad=True)
+##labels=torch.randn(784,10).softmax(dim=1)
+loss=error(outputs,labels)
+
+loss.backward()
+
+optimizer.step()
+
+count+=1
+
+if count % 50 == 0:
+correct=0
+total=0
+
+for images,labels in test_loader:
+test=Variable(images.view(-1,28*28)) 
+output=model(test)
+
+predict=torch.max(outputs.data,1)[1] #mantık???
+
+total+= len(labels)
+
+correct+=(predicted==labels).sum()
+
+accuracy=100 *correct/float(total)
+
+loss_list.append(loss.data)
+iteration_list.append(count)
+accuracy_list.append(accuracy)
+if count % 500 == 0:
+print(&#39;迭代：{} 损失：{} 准确度：{} %&#39;.format(count, loss.data, accuracy))
+
+错误：
+-------------------------------------------------------------------------------
+RuntimeError Traceback（最近一次调用最后一次）
+&lt;ipython-input-9-9e53988ad250&gt;在 &lt;module&gt;() 中
+26 #outputs=torch.randn(784,10,requires_grad=True)
+27 ##labels=torch.randn(784,10).softmax(dim=1)
+---&gt; 28 loss=error(outputs,labels)
+29 
+30 
+
+2 帧
+/usr/local/lib/python3.7/dist-packages/torch/nn/ functional.py 在 cross_entropy(input, target, weight, size_average, ignore_index, reduce, reduction, label_smoothing) 中
+2844 如果 size_average 不为 None 或 reduce 不为 None:
+2845 reduction = _Reduction.legacy_get_string(size_average, reduce)
+-&gt; 2846 返回 torch._C._nn.cross_entropy_loss(input, target, weight, _Reduction.get_enum(reduction), ignore_index, label_smoothing)
+2847 
+2848 
+
+RuntimeError：预期标量类型为 Long，但发现为 Float
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/70279287/runtimeerror-expected-scalar-type-long-but-found-float-pytorch</guid>
+      <pubDate>Wed, 08 Dec 2021 17:29:11 GMT</pubDate>
+    </item>
+    <item>
       <title>错误识别某人[关闭]</title>
       <link>https://stackoverflow.com/questions/61835053/misidentifying-a-person</link>
       <description><![CDATA[我编写了一个代码，通过人脸图片识别我和其他人。然而，它把 3 张其他人的照片中的 1 张误认为是我。您如何解决这个问题？
@@ -397,13 +548,6 @@ Epoch 15/15
 ]]></description>
       <guid>https://stackoverflow.com/questions/61835053/misidentifying-a-person</guid>
       <pubDate>Sat, 16 May 2020 10:04:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>什么是“张量”，它与向量有何不同？</title>
-      <link>https://stackoverflow.com/questions/43656736/what-is-tensor-and-how-is-it-different-from-a-vector</link>
-      <description><![CDATA[我是机器学习的初学者，我正面临这个问题。请提供简单的例子或内容，以便我能以最佳方式理解它。]]></description>
-      <guid>https://stackoverflow.com/questions/43656736/what-is-tensor-and-how-is-it-different-from-a-vector</guid>
-      <pubDate>Thu, 27 Apr 2017 11:40:42 GMT</pubDate>
     </item>
     </channel>
 </rss>
