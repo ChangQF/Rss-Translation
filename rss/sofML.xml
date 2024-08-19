@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 19 Aug 2024 15:16:54 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 19 Aug 2024 18:20:26 GMT</lastBuildDate>
     <item>
       <title>这个 CNN 的最后三层使用的是全连接层还是卷积层？</title>
       <link>https://stackoverflow.com/questions/78888560/is-this-cnn-using-fully-connected-or-convolution-layers-for-the-final-three-laye</link>
@@ -192,13 +192,49 @@ AttributeError: &#39;NoneType&#39; 对象没有属性 &#39;items&#39;
 我预计测试集也会出现类似的问题。
 
 我考虑过删除图像，使总数很容易被 16 整除（例如，将 1151 减少到 1136，这样 1136 / 16 = 71），但这感觉很浪费。我知道 .repeat() 函数可能会有所帮助，但我不确定它会如何影响模型，特别是在过度拟合方面。
+这是我的数据生成代码：
+datagen = ImageDataGenerator(rescale=1./255)
+
+train_data_gen = datagen.flow_from_directory(
+directory=train_path,
+target_size=(224, 224),
+batch_size=batch_size,
+class_mode=&#39;categorical&#39;
+)
+
+valid_data_gen = datagen.flow_from_directory(
+directory=val_path,
+target_size=(224, 224),
+batch_size=batch_size,
+class_mode=&#39;categorical&#39;
+)
+
+test_data_gen = datagen.flow_from_directory(
+directory=test_path,
+target_size=(224, 224),
+batch_size=batch_size,
+class_mode=&#39;categorical&#39;,
+shuffle=False
+)
+
+我没有使用任何数据增强，因为我的数据集相当平衡。
+这里是 model.fit():
+custom_model.fit(
+train_data_gen,
+steps_per_epoch=nb_train_steps,
+validation_data=valid_data_gen,
+validation_steps=nb_validation_steps,
+epochs=nb_epochs,
+callbacks=[es, chkpt]
+)
+
 我的问题：
 
 我应该如何在不删除任何数据的情况下处理这种情况？
-使用 .repeat() 会如何影响模型，尤其是在过度拟合方面？
+使用 .repeat() 会如何影响模型，尤其是过度拟合？
 有没有更好的方法来处理这个问题？
 
-我使用
+我使用：
 TensorFlow 版本：2.17.0
 Keras 版本：3.4.1
 ]]></description>
