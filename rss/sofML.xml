@@ -4,7 +4,22 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 20 Aug 2024 06:22:30 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 20 Aug 2024 09:17:38 GMT</lastBuildDate>
+    <item>
+      <title>为了简化在 Jupyter Notebook 中加载数据集的过程，您可以直接从本地设备上传文件</title>
+      <link>https://stackoverflow.com/questions/78891329/to-simplify-the-process-of-loading-a-dataset-in-jupyter-notebook-you-can-upload</link>
+      <description><![CDATA[从 google.colab 导入文件
+从 google.colab 导入 auth
+uploaded = files.upload()
+for fn in uploaded.keys():
+print(&#39;用户上传文件“{name}”，长度为 {length} 字节&#39;.format(
+name=fn, length=len(uploaded[fn])))
+
+
+让机器学习工程师和数据科学家的生活更轻松。]]></description>
+      <guid>https://stackoverflow.com/questions/78891329/to-simplify-the-process-of-loading-a-dataset-in-jupyter-notebook-you-can-upload</guid>
+      <pubDate>Tue, 20 Aug 2024 08:20:24 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用 sklearn python 获取预测</title>
       <link>https://stackoverflow.com/questions/78890391/how-use-sklearn-python-get-predicion</link>
@@ -113,91 +128,110 @@ lowest_temp: 0
       <pubDate>Mon, 19 Aug 2024 20:51:58 GMT</pubDate>
     </item>
     <item>
-      <title>使用 YOLOv10 和 RTSP 流的车牌识别系统中的高 RAM 和存储使用率 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78883152/high-ram-and-storage-usage-in-license-plate-recognition-system-with-yolov10-and</link>
-      <description><![CDATA[我正在开发一个车牌识别系统，使用来自安全摄像头的 RTSP 流来识别带有阿拉伯字母/数字的埃及车牌。我的设置包括：
+      <title>Kornia 中的 ImageRegistrator 翻译结果不正确</title>
+      <link>https://stackoverflow.com/questions/78887294/incorrect-translation-results-with-imageregistrator-in-kornia</link>
+      <description><![CDATA[当我尝试使用翻译注册两个帧时，我在 Kornia 中的 ImageRegistrator 中遇到了问题。该函数始终返回错误的翻译值，即使是对于基本的合成测试用例也是如此。下面是我用来测试翻译注册的代码。有人能指导我正确的方法吗？
 
-YOLOv10 模型 1：检测和跟踪汽车。
+复制步骤
+import numpy as np
+import torch
+import kornia as K
+import kornia.geometry as KG
+import cv2
+import matplotlib.pyplot as plt
+from typing import Tuple
 
-YOLOv10 模型 2：检测车内的车牌。
+def find_frame_translation_kornia(frame_1: np.ndarray, frame_2: np.ndarray) -&gt; Tuple[Tuple[float, float], np.ndarray, bool]:
+“使用 Kornia 的 ImageRegistrator 查找两个帧之间的转换。”“”
 
-YOLOv10 模型 3：对车牌上的字符和数字进行 OCR。
+frame_1 = K.image_to_tensor(frame_1, False).float() / 255.0 # 形状：(C, H, W)
+frame_2 = K.image_to_tensor(frame_2, False).float() / 255.0 # 形状：(C, H, W)
 
+if frame_1.ndim == 3:
+frame_1 = frame_1.unsqueeze(0) # 形状：(1, C, H, W)
+if frame_2.ndim == 3:
+frame_2 = frame_2.unsqueeze(0) # 形状：(1, C, H, W)
 
-我正在使用 Python 推理库，将模型导出为 .engine 格式以实现 GPU 加速。
+registrator = KG.ImageRegistrator(&quot;translation&quot;) # 对于&quot;similarity&quot;、&quot;homography&quot;等，结果相同。
+
+try:
+model = registrator.register(frame_1, frame_2)
+tx, ty = model[0, :2, 2].cpu().detach().numpy()
+
+shift = (tx, ty)
+M = np.array([[1, 0, tx], [0, 1, ty]], dtype=np.float32)
+
+success = True
+
+except Exception as e:
+print(f&quot;注册失败：{e}&quot;)
+shift, M, success = (0, 0), np.eye(3, dtype=np.float32)[:2, :], False
+
+return shift, M, success
+
+def create_translated_image(image: np.ndarray, tx: int, ty: int) -&gt; np.ndarray:
+rows, cols = image.shape
+M = np.float32([[1, 0, tx], [0, 1, ty]])
+classified_image = cv2.warpAffine(image, M, (cols, rows))
+return classified_image
+
+def test_find_frame_translation_kornia():
+image = np.zeros((100, 100), dtype=np.uint8)
+image[30:70, 30:70] = 255 # 中心的白色方块
+
+tx, ty = 5, -3
+classified_image = create_translated_image(image, tx, ty)
+
+plt.subplot(1, 2, 1)
+plt.imshow(image, cmap=&#39;gray&#39;)
+plt.title(&quot;Original Image&quot;)
+plt.subplot(1, 2, 2)
+plt.imshow(translated_image, cmap=&#39;gray&#39;)
+plt.title(&quot;翻译后的图像&quot;)
+plt.show()
+
+shift, M, success = find_frame_translation_kornia(image, classified_image)
+
+断言成功, &quot;注册失败&quot;
+np.testing.assert_almost_equal(shift, (tx, ty), decimal=1)
+expected_M = np.array([[1, 0, tx], [0, 1, ty]], dtype=np.float32)
+np.testing.assert_almost_equal(M, expected_M, decimal=1)
+
+if __name__ == &quot;__main__&quot;:
+test_find_frame_translation_kornia()
+
 问题：
+运行测试时，该函数返回明显错误的翻译值。具体来说，对于已知的翻译 (5, -3)，该函数返回 (-0.1, 0.1)。这是我收到的错误消息：
+AssertionError: 
+数组不几乎等于 1 个小数
 
-RAM 使用情况：系统每路摄像头信号消耗高达 8 GB 的 RAM。
+元素不匹配：2 / 2 (100%)
+最大绝对差异：5.09875337
+最大相对差异：1.02040539
+x：array([-0.1, 0.1], dtype=float32)
+y：array([ 5, -3])
 
-存储使用情况：需要 15-20 GB 的存储空间来管理软件包。
+预期行为
+该函数应正确识别原始图像和翻译后图像之间的翻译 (5, -3)。
+环境
 
-性能：尽管使用了 GPU，但系统仍然资源密集。
-
-
-我预计 GPU 加速会显著降低 RAM 和存储需求，但我没有看到预期的效率。类似产品 Plate Recognizer 的运行资源要少得多（0.5 GB RAM，无 GPU）（参考链接）。
-这是车牌识别器使用的软件包列表，也许有人可以帮助我了解它们的工作原理，高效：
-certifi==2024.6.2
-cffi==1.16.0
-charset-normalizer==3.3.2
-configobj==5.0.8
-cryptography==41.0.1
-idna==3.7
-Levenshtein==0.21.1
-ntplib==0.4.0
-numpy==1.24.4
-opencv-python-headless==4.7.0.72
-openvino==2023.3.0
-openvino -telemetry==2024.1.0
-persist-queue==0.8.1
-psutil==5.9.5
-pycparser==2.22
-python-dateutil==2.8.2
-python-Levenshtein==0.21.1
-rapidfuzz==3.9.3
-requests==2.32.3
-rollbar==0.16.3
-scipy==1.10.1
-six==1.16.0
-urllib3==2.2.1
-
-什么我尝试过：
-
-模型优化：导出到 .engine 进行 GPU 加速。
-
-流管理：使用 Python 推理库来处理 RTSP 流。
-
-
-问题：
-
-如何减少此设置中的 RAM 和存储使用量？
-
-是否有可能更有效的替代模型或方法？
-
-有任何提高性能的一般技巧吗？
+PyTorch 版本（例如 1.0）：2.4.0+cpu
+操作系统（例如 Linux）： Microsoft Windows 10 Pro
+您如何安装 PyTorch（conda、pip、source）：
+[pip3] torch-pitch-shift==1.2.4
+[pip3] torchaudio==2.3.0
+[pip3] torchmetrics==1.4.0.post0
+[conda] numpy 1.26.4 pypi_0 pypi
+[conda] torch 2.4.0 pypi_0 pypi
+您使用的构建命令（如果从源代码编译）：
+Python 版本：3.9.19
+CUDA/cuDNN 版本：False
+GPU 型号和配置：False
+任何其他相关信息：
 
 ]]></description>
-      <guid>https://stackoverflow.com/questions/78883152/high-ram-and-storage-usage-in-license-plate-recognition-system-with-yolov10-and</guid>
-      <pubDate>Sat, 17 Aug 2024 19:53:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>确保数据标记、数据注释的质量</title>
-      <link>https://stackoverflow.com/questions/78882012/ensure-quality-of-data-labeling-data-annotation</link>
-      <description><![CDATA[我有一个包含两百万数据图像、视频和文本的数据集。这些都未标记。我想雇佣来自世界各地的工人来标记它们。这是一个庞大的人数。我如何确保我的员工标记的数据的质量？我担心他们只是为了赚钱而大量浪费工作。
-P/S：我不能使用 Scale&#39;AI 等其他公司为我标记。
-对于简单的分类。我可以使用像 CAPCHA 这样的方法。它效果很好，但对于其他情况，如绘制边界框 = 或分割，我不知道如何检查标签数据的质量。]]></description>
-      <guid>https://stackoverflow.com/questions/78882012/ensure-quality-of-data-labeling-data-annotation</guid>
-      <pubDate>Sat, 17 Aug 2024 10:47:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>Azure ML Prompt 流程创建和克隆失败</title>
-      <link>https://stackoverflow.com/questions/78880051/azure-ml-prompt-flow-creation-and-cloning-failed</link>
-      <description><![CDATA[创建或克隆提示流都会导致以下错误 - “此请求无权执行此操作”。但是，我同时拥有此 AML 的“贡献者”和“数据科学家”角色。此外，由于创建按钮呈灰色，因此也无法创建运行时。我不确定这两个问题是否相关。
-有人遇到过同样的问题吗？
-AML 屏幕截图 1 (https://i.sstatic.net/zOehilI5.png)
-AML 屏幕截图 2 (https://i.sstatic.net/fzShpSh6.png)
-我找不到有关此问题的任何有用文档。我看过的所有教程也没有同样的问题。]]></description>
-      <guid>https://stackoverflow.com/questions/78880051/azure-ml-prompt-flow-creation-and-cloning-failed</guid>
-      <pubDate>Fri, 16 Aug 2024 16:28:42 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/78887294/incorrect-translation-results-with-imageregistrator-in-kornia</guid>
+      <pubDate>Mon, 19 Aug 2024 09:52:04 GMT</pubDate>
     </item>
     <item>
       <title>在这种情况下，torch.Tensor.backward() 函数如何工作？</title>
@@ -299,6 +333,20 @@ plt.show()
 我的数据是维度 (240, 146) 的 numpy 数组，CNN 将其作为输入。]]></description>
       <guid>https://stackoverflow.com/questions/78722413/keras-valueerror-the-layer-sequential-has-never-been-called-and-thus-has-no-def</guid>
       <pubDate>Mon, 08 Jul 2024 18:32:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 kaggle 中使用两个 gpu 进行 pytorch 训练？</title>
+      <link>https://stackoverflow.com/questions/77094149/how-to-use-both-gpus-in-kaggle-for-training-in-pytorch</link>
+      <description><![CDATA[我在 kaggle gpu 中训练模型。
+但我发现只有一个 GPU 在工作。
+
+我使用普通方法进行训练，例如
+device = torch.device(&#39;cuda&#39;) if torch.cuda.is_available() else torch.device(&#39;cpu&#39;)
+model = model.to(device)
+
+我如何使用这两个 gpu？]]></description>
+      <guid>https://stackoverflow.com/questions/77094149/how-to-use-both-gpus-in-kaggle-for-training-in-pytorch</guid>
+      <pubDate>Wed, 13 Sep 2023 04:56:24 GMT</pubDate>
     </item>
     <item>
       <title>在这种情况下预测正确吗？</title>
