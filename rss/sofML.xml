@@ -4,7 +4,89 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 21 Aug 2024 12:28:57 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 21 Aug 2024 15:15:40 GMT</lastBuildDate>
+    <item>
+      <title>尝试训练模型时，cv2 图像形状出现错误</title>
+      <link>https://stackoverflow.com/questions/78897608/cv2-error-in-image-shape-while-trying-to-train-model</link>
+      <description><![CDATA[我有 imgs、mask 和 labels 数据，我想使用 pytorch 和 dataloaders 创建分割模型
+我在尝试训练自定义模型时收到此错误，我认为问题来自自定义数据集类
+cv2.error: OpenCV(4.10.0) D:\a\opencv-python\opencv-python\opencv\modules\core\src\matrix_transform.cpp:784: error: (-215:Assertion failed) _src.dims() &lt;= 2 in function &#39;cv::flip&#39;
+
+我的模型开始训练后，我立即收到此错误
+这是我的自定义数据集代码：
+class DatasetSeg (Dataset):
+
+def __init__ (self, img_dir, mask_dir, label_dir, transform = None):
+
+self.img_dir = img_dir
+self.mask_dir = mask_dir
+self.label_dir = label_dir
+self.transform = transform
+self.images = [img for img in os.listdir(img_dir) if img.endswith(&#39;.png&#39;)] 
+self.indexes = self.getIndex()
+
+def getIndex(self):
+
+indexes = []
+for img in self.images:
+indexes.append(int(img[4:8])) #图像被命名为 rgb_XXXX.png
+return indexes
+
+def __len__(self):
+return len(self.images)
+
+def __getitem__(self, idx):
+
+index = self.indexes[idx]
+
+# 打印尺寸和类型以供调试
+
+img_filename = f&#39;rgb_{index:04d}.png&#39;
+mask_filename = f&#39;semantic_segmentation_{index:04d}.png&#39;
+labels_filename = f&#39;semantic_segmentation_labels_{index:04d}.json&#39;
+
+img_path = os.path.join(self.img_dir, img_filename)
+mask_path = os.path.join(self.mask_dir, mask_filename)
+label_path = os.path.join(self.label_dir, labels_filename)
+
+使用 open(label_path, &#39;r&#39;) 作为文件：
+labels = json.load(file)
+
+image = Image.open(img_path).convert(&quot;RGB&quot;)
+image = np.array(image)
+
+mask = Image.open(mask_path).convert(&quot;RGBA&quot;)
+mask = np.array(mask)
+
+class_id_mask = np.zeros((mask.shape[0], mask.shape[1]), dtype=np.uint8)
+
+color_to_class_id = {}
+
+for class_id, color_str in enumerate(labels.keys()):
+color = tuple(map(int, color_str.strip(&#39;()&#39;).split(&#39;,&#39;)))
+color_to_class_id[color] = class_id
+
+for color, class_id in color_to_class_id.items():
+
+# color_array = np.array(color, dtype=mask.dtype) 
+match = np.all(mask == color, axis=-1) #将像素与当前 RGBA 颜色匹配
+# print(match)
+class_id_mask[match] = class_id #将类 ID 分配给匹配的像素
+
+image = np.transpose(image, (2,0,1))
+
+if self.transform:
+perceived = self.transform(image=image, mask=class_id_mask)
+image = perceived[&#39;image&#39;]
+mask = perceived[&#39;mask&#39;]
+
+print(image.shape, class_id_mask.shape)
+return image, class_id_mask
+
+我尝试添加调试打印以查看图像的尺寸，这是 getitem 中打印的输出：(3, 720, 1280) (720, 1280)。]]></description>
+      <guid>https://stackoverflow.com/questions/78897608/cv2-error-in-image-shape-while-trying-to-train-model</guid>
+      <pubDate>Wed, 21 Aug 2024 14:44:54 GMT</pubDate>
+    </item>
     <item>
       <title>根据 scikit-learn ColumnTransformer 访问用于归纳和规范化新数据的值</title>
       <link>https://stackoverflow.com/questions/78896943/accessing-the-values-used-to-impute-and-normalize-new-data-basded-upon-scikit-le</link>
@@ -302,19 +384,6 @@ https://ibb.co/crDMrtW
       <pubDate>Wed, 21 Aug 2024 06:09:06 GMT</pubDate>
     </item>
     <item>
-      <title>ModuleNotFoundError：没有名为“ChannelAug”的模块</title>
-      <link>https://stackoverflow.com/questions/78895108/modulenotfounderror-no-module-named-channelaug</link>
-      <description><![CDATA[当我使用
-sh run_train_regdb.sh
-
-控制台说：ModuleNotFoundError：没有名为“ChannelAug”的模块
-但 conda 和 pip 无法安装此模块
-我不知道如何修复这个问题，我应该安装哪个模块？
-我不知道如何修复这个问题，我应该安装哪个模块？]]></description>
-      <guid>https://stackoverflow.com/questions/78895108/modulenotfounderror-no-module-named-channelaug</guid>
-      <pubDate>Wed, 21 Aug 2024 04:08:30 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在一个 cv2 相机屏幕中运行两个计算机视觉模型</title>
       <link>https://stackoverflow.com/questions/78894715/how-to-run-two-computer-vision-models-in-one-cv2-camera-screen</link>
       <description><![CDATA[]]></description>
@@ -330,144 +399,117 @@ sh run_train_regdb.sh
       <pubDate>Tue, 20 Aug 2024 15:46:11 GMT</pubDate>
     </item>
     <item>
-      <title>适合发票提取的 ml 模型[关闭]</title>
-      <link>https://stackoverflow.com/questions/78892147/suitable-ml-model-for-invoice-extraction</link>
-      <description><![CDATA[我必须构建一个 ml 模型，用于从不同布局的 pdf 文件中提取发票详细信息，例如客户姓名、发票日期、发票号码等。发票 pdf 文件具有不同的格式，例如，在一个 pdf 文件中，发票日期位于右上角，而在另一个 pdf 文件中，则位于左上角。我有大约 252 个样本。我正在使用 202 个样本进行训练，其中 28 个样本用于验证。我目前正在使用每个标签/类的边界框坐标训练张量流更快的 RCNN resnet101 对象检测模型（例如：发票日期，数字是标签），其中 num_train_steps = 2000，批量大小 = 4 和 num_eval_steps = 250。当我在测试图像上测试训练后的模型时，其中一些能够提取发票详细信息，但其中一些给出错误的输出，甚至有时它们为相同的发票详细信息提供多个输出（例如，它们为一个发票日期预测两个值）。我应该如何调整参数（批量大小、num_train_steps、num_eval_steps）？我应该在下载的 ml 模型的配置文件上更改任何内容吗？为了更好地理解，请参阅faster rcnn 的配置文件]]></description>
-      <guid>https://stackoverflow.com/questions/78892147/suitable-ml-model-for-invoice-extraction</guid>
-      <pubDate>Tue, 20 Aug 2024 11:18:03 GMT</pubDate>
+      <title>Val_accuracy 正在改变，有时它在补码之间交替（100％-val_acc）</title>
+      <link>https://stackoverflow.com/questions/78885395/val-accuracy-inst-changing-and-sometimes-it-alternates-between-it-complement-10</link>
+      <description><![CDATA[我被分配根据我读过的一篇论文来实现一个机器学习模型。
+这篇论文实现了一个用于属性分类的多任务学习模型（带标签的图像是模型输入，带标签的意思是属性注释，每幅图像有 40 个）。
+它是一个多任务学习模型，因为在模型输入层和 40 个属性分支之后有一个共享的密集层，每个分支都有自己的损失函数（所有分支的二元交叉熵）和自己的 S 型激活函数（在最后一层，用于预测 40 个属性中的每一个是否存在于图像中）。
+经过大量艰苦的努力，它终于开始在所有分支上返回所有 S 型函数的概率，但只有 val_accuracy 的概率是错误的：val_loss 和损失（训练损失）越来越小，acc（训练准确度）也在正常的概率值范围内，除了 val_accuracy 总是相同的值或它的补码。
+例如（仅举 5 个时期为例）：
+40 个分支之一的一个属性预测的准确度：
+5_o_Clock_Shadow_Accuracy
+0 0.823665
+1 0.891178
+2 0.891178
+3 0.891178
+
+同一属性的损失：
+ 5_o_Clock_Shadow_loss
+0 0.921046
+1 0.701494
+2 0.913597
+3 0.765397
+4 0.894950
+
+val_loss：
+val_5_o_Clock_Shadow_loss
+0 730232.750000
+1 300412.500000
+2 376215.843750
+3 0.747685
+4 1.607191
+
+最后是 val_Accuracy：
+val_5_o_Clock_Shadow_Accuracy
+0 0.882382
+1 0.117618
+2 0.882382
+3   0.882382 4 0.882382  我的模型： def subnet(shared_layers_output, i): att_branch = Dense(512, name=&#39;dense_&#39;+str(i)+&#39;_1&#39;)(shared_layers_output) att_branch = ReLU()(att_branch) att_branch = BatchNormal ization()(att_branch) att_branch = Dropout(0.5)(att_branch) att_branch = Dense(512, name=&#39;dense_&#39;+str(i)+&#39;_2&#39;)(att_branch) att_branch = ReLU()(att_branch) att_branch = BatchNormalization()(att_branch) att_branch = Dropout(0.5)(att_branch)
+
+branch_output = Dense(1, name=att_list[i],activation=&#39;sigmoid&#39;)(att_branch)
+
+return branch_output
+
+def multi_task_model():
+
+#输入
+input_layer = Input(shape=(512,), name=&#39;input_layer&#39;)
+
+#共享网络（1 个网络）
+shared_x = Dense(512, name=&#39;shared_dense_layer&#39;)(input_layer)
+shared_x = ReLU()(shared_x)
+shared_x = BatchNormalization()(shared_x)
+shared_x = Dropout(0.5)(shared_x)
+
+branch_outputs = list()
+for i in range(40):
+branch_outputs.append(subnet(shared_x, i))
+
+model = Model(input_layer, branch_outputs, name=&#39;model&#39;)
+
+返回模型
+
+
+训练和测试输入形状：(n_samples, 512)
+训练和测试标签输入形状：(40, n_samples)
+学习率：1e-03
+
+5_o_Clock_Shadow 损失、val_loss、acc 和 val_acc 超过 5 个时期
+ 损失 val_loss acc val_acc
+0 0.422385 1.949578 0.864272 0.8873
+1 0.354094 151.987991 0.888797 0.1127
+2 0.354356 58.867992 0.888797 0.1127
+3 0.352891 94.257980 0.888797 0.1127
+4 0.353390 10.997763 0.888797 0.1127
+]]></description>
+      <guid>https://stackoverflow.com/questions/78885395/val-accuracy-inst-changing-and-sometimes-it-alternates-between-it-complement-10</guid>
+      <pubDate>Sun, 18 Aug 2024 18:38:14 GMT</pubDate>
     </item>
     <item>
-      <title>t() 期望张量具有 <= 2 维，但自身是 3D</title>
-      <link>https://stackoverflow.com/questions/75274241/t-expects-a-tensor-with-2-dimensions-but-self-is-3d</link>
-      <description><![CDATA[我是 PyTorch 的新手，写了如下简单代码来对一些输入进行分类。模型输入有 8*2，批量大小为 2，模型中的输入层有 2 个节点。我不知道哪里出了问题！
-X1=np.array([[2,1],[3,2],[-4,-1],[-1,-3],[2,-1],[3,-3],[-2,1],[-4,-2]])
-Y1=np.array([0,0,0,0,1,1,1,1])
-X=torch.tensor(X1)
-Y=torch.tensor(Y1)
+      <title>TypeError: max() 收到无效的参数组合 - 得到（str，int），但预期以下之一：</title>
+      <link>https://stackoverflow.com/questions/68582886/typeerror-max-received-an-invalid-combination-of-arguments-got-str-int</link>
+      <description><![CDATA[我使用 FCN ResNet50 模型对文档图像进行语义分割。我一直在尝试解决这个问题，但到目前为止还没有成功。这是 google colab 上该模型的链接：https://colab.research.google.com/drive/1slJilG1ZBOsk6AqM6AOUaaCxHFSXVMCM?usp=sharing
+这是错误：
+TypeError：Traceback（最近一次调用最后一次）
+&lt;ipython-input-12-f6d0f244c03c&gt;在 &lt;module&gt;() 中
+13 
+14 model_ft = train_model(final_model, train_dl, criterion, optimizer_ft, exp_lr_scheduler,
+---&gt; 15 num_epochs=25)
 
-BATCH_SIZE=2
-trainset= torch.utils.data.TensorDataset(X, Y)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE,
-shuffle=True, num_workers=1) 
-from torch.nn.modules import flatten
+&lt;ipython-input-11-683ce68860de&gt; 在 train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs) 中
+31 使用 torch.set_grad_enabled(phase == &#39;train&#39;):
+32 输出，aux = model(inputs.float())
+---&gt; 33 _, preds = torch.max(outputs, 1)
+34 loss = criterion(outputs, labels)
+35 
 
-learning_rate = 0.01
-num_epochs = 20
-
-device = torch.device(&quot;cuda:0&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
-model = MyModel()
-model = model.to(device)
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-## 计算准确率
-def get_accuracy(logit, target, batch_size):
-&#39;&#39;&#39; 获取训练轮的准确率 &#39;&#39;&#39;
-corrects = (torch.max(logit, 1)[1].view(target.size()).data == target.data).sum()
-accuracy = 100.0 * corrects/batch_size
-return accuracy.item()
-
-model = MyModel()
-
-# 注释掉 IPython magic 以确保 Python 兼容性。
-
-对于范围（num_epochs）内的 epoch：
-train_running_loss = 0.0
-train_acc = 0.0
-
-## 训练步骤
-对于 trainloader 中的输入、标签：
-
-#inputs=torch.flatten(inputs)
-输入、标签=inputs.to(device), 标签.to(device)
-#inputs = 输入.to(device)
-#labels = 标签.to(device)
-
-optimizer.zero_grad()
-
-## 前向 + 反向传播 + 损失
-
-print(inputs)
-
-输出 = model.forward(inputs)
-损失 = criterion(outputs, labels)
-
-loss.backward()
-
-## 更新模型参数
-optimizer.step()
-
-train_running_loss += loss.detach().item()
-train_acc += get_accuracy(outputs, labels, BATCH_SIZE)
-
-#model.train()
-model.eval()
-print(&#39;Epoch： %d | 损失： %.4f | 训练准确率： %.2f&#39;%(epoch, train_running_loss / i, train_acc/i))
-
-我的模型如下：
-class MyModel(nn.Module):
-def __init__(self):
-super(MyModel, self).__init__()
-self.d1 = nn.Linear(2,3)
-self.d2 = nn.Linear(3,1)
-self.init_weights()
-
-def init_weights(self):
-k1=torch.tensor([0.1,-0.72,0.94,-0.29,0.12,0.44])
-k1=torch.unsqueeze(torch.unsqueeze(k1,0),0)
-self.d1.weight.data=k1
-k2=torch.tensor([1,-1.16,-0.26])
-k2=torch.unsqueeze(torch.unsqueeze(k2,0),0)
-self.d2.weight.data=k2
-
-def forward(self, x):
-x = self.d1(x)
-x = F.tanh(x)
-x = self.d2(x)
-out = F.sigmoid(x)
-return out
-
-然后我收到一个错误：
--------------------------------------------------------------------------------
-RuntimeError Traceback (most recent call last)
-&lt;ipython-input-27-196d819d3ccd&gt; in &lt;module&gt;
-101 print(inputs)
-102 
---&gt; 103 输出 = model.forward(输入)
-104 损失 = 标准(输出，标签)
-105 
-
-2 帧
-/usr/local/lib/python3.8/dist-packages/torch/nn/modules/linear.py in forward(self, input)
-112 
-113 def forward(self, input: Tensor) -&gt; Tensor:
---&gt; 114 return F.linear(input, self.weight, self.bias)
-115 
-116 def extra_repr(self) -&gt; str:
-
-RuntimeError: t() 期望张量具有 &lt;= 2 维，但 self 是 3D
-
-我展平了输入，但没有任何变化。我应该怎么做才能修复它？]]></description>
-      <guid>https://stackoverflow.com/questions/75274241/t-expects-a-tensor-with-2-dimensions-but-self-is-3d</guid>
-      <pubDate>Sun, 29 Jan 2023 10:38:06 GMT</pubDate>
+TypeError: max() 收到无效的参数组合 - 得到 (str, int)，但预期为以下之一：
+* (Tensor input)
+* (Tensor input, Tensor other, *, Tensor out)
+* (Tensor input, int dim, bool keepdim, *, tuple of Tensors out)
+* (Tensor input, name dim, bool keepdim, *, tuple of Tensors out)
+]]></description>
+      <guid>https://stackoverflow.com/questions/68582886/typeerror-max-received-an-invalid-combination-of-arguments-got-str-int</guid>
+      <pubDate>Thu, 29 Jul 2021 21:18:47 GMT</pubDate>
     </item>
     <item>
-      <title>在新类中，我收到一个 AttributeError: 无法在 <module '__main__'> 上获取属性 'ResNet1D'</title>
-      <link>https://stackoverflow.com/questions/69030379/torch-loadml-model-in-new-class-i-receive-an-attributeerror-cant-get-attribu</link>
-      <description><![CDATA[我已使用 Google Colab 在名为 model_prep.py 的文件中成功训练了卷积神经网络模型。该模型的准确率为 92%。现在我对该模型很满意，我已使用 pyTorch 保存了我的模型。
-torch.save(model, &#39;/content/drive/MyDrive/myModel.pt&#39;)
-
-我对此的理解是，一旦模型经过完全训练，我就可以使用 pyTorch 保存训练后的模型，然后将其加载到未来的项目中以对新数据进行预测。因此，我创建了一个单独的 test.py 文件，并在其中加载了经过训练的模型，如下所示：
-model = torch.load(&#39;/content/drive/MyDrive/myModel.pt&#39;)
-model.eval()
-
-但在新的 test.py 文件中，我收到一条错误消息
-AttributeError: 无法在 &lt;module &#39;__main__&#39;&gt; 上获取属性 &#39;ResNet1D&#39;
-
-虽然在与创建经过训练的模型相同的笔记本 (model_prep.py) 中加载模型时不会发生此错误。此错误仅在将模型加载到没有模型架构的单独笔记本中时发生。我该如何解决这个问题？我想将经过训练的模型加载到一个新的单独文件中以对新数据执行。有人能提出解决方案吗？
-将来，我想使用 tkinter 创建一个 GUI，并部署经过训练的模型，使用 tkinter 文件中的新数据检查预测。这可能吗？]]></description>
-      <guid>https://stackoverflow.com/questions/69030379/torch-loadml-model-in-new-class-i-receive-an-attributeerror-cant-get-attribu</guid>
-      <pubDate>Thu, 02 Sep 2021 12:33:05 GMT</pubDate>
+      <title>进行预测时如何处理未包含在训练集中的标签[关闭]</title>
+      <link>https://stackoverflow.com/questions/58627102/how-to-deal-with-label-that-not-included-in-training-set-when-doing-prediction</link>
+      <description><![CDATA[例如，使用监督学习对 5 个不同的人脸进行分类。
+但是当对训练集中没有出现的第 6 个人脸进行测试时，模型仍然会将其预测在 5 个人之内。
+当模型之前没有训练过第 6 个人及以后的人脸时，如何让模型将其预测为未知？]]></description>
+      <guid>https://stackoverflow.com/questions/58627102/how-to-deal-with-label-that-not-included-in-training-set-when-doing-prediction</guid>
+      <pubDate>Wed, 30 Oct 2019 14:01:46 GMT</pubDate>
     </item>
     <item>
       <title>PyTorch 中的 `view()` 起什么作用？</title>
