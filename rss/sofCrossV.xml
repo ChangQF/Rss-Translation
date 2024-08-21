@@ -4,7 +4,88 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 21 Aug 2024 03:17:43 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 21 Aug 2024 06:21:49 GMT</lastBuildDate>
+    <item>
+      <title>贝叶斯模型在数据截止处缺失异常值</title>
+      <link>https://stats.stackexchange.com/questions/653099/bayesian-model-missing-outliers-at-cutoff-in-data</link>
+      <description><![CDATA[我无法让模型拟合。在加热实验中，我得到了珊瑚中叶绿素的 ED50 值。我有 4 个珊瑚礁遗址和 4 种珊瑚，每个遗址物种组约有 14 种珊瑚。数据向右倾斜，因为几个异常值的值为 45 的临界点，因为它们的叶绿素水平没有下降太多。以下是数据的箱线图
+
+这是我通常使用的模型公式
+ NDVIsandbox.form &lt;- bf(ED50 | trunc(lb = 0, ub = 60) ~ Site*Species,
+sigma = ~ Site*Species,
+family = student(link = &quot;identity&quot;))
+
+我也尝试过使用 skew_normal 家庭分布，但看起来不太合适
+以下是我用作弱先验的先验。我已经修改了其中的许多内容，试图让它更好地适应，但这并没有真正起到帮助作用
+priors &lt;-prior(normal(38.5, 3), class = &#39;Intercept&#39;) +
+prior(student_t(3, 0, 0.5), class = &#39;Intercept&#39;, dpar = &#39;sigma&#39;) +
+prior(normal(0.2, 2), class = &#39;b&#39;) +
+prior(gamma(4, 1), class = &#39;nu&#39;) +
+prior(normal(0, 0.5), class = &#39;b&#39;, dpar = &#39;sigma&#39;)
+
+然后我运行模型
+NDVIsandbox.brm1 &lt;-brm(NDVIsandbox.form,
+data = Geno_ED50s %&gt;%filter(Type == &quot;NDVI&quot;) %&gt;% droplevels(),
+prior = priority,
+sample_prior = &#39;yes&#39;,
+iter = 5000,
+warmup = 1000,
+chains = 3,
+cores = 3,
+thin = 5,
+backend = &#39;cmdstanr&#39;,
+control=list(adapt_delta=0.99),
+refresh = 100)
+
+我进行了常规跟踪图检查和其他指标，它们看起来都很好，但是当我使用 dens_overlays 进行 pp_check 时，它不太合适，并且它错过了 45 处的大部分值，这是 ED50 值的截止值，如下图所示
+ NDVIsandbox.brm1 |&gt; pp_check(type = &#39;dens_overlay&#39;, ndraws = 100)
+
+
+我还运行了一个函数，该函数为我提供了 brm 模型上的 Dharma 图，它显示它高估了较小和较大的值，您也可以在上面的 dens_overlay 图上看到
+
+我想知道我是否可以做些什么来让它识别 45 处增加的点数，这是因为它是 ED50 模型的截止点。没有可以运行的膨胀型模型，例如 0 和 1 之间的模型分布。我让模型在 glmm 上运行（见下文），但我想尝试让贝叶斯模型工作，因为我在论文中还有其他贝叶斯模型
+modNDVI &lt;- glmmTMB(ED50 ~ Site * Species,
+data = Geno_ED50s %&gt;% filter(Type ==&quot;NDVI&quot;) %&gt;% 
+droplevels(),
+dispformula = ~ Site * Species, 
+family = t_family(link = &quot;identity&quot;),
+REML=TRUE)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/653099/bayesian-model-missing-outliers-at-cutoff-in-data</guid>
+      <pubDate>Wed, 21 Aug 2024 05:51:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>当风险差异如此容易解释时，为什么 Cohen's h 对于比较比例有用？</title>
+      <link>https://stats.stackexchange.com/questions/653098/why-is-cohens-h-useful-to-compare-proportions-when-risk-difference-is-so-interp</link>
+      <description><![CDATA[当风险差异如此易于解释时，为什么 Cohen&#39;s h 可用于比较比例？
+我认为这与标准化不同比例量级的比较有关（例如，当 $p_{1}$ 和 $p_{2}$ 分别接近 0、接近 0.5 和接近 1 时，$p_{1}-p_{2}$）。
+但我很难在脑海中将其形式化。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653098/why-is-cohens-h-useful-to-compare-proportions-when-risk-difference-is-so-interp</guid>
+      <pubDate>Wed, 21 Aug 2024 05:46:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用（错误的）正态分布获取 95％CI 图 - R 或 Minitab</title>
+      <link>https://stats.stackexchange.com/questions/653095/getting-95-ci-graph-using-wrong-normal-distribution-either-r-or-minitab</link>
+      <description><![CDATA[我试图在课堂上演示以下内容。
+我有 N=50 个总体数据点，其数字如下：5.1、3.2、...、2.8。真实总体平均值为 $\mu=3.3$，这在现实中是未知的。
+我通过 SRSWOR（无放回）对 n=5 进行抽样，以获得样本估计值 $\bar{x}=\frac{x_1+...+x_5}{5} = 2.1$。假设样本标准差为：
+$$ \sqrt\frac{1}{4}\times\sqrt{(x_1 - 2.1)^2 + ...+(x_5 - 2.1)^2} \approx 1.3$$
+现在，我从样本中获取样本均值的标准误差的估计值，如下所示：
+$$\widehat{SE}(\bar{X})=\sqrt\frac{45}{49}\times\sqrt\frac{1}{5}\times1.3\approx 0.56$$
+现在，我想演示一下取 $2.1 \pm 1.96 \times 的过程0.56 美元（当然，对于不同的样本）不会是 95% CI，因为 1.96 是正态分布的值，而不是自由度为 4 的 t 分布，其值在 2.7764 时更高。
+我当然可以通过 Excel 模拟来做到这一点，但它很麻烦。是否有可能在 R 或 Minitab 中执行此“错误”计算，在其中我可以获得一个漂亮的图表，该图表模拟 100 个这样的间隔，并表明如果我使用 1.96 而不是 2.7764，大约少于 95 个这样的 CI 将包含 3.3 的真实总体值？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653095/getting-95-ci-graph-using-wrong-normal-distribution-either-r-or-minitab</guid>
+      <pubDate>Wed, 21 Aug 2024 04:41:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>预测变量与响应变量的观测值不匹配</title>
+      <link>https://stats.stackexchange.com/questions/653101/mismatch-in-observations-for-predictor-vs-response-variables</link>
+      <description><![CDATA[我有一个数据集，其中只有几个预测变量（2-3 个），但有数百万个观测值。这些数据代表了幼鱼在进入渔场之前几年穿越海洋的日常身体状况。响应变量是招募，大约是每年加入成年鱼群的个体数量的 30 个值。所以，我遇到的问题是，我有一个很棒的数据集，其中包含大约 2-3 个预测变量和大量观测值（数百万），我需要使用它们来建模一个只有很少观测值（约 30 个）的响应变量。
+我已经按年份进行了总结，并使用混合模型和 GAM 对招募进行了建模，但这样做会丢失很多信息。从数百万个数据点减少到 30 个...我知道我必须先以某种方式总结数据，因为它太大了，但仍然感觉不好。
+有没有办法，我可以使用预测变量的大量观测值来模拟响应变量的少量观测值？时间序列分析，或者引导法？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653101/mismatch-in-observations-for-predictor-vs-response-variables</guid>
+      <pubDate>Wed, 21 Aug 2024 01:59:20 GMT</pubDate>
+    </item>
     <item>
       <title>Little 的 MCAR 中包含太多连续变量会导致 1 类错误吗？</title>
       <link>https://stats.stackexchange.com/questions/653093/can-including-too-many-continuous-variables-in-littles-mcar-result-in-type-1-er</link>
@@ -79,6 +160,16 @@ Z1 是 X1 的工具。
       <pubDate>Tue, 20 Aug 2024 20:58:22 GMT</pubDate>
     </item>
     <item>
+      <title>如何在 R 中对两个样本进行加权中值检验？</title>
+      <link>https://stats.stackexchange.com/questions/653096/how-to-do-a-weighted-median-test-for-two-samples-in-r</link>
+      <description><![CDATA[我有两个样本（第 1 组和第 2 组），每个样本包含 1) 一个收入变量和 2) 一个权重变量，表示每个观察值的权重。
+我只是想测试两个样本（第 1 组和第 2 组）的收入中位数在统计上是否有差异。
+我知道如果不考虑权重，我可以使用 Mood 的中位数检验，但是有没有办法在考虑每个观察值的权重的同时进行中位数检验？
+提前感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/653096/how-to-do-a-weighted-median-test-for-two-samples-in-r</guid>
+      <pubDate>Tue, 20 Aug 2024 20:50:53 GMT</pubDate>
+    </item>
+    <item>
       <title>BCa bootstrap CI 调整 A-B 组中位数差异的偏差，但不调整相反方向的偏差</title>
       <link>https://stats.stackexchange.com/questions/653083/bca-bootstrap-ci-adjusts-for-bias-in-median-difference-of-groups-a-b-but-not-th</link>
       <description><![CDATA[我正在使用 R 中的 boot-package 来计算两组 A 和 B 等待时间中位数差异的 BCa bootstrap 间隔，四舍五入为天数。原始样本的中位数差异为 $t0$，中位数的 bootstrap 复制为 $t$。
@@ -93,13 +184,6 @@ $$ z_0 = \Phi^{-1}(\Sigma(t&lt;t0)/B) $$
 如果我误解了什么，或者如果您知道将来不涉及在两个方向上运行我的所有中位数差异的解决方案，我很乐意听到任何评论。]]></description>
       <guid>https://stats.stackexchange.com/questions/653083/bca-bootstrap-ci-adjusts-for-bias-in-median-difference-of-groups-a-b-but-not-th</guid>
       <pubDate>Tue, 20 Aug 2024 20:46:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该如何修正逻辑回归中的分类表？</title>
-      <link>https://stats.stackexchange.com/questions/653082/how-should-i-correct-my-classification-table-in-logistic-regression</link>
-      <description><![CDATA[模型系数的综合检验表明该模型是显著的。但是，区块 1 下的分类表显示的观测值与预测值的比率与区块 0 相同。这是否意味着我的独立变量对模型没有贡献？我的 nagelkarke、cox 和 snell 也很小，但方程中的变量显示出显著的结果。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653082/how-should-i-correct-my-classification-table-in-logistic-regression</guid>
-      <pubDate>Tue, 20 Aug 2024 20:42:10 GMT</pubDate>
     </item>
     <item>
       <title>准确计算截断二项式期望</title>
@@ -130,136 +214,21 @@ $$\sum_{s=0}^k \binom{N}{s} p^s q^{N-s} = q^N\left((1 + p/q)^N - (p/q)^{k+1} \bi
       <pubDate>Tue, 20 Aug 2024 19:48:54 GMT</pubDate>
     </item>
     <item>
-      <title>在双重稳健学习器中，结果模型和倾向模型的协变量是否需要相同？</title>
-      <link>https://stats.stackexchange.com/questions/653076/in-a-doubly-robust-learner-do-the-covariates-need-to-be-the-same-for-the-outcom</link>
-      <description><![CDATA[这可能是一个愚蠢的问题，但我还没有找到明确的答案。在双重稳健学习器/估计器中，在创建结果模型和倾向模型时，我们是否需要使用相同的特征集 X？或者我们可以将 X 的子集用于倾向模型，甚至将完全不同的特征一起使用吗？
-从我读到的内容来看，它们似乎使用相同的协变量，但这是硬性规定吗？如果我使用单独的特征对它们进行建模，会违反任何规定吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653076/in-a-doubly-robust-learner-do-the-covariates-need-to-be-the-same-for-the-outcom</guid>
-      <pubDate>Tue, 20 Aug 2024 19:08:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>常数与独立变量共享一个系数的回归</title>
-      <link>https://stats.stackexchange.com/questions/653070/regression-with-a-constant-sharing-a-coefficient-with-an-independent-variable</link>
-      <description><![CDATA[我有一个方程式，想估算一下，但不确定如果有的话会有什么影响。
-Y = b0 + b1 * p + b1 * X + e
+      <title>ED50 计算困难</title>
+      <link>https://stats.stackexchange.com/questions/653100/difficulty-calculating-ed50</link>
+      <description><![CDATA[我正在运行剂量探索研究分析，我们采用有偏差的上下硬币法来计算 ED50 和 ED90。由于某种原因，我无法计算 ED50，因为它显示为 NA。但我得到了 ED90 和 ED95 的值。有什么建议吗？
+我正在复制下面的代码
+library(cir)
+doseSequence&lt;- c(16.5, 16.5, 16.5, 16.5, 16.5, 18, 18, 18, 18, 18, 18, 18, 18, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 21, 21, 21, 21, 21, 21, 21, 22.5, 22.5, 22.5, 22.5, 24, 24, 24, 25.5, 25.5, 25.5, 25.5)
+responseSequence&lt;- c(1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1)
+ed50&lt;- quickInverse(responseSequence, x=doseSequence, target = 0.5)
+ed50
 
-其中，
-Y 是因变量
-b0 是截距
-X 是自变量
-b1 是 X 的系数
-e 是误差
-p 是常数值或 0，70% 的 obs 的 p = 0，其余 30% 的 obs 都有一个它们都共享的常数值。
-
-编辑：我无法将 p 与 X 合并。这是数据性质的一部分。尽管将 p 添加到 X 简化了估计，但模型无法进行解释。
-我需要 p，而不是拥有自己的系数，因为它必须与 X 共享系数 b1。
-我希望，因为变量 p 是常数或 0，所以它不会对 X 的系数 b1 产生任何影响。
-我是否正确地假设 p 不会产生影响，因为它是常数或 0？我可以将 b1*p 简化为某种不带有自身系数的指示变量吗？
-不确定如何解决这个问题]]></description>
-      <guid>https://stats.stackexchange.com/questions/653070/regression-with-a-constant-sharing-a-coefficient-with-an-independent-variable</guid>
-      <pubDate>Tue, 20 Aug 2024 18:18:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>在建立模型时选择随机观察作为参考的最佳做法是什么？</title>
-      <link>https://stats.stackexchange.com/questions/653060/what-are-the-best-practices-for-selecting-a-random-observation-as-a-reference-wh</link>
-      <description><![CDATA[我正在开展一个项目，需要构建一个模型来预测给定的 Spark 配置是否优于其他配置。我对“更好”的标准是基于每秒核心电压指标。
-为了实现这一点，我有一个数据集，其中包含各种 Spark 配置及其各自的每秒核心电压值。我最初的方法是使用随机选择的行作为参考，然后创建一个新列，指示每个配置是否比随机选择的参考配置更好 (1) 或更差 (0)。
-但是，我意识到由于参考配置是随机选择的，因此模型的性能可能高度依赖于此选择。例如，在极端情况下，如果参考配置是数据集中最好的，则所有其他配置都将获得 0，并且模型不会学到太多东西。
-我的问题是：处理这种情况的最佳方法是什么？
-我考虑过以下方法：
-1/ 构建多个模型，每个模型都有不同的参考配置，并根据投票系统做出决策。
-2/ 使用每秒平均或中位数 Vcor​​e 作为参考，因此性能优于平均值（或中位数）的配置获得 1，而性能较差的配置获得 0。
-我愿意接受建议，并感谢任何讨论类似问题的理论方面或实际解决方案的参考资料或论文。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653060/what-are-the-best-practices-for-selecting-a-random-observation-as-a-reference-wh</guid>
-      <pubDate>Tue, 20 Aug 2024 15:27:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用弹性网络进行特征选择[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/653042/feature-selection-with-elastic-net</link>
-      <description><![CDATA[我是机器学习中特征选择的新手。我读到弹性网络相对优于 Lasso 和 Ridge 回归，并且还考虑了多重共线性，所以我选择了这种方法进行特征选择。
-我编写了一个代码，该代码将在嵌套交叉验证设置（5 个内折和 20 个外折）之后从最佳弹性网络模型（即具有 alpha 和 lambda 组合的弹性网络，可检索最佳 AUC）中选择最佳特征，并使用这些特征进行进一步的模型训练。
-尽管如此，我不太确定我是否做对了，特别是在嵌套交叉验证方面。此外，当我尝试检索 alpha 和 lambda 以报告其可重复性时，我无法在结果中找到它。
-以下是代码：
-set.seed(1)
-train_elastic_net &lt;- function(X_train, y_train, alphas, lambdas) {
-best_auc &lt;- 0
-best_model &lt;- NULL
-best_features &lt;- NULL
-
-for (alpha_value in alphas) {
-# 设置用于交叉验证的训练控制
-train_control &lt;- trainControl(method = &quot;cv&quot;, 
-number = 5, 
-classProbs = TRUE, 
-summaryFunction = twoClassSummary)
-
-# 定义调整网格
-tune_grid &lt;- expand.grid(alpha = alpha_value, lambda = lambdas)
-
-# 使用 caret 训练模型
-model &lt;- train(X_train, y_train,
-method = &quot;glmnet&quot;,
-trControl = train_control,
-tuneGrid = tune_grid,
-metric = &quot;ROC&quot;,
-family = &quot;binomial&quot;)
-
-# 获取最佳模型
-best_lambda &lt;- model$bestTune$lambda
-elastic_net_model &lt;- glmnet(as.matrix(X_train), y_train, 
-alpha = alpha_value, lambda = best_lambda, 
-family = &quot;binomial&quot;)
-
-# 获取最佳模型的 AUC
-auc &lt;- max(model$results$ROC)
-
-# 更新最佳模型如果当前的更好
-如果 (auc &gt; best_auc) {
-best_auc &lt;- auc
-best_model &lt;- elastic_net_model
-coef_elastic_net &lt;- coef(best_model, s = best_lambda)
-selected_features &lt;- which(coef_elastic_net != 0) - 1 
-# 获取非零系数的索引
-selected_features &lt;- selected_features[selected_features != 0] 
-# 删除截距索引
-best_features &lt;- selected_features
-}
-}
-
-list(model = best_model, features = best_features)
-}
-
-y_train_factor &lt;- as.factor(y_train_total)
-X_train_matrix &lt;- as.matrix(X_train_total)
-
-# 定义要搜索的 alpha 和 lambda 值
-alpha_values &lt;- seq(0.1, 1, by = 0.1)
-lambda_values &lt;- 10^seq(-4, 1, length = 100)
-
-# 为每个分割执行 20 次重复
-n_repeats &lt;- 20
-selected_features_list &lt;- list()
-
-for (i in 1:n_repeats) {
-
-# 使用弹性网络执行变量选择
-result &lt;- train_elastic_net(X_train_matrix, y_train_factor, 
-alpha_values, lambda_values)
-best_model &lt;- result$model
-best_features &lt;- result$features
-
-# 存储此重复的选定特征
-selected_features_list[[i]] &lt;- best_features
-}
-selected_features_list
-# 聚合在所有重复中选择的特征
-selected_features_final &lt;- Reduce(intersect, selected_features_list)
-selected_features_final
-# 使用最终选定的特征对训练数据进行子集化
-X_train_total &lt;- X_train_total[, selected_features_final]
+目标点 lower90conf upper90conf
+1 0.5 NA -Inf Inf
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/653042/feature-selection-with-elastic-net</guid>
-      <pubDate>Tue, 20 Aug 2024 09:37:53 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/653100/difficulty-calculating-ed50</guid>
+      <pubDate>Tue, 20 Aug 2024 05:32:12 GMT</pubDate>
     </item>
     <item>
       <title>glmmTMB 的预测函数</title>
@@ -272,22 +241,6 @@ mod &lt;- glmmTMB(cound_data ~ year-1 +(1|Site), ziformula = ~year-1, data = df,
 predict() 函数计算的值与我的手动计算不同吗？它也考虑了 ziformula 吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/653020/predict-function-for-glmmtmb</guid>
       <pubDate>Mon, 19 Aug 2024 17:37:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果获得的样本量比功效分析中显示的大得多，该怎么办？</title>
-      <link>https://stats.stackexchange.com/questions/652973/what-to-do-if-sample-size-obtained-is-much-larger-than-indicated-in-the-power-an</link>
-      <description><![CDATA[老实说，我们没想到这一点——毕竟我们一切都是按照剧本做的。
-我们计划对一些心理问题进行研究，我们将问卷输入到 Qualtrics，在 G*Power 的帮助下，我们进行了功效分析以获得最小样本量，最后我们在互联网上发布了该研究的链接。然后样本量激增。几天后，我们检查了我们设法收集了多少观察结果，结果发现数量增加了四倍（所以我们匆忙停止收集数据）。功效分析表明 N = 500，我们得到了 N = 2000（当然是 2000 多）。开心吗？不，我们离幸福还很远。
-问：现在我们有一个问题，如何处理超大样本（记住超强研究）。
-想法是：
-
-在第 500 次观察时截断——丢弃其余数据（听起来像是在浪费数据）
-在第 500 次观察时截断，使用其余数据作为复制研究（听起来很狡猾，我们实际上没有进行复制研究，数据来自原始研究）
-从我们的大数据（N = 2000）中抽取样本 - 不放回抽样，样本由N = 500 次观察组成（并丢弃休息）。
-... 大家还有其他想法吗？你们遇到过这种情况吗？你们做了什么？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/652973/what-to-do-if-sample-size-obtained-is-much-larger-than-indicated-in-the-power-an</guid>
-      <pubDate>Sun, 18 Aug 2024 14:54:41 GMT</pubDate>
     </item>
     </channel>
 </rss>
