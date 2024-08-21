@@ -4,7 +4,290 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 21 Aug 2024 09:16:59 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 21 Aug 2024 12:28:57 GMT</lastBuildDate>
+    <item>
+      <title>根据 scikit-learn ColumnTransformer 访问用于归纳和规范化新数据的值</title>
+      <link>https://stackoverflow.com/questions/78896943/accessing-the-values-used-to-impute-and-normalize-new-data-basded-upon-scikit-le</link>
+      <description><![CDATA[因此，我使用 ´scikit-learn´ 在训练集上构建机器学习模型，然后在测试集上对它们进行评估。在训练集上，我使用 ColumnTransformer 执行数据插补和缩放，然后使用 Kfold CV 构建逻辑回归模型，最终模型用于预测测试集上的值。最终模型还使用 ColumnTransformer 的结果来插补测试集上的缺失值，例如，最小-最大标量将从训练集中获取最小值和最大值，并在缩放测试集时使用这些值。我如何才能看到这些从训练集中得出然后用于预测测试集的缩放值？我在 ´scikit-learn´ 文档中找不到有关它的任何信息。以下是我使用的代码：
+来自 sklearn.linear_model 导入 SGDClassifier
+来自 sklearn.model_selection 导入 RepeatedStratifiedKFold
+来自 sklearn.model_selection 导入 GridSearchCV
+来自 sklearn.compose 导入 ColumnTransformer
+来自 sklearn.impute 导入 SimpleImputer
+来自 sklearn.pipeline 导入 Pipeline
+来自 sklearn.preprocessing 导入 MinMaxScaler、OneHotEncoder
+
+def preprocessClassifierLR(categorical_vars, numeric_vars):###categorical_vars 和 numeric_vars 是定义 X 中存在的分类和数字变量的列名的列表
+
+categorical_pipeline = Pipeline(steps=[(&#39;mode&#39;, SimpleImputer(missing_values=np.nan, strategies=&quot;most_frequent&quot;)),
+(&quot;one_hot_encode&quot;, OneHotEncoder(handle_unknown=&#39;ignore&#39;))])
+
+numeric_pipeline = Pipeline(steps=[(&#39;numeric&#39;, SimpleImputer(strategy=&quot;median&quot;)),
+(&quot;scaling&quot;, MinMaxScaler())])
+
+col_transform = ColumnTransformer(transformers=[(&quot;cats&quot;, categorical_pipeline, categorical_vars),
+(&quot;nums&quot;, numeric_pipeline, numeric_vars)])
+
+lr = SGDClassifier(loss=&#39;log_loss&#39;, penalty=&#39;elasticnet&#39;)
+model_pipeline = Pipeline(steps=[(&#39;preprocess&#39;, col_transform),
+(&#39;classifier&#39;, lr)])
+
+random_grid_lr = {&#39;classifier__alpha&#39;: [1e-1, 0.2, 0.5],
+&#39;classifier__l1_ratio&#39;: [1e-3, 0.5]}
+
+kfold = RepeatedStratifiedKFold(n_splits=10, n_repeats=10, random_state=47)
+
+param_search = GridSearchCV(model_pipeline, random_grid_lr,scoring=&#39;roc_auc&#39;, cv=kfold, refit=True)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
+
+param_search = preprocessClassifierLR(categorical_vars, numeric_vars)
+train_mod = param_search.fit(X_train, y_train)
+print(&quot;Mod AUC:&quot;, train_mod.best_score_)
+
+test_preds = train_mod.predict_proba(X_)[:,1]
+
+
+我无法提供真实数据，但 X 是一个包含独立变量的数据框，y 是二元结果变量。train_mod 是一个包含列转换器和 SGD 分类器步骤的管道。我可以通过运行 train_mod.best_params_ 轻松从分类器中获取类似的参数信息，例如最佳 lambda 和 alpha 值，但我无法找出用于列转换器的统计数据，例如 1) 用于分类特征的简单插补器的模式，2) 用于数字特征的简单插补器的中值，以及 3) 用于缩放数字特征的最小值和最大值。有人知道如何访问这些信息吗？
+提前致谢！
+我假设 train_mod.best_estimator_[&#39;preprocess&#39;].transformers_ 包含此信息，类似于 train_mod.best_params_ 为我提供从模型训练中得出的 alpha 和 lambda 值，然后将其应用于测试集。]]></description>
+      <guid>https://stackoverflow.com/questions/78896943/accessing-the-values-used-to-impute-and-normalize-new-data-basded-upon-scikit-le</guid>
+      <pubDate>Wed, 21 Aug 2024 12:24:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>我在加载 hydra 的配置时遇到了一些问题</title>
+      <link>https://stackoverflow.com/questions/78896800/i-get-some-problem-with-load-the-config-of-hydra</link>
+      <description><![CDATA[我使用 Google colab 运行代码
+code:
+import hydra
+from pathlib import Path # 导入文件路径处理路径
+import sys # 导入 sys 模块
+@hydra.main(config_path=&quot;cfgs&quot;, config_name=&quot;config.yaml&quot;)
+def main(cfg):
+print(cfg) # 打印解析后的配置
+
+from train import Workspace as W
+
+root_dir = Path.cwd()
+
+workspace = W(cfg)
+
+snapshot = root_dir / &#39;snapshot.pt&#39;
+
+if snap.exists():
+
+print(f&#39;resuming: {snapshot}&#39;)
+
+workspace.load_snapshot()
+
+workspace.train()
+
+if name == &#39;ma​​in&#39;:
+main()
+输出：
+用法：colab_kernel_launcher.py [--help] [--hydra-help] [--version] [--cfg {job,hydra,all}]
+[--resolve] [--package PACKAGE] [--run] [--multirun]
+[--shell-completion] [--config-path CONFIG_PATH]
+[--config-name CONFIG_NAME] [--config-dir CONFIG_DIR]
+[--info [{all,config,defaults,defaults-tree,plugins,searchpath}]]
+[overrides ...]
+colab_kernel_launcher.py：错误：无法识别的参数：-f
+发生异常，使用 %tb 查看完整回溯。
+SystemExit：2
+我想要修复此错误]]></description>
+      <guid>https://stackoverflow.com/questions/78896800/i-get-some-problem-with-load-the-config-of-hydra</guid>
+      <pubDate>Wed, 21 Aug 2024 11:54:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 ML 线性回归中绘制多特征数据</title>
+      <link>https://stackoverflow.com/questions/78896787/plotting-multi-feature-data-in-ml-linear-regression</link>
+      <description><![CDATA[我的问题是关于 sci-kit learn 背后究竟是如何工作的，特别是当我们用多个特征（X）拟合线性回归模型时，例如房价特征和一个 y（价格）
+
+模型如何运作，绘制多特征数据，然后如何在背后为这些数据选择曲线？
+我无法绘制数据。]]></description>
+      <guid>https://stackoverflow.com/questions/78896787/plotting-multi-feature-data-in-ml-linear-regression</guid>
+      <pubDate>Wed, 21 Aug 2024 11:52:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>在进行连续文本分析后更新和添加数据点时，如何计算和更新权重和分数？</title>
+      <link>https://stackoverflow.com/questions/78896688/how-to-calculate-and-update-weights-and-score-when-updating-and-adding-data-poin</link>
+      <description><![CDATA[我有以下场景。也许有人可以帮助我正确地做到这一点。
+我正在做文本分析并得到一组带有分数的主题。我正在存储这些。
+我将其保存如下。
+`{
+&quot;Topic&quot;: {
+&quot;TopicName&quot;: &quot;/Computers &amp;电子/编程”，
+“得分”：35.371166
+}，
+“TotalCountOfTopic”：70
+}，
+{
+“主题”：{
+“主题名称”：&quot;/科学/计算机科学&quot;，
+“得分”：35.900078
+}，
+“TotalCountOfTopic”：69
+}，
+{
+“主题”：{
+“主题名称”：&quot;/商业&amp; Industrial&quot;,
+&quot;Score&quot;: 38.20758
+},
+&quot;TotalCountOfTopic&quot;: 47
+}`
+我想要做的是随后进行第二批文本分析，并且我想要更新这些数字。
+我采取的步骤如下。
+将之前运行的分数与我拥有的分数平均，添加新的分数并找到中位数。
+`var oldWeight = user.TotalAnalysis[oldTopicIndex].TotalCountOfTopic * user.TotalAnalysis[oldTopicIndex].Topic?.Score;
+var totalCount = user.TotalAnalysis[oldTopicIndex].TotalCountOfTopic + 1; // 增加总数
+ var updatedTopic = new TopicAverage()
+{
+
+Topic = new Topic()
+{
+
+Score = (oldWeight + newTopic.Score) / totalCount,// 更正后的加权平均计算
+
+TopicName = newTopic.TopicName
+}, 
+TotalCountOfTopic = totalCount
+};`
+
+我认为这是正确的做法，但我很好奇社区是怎么想的。
+谢谢
+我采取的步骤如下。
+将之前运行的分数与我已有的分数平均，添加新分数并找到中位数。]]></description>
+      <guid>https://stackoverflow.com/questions/78896688/how-to-calculate-and-update-weights-and-score-when-updating-and-adding-data-poin</guid>
+      <pubDate>Wed, 21 Aug 2024 11:26:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>GAN 模型中图形嵌入的反向传播运行时错误</title>
+      <link>https://stackoverflow.com/questions/78896269/runtimeerror-on-backpropagation-in-a-gan-model-for-graph-embeddings</link>
+      <description><![CDATA[我正在尝试学习如何在图形嵌入上创建 GAN，但一直遇到错误
+
+RuntimeError：尝试第二次向后遍历图形（或在已释放已保存的张量后直接访问它们）。调用 .backward() 或 autograd.grad() 时，图形的已保存中间值将被释放。如果您需要第二次向后浏览图表，或者在调用向后调用后需要访问已保存的张量，请指定 retain_graph=True。
+
+class Generator(nn.Module):
+def __init__(self, label_dim, noise_dim, embedding_dim):
+super(Generator, self).__init__()
+self.fc1 = nn.Linear(label_dim + noise_dim, 64)
+self.fc2= nn.Linear(64, embedding_dim)
+
+def forward(self, label, noise):
+label = label.unsqueeze(1).float()
+x = torch.cat([label, noise], dim=1)
+x = torch.relu(self.fc1(x))
+x = self.fc2(x)
+return x
+
+class Discriminator(nn.Module):
+def __init__(self, embedding_dim):
+super(Discriminator, self).__init__()
+self.fc1 = nn.Linear(embedding_dim, 64)
+self.fc2 = nn.Linear(64, 1)
+
+def forward(self, x):
+x = torch.relu(self.fc1(x))
+x = torch.sigmoid(self.fc2(x))
+return x
+
+subset_size =1000
+batch_size = 32
+num_epochs = 100
+noise_dim = 32
+embedding_dim = 32
+label_dim = 1
+
+graph_embeddings = torch.stack(graph_embeddings_list).to(device)
+
+dataset = TensorDataset(graph_embeddings,indexed_labels_tensor)
+
+subset_indices = torch.randperm(len(graph_embeddings))[:subset_size]
+subset = torch.utils.data.Subset(dataset, subset_indices)
+
+dataloader = DataLoader(subset, batch_size=batch_size, shuffle=True)
+
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+
+generator = Generator(label_dim=label_dim, noise_dim=noise_dim, embedding_dim=embedding_dim).to(device)
+discriminator = Discriminator(embedding_dim=embedding_dim).to(device)
+
+optimizer_G = torch.optim.Adam(generator.parameters(), lr=0.0002)
+optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=0.0002)
+
+criterion = nn.BCELoss()
+
+for epoch in range(num_epochs):
+for n, (real_embeddings, labels) in enumerate(dataloader):
+
+real_samples_labels = torch.ones((real_embeddings.size(0), 1)).to(device=device)
+generated_samples_labels = torch.zeros((real_embeddings.size(0), 1)).to(device=device)
+
+print(&quot;生成的样本形状：&quot;, generated_samples_labels.shape)
+print(&quot;真实样本形状：&quot;, real_samples_labels.shape)
+
+real_embeddings = real_embeddings.to(device=device)
+labels = labels.to(device=device)
+
+latent_space_samples = torch.randn((labels.size(0), noise_dim)).to(device=device)
+generated_samples = generator(labels, latent_space_samples)
+
+all_samples = torch.cat((real_embeddings, generated_samples)).to(torch.float32)
+all_samples_labels = torch.cat((real_samples_labels, generated_samples_labels)).to(torch.float32)
+
+discriminator.zero_grad()
+
+output_discriminator = discriminator(all_samples)
+
+print(&quot;判别器输出形状：&quot;, output_discriminator.shape)
+print(&quot;判别器输出：&quot;, output_discriminator)
+
+loss_discriminator = criterion(output_discriminator, all_samples_labels)
+
+print(&quot;判别器后向损失：&quot;, loss_discriminator.item())
+loss_discriminator.backward() 
+print(&quot;已完成鉴别器的反向传递&quot;)
+optimizer_D.step()
+
+generator.zero_grad()
+
+latent_space_samples = torch.randn((labels.size(0), noise_dim)).to(device=device)
+generated_samples = generator(labels, latent_space_samples)
+
+output_discriminator_generated = discriminator(generated_samples) 
+loss_generator = criterion(output_discriminator_generated, real_samples_labels)
+
+print(f&quot;生成器反向传递之前 - epoch {epoch}, batch {n}&quot;)
+loss_generator.backward(create_graph=True)
+print(f&quot;生成器反向传递之后 - epoch {epoch}, batch {n}&quot;)
+optimizer_G.step()
+
+if n == len(dataloader) - 1:
+print(f&quot;Epoch: {epoch} Loss D.: {loss_discriminator.item()}&quot;)
+print(f&quot;Epoch: {epoch} Loss G.: {loss_generator.item()}&quot;)
+
+
+我尝试创建一个简单的 GAN 来计算与标签相关的图形嵌入。但错误发生在 loss_discriminator.backward() 部分。
+我认为该过程是正确的。我尝试分离并重新计算 loss_generation 中的 output_discriminator，但都无济于事。我仍在学习 GAN 架构和图形数据结构。所以欢迎任何帮助！]]></description>
+      <guid>https://stackoverflow.com/questions/78896269/runtimeerror-on-backpropagation-in-a-gan-model-for-graph-embeddings</guid>
+      <pubDate>Wed, 21 Aug 2024 09:50:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>COCO json文件中分割值的面积是如何计算的？</title>
+      <link>https://stackoverflow.com/questions/78895866/how-is-the-area-of-segmentation-value-in-coco-json-file-calculated</link>
+      <description><![CDATA[所以我刚刚浏览了一个 COCO JSON 文件，并遇到了一个称为 area 的字段。在使用 cv2.countNonZero() 函数之前，我已经计算了分割面积，并将二进制掩码传递给它，但我不知道 COCO JSON 中的面积值是如何计算的。它只是分割多边形所包围的像素数吗？
+如果感兴趣，我在将 SAHI（切片辅助超推理）输出转换为 COCO 格式后获得了 JSON 输出。]]></description>
+      <guid>https://stackoverflow.com/questions/78895866/how-is-the-area-of-segmentation-value-in-coco-json-file-calculated</guid>
+      <pubDate>Wed, 21 Aug 2024 08:13:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在使用 model.summary() 时阻止 Jupyter 重新启动？</title>
+      <link>https://stackoverflow.com/questions/78895569/how-to-stop-jupyter-from-restarting-when-using-model-summary</link>
+      <description><![CDATA[我在 jupyter 上使用 keras，并尝试运行代码“model.summary()”。但是，jupyter 不断重新启动。
+我曾尝试将 max_buffer_size 增加到 17gb，但没有成功。有人可以帮忙建议如何解决这个问题吗？谢谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78895569/how-to-stop-jupyter-from-restarting-when-using-model-summary</guid>
+      <pubDate>Wed, 21 Aug 2024 07:03:20 GMT</pubDate>
+    </item>
     <item>
       <title>将具有大内核的 maxpool 转换为具有小内核的 maxpool 的等效堆栈</title>
       <link>https://stackoverflow.com/questions/78895371/converting-maxpool-with-big-kernels-to-equivalent-stacks-of-maxpool-with-small-k</link>
@@ -32,56 +315,11 @@ sh run_train_regdb.sh
       <pubDate>Wed, 21 Aug 2024 04:08:30 GMT</pubDate>
     </item>
     <item>
-      <title>如何在一个 cv2 摄像头屏幕中运行两个计算机视觉模型</title>
+      <title>如何在一个 cv2 相机屏幕中运行两个计算机视觉模型</title>
       <link>https://stackoverflow.com/questions/78894715/how-to-run-two-computer-vision-models-in-one-cv2-camera-screen</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78894715/how-to-run-two-computer-vision-models-in-one-cv2-camera-screen</guid>
       <pubDate>Tue, 20 Aug 2024 23:51:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>对于回归模型 Accord.NET，一遍又一遍地获得相同的输出</title>
-      <link>https://stackoverflow.com/questions/78894555/getting-the-same-output-over-and-over-againfor-regression-model-accord-net</link>
-      <description><![CDATA[我最近开始使用 Accord.NET，因为我必须承担一个涉及 AI 回归模型的项目。
-该模型与自动驾驶汽车有关，数据由 5 个传感器的幅度和一个转弯角度组成作为输出。
-DataParser.Parse(out double[][] input, out double[] output,&quot;data.csv&quot;, (0, 4), (4, 5));
-var model = new FanChenLinSupportVectorRegression&lt;Gaussian&gt;();
-var svm = model.Learn(input, output);
-
-Console.WriteLine(svm.Score(new double[] { 95.0, 0.0, 67.8, 0.0, 0.0 }));
-
-我决定试验一下 FanChenLin 回归算法是否有效。
-现在，我面临的问题是，对于输出，我得到的是 217.88 的常数值。我生成了一个模型训练数据，它可能有误，但我希望它在输入不同时给出不同的输出，但在这里，尽管改变了输出，我仍然得到了 217.88 的值。
-我编写的数据解析器似乎得到了正确的输入和输出。
-由于我对这个库还很陌生，我无法弄清楚出了什么问题，而且我有一个特定的截止日期，在此之前我需要找到解决方案。
-我尝试更改复杂度等值，但尽管它们给出了不同的输出，但该输出在不同情况下仍然是恒定的输入。
-37.454011884736246,3.142918568673425,64.20316461542878,5.16817211686077,10.31238688359326,21.365509618766623
-95.07143064099162,63.641041 12637804,8.413996499504883,53.1354631568148,90.25529066795667,61.22639465322385 73.1993941811405,31.435598107632668,16.162 871409461378,54.06351216101065,50.5252 37244785714,0.16392599623276283 59.86584841970366,50.85706911647028,89.85541885270793,63.742990149820656,82.64574661077417 ,338.3506582186952 15.601864044243651 ,90.7566473926093,60.642905965958995,72.60913337226616,32.00496010306117,1.6476821446117356 15.599452033620265,24.92922291 4887493,0.9197051616629648,97.58520794 625346,89.55232284962005,270.35942257808824 5.8083612168199465,41.038292303562976,10.147154286603211,51.630034830119534,38 .92016787341631,283.0714170955975 86. 61761457749351,75.55511385430486,66.35017691080559,32.2956472941246,1.083765148029836,62.743931568541655 60.11150117432088 ,22.879816549162246,0.5061583846218687 ,79.51861947687037,90.53819764192636,270.3330873043567 70.80725777960456,7.697990982879299,16.080805141749867,27.083225126 207424,9.128667678613356,69.182165231 95599 2.0584494295802447,28.9751452913768,54.87337893665861,43.89714207056361,31.93136375904149,320.77412786375123 96.9909 8521619943,16.122128725400444,69.18951 976926932,7.845638134226595,95.0061967050805,8.435865969658153 83.24426408004217,92.96976523425731,65.19612595026005,2.535 074341545751,95.06071469375561,50.331 93776194861 21.233911067827616,80.8120379564417,22.42693094605598,96.26484146779251,57.34378881232861,293.50639083221773 1 8.182496720710063,63.34037565104234,71 .2179221347536,83.59801205122058,63.183721216979926,317.50014925812815 18.34045098534338,87.14605901877177,23.724908749680 008,69.59742060936979,44.844552197831 98,339.3199373713304 30.42422429595377,80.36720768991145,32.539969815926774,40.89529444142699,29.321077169806454,51.271442 802352 52.475643163223786,18.657005888 603585,74.64914051180241,17.329432007084577,32.8664545369916,15.667156378272637 43.194501864211574,89.25589984899777,64.96 328990472146,15.643704267108605,67.25 184560770384,37.33686449574435 29.122914019804192,53.93422419156507,84.9223410494178,25.024289816459532,75.237452943768,34 8.5473288270272 61.18528947223795,80.7 4401551640625,65.76128923003434,54.92266647061205,79.15790437258485,6.806163770302646 13.949386065204184,89.60912999234932 ,56.830860333547164,71.45959227000624, 78.96181427945538,320.4909103298581
-29.214464853521815,31.800347497186387,9.367476782809248,66.01973767177313,9.120610304869036,303.55070797479505
-]]></description>
-      <guid>https://stackoverflow.com/questions/78894555/getting-the-same-output-over-and-over-againfor-regression-model-accord-net</guid>
-      <pubDate>Tue, 20 Aug 2024 22:18:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 TensorFlow 的 Attention Unet：输入形状错误和训练给出 0.999 的准确率</title>
-      <link>https://stackoverflow.com/questions/78893443/attention-unet-using-tensorflow-input-shape-error-and-training-gives-0-999-accu</link>
-      <description><![CDATA[我的目标是从 CT 扫描中创建癌症部位的遮罩并将其显示给用户。
-我正在尝试使用 tf/keras 实现注意力 unet，但遇到了问题。我在数据集方面遇到了问题（当我对它们调用 .shape() 时，每个图像都返回 256x256）并将其传递给模型（预期为 256x256xn）。
-这是我收到的错误消息：
-
-输入 Tensor(&quot;data:0&quot;, shape=(None, 256, 256),
-dtype=float32) 的输入形状无效。预期形状（无，256，256，2），但输入具有
-不兼容的形状（无，256，256）
-
-https://colab.research.google.com/drive/1sNgsP-SAzLdFj7zNe7UBX06Hjg0JV9V1?usp=sharing 是我使用的包含所有代码的笔记本。]]></description>
-      <guid>https://stackoverflow.com/questions/78893443/attention-unet-using-tensorflow-input-shape-error-and-training-gives-0-999-accu</guid>
-      <pubDate>Tue, 20 Aug 2024 16:08:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 TFIDF 的 SKL 管道中的数据形状问题</title>
-      <link>https://stackoverflow.com/questions/78893376/data-shape-issues-in-skl-pipeline-using-tfidf</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78893376/data-shape-issues-in-skl-pipeline-using-tfidf</guid>
-      <pubDate>Tue, 20 Aug 2024 15:52:58 GMT</pubDate>
     </item>
     <item>
       <title>如何在 Selenium 中获得更快的 API 响应？</title>
@@ -92,125 +330,11 @@ https://colab.research.google.com/drive/1sNgsP-SAzLdFj7zNe7UBX06Hjg0JV9V1?usp=sh
       <pubDate>Tue, 20 Aug 2024 15:46:11 GMT</pubDate>
     </item>
     <item>
-      <title>适合发票提取的ML模型</title>
+      <title>适合发票提取的 ml 模型[关闭]</title>
       <link>https://stackoverflow.com/questions/78892147/suitable-ml-model-for-invoice-extraction</link>
       <description><![CDATA[我必须构建一个 ml 模型，用于从不同布局的 pdf 文件中提取发票详细信息，例如客户姓名、发票日期、发票号码等。发票 pdf 文件具有不同的格式，例如，在一个 pdf 文件中，发票日期位于右上角，而在另一个 pdf 文件中，则位于左上角。我有大约 252 个样本。我正在使用 202 个样本进行训练，其中 28 个样本用于验证。我目前正在使用每个标签/类的边界框坐标训练张量流更快的 RCNN resnet101 对象检测模型（例如：发票日期，数字是标签），其中 num_train_steps = 2000，批量大小 = 4 和 num_eval_steps = 250。当我在测试图像上测试训练后的模型时，其中一些能够提取发票详细信息，但其中一些给出错误的输出，甚至有时它们为相同的发票详细信息提供多个输出（例如，它们为一个发票日期预测两个值）。我应该如何调整参数（批量大小、num_train_steps、num_eval_steps）？我应该在下载的 ml 模型的配置文件上更改任何内容吗？为了更好地理解，请参阅faster rcnn 的配置文件]]></description>
       <guid>https://stackoverflow.com/questions/78892147/suitable-ml-model-for-invoice-extraction</guid>
       <pubDate>Tue, 20 Aug 2024 11:18:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>Yolop 输出在 SNPE android 上给出 NaN 值</title>
-      <link>https://stackoverflow.com/questions/78892125/yolop-output-giving-nan-values-on-snpe-android</link>
-      <description><![CDATA[我使用了 YOLOP 模型，并使用 SNPE SDK 将其转换为 dlc 文件。创建输入张量并构建网络。获取输出张量值给出 NaN 值列表。下面给出了我如何配置网络、传递输入张量。但我的变量 laneLineSeg 和 DetOutValues 是 NaN 值。有人能帮我吗？
-这是我配置网络、传递输入张量的方法。但我的变量 laneLineSeg、DrivAreaSegValues 和 DetOutValues 是 NaN 值。
-private val modelName = &quot;yolop_seg.dlc&quot;
-private fun configureNetwork(): NeuralNetwork? {
-返回尝试 {
-
-val assetInputStream = applicationContext.assets.open(modelName)
-val network = SNPE.NeuralNetworkBuilder(application)
-.setDebugEnabled(false)
-.setRuntimeOrder(NeuralNetwork.Runtime.GPU_FLOAT16)
-.setModel(assetInputStream, assetInputStream.available())
-.setCpuFallbackEnabled(true)
-.setUseUserSuppliedBuffers(false)
-.setUnsignedPD(false)
-.setCpuFixedPointMode(false)
-.setOutputLayers(&quot;Sigmoid_1671&quot;,&quot;Concat_1534&quot;, &quot;Sigmoid_1808&quot; )
-
-.build()
-assetInputStream.close()
-network
-} catch (e: Exception) {
-Log.e(&lt;NETWORK&gt;, e.message.toString())
-null
-}
-}
-private fun getClassificationResult(network: NeuralNetwork, bitmap: Bitmap): FloatArray{
-val image = Bitmap.createScaledBitmap(bitmap, 640, 640, true)
-
-val inputMap: MutableMap&lt;String, FloatTensor&gt; = HashMap()
-val inputNames: Set&lt;String&gt; = network.inputTensorsNames
-val outputNames: Set&lt;String&gt; = network.outputTensorsNames
-var mInputLayer = &quot;&quot;
-val mOutputLayer = &quot;&quot;
-mInputLayer = inputNames.iterator().next()
-
-val tensor = network.createFloatTensor(1, 640, 640,3)
-val dimension = tensor.shape
-val isGrayScale = (dimension[dimension.size - 1] == 1)
-
-val input: FloatArray = if (!isGrayScale) {
-loadRgbBitmapAsFloat(image)
-} else {
-loadGrayScaleBitmapAsFloat(image)
-}
-tensor.write(input, 0, input.size)
-输入映射[mInputLayer] = tensor
-val 输出映射 = network.execute(inputsMap)
-
-val driveAreaSeg = outputMap[&quot;drive_area_seg&quot;]
-val DrivAreaSegValues = FloatArray(driveAreaSeg!!.size)
-driveAreaSeg.read(DrivAreaSegValues, 0, DrivAreaSegValues.size)
-val i = 0
-
-val laneLineSeg = outputMap[&quot;lane_line_seg&quot;]
-val LanLinSegValues = FloatArray(laneLineSeg!!.size)
-laneLineSeg.read(LanLinSegValues, 0, LanLinSegValues.size)
-
-val detOut = outputMap.get(&quot;det_out&quot;)
-val DetOutValues = FloatArray(detOut!!.size)
-detOut.read(DetOutValues, 0, DetOutValues.size)
-
-return laneLineSeg
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78892125/yolop-output-giving-nan-values-on-snpe-android</guid>
-      <pubDate>Tue, 20 Aug 2024 11:13:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>AssertionError LLama-cpp-python 模型加载失败</title>
-      <link>https://stackoverflow.com/questions/77864368/assertionerror-llama-cpp-python-model-failed-to-load</link>
-      <description><![CDATA[Llama-cpp-python 给我断言错误，尽管我使用的是 GGUF 格式。
-我试图用 llama-cpp-python 0.1.85 在 python 3.7.2 中运行 AI 模型，每次运行我的代码时都会出现此错误：
-加载模型时出错：MapViewOfFile 失败：没有足够的内存资源来处理此命令。
-
-llama_load_model_from_file：加载模型失败
-回溯（最近一次调用）：
-文件“server.py”，第 26 行，在 &lt;module&gt;
-n_ctx=N_CTX,
-文件“D:\AI 2\Venv\lib\site-packages\llama_cpp\llama.py”，第 323 行，在 __init__ 中
-断言 self.model 不是 None
-AssertionError
-
-我使用的是 GGUF 格式，所以我不知道问题是什么，它在第二台计算机上运行良好，但在我的主机上却不行，有什么帮助吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77864368/assertionerror-llama-cpp-python-model-failed-to-load</guid>
-      <pubDate>Tue, 23 Jan 2024 06:30:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>Scikit-Learn LOOCV 与手动执行产生不同的结果，为什么？</title>
-      <link>https://stackoverflow.com/questions/75918536/scikit-learn-loocv-vs-doing-it-manually-give-different-results-why</link>
-      <description><![CDATA[因此，我为一个小数据集建立了一个模型，由于它是一个小数据集，我做了一个留一交叉验证 (LOOCV) 检查来确保它的准确性。简而言之，我会手动移除一个样本，训练模型，预测遗漏的样本并保存预测，然后对所有样本重复该过程。然后，我会使用预测列表和实际值来获得 RMSE 和 R2。
-今天我发现有一个 Scikit-Learn 实现 sklearn.model_selection.LeaveOneOut，但是，当我尝试它时，它给出了不同的 RMSE 结果，并且拒绝在 LOOCV 方法中使用 R 平方作为准确度（它似乎计算每个样本的准确度，这与 R2 不起作用）。
-以下是代码的简要示例：
-from numpy import mean
-from numpy import std
-from sklearn.datasets import make_blobs
-from sklearn.model_selection import LeaveOneOut
-from sklearn.model_selection import cross_val_score
-from sklearn.ensemble import RandomForestClassifier
-
-cv = LeaveOneOut()
-model = RandomForestRegressor(n_estimators=200, max_depth=6,n_jobs=40, random_state=0)
-
-scores = cross_val_score(model, data2SN, labelCL,scoring=&#39;neg_root_mean_squared_error&#39;, cv=cv, n_jobs=-1)
-# report performance
-print(&#39;Accuracy: %.3f (%.3f)&#39; % (mean(scores), std(scores)))
-
-我猜我是在计算整个数据集的 RMSE，而 LOOCV 是按样本计算的，最终我会取平均值，这就是导致两个代码输出不一致的原因，但是，当我尝试计算每个样本的 RMSE 时失败了（引用此 TypeError：Singleton array 3021.0 不能被视为有效集合）。所以我不确定 LOOCV 中 RMSE 是如何计算的。我不确定是否应该相信我的代码，或者只是盲目地使用 scikit-learn 实现。
-我不知道该怎么做，chatGPT 简直令人困惑不已，所以我的人类同胞请帮忙]]></description>
-      <guid>https://stackoverflow.com/questions/75918536/scikit-learn-loocv-vs-doing-it-manually-give-different-results-why</guid>
-      <pubDate>Mon, 03 Apr 2023 10:38:08 GMT</pubDate>
     </item>
     <item>
       <title>t() 期望张量具有 <= 2 维，但自身是 3D</title>
@@ -344,42 +468,6 @@ AttributeError: 无法在 &lt;module &#39;__main__&#39;&gt; 上获取属性 &#39
 将来，我想使用 tkinter 创建一个 GUI，并部署经过训练的模型，使用 tkinter 文件中的新数据检查预测。这可能吗？]]></description>
       <guid>https://stackoverflow.com/questions/69030379/torch-loadml-model-in-new-class-i-receive-an-attributeerror-cant-get-attribu</guid>
       <pubDate>Thu, 02 Sep 2021 12:33:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>Pytorch 预期为 1D 张量，但得到的是 2D 张量</title>
-      <link>https://stackoverflow.com/questions/66720543/pytorch-1d-tensors-expected-but-got-2d-tensors</link>
-      <description><![CDATA[我一直在用 Python 从头开始​​制作神经网络。输入张量的形状为 [400,3]，target_tensor 的形状为 [400]。在对权重求导时，我遇到了错误。以下是函数：
-def sigmoid(z):
-return 1 / (1 + torch.exp(-z))
-
-def nueral_net(data,weights,bias):
-return sigmoid( ( data @ weights ) + bias )
-
-def loss_function(prediction,actual,m):
-return (-1/m) * (torch.sum(actual * torch.log(prediction) + (1-actual) 
-* torch.log(1- prediction)))
-
-w = torch.randn(input_tensor.shape[1],1)
-
-b = torch.randn(1,1)
-
-predictions = nueral_net(input_tensor.float() , w, b) #应用模型
-loss = loss_function(predictions,target_tensor.unsqueeze(1),400)
-dw = (1/400) * torch.dot(input_tensor,(predictions - target_tensor).T)
-
-运行此程序会引发错误：
-RuntimeError Traceback (most recent call last)
-&lt;ipython-input-26-632338d8fd16&gt; in &lt;module&gt;
-1 predictions = nueral_net(input_tensor.float() , w, b) #应用模型
-2 loss = loss_function(predictions,target_tensor.unsqueeze(1),400)
-----&gt; 3 dw = (1/400) * torch.dot(input_tensor,(predictions - target_tensor).T)
-4 db = (1/400) * torch.sum(predictions - target_tensor)
-5 #m = input_tensor.shape[0]
-
-RuntimeError: 预期为 1D 张量，但得到的是 2D 和 2D 张量
-]]></description>
-      <guid>https://stackoverflow.com/questions/66720543/pytorch-1d-tensors-expected-but-got-2d-tensors</guid>
-      <pubDate>Sat, 20 Mar 2021 10:32:38 GMT</pubDate>
     </item>
     <item>
       <title>PyTorch 中的 `view()` 起什么作用？</title>
