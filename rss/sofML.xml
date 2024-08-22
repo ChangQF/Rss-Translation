@@ -4,7 +4,145 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 22 Aug 2024 09:16:21 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 22 Aug 2024 12:30:07 GMT</lastBuildDate>
+    <item>
+      <title>在 C# 中按相似性对文本文档进行分组</title>
+      <link>https://stackoverflow.com/questions/78901288/grouping-text-documents-by-similarity-in-c-sharp</link>
+      <description><![CDATA[我试图根据内容的相似程度对一些相对较短的文本文档（通常每个文档最多 500 个单词）进行分组。相似的文档通常在措辞上相当接近，但并不完全相同，因此我正在寻找一种机器学习方法来提供比简单地查找重复文本（即基于相似度的百分比进行分组）更宽松的匹配算法。但是，我对 ML 的经验有限，所以我正在寻找有关至少从哪里开始解决此类问题的信息。
+当我使用 C# 工作时，我正在使用 ML.NET 寻找解决方案。我熟悉 K-Means，并且找到了一些关于使用它执行相似性匹配的信息，以及有关 ML.NET 的句子相似性 API的信息，但我不确定这些是否是正确的方向，因为 ML.NET 对这些的实现似乎需要一定数量的监督训练数据，而不是能够完全不受监督地对一组数据进行工作。
+我理解，为了让代码理解什么是“相似文本”，可能需要一些预先的数据实际上看起来像，但我不清楚实际实现此类事情的最佳方法，也很难找到相关信息。我知道余弦相似度与此类问题有关，但 ML.NET 是应用它的正确库吗？有没有更简单的解决方案，特别是考虑到文档在文本和主题上已经相对接近？]]></description>
+      <guid>https://stackoverflow.com/questions/78901288/grouping-text-documents-by-similarity-in-c-sharp</guid>
+      <pubDate>Thu, 22 Aug 2024 11:21:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用弹性网络进行特征选择</title>
+      <link>https://stackoverflow.com/questions/78901259/feature-selection-with-elastic-net</link>
+      <description><![CDATA[我对机器学习中的特征选择还比较陌生。在了解到弹性网络往往比 Lasso 和 Ridge 回归表现更好（特别是因为它解决了多重共线性问题）后，我决定使用它进行特征选择。
+我编写了一个代码，在嵌套交叉验证设置（具有 5 个内部折叠和 20 个外部折叠）中从最佳弹性网络模型（具体而言，具有实现最高 AUC 的 alpha 和 lambda 值的模型）中选择最佳特征。然后，我使用这些选定的特征进行进一步的模型训练。
+但是，我不确定我是否正确实施了嵌套交叉验证。此外，当我尝试检索 alpha 和 lambda 值以报告它们的可重复性时，我似乎无法在结果中找到它们。
+代码如下：
+set.seed(1)
+train_elastic_net &lt;- function(X_train, y_train, alphas, lambdas) {
+best_auc &lt;- 0
+best_model &lt;- NULL
+best_features &lt;- NULL
+
+for (alpha_value in alphas) {
+# 设置交叉验证的训练控制
+train_control &lt;- trainControl(method = &quot;cv&quot;, 
+number = 5, 
+classProbs = TRUE, 
+summaryFunction = twoClassSummary)
+
+# 定义调整网格
+tune_grid &lt;- expand.grid(alpha = alpha_value, lambda = lambdas)
+
+#使用 caret 训练模型
+model &lt;- train(X_train, y_train,
+method = &quot;glmnet&quot;,
+trControl = train_control,
+tuneGrid = tune_grid,
+metric = &quot;ROC&quot;,
+family = &quot;binomial&quot;)
+
+# 获取最佳模型
+best_lambda &lt;- model$bestTune$lambda
+elastic_net_model &lt;- glmnet(as.matrix(X_train), y_train, alpha = alpha_value, lambda = best_lambda, family = &quot;binomial&quot;)
+
+# 获取最佳模型的 AUC
+auc &lt;- max(model$results$ROC)
+
+# 如果当前模型更好，则更新最佳模型
+if (auc &gt; best_auc) {
+best_auc &lt;- auc
+best_model &lt;- elastic_net_model
+coef_elastic_net &lt;- coef(best_model, s = best_lambda)
+selected_features &lt;- which(coef_elastic_net != 0) - 1 # 获取非零系数的索引
+selected_features &lt;- selected_features[selected_features != 0] # 删除截距索引
+best_features &lt;- selected_features
+}
+}
+
+list(model = best_model, features = best_features)
+}
+
+y_train_factor &lt;- as.factor(y_train_total)
+X_train_matrix &lt;- as.matrix(X_train_total)
+
+# 定义要搜索的 alpha 和 lambda 值
+alpha_values &lt;- seq(0.1, 1, by = 0.1)
+lambda_values &lt;- 10^seq(-4, 1, length = 100)
+
+# 为每个分割执行 20 次重复
+n_repeats &lt;- 20
+selected_features_list &lt;- list()
+
+for (i in 1:n_repeats) {
+
+# 使用弹性网络执行变量选择
+result &lt;- train_elastic_net(X_train_matrix, y_train_factor, alpha_values, lambda_values)
+best_model &lt;- result$model
+best_features &lt;- result$features
+
+# 存储此重复的选定特征
+selected_features_list[[i]] &lt;- best_features
+}
+selected_features_list
+# 聚合所有重复的选定特征
+selected_features_final &lt;- Reduce(intersect, selected_features_list)
+selected_features_final
+# 使用最终选定的特征对训练数据进行子集化
+X_train_total &lt;- X_train_total[, selected_features_final]
+]]></description>
+      <guid>https://stackoverflow.com/questions/78901259/feature-selection-with-elastic-net</guid>
+      <pubDate>Thu, 22 Aug 2024 11:14:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>您能否建议最佳的 AI 模型来为数据库创建分类器</title>
+      <link>https://stackoverflow.com/questions/78901133/can-you-suggest-best-ai-model-to-create-a-classifier-for-a-database</link>
+      <description><![CDATA[为数据库创建分类器的最佳解决方案是什么。以下示例：
+表 1：
+
+|狗|猫|日期|时间|
+|德国|波斯|12-09-2019|12:00:00|
+|贵宾犬|布娃娃|10-08-2022|01:09:11|
+|斗牛犬|缅甸猫|09-01-1999|03:00:09|
+模型的输入应为“德国”，预测应为“狗”
+我尝试了 NER，但我也需要概率。示例：
+输入：德语
+预期输出：狗：98%
+猫：10%
+日期：2%
+时间：1%]]></description>
+      <guid>https://stackoverflow.com/questions/78901133/can-you-suggest-best-ai-model-to-create-a-classifier-for-a-database</guid>
+      <pubDate>Thu, 22 Aug 2024 10:47:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用定制的头部来微调语言模型</title>
+      <link>https://stackoverflow.com/questions/78901109/finetuning-a-language-model-with-a-customized-head</link>
+      <description><![CDATA[我正在微调 BERT 模型来执行一项相当复杂的任务。它应该识别输入字符串中的目标，对每个目标执行回归并输出
+
+输入中每个已识别目标的开始/结束索引
+每个目标的回归值
+
+采用 JSON 格式。
+据我所知，训练本身非常简单，但要以所需的格式获得输出（JSON 格式的多个输出），我需要自定义模型的头部。
+所以，我并不是真的在这里寻找解决方案，而是寻找有关如何做到这一点的资源（教程、论文、视频）。谢谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78901109/finetuning-a-language-model-with-a-customized-head</guid>
+      <pubDate>Thu, 22 Aug 2024 10:41:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Azure 上自动对使用 ModelBuilder 创建的机器学习模型进行模型训练</title>
+      <link>https://stackoverflow.com/questions/78900913/how-to-automate-model-training-on-azure-for-machine-learning-models-created-with</link>
+      <description><![CDATA[我们使用 Visual Studio Model Builder 创建了多个机器学习模型，因为它非常易于使用。
+某些类型的模型（例如对象检测）只能在 Azure 上进行训练才能产生可​​用的结果。
+当有新数据可用时，我想自动完成模型训练过程。
+ModelBuilder 使用方法“RetrainModel”为我生成一个训练文件。但是，我不知道如何将必要的配置传递给此方法以在 Azure 上运行此作业。
+如何从我的应用程序中自动完成模型训练过程？我希望执行与单击“开始训练”按钮时 Model Builder 基本相同的操作。
+我知道，当我在 Azure 上进行训练时，会自动创建一个 Azure 机器学习作业，然后输出所需的模型。当我使用 Azure 机器学习和 Python 从头开始​​训练模型时，创建的模型类型为“MLFlow”，但我需要类型为“MLNet”或“ONNX”的模型供 ML.NET 本地使用。有人能指出连接这两个世界的缺失部分吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78900913/how-to-automate-model-training-on-azure-for-machine-learning-models-created-with</guid>
+      <pubDate>Thu, 22 Aug 2024 09:55:44 GMT</pubDate>
+    </item>
     <item>
       <title>如何在 jupyter 笔记本中摆脱“PineconeApiException：（400）”和“ValueError：在您的 Pinecone 项目中未找到索引‘None’”？</title>
       <link>https://stackoverflow.com/questions/78900691/how-to-get-rid-of-pineconeapiexception-400-and-valueerror-index-none-no</link>
@@ -32,60 +170,15 @@ new_features = feature_extractor.predict([输入层 1, 输入层 2])
       <pubDate>Thu, 22 Aug 2024 07:19:22 GMT</pubDate>
     </item>
     <item>
-      <title>用于手语的 LSTM</title>
+      <title>用于手语的 LSTM [关闭]</title>
       <link>https://stackoverflow.com/questions/78899773/lstm-for-sign-language</link>
-      <description><![CDATA[大家好，我是机器学习和人工智能的新手，我可以问一些问题吗？
-实时模型是否可以转换为预先录制的视频上传？
-例如，我将训练一个用于手语的 LSTM 模型，以实现实时识别。现在我想将其集成到移动应用程序中，这样我就可以随身携带手机，因此预先录制的视频会更好。
-提前感谢您的回答。
-我想学习 LSTM/RNN 中的新技术]]></description>
+      <description><![CDATA[实时模型是否可以转换为预先录制的视频上传？
+例如，我将训练一个用于手语的 LSTM 模型，以实现实时识别。现在我想将其集成到移动应用程序中，这样我就可以随身携带手机，因此预先录制的视频会更好。]]></description>
       <guid>https://stackoverflow.com/questions/78899773/lstm-for-sign-language</guid>
       <pubDate>Thu, 22 Aug 2024 04:16:56 GMT</pubDate>
     </item>
     <item>
-      <title>适合专家阅读的机器学习书籍有哪些？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78899696/what-are-books-on-machine-learning-for-experts</link>
-      <description><![CDATA[我是一名自学成才的程序员，我已经掌握了所有基础知识，例如 ml 模型、cnn、rnn、lstm 等
-
-我想知道如何才能成为机器学习专家。您可以固定任何书籍、代码链接、
-博客等。请告诉我机器学习中有哪些主题在计算机视觉、nlp、时间序列、文本分类等所有​​领域的流行互联网书籍中都找不到。
-并告诉我一些只有高级机器学习工程师才能做的项目。
-提前感谢您的回答]]></description>
-      <guid>https://stackoverflow.com/questions/78899696/what-are-books-on-machine-learning-for-experts</guid>
-      <pubDate>Thu, 22 Aug 2024 03:32:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>KerasTensors 上的二元交叉熵不起作用</title>
-      <link>https://stackoverflow.com/questions/78898962/binary-crossentropy-on-kerastensors-not-working</link>
-      <description><![CDATA[我正尝试在 tf/keras 中实现此 VAE，但 binary_crossentropy 似乎出了点问题。
-import tensorflow as tf
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Lambda, Input, Dense
-from tensorflow.keras.losses import binary_crossentropy
-from tensorflow.keras.models import Model
-
-...
-
-def build_vae():
-...
-
-rebuild_loss = binary_crossentropy(inputs, output) * image_size
-kl_loss = 1 + z_log_var - K.square(z_mean) - K.exp(z_log_var)
-kl_loss = K.sum(kl_loss, axis=-1)
-kl_loss *= -0.5
-vae_loss = K.mean(reconstruction_loss + kl_loss)
-
-我在 binary_crossentropy 行上收到错误。确认 inputs 和 outputs 属于 KerasTensor 类型后，回溯状态为：
-
-ValueError：KerasTensor 不能用作 TensorFlow 函数的输入。KerasTensor 是形状和 dtype 的符号占位符，用于构建 Keras Functional 模型或 Keras Functions。您只能将其用作 Keras 层或 Keras 操作的输入（来自命名空间 keras.layers 和 keras.operations）。
-
-如何修复此问题？此外，我很好奇为什么 tensorflow.keras.losses.binary_crossentropy 不接受 KerasTensors，或者为什么它不被视为 Keras 函数，即使它在 keras 库中。
-我尝试将 binary_crossentropy 包装在 keras Layer 子类中，该行有效，但随后所有 K 函数都会出错。如果我必须对所有使用的 K 函数重复该过程，我会感到惊讶]]></description>
-      <guid>https://stackoverflow.com/questions/78898962/binary-crossentropy-on-kerastensors-not-working</guid>
-      <pubDate>Wed, 21 Aug 2024 20:53:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>即使训练=False，Tensorflow 模型仍可进行训练</title>
+      <title>即使 training=False，Tensorflow 模型仍可进行训练</title>
       <link>https://stackoverflow.com/questions/78898892/tensorflow-model-still-trains-even-with-training-false</link>
       <description><![CDATA[以下是简单的重现代码
 import tensorflow as tf
@@ -286,184 +379,107 @@ Django 版本 5.1，使用设置“BackEnd.settings”
       <pubDate>Tue, 20 Aug 2024 19:16:51 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 sklearn python 获取预测</title>
-      <link>https://stackoverflow.com/questions/78890391/how-use-sklearn-python-get-predicion</link>
-      <description><![CDATA[我有一张表，我想传递 features = &quot;train_1, train_2, train_3, train_4&quot; 和 target_result = result_cor。
-我想知道什么时候值是 = &quot;1 或 2&quot;在我的预测中：
-关注我的数据
-关注我的代码：
-从 enum 导入 auto
-从 sklearn.svm 导入 LinearSVC
-从 sklearn.model_selection 导入 train_test_split
-从 sklearn.metrics 导入 accuracy_score
-从 sklearn.tree 导入 DecisionTreeClassifier
-从 sklearn.metrics 导入 classes_report
-从 sklearn 导入 svm
-从 sklearn.linear_model 导入 LogisticRegression
-导入 pandas 作为 pd
-导入 numpy 作为 np
-导入 matplotlib.pyplot 作为 plt
-导入 math
-导入 seaborn 作为 sns
+      <title>当我尝试训练 TensorFlow 模型时，出现“ValueError”</title>
+      <link>https://stackoverflow.com/questions/78881211/i-get-a-valueerror-when-i-try-to-train-my-tensorflow-model</link>
+      <description><![CDATA[这是我在第一个 epoch 调用 model.fit 时遇到的错误：
+发生异常：ValueError
+层“ functional”需要 2 个输入，但它收到了 1 个输入张量。收到的输入：[&lt;tf.Tensor &#39;data:0&#39; shape=(None, 128) dtype=float32&gt;]
+文件 &quot;D:\workspace\Machine Learning 545\PSU_classes\cs445_group_project\code\Keras Music Genres Classification\encoder_decoder_feature_extractor.py&quot;，第 177 行，位于 train_encoder_decoder_model
+model.fit(x = X_train,
+文件 &quot;D:\workspace\Machine Learning 545\PSU_classes\cs445_group_project\code\Keras Music Genres Classification\encoder_decoder_feature_extractor.py&quot;，第 217 行，位于 &lt;module&gt;
+train_encoder_decoder_model = train_encoder_decoder_model(encoder_decoder_model, X_train, y_train, X_test, y_test)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: 层“ functional”需要 2 个输入，但收到 1 个输入张量。收到的输入：[&lt;tf.Tensor &#39;data:0&#39; shape=(None, 128) dtype=float32&gt;]&quot;
 
-sheet_id = &#39;1CfnVwuqysTYNPKLVhgjJ44Af8VDcdN1l&#39; dados = pd.read_excel(f&#39;https://docs.google.com/spreadsheets/export?id={sheet_id}&amp;format=xlsx&#39;) bads.head() # 实现更多数量的数据 x = bados[[&#39;train_1&#39;,&#39;train _2&#39;,&#39;train_3&#39;,&#39;train_4&#39;]] # Gabarito 或 corretos y = bados[[&#39;result_cor&#39;]] # 将 x e y e testes de x e y 分开 treino_x, teste_x, treino_y, teste_y = train_test_split(x,y,test_size=0.33) # 模型类型 modelo = DecisionTreeClassifier() # 训练效果 modelo.fit(x,np.ravel(y,order=&quot;c&quot;)) # 预测新值 model_predict = [0,1,0,1] treino_x[:1] = model_predict model_predict = treino_x[:1] result_cor = [1] treino_y[:1] = result_cor result_cor = treino_y[:1] # 预测新模型 previsoes = modelo.predict(model_predict) # 检查准确率 precision = precision_score(result_cor,previsoes) * 100 print(f&#39;A acuracia é: {round(accuracy,2)}&#39;)
+这是我的模型：
+def define_encoder_decoder_model(num_features):
+# 定义编码器
+coder_inputs = 输入（shape=(None, num_features))
+coder_hidden1 = Dense(100, 激活=&#39;relu&#39;)(encoder_inputs)
+coder_hidden2 = Dense(50, 激活=&#39;relu&#39;)(encoder_hidden1)
+coder_lstm = LSTM(25, return_state=True)
+coder_outputs, state_h, state_c =coder_lstm(encoder_hidden2)
+coder_states = [state_h, state_c]
 
+# 定义解码器
+decoder_inputs = 输入(shape=(None, 25))
+decoder_hidden1 = Dense(50, 激活=&#39;relu&#39;)(decoder_inputs)
+decoder_hidden2 = Dense(100, 激活=&#39;relu&#39;)(decoder_hidden1)
+decoder_lstm = LSTM(num_features, return_sequences=True, return_state=True)
+decoder_outputs, _, _ = decrypt_lstm(decoder_hidden2, initial_state=encoder_states)
+decoder_dense = Dense(num_features,activation=&#39;softmax&#39;)
+decoder_outputs =coder_dense(decoder_outputs)
 
-但结果始终为 100.0 % 或 0.0。我需要知道我的 result_cor 出现在模型训练模型的 model_predict 中的次数百分比
-请帮忙]]></description>
-      <guid>https://stackoverflow.com/questions/78890391/how-use-sklearn-python-get-predicion</guid>
-      <pubDate>Tue, 20 Aug 2024 02:18:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>Val_accuracy 正在改变，有时它在补码之间交替（100％-val_acc）</title>
-      <link>https://stackoverflow.com/questions/78885395/val-accuracy-inst-changing-and-sometimes-it-alternates-between-it-complement-10</link>
-      <description><![CDATA[我被分配根据我读过的一篇论文来实现一个机器学习模型。
-这篇论文实现了一个用于属性分类的多任务学习模型（带标签的图像是模型输入，带标签的意思是属性注释，每幅图像有 40 个）。
-它是一个多任务学习模型，因为在模型输入层和 40 个属性分支之后有一个共享的密集层，每个分支都有自己的损失函数（所有分支的二元交叉熵）和自己的 S 型激活函数（在最后一层，用于预测 40 个属性中的每一个是否存在于图像中）。
-经过大量艰苦的努力，它终于开始在所有分支上返回所有 S 型函数的概率，但只有 val_accuracy 的概率是错误的：val_loss 和损失（训练损失）越来越小，acc（训练准确度）也在正常的概率值范围内，除了 val_accuracy 总是相同的值或它的补码。
-例如（仅举 5 个时期为例）：
-40 个分支之一的一个属性预测的准确度：
-5_o_Clock_Shadow_Accuracy
-0 0.823665
-1 0.891178
-2 0.891178
-3 0.891178
+# 定义将encoder_inputs和decoder_inputs转换为decoder_outputs的模型
+model = Model([encoder_inputs,decoder_inputs],decoder_outputs)
 
-同一属性的损失：
- 5_o_Clock_Shadow_loss
-0 0.921046
-1 0.701494
-2 0.913597
-3 0.765397
-4 0.894950
+# 编译模型
+model.compile(optimizer=&#39;adam&#39;,loss=&#39;categorical_crossentropy&#39;,
+metrics=[&#39;accuracy&#39;,&#39;precision&#39;,&#39;recall&#39;,&#39;f1_score&#39;])
 
-val_loss：
-val_5_o_Clock_Shadow_loss
-0 730232.750000
-1 300412.500000
-2 376215.843750
-3 0.747685
-4 1.607191
+# 模型摘要
+model.summary()
 
-最后是 val_Accuracy：
-val_5_o_Clock_Shadow_Accuracy
-0 0.882382
-1 0.117618
-2 0.882382
-3   0.882382 4 0.882382  我的模型： def subnet(shared_layers_output, i): att_branch = Dense(512, name=&#39;dense_&#39;+str(i)+&#39;_1&#39;)(shared_layers_output) att_branch = ReLU()(att_branch) att_branch = BatchNormal ization()(att_branch) att_branch = Dropout(0.5)(att_branch) att_branch = Dense(512, name=&#39;dense_&#39;+str(i)+&#39;_2&#39;)(att_branch) att_branch = ReLU()(att_branch) att_branch = BatchNormalization()(att_branch) att_branch = Dropout(0.5)(att_branch)
+在此处返回modeltype
 
-branch_output = Dense(1, name=att_list[i],activation=&#39;sigmoid&#39;)(att_branch)
+这是我调用model.fit的方式：
+def train_encoder_decoder_model(model,X_train, y_train, X_test, y_test):
+&quot;&quot;&quot;
+使用提供的数据训练编码器-解码器模型。
 
-return branch_output
+参数：
+model：要训练的编码器-解码器模型。
+X_train：输入训练数据。
+y_train：目标训练数据。
+X_test：输入测试数据。
+y_test：目标测试数据。
 
-def multi_task_model():
-
-#输入
-input_layer = Input(shape=(512,), name=&#39;input_layer&#39;)
-
-#共享网络（1 个网络）
-shared_x = Dense(512, name=&#39;shared_dense_layer&#39;)(input_layer)
-shared_x = ReLU()(shared_x)
-shared_x = BatchNormalization()(shared_x)
-shared_x = Dropout(0.5)(shared_x)
-
-branch_outputs = list()
-for i in range(40):
-branch_outputs.append(subnet(shared_x, i))
-
-model = Model(input_layer, branch_outputs, name=&#39;model&#39;)
-
+返回：
+训练好的编码器-解码器模型。
+&quot;&quot;&quot;
+print(&quot;shapes: X_train:&quot;, np.shape(X_train),&quot; y_train: &quot;, np.shape(y_train),&quot; X_test: &quot;, np.shape(X_test),&quot; y_test: &quot;, np.shape(y_test))
+# 训练模型
+# 将每个时期的训练日志附加到文件中
+file_logger = FileLogger(&#39;training.log&#39;)
+y_train_T = tf.convert_to_tensor(np.array([y_train]).T)
+y_test_T = tf.convert_to_tensor(np.array([y_test]).T)
+#x_train = tf.convert_to_tensor(X_train)
+y_train = X_train
+y_test = X_test
+model.fit(x = X_train,
+y= y_train,
+batch_size=100,
+epochs=100,
+verbose=2,
+validation_data=(X_test, y_test),
+callbacks=[file_logger])
 返回模型
 
-
-训练和测试输入形状：(n_samples, 512)
-训练和测试标签输入形状：(40, n_samples)
-学习率：1e-03
-
-5_o_Clock_Shadow 损失、val_loss、acc 和 val_acc 超过 5 个时期
- 损失 val_loss acc val_acc
-0 0.422385 1.949578 0.864272 0.8873
-1 0.354094 151.987991 0.888797 0.1127
-2 0.354356 58.867992 0.888797 0.1127
-3 0.352891 94.257980 0.888797 0.1127
-4 0.353390 10.997763 0.888797 0.1127
-]]></description>
-      <guid>https://stackoverflow.com/questions/78885395/val-accuracy-inst-changing-and-sometimes-it-alternates-between-it-complement-10</guid>
-      <pubDate>Sun, 18 Aug 2024 18:38:14 GMT</pubDate>
+这是一个编码器-解码器模型，因此 X_train 数据集等于 y_train，X_test、y_test 也一样。在第一种情况下，训练集的形状为 (799,128)，测试数据集为 (299,128)。特征表示为“float64”值。
+我在 Visual Studio Code 下运行代码。我将数据预处理为标准化和缩放的数据集，然后将其分为训练数据集和测试数据集，构建我的编码器-解码器模型（参见上面的方法），然后尝试训练模型。我得到的是 model.fit 的这个输出“Epoch 1/100”和上面显示的错误消息。
+这个错误是什么以及如何解决？]]></description>
+      <guid>https://stackoverflow.com/questions/78881211/i-get-a-valueerror-when-i-try-to-train-my-tensorflow-model</guid>
+      <pubDate>Sat, 17 Aug 2024 01:20:22 GMT</pubDate>
     </item>
     <item>
-      <title>确保数据标记、数据注释的质量</title>
-      <link>https://stackoverflow.com/questions/78882012/ensure-quality-of-data-labeling-data-annotation</link>
-      <description><![CDATA[我有一个包含两百万数据图像、视频和文本的数据集。这些都未标记。我想雇佣来自世界各地的工人来标记它们。这是一个庞大的人数。我如何确保我的员工标记的数据的质量？我担心他们只是为了赚钱而大量浪费工作。
-P/S：我不能使用 Scale&#39;AI 等其他公司为我标记。
-对于简单的分类。我可以使用像 CAPCHA 这样的方法。它效果很好，但对于其他情况，如绘制边界框 = 或分割，我不知道如何检查标签数据的质量。]]></description>
-      <guid>https://stackoverflow.com/questions/78882012/ensure-quality-of-data-labeling-data-annotation</guid>
-      <pubDate>Sat, 17 Aug 2024 10:47:26 GMT</pubDate>
+      <title>检测群体中某个实例的行为变化（但不是整个群体）</title>
+      <link>https://stackoverflow.com/questions/74706455/detecting-a-change-in-behavior-in-one-instance-of-a-group-but-not-the-group-as</link>
+      <description><![CDATA[我一直在阅读有关时间序列数据中的异常检测的文章，并了解如何使用它来跟踪一段时间内的指标。
+例如，假设我们想要跟踪一个人每天使用网站的次数（例如 John）。我们可以使用异常检测来检测 John 的数据何时大幅上升或下降。我们将使用的指标是“John 的网站每日点击量”和日期。
+但是，假设我想对许多用户进行同样的检查，但他们都是独立的。该算法并不是试图找到用户活动之间的相关性，而只是在组中的一个用户的活动发生显著变化时提醒我们。所以假设 John 的活动在某一天异常高，我们会收到异常警报。
+另一个例子是监控大量设备并检测一台设备何时每分钟发送异常高水平的请求。再次强调，目的不是检测所有发送更多请求的设备之间的相关性，而是提醒我们一个设备的行为与其正常模式不同。
+我不确定这是否是正常的异常检测，因为看起来我必须为第一个示例中的每个用户构建一个模型来检测变化。对于少数用户来说，这可能是可行的，但似乎很难扩展到大量用户。
+所以我想知道异常检测是否是正确的方法，或者是否存在我不知道的其他 AI 监控解决方案/工具？]]></description>
+      <guid>https://stackoverflow.com/questions/74706455/detecting-a-change-in-behavior-in-one-instance-of-a-group-but-not-the-group-as</guid>
+      <pubDate>Tue, 06 Dec 2022 17:06:14 GMT</pubDate>
     </item>
     <item>
-      <title>使用人工智能进行文本提取和文本识别</title>
-      <link>https://stackoverflow.com/questions/72297600/text-extraction-and-text-recognition-with-ai</link>
-      <description><![CDATA[从文本开始，我希望能够识别特定信息。
-示例：
-输入文本：“发票号为 18”、“发票号：75”、“发票号：84”
-已识别的发票号：“18”、“75”、“84”
-具体问题是我有很多包含大量此类信息的文档，我想使用算法来识别和提取各种类型的字段。
-我认为理论上我会使用某种框架/算法，输入我的所有文档并通过批准或不批准结果来训练算法，但我不知道从哪里开始。
-我研究了非结构化文本的深度学习、机器学习、斯坦福 NER、命名实体认可为一般概念等。
-我希望得到一些关于从哪里开始实施此类解决方案的指导。
-谢谢]]></description>
-      <guid>https://stackoverflow.com/questions/72297600/text-extraction-and-text-recognition-with-ai</guid>
-      <pubDate>Thu, 19 May 2022 01:15:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>PyTorch 中的 `squeeze()` 与 `unsqueeze()`</title>
-      <link>https://stackoverflow.com/questions/61598771/squeeze-vs-unsqueeze-in-pytorch</link>
-      <description><![CDATA[我不明白 squeeze() 和 unsqueeze() 对张量做了什么，即使查看了文档和相关问题。
-我试图通过在 Python 中自己探索来理解它。我首先用创建了一个随机张量
-x = torch.rand(3,2,dtype=torch.float)
-&gt;&gt;&gt; x
-tensor([[0.3703, 0.9588],
-[0.8064, 0.9716],
-[0.9585, 0.7860]])
-
-但无论我如何挤压它，我都会得到相同的结果：
-torch.equal(x.squeeze(0), x.squeeze(1))
-&gt;&gt;&gt; True
-
-如果我现在尝试解压，我会得到以下结果，
-&gt;&gt;&gt; x.unsqueeze(1)
-张量([[[0.3703, 0.9588]],
-[[0.8064, 0.9716]],
-[[0.9585, 0.7860]]])
-&gt;&gt;&gt; x.unsqueeze(0)
-张量([[[0.3703, 0.9588],
-[0.8064, 0.9716],
-[0.9585, 0.7860]]])
-&gt;&gt;&gt; x.unsqueeze(-1)
-tensor([[[0.3703],
-[0.9588]],
-[[0.8064],
-[0.9716]],
-[[0.9585],
-[0.7860]]])
-
-但是，如果我现在创建一个张量  x = torch.tensor([1,2,3,4])，然后我尝试解压它，那么看起来 1 和 -1 使它成为一列，而 0 保持不变。
-x.unsqueeze(0)
-tensor([[1, 2, 3, 4]])
-&gt;&gt;&gt; x.unsqueeze(1)
-tensor([[1],
-[2],
-[3],
-[4]])
-&gt;&gt;&gt; x.unsqueeze(-1)
-tensor([[1],
-[2],
-[3],
-[4]])
-
-有人能解释一下 squeeze() 和 unsqueeze() 对张量做了什么吗？提供参数 0、1 和 -1 之间有什么区别？]]></description>
-      <guid>https://stackoverflow.com/questions/61598771/squeeze-vs-unsqueeze-in-pytorch</guid>
-      <pubDate>Mon, 04 May 2020 18:06:38 GMT</pubDate>
+      <title>如何减少图像异常检测中的假阴性？</title>
+      <link>https://stackoverflow.com/questions/71160069/how-to-reduce-false-negatives-in-image-anomaly-detection</link>
+      <description><![CDATA[我正在从事一个质量检查项目，我需要开发一个可以检测不规则部件的程序。我面临的问题是我没有很多不规则样本（3,000 多个常规样本中只有 7 个）。我尝试使用 CNN，但由于样本数量不平衡，模型将所有样本检测为常规样本，因此我正在探索的方法是使用异常检测算法。我也尝试使用自动编码器，但由于常规和不规则之间的差异很小，我无法获得任何好的结果。到目前为止，给我带来最佳结果的方法是将局部离群值因子与特征提取器 (HOG) 结合使用。这种方法唯一的问题是，即使在调整算法的参数后，它仍然会给我误报（正常样本被标记为不规则），这对于此应用来说是不可接受的。
+我可以在流程中添加什么来消除误报吗？或者您可以推荐我其他方法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/71160069/how-to-reduce-false-negatives-in-image-anomaly-detection</guid>
+      <pubDate>Thu, 17 Feb 2022 14:32:38 GMT</pubDate>
     </item>
     <item>
       <title>PyTorch 中的 `stack()` 与 `cat()`</title>
@@ -480,13 +496,6 @@ loss = torch.stack(policy_losses).sum() + torch.stack(value_losses).sum()
 我很高兴知道这些函数之间的区别。]]></description>
       <guid>https://stackoverflow.com/questions/54307225/stack-vs-cat-in-pytorch</guid>
       <pubDate>Tue, 22 Jan 2019 11:24:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>我怎么知道训练数据足以进行机器学习</title>
-      <link>https://stackoverflow.com/questions/24752941/how-can-i-know-training-data-is-enough-for-machine-learning</link>
-      <description><![CDATA[例如：如果我想训练一个分类器（可能是 SVM），我需要收集多少样本？有没有测量方法？]]></description>
-      <guid>https://stackoverflow.com/questions/24752941/how-can-i-know-training-data-is-enough-for-machine-learning</guid>
-      <pubDate>Tue, 15 Jul 2014 08:03:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
