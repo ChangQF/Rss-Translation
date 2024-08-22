@@ -4,7 +4,108 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 21 Aug 2024 21:15:11 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 22 Aug 2024 01:09:24 GMT</lastBuildDate>
+    <item>
+      <title>关于使用软件功效和样本量计算的问题</title>
+      <link>https://stats.stackexchange.com/questions/653147/questions-about-use-software-power-and-sample-size-calculation</link>
+      <description><![CDATA[我正在使用功效和样本量计算来计算两组之间跌倒风险比的样本量
+在独立的前瞻性环境中，我需要输入实验对象相对于对照组的相对失败风险 (R)。
+这里的相对失败风险是什么意思？
+例如，对照组的跌倒改善率为 0.3，干预组为 0.5。
+这里的比率是指 0.5/0.3，还是 (1-0.5) / (1-0.3)？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/653147/questions-about-use-software-power-and-sample-size-calculation</guid>
+      <pubDate>Thu, 22 Aug 2024 00:49:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>贝塔回归模型参数估计值的解释</title>
+      <link>https://stats.stackexchange.com/questions/653143/interpretation-of-parameter-estimates-from-a-beta-regression-model</link>
+      <description><![CDATA[我在 R 中使用 beta 回归模型。我将用模拟数据进行说明，以便理解解释。假设结果变量称为 outcome，其范围在 0 和 1 之间。我还有两个协变量：treatment，其有 3 个类别（A、B 和 C）和使用标准正态分布模拟的 iq。我的目标是调查结果和协变量之间是否存在关联。
+用于模拟数据的 R 代码：
+set.seed(1)
+mydata = data.frame(outcome=runif(100),treatment = factor(sample(c(&quot;A&quot;,&quot;B&quot;,&quot;C&quot;),100,replace=TRUE)),iq=rnorm(100))
+
+然后我们可以使用 betareg 函数拟合 beta 回归模型。
+library(betareg)
+library(tidyverse)
+library(dplyr)
+library(marginaleffects)
+library(ggeffects)
+library(ordbetareg)
+library(knitr)
+library(parameters)
+
+model_beta = betareg(outcome~factor(treatment)+iq | factor(treatment)+iq,
+data=mydata,link=&quot;logit&quot;)
+summary(model_beta)
+
+模型摘要如下。我理解有两个不同的部分：一个用于均值模型，另一个用于精度模型。由于我们使用了 logit 链接，因此估计值是对数几率估计。
+第一个问题：我可以从以下输出中做出推断吗？我可以解释为“如果 iq 增加 1 个单位，则 .......
+调用：
+betareg(formula = consequence ~ factor(treatment) + iq | factor(treatment) + iq, data = mydata, link = &quot;logit&quot;)
+
+标准化加权残差 2：
+最小值 1Q 中位数 3Q 最大值 
+-2.5729 -0.5849 0.0389 0.6002 2.0709 
+
+系数（带 logit 链接的均值模型）：
+估计标准差。误差 z 值 Pr(&gt;|z|) 
+(截距) -0.02176 0.17159 -0.127 0.899 
+因子(治疗)B -0.13444 0.26595 -0.506 0.613 
+因子(治疗)C 0.24357 0.26630 0.915 0.360 
+iq -0.19714 0.11071 -1.781 0.075 .
+
+Phi 系数（带对数链接的精度模型）：
+估计标准差。误差 z 值 Pr(&gt;|z|) 
+(截距) 0.99059 0.20671 4.792 1.65e-06 ***
+因子(治疗)B -0.68443 0.28269 -2.421 0.0155 * 
+因子(治疗)C -0.12546 0.31100 -0.403 0.6867 
+iq 0.07665 0.11955 0.641 0.5214 
+---
+有效代码: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1 
+
+估计量类型：ML（最大似然）
+对数似然：8 Df 上的 6.014
+伪 R 平方：0.04711
+迭代次数：30（BFGS）+ 1（Fisher 评分）
+
+但是，我也遇到了类似以下的输出（概率差异）。
+ #get difference
+avg_comparisons(model_beta)%&gt;%
+kable()
+
+输出如下。
+|term |contrast |estimate|std.error|statistic|p.value|s.value|conf.low|conf.high|predicted_lo|predicted_hi|predicted|
+|:---------|:-----------------|-----------:|---------:|-----------:|---------:|---------:|---------:|---------:|---------:|---------:|---------:|
+|iq |平均值(+1) | -0.0483355| 0.0264920| -1.8245311| 0.0680718| 3.8767987| -0.1002589| 0.0035879| 0.4774381| 0.4286290| 0.4774381|
+|治疗 |平均值(B) - 平均值(A) | -0.0332144| 0.0656963| -0.5055740| 0.6131557| 0.7056745| -0.1619768| 0.0955481| 0.5110320| 0.4774381| 0.4774381|
+|treatment |mean(C) - mean(A) | 0.0600606| 0.0653734| 0.9187318| 0.3582359| 1.4810184| -0.0680689| 0.1881902| 0.5110320| 0.5714338| 0.4774381|
+
+第二个问题：我可以使用上述输出进行推断吗？我理解上表中的估计值是概率的差异。我可以说以下吗？
+
+如果 iq 增加 1 个单位，则在保持其他变量不变的情况下，结果的概率会降低 4.83%。
+在保持其他变量不变的情况下，治疗 = C 与治疗 = A 的结果概率增加 6%。
+
+第三个问题：还有其他简单的解释吗？
+第四个问题：如果我的数据中 结果 变量中有 0 和 1，该怎么办？我发现我们可以使用零一膨胀贝塔回归模型？任何有关 R 的帮助都将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653143/interpretation-of-parameter-estimates-from-a-beta-regression-model</guid>
+      <pubDate>Wed, 21 Aug 2024 21:23:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>推导 Fisher 的神秘估计量来应对未知物种问题</title>
+      <link>https://stats.stackexchange.com/questions/653142/deriving-fishers-mysterious-estimator-for-the-unseen-species-problem</link>
+      <description><![CDATA[摘自维基百科：
+
+20 世纪 40 年代初，亚历山大·史蒂文·科贝特 (Alexander Steven Corbet) 在英国马来亚花了两年时间捕捉蝴蝶。他记录了观察到的蝴蝶种类，以及捕获了每种蝴蝶的数量。例如，他捕获了 74 种不同的蝴蝶，但只捕获了 2 只。
+当 Corbet 回到英国时，他找到了生物统计学家 Ronald Fisher，询问他如果再捕捉两年，可以捕获多少种新蝴蝶；实际上，Corbet 是在问他观察到了多少种零次的蝴蝶。
+Fisher 给出了一个简单的估计：再捕捉两年，Corbet 可以捕获 75 种新蝴蝶。他使用一个简单的求和方法做到了这一点：
+
+取你发现的奇数物种数量，然后从中减去你发现的偶数物种数量。
+维基百科文章引用了这篇论文，但并未提供证明。该论文引用了 Fisher、Corbet 和 Williams 于 1943 年撰写的这篇论文，但我没有在其中看到任何与该公式类似的内容。维基百科文章还引用了Good 和 Toulmin 的这篇论文来证实 Fisher 的和，但它也不存在。
+我对这个估计量感到非常困惑。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653142/deriving-fishers-mysterious-estimator-for-the-unseen-species-problem</guid>
+      <pubDate>Wed, 21 Aug 2024 21:18:59 GMT</pubDate>
+    </item>
     <item>
       <title>最大化某个平均值机会的最小数字</title>
       <link>https://stats.stackexchange.com/questions/653138/minimum-number-to-maximize-the-chance-of-a-certain-average</link>
@@ -28,26 +129,6 @@
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/653130/r-lmer-help-understanding-my-mixed-model-output</guid>
       <pubDate>Wed, 21 Aug 2024 15:49:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>确定多个分析的样本大小</title>
-      <link>https://stats.stackexchange.com/questions/653129/determine-the-sample-size-for-multiple-analyses</link>
-      <description><![CDATA[我无法确定样本量。
-在时间 1 和时间 2，我有一个治疗组和一个对照组。
-变量 A = 其子集 A1、A2、A3 和 A4 的平均值。
-变量 B = 其子集 B1、B2 和 B3 的平均值。
-对于我的第一次分析（时间 1），我想查看 9 个变量（A 和 B 及其子集）之间的相关性。我认为我应该使用（精确：相关性：双变量正态模型）运行 G*Power。
-对于我的第二次分析（时间 1），我想查看 A 的哪些子集可以预测 B，基本上是一个回归模型。我认为我应该使用 (t 检验：线性双变量回归：两组，截距之间的差异) 运行 G*Power。
-对于我的第三个分析（时间 1 和时间 2），我想看看我的治疗组与我的对照组相比从时间 1 到时间 2 的 B 是否有所改善。我认为我应该使用 G*Power，使用 (F 检验：ANOVA：重复测量，组内-组间相互作用)。
-对于我的最后一个分析（时间 1 和时间 2），我只想查看我的治疗组，即在治疗 A 之后，A1、A2、A3 和 A4 的增益如何导致 B 的增益。我正在考虑 delta delta 分析，所以我不确定这个。
-我的问题：
-
-您认为我对这四个分析的选择有意义吗？您有什么建议吗？
-我将为这四个 G*Power 获取不同的样本量，但如何确定我研究的最终样本量？我假设是最大的数字，但我不确定。
-
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/653129/determine-the-sample-size-for-multiple-analyses</guid>
-      <pubDate>Wed, 21 Aug 2024 15:38:18 GMT</pubDate>
     </item>
     <item>
       <title>使用引导法比较两种治疗方法时 P 值为 0</title>
@@ -98,38 +179,6 @@ p_value_median &lt;- mean(bootstat2 &gt;= perceived_medians_diff)
       <pubDate>Wed, 21 Aug 2024 15:31:32 GMT</pubDate>
     </item>
     <item>
-      <title>为时间序列预测添加约束</title>
-      <link>https://stats.stackexchange.com/questions/653126/adding-a-constraint-to-time-series-forecasts</link>
-      <description><![CDATA[我有 3 个变量：$X_t$、$Y_t$、$Z_t$
-在我的原始数据中，对于所有 $t$：$Z_t$&gt; $Y_t$&gt; $X_t$
-我想制作 3 个基本时间序列模型来预测这些变量中的每一个。
-但是，在预测中，我想确保（即约束）在每个预测点 $t$，预测的 $Z_t$ 总是大于预测的 $Yt$ ，并且预测的 $Y_t$ 总是大于预测的 $X_t$。
-我目前正在做一些这样的基本方法：
-library(stats)
-library(forecast)
-library(ggplot2)
-
-n &lt;- 100
-
-var3 &lt;- rnorm(n, 平均值 = 10, sd = 2)
-var2 &lt;- rnorm(n, 平均值 = var3 - 2, sd = 1.5)
-var1 &lt;- rnorm(n, 平均值 = var2 - 2, sd = 1)
-
-df &lt;- data.frame(var1 = var1, var2 = var2, var3 = var3, time = 1:n)
-
-arima_var1 &lt;- auto.arima(df$var1)
-arima_var2 &lt;- auto.arima(df$var2)
-arima_var3 &lt;- auto.arima(df$var3)
-
-forecast_var1 &lt;- Forecast(arima_var1, h = 12)
-forecast_var2 &lt;- 预测(arima_var2, h = 12)
-forecast_var3 &lt;- 预测(arima_var3, h = 12)
-
-但是，我注意到在预测中，有时不遵守此约束。是否有某种方法可以强制预测遵守此约束？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653126/adding-a-constraint-to-time-series-forecasts</guid>
-      <pubDate>Wed, 21 Aug 2024 15:28:37 GMT</pubDate>
-    </item>
-    <item>
       <title>如何正确报告交叉验证的结果，特别是标准差</title>
       <link>https://stats.stackexchange.com/questions/653125/how-to-properly-report-results-from-cross-validation-specifically-standard-devi</link>
       <description><![CDATA[这似乎是一个标准问题，但不幸的是，我还没有找到任何好的解释资源。
@@ -141,31 +190,13 @@ forecast_var3 &lt;- 预测(arima_var3, h = 12)
       <pubDate>Wed, 21 Aug 2024 15:27:19 GMT</pubDate>
     </item>
     <item>
-      <title>我正在尝试寻找基线变化的标准差</title>
-      <link>https://stats.stackexchange.com/questions/653122/i-am-trying-to-look-for-the-standard-deviation-of-change-from-baseline</link>
-      <description><![CDATA[因此，我目前正在进行荟萃分析，需要找到与基线相比变化的标准差，因为我纳入的大多数研究都没有给出标准差。
-我有基线和终点的平均值和标准差。
-根据我在 Cochrane 上得到的信息，我需要估算相关系数才能找到变化的标准差，但我的量表在不同研究之间有所不同。
-我的导师建议我做一个基线和终点的汇总标准差。
-我应该按照导师的建议去做吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653122/i-am-trying-to-look-for-the-standard-deviation-of-change-from-baseline</guid>
-      <pubDate>Wed, 21 Aug 2024 14:38:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>多元成分数据模型之后该做什么？</title>
-      <link>https://stats.stackexchange.com/questions/653121/what-to-do-after-the-multivariate-model-for-compositional-data</link>
-      <description><![CDATA[我有一个简单的组合数据集（3 个测量值，必须加起来为 100%）。我知道如何进行 ILR 转换，然后我可以对治疗进行简单的多元回归。但接下来呢？据我所知，没有简单的方法可以将 ILR 转换矩阵与原始测量值关联起来。例如，我如何知道给定的治疗是否最终有利于结果 A 相对于结果 B 和 C 的相对优势？对于该领域的从业者来说，这种说法是合理的，而不仅仅是说治疗彼此不同。有没有一种方法可以将多元结果与原始组合集中的相对水平联系起来，这种方式比回归和回归不能准确描述的三重图更严格？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653121/what-to-do-after-the-multivariate-model-for-compositional-data</guid>
-      <pubDate>Wed, 21 Aug 2024 14:26:24 GMT</pubDate>
-    </item>
-    <item>
       <title>根据样本预测唯一观测值总数 - R</title>
       <link>https://stats.stackexchange.com/questions/653120/predict-total-unique-observations-based-on-sample-r</link>
       <description><![CDATA[我有一组包含 N 个唯一元素的数据，这些元素可以重复任意次以得到 X 个总元素。
 N 和 X 的值未知。
 我有此数据的样本，并计算了样本总大小和样本中唯一元素总数。
 为了了解样本的结构，我以一系列样本大小重复进行了子样本抽样，没有进行替换，并计算了唯一元素。
-绘制在此处：
+绘制于此处：
 
 （红色 = 总样本，黑色 = 下采样。每个可见黑点实际上是 20 个重复）。
 由此，我想在 R 中拟合一条超出 x 的观测值的曲线，以预测 y 的最大值（例如：数据集中唯一元素的总数，N）。
@@ -208,6 +239,16 @@ x=c(1e+07, 1e+07, 1e+07, 1e+07, 1e+07, 1e+07, 1e+07, 1e+07, 1e+07, 1e+07, 1e+07,
       <pubDate>Wed, 21 Aug 2024 14:21:44 GMT</pubDate>
     </item>
     <item>
+      <title>回归模型与配对 t 检验比较，但方差膨胀</title>
+      <link>https://stats.stackexchange.com/questions/653118/regression-models-comparison-with-paired-t-test-but-inflated-variance</link>
+      <description><![CDATA[我有 2 个依赖数据集 D1 和 D2，我用它们在嵌套交叉验证中训练和评估回归模型，该模型具有 L 外循环。对于每个循环，我使用皮尔逊相关性评估模型，因此为每个数据集提供了 L 皮尔逊相关系数。
+然后，我用配对 t 检验评估了 2 个模型是否给出了不同的结果（即皮尔逊相关性差异是否平均不同于 0？），但我得到的结果不显著，而我实际上知道 D2 应该给出更高的结果。问题是 D2 产生的模型为 L 皮尔逊相关性增加了更多可变性。我认为方差是由另一个因素引起的，但测试该假设并重新训练模型不是一种选择，主要是因为这会花费太多时间。
+那么，是否有任何方法可以运行配对 t 检验并解决此类问题？我已阅读有关使用 L 皮尔逊相关性来获取参数估计，或对其应用 收缩 系数来减少方差的文章。但我不确定这些方法是否真的合适（以及如何应用它们）或者是否有更好的选择？
+编辑：从 wzbillings 的评论来看，这确实是我真正需要的置信区间，但可以考虑到方差膨胀问题。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653118/regression-models-comparison-with-paired-t-test-but-inflated-variance</guid>
+      <pubDate>Wed, 21 Aug 2024 13:46:33 GMT</pubDate>
+    </item>
+    <item>
       <title>因变量零值，数据正确结构，零膨胀模型</title>
       <link>https://stats.stackexchange.com/questions/653115/zero-values-in-dependent-variable-correct-structure-of-the-data-zero-inflate</link>
       <description><![CDATA[我想了解宏观经济变量与特定基金（二级基金）募资量之间的关系。
@@ -247,51 +288,42 @@ ABS Ventures VI, L.P.
       <pubDate>Wed, 21 Aug 2024 05:46:44 GMT</pubDate>
     </item>
     <item>
-      <title>计算 ED50 困难</title>
-      <link>https://stats.stackexchange.com/questions/653100/difficulty-calculating-ed50</link>
-      <description><![CDATA[我正在运行剂量探索研究分析，我们采用有偏差的上下硬币法来计算 ED50 和 ED90。由于某种原因，我无法计算 ED50，因为它显示为 NA。不过，我得到了 ED90 和 ED95 的值。
-有什么建议吗？
-我正在复制下面的代码
-library(cir)
-doseSequence&lt;- c(16.5, 16.5, 16.5, 16.5, 16.5, 18, 18, 18, 18, 18, 18, 18, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 19.5, 21, 21, 21, 21, 21, 21, 21, 21, 22.5, 22.5, 22.5, 22.5, 22.5, 24, 24, 24, 25.5, 25.5, 25.5, 25.5)
-responseSequence&lt;- c(1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1)
-ed50&lt;- quickInverse(responseSequence, x=doseSequence, target = 0.5)
-ed50
-
-目标点 lower90conf upper90conf
-1 0.5 NA -Inf Inf
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/653100/difficulty-calculating-ed50</guid>
-      <pubDate>Tue, 20 Aug 2024 05:32:12 GMT</pubDate>
+      <title>优化正定矩阵的简单问题</title>
+      <link>https://stats.stackexchange.com/questions/653090/simple-problem-of-optimizing-a-positive-definite-matrix</link>
+      <description><![CDATA[我正在编写一个关于约束优化的简单教程。我计划使用两个示例：约束一个向量具有单位范数，约束一个矩阵为对称正定矩阵。我想用合成数据来提供一些此类优化的非常简单的示例。
+例如，对于单位范数约束，我生成单位圆上分布的随机样本，然后优化一个向量 $\theta$，以最小化到样本的平均平方距离。当不约束 $\theta$ 时，结果不在单位圆内，而添加约束后，我们得到一个在单位圆内的 $\theta$。
+我试图想出一个同样简单直观的问题，涉及优化某个应该是正定的矩阵 $\Sigma$。但是，我想不出任何简单明了的东西。例如，如果我们想按照上述方法操作并找到最小化与一组正定矩阵的距离的矩阵，则不受约束的结果将是正定的。我曾考虑过使用一个损失函数将 $\Sigma$ 推向非 SPD 矩阵，但我认为优化过程不会收敛。
+因此，我的问题是，矩阵 $\Sigma$ 上的一些简单的、表现良好的优化问题是什么，直观地了解我们为什么要让它是正定的，以及如果我们在优化中不包含约束，它在哪里不会是正定的？我希望能够在我的教程中用不太多的代码为我的问题合成数据。
+编辑：我实现了答案中建议的示例。在此处查看结果 https://dherrera1911.github.io/posts/2024/08/constrained-learning-with-pytorch-parametrizations/]]></description>
+      <guid>https://stats.stackexchange.com/questions/653090/simple-problem-of-optimizing-a-positive-definite-matrix</guid>
+      <pubDate>Tue, 20 Aug 2024 22:33:09 GMT</pubDate>
     </item>
     <item>
-      <title>纪元 (epoch) 与数据复制相同吗？</title>
-      <link>https://stats.stackexchange.com/questions/653012/are-epochs-the-same-as-data-duplication</link>
-      <description><![CDATA[时期，即对原始数据重复训练的次数，对于神经网络来说是绝对必要的，因为神经网络的参数通常比原始实例多得多。
-对于具有许多参数的其他 ML 方法，使用时期的方法论地位是什么？它们是否用于（我称之为）类技术，如随机森林？通过“方法论地位”，我隐藏了我的真实意图。也就是说，为什么不将时期用于普通的逻辑回归或决策树？为什么不将每个额外的时期视为数据增强，但使用相同的实例？如果建议重复数据以减少偏差，我觉得任何统计学家都会感到恶心。 ML 建模者会毫不犹豫地无限期地增加 epoch，直到训练/测试准确率开始变差（甚至可能到那时也不会变差！）。
-那么
-
-在传统预测模型中使用 epoch（基本重复实例）可以吗（只要考虑到过度拟合？
-另一方面，一个 epoch 是否应该成为 NN 训练的标准，或者更确切地说，使用重复数据作为增强技术是否存在各种统计问题？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/653012/are-epochs-the-same-as-data-duplication</guid>
-      <pubDate>Mon, 19 Aug 2024 14:12:29 GMT</pubDate>
+      <title>准确计算截断二项式期望</title>
+      <link>https://stats.stackexchange.com/questions/653081/compute-a-truncated-binomial-expectation-accurately</link>
+      <description><![CDATA[我需要计算二项式随机变量的以下期望值
+$$E_{S \sim \rm{Binom}(\frac{k}{M}; N)} \left[\left(\frac{k-1}{k}\right)^S 1_{\{S \leq k\}}\right] = \sum_{s=0}^k \binom{N}{s} \left(\frac{k}{M}\right)^s \left(1 - \frac{k}{M}\right)^{N-s} \left(\frac{k-1}{k}\right)^s.$$
+变量的典型范围是 $0 &lt; k \leq 256$，$M = N = 10^9$。如果 $k = N$，则可以使用二项式 RV 的独立伯努利分解来很好地评估。如果不存在 $\left(\frac{k-1}{k}\right)^s$ 项，则这是二项式的累积分布函数，等于不完全 Beta 积分，并且在数值上相当稳定。但是，如何以数值稳定的方式处理上述混合公式？我不需要它很快，只需要给我合理的数字而不是 nan 或类似的数字 $&gt; 1$.
+更新：为了完整性，总和可以用超几何函数重写
+$$\sum_{s=0}^k \binom{N}{s} p^s q^{N-s} = q^N\left((1 + p/q)^N - (p/q)^{k+1} \binom{N}{k+1} {}_2F_1(1, k-N + 1; k + 2; -p/q)\right),$$
+其中
+\begin{align*}
+{}_2F_1(a, b; c; z) := \sum_{n=0}^\infty \frac{(a)_n(b)_n}{(c)_n} \frac{z^n}{n!}.
+\end{align*}
+但是对于非常大的 $N$，这会导致数字溢出。总和在 $n &gt; N - k + 1$ 之后终止，但不值得用 $k+1$ 项的总和与具有更多项的总和进行权衡。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653081/compute-a-truncated-binomial-expectation-accurately</guid>
+      <pubDate>Tue, 20 Aug 2024 20:03:48 GMT</pubDate>
     </item>
     <item>
-      <title>回归中的独立指标变量在改变类别数量时变得显著</title>
-      <link>https://stats.stackexchange.com/questions/653011/independent-indicator-variable-in-regression-becomes-significant-when-changing-t</link>
-      <description><![CDATA[我正在使用二元响应变量运行逻辑回归。无论是否使用家庭作为指示变量，家庭本身都会产生微小的正向但不显著的影响。
-当将家庭规模视为具有 3 个级别的分类变量（单户、中型或大型家庭）来检查其是否有影响时，与排除的类别（单户）相比，两个包含的虚拟变量都具有很强的显著性和正向性。为什么会这样？
-假设不仅家庭本身会对结果产生积极影响，而且家庭规模也会产生积极影响。我将家庭规模也视为分类，因为它在数据集中只能采用 7 个不同的值。
-（数据集包含 425 000 个个体，每个个体没有重复测量，但不幸的是总共只有 7 个预测因子。但感兴趣的结果（编码为 1，另一个类别为 0）是罕见事件（仅 0.3%），因此数据严重不平衡。
-425 000 人中有 43% 属于一个家庭。但家庭户主导了感兴趣的结果案例 - 属于结果 = 1 的 69% 属于家庭户。
-在 3 个类别中；数据集中所有 425 000 人中有 243 000 人属于单个家庭（57%），30% 属于中型家庭，只有 13% 属于大家庭。
-然而，在属于感兴趣的现金结果的人群中，大家庭现在占32%，中等家庭占 37%，单身占 31%。）
-Family_account 的系数为 0.2221，但 p 值为 0.29。
-相比之下，在使用家庭规模的模型中，Medium_Family 的系数为 0.4366，Large_family 的系数为 1.6255 - 两者的 p 值均小于 0.000。
-非常感谢您的帮助，br]]></description>
-      <guid>https://stats.stackexchange.com/questions/653011/independent-indicator-variable-in-regression-becomes-significant-when-changing-t</guid>
-      <pubDate>Mon, 19 Aug 2024 13:47:05 GMT</pubDate>
+      <title>“重复测量方差分析” vs “以受试者为随机效应的方差分析” vs “以受试者为随机效应的重复测量方差分析”</title>
+      <link>https://stats.stackexchange.com/questions/653051/repeated-measures-anova-vs-anova-with-subject-as-random-effect-vs-repeated</link>
+      <description><![CDATA[运行重复测量方差分析（对每个受试者随时间重复测量）与以受试者为随机效应的方差分析之间有什么区别？`
+我也看到过提到“以受试者为随机效应的重复测量方差分析”。
+对于上下文，我有 6 个组和每个组/受试者 3 个基线后时间点。每个受试者都是一个组的成员。我想比较同一时间点的两个不同组的平均值（例如，时间点 B 的组 1 与组 3）以及不同时间点的同一组的平均值（例如，时间点 B 的组 1 与时间点 C 的组 1）。
+我将使用 ls-means 来比较均值，但我真的不明白上述三个模型类别之间的区别。如果有区别的话！
+非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/653051/repeated-measures-anova-vs-anova-with-subject-as-random-effect-vs-repeated</guid>
+      <pubDate>Tue, 20 Aug 2024 13:42:20 GMT</pubDate>
     </item>
     </channel>
 </rss>
