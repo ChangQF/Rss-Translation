@@ -4,7 +4,21 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>初学者 -> /r/learnmachinelearning，AGI -> /r/singularity，职业建议 -> /r/cscareerquestions</description>
-    <lastBuildDate>Fri, 23 Aug 2024 03:17:21 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 23 Aug 2024 06:21:31 GMT</lastBuildDate>
+    <item>
+      <title>[R] 输血：使用一个多模态模型预测下一个标记并扩散图像</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1ez422y/r_transfusion_predict_the_next_token_and_diffuse/</link>
+      <description><![CDATA[Transfusion 在单一模型中统一了文本和图像生成，可与专门的架构相媲美。    提交人    /u/AhmedMostafa16   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1ez422y/r_transfusion_predict_the_next_token_and_diffuse/</guid>
+      <pubDate>Fri, 23 Aug 2024 04:37:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>torch.argmin() 非可微性解决方法 [R][D]</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1ez2ygd/torchargmin_nondifferentiability_workaround_rd/</link>
+      <description><![CDATA[我正在实现一个基于地形约束的神经网络层。该层可以被认为类似于 2D 网格图，或者基于深度学习的自组织图。它由 4 个参数组成，即高度、宽度、潜在维数和 p 范数（用于距离计算）。每个单元/神经元的维数等于潜在维数。此类的最简代码为： class Topography(nn.Module): def __init__( self, latent_dim:int = 128, height:int = 20, width:int = 20, p_norm:int = 2 ): super().__init__() self.latent_dim = latent_dim self.height = height self.width = width self.p_norm = p_norm # 创建包含索引 2D 坐标的 2D 张量 locs = np.array(list(np.array([i, j]) for i in range(self.height) for j in range(self.width))) self.locations = torch.from_numpy(locs).to(torch.float32) del locs # 线性层的可训练权重 - self.lin_wts = nn.Parameter(data = torch.empty(self.height * self.width, self.latent_dim), require_grad = True) # 高斯初始化，平均值 = 0 且 std-dev = 1 / sqrt(d)- self.lin_wts.data.normal_(mean = 0.0, std = 1 / np.sqrt(self.latent_dim)) def forward(self, z): # L2 标准化 &#39;z&#39; 将其转换为单位向量- z = F.normalize(z, p = self.p_norm, dim = 1) # 每个输入到所有 SOM 单元的成对平方 L2 距离（L2 范数距离）- pairwise_squaredl2dist = torch.square( torch.cdist( x1 = z, # 还将所有 lin_wts 转换为单位向量- x2 = F.normalize(input = self.lin_wts, p = self.p_norm, dim = 1), p = self.p_norm ) ) # 对于每个输入 zi，计算“lin_wts”中的最近单元 - nearest_indices = torch.argmin(pairwise_squaredl2dist, dim = 1) # 获取 2D 坐标索引 - nearest_2d_indices = self.locations[closest_indices] # 计算最近单元和其他每个单元之间的 L2 距离 - l2_dist_squared_topo_neighb = torch.square(torch.cdist(x1 = nearest_2d_indices.to(torch.float32), x2 = self.locations, p = self.p_norm)) del nearest_indices, nearest_2d_indices return l2_dist_squared_topo_neighb, pairwise_squaredl2dist  对于给定的输入“z”（比如编码器的输出） ViT/CNN），它计算距离最近的单元，然后使用径向基函数核/高斯（逆）函数在该最近单元周围创建地形结构——在下面的&quot;topo_neighb&quot; 张量中完成。 由于&quot;torch.argmin()&quot;给出类似于独热编码向量的索引，这些向量根据定义是不可微的，我正在尝试创建一个解决方法： # 2D 单元数 - height = 20 width = 20 # 每个单元的维数指定为 - latent_dim = 128 # 使用 L2-norm 进行距离计算 - p_norm = 2 topo_layer = Topography(latent_dim = latent_dim, height = height, width = width, p_norm = p_norm) optimizer = torch.optim.SGD(params = topo_layer.parameters(), lr = 0.001, influence = 0.9) batch_size = 1024 # 创建一个输入向量 - z = torch.rand(batch_size, latent_dim) l2_dist_squared_topo_neighb, pairwise_squaredl2dist = topo_layer(z) # l2_dist_squared_topo_neighb.size(), pairwise_squaredl2dist.size() # (torch.Size([1024, 400]), torch.Size([1024, 400])) curr_sigma = torch.tensor(5.0) # 计算相对于最近单元的高斯拓扑邻域结构- topo_neighb = torch.exp(torch.div(torch.neg(l2_dist_squared_topo_neighb), ((2.0 * torch.square(curr_sigma)) + 1e-5))) # 计算地形损失- loss_topo = (topo_neighb * pairwise_squaredl2dist).sum(dim = 1).mean() loss_topo.backward() optimizer.step()  现在，成本函数的值发生了变化，减少。另外，作为健全性检查，我正在记录&quot;topo_layer.lin_wts&quot; 的 L2 范数，以反映其权重正在使用梯度进行更新。 这是正确的实现，还是我遗漏了什么？    提交人    /u/grid_world   [link] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1ez2ygd/torchargmin_nondifferentiability_workaround_rd/</guid>
+      <pubDate>Fri, 23 Aug 2024 03:36:05 GMT</pubDate>
+    </item>
     <item>
       <title>[P] 生活方式咨询系统数据集</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1eyv17i/p_dataset_for_lifestyle_advisory_system/</link>
@@ -48,25 +62,11 @@
       <pubDate>Thu, 22 Aug 2024 15:44:23 GMT</pubDate>
     </item>
     <item>
-      <title>[P] 论文主题是运动规划，但想包含机器学习</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1eylej1/p_thesis_in_motion_planning_but_want_to_include/</link>
-      <description><![CDATA[大家好， 我正在做一篇关于运动规划四旋翼飞行器的论文（模型预测控制、经典计算机视觉、卡尔曼滤波器、A* 等）。曾学习过 DL、ML、CV 和 AI 课程。但是我想成为一名机器学习工程师。如果我的论文中没有机器学习，我找到一份工作的几率有多大？ 我总是可以利用我的论文和机器学习来处理视觉或点云，并将这些项目添加到我的 github 和博客上。 你有什么建议给我？    提交人    /u/Huge-Leek844   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1eylej1/p_thesis_in_motion_planning_but_want_to_include/</guid>
-      <pubDate>Thu, 22 Aug 2024 14:56:03 GMT</pubDate>
-    </item>
-    <item>
       <title>[D] 哪个行业的数据最差？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1eyj7vq/d_what_industry_has_the_worst_data/</link>
       <description><![CDATA[好奇地想听听——您认为哪个行业的 ML 数据质量一贯最差？ 我说的不是没有现实和可预见的 ML 应用的个别工作，比如木工。我说的是更大的行业，银行业、制药业、电信业、科技业（可能有点广泛）、农业、采矿业等等。 谁是陷得最深的？    提交人    /u/Standard_Natural1014   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1eyj7vq/d_what_industry_has_the_worst_data/</guid>
       <pubDate>Thu, 22 Aug 2024 13:23:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>将手写内容转换为文字 [P]</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1eyj399/convert_handwritten_to_text_written_p/</link>
-      <description><![CDATA[嗨，如何将手写内容转换为文本，我尝试使用 paddle ocr、tesseract 等，但没有得到好的结果，所以经过一番挖掘，我发现了 TrOCR，它不知道如何针对多种语言的手写内容进行微调。寻求指导甚至项目构建。    提交人    /u/LahmeriMohamed   [link] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1eyj399/convert_handwritten_to_text_written_p/</guid>
-      <pubDate>Thu, 22 Aug 2024 13:17:33 GMT</pubDate>
     </item>
     <item>
       <title>[D] 作为 MLE/数据工程师/数据科学家，您最不喜欢的工作部分是什么？</title>
