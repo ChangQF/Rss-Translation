@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 24 Aug 2024 03:17:02 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 24 Aug 2024 06:20:42 GMT</lastBuildDate>
     <item>
       <title>使用 Python 中的 RL 解决离散时间 LQR 问题</title>
       <link>https://stackoverflow.com/questions/78908049/struggling-to-solve-discrete-time-lqr-with-rl-in-python</link>
@@ -307,6 +307,58 @@ test_preds = train_mod.predict_proba(X_)[:,1]
       <pubDate>Tue, 06 Aug 2024 21:47:06 GMT</pubDate>
     </item>
     <item>
+      <title>如何使用 R 包“敏感性”执行 Sobol 敏感性分析？</title>
+      <link>https://stackoverflow.com/questions/76444438/how-to-perform-a-sobol-sensitivity-analysis-using-r-package-sensitivity</link>
+      <description><![CDATA[我想使用 R 包“sensitivity”执行 Sobol 敏感性分析。但是，我不确定如何在 sobol 函数中创建第一和第二个随机样本 (X1, X2)。我假设 X1 和 X2 都是输入数据的子集，但最终结果似乎不正确。
+library(tidymodels)
+library(sensitivity)
+
+# 示例数据
+set.seed(123)
+x1 = runif(100)
+x2 = runif(100)
+x3 = runif(100)
+y = 3 * x1 + 2 * x2 + x3 + rnorm(100)
+data &lt;- data.frame(x1, x2, x3, y)
+
+# 将数据拆分为训练集和测试集
+set.seed(234)
+data_split &lt;- initial_split(data, prop = 0.8)
+train_data &lt;- training(data_split)
+test_data &lt;- testing(data_split)
+
+# 使用创建线性回归模型tidymodels
+lm_spec &lt;- linear_reg() %&gt;%
+set_engine(&quot;lm&quot;) %&gt;%
+set_mode(&quot;regression&quot;)
+
+lm_fit &lt;- lm_spec %&gt;%
+fit(y ~ x1 + x2 + x3, data = train_data)
+
+# 定义模型函数
+model_function &lt;- function(x) {
+new_data &lt;- data.frame(x1 = x[, 1], x2 = x[, 2], x3 = x[, 3])
+predict(lm_fit, new_data)$`.pred`
+}
+
+# 执行 Sobol 敏感性分析
+set.seed(345)
+X_index1 = sample(x=1:100, size = 50, replace = FALSE)
+X_index2 = c(1:length(data$x1))[-X_index1]
+
+sobol_results &lt;- sobol(model = model_function, 
+X1 = data[X_index1, -4], 
+X2 = data[X_index2, -4], 
+nboot = 1000, order = 2)
+
+sobol_results
+
+sobol_results 显示敏感度顺序为：x2&gt;x1&gt;x3。根据函数 y = 3 * x1 + 2 * x2 + x3 + rnorm(100)，“x1”应该具有更高的敏感度，因为它是 3 * x1。我应该如何修正我的代码？谢谢。
+]]></description>
+      <guid>https://stackoverflow.com/questions/76444438/how-to-perform-a-sobol-sensitivity-analysis-using-r-package-sensitivity</guid>
+      <pubDate>Sat, 10 Jun 2023 01:54:12 GMT</pubDate>
+    </item>
+    <item>
       <title>如何使用pandas将大数据块拆分为x_train和y_train数据以供机器学习？</title>
       <link>https://stackoverflow.com/questions/67367698/how-to-use-pandas-chunk-for-large-data-into-split-the-data-for-x-train-and-y-tra</link>
       <description><![CDATA[df_chunk=pd.read_csv(filename,chunk=1000)
@@ -372,50 +424,6 @@ Epoch 10/10
 ]]></description>
       <guid>https://stackoverflow.com/questions/64049608/tensorflow-model-evaluate-gives-different-result-from-that-obtained-from-trainin</guid>
       <pubDate>Thu, 24 Sep 2020 15:26:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>MLflow：如何将实验状态返回为失败</title>
-      <link>https://stackoverflow.com/questions/61112113/mlflow-how-to-return-experiment-status-as-failed</link>
-      <description><![CDATA[我已经写出了我的代码，它具有以下形式 
-def train(run_name, log_basepath, logger, parameters):
-
-try:
-metrics = training_functions(parameters) # &lt;---- 可能失败的代码
-
-# 演示将属性加载到给定的运行
-with mlflow.start_run(run_name=run_name):
-
-# 日志参数
-mlflow.log_params(parameters)
-
-# 日志指标
-mlflow.log_metrics(metrics)
-
-# 定义实验标签
-mlflow.set_tags(tags)
-
-# 上传相关文件
-mlflow.log_artifact(artifact_abspath)
-
-# 主模型文件
-mlflow.log_artifact(log_basepath)
-
-except Exception as e:
-logger.error(&#39;\n模型训练失败。返回以下错误:\n {} \n\n&#39;.format(e))
-logger.info( &#39;第 {} 行错误&#39;.format(sys.exc_info()[-1].tb_lineno))
-
-# 演示将属性加载到给定运行
-使用 mlflow.start_run(run_name=run_name):
-# 定义运行标签
-logger.info(&#39;实验名称：{}&#39;.format(experiment_name))
-logger.info(&#39;运行名称：{}&#39;.format(run_name))
-logger.info(&#39;运行失败&#39;)
-
-mlflow.log_artifact(log_basepath)
-
-我的目标是如果发生故障，将日志发送到 mlflow 服务器。我的问题是，如何让 mlflow 将此标记为失败？]]></description>
-      <guid>https://stackoverflow.com/questions/61112113/mlflow-how-to-return-experiment-status-as-failed</guid>
-      <pubDate>Thu, 09 Apr 2020 00:28:12 GMT</pubDate>
     </item>
     <item>
       <title>训练期间改变模型</title>
