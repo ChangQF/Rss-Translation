@@ -4,12 +4,137 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 25 Aug 2024 09:15:14 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 25 Aug 2024 12:27:33 GMT</lastBuildDate>
     <item>
-      <title>RuntimeError: 形状 '[30, 167, 512]' 对于大小为 7695360 的输入无效 我是 python 新手，我尝试使用 transformer 构建翻译器，但出现错误</title>
-      <link>https://stackoverflow.com/questions/78910546/runtimeerror-shape-30-167-512-is-invalid-for-input-of-size-7695360-im-new</link>
+      <title>使用对最终目标有贡献的特征子集来训练核岭回归</title>
+      <link>https://stackoverflow.com/questions/78911183/training-kernel-ridge-regression-with-subsets-of-features-contributing-to-the-fi</link>
+      <description><![CDATA[我正在使用 Python 中的核岭回归 (KRR) 和 scikit-learn 研究机器学习问题。我的目标是训练一个内核，其中特征子集有助于目标预测。
+例如，我们知道在标准情况下，训练将针对以下内容进行：
+特征数据 X ((n_samples, n_features)) -&gt; Y (n_samples)
+我想要做的是，训练回归模型具有维度映射：(n_subset) -&gt; y_subset
+因此，(n_features) 由大小为 (n_subset) 的子组组成，这些子组本质上具有类似的起源，它们的模式重复相似，但值并不严格相同。
+假设 (n_features) = (n_subset)*(n_terms)。
+作为一个过早的解决方案，我已经实现了一个模型，其中每个特征子集对最终预测的贡献相同。以下是示例代码：
+import numpy as np
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.model_selection import GridSearchCV
+
+def train_kernel_with_weights(X, Y, n_subset, kernel_param_grid):
+nset, nfeat_total = X.shape
+n_kerterm = nfeat_total // n_subset # 内核预测项的数量，将加总为总数
+X_sub_rearr = X.reshape(nset * n_kerterm, n_subset)
+
+kr1 = GridSearchCV(KernelRidge(), param_grid=kernel_param_grid, cv=5)
+
+# 此处，测试了“等权重”方案，任意假设每个 (n_subset)-&gt;y_subset 项
+# 对总 Y 的贡献相等。
+kr1.fit(X_sub_rearr, np.repeat(Y/n_kerterm, n_kerterm))
+
+return kr1
+
+# 给定一个具有映射 (n_subset -&gt; value) 的核，获取子集总和预测值
+def predict_krrsum_1(n_subset, kr1, X):
+nset, nfeat_total = X.shape
+n_kerterm = nfeat_total // n_subset
+
+# 使用 n_subset 分割每个数据点的特征（可能是三元组）
+X_sub_rearr = X.reshape(nset*n_kerterm,n_subset)
+Y_krrsub_flat = kr1.predict(X_sub_rearr) # 1d 数组 (nset*n_kerterm)
+Y_krrsub = Y_krrsub_flat.reshape(-1,n_kerterm) # (nset, n_kerterm)
+Y_krrsum_1 = np.sum(Y_krrsub,axis=1)
+return Y_krrsum_1
+
+
+那么我的问题是：对于核训练函数：train_kernel_with_weights，
+我该如何优化子集的权重，而不是随意使用相等的权重？]]></description>
+      <guid>https://stackoverflow.com/questions/78911183/training-kernel-ridge-regression-with-subsets-of-features-contributing-to-the-fi</guid>
+      <pubDate>Sun, 25 Aug 2024 12:10:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Tensorflow 在低资源语言和葡萄牙语之间进行机器翻译的语言模型</title>
+      <link>https://stackoverflow.com/questions/78911175/a-language-model-for-machine-translation-between-a-low-resource-language-and-por</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78910546/runtimeerror-shape-30-167-512-is-invalid-for-input-of-size-7695360-im-new</guid>
+      <guid>https://stackoverflow.com/questions/78911175/a-language-model-for-machine-translation-between-a-low-resource-language-and-por</guid>
+      <pubDate>Sun, 25 Aug 2024 12:06:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>Resnet 训练和评估模式不一致</title>
+      <link>https://stackoverflow.com/questions/78911068/resnet-inconsistency-between-train-and-eval-mode</link>
+      <description><![CDATA[我正在尝试在 torch 中实现 Resnet。但我发现前向传递的输出在训练和评估模式之间差异很大。由于训练和评估模式除了 batch norm 和 dropout 之外不影响任何东西，所以我不知道结果是否有意义。
+下面是我的测试代码：
+import torch
+from torch import nn
+from torchvision import models
+
+class resnet_lstm(torch.nn.Module):
+def __init__(self):
+super(resnet_lstm, self).__init__()
+resnet = models.resnet50(pretrained=True)
+self.share = torch.nn.Sequential()
+self.share.add_module(&quot;conv1&quot;, resnet.conv1)
+self.share.add_module(&quot;bn1&quot;, resnet.bn1) # 使用 BatchNorm3d
+self.share.add_module(&quot;relu&quot;, resnet.relu)
+self.share.add_module(&quot;maxpool&quot;, resnet.maxpool)
+self.share.add_module(&quot;layer1&quot;, resnet.layer1)
+self.share.add_module(&quot;layer2&quot;, resnet.layer2)
+self.share.add_module(&quot;layer3&quot;, resnet.layer3)
+self.share.add_module(&quot;layer4&quot;, resnet.layer4)
+self.share.add_module(&quot;avgpool&quot;, resnet.avgpool)
+self.fc = nn.Sequential(nn.Linear(2048, 512),
+nn.ReLU(),
+nn.Linear(512, 7))
+
+def forward(self, x):
+x = x.view(-1, 3, 224, 224)
+x = self.share(x)
+返回x
+
+model = resnet_lstm()
+
+input_ = torch.randn(1, 3, 224, 224)
+model.train()
+print(&quot;训练模式输出&quot;, model(input_))
+model.eval()
+print(&quot;评估模式输出&quot;, model(input_))
+
+
+终端输出：
+训练模式输出 tensor([[[[0.3603]],
+
+[[0.5518]],
+
+[[0.4599]],
+
+...,
+
+[[0.3381]],
+
+[[0.4445]],
+
+[[0.3481]]]], grad_fn=&lt;MeanBackward1&gt;)
+评估模式输出tensor([[[[0.1582]],
+
+[[0.1822]],
+
+[[0.0000]],
+
+...,
+
+[[0.0567]],
+
+[[0.0054]],
+
+[[0.3605]]]], grad_fn=&lt;MeanBackward1&gt;)
+
+如您所见，训练和评估模式的输出彼此非常不同。这会损害性能吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78911068/resnet-inconsistency-between-train-and-eval-mode</guid>
+      <pubDate>Sun, 25 Aug 2024 11:07:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>RuntimeError：形状'[30, 167, 512]'对于大小为 7695360 的输入无效</title>
+      <link>https://stackoverflow.com/questions/78910546/runtimeerror-shape-30-167-512-is-invalid-for-input-of-size-7695360</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78910546/runtimeerror-shape-30-167-512-is-invalid-for-input-of-size-7695360</guid>
       <pubDate>Sun, 25 Aug 2024 06:06:35 GMT</pubDate>
     </item>
     <item>
@@ -71,9 +196,8 @@ return train_dataset, val_dataset, test_dataset
 我不知道如何避免每次都重新洗牌整个集合。也许这个数据集方法也不合适。
 
 在训练期间，整个数据集被洗牌两次，一次用于训练，另一次用于验证。我看到 shuffle 缓冲区已填满整个数据集基数。
-我还考虑过在 shuffle 一次后创建三个文件夹（train、val 和 test）以获取我的拆分，然后仅使用 shuffle 方法对训练数据进行 shuffle，但如果这是解决问题的最简单方法，我会感到惊讶...
-我尝试在 shuffle 之前设置一个 if 语句来检查 shuffle 是否已经完成，但 shuffle 仍然发生。我的想法是执行图已经“安排好”，并且在惰性解释期间将全局变量设置为 False。
-非常感谢您的帮助！]]></description>
+我还考虑过在 shuffle 一次后创建三个文件夹（train、val 和 test）以获取拆分，然后仅使用 shuffle 方法对训练数据进行 shuffle，但如果这是解决问题的最简单方法，我会感到惊讶...
+我尝试在 shuffle 之前设置一个 if 语句来检查 shuffle 是否已完成，但 shuffle 仍然发生。我的想法是执行图已经“安排好”，并且在惰性解释期间将全局变量设置为 False。]]></description>
       <guid>https://stackoverflow.com/questions/78910366/shuffle-a-tf-data-dataset-before-split-only-once</guid>
       <pubDate>Sun, 25 Aug 2024 03:01:31 GMT</pubDate>
     </item>
@@ -83,137 +207,6 @@ return train_dataset, val_dataset, test_dataset
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78910294/dimension-problem-with-model-vgg16-image-segmentation</guid>
       <pubDate>Sun, 25 Aug 2024 01:39:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>LogisticRegression 模型 predict_proba 产生了意外结果。尽管数据偏向一侧，但所有输出均为 ~0.5</title>
-      <link>https://stackoverflow.com/questions/78909975/the-logisticregression-model-predict-proba-is-producing-unexpected-results-all</link>
-      <description><![CDATA[我正在使用 Google Colab，它有时会在没有任何警告的情况下更新库，并且我的代码会毫无解释地中断。
-对于我的项目，我正在训练一个单独的 ML 模型进行异常检测。在这种情况下，我有被视为正常的良性数据和被视为异常的恶性数据。我从一批良性和恶性数据中生成重建错误列表。我使用 LogisticRegression 模型来查找划分正常和异常数据点的决策边界。
-X = np.concatenate((np.array(benign_recon_error).reshape(-1, 1), np.array(malignant_recon_error).reshape(-1, 1)))
-Y = np.concatenate((np.zeros(len(benign_recon_error)), np.ones(len(malignant_recon_error))))
-
-# 训练逻辑回归模型
-lr_clf = LogisticRegression().fit(X, Y)
-
-x_values = np.linspace(min(X), max(X), 100)
-y_values = lr_clf.predict_proba(x_values)[:, 1]
-print(y_values)
-
-decision_boundary = x_values[np.abs(y_values - 0.5).argmin()]
-
-问题是 y_values 都在 0.5 左右徘徊。
-[0.49999572 0.49999602 0.49999631 0.49999661 0.49999691 0.49999721
-0.49999751 0.49999781 0.4999981 0.4999984 0.4999987 0.499999
-0.4999993 0.4999996 0.49999989 0.50000019 0.50000049 0.50000079 0.50000109 0.50000139 0.50000169 0.50000198 0.50000228 0.50000258 0.50000288 0.50000318 0 .50000348 0.50000377 0.50000407 0.50000437 0.50000467 0.50000497 0.50000527 0.50000556 0.50000586 0.50000616 0.50000646 0.50000676 0.50000706 0.50000736 0.50000765 0.50000795 0.50000825 0.50000855 0.50000885 0.50000915 0.50000944 0.50000974 0 .50001004 0.50001034 0.50001064 0.50001094 0.50001123 0.50001153 0.50001183 0.50001213 0.50001243 0.50001273 0.50001303 0.50001332 0.50001362 0.50001392 0.50001422 0.50001452 0.50001482 0.50001511 0.50001541 0.50001571 0.50001601 0.50001631 0 .50001661 0.5000169 0.5000172 0.5000175 0.5000178 0.5000181 0.5000184 0.5000187 0.50001899 0.50001929 0.50001959 0.50001989 0.50002019 0.50002049
-0.50002078 0.50002108 0.50002138 0.50002168 0.50002198 0.50002228
-0.50002258 0.50002287 0.50002317 0.50002347 0.50002377 0.50002407
-0.50002437 0.50002466 0.50002496 0.50002526]
-
-以下是数据的可视化。请记住，y 轴上的熵标签是针对数据点本身的，仅用于将数据分散到 y 轴上以防止它们聚集在一起。
-异常概率图
-异常预测的准确率为 0.66。
-决策边界仍然有效，但回归线无效。预期行为是逻辑回归线倾斜，表明异常数据的概率随着侦察误差的增加而增加。这表明 y_value 在某种程度上是不正确的。
-以下是代码按预期工作的示例。
-异常概率图（工作）
-虽然这似乎表明两组之间的方差有显著改善，但这些异常预测的准确率仅为 0.68。
-我只是想弄清楚如何让我的代码像以前一样工作。]]></description>
-      <guid>https://stackoverflow.com/questions/78909975/the-logisticregression-model-predict-proba-is-producing-unexpected-results-all</guid>
-      <pubDate>Sat, 24 Aug 2024 20:55:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>对于时间序列分类，当 shuffle = False 时，如何获得分层训练 - 测试分割？</title>
-      <link>https://stackoverflow.com/questions/78909358/how-to-get-stratified-train-test-split-while-shuffle-false-for-time-series-cla</link>
-      <description><![CDATA[我正在尝试使用深度学习模型构建时间序列分类器。我有一个数据集，其中有 5 种不同活动各 10 个样本（总共 50 个样本）。就好像前 10 个样本属于第 1 种活动，接下来的 10 个样本属于第 1 种活动，最后 10 个样本属于第 5 种活动。我需要将数据分成训练集和测试集，以便每个活动也应该在测试集中。问题是我无法使用 scikit-learn 中的 train_test_split，因为它不允许分层和 shuffle = False，而这正是我的情况。
-我试过了：
-X_train, X_val, y_train, y_val = train_test_split(X_train_val, y_train_val, 
-test_size=0.3, 
-stratify=y_train_val, 
-random_state=42, 
-shuffle = False)
-
-我得到了错误：
-Traceback（最近一次调用）：
-文件 &quot;d:\Thesis\wearable_device_based_human_activity_recognition\MARS\miscellaneous\garmin_data_analysis.py&quot;，第 130 行，位于 &lt;module&gt;
-data_train, data_valid = train_test_split(data_train, test_size=0.2, random_state=42, stratify = df[&#39;Class&#39;], shuffle=False)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-文件 &quot;D:\DevSetupFiles\anaconda3\envs\mars\Lib\site-packages\sklearn\utils\_param_validation.py&quot;，第 213 行，在包装器中
-return func(*args, **kwargs)
-^^^^^^^^^^^^^^^^^^^^^^
-文件“D:\DevSetupFiles\anaconda3\envs\mars\Lib\site-packages\sklearn\model_selection\_split.py”，第 2784 行，位于 train_test_split
-raise ValueError(
-ValueError: 分层训练/测试拆分未针对 shuffle=False 实施
-
-然后我尝试将数据集按顺序拆分为训练、验证和测试，同时对测试集进行分层。最小可重现代码如下：
-train, valid, test = 0.6, 0.2, 0.2
-data_points = np.arange(1, 101).reshape(100, 1) 
-classes = np.repeat(np.arange(10), 10) 
-class_set = np.unique(classes)
-
-df = pd.DataFrame({
-&#39;DataPoint&#39;: data_points.flatten(),
-&#39;Class&#39;: classes
-})
-
-print(df.head(20))
-
-data_train, data_valid, data_test = [], [], []
-
-for class_i in class_set:
-data_inds = np.where(classes == class_i)[0]
-data_i = data_points[data_inds, ...]
-
-N_i = len(data_inds)
-N_i_train = int(N_i * train)
-N_i_valid = int(N_i * valid)
-
-data_train.append(data_i[:N_i_train])
-data_valid.append(data_i[N_i_train:N_i_train + N_i_valid])
-data_test.append(data_i[N_i_train + N_i_valid:])
-
-data_train = np.concatenate(data_train, axis=0)
-data_valid = np.concatenate(data_valid, axis=0)
-data_test = np.concatenate(data_test, axis=0)
-
-我的方法分割数据集正确吗？我需要在保持测试集每个活动的同时保持时间顺序。在这种情况下我应该如何解决我的问题？]]></description>
-      <guid>https://stackoverflow.com/questions/78909358/how-to-get-stratified-train-test-split-while-shuffle-false-for-time-series-cla</guid>
-      <pubDate>Sat, 24 Aug 2024 15:28:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>24 步时间序列预测的难题：特征相关性和时间依赖性问题</title>
-      <link>https://stackoverflow.com/questions/78909318/struggling-with-24-step-ahead-time-series-forecasting-issues-with-feature-corre</link>
-      <description><![CDATA[我正在努力预测 24 小时后的负载数据，尽管尝试了各种算法（统计、机器学习、深度学习），但仍然面临一些挑战。以下是主要问题：
-相关性低：特征（包括天气数据）与目标变量没有很强的相关性，这使得模型很难有效学习。我尝试使用滑动窗口技术，以 48 个过去值作为输入，但性能并没有太大提高。
-数据中的峰值：存在明显的峰值，它们不是异常值，但具有随机性，没有特定的幅度或时间，因此很难预测。时间特征（如日、时、月和季节）也与目标显示出较弱的相关性。
-时间依赖性：我的模型（ARIMA、LSTM、CNN-LSTM-Attention）难以有效捕捉与时间相关的模式。时间序列的残差部分代表最重要的部分，模型无法准确预测。
-模型性能：错误率很高，尤其是在高峰时段。我尝试过大量的预处理步骤，如差分、应用对数变换、降噪和处理自相关，但结果仍然不令人满意。
-ADF 统计量：-20.032363997484328
-p 值：0.0
-临界值：{&#39;1%&#39;：-3.4307346775420773，&#39;5%&#39;：-2.8617100123025554，&#39;10%&#39;：-2.5668604931899694}
-KPSS 统计量：1.5772813072959655
-p 值：0.01
-临界值：{&#39;10%&#39;：0.347，&#39;5%&#39;：0.463，&#39;2.5%&#39;： 0.574, &#39;1%&#39;: 0.739}
-
-您发现附件中显示了执行的不同分析步骤的图像，例如季节性分解、相关矩阵、ACF、PACF、目标与其滞后特征之间的相关性测试。
-寻求有关改进模型性能的建议，特别是在处理这些随机峰值方面。有没有关于特征工程、替代模型或应对这些挑战的策略的提示？
-[在此处输入图片描述](https://i.sstatic.net/9QIyxLbK.png)[[[在此处输入图片描述](https://i.sstatic.net/0k5QaM6C.png)](https://i.sstatic.net/MBzsxmpB.png)](https://i.sstatic.net/pBxGQQrf.png)]]></description>
-      <guid>https://stackoverflow.com/questions/78909318/struggling-with-24-step-ahead-time-series-forecasting-issues-with-feature-corre</guid>
-      <pubDate>Sat, 24 Aug 2024 15:12:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Python 中创建具有点数据检索的交互式聚类可视化？</title>
-      <link>https://stackoverflow.com/questions/78908500/how-to-create-an-interactive-clustering-visualization-with-point-data-retrieval</link>
-      <description><![CDATA[我需要可视化数据点集群，并允许用户单击这些点来检索有关它们的详细信息。
-我已经实现了 K-means（或任何聚类算法，如 dbscan）聚类并使用 Matplotlib 可视化了集群，但我不确定如何设置交互性，以便单击某个点显示其相关数据。
-但我的主要问题是，我是否应该以特殊方式存储和构造数据以再次检索它？例如，我想识别靠近集群边界的点并检索它们的信息（可以通过单击或工具提示或任何方法）。]]></description>
-      <guid>https://stackoverflow.com/questions/78908500/how-to-create-an-interactive-clustering-visualization-with-point-data-retrieval</guid>
-      <pubDate>Sat, 24 Aug 2024 08:29:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 Python 中的 RL 解决离散时间 LQR 问题</title>
-      <link>https://stackoverflow.com/questions/78908049/struggling-to-solve-discrete-time-lqr-with-rl-in-python</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78908049/struggling-to-solve-discrete-time-lqr-with-rl-in-python</guid>
-      <pubDate>Sat, 24 Aug 2024 03:11:26 GMT</pubDate>
     </item>
     <item>
       <title>解决 VAE 中的梯度爆炸问题</title>
@@ -240,6 +233,150 @@ train_g = tf.train.AdamOptimizer(learning_rate).minimize(loss_g)
       <pubDate>Mon, 23 Apr 2018 19:21:53 GMT</pubDate>
     </item>
     <item>
+      <title>（MNIST - GAN）鉴别器和生成器误差在第一次迭代后降至接近零</title>
+      <link>https://stackoverflow.com/questions/46731089/mnist-gan-discriminator-and-generator-error-dropping-close-to-zero-after-fir</link>
+      <description><![CDATA[为了深入了解生成对抗网络，我尝试基于此斯坦福大学作业使用 tensorflow 自己为 MNIST 数据集实现 GAN。
+我仔细检查并研究了给定练习的解决方案，并通过了测试。但是，我的生成器只会产生噪音。
+我很确定我正确使用了辅助函数，所有测试都通过了，并且我在网上找到了显示完全相同实现的参考资料。因此，可能出错的地方只是鉴别器和生成器架构：
+def discriminator(x):
+with tf.variable_scope(&quot;discriminator&quot;):
+l_1 = leaky_relu(tf.layers.dense(x, 256,activation=None))
+l_2 = leaky_relu(tf.layers.dense(l_1, 256,activation=None))
+logits = tf.layers.dense(l_2, 1,activation=None)
+return logits
+
+def generator(z):
+with tf.variable_scope(&quot;generator&quot;):
+l_1 = tf.maximum(tf.layers.dense(z, 1024,activation=None), 0)
+l_2 = tf.maximum(tf.layers.dense(l_1, 1024,activation=None), 0)
+img = tf.tanh(tf.layers.dense(l_2, 784,activation=None))
+return img
+
+我发现生成器和鉴别器错误在第一次迭代中下降到接近零。
+Iter: 0, D: 1.026, G:0.6514
+Iter: 50, D: 2.721e-05, G:5.066e-06
+Iter: 100, D: 1.099e-05, G:3.084e-06
+Iter: 150, D: 7.546e-06, G:1.946e-06
+Iter: 200, D: 3.386e-06, G：1.226e-06
+...
+
+如果学习率较低，例如 1e-7，鉴别器和生成器的错误率会缓慢衰减，但最终会降至零，只会产生噪音。
+Iter：0，D：1.722，G：0.6772
+Iter：50，D：1.704，G：0.665
+Iter：100，D：1.698，G：0.661
+Iter：150，D：1.663，G：0.6594
+Iter：200，D：1.661，G：0.6574
+...
+
+我已启动并运行 TensorFlow 图进行实验，但到目前为止未能从中解读出任何有意义的东西。
+如果您有任何建议或可以推荐一种调试技术，我将非常乐意听取。
+根据要求，这是我的 GAN - Loss 代码：
+def gan_loss(logits_real, logits_fake):
+labels_real = tf.ones_like(logits_real)
+labels_fake = tf.zeros_like(logits_fake)
+
+d_loss_real = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_real, labels=labels_real)
+d_loss_fake = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=labels_fake)
+D_loss = tf.reduce_mean(d_loss_real + d_loss_fake)
+
+G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits_fake, labels=labels_fake))
+返回 D_loss, G_loss
+]]></description>
+      <guid>https://stackoverflow.com/questions/46731089/mnist-gan-discriminator-and-generator-error-dropping-close-to-zero-after-fir</guid>
+      <pubDate>Fri, 13 Oct 2017 13:26:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>在生成对抗网络中，如何使用鉴别器的输出来训练生成器</title>
+      <link>https://stackoverflow.com/questions/44728913/how-the-generator-is-trained-with-the-output-of-discriminator-in-generative-adve</link>
+      <description><![CDATA[最近我了解了生成对抗网络。
+对于生成器的训练，我有点困惑它是如何学习的。 这里是 GAN 的实现：
+`# 训练生成器
+z = Variable(xp.random.uniform(-1, 1, (batchsize, nz), dtype=np.float32))
+x = gen(z)
+yl = dis(x)
+L_gen = F.softmax_cross_entropy(yl, Variable(xp.zeros(batchsize, dtype=np.int32)))
+L_dis = F.softmax_cross_entropy(yl, Variable(xp.ones(batchsize, dtype=np.int32)))
+
+# 训练鉴别器
+
+x2 = Variable(cuda.to_gpu(x2))
+yl2 = dis(x2)
+L_dis += F.softmax_cross_entropy(yl2, Variable(xp.zeros(batchsize, dtype=np.int32)))
+
+#print &quot;forward done&quot;
+
+o_gen.zero_grads()
+L_gen.backward()
+o_gen.update()
+
+o_dis.zero_grads()
+L_dis.backward()
+o_dis.update()`
+
+因此，正如论文中提到的那样，它会为生成器计算损失。
+但是，它会根据判别器输出调用生成器后向函数。判别器输出只是一个数字（而不是数组）。 
+但我们知道，一般来说，为了训练网络，我们会计算最后一层的损失函数（最后一层输出与实际输出之间的损失），然后计算梯度。例如，如果输出是 64*64，那么我们将其与 64*64 图像进行比较，然后计算损失并进行反向传播。
+但是，在我看到的生成对抗网络中的代码中，我看到他们从鉴别器输出（只是一个数字）计算生成器的损失，然后他们调用生成器的反向传播。生成器的最后一层例如是 64*64 像素，但鉴别器损失是 1*1（这与通常的网络不同）所以我不明白它是如何导致生成器被学习和训练的？
+我认为如果我们连接两个网络（连接生成器和鉴别器），然后调用反向传播但只更新生成器参数，这是有意义的，它应该可以工作。但我在代码中看到的内容完全不同。
+所以我想问这怎么可能？
+谢谢 ]]></description>
+      <guid>https://stackoverflow.com/questions/44728913/how-the-generator-is-trained-with-the-output-of-discriminator-in-generative-adve</guid>
+      <pubDate>Fri, 23 Jun 2017 19:45:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用训练有素的字符级 LSTM 模型生成文本</title>
+      <link>https://stackoverflow.com/questions/43391452/generate-text-with-a-trained-character-level-lstm-model</link>
+      <description><![CDATA[我训练了一个模型，目的是生成句子，如下所示：
+我输入 2 个序列作为训练示例：x 是字符序列，y 是相同的移位 1 的序列。该模型基于 LSTM，使用 tensorflow 创建。
+我的问题是：由于模型接受一定大小的输入序列（在我的情况下为 50），我如何仅给它单个字符作为种子进行预测？我在一些例子中看到，经过训练后，它们只需输入单个字符即可生成句子。 
+这是我的代码：
+ 使用 tf.name_scope(&#39;input&#39;)：
+x = tf.placeholder(tf.float32, [batch_size, truncated_backprop], name=&#39;x&#39;)
+y = tf.placeholder(tf.int32, [batch_size, truncated_backprop], name=&#39;y&#39;)
+
+使用 tf.name_scope(&#39;weights&#39;)：
+W = tf.Variable(np.random.rand(n_hidden, num_classes), dtype=tf.float32)
+b = tf.Variable(np.random.rand(1, num_classes), dtype=tf.float32)
+
+input_series = tf.split(x, truncated_backprop, 1)
+labels_series = tf.unstack(y, axis=1)
+
+使用 tf.name_scope(&#39;LSTM&#39;)：
+cell = tf.contrib.rnn.BasicLSTMCell(n_hidden, state_is_tuple=True)
+cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=dropout)
+cell = tf.contrib.rnn.MultiRNNCell([cell] * n_layers)
+
+states_series, current_state = tf.contrib.rnn.static_rnn(cell, input_series, \
+dtype=tf.float32)
+
+logits_series = [tf.matmul(state, W) + b for state in states_series]
+prediction_series = [tf.nn.softmax(logits) for logits in logits_series]
+
+损失 = [tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels) \
+for logits, labels, in zip(logits_series, labels_series)]
+total_loss = tf.reduce_mean(losses)
+
+train_step = tf.train.AdamOptimizer(learning_rate).minimize(total_loss)
+]]></description>
+      <guid>https://stackoverflow.com/questions/43391452/generate-text-with-a-trained-character-level-lstm-model</guid>
+      <pubDate>Thu, 13 Apr 2017 11:45:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用生成模型还是判别模型进行分类？</title>
+      <link>https://stackoverflow.com/questions/43197513/use-generative-or-discriminative-model-for-classification</link>
+      <description><![CDATA[我是机器学习的初学者！只是想了解一下我应该如何处理分类问题。鉴于手头的问题是分类一个对象是属于 A 类还是 B 类，我想知道我应该使用生成模型还是判别模型。我有两个问题。
+
+判别模型似乎在分类问题上做得更好，因为它只关心如何绘制决策边界，而不关心其他事情。
+
+问：但是，如果数据集很小，只有大约 80 个 A 类对象和不到 10 个 B 类对象需要训练和测试，判别模型会过度拟合，因此生成模型会表现更好吗？
+
+此外，由于 A 类对象和 B 类对象的数量差异非常大，训练的模型很可能只能识别 A 类对象。即使模型将所有对象归类为 A 类，这仍然会产生非常高的准确度得分。 
+
+问：鉴于没有其他方法可以增加 B 类数据集的大小，有什么想法可以减少这种偏见？ ]]></description>
+      <guid>https://stackoverflow.com/questions/43197513/use-generative-or-discriminative-model-for-classification</guid>
+      <pubDate>Tue, 04 Apr 2017 02:58:41 GMT</pubDate>
+    </item>
+    <item>
       <title>简单来说，损失函数是什么？</title>
       <link>https://stackoverflow.com/questions/42877989/what-is-a-loss-function-in-simple-words</link>
       <description><![CDATA[有人能用简单的语言并举几个例子解释一下机器学习/神经网络领域中的损失函数是什么吗？
@@ -247,26 +384,6 @@ train_g = tf.train.AdamOptimizer(learning_rate).minimize(loss_g)
 https://www.tensorflow.org/get_started/get_started]]></description>
       <guid>https://stackoverflow.com/questions/42877989/what-is-a-loss-function-in-simple-words</guid>
       <pubDate>Sat, 18 Mar 2017 18:04:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>什么是“批量标准化”？为什么要使用它？它如何影响预测？</title>
-      <link>https://stackoverflow.com/questions/41269570/what-is-batch-normalizaiton-why-using-it-how-does-it-affect-prediction</link>
-      <description><![CDATA[最近，许多深度架构使用“批量标准化”进行训练。
-什么是“批量标准化”？它在数学上有什么作用？它以何种方式帮助训练过程？
-批量标准化在训练过程中是如何使用的？它是插入模型中的特殊层吗？我需要在每一层之前进行标准化，还是只需要标准化一次？
-假设我使用批量标准化进行训练。这会影响我的测试时间模型吗？我是否应该在我的“部署”网络中用其他/等效的层/操作替换批量标准化？
-
-这个问题关于批量标准化只涵盖了这个问题的一部分，我的目标是并希望得到更详细的答案。更具体地说，我想知道批量标准化训练如何影响测试时间预测，即“部署”网络和网络的测试阶段。]]></description>
-      <guid>https://stackoverflow.com/questions/41269570/what-is-batch-normalizaiton-why-using-it-how-does-it-affect-prediction</guid>
-      <pubDate>Wed, 21 Dec 2016 18:30:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>ReLU 激活函数在神经网络中如何工作？</title>
-      <link>https://stackoverflow.com/questions/39092201/how-does-relu-activation-function-work-in-a-neural-network</link>
-      <description><![CDATA[有人能告诉我 ReLU（整流线性单元）是如何工作的吗？
-从理论上讲，我明白了，但我需要一些演示。一个简单的 2x2 矩阵就可以了。希望你能在这方面帮助我。这与我正在上的深度学习课程有关。]]></description>
-      <guid>https://stackoverflow.com/questions/39092201/how-does-relu-activation-function-work-in-a-neural-network</guid>
-      <pubDate>Tue, 23 Aug 2016 04:09:04 GMT</pubDate>
     </item>
     <item>
       <title>神经网络中的前向传递和后向传递是什么？</title>

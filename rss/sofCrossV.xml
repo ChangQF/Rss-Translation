@@ -4,7 +4,31 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 25 Aug 2024 09:15:08 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 25 Aug 2024 12:27:26 GMT</lastBuildDate>
+    <item>
+      <title>吉布斯采样器中空间效应方差参数的无信息先验以增强收敛</title>
+      <link>https://stats.stackexchange.com/questions/653288/uninformative-prior-on-variance-parameter-of-spatial-effect-in-gibbs-sampler-to</link>
+      <description><![CDATA[我正在尝试拟合 Allen 等人 (2023) 中提出的贝叶斯有限混合模型。该模型使用多元 CAR 效应来对结果的线性预测因子进行建模。此外，每个样本的混合权重都是使用多项逻辑回归模型建模的。将我们自己限制在这个子模型中，它由以下公式给出：
+$$
+\pi_{ig} = \frac{exp(\boldsymbol{w}_i^T \boldsymbol{\rho}_g + \psi_{ig})}{\sum_{h=1}^G exp(\boldsymbol{w}_i^T \boldsymbol{\rho}_h + \psi_{ih})}
+$$
+其中 $g = 1, \cdots, G$ 是混合成分，$\boldsymbol{w}_i$ 是长度为 $p$ 的协变量向量，$\boldsymbol{\rho}_g$ 是一个长度为 $p$ 的固定效应向量，而 $\psi_{ig}$ 是一个空间随机效应，又称为单变量 IAR 效应。后者也被称为 Besag 模型。此 IAR 效应由以下表达式给出：
+$$
+\psi_{ig} \mid \psi_{-ig}, \nu_g^2 \sim \mathcal{N}\Big( \frac{1}{m_i} \sum_{l \in \delta_i} \psi_{lg}, \frac{\nu_g^2}{m_i} \Big)
+$$
+为了推导出 Gibbs 采样器的闭式全条件分布，使用了 Polya-Gamma 数据增强。如果您不熟悉此方法，请参阅上面超链接中的论文。
+现在我运行由 Allen 等人 (2023) 推导的 Gibbs 采样器，用于此特定的多项逻辑回归。我仅隔离了这个子模型来解决以下问题。即方差参数$\nu_g^2$似乎并没有收敛到真实的底层值。代码中针对此特定情况的更新规则如下：
+Nu2[k] &lt;- 1/rgamma(1,.01 + (n-1)/2,.01 + (t(PSI[,k]) %*% Q %*% PSI[,k])/2)
+
+因此，我们看到 $\alpha$ 参数根据样本大小 $n$ 固定，但 $\beta$ 参数可以根据特定迭代中的空间效应 $\boldsymbol{\phi}$ 的大小而变化。此外，似乎使用了与正态分布的空间效应共轭的逆伽马先验。由 $IG(0.01, 0.01)$ 明确给出。
+每当我在模拟数据上运行此 Gibbs 采样器时，真正的底层参数都无法恢复。相反，它似乎仅在几次迭代中就将所有 PSI 值移至零。因此，我们得到的估计值大致来自：
+1/rgamma(1, 0.01 + (n-1)/2, 0.01 + 0)
+
+我尝试阅读 Andrew Gelman 的一些论文，他似乎暗示 $IG(\epsilon, \epsilon)$ 先验并非真正没有信息量，但将 $\nu_g^2$ 的后验分布推至零。碰巧的是，情况也是如此。
+我的问题如下：您认为我对问题的诊断是否正确，即超先验将估计值推至零？我该如何补救？Gelman 建议扩展参数，但给出的例子我无法推广到我的确切情况。有没有比逆 Gamma 更合适的其他先验？关于如何在代码方面实现这一点，有什么想法吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653288/uninformative-prior-on-variance-parameter-of-spatial-effect-in-gibbs-sampler-to</guid>
+      <pubDate>Sun, 25 Aug 2024 12:03:04 GMT</pubDate>
+    </item>
     <item>
       <title>固定样本大小顺序方差分析或 t 检验</title>
       <link>https://stats.stackexchange.com/questions/653286/fixed-sample-size-sequential-anova-or-t-test</link>
@@ -55,50 +79,6 @@ $$$$但我不知道如何针对多分类问题显示这一点？]]></description
 从研究的角度来看，其中任何一个都对我的研究问题有相同的意义，但我对它的统计部分不太确定。我很难为自己合理化任何一个选择。]]></description>
       <guid>https://stats.stackexchange.com/questions/653278/should-i-be-using-a-lower-resolution-in-my-lmm-if-it-dosent-match-my-predictor</guid>
       <pubDate>Sat, 24 Aug 2024 17:46:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>模型选择的综合绩效指标中的潜在符号问题</title>
-      <link>https://stats.stackexchange.com/questions/653277/potential-sign-issues-in-a-composite-performance-metric-for-model-selection</link>
-      <description><![CDATA[我正在分析回归任务的各种机器学习模型的结果，使用四个指标：RMSE、MAE、MAPE 和$R^2$。我的方法涉及两种类型的分析：
-
-单个指标分析：每个指标都单独考虑。
-综合性能指标分析：综合指标，用于确定候选模型中的最佳模型。
-
-综合性能指标 (CPM) 结合了通过交叉验证获得的单个结果得出的指标的标准化平均值：
-$$
-\begin{equation}
-\text{CPM} = M_{norm}(\text{RMSE}) + M_{norm}(\text{MAE}) + M_{norm}(\text{MAPE}) - M_{norm}(R^2)
-\end{equation}
-$$
-其中
-$$
-\begin{equation}
-M_{norm}(\text{metric}) = \frac{\text{metric} - \mu_{\text{metric}}}{\sigma_{\text{metric}}}
-\end{equation}
-$$
-$\mu_\text{metric}$ 是所有模型中指标的总体平均值，$\sigma_\text{metric}$ 是所有模型中指标的总体标准差。
-CPM 优先考虑误差 (RMSE、MAE、MAPE) 较低且 $R^2$ 值较高的模型。通过标准化每个指标，CPM 可确保所有指标的贡献均等，从而实现不同模型之间的公平比较。它本质上是一个加权和，其中每个指标的权重相等。
-符号变化的问题
-但是，我遇到了一个潜在的问题：在标准化过程中，某些指标的符号可能会发生变化。这可能会导致计算 CPM 时出现误导性结果。例如，如果由于标准化导致 $R^2$ 的符号翻转，则可能会无意中增加 CPM，从而惩罚那些应因其更高的 $R^2$ 值而获得奖励的模型。
-建议的解决方案
-为了解决这个问题，我正在考虑以下方法：
-
-误差指标（RMSE、MAE、MAPE）：由于这些指标是非负的，我建议取标准化指标的绝对值，以确保它们始终对 CPM 产生正贡献。
-$R^2$ 指标：我建议在标准化之前保留 $R^2$ 的原始符号，然后重新应用随后保持其对 CPM 的预期影响。
-
-征求反馈
-这种方法是否有效，还是我忽略了什么？是否有其他方法或考虑因素可以更好地解决 CPM 背景下标准化过程中符号变化的问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653277/potential-sign-issues-in-a-composite-performance-metric-for-model-selection</guid>
-      <pubDate>Sat, 24 Aug 2024 17:45:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>回归中的软非负约束</title>
-      <link>https://stats.stackexchange.com/questions/653276/soft-non-negative-constraints-in-a-regression</link>
-      <description><![CDATA[在回归模型的背景下，我对每个特征和观测值（目标）之间的（单变量）系数符号有一个先验观点。这是因为每个特征本身都是先前拟合的回归模型的输出，所以这是一个元模型。
-我可以使用非负最小二乘法。但是，这可能过于严格 - 我不确定单变量先验期望是否应该转化为 NNLS。更重要的是“大多数特征在联合拟合时具有非负系数”。如果我使用贝叶斯方法，我可能可以先验地了解具有非负系数的特征数量。
-是否有针对此问题实施的标准模型？否则，哪本教科书比较好？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653276/soft-non-negative-constraints-in-a-regression</guid>
-      <pubDate>Sat, 24 Aug 2024 17:39:05 GMT</pubDate>
     </item>
     <item>
       <title>理解具有时间依赖性协变量的生存曲线</title>
@@ -174,6 +154,13 @@ $$\sup_{h\in \mathcal{H}}|R(h)-R_n(h)| \in \mathcal{O}\Biggl(\sqrt{\frac{1}{2n}l
 我的意思是，如果 $d_{\mathcal{H}}$ 比 $n$ 大很多，那么根里面的部分不是为负吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/649343/question-about-a-result-from-learning-theory-dealing-with-how-close-is-the-empi</guid>
       <pubDate>Sun, 16 Jun 2024 18:26:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>我想用 GGeffects 来绘制线性混合效应模型结果吗</title>
+      <link>https://stats.stackexchange.com/questions/630599/is-ggeffects-what-i-want-to-use-to-plot-my-linear-mixed-effect-model-results</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/630599/is-ggeffects-what-i-want-to-use-to-plot-my-linear-mixed-effect-model-results</guid>
+      <pubDate>Mon, 06 Nov 2023 19:27:12 GMT</pubDate>
     </item>
     </channel>
 </rss>
