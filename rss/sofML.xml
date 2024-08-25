@@ -4,7 +4,64 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 25 Aug 2024 01:13:53 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 25 Aug 2024 03:17:14 GMT</lastBuildDate>
+    <item>
+      <title>在拆分之前仅对 tf.data.Dataset 进行一次混洗</title>
+      <link>https://stackoverflow.com/questions/78910366/shuffle-a-tf-data-dataset-before-split-only-once</link>
+      <description><![CDATA[我正在使用 tf.data.Dataset 来为我的模型的 model.fit() 方法提供数据。
+整个数据集无法放入我的 RAM 中，因此我需要按批次加载它，因此我考虑使用数据集生成器 (tf.data.Dataset) 在训练期间加载它并预取批次。
+我用来获取训练、验证和测试数据集的函数如下所示：
+def get_all_datasets(batch_size=64):
+path = &#39;a/path&#39;
+img_folder = &#39;src&#39;
+mask_folder = &#39;masks&#39;
+im_path = os.path.join(path, img_folder)
+mk_path = os.path.join(path, mask_folder)
+
+path = &#39;another/path/&#39;
+img_folder = &#39;src&#39;
+mask_folder = &#39;masks&#39;
+im_path2 = os.path.join(path, img_folder)
+mk_path2 = os.path.join(path, mask_folder)
+
+# 创建数据集
+ds1 = create_dataset(im_path, mk_path, 256, 256)
+ds2 = create_dataset(im_path2, mk_path2, 256, 256)
+ds = ds1.concatenate(ds2)
+
+# 在拆分之前对整个数据集进行一次打乱
+ds = ds.shuffle(buffer_size=tf.data.experimental.cardinality(ds).numpy(),
+reshuffle_each_iteration=True)
+
+# 拆分为训练集、验证集和测试集
+total_size = tf.data.experimental.cardinality(ds).numpy()
+train_size = int(total_size * 0.7)
+val_size = int(total_size * 0.15)
+test_size = total_size - train_size - val_size
+
+# 创建单独的数据集
+train_dataset = ds.take(train_size)
+remaining = ds.skip(train_size)
+val_dataset = remaining.take(val_size)
+test_dataset = remaining.skip(val_size)
+
+# 缓存数据集以防止重新洗牌/重新加载
+train_dataset = train_dataset.cache().shuffle(batch_size).batch(batch_size).p​​refetch(buffer_size=tf.data.AUTOTUNE)
+val_dataset = val_dataset.cache().batch(batch_size).p​​refetch(buffer_size=tf.data.AUTOTUNE)
+test_dataset = test_dataset.cache().batch(batch_size).p​​refetch(buffer_size=tf.data.AUTOTUNE)
+
+return train_dataset, val_dataset, test_dataset
+
+第一次洗牌是为了使训练、验证和测试中的“场景”比例相等。这种洗牌只能进行一次，以避免污染训练、验证和测试集。
+我不知道如何避免每次都重新洗牌整个集合。也许这个数据集方法也不合适。
+
+在训练期间，整个数据集被洗牌两次，一次用于训练，另一次用于验证。我看到 shuffle 缓冲区已填满整个数据集基数。
+我还考虑过在 shuffle 一次后创建三个文件夹（train、val 和 test）以获取我的拆分，然后仅使用 shuffle 方法对训练数据进行 shuffle，但如果这是解决问题的最简单方法，我会感到惊讶...
+我尝试在 shuffle 之前设置一个 if 语句来检查 shuffle 是否已经完成，但 shuffle 仍然发生。我的想法是执行图已经“安排好”，并且在惰性解释期间将全局变量设置为 False。
+非常感谢您的帮助！]]></description>
+      <guid>https://stackoverflow.com/questions/78910366/shuffle-a-tf-data-dataset-before-split-only-once</guid>
+      <pubDate>Sun, 25 Aug 2024 03:01:31 GMT</pubDate>
+    </item>
     <item>
       <title>LogisticRegression 模型 predict_proba 产生了意外结果。尽管数据偏向一侧，但所有输出均为 ~0.5</title>
       <link>https://stackoverflow.com/questions/78909975/the-logisticregression-model-predict-proba-is-producing-unexpected-results-all</link>
@@ -133,7 +190,7 @@ p 值：0.01
       <description><![CDATA[实时模型是否可以转换为预先录制的视频上传？
 例如，我将训练一个用于手语的 LSTM 模型，以实现实时识别。现在我想将其集成到 Android Studio 中的移动应用程序中，并使其预先录制。
 我想将其他模型迁移到我的项目中。
-我尝试了一些技术，例如 CNN 识别，但没有奏效。]]></description>
+我尝试了一些技术，例如 CNN 识别，但没有成功。]]></description>
       <guid>https://stackoverflow.com/questions/78909036/asl-recognition-using-lstm</guid>
       <pubDate>Sat, 24 Aug 2024 13:02:58 GMT</pubDate>
     </item>
@@ -162,13 +219,6 @@ optimizer = torch.optim.SGD(params=my_model.parameters(), lr=100.0)
 有人请向我解释我该怎么做或建议我一些容易做的事情。]]></description>
       <guid>https://stackoverflow.com/questions/78908921/unable-to-do-ocr-using-tessaract</guid>
       <pubDate>Sat, 24 Aug 2024 12:00:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>Resnet 内存不足：torch.OutOfMemoryError：CUDA 内存不足</title>
-      <link>https://stackoverflow.com/questions/78908540/resnet-out-of-memory-torch-outofmemoryerror-cuda-out-of-memory</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78908540/resnet-out-of-memory-torch-outofmemoryerror-cuda-out-of-memory</guid>
-      <pubDate>Sat, 24 Aug 2024 08:53:29 GMT</pubDate>
     </item>
     <item>
       <title>如何在 Python 中创建具有点数据检索的交互式聚类可视化？</title>
