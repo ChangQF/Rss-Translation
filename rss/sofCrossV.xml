@@ -4,7 +4,168 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 25 Aug 2024 21:14:01 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 26 Aug 2024 01:09:14 GMT</lastBuildDate>
+    <item>
+      <title>结合不确定性</title>
+      <link>https://stats.stackexchange.com/questions/653312/combining-uncertainties</link>
+      <description><![CDATA[我有这个数据集：
+
+
+
+$y_{observed}$
+$\sigma_{stat}^+$
+$\sigma_{stat}^-$
+$\sigma_{sys}^+$
+$\sigma_{sys}^-$
+
+
+
+
+0.193
+0.002
+-0.002
+0.0316
+-0.0218
+
+
+0.1504
+0.0014
+0.0158
+-0.0121
+
+
+0.13507
+0.00079
+-0.00079
+0.01092
+-0.00787
+
+
+0.11647
+0.00072
+-0.00072
+0.00846
+-0.00603
+
+
+$\vdots$
+$\vdots$
+$\vdots$
+$\vdots$
+$\vdots$
+
+
+
+$stat$ 代表统计，$sys$ 代表系统。
+我的理解是，我可以对 $\sigma_{stat}$ 和 $\sigma_{sys}$ 求和，因为它们不相关
+$$
+\sigma_{total} = \sqrt{ (\sigma_{stat})^2+(\sigma_{sys})^2}
+$$
+因此我会得到：
+$$
+\sigma_{total}^+ = \sqrt{ (\sigma_{stat}^+)^2+(\sigma_{sys}^+)^2}
+$$
+$$
+\sigma_{total}^- = \sqrt{ (\sigma_{stat}^-)^2+(\sigma_{sys}^-)^2}
+$$
+我能否以某种方式结合 $\sigma_{total}^+$ 和 $\sigma_{total}^-$？我认为它们是相关的，对吗？我应该如何处理 $\sigma_{total}^+$ 和 $\sigma_{total}^-$ 的组合？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653312/combining-uncertainties</guid>
+      <pubDate>Sun, 25 Aug 2024 23:23:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>解释 GAM 输出中的随机效应：高斯分位数</title>
+      <link>https://stats.stackexchange.com/questions/653308/interpreting-random-effect-in-gam-output-gaussian-quantiles</link>
+      <description><![CDATA[模型运行良好。对于因子，解释效果更容易。对于因子水平被分配了随机效应的变量，输出/图并不直观。我试图解释的图包括因子水平作为点、y 轴上的效应和 x 轴上的高斯分位数。有一条直线穿过这些点，看起来是线性正的。
+如何解释这些因子变量的图？穿过这些点的线是什么意思？图顶部的 8.8 是什么意思？非常感谢任何解释方面的帮助。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653308/interpreting-random-effect-in-gam-output-gaussian-quantiles</guid>
+      <pubDate>Sun, 25 Aug 2024 22:22:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>我计算调整后的标准化发生率（SIR）的方法正确吗？</title>
+      <link>https://stats.stackexchange.com/questions/653307/is-my-approach-of-calculating-adjusted-standardized-incidence-ratiossir-correc</link>
+      <description><![CDATA[我正在尝试使用以下模拟数据框计算标准化发病率 (SIR) 来确定吸烟对癌症的影响。吸烟对癌症的 SIR 及其 95% 置信区间 (CI) 需要根据性别和年龄组进行调整。
+问：我的方法正确吗？
+ library(dplyr)
+
+set.seed(123)
+n &lt;- 1000
+# 生成数据
+df &lt;- data.frame(
+cancer_case = sample(0:1, n, replace = TRUE), # cancer
+smoke = sample(0:1, n, replace = TRUE),
+age_group = factor(sample(c(&quot;50-59&quot;, &quot;60-69&quot;, &quot;70-79&quot;), n, replace = TRUE)),
+sex = factor(sample(c(&quot;male&quot;, &quot;female&quot;), n, replace = TRUE)),
+start_follow = sample(1990:2005, n, replace = TRUE),
+stop_follow = sample(1996:2015, n, replace = TRUE)
+)
+
+# 确保 stop_follow 在 start_follow 之后
+df &lt;- df %&gt;%
+mutate(stop_follow = pmax(start_follow + sample(1:10, n, replace = TRUE), stop_follow))
+
+# 计算人年 (pyrs)。
+# SIR = 观察值/预期值
+
+df &lt;- df %&gt;%
+mutate(pyrs = stop_follow - start_follow)
+
+步骤 1：统计吸烟者和非吸烟者的观察病例
+ perceived_cases &lt;- df %&gt;%
+group_by(smoking, age_group, sex) %&gt;%
+summarise(observed = sum(cancer_case), .groups = &#39;drop&#39;)
+
+步骤 2：计算人年
+ person_years &lt;- df %&gt;%
+group_by(smoking, age_group, sex) %&gt;%
+summarise(total_pyrs = sum(pyrs, na.rm = TRUE), .groups = &#39;drop&#39;)
+
+步骤 3：计算参考人群（非吸烟者）的发病率
+reference_rates &lt;- df %&gt;%
+filter(smoking == 0) %&gt;%
+group_by(age_group, sex) %&gt;%
+summarise(rate = sum(cancer_case) / sum(pyrs), .groups = &#39;drop&#39;)
+
+步骤 4：计算预期病例（如果没有吸烟者）
+将总人年数乘以每组的发病率。
+
+expected_cases &lt;- person_years %&gt;%
+left_join(reference_rates, by = c(&quot;age_group&quot;, &quot;sex&quot;)) %&gt;%
+mutate(expected = total_pyrs * rate)
+
+步骤 5：合并观察到的和预期的病例
+combined &lt;- perceived_cases %&gt;%
+left_join(expected_cases, by = c(&quot;smoking&quot;, &quot;age_group&quot;, &quot;sex&quot;)) %&gt;%
+group_by(smoking) %&gt;%
+summarise(
+obs_cases = sum(observed, na.rm = TRUE),
+exp_cases = sum(expected, na.rm = TRUE),
+total_pyrs = sum(total_pyrs, na.rm = TRUE)
+)
+
+步骤 6：通过将观察到的病例除以预期病例来计算 SIR
+ combined &lt;- combined %&gt;%
+mutate(
+SIR = obs_cases / exp_cases,
+SE_log_SIR = sqrt(1 / obs_cases),
+lower = exp(log(SIR) - 1.96 * SE_log_SIR),
+upper = exp(log(SIR) + 1.96 * SE_log_SIR)
+)
+
+步骤 7：调整参考人群值
+由于非吸烟者是我的参考人群，我将 SE、lower 和 upper 值更改为“ref”。
+ combined &lt;- combined %&gt;%
+mutate(
+SIR = ifelse(smoking == 0, 1.0, SIR),
+SE_log_SIR = ifelse(smoking == 0, &quot;ref&quot;, SE_log_SIR),
+lower = ifelse(smoking == 0, &quot;ref&quot;, lower),
+upper = ifelse(smoking == 0, &quot;ref&quot;, upper)
+)
+
+我正在尝试实现从讲座材料和一些 sas 代码中读到的内容。但是，我不擅长 SAS，很难将它们翻译成 R 并获得类似的结果。
+所以我不能确定我的方法是否正确。有些人使用参考人群的总体发病率，而不是每个分组变量组合的参考人群发病率。使用总体发病率对我来说没有任何意义。您能否告诉我这种计算 SIR 的方法是否正确，特别是关于性别和年龄组的调整？任何建议都将不胜感激。请保持礼貌，我来这里是为了学习，而不是被侮辱，我希望我的问题也能帮助其他人学习。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653307/is-my-approach-of-calculating-adjusted-standardized-incidence-ratiossir-correc</guid>
+      <pubDate>Sun, 25 Aug 2024 20:30:31 GMT</pubDate>
+    </item>
     <item>
       <title>在 VAE 中将单个输入编码为潜在空间上的分布背后的原理是什么？</title>
       <link>https://stats.stackexchange.com/questions/653304/whats-the-rational-behind-encoding-a-single-input-as-a-distribution-over-the-la</link>
@@ -186,39 +347,19 @@ LogLik
       <pubDate>Sun, 25 Aug 2024 15:42:45 GMT</pubDate>
     </item>
     <item>
-      <title>由于残差长度不同（R），无法对时间序列对象进行方差分析</title>
-      <link>https://stats.stackexchange.com/questions/653294/not-able-to-perform-an-anova-test-with-a-time-series-objects-due-to-different-re</link>
-      <description><![CDATA[我正在执行一个从一般到具体的过程。我想检查所有不重要变量的联合重要性。
-我有一个包含所有变量的一般模型，没有删除任何变量，即 model_x
-我还有一个仅包含不重要变量（和因变量）的第二个模型，即 model_y
-问题是，我有一个时间序列对象，一个具有滞后的 ARDL 模型。
-在一般模型 model_x 中，其中一个变量有 4 个滞后。
-在第二个模型中，同一个变量只有 3 个滞后（因为其中一个在一般模型中很重要）
-我现在想做的是，我想使用 ANOVA 函数比较这两个，model_x 和 model_y，但由于残差数量不同，我无法做到。
-&#39;&#39;&#39;
+      <title>固定样本大小顺序方差分析或 t 检验</title>
+      <link>https://stats.stackexchange.com/questions/653286/fixed-sample-size-sequential-anova-or-t-test</link>
+      <description><![CDATA[我有一个固定样本大小的实验，其中允许单位（2 个或 3 个分支中每个分支 20 个）随时间增长。一旦有足够的证据表明分支不以相同的速率增长，我希望停止实验。
+我考虑每小时测量一次单位的大小。我可以假设给定臂中单位的大小呈正态分布，且各臂之间的方差相同。
+这听起来像是 Wald 的序贯概率比检验的案例，只不过我没有积累新的单位。
+我研究过执行序贯方差分析检验的方法，例如序贯方差分析：提高假设检验的效率，但我看过的所有论文都假设我在实验中添加了新的单位。
+我尝试评估两个嵌套线性模型的似然比，一个模型带有臂项，另一个模型没有（例如仅使用截距）但不清楚阈值应该是什么。此外，由于两个嵌套模型的似然比永远不会小于 1，因此不能保证此检验会终止。
+以下是部分数据的样子：
 
-length(residuals(model_x))
-
-
-[1] 115
-
-
-length(residuals(model_y))
-
-
-[1] 116
-&#39;&#39;&#39;
-
-我不知道如何解决这个问题，非常感谢您的帮助]]></description>
-      <guid>https://stats.stackexchange.com/questions/653294/not-able-to-perform-an-anova-test-with-a-time-series-objects-due-to-different-re</guid>
-      <pubDate>Sun, 25 Aug 2024 14:34:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何处理方差分析中转换后改变的平均排名？</title>
-      <link>https://stats.stackexchange.com/questions/653292/how-to-dealing-with-altered-mean-rankings-after-transformation-in-anova</link>
-      <description><![CDATA[我对我的数据集进行了方差分析，其中包括 5 种处理方法，样本量为 30。由于数据不是同方差的，我应用了 Box-Cox 变换。变换后，我进行了 SNK 多重比较检验。然而，变换显著改变了数据的量级，导致原始数据中一些较高的均值变为中等甚至更低。因此，当我使用字母来表示表格中均值之间的差异时，它们在原始数据的背景下不再有意义。这个表格需要在科学论文中呈现，而以目前的形式，它可能会让读者感到困惑。我应该继续对原始数据应用 SNK 检验吗，还是有更好的方法进行统计检验？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653292/how-to-dealing-with-altered-mean-rankings-after-transformation-in-anova</guid>
-      <pubDate>Sun, 25 Aug 2024 14:21:12 GMT</pubDate>
+编辑
+我认为需要应用一种名为重复测量方差分析的方法，但我不清楚如何应用它这里也没有说明如何按顺序应用它（即，一旦得出结论就停止测试）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653286/fixed-sample-size-sequential-anova-or-t-test</guid>
+      <pubDate>Sun, 25 Aug 2024 07:34:49 GMT</pubDate>
     </item>
     <item>
       <title>如果我的 LMM 与我的预测变量不匹配，我是否应该在 LMM 中使用较低的分辨率？</title>
@@ -226,16 +367,9 @@ length(residuals(model_y))
       <description><![CDATA[我有一组以三小时为采样点的动物运动值（例如 500m/3h）
 我运行了一个线性混合模型，以运动距离作为响应变量，使用性别、白天（夜晚和白天）和月份作为可解释变量，但现在我正在重新考虑。
 由于我的预测协变量的最低分辨率是白天（~12h），我正在重新考虑是否最好使用 a) 三小时值、b) 每天/夜晚的平均值或 c) 每天/夜晚的总和来运行我的模型。
-从研究的角度来看，其中任何一个都对我的研究问题有相同的意义，但我对它的统计部分不太确定。我很难为自己合理化任何一个选择。]]></description>
+从研究的角度来看，其中任何一个都对我的研究问题有相同的意义，但我对它的统计部分不太确定。我很难为自己的任何一种选择找到合理性。]]></description>
       <guid>https://stats.stackexchange.com/questions/653278/should-i-be-using-a-lower-resolution-in-my-lmm-if-it-dosent-match-my-predictor</guid>
       <pubDate>Sat, 24 Aug 2024 17:46:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>理解具有时间依赖性协变量的生存曲线</title>
-      <link>https://stats.stackexchange.com/questions/653273/understanding-survival-curves-with-time-dependent-covariates</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/653273/understanding-survival-curves-with-time-dependent-covariates</guid>
-      <pubDate>Sat, 24 Aug 2024 16:53:32 GMT</pubDate>
     </item>
     <item>
       <title>R 中非平方列联表中名义数据的配对检验</title>
@@ -257,19 +391,6 @@ https://academic.oup.com/view-large/figure/394355474/BIOINFORMATICS_32_1_122_f4.
 论文中的这个说法正确吗：“图的非随机性的充分证明是顶点度分布与相应的泊松分布的显著偏差。”]]></description>
       <guid>https://stats.stackexchange.com/questions/653265/gamma-and-poisson-distributions-and-their-relations-to-the-randomness</guid>
       <pubDate>Sat, 24 Aug 2024 11:27:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何校正功效分析中的α？</title>
-      <link>https://stats.stackexchange.com/questions/653229/how-do-i-to-correct-the-%ce%b1-in-the-power-analysis</link>
-      <description><![CDATA[审稿人要求我们在用 G*Power 计算样本量时使用修正的 α。
-我找到的文献表明 Bonferroni 调整 = α/n (Armitage, Peter; Colton, Theodore, 2005)。
-这里，n 指的是测试次数。我不太清楚这是什么意思。
-例如，我使用 2（性别：男性 vs. 女性）× 3（分数：英语 vs. 数学 vs. 历史）重复测量方差分析，性别为受试者间变量，分数为受试者内变量。
-比较包括 1）性别的主效应（男性和女性之间的分数差异），2）分数的主效应（三个科目的分数差异），以及 3）性别 * 分数的交互作用。
-您能否建议在计算样本量时 n 应该是多少？（Bonferroni 调整 = α/n）
-参考文献：Armitage, Peter; Colton, Theodore (2005). Encyclopedia of Biostatistics || Bonferroni Inequalities and Intervals. , 10.1002/0470011815(), –. doi:10.1002/0470011815.b2a15014]]></description>
-      <guid>https://stats.stackexchange.com/questions/653229/how-do-i-to-correct-the-%ce%b1-in-the-power-analysis</guid>
-      <pubDate>Fri, 23 Aug 2024 12:58:15 GMT</pubDate>
     </item>
     <item>
       <title>HGAMM（分层广义加性混合模型）中因子变量的族分布和处理的选择</title>
