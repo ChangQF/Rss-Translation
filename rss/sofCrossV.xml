@@ -4,7 +4,16 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 26 Aug 2024 01:09:14 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 26 Aug 2024 03:19:31 GMT</lastBuildDate>
+    <item>
+      <title>对标签实例进行平均以进行 SVM 分类</title>
+      <link>https://stats.stackexchange.com/questions/653314/averaging-over-labels-instances-for-svm-classification</link>
+      <description><![CDATA[这是一个假设性问题，关于将训练/测试数据输入 SVM 模型的不同方法。我有两个类，每个类有 128 个实例，可以按层次分组为 4 个集合（即每个类有 4 个集合，每个集合有 32 个实例）。通常，我会通过在 3 个集合（每个类有 128 个实例）上训练分类器并解码遗漏的集合（每个类有 32 个实例）来交叉验证 SVM，并迭代所有训练和测试组合。
+有人告诉我，更好的方法是取每个集合的平均值，这样在训练/测试之前，每个集合只有一个平均特征向量。这意味着我将在每个类标签的 3 个平均实例上训练 SVM，并在每个标签的 1 个遗漏实例上进行测试。理由是这些平均模式更稳定。
+我已经运行了模拟，并且确实从中获得了更好的解码效果，但我从未见过有人使用这种方法。像这样取类标签的平均值有什么缺点吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653314/averaging-over-labels-instances-for-svm-classification</guid>
+      <pubDate>Mon, 26 Aug 2024 02:18:46 GMT</pubDate>
+    </item>
     <item>
       <title>结合不确定性</title>
       <link>https://stats.stackexchange.com/questions/653312/combining-uncertainties</link>
@@ -85,7 +94,7 @@ $$
       <link>https://stats.stackexchange.com/questions/653307/is-my-approach-of-calculating-adjusted-standardized-incidence-ratiossir-correc</link>
       <description><![CDATA[我正在尝试使用以下模拟数据框计算标准化发病率 (SIR) 来确定吸烟对癌症的影响。吸烟对癌症的 SIR 及其 95% 置信区间 (CI) 需要根据性别和年龄组进行调整。
 问：我的方法正确吗？
- library(dplyr)
+library(dplyr)
 
 set.seed(123)
 n &lt;- 1000
@@ -93,7 +102,8 @@ n &lt;- 1000
 df &lt;- data.frame(
 cancer_case = sample(0:1, n, replace = TRUE), # cancer
 smoke = sample(0:1, n, replace = TRUE),
-age_group = factor(sample(c(&quot;50-59&quot;, &quot;60-69&quot;, &quot;70-79&quot;), n, replace = TRUE)),
+age_group = factor(sample(c(&quot;50-59&quot;, &quot;60-69&quot;, &quot;70-79&quot;), n, 
+replace = TRUE)),
 sex = factor(sample(c(&quot;male&quot;, &quot;female&quot;), n, replace = TRUE)),
 start_follow = sample(1990:2005, n, replace = TRUE),
 stop_follow = sample(1996:2015, n, replace = TRUE)
@@ -101,38 +111,45 @@ stop_follow = sample(1996:2015, n, replace = TRUE)
 
 # 确保 stop_follow 在 start_follow 之后
 df &lt;- df %&gt;%
-mutate(stop_follow = pmax(start_follow + sample(1:10, n, replace = TRUE), stop_follow))
+mutate(stop_follow = pmax(start_follow + sample(1:10, n, 
+replace = TRUE), stop_follow))
 
 # 计算人年 (pyrs)。
-# SIR = 观察值/预期值
+# SIR = 观察值 / 预期值
 
 df &lt;- df %&gt;%
 mutate(pyrs = stop_follow - start_follow)
 
-步骤 1：统计吸烟者和非吸烟者的观察病例
- perceived_cases &lt;- df %&gt;%
+## 步骤 1：统计吸烟者和非吸烟者的观察病例
+
+observed_cases &lt;- df %&gt;%
 group_by(smoking, age_group, sex) %&gt;%
 summarise(observed = sum(cancer_case), .groups = &#39;drop&#39;)
 
-步骤 2：计算人年
- person_years &lt;- df %&gt;%
-group_by(smoking, age_group, sex) %&gt;%
-summarise(total_pyrs = sum(pyrs, na.rm = TRUE), .groups = &#39;drop&#39;)
+## 步骤 2：计算人年
 
-步骤 3：计算参考人群（非吸烟者）的发病率
+person_years &lt;- df %&gt;%
+group_by(smoking, age_group, sex) %&gt;%
+summarise(total_pyrs = sum(pyrs, na.rm = TRUE), 
+.groups = &#39;drop&#39;)
+
+## 步骤 3：计算参考人群的发病率（非吸烟者）
+
 reference_rates &lt;- df %&gt;%
 filter(smoking == 0) %&gt;%
 group_by(age_group, sex) %&gt;%
-summarise(rate = sum(cancer_case) / sum(pyrs), .groups = &#39;drop&#39;)
+summarise(rate = sum(cancer_case) / sum(pyrs), 
+.groups = &#39;drop&#39;)
 
-步骤 4：计算预期病例（如果没有吸烟者）
+## 步骤 4：计算预期病例（如果没有吸烟者）
 将总人年数乘以每组的发病率。
 
 expected_cases &lt;- person_years %&gt;%
 left_join(reference_rates, by = c(&quot;age_group&quot;, &quot;sex&quot;)) %&gt;%
 mutate(expected = total_pyrs * rate)
 
-步骤 5：合并观察到的和预期的病例
+## 步骤 5：合并观察到的和预期的病例
+
 combined &lt;- perceived_cases %&gt;%
 left_join(expected_cases, by = c(&quot;smoking&quot;, &quot;age_group&quot;, &quot;sex&quot;)) %&gt;%
 group_by(smoking) %&gt;%
@@ -142,8 +159,10 @@ exp_cases = sum(expected, na.rm = TRUE),
 total_pyrs = sum(total_pyrs, na.rm = TRUE)
 )
 
-步骤 6：通过将观察到的病例除以预期病例来计算 SIR
- combined &lt;- combined %&gt;%
+## 步骤6：通过将观察到的病例除以预期病例来计算 SIR
+
+combined &lt;- combined %&gt;%
+
 mutate(
 SIR = obs_cases / exp_cases,
 SE_log_SIR = sqrt(1 / obs_cases),
@@ -151,9 +170,11 @@ lower = exp(log(SIR) - 1.96 * SE_log_SIR),
 upper = exp(log(SIR) + 1.96 * SE_log_SIR)
 )
 
-步骤 7：调整参考人群值
-由于非吸烟者是我的参考人群，我将 SE、lower 和 upper 值更改为“ref”。
- combined &lt;- combined %&gt;%
+## 步骤 7：调整参考人群值
+## 由于非吸烟者是我的参考人群，我将 SE、
+## lower 和 upper 值更改为“ref”。
+
+combined &lt;- combined %&gt;%
 mutate(
 SIR = ifelse(smoking == 0, 1.0, SIR),
 SE_log_SIR = ifelse(smoking == 0, &quot;ref&quot;, SE_log_SIR),
@@ -162,7 +183,7 @@ upper = ifelse(smoking == 0, &quot;ref&quot;, upper)
 )
 
 我正在尝试实现从讲座材料和一些 sas 代码中读到的内容。但是，我不擅长 SAS，很难将它们翻译成 R 并获得类似的结果。
-所以我不能确定我的方法是否正确。有些人使用参考人群的总体发病率，而不是每个分组变量组合的参考人群发病率。使用总体发病率对我来说没有任何意义。您能否告诉我这种计算 SIR 的方法是否正确，特别是关于性别和年龄组的调整？任何建议都将不胜感激。请保持礼貌，我来这里是为了学习，而不是被侮辱，我希望我的问题也能帮助其他人学习。]]></description>
+所以我不能确定我的方法是否正确。有些人使用参考人群的总体发生率而不是每个分组变量组合的参考人群发生率。使用总体发生率对我来说没有任何意义。您能否告诉我这种计算 SIR 的方法是否正确，尤其是针对性别和年龄组的调整？任何建议都将不胜感激。请保持礼貌，我来这里是为了学习，而不是被侮辱，我希望我的问题也能帮助其他人学习。]]></description>
       <guid>https://stats.stackexchange.com/questions/653307/is-my-approach-of-calculating-adjusted-standardized-incidence-ratiossir-correc</guid>
       <pubDate>Sun, 25 Aug 2024 20:30:31 GMT</pubDate>
     </item>
@@ -372,32 +393,67 @@ LogLik
       <pubDate>Sat, 24 Aug 2024 17:46:14 GMT</pubDate>
     </item>
     <item>
-      <title>R 中非平方列联表中名义数据的配对检验</title>
-      <link>https://stats.stackexchange.com/questions/653275/paired-test-on-nominal-data-in-a-non-squared-contingency-table-in-r</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/653275/paired-test-on-nominal-data-in-a-non-squared-contingency-table-in-r</guid>
-      <pubDate>Sat, 24 Aug 2024 16:41:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>伽马分布和泊松分布及其与随机性的关系</title>
-      <link>https://stats.stackexchange.com/questions/653265/gamma-and-poisson-distributions-and-their-relations-to-the-randomness</link>
-      <description><![CDATA[我正在阅读以下论文：
-霍奇金淋巴瘤的 CD30 细胞图不是无尺度的——一种图像分析方法
-在图 3 中，作者展示了一些分布：
-
-https://academic.oup.com/view-large/figure/394355474/BIOINFORMATICS_32_1_122_f4.jpeg
-作者声称 Gamma 分布适合他们的测量点（实线）。这真的正确吗？特别是在中间图中，它看起来不像 Gamma 分布。
-我的第二个问题：作者声称，由于测量的度分布的分布是 Gamma 分布而不是泊松分布，因此网络不是随机的。但这种说法的有效性背后的原因是什么？
-论文中的这个说法正确吗：“图的非随机性的充分证明是顶点度分布与相应的泊松分布的显著偏差。”]]></description>
-      <guid>https://stats.stackexchange.com/questions/653265/gamma-and-poisson-distributions-and-their-relations-to-the-randomness</guid>
-      <pubDate>Sat, 24 Aug 2024 11:27:03 GMT</pubDate>
-    </item>
-    <item>
       <title>HGAMM（分层广义加性混合模型）中因子变量的族分布和处理的选择</title>
       <link>https://stats.stackexchange.com/questions/653223/chooice-of-the-family-distribution-and-handle-of-factor-variables-in-hgamm-hier</link>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/653223/chooice-of-the-family-distribution-and-handle-of-factor-variables-in-hgamm-hier</guid>
       <pubDate>Fri, 23 Aug 2024 10:14:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么通过残差估计的数据与原始数据相比对重要性有 50/50 的影响？</title>
+      <link>https://stats.stackexchange.com/questions/652971/why-estimates-of-data-via-residuals-has-50-50-effect-on-significance-compared-to</link>
+      <description><![CDATA[我根据以下模型生成数据
+
+在真实数据集中，变量 I 是未知的，目标是研究 I 和 D、B11 之间的关系，看它是否显着非零。为此，在已知 I 的模拟数据中，将使用 I 值的方法与使用 G ~ B 残差估计值的方法进行比较。换句话说，将 I ~ D 与 ([G ~ B] 的残差) ~ D 进行比较。根据下面的 R 代码，在中位数上，两个显着性检验是相同的，而在平均数上，直接使用 I 会略胜一筹。
+对此的解释是什么？为什么不是“显而易见”的想法，因为残差只是变量 I 的估计值，而不是真实变量，所以它总是给出更不可靠的结果？相反，只有一半的时间给出更糟糕的结果？而另一半更好？
+# Part A:
+set.seed(0); n &lt;- 40; numSims &lt;- 10000; ronDsigs &lt;- c(); 
+IonDsigs &lt;- c()
+B8s &lt;- B9s &lt;- B10s &lt;- B11s &lt;- B12s &lt;- c()
+for (index1 in 1:numSims) {
+B &lt;- rnorm(n); I &lt;- rnorm(n); J &lt;- rnorm(n)
+B8 &lt;- rnorm(1); B9 &lt;- rnorm(1); B10 &lt;- rnorm(1); B11 &lt;- rnorm(1); 
+B12 &lt;- rnorm(1)
+B8s &lt;- c(B8s, B8); B9s &lt;- c(B9s, B9); B10s &lt;- c(B10s, B10); 
+B11s &lt;- c(B11s, B11);
+B12s &lt;- c(B12s, B12)
+G &lt;- B*B8 + I*B10; D &lt;- B*B9 + I*B11 + J*B12
+GonB &lt;- lm(G ~ B)
+GonBresiduals &lt;- GonB$residuals
+GonBresidualsonD &lt;- lm(GonBresiduals ~ D)
+IonD &lt;- lm(I ~ D)
+ronDsigs &lt;- c(ronDsigs, 
+summary(GonBresidualsonD)$coefficients[[8]])
+IonDsigs &lt;- c(IonDsigs, summary(IonD)$coefficients[[8]])
+}
+rminI &lt;- ronDsigs - IonDsigs
+summary(rminI)
+
+# B 部分：与 A 部分完全相同的重复，但有一点不同B8,B9,B10,B11,B12
+# 这次所有值都是常量。
+set.seed(0); n &lt;- 40; numSims &lt;- 10000; ronDsigs &lt;- c(); 
+IonDsigs &lt;- c()
+B8s &lt;- B9s &lt;- B10s &lt;- B11s &lt;- B12s &lt;- c()
+for (index1 in 1:numSims) {
+B &lt;- rnorm(n); I &lt;- rnorm(n); J &lt;- rnorm(n)
+B8 &lt;- 3; B9 &lt;- 1; B10 &lt;- 2; B11 &lt;- 11; B12 &lt;- 19
+B8s &lt;- c(B8s, B8); B9s &lt;- c(B9s, B9); B10s &lt;- c(B10s, B10); 
+B11s &lt;- c(B11s, B11);
+B12s &lt;- c(B12s, B12)
+G &lt;- B*B8 + I*B10; D &lt;- B*B9 + I*B11 + J*B12
+GonB &lt;- lm(G ~ B)
+GonBresiduals &lt;- GonB$residuals
+GonBresidualsonD &lt;- lm(GonBresiduals ~ D)
+IonD &lt;- lm(I ~ D)
+ronDsigs &lt;- c(ronDsigs, 
+summary(GonBresidualsonD)$coefficients[[8]])
+IonDsigs &lt;- c(IonDsigs, summary(IonD)$coefficients[[8]])
+}
+rminI &lt;- ronDsigs - IonDsigs
+summary(rminI)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652971/why-estimates-of-data-via-residuals-has-50-50-effect-on-significance-compared-to</guid>
+      <pubDate>Sun, 18 Aug 2024 13:52:56 GMT</pubDate>
     </item>
     </channel>
 </rss>
