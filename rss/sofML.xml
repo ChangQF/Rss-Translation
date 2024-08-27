@@ -4,120 +4,51 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 27 Aug 2024 18:20:49 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 27 Aug 2024 21:14:19 GMT</lastBuildDate>
     <item>
-      <title>如何在预处理数据时跳过连续分隔符</title>
-      <link>https://stackoverflow.com/questions/78920280/how-to-skip-over-consecutive-delimeters-in-preprocessing-data</link>
-      <description><![CDATA[我试图清理间距不一致的 ASCII 数据集（例如 dataset =
-[1 1 1 1 1 1 1 1
-1 1 1 1 1 1 4
-2 1 1 1 1 1 1 1\]），但到目前为止，我尝试的方法都没有奏效。下面的代码批处理可以工作，但由于分隔符只是“ ”，它会用空格创建列。因此，它可以打印出文件的特征，例如 
+      <title>学习LSTM神经网络的问题</title>
+      <link>https://stackoverflow.com/questions/78920308/the-problem-with-learning-the-lstm-neural-network</link>
+      <description><![CDATA[我需要创建一个模型来预测某些信号随时间变化的误差，即解决时间序列回归问题。我为此使用 LSTM：
+class MyLSTM(nn.Module):
+def __init__(self, num_classes, input_size, hidden_​​size, num_layers, seq_length):
+super(MyLSTM, self).__init__()
+self.num_classes = num_classes 
+self.num_layers = num_layers 
+self.input_size = input_size 
+self.hidden_​​size = hidden_​​size 
+self.seq_length = seq_length 
 
-features = [ nan nan nan nan 2
- 2 nan nan nan 1 nan
+self.lstm = nn.LSTM(input_size = input_size, hidden_​​size = hidden_​​size, num_layers = num_layers, batch_first = True) 
+self.fc_1 = nn.Linear(hidden_​​size, 128) 
+self.fc_2 = nn.Linear(128, num_classes) 
+self.activatin_func = nn.Tanh()
 
-nan nan nan 3 nan\]
+def forward(self, x):
+h_0 = 变量(torch.zeros(self.num_layers, x.size(0), self.hidden_​​size)) 
+c_0 = 变量(torch.zeros(self.num_layers, x.size(0), self.hidden_​​size)) 
+out, (hn, cn) = self.lstm(x, (h_0, c_0)) 
+hn = hn.view(-1, self.hidden_​​size) 
+out = self.activatin_func(hn)
+out = self.fc_1(out) 
+out = self.fc_2(out) 
+out = self.activatin_func(out)
+return out
 
-import pandas as pd
-import torch
-from torch.utils.data import Dataset, DataLoader, random_split
-import numpy as np
-import os
+超参数：
+num_epochs = 1000 
+learning_rate = 0.01 
 
-class SDataset(Dataset):
-def __init__(self, directory, delimiter=&#39; &#39;):
-self.data = []
-self.labels = []
-self.delimiter = delimiter
+input_size = X.shape[1] 
+num_classes = y.shape[1] 
 
-# 循环遍历目录中的所有文件
-for filename in os.listdir(directory):
-if filename.endswith(&#39;.f16&#39;):
-file_path = os.path.join(directory, filename)
-try:
-# 加载 ASCII 数据 
-df = pd.read_csv(file_path, delimiter=self.delimiter, header=None, engine=&#39;python&#39;)
-# 确保有足够的列
-if df.shape[1] &gt;= 21:
-# 提取特征和标签
-features = df.iloc[:, [12, 13]].values
-labels = df.iloc[:, 6].values 
-self.data.append(features)
-self.labels.append(labels)
-else:
-print(f&quot;文件 {filename} 没有足够的列。&quot;)
-except Exception as e:
-print(f&quot;加载文件 {filename} 时出错：{e}&quot;)
+hidden_​​size = 16 
+num_layers = 1 
 
-if not self.data:
-raise ValueError(&quot;未找到有效数据。&quot;)
-
-# 堆叠特征
-self.data = np.vstack(self.data) 
-# 连接标签
-self.labels = np.concatenate(self.labels) 
-
-def __len__(self):
-return len(self.labels)
-
-def __getitem__(self, idx):
-features = torch.tensor(self.data[idx], dtype=torch.float32)
-label = torch.tensor(self.labels[idx], dtype=torch.float32)
-return features, label
-
-# 从包含 .f16 文件的目录中加载完整数据集
-dataset_directory = &quot;C:/.../.../.../.../...&quot;
-dataset = SDataset(dataset_directory, delimiter=&#39; &#39;)
-
-# 定义分割大小
-train_size = int(0.7 * len(dataset)) # 70% 用于训练
-test_size = len(dataset) - train_size # 20% 用于测试
-
-# 分割数据集
-train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-
-# 创建用于训练和测试的 DataLoader
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-# 训练循环
-for batch_idx, (features, labels) in enumerate(train_loader):
-print(f&quot;Training Batch {batch_idx+1}&quot;)
-print(&quot;Features:&quot;, features)
-print(&quot;Labels:&quot;, labels)
-
-# 测试循环
-for batch_idx, (features, labels) in enumerate(test_loader):
-print(f&quot;Testing Batch {batch_idx+1}&quot;)
-print(&quot;Features:&quot;, features)
-print(&quot;Labels:&quot;, labels)
-
-我尝试添加 .strip() 以查看它是否可以解决此问题：
-try:
-# 加载 ASCII 数据 
-df = pd.read_csv(file_path, delimiter=self.delimiter, header=None, engine=&#39;python&#39;)
-# 确保有足够的列
-if df.shape[1] &gt;= 21:
-# 提取特征和标签
-df = df.strip()
-features = df.iloc[:, [12, 13]].values
-labels = df.iloc[:, 6].values 
-self.data.append(features)
-self.labels.append(labels)
-else:
-print(f&quot;文件 {filename} 没有足够的列。&quot;)
-
-我期望这会删除数据集中的空格，但我收到了此错误：
-回溯（最近一次调用最后一次）：
-文件 &quot;c:---.py&quot;，第 51 行，位于 &lt;module&gt;
-数据集 = SDataset(dataset_directory, delimiter=&#39; &#39;)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-文件 &quot;c:---.py&quot;，第 34 行，在 __init__ 中
-引发 ValueError(&quot;未找到有效数据。请确保文件包含正确的列数。&quot;)
-ValueError：未找到有效数据。请确保文件包含正确的列数。
-]]></description>
-      <guid>https://stackoverflow.com/questions/78920280/how-to-skip-over-consecutive-delimeters-in-preprocessing-data</guid>
-      <pubDate>Tue, 27 Aug 2024 18:19:29 GMT</pubDate>
+在此处输入图片描述
+结果，我在训练阶段得到了模型估计的相当准确的近似值，而在测试阶段得到了差异。我觉得这很奇怪，因为训练非常成功，并且评估函数在预测阶段的值没有急剧跳跃，评估曲线应该足够接近真实值，但在实践中我得到了急剧跳跃，我不明白其性质。
+可能是什么问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78920308/the-problem-with-learning-the-lstm-neural-network</guid>
+      <pubDate>Tue, 27 Aug 2024 18:29:17 GMT</pubDate>
     </item>
     <item>
       <title>我在创建聊天机器人时收到错误</title>
@@ -136,7 +67,7 @@ https://i.sstatic.net/TpgppnbJ.png]]></description>
       <pubDate>Tue, 27 Aug 2024 17:55:02 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习模型_需要建议</title>
+      <title>机器学习模型_需要建议[关闭]</title>
       <link>https://stackoverflow.com/questions/78920194/machine-learning-model-need-advice</link>
       <description><![CDATA[`CAD_df = pd.read_csv(&#39;/kaggle/input/canadian-salary-data-from-stack-overflow-survey/CanadaData.csv&#39;, index_col = &#39;Title&#39;)
 
@@ -196,21 +127,25 @@ val_score.mean()
     <item>
       <title>为 AWS SageMaker 配置 IAM 角色</title>
       <link>https://stackoverflow.com/questions/78919257/configuring-an-iam-role-for-aws-sagemaker</link>
-      <description><![CDATA[我正在 Udacity 上学习一门课程。对于最终项目，我必须微调 LLM。为此，他们给予 AWS 云学分。但我无法按照指示在 sagemaker 中创建 IAM 角色。我收到以下错误
-没有为推理托管端点选择实例类型。默认为 ml.g5.12xlarge。
-ClientError：调用 CreateEndpointConfig 操作时发生错误 (AccessDeniedException)：用户：arn：aws：sts::730656687357：assumed-role/SageMaker-ProjectSageMakerRole/SageMaker 无权执行：sagemaker：CreateEndpointConfig 资源：arn：aws：sagemaker：us-west-2：730656687357：endpoint-config/meta-textgeneration-llama-2-7b-2024-08-27-13-31-54-591，在基于身份的策略中明确拒绝
-在为 AWS SageMaker 配置 IAM 角色时，没有管理端点来选择它输入图像描述这里
-我尝试了很多次，但什么也没找到]]></description>
+      <description><![CDATA[我正在 Udacity 上学习一门课程。对于最终项目，我必须微调 LLM。为此，他们给予 AWS 云积分。但我无法按照指示在 sagemaker 中创建 IAM 角色。我收到以下错误
+未选择用于推理托管端点的实例类型。默认为 ml.g5.12xlarge。
+ClientError：调用 CreateEndpointConfig 操作时发生错误 (AccessDeniedException)：
+用户：arn：aws：sts::730656687357：assumed-role/SageMaker-ProjectSageMakerRole/SageMaker
+无权对资源执行：sagemaker：CreateEndpointConfig：
+arn：aws：sagemaker：us-west-2：730656687357：endpoint-config/meta-textgeneration-llama-2-7b-2024-08-27-13-31-54-591
+在基于身份的策略中明确拒绝
+
+在为 AWS SageMaker 配置 IAM 角色时，没有管理端点来选择它在此输入图片描述]]></description>
       <guid>https://stackoverflow.com/questions/78919257/configuring-an-iam-role-for-aws-sagemaker</guid>
       <pubDate>Tue, 27 Aug 2024 14:00:06 GMT</pubDate>
     </item>
     <item>
       <title>YOLOv8 迁移学习：冻结层后预训练权重的损失</title>
       <link>https://stackoverflow.com/questions/78918374/yolov8-transfer-learning-loss-of-pretrained-weights-after-freezing-layers</link>
-      <description><![CDATA[问题：经过训练后，模型可以准确预测纸板箱，但无法检测到训练前用于识别的任何其他物体。似乎预训练的权重已被覆盖或丢失。我的目标是保留检测其他物体的能力，同时专门针对纸板箱对模型进行微调。
+      <description><![CDATA[经过训练后，模型可以准确预测纸板箱，但无法检测到训练前用于识别的任何其他物体。似乎预训练的权重已被覆盖或丢失。我的目标是保留检测其他物体的能力，同时专门针对纸板箱对模型进行微调。
 我从 Roboflow 获得了正确标记的数据集。
 https://universe.roboflow.com/dataset-t7hz7/cardboard-eupc8
-问题：为什么模型在训练后失去了检测其他物体的能力，即使我已经冻结了最初的 10 层？如何保留 YoloV8 原有的物体检测功能，同时专注于识别纸板箱？
+为什么模型在训练后失去了检测其他物体的能力，即使我已经冻结了最初的 10 层？如何保留 YoloV8 原有的物体检测功能，同时专注于识别纸板箱？
 代码：
 from ultralytics import YOLO
 
@@ -246,27 +181,19 @@ name=&quot;custom_yolov8_model&quot;
       <pubDate>Tue, 27 Aug 2024 07:07:20 GMT</pubDate>
     </item>
     <item>
-      <title>测试集和训练集的性能相似，但验证集上的性能差别很大[关闭]</title>
-      <link>https://stackoverflow.com/questions/78917504/performance-of-the-test-set-and-the-training-set-is-similar-but-the-performance</link>
-      <description><![CDATA[测试集和训练集的性能相似，但验证集的性能差异很大。
-我使用的所有变量都与日期时间无关，但我在 sklearn 中训练的所有模型仍然面临这个问题。
-例如，训练集中的 R2 = 0.7，测试集中的 R2 = 0.68。然而，当我在验证集中应用模型时，R2 下降到 0.5。
-有什么原因或解决方案吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78917504/performance-of-the-test-set-and-the-training-set-is-similar-but-the-performance</guid>
-      <pubDate>Tue, 27 Aug 2024 06:57:15 GMT</pubDate>
-    </item>
-    <item>
       <title>tensorflow-federated 0.86.0.. AttributeError: 模块‘tensorflow_federated.python.learning’没有属性‘build_federated_averaging_process</title>
       <link>https://stackoverflow.com/questions/78916201/tensorflow-federated-0-86-0-attributeerror-module-tensorflow-federated-pytho</link>
-      <description><![CDATA[
+      <description><![CDATA[--------------------------------------------------------------------------
 AttributeError Traceback（最近一次调用最后一次）
-在&lt;cell line: 1&gt;()
+&lt;ipython-input-21-ab950bcb167c&gt; 在 &lt;cell line: 1&gt;()
 ----&gt; 1 trainer = tff.learning.build_federated_averaging_process(
 2 model_fn,
 3 client_optimizer_fn=lambda: tf.keras.optimizers.Adam(learning_rate=0.01),
 4 server_optimizer_fn=lambda: tf.keras.optimizers.Adam(learning_rate=0.05)#learning_rate=0.01
 5 )
-AttributeError: module &#39;tensorflow_federated.python.learning&#39; 没有属性 &#39;build_federated_averaging_process&#39;
+
+AttributeError: 模块“tensorflow_federated.python.learning”没有属性“build_federated_averaging_process”
+
 我该如何解决这个问题？]]></description>
       <guid>https://stackoverflow.com/questions/78916201/tensorflow-federated-0-86-0-attributeerror-module-tensorflow-federated-pytho</guid>
       <pubDate>Mon, 26 Aug 2024 20:32:53 GMT</pubDate>
@@ -383,6 +310,47 @@ Epoch 8/10
 也许使用 LSTM 无法做到这一点，但我认为数据非常简单。我真的想尝试找到一种方法来使用深度学习来找到它。]]></description>
       <guid>https://stackoverflow.com/questions/78753201/lstm-model-doesnt-train</guid>
       <pubDate>Tue, 16 Jul 2024 07:31:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Conda + Poetry 有意义吗？</title>
+      <link>https://stackoverflow.com/questions/70851048/does-it-make-sense-to-use-conda-poetry</link>
+      <description><![CDATA[在机器学习项目中使用 Conda + Poetry 是否有意义？请允许我分享我的（新手）理解，请纠正或启发我：
+据我所知，Conda 和 Poetry 有不同的用途，但在很大程度上是多余的：
+
+Conda 主要是一个环境管理器（实际上不一定是 Python），但它也可以管理包和依赖项。
+Poetry 主要是一个 Python 包管理器（例如，pip 的升级），但它也可以创建和管理 Python 环境（例如，Pyenv 的升级）。
+
+我的想法是同时使用两者并划分它们的角色：让 Conda 成为环境管理器，让 Poetry 成为包管理器。我的理由是（听起来）Conda 最适合管理环境，可用于编译和安装非 Python 包，尤其是 CUDA 驱动程序（用于 GPU 功能），而 Poetry 作为 Python 包管理器比 Conda 更强大。
+我已经设法通过在 Conda 环境中使用 Poetry 相当轻松地完成这项工作。诀窍是不使用 Poetry 来管理 Python 环境：我没有使用 poetry shell 或 poetry run 之类的命令，只使用 poetry init、poetry install 等（在激活 Conda 环境后）。
+为了全面披露，我的 environment.yml 文件（用于 Conda）如下所示：
+name: N
+
+channels:
+- defaults
+- conda-forge
+
+dependencies:
+- python=3.9
+- cudatoolkit
+- cudnn
+
+我的 poetry.toml 文件如下所示：
+[tool.poetry]
+name = &quot;N&quot;
+authors = [&quot;B&quot;]
+
+[tool.poetry.dependencies]
+python = &quot;3.9&quot;
+torch = &quot;^1.10.1&quot;
+
+[build-system]
+requires = [&quot;poetry-core&gt;=1.0.0&quot;]
+build-backend = &quot;poetry.core.masonry.api&quot;
+
+说实话，我这样做的原因之一是，在没有 Conda 的情况下，我很难安装 CUDA（用于 GPU 支持）。
+这个项目设计对你来说合理吗？]]></description>
+      <guid>https://stackoverflow.com/questions/70851048/does-it-make-sense-to-use-conda-poetry</guid>
+      <pubDate>Tue, 25 Jan 2022 15:09:43 GMT</pubDate>
     </item>
     <item>
       <title>Javascript 或 ML 中的自定义对象检测？</title>
