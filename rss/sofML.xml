@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 27 Aug 2024 03:17:39 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 27 Aug 2024 06:22:49 GMT</lastBuildDate>
     <item>
       <title>运行 plumber API 时返回多个值</title>
       <link>https://stackoverflow.com/questions/78916863/returning-multiple-values-when-running-plumber-api</link>
@@ -68,8 +68,8 @@ cassandra.DependencyException：无法加载默认连接类
 - 未找到使用 libev 所需的 C 扩展。这可能意味着您在安装驱动程序时没有所需的构建依赖项。请参阅 http://datastax.github.io/python-driver/installation.html#c-extensions，了解有关安装构建依赖项和构建 C 扩展的说明。
 - 无法导入 asyncore 模块。请注意，此模块已在 Python 3.12 中删除，因此当使用此版本（或任何更新版本）的驱动程序时，您将需要使用其他事件循环实现之一。
 
-尽管我搜索了这个问题，发现了很多类似的问题都得到了解决，但是它们都没有为我解决问题，所以我来这里希望有人能解决我的问题。
-当我运行代码时，我希望它会像视频显示的那样工作，但事实并非如此。尽管我搜索了这个问题，发现了很多类似的问题都得到了解决，但是它们都没有为我解决问题，所以我来这里希望有人能解决我的问题。]]></description>
+尽管我搜索了这个问题，发现了很多类似的问题已经解决，但是没有一个对我有用，所以我来这里希望有人能解决我的问题。
+当我运行代码时，我希望它会像视频显示的那样工作，但事实并非如此。尽管我搜索了这个问题，发现了很多类似的问题已经解决，但是没有一个对我有用，所以我来这里希望有人能解决我的问题。]]></description>
       <guid>https://stackoverflow.com/questions/78916659/python-error-when-im-trying-to-run-a-set-code-by-cmd</guid>
       <pubDate>Tue, 27 Aug 2024 00:23:56 GMT</pubDate>
     </item>
@@ -151,6 +151,51 @@ console.error(&quot;Transcription error:&quot;, error);
       <pubDate>Mon, 26 Aug 2024 23:38:28 GMT</pubDate>
     </item>
     <item>
+      <title>Fairmot 重新实现 reid 过度拟合？</title>
+      <link>https://stackoverflow.com/questions/78916378/fairmot-reimplementation-reid-overfitting</link>
+      <description><![CDATA[我正在以一种非常简化的方式重新实现 Fairmot，我喜欢他们的工作，但我对机器学习还很陌生，我很难理解为什么在对 mot17、prw、cuhksysu 和部分加州理工学院行人进行训练时，reid 分支似乎立即过度拟合，而训练损失似乎以正常方式减少。
+我想到了一些动机：
+
+我的数据比原始项目少，所以模型在 reid 上过度拟合
+
+我正在对他们的工作进行简化的增强，没有旋转，没有裁剪，所以这意味着我的数据更少，或者至少我的数据集中的变化更少
+
+我搞砸了 id 损失，但我几乎复制粘贴了他们的函数，所以 :)
+
+我使用的模型有点不同，可能对于任务来说太简单了（一直被教导更简单-&gt;更少的过度拟合，无论如何我使用双线性插值进行上采样而不是逆卷积，因为我无法消除棋盘效应）
+
+验证代码实现得很糟糕，但我试图在训练集上进行验证，结果与训练一致损失
+
+我搞砸了一些我无法理解的事情
+
+
+我在这里发布了我正在重新实现模型的 colab 笔记本，如果你有空闲时间并愿意帮助我，那就太好了！
+此外，如果我的代码正确，我正在模型部分加载 crowdhuman 上的预训练，并且我已经修改了数据集以具有不重叠的 id。
+这是我的 colab，Google 限制了数据集的下载次数，无论如何它应该可以正常运行，如果不是，对不起。
+https://colab.research.google.com/drive/1EVR3S6Qd0sFeRbhCYiZo5xtPZXYHsOvA?usp=sharing
+哦，我在这里发布了我正在使用的 id 损失：
+class IdLoss(nn.Module):
+def init(self,n_id):
+super(IdLoss, self).init()
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+self.id_classifier = nn.Linear(id_vect_size, int(n_id+1),device=device)
+self.cross_entr_loss=nn.CrossEntropyLoss(ignore_index=-1)
+self.dropout = nn.Dropout(0.3)
+
+def forward(self, id_output, ind_target, mask_target, id_targets):
+id_vectors = gather_feat(id_output, ind_target)
+id_vectors = id_vectors[mask_target &gt; 0].contiguous()
+id_vectors = F.normalize(id_vectors)
+id_targets = id_targets[mask_target &gt; 0].contiguous()
+id_logits = self.id_classifier(id_vectors)
+
+return self.cross_entr_loss(id_logits, id_targets)
+
+我尝试了空间 dropout、限制 reid 向量大小、添加增强、不同的数据集大小（但最多 45000 张图像）我添加了 50% 的对原始图像执行增强的可能性，我简化了模型，改变了学习率。无法使 reid 损失表现良好。]]></description>
+      <guid>https://stackoverflow.com/questions/78916378/fairmot-reimplementation-reid-overfitting</guid>
+      <pubDate>Mon, 26 Aug 2024 21:44:44 GMT</pubDate>
+    </item>
+    <item>
       <title>如何从头开始训练已训练好的变压器模型？[关闭]</title>
       <link>https://stackoverflow.com/questions/78916326/how-to-train-trained-transformer-models-from-scratch</link>
       <description><![CDATA[对于某些实验，我想采用预训练模型，例如这个或这个，并重新初始化它们，以便我可以在我的数据集上从头开始训练它们。主要目标是只使用它们的架构，而不是权重。我该怎么做？
@@ -159,56 +204,66 @@ console.error(&quot;Transcription error:&quot;, error);
       <pubDate>Mon, 26 Aug 2024 21:19:47 GMT</pubDate>
     </item>
     <item>
-      <title>我想要一个包含文本和盲文的数据集[关闭]</title>
-      <link>https://stackoverflow.com/questions/78915000/i-want-a-dataset-contains-text-and-braille-language</link>
-      <description><![CDATA[我正在做一个将语音转换为文本的机器学习模型，然后我正在制作另一个将文本转换为盲文的模型，但我找不到同时包含文本和盲文的数据集。
-我在 Kaggle 中查找过，但找不到任何数据集，有人可以看看链接或帮我找一个开源数据集吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78915000/i-want-a-dataset-contains-text-and-braille-language</guid>
-      <pubDate>Mon, 26 Aug 2024 14:38:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>模型训练时的输入形状问题</title>
-      <link>https://stackoverflow.com/questions/78914400/input-shape-problem-during-model-training</link>
-      <description><![CDATA[我的代码中存在这个问题，您能帮助我吗？
-ValueError: 输入层“ functional”的 0与层不兼容：
-预期形状=（None，4096），发现形状=（None，64，4096）
+      <title>如何提高图像字幕模型字幕的质量和描述性</title>
+      <link>https://stackoverflow.com/questions/78916109/how-to-improve-the-quality-and-descriptiveness-of-image-captioning-model-caption</link>
+      <description><![CDATA[我正在开发一个服装图像字幕模型，并正在创建自己的训练数据集。目前它有大约 300 张图片，总共大约 1300 个字幕。我知道这个数据集很小，但在测试期间，模型输出的字幕是非描述性的，例如“短袖衬衫”，而大多数训练示例是“黑色短袖图案衬衫”或“带有白色地狱开始世界文字的黑色衬衫”，那么为什么模型的输出和训练示例会有如此大的差异。我也不清楚如何让模型预测衬衫上的文字，以进行样本外预测。
+我的模型是这样的：
+from tensorflow.keras.models import Model
 
-代码：
-def generator_output_signature()：
-return (
-(
-tf.TensorSpec(shape=[batch_size, 4096], dtype=tf.float32), # X1 具有很多维度
-tf.TensorSpec(shape=[batch_size, max_length], dtype=tf.int32) # X2 具有很多维度
-),
-tf.TensorSpec(shape=[batch_size, vocab_size], dtype=tf.float32) # y 具有很多维度
-)
-train_dataset = tf.data.Dataset.from_generator(
-lambda: data_generator(train_ids, mining, features、tokenizer、max_length、vocab_size、batch_size)，
-output_signature=generator_output_signature()
-)
+input1 = Input(shape=(1920,)) 
+input2 = Input(shape=(max_length,)) 
 
-train_dataset = train_dataset.batch(batch_size).p​​refetch(tf.data.AUTOTUNE)
+img_features = Dense(256,activation=&#39;relu&#39;)(input1) 
+img_features = Dropout(0.5)(img_features)
+img_features_flattened = Flatten()(img_features)
+img_features_repeated = RepeatVector(max_length)(img_features_flattened)
 
-image_input = Input(shape=(4096,))
-caption_input = Input(shape=(max_length,))
+sentence_features = Embedding(vocab_size, 256, mask_zero=False)(input2) 
+sentence_features = Dropout(0.5)(sentence_features)
 
-x = Embedding(vocab_size, 256)(caption_input) # 输出形状：(None, max_length, 256)
-x = LSTM(256)(x) # 输出形状：(None, 256)
+attention = MultiHeadAttention(
+num_heads=8, # 注意力头的数量
+key_dim=256 # 注意力键的维度
+)(query=sentence_features, value=img_features_repeated, key=img_features_repeated)
 
-image_features = Dense(256,activation=&#39;relu&#39;)(image_input) # 输出形状：(None, 256)
+context =tention
 
-x = Add()([x, image_features])
+merged = concatenate([context, sentence_features])
 
-x = Dense(vocab_size,激活=&#39;softmax&#39;)(x) # 输出形状：(无，vocab_size)
+sentence_features = LSTM(256)(merged)
+x = Dropout(0.5)(sentence_features)
 
-model = Model(inputs=[image_input, caption_input], output=x)
-model.compile(optimizer=&#39;adam&#39;, loss=&#39;categorical_crossentropy&#39;)
+x = add([x, img_features_flattened])
+x = Dense(128,activation=&#39;relu&#39;)(x)
+x = Dropout(0.5)(x)
 
-print(model.summary())
+output = Dense(vocab_size,activation=&#39;softmax&#39;)(x)
 
-我试图删除额外的维度，但这是不可能的，所以我无法训练我的模型。]]></description>
-      <guid>https://stackoverflow.com/questions/78914400/input-shape-problem-during-model-training</guid>
-      <pubDate>Mon, 26 Aug 2024 12:28:50 GMT</pubDate>
+caption_model = Model(inputs=[input1, input2], output=output)
+caption_model.compile(loss=&#39;categorical_crossentropy&#39;, optimizer=&#39;adam&#39;)
+
+这就是我定义训练和验证集的方式，这会导致模型无法预测样本之外的服装品牌的文本吗？
+tokenizer.fit_on_texts(captions)
+vocab_size = len(tokenizer.word_index) + 1
+max_length = max(len(caption.split()) for caption in captions)
+
+images = data[&#39;image&#39;].unique().tolist()
+nimages = len(images)
+
+split_index = round(0.9*nimages)
+train_images = images[:split_index]
+val_images = images[split_index:]
+
+train = data[data[&#39;image&#39;].isin(train_images)]
+test = data[data[&#39;image&#39;].isin(val_images)]
+
+train.reset_index(inplace=True,drop=True)
+test.reset_index(inplace=True,drop=True)
+
+
+我使用了以下方法：温度调整和核采样。这两种方法都改善了结果，但我仍在寻找更多方法]]></description>
+      <guid>https://stackoverflow.com/questions/78916109/how-to-improve-the-quality-and-descriptiveness-of-image-captioning-model-caption</guid>
+      <pubDate>Mon, 26 Aug 2024 19:58:39 GMT</pubDate>
     </item>
     <item>
       <title>如何在 Stable Baselines3 中改变 TD3 模型的输出激活函数？</title>
