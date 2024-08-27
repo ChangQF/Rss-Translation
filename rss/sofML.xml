@@ -4,7 +4,195 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 27 Aug 2024 15:17:20 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 27 Aug 2024 18:20:49 GMT</lastBuildDate>
+    <item>
+      <title>如何在预处理数据时跳过连续分隔符</title>
+      <link>https://stackoverflow.com/questions/78920280/how-to-skip-over-consecutive-delimeters-in-preprocessing-data</link>
+      <description><![CDATA[我试图清理间距不一致的 ASCII 数据集（例如 dataset =
+[1 1 1 1 1 1 1 1
+1 1 1 1 1 1 4
+2 1 1 1 1 1 1 1\]），但到目前为止，我尝试的方法都没有奏效。下面的代码批处理可以工作，但由于分隔符只是“ ”，它会用空格创建列。因此，它可以打印出文件的特征，例如 
+
+features = [ nan nan nan nan 2
+ 2 nan nan nan 1 nan
+
+nan nan nan 3 nan\]
+
+import pandas as pd
+import torch
+from torch.utils.data import Dataset, DataLoader, random_split
+import numpy as np
+import os
+
+class SDataset(Dataset):
+def __init__(self, directory, delimiter=&#39; &#39;):
+self.data = []
+self.labels = []
+self.delimiter = delimiter
+
+# 循环遍历目录中的所有文件
+for filename in os.listdir(directory):
+if filename.endswith(&#39;.f16&#39;):
+file_path = os.path.join(directory, filename)
+try:
+# 加载 ASCII 数据 
+df = pd.read_csv(file_path, delimiter=self.delimiter, header=None, engine=&#39;python&#39;)
+# 确保有足够的列
+if df.shape[1] &gt;= 21:
+# 提取特征和标签
+features = df.iloc[:, [12, 13]].values
+labels = df.iloc[:, 6].values 
+self.data.append(features)
+self.labels.append(labels)
+else:
+print(f&quot;文件 {filename} 没有足够的列。&quot;)
+except Exception as e:
+print(f&quot;加载文件 {filename} 时出错：{e}&quot;)
+
+if not self.data:
+raise ValueError(&quot;未找到有效数据。&quot;)
+
+# 堆叠特征
+self.data = np.vstack(self.data) 
+# 连接标签
+self.labels = np.concatenate(self.labels) 
+
+def __len__(self):
+return len(self.labels)
+
+def __getitem__(self, idx):
+features = torch.tensor(self.data[idx], dtype=torch.float32)
+label = torch.tensor(self.labels[idx], dtype=torch.float32)
+return features, label
+
+# 从包含 .f16 文件的目录中加载完整数据集
+dataset_directory = &quot;C:/.../.../.../.../...&quot;
+dataset = SDataset(dataset_directory, delimiter=&#39; &#39;)
+
+# 定义分割大小
+train_size = int(0.7 * len(dataset)) # 70% 用于训练
+test_size = len(dataset) - train_size # 20% 用于测试
+
+# 分割数据集
+train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
+# 创建用于训练和测试的 DataLoader
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+# 训练循环
+for batch_idx, (features, labels) in enumerate(train_loader):
+print(f&quot;Training Batch {batch_idx+1}&quot;)
+print(&quot;Features:&quot;, features)
+print(&quot;Labels:&quot;, labels)
+
+# 测试循环
+for batch_idx, (features, labels) in enumerate(test_loader):
+print(f&quot;Testing Batch {batch_idx+1}&quot;)
+print(&quot;Features:&quot;, features)
+print(&quot;Labels:&quot;, labels)
+
+我尝试添加 .strip() 以查看它是否可以解决此问题：
+try:
+# 加载 ASCII 数据 
+df = pd.read_csv(file_path, delimiter=self.delimiter, header=None, engine=&#39;python&#39;)
+# 确保有足够的列
+if df.shape[1] &gt;= 21:
+# 提取特征和标签
+df = df.strip()
+features = df.iloc[:, [12, 13]].values
+labels = df.iloc[:, 6].values 
+self.data.append(features)
+self.labels.append(labels)
+else:
+print(f&quot;文件 {filename} 没有足够的列。&quot;)
+
+我期望这会删除数据集中的空格，但我收到了此错误：
+回溯（最近一次调用最后一次）：
+文件 &quot;c:---.py&quot;，第 51 行，位于 &lt;module&gt;
+数据集 = SDataset(dataset_directory, delimiter=&#39; &#39;)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件 &quot;c:---.py&quot;，第 34 行，在 __init__ 中
+引发 ValueError(&quot;未找到有效数据。请确保文件包含正确的列数。&quot;)
+ValueError：未找到有效数据。请确保文件包含正确的列数。
+]]></description>
+      <guid>https://stackoverflow.com/questions/78920280/how-to-skip-over-consecutive-delimeters-in-preprocessing-data</guid>
+      <pubDate>Tue, 27 Aug 2024 18:19:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>我在创建聊天机器人时收到错误</title>
+      <link>https://stackoverflow.com/questions/78920227/i-received-an-error-while-creating-the-chatbot</link>
+      <description><![CDATA[如果有人可以提供帮助，我无法发布直接代码。我正在使用 Keras、TensorFlow 和 Python。我的项目涉及两个主要部分：聊天机器人的创建和聊天机器人前端的开发。提前谢谢您。
+以下是图片的链接
+https://i.sstatic.net/TpgppnbJ.png]]></description>
+      <guid>https://stackoverflow.com/questions/78920227/i-received-an-error-while-creating-the-chatbot</guid>
+      <pubDate>Tue, 27 Aug 2024 18:00:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>CNN 优化器未更新权重</title>
+      <link>https://stackoverflow.com/questions/78920202/cnn-optimizer-not-updating-weights</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78920202/cnn-optimizer-not-updating-weights</guid>
+      <pubDate>Tue, 27 Aug 2024 17:55:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>机器学习模型_需要建议</title>
+      <link>https://stackoverflow.com/questions/78920194/machine-learning-model-need-advice</link>
+      <description><![CDATA[`CAD_df = pd.read_csv(&#39;/kaggle/input/canadian-salary-data-from-stack-overflow-survey/CanadaData.csv&#39;, index_col = &#39;Title&#39;)
+
+sorted_CAD=CAD_df.sort_values(by = &#39;Year&#39;, accending=True)
+sorted_CAD
+
+# 导入必要的库
+从 xgboost 导入 XGBRegressor
+从 sklearn.ensemble 导入 RandomForestRegressor
+从 sklearn.metrics 导入 mean_absolute_error
+将 seaborn 导入为 sns
+将 matplotlib.pyplot 导入为 plt
+%matplotlib inline
+从 sklearn.preprocessing 导入 OneHotEncoder
+从 sklearn.model_selection 导入 cross_val_score
+从 sklearn.pipeline 导入 Pipeline
+
+类型这里
+
+
+sorted_CAD.nunique()
+
+# 防止数据泄露
+CAD_dfn = sorted_CAD.drop([&#39;Year&#39;, &#39;Country&#39;], axis=1)
+CAD_dfn
+
+# 设置训练数据和目标变量
+y = CAD_dfn[&#39;Salary (USD)&#39;]
+X = CAD_dfn.drop(&#39;Salary (USD)&#39;, axis = 1)
+
+# 构建模型训练管道 &amp; fittitng
+my_pipeline = Pipeline(steps = [(&#39;preprocessor&#39;, OneHotEncoder(handle_unknown=&#39;ignore&#39;)),
+(&#39;model&#39;,XGBRegressor(n_estimators=900,learning_rate=0.05,random_state=0))])
+
+#训练模型
+my_pipeline.fit(X, y)
+
+#由于没有测试数据，因此进行交叉验证
+val_score = -1 * cross_val_score(my_pipeline, X, y, cv = 7,scoring = &#39;neg_mean_absolute_error&#39;)
+
+val_score.mean()
+
+&#39;&#39;&#39;该模型使用 [公司规模、行业、经验、国家、城市] 等特征预测普通加拿大人的基本工资 &#39;&#39;&#39;
+
+&#39;该模型使用 [公司规模] 等特征预测普通加拿大人的基本工资,行业,经验,国家,城市] &#39;
+val_score.mean()
+5474.365167467971
+&#39;&#39;&#39;这意味着模型
+
+模型在每个预测值上的准确度为 +/- $5,474，请随意发表评论或更多想法！
+&#39;&#39;&#39;
+&#39;这意味着模型在每个预测值上的准确度为 +/- $5,474，请随意发表评论或更多想法！\n
+我是机器学习的新手，我建立了这个模型，一直在寻求听取关于需要改进什么或需要做更多事情的第二意见？非常感谢任何反馈，谢谢。`your text``]]></description>
+      <guid>https://stackoverflow.com/questions/78920194/machine-learning-model-need-advice</guid>
+      <pubDate>Tue, 27 Aug 2024 17:53:58 GMT</pubDate>
+    </item>
     <item>
       <title>为 AWS SageMaker 配置 IAM 角色</title>
       <link>https://stackoverflow.com/questions/78919257/configuring-an-iam-role-for-aws-sagemaker</link>
@@ -60,112 +248,12 @@ name=&quot;custom_yolov8_model&quot;
     <item>
       <title>测试集和训练集的性能相似，但验证集上的性能差别很大[关闭]</title>
       <link>https://stackoverflow.com/questions/78917504/performance-of-the-test-set-and-the-training-set-is-similar-but-the-performance</link>
-      <description><![CDATA[测试集和训练集的性能相似，但验证集上的性能差异很大。
+      <description><![CDATA[测试集和训练集的性能相似，但验证集的性能差异很大。
 我使用的所有变量都与日期时间无关，但我在 sklearn 中训练的所有模型仍然面临这个问题。
 例如，训练集中的 R2 = 0.7，测试集中的 R2 = 0.68。然而，当我在验证集中应用模型时，R2 下降到 0.5。
 有什么原因或解决方案吗？]]></description>
       <guid>https://stackoverflow.com/questions/78917504/performance-of-the-test-set-and-the-training-set-is-similar-but-the-performance</guid>
       <pubDate>Tue, 27 Aug 2024 06:57:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>计算高效的国际象棋解算器</title>
-      <link>https://stackoverflow.com/questions/78917392/compute-efficient-chess-solvers</link>
-      <description><![CDATA[alphago/muzero 系列广为人知，但超人国际象棋解算器是在许多专门的 TPU 上训练的。
-是否有计算效率高的国际象棋解算器的方法（或论文参考），即在使用一个标准 GPU 进行训练的约束下可以玩得相当好的国际象棋解算器？]]></description>
-      <guid>https://stackoverflow.com/questions/78917392/compute-efficient-chess-solvers</guid>
-      <pubDate>Tue, 27 Aug 2024 06:26:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>运行 plumber API 时返回多个值</title>
-      <link>https://stackoverflow.com/questions/78916863/returning-multiple-values-when-running-plumber-api</link>
-      <description><![CDATA[我使用 R 中的 caret 库创建了 xgboost 模型。当我在 plumber 中运行此模型时，Swagger 响应主体中会出现数据库的所有预测。我只想要一个预测。与模型变量的插入类别相对应的预测。下面是我的 API 示例
-model &lt;- readRDS(&#39;model_xgb.rds&#39;)
-
-#\* param var1
-#\* param var2
-#\* param var3
-#\* param var4
-#\* get/prediction
-
-function(var1,var2,var3,var4)
-
-{
-data&lt;-
-tibble(
-var1=as.factor(var1),
-var2=as.factor(var2),
-var3=as.factor(var3),
-var4=as.factor(var4)
-)
-
-predict(model,new_data=data, type=&#39;prob&#39;) %&gt;% pluck(1)
-
-}
-
-Plumber is返回：
-[
-{&quot;0&quot;:0.9152,
-&quot;1&quot;:0.0848
-},
-{&quot;0&quot;:0.5379,
-&quot;1&quot;:0.4621
-},
-{&quot;0&quot;:0.9912,
-&quot;1&quot;:0.0088
-}
-.
-.
-.
-]
-
-我只想要一个结果]]></description>
-      <guid>https://stackoverflow.com/questions/78916863/returning-multiple-values-when-running-plumber-api</guid>
-      <pubDate>Tue, 27 Aug 2024 02:30:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>Fairmot 重新实现 reid 过度拟合？</title>
-      <link>https://stackoverflow.com/questions/78916378/fairmot-reimplementation-reid-overfitting</link>
-      <description><![CDATA[我正在以一种非常简化的方式重新实现 Fairmot，我喜欢他们的工作，但我对机器学习还很陌生，我很难理解为什么在对 mot17、prw、cuhksysu 和部分加州理工学院行人进行训练时，reid 分支似乎立即过度拟合，而训练损失似乎以正常方式减少。
-我想到了一些动机：
-
-我的数据比原始项目少，所以模型在 reid 上过度拟合
-
-我正在对他们的工作进行简化的增强，没有旋转，没有裁剪，所以这意味着我的数据更少，或者至少我的数据集中的变化更少
-
-我搞砸了 id 损失，但我几乎复制粘贴了他们的函数，所以 :)
-
-我使用的模型有点不同，可能对于任务来说太简单了（一直被教导更简单-&gt;更少的过度拟合，无论如何我使用双线性插值进行上采样而不是逆卷积，因为我无法消除棋盘效应）
-
-验证代码实现得很糟糕，但我试图在训练集上进行验证，结果与训练一致损失
-
-我搞砸了一些我无法理解的事情
-
-
-我在这里发布了我正在重新实现模型的 colab 笔记本，如果你有空闲时间并愿意帮助我，那就太好了！
-此外，如果我的代码正确，我正在模型部分加载 crowdhuman 上的预训练，并且我已经修改了数据集以具有不重叠的 id。
-这是我的 colab，Google 限制了数据集的下载次数，无论如何它应该可以正常运行，如果不是，对不起。
-https://colab.research.google.com/drive/1EVR3S6Qd0sFeRbhCYiZo5xtPZXYHsOvA?usp=sharing
-哦，我在这里发布了我正在使用的 id 损失：
-class IdLoss(nn.Module):
-def init(self,n_id):
-super(IdLoss, self).init()
-device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
-self.id_classifier = nn.Linear(id_vect_size, int(n_id+1),device=device)
-self.cross_entr_loss=nn.CrossEntropyLoss(ignore_index=-1)
-self.dropout = nn.Dropout(0.3)
-
-def forward(self, id_output, ind_target, mask_target, id_targets):
-id_vectors = gather_feat(id_output, ind_target)
-id_vectors = id_vectors[mask_target &gt; 0].contiguous()
-id_vectors = F.normalize(id_vectors)
-id_targets = id_targets[mask_target &gt; 0].contiguous()
-id_logits = self.id_classifier(id_vectors)
-
-return self.cross_entr_loss(id_logits, id_targets)
-
-我尝试了空间 dropout、限制 reid 向量大小、添加增强、不同的数据集大小（但最多 45000 张图像）我添加了 50% 的对原始图像执行增强的可能性，我简化了模型，改变了学习率。无法使 reid 损失表现良好。]]></description>
-      <guid>https://stackoverflow.com/questions/78916378/fairmot-reimplementation-reid-overfitting</guid>
-      <pubDate>Mon, 26 Aug 2024 21:44:44 GMT</pubDate>
     </item>
     <item>
       <title>tensorflow-federated 0.86.0.. AttributeError: 模块‘tensorflow_federated.python.learning’没有属性‘build_federated_averaging_process</title>
@@ -182,133 +270,6 @@ AttributeError: module &#39;tensorflow_federated.python.learning&#39; 没有属�
 我该如何解决这个问题？]]></description>
       <guid>https://stackoverflow.com/questions/78916201/tensorflow-federated-0-86-0-attributeerror-module-tensorflow-federated-pytho</guid>
       <pubDate>Mon, 26 Aug 2024 20:32:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何提高图像字幕模型字幕的质量和描述性</title>
-      <link>https://stackoverflow.com/questions/78916109/how-to-improve-the-quality-and-descriptiveness-of-image-captioning-model-caption</link>
-      <description><![CDATA[我正在开发一个服装图像字幕模型，并正在创建自己的训练数据集。目前它有大约 300 张图片，总共大约 1300 个字幕。我知道这个数据集很小，但在测试期间，模型输出的字幕是非描述性的，例如“短袖衬衫”，而大多数训练示例是“黑色短袖图案衬衫”或“带有白色地狱开始世界文字的黑色衬衫”，那么为什么模型的输出和训练示例会有如此大的差异。我也不清楚如何让模型预测衬衫上的文字，以进行样本外预测。
-我的模型是这样的：
-from tensorflow.keras.models import Model
-
-input1 = Input(shape=(1920,)) 
-input2 = Input(shape=(max_length,)) 
-
-img_features = Dense(256,activation=&#39;relu&#39;)(input1) 
-img_features = Dropout(0.5)(img_features)
-img_features_flattened = Flatten()(img_features)
-img_features_repeated = RepeatVector(max_length)(img_features_flattened)
-
-sentence_features = Embedding(vocab_size, 256, mask_zero=False)(input2) 
-sentence_features = Dropout(0.5)(sentence_features)
-
-attention = MultiHeadAttention(
-num_heads=8, # 注意力头的数量
-key_dim=256 # 注意力键的维度
-)(query=sentence_features, value=img_features_repeated, key=img_features_repeated)
-
-context =tention
-
-merged = concatenate([context, sentence_features])
-
-sentence_features = LSTM(256)(merged)
-x = Dropout(0.5)(sentence_features)
-
-x = add([x, img_features_flattened])
-x = Dense(128,activation=&#39;relu&#39;)(x)
-x = Dropout(0.5)(x)
-
-output = Dense(vocab_size,activation=&#39;softmax&#39;)(x)
-
-caption_model = Model(inputs=[input1, input2], output=output)
-caption_model.compile(loss=&#39;categorical_crossentropy&#39;, optimizer=&#39;adam&#39;)
-
-这就是我定义训练和验证集的方式，这会导致模型无法预测样本之外的服装品牌的文本吗？
-tokenizer.fit_on_texts(captions)
-vocab_size = len(tokenizer.word_index) + 1
-max_length = max(len(caption.split()) for caption in captions)
-
-images = data[&#39;image&#39;].unique().tolist()
-nimages = len(images)
-
-split_index = round(0.9*nimages)
-train_images = images[:split_index]
-val_images = images[split_index:]
-
-train = data[data[&#39;image&#39;].isin(train_images)]
-test = data[data[&#39;image&#39;].isin(val_images)]
-
-train.reset_index(inplace=True,drop=True)
-test.reset_index(inplace=True,drop=True)
-
-
-我使用了以下方法：温度调整和核采样。这两种方法都改善了结果，但我仍在寻找更多方法]]></description>
-      <guid>https://stackoverflow.com/questions/78916109/how-to-improve-the-quality-and-descriptiveness-of-image-captioning-model-caption</guid>
-      <pubDate>Mon, 26 Aug 2024 19:58:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>由于尺寸不相等，处理化学分子原子时出现批处理错误</title>
-      <link>https://stackoverflow.com/questions/78913966/batching-error-when-processing-chemical-molecule-atoms-because-sizes-not-equal</link>
-      <description><![CDATA[我正在设计一个可以根据节点特征、边缘特征预测属性的神经网络。但是，当我尝试将批处理大小设置为大于 1 时，事情就出错了。分子中的原子数不同，因此在将多个分子批处理在一起时会导致错误。更具体地说，将出现以下错误：
-RuntimeError：堆栈期望每个张量大小相等，但在条目 0 处得到 [6, 25] 
-而在条目 1 处得到 [8, 25]
-
-。6 和 8 表示该分子中有 6/8 个原子，25 表示每个原子有 25 个特征。有没有比根据另一个类似问题添加零来调整大小更好的解决方案，因为分子的大小可能高达 30 或更多。
-重现此问题的代码如下：
-def mol_to_graph(smiles):
-&quot;&quot;&quot;将 SMILES 字符串转换为分子图。&quot;&quot;&quot;
-mol = Chem.MolFromSmiles(smiles)
-AllChem.Compute2DCoords(mol)
-
-node_features = []
-for atom in mol.GetAtoms():
-node_features.append(atom.GetAtomicNum())
-
-edge_indices = []
-edge_features = []
-
-for bond in mol.GetBonds():
-i = bond.GetBeginAtomIdx()
-j = bond.GetEndAtomIdx()
-edge_indices.append((i, j))
-edge_indices.append((j, i))
-edge_features.append(bond_features(bond))
-edge_features.append(bond_features(bond))
-node_features = torch.tensor(node_features)
-edge_indices = torch.tensor(edge_indices).t().contiguous()
-edge_features = torch.tensor(edge_features)
-return node_features, edge_indices, edge_features
-class MolecularDataset(Dataset):
-def __init__(self, smiles_list, property):
-self.smiles_list = smiles_list
-self.property = property
-
-def __len__(self):
-return len(self.smiles_list)
-
-def __getitem__(self, idx):
-smiles = self.smiles_list[idx]
-property = self.property[idx]
-node_feat, edge_index, edge_attr = mol_to_graph(smiles)
-return node_feat, edge_index, edge_attr, torch.tensor(property, dtype=torch.float32)
-train_dataset = MolecularDataset(smiles.tolist(), property.tolist())
-train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
-model = TheModel(node_feat_dim, edge_feat_dim, global_feat_dim, hidden_​​dim).to(device)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-criterion = nn.MSELoss()
-for i in tqdm(range(25)):
-for node_feat, edge_index, edge_attr, target in train_loader:
-node_feat, edge_index, edge_attr, target = node_feat.to(device), edge_index.to(device), edge_attr.to(device), target.to(device)
-node_feat = node_feat.squeeze(0)
-edge_index = edge_index.squeeze(0)
-edge_attr = edge_attr.squeeze(0)
-target = target.squeeze(0)
-global_feat = torch.randn((1, global_feat_dim)).to(device)
-
-_, _, global_feat_pred = model(node_feat, edge_attr, edge_index, global_feat)
-pred.append(global_feat_pred.squeeze())
-]]></description>
-      <guid>https://stackoverflow.com/questions/78913966/batching-error-when-processing-chemical-molecule-atoms-because-sizes-not-equal</guid>
-      <pubDate>Mon, 26 Aug 2024 10:39:01 GMT</pubDate>
     </item>
     <item>
       <title>Python文本检测OpenCV + Roboflow OCR相机性能非常滞后问题[关闭]</title>
@@ -422,6 +383,23 @@ Epoch 8/10
 也许使用 LSTM 无法做到这一点，但我认为数据非常简单。我真的想尝试找到一种方法来使用深度学习来找到它。]]></description>
       <guid>https://stackoverflow.com/questions/78753201/lstm-model-doesnt-train</guid>
       <pubDate>Tue, 16 Jul 2024 07:31:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>Javascript 或 ML 中的自定义对象检测？</title>
+      <link>https://stackoverflow.com/questions/66060711/custom-object-detection-in-javascript-or-ml</link>
+      <description><![CDATA[我是对象检测领域的新手。所以不要介意我的基本问题。
+我有一张身份证图像。该图像包含便携式身份证和与持卡人相关的其他信息。
+目前，我只想裁剪掉身份证。
+以前，我曾经以编程方式裁剪它，因为我从未想过可以更改身份证的位置。
+图像如下所示：
+
+我想裁剪底部的身份证区域。
+正如我之前所说，身份证的位置、宽度和高度不是固定的。
+现在我的主要问题是，我是否应该使用 ML 来实现这一点，这会不会有点过头了？
+如果那么，我可以按照哪些步骤从此处的切口开始一直到底部来检测底部的 IDCard。我现在没有任何 ML 知识。
+如果这确实是一种过度杀伤，那么检测卡的方法是什么？]]></description>
+      <guid>https://stackoverflow.com/questions/66060711/custom-object-detection-in-javascript-or-ml</guid>
+      <pubDate>Fri, 05 Feb 2021 09:26:52 GMT</pubDate>
     </item>
     </channel>
 </rss>

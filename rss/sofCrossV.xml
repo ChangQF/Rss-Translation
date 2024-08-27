@@ -4,7 +4,99 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 27 Aug 2024 15:17:13 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 27 Aug 2024 18:20:44 GMT</lastBuildDate>
+    <item>
+      <title>混合模型：从数学符号到 R 的 lmer() 的转换 - 包：lmerTest</title>
+      <link>https://stats.stackexchange.com/questions/653431/mixed-model-translation-from-mathematical-notation-to-rs-lmer-package-lme</link>
+      <description><![CDATA[应生成以下数据并将其拟合到混合模型（用于进一步的模拟研究）：
+
+$y$：临床研究结果（药物效果）
+indiv 个体 = 20
+repl 治疗后连续几天对每个个体进行的重复测量 = 10
+解释变量：
+- $x_1$ ... 治疗（2 次治疗） - 一半的个体接受治疗/安慰剂
+- $x_2$ ... 测量时间（以天为单位，1...10（连续预测因子））
+- $x_3$ ... 编码指标个体
+
+基础模型：$y = \beta_0 + \beta_1x_1 + \beta_2x_2 + \gamma_1(x_3) + \gamma_2(x_3)*x_2 + \epsilon$
+此外 $\beta_0 = 1$, $\beta_1 = 1$, $\beta_2 = 0.5$, $\gamma_1(x_3) \sim N(0,4)$ i.i.d., $\gamma_2(x_3) \sim N(0,1)$ i.i.d., $\epsilon \sim N(0,1)$ i.i.d.
+library(lmerTest)
+
+sim.data &lt;- function(indiv,repl,param.beta,param.gamma.1,param.gamma.2,param.eps) {
+
+indiv &lt;- indiv # 个体数/人
+repl &lt;- repl # 每个个体的重复次数 (= 测量次数)
+
+b.0 &lt;- param.beta[1] # betas
+b.1 &lt;- param.beta[2]
+b.2 &lt;- param.beta[3]
+
+x.1 &lt;- rep(0:1,each=indiv/2*repl) # 治疗：否，是
+x.2 &lt;- rep(1:10,indiv) # 每个人的治疗天数
+x.3 &lt;- rep(1:indiv,each=repl) # 个人编码指标
+
+gamma.1 &lt;- rnorm(indiv,mean=param.gamma.1[1],sd=param.gamma.1[2])
+gamma.2 &lt;- rnorm(indiv,mean=param.gamma.2[1],sd=param.gamma.2[2])
+
+g1 &lt;- gamma.1[x.3] # 截距随机效应
+g2 &lt;- gamma.2[x.3] # 斜率随机效应
+
+e &lt;- rnorm(length(x.1))
+
+y &lt;- b.0 + b.1*x.1 + b.2*x.2 + g1 + g2*x.2 + e
+
+data.sim &lt;- data.frame(x.1 = x.1,
+x.2 = x.2,
+x.3 = x.3,
+y = y)
+
+return(data.sim)
+
+}
+
+set.seed(1234)
+data &lt;- sim.data(20,10,c(1,1,0.5),c(0,4),c(0,1),c(0,1))
+
+mod &lt;- lmer(y ~ x.1 + x.2 + (1 + x.2|x.3), REML = FALSE, data = data)
+mod
+
+
+问题：
+输出显示，固定效应的估计值并不接近真实值（贝塔值）。有人能解释一下我误解了什么吗？并帮助我编写代码吗？任何帮助都非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/653431/mixed-model-translation-from-mathematical-notation-to-rs-lmer-package-lme</guid>
+      <pubDate>Tue, 27 Aug 2024 18:02:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>奈曼正交性和 Sobolev 范数之间（缺乏）关系</title>
+      <link>https://stats.stackexchange.com/questions/653430/lack-of-relationship-between-neyman-orthogonality-and-sobolev-norm</link>
+      <description><![CDATA[我一直在阅读有关双重/去偏/Neyman ML 估计量的文章，如 Chernozhukov 等人 2018 中所述。他们使用 Neyman 正交性来消除偏差，其在此处中表述为
+$$
+\partial_\eta E\psi(W; \theta_0, \eta)|_{\eta_0 = \eta} = 0
+$$
+与传统的矩条件$E\psi(W; \theta_0, \eta_0) = 0$相反。 $\psi$ 是得分函数，$W = (D,X,Y)$，$\eta_0$ 是人口干扰函数，$\theta_0$ 是感兴趣的人口参数。
+当我读到这个条件时，它似乎类似于 sobolev 范数最小化问题：直观地讲，在与 $L_2$ 投影/范数问题密切相关的最小化问题中添加基于一阶导数的项，意味着与 $W_{1,2}$ 范数/最小化问题相关的某些内容。然而，在我读过的所有论文中，即使作者在其他地方使用 Sobolev 方法，也没有讨论过这一点。
+我怀疑我的困惑是由于我对 Neyman 正交性的误解，或者导数是相对于函数的。作者还指出他们使用了 Gateaux 导数，而我对此并不熟悉。Neyman 正交性的什么特性使得 Sobolev 方法毫无用处？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653430/lack-of-relationship-between-neyman-orthogonality-and-sobolev-norm</guid>
+      <pubDate>Tue, 27 Aug 2024 18:00:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>根据汇总统计数据进行方差分析</title>
+      <link>https://stats.stackexchange.com/questions/653429/anova-from-summary-statistics</link>
+      <description><![CDATA[我需要一些建议。我找到了这个网站 https://statpages.info/anova1sm.html 和 R 包“HH”，可以根据给定的组样本大小、平均值和标准差或标准误差，从汇总统计数据中进行单向方差分析。
+我的问题是：
+与“正常”单向方差分析相比，它有什么缺点（在这个过程中是否会丢失一些信息，从而影响方差分析结果的解释或测试的强度）？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653429/anova-from-summary-statistics</guid>
+      <pubDate>Tue, 27 Aug 2024 17:43:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>我应该对这些变量使用有序回归还是多项回归？</title>
+      <link>https://stats.stackexchange.com/questions/653428/should-i-use-ordinal-regression-or-multinominal-regression-for-these-variables</link>
+      <description><![CDATA[我对 R Studio 和统计学还很陌生，所以我需要一些帮助。我的因变量是一个福利量表，其值为 1 = 支持福利、2 = 既不支持也不支持、3 = 右翼，而我的独立变量包括一个从左到右的量表，其值为 1 = 左翼、2 = 既不支持也不支持、3 = 右翼，并且对政治的兴趣在 1-5 的李克特量表中表示，1 表示非常感兴趣，5 表示完全不感兴趣。
+我一直将福利量表和从左到右的量表视为序数变量。我运行了 clm 和 polr，但假设总是被违反。例如，当我运行布兰特测试时，所有变量的概率都为 0。
+我是否应该将这些变量视为名义变量，因此应该使用多项回归模型？我可能想得太多了，但我整天都在尝试不同的模型，所以现在我感到很困惑。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653428/should-i-use-ordinal-regression-or-multinominal-regression-for-these-variables</guid>
+      <pubDate>Tue, 27 Aug 2024 16:31:22 GMT</pubDate>
+    </item>
     <item>
       <title>当预测风险低于观察风险时，如何使用和解释 R 中的 glmer() 的结果</title>
       <link>https://stats.stackexchange.com/questions/653420/how-to-use-and-interpret-results-from-glmer-in-r-when-the-predicted-risks-are</link>
@@ -128,6 +220,119 @@ type=&#39;response&#39;
       <pubDate>Tue, 27 Aug 2024 14:30:12 GMT</pubDate>
     </item>
     <item>
+      <title>混合效应逻辑模型产生的预测值低于 R 中观察到的预测值[重复]</title>
+      <link>https://stats.stackexchange.com/questions/653427/mixed-effects-logistic-model-generating-lower-predicted-values-than-observed-in</link>
+      <description><![CDATA[我有一个患者数据框，其中标记了癌症结果，还有其他变量用作协变量（其中大约有 20 个）。数据框由多个队列组成，这些队列在单个列中用数字标记以指示队列成员身份。
+
+
+
+患者 ID
+癌症
+年龄
+性别
+吸烟状况
+体重指数猫
+群组
+
+
+
+
+00001
+0
+56
+1
+2
+1
+1
+
+
+00002
+0
+54
+1
+1
+2
+1
+
+
+00003
+0
+70
+2
+1
+2
+
+
+
+等
+至允许与年龄进行不同的交互，我有一个热编码的队列变量，就像在单队列模型中一样，发现有些变量与年龄有交互作用。
+我的模型形式如下：
+glmer(cancer~ns(age_idate,df=3)+ns(age_idate,df=3):(cohort_6,cohort_4,cohort_9)+cohort_6+cohort_4+cohort_1+cohort_2+sex+bmi_cat+smoking_status+fatigue...etc.
++(1|patid),
+family=binomial,
+data=model_data,
+nAGQ=0,
+control=glmerControl(calc.derivs=FALSE)
+
+当我使用 predict() 获取原始 model_data 中的癌症预测风险时，我根据我的个人模型和临床知识的结果实现了合理的预测。
+但是，我需要针对每个队列在每个年龄（30-100）和性别（男性、女性）组合中获取预测风险，而不是在单个患者层面获取预测风险。
+我创建了一个包含所有年龄和性别组合的数据框，然后将所有其他变量附加到它们的基值（即 2 级因子中的 0），除了我感兴趣的队列，我将其设置为 1。
+
+
+
+年龄
+性别
+吸烟状况
+bmi_cat
+群组 1
+群组 2
+
+
+
+
+30
+1
+0
+0
+1
+0
+
+
+31
+1
+0
+0
+1
+0
+
+
+32
+1
+0
+0
+1
+0
+
+
+
+等等
+我用来预测的代码是：
+model_pred_cohort_1 &lt;- 
+marginaleffects::predictions(
+model=mixed_effects_mod,
+newdata=grouped_data,
+re.form=NA,
+type=&#39;response&#39;
+)
+
+当我对这个数据框进行预测时，每个年龄段的预测风险都比预期的要低得多。我也尝试过添加具有不同随机值的 patid 变量，因为我不确定这是否必要，但似乎没有什么区别。
+我的问题是：这是这种模型类型的正确用法吗？我的模型输出的风险比观察到的风险低得多，这有什么原因吗？
+如果我只是查看我的 model_data，按特定群组进行过滤，并查看患有癌症的患者与未患癌症的患者的比例，它会给出比相同预测值组合更高的值，但仅限于预测每个特定年龄和性别组合时，而不是仅获取人群中每个患者的预测风险时。
+如果问题不清楚或需要更多信息，请见谅。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653427/mixed-effects-logistic-model-generating-lower-predicted-values-than-observed-in</guid>
+      <pubDate>Tue, 27 Aug 2024 13:55:57 GMT</pubDate>
+    </item>
+    <item>
       <title>$\text{tr}\left(XAX\right)$ 相对于 $X$ 的导数</title>
       <link>https://stats.stackexchange.com/questions/653414/derivative-of-texttr-leftxax-right-w-r-t-x</link>
       <description><![CDATA[设置一个矩阵 $X\in \mathbb{R}^{n\times n}$ 和一个对称矩阵 $A\in\mathbb{R}^{n\times n}$。我试图得到 $\frac{\partial\text{tr}\left(XAX\right)}{\partial X}$。如果矩阵 $X$ 是不对称的，那么我有 $\frac{\partial\text{tr}\left(XAX\right)}{\partial X}=X^\top A+AX^\top$；如果矩阵$X$是对称的，则有$\frac{\partial\text{tr}\left(XAX\right)}{\partial X}=2\left(XA+AX\right)$。但是当 $X$ 是对称时，matrixcalculus 给了我一个相当奇怪的答案：
@@ -159,64 +364,19 @@ $$
       <pubDate>Tue, 27 Aug 2024 11:17:26 GMT</pubDate>
     </item>
     <item>
-      <title>使用统计模型进行混合线性模型 R2 和 ICC 计算</title>
-      <link>https://stats.stackexchange.com/questions/653403/mixed-linear-model-r2-and-icc-calcuation-using-stats-models</link>
-      <description><![CDATA[我对混合线性模型还不熟悉。我建立了一个模型，该模型具有两个随机效应（Student_id 和 Subject）和一个固定效应（MAI），预测变量为 SRL。
-model = combinedlm(&quot;SRL ~ MAI&quot;, data=df, groups=df[&quot;Student_id&quot;], re_formula=&quot;~1&quot;, vc_formula={&quot;Subject&quot;: &quot;0 + C(Subject)&quot;})
-result = model.fit()
-
-我想分解方差，以计算每个效应解释的方差量。即：
-
-边际$R^2$（即$R^2_M$，方差由固定效应解释）
-条件$R^2$（即$R^2_C$方差由固定+随机效应解释）
-Student_id 的 ICC（即$ICC_1$，随机效应的一部分）
-Subject 的 ICC（即$ICC_2$，随机效应的一部分）
-
-在研究和查看这个问题，我发现以下五个计算是相关的：
-var_f_r = result.fittedvalues.var() # 固定和随机效应方差？0.26061471675794606
-var_f = result.predict(result_df).var() # 固定效应？ 0.11
-var_e = result.scale # 残差方差，0.09
-var_r1 = result.cov_re.iloc[0, 0] # Student_id 的随机效应，0.129
-var_r2 = result.vcomp[0] # Subject 的随机效应，0.079
-
-我会做这样的事情，但似乎不正确：
-$total\_var = var\_f + var\_e + var\_{r1} + var\_{r2}$
-$R^2_M = \frac{var\_f}{total\_var}$
-$R^2_C = \frac{var\_f\_r}{total\_var}$
-$ICC_1 = \frac{var\_r1}{total\_var}$
-$ICC_2 = \frac{var\_r2}{total\_var}$
-问题：
-
-您能指出我的理解可能不正确的地方吗，并告诉我如何正确计算？
-如果我们将其更改为空模型mixedlm(&quot;SRL ~ 1&quot;, data=df, groups=df[&quot;Student_id&quot;], re_formula=&quot;~1&quot;, vc_formula={&quot;Subject&quot;: &quot;0 + C(Subject)&quot;})。我们能用同样的方式进行计算吗（在这种情况下 var_f 为 0）
-
-感谢您的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/653403/mixed-linear-model-r2-and-icc-calcuation-using-stats-models</guid>
-      <pubDate>Tue, 27 Aug 2024 11:17:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>在简单的 GAM 中比较均值和效果</title>
-      <link>https://stats.stackexchange.com/questions/653402/compare-means-and-effects-in-simple-gams</link>
-      <description><![CDATA[我是一名随机博士后，正在努力研究 GAM。我的实验室中几乎没有统计数据支持，因此我不得不在外面搜索....
-因此，我有这些 GAM（R 中的 mgcv），其中响应变量是毛毛虫的吸收效率（无量纲，∈ ]0,1[）或保留时间（以天为单位），针对 8 种不同的化学元素，可以将其视为单独的因子变量。这两个响应变量都取决于第三个变量，例如摄取率。对于每个元素和每个响应（吸收效率、保留时间），我都拟合了一个模型，其预测因子是这个摄取率，从而得到了 16 个模型（8×2）。
-这些关系显然不是线性的，所以我使用了 gams。我现在想比较一下 C 和 N 的吸收效率之间的平均值，并比较这种摄取率对这些吸收效率的影响。
-我想获得 p 值来测试均值之间的差异，以及每对元素的摄取率、吸收效率和保留时间的效果之间的差异。所以我想我会采用模型预测并在预测值的分布之间运行成对 t 检验，以测试均值之间的差异。对于效果，我想对 R 中的 gratia::derivatives() 提供的一阶导数做同样的事情。
-虽然相当直观，但从统计上讲，这种测试方法可能不是正确的方法。事实上，在我看来，i.i.d。假设未得到验证，因为模型的预测值以及导数的值取决于邻域中的值。
-我认为您可能对此有一些意见。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653402/compare-means-and-effects-in-simple-gams</guid>
-      <pubDate>Tue, 27 Aug 2024 11:10:25 GMT</pubDate>
-    </item>
-    <item>
       <title>关于在多级 (HLM) 分析中添加随机效应</title>
       <link>https://stats.stackexchange.com/questions/653384/about-adding-random-effects-in-multilevel-hlm-analysis</link>
       <description><![CDATA[我在 HLM 中进行回归分析。我想知道在这个过程中是否应该添加随机效应。
-让我用一个著名的例子来问一个问题。LV1 是学生，LV2 是学校。LV1 变量是家庭收入，LV2 是公立/私立。因变量是成绩。
-我想分析家庭收入和学校类型之间的相互作用。在这种情况下，我之所以包括随机斜率效应，是因为据我所知，学校类型变量和交互变量无法解释家庭收入随学校变化的情况。
-除非我（不合理地）声称学校类型变量和交互变量理论上可以解释所有家庭收入随学校变化的情况，否则我是否应该在 HLM 分析中包括随机斜率效应？
+让我用一个著名的例子来问一个问题。LV1 是一名学生，LV2 是一所学校。LV1 变量是家庭收入，LV2 是公立/私立。因变量是成绩。&#39;还有一些 lv1 控制变量。&#39;
+我想分析家庭收入和学校类型之间的相互作用。在这种情况下，我之所以包括随机斜率效应，是因为据我所知，学校类型变量和交互变量无法解释家庭收入“效应”的差异。
+除非我（不合理地）声称学校类型变量和交互变量理论上可以解释学校家庭收入的所有差异，否则我是否应该在 HLM 分析中包括随机斜率效应？
 
 如果样本量有限，并且存在模型稳定性问题的可能性，2) 如果您想关注固定效应并使模型更简单、更易于解释，3) 如果添加随机斜率效应的模型没有显示更好的 BIC，出于这些实际原因，分析排除随机斜率效应的模型是否错误？
 
-此外，如果我分析包含随机斜率效应的模型，分析结果表明随机斜率效应不显著，这是否意味着我的数据不适合 HLM？换句话说，即使交互项本身显著，但如果随机斜率效应不显著，那么我是否首先使用了错误的方法？]]></description>
+此外，如果我分析包含随机斜率效应的模型，分析结果表明随机斜率效应不显著，这是否意味着我的数据不适合 HLM？换句话说，即使交互项本身是显著的，如果随机斜率效应不显著，那么我一开始就使用了错误的方法吗？
+...
+PS。在听到下面的评论后，我修改了一些表达式。
+对于表达式造成的混淆，我深表歉意。我的问题是，鉴于模型中已经包含随机截距，我是否需要在模型中包含随机斜率。]]></description>
       <guid>https://stats.stackexchange.com/questions/653384/about-adding-random-effects-in-multilevel-hlm-analysis</guid>
       <pubDate>Tue, 27 Aug 2024 07:25:21 GMT</pubDate>
     </item>
@@ -230,48 +390,37 @@ $ICC_2 = \frac{var\_r2}{total\_var}$
       <pubDate>Tue, 27 Aug 2024 04:53:53 GMT</pubDate>
     </item>
     <item>
-      <title>在多重假设检验中，所有变量是否都应具有调整后的 P 值，还是仅与假设相关的变量才应具有调整后的 P 值？</title>
-      <link>https://stats.stackexchange.com/questions/653346/should-all-variables-have-adjusted-p-values-in-multiple-hypothesis-testing-or-ju</link>
-      <description><![CDATA[我目前正在从事一个涉及多重假设检验的项目。我理解调整 p 值以控制 I 型错误的重要性，但我不确定是否应该调整所有变量的 p 值，还是仅调整与正在测试的假设相关的变量的 p 值。
-我有 10 个结果（因变量）、一个治疗变量（虚拟变量：治疗组与对照组）和 7 个社会人口统计变量，并且正在使用 Romano-Wolf MHT 校正。
-我遇到的大多数论文都会调整所有独立变量的 p 值（例如 https://doi.org/10.1016/j.joep.2024.102707），但这肯定会大大增加 II 型错误的概率。
-有人可以解释一下这种情况的最佳做法吗？我应该重点调整数据集中所有变量的 p 值吗，还是仅调整与我的假设直接相关的变量就足够了？
-如能提供任何指导或相关文献的参考，我将不胜感激。谢谢！
-这里也问过类似的问题：调整所有输出的 p 值还是仅调整感兴趣的变量？，但它没有完全解决我的具体情况和顾虑。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653346/should-all-variables-have-adjusted-p-values-in-multiple-hypothesis-testing-or-ju</guid>
-      <pubDate>Mon, 26 Aug 2024 16:28:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 ARIMAX 模型中包含一个表示逐步变化的变量和另一个表示线性变化的变量是否会引发多重共线性问题？</title>
-      <link>https://stats.stackexchange.com/questions/653339/does-including-a-variable-for-stepwise-change-and-another-variable-for-linear-ch</link>
-      <description><![CDATA[我正尝试使用基于以下论文的 ARIMA 模型进行中断时间序列分析：使用自回归综合移动平均 (ARIMA) 模型进行中断时间序列分析：评估大规模健康干预措施的指南
-然而，我遇到的一个问题是，我的 ARIMA 模型是否可以包含多个外生变量，而不会引入多重共线性并夸大系数估计的方差。如果我运行一个带有外生变量的模型，其中 S_t（突然、持续的变化，即时间序列在干预后立即向上或向下移动给定值。阶跃变化变量在干预开始前取值为 0，干预后取值为 1）和 R_t（干预后立即发生的斜率变化。斜坡变量在干预开始前取值为 0，干预日期后增加 1），这会引入多重共线性，使我的结果无效吗？我是否应该一次只运行一个包含这些变量的模型？
-我想到解决这个问题的一种方法是修改 R_t（我们称这个变量为 R_t_prime），使其仅在前一个 S_t 为 1 后增加（即，当 S_t 第一次为 1 时，R_t 将为 0，然后在下一次输入中 S_t 将为 1，R_t 将为 1）。这是否会消除 R_t 和 S_t 之间的关系，因为 S_t 不再可以通过对 R_t 进行布尔运算来生成？具有 R_t_prime 的模型是否会更有效，因为它不会引入多重共线性？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653339/does-including-a-variable-for-stepwise-change-and-another-variable-for-linear-ch</guid>
-      <pubDate>Mon, 26 Aug 2024 14:13:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>在回答关于预测变量的本质上是二元的问题时，我能否保留预测变量的序数性质？</title>
-      <link>https://stats.stackexchange.com/questions/653332/can-i-retain-the-ordinal-nature-of-a-predictor-while-answering-a-question-about</link>
-      <description><![CDATA[作为合作的一部分，我被要求拟合一个具有连续响应 $Y$ 和序数预测变量 $X$（级别 1 到 5）的模型。数据集所有者想要一个本质上是二元的答案：$Y$ 在 $X$ = 1/2/3 和 $X$ = 4/5 之间有何不同？他们进行分箱的理由是：
+      <title>差异项目功能标准选择</title>
+      <link>https://stats.stackexchange.com/questions/653367/differential-item-functioning-criteria-selection</link>
+      <description><![CDATA[当使用（有序）逻辑回归框架测试差异项目功能 (DIF) 时，一系列（有序）逻辑回归会拟合数据，使用项目响应 ($Y$) 作为因变量，并使用潜在变量 ($θ$)、测试 DIF 的组变量 ($group$) 作为预测变量：
+$$
+Y = \beta_1\theta \tag{1}
+$$
+$$
+Y = \beta_1\theta + \beta_2group \tag{2}
+$$
+$$
+Y = \beta_1\theta + \beta_2group + \beta_3\theta \times group \tag{3}
+$$
+计算这些回归后，似乎有三个常用的标准来检测 DIF。如 Crane et al. 2007 中所述：
 
-该工具测量得不好，实际上更偏向二元性，即 3 和 4 之间存在有意义的大变化。
-该模型将用于决定是否采取行动，这是一个是非问题。
+在第一个标准中，使用 $X^2$ 统计数据来比较模型；如果后续模型的可能性明显更高，则存在 DIF。
+在第二个标准中，为每个模型计算伪$R^2$；如果后续模型具有明显更好的 $R^2$，则存在 DIF。
+在第三个标准中，比较 $\beta_1$ 系数；如果后续模型具有明显不同的 $\beta_1$ 系数，则存在 DIF。
 
-我同意不应该对序数或连续数据进行分箱，因为这会丢弃信息。但最好的处理方式是什么？除了将数据视为二元数据和将数据视为序数数据这两个极端之外，还有其他方法可以思考和处理这个问题吗？例如，是否可以拟合序数模型，然后以解决二元问题的方式组合模型系数？
-以防万一：我在 R 中工作，还有一个与序数预测变量相互作用的协变量 $X_2$。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653332/can-i-retain-the-ordinal-nature-of-a-predictor-while-answering-a-question-about</guid>
-      <pubDate>Mon, 26 Aug 2024 13:10:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何估计随机抽样集合分区的平均大小？</title>
-      <link>https://stats.stackexchange.com/questions/653282/how-can-one-estimate-the-average-size-of-a-partition-of-a-set-with-random-sampli</link>
-      <description><![CDATA[我确信这是一个简单的问题，但我没有统计学经验。假设我们有一个集合$X$，其大小$n = |X|$已知。$X$被分成$j$个（不相交）分区$p_i$，但我们不知道$j$，也不知道这些分区的任何信息。
-假设我们随机选择$x \in X$，我们可以确定包含$x$的分区$p_i$的大小。 我们如何利用此抽样来估计 $X$ 分区的数量 $j$，或者说，分区的平均大小？
-我知道，简单地对样本中的分区大小进行平均将过度代表较大的分区：$X = [1] \cup [2] \cup [3,4,...,100]$ 由 $3$ 个分区组成，平均大小为 $33.3$，但简单的抽样会估计出接近 $98$ 的平均大小。这样做的正确方法是什么？谢谢。
-后续问题：进一步假设，一旦我们对 $x \in X$ 进行了采样，我们不仅可以确定包含 $x$ 的分区的大小，还可以确定该分区中的所有其他元素。这会改变什么吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653282/how-can-one-estimate-the-average-size-of-a-partition-of-a-set-with-random-sampli</guid>
-      <pubDate>Sat, 24 Aug 2024 22:11:13 GMT</pubDate>
+这些标准对我来说很有意义，但我不明白为什么在控制潜在变量（即 $\beta_2$ 系数）后，我们不会对 $group$ 的影响感兴趣。如果即使在控制潜在变量后，组成员身份仍显着影响观察到的反应，在我看来，这表明存在 DIF。然而，这似乎不仅没有被用作标准，我唯一一次看到它被引用为一种方法是在 Crane et al. 2004 中，他们驳斥了它。在将方法 (3) 与检查 $\beta_2$ 的方法进行比较时，他们说：
+
+在统一 DIF 检测中，有趣的是，当考虑到人口统计特征时，整体能力水平与项目响应之间的关系幅度是否发生了显着变化。这就是混淆的本质，也是均匀 DIF 的本质……因此，我们选择采用 [$\beta_1$ 标准] 来确定项目中是否存在均匀 DIF。
+
+为什么显著的 $\beta_2$ 系数不表示 DIF？
+示例
+这个问题是由我正在进行的 DIF 分析引起的，我得到了一些令人困惑的结果。我正在比较大学生和非大学生的 PHQ-9（衡量抑郁症状严重程度的指标）反应。总样本量约为 90,000。我正在使用 lordif 在 R 中测试 DIF。
+当我使用第一种方法（$X^2$）时，我发现所有项目都有 DIF；考虑到我的样本量很大，$X^2$ 统计数据显著也就不足为奇了，因此我测试了其他两种方法。
+当我使用第二种方法（$R^2$ 中的变化）时，我没有发现 DIF；各个模型之间，伪$R^2$度量（McFadden、Nagelkerke 或 Cox-Snell）的变化均不超过 0.01。
+当我使用第三种方法（$\beta_1$的变化）时，我也没有发现 DIF；$\beta_1$系数的变化均不超过 3.3%（即使“少量”的 DIF 也应伴随至少 5% 的变化）。
+但是，当我查看模型 $(2)$ 的实际回归结果时，我发现$\beta_2$系数较大且显著。以 PHQ-9 的第七项（注意力不集中）为例：lrm 系数为 0.789（OR = 2.2），这表明在控制潜在抑郁分数后，大学生在更高类别中回答的几率是非大学生的 2.2 倍。在我看来，这似乎是相当大的 DIF，但大多数人似乎并不认为这是 DIF。这是为什么呢？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653367/differential-item-functioning-criteria-selection</guid>
+      <pubDate>Mon, 26 Aug 2024 22:28:38 GMT</pubDate>
     </item>
     <item>
       <title>当风险差异如此容易解释时，为什么 Cohen's h 对于比较比例有用？</title>
@@ -283,11 +432,12 @@ $ICC_2 = \frac{var\_r2}{total\_var}$
       <pubDate>Wed, 21 Aug 2024 05:46:44 GMT</pubDate>
     </item>
     <item>
-      <title>1 vs 2 源检测似然比检验的零分布</title>
-      <link>https://stats.stackexchange.com/questions/651640/null-distribution-for-1-vs-2-source-detection-likelihood-ratio-test</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/651640/null-distribution-for-1-vs-2-source-detection-likelihood-ratio-test</guid>
-      <pubDate>Tue, 23 Jul 2024 23:59:41 GMT</pubDate>
+      <title>斜率误差是否更能代表线性拟合的变异性或拟合优度 (R2)？</title>
+      <link>https://stats.stackexchange.com/questions/652932/error-of-the-slope-that-is-more-representative-of-the-variability-around-the-lin</link>
+      <description><![CDATA[我有 2 个不同长度的数据集，一个比另一个大得多（图片中的绿松石点）。我用一条没有截距的线来拟合它们，因此斜率是唯一的自由参数。拟合程序返回斜率误差。绿松石点的斜率误差（标准误差）比黑色点的斜率误差低得多。我知道这是由于样本量大。但是黑点的 R2 高于绿松石点。有没有办法得到反映 R2 行为的斜率误差估计？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652932/error-of-the-slope-that-is-more-representative-of-the-variability-around-the-lin</guid>
+      <pubDate>Fri, 16 Aug 2024 15:32:40 GMT</pubDate>
     </item>
     </channel>
 </rss>
