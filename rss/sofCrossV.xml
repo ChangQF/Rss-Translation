@@ -4,7 +4,123 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 28 Aug 2024 06:22:59 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 28 Aug 2024 09:17:17 GMT</lastBuildDate>
+    <item>
+      <title>GAM 比较的估计自由度</title>
+      <link>https://stats.stackexchange.com/questions/653474/estimated-degrees-of-freedom-of-a-gam-comparison</link>
+      <description><![CDATA[我想通过将该模型与不包含这些预测因子的基线模型进行比较来评估在 GAM 中包含两个平滑项的重要性。可以使用以下代码重现这种情况的模拟：
+library(mgcv)
+dat &lt;- gamSim(1,n=1000,dist=&quot;normal&quot;,scale=.1)
+
+model &lt;- gam(y ~ s(x0, bs = &quot;cr&quot;, k = 20) + s(x1, bs = &quot;cr&quot;, k = 20) + te(x2, x3, bs = &quot;cr&quot;), data = dat)
+baseline &lt;- gam(y ~ te(x2, x3, bs = &quot;cr&quot;), data = dat)
+anova(baseline, model)
+
+但是，我想使用交叉验证方案进行此评估。对部分数据进行模型拟合，并评估左侧折叠的对数似然。为此，我将手动计算左侧折叠的对数似然。要计算与对数似然差异相关的 p 值，我需要自由度。 如何确定此比较的正确自由度？
+set.seed(123) 
+nfolds &lt;- 5
+dat$folds &lt;- sample(1:nfolds, size = nrow(dat), replace = TRUE)
+
+train_data &lt;- dat[dat$folds != 1, ]
+test_data &lt;- dat[dat$folds == 1, ]
+test_y &lt;- test_data$y
+
+model &lt;- gam(y ~ s(x0, bs = &quot;cr&quot;, k = 20) + s(x1, bs = &quot;cr&quot;, k = 20) + te(x2, x3, bs = &quot;cr&quot;), data = train_data)
+baseline &lt;- gam(y ~ te(x2, x3, bs = &quot;cr&quot;), data = train_data)
+
+pred_model &lt;- predict(model, test_data)
+pred_baseline &lt;- predict(baseline, test_data)
+
+stdev_model &lt;- sigma(model)
+stdev_baseline &lt;- sigma(baseline)
+
+loglik_model &lt;- sum(dnorm(test_y, pred_model, stdev_model, log=TRUE))
+loglik_baseline &lt;- sum(dnorm(test_y, pred_baseline, stdev_baseline, log=TRUE))
+
+delta &lt;- loglik_model - loglik_baseline
+teststat &lt;- -2 * delta
+pval &lt;- pchisq(teststat, df = , lower.tail =错误）
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/653474/estimated-degrees-of-freedom-of-a-gam-comparison</guid>
+      <pubDate>Wed, 28 Aug 2024 08:00:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何进行数据驱动的样本量选择</title>
+      <link>https://stats.stackexchange.com/questions/653472/how-to-perform-data-driven-choice-of-sample-size</link>
+      <description><![CDATA[假设我想比较两个回归模型的结果。一个是参考模型，另一个是新模型，我想知道新模型是否表现更好。每个模型都用皮尔逊相关性进行评估，假设数据集是依赖的，并且测试数据相同，我想得到配对差异的置信区间，看看它是否包含零。
+但我事先不知道差异的方差，也不知道正确的样本量是多少，所以我想到了以下方法：
+min_diff_to_detect
+all_pearsons_ref = []
+all_pearsons_new = []
+alpha = 0.05
+
+循环直到循环中断 -&gt;对于当前循环 n：
+train_ref、train_new、test_data = get_new_data_split()
+
+ref_model = train_ref_model(train_ref)
+pearson_ref = assess( ref_model(test_data) )
+all_pearsons_ref.append(pearson_ref)
+
+new_model = train_new_model(train_new)
+pearson_new = assess( new_model(test_data) )
+all_pearsons_new.append(pearson_new)
+
+Differences = all_pearsons_new - all_pearsons_ref # 成对差异
+confidence_interval = compute_CI(0, np.std(differences), n, alpha)
+
+如果 min_diff_to_detect 不在 confidence_interval 中：
+如果 np.mean(differences) 不在 confidence_interval 中：
+返回 are_different
+返回are_not_different
+
+train_data 是依赖的，而 test_data 对于两个模型是相同的。这个想法是使用数据来寻找最佳循环数 N。否则 N 将被猜测，并且可能太小而没有足够的统计能力，或者太大而需要太长时间进行训练。
+但是，方差在早期循环中也有可能波动很大，从而导致 min_diff_to_detect 可能被错误检测。后一点可以通过在评估 if 条件之前引入最小循环数来缓解，但这感觉很武断，最终，我不知道这种方法是否有效。
+我也知道 bootstrapping，但它需要大量的训练才能有效。
+那么，第一个 if 条件可以改进以避免错误吗？最终，这是一种有效的方法吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653472/how-to-perform-data-driven-choice-of-sample-size</guid>
+      <pubDate>Wed, 28 Aug 2024 07:32:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>从头开始的部分依赖图 - XgBoost 深度 1</title>
+      <link>https://stats.stackexchange.com/questions/653471/partial-dependence-plot-from-scratch-xgboost-depth-1</link>
+      <description><![CDATA[有几个软件包可以为 XGBoost 等 ML 模型引入增强的可解释性，例如 PiML。网上还有很多关于可解释性不同方面的资源，例如部分依赖图。
+https://selfexplainml.github.io/PiML-Toolbox/_build/html/guides/models/xgb1.html
+https://medium.com/dataman-in-ai/how-is-the-partial-dependent-plot-computed-8d2001a0e556
+我希望从头开始构建可解释性深度为 1 的 XGBoost 模型。
+根据上面的 PiMl 链接，第一步是：“计算由唯一分割生成的每个 bin 的累积叶节点值”。
+import pandas as pd
+import numpy as np
+import xgboost as xgb
+from xgboost import XGBClassifier
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+iris = datasets.load_iris() 
+X = iris.data 
+y = iris.target 
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+y_train = np.array([0 if i==2 else 1 for i in y_train])
+y_test = np.array([0 if i==2 else 1 for i in y_test])
+
+train = xgb.DMatrix(X_train, label=y_train)
+
+test = xgb.DMatrix(X_test, label=y_test)
+
+params = {&#39;objective&#39;: &#39;binary:logistic&#39;, 
+&#39;eval_metric&#39;: &#39;auc&#39;,
+&#39;seed&#39;:10,
+&#39;max_depth&#39;: 1
+}
+
+model = xgb.train(params, train, num_boost_round=10)
+
+dump = model.get_dump()
+
+dump 对象保存有关拆分和叶值的信息。但是，我很难理解“累积叶值”的含义。如果有人能帮助我理解这一点或指导我获取资源，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653471/partial-dependence-plot-from-scratch-xgboost-depth-1</guid>
+      <pubDate>Wed, 28 Aug 2024 06:34:30 GMT</pubDate>
+    </item>
     <item>
       <title>控制一个渠道（中介）来检查另一个渠道的影响是否正确？</title>
       <link>https://stats.stackexchange.com/questions/653470/is-it-right-to-control-one-channel-mediator-to-examine-the-impact-of-another-c</link>
@@ -164,28 +280,6 @@ reg&lt;-lm(I(log(y+1)^0.4650181) ~ x1 + I(x2^2) + I(x3^2) + x4 + I(x5^2)...x17 ,
       <pubDate>Wed, 28 Aug 2024 01:24:32 GMT</pubDate>
     </item>
     <item>
-      <title>稀疏的 RBF 核一定是 PSD 吗？</title>
-      <link>https://stats.stackexchange.com/questions/653458/is-sparse-rbf-kernel-necessarily-psd</link>
-      <description><![CDATA[我们知道 RBF 核是 PSD，现在，假设不是计算 $\exp\frac{|x_i-x_j|^2}{\sigma^2}$所有对，而是只计算相似的数据点，以实现稀疏核矩阵。
-假设我正在做这样的事情：
-$K(i,j)=
-\begin{cases}
-\exp\frac{|x_i-x_j|^2}{\sigma^2}&amp;\text{if}\, |x_i-x_j|\leq c_0\\
-0&amp;\text{otherwise}
-\end{cases}$
-这样我就可以得到一个稀疏的$K$ 对于固定阈值 $c_0$，问题是 $K$ 在这种情况下是否一定是多余的？我的代码实验表明并非如此，但我不确定这是因为我的代码中有错误还是这只是理论上的问题。如果它仍然是 PSD，你能给我展示一个代码片段吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653458/is-sparse-rbf-kernel-necessarily-psd</guid>
-      <pubDate>Wed, 28 Aug 2024 00:33:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Metropolis-Hastings 算法的这种特殊情况下应该使用哪个提议函数？</title>
-      <link>https://stats.stackexchange.com/questions/653457/which-proposal-function-should-be-used-in-this-particular-case-of-the-metropolis</link>
-      <description><![CDATA[作为我研究的一部分，我想应用 Metropolis-Hastings 来从某些后验分布中抽样。更准确地说，数据来自存在审查制度的多元正态分布，而先验具有正态-逆威沙特分布（协方差矩阵具有逆威沙特分布，而以协方差矩阵为条件的均值具有正态分布）。Metropolis-Hastings 算法的一个可能的提议分布是使用先验分布本身，因为从中抽样很容易。然而，接受率通常很低，算法发展得相当慢。话虽如此，我想知道是否有人可以就这个问题为我提供一些指导，也就是说，我有兴趣知道先验分布的选择是否可接受，以及是否存在另一种更有效的提议分布。
-任何帮助都值得赞赏。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653457/which-proposal-function-should-be-used-in-this-particular-case-of-the-metropolis</guid>
-      <pubDate>Tue, 27 Aug 2024 23:45:06 GMT</pubDate>
-    </item>
-    <item>
       <title>如何对 $\mathbb R^2$ 中不平行的两条线进行双变量高斯条件化？</title>
       <link>https://stats.stackexchange.com/questions/653455/how-to-condition-a-bivariate-gaussian-on-two-lines-in-mathbb-r2-that-are-not</link>
       <description><![CDATA[如何对 $\mathbb{R}^2$ 中两条不平行/相交的线 $\{(x,y):a_1x+b_1y+c_1=0\}\cup\{(x,y):a_2x+b_2y+c_2=0\}$ 上的均值为 $\mu$ 和 $\Sigma$（例如 $\sigma=\sigma^2I$）的双变量高斯进行条件化？]]></description>
@@ -215,119 +309,126 @@ $K(i,j)=
       <pubDate>Tue, 27 Aug 2024 21:16:49 GMT</pubDate>
     </item>
     <item>
-      <title>当预测风险低于观察风险时，如何使用和解释 R 中的 glmer() 的结果</title>
-      <link>https://stats.stackexchange.com/questions/653420/how-to-use-and-interpret-results-from-glmer-in-r-when-the-predicted-risks-are</link>
-      <description><![CDATA[我之前在 stack overflow 上问过这个问题，但被重定向到这里。
-我有一个患者数据框，其中标记了癌症结果，还有其他变量用作协变量（其中大约 20 个）。数据框由多个队列组成，这些队列在单个列中用数字标记以指示队列成员身份。
+      <title>有或没有聚合的混合设计方差分析？</title>
+      <link>https://stats.stackexchange.com/questions/653439/mixed-design-anova-with-or-without-aggregation</link>
+      <description><![CDATA[我进行了一个反应时间实验，现在想对其进行评估。这是一个重复测量实验，有两个条件（我们称之为条件 A 和条件 B）。还有两个组（我们称之为组 1 和组 2）。每个参与者在条件 1 中完成了 60 次试验，在条件 2 中完成了 60 次试验，因此每个用户有 120 个数据点。我现在想做一个混合方差分析，我想知道我是否应该使用每个参与者的试验平均值，或者我是否应该使用每个参与者的每个数据点。我曾尝试在 R 中使用 ezANOVA 和 afex 将每个数据点引入 ANOVA，但两个软件包都返回了聚合到均值的警告。
+这是我的数据的样子：
 
 
 
-患者 ID
-癌症
-年龄
-性别
-吸烟状况
-体重指数猫
-群组
+ID
+Group
+Conditon
+RT
 
 
 
 
-00001
-0
-56
 1
+Group 1
+A
+345
+
+
+1
+Group 1
+A
+746
+
+
+1
+第 1 组
+A
+824
+
+
+1
+第 1 组
+B
+542
+
+
+1
+第 1 组
+B
+235
+
+
+1
+组1
+B
+654
+
+
 2
-1
-1
+第 2 组
+A
+324
 
 
-00002
-0
-54
-1
-1
 2
-1
+第 2 组
+A
+345
 
 
-00003
-0
-70
 2
-1
+第 2 组
+A
+123
+
+
 2
+组2
+B
+623
+
+
+2
+第 2 组
+B
+235
+
+
+2
+第 2 组
+B
+654
 
 
 
-等
-至允许与年龄进行不同的交互，我有一个热编码的队列变量，就像在单队列模型中一样，发现有些变量与年龄有交互作用。
-我的模型形式如下：
-glmer(cancer~ns(age_idate,df=3)+ns(age_idate,df=3):(cohort_6,cohort_4,cohort_9)+cohort_6+cohort_4+cohort_1+cohort_2+sex+bmi_cat+smoking_status+fatigue...etc.
-+(1|patid),
-family=binomial,
-data=model_data,
-nAGQ=0,
-control=glmerControl(calc.derivs=FALSE)
+我尝试这样计算：
+afex::aov_car(RT ~ Group*Condition+ Error (ID/Condition), data = df_long)
 
-当我使用 predict() 获取原始 model_data 中的癌症预测风险时，我根据我的个人模型和临床知识的结果实现了合理的预测。
-但是，我需要针对每个队列在每个年龄（30-100）和性别（男性、女性）组合中获取预测风险，而不是在单个患者层面获取预测风险。
-我创建了一个包含所有年龄和性别组合的数据框，然后将所有其他变量附加到它们的基值（即 2 级因子中的 0），除了我感兴趣的队列，我将其设置为 1。
+然后我收到警告：
+每个设计单元有多个观察值，使用聚合数据`fun_aggregate = mean`。
 
+要关闭此警告，请明确传递 fun_aggregate = mean。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653439/mixed-design-anova-with-or-without-aggregation</guid>
+      <pubDate>Tue, 27 Aug 2024 19:11:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>面板数据中的单位不变处理</title>
+      <link>https://stats.stackexchange.com/questions/653438/unit-invariant-treatments-in-panel-data</link>
+      <description><![CDATA[初学者，想问一个关于双向固定效应的初学者问题。如果相关的话，我正在使用 R。
+与这个问题中的用户一样，我感兴趣的是估计随时间变化（但单位不变）的宏观条件如何影响公司情绪；就我而言，是在行业层面。但是，我的问题略有不同。 这个答案也可能部分回答了我的问题，尽管我发现问题和答案都令人困惑。
+就我而言，我有以下数据：(1) 各个公司的 ID，(2) 每个公司所属的行业，(3) 日期 (YYYY-MM-DD)，(4) 宏观条件，(5) 公司情绪，以及 (6) 情绪所指的主题。
 
+“处理”[宏观条件] 和响应 [情绪] 都是连续的，范围从负到正。
+行业、主题和公司是分类的。
 
-年龄
-性别
-吸烟状况
-bmi_cat
-群组 1
-群组 2
+首先，我关心符号以及处理的幅度如何影响响​​应。其次，观察某些行业反应的差异也很重要，对我来说，这意味着一个交互项。我想象我想要估计的关系是这样的：
+$$ Sentiment_{ijt} = Macro_{jt} + Sector_i + Macro_{jt} * Sector_i $$
+其中 $i$ 是公司，$j$ 是主题，$t$ 是年度汇总。通常，我看到人们将公司和年份作为固定效应。但我怀疑教科书式的方法是否适用于此：
 
+首先，由于每个公司只能被分配到一个部门，并且这个部门不会随时间而变化，$Sector$ 应该与公司 FE 完全共线。
+其次，对我来说，重点是估计不同公司响应的差异，因此我认为我不想包含公司 FE。
 
-
-
-30
-1
-0
-0
-1
-0
-
-
-31
-1
-0
-0
-1
-0
-
-
-32
-1
-0
-0
-1
-0
-
-
-
-等等
-我用来预测的代码是：
-model_pred_cohort_1 &lt;- 
-marginaleffects::predictions(
-model=mixed_effects_mod,
-newdata=grouped_data,
-re.form=NA,
-type=&#39;response&#39;
-)
-
-当我对这个数据框进行预测时，每个年龄段的预测风险都比预期的要低得多。我还尝试添加具有不同随机值的 patid 变量，因为我不确定是否需要这样做，但似乎没有任何区别。
-我的问题是：这是此模型类型的正确用法吗？我的模型输出的风险比观察到的风险低得多，这有什么原因吗？
-如果我只是查看我的 model_data，按特定群组进行过滤，并查看患有癌症的患者与未患癌症的患者的比例，它会给出比相同预测值组合更高的值，但仅限于预测每个特定年龄和性别组合时，而不是在我只是获得人群中每个患者的预测风险时。
-有人向我指出了有关 emmeans() 函数的文档，但不确定如何将其应用于我的用例。这能解决我的低预测值问题吗？
-如果问题不清楚或需要更多信息，请见谅。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653420/how-to-use-and-interpret-results-from-glmer-in-r-when-the-predicted-risks-are</guid>
-      <pubDate>Tue, 27 Aug 2024 14:47:34 GMT</pubDate>
+我想我可以使用 topic FE 而不是公司 FE。但我从未见过这样做；单位（根据我的经验）通常是基于空间或实体的。因此，从概念上讲，我很难理解分析单位（主题年份？）甚至代表什么，或者它是否与我的实际研究问题一致。
+我还读到，有 3WFE 解决方案可以解释 $Y$ 上的所有下标，但我觉得这可能是错误的方向，因为我的目标是观察行业级别的差异（以及我的预测变量上的下标与 $Y$ 上的下标不匹配）。
+将 $Sentiment_{ijt}$ 建模为 $Macro_{jt} * Sector_i$ 与主题 ($i$) / 年份 ($t$) 2WFE 是否是一种合理的方法，考虑到我的研究问题？或者是否应该重构我的数据以减少$Sentiment$可能变化的维度数量？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653438/unit-invariant-treatments-in-panel-data</guid>
+      <pubDate>Tue, 27 Aug 2024 19:05:11 GMT</pubDate>
     </item>
     <item>
       <title>使用 Python statsmodels 计算混合线性模型 R2 和 ICC</title>
@@ -364,57 +465,6 @@ $ICC_2 = \frac{var\_r2}{total\_var}$
 感谢您的帮助！]]></description>
       <guid>https://stats.stackexchange.com/questions/653403/mixed-linear-model-r2-and-icc-calculation-using-python-statsmodels</guid>
       <pubDate>Tue, 27 Aug 2024 11:17:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何用两个或多个“组件”来建模不连续的时间序列？</title>
-      <link>https://stats.stackexchange.com/questions/653380/how-to-model-a-discontinuous-time-series-with-two-or-more-components</link>
-      <description><![CDATA[假设一个时间序列显然有两个或多个“分量”，例如一个“零”分量和另一个看起来像连续序列的分量。示例：
-
-假设我们找不到可以解释为什么它下降到零、停留在那里然后反弹的协变量，所以我们只能使用这个序列。我推测传统的线性模型（ARIMA、指数平滑）不适用于此。您会推荐哪种方法（最好有 R 或 Python 包）来进行预测？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653380/how-to-model-a-discontinuous-time-series-with-two-or-more-components</guid>
-      <pubDate>Tue, 27 Aug 2024 04:53:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用类别：数值交互恢复部分遗传可在添加项时保持参数数量不变</title>
-      <link>https://stats.stackexchange.com/questions/653378/restoring-partial-heredity-with-categorynumeric-interactions-keeps-parameter-co</link>
-      <description><![CDATA[我想理解以下最小示例。
-rprx = data.frame(
-A = c(-1, -1, -1, -1, 1, 1, 1, 1),
-B = c(-1, 1, -1, 1, -1, 1, -1, 1),
-S = c(&quot;A&quot;, &quot;A&quot;, &quot;B&quot;, &quot;B&quot;, &quot;A&quot;, &quot;A&quot;, &quot;B&quot;)
-)
-M1 = model.matrix(~ A + S:A + S:B, data = rprx)
-M2 = model.matrix(~ A + B + S:A + S:B, data = rprx)
-
-我们看到它们具有相同数量的列，即使 M2 有4 个项，而 M1 有 3 个项。
-ncol(M1) == ncol(M2)
-
-M1 是：
-（截距）A A:SB SA:B SB:B
-1 1 -1 0 -1 0
-2 1 -1 0 1 0
-3 1 -1 -1 0 -1
-4 1 -1 -1 0 1
-5 1 1 0 -1 0
-6 1 1 0 1 0
-7 1 1 1 0 -1
-8 1 1 1 0 1
-
-M2 是：
-（截距）A B A:SB B:SB
-1 1 -1 -1 0 0
-2 1 -1 1 0 0
-3 1 -1 -1 -1 -1
-4 1 -1 1 -1 1
-5 1 1 -1 0 0
-6 1 1 1 0 0
-7 1 1 -1 1 -1
-8 1 1 1 1 1
-
-我们看到，当模型中包含 B 时，M2 会失去 S:B 的水平。这里遵循的一般规则是什么？为什么？据推测这与可识别性有关。我可以看到 B 在没有 B 的情况下如何变成矩阵中两个原始列的总和。我知道因子：因子相互作用也会发生类似的现象，并且我曾尝试过在与此处示例类似的情况下参数数量实际上减少的情况。我真的想了解如何可靠地预测何时发生这种情况以及预期有多少参数。
-我正在使用 R 和默认治疗对比方案。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653378/restoring-partial-heredity-with-categorynumeric-interactions-keeps-parameter-co</guid>
-      <pubDate>Tue, 27 Aug 2024 04:18:44 GMT</pubDate>
     </item>
     </channel>
 </rss>
