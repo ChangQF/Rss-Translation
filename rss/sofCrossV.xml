@@ -4,7 +4,202 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 29 Aug 2024 09:18:04 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 29 Aug 2024 12:31:02 GMT</lastBuildDate>
+    <item>
+      <title>如何偏移、对齐和增加树状图标签的填充</title>
+      <link>https://stats.stackexchange.com/questions/653558/how-to-offset-align-and-increase-padding-of-dendogram-labels</link>
+      <description><![CDATA[我正在尝试在 R 中创建树状图。到目前为止，我已经使用了 factoextra 包，特别是 fviz_dend 函数。代码如下：
+num_data_scaled &lt;- scale(num_data)
+
+res.hc &lt;- eclust(num_data_scaled, FUNcluster = &quot;hclust&quot;, hc_metric = &quot;euclidean&quot;, hc_method = &quot;ward.D2&quot;, k = 6)
+fviz_cluster(res.hc, geom = &quot;point&quot;)
+
+p &lt;- fviz_dend(res.hc, horiz = T, cex = 0.6)
+
+ggplotly(p)
+
+这将生成以下树状图
+
+如您所见，即使放大，标签也难以辨认。因此，我尝试执行以下操作：
+
+将标签向右偏移
+将标签向左对齐
+增加顶部和底部的填充，最好在标签和图形本身上都增加填充（以便标签仍然与叶子对齐）
+
+我尝试过以各种方式做到这一点，既使用 factoextra、ggplot2（因为 factoextra 就是用它制作图形的）也使用 dendoextra。但是，我似乎无法弄清楚如何实现我想要实现的目标。在花了好几个小时反复试验、在线查找类似问题以及阅读软件包的官方文档之后，我决定在线寻求帮助。
+顺便说一句，虽然我使用了 factoextra，但我并不反对使用其他方式来创建树状图，只要它保留相同的视觉风格（即集群是有颜色的）。我唯一的要求是我最终能够使用 plotly（无论是 ggplotly 还是基础 plotly），以便能够放大单个集群。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653558/how-to-offset-align-and-increase-padding-of-dendogram-labels</guid>
+      <pubDate>Thu, 29 Aug 2024 12:23:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有两个随机截距的多项式混合效应的预测概率，忽略两个随机效应之一</title>
+      <link>https://stats.stackexchange.com/questions/653557/predicted-probabilities-from-a-multinomial-mixed-effect-with-two-random-intercep</link>
+      <description><![CDATA[我的数据是关于对 243 名参与者进行的一项关于 100 个西班牙语动词的实验。
+参与者必须猜测动词来自哪个基本词。
+因此，我对参与者 (ID) 和动词 (ITEM) 进行了重复测量。我的响应变量 ACCURACY 是一个三级无序因子，表示参与者是否猜对、猜错或不愿意回答特定动词。
+我使用 mclogit 包中的 mblogit() 函数拟合了一个多项混合模型：
+mod.accuracy1 = mblogit(ACCURACY ~ fl.verbo*fl.base + fl.verbo*fl.fvfb +
+fl.base*fl.fvfb + TIPO + BASE, 
+random = list(ACCURACY ~ 1|ID, ACCURACY ~ 1|ITEM), 
+data = dati)
+
+我希望仅考虑 ITEM 的随机截距来获得预测概率。
+我的 newdata 对象包含 100 行，其中一行对于每个 ITEM，以及 ID 的第一个元素。这是结构：
+&gt; head(newdata)
+fl.verbo fl.base fl.fvfb TIPO BASE ID ITEM
+1 5.820 12.655 0.001069 P adj. MM83624 abajar
+2 7.163 8.329 0.271126 P adj. MM83624 embobar
+3 0.000 6.753 0.000000 D adj. MM83624 ariscar
+4 8.314 12.633 0.013222 D adj. MM83624 blanquear 5 11.358 0.000 11.357954 P 名词。 MM83624 恐怖 6 1.099 10.633 0.000050 P 调整MM83624 agrisar
+
+使用 lmer 可以使用参数 re.form = ~ (1|ITEM)，但不幸的是，mblogit 的预测方法仅允许指定 conditional = F 以忽略所有随机效应。
+我通过忽略随机效应成功获得了线性预测器的拟合值，并且能够从模型中提取 ITEM 的随机截距
+pred.conditional = predict(mod.accuracy1, newdata = newdata, type = &quot;link&quot;, conditional = F)
+
+random.item = mod.accuracy1$random.effects[[2]]
+
+ind1 = grep(&quot;indovina&quot;, rownames(random.item))
+
+ind2 = grep(&quot;non risponde&quot;, rownames(random.item))
+
+random.indovina = random.item[ind1, ]
+
+random.nonrisponde = random.item[ind2, ]
+
+random.intercept = cbind(random.indovina, random.nonrisponde)
+
+rownames(random.intercept) = levels(dati$ITEM)
+
+colnames(random.intercept) = c(&quot;indovina&quot;, &quot;non risponde&quot;)
+
+&gt; head(random.intercept)
+indovina 无响应
+abajar -1.6109 -0.03126
+abarrancar 1.9898 1.67457
+acalorar 2.6423 -0.29054
+acedar -3.6468 0.94759
+acicatear -2.5225 1.02941
+acodillar 0.4278 0.19956
+
+我认为通过 eta = pred.conditional + random.intercept 计算线性预测器是正确的：
+&gt; head(eta)
+indovina non risponde
+[1,] 0.2845 -2.3046
+[2,] 4.1670 0.1232
+[3,] 1.5968 -0.3519
+[4,] -1.3894 -1.5974
+[5,] -8.9121 -2.3262
+[6,] 1.2987 -0.5516
+
+但从这里我不知道如何获得因子三个级别的拟合概率。我该怎么做？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653557/predicted-probabilities-from-a-multinomial-mixed-effect-with-two-random-intercep</guid>
+      <pubDate>Thu, 29 Aug 2024 12:20:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>复值数据的神经网络</title>
+      <link>https://stats.stackexchange.com/questions/653556/neural-network-for-complex-valued-data</link>
+      <description><![CDATA[我有一些复杂的数据，我想教神经网络对这些数据执行某些操作。
+现在，由于 Tensorflow 不允许复杂输入，我将数据分为实部和虚部，并创建了两个模型，每个部分一个。然后，我将两个模型的输出组合起来，得到了正确的结果。
+但是，我感兴趣的是，是否有更有效的方法可以遵循，或者是否有其他可以处理复杂输入的编程语言。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653556/neural-network-for-complex-valued-data</guid>
+      <pubDate>Thu, 29 Aug 2024 11:56:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>不确定是否存在空间自相关</title>
+      <link>https://stats.stackexchange.com/questions/653555/unsure-if-spatial-autocorrelation-is-present-or-not</link>
+      <description><![CDATA[我建立了一个经典的线性模型，其中包含 1000 个数据点，并且我有这些数据的坐标。因此，我使用残差的气泡图和 Moran&#39;s I 检验来检查空间自相关的存在：
+这是测试的结果：
+$observed
+-0.007053622
+$expected
+-0.001251564
+$sd
+0.0009352079
+$p.value
+5.50355e-10
+这是残差的气泡图：
+
+到目前为止，我的解释是，尽管Moran 的 I 值接近于零，显著的 p 值表明观察到的空间模式并非纯粹随机的，并且略微倾向于负空间自相关。
+尽管如此，尽管检验的 p 值非常显著，但如果我查看预期值和观察值之间的差异，差异非常小，-0.007 相比 -0.001（也考虑到 Moran.I 值范围从 -1 到 +1）。如果我再查看气泡图，我会在残差的分布中做一些随机性，我并没有真正看到残差分布的结构（尽管在图的下半部分，气泡有点凝聚，很难理解那里发生了什么）。那么，您认为我存在空间自相关吗？
+如果样本量很大，那么即使观察到的 Moran&#39;s I 值很小，也可能具有统计显著性，从而使检验对随机性的微小偏差更加敏感吗？
+我的解释是否正确（意味着我可以避免“处理”空间自相关）还是应该更深入地研究它？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653555/unsure-if-spatial-autocorrelation-is-present-or-not</guid>
+      <pubDate>Thu, 29 Aug 2024 11:51:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>统计技术来比较有序树中的叶子位置</title>
+      <link>https://stats.stackexchange.com/questions/653553/statistical-techniques-to-compare-leaves-position-across-ordered-trees</link>
+      <description><![CDATA[我想解决这个问题。
+假设我有一组条目，它们可以根据某种统计方法生成多个有序树。条目始终相同，但树结构会根据某些测量值而变化。因此，我们得到一组树，所有树都有相同的叶子，但结构不同。现在，在两次测量之间，我们可能会观察到一些叶子在移动：一片叶子可能只是轻微移动（在树枝末端附近改变位置），这可能只是由于噪音（重要性低）。否则，一片叶子可能属于完全不同的树枝，比如在根之后的第一次或第二次分裂处有差异（重要性高）。
+我想使用统计方法来量化树中“差异定位”的重要性。请注意，我感兴趣的是为每个叶子分配重要性，而不是聚类结果或树本身之间的差异。
+我还可以用一堆树构建一个 NULL 模型，这些树会因注入的噪声而显示一些变化。
+有没有可用的方法可以做到这一点？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653553/statistical-techniques-to-compare-leaves-position-across-ordered-trees</guid>
+      <pubDate>Thu, 29 Aug 2024 11:47:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>当减少数据集大小时，我应该保持 total_epochs 或 total_step_count 不变吗？</title>
+      <link>https://stats.stackexchange.com/questions/653551/when-reducing-data-set-size-shall-i-keep-total-epochs-or-total-step-count-const</link>
+      <description><![CDATA[背景：我已经针对相同的 total_step_count 从头开始​​了两次训练。训练完全相同，只是其中一次我只对 50% 的数据集进行了二次采样。
+我的假设是，大多数指标都随 epoch_idx 扩展 - 例如，在模型看到某个数据项五次后，它应该记住它。但是，至少有些指标更随 step_idx 扩展 - 这表明执行一定数量的优化步骤比看到单个项目的频率更重要。
+这是一般经验吗？是否有关于（最佳）训练长度应如何随数据集大小扩展的指导原则？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653551/when-reducing-data-set-size-shall-i-keep-total-epochs-or-total-step-count-const</guid>
+      <pubDate>Thu, 29 Aug 2024 11:16:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>循环神经网络的输出</title>
+      <link>https://stats.stackexchange.com/questions/653550/output-of-a-recurrent-neural-network</link>
+      <description><![CDATA[阅读有关 RNN 的文章时，我们总会得到有关其展开版本的解释，例如来自 Colah 博客的内容：
+
+在本例中，我们有 5 个时间步长的输入数据，X0 到 X4。而且我们在相同的时间步进行预测，从 h0 到 h4。
+我不明白，我们难道不应该至少提前一步预测，h5？或者可能提前更多步？比如说 h5、h6、h7、...？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653550/output-of-a-recurrent-neural-network</guid>
+      <pubDate>Thu, 29 Aug 2024 11:14:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>非独立数据的统计检验？</title>
+      <link>https://stats.stackexchange.com/questions/653549/statistical-test-for-non-independent-data</link>
+      <description><![CDATA[我有一个数据集，包含两组接受特定疾病治疗的患者，一组来自 2018 年，一组来自 2023 年。有充分的理由相信两组患者在各个方面可能存在差异，我想研究不同的东西，例如性别分布是否与两组患者不同，或者接受某种治疗的患者比例是否不同。
+问题是，研究的疾病往往是慢性的，这意味着 2018 年队列中的相当一部分患者也包括在 2023 年队列中。我估计大约有 30% 的患者出现在两个队列中。这不能通过删除这些患者来解决，因为这可能会引入偏差。
+那么我该如何根据我的研究问题分析这个数据集呢？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653549/statistical-test-for-non-independent-data</guid>
+      <pubDate>Thu, 29 Aug 2024 10:55:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>我的主管的 SAS 建议让我很恼火 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/653548/my-supervisor-annoys-me-his-sas-suggestion</link>
+      <description><![CDATA[我已经精通 R 和 Python，我该如何应对教授坚持要我改用 SAS 的问题？
+我面临一个两难境地，尽管我在 R 方面经验丰富，Python 方面也具备中级技能，但教授一直敦促我改用 SAS 进行工作。与 R 和 Python 的灵活性和强大功能相比，我发现 SAS 已经过时了，老实说，我真的不喜欢使用它。我尝试过学习它，但就是找不到动力。同时用 R 和 SAS 做事，结果却大相径庭，这也令人失望。我该如何处理这种情况，而不会损害我与教授的关系或损害我的工作质量？这也在某种程度上影响了我的健康和工作积极性。任何建议都将不胜感激！]]></description>
+      <guid>https://stats.stackexchange.com/questions/653548/my-supervisor-annoys-me-his-sas-suggestion</guid>
+      <pubDate>Thu, 29 Aug 2024 10:29:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>“三角”散点图的回归技术</title>
+      <link>https://stats.stackexchange.com/questions/653545/regression-techniques-for-a-triangular-scatterplot</link>
+      <description><![CDATA[我正在对环境数据进行回归分析，发现预测因子和响应变量之间存在一些相当特殊的关系。我怀疑简单的线性回归是否足以满足要求。
+我想到的一个选择是分位数回归，但我很乐意听听您的一些想法。
+以下是两个示例：
+ 
+如您所见，肯定存在某种关系，但并不完全是线性的……]]></description>
+      <guid>https://stats.stackexchange.com/questions/653545/regression-techniques-for-a-triangular-scatterplot</guid>
+      <pubDate>Thu, 29 Aug 2024 09:49:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 LME4 中对部分嵌套的随机截距进行建模？</title>
+      <link>https://stats.stackexchange.com/questions/653543/modelling-partially-nested-random-intercepts-in-lme4</link>
+      <description><![CDATA[我们使用以下变量进行了行为改变现场实验：
+
+两个时间点（T0，T1）
+两种治疗（干预与对照）（第 1 组中 n = 62，第 2 组中 n = 53）
+研讨会 ID（干预分为 7 个子组，对照组没有子组）
+我们正在使用此模型分析 lme4 中的数据
+
+这是我们的模型（我们为所有对照参与者创建了一个虚拟子组）：
+lmer(DV_T1 ~ 1 + group + DV_T0 + (1|group:workshop_id), data=df)
+这是正确的方法吗？非常感谢 :)]]></description>
+      <guid>https://stats.stackexchange.com/questions/653543/modelling-partially-nested-random-intercepts-in-lme4</guid>
+      <pubDate>Thu, 29 Aug 2024 09:33:56 GMT</pubDate>
+    </item>
     <item>
       <title>为什么在计算进化率时，不同的进化模型会对相同的数据得出完全相同的拟合结果？</title>
       <link>https://stats.stackexchange.com/questions/653538/why-would-different-evolutionary-models-render-exactly-identical-fit-to-the-sam</link>
@@ -89,16 +284,6 @@ rate_white_CTmaxM
       <pubDate>Thu, 29 Aug 2024 07:42:55 GMT</pubDate>
     </item>
     <item>
-      <title>2000 年的标准误差 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/653534/standard-errors-of-2000</link>
-      <description><![CDATA[我目前正在进行回归分析，其中标准误差约为 2000，而系数估计值约为 1.3-17.0。样本量为 101，回归分析是一个带有虚拟变量的逻辑模型（独立变量分别转换为分类变量）。
-McFadden 的 R 平方为 0.233。
-我必须解释这个回归模型，但我不知道该怎么做。我发现一些信息表明该模型由于标准误差高而不可靠，并决定采用这种方法。问题是我不确定这是否正确。
-非常感谢您的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/653534/standard-errors-of-2000</guid>
-      <pubDate>Thu, 29 Aug 2024 07:16:56 GMT</pubDate>
-    </item>
-    <item>
       <title>如何正确地从样本协方差中“减去”已知的协方差分量？回归</title>
       <link>https://stats.stackexchange.com/questions/653533/how-to-properly-subtract-a-known-covariance-component-from-a-sample-covariance</link>
       <description><![CDATA[我遇到一种情况，其中观察到的随机变量$X_i$是两个独立（但未观察到）变量的总和，$$X_i = S_i + N_i,$$（例如，您观察到的是随机信号加上随机噪声）。
@@ -109,197 +294,6 @@ McFadden 的 R 平方为 0.233。
 （如果有帮助的话，我很乐意假设 $S_i$ 是多元高斯分布。不幸的是，变量的维度约为 $1500$，因此用 $1500^2 \approx 2$ 百万个自由参数对 $S$ 的协方差矩阵进行参数化并尝试同时拟合它们似乎是一项艰巨的任务。）]]></description>
       <guid>https://stats.stackexchange.com/questions/653533/how-to-properly-subtract-a-known-covariance-component-from-a-sample-covariance</guid>
       <pubDate>Thu, 29 Aug 2024 05:55:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>ARIMA 模型预测 - 95% 预测区间</title>
-      <link>https://stats.stackexchange.com/questions/653532/arima-model-forecasting-95-prediction-intervals</link>
-      <description><![CDATA[我目前正在学习时间序列预测和 ARIMA 模型。对于这个问题，我将仅使用 AR(1) 模型示例 $X_t = \phi X_{t-1} + \varepsilon_t$ 并假设我们预测 $X_{t+1}$
-我遇到的一个资源是 [预测：原理与实践][1] (Hyndman 和 Athanasopoulos)，其中指出：
-
-第一个预测区间很容易计算。如果 $\hat{\sigma}$ 是残差的标准差，则 95% 的预测区间由 $\hat{y}_{T+1|T} \pm 1.96 \hat{\sigma^2}$ 给出
-
-
-这似乎意味着，在计算预测区间（或预测区间）时，我们纯粹考虑未来误差项中的方差/不确定性，这些方差/不确定性将“破坏”我们的$X_{t+1}$ 预测
-
-但是，当阅读 CrossValidated 上的这个答案时：ARIMA 预测置信区间，它似乎表明$Var(X_{T+1}) = Var(\phi) + Var(\varepsilon_{T+1})$。 请注意，问题标题为置信区间，据我所知，它与参数估计有关，而不是预测，但 OP 似乎在询问预测/预测区间
-
-第二个来源似乎表明预测区间包含 AR 参数的方差以及未来误差项的方差
-
-我的问题是如何协调此处的差异，以及计算 $X_{t+1}$ 预测的预测区间的正确方法是什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653532/arima-model-forecasting-95-prediction-intervals</guid>
-      <pubDate>Thu, 29 Aug 2024 05:03:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>MANOVA - 单变量 Wilks 的 Lambda 检验（R 解释）</title>
-      <link>https://stats.stackexchange.com/questions/653530/manova-univariate-wilks-lambda-test-r-interpretation</link>
-      <description><![CDATA[我正在运行一个具有 2 个因变量和 2 个连续预测变量的 MANOVA 模型。 （仅供参考 - STATA 将此称为 MANCOVA，并要求在每个预测因子前面删除“c。”以表示每个预测因子在 manova 运行期间都是连续缩放的。无论如何，R 将直接接受连续变量，因此使用 manova 命令在 R 中运行 MANCOVA 不会出现问题） - 本质上是 MVNREG。
-使用 UC-Irvine ML Repository Wine 数据集，模型为：
-model &lt;- lm(cbind(alcohol, hue) ~ flavanoids + ash, na.action=na.exclude, data=wine)
-wine.manova=manova(model)
-
-我试图了解使用这两种方法时 Wilks&#39; Lambda 对黄烷类化合物预测因子的 F 近似值之间的差异：
-方法1
-library(car)
-lh.out &lt;- linearHypothesis(model, hypothesis.matrix = c(&quot;flavanoids = 0&quot;))
-lh.out
-
-结果如下：
-
-方法 2
-以及基于命令的 Wilks&#39; 值
-summary(wine.manova,&#39;Wilks&#39;)
-
-输出如下：
-
-尽管 p 值相同，但我试图理解为什么 Wilks&#39; Lambda 的 F 值在基于所有响应变量的黄酮类化合物预测因子的两次零系数检验中有所不同。结果表明，当有更多预测因子或因变量时，这两次 Wilks&#39; Lambda 计算之间的差异更大。
-仅供参考 - 当将 R 与 STATA 进行基准测试时，几乎不可能在 STATA 中获得上述方法 2 下列出的表格结果，而方法 1 的结果很容易从 STATA 中获得。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653530/manova-univariate-wilks-lambda-test-r-interpretation</guid>
-      <pubDate>Thu, 29 Aug 2024 02:58:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>率最差于 $\frac{1}{n}$ 的最小方差估计量示例</title>
-      <link>https://stats.stackexchange.com/questions/653527/example-of-minimum-variance-estimator-with-rate-worst-than-frac1n</link>
-      <description><![CDATA[考虑 $n$ 个 i.i.d. 观测值，该观测值来自分布 $p(X| \theta)$。假设我们有兴趣根据此数据估算 $\theta$。
-我对一个示例感兴趣，该示例将表明：
-
-存在一个 $\theta$ 的一致估计量。用 $\hat{\theta}$ 表示它。换句话说，我希望这个问题得到明确的定义。
-“最佳”（最小方差）的方差不会以通常的$\frac{1}{n}$速度收敛，而是以较慢的速度收敛。
-
-文献中有相当多的结果表明，至少 MLE（在适当的）规律性条件下以$\frac{1}{n}$速度收敛。在我看来，如果存在这样的例子，那么对于这种设置，Fisher 信息必须为零。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653527/example-of-minimum-variance-estimator-with-rate-worst-than-frac1n</guid>
-      <pubDate>Thu, 29 Aug 2024 01:50:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何比较多组计数数据（数百万或零，差异很大）？</title>
-      <link>https://stats.stackexchange.com/questions/653526/how-do-i-compare-multiple-groups-of-count-data-that-are-either-millions-or-zero</link>
-      <description><![CDATA[我有三个独立的组：治疗组、药物 1 和药物 2。对于每个组，我都有 CFU 中的细菌计数。我不太擅长统计，所以请耐心听我说。我知道我不能使用方差分析，因为分布不正常，有些计数相距很远，而且有相当多的零（虽然不是太多）。组内的方差也不相等，样本量也不相等。
-我看过一些论文，建议使用负二项分布、泊松分布或其他一些分布。我的问题是：有没有针对这种情况的推荐方法？我如何比较不同类别的模型以确定哪个更好？我主要使用 R。有没有办法在 R 中测试多种方法并让它建议最佳（或接近最佳）模型？这种方法是否适合我的情况？或者我应该不要太担心并使用非参数检验？
-非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653526/how-do-i-compare-multiple-groups-of-count-data-that-are-either-millions-or-zero</guid>
-      <pubDate>Thu, 29 Aug 2024 01:08:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>三角相关？</title>
-      <link>https://stats.stackexchange.com/questions/653518/triangular-correlations</link>
-      <description><![CDATA[正如我在 https://stats.stackexchange.com/a/652022/11887 上的回答中所使用的，三角相关似乎是一个有用的概念/术语，可以得到更多的使用。但搜索后我发现它没什么用，下面是一些例子。也许还有其他术语在使用？一些文献中的例子：
-
-
-这是学生课程成绩与（y 轴）缺课率的关系，似乎缺课率给出了成绩的近似上限。来自 Othmar W Winkler 的论三角相关。他说
-
-尽管缺课和学期成绩之间存在明显的关系，但使用线性回归计算的相关系数为 r = -.18024。对此进行解释$R^2 = .03249$似乎表明，了解缺课百分比几乎无法解释这些课程成绩分散的 3%。
-
-如果没有图表，这似乎非常具有误导性。该论文中的另一个例子：
-
-他将其包括进来是为了展示来自科学而非社会科学的例子。摘自
-&quot;Shake hole, A morphometric Field Project for Sixth-Form Geographers&quot; Geography, Vol. 65 pt. 3, July 1980, No. 288&quot;（我无法通过互联网搜索找到它）。其他有趣的例子可以在 Richard R. Hake 的 互动参与与传统方法：对入门物理课程力学测试数据的六千名学生调查中找到。
-
-应该如何分析和呈现这些数据？相关系数似乎没什么用...还有其他例子吗？是否使用了其他术语？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653518/triangular-correlations</guid>
-      <pubDate>Wed, 28 Aug 2024 23:41:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>价值迭代 GridWorld 中的终端状态与奖励的价值</title>
-      <link>https://stats.stackexchange.com/questions/653516/value-of-terminal-state-vs-reward-in-value-iteration-gridworld</link>
-      <description><![CDATA[我看到很多帖子说终端状态的值始终为 0，但很多价值迭代的例子将奖励（在终端）指定为值。例如，在下面的网格世界中，我们将 +1 和 -1 作为终端状态的值。
-
-这取决于我们如何定义奖励吗？上面的例子是否是奖励仅取决于离开的状态的情况？或者它也适用于奖励取决于进入状态的情况？
-我倾向于认为，如果我们将奖励定义为取决于进入状态 s&#39;，则终止状态的值不应该是其相关奖励（如上例所示）。但如果是这种情况，算法如何知道为相邻状态分配导致终止状态的操作？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653516/value-of-terminal-state-vs-reward-in-value-iteration-gridworld</guid>
-      <pubDate>Wed, 28 Aug 2024 23:12:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>我如何对系数进行随机效应建模[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/653509/how-can-i-model-with-random-effect-on-the-coefficient</link>
-      <description><![CDATA[简单线性回归模型为：$$y= a x + b$$
-然而，在实际数据中：
-
-存在随机效应（误差或变化）；
-当 $x$ 增加时，随机效应的绝对值会成比例增加。
-因此它看起来像 $$y = ax + b + ex$$ 或 $$y = (a + e) x + b$$ 但 $e$ 是随机效应。
-对这种建模有什么建议吗？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/653509/how-can-i-model-with-random-effect-on-the-coefficient</guid>
-      <pubDate>Wed, 28 Aug 2024 20:29:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>对零膨胀连续数据进行假设检验的可靠方法</title>
-      <link>https://stats.stackexchange.com/questions/653504/reliable-method-for-hypothesis-testing-on-zero-inflated-continuous-data</link>
-      <description><![CDATA[我正在测试新流程对网站销售业绩的影响。测试对以下方面的影响非常简单：
-
-转化率（以交易结束的会话数除以总会话数） - 通过 z 检验近似的二项式
-平均订单价值（总收入除以以交易结束的会话数） - t 检验。
-
-棘手的部分是测试每个会话的平均收入，因为我们最终得到零膨胀分布。问题并不独特，所以我找到了很多方法：障碍模型、零膨胀泊松/负二项式、两部分模型、引导和贝叶斯角度。
-您有什么建议，哪种方法在实践中可靠？为了解决这个问题，我们假设转化率为 60%，订单价值均匀分布在 \$40 到 \$80 之间。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653504/reliable-method-for-hypothesis-testing-on-zero-inflated-continuous-data</guid>
-      <pubDate>Wed, 28 Aug 2024 19:39:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何进行数据驱动的样本量选择</title>
-      <link>https://stats.stackexchange.com/questions/653472/how-to-perform-data-driven-choice-of-sample-size</link>
-      <description><![CDATA[假设我想比较两个回归模型的结果。一个是参考模型，另一个是新模型，我想知道新模型是否表现更好。每个模型都用皮尔逊相关性进行评估，假设数据集是依赖的，并且测试数据相同，我想得到配对差异的置信区间，看看它是否包含零。
-但我事先不知道差异的方差，也不知道正确的样本量是多少，所以我想到了以下方法：
-min_diff_to_detect
-all_pearsons_ref = []
-all_pearsons_new = []
-alpha = 0.05
-
-循环直到循环中断 -&gt;对于当前循环 n：
-train_ref、train_new、test_data = get_new_data_split()
-
-ref_model = train_ref_model(train_ref)
-pearson_ref = assess( ref_model(test_data) )
-all_pearsons_ref.append(pearson_ref)
-
-new_model = train_new_model(train_new)
-pearson_new = assess( new_model(test_data) )
-all_pearsons_new.append(pearson_new)
-
-Differences = all_pearsons_new - all_pearsons_ref # 成对差异
-confidence_interval = compute_CI(0, np.std(differences), n, alpha)
-
-如果 min_diff_to_detect 不在 confidence_interval 中：
-如果 np.mean(differences) 不在 confidence_interval 中：
-返回 are_different
-返回are_not_different
-
-train_data 是依赖的，而 test_data 对于两个模型是相同的。这个想法是使用数据来寻找最佳循环数 N。否则 N 将被猜测，并且可能太小而没有足够的统计能力，或者太大而需要太长时间进行训练。
-但是，方差在早期循环中也有可能波动很大，从而导致 min_diff_to_detect 可能被错误检测。后一点可以通过在评估 if 条件之前引入最小循环数来缓解，但这感觉很武断，最终，我不知道这种方法是否有效。
-我也知道 bootstrapping，但它需要大量的训练才能有效。
-那么，第一个 if 条件可以改进以避免错误吗？最终，这是一种有效的方法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653472/how-to-perform-data-driven-choice-of-sample-size</guid>
-      <pubDate>Wed, 28 Aug 2024 07:32:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>两个 AR(1) 过程之和的持久性</title>
-      <link>https://stats.stackexchange.com/questions/653465/persistence-of-the-sum-of-two-ar1-processes</link>
-      <description><![CDATA[考虑一个时间序列 $y_t$，它可以分解为两个组成部分的总和：
-$$y_t = x_{1,t} + x_{2,t} $$
-假设每个组成部分都是独立的，并遵循平稳 AR(1) 过程：
-$$\begin{align*} 
-x_{1,t} &amp;= \phi_1 x_{1,t-1} + \varepsilon_{1,t} \\
-x_{2,t} &amp;= \phi_2 x_{2,t-1} + \varepsilon_{2,t} \\
-\end{align*}$$
-其中：
-$$\begin{align*} 
-\varepsilon_{1,t} &amp;\sim N \left (0,\sigma_1^2 \right ) \\
-\varepsilon_{2,t} &amp;\sim N \left (0,\sigma_2^2 \right ) \\
-\end{align*}$$
-我使用模拟来生成一系列长序列 $X_1$、$X_2$ 以及它们的和 $Y$。然后，我估计 $y_t$ 的 AR(1) 模型
-$$y_t = \phi_y y_{t-1} + \varepsilon_{y,t}$$
-在我的模拟/估计中，我发现 $\phi_y$ 的估计值是 $\phi_1$ 和 $\phi_2$ 的加权平均值，其中每个成分的 $\phi_i$ 的权重由其无条件方差的比例决定。也就是说，我发现：
-$$
-\hat{\phi}_y \approx \left ( \frac{\frac{\sigma_1^2}{1-\phi_1^2}}{\frac{\sigma_1^2}{1-\phi_1^2} +\frac{\sigma_2^2}{1-\phi_2^2}} \right ) \phi_1 + \left ( \frac{\frac{\sigma_2^2}{1-\phi_2^2}}{\frac{\sigma_1^2}{1-\phi_1^2} +\frac{\sigma_2^2}{1-\phi_2^2}} \right ) \phi_2
-$$
-我知道Lütkepohl (1984)（虽然我还没有获得副本），据称证明了$y_t$遵循平稳 ARMA 过程。
-是否有人知道以下任一证明（或能够推导出证明）：
-
-$y_t$遵循 AR(1) 过程。
-$\phi_y \equiv \left ( \frac{\frac{\sigma_1^2}{1-\phi_1^2}}{\frac{\sigma_1^2}{1-\phi_1^2} +\frac{\sigma_2^2}{1-\phi_2^2}} \right ) \phi_1 + \left ( \frac{\frac{\sigma_2^2}{1-\phi_2^2}}{\frac{\sigma_1^2}{1-\phi_1^2} +\frac{\sigma_2^2}{1-\phi_2^2}} \right ) \phi_2$
-
-最后，有谁知道任何相关的证明涉及更一般的情况，当$\varepsilon_{1,t}$和$\varepsilon_{2,t}$ 是相关的吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653465/persistence-of-the-sum-of-two-ar1-processes</guid>
-      <pubDate>Wed, 28 Aug 2024 02:09:13 GMT</pubDate>
     </item>
     </channel>
 </rss>
