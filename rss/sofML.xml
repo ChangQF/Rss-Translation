@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 31 Aug 2024 15:16:10 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 31 Aug 2024 18:19:15 GMT</lastBuildDate>
     <item>
       <title>（BPE）标记器不适用于具有共同开头的标记</title>
       <link>https://stackoverflow.com/questions/78935444/bpetokenizer-not-working-for-tokens-with-common-beginning</link>
@@ -24,7 +24,8 @@ encoded = tokenizer.encode(&quot;A A+&quot;)
 print(encoded.tokens)
 
 我得到 [&#39;A&#39;, &#39;A&#39;, &#39;+&#39;] 作为输出，但我想要[&#39;A&#39;, &#39;A+&#39;]。
-问题在于一个标记是另一个标记的开头，因此较长的标记永远不会被识别为一个标记。我不明白为什么 merges 没有帮助。我尝试过其他标记器，例如 WordLevel，但没有成功。]]></description>
+问题在于一个标记是另一个标记的开头，因此较长的标记永远不会被识别为一个标记。我不明白为什么 merges 没有帮助。我尝试过其他标记器，例如 WordLevel，但没有成功。
+换句话说，我正在寻找一个非贪婪的标记器。]]></description>
       <guid>https://stackoverflow.com/questions/78935444/bpetokenizer-not-working-for-tokens-with-common-beginning</guid>
       <pubDate>Sat, 31 Aug 2024 15:01:53 GMT</pubDate>
     </item>
@@ -73,100 +74,6 @@ metrics=[&#39;accuracy&#39;, top3, top5])
       <pubDate>Sat, 31 Aug 2024 03:08:19 GMT</pubDate>
     </item>
     <item>
-      <title>PyTorch：实现批量损失（RuntimeError：张量的元素 0 不需要 grad 并且没有 grad_fn）</title>
-      <link>https://stackoverflow.com/questions/78934120/pytorch-implementing-batch-loss-runtimeerror-element-0-of-tensors-does-not-re</link>
-      <description><![CDATA[我目前正在训练一个自动编码器，针对我的具体用例，我在 PyTorch 中实现了基于 Wasserstein 度量（地球移动度量）的自定义损失。我使用这个的一般想法是，下面代码片段中的 pred 和 target 是一批向量，比如 batch_size x vector_length
-def wasserstein_distance(pred, target, num_bins=200):
-# 获取列数（特征）
-num_columns = pred.size(1)
-
-# 计算每列的 Wasserstein 距离
-distances = []
-for i in range(num_columns):
-# 获取列的预测值和目标值
-pred_col = pred[:, i]
-target_col = target[:, i]
-
-# 确定列的直方图范围
-min_val = min(pred_col.min().item(), target_col.min().item())
-max_val = max(pred_col.max().item(), target_col.max().item())
-
-# 计算预测值和目标值的直方图
-pred_hist = torch.histc(pred_col, bins=num_bins, min=float(min_val), max=float(max_val))
-target_hist = torch.histc(target_col, bins=num_bins, min=float(min_val), max=float(max_val))
-
-# 将直方图标准化以形成概率分布
-pred_hist /= pred_hist.sum()
-target_hist /= target_hist.sum()
-
-# 计算累积分布函数 (CDF)
-pred_cdf = torch.cumsum(pred_hist, dim=0)
-target_cdf = torch.cumsum(target_hist, dim=0)
-
-# 计算 Wasserstein 距离（地球移动距离）
-wasserstein_dist = torch.sum(torch.abs(pred_cdf - target_cdf))
-
-distances.append(wasserstein_dist)
-
-# 计算所有列的 Wasserstein 距离的平均值
-mean_wasserstein_distance = torch.mean(torch.stack(distances))
-
-return mean_wasserstein_distance
-
-我在以下训练函数中使用它：
-def train_model(model: nn.Module, data_loader: torch.utils.data.DataLoader, epoch_count: int, learning_rate: float) -&gt; np.ndarray:
-print(&quot;##### 开始训练模型 #####&quot;)
-model.train()
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
-model.to(device)
-loss = []
-
-for epoch in range(epoch_count):
-total_loss = 0.0
-total_samples = 0
-
-for batch in data_loader:
-x = batch[0]
-x = x.to(device)
-optimizer.zero_grad()
-pred_ae = model(x)
-loss_ae = wasserstein_distance(pred_ae, x[:, 6:])
-
-loss_ae.backward()
-optimizer.step()
-
-total_loss += loss_ae.item()
-total_samples += x.size(0)
-
-avg_loss = total_loss / total_samples
-loss.append(avg_loss)
-
-print(f&#39;Epoch: {epoch} Loss per unit: {avg_loss}&#39;)
-
-print(&quot;##### FINISHED TRAINING OF MODEL #####&quot;)
-return model, np.array(losses)
-
-
-但是，我收到以下错误：
-File &quot;&quot;, line 432, in &lt;module&gt;
-model,losses = train_model(model,data,50,0.0001)
-文件&quot;&quot;，第 237 行，在 train_model 中
-loss_ae.backward()
-文件&quot;C:\Users\aksha\AppData\Local\Programs\Python\Python310\lib\site-packages\torch\_tensor.py&quot;，第 522 行，在 Backward 中
-torch.autograd.backward(
-文件&quot;C:\Users\aksha\AppData\Local\Programs\Python\Python310\lib\site-packages\torch\autograd\__init__.py&quot;，第 266 行，在 Backward 中
-Variable._execution_engine.run_backward(# 调用 C++ 引擎运行反向传递
-RuntimeError：张量的元素 0 不需要 grad 并且没有 grad_fn
-
-
-我确信每个 requires_grad 默认为 true（我没有手动更改任何内容）。我对 PyTorch 有点陌生，但我怀疑问题在于我为损失返回了一个值，而 Backward 期望每个张量都有一个值？？？但这不是我真正想要的训练方案，我希望每个更新都是特定于批次的（具体来说，学习每个批次中每列的分布）
-如能提供帮助，我们将不胜感激！]]></description>
-      <guid>https://stackoverflow.com/questions/78934120/pytorch-implementing-batch-loss-runtimeerror-element-0-of-tensors-does-not-re</guid>
-      <pubDate>Sat, 31 Aug 2024 01:05:47 GMT</pubDate>
-    </item>
-    <item>
       <title>在 colab 上安装 nvstrings</title>
       <link>https://stackoverflow.com/questions/78933173/installing-nvstrings-on-colab</link>
       <description><![CDATA[我尝试在 Google Colab 笔记本上运行 !pip install nvstrings，但遇到了错误
@@ -191,73 +98,6 @@ RuntimeError：张量的元素 0 不需要 grad 并且没有 grad_fn
 我正在使用托管在 colab 免费层 gpu 上的 spacy en_core_web_trf 开发文档解析器模型，它需要 gpu 设备上的输入字符串，即为什么我需要安装 nvstrings 库。我已经在笔记本电脑上安装了 nvidia RAPIDS 库，但它似乎不包含 nvstrings 库。]]></description>
       <guid>https://stackoverflow.com/questions/78933173/installing-nvstrings-on-colab</guid>
       <pubDate>Fri, 30 Aug 2024 17:30:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Microsoft Ai Hub 上应使用哪种 RAG 架构和流程来从超大文档生成内容</title>
-      <link>https://stackoverflow.com/questions/78932671/what-rag-architecture-and-process-to-utilise-on-microsoft-ai-hub-to-generate-con</link>
-      <description><![CDATA[我正在研究一个用例，旨在自动生成响应，该响应是对提案请求 (RFP) 的回复 - 该响应回答了请求中的问题，并且实际上包含了有关我们公司的详细信息。
-外部企业首先向我们提供请求，目前人工需要花费很长时间来编写响应，响应可能长达 90 页。
-在理想情况下，我会接受请求，然后自动回复 90 页，但目前没有一个 LLM 可以做到这一点。
-Microsoft 建议在使用 RAG 之前将之前的响应拆分成小块，以便可以检索和生成所有信息。但我担心不同部分之间会丢失上下文和理解。
-有人遇到过类似的问题吗？你是如何设计这个解决方案的？现在，我发现有必要给这些回复贴上标签，然后将它们分成小节，为每个小节生成内容并将它们缝合在一起（对请求也做类似的事情，但这些内容不太广泛，通常只有 3-4 页长）。
-我使用 Microsoft Ai Hub 和 Prompt Flows 来完成大部分工作。]]></description>
-      <guid>https://stackoverflow.com/questions/78932671/what-rag-architecture-and-process-to-utilise-on-microsoft-ai-hub-to-generate-con</guid>
-      <pubDate>Fri, 30 Aug 2024 15:02:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>Mask r-cnn 模型未收敛，训练和验证的准确度在 NaN 和 0.09 之间波动[关闭]</title>
-      <link>https://stackoverflow.com/questions/78932442/mask-r-cnn-model-not-converging-and-accuracies-for-training-and-validation-are-o</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78932442/mask-r-cnn-model-not-converging-and-accuracies-for-training-and-validation-are-o</guid>
-      <pubDate>Fri, 30 Aug 2024 14:09:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>zero123 的更大分辨率输出</title>
-      <link>https://stackoverflow.com/questions/78932261/bigger-resolution-output-of-zero123</link>
-      <description><![CDATA[我在 InstantMesh 环境中使用 zero123，我想知道 zero123 是否有可能输出更大分辨率的图像？
-目前的分辨率是 320x320，对于从 InstantMesh 的 3D 重建管道获得良好的输出纹理来说，这个分​​辨率有点低。]]></description>
-      <guid>https://stackoverflow.com/questions/78932261/bigger-resolution-output-of-zero123</guid>
-      <pubDate>Fri, 30 Aug 2024 13:30:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用自己的多视图图像绕过 zero123 来增强 InstantMesh 3d 重建输出的纹理 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78931872/bypass-zero123-with-own-multiview-images-to-enhance-texture-of-instantmesh-3d-re</link>
-      <description><![CDATA[我正在使用 InstantMesh，这是一个使用多视图模型 (zero123) 的 3D 重建管道，该模型可从一张输入图像生成多视图图像。
-我和我的团队正在尝试增强 instantmesh 3D 重建纹理输出，经过多次尝试，我们发现最大的问题之一是 zero123 输出（输入重建管道）的分辨率太低。
-我们现在的目标是使用我们自己的分辨率更高的多视图图像。
-我现在的问题是：InstantMesh 重建管道是否接受更大的分辨率？如果是，代码中需要更改什么？如果没有，我们是否必须重新训练整个模型以考虑更大的分辨率？]]></description>
-      <guid>https://stackoverflow.com/questions/78931872/bypass-zero123-with-own-multiview-images-to-enhance-texture-of-instantmesh-3d-re</guid>
-      <pubDate>Fri, 30 Aug 2024 12:00:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 Hugging Face Transformers 训练 GPT-2 模型时如何修复分段错误？</title>
-      <link>https://stackoverflow.com/questions/78841125/how-to-fix-segmentation-fault-when-training-gpt-2-model-using-hugging-face-trans</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78841125/how-to-fix-segmentation-fault-when-training-gpt-2-model-using-hugging-face-trans</guid>
-      <pubDate>Tue, 06 Aug 2024 21:47:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>了解 Vits 对 HiFi-GAN 的使用</title>
-      <link>https://stackoverflow.com/questions/78625475/understanding-usage-of-hifi-gan-by-vits</link>
-      <description><![CDATA[我正在（尝试）学习语音合成的 AI/ML，并尝试理解 Vits 如何使用 HiFi-GAN。
-据我所知，Vits 会将文本输入转换为梅尔频谱图，然后由 HiFi-GAN 转换为音频波。
-让我困惑的是为什么从 Vits 发送到 HiFi-GAN 的输入不是梅尔频谱图。
-例如，当我测试其他模型并将以下代码添加到 HiFi-GAN 的正向方法时：
-class Generator(torch.nn.Module):
-...
-def forward(self, x):
-plot_spectrogram(x[0].cpu().detach().numpy(), &quot;mel_spec.png&quot;)
-...
-...
-
-它保存了正确的图像，看起来像梅尔频谱图图像，但是，当我对 vits 执行相同操作时，保存的图像是纯绿色图像，当然不是梅尔频谱图的表示。
-但生成的音频文件当然是有效的音频文件。
-有人能向我解释一下吗？
-我正在评估一些神经 tts 模型，我想要做的是保存由模型创建的梅尔频谱图，以便稍后进行比较，并通过不同的声码器运行它们以进行比较。
-我注意到 vits repo 中的 HiFi-GAN 代码与原始 repo 略有不同，但我无法理解为什么。
-有什么方法可以将输入参数 x 转换为梅尔频谱图表示，而无需先将其转换为音频，然后再将音频转换为梅尔？]]></description>
-      <guid>https://stackoverflow.com/questions/78625475/understanding-usage-of-hifi-gan-by-vits</guid>
-      <pubDate>Sat, 15 Jun 2024 02:17:36 GMT</pubDate>
     </item>
     <item>
       <title>我的神经网络在测试数据上的表现很差，但在训练数据上准确率却很高，这是什么原因造成的？</title>
@@ -326,104 +166,332 @@ test_acc：0.6086000204086304
       <pubDate>Sun, 29 Nov 2020 04:54:52 GMT</pubDate>
     </item>
     <item>
-      <title>残差图诊断以及如何改进回归模型</title>
-      <link>https://stackoverflow.com/questions/62459677/residual-plot-diagnostic-and-how-to-improve-the-regression-model</link>
-      <description><![CDATA[在为此住房数据集创建回归模型时，我们可以绘制实值函数中的残差。
-from sklearn.linear_model import LinearRegression
-
-X = housing[[&#39;lotsize&#39;]]
-y = housing[[&#39;price&#39;]]
-
-model = LinearRegression()
-model.fit(X, y)
-
-plt.scatter(y,model.predict(X)-y)
-
-
-我们可以清楚地看到差异（预测 - 实际值）对于较低的价格主要为正，而对于较高的价格，差异为负。
-对于线性回归来说也是如此，因为模型针对 RMSE 进行了优化（因此不考虑残差的符号）。
-但是在执行 KNN 时
-from sklearn.neighbors import KNeighborsRegressor
-model = KNeighborsRegressor(n_neighbors = 3)
-
-我们可以找到类似的图。
-
-在这种情况下，我们可以给出什么解释，我们如何改进模型。
-编辑：我们可以使用所有其他预测因子，结果类似。
-housing = housing.replace(to_replace=&#39;yes&#39;, value=1, regex=True)
-housing = housing.replace(to_replace=&#39;no&#39;, value=0, regex=True)
-X = housing[[&#39;lotsize&#39;,&#39;bedrooms&#39;,&#39;stories&#39;,&#39;bathrms&#39;,&#39;bathrms&#39;,&#39;driveway&#39;,&#39;recroom&#39;,
-&#39;fullbase&#39;,&#39;gashw&#39;,&#39;airco&#39;,&#39;garagepl&#39;,&#39;prefarea&#39;]]
-
-下图为具有 3 个邻居的 KNN。如果有 3 个邻居，人们会预期过度拟合，我不明白为什么会有这种趋势。
-]]></description>
-      <guid>https://stackoverflow.com/questions/62459677/residual-plot-diagnostic-and-how-to-improve-the-regression-model</guid>
-      <pubDate>Thu, 18 Jun 2020 21:27:35 GMT</pubDate>
+      <title>尝试加载我的 Google 可教机器模型时出现 ValueError：('无法识别的关键字参数：'，dict_keys(['ragged']))</title>
+      <link>https://stackoverflow.com/questions/63847435/valueerror-unrecognized-keyword-arguments-dict-keysragged-when-tryi</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/63847435/valueerror-unrecognized-keyword-arguments-dict-keysragged-when-tryi</guid>
+      <pubDate>Fri, 11 Sep 2020 12:50:45 GMT</pubDate>
     </item>
     <item>
-      <title>多项式回归度增加后训练得分降低</title>
-      <link>https://stackoverflow.com/questions/47717818/train-score-diminishes-after-polynomial-regression-degree-increases</link>
-      <description><![CDATA[我尝试使用线性回归将多项式拟合到一组添加了噪声的正弦信号中的点，使用 sklearn 中的 linear_model.LinearRegression。
-正如预期的那样，训练和验证分数随着多项式度数的增加而增加，但在 20 度左右之后，事情开始变得奇怪，分数开始下降，模型返回的多项式看起来根本不像我用来训练它的数据。
-下面是一些可以看到这种情况的图表，以及生成回归模型和图表的代码：
-在度数 = 17 之前，它是如何正常工作的。原始数据 VS 预测：
+      <title>使用 pytorch 计算特征中心时 GPU 内存不足</title>
+      <link>https://stackoverflow.com/questions/63734506/the-gpu-memory-is-not-enough-when-computing-feature-centers-using-pytorch</link>
+      <description><![CDATA[使用 pytorch 时，我想在损失函数中使用类特征中心。但是当我计算中心时，GPU 内存不够。我该如何解决？代码如下：
+for epoch in range((args.start_epoch+1), args.epochs):
+Center= computer_Center(model,dataloader, classnum)
+for input, target in train_loader:
+target = target.cuda()
+input = input.cuda()
+input_var = torch.autograd.Variable(input)
+target_var = torch.autograd.Variable(target)
+outputs, feature = model(input_var)
+l = criterion(feature,target_var, Center) .forward()
+l.backward(retain_graph=True)
 
-之后情况变得更糟：
+def computer_Center(model,dataloader, classnum):
+model.train()
+for i in range(classnum):
+j=0
+for input,target in dataloader:
+target=target.cuda()
+input = input.cuda()
+input_var = torch.autograd.Variable(input)
+target=torch.autograd.Variable(target)
+_, feature_ext = model(input_var)
+ind=torch.where(target==i)[0]
+if ind.shape[0]&gt;0:
+if j==0:
+feature_mid = feature_ext[ind, :]
+feature_sum_mid=feature_mid.sum(0)
+else:
+feature_mid = feature_ext[ind, :]
+feature_sum_mid = feature_sum_mid+feature_mid.sum(0)
+j=j+1
 
-验证曲线，增加多项式的次数：
+feature_sum_mid=feature_sum_mid.unsqueeze(0)
+if i==0:
+feature_sum=feature_sum_mid
+else:
+feature_sum=torch.cat([feature_sum,feature_sum_mid],dim=0)
 
-from sklearn.pipeline import make_pipeline
+Center=feature_sum
+for i in range(7):
+Center[i,:]=feature_sum[i,:]/ClaSamNum[i]
+
+返回中心
+]]></description>
+      <guid>https://stackoverflow.com/questions/63734506/the-gpu-memory-is-not-enough-when-computing-feature-centers-using-pytorch</guid>
+      <pubDate>Fri, 04 Sep 2020 03:37:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在基于 TensorFlow Lite 对象检测 Android 的应用程序中添加文本转语音功能？</title>
+      <link>https://stackoverflow.com/questions/62623547/how-can-i-add-text-to-speech-in-tensorflow-lite-object-detection-android-based-a</link>
+      <description><![CDATA[我正在尝试构建一款应用，帮助视障人士检测路上的物体​​/障碍物。因此，一旦检测到物体，使用 TensorFlow 库和 Android 文本转语音，应用程序就会让用户知道该物体是什么。我目前正在尝试构建 TensorFlow 提供的 Android 对象检测示例，但我很难找到边界框标签字符串的存储位置，以便在运行文本转语音时调用它]]></description>
+      <guid>https://stackoverflow.com/questions/62623547/how-can-i-add-text-to-speech-in-tensorflow-lite-object-detection-android-based-a</guid>
+      <pubDate>Sun, 28 Jun 2020 13:59:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>ValueError：（'无法识别的关键字参数：'，dict_keys（['ragged']））</title>
+      <link>https://stackoverflow.com/questions/61934272/valueerror-unrecognized-keyword-arguments-dict-keysragged</link>
+      <description><![CDATA[我在 google colab 上训练了一个细胞分割模型，一个使用 tensorflow 版本 1.x，另一个使用 2.x。我下载了这个模型，现在正尝试加载它并预测我下载的预选图像。训练和建立模型，我用的是 tf.keras.layers.layername 代码如下：
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.learning_curve import验证曲线
+import cv2
+import tensorflow as tf
+import keras
+from tensorflow.python.keras.models import load_model
+from tensorflow.python.keras.utils import CustomObjectScope
+from tensorflow.python.keras.initializers import glorot_uniform
 
-def make_data(N, err=0.1, rseed=1):
-rng = np.random.RandomState(1)
-x = 10 * rng.rand(N)
-X = x[:, None]
-y = np.sin(x) + 0.1 * rng.randn(N)
-if err &gt; 0:
-y += err * rng.randn(N)
-return X, y
+def prepare(filepath):
+IMG_SIZE = 100
+img_array = cv2.imread(filepath, cv2.IMREAD_GRAYSCALE)
+new_array = cv2.resize(img_array, (IMG_SIZE, IMG_SIZE))
+return new_array.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
 
-def PolynomialRegression(degree=4):
-return make_pipeline(PolynomialFeatures(degree),
-LinearRegression())
+#def load_model():
+with CustomObjectScope({&#39;GlorotUniform&#39;:glorot_uniform()}):
+model = tf.keras.models.load_model(&quot;./models/nuclei_1-15.h5&quot;, compile=False)
 
-X, y = make_data(400)
+def predict():
+prediction = model.predict([prepare(&quot;./images/cell.jpeg&quot;)])
+print(prediction)
 
-X_test = np.linspace(0, 10, 500)[:, None]
-degrees = np.arange(0, 40)
+predict()
 
-plt.figure(figsize=(16, 8))
-plt.scatter(X.flatten(), y)
-for degree in degrees:
-y_test = PolynomialRegression(degree).fit(X, y).predict(X_test)
-plt.plot(X_test, y_test, label=&#39;degre={0}&#39;.format(degree))
-plt.title(&#39;原始数据 VS 不同预测值度&#39;)
-plt.legend(loc=&#39;best&#39;);
+出现以下错误：
+回溯（最近一次调用）：
+文件“model_werk.py”，第 20 行，位于 &lt;module&gt;
+model = tf.keras.models.load_model(&quot;./models/nuclei_1-15.h5&quot;, compile=False)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/models.py”，第 246 行，位于 load_model
+model = model_from_config(model_config, custom_objects=custom_objects)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/models.py”，第 324 行，位于 model_from_config
+返回 layer_module.deserialize(config, custom_objects=custom_objects)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/layers/serialization.py”，第 63 行，位于 deserialize
+printable_module_name=&#39;layer&#39;)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/utils/generic_utils.py”，第 164 行，位于 deserialize_keras_object
+list(custom_objects.items())))
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/engine/topology.py”，第 975 行，位于 from_config
+process_layer(layer_data)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/engine/topology.py”，第 961 行，位于 process_layer
+layer = deserialize_layer(layer_data, custom_objects=custom_objects)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/layers/serialization.py”，第63，在 deserialize 中
+printable_module_name=&#39;layer&#39;)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/utils/generic_utils.py”，第 166 行，在 deserialize_keras_object 中
+return cls.from_config(config[&#39;config&#39;])
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/engine/topology.py”，第 483 行，在 from_config 中
+return cls(**config)
+文件“/home/hmrbcnt/Documents/thesis/try_2.1.5/trial/lib/python3.6/site-packages/tensorflow/python/keras/_impl/keras/engine/topology.py”，第 524 行，在 __init__ 中
+raise ValueError(&#39;无法识别的关键字参数：&#39;, kwargs.keys())
+ValueError: (&#39;无法识别的关键字参数：&#39;, dict_keys([&#39;ragged&#39;]))
 
-degree = np.arange(0, 40)
-train_score, val_score = validation_curve(PolynomialRegression(), X, y,
-&#39;polynomialfeatures__degree&#39;,
-degree, cv=7)
 
-plt.figure(figsize=(12, 6))
-plt.plot(degree, np.median(train_score, 1), marker=&#39;o&#39;, 
-color=&#39;blue&#39;, label=&#39;training score&#39;)
-plt.plot(degree, np.median(val_score, 1), marker=&#39;o&#39;,
-color=&#39;red&#39;, label=&#39;validation score&#39;)
-plt.legend(loc=&#39;best&#39;)
-plt.ylim(0, 1)
-plt.title(&#39;学习曲线，增加多项式的次数&#39;)
-plt.xlabel(&#39;degree&#39;)
-plt.ylabel(&#39;score&#39;);
+我使用 tensorflow.python.keras 而不是 tensorflow.keras 的原因是使用 tensorflow.keras 会返回 ModuleNotFound 错误。
+tensorflow 的版本是 1.5，keras 是 2.2.4。我不能使用高于 1.5 的 tensorflow 版本，因为我的 CPU 很旧，它不支持 avx 指令。
+任何帮助都将不胜感激。谢谢！
+编辑：更改了错误和一行代码，因为我忽略了一些东西，现在得到了类似但不同的错误]]></description>
+      <guid>https://stackoverflow.com/questions/61934272/valueerror-unrecognized-keyword-arguments-dict-keysragged</guid>
+      <pubDate>Thu, 21 May 2020 12:12:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>选择权重进行加权损失计算的逻辑是什么？[关闭]</title>
+      <link>https://stackoverflow.com/questions/59433485/logic-behind-choosing-weight-for-weighted-loss-calculation</link>
+      <description><![CDATA[在计算加权 S 型交叉熵损失时，或者在数据集不平衡的情况下，选择权重的一般逻辑是什么？问题领域基于视觉/图像分类。]]></description>
+      <guid>https://stackoverflow.com/questions/59433485/logic-behind-choosing-weight-for-weighted-loss-calculation</guid>
+      <pubDate>Sat, 21 Dec 2019 04:26:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何从 vgg19 中删除自适应平均池层？</title>
+      <link>https://stackoverflow.com/questions/59269140/how-to-remove-the-adaptive-average-pool-layer-from-vgg19</link>
+      <description><![CDATA[我已加载 vgg19 预训练模型。如何删除分类器之前的自适应平均池化层？]]></description>
+      <guid>https://stackoverflow.com/questions/59269140/how-to-remove-the-adaptive-average-pool-layer-from-vgg19</guid>
+      <pubDate>Tue, 10 Dec 2019 14:10:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>对坐标数据进行非规范化 Tensorflow、Tflite - Python</title>
+      <link>https://stackoverflow.com/questions/58539579/denormalize-coordinate-data-tensorflow-tflite-python</link>
+      <description><![CDATA[我目前正在开发一款物体检测应用，该应用能够检测轮胎是否损坏。为此，我使用了 Google 的 AutoML edge，它可以导出 TFlite 模型。现在我想在我的代码中实现这个模型，但显然它预测的坐标是标准化的，而我却无法对其进行非标准化处理
+在这里查看我的代码：
+import tensorflow as tf
+import numpy as np
+import cv2
 
-我知道预期的事情是当模型的复杂性增加时，验证分数会下降，但为什么训练分数也会下降？我可能遗漏了什么？]]></description>
-      <guid>https://stackoverflow.com/questions/47717818/train-score-diminishes-after-polynomial-regression-degree-increases</guid>
-      <pubDate>Fri, 08 Dec 2017 15:53:36 GMT</pubDate>
+MODEL_PATH = &#39;Resources/model_v1_OD.tflite&#39;
+LABEL_PATH = &#39;Resources/model_v1_OD.txt&#39;
+
+class TFTireModel():
+labels = []
+intepreter = None
+input_details = []
+output_details = []
+height = 0
+width = 0
+
+def __init__(self):
+with open(LABEL_PATH, &#39;r&#39;) as f:
+self.labels = [line.strip() for line in f.readlines()]
+
+# 初始化 TFlite 解释器
+self.interpreter = tf.lite.Interpreter(model_path=MODEL_PATH)
+self.interpreter.allocate_tensors()
+
+# 获取输入和输出张量。
+self.input_details = self.interpreter.get_input_details()
+self.output_details = self.interpreter.get_output_details()
+# 获取输入尺寸
+self.height = self.input_details[0][&#39;shape&#39;][1]
+self.width = self.input_details[0][&#39;shape&#39;][2]
+
+def predict(self, img, Threshold=0.3):
+# 将图像调整为输入尺寸
+img = cv2.resize(img, (self.width, self.height))
+img = np.expand_dims(img, axis=0)
+img = (2.0 / 255.0) * img - 1.0
+img = img.astype(&#39;uint8&#39;)
+
+# 预测图像
+self.interpreter.set_tensor(self.input_details[0][&#39;index&#39;], img)
+self.interpreter.invoke()
+
+# 获取结果
+boxes = self.interpreter.get_tensor(
+self.output_details[0][&#39;index&#39;])
+print(f&quot;boxes: {boxes}&quot;)
+
+classes = self.interpreter.get_tensor(
+self.output_details[1][&#39;index&#39;])
+
+scores = self.interpreter.get_tensor(
+self.output_details[2][&#39;index&#39;])
+
+num = self.interpreter.get_tensor(
+self.output_details[3][&#39;index&#39;])
+
+# 获取输出
+output =self._boxes_coordinates(boxes=np.squeeze(boxes[0]),
+classes=np.squeeze(classes[0]+1).astype(np.int32),
+scores=np.squeeze(scores[0]),
+im_width=self.width,
+im_height=self.height,
+min_score_thresh=threshold)
+
+print(f&quot;output: {output}&quot;)
+
+# 格式化输出
+返回输出
+
+def _boxes_coordinates(self,
+boxes,
+classes,
+scores,
+im_width,
+im_height,
+max_boxes_to_draw=4,
+min_score_thresh=0.4):
+
+print(f&quot;width: {im_width}, height {im_height}&quot; )
+if not max_boxes_to_draw:
+max_boxes_to_draw = boxes.shape[0]
+number_boxes = min(max_boxes_to_draw, boxes.shape[0])
+tire_boxes = []
+# person_labels = []
+for i in range(number_boxes):
+if scores is None or scores[i] &gt; min_score_thresh:
+box = tuple(boxes[i].tolist())
+ymin, xmin, ymax, xmax = box
+xmin, ymin, xmax, ymax = (int(xmin * im_width), int(xmax * im_width), int(ymin * im_height), int(ymax * im_height)) #TODO：做一个循环
+
+#tire_boxes.append([(ymin, xmin, ymax, xmax), scores[i], self.labels[classes[i]]]) #更完整
+tire_boxes.append((xmin, ymin, xmax, ymax))
+return tire_boxes
+
+出错的地方：
+ boxes = self.interpreter.get_tensor(
+self.output_details[0][&#39;index&#39;])
+print(f&quot;盒子：{盒子}&quot;
+
+盒子：[[[ 0.00263482 0.50020593 0.3734043 0.83953816]
+[ 0.12580797 0.14952084 0.65327024 0.61710536]
+[ 0.13584864 0.38896233 0.6485662 0.85324436]
+[ 0.31914377 0.3945622 0.87147605 0.8458656 ]
+[ 0.01334581 0.03666234 0.46443292 0.55461186]
+[ 0.1018104 -0.08279537 0.6541427 0.37984413]
+
+由于此处的输出已标准化，我不知道如何对其进行非标准化。所需的输出是宽度和高度的百分比，如 _boxes_coordinates 函数中所示。]]></description>
+      <guid>https://stackoverflow.com/questions/58539579/denormalize-coordinate-data-tensorflow-tflite-python</guid>
+      <pubDate>Thu, 24 Oct 2019 10:42:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>获取 5 个随机裁剪 - TypeError：pic 应为 PIL Image 或 ndarray。获取 <type ‘tuple’></title>
+      <link>https://stackoverflow.com/questions/55323821/getting-5-random-crops-typeerror-pic-should-be-pil-image-or-ndarray-got-typ</link>
+      <description><![CDATA[我对图像进行如下转换（与 RandCrop 配合使用）：（来自此数据加载器脚本：https://github.com/jeffreyhuang1/two-stream-action-recognition/blob/master/dataloader/motion_dataloader.py）
+def train(self):
+training_set = motion_dataset(dic=self.dic_video_train, in_channel=self.in_channel, root_dir=self.data_path,
+mode=‘train’,
+transform = transforms.Compose([
+transforms.Resize([256,256]),
+transforms.FiveCrop([224, 224]),
+#transforms.RandomCrop([224, 224]),
+transforms.ToTensor(),
+#transforms.Normalize([0.5], [0.5])
+]))
+打印‘==&gt;训练数据：’，len(training_set)，’ 视频’，training_set[1][0].size()
+
+train_loader = DataLoader(
+dataset=training_set, 
+batch_size=self.BATCH_SIZE,
+shuffle=True,
+num_workers=self.num_workers,
+pin_memory=True
+)
+
+return train_loader
+
+但是当我尝试获取 Five Crops 时，我收到此错误：
+回溯（最近一次调用最后一次）：
+文件“motion_cnn.py”，第 267 行，在 
+main()
+文件“motion_cnn.py”，第 51 行，在 main
+train_loader,test_loader, test_video = data_loader.run()
+文件“/media/d/DATA_2/two-stream-action-recognition-master/dataloader/motion_dataloader.py”，第 120 行，正在运行
+train_loader = self.train()
+文件“/media/d/DATA_2/two-stream-action-recognition-master/dataloader/motion_dataloader.py”，第 156 行，正在训练
+print ‘==&gt;训练数据：’,len(training_set),’ videos’,training_set[1][0].size()
+文件“/media/d/DATA_2/two-stream-action-recognition-master/dataloader/motion_dataloader.py”，第 77 行，在 getitem 中
+data = self.stackopf()
+文件“/media/d/DATA_2/two-stream-action-recognition-master/dataloader/motion_dataloader.py”，第 51 行，在 stackopf 中
+H = self.transform(imgH)
+文件“/media/d/DATA_2/two-stream-action-recognition-master/venv/local/lib/python2.7/site-packages/torchvision/transforms/transforms.py”，第 60 行，在 call 中
+img = t(img)
+文件“/media/d/DATA_2/two-stream-action-recognition-master/venv/local/lib/python2.7/site-packages/torchvision/transforms/transforms.py”，第 91 行，在调用中
+return F.to_tensor(pic)
+文件“/media/d/DATA_2/two-stream-action-recognition-master/venv/local/lib/python2.7/site-packages/torchvision/transforms/ functional.py”，第 50 行，在 to_tensor 中
+raise TypeError(‘pic 应为 PIL 图像或 ndarray。得到 {}’.format(type(pic)))
+TypeError：pic 应为 PIL 图像或 ndarray。得到 &lt;type ‘tuple’&gt;
+
+获取 5 个随机裁剪，我应该处理一组图像而不是 PIL 图像 - 所以我使用 Lambda，但随后我得到了错误，在
+ 第 55 行，在 stackopf
+flow[2*(j),:,:] = H
+RuntimeError: expand(torch.FloatTensor{[5, 1, 224, 224]}, size=[224,224]): 提供的尺寸数量 (2) 必须大于或等于张量中的维数 (4)
+
+当我尝试设置 flow = torch.FloatTensor(5, 2*self.in_channel,self.img_rows,self.img_cols)
+我得到了
+ motion_dataloader.py&quot;，第 55 行，在 stackopf 中
+flow[:,2*(j),:,:] = H
+RuntimeError: expand(torch.FloatTensor{[5, 1, 224, 224]}, size=[5, 224, 224]): 提供的尺寸数量 (3) 必须大于或等于张量中的维数 (4)
+
+当我将返回的训练批次大小乘以 5 时，我也得到了同样的错误。]]></description>
+      <guid>https://stackoverflow.com/questions/55323821/getting-5-random-crops-typeerror-pic-should-be-pil-image-or-ndarray-got-typ</guid>
+      <pubDate>Sun, 24 Mar 2019 12:31:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>检测纸上的符号</title>
+      <link>https://stackoverflow.com/questions/11727485/detect-symbol-on-paper</link>
+      <description><![CDATA[我想检测用户在纸上绘制的符号。文档将指定此符号，因此每个用户都会绘制相同的符号，但由于每个用户的笔迹不同，因此当然会存在差异。
+
+我应该选择哪种符号？哪种符号易于识别，但也能使检测容忍微小修改（每个用户的手写）？
+我应该使用哪种模式匹配方法/算法来检测文档图像中的符号？
+]]></description>
+      <guid>https://stackoverflow.com/questions/11727485/detect-symbol-on-paper</guid>
+      <pubDate>Mon, 30 Jul 2012 18:34:44 GMT</pubDate>
     </item>
     </channel>
 </rss>
