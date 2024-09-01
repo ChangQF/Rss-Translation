@@ -4,7 +4,7 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 01 Sep 2024 06:22:29 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 01 Sep 2024 09:16:26 GMT</lastBuildDate>
     <item>
       <title>$\log\Gamma(x)$ 的期望，其中 $x$ 是对数正态分布</title>
       <link>https://stats.stackexchange.com/questions/653690/expectation-of-log-gammax-where-x-is-log-normal</link>
@@ -71,155 +71,9 @@ $$
       <pubDate>Sun, 01 Sep 2024 01:38:56 GMT</pubDate>
     </item>
     <item>
-      <title>逻辑回归给出的 AUC 比朴素贝叶斯高得多的场景</title>
-      <link>https://stats.stackexchange.com/questions/653685/scenarios-where-logistic-regression-gives-much-higher-auc-than-naive-bayes</link>
-      <description><![CDATA[据我所知，在预测变量之间不存在协变的情况下，逻辑回归和朴素贝叶斯在预测准确性方面应该给出几乎相同的结果（以 ROC/AUC 等为衡量标准）。
-我试图将此与使用逻辑回归比朴素贝叶斯对一组模拟数据的预测准确性高得多的观察结果相协调。
-简而言之，我正在模拟一个非常简单的基因型-表型图模型，其中有 n 个位点（基因座）i=1...n，每个位点都有 0 或 1 个等位基因，概率为 p_i。在每个基因座上，0 等位基因对应于“野生型”，1 对应于“风险”，即第 i 个位点的 1 等位基因与比值比 OR_i &gt; 相关1. 每种基因型的疾病（或某种二元表型）风险是通过计算所有位点的 OR_i 乘积来计算的，并且对照/疾病表型的概率与某个基线值的 OR 成比例。请注意，在这个最简单的情况下，每个位点的影响在统计上是独立的，即 OR 在各个位点之间相乘。
-尽管如此，对于这个基因型-表型图的简单乘法模型，我始终发现逻辑回归分类器的 AUC 比使用朴素贝叶斯的分类器高得多（我在 R 中使用 glm family=binomial 执行逻辑回归，并在 e1071 R 库中使用 naiveBayes 函数，两者均采用默认设置）。
-我试图找出逻辑回归性能更好的合理解释。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653685/scenarios-where-logistic-regression-gives-much-higher-auc-than-naive-bayes</guid>
-      <pubDate>Sat, 31 Aug 2024 22:33:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>创建带有集群引导程序的 lm 类对象（R），或者：sensemakr 的集群引导程序（）[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/653681/create-lm-class-object-with-cluster-bootstrap-in-it-r-or-cluster-bootstrap-f</link>
-      <description><![CDATA[我一直在尝试使用 lm 进行一些集群引导，然后可以在包 sensemakr() 中使用它。如果您不熟悉它，它是 Cinelli &amp; 中一些想法的实现Hazlett（2020 年，皇家统计学会杂志：统计方法，B 系列）。
-sensemakr() 的工作方式是运行一个回归模型，该模型生成 lm 或 feols 类对象，然后可以在 sensemakr() 中使用该对象。
-library(palmerpenguins)
-library(sensemakr)
-
-penguin_dat&lt;-penguins
-
-model_lm&lt;-lm(flipper_length_mm ~ sex + body_mass_g, data=penguin_dat)
-summary(model_lm)
-
-sensitivity1&lt;-sensemakr(model=model_lm, treatment=&quot;body_mass_g&quot;, benchmark_covariates=&quot;sexmale&quot;)
-summary(sensitivity1)
-
-我需要找到一种将具有更复杂错误结构的模型传递给 sensemakr 的方法，特别是具有聚类引导程序的模型。它目前采用 lm 模型，但我读到，如果您愿意使用开发版本，您可以尝试将 feols 模型从 fixest 传递给它（请参阅：https://stackoverflow.com/questions/78363310/use-sensemakr-with-fixest-feols-model-r）。不过，我自己还没有尝试过。
-以下是我考虑过的选项：
-
-将我之前的 lm 类对象（上一个示例中的 model_lm）用于 simpleboot 中的 lm.boot()，然后在 sensemakr 中使用该对象。问题：我在 simpleboot 中找不到 cluster-bootstrap 的任何功能。我担心我可能忽略了某些东西——我希望我只是忽略了这个功能，因为它可能是最简单的解决方案。
-使用 fwildclusterboot 中的 wild cluster bootstrap。我不确定它会产生什么对象，并且由于依赖性问题，它已从 CRAN 中删除，因此我无法安装它（或查看参考手册）。
-使用集群引导包（如 clusbootglm 或 lmeresampler），然后尝试将结果强制转换为 lm 类型对象。这有点超出我的 R 能力，但如果 #1 不起作用，我认为它可能是唯一的选择。
-作为 #3 的示例，这里有一个使用 lmtest 中的 coeftest() 和 sandwich 中的 vcovBS() 的示例——但我不知道如何将其强制转换为 lm 对象，或者即使这是不是一个好主意：
-
-library(palmerpenguins)
-library(sandwich)
-library(sensemakr)
-library(lmtest)
-
-penguin_dat&lt;-penguins
-
-model_lm&lt;-lm(flipper_length_mm ~ sex + body_mass_g, data=penguin_dat)
-
-clustered_bootstrap_model_lm&lt;-coeftest(model_lm, vcov = vcovBS, cluster = penguin_dat$species, R = 1000)
-
-
-具有讽刺意味的是， sensemakr() 也在 Stata 中实现了这一点，并且执行聚类引导然后在另一个命令中使用标准错误非常简单。
-sysuse auto2.dta
-regress price mpg weight rep78, vce(bootstrap, reps(100)) cluster(foreign)
-est sto m1
-
-但是 Stata 实现不允许您传递模型，而是让您在 sensemakr 本身内运行回归……当您这样做时，它不允许更复杂的错误结构。
-有人对如何做到这一点有什么想法吗？我非常感谢你能给出的任何建议。
-引用：
-Cinelli, C., &amp; Hazlett, C. (2020). 理解敏感性：扩展遗漏变量偏差。英国皇家统计学会杂志 B 系列：统计方法，82(1)，39-67。https://doi.org/10.1111/rssb.12348
-Cinelli, C.、Ferwerda, J. 和 Hazlett, C. (2020)。sensemakr：R 和 Stata 中 OLS 的敏感性分析工具。可在 SSRN 上获取：https://ssrn.com/abstract=3588978 或 http://dx.doi.org/10.2139/ssrn.3588978]]></description>
-      <guid>https://stats.stackexchange.com/questions/653681/create-lm-class-object-with-cluster-bootstrap-in-it-r-or-cluster-bootstrap-f</guid>
-      <pubDate>Sat, 31 Aug 2024 18:54:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>ARIMA 模型系数估计</title>
-      <link>https://stats.stackexchange.com/questions/653678/estimation-of-model-coefficients-of-arima-model</link>
-      <description><![CDATA[假设我在 R 中有以下 ARIMA 模型估计
-&gt; arima(x = LakeHuron, order = c(0,0,1), xreg = time(LakeHuron) - 1920)
-
-调用：
-&gt; arima(x = LakeHuron, order = c(0, 0, 1), xreg = time(LakeHuron) - 1920)
-
-调用：
-arima(x = LakeHuron, order = c(0, 0, 1), xreg = time(LakeHuron) - 1920)
-
-系数：
-ma1 截距时间(LakeHuron) - 1920
-0.7822 579.0821 -0.0233
-s.e. 0.0651 0.1400 0.0049
-
-但是，我还分别使用线性回归计算了外生变量和自相关残差的模型系数，如下所示
-&gt; model_lm = lm(&#39;y~x&#39;, data = data.frame(x = time(LakeHuron) - 1920, y = LakeHuron))
-&gt; model_Res = lm(&#39;y~x-1&#39;, data.frame(y = resid(model_lm), x = c(NA, resid(model_lm)[-length(LakeHuron)])))
-&gt; summary(model_lm )
-
-调用：
-lm(formula = &quot;y~x&quot;, data = data.frame(x = time(LakeHuron) - 1920, 
-y = LakeHuron))
-
-残差：
-最小值 1Q 中值 3Q 最大值 
--2.50997 -0.72726 0.00083 0.74402 2.53565 
-
-系数：
-估计标准误差 t 值 Pr(&gt;|t|) 
-(截距) 579.088786 0.115047 5033.507 &lt; 2e-16 ***
-x -0.024201 0.004036 -5.996 3.55e-08 ***
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-残差标准误差：96 个自由度上的 1.13
-
-多重 R 平方：0.2725，调整后的 R 平方：0.2649
-
-F 统计量：1 和 96 DF 上的 35.95，p 值：3.545e-08
-
-&gt; summary(model_Res )
-
-调用：
-lm(formula = &quot;y~x-1&quot;, data = data.frame(y = resid(model_lm), 
-x = c(NA, resid(model_lm)[-length(LakeHuron)])))
-
-残差：
-最小值 1Q 中值 3Q 最大值 
--1.94335 -0.48386 0.01758 0.43251 1.91083 
-
-系数：
-估计标准误差 t 值 Pr(&gt;|t|) 
-x 0.79084 0.06556 12.06 &lt;2e-16 ***
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-残差标准误差：96 个自由度上的 0.7125
-（由于缺失，删除了 1 个观察值）
-多重 R 平方：0.6025，调整后的 R 平方：0.5984
-
-F 统计量：1 和 96 DF 上的 145.5，p 值：&lt; 2.2e-16
-
-这两种方法似乎给出了类似的结果。但是我想知道从理论上讲，对于任何数据，情况是否总是如此？哪种方法更好，为什么？
-我还有一个问题，我正在使用 MA 模型，在第二种方法中，我应该使用 自相关调整 SE 而不是正常 SE 吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653678/estimation-of-model-coefficients-of-arima-model</guid>
-      <pubDate>Sat, 31 Aug 2024 18:05:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>说统计模型是位置家族是什么意思？</title>
-      <link>https://stats.stackexchange.com/questions/653675/what-does-it-mean-to-say-that-a-statistical-model-is-a-location-family</link>
-      <description><![CDATA[我想知道说统计模型是位置族是什么意思。查看了一些定义，我得出了位置族定义的三种可能解释。
-设$(\mathbb{R},\mathfrak{B}_\mathbb{R},P_\theta )_{\theta\in\Theta }$为一个统计模型，其中$\mathfrak{B}_\mathbb{R}$表示$\mathbb{R}$的 Borel $\sigma$-代数。对于所有 $\theta$，定义 $F_\theta :\mathbb{R\to R}$ 为 $F_\theta (x):=P_\theta ((-\infty ,x])$。
-我的问题：下列哪个定义是正确的？
-定义 1： 我们说 $(\mathbb{R},\mathfrak{B}_\mathbb{R},P_\theta )_{\theta\in\Theta }$ 是一个位置族，如果对于任何 $\theta\in\Theta$ 并且 $a\in\mathbb{R}$ 函数 $F:\mathbb{R}\to \mathbb{R}$ 由 $F(x):=F\!_{\theta} (x+a)$ 给出，属于集合 $\{F_\theta\}_{\theta\in\Theta }$。
-定义 2： 我们说 $(\mathbb{R},\mathfrak{B}_\mathbb{R},P_\theta )_{\theta\in\Theta }$ 是一个位置族，如果存在 $\theta_0\in\Theta$，使得对于所有 $\theta\in\Theta$，都有 $a_\theta \in\mathbb{R}$，使得对于所有 $x\in\mathbb{R}$，都有 $F_\theta (x)=F_{\theta_0}(x-a_\theta )$。
-定义 3：我们说 $(\mathbb{R},\mathfrak{B}_\mathbb{R},P_\theta )_{\theta\in\Theta }$ 是位置族，如果存在 $\theta_0\in\Theta$，使得以下命题为真：
-
-对于所有 $a\in\mathbb{R}$，由 $F(x):=F\!_{\theta_0} (x+a)$ 给出的函数 $F:\mathbb{R}\to \mathbb{R}$ 属于集合 $\{F_\theta\}_{\theta\in\Theta }$；$\theta\in\Theta$ 存在 $a_\theta \in\mathbb{R}$ 使得对于所有 $x\in\mathbb{R}$，$F_\theta (x)=F_{\theta_0}(x-a_\theta )$。
-
-例如，使用定义 2，很容易得出统计模型 $ (\mathbb{R},\mathfrak{B}_\mathbb{R},N(\mu ,\sigma ^2))_{\mu \in\mathbb{R}}$（其中 $\sigma^2&gt;0$ 固定）是一个位置系列。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653675/what-does-it-mean-to-say-that-a-statistical-model-is-a-location-family</guid>
-      <pubDate>Sat, 31 Aug 2024 17:25:13 GMT</pubDate>
-    </item>
-    <item>
       <title>MatchIt 边际效应</title>
       <link>https://stats.stackexchange.com/questions/653667/matchit-marginal-effects</link>
-      <description><![CDATA[我正尝试使用 MatchIt 估计治疗的 ATT，但不确定它是边际效应还是条件效应。在估计结果的插图中，它说：
+      <description><![CDATA[我正在尝试使用 MatchIt 估计治疗的 ATT，但不确定它是边际效应还是条件效应。在估计结果的插图中，它说：
 
 此外，对于连续结果，当结果模型中存在治疗-协变量相互作用时，条件效应可能会被错误地解释为边际效应估计。如果协变量不是以目标人群中的平均值为中心（例如，ATT 的治疗组、ATE 的完整样本或 ATM 的剩余匹配样本），治疗系数将不对应于目标人群中的边际效应；它将对应于协变量值等于零时的治疗效果，这可能没有意义或不合理。当结果模型中包含协变量时，G 计算始终是估计效应的最安全方法，尤其是在存在治疗-协变量相互作用的情况下。
 
@@ -294,7 +148,7 @@ b[5]&lt;-a[5]/((1-b[1])*(1-b[2])*(1-b[3])*(1-b[4]))
 
 Hastings_ratio&lt;-L()*dbeta(b,1,tau)*dDirichlet(a_previous,alpha=a) / ...
 
-请注意，tau 是一个常数，我将似然函数留空，因为它在这里无关紧要。任何帮助都将不胜感激。谢谢！]]></description>
+请注意，tau 是一个常数，我将似然函数留空，因为它在这里无关紧要。如能得到任何帮助，我将不胜感激。谢谢！]]></description>
       <guid>https://stats.stackexchange.com/questions/653598/transforming-variables-within-mcmc-to-get-the-prior-distribution-to-match-propos</guid>
       <pubDate>Fri, 30 Aug 2024 03:22:33 GMT</pubDate>
     </item>
@@ -443,9 +297,9 @@ education_level = sample(1:4, n, replace = TRUE),
 children = sample(0:5, n, replace = TRUE), 
 # 0 到 5 岁的儿童人数
 bmi = round(rnorm(n, mean = 25, sd = 4), 1),
-# BMI 平均值为 25，标准差为 4
+# BMI 平均值为 25，SD 为 4
 baseline_status = baseline_status 
-# 基线状态一致
+# 一致的基线状态
 )
 }
 
@@ -456,6 +310,15 @@ names(data_list) &lt;- paste0(&quot;imp&quot;, 1:5)
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/653581/how-can-i-get-the-main-effects-of-a-gee-model-and-pool-across-imputed-datasets-r</guid>
       <pubDate>Wed, 28 Aug 2024 08:45:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>当结果不是分类时，校准意味着什么？</title>
+      <link>https://stats.stackexchange.com/questions/653444/what-does-calibration-mean-when-the-outcome-is-not-categorical</link>
+      <description><![CDATA[在感兴趣的是二元变量并且我们想要预测任一事件（例如，狗与猫）的概率的情况下，如果预测的概率值与事件发生的现实相符，则通常会讨论预测的校准。毕竟，如果我们继续预测事件发生的概率为$0.9$，那么只有$60\%$的情况下，我们的预测才会受到现实的质疑。
+在涉及三个或更多类别（例如，狗、猫和马）的情况下，我们可以应用类似的逻辑。如果我们一直以 $0.9$ 的概率预测一只狗，而其中 $60\%$ 的情况中，结果却是一只狗，那么我们的预测就与现实不符了。
+这是针对分类结果而言的。当结果不是分类的而是连续的时，概括或类比是什么？我们如何评估校准和误校准？连续随机变量对所有值都具有零概率。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653444/what-does-calibration-mean-when-the-outcome-is-not-categorical</guid>
+      <pubDate>Tue, 27 Aug 2024 20:54:36 GMT</pubDate>
     </item>
     <item>
       <title>微观经济模型中的截断分布和风险率</title>
@@ -497,6 +360,99 @@ lags = signal.correlation_lags(len(df[&#39;y&#39;]), len(df[&#39;x&#39;]))
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/652842/cross-correlation-function-with-null-values</guid>
       <pubDate>Thu, 15 Aug 2024 05:09:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于建模财务回报的 AR(1) 过程的时间缩放</title>
+      <link>https://stats.stackexchange.com/questions/652799/time-scaling-of-ar1-process-for-modelling-financial-returns</link>
+      <description><![CDATA[过程：
+考虑一个均值为零的 AR(1) 过程，*
+$\lambda_t = \kappa \cdot \lambda_{t-1} + \omega_t$，
+其中 $\kappa = 0.9$，$\omega \sim N(0, \sigma_{\omega}^2)$，并且 $\sigma_{\omega}^2 = 0.00027$。 $\lambda_0$ 的初始值取自平稳分布 $N \left(0, \frac{\sigma_{\omega}^2}{(1-\kappa^2)} \right)$
+我使用此过程生成长度为 $T=672$ 的样本。
+* 我知道，对于股票收益建模而言，均值为零是不现实的，但我的问题并不取决于此选择。
+
+上述时间序列应解释为每月收益（以百分点表示），即 672 个月的观测值。
+问题：
+什么是合适的参数值生成总共 14,112 个每日观测值（即$672 \times 21$，如果我们假设一个月内有 21 个交易日）以符合上述（每月）流程？月回报率是给定月份内所有 21 天回报率的累计乘积。
+尝试（在 R 中）：
+DAYS &lt;- 21
+T &lt;- 672
+kappa &lt;- 0.9
+variance_omega &lt;- 0.00027
+
+get_init_lambda &lt;- function(variance) return(rnorm(n = 1, mean = 0, sd = sqrt(variance / (1-(kappa)^2))))
+
+#### 月度分析
+
+set.seed(1234)
+
+lambda_T &lt;- vector(mode = &quot;numeric&quot;, length = T)
+
+lambda_shock &lt;- rnorm(T, mean = 0, sd = sqrt(variance_omega))
+
+lambda_T[1] &lt;- kappa * get_init_lambda(variance_omega) + lambda_shock[1]
+for(i in 2:T) lambda_T[i] &lt;- kappa * lambda_T[i-1] + lambda_shock[i]
+
+acf(lambda_T)$acf[2]
+# [1] 0.9064949 # 符合预期
+
+var(lambda_T)
+# [1] 0.001547795
+
+#### 每日分析
+
+set.seed(1234)
+
+kappa_daily &lt;- 0.90 # ??? 如何设置 kappa_daily，使月收益 AC = 0.9？
+
+lambda_T_daily &lt;- vector(mode = &quot;numeric&quot;, length = T * DAYS)
+
+lambda_shock_daily &lt;- rnorm(T * DAYS, mean = 0, sd = sqrt(variance_omega / DAYS))
+
+lambda_T_daily[1] &lt;- kappa_daily * get_init_lambda(variance_omega / DAYS) + lambda_T_daily[1]
+for(i in 2:(T * DAYS)) lambda_T_daily[i] &lt;- kappa_daily * lambda_T_daily[i-1] + lambda_shock_daily[i]
+
+# 检索月末指数；假设每个月有 21 个交易日
+begin_month &lt;- seq(1, T * DAYS, 21)
+end_month &lt;- c(tail(begin_month, -1) - 1, T * DAYS)
+
+lambda_monthly_aggregate &lt;- vector(mode = &quot;numeric&quot;, length = T)
+
+for(i in 1:T){
+month_ind &lt;- (begin_month[i]):(end_month[i])
+
+daily_ret_within_month &lt;- 0.01*lambda_T_daily[month_ind] # 收益以 % 表示
+monthly_return &lt;- 100*(cumprod(1+daily_ret_within_month) - 1) # 累计每日收益
+
+lambda_monthly_aggregate[i] &lt;- monthly_return[DAYS] # 检索累计。 21 天后返回
+}
+
+# 与上述值不相同：自相关性太低，mth 方差返回值太高！
+&gt; acf(lambda_monthly_aggregate)$acf[2]
+[1] 0.2988249
+
+var(lambda_monthly_aggregate)
+[1] 0.01494742
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652799/time-scaling-of-ar1-process-for-modelling-financial-returns</guid>
+      <pubDate>Wed, 14 Aug 2024 16:01:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>将对数链接应用于分位数回归</title>
+      <link>https://stats.stackexchange.com/questions/652233/applying-log-link-to-quantile-regression</link>
+      <description><![CDATA[我正在研究分位数回归，我开始思考如何实现对数链接（因为我使用的是正界数据）。我听说分位数回归在变换下是等变的，所以我开始思考，即使在线性回归中情况并非如此，对响应变量进行对数处理是否能产生与对数链接相同的效果？这有效吗？还是我运用了错误的想法？我注意到，在 R 中的“rq”函数中似乎没有一种简单的方法来指定对数链接，所以我正在尝试寻找一种解决方法。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652233/applying-log-link-to-quantile-regression</guid>
+      <pubDate>Fri, 02 Aug 2024 23:12:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>空间数据的 EM 算法</title>
+      <link>https://stats.stackexchange.com/questions/650794/em-algorithm-for-spatial-data</link>
+      <description><![CDATA[我对地理统计学（空间数据建模）非常陌生，有一些问题：
+1- 我发现在许多文献中，空间随机场被划分为空间箱。也就是说，假设我对建模在不同位置测量的锌浓度感兴趣。然后，我们测量所有位置对之间的距离。之后，我们根据它们之间的距离将观测值划分为空间滞后。例如，第一个滞后包含一对位置，它们之间的空间距离为 10 米，依此类推。我的问题是，我们为什么要执行此步骤？
+2- 我们可以使用 EM 将高斯混合模型拟合到数据中，而无需将它们划分为空间箱吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/650794/em-algorithm-for-spatial-data</guid>
+      <pubDate>Wed, 10 Jul 2024 10:19:19 GMT</pubDate>
     </item>
     </channel>
 </rss>
