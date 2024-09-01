@@ -4,9 +4,20 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 31 Aug 2024 21:14:51 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 01 Sep 2024 01:21:36 GMT</lastBuildDate>
     <item>
-      <title>创建带有集群引导的 lm-class 对象（R），或者：sensemakr 的集群引导（）</title>
+      <title>逻辑回归给出的 AUC 比朴素贝叶斯高得多的场景</title>
+      <link>https://stats.stackexchange.com/questions/653685/scenarios-where-logistic-regression-gives-much-higher-auc-than-naive-bayes</link>
+      <description><![CDATA[据我所知，在预测变量之间不存在协变的情况下，逻辑回归和朴素贝叶斯在预测准确性方面应该给出几乎相同的结果（以 ROC/AUC 等为衡量标准）。
+我试图将此与使用逻辑回归比朴素贝叶斯对一组模拟数据的预测准确性高得多的观察结果相协调。
+简而言之，我正在模拟一个非常简单的基因型-表型图模型，其中有 n 个位点（基因座）i=1...n，每个位点都有 0 或 1 个等位基因，概率为 p_i。在每个基因座上，0 等位基因对应于“野生型”，1 对应于“风险”，即第 i 个位点的 1 等位基因与比值比 OR_i &gt; 相关1. 每种基因型的疾病（或某种二元表型）风险是通过计算所有位点的 OR_i 乘积来计算的，并且对照/疾病表型的概率与某个基线值的 OR 成比例。请注意，在这个最简单的情况下，每个位点的影响在统计上是独立的，即 OR 在各个位点之间相乘。
+尽管如此，对于这个基因型-表型图的简单乘法模型，我始终发现逻辑回归分类器的 AUC 比使用朴素贝叶斯的分类器高得多（我在 R 中使用 glm family=binomial 执行逻辑回归，并在 e1071 R 库中使用 naiveBayes 函数，两者均采用默认设置）。
+我试图找出逻辑回归性能更好的合理解释。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653685/scenarios-where-logistic-regression-gives-much-higher-auc-than-naive-bayes</guid>
+      <pubDate>Sat, 31 Aug 2024 22:33:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>创建带有集群引导程序的 lm 类对象（R），或者：sensemakr 的集群引导程序（）[关闭]</title>
       <link>https://stats.stackexchange.com/questions/653681/create-lm-class-object-with-cluster-bootstrap-in-it-r-or-cluster-bootstrap-f</link>
       <description><![CDATA[我一直在尝试使用 lm 进行一些集群引导，然后可以在包 sensemakr() 中使用它。如果您不熟悉它，它是 Cinelli &amp; 中一些想法的实现Hazlett（2020 年，皇家统计学会杂志：统计方法，B 系列）。
 sensemakr() 的工作方式是运行一个回归模型，该模型生成 lm 或 feols 类对象，然后可以在 sensemakr() 中使用该对象。
@@ -25,16 +36,32 @@ summary(sensitivity1)
 以下是我考虑过的选项：
 
 将我之前的 lm 类对象（上一个示例中的 model_lm）用于 simpleboot 中的 lm.boot()，然后在 sensemakr 中使用该对象。问题：我在 simpleboot 中找不到 cluster-bootstrap 的任何功能。我担心我可能忽略了某些东西——我希望我只是忽略了这个功能，因为它可能是最简单的解决方案。
-使用 fwildclusterboot 中的 wild cluster bootstrap。我不确定它会产生什么对象，并且由于依赖性问题，它已从 CRAN 中删除，因此我无法安装它（或查看参考手册）。理论上我可以从存档中安装它。但我不确定 wild cluster 是否是我想要的，所以除非有人认为它会起作用，否则我不愿意尝试。
-使用像 clusbootglm 或 lmeresampler 这样的 cluster bootstrap 包，然后尝试将结果强制转换为 lm 类型的对象。这有点超出了我的 R 能力，但如果 #1 不起作用，我认为它可能是唯一的选择。
+使用 fwildclusterboot 中的 wild cluster bootstrap。我不确定它会产生什么对象，并且由于依赖性问题，它已从 CRAN 中删除，因此我无法安装它（或查看参考手册）。
+使用集群引导包（如 clusbootglm 或 lmeresampler），然后尝试将结果强制转换为 lm 类型对象。这有点超出我的 R 能力，但如果 #1 不起作用，我认为它可能是唯一的选择。
+作为 #3 的示例，这里有一个使用 lmtest 中的 coeftest() 和 sandwich 中的 vcovBS() 的示例——但我不知道如何将其强制转换为 lm 对象，或者即使这是不是一个好主意：
 
-具有讽刺意味的是，sensemakr() 的作者也在 Stata 中实现了这一点，并且执行聚类引导然后在另一个命令中使用标准错误非常简单。
+library(palmerpenguins)
+library(sandwich)
+library(sensemakr)
+library(lmtest)
+
+penguin_dat&lt;-penguins
+
+model_lm&lt;-lm(flipper_length_mm ~ sex + body_mass_g, data=penguin_dat)
+
+clustered_bootstrap_model_lm&lt;-coeftest(model_lm, vcov = vcovBS, cluster = penguin_dat$species, R = 1000)
+
+
+具有讽刺意味的是， sensemakr() 也在 Stata 中实现了这一点，并且执行聚类引导然后在另一个命令中使用标准错误非常简单。
 sysuse auto2.dta
 regress price mpg weight rep78, vce(bootstrap, reps(100)) cluster(foreign)
 est sto m1
 
-但是 Stata 实现不允许您传递模型，而是让您在 sensemakr 本身内运行回归...当您这样做时，它不允许更复杂的错误结构。
-有人对如何做到这一点有什么想法吗？我非常感谢你能给出的任何建议。]]></description>
+但是 Stata 实现不允许您传递模型，而是让您在 sensemakr 本身内运行回归……当您这样做时，它不允许更复杂的错误结构。
+有人对如何做到这一点有什么想法吗？我非常感谢你能给出的任何建议。
+引用：
+Cinelli, C., &amp; Hazlett, C. (2020). 理解敏感性：扩展遗漏变量偏差。英国皇家统计学会杂志 B 系列：统计方法，82(1)，39-67。https://doi.org/10.1111/rssb.12348
+Cinelli, C.、Ferwerda, J. 和 Hazlett, C. (2020)。sensemakr：R 和 Stata 中 OLS 的敏感性分析工具。可在 SSRN 上获取：https://ssrn.com/abstract=3588978 或 http://dx.doi.org/10.2139/ssrn.3588978]]></description>
       <guid>https://stats.stackexchange.com/questions/653681/create-lm-class-object-with-cluster-bootstrap-in-it-r-or-cluster-bootstrap-f</guid>
       <pubDate>Sat, 31 Aug 2024 18:54:32 GMT</pubDate>
     </item>
@@ -185,17 +212,6 @@ $$
       <pubDate>Sat, 31 Aug 2024 17:25:13 GMT</pubDate>
     </item>
     <item>
-      <title>使用交叉验证来评估特征选择的不同互信息阈值</title>
-      <link>https://stats.stackexchange.com/questions/653673/using-crossvalidation-to-evaluate-different-mutual-information-threshholds-for-f</link>
-      <description><![CDATA[我目前正在尝试确定分类任务中特征选择的互信息阈值。我的想法是根据位置参数（例如中位数、top75% 等）设置不同的阈值，然后通过 CV 对训练集进行评估。由于我计划部署几个不同的模型（朴素贝叶斯、CART、TAN），那么是否有必要单独比较每个模型的每个阈值的差异，还是只需比较阈值 1 的平均 acc 和阈值 2 的平均 acc 就足够了？
-这通常是一种可接受的方法，还是您会推荐一种更科学的方法？
-我也尝试了 boruta 方法，但该算法只排除了 29 个特征中的 1 个，尽管其中许多特征的 MI 分数很低（0,001）。与仅使用 top50%/75% 的模型相比，使用其余 28 个特征的模型在 CV 中的表现也更差。
-总的来说，我试图避免特征选择过程被批评为不科学。然而，我读过的许多论文都指出，没有最好的方法来做到这一点。
-你会推荐什么方法？从我的方法来看，应该改进什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653673/using-crossvalidation-to-evaluate-different-mutual-information-threshholds-for-f</guid>
-      <pubDate>Sat, 31 Aug 2024 14:13:00 GMT</pubDate>
-    </item>
-    <item>
       <title>正态分布是如何由现实世界数据构成的</title>
       <link>https://stats.stackexchange.com/questions/653672/how-is-the-normal-distribution-made-from-real-world-data</link>
       <description><![CDATA[我是一名中学生，我正在尝试理解人们在现实世界中如何创建和应用正态分布。
@@ -203,76 +219,6 @@ $$
 因为即使身高之类的东西是正态分布的，我实际上假设在现实世界中，当有人收集数据时，他们可能会发现身高可能不是正态分布的（例如，一个有很多孩子的城镇等）。所以在我的脑海里，我假设科学家首先制作一个直方图来检查它是否大致接近钟形曲线。]]></description>
       <guid>https://stats.stackexchange.com/questions/653672/how-is-the-normal-distribution-made-from-real-world-data</guid>
       <pubDate>Sat, 31 Aug 2024 12:24:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>模拟具有特定事件和多个变量的 HR 的生存数据集</title>
-      <link>https://stats.stackexchange.com/questions/653670/simulate-a-survival-dataset-with-specific-events-and-hr-for-multiple-variables</link>
-      <description><![CDATA[在我的教学课上，学生需要阅读并评论一篇科学文章。
-下一课是编码课，我希望他们根据这篇文章重新创建一个情节，以便他们了解其中的利害关系。
-这是源数据集，情节（带注释的森林图）无关紧要：
-tibble::tibble(
-category = rep(c(&quot;Marker 1&quot;, &quot;Marker 2&quot;), each = 2L),
-level = rep(c(&quot;Yes&quot;, &quot;No&quot;), 2),
-gpA_n_events = c(149, 60, 119, 92),
-gpA_n_patients = c(233, 98, 192, 139),
-gpB_n_events = c(74, 35, 66, 43),
-gpB_n_patients = c(115, 47, 96, 67),
-hr_pfs__estimate = c(0.55, 0.51, 0.48, 0.54),
-hr_pfs__ci_inf = c(0.42, 0.33, 0.35, 0.37),
-hr_pfs__ci_sup = c(0.73, 0.79, 0.65, 0.73),
-gpA_pfs__median = c(10, 11.7, 10.3, 10.8),
-gpA_pfs__ci_inf = c(8.3, 9.5, 8.6, 8.4),
-gpA_pfs__ci_sup = c(11.4, 17.7, 12.3, 13.7),
-gpB_pfs__median = c(5.4, 5.9, 5.3, 5.3),
-gpB_pfs__ci_inf = c(4, 3.4, 4.1, 3.4),
-gpB_pfs__ci_sup = c(7.8, 8.2, 7.8, 7.2),
-)
-
-
-这里，多个标记（我有 8 个类别）每个级别的事件数量不同，风险比也不同（计算得出来自 Cox 模型）。
-我想生成一个数据集，该数据集将产生与表格相同的结果：A 组 331 名患者和 B 组 163 名患者，生存时间以获得指定的 HR（gpA vs gpB）。事件数和 CI 中位数不太重要（但如果简单的话会更好）。
-我看到了关于该主题的几个很棒的答案（例如 此处、此处 和 此处），但目的不同（不是相同的 N，只有一个模型...）。
-我想做的事情可行吗？如果可以，哪种方法合适？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653670/simulate-a-survival-dataset-with-specific-events-and-hr-for-multiple-variables</guid>
-      <pubDate>Sat, 31 Aug 2024 10:41:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>我可以在 R 中使用哪些统计测试来确定使用 DIANA（DIvisive ANAlysis Clustering）获得的聚类的统计意义？</title>
-      <link>https://stats.stackexchange.com/questions/653669/what-statistical-tests-can-i-use-in-r-to-ascertain-the-statistical-significance</link>
-      <description><![CDATA[我有一组表皮碳氢化合物 (CHC) 数据，这些数据来自 60 个蚜虫样本，这些样本来自蚜虫活动季节的中期、早期和晚期，蚜虫以三种不同的植物为食。由于季节、蚜虫以哪种植物为食，或者由于许多不同的非生物因素，CHC 可能会有所不同。我想使用 DIANA 来可视化数据。我在网上找到了一个类似的分析，其中使用 R 完成了此分析：
-chcmain &lt;- read.csv(&quot;chcsitobion.csv&quot;, header = TRUE)
-row.names(chcmain) &lt;- chcmain$X
-chcmain &lt;- chcmain[,2:18]
-
-#对数变换数据
-chc_matrixmain &lt;- log(data.matrix(chcmain))
-
-#计算除法层次聚类
-hc_d &lt;- diana(chc_matrix)
-
-#除法系数；发现的聚类结构数量
-hc_d$dc
-
-#绘制树状图
-pltree(hc_d, cex = 0.6, hang = -1, main = &quot;Dendrogram of diana&quot;)
-
-#将 diana()tree 切成 4 组
-clust &lt;- cutree(as.hclust(hc_d), k=4)
-
-#在散点图中可视化结果
-fviz_cluster(list(data = chc_matrix, cluster = clust))
-
-#在树状图内可视化聚类
-pltree(hc_d, hang=-1, cex = 0.6)
-rect.hclust(hc_d, k =4, border = 2:10)
-
-我真的不明白他们是如何得出 4 个聚类的，以及我是否可以进行任何统计以确保获得的聚类在统计上与每个聚类不同其他。
-如果我使用 DIANA，您能否指导我如何确定簇的数量以及我可以做哪些统计来支持我的分析？
-我不可能对预期的簇数或测试特定假设做出先验假设，因为我的数据可能受到多种因素的影响。
-散点图显示了两个主成分，但我不明白这是使用前两个 PC 还是所有 PC 创建的。
-上面的代码对我来说是有效的，但缺少关于他们如何确定 4 个簇以及应该进行哪些统计测试来支持结果的步骤，而且我不太清楚如何将此分析用于我自己的数据。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653669/what-statistical-tests-can-i-use-in-r-to-ascertain-the-statistical-significance</guid>
-      <pubDate>Sat, 31 Aug 2024 10:22:17 GMT</pubDate>
     </item>
     <item>
       <title>与 GARCH-DCC 方法相比，使用多元滤波历史模拟和单变量 GARCH 模型的优缺点是什么？</title>
@@ -286,79 +232,223 @@ https://it.mathworks.com/help/econ/using-bootstrapping-and-filtered-historical-s
       <pubDate>Sat, 31 Aug 2024 09:51:03 GMT</pubDate>
     </item>
     <item>
-      <title>简单线性回归中的统计误差</title>
-      <link>https://stats.stackexchange.com/questions/653635/statistical-error-in-simple-linear-regression</link>
-      <description><![CDATA[首先我想说的是，我正在寻找一个简单的回归模型，而不是一个数学模型，来对这个术语进行更多的概念性理解。
-在计量经济学中，简单的线性回归有一个“误差项”，称为mu，它表示“影响y的除x之外的因素，或未观察到的数据”。在统计学课上，这个术语被称为“统计误差”或“噪声”，被视为epsilon，这又是现实世界中我们的模型无法捕捉到的随机噪声。
-在《统计学习简介》中，这个术语被称为“不可约误差”，是一个表示我们尚未测量的未测量变量的数量，或者只是现实世界数据中无法测量的变化。作者将这个术语与可约误差区分开来。
-这就是我感到困惑的地方：在一个理论上完全确定的世界中，我们拥有无限量的数据，这个“不可约误差”在理论上是可以约化的吗？也就是说，如果在这个理论世界中，我们的协变量，大学 GPA，可以映射到我们的响应，比如“薪水”，那么这个术语在技术上可以为零吗？
-我理解，在我们生活的世界中，数据总是存在不可测量的变化，我们永远无法获得无限量的数据或事先知道每一个协变量，因此会出现这个错误。但是假设我们有 5 个数据点，这是我们的“理论总体”，这个“不可约误差”会是零吗？术语消失？
-例如，在《统计学习简介》中，他们有这张图片：
+      <title>在 MCMC 中转换变量以获得与提议相匹配的先验分布</title>
+      <link>https://stats.stackexchange.com/questions/653598/transforming-variables-within-mcmc-to-get-the-prior-distribution-to-match-propos</link>
+      <description><![CDATA[我正在做贝叶斯 MCMC，我建议使用一些权重，比如狄利克雷分布中的 a_1:a_5，以确保总和为 1。但是，先前的（Beta）分布是基于这些权重的一些计算，b_1:b_5。我的理解是我应该进行转换。以下是 a 和 b 之间的关系：
+a_1=b_1
+a_2=(1-b_1)(b_2)
+a_3=(1-b_1)(1-b_2)b_3
+a_4=(1-b_1)(1-b_2)(1-b_3)b_4
+a_5=(1-b_1)(1-b_2)(1-b_3)(1-b_4)b_5
 
-我对这张图片的困惑源于这个数据是模拟的，所以我们实际上知道真正的底层函数 f。但如果是这样的话，为什么还有错误？如果我们知道 f，为什么我们不能完美地将这个函数与数据拟合？如果这个数据是基于 f 模拟的，为什么模拟不会在函数 f 上产生数据点？
-我知道这似乎是一个愚蠢的问题，但我试图理解这里的细微差别。非常感谢您的帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653635/statistical-error-in-simple-linear-regression</guid>
-      <pubDate>Fri, 30 Aug 2024 17:14:15 GMT</pubDate>
+我发现雅可比矩阵为：$(a - 1)^4 \times (b - 1)^3 \times (c - 1)^2 \times (d - 1)$
+但我不确定接下来该怎么做。当找到先验密度时，我是否将输入乘以这个雅可比矩阵？下面是我的 R 代码，好像我忽略了先前和提议之间的不匹配。
+ a&lt;-rDirichlet.acomp(1,mcmc_chain_weights[i,1:5]*(tuning_parameter))
+b=rep(NA,5)
+b[1]&lt;-a[1]
+b[2]&lt;-a[2]/((1-b[1]))
+b[3]&lt;-a[3]/((1-b[1])*(1-b[2]))
+b[4]&lt;-a[4]/((1-b[1])*(1-b[2])*(1-b[3]))
+b[5]&lt;-a[5]/((1-b[1])*(1-b[2])*(1-b[3])*(1-b[4]))
+
+Hastings_ratio&lt;-L()*dbeta(b,1,tau)*dDirichlet(a_previous,alpha=a) / ...
+
+请注意，tau 是一个常数，我将似然函数留空，因为它在这里无关紧要。任何帮助都将不胜感激。谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/653598/transforming-variables-within-mcmc-to-get-the-prior-distribution-to-match-propos</guid>
+      <pubDate>Fri, 30 Aug 2024 03:22:33 GMT</pubDate>
     </item>
     <item>
-      <title>利用混合样本确定生物学重复</title>
-      <link>https://stats.stackexchange.com/questions/653624/determining-biological-replicates-with-pooled-samples</link>
-      <description><![CDATA[我们小组有一个长期存在的方案，其中汇集了多个组织纯化样本。这是因为每只动物的组织很少。然后对该池进行多次采样，并测量感兴趣的结果。每次测量都被视为推理分析的独立数据点。虽然这些单个样本可能是“重复”，但它们作为生物重复的状态充其量是高度可疑的。它们看起来可能是伪重复。
-即，用两种药物治疗动物。提取的组织被合并到两个池中。每个池采样 x 次。然后通过药物治疗分析这些样品，每次治疗 n = x。
-应该如何调整这种设计？目前没有办法只使用一只动物的组织进行测定。必须将组织组合起来。
-如果我们使用更多动物并创建多个池，那么每个池可以采样几次，以解释因组合动物而引入的变化。这将使用混合级别模型进行建模。每个池是否都是一个单一的生物学重复，并且池中的每个样本都是随机效应内的聚类？
-因此，两种治疗方法，每种治疗方法有 M 只动物。组织提取物组合成 P 个池，每个池采样 N 次。模型中每个治疗方法的 n = P，单个样本按 P 聚类。
-还有其他方法可以做到这一点吗？
-（这是我最近问过的一个问题的重述，但措辞不当且令人困惑。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653624/determining-biological-replicates-with-pooled-samples</guid>
-      <pubDate>Fri, 30 Aug 2024 14:35:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>努力证明 Hessian 是简单线性回归最小二乘法的 PSD</title>
-      <link>https://stats.stackexchange.com/questions/653335/struggling-to-prove-that-the-hessian-is-psd-for-simple-linear-regression-least-s</link>
-      <description><![CDATA[我正在研究最小化以下函数在 $b_0$ 和 $b_1$ 上的最简单情况：
-$$(y_1 - [b_0 + b_1 x_1])^2 + \ldots + (y_n - [b_0 + b_1 x_n])^2$$
-为了确定此函数在 $b_0$ 和 $b_1$ 上是凸函数，我已获得如下 Hessian 矩阵：
-$$\Big(\begin{matrix}
-2n &amp; 2(x_1 + \ldots + x_n)\\
-2(x_1 + \ldots + x_n) &amp; 2(x_1^2 + \ldots + x_n^2)
-\end{matrix}\Big)$$
-如果我能证明这个 $2\times 2$ 矩阵的行列式是非负的，那么我就完成了。但在这里，我必须证明以下不等式：
-$$n(x_1^2 + \ldots + x_n^2) \geq (x_1 + \ldots + x_n)^2$$
-有没有简单的方法可以证明这个不等式？
-我看过几本关于回归的书，包括 Wackerley、Mendenhall 和 Scheaffer。虽然他们推导出一阶条件，但并未考虑/提供全局最小值的二阶必要条件。任何帮助都值得感激。
+      <title>测量两组内部距离差异的重要性</title>
+      <link>https://stats.stackexchange.com/questions/653500/measure-the-significance-of-differences-in-internal-distances-in-two-groups</link>
+      <description><![CDATA[我是一名语言学家，正在研究 169 名挪威女性作家和 169 名挪威男性作家的语法变异（使用树库），该变异基于八个屈折和句法属性。这八个属性是两种表达类别的备选方式之间的八个二元选择，称为“保守”和“激进”。对于给定属性，记录的是作者保守选择的百分比。因此，它将是 0 到 100 之间的值。因此，这八个属性定义了作者分布的八维空间。然后可以像往常一样计算任何两个作者之间的（欧几里得）距离，取点坐标平方差之和的平方根。两组之间的一个显着差异（在各个属性之间都稳定）是，在八维可能性空间中，男性比女性分散得更多，女性聚集得更密集，选择组合的变化较少。我计算一个群体的密度作为内部距离的平均值——即取每个群体成员与群体中其他作者的平均距离的平均值。该图显示了女性和男性与同性别其他成员的平均距离。男性的平均值为 69（标准差 16.6），女性的平均值为 60（标准差 15.3）。t 检验可以极高置信度地得出显著性，但——不是统计学家——我对 t 检验的适用性表示怀疑。群体成员的数值是相互依赖的，因此我们测试的是性别群体作为整体的属性，而不是两个群体中每个成员的可比属性。因此，我的问题是：是否有适合这种数据的显著性检验——或者我错误地认为 t 检验不合适（这很好）？评论中提到的表格：
 
-已编辑并添加。啊，找到了一种相当优雅的方法来进一步探究这个问题。
-在尝试通过归纳法证明这一点时，我需要证明以下不等式：
-$$x_1^2 + \ldots + x_n^2 + nx_{n+1}^2 \geq 2(x_1 + \ldots + x_n)x_{n+1}$$
-但这很容易通过重写 LHS 来证明：
-$$(x_1^2 + x_{n+1}^2)+\ldots + (x_n^2 + x_{n+1}^2) \geq 2(x_1 + \ldots + x_n)x_{n+1}$$
-然后，通过从 RHS 到 LHS，我们有：
-$$(x_1^2 + x_{n+1}^2 - 2x_1 x_{n+1})+\ldots + (x_n^2 + x_{n+1}^2 - 2x_n x_{n+1}) \geq 0$$
-这显然是正确的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653335/struggling-to-prove-that-the-hessian-is-psd-for-simple-linear-regression-least-s</guid>
-      <pubDate>Mon, 26 Aug 2024 14:05:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何检测短时间序列末尾的平台期？</title>
-      <link>https://stats.stackexchange.com/questions/646494/how-to-detect-a-plateau-at-the-end-of-a-short-time-series</link>
-      <description><![CDATA[在运动测试（肺量测定）中，参与者在进行逐渐加强的体育锻炼时，会持续测量他们的摄氧量。测量以固定的时间间隔进行，例如每 10 秒一次。了解摄氧量在测量结束时是否达到稳定状态很有用。我们说的是测试的最后一分钟左右。基本上，这取决于摄氧量在最后是否仍在增加或是否趋于平稳。下图显示了三名参与者的测量结果。在左侧面板中，看不到稳定状态。中间面板显示了一个清晰的平台期，而右侧面板则有些模糊。
 
-存在多种检测平台期的启发式方法。所有这些都有些武断，因为没有基本事实或黄金标准。不过，我想知道是否有一种原则性的方法来检测时间序列中的平台期。
-我自己的想法如下：
 
-使用 LOESS（上图中的黑色曲线）平滑测量值。如图所示，测量结果有些嘈杂。平滑量是使用此处中说明的程序来选择的。
-如果预测平滑数据的最后 $x$（例如 6）个测量值的标准差低于某个阈值，则检测到稳定期。
+作者
+F1
+F2
+F3
+F4
+F5
+F6
+F7
+F8
 
-我的想法是，小的标准差表示测量值变化不大/大致不变。这仍然引出了一个问题，即如何选择最后平滑测量值的标准差阈值，低于该阈值则声明稳定期。
-我的问题：上述算法是否合理，如何改进？可以使用哪些其他算法/启发式方法来检测测量结束时的稳定状态？
-我尝试过但效果不佳的方法：
 
-计算平滑函数一阶导数的置信区间（例如，使用 mgcv 和 gratia 包计算）。置信限度太大，几乎总是包含 $0$。
-某种变点检测。同样，不确定性太大，轨迹通常不能很好地用线性函数来近似。
+
+
+author1
+92,1
+98
+ 99,2
+26,7
+71,3
+56,8
+80
+22,7
+
+
+author2
+55,2
+73
+93,1
+6,4
+30,9
+49,2
+37,2
+23,8
+
+
+作者3
+97
+99,7
+100
+49
+99,1
+62,8
+86
+39,7
+
+
+作者4
+99,5
+98,7
+100
+6,5
+50, 3
+61,8
+51
+20,6
+
+
+author5
+23,2
+37,9
+99,9
+5,6
+27,2
+78,4
+57,8
+28
+
+
+
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/646494/how-to-detect-a-plateau-at-the-end-of-a-short-time-series</guid>
-      <pubDate>Sat, 04 May 2024 15:34:14 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/653500/measure-the-significance-of-differences-in-internal-distances-in-two-groups</guid>
+      <pubDate>Wed, 28 Aug 2024 18:39:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于建模财务回报的 AR(1) 过程的时间缩放</title>
+      <link>https://stats.stackexchange.com/questions/652799/time-scaling-of-ar1-process-for-modelling-financial-returns</link>
+      <description><![CDATA[过程：
+考虑一个均值为零的 AR(1) 过程，*
+$\lambda_t = \kappa \cdot \lambda_{t-1} + \omega_t$，
+其中 $\kappa = 0.9$，$\omega \sim N(0, \sigma_{\omega}^2)$，并且 $\sigma_{\omega}^2 = 0.00027$。 $\lambda_0$ 的初始值取自平稳分布 $N \left(0, \frac{\sigma_{\omega}^2}{(1-\kappa^2)} \right)$
+我使用此过程生成长度为 $T=672$ 的样本。
+* 我知道，对于股票收益建模而言，均值为零是不现实的，但我的问题并不取决于此选择。
+
+上述时间序列应解释为每月收益（以百分点表示），即 672 个月的观测值。
+问题：
+什么是合适的参数值生成总共 14,112 个每日观测值（即$672 \times 21$，如果我们假设一个月内有 21 个交易日）以符合上述（每月）流程？月回报率是给定月份内所有 21 天回报率的累计乘积。
+尝试（在 R 中）：
+DAYS &lt;- 21
+T &lt;- 672
+kappa &lt;- 0.9
+variance_omega &lt;- 0.00027
+
+get_init_lambda &lt;- function(variance) return(rnorm(n = 1, mean = 0, sd = sqrt(variance / (1-(kappa)^2))))
+
+#### 月度分析
+
+set.seed(1234)
+
+lambda_T &lt;- vector(mode = &quot;numeric&quot;, length = T)
+
+lambda_shock &lt;- rnorm(T, mean = 0, sd = sqrt(variance_omega))
+
+lambda_T[1] &lt;- kappa * get_init_lambda(variance_omega) + lambda_shock[1]
+for(i in 2:T) lambda_T[i] &lt;- kappa * lambda_T[i-1] + lambda_shock[i]
+
+acf(lambda_T)$acf[2]
+# [1] 0.9064949 # 符合预期
+
+var(lambda_T)
+# [1] 0.001547795
+
+#### 每日分析
+
+set.seed(1234)
+
+kappa_daily &lt;- 0.90 # ??? 如何设置 kappa_daily，使月收益 AC = 0.9？
+
+lambda_T_daily &lt;- vector(mode = &quot;numeric&quot;, length = T * DAYS)
+
+lambda_shock_daily &lt;- rnorm(T * DAYS, mean = 0, sd = sqrt(variance_omega / DAYS))
+
+lambda_T_daily[1] &lt;- kappa_daily * get_init_lambda(variance_omega / DAYS) + lambda_T_daily[1]
+for(i in 2:(T * DAYS)) lambda_T_daily[i] &lt;- kappa_daily * lambda_T_daily[i-1] + lambda_shock_daily[i]
+
+# 检索月末指数；假设每个月有 21 个交易日
+begin_month &lt;- seq(1, T * DAYS, 21)
+end_month &lt;- c(tail(begin_month, -1) - 1, T * DAYS)
+
+lambda_monthly_aggregate &lt;- vector(mode = &quot;numeric&quot;, length = T)
+
+for(i in 1:T){
+month_ind &lt;- (begin_month[i]):(end_month[i])
+
+daily_ret_within_month &lt;- 0.01*lambda_T_daily[month_ind] # 收益以 % 表示
+monthly_return &lt;- 100*(cumprod(1+daily_ret_within_month) - 1) # 累计每日收益
+
+lambda_monthly_aggregate[i] &lt;- monthly_return[DAYS] # 检索累计。 21 天后返回
+}
+
+# 与上述值不相同：自相关性太低，mth 方差返回值太高！
+&gt; acf(lambda_monthly_aggregate)$acf[2]
+[1] 0.2988249
+
+var(lambda_monthly_aggregate)
+[1] 0.01494742
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/652799/time-scaling-of-ar1-process-for-modelling-financial-returns</guid>
+      <pubDate>Wed, 14 Aug 2024 16:01:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>将对数链接应用于分位数回归</title>
+      <link>https://stats.stackexchange.com/questions/652233/applying-log-link-to-quantile-regression</link>
+      <description><![CDATA[我正在研究分位数回归，我开始思考如何实现对数链接（因为我使用的是正界数据）。我听说分位数回归在变换下是等变的，所以我开始思考，即使在线性回归中情况并非如此，对响应变量进行对数处理是否能产生与对数链接相同的效果？这有效吗？还是我运用了错误的想法？我注意到，在 R 中的“rq”函数中似乎没有一种简单的方法来指定对数链接，所以我正在尝试寻找一种解决方法。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652233/applying-log-link-to-quantile-regression</guid>
+      <pubDate>Fri, 02 Aug 2024 23:12:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>空间数据的 EM 算法</title>
+      <link>https://stats.stackexchange.com/questions/650794/em-algorithm-for-spatial-data</link>
+      <description><![CDATA[我对地理统计学（空间数据建模）非常陌生，有一些问题：
+1- 我发现在许多文献中，空间随机场被划分为空间箱。也就是说，假设我对建模在不同位置测量的锌浓度感兴趣。然后，我们测量所有位置对之间的距离。之后，我们根据观测值之间的距离将观测值划分为空间滞后。例如，第一个滞后包含一对位置，它们之间的空间距离为 10 米，依此类推。我的问题是，我们为什么要执行此步骤？
+2- 我们可以使用 EM 将高斯混合模型拟合到数据中，而无需将它们划分为空间箱吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/650794/em-algorithm-for-spatial-data</guid>
+      <pubDate>Wed, 10 Jul 2024 10:19:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>泊松减去一个常数仍然是泊松吗？</title>
+      <link>https://stats.stackexchange.com/questions/649069/is-a-poisson-minus-a-constant-still-a-poisson</link>
+      <description><![CDATA[我正在处理一个过程，其中我期望我的变量服从泊松分布。但是，由于与比例有关的原因，我获得的值的最小值为 11。
+我注意到，当我使用 R 函数（例如 fitdistrplus::fitdist）估计我的数据与泊松分布的拟合度时，我的数据最适合泊松分布（遵循 AIC 值），但只有当我从观测向量中减去最小值 11 时（这样做的理由是泊松中的值从零开始）。
+例如，以下内容与泊松分布的拟合度很差：
+obs &lt;- c(15, 15, 13, 14, 13, 12, 12, 14, 14, 12, 11, 13, 11, 12, 12, 
+13, 14, 14, 13, 11, 12, 14, 17, 12, 14, 12, 12, 12, 12, 
+13, 16, 15, 15, 17, 13, 13, 13, 13, 14, 14, 13, 15)
+fitdist(obs, &quot;pois&quot;)
+
+但减去最小值后，拟合效果更好。
+fitdist(obs-11, &quot;pois&quot;)
+
+然而，这当然会改变 lambda 参数，在泊松分布中，我相信这也会改变分布的形状。我不仅不确定我的转换是否正确，而且如果不正确，为什么拟合度会提高。
+有人可以指出关于这个主题的参考资料，以了解我的转换是否正确吗？即泊松减常数是否仍以泊松分布？
+编辑：为了澄清起见，我处理的变量是基因组中新生突变的发生率。这些是罕见事件，通常被建模为泊松过程。在每个单倍体基因组和代的突变数量尺度上，每个单倍体基因组和代（obs向量）观察到几十个突变。这就是最小值为 11 的原因。但是，请注意，这里有尺度的影响。在二倍体基因组的尺度上，obs 中的值将会翻倍，而在每个核苷酸位点（而不是每个基因组）的尺度上，obs 中的值都会非常小（例如 ~6*10e-8），以至于会四舍五入为零。]]></description>
+      <guid>https://stats.stackexchange.com/questions/649069/is-a-poisson-minus-a-constant-still-a-poisson</guid>
+      <pubDate>Tue, 11 Jun 2024 22:57:56 GMT</pubDate>
     </item>
     </channel>
 </rss>

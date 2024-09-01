@@ -4,7 +4,97 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 31 Aug 2024 21:14:57 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 01 Sep 2024 01:21:42 GMT</lastBuildDate>
+    <item>
+      <title>数据分类不适用于 BERT 模型</title>
+      <link>https://stackoverflow.com/questions/78936387/data-classification-doesnt-work-with-bert-model</link>
+      <description><![CDATA[我需要使用输入 CSV 来训练模型，其中包含错误消息和错误分类。然后，当仅使用错误消息进行测试时，它应该会自动分类。
+我使用了 BERT 模型，这是代码：
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+from transformers import BertTokenizer, TFBertModel
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+# 加载训练数据并打印列
+training_data = pd.read_excel(&quot;C:\\Users\\foobar\\Documents\\Training Data.xlsx&quot;)
+print(training_data.columns) # 打印以验证列名
+# 确保列名中没有空格
+training_data.columns = training_data.columns.str.strip()
+# 根据输出使用正确的列名
+error_messages = training_data[&quot;Error Message&quot;].dropna()
+error_classification = training_data[&quot;Error Classification&quot;].dropna()
+# 确保长度一致
+min_length = min(len(error_messages), len(error_classification))
+error_messages = error_messages.iloc[:min_length]
+error_classification = error_classification.iloc[:min_length]
+# 使用 LabelEncoder 将标签转换为数字
+label_encoder = LabelEncoder()
+error_classification_encoded = label_encoder.fit_transform(error_classification)
+# 将数据拆分为训练集和验证集
+train_messages, val_messages, train_labels, val_labels = train_test_split(
+error_messages, error_classification_encoded, test_size=0.2, random_state=42
+)
+# 从 Hugging Face 加载 BERT 模型和 tokenizer
+tokenizer = BertTokenizer.from_pretrained(&#39;bert-base-uncased&#39;)
+bert_model = TFBertModel.from_pretrained(&#39;bert-base-uncased&#39;)
+# 对数据进行标记和预处理
+def preprocess_text(texts):
+return tokenizer(
+texts.tolist(),
+max_length=128,
+truncation=True,
+padding=&#39;max_length&#39;,
+return_tensors=&#39;tf&#39;
+)
+train_tokens = preprocess_text(train_messages)
+val_tokens = preprocess_text(val_messages)
+# 定义模型架构
+input_ids = tf.keras.Input(shape=(128,), dtype=tf.int32, name=&#39;input_ids&#39;)
+attention_mask = tf.keras.Input(shape=(128,), dtype=tf.int32, name=&#39;attention_mask&#39;)
+bert_output = bert_model([input_ids,tention_mask])[1]
+x = tf.keras.layers.Dense(64,activation=&quot;relu&quot;)(bert_output)
+output = tf.keras.layers.Dense(len(label_encoder.classes_),activation=&quot;softmax&quot;)(x)
+model = tf.keras.Model(inputs=[input_ids,attention_mask],outputs=output)
+# 编译模型
+model.compile(optimizer=&quot;adam&quot;,loss=&quot;sparse_categorical_crossentropy&quot;,metrics=[&quot;accuracy&quot;])
+# 将标签转换为 NumPy 数组并确保形状正确
+train_labels = np.array(train_labels).astype(int).reshape(-1)
+val_labels = np.array(val_labels).astype(int).reshape(-1)
+# 打印形状和类型以供调试
+print(f&quot;train_input shape: {train_tokens[&#39;input_ids&#39;].shape}&quot;)
+print(f&quot;val_input shape: {val_tokens[&#39;input_ids&#39;].shape}&quot;)
+print(f&quot;train_labels shape: {train_labels.shape}&quot;)
+# 训练模型
+model.fit(
+[train_tokens[&#39;input_ids&#39;], train_tokens[&#39;attention_mask&#39;]],
+train_labels,
+validation_data=([val_tokens[&#39;input_ids&#39;], val_tokens[&#39;attention_mask&#39;]], val_labels),
+epochs=10
+)
+# 加载测试数据
+testing_data = pd.read_excel(&quot;C:\\Users\\foobar\\Documents\\Testing Data.xlsx&quot;)
+test_messages = testing_data[&quot;Error Message&quot;]
+# 预处理测试数据
+test_tokens = preprocess_text(test_messages)
+# 对测试数据执行预测
+predictions = model.predict([test_tokens[&#39;input_ids&#39;], test_tokens[&#39;attention_mask&#39;]])
+predicted_labels = np.argmax(predictions, axis=1)
+# 将标签解码回原始格式
+decoded_predictions = label_encoder.inverse_transform(predicted_labels)
+# 使用预测的错误分类更新输出 CSV
+output_data = pd.DataFrame({&quot;Error Message&quot;: test_messages, &quot;Error Classification&quot;:coded_predictions})
+output_data.to_csv(&quot;C:\\Users\\foobar\\Documents\\Output.csv&quot;, index=False)
+
+训练输入包含 HTTP 错误消息和分类：（样本）
+
+测试输入如下：
+
+但是 Output.csv 输出结果不正确，出现 5** 错误，错误地显示“客户端错误”。
+]]></description>
+      <guid>https://stackoverflow.com/questions/78936387/data-classification-doesnt-work-with-bert-model</guid>
+      <pubDate>Sun, 01 Sep 2024 00:59:26 GMT</pubDate>
+    </item>
     <item>
       <title>使用 Flutter 计算图像中的对象数量</title>
       <link>https://stackoverflow.com/questions/78935944/count-objects-in-image-by-using-flutter</link>
@@ -212,13 +302,6 @@ return name, distance
 如何在使用 FAISS 进行人脸比较时减少误报我的出勤跟踪系统如何做到这一点？虽然 FAISS 大大缩短了比较时间，但准确性却受到影响，导致出勤标记不正确。是否有任何最佳实践或替代方法可以在大型数据库中保持高精度？]]></description>
       <guid>https://stackoverflow.com/questions/78739882/how-to-reduce-false-positives-in-face-recognition-using-faiss-for-large-face-dat</guid>
       <pubDate>Fri, 12 Jul 2024 10:33:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>尝试加载我的 Google 可教机器模型时出现 ValueError：('无法识别的关键字参数：'，dict_keys(['ragged']))</title>
-      <link>https://stackoverflow.com/questions/63847435/valueerror-unrecognized-keyword-arguments-dict-keysragged-when-tryi</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/63847435/valueerror-unrecognized-keyword-arguments-dict-keysragged-when-tryi</guid>
-      <pubDate>Fri, 11 Sep 2020 12:50:45 GMT</pubDate>
     </item>
     <item>
       <title>使用 pytorch 计算特征中心时 GPU 内存不足</title>
