@@ -4,7 +4,220 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 02 Sep 2024 12:31:58 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 02 Sep 2024 15:17:13 GMT</lastBuildDate>
+    <item>
+      <title>混合模型模拟研究：省略随机斜率，比较模型功效，包 lmerTest</title>
+      <link>https://stats.stackexchange.com/questions/653749/mixed-model-simulation-study-omitting-random-slope-comparing-model-power-pack</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/653749/mixed-model-simulation-study-omitting-random-slope-comparing-model-power-pack</guid>
+      <pubDate>Mon, 02 Sep 2024 15:12:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>您可以使用 beta 二项分布代替 MCMC 吗？</title>
+      <link>https://stats.stackexchange.com/questions/653748/can-you-use-the-beta-binomial-distribution-instead-of-mcmc</link>
+      <description><![CDATA[因此，我有一个项目来测试一个假设，即采用新艺术的营销活动比旧广告产生更多的购买量，我有 2 个数据样本，一个使用标准广告，一个使用新广告。因此，我们有总展示次数和购买次数。我们可以将其估计为二项式（展示次数，购买次数/展示次数）。因此，如果我们说：
+$$
+\begin{align}
+&amp;X_{c} \sim Binomal(I_{c},\theta_{c})\\
+&amp;X_{t} \sim Binomial(I_{t},\theta_{t})
+\end{align}
+$$
+并且我们使用 $\theta \sim Beta(1,1)$ 作为先验，我们可以获得测试和控制的相应后验。所以，我的问题是，我可以使用 beta-二项分布作为进行假设检验的分析方法吗？还是我必须使用蒙特卡洛马尔可夫链模拟并以通常的方式进行？
+我的理由是，给定数据，我们可以计算出购买数量 $\tilde{x}$ 的概率为
+$$
+P(\tilde{x}=x \ |X_{t},\theta&#39;_{t})\sim \text{Beta-Bin}(I_t,1+x_t,1+I_t-x_t)
+$$
+其中 $\theta&#39;_t$ 是 $f(X_t \ | \ \theta_t)$ 的后验，而 $x_t$ 是测试广告的购买数量。因此我可以使用它来计算 BayesFactor
+$$
+BF_{10}=\frac{P(\tilde{x}\geq x_t \ | X_t ,\theta_t&#39;)}{P(\tilde{x}\geq x_t \ | X_c ,\theta_c&#39;)}
+$$
+而不是使用通常的 MCMC 模拟并比较结果
+注意：我已将此发布在 Math stack 上，但在被告知此内容后，我觉得它更合适]]></description>
+      <guid>https://stats.stackexchange.com/questions/653748/can-you-use-the-beta-binomial-distribution-instead-of-mcmc</guid>
+      <pubDate>Mon, 02 Sep 2024 14:41:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>混合模型模拟研究：与无协变量的线性模型（1 类错误）进行比较，包 lmerTest</title>
+      <link>https://stats.stackexchange.com/questions/653747/mixed-model-simulation-study-comparing-to-linear-model-without-covariate-type</link>
+      <description><![CDATA[给出了具有以下任务的模拟研究：
+(1) 数据生成过程（已完善）：
+混合模型：从数学符号到 R 的 lmer() 的转换 - 包：lmerTest
+完善的代码：
+sim.data &lt;- function(indiv,repl,param.beta,param.gamma.1,param.gamma.2,param.eps) {
+
+indiv &lt;- indiv # 个体数/人
+repl &lt;- repl # 每个个体的重复次数（= 测量次数）
+
+b.0 &lt;- param.beta[1] # 固定 beta效果
+b.1 &lt;- param.beta[2]
+b.2 &lt;- param.beta[3]
+
+x.1 &lt;- rep(rep(0:1,each=repl),length.out=indiv*repl) # 治疗：否，是
+x.2 &lt;- rep(1:10,length.out=indiv*repl) # 每个人的治疗天数
+id &lt;- rep(1:indiv,each=repl) # 指标编码个人 = x.3
+
+gamma.1 &lt;- rnorm(indiv,mean=param.gamma.1[1],sd=param.gamma.1[2])
+gamma.2 &lt;- rnorm(indiv,mean=param.gamma.2[1],sd=param.gamma.2[2])
+
+g1 &lt;- gamma.1[id] # 截距随机效果
+g2 &lt;- gamma.2[id] # 斜率随机效应
+
+e &lt;- rnorm(length(x.1),mean=param.eps[1],sd=param.eps[2])
+
+y &lt;- b.0 + b.1*x.1 + b.2*x.2 + g1 + g2*x.2 + e
+
+data.sim &lt;- data.frame(x.1 = x.1,
+x.2 = x.2,
+x.3 = id,
+y = y)
+
+return(data.sim)
+
+}
+
+set.seed(11525)
+data &lt;- sim.data(20,10,c(1,1,0.5),c(0,4),c(0,1),c(0,1))
+
+true.mod &lt;- lmer(y ~ x.1 + x.2 + (1 + x.2||x.3), REML = FALSE，数据 = 数据) 
+
+summary(true.mod)
+
+通过最大似然法拟合的线性混合模型。t 检验使用 Satterthwaite 方法 [&#39;lmerModLmerTest&#39;]
+公式：y ~ x.1 + x.2 + (1 + x.2 || x.3)
+数据：数据
+
+AIC BIC logLik 偏差 df.resid 
+786.7 806.5 -387.4 774.7 194 
+
+缩放残差：
+最小 1Q 中位数 3Q 最大
+-2.6798 -0.5763 -0.0162 0.5099 2.3082 
+
+随机效应：
+组名称方差标准差
+x.3（截距）19.148 4.3758 
+x.3.1 x.2 0.624 0.7899 
+残差 1.149 1.0720 
+观察数：200，组：x.3，20
+
+固定效应：
+估计标准差误差 df t 值 Pr(&gt;|t|) 
+(截距) 1.0620 1.4028 20.0049 0.757 0.45784 
+x.1 1.0050 1.9837 19.9957 0.507 0.61797 
+x.2 0.5180 0.1786 20.0132 2.900 0.00884 **
+---
+显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+固定效应相关性：
+(Intr) x.1 
+x.1 -0.707 
+x.2 -0.015 0.000
+
+注意：由于本模拟研究的另一部分将是使用不同 indiv 值的模拟，因此这两个任务使用的值仍为 20。
+(2) 根据此模型的模拟数据进行 1000 次模拟运行，以探索以下问题：
+进行模拟，其中与 $x_1$ 对应的回归系数 $\beta_1$ 为零（无治疗效果）。
+查看$\beta_1 = 0$的标准 t 检验。 1000 次模拟运行中被拒绝的零假设的比例是多少（$\alpha=0.05$）？
+# 设置模拟运行次数
+n.sim &lt;- 1000
+
+# 在零假设下拟合数据：b1 == 0（重新计算 y）
+data.null &lt;- data
+b.1 &lt;- 1 # 为了清晰起见
+data.null$y &lt;- data.$y-b.1*data$x.1
+data.null &lt;- data.null[,-1]
+
+head(data.null)
+
+说明：df [6 × 3]
+
+x.2 x.3 y
+1 1 1 0.8730795 
+2 2 1 1.6938862 
+3 3 1 0.7454895 
+4 4 1 -0.5067670 
+5 5 1 1.0773961 
+6 6 1 1.3518126 
+6 行
+
+# 模拟的零假设下的拟合模型
+mod.null &lt;- lmer(y ~ x.2 + (1 + x.2||x.3), data = data.null, REML = FALSE)
+
+# 模拟
+beta.1.sign.offset &lt;- numeric(length=length(n.sim))
+
+set.seed(1234)
+
+for (i in 1:n.sim) {
+y.sim &lt;- unlist(simulate(mod.null))
+sim.mod &lt;- lmer(y.sim ~ x.1 + x.2 + (1 + x.2||x.3),
+data=data.frame(data.null,x.1 = data$x.1,y.sim=y.sim),REML=FALSE) # 包含 x.1 的模型
+beta.1.sign.offset[i] &lt;- summary(sim.mod)$coefficients[2,5] 
+}
+
+# 发现：
+mean(beta.1.sign.offset&lt;0.05) # 1 型错误率
+
+[1] 0.067
+
+问题：
+我不确定模拟本身 - 模拟在技术上是否正确？如何评估 1 型错误率，因为它接近重要性水平但也高于它？
+非常感谢任何帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/653747/mixed-model-simulation-study-comparing-to-linear-model-without-covariate-type</guid>
+      <pubDate>Mon, 02 Sep 2024 14:21:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有 [0,1] 中连续权重的随机块模型</title>
+      <link>https://stats.stackexchange.com/questions/653746/stochastic-blockmodel-with-continuous-weights-in-0-1</link>
+      <description><![CDATA[我想使用随机块模型 (SBM) 对网络中的节点进行聚类，其中边权重是 0 到 1 之间的连续数字。似乎 blockmodels 和 SBM 等 R 软件包为权重提供了伯努利、泊松和高斯分布。高斯是唯一提供的连续分布（在我查看过的软件包中），但我的权重分布为众数为 0（最小值），一些权重恰好为零（可能不是问题，因为似乎允许不存在边），而其他权重从众数为零向上严重倾斜分布。我确实明白，SBM 中的高斯模型并不一定意味着权重必须整体呈高斯分布，因为它可以是社区内和社区之间的不同高斯的混合，但似乎仍然没有办法将两个或几个高斯的混合放在一起来模拟我所拥有的权重分布。此外，我很惊讶地发现边缘权重首先是高斯分布，因为在我知道的几乎所有情况下，权重都被限制为正，而高斯分布将质量放在整个实线上（当然，它有时仍然是正数据的良好近似值）。
+在这种情况下该怎么办？无论如何都要拟合高斯模型？是否有任何版本的 SBM 实现假设其他分布，例如指数或 Beta？我应该将权重转换为“近高斯”吗？如果可能的话？
+更一般地说，我是否正确理解了高斯假设适用于原始权重（分别在社区之间和社区内），而不是某些潜在变量或允许强非高斯权重的东西？我发现很难找到对连续权重的 SBM 的全面解释。此外，标准模型似乎是一个作为标准产生负值的模型，而实际上我所看到的只是将权重限制为非负值，这对我来说似乎很奇怪。
+PS：我知道有潜在位置模型和其他可以考虑的 SBM 替代方案。我的问题是关于 SBM 的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653746/stochastic-blockmodel-with-continuous-weights-in-0-1</guid>
+      <pubDate>Mon, 02 Sep 2024 14:01:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>对正定协方差矩阵的元素取绝对值后形成的矩阵还是正定的吗？</title>
+      <link>https://stats.stackexchange.com/questions/653745/is-the-matrix-formed-by-taking-the-absolute-values-of-the-elements-of-a-positive</link>
+      <description><![CDATA[假设我有一个正定协方差矩阵 $\boldsymbol{\Sigma}$。我构造一个新矩阵 $\boldsymbol{\Lambda}$，其中 $\boldsymbol{\Lambda}$ 中的每个元素 $(i,j)$ 等于 $\boldsymbol{\Sigma}$ 中对应元素的绝对值。$\boldsymbol{\Lambda}$ 仍然是有效的协方差矩阵吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653745/is-the-matrix-formed-by-taking-the-absolute-values-of-the-elements-of-a-positive</guid>
+      <pubDate>Mon, 02 Sep 2024 14:01:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>GMM 中的显著性检验是否比 ML 中的更可靠，尤其是在不满足规律性条件时？</title>
+      <link>https://stats.stackexchange.com/questions/653742/is-the-significance-test-in-gmm-more-reliable-than-it-in-ml-especially-when-the</link>
+      <description><![CDATA[最大似然法 vs 广义矩法
+从上题答案可知，当模型精确识别，且GMM中的权重矩阵为恒等矩阵时，GMM和ML可以得到相同的参数估计量，此时两种方法得到的估计量的方差不会相同，所以基于GMM方差估计量的显著性检验会更可靠，尤其是在模型误差项的正则性条件不满足的情况下，对吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653742/is-the-significance-test-in-gmm-more-reliable-than-it-in-ml-especially-when-the</guid>
+      <pubDate>Mon, 02 Sep 2024 12:49:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>进行显著性检验，结果以与组内对照组的比率表示</title>
+      <link>https://stats.stackexchange.com/questions/653741/testing-for-significance-where-results-are-expressed-as-a-ratio-to-an-in-group-c</link>
+      <description><![CDATA[我最初在生物学堆栈交换网站上问了这个问题，但后来意识到在统计网站中这个问题可能更有意义：
+我有一个大型数据集，它代表了一个酵母缺失突变体库及其在化合物处理下的生长情况。在突变体旁边的库中有一个野生型菌株，我想将每个突变体对治疗的反应表示为与野生型反应的比率，以突出显示对化合物表现出异常敏感性（超敏或抗性）的突变体。到目前为止，我已经确定了一个计算比率的公式，但很难想出一种方法来测试结果的显著性。
+例如（不是实际数据，仅用于演示数据结构）：
+
+其中我计算校正比率的方式如下：
+((处理突变体的生长)/(处理 WT 的生长))/((对照突变体的生长)/( WT at control))
+
+即通过处理校正比率以解释控制条件下的生长差异
+这样我就可以将灵敏度定义为校正比率&lt;1，将抗性定义为&gt;1
+有没有办法将简单的统计测试纳入其中，以突出显示与 WT 有显着差异的比率（其中比率始终等于 1）？我对每个突变体和 WT 都有重复（通常 N=4），因此可以轻松计算 SD/SEM 等。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653741/testing-for-significance-where-results-are-expressed-as-a-ratio-to-an-in-group-c</guid>
+      <pubDate>Mon, 02 Sep 2024 12:40:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有幂律分布的自激马尔可夫过程的文献</title>
+      <link>https://stats.stackexchange.com/questions/653740/literature-for-self-excited-markovian-processes-with-power-law-distributions</link>
+      <description><![CDATA[我正在研究一个事件时间序列模型，该模型具有事件间隔的幂律分布。我选择了一个由随机微分方程控制的点过程
+$$
+d\lambda = -a \lambda^2 dt + b\eta,
+$$
+其中 $\lambda$ 是泊松过程的强度，$a$ 和 $b$ 是常数，$\eta \sim \text{Ber}(\lambda dt)$ 是事件变量，如果事件发生则等于 1，否则等于 0。这个方程式看起来很简单，一定有人研究过它或类似的方程式，但似乎找不到它。有什么建议应该在哪里寻找吗？
+PS。我熟悉霍克斯过程、非线性霍克斯过程和二次霍克斯过程，但它们都是非时间局部的。此外，霍克斯过程根本不为事件间隔提供幂律分布，而其他模型似乎要复杂得多]]></description>
+      <guid>https://stats.stackexchange.com/questions/653740/literature-for-self-excited-markovian-processes-with-power-law-distributions</guid>
+      <pubDate>Mon, 02 Sep 2024 12:39:40 GMT</pubDate>
+    </item>
     <item>
       <title>比较排名时的百分比变化与绝对变化</title>
       <link>https://stats.stackexchange.com/questions/653739/percentage-changes-versus-absolute-changes-when-comparing-rankings</link>
@@ -107,40 +320,11 @@ $$
       <link>https://stats.stackexchange.com/questions/653733/how-do-i-test-if-a-population-change-is-statistically-significant</link>
       <description><![CDATA[我有数据显示 2014 年和 2024 年全国所有教区的不同统计数据（我实际上也有这两年的数据，但我比较的是这两年）。数据包括教会成员的百分比和当年举行的婚礼数量。这些数字可能很小，取决于是否有一些家庭迁入或迁出教区。因此，每年可能会有一些随机变化。
 我想知道观察到的变化是否可能是偶然的，或者是否是一个重大的变化（所以我的测试假设是没有变化）。问题是不同年份的值不是独立的。有没有简单的方法来测试这个？
-需要澄清的是，我自己并没有对这些数据进行任何分析。我将数据呈现给那些大多不熟悉数学的人，但他们将根据这些数字制定未来教区发展的战略。他们可能会过度解读变化，而没有考虑到变化可能是由随机变化引起的。理想情况下，我希望能够指出那些变化太小/基于太少的人（或仪式）而他们不应该考虑的情况。]]></description>
+需要澄清的是，我自己并没有对这些数据进行任何分析。我将数据呈现给那些大多不熟悉数学的人，但他们将根据这些数字制定未来教区发展的战略。他们可能会过度解读变化，而不考虑变化可能是由随机变化引起的。理想情况下，我希望能够指出那些变化太小/基于太少的人（或仪式）而他们不应该考虑的情况。
+编辑：
+根据评论，我正在反复考虑解决问题的不同方法。我最终可能会使用所有可用的年份进行某种趋势分析。这将降低所选年份是异常值并因此产生错误印象的风险。但是当我有比例时，我无法弄清楚要使用哪种测试。我发现的测试似乎没有考虑样本量。你有什么建议吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/653733/how-do-i-test-if-a-population-change-is-statistically-significant</guid>
       <pubDate>Mon, 02 Sep 2024 08:48:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>r 中具有固定效应的交互图[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/653732/interaction-plot-with-fixed-effects-in-r</link>
-      <description><![CDATA[我试图绘制两个协变量之间的交互项，但 r 中的交互包似乎不支持 feols 包。回归代码如下
-model3 &lt;- feols(Preferences_for_redistribution1~ inequality +
-I(log(average_household_wage2_current)) + I(log(debt_current)*inequality) +
-I(log(realestate_assets_current)) +
-I(log(financial_assets_current)) +
-I(log(debt_current)) +
-I(martial_status==1) + age + I(age^2) +
-ideology + high_school + college|year + individual , data = analysisdf_rel1_all)
-我只是想看看debt_current和inequality之间的相互作用。债务当前是一个连续变量，不平等是一个 5 点尺度变量，我也不确定是否应该转换为数字或因子。有人能就此提供一些指导吗？谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/653732/interaction-plot-with-fixed-effects-in-r</guid>
-      <pubDate>Mon, 02 Sep 2024 07:26:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>高度不平衡的样本如何影响 A/B 测试结果的 1 类和 2 类错误？</title>
-      <link>https://stats.stackexchange.com/questions/653730/how-does-a-highly-imbalanced-sample-affect-the-type-1-and-2-errors-of-a-b-test-r</link>
-      <description><![CDATA[假设我有一个 A/B 测试，其中两个样本大小差异很大（即 1000 和 100）。我想知道是否有一个框架可以让我思考第 1 类和第 2 类错误通常会发生什么？例如，我在另一篇文章中的这个答案中看到
-
-如果最小样本量是方差最大的样本量，则测试将产生夸大的第 I 类错误。
-
-我想知道为什么会这样。我的直觉是，如果我们要检查 $t$ 统计量，它由均值差除以标准误差组成：
-$$
-t=\frac{\bar{X}_1-\bar{X}_2}{SE}
-$$
-由于样本量小且方差通常较大，$SE$ 似乎会被夸大，导致 $t$ 统计量较小，从而更难拒绝原假设。这似乎意味着第 1 类错误（假设原假设为真，错误地拒绝原假设的概率）会降低，因为现在通常更难拒绝原假设。
-但是，这与上面的答案和引用不一致。为什么？谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653730/how-does-a-highly-imbalanced-sample-affect-the-type-1-and-2-errors-of-a-b-test-r</guid>
-      <pubDate>Mon, 02 Sep 2024 05:50:55 GMT</pubDate>
     </item>
     <item>
       <title>何时使用负二项式和泊松回归</title>
@@ -150,104 +334,28 @@ $$
       <pubDate>Mon, 02 Sep 2024 04:35:12 GMT</pubDate>
     </item>
     <item>
-      <title>如果有两个概率，你怎样描述其中一个概率比另一个概率大多少？</title>
-      <link>https://stats.stackexchange.com/questions/653721/if-you-have-two-probabilities-how-do-you-describe-how-much-more-likely-one-is-t</link>
-      <description><![CDATA[所以，如果我有两个统计数据，例如，
-“如果你在吸毒后开车，发生致命车祸的概率为 0.135%，而如果你在醉酒后开车，发生致命车祸的概率为 0.108%。”
-如果你在吸毒后开车，发生致命车祸的概率是高出 25% 还是高出 0.027%？
-我在想，这意味着今年每 100000 名吸毒后开车的人中，有 135 名会撞死人，但每 100000 名醉酒后开车的人中，有 108 名会撞死人。这高出 25%。但我不确定是否是这样。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653721/if-you-have-two-probabilities-how-do-you-describe-how-much-more-likely-one-is-t</guid>
-      <pubDate>Mon, 02 Sep 2024 01:53:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>根据后验预测分布定义概率</title>
-      <link>https://stats.stackexchange.com/questions/653697/defining-probabilities-from-the-posterior-predictive-distribution</link>
-      <description><![CDATA[我想了解如何在给定后验预测分布的情况下定义输出处于特定区间的概率。
-假设一个预测模型具有一些参数$\theta$和一些先验，$y$是连续的。 $\epsilon$ 是区间 $[a, b]$
-我们将后验预测分布定义为
-$$
-p(\tilde{y} \mid \mathbf{y}) = \int_{\Theta} p(\tilde{y} \mid \theta) p(\theta \mid \mathbf{y}) \, d\theta
-$$
-这是定义输出在特定区间的概率的方法吗？
-$$
-P(\tilde{y} \in \epsilon \mid \mathbf{y}) = \int_{\Theta} P(\tilde{y} \in \epsilon \mid \theta) \, p(\theta \mid \mathbf{y}) \, d\theta
-$$
-正确，或者我应该使用后验预测分布积分的方法：
-$$
-P(\tilde{y} \in \epsilon \mid \mathbf{y}) = \int_a^b p(\tilde{y} \mid \mathbf{y}) \, d\tilde{y} = \int_a^b \left( \int_{\Theta} p(\tilde{y} \mid \theta) \, p(\theta \mid \mathbf{y}) \, d\theta \right) d\tilde{y}?
-$$]]></description>
-      <guid>https://stats.stackexchange.com/questions/653697/defining-probabilities-from-the-posterior-predictive-distribution</guid>
-      <pubDate>Sun, 01 Sep 2024 12:05:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>多元线性回归中的样本内与样本外是什么？</title>
-      <link>https://stats.stackexchange.com/questions/653696/what-is-in-sample-vs-out-of-sample-in-a-multiple-linear-regression</link>
-      <description><![CDATA[我只是在思考对于多元线性回归，什么会被视为插值与外推，然后意识到我不确定它到底如何定义，也无法在网上找到答案。
-具体来说，假设您有一个随机的 $d$ 维点 $x_j$ 集合，其中 $1 \leq j \leq n$，我获得了一个多元回归估计值 $\beta$。然后，如果我取其他点​​ $a$ 并用 $\hat{y}=\beta^Ta$ 进行预测，$a$ 上的哪些条件会使其在样本内而不是样本外？
-我在想你可以考虑由点 $x_j$ 形成的超矩形，但这仍然感觉你可以拥有不在你的训练数据范围内的点。或者我在想也许它可以由包含所有 $x_j$ 的最小凸体来定义？]]></description>
-      <guid>https://stats.stackexchange.com/questions/653696/what-is-in-sample-vs-out-of-sample-in-a-multiple-linear-regression</guid>
-      <pubDate>Sun, 01 Sep 2024 11:14:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>适合嵌套数据的线性混合模型</title>
-      <link>https://stats.stackexchange.com/questions/653607/appropriate-linear-mixed-model-for-nested-data</link>
-      <description><![CDATA[我请求帮助我尝试运行的线性混合模型的结构。以下是我的研究描述：
-我正在研究不同林分类型（纯橡树、纯松树和混合）对土壤真菌群落的影响（在本例中，对于 LMM，我使用外生菌根真菌的丰度或香农指数作为响应变量）。
-实验设计如下：
-我在全国有 6 个地点（区块）。在每个地点，我有 3 个地块。每个地块都有一个处理（林分类型），所以基本上在每个地点我都有我正在研究的 3 个处理。在每个地块内，我采集了 4 个样本（以获得更大的处理样本量，尽管我知道它们是非独立的，因此需要线性混合模型）。
-我的目标是比较处理。 我不想比较图内的样本。我想比较图，并考虑到它们在块（位置）内。
-我已经有一个使用 permute 包的排列方案。我对其他统计数据也这样做了，并且我已确认这种排列确实满足了我的需求。这里是：
-perm &lt;- with(data_Q, how(nperm = 999,
-plots = Plots(strata = Plot, type = &quot;free&quot;),
-within = Within(type = &quot;none&quot;),
-blocks = Location))
+      <title>贝叶斯定理和逆概率</title>
+      <link>https://stats.stackexchange.com/questions/653724/bayes-theorem-and-the-inverse-probabilities</link>
+      <description><![CDATA[如果我有以下数据：
+p（发生致命车祸）= 0.02%
+p（吸毒后驾车）= 4.7%
+p（吸毒后驾车 | 发生致命车祸）= 31.8%
 
-我的问题是如何为 LMM 制作类似的结构？
-最初，我想到的是这样的：
-lmer(Ectomyc ~ Stand_type + (1 + Stand_type | Location) + (1 | Location:Plot))
+我计算出 p（发生致命车祸 | 吸毒后驾车）= 0.135%
+是否可以这样说：
+p（未吸毒后驾车）= 1 - p（吸毒后驾车）= 95.3%？
 
-但由于我不想比较图内的样本，所以我不知道是否应该取出 + (1 | Location:Plot)。但与此同时，我不知道如果将其取出，是否会弄乱我的数据的嵌套结构（基本上消除了一个级别）。
-提前致谢！
-编辑：
-我忘了说关于这项研究的一个重要信息。每个样本都是在地块的每个象限（N、S、W、E）上收集的，我确实有区分每个象限的信息（例如树木数量）。当我说我不想比较地块内的样本时，我的意思是我对比较地块内的象限不感兴趣（因为它们不独立），只比较不同的地块。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653607/appropriate-linear-mixed-model-for-nested-data</guid>
-      <pubDate>Fri, 30 Aug 2024 09:46:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>我可以对治疗组和对照组进行具有不同聚合水平的微合成控制分析吗？</title>
-      <link>https://stats.stackexchange.com/questions/653605/can-i-perform-a-micro-synthetic-control-analysis-with-different-aggregation-leve</link>
-      <description><![CDATA[我正在使用 R 中的 microsynth 包进行分析，以评估增加警察存在对从官方调查中获得的各种结果指标的影响。我的治疗区域包括特定的社区，这些社区在基线和干预后调查中都进行了过度抽样。然而，治疗社区和控制社区的干预前调查每次迭代的观察次数都很少，导致结果变量的估计不准确。为了解决这个问题，我正在考虑在更高级别（地区级别）汇总控制数据，同时将治疗数据保持在社区级别。
-鉴于此，我有几个问题：
+和 . . .
 
-在微合成控制分析中对治疗区域和控制区域使用不同级别的聚合在方法上是否合理？具体来说，我担心在区级聚合控制区域而将治疗区域保持在邻里级可能会引入偏差或使合成控制方法所依据的假设无效。
-microsynth 的手册提到（在讨论标题下），该方法是 Synth 包的扩展，它警告不要在治疗区域中聚合数据而将控制区域分解。这是否意味着通常不鼓励在治疗和控制区域的不同级别进行聚合？
-如果可以接受使用不同的聚合级别，那么在使用 microsynth 实施分析时，我是否应该考虑任何特定的调整或注意事项？
+p(未吸毒时驾车 | 发生致命车祸) 
+= 1 - p(吸毒时驾车 | 发生致命车祸) 
+= 68.2%
 
-我很感激任何可以帮助确定这种方法是否有效或是否有更好的替代方案的见解或参考资料。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653605/can-i-perform-a-micro-synthetic-control-analysis-with-different-aggregation-leve</guid>
-      <pubDate>Fri, 30 Aug 2024 09:18:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>纵向数据的粗化精确匹配 (CEM)</title>
-      <link>https://stats.stackexchange.com/questions/653600/coarsened-exact-matching-cem-on-longitudinal-data</link>
-      <description><![CDATA[我想比较两个教育项目在不同时间点的效果。换句话说，我在 3 个不同的时间点（T1、T2 和 T3）测试了 2 组学生。我对 T1 的数据进行了 CEM，以便 2 个组在项目开始时在 3 个协变量上尽可能接近匹配。这样，我就可以清楚地评估项目的影响，而不会受到这些协变量的混淆影响。现在，我想评估这些匹配组在 T2 和 T3 的表现差异。这是我遇到一些问题的地方。
-
-这里的估计量是否与 ATT 和条件效应有关（因为匹配是分层进行的）？
-
-如果我想计算效应大小来比较组表现的差异（例如，cohen 的 d），是否应该对其进行加权？因此，例如，在比较 T1、T2 或 T3 的组表现时，我应该使用 T1 匹配的权重吗？
-
-我想在 T3 执行回归分析，包括匹配过程中未包括的一些其他混杂协变量（以便匹配后样本不会变得太小）。因为这是一个分层的纵向数据集，所以我通常执行线性混合建模 (LMM)，对科目和学校进行随机截距。这样可以吗？T1 的权重是否也需要包含在 LMM 中？
-
+因此：
+p(发生致命车祸 | 未吸毒时驾车) = 0.014%
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/653600/coarsened-exact-matching-cem-on-longitudinal-data</guid>
-      <pubDate>Fri, 30 Aug 2024 07:05:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>将对数链接应用于分位数回归</title>
-      <link>https://stats.stackexchange.com/questions/652233/applying-log-link-to-quantile-regression</link>
-      <description><![CDATA[我正在研究分位数回归，我开始思考如何实现对数链接（因为我使用的是正界数据）。我听说分位数回归在变换下是等变的，所以我开始思考，即使在线性回归中情况并非如此，对响应变量进行对数处理是否能产生与对数链接相同的效果？这有效吗？还是我运用了错误的想法？我注意到，在 R 中的“rq”函数中似乎没有一种简单的方法来指定对数链接，所以我正在尝试寻找一种解决方法。]]></description>
-      <guid>https://stats.stackexchange.com/questions/652233/applying-log-link-to-quantile-regression</guid>
-      <pubDate>Fri, 02 Aug 2024 23:12:23 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/653724/bayes-theorem-and-the-inverse-probabilities</guid>
+      <pubDate>Mon, 02 Sep 2024 02:44:54 GMT</pubDate>
     </item>
     </channel>
 </rss>
