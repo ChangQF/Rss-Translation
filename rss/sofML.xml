@@ -4,7 +4,123 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 03 Sep 2024 03:18:21 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Sep 2024 06:22:18 GMT</lastBuildDate>
+    <item>
+      <title>SAM 模型中未检测到图像 - 无法处理此数据类型错误</title>
+      <link>https://stackoverflow.com/questions/78942834/image-not-detecting-in-sam-model-cannot-handle-this-data-type-error</link>
+      <description><![CDATA[下面是我的代码。每当我上传任何类型的图像时，都会出现相同的错误。它是否只处理高质量图像（或任何特定类型的图像）或我的代码中存在任何错误？
+错误
+`TypeError：无法处理此数据类型：（1, 1, 640, 3），|u1`
+
+code
+
+import torch
+import numpy as np
+from PIL import Image
+from fragment_anything import sam_model_registry, SamPredictor
+from google.colab import files
+
+# 加载 SAM 模型
+
+sam = sam_model_registry\[&quot;vit_b&quot;\](checkpoint=&quot;/content/sam_vit_b_01ec64.pth&quot;)
+predictor = SamPredictor(sam)
+
+uploaded = files.upload()
+image_name = list(uploaded.keys())\[0\]
+
+image = Image.open(image_name).convert(&quot;RGB&quot;)
+image_np = np.array(image)
+
+# 检查图像形状
+
+print(f&quot;原始图像形状：{image_np.shape}&quot;)
+
+# 删除存在的其他维度
+
+if len(image_np.shape) == 4 and image_np.shape\[0\] == 1:
+image_np = image_np.squeeze(0) # 删除第一个维度（如果其大小为 1）
+
+# 确保图像的格式和类型正确
+
+image_np = image_np.astype(np.uint8)
+
+print(f&quot;处理后的图像形状：{image_np.shape}&quot;)
+
+# 将图像设置为 SAM预测器
+
+predictor.set_image(image_np)
+
+# 预测图像的蒙版
+
+masks = predictor.predict()
+
+# 确保您有蒙版并使用它们
+
+if mask is not None and len(masks) \&gt; 0:
+mask = mask\[0\] # 假设第一个蒙版是您需要的
+
+# 将蒙版应用于图像
+masked_image = np.where(mask[..., None], image_np, 0) # 将蒙版应用于图像
+
+# 将蒙版图像转换回 PIL 图像
+masked_image = Image.fromarray(masked_image)
+
+# 显示蒙版图像
+masked_image.show()
+
+else:
+print(&quot;未找到给定图像的蒙版。&quot;)
+
+我尝试了不同的图像，上面的代码是 chatgpt 经过一些修改后给出的。仍然没有运气。]]></description>
+      <guid>https://stackoverflow.com/questions/78942834/image-not-detecting-in-sam-model-cannot-handle-this-data-type-error</guid>
+      <pubDate>Tue, 03 Sep 2024 05:49:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>RL：梯度赌博机代理</title>
+      <link>https://stackoverflow.com/questions/78942595/rl-gradient-bandit-agent</link>
+      <description><![CDATA[我正在阅读 Sutton&amp;Barto 的《强化学习：导论》。尝试测试梯度强盗代理（第 2.7 章）。但性能极低。我试过：
+
+使用基线 = 平均奖励，不使用基线；
+alpha = 0.1、0.2、0.3、0.4；
+初始偏好 H = 0、1、10、100。
+
+没有任何帮助。
+这是我的 Python 代码，用于代理的 生命步骤 = 动作选择 + 参数更新 (self = agent)：
+# 用于概率计算：
+pref_exps = np.exp(self.params[&quot;preferences&quot;])
+pref_exps_sum = sum(pref_exps)
+
+# 选择强盗：
+choice_dice = np.random.uniform() * pref_exps_sum
+accum_pref_exp = 0
+for i, pref_exp in enumerate(pref_exps):
+accum_pref_exp += pref_exp
+if accum_pref_exp &gt;= choice_dice:
+self.chosen_bandit_i = i
+break
+
+# self.reward 在此处填充：
+self.perform_bandit(self.chosen_bandit_i)
+
+# 更新基线：
+self.params[&quot;lifetime&quot;] += 1
+self.params[&quot;average_reward&quot;] += 1 / self.params[&quot;lifetime&quot;] * (self.reward - self.params[&quot;average_reward&quot;])
+
+# 更新偏好：
+for i, pref_exp in enumerate(pref_exps):
+probability = pref_exp / pref_exps_sum
+if i == self.chosen_bandit_i:
+self.params[&quot;preferences&quot;][i] += self.params[&quot;alpha&quot;] * (self.reward - self.params[&quot;average_reward&quot;]) * (1 - probability)
+else:
+self.params[&quot;preferences&quot;][i] -= self.params[&quot;alpha&quot;] * (self.reward - self.params[&quot;average_reward&quot;]) * probability
+
+此代码导致性能极差（100 个代理，每个代理访问自己的 10 个 1-armed-bandits，测试超过 2000 步），我们可以从下图中看到：
+
+我看过这篇帖子，修复错误后，它的代码似乎与我的代码相同，这也是我写这篇帖子的原因。但与我的代码不同，那篇帖子的代码在纠正后可以正常工作！
+我不知道自己在哪里犯了错误。你们能帮我正确使用Gradient-bandit agent的全部功能吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78942595/rl-gradient-bandit-agent</guid>
+      <pubDate>Tue, 03 Sep 2024 03:40:50 GMT</pubDate>
+    </item>
     <item>
       <title>我应该做什么 Web 开发或 Ai/ML [关闭]</title>
       <link>https://stackoverflow.com/questions/78942412/what-should-i-do-web-development-or-ai-ml</link>
@@ -264,14 +380,6 @@ x = torch.randn(5, input_dim)。
       <pubDate>Mon, 02 Sep 2024 12:42:44 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 Vast.Ai 托管机器学习 Flask 应用程序[关闭]</title>
-      <link>https://stackoverflow.com/questions/78940345/how-to-host-mochine-learning-flask-application-with-vast-ai</link>
-      <description><![CDATA[我想托管我的 Flask 应用程序，该应用程序包含其推理在 gpu 上进行的模型，这就是我决定使用 vast.ai 的原因，它提供便宜且优质的 gpu，但我不知道如何为我的模型托管设置 vast.ai
-请问您能否提供一些关于如何在 vast.ai 上托管我的项目的教程或指南，它与其他实时服务器有何不同？]]></description>
-      <guid>https://stackoverflow.com/questions/78940345/how-to-host-mochine-learning-flask-application-with-vast-ai</guid>
-      <pubDate>Mon, 02 Sep 2024 11:58:30 GMT</pubDate>
-    </item>
-    <item>
       <title>我无法训练 vit_base_patch16_224 模型来为屏幕截图创建高质量的嵌入</title>
       <link>https://stackoverflow.com/questions/78939966/im-failing-to-train-a-vit-base-patch16-224-model-for-creating-high-quality-embe</link>
       <description><![CDATA[我创建了一个使用 vit_base_patch16_224 作为编码器的自动编码器。我使用大约 100_000 张屏幕截图进行了几个轮次的训练，但解码器似乎根本没有学会解码。损失似乎在减少。也许你们中的一些人对我可能做错的事情有一些有用的建议。
@@ -343,81 +451,6 @@ return x
       <pubDate>Mon, 02 Sep 2024 10:21:45 GMT</pubDate>
     </item>
     <item>
-      <title>水印灰度图像 PSNR 较好，但水印提取 BER 较高</title>
-      <link>https://stackoverflow.com/questions/78939872/high-ber-in-watermark-extraction-despite-good-psnr-in-watermarking-grayscale-ima</link>
-      <description><![CDATA[我正在开展一个为灰度图像添加水印的项目，尽管重建图像的峰值信噪比 (PSNR) 很高，但提取的水印中还是出现了高误码率 (BER) 的问题。下面是我使用的详细过程：
-
-输入准备：
-
-
-我从 128x128 灰度图像开始，我将其称为“原始”图像。
-
-我将这些图像重塑为 126x128，然后将它们与 16x16 二进制水印图像（其中像素值为 0 或 1）连接起来。
-
-此连接产生 128x128 的“连接”作为我的模型输入的图像。
-
-
-
-模型架构：
-
-
-第一个 CNN：该网络将 128x128 连接图像作为输入，并输出 128x128 灰度图像。目标是使此输出图像尽可能接近原始 128x128 灰度图像。
-
-第一个 CNN 的损失函数：我使用 PSNR 的倒数（1/PSNR（原始，输出））作为此 CNN 的损失。 PSNR 通常在 40 dB 以上，这表明重建效果良好。
-
-第二个 CNN：第二个网络获取第一个 CNN 的输出并尝试提取 16x16 水印图像。
-
-第二个 CNN 的损失函数：我使用原始水印和提取的水印之间的误码率 (BER) 作为此 CNN 的损失。不幸的是，BER 仍然非常高，大约为 50%。
-
-
-问题：
-虽然重建图像的 PSNR 很好，但高 BER 导致总损失约为 50%，这对我的应用来说是不理想的。
-这是损失计算的代码：
-def psnr_loss(output, target):
-mse_loss = nn.MSELoss()(output, target) # 均方误差
-if mse_loss == 0:
-return torch.tensor(float(&#39;inf&#39;)).to(output.device) # 处理零除的情况
-L = 255.0 # 图像中的最大像素值
-psnr_value = 10 * torch.log10(L**2 / mse_loss)
-return psnr_value # 返回 PSNR（单位为 dB）
-
-def ber_loss(output, target, Threshold=0.5):
-# 对输出进行阈值处理，将其转换为二进制（0 或 1）
-output_binary = (output &gt; Threshold).float()
-
-# 计算误码数
-bit_errors = torch.sum(torch.abs(output_binary - target))
-
-# 计算总位数
-total_bits = target.numel()
-
-# 将 BER 计算为误码与总位数的比率
-ber = bit_errors / total_bits
-
-return ber
-
-# 组合损失类
-class CombinedLoss(nn.Module):
-def __init__(self, ber_weight=1.0):
-super(CombinedLoss, self).__init__()
-self.ber_weight = ber_weight
-
-def forward(self, watermark_output, watermark_target, image_output, image_target):
-# 计算逆 PSNR 以最小化
-psnr = 1 / psnr_loss(image_output, image_target)
-
-# 计算 BER（误码率）
-ber = ber_loss(watermark_output, watermark_target)
-
-# 返回组合损失
-return psnr + self.ber_weight * ber
-
-这里我还附上了训练的输出。
-带有损失、PSNR 和 BER 的模型输出]]></description>
-      <guid>https://stackoverflow.com/questions/78939872/high-ber-in-watermark-extraction-despite-good-psnr-in-watermarking-grayscale-ima</guid>
-      <pubDate>Mon, 02 Sep 2024 09:54:18 GMT</pubDate>
-    </item>
-    <item>
       <title>如果模型在训练集上表现正常但在验证集上表现异常，这意味着什么[关闭]</title>
       <link>https://stackoverflow.com/questions/78938961/what-does-it-mean-if-a-model-acts-normal-on-a-training-set-but-is-abnormal-on-va</link>
       <description><![CDATA[我尝试将堆叠在一起的 25x25 像素图像分类为 50x25 像素图像是相同 (1) 还是不同 (0)。我使用 keras 创建 NN 层。 Keras 顺序层如下所示：
@@ -453,37 +486,6 @@ metrics=[&#39;accuracy&#39;])
       <pubDate>Mon, 02 Sep 2024 04:51:20 GMT</pubDate>
     </item>
     <item>
-      <title>自定义链接矩阵、树状图标签不正确</title>
-      <link>https://stackoverflow.com/questions/78938314/custom-linkage-matrix-dendrogram-labels-arent-correct</link>
-      <description><![CDATA[我创建了自己的链接函数，它生成具有正确 scipy 格式（n-1x4）的链接矩阵。
-当我尝试将树状图函数与用于链接的标签一起使用时，树状图显示在迭代中某些序列被合并，但链接矩阵显示其他序列在同一迭代中被合并。
-添加图像：
-树状图序列 ID
-这些是实际合并的序列：“步骤 1：合并 80c8714e-1899-407e-960d-5391bfba9a75 和 b4a3e9f4-aae9-41d4-930a-9d2422e1b37f”
-如您所见，这些是不同的序列。
-我想问一下我是否遗漏了什么有一种方法可以使用链接矩阵来创建序列标签，因为它们是正确的。
-（此外，树状图显示正确的输出，只有标签不正确）
-这是树状图的代码
-sequence_string_data = [code_from_before]
-linkage_matrix = clustering(sequence_string_data)
-seq_ids = list(sequences.keys())
-seq_labels = [f&quot;{seq_id} (size={len(sequences[seq_id])})&quot; for seq_id in seq_ids]
-
-plt.figure(figsize=(15, 10))
-dendro = dendrogram(linkage_matrix, labels=seq_labels, leaf_rotation=90, leaf_font_size=8)
-
-我尝试更改这两个函数以查看是否还有其他问题，但无济于事。]]></description>
-      <guid>https://stackoverflow.com/questions/78938314/custom-linkage-matrix-dendrogram-labels-arent-correct</guid>
-      <pubDate>Sun, 01 Sep 2024 20:25:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>数据分类不适用于 BERT 模型</title>
-      <link>https://stackoverflow.com/questions/78936387/data-classification-doesnt-work-with-bert-model</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78936387/data-classification-doesnt-work-with-bert-model</guid>
-      <pubDate>Sun, 01 Sep 2024 00:59:26 GMT</pubDate>
-    </item>
-    <item>
       <title>Yolov9 C++ 推理输出的 x、y、宽度和高度不符合预期</title>
       <link>https://stackoverflow.com/questions/78923447/yolov9-c-inference-outputs-for-x-y-width-and-height-not-as-expected</link>
       <description><![CDATA[]]></description>
@@ -509,6 +511,22 @@ return &quot;Back&quot;
 谢谢。]]></description>
       <guid>https://stackoverflow.com/questions/78842184/text-image-binary-classifier-without-deep-learning-or-tesseract</guid>
       <pubDate>Wed, 07 Aug 2024 06:46:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Core ML 中的 MLMultiArray 中设置正确的步幅？步幅的值是什么意思？</title>
+      <link>https://stackoverflow.com/questions/72166348/how-to-set-right-strides-in-mlmultiarray-in-core-ml-whats-the-strides-values</link>
+      <description><![CDATA[如何在 Core ML 中的 MLMultiArray 中设置正确的 strides？每个 strides 的值的含义是什么？
+例如，假设 Core ML 模型输入 shape 为 (1, 3, 1280, 720)，那么在使用 initWithDataPointer:shape:dataType:strides:deallocator:error: 创建 MLMultiArray 对象时如何设置 strides？
+我从一些网站将 strides 设置为 (720 * 1280, 720 * 1280, 720, 1)，但我不知道为什么这样设置，或者是否正确。 shape 和 strides 之间有什么联系。Apple 开发者网站上没有更多相关文档。]]></description>
+      <guid>https://stackoverflow.com/questions/72166348/how-to-set-right-strides-in-mlmultiarray-in-core-ml-whats-the-strides-values</guid>
+      <pubDate>Mon, 09 May 2022 02:07:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将两个不同的训练过的 ML 模型合二为一？</title>
+      <link>https://stackoverflow.com/questions/64801479/how-to-combine-two-different-trained-ml-models-as-one</link>
+      <description><![CDATA[我根据两个不同的数据集训练了两个 ml 模型。然后我将它们保存为 model1.pkl 和 model2.pkl 。有两个用户输入（不是模型的输入数据），如 x=0 和 x=1，如果 x=0，我必须使用 model1.pkl 进行预测，否则我必须使用 model2.pkl 进行预测。我可以使用 if 条件来执行它们，但我的问题是我必须知道是否有可能将其保存回 model.pkl 包括此条件语句。如果我将它们组合并保存为模型，它将很容易在其他 IDE 中加载。]]></description>
+      <guid>https://stackoverflow.com/questions/64801479/how-to-combine-two-different-trained-ml-models-as-one</guid>
+      <pubDate>Thu, 12 Nov 2020 09:44:27 GMT</pubDate>
     </item>
     </channel>
 </rss>
