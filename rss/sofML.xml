@@ -4,7 +4,128 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 02 Sep 2024 21:14:50 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Sep 2024 01:10:26 GMT</lastBuildDate>
+    <item>
+      <title>是否可以将 PyTorch CVAE 模型转换为 Java 程序？</title>
+      <link>https://stackoverflow.com/questions/78942272/is-it-possible-to-convert-a-pytorch-cvae-model-into-a-java-program</link>
+      <description><![CDATA[我编写了一个 Python 程序，可以使用 CVAE 模型架构生成图像。它使用 torch、torchvision、pillow、BertTokenizer 和 numpy 等库。它从 .pth 文件加载权重。我的代码如下所示：
+import torch
+import torch.nn as nn
+from torchvision import transforms
+from PIL import Image
+from transformers import BertTokenizer
+import numpy as np
+
+LATENT_DIM = 128
+HIDDEN_DIM = 256
+model_path = &quot;./model.pth&quot;
+device = torch.device(&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+
+class TextEncoder(nn.Module):
+def __init__(self, input_size, output_size):
+super(TextEncoder, self).__init__()
+self.fc = nn.Linear(input_size, output_size)
+
+def forward(self, x):
+return self.fc(x)
+
+class CVAE(nn.Module):
+def __init__(self, input_encoder):
+super(CVAE, self).__init__()
+self.input_encoder = input_encoder
+
+self.encoder = nn.Sequential(
+nn.Conv2d(4, 32, 3, stride=1, padding=1),
+nn.ReLU(),
+nn.Conv2d(32, 64, 3, stride=2, padding=1),
+nn.ReLU(),
+nn.Conv2d(64, 128, 3, stride=2, padding=1),
+nn.ReLU(),
+nn.Flatten(),
+nn.Linear(128 * 4 * 4, HIDDEN_DIM),
+)
+
+self.fc_mu = nn.Linear(HIDDEN_DIM + HIDDEN_DIM, LATENT_DIM)
+self.fc_logvar = nn.Linear(HIDDEN_DIM + HIDDEN_DIM, LATENT_DIM)
+
+self.decoder_input = nn.Linear(LATENT_DIM + HIDDEN_DIM, 128 * 4 * 4)
+self.decoder = nn.Sequential(
+nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1),
+nn.ReLU(),
+nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),
+nn.ReLU(),
+nn.Conv2d(32, 4, 3, stride=1, padding=1),
+nn.Tanh(),
+)
+
+def encode(self, x, c):
+x = self.encoder(x)
+x = torch.cat([x, c], dim=1)
+mu = self.fc_mu(x)
+logvar = self.fc_logvar(x)
+return mu, logvar
+
+def decrypt(self, z, c):
+z = torch.cat([z, c], dim=1)
+x = self.decoder_input(z)
+x = x.view(-1, 128, 4, 4)
+return self.decoder(x)
+
+def reparameterize(self, mu, logvar):
+std = torch.exp(0.5 * logvar)
+eps = torch.randn_like(std)
+return mu + eps * std
+
+def forward(self, x, c):
+mu, logvar = self.encode(x, c)
+z = self.reparameterize(mu, logvar)
+return self.decode(z, c), mu, logvar
+
+tokenizer = BertTokenizer.from_pretrained(&quot;bert-base-uncased&quot;)
+
+def generate_image(model, text_prompt, device):
+coded_input = tokenizer(
+text_prompt, padding=True, truncation=True, return_tensors=&quot;pt&quot;
+)
+input_ids =coded_input[&quot;input_ids&quot;].to(device)
+tention_mask =coded_input[&quot;attention_mask&quot;].to(device)
+
+使用 torch.no_grad():
+text_encoding = model.text_encoder(input_ids,tention_mask)
+
+z = torch.randn(1, LATENT_DIM).to(device)
+
+使用 torch.no_grad():
+generated_image = model.decode(z, text_encoding)
+
+generated_image = generated_image.squeeze(0).cpu()
+generated_image = (generated_image + 1) / 2
+generated_image = generated_image.clamp(0, 1)
+generated_image = transforms.ToPILImage()(generated_image)
+
+return generated_image
+
+def clean_image(image, Threshold=0.75):
+np_image = np.array(image)
+alpha_channel = np_image[:, :, 3]
+alpha_channel[alpha_channel &lt;= int(threshold * 255)] = 0
+alpha_channel[alpha_channel &gt; int(threshold * 255)] = 255
+return Image.fromarray(np_image)
+
+def gen(prompt):
+text_encoder = TextEncoder(hidden_​​size=HIDDEN_DIM, output_size=HIDDEN_DIM)
+model = CVAE(text_encoder).to(device)
+model.load_state_dict(torch.load(model_path, map_location=device))
+model.eval()
+return clean_image(generate_image(model, prompt, device)).resize(
+(16, 16), resample=Image.NEAREST
+)
+
+我需要将此生成器和模型嵌入到 jar 文件中，因此必须将脚本转换为 Java 代码。
+我听说过 DL4J 之类的库，但我不知道如何使用它们，或者它们是否支持我想要实现的目标。对此事的任何见解都将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/78942272/is-it-possible-to-convert-a-pytorch-cvae-model-into-a-java-program</guid>
+      <pubDate>Mon, 02 Sep 2024 23:50:39 GMT</pubDate>
+    </item>
     <item>
       <title>在 Google colab 中克隆 GitHub 代码并解决库和依赖项版本不匹配错误</title>
       <link>https://stackoverflow.com/questions/78941693/cloning-github-code-in-google-colab-and-solving-libraries-and-dependency-version</link>
@@ -453,58 +574,6 @@ dendro = dendrogram(linkage_matrix, labels=seq_labels, leaf_rotation=90, leaf_fo
 我尝试更改这两个函数以查看是否还有其他问题，但无济于事。]]></description>
       <guid>https://stackoverflow.com/questions/78938314/custom-linkage-matrix-dendrogram-labels-arent-correct</guid>
       <pubDate>Sun, 01 Sep 2024 20:25:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>Pytorch `DataSet.__getitem__()` 调用时 `index` 大于 `__len__()`</title>
-      <link>https://stackoverflow.com/questions/78937759/pytorch-dataset-getitem-called-with-index-bigger-than-len</link>
-      <description><![CDATA[我有以下 torch 数据集（我已经用随机数生成替换了从文件中读取数据的实际代码，以使其可重现性最小）：
-from torch.utils.data import Dataset
-import torch 
-
-class TempDataset(Dataset):
-def __init__(self, window_size=200):
-
-self.window = window_size
-
-self.x = torch.randn(4340, 10, dtype=torch.float32) # None
-self.y = torch.randn(4340, 3, dtype=torch.float32) 
-
-self.len = len(self.x) - self.window + 1 # = 4340 - 200 + 1 = 4141 
-# 因此，最后一个窗口起始索引 = 4140 
-# 最后一个窗口的范围从 4140 到 4339，即总共 200 个元素
-
-def __len__(self):
-return self.len
-
-def __getitem__(self, index):
-
-# AFAIU，下面的 if 条件永远不应计算为 True，因为最后一个索引
-# __getitem__ 调用应该是 self.len - 1
-if index == self.len: 
-print(&#39;self.__len__(): &#39;, self.__len__())
-print(&#39;Tried to access eleemnt @ index: &#39;, index)
-
-return self.x[index: index + self.window], self.y[index + self.window - 1]
-
-ds = TempDataset(window_size=200)
-print(&#39;len: &#39;, len(ds))
-counter = 0 # 尚未读取任何记录
-for x, y in ds:
-counter += 1 # 上面的行从数据集中读取了另一条记录
-print(&#39;counter: &#39;,计数器)
-
-它打印：
-len: 4141
-self.__len__(): 4141
-尝试访问元素 @ index: 4141
-counter: 4141
-
-据我所知，__getitem__() 被调用，index 范围从 0 到 __len__()-1。如果这是正确的，那么为什么它试图用索引 4141 调用 __getitem__()，而数据本身的长度是 4141？
-我注意到的另一件事是，尽管使用 index = 4141 进行调用，但它似乎没有返回任何元素，这就是为什么 counter 停留在 4141
-我的眼睛（或大脑）在这里错过了什么？
-PS：虽然它不会有任何效果，只是为了确认，我还尝试用 torch DataLoader 包装 DataSet，它仍然表现相同。]]></description>
-      <guid>https://stackoverflow.com/questions/78937759/pytorch-dataset-getitem-called-with-index-bigger-than-len</guid>
-      <pubDate>Sun, 01 Sep 2024 15:52:18 GMT</pubDate>
     </item>
     <item>
       <title>数据分类不适用于 BERT 模型</title>
