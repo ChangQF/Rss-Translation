@@ -4,17 +4,142 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 03 Sep 2024 15:17:19 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Sep 2024 18:21:01 GMT</lastBuildDate>
     <item>
-      <title>要求法学硕士取一个值并从可接受的值列表中选择最适用的标签。我该如何预防幻觉？</title>
+      <title>llama 3.1 使用 AWS Jumpstart 断言 max_prompt_len <= params.max_seq_len</title>
+      <link>https://stackoverflow.com/questions/78945419/llama-3-1-assert-max-prompt-len-params-max-seq-len-with-aws-jumpstart</link>
+      <description><![CDATA[我们已经使用 JumpStart 将 llama 3.1 8b 指令模型部署到 AWS Sagemaker 端点，它适用于小提示，但对于稍大的提示，它会失败（这违背了使用此模型的目的，因为我们选择最大的上下文窗口）：
+assert max_prompt_len &lt;= params.max_seq_len
+
+我认为消息非常清楚，解决方案很简单：更新这些参数，但我找不到任何关于如何在通过 jumpstart 部署模型时更新这些参数的文档（我已经在预测时测试了推理参数，但没有起作用，所以我猜这些应该在部署期间配置）。
+关于如何传递这些参数有什么提示吗？它们通常是如何配置的（一般来说，不是专门针对 jumpstart）？]]></description>
+      <guid>https://stackoverflow.com/questions/78945419/llama-3-1-assert-max-prompt-len-params-max-seq-len-with-aws-jumpstart</guid>
+      <pubDate>Tue, 03 Sep 2024 17:15:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用自动生成的代码重新训练 ML.Net 模型？</title>
+      <link>https://stackoverflow.com/questions/78945171/how-do-you-retrain-an-ml-net-model-using-the-auto-generated-code</link>
+      <description><![CDATA[我已经使用 Ml.net 配置接口训练了一个图像分类模型，并且它生成了自包含的 MlModel.consumption 和 MlModel.training 部分类。
+它还自动生成一个程序，演示如何使用该模型，但没有演示如何重新训练它。
+我曾尝试这样做
+MLContext mlContext = new MLContext();
+
+DataViewSchema modelSchema;
+
+ITransformer trainedModel = mlContext.Model.Load(&quot;MlModel2.mlnet&quot;, out modelSchema);
+
+var x = MLModel2.LoadImageFromFolder(mlContext, @&quot;C:\temp\Latest\Train&quot;);
+
+MLModel2.RetrainModel(mlContext, x);
+
+mlContext.Model.Save(trainedModel, modelSchema, &quot;MlModel2.mlnet&quot;);
+
+但它将“未创建保存器，因为图中没有要恢复的变量”写入控制台，然后什么也不做。
+自动生成的代码如下所示
+// 此文件由 ML.NET Model Builder 自动生成。
+使用 System;
+使用 System.IO;
+使用 System.Collections.Generic;
+使用 System.Linq;
+使用 System.Text;
+使用 System.Threading.Tasks;
+使用 Microsoft.ML;
+使用 Microsoft.ML.Data;
+使用 Microsoft.ML.Vision;
+
+namespace NewCassetteModel
+{
+public partial class MLModel2
+{
+
+/// &lt;summary&gt;
+/// 从文件夹路径加载 IDataView。
+/// &lt;/summary&gt;
+/// &lt;param name=&quot;mlContext&quot;&gt;所有 ML.NET 操作的通用上下文。&lt;/param&gt;
+/// &lt;param name=&quot;folder&quot;&gt; 用于训练的图像数据文件夹。&lt;/param&gt;
+public static IDataView LoadImageFromFolder(MLContext mlContext, string folder)
+{
+var res = new List&lt;ModelInput&gt;();
+var allowedImageExtensions = new[] { &quot;.png&quot;, &quot;.jpg&quot;, &quot;.jpeg&quot;, &quot;.gif&quot; };
+DirectoryInfo rootDirectoryInfo = new DirectoryInfo(folder);
+DirectoryInfo[] subDirectories = rootDirectoryInfo.GetDirectories();
+
+if (subDirectories.Length == 0)
+{
+throw new Exception(&quot;fail to find subdirectories&quot;);
+}
+
+foreach (DirectoryInfo directory in subDirectories)
+{
+var imageList = directory.EnumerateFiles().Where(f =&gt; allowedImageExtensions.Contains(f.Extension.ToLower()));
+if (imageList.Count() &gt; 0)
+{
+res.AddRange(imageList.Select(i =&gt; new ModelInput 
+{
+Label = directory.Name,
+ImageSource = File.ReadAllBytes(i.FullName),
+}));
+}
+}
+return mlContext.Data.LoadFromEnumerable(res);
+}
+
+/// &lt;summary&gt;
+/// 使用在训练过程中生成的管道重新训练模型。
+/// &lt;/summary&gt;
+/// &lt;param name=&quot;mlContext&quot;&gt;&lt;/param&gt;
+/// &lt;param name=&quot;trainData&quot;&gt;&lt;/param&gt;
+/// &lt;returns&gt;&lt;/returns&gt;
+public static ITransformer RetrainModel(MLContext mlContext, IDataView trainData)
+{
+var pipeline = BuildPipeline(mlContext);
+var model = pipeline.Fit(trainData);
+
+return model;
+}
+
+/// &lt;summary&gt;
+/// 构建模型构建器使用的管道。使用此函数重新训练模型。
+/// &lt;/summary&gt;
+/// &lt;param name=&quot;mlContext&quot;&gt;&lt;/param&gt;
+/// &lt;returns&gt;&lt;/returns&gt;
+public static IEstimator&lt;ITransformer&gt; BuildPipeline(MLContext mlContext)
+{
+// 带有管道数据转换的数据处理配置
+var pipeline = mlContext.Transforms.Conversion.MapValueToKey(outputColumnName:@&quot;Label&quot;,inputColumnName:@&quot;Label&quot;,addKeyValueAnnotationsAsText:false) 
+.Append(mlContext.MulticlassClassification.Trainers.ImageClassification(labelColumnName:@&quot;Label&quot;,scoreColumnName:@&quot;Score&quot;,featureColumnName:@&quot;ImageSource&quot;)) 
+.Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName:@&quot;PredictedLabel&quot;,inputColumnName:@&quot;PredictedLabel&quot;));
+
+return pipeline;
+}
+}
+}
+
+
+我需要做什么才能使其工作？]]></description>
+      <guid>https://stackoverflow.com/questions/78945171/how-do-you-retrain-an-ml-net-model-using-the-auto-generated-code</guid>
+      <pubDate>Tue, 03 Sep 2024 15:53:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>机器学习的均方误差成本函数如何具有与 y-hat（预测）相对应的 y（目标）？</title>
+      <link>https://stackoverflow.com/questions/78945062/how-does-the-mean-squared-error-cost-function-from-machine-learning-have-a-y-ta</link>
+      <description><![CDATA[这个问题与 Coursera 上的 Andrew Ng 机器学习专业课程有关。
+在平方误差成本函数公式中，我们从 y-hat（预测）中减去 y（目标）并对其求平方。但 y-hat 来自一个新的输入，我们已经在函数（直线）上找到了它的预测；如果 x 输入是一个在训练集上未见过的全新值，它如何有相应的 y（目标）来减去？
+我可能误解了这里的东西。
+这是一个学习问题，所以我认为我误解了一些东西，或者课程只是让我理解一些东西——这是课程的第一周。]]></description>
+      <guid>https://stackoverflow.com/questions/78945062/how-does-the-mean-squared-error-cost-function-from-machine-learning-have-a-y-ta</guid>
+      <pubDate>Tue, 03 Sep 2024 15:27:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>要求法学硕士 (LLM) 取一个值并从可接受的值列表中选择最适用的标签。我该如何预防幻觉？[关闭]</title>
       <link>https://stackoverflow.com/questions/78944999/asking-an-llm-to-take-a-value-and-choose-the-most-applicable-tag-from-an-accepte</link>
-      <description><![CDATA[目前，我有一个工作流，其中有大约 17,000 个值，这些值代表给定公司的行业价值（例如金融科技、医疗保健等）。其中许多被认为过于具体，因此我构建了一个提示，要求它从 250 个已批准的行业标签列表中获取每个值并选择最合适的值。我的问题是，尽管提示中明确说明，但 LLM 仍然以相当高的频率产生幻觉（900 个不同的值）。这是我的提示：
-您将获得两个列表，一个包含公司所在行业的已批准值（行业价值），另一个包含广泛的不同行业（行业标签）。您的任务是将第二个列表中的每个行业标签与第一个列表中最合适的行业值进行匹配。风险投资公司将使用这些标签来识别他们可能投资的公司，因此需要从这个角度对其进行评估。只返回一个值至关重要。不要返回不在批准的行业值列表中的值。如果没有相关匹配，则返回“无匹配”。
+      <description><![CDATA[我有一个工作流，其中有大约 17,000 个值，这些值代表给定公司的行业价值（例如金融科技、医疗保健等）。其中许多被认为过于具体，因此我构建了一个提示，要求它获取每个值并从 250 个已批准的行业标签列表中选择最合适的值。我的问题是，尽管提示中明确说明，但 LLM 仍然以相当高的频率产生幻觉（900 个不同的值）。这是我的提示：
+您将获得两个列表，一个包含公司所在行业的已批准值（行业价值），另一个包含广泛的不同行业（行业标签）。您的任务是将第二个列表中的每个行业标签与第一个列表中最合适的行业值进行匹配。风险投资公司将使用这些标签来识别他们可能投资的公司，因此需要从这个角度对其进行评估。只返回一个值至关重要。请勿返回不在批准的行业值列表中的值。如果没有相关匹配，则返回“无匹配”。
 
 仅返回每个行业标签的批准列表中匹配的行业值，
 
-格式为 YAML，不包含任何超出此格式的附加文本、说明或内容。不返回任何额外文本至关重要。
-在输入和输出之间保留行业顺序也极其重要，仅反映基于所提供信息的必要分类。请不要返回 YAML 输出之外的任何其他文本。输出格式与提供的示例输出相同至关重要。
+格式为 YAML，不包含任何超出此格式的附加文本、说明或内容。 不返回任何额外文本至关重要。
+在输入和输出之间保留行业顺序也至关重要，仅反映基于所提供信息的必要分类。 请不要返回 YAML 输出之外的任何其他文本。 输出格式与提供的示例输出相同至关重要。
 
 每个行业标签应具有以下列表中的一个行业值：
 
@@ -48,7 +173,7 @@ Yaml 输出：
 - 行业标签：医疗管理咨询
 ...
 
-此处使用省略号缩短提示显示。尽管我已要求它不要生成批准列表之外的值，但它仍然会生成，我需要一些关于如何解决此问题的提示。谢谢！]]></description>
+此处使用省略号缩短提示显示。尽管我已要求它不要生成批准列表之外的值，但它仍然会生成，我需要一些关于如何解决此问题的提示。]]></description>
       <guid>https://stackoverflow.com/questions/78944999/asking-an-llm-to-take-a-value-and-choose-the-most-applicable-tag-from-an-accepte</guid>
       <pubDate>Tue, 03 Sep 2024 15:11:06 GMT</pubDate>
     </item>
@@ -303,14 +428,6 @@ self.params[&quot;preferences&quot;][i] -= self.params[&quot;alpha&quot;] * (sel
       <pubDate>Tue, 03 Sep 2024 03:40:50 GMT</pubDate>
     </item>
     <item>
-      <title>我应该做什么 Web 开发或 Ai/ML [关闭]</title>
-      <link>https://stackoverflow.com/questions/78942412/what-should-i-do-web-development-or-ai-ml</link>
-      <description><![CDATA[我是计算机科学专业的学生。我的第三年才刚刚开始，我已经学过 html、CSS 和 JavaScript。但我不确定我应该做 Ai/ML 还是 Web 开发。
-我尝试过 Web 开发，但我不确定是否应该继续。]]></description>
-      <guid>https://stackoverflow.com/questions/78942412/what-should-i-do-web-development-or-ai-ml</guid>
-      <pubDate>Tue, 03 Sep 2024 01:40:05 GMT</pubDate>
-    </item>
-    <item>
       <title>RandomForest 模型未按预期工作</title>
       <link>https://stackoverflow.com/questions/78941615/randomforest-model-not-working-as-expected</link>
       <description><![CDATA[我想尝试预测股票价格。我知道股市基本上是一个随机过程，因此我不期望任何正回报。我编写了一个小脚本，使用随机森林回归器，该回归器已根据过去 20 年左右的 AAPL 股票数据（过去 100 天除外）进行训练。我使用过去 100 天作为验证。
@@ -434,26 +551,6 @@ res=generate_response(&quot;latest products&quot;,tokenizer,model)]]></descripti
       <pubDate>Mon, 02 Sep 2024 11:58:30 GMT</pubDate>
     </item>
     <item>
-      <title>无需深度学习或 Tesseract 的文本图像二元分类器</title>
-      <link>https://stackoverflow.com/questions/78842184/text-image-binary-classifier-without-deep-learning-or-tesseract</link>
-      <description><![CDATA[我有 20k 张小标签图像，每张图像都有单词“Back”或“Front”。
-图像分辨率为全部 (200px, 25px)
-
-我可以使用 tesseract_OCR 对这些图像进行 100% 准确率的分类。
- txt = pytesseract.image_to_string(img, lang=&#39;eng&#39;)
-if &quot;Front&quot; in txt:
-return &quot;Front&quot;
-if &quot;Back&quot; in txt:
-return &quot;Back&quot;
-
-问题是，它太慢了（20k 张图像需要 1 小时）并且需要安装 OCR 包。
-我知道即使是 3 层的简单 CNN 也能很好地运行，但我认为这个问题似乎可以用简单的算法解决，而不需要复杂的技术。
-你能给我推荐一种新方法吗？
-谢谢。]]></description>
-      <guid>https://stackoverflow.com/questions/78842184/text-image-binary-classifier-without-deep-learning-or-tesseract</guid>
-      <pubDate>Wed, 07 Aug 2024 06:46:36 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在 Core ML 中的 MLMultiArray 中设置正确的步幅？步幅的值是什么意思？</title>
       <link>https://stackoverflow.com/questions/72166348/how-to-set-right-strides-in-mlmultiarray-in-core-ml-whats-the-strides-values</link>
       <description><![CDATA[如何在 Core ML 中的 MLMultiArray 中设置正确的 strides？每个 strides 的值的含义是什么？
@@ -461,13 +558,6 @@ return &quot;Back&quot;
 我从一些网站将 strides 设置为 (720 * 1280, 720 * 1280, 720, 1)，但我不知道为什么这样设置，或者是否正确。 shape 和 strides 之间有什么联系。Apple 开发者网站上没有更多相关文档。]]></description>
       <guid>https://stackoverflow.com/questions/72166348/how-to-set-right-strides-in-mlmultiarray-in-core-ml-whats-the-strides-values</guid>
       <pubDate>Mon, 09 May 2022 02:07:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何将两个不同的训练过的 ML 模型合二为一？</title>
-      <link>https://stackoverflow.com/questions/64801479/how-to-combine-two-different-trained-ml-models-as-one</link>
-      <description><![CDATA[我根据两个不同的数据集训练了两个 ml 模型。然后我将它们保存为 model1.pkl 和 model2.pkl 。有两个用户输入（不是模型的输入数据），如 x=0 和 x=1，如果 x=0，我必须使用 model1.pkl 进行预测，否则我必须使用 model2.pkl 进行预测。我可以使用 if 条件来执行它们，但我的问题是我必须知道是否有可能将其保存回 model.pkl 包括此条件语句。如果我将它们组合并保存为模型，它将很容易在其他 IDE 中加载。]]></description>
-      <guid>https://stackoverflow.com/questions/64801479/how-to-combine-two-different-trained-ml-models-as-one</guid>
-      <pubDate>Thu, 12 Nov 2020 09:44:27 GMT</pubDate>
     </item>
     <item>
       <title>ML.NET：输入列“AnswerFeaturized_CharExtractor”的架构不匹配：预期为单个或已知大小的单个向量，得到向量 <Single></title>
