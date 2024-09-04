@@ -4,7 +4,280 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 04 Sep 2024 15:17:38 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 04 Sep 2024 18:19:18 GMT</lastBuildDate>
+    <item>
+      <title>如何计算 Cov2D 层的尺寸？</title>
+      <link>https://stackoverflow.com/questions/78949615/how-can-the-dimensions-of-a-cov2d-layer-be-calculated</link>
+      <description><![CDATA[我试图了解我的 GAN 生成器输出的尺寸。每层之后的结果尺寸如下：
+开始：torch.Size([128, 74, 1, 1]) 
+block1 之后：torch.Size([128, 256, 3, 3]) 
+block2 之后：torch.Size([128, 128, 6, 6]) 
+block3 之后：torch.Size([128, 64, 13, 13]) 
+block4 之后：torch.Size([128, 1, 28, 28])
+
+生成器代码如下。此处 z_dim 为 74，但最初为 64。它附加了 10 个类标签，如下所示。
+ fake_noise = get_noise(cur_batch_size, z_dim, device=device) 
+noise_and_labels = Combine_vectors(fake_noise, one_hot_labels)
+fake = gen(noise_and_labels)
+
+class Generator(nn.Module):
+&#39;&#39;&#39;
+Generator 类
+值：
+z_dim：噪声向量的维度，标量
+im_chan：输出图像的通道数，标量
+（MNIST 是黑白的，因此 1 个通道是您的默认值）
+hidden_​​dim：内部维度，标量
+&#39;&#39;&#39;
+def __init__(self, z_dim=10, im_chan=1, hidden_​​dim=64):
+super(Generator, self).__init__()
+self.z_dim = z_dim
+# 构建神经网络
+self.block1 = self.make_gen_block(z_dim, hidden_​​dim * 4)
+self.block2 = self.make_gen_block(hidden_​​dim * 4, hidden_​​dim * 2, kernel_size=4, stride=1)
+self.block3 = self.make_gen_block(hidden_​​dim * 2, hidden_​​dim)
+self.block4 = self.make_gen_block(hidden_​​dim, im_chan, kernel_size=4, final_layer=True)
+
+def make_gen_block(self, input_channels, output_channels, kernel_size=3, stride=2, padding=1, final_layer=False):
+&#39;&#39;&#39;
+函数返回与 DCGAN 生成器块对应的操作序列；
+转置卷积、批量规范（最后一层除外）和激活。
+参数：
+input_channels：输入特征表示有多少个通道
+output_channels：输出特征表示应该有多少个通道
+kernel_size：每个卷积滤波器的大小，相当于 (kernel_size, kernel_size)
+stride：卷积的步幅
+final_layer：布尔值，如果是最后一层则为 true，否则为 false
+（影响激活和 batchnorm）
+&#39;&#39;&#39;
+如果不是 final_layer：
+return nn.Sequential(
+nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride),
+nn.BatchNorm2d(output_channels),
+nn.LeakyReLU(0.2, inplace=True),
+)
+else：
+return nn.Sequential(
+nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride),
+nn.Tanh(),
+)
+
+def forward(self, noise):
+&#39;&#39;&#39;
+完成生成器前向传递的函数：给定一个噪声张量，
+返回生成的图像。
+参数：
+noise：具有维度 (n_samples, input_dim) 的噪声张量
+&#39;&#39;&#39;
+x = noise.view(len(noise), self.z_dim, 1, 1)
+print(f&#39;Gen: {x.shape}&#39;)
+x = self.block1(x)
+print(f&#39;After block1: {x.shape}&#39;)
+x = self.block2(x)
+print(f&#39;After block2: {x.shape}&#39;)
+x = self.block3(x)
+print(f&#39;After block3: {x.shape}&#39;)
+x = self.block4(x)
+print(f&#39;After block4: {x.shape}&#39;)
+return x
+
+def get_noise(n_samples, z_dim, device=&#39;cpu&#39;):
+&#39;&#39;&#39;
+用于创建噪声向量的函数：给定维度 (n_samples, z_dim)
+创建该形状的张量，其中填充了来自正态分布的随机数。
+参数：
+n_samples：要生成的样本数，标量
+z_dim：噪声向量的维度，标量
+device：设备类型
+&#39;&#39;&#39;
+return torch.randn(n_samples, z_dim, device=device)
+
+根据此处的公式，第一个块之后的结果将是(1 + 2x0 -1x(3-1) -1)/2 +1 = 0 但它显示 3x3。我在这里做错了什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78949615/how-can-the-dimensions-of-a-cov2d-layer-be-calculated</guid>
+      <pubDate>Wed, 04 Sep 2024 16:09:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>通过索引为张量赋值后，值不匹配</title>
+      <link>https://stackoverflow.com/questions/78949501/mismatch-of-values-after-assigning-values-to-a-tensor-by-index</link>
+      <description><![CDATA[我正在编写一个 PyTorch 训练代码，它构建了一个算法类。其中有一个步骤需要为内部张量分配一些值。但是，即使代码只有两行，也有一个错误。我发现分配的张量的值与分配的值不同。
+这是该类的代码：
+class PRODEN(Algorithm):
+&quot;&quot;&quot;
+PRODEN
+参考：部分标签学习的真实标签的渐进式识别，ICML 2020。
+&quot;&quot;&quot;
+
+def __init__(self, input_shape, train_givenY, hparams):
+super(PRODEN, self).__init__(input_shape, train_givenY, hparams)
+self.featurizer = networks.Featurizer(input_shape, self.hparams)
+self.classifier = networks.Classifier(
+self.featurizer.n_outputs,
+self.num_classes)
+
+self.network = nn.Sequential(self.featurizer, self.classifier)
+self.optimizer = torch.optim.Adam(
+self.network.parameters(),
+lr=self.hparams[&quot;lr&quot;],
+weight_decay=self.hparams[&#39;weight_decay&#39;]
+)
+train_givenY = torch.from_numpy(train_givenY)
+tempY = train_givenY.sum(dim=1).unsqueeze(1).repeat(1, train_givenY.shape[1])
+label_confidence = train_givenY.float()/tempY
+self.label_confidence = label_confidence
+
+def update(self, minibatches):
+_, x, strong_x, partial_y, _, index = minibatches
+loss = self.rc_loss(self.predict(x), index)
+self.optimizer.zero_grad()
+loss.backward()
+self.optimizer.step()
+self.confidence_update(x, partial_y, index)
+return {&#39;loss&#39;: loss.item()}
+
+def rc_loss(self, output, index):
+device = &quot;cuda&quot; if index.is_cuda else &quot;cpu&quot;
+self.label_confidence = self.label_confidence.to(device)
+logsm_outputs = F.log_softmax(outputs, dim=1)
+#print(self.label_confidence.is_cuda)
+final_outputs = logsm_outputs * self.label_confidence[index, :]
+average_loss = - ((final_outputs).sum(dim=1)).mean()
+return average_loss
+
+def predict(self, x):
+return self.network(x)
+
+def confidence_update(self, batchX, batchY, batch_index):
+with torch.no_grad():
+batch_outputs = self.predict(batchX)
+temp_un_conf = F.softmax(batch_outputs, dim=1)
+&#39;&#39;&#39;有问题的代码开始了&#39;&#39;&#39;
+self.label_confidence[batch_index, :] = temp_un_conf * batchY # un_confidence 存储每个示例的权重
+&#39;&#39;&#39;问题代码结束&#39;&#39;&#39;
+base_value = self.label_confidence.sum(dim=1).unsqueeze(1).repeat(1, self.label_confidence.shape[1])
+self.label_confidence = self.label_confidence / base_value
+
+问题出在 confidence_update 上。我发现
+self.label_confidence[batch_index, :]
+
+的值与
+temp_un_conf * batchY
+
+在此分配之后
+self.label_confidence[batch_index, :] = temp_un_conf * batchY
+
+仅适用于少数示例，但适用于大多数示例。例如，对于 1024 的批次大小，第一次迭代时大约有 4 个示例，之后会变得更大。我对这个问题非常沮丧，尝试了很多方法：
+
+这个问题只存在于 CIFAR10 中，但其他数据集不存在这个问题。
+
+所有张量的数据类型都是 Float32。
+
+所有张量都在 gpu 上。
+
+
+如果有人能告诉我我的代码出了什么问题，我将不胜感激！
+我希望有人能告诉我我的代码出了什么问题。]]></description>
+      <guid>https://stackoverflow.com/questions/78949501/mismatch-of-values-after-assigning-values-to-a-tensor-by-index</guid>
+      <pubDate>Wed, 04 Sep 2024 15:41:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>从巨大的文本文件和一行提示生成文章</title>
+      <link>https://stackoverflow.com/questions/78949493/generate-article-from-a-huge-text-file-and-a-one-line-prompt</link>
+      <description><![CDATA[我想从一个大文本文件和一个单行提示中生成一篇大约 100 行的文章
+第 1 行：敏捷的棕色狐狸跳过了懒狗。
+第 2 行：困难中蕴藏着机遇。
+第 3 行：生活就是当你忙于制定其他计划时发生的事情。
+第 4 行：在这个不断试图让你成为其他东西的世界中做你自己是最大的成就。
+第 5 行：成功不是终点，失败也不是致命的：继续前进的勇气才是最重要的。
+第 6 行：敏捷的棕色狐狸吃肉。
+提示：狐狸做了什么？
+输出文章：敏捷的棕色狐狸跳过了懒狗。敏捷的棕色狐狸吃肉。
+这只是一个小例子给定。
+您能改进我的代码或给我一个更好的解决方案吗？
+我所说的改进我的代码的意思是我想过度拟合我的文本文件。
+# prepare_dataset.py
+
+来自 transformers 导入 GPT2Tokenizer
+来自 datasets 导入 Dataset
+导入 pandas 作为 pd
+
+def load_and_prepare_dataset(file_path):
+&quot;&quot;&quot;从文本文件加载并准备数据集。&quot;&quot;&quot;
+使用 open(file_path, &#39;r&#39;) 作为文件：
+text = file.read()
+
+lines = text.split(&#39;.&#39;)
+
+data = {&#39;text&#39;: lines} 
+df = pd.DataFrame(data)
+
+tokenizer = GPT2Tokenizer.from_pretrained(&#39;gpt2&#39;)
+
+tokenizer.pad_token = tokenizer.eos_token
+
+def tokenize_function(examples):
+return tokenizer(examples[&#39;text&#39;], padding=&#39;max_length&#39;, truncation=True, max_length=512)
+
+dataset = Dataset.from_pandas(df)
+
+tokenized_datasets = dataset.map(tokenize_function, batched=True)
+tokenized_datasets = tokenized_datasets.rename_column(&quot;input_ids&quot;, &quot;labels&quot;)
+
+return tokenized_datasets
+
+如果__name__ == &quot;__main__&quot;:
+dataset = load_and_prepare_dataset(&#39;data.txt&#39;) 
+dataset.save_to_disk(&#39;./dataset&#39;)
+
+# train_model.py
+
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments
+from datasets import load_from_disk
+
+def fine_tune_model(train_dataset):
+&quot;&quot;&quot;在给定的数据集上微调 GPT-2 模型。&quot;&quot;&quot;
+tokenizer = GPT2Tokenizer.from_pretrained(&#39;gpt2&#39;)
+model = GPT2LMHeadModel.from_pretrained(&#39;gpt2&#39;)
+
+training_args = TrainingArguments(
+output_dir=&#39;./results&#39;, # 输出目录
+evaluation_strategy=&#39;epoch&#39;, # 要使用的评估策略
+learning_rate=2e-5, # 学习率
+per_device_train_batch_size=2, # 用于训练的批次大小
+per_device_eval_batch_size=2, # 用于评估的批次大小
+num_train_epochs=1, # 训练周期数
+weight_decay=0.01, # 权重衰减强度
+logs_dir=&#39;./logs&#39;, # 用于存储日志的目录
+logs_steps=10, # 日志记录之间的步骤数
+)
+
+trainer = Trainer(
+model=model, # 要训练的模型
+args=training_args, # 参数用于训练
+train_dataset=train_dataset, # 训练数据集
+)
+
+trainer.train()
+
+def main():
+dataset = load_from_disk(&#39;./dataset&#39;)
+print(dataset.column_names)
+print(dataset[0]) 
+
+fine_tune_model(dataset)
+
+if __name__ == &quot;__main__&quot;:
+main()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78949493/generate-article-from-a-huge-text-file-and-a-one-line-prompt</guid>
+      <pubDate>Wed, 04 Sep 2024 15:40:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>empty() 在 Cu-net 模型中接收到了无效的参数组合</title>
+      <link>https://stackoverflow.com/questions/78949410/empty-received-an-invalid-combination-of-arguments-in-cu-net-model</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78949410/empty-received-an-invalid-combination-of-arguments-in-cu-net-model</guid>
+      <pubDate>Wed, 04 Sep 2024 15:23:33 GMT</pubDate>
+    </item>
     <item>
       <title>ImportError：无法从“gaze_tracking”导入名称“GazeTracking”[关闭]</title>
       <link>https://stackoverflow.com/questions/78948526/importerror-cannot-import-name-gazetracking-from-gaze-tracking</link>
@@ -84,247 +357,12 @@ ErrorResponse
       <pubDate>Wed, 04 Sep 2024 09:36:02 GMT</pubDate>
     </item>
     <item>
-      <title>训练准确率不断提高，但验证准确率早期停滞</title>
-      <link>https://stackoverflow.com/questions/78947096/training-accuracy-keeps-increasing-but-validation-plateaus-early</link>
-      <description><![CDATA[我尝试使用自己实现的 Resnet 模型对 CIFAR-100 数据集进行分类。
-我尝试了多种不同的超参数配置，更改了学习率、批量大小、辍学率、数据增强和正则化，但我所做的一切都无法将验证准确率提高 40% 以上，而训练准确率可以达到 99%。
-我意识到训练准确率高但验证准确率低是过度拟合的标志，但在增加正则化参数和辍学率后，我仍然没有看到任何改善。训练、验证和测试的分割由 CIFAR-100 提供，因此分别为 40000、10000、10000。
-有人知道如何突破这个瓶颈，或者知道我可能哪里出错了吗？
-以下是我一直在尝试的超参数类型：
-learning_rates = [0.001, 0.0001]
-batch_sizes = [16, 32]
-dropout_rates = [0.3,0.5]
-decay = [0.001, 0.0001]
-
-以下是我一直在增强数据的方式：
-transform = transforms.Compose([
-transforms.RandomCrop(32, padding=4),
-transforms.RandomHorizo​​ntalFlip(),
-transforms.RandomRotation(10),
-transforms.ToTensor(),
-transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
-
-DATA_ROOT_FOLDER = &#39;./cifar-100-python&#39; 
-
-train_data = datasets.CIFAR100(root=f&quot;{DATA_ROOT_FOLDER}&quot;, train=True, download=True, transform=transform)
-test_data = datasets.CIFAR100(root=f&quot;{DATA_ROOT_FOLDER}&quot;, train=False, download=True, transform=transform)
-
-train_data, val_data = train_test_split(train_data, test_size=0.2, random_state=42)
-
-batch_size = 64
-train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
-val_loader = torch.utils.data.DataLoader(val_data, batch_size=batch_size, shuffle=False)
-test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False)
-
-这些是我得到的结果。
-准确度图
-准确度图失落]]></description>
-      <guid>https://stackoverflow.com/questions/78947096/training-accuracy-keeps-increasing-but-validation-plateaus-early</guid>
-      <pubDate>Wed, 04 Sep 2024 06:18:19 GMT</pubDate>
-    </item>
-    <item>
       <title>在 python 中进行向量搜索，根据上下文获取独特性分数</title>
       <link>https://stackoverflow.com/questions/78946820/vector-search-in-python-to-get-the-unqueness-score-according-to-context</link>
       <description><![CDATA[我有一篇带有标题和说明的博客文章，我想将其唯一性与 CSV 文件中的多个博客条目进行比较。CSV 包含多个博客，每个博客都有标题和元描述。
 我目前使用 TF-IDF 矢量化和余弦相似度将单个博客与 CSV 文件中的所有条目进行比较。但是，这种方法仅基于确切的单词而不是上下文进行匹配。]]></description>
       <guid>https://stackoverflow.com/questions/78946820/vector-search-in-python-to-get-the-unqueness-score-according-to-context</guid>
       <pubDate>Wed, 04 Sep 2024 04:27:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Google Colab 中导入 KerasRegressor？</title>
-      <link>https://stackoverflow.com/questions/78946669/how-do-i-import-kerasregressor-in-google-colab</link>
-      <description><![CDATA[我正在使用 Google colab，在导入 KerasRegressor 时遇到问题。
-我运行：
-from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
-
-并收到以下错误：
-ModuleNotFoundError：没有名为“tensorflow.keras.wrappers”的模块
-
-在一些论坛中，我发现有人解决了“scikeras”的问题，但我在 colab 上遇到了这个问题。
-如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/78946669/how-do-i-import-kerasregressor-in-google-colab</guid>
-      <pubDate>Wed, 04 Sep 2024 03:10:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>XGBoost 回归器给出非常糟糕的相对误差％[关闭]</title>
-      <link>https://stackoverflow.com/questions/78945802/xgboost-regressor-giving-very-bad-relative-error</link>
-      <description><![CDATA[当我训练 XGBRegressor 时，对因变量进行了 boxcox 变换，以获得更高的线性度，因为它可以改善模型。对于标准化指标，我获得了 94.7% 的良好准确度，rmse 良好，相对误差 % 为 1.8%。但是当我尝试对因变量进行逆变换时，相对误差 % 为 245%。这令人担忧，因为随机森林给出的相对误差 % 为 10。随机森林和 XGBoost 几乎给出了因变量形式相同的平均绝对误差，但不知何故 XG 的相对误差 % 为 245%。这怎么可能呢？
-我尝试过 hypertuning XGBoost，希望得到一些好消息，但错误率上升到了 450%。]]></description>
-      <guid>https://stackoverflow.com/questions/78945802/xgboost-regressor-giving-very-bad-relative-error</guid>
-      <pubDate>Tue, 03 Sep 2024 19:28:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用自动生成的代码重新训练 ML.Net 模型？</title>
-      <link>https://stackoverflow.com/questions/78945171/how-do-you-retrain-an-ml-net-model-using-the-auto-generated-code</link>
-      <description><![CDATA[我已经使用 Ml.net 配置接口训练了一个图像分类模型，并且它生成了自包含的 MlModel.consumption 和 MlModel.training 部分类。
-它还自动生成一个程序，演示如何使用该模型，但没有演示如何重新训练它。
-我曾尝试这样做
-MLContext mlContext = new MLContext();
-
-DataViewSchema modelSchema;
-
-ITransformer trainedModel = mlContext.Model.Load(&quot;MlModel2.mlnet&quot;, out modelSchema);
-
-var x = MLModel2.LoadImageFromFolder(mlContext, @&quot;C:\temp\Latest\Train&quot;);
-
-var y = MLModel2.RetrainModel(mlContext, x);
-
-mlContext.Model.Save(y, modelSchema, &quot;MlModel2.mlnet&quot;);
-
-但它将“未创建保存器，因为图中没有要恢复的变量”写入控制台，并且在我测试时不会更改模型的行为。
-自动生成的代码如下所示
-// 此文件由 ML.NET Model Builder 自动生成。
-使用系统;
-使用 System.IO;
-使用 System.Collections.Generic;
-使用 System.Linq;
-使用 System.Text;
-使用 System.Threading.Tasks;
-使用 Microsoft.ML;
-使用 Microsoft.ML.Data;
-使用 Microsoft.ML.Vision;
-
-namespace NewCassetteModel
-{
-public partial class MLModel2
-{
-
-/// &lt;summary&gt;
-/// 从文件夹路径加载 IDataView。
-/// &lt;/summary&gt;
-/// &lt;param name=&quot;mlContext&quot;&gt;所有 ML.NET 操作的通用上下文。&lt;/param&gt;
-/// &lt;param name=&quot;folder&quot;&gt; 用于训练的图像数据文件夹。&lt;/param&gt;
-public static IDataView LoadImageFromFolder(MLContext mlContext, string folder)
-{
-var res = new List&lt;ModelInput&gt;();
-var allowedImageExtensions = new[] { &quot;.png&quot;, &quot;.jpg&quot;, &quot;.jpeg&quot;, &quot;.gif&quot; };
-DirectoryInfo rootDirectoryInfo = new DirectoryInfo(folder);
-DirectoryInfo[] subDirectories = rootDirectoryInfo.GetDirectories();
-
-if (subDirectories.Length == 0)
-{
-throw new Exception(&quot;fail to find subdirectories&quot;);
-}
-
-foreach (DirectoryInfo directory in subDirectories)
-{
-var imageList = directory.EnumerateFiles().Where(f =&gt; allowedImageExtensions.Contains(f.Extension.ToLower()));
-if (imageList.Count() &gt; 0)
-{
-res.AddRange(imageList.Select(i =&gt; new ModelInput 
-{
-Label = directory.Name,
-ImageSource = File.ReadAllBytes(i.FullName),
-}));
-}
-}
-return mlContext.Data.LoadFromEnumerable(res);
-}
-
-/// &lt;summary&gt;
-/// 使用在训练过程中生成的管道重新训练模型。
-/// &lt;/summary&gt;
-/// &lt;param name=&quot;mlContext&quot;&gt;&lt;/param&gt;
-/// &lt;param name=&quot;trainData&quot;&gt;&lt;/param&gt;
-/// &lt;returns&gt;&lt;/returns&gt;
-public static ITransformer RetrainModel(MLContext mlContext, IDataView trainData)
-{
-var pipeline = BuildPipeline(mlContext);
-var model = pipeline.Fit(trainData);
-
-return model;
-}
-
-/// &lt;summary&gt;
-/// 构建模型构建器使用的管道。使用此函数重新训练模型。
-/// &lt;/summary&gt;
-/// &lt;param name=&quot;mlContext&quot;&gt;&lt;/param&gt;
-/// &lt;returns&gt;&lt;/returns&gt;
-public static IEstimator&lt;ITransformer&gt; BuildPipeline(MLContext mlContext)
-{
-// 带有管道数据转换的数据处理配置
-var pipeline = mlContext.Transforms.Conversion.MapValueToKey(outputColumnName:@&quot;Label&quot;,inputColumnName:@&quot;Label&quot;,addKeyValueAnnotationsAsText:false) 
-.Append(mlContext.MulticlassClassification.Trainers.ImageClassification(labelColumnName:@&quot;Label&quot;,scoreColumnName:@&quot;Score&quot;,featureColumnName:@&quot;ImageSource&quot;)) 
-.Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName:@&quot;PredictedLabel&quot;,inputColumnName:@&quot;PredictedLabel&quot;));
-
-return pipeline;
-}
-}
-}
-
-
-我需要做什么才能使其工作？]]></description>
-      <guid>https://stackoverflow.com/questions/78945171/how-do-you-retrain-an-ml-net-model-using-the-auto-generated-code</guid>
-      <pubDate>Tue, 03 Sep 2024 15:53:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>SAM 模型中无法检测图像 - TypeError：无法处理此数据类型</title>
-      <link>https://stackoverflow.com/questions/78942834/image-not-detecting-in-sam-model-typeerror-cannot-handle-this-data-type</link>
-      <description><![CDATA[每当我上传任何类型的图像时，都会出现相同的错误。它是否只处理高质量图像（或任何特定类型的图像），还是我的代码中存在一些错误？
-我尝试了不同的图像，上面的代码是 chatgpt 经过一些修改后给出的。仍然没有运气。我得到一个
-TypeError：无法处理此数据类型：（1, 1, 640, 3），|u1
-
-代码：
-import torch
-import numpy as np
-from PIL import Image
-fromsegment_anything import sam_model_registry, SamPredictor
-from google.colab import files
-
-# 加载 SAM 模型
-
-sam = sam_model_registry[&quot;vit_b&quot;](checkpoint=&quot;/content/sam_vit_b_01ec64.pth&quot;)
-predictor = SamPredictor(sam)
-
-uploaded = files.upload()
-image_name = list(uploaded.keys())[0]
-
-image = Image.open(image_name).convert(&quot;RGB&quot;)
-image_np = np.array(image)
-
-# 检查图像形状
-
-print(f&quot;原始图像形状：{image_np.shape}&quot;)
-
-# 如果存在额外维度，则删除它们
-
-if len(image_np.shape) == 4 and image_np.shape[0] == 1:
-image_np = image_np.squeeze(0) # 如果第一个维度的大小为 1，则删除它
-
-# 确保图像的格式和类型正确
-
-image_np = image_np.astype(np.uint8)
-
-print(f&quot;处理后的图像形状：{image_np.shape}&quot;)
-
-# 将图像设置为 SAM 预测器
-
-predictor.set_image(image_np)
-
-# 预测图像的蒙版
-
-masks = predictor.predict()
-
-# 确保您有蒙版并使用它们
-
-if mask is not None and len(masks) &gt; 0:
-mask = mask[0] # 假设第一个掩码就是您需要的
-
-# 将掩码应用于图像
-masked_image = np.where(mask[..., None], image_np, 0) # 将掩码应用于图像
-
-# 将掩码图像转换回 PIL 图像
-masked_image = Image.fromarray(masked_image)
-
-# 显示掩码图像
-masked_image.show()
-
-else:
-print(&quot;未找到给定图像的掩码。&quot;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78942834/image-not-detecting-in-sam-model-typeerror-cannot-handle-this-data-type</guid>
-      <pubDate>Tue, 03 Sep 2024 05:49:49 GMT</pubDate>
     </item>
     <item>
       <title>梯度盗贼代理的性能问题[关闭]</title>
@@ -525,6 +563,30 @@ cv2.waitKey(0)
 ]]></description>
       <guid>https://stackoverflow.com/questions/51414835/how-do-i-crop-the-solar-panels-captured-by-drone</guid>
       <pubDate>Thu, 19 Jul 2018 05:18:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>FileNotFoundError：[WinError 3] 系统找不到指定的路径：</title>
+      <link>https://stackoverflow.com/questions/51007476/filenotfounderror-winerror-3-the-system-cannot-find-the-path-specified</link>
+      <description><![CDATA[我尝试运行此教程中的代码。我已将代码和数据集放在同一目录中，但仍然出现以下错误。
+FileNotFoundError Traceback (most recent call last)
+&lt;ipython-input-6-5f5284db0527&gt; in &lt;module&gt;()
+39 # 从所有图像中提取特征
+40 directory = &#39;Flicker8k&#39;
+---&gt; 41 features = extract_features(directory)
+42 print(&#39;Extracted Features: %d&#39; % len(features))
+43 # 保存到文件
+
+&lt;ipython-input-6-5f5284db0527&gt;在 extract_features(directory) 中
+18 # 从每张照片中提取特征
+19 features = dict()
+---&gt; 20 for name in listdir(directory):
+21 # 从文件加载图像
+22 filename = directory + &#39;/&#39; + name
+
+**FileNotFoundError: [WinError 3] 系统找不到指定的路径：&#39;Flicker8k&#39;**
+]]></description>
+      <guid>https://stackoverflow.com/questions/51007476/filenotfounderror-winerror-3-the-system-cannot-find-the-path-specified</guid>
+      <pubDate>Sun, 24 Jun 2018 06:24:04 GMT</pubDate>
     </item>
     </channel>
 </rss>
