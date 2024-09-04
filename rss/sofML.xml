@@ -4,7 +4,133 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 04 Sep 2024 18:19:18 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 04 Sep 2024 21:15:28 GMT</lastBuildDate>
+    <item>
+      <title>Pandas 分组更多列+滚动+添加新列</title>
+      <link>https://stackoverflow.com/questions/78950488/pandas-groupby-more-columns-rolling-adding-new-column</link>
+      <description><![CDATA[我有一个交易数据集，例如，列：UserID、IBAN、Timestamp、Amount。
+我想为每个用户考虑一个 24 小时的滚动窗口，并考虑一个 IBAN，因此，例如，我想计算过去 24 小时内同一用户针对同一 IBAN 进行的实际交易数量。
+我已经使用 group by 中的单个元素完成了此操作，仅考虑 UserID 列：
+def add_rolling_count_feature(df: pd.DataFrame, time_column_name: str, groupby_on: str, agg_on: str, agg_period: str) -&gt; pd.DataFrame:
+&quot;&quot;&quot;
+向 DataFrame 添加一个新列，该列表示每个组在给定时间段内给定特征的滚动发生次数和金额总和。
+
+参数：
+- df：pd.DataFrame
+包含数据的原始 DataFrame。
+- time_column_name：str
+包含时间或日期时间值的列的名称。
+- groupby_on：str
+用于对数据进行分组的列的名称（例如，用户 ID、卡号）。
+- agg_on：str
+计算滚动计数的列的名称，例如“Amount”
+- agg_period：str
+滚动窗口期作为字符串（例如，&#39;30D&#39; 表示 30 天，&#39;24h&#39; 表示 24 小时）。
+
+返回：
+- pd.DataFrame
+原始 DataFrame 加上一个包含指定特征滚动计数的附加列。
+
+re(df, time_column_name=&#39;时间&#39;, groupby_on=&#39;用户ID&#39;, agg_on=&#39;金额&#39;, agg_period=&#39;30D&#39;)
+“”“”
+# 确保时间列采用日期时间格式。可能不需要检查
+df[time_column_name] = pd.to_datetime(df[time_column_name])
+#排序和重置基本上是排序然后重置索引
+df = sort_and_reset(df, by=[&quot;UserID&quot;,&quot;Timestamp&quot;], inplace=False)
+
+# 将时间列设置为索引
+df = df.set_index(time_column_name)
+
+#groupby_on 在此处是单个列
+
+# 计算每个组在给定时间段内指定特征的滚动计数
+df[&quot;Xa1&quot;] = df.groupby(groupby_on)[agg_on] \
+.rolling(agg_period, min_periods=0, closed=&quot;left&quot;) \
+.count() \
+.reset_index(level=0, drop=True)
+
+# 计算滚动总和并将其添加为新列
+df[&#39;Xa2&#39;] = df.groupby(groupby_on)[agg_on] \
+.rolling(agg_period, min_periods=0, closed=&#39;left&#39;) \
+.sum() \
+.reset_index(level=0, drop=True) # 删除 groupby 索引级别
+
+# 重置索引以使时间列恢复为常规列
+df = df.reset_index()
+
+但是，当我尝试使用组中的 2 列时，它不起作用，或者更确切地说，它返回所有 NAN 值（窗口是正确的，它应该返回一些内容）。我还更改了 .reset_index(drop=True) 以考虑所有级别。我认为多索引或类似的东西存在一些问题。
+如能得到任何帮助，我将不胜感激，谢谢
+输入 df 的示例：
+data = {
+&#39;user_id&#39;: [1, 1, 1, 2, 2, 3, 3, 3],
+&#39;Timestamp
+&#39;: [
+&#39;2024-09-01 10:00:00&#39;,
+&#39;2024-09-01 11:00:00&#39;,
+&#39;2024-09-01 12:00:00&#39;,
+&#39;2024-09-01 10:00:00&#39;,
+&#39;2024-09-01 12:00:00&#39;,
+&#39;2024-09-01 09:00:00&#39;,
+&#39;2024-09-01 10:00:00&#39;,
+&#39;2024-09-01 11:00:00&#39;
+],
+&#39;IBAN&#39;: [&#39;A&#39;, &#39;B&#39;, &#39;A&#39;, &#39;A&#39;, &#39;B&#39;, &#39;A&#39;, &#39;A&#39;, &#39;B&#39;]
+}
+]]></description>
+      <guid>https://stackoverflow.com/questions/78950488/pandas-groupby-more-columns-rolling-adding-new-column</guid>
+      <pubDate>Wed, 04 Sep 2024 20:38:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有共享权重的嵌套模块是否应为 nn.Module 对象参数？</title>
+      <link>https://stackoverflow.com/questions/78950394/should-nested-modules-with-shared-weights-be-an-nn-module-object-parameter-or-no</link>
+      <description><![CDATA[我遇到一种情况，我希望两个 torch.nn.Module 类共享其部分架构和权重，如下例所示：
+from torch import nn
+
+class SharedBlock(nn.Module):
+def __init__(self, *args, **kwargs):
+super().__init__()
+
+self.block = nn.Sequential(
+nn.Linear(...)
+# 在此处定义一些块架构...
+)
+
+def forward(self, x):
+return self.block(x)
+
+class MyNestedModule(nn.Module):
+def __init__(self, shared_block: nn.Module, *args, **kwargs):
+super().__init__()
+
+self.linear = nn.Linear(...)
+self.shared_block = shared_block
+
+def forward(self, x):
+return self.shared_block(self.linear(x))
+
+class MyModule(nn.Module):
+def __init__(self, *args, **kwargs):
+super().__init__()
+
+# 应该是：
+shared_block = SharedBlock(*args, **kwargs)
+# 或者：
+self.shared_block = SharedBlock(*args, **kwargs) # 注意：self。
+# ...如果有区别，那有什么区别？
+
+self.nested1 = MyNestedModule(shared_block, *args, **kwargs)
+self.nested2 = MyNestedModule(shared_block, *args, **kwargs)
+
+def forward(self, x):
+x_1, x_2 = torch.split(x, x.shape[0] // 2, dim=0)
+y_1 = self.nested1(x_1)
+y_2 = self.nested2(y_2)
+return y_1, y_2
+
+我想知道 shared_block 是否应该是 MyModule 的对象参数。我认为不是，因为它在 MyNestedModule 类对象中都被设置为对象参数，所以它应该在 torch grad 中注册，但如果我确实在 MyModule 中将它创建为对象参数，会发生什么？]]></description>
+      <guid>https://stackoverflow.com/questions/78950394/should-nested-modules-with-shared-weights-be-an-nn-module-object-parameter-or-no</guid>
+      <pubDate>Wed, 04 Sep 2024 20:06:25 GMT</pubDate>
+    </item>
     <item>
       <title>如何计算 Cov2D 层的尺寸？</title>
       <link>https://stackoverflow.com/questions/78949615/how-can-the-dimensions-of-a-cov2d-layer-be-calculated</link>
@@ -15,14 +141,14 @@ block2 之后：torch.Size([128, 128, 6, 6])
 block3 之后：torch.Size([128, 64, 13, 13]) 
 block4 之后：torch.Size([128, 1, 28, 28])
 
-生成器代码如下。此处 z_dim 为 74，但最初为 64。它附加了 10 个类标签，如下所示。
+生成器代码如下。这里 z_dim 为 74，但最初为 64。它附加了 10 个类标签，如下所示。
  fake_noise = get_noise(cur_batch_size, z_dim, device=device) 
 noise_and_labels = Combine_vectors(fake_noise, one_hot_labels)
 fake = gen(noise_and_labels)
 
 class Generator(nn.Module):
 &#39;&#39;&#39;
-Generator 类
+Generator Class
 值：
 z_dim：噪声向量的维度，标量
 im_chan：输出图像的通道数，标量
@@ -272,7 +398,7 @@ main()
       <pubDate>Wed, 04 Sep 2024 15:40:27 GMT</pubDate>
     </item>
     <item>
-      <title>empty() 在 Cu-net 模型中接收到了无效的参数组合</title>
+      <title>empty() 在 Cu-net 模型中接收到无效的参数组合</title>
       <link>https://stackoverflow.com/questions/78949410/empty-received-an-invalid-combination-of-arguments-in-cu-net-model</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78949410/empty-received-an-invalid-combination-of-arguments-in-cu-net-model</guid>
@@ -355,14 +481,6 @@ ErrorResponse
 我尝试了各种访问设置，但似乎无法使这个设置正常工作。还有人知道如何解决这个问题吗？]]></description>
       <guid>https://stackoverflow.com/questions/78947921/azure-ml-studio-permission-denied-on-data-asset</guid>
       <pubDate>Wed, 04 Sep 2024 09:36:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 python 中进行向量搜索，根据上下文获取独特性分数</title>
-      <link>https://stackoverflow.com/questions/78946820/vector-search-in-python-to-get-the-unqueness-score-according-to-context</link>
-      <description><![CDATA[我有一篇带有标题和说明的博客文章，我想将其唯一性与 CSV 文件中的多个博客条目进行比较。CSV 包含多个博客，每个博客都有标题和元描述。
-我目前使用 TF-IDF 矢量化和余弦相似度将单个博客与 CSV 文件中的所有条目进行比较。但是，这种方法仅基于确切的单词而不是上下文进行匹配。]]></description>
-      <guid>https://stackoverflow.com/questions/78946820/vector-search-in-python-to-get-the-unqueness-score-according-to-context</guid>
-      <pubDate>Wed, 04 Sep 2024 04:27:53 GMT</pubDate>
     </item>
     <item>
       <title>梯度盗贼代理的性能问题[关闭]</title>
@@ -490,38 +608,6 @@ print(&quot;UTF-8 测试：����� � \u4e2d\u6587 � \u0627\u0644\u06
 UnicodeEncodeError: &#39;charmap&#39; 编解码器无法对位置中的字符进行编码20-21：字符映射到 ]]></description>
       <guid>https://stackoverflow.com/questions/78367946/unicodeencodeerror-charmap-codec-cant-encode-characters-in-position-19-38-c</guid>
       <pubDate>Mon, 22 Apr 2024 17:25:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何沿批次将张量连接到 keras 层（不指定批次大小）？</title>
-      <link>https://stackoverflow.com/questions/68345125/how-to-concatenate-a-tensor-to-a-keras-layer-along-batch-without-specifying-bat</link>
-      <description><![CDATA[我想将嵌入层的输出与自定义张量 (myarr / myconst) 连接起来。我可以使用固定的批处理大小指定所有内容，如下所示：
-import numpy as np
-import tensorflow as tf
-
-BATCH_SIZE = 100
-myarr = np.ones((10, 5))
-myconst = tf.constant(np.tile(myarr, (BATCH_SIZE, 1, 1)))
-
-# 模型定义
-inputs = tf.keras.layers.Input((10,), batch_size=BATCH_SIZE)
-x = tf.keras.layers.Embedding(10, 5)(inputs)
-x = tf.keras.layers.Concatenate(axis=1)([x, myconst])
-model = tf.keras.models.Model(inputs=inputs, output=x)
-
-但是，如果我不要指定批处理大小和平铺我的数组，即仅以下...
-myarr = np.ones((10, 5))
-myconst = tf.constant(myarr)
-
-# 模型定义
-inputs = tf.keras.layers.Input((10,))
-x = tf.keras.layers.Embedding(10, 5)(inputs)
-x = tf.keras.layers.Concatenate(axis=1)([x, myconst])
-model = tf.keras.models.Model(inputs=inputs, output=x)
-
-... 我收到一个错误，指定形状 [(None, 10, 5), (10, 5)] 无法连接。有没有办法添加这个 None / batch_size 轴以避免平铺？
-提前致谢]]></description>
-      <guid>https://stackoverflow.com/questions/68345125/how-to-concatenate-a-tensor-to-a-keras-layer-along-batch-without-specifying-bat</guid>
-      <pubDate>Mon, 12 Jul 2021 09:40:09 GMT</pubDate>
     </item>
     <item>
       <title>如何裁剪无人机拍摄的太阳能电池板？</title>
