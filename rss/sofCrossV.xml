@@ -4,7 +4,112 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 07 Sep 2024 15:16:17 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 07 Sep 2024 18:19:37 GMT</lastBuildDate>
+    <item>
+      <title>提高 glmm 准确性 - 我能做什么？</title>
+      <link>https://stats.stackexchange.com/questions/654010/improving-glmm-accuracy-what-can-i-do-here</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/654010/improving-glmm-accuracy-what-can-i-do-here</guid>
+      <pubDate>Sat, 07 Sep 2024 18:16:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用蒙特卡罗实验验证 HAC SE 的一致性</title>
+      <link>https://stats.stackexchange.com/questions/654007/verifying-consistency-of-hac-ses-with-a-monte-carlo-experiment</link>
+      <description><![CDATA[我试图通过蒙特卡洛实验证明 R 的 sandwhich 包中给出的默认 HAC 标准误差的一致性。我使用的线性模型定义为 $Y = X + \varepsilon$，其中 $X_i \sim N(1,1)$，$X\perp\varepsilon$，以及 $\varepsilon \sim N(\mathbf 0, \Sigma)$，其中
+$ \boldsymbol\Sigma_{ij} = \rho^{|i-j|}$，其中 $\rho \in (-1,1)$。如果 $\hat{\beta}$ 是 OLS 估计量，我们可以将其渐近方差简化如下：
+$$ \text{Avar}(\hat {\beta}) = \text{E}[X&#39;X]^{-1}X&#39;\Sigma X(X&#39;X)^{-1} = \frac{1}{2n(1-\rho)} - \frac{\rho(1-\rho^n)}{2n^2(1-\rho)^2}.$$
+我已经通过以下蒙特卡洛实验验证了这个数学公式：
+library(mvnfast)
+library(tidyverse)
+library(sandwich)
+
+set_Sigma_ij &lt;- function(i, j, rho){
+rho^abs(i-j)
+}
+
+generate_Sigma &lt;- function(rho, n){
+expand_grid(i = 1:n, j = 1:n) %$% 
+map2_dbl(i, j, \(i,j) set_Sigma_ij(i,j, rho)) %&gt;% 
+matrix(nrow = n) 
+}
+
+draw_ols_realization &lt;- function(n, rho){
+eps &lt;- rmvn(
+n = 1, 
+mu = rep(0, n), 
+sigma = generate_Sigma(rho = rho, n = n)
+) %&gt;% 
+as.numeric()
+X &lt;- rnorm(n = n, mean = 1, sd = 1)
+Y &lt;- X + eps
+lm(Y ~ X - 1) %&gt;% 
+coef()
+}
+
+true_avar_ols &lt;- function(n, rho){
+(1/(2*n*(1-rho))) - (rho*(1-rho^n)) / (2*n^2 * (1-rho)^2)
+}
+
+numerical_avar_ols &lt;- function(N, n, rho){
+1:N %&gt;% 
+map_dbl(\(t) draw_ols_realization(n, rho)) %&gt;% 
+var()
+}
+
+# 插入几个值以确认（对于足够大的 n）
+true_avar_ols(n = 140, rho = 0.8)
+numerical_avar_ols(N = 1e4, n = 140, rho = 0.8)
+
+当我确认 HAC 标准误差（或者更确切地说是相应的协方差矩阵）始终估计 $\text{Avar}(\hat {\beta})$ 时，结果没有多大意义。这是我的代码：
+estimate_avar_beta &lt;- function(n, rho, X, Y){
+estimate_model &lt;- lm(Y[1:n] ~ X[1:n] - 1) 
+tibble(
+standard = as.numeric(vcov(estimated_model)),
+HAC = as.numeric(vcovHAC(estimated_model)),
+sample_size = n
+)
+}
+
+# 估计固定 (Y, X) 的 Avar(OLS)，同时让 n 增长
+estimate_avar_beta_over_n &lt;- function(n_vals, rho){
+eps &lt;- rmvn(
+n = 1, 
+mu = rep(0, max(n_vals)), 
+sigma = generate_Sigma(rho = rho, n = max(n_vals))
+) %&gt;% 
+as.numeric()
+X &lt;- rnorm(n = max(n_vals), mean = 1, sd = 1)
+Y &lt;- X + eps
+n_vals %&gt;% 
+map_df(\(n) HAC_SEs(n, rho, X, Y))
+}
+
+# 现在执行此操作 N 次 
+draw_N_estimates_avar_beta_over_n &lt;- function(N, n_vals, rho){
+1:N %&gt;% 
+map_df(\(t) draw_HAC_SEs_over_n(n_vals, rho))
+}
+
+结果 &lt;- draw_N_estimates_avar_beta_over_n(
+N = 1e2, 
+n_vals = (1:10)*100, 
+rho = 0.9
+)
+
+vcovHAC 给出的估计值似乎不一致。
+我在这里做错了吗？如果是，是什么？ n = 1000 的样本量是否太小？我对 $\text{Avar}(\hat {\beta})$ 的表达是否不正确？我是不是犯了一个愚蠢的错误，盯着这个看了一个多小时后才发现？提前谢谢大家！]]></description>
+      <guid>https://stats.stackexchange.com/questions/654007/verifying-consistency-of-hac-ses-with-a-monte-carlo-experiment</guid>
+      <pubDate>Sat, 07 Sep 2024 16:51:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>PCA 有助于选择变量吗？</title>
+      <link>https://stats.stackexchange.com/questions/654004/pca-to-help-select-variables</link>
+      <description><![CDATA[我考虑在预处理步骤中运行 PCA，然后再运行另一个 PCA，该 PCA 实际上将用于分析子采样数据。我认为对原始变量集进行子采样可能很有用，方法是选择对预处理 PCA 的最佳成分贡献最大的变量，然后进行第二次 PCA 运行，这次分析（主要是可视化）贡献最大的变量（数量相当多）的数据子集。在我看来，对最佳 PC 贡献最大的变量，对高维数据向量的方差贡献最大。因此，它们能够从原始数据中捕获更多信息。因此它们更具信息量。
+这有意义吗？
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/654004/pca-to-help-select-variables</guid>
+      <pubDate>Sat, 07 Sep 2024 15:26:48 GMT</pubDate>
+    </item>
     <item>
       <title>分析类型</title>
       <link>https://stats.stackexchange.com/questions/654003/type-of-analysis</link>
@@ -176,72 +281,20 @@
       <description><![CDATA[加权最小二乘问题的经典案例$$(X^TWX)\hat{\beta} = X^T Wy$$ 正在解决最小化问题$${\operatorname{arg\ min}}\, \sum_{i=1}^{n} w_i \left|y_i - \sum_{j=1}^{m} X_{ij}\beta_j\right|^2 =
 \underset{\boldsymbol\beta}{\operatorname{arg\ min}}\, \left\|W^\frac{1}{2}\left(\mathbf{y} - X\boldsymbol\beta\right)\right\|^2$$
 其中 $w_i$ 是我们分配给每个观察值的权重。 $W = diag(w_i）$ 矩阵是此类权重的对角矩阵。解释很清楚。
-我的问题是，如果 $W$ 不是对角矩阵，而是有 $W_{ij}$ 项。在这种情况下，我该如何解释我的回归？
-我之所以问这个问题，是因为似乎有合法的用例，例如 卡尔曼滤波器。P 矩阵是回归的权重。但我不确定如何解释它。
+我的问题是，如果 $W$ 不是对角矩阵，而是有 $W_{ij}$ 个条目。在这种情况下，我该如何解释我的回归？ 目标函数中的每个项不是一次观察的误差，而是有很多“交叉项”，如 $W_{ij} (y_i - \beta x_i) (y_j - \beta x_j)$（在单变量回归的情况下）。这些项是什么意思，与对角线情况相比，它将如何影响我们的回归系数，当 $W_{ij} (y_i - \beta x_i) (y_j - \beta x_j)$ 时。 class=&quot;math-container&quot;&gt;$W_{ij}$ 存在吗？$W_{ij}&gt;0$ 或 $W_{ij}&lt;0$ 时有什么区别吗？
+我之所以问这个问题，是因为这里似乎有合法的用例，例如 卡尔曼滤波器。P 矩阵是回归的权重。但我不确定如何解释它。
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/654000/weighted-linear-regression-how-to-interpret-when-weighting-matrix-is-not-diag</guid>
       <pubDate>Sat, 07 Sep 2024 13:50:48 GMT</pubDate>
     </item>
     <item>
       <title>ARDL 模型需要平稳性吗？</title>
-      <link>https://stats.stackexchange.com/questions/653998/does-ardl-model-require-stationnarity</link>
-      <description><![CDATA[背景：我有一些变量在水平上是非平稳的，但在一阶差分时是平稳的（至少在滞后 0 和 1 时是平稳的，但超过这个点后就变为非平稳的）。我使用了 VAR 模型，因为所有变量都具有相同的积分阶数，但该模型存在许多问题（自相关、异方差、非正态残差）。因此，我尝试使用非平稳数据（即尚未差分）的 ARDL 模型，并为不同的变量分配不同的滞后（R 中的 auto_ardl 函数根据 AIC 标准为每个变量提供了最佳滞后），一切都很好（所有诊断都正常）。我担心的是，除了这篇文章：https://www.sciencedirect.com/science/article/pii/S2405918817300405和我在这里看到的另一篇文章之外，我找不到允许我确认可以在非平稳数据上使用 ARDL 的参考文献。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653998/does-ardl-model-require-stationnarity</guid>
+      <link>https://stats.stackexchange.com/questions/653998/does-ardl-model-require-stationarity</link>
+      <description><![CDATA[背景：我有一些变量在水平上是非平稳的，但在一阶差分时是平稳的（至少在滞后 0 和 1 时是平稳的，但超过这个点后就变为非平稳的）。我使用了 VAR 模型，因为所有变量都具有相同的积分阶数，但该模型存在许多问题（自相关、异方差、非正态残差）。
+因此，我尝试使用非平稳数据（即尚未差分）的 ARDL 模型，并为不同的变量分配不同的滞后（R 中的 ARDL::auto_ardl 函数根据 AIC 标准为每个变量提供了最佳滞后），一切都很好（所有诊断都正常）。
+我担心的是，除了 Shreshta &amp; Bhatta &quot;选择适当的时间序列数据分析方法框架&quot; (2018) 和我在这里看到的另一篇文章，我找不到允许我确认可以在非平稳数据上使用 ARDL 的参考文献。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653998/does-ardl-model-require-stationarity</guid>
       <pubDate>Sat, 07 Sep 2024 11:37:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>检测长线性分子中的位置模式或缺失模式</title>
-      <link>https://stats.stackexchange.com/questions/653995/testing-for-pattern-in-positions-or-the-lack-thereof-in-long-linear-molecules</link>
-      <description><![CDATA[大约一个月前，我问了一个问题，关于如何找到一个合适的统计检验方法，以确定在长线性分子（mtDNA）的不同位置上发生的特定事件是否可以被识别为有规律地间隔开（即 3 的倍数，如果假设人们知道在没有内含子的情况下的阅读框架，则所有这些结果都可能发生在摆动碱基上），或成簇发生（大多数彼此相距很短，分子上其他地方的间隔较长），或基本上随机散布在分子的整个长度上，在观察到事件发生的位置之间没有可辨别的间隔模式。
-不幸的是，我反复努力搜索我的问题，看看是否有任何其他评论或答案，这表明它可能不再列在问题中（令人惊讶的是，我的帐户显示我没有在 Cross Validate 上提出任何问题），这导致我再次发布这个问题。
-希望我的转帖至少比以前好一些。
-我的问题引起了两个有趣的回应，但没有具体的答案，其中一个让我注意到 CpG 岛这个有趣的现象，它显然反映了彼此靠近的位置的聚集。虽然两条有用的评论都表明我的问题是不恰当的，但关于 CpG 岛的评论让我想到可能已经进行了某种统计测试来确认感兴趣事件的位置模式是聚集的，而不是沿着 DNA 长度有规律或随机分布的。如果是这样，什么测试适合从统计学上证明这一点？
-在我的初始帖子中，我问过，针对预期累积分布的 Kolomogorov-Smirnov 运行检验是否适合区分这三种不同的结果。卡方检验似乎已用于识别 CpG 岛，但我不清楚在我的情形下如何执行此检验。在我的情形下，我并不关心碱基对组合本身的识别，而是关心字符兼容性分析所阐明的相容转换存在的位置是模式化的（规则间隔或聚集）还是随机的，在整个分子长度上没有任何可辨别的位置模式。
-这里的情况可能稍微复杂一些，因为随机模式可能仍会潜在地揭示，在翻译中，这些位置可能对应于高度折叠蛋白质上“非随机”位置的氨基酸替换（即更多/更少的内部/外部、基序内/之间，等）。尽管如此，CpG 位点和兼容位点之间的相对位置的相似性似乎仍然成立。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653995/testing-for-pattern-in-positions-or-the-lack-thereof-in-long-linear-molecules</guid>
-      <pubDate>Sat, 07 Sep 2024 07:19:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 R Notebook 中预览图表？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/653994/how-to-preview-plots-in-r-notebook</link>
-      <description><![CDATA[我正尝试在 R Notebook 中为我的数据集绘制相关图和周期图，如果我理解正确的话，R Notebook 提供了预览图的功能，而不必像 R Markdown 那样进行编织。但是，即使我能够在 Markdown 下编织和查看图，我仍然不知道如何在 Notebook 下预览这些图。我已将代码附加在下面。我真的很感激您在这方面提供一些建议。
-如果这个问题看起来很愚蠢，我很抱歉，但我是一个完全的初学者，我尝试浏览互联网，但仍然找不到解决方案。
----
-title：“R Notebook”
-输出：html_notebook
----
-
-```{r setup, include=False} # 此代码块已隐藏
-knitr::opts_chunk$set(echo = TRUE) # 其余代码块及其输出将显示 
-```
-
-```{r}
-dollar &lt;- scan(&quot;/Users/Desktop/dollar.txt&quot;) # 将数据集分配给变量 dollar
-dollar &lt;- ts(log(dollar)) # 将数据集转换为对数刻度 ts 对象
-```
-
-```{r}
-# 绘制原始数据的相关图
-acf(dollar, main=&quot;Correlogram of the Time Series&quot;, lag.max = 20) 
-
-# 绘制原始数据的周期图
-spec.pgram(dollar, main = &quot;Periodogram of Time Series&quot;, demean=T,detrend=F)
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/653994/how-to-preview-plots-in-r-notebook</guid>
-      <pubDate>Sat, 07 Sep 2024 04:50:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>将带有 ARIMA 误差模型的回归从 R 转移到 Excel（公式帮助）</title>
-      <link>https://stats.stackexchange.com/questions/653987/transferring-a-regression-with-arima-error-model-from-r-to-excel-formula-help</link>
-      <description><![CDATA[我正在尝试将 ARIMA 模型转换为 Excel 电子表格，以便计算我正在研究的内容。
-该模型是 ARIMA(4,1,0)，我使用 R 中的 forecast::Arima 函数进行拟合。
-输出系数为
-ar1:.2499 ar2:-.0060 ar3:-.1258 ar4:-.0046。
-xreg 系数为 -29.5243。
-无论我怎么尝试，我似乎都无法正确得到公式，并且输出也不一致。我想我感到困惑的是，如果我在 ARIMA 错误中包含差异因子，我不确定如何在后端解释这一点（或者是否必须这样做）。]]></description>
-      <guid>https://stats.stackexchange.com/questions/653987/transferring-a-regression-with-arima-error-model-from-r-to-excel-formula-help</guid>
-      <pubDate>Fri, 06 Sep 2024 20:22:36 GMT</pubDate>
     </item>
     <item>
       <title>散点图的视觉评估可以接受吗？</title>
@@ -323,6 +376,55 @@ $
       <pubDate>Fri, 06 Sep 2024 10:05:12 GMT</pubDate>
     </item>
     <item>
+      <title>如何解释统计上不显著的估计并排除较大的影响？</title>
+      <link>https://stats.stackexchange.com/questions/653890/how-to-interpret-statistically-non-significant-estimates-and-rule-out-large-effe</link>
+      <description><![CDATA[我正在做回归分析，并获得了一个统计上不显著的点估计。从经济角度来看，不显著的结果在我的语境中是有意义的，但我想确保这一发现不是由于缺乏效力。相反，我想确认这种影响确实接近于零，而不仅仅是统计上不显著。
+我的目标是做出这样的陈述：“...从置信区间来看，我们可以排除大于 1-1.4 个月的预期寿命增加的影响”，正如 Meghir、Palme 和 Simeonova (2018) 所做的那样，或者“这些影响通常可以限制在零附近的一个狭窄区间内”，正如 Cesarini 等人 (2016) 所提到的那样。
+根据我的点估计及其置信区间，我如何自信地解释结果以做出类似的陈述？具体来说，我该如何量化估计的精度以排除较大的影响？]]></description>
+      <guid>https://stats.stackexchange.com/questions/653890/how-to-interpret-statistically-non-significant-estimates-and-rule-out-large-effe</guid>
+      <pubDate>Thu, 05 Sep 2024 07:29:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>在使用 k 倍交叉验证训练随机森林分类模型后，我应该在训练集中使用 ROC 曲线吗？</title>
+      <link>https://stats.stackexchange.com/questions/653801/should-i-use-roc-curve-in-my-training-set-after-training-a-random-forest-classif</link>
+      <description><![CDATA[我有一个概念性问题：将数据集分为训练集和测试集（70:30），两者平衡且经过打乱，我是否应该使用由训练集的 k 倍交叉验证生成的模型的混淆矩阵和 ROC 曲线？
+我之所以问这个问题，是因为每次我从网格搜索中获得的准确率总是接近 61%。当我用训练集制作混淆矩阵时，准确率是 57%。但是当我用训练集制作 ROC 曲线和混淆矩阵时，准确率总是接近 100%。这是过度拟合的迹象吗？还是我应该只考虑交叉验证和训练集的准确度值（61% 和 57%）？
+这是我的代码：
+x_train, x_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state=0, stratify=y, shuffle=True)
+
+param_grid = {
+&#39;n_estimators&#39;: [50, 100, 200, 250], # 植物的树状图数量
+&#39;max_depth&#39;: [3, 5, 8, 10], # 植物的最大深度
+&#39;min_samples_split&#39;: [2, 5, 10], # 最小样本数&#39;min_samples_leaf&#39;: [1, 2, 4], # &#39;max_features&#39;: [&#39;sqrt&#39;], # &#39;oob_score&#39; 所需的最少数量: [True] } rf = RandomForestClassifier( random_state=0) grid_search = GridSearchCV( estimator=rf, param_grid=param_grid, cv=10, # 10 倍交叉验证 n_jobs=-1, # CPU 调度核心的待办事项 verbose=2, # 总线处理的优化
+评分=&#39;accuracy&#39;，# 评估指标
+return_train_score=True
+)
+
+grid_search.fit(x_train, y_train)
+
+print(&quot;最佳超参数：&quot;)
+print(grid_search.best_params_)
+#最佳超参数：
+#{&#39;max_depth&#39;: 10, &#39;max_features&#39;: &#39;sqrt&#39;, &#39;min_samples_leaf&#39;: 2, &#39;min_samples_split&#39;: 5, #&#39;n_estimators&#39;: 100, &#39;oob_score&#39;: True}
+
+print(&quot;最佳交叉验证准确率：&quot;)
+print(grid_search.best_score_)
+#最佳交叉验证准确率：0.6137931034482758
+
+best_model = grid_search.best_estimator_
+test_accuracy = best_model.score(x_test, y_test)
+test_accuracy
+#0.5684931506849316
+
+train_accuracy = best_model.score(x_train, y_train)
+train_accuracy
+#0.9844827586206897
+
+PS：我在 scikt learn 文档这里中看到，它在 k 倍之后在测试集中的验证停止，但我没有发现任何提到使用训练数据集再次验证的内容。]]></description>
+      <guid>https://stats.stackexchange.com/questions/653801/should-i-use-roc-curve-in-my-training-set-after-training-a-random-forest-classif</guid>
+      <pubDate>Tue, 03 Sep 2024 17:40:52 GMT</pubDate>
+    </item>
+    <item>
       <title>交叉重复测量设计的线性混合模型</title>
       <link>https://stats.stackexchange.com/questions/653482/linear-mixed-model-for-crossed-repeated-measures-desing</link>
       <description><![CDATA[我正在尝试分析一个纵向实验心理学数据集。每个参与者都完成了一项任务，收集了他们对两种不同刺激（这里我称之为低和高）的反应时间。该任务有多个区块，每个参与者在多个年龄段接受评估。区块嵌套在年龄内，年龄和参与者交叉，每个参与者在所有年龄段接受评估，所有年龄段包含所有参与者的数据。以下是数据的简化子集，以显示一般结构。实际上我有更多区块，实际数据集包含 97 名参与者、20 个区块和 4 个年龄段。区块将被建模为连续的，并估计线性斜率，而年龄将被视为分类的，一个具有 4 个级别的因子。
@@ -377,29 +479,6 @@ CV 分数的标准差：0.24849696694857612
 在此阶段，我应该关注什么来排除模型故障？不确定该走哪条路。]]></description>
       <guid>https://stats.stackexchange.com/questions/652148/random-forest-good-mse-and-r2-but-poor-cross-validation-results</guid>
       <pubDate>Thu, 01 Aug 2024 12:24:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>线性判别分析与 Fisher 判别分析的区别</title>
-      <link>https://stats.stackexchange.com/questions/635619/difference-between-linear-discriminant-analysis-and-fisher-discriminant-analysis</link>
-      <description><![CDATA[我一直认为 Fisher 判别分析 (FDA) 只是线性判别分析 (LDA) 的多类泛化。但我最近读到的一篇论文指出，这些方法从根本上是不同的，因为：
-
-FDA 确定了一种低维线性投影，可最大化类间方差与类内方差的比率。
-
-LDA 假设每个类的分布都是多元高斯分布，并找到一个线性子空间，使错误分类的概率最小化。1
-
-
-我想我的问题是，它们有什么不同？如果假设每个类都是多元高斯的，那么最小化错误分类概率的线性子空间与最大化类内与类间方差比率的子空间不是相同吗？似乎必须解决相同的特征值问题才能在这两种方法中找到感兴趣的线性子空间。
-有人能解释一下我遗漏了什么以及为什么这些方法不同吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635619/difference-between-linear-discriminant-analysis-and-fisher-discriminant-analysis</guid>
-      <pubDate>Sun, 24 Dec 2023 01:49:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>正态分布函数的条件期望</title>
-      <link>https://stats.stackexchange.com/questions/592419/conditional-expectation-of-normal-cdf</link>
-      <description><![CDATA[假设 $X \sim N(0, \sigma^2)$，是否可以以闭式计算 $E[\Phi(\frac{aX + b}{c}) | X &gt; k]$，其中 $\Phi$ 是标准正态 cdf？
-动机来自于可以用闭式表达式计算 $E[\Phi(\frac{aX + b}{c})]$ 之类的东西。但不确定条件期望的情况是否也适用。]]></description>
-      <guid>https://stats.stackexchange.com/questions/592419/conditional-expectation-of-normal-cdf</guid>
-      <pubDate>Sat, 15 Oct 2022 19:23:00 GMT</pubDate>
     </item>
     </channel>
 </rss>
