@@ -4,7 +4,55 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 06 Sep 2024 21:16:04 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 07 Sep 2024 01:10:04 GMT</lastBuildDate>
+    <item>
+      <title>在函数中创建 VLLM 对象时会导致内存错误，即使明确清除 GPU 缓存也是如此，只有共享引用才能使代码不会崩溃</title>
+      <link>https://stackoverflow.com/questions/78959131/vllm-objects-cause-memory-errors-when-created-in-a-function-even-when-explicitly</link>
+      <description><![CDATA[我在 Python 中使用 VLLM 库时遇到了问题。具体来说，当我在函数内部创建 VLLM 模型对象时，我遇到了内存问题，并且无法有效清除 GPU 内存，即使在删除对象并使用 torch.cuda.empty_cache() 之后也是如此。
+当我尝试在函数内部实例化 LLM 对象时会出现问题，但如果我在父进程或全局范围内实例化该对象，则不会发生这种情况。这表明 VLLM 在函数中创建和管理对象时存在问题，从而导致内存保留和 GPU 耗尽。
+示例代码
+以下是代码的简化版本：
+import torch
+import gc
+from vllm import LLM
+
+def run_vllm_eval(model_name, samples_params, path_2_eval_dataset):
+# 在函数中实例化 LLM
+llm = LLM(model=model_name, dtype=torch.float16, trust_remote_code=True)
+
+# 在此处运行一些 VLLM 推理或评估（简化）
+result = llm.generate([path_2_eval_dataset], samples_params)
+
+# 推理后清理
+del llm
+gc.collect()
+torch.cuda.empty_cache()
+
+# 在此之后，GPU 内存未正确清除并导致 OOM 错误
+run_vllm_eval()
+run_vllm_eval()
+run_vllm_eval()
+
+但是
+llm = run_vllm_eval2()
+llm = run_vllm_eval2(llm)
+llm = run_vllm_eval2(llm)
+
+有效。
+即使明确删除 LLM 对象并清除缓存后，GPU 内存仍未正确释放，导致在尝试加载或运行同一脚本中的另一个模型时出现内存不足 (OOM) 错误。
+我尝试过的方法
+使用 del 删除 LLM 对象。
+运行 gc.collect() 以触发 Python 的垃圾收集。
+使用 torch.cuda.empty_cache() 清除 CUDA 内存。
+确保父进程中没有实例化 VLLM 对象。
+当在函数内创建 LLM 对象时，这些似乎都无法解决问题。
+问题
+有人在函数内创建 VLLM 对象时遇到过类似的内存问题吗？
+是否有推荐的方法来管理或清除函数中的 VLLM 对象以防止 GPU 内存保留？
+在这种情况下，是否存在与标准 Hugging Face 或 PyTorch 模型不同的特定 VLLM 处理技术？]]></description>
+      <guid>https://stackoverflow.com/questions/78959131/vllm-objects-cause-memory-errors-when-created-in-a-function-even-when-explicitly</guid>
+      <pubDate>Sat, 07 Sep 2024 00:58:59 GMT</pubDate>
+    </item>
     <item>
       <title>向量近似程序故障</title>
       <link>https://stackoverflow.com/questions/78958485/vector-approximation-program-malfunction</link>
@@ -289,15 +337,6 @@ predictions = my_predict(X_n,W1_tmp,b1_tmp,W2_tmp,b2_tmp)
       <pubDate>Thu, 05 Sep 2024 19:03:34 GMT</pubDate>
     </item>
     <item>
-      <title>如何训练人工智能完成任务？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78954394/how-can-an-ai-be-trained-to-do-a-task</link>
-      <description><![CDATA[如何训练或指定 ai/ml 来学习某件事？
-例如，当给定样本/数据时，如何让它学习我想要它做的事情？
-（我不确定如何表述它，但希望有人明白我的意思）]]></description>
-      <guid>https://stackoverflow.com/questions/78954394/how-can-an-ai-be-trained-to-do-a-task</guid>
-      <pubDate>Thu, 05 Sep 2024 18:26:14 GMT</pubDate>
-    </item>
-    <item>
       <title>具有高基数分类列的聚类数据[关闭]</title>
       <link>https://stackoverflow.com/questions/78952979/clustering-data-which-has-high-cardinal-categorical-columns</link>
       <description><![CDATA[我有一个数据 - 例如：电器商店中的商品数据集。
@@ -318,6 +357,37 @@ ITEM_NO（唯一标识商品的编号）
 我想要一个可扩展的解决方案。]]></description>
       <guid>https://stackoverflow.com/questions/78952979/clustering-data-which-has-high-cardinal-categorical-columns</guid>
       <pubDate>Thu, 05 Sep 2024 12:15:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>运行 Jenkins 管道时如何修复“脚本返回退出代码 15”</title>
+      <link>https://stackoverflow.com/questions/78885552/how-to-fix-script-returned-exit-code-15-when-running-jenkins-pipeline</link>
+      <description><![CDATA[我正在使用 Jenkins 定义管道。我正在开发一个文本摘要器项目，并使用 jenkins 进行 CICD。触发管道后，在 CD 阶段我收到以下错误：
+ssh -o StrictHostKeyChecking=no -l ubuntu 3.226.221.21 &#39;cd /home/ubuntu/ &amp;&amp; wget https://raw.githubusercontent.com/mishraatharva/textsummarization/main/docker-compose.yml &amp;&amp; export IMAGE_NAME=${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/textsum:latest &amp;&amp; aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com &amp;&amp; docker compose up -d &#39;
+Shell 脚本
+1.6 秒
++ ssh -o StrictHostKeyChecking=no -l ubuntu 3.226.221.21 cd /home/ubuntu/ &amp;&amp; wget https://raw.githubusercontent.com/mishraatharva/textsummarization/main/docker-compose.yml &amp;&amp; export IMAGE_NAME=****:latest &amp;&amp; aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ****.dkr.ecr.us-east-1.amazonaws.com &amp;&amp; docker compose up -d 
+--2024-08-18 19:19:08-- https://raw.githubusercontent.com/mishraatharva/textsummarization/main/docker-compose.yml
+正在解析 raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.111.133, 185.199.108.133, 185.199.109.133, ...
+正在连接到 raw.githubusercontent.com (raw.githubusercontent.com)|185.199.111.133|:443... 已连接。
+HTTP 请求已发送，正在等待响应... 200 OK
+长度：95 [text/plain]
+保存至：‘docker-compose.yml.10’
+0K 100% 3.77M=0s
+2024-08-18 19:19:08 (3.77 MB/s) - ‘docker-compose.yml.10’ 已保存 [95/95]
+警告！您的密码将以未加密形式存储在 /home/ubuntu/.docker/config.json 中。
+配置凭据助手以删除此警告。请参阅
+https://docs.docker.com/engine/reference/commandline/login/#credential-stores
+登录成功
+yaml：第 229 行：此上下文中不允许映射值
+脚本返回退出代码 15
+Jenkins 2.462.1
+
+我不知道如何解决这个问题：
+我正在共享包含 jenkins 文件的 github repo。
+https://github.com/mishraatharva/textsummarization
+如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/78885552/how-to-fix-script-returned-exit-code-15-when-running-jenkins-pipeline</guid>
+      <pubDate>Sun, 18 Aug 2024 20:03:08 GMT</pubDate>
     </item>
     <item>
       <title>自定义模型聚合器 TensorFlow Federated</title>
@@ -392,13 +462,6 @@ img = mpimg.imread(&#39;handwritten.jpg&#39;)
 那么我该如何“规范化”我的数据以便能够在其上使用我的分类器呢？]]></description>
       <guid>https://stackoverflow.com/questions/41666627/using-own-image-in-sklearn-digits-example</guid>
       <pubDate>Sun, 15 Jan 2017 21:39:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>Akinator 游戏背后有什么样的算法？</title>
-      <link>https://stackoverflow.com/questions/13649646/what-kind-of-algorithm-is-behind-the-akinator-game</link>
-      <description><![CDATA[我一直很惊讶 Akinator 应用 只需问几个问题就能猜出一个字符。所以我想知道是什么样的算法或方法让它做到了这一点？这类算法有名字吗？我在哪里可以阅读更多关于它们的信息？]]></description>
-      <guid>https://stackoverflow.com/questions/13649646/what-kind-of-algorithm-is-behind-the-akinator-game</guid>
-      <pubDate>Fri, 30 Nov 2012 16:59:38 GMT</pubDate>
     </item>
     </channel>
 </rss>
