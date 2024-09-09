@@ -4,7 +4,105 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 09 Sep 2024 12:32:12 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Sep 2024 15:18:03 GMT</lastBuildDate>
+    <item>
+      <title>我应该如何为我的黑客马拉松构建 ML 模型？</title>
+      <link>https://stackoverflow.com/questions/78966011/how-should-i-build-an-ml-model-for-my-hackathon</link>
+      <description><![CDATA[我和我的团队必须构建一个 ML 模型，以使用 OCR 从标签中读取详细信息。
+我是 ML 领域的新手，我该如何学习以及在哪个平台上构建我的模型？
+Azure AI、AWS 或 Vertex AI 是执行此操作的好平台吗？它们中的哪一个或其他东西可以构建我的模型？
+我尝试访问 Vertex AI、Azure AI，所有内容都要求预先提供银行详细信息，我想在继续之前修复平台。如果有人能在这方面提供帮助，那将非常有帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/78966011/how-should-i-build-an-ml-model-for-my-hackathon</guid>
+      <pubDate>Mon, 09 Sep 2024 14:41:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>为自定义 MLP Keras 模型实现域自适应网络 (DAN)</title>
+      <link>https://stackoverflow.com/questions/78965799/implementing-domain-adaptation-network-dan-for-a-custom-mlp-keras-model</link>
+      <description><![CDATA[我正在尝试使用 Keras 为 MLP 模型实现 DAN（域自适应网络）。
+def build_network():
+source_input = layer.Input(shape=(config_dict[&#39;patch_size&#39;], config_dict[&#39;patch_size&#39;], config_dict[&#39;patch_size&#39;], 1), name=&#39;input_1&#39;)
+target_input = layer.Input(shape=(config_dict[&#39;patch_size&#39;], config_dict[&#39;patch_size&#39;], 1), name=&#39;input_2&#39;)
+source_x = layer.Flatten()(source_input)
+target_x = layer.Flatten()(target_input)
+source_y1 = density_block(num_nodes=128, l_name=&quot;fc1&quot;)(source_x)
+source_y2 = 密集块（num_nodes=128，l_name=“fc2”）（source_y1）
+source_y3 = 密集块（num_nodes=128，l_name=“fc3”）（source_y2）
+source_y4 = 密集块（num_nodes=128，l_name=“fc4”）（source_y3）
+y_source = 层。密集（units=config_dict[&#39;output_dim&#39;]，activation=“tanh”，name=“fc5”）（source_y4）
+target_y1 = 密集块（num_nodes=128，l_name=“fc6”）（target_x）
+target_y2 = 密集块（num_nodes=128，l_name=“fc7”）（target_y1）
+target_y3 = density_block(num_nodes=128, l_name=&quot;fc8&quot;)(target_y2)
+target_y4 = density_block(num_nodes=128, l_name=&quot;fc9&quot;)(target_y3)
+y_target = layer.Dense(units=config_dict[&#39;output_dim&#39;],activation=&quot;tanh&quot;, name=&quot;fc10&quot;)(target_y4)
+model = Model([source_input, target_input], y_source)
+
+return model
+
+model = build_network()
+model.compile(optimizer=&#39;adam&#39;, loss=tf.keras.losses.huber, metrics[&#39;mean_absolute_error&#39;])
+
+然后我从预先训练的模型中加载一些权重。
+print(&#39;-------------加载model-----------------&#39;)
+m = Custommetrics()
+mlp = models.load_model(os.path.join(config_dict[&#39;checkpoint_dir&#39;],
+weights_file_name), custom_objects={&quot;r2_metric&quot;: m.r2_metric, &quot;geodesic_metric&quot;: m.geodesic_metric})
+for layer1 in mlp.layers[1:]:
+for layer2 in model.layers[1:]:
+if layer1.name == layer2.name:
+layer2.set_weights(layer1.get_weights())
+layer2.trainable = False
+
+最后，我训练模型：
+source_x = np.load(os.path.join(source_dir, &#39;x_train.npy&#39;))
+target_x = np.load(os.path.join(target_dir, &#39;x_train.npy&#39;))
+source_y_train = np.load(os.path.join(target_dir, &#39;y_train.npy&#39;))
+history = model.fit([source_x, target_x],
+source_y_train,
+batch_size=32, epochs=10,
+validation_data=([source_x, target_x], source_y_train),
+callbacks=[cp_callback])
+
+当我打印 model.summary() 时，我得到以下内容：
+
+模型：“model”
+层（类型）输出形状参数 # 连接到
+input_1（输入层）[（无，40，40，40，1）] 0 [] 
+
+flatten（Flatten）（无，64000）0 [&#39;input_1[0][0]&#39;] 
+
+fc1（密集）（无，128）8192128 [&#39;flatten[0][0]&#39;] 
+
+fc2（密集）（无，128）16512 [&#39;fc1[0][0]&#39;] 
+
+fc3（密集）（无，128）16512 [&#39;fc2[0][0]&#39;] 
+
+fc4（密集）（无，128）16512 [&#39;fc3[0][0]&#39;]
+
+input_2 (InputLayer) [(None, 40, 40, 40, 1)] 0 [] 
+
+fc5 (Dense) (None, 6) 774 [&#39;fc4[0][0]&#39;] 
+
+总参数：8242438 (31.44 MB)
+可训练参数：0 (0.00 字节)
+不可训练参数：8242438 (31.44 MB)
+
+
+这已成功训练。但我有两个问题：
+为什么摘要不包含目标分支 (fc6-10)？我应该如何逐层添加 MMD（即 fc1 和 fc6、fc2 和 fc7、fc3 和 fc8、fc4 和 fc9）？
+提前感谢您的帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/78965799/implementing-domain-adaptation-network-dan-for-a-custom-mlp-keras-model</guid>
+      <pubDate>Mon, 09 Sep 2024 13:49:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 R 进行自然语言处理</title>
+      <link>https://stackoverflow.com/questions/78965606/natural-language-processing-using-r</link>
+      <description><![CDATA[目前我对自然语言处理感兴趣。我有一个路线图，比如拿一份韩语版的 PDF（任何语言，英语除外），然后在应用一些操作（如数据导入、清理、标记化、删除停用词）后，我想将该语言翻译成英语。
+
+我在这里使用 R 编程，你能建议我路线图需要进行哪些更改以及哪些库很重要吗？谢谢
+建议重新评估我的路线图和库。]]></description>
+      <guid>https://stackoverflow.com/questions/78965606/natural-language-processing-using-r</guid>
+      <pubDate>Mon, 09 Sep 2024 13:03:37 GMT</pubDate>
+    </item>
     <item>
       <title>强化学习中，如何避免 RGB 图像训练数据的内存泄漏？</title>
       <link>https://stackoverflow.com/questions/78965096/how-to-avoid-memory-leaks-in-training-data-for-rgb-images-in-reinforcement-learn</link>
@@ -206,42 +304,12 @@ selected_indices &lt;- misclassified_indices[order(misclassified_decision_values
       <pubDate>Mon, 09 Sep 2024 01:01:00 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 Python 的机器学习模型中处理具有数值的对象数据类型变量？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78963448/how-to-deal-with-object-data-type-variables-with-numeric-values-in-machine-learn</link>
-      <description><![CDATA[我尝试在 Python 中构建机器学习模型，我有几个变量的数据类型为“object”，值如下：411,71 等。我的问题是：
-
-我是否必须将这种具有 411,71 等值的对象变量更改为数字类型才能使用 xgboost 或随机森林等算法？
-
-如何在我的数据集中找到适合将数据类型更改为数字的“object”类型的变量，即具有 411,71 等值的变量，以及在这种情况下是否也需要将“，”更改为“。”？你能给我展示一下 Python Pandas 中的示例代码来做到这一点吗？
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/78963448/how-to-deal-with-object-data-type-variables-with-numeric-values-in-machine-learn</guid>
-      <pubDate>Sun, 08 Sep 2024 22:50:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>增加训练数据时如何调整 LightGBM 参数（如“min_child_samples”）？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78963446/how-to-adjust-lightgbm-parameters-like-min-child-samples-when-increasing-train</link>
-      <description><![CDATA[我正在训练 LightGBM 模型，目前面临着增加训练数据量时参数调整的困境。
-最初，我将数据集分成 90% 用于训练，10% 用于测试。使用网格搜索，我找到了模型的最佳参数。现在，我想利用 100% 的数据来训练模型，使其尽可能强大。
-我的问题是关于 min_child_samples 等参数，它与数据量有关。当我将数据从 90% 增加到 100% 时，我应该将 min_child_samples 保持为与 90% 数据训练期间找到的值相同吗？还是应该因为数据量增加了而进行调整？
-有人可以提供如何处理此问题的指导，或者分享任何最佳实践吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78963446/how-to-adjust-lightgbm-parameters-like-min-child-samples-when-increasing-train</guid>
-      <pubDate>Sun, 08 Sep 2024 22:50:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>优化心理健康应用程序中的实时多模式数据集成和机器学习[关闭]</title>
-      <link>https://stackoverflow.com/questions/78962995/optimizing-real-time-multimodal-data-integration-and-machine-learning-in-a-menta</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78962995/optimizing-real-time-multimodal-data-integration-and-machine-learning-in-a-menta</guid>
-      <pubDate>Sun, 08 Sep 2024 17:57:14 GMT</pubDate>
-    </item>
-    <item>
       <title>安装 Snap ML 时出错 | 未找到与 snapml 匹配的发行版 [关闭]</title>
       <link>https://stackoverflow.com/questions/78960743/error-on-installing-snap-ml-no-matching-distribution-found-for-snapml</link>
       <description><![CDATA[我在 MacOS 机器上（2.6 GHz Intel Core i7）
 我试图安装库“snapml”，但一直出错。
 有人知道问题可能是什么吗？
-我的终端上有几行：
+我的终端中有几行：
 danilovpavel@Pauls-MacBook-Pro ~ % pip install snapml
 错误：找不到满足要求 snapml 的版本（来自版本：无）
 错误：未找到与 snapml 匹配的发行版]]></description>
@@ -322,10 +390,10 @@ processor_thread.start()
 
 首先，不要在textcnn中定义嵌入层。
 在网络训练部分，我没有使用嵌入层，而是首先将序列标记传递给预训练的BERT模型并获取每个句子的词嵌入。
-将2中的BERT词嵌入放入textcnn并训练textcnn网络。
+将2.中的BERT词嵌入放入textcnn并训练textcnn网络。
 
 通过这种方法我终于能够进行训练了，但认真想想，我觉得我根本没有进行微调……
-因为正如你所看到的，每次我开始新的训练循环时，从 BERT 生成的词嵌入总是相同的向量，所以只需将这些不变的向量输入到 textcnn 中，就不会让 textcnn 进行微调，对吧？
+因为如你所见，每次我开始新的训练循环时，从 BERT 生成的词嵌入始终是相同的向量，所以只需将这些不变的向量输入到 textcnn 中，就不会让 textcnn 进行微调，对吗？
 
 更新：
 我想到了一种新方法，可以使用 BERT 嵌入并一起“训练”BERT 和 textcnn。
@@ -358,7 +426,7 @@ optimizer.step()
 
 我认为通过在获取嵌入时启用 BERTmodel.train() 并删除 torch.no_grad()，损失梯度可以反向到 BERTmodel， TextCNNmodel的训练过程也很顺利。
 为了以后使用这个模型，我保存了TextCNNmodel和BERTmodel的参数。
-然后为了实验BERTmodel是否真的被训练和改变了，在另一个程序中我加载了BERTModel，并输入一句话来测试BERTModel是否真的被训练了。
+然后为了实验BERTmodel是否真的被训练和改变，在另一个程序中我加载了BERTModel，并输入一句话来测试BERTModel是否真的被训练。
 但是我发现原始的&#39;bert-base-uncased&#39;模型和我的&#39;BERTmodel&#39;的输出（嵌入）是一样的，这很令人失望......
 我真的不知道为什么BERTmodel部分没有变化......]]></description>
       <guid>https://stackoverflow.com/questions/65802782/how-to-use-pretrained-bert-word-embedding-vector-to-finetune-initialize-other</guid>
