@@ -4,7 +4,18 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 09 Sep 2024 18:21:49 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Sep 2024 21:15:05 GMT</lastBuildDate>
+    <item>
+      <title>神经元组织学图像分割的最佳方法</title>
+      <link>https://stackoverflow.com/questions/78966320/optimal-methods-for-segmenting-histology-images-of-neurons</link>
+      <description><![CDATA[我正在研究分割用 H&amp;E 染色的神经元组织学图像。
+我很好奇分割这些图像的最有效方法。
+我希望从图像中准确地分割出神经元。
+我以前使用过细胞姿势分割，但它似乎对我的数据不太适用。
+]]></description>
+      <guid>https://stackoverflow.com/questions/78966320/optimal-methods-for-segmenting-histology-images-of-neurons</guid>
+      <pubDate>Mon, 09 Sep 2024 16:00:24 GMT</pubDate>
+    </item>
     <item>
       <title>我应该如何为我的黑客马拉松构建 ML 模型？[关闭]</title>
       <link>https://stackoverflow.com/questions/78966011/how-should-i-build-an-ml-model-for-my-hackathon</link>
@@ -109,164 +120,11 @@ fc5 (Dense) (None, 6) 774 [&#39;fc4[0][0]&#39;]
       <pubDate>Mon, 09 Sep 2024 10:51:59 GMT</pubDate>
     </item>
     <item>
-      <title>图像分类中的错误预测</title>
-      <link>https://stackoverflow.com/questions/78964898/incorrect-prediction-in-image-classification</link>
-      <description><![CDATA[我正在使用 Kaggel 数据集 https://www.kaggle.com/datasets/praveengovi/coronahack-chest-xraydataset/data 来开发图像分类模型，但我没有获得所需的预测准确度，我的模型只学习一个类并只预测一个类，准确度不佳。
-这是我的 CNN 类
-import torch.nn as nn
-import torch.nn. functional as F
-import torch
-
-class XrayCNN(nn.Module):
-def __init__(self,num_classes=2):
-super(XrayCNN,self).__init__()
-
-#convolution layer
-self.conv1 = nn.Conv2d(in_channels=1,out_channels=32,kernel_size=3,padding=1)
-self.conv2 = nn.Conv2d(in_channels=32,out_channels=64,kernel_size=3,padding=1)
-self.conv3 = nn.Conv2d(in_channels=64,out_channels=128,kernel_size=3, padding=1)
-self.conv4 = nn.Conv2d(in_channels=128,out_channels=256,kernel_size=3,padding=1)
-self.conv5 = nn.Conv2d(in_channels=256,out_channels=512,kernel_size=3, padding=1)
-
-#池化层
-self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-
-#连接层
-self.fc1 = nn.Linear(512*9*9,1024)
-self.fc2 = nn.Linear(1024,512)
-self.fc3 = nn.Linear(512,num_classes)
-
-#dropout
-self.dropout = nn.Dropout(0.25)
-
-self.bn1 = nn.BatchNorm2d(32)
-self.bn2 = nn.BatchNorm2d(64)
-self.bn3 = nn.BatchNorm2d(128)
-self.bn4 = nn.BatchNorm2d(256)
-self.bn5 = nn.BatchNorm2d(512)
-
-def forward(self,x):
-x = self.pool(F.relu(self.bn1(self.conv1(x))))
-x = self.pool(F.relu(self.bn2(self.conv2(x))))
-x = self.pool(F.relu(self.bn3(self.conv3(x))))
-x = self.pool(F.relu(self.bn4(self.conv4(x))))
-x = self.pool(F.relu(self.bn5(self.conv5(x))))
-
-# print(x.shape)
-
-size = x.size()[1:]
-num_features = 1
-for s in size:
-num_features *= s
-
-x = x.view(-1,num_features)
-
-x = F.relu(self.fc1(x))
-x = self.dropout(x)
-x = F.relu(self.fc2(x))
-x = self.dropout(x)
-
-x = self.fc3(x)
-
-return x
-
-num_classes = 2
-device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39; )
-model = XrayCNN(num_classes=num_classes).to(device)
-
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-我试图预测 Normal 和 Pnemonia 图像，但它将所有图像都预测为 Pnemonia，在我的数据集中，我将 Normal 和 Pnemonoia 图像分别下采样为 400 张图像进行分类，但它不起作用，即使 val 准确率为 87%，它在测试数据上也惨不忍睹
-## 数据增强
-image_transform =变换。Compose（[
-变换。调整大小（（300,300）），
-变换。随机水平翻转（p=0.5），
-变换。随机垂直翻转（p=0.5），
-变换。随机旋转（度=35），
-变换。灰度（num_output_channels=1），
-变换。ToTensor（），
-变换。随机Affine（度=0，平移=（0.2,0.2）），
-变换。正则化（平均值=[0.485]，标准差=[0.229]）
-
-])
-
-class CustomXrayDataset（Dataset）：
-def __init__（self，image_label_dict，train_dir，transforms=None）：
-self.image_label_dict = image_label_dict
-self.train_dir = train_dir
-self.transforms = image_transform
-self.image_list = list(image_label_dict.keys())
-#self.label_list = list(image_label_dict.values())
-
-def __len__(self):
-return len(self.image_list)
-
-def label_encoding(self, label):
-label_dict = {
-&#39;Normal&#39;:0,
-# &#39;COVID-19&#39;:1,
-&#39;Pnemonia&#39;:1
-
-}
-return label_dict[label]
-
-def __getitem__(self,idx):
-image_name = self.image_list[idx]
-
-image = Image.open(os.path.join(self.train_dir,image_name))
-label = self.image_label_dict[image_name]
-label = self.label_encoding(label)
-if self.transforms:
-image = self.transforms(image)
-return image,label
-
-想知道哪里出了问题，我开始一个简单的模型，但添加了层以期解决分类问题。
-我的 Kaggle Notebook 链接：https://www.kaggle.com/code/siddharthsehgal/notebooka8a9efe8fa
-我在 Collab 中运行了它]]></description>
-      <guid>https://stackoverflow.com/questions/78964898/incorrect-prediction-in-image-classification</guid>
-      <pubDate>Mon, 09 Sep 2024 09:55:19 GMT</pubDate>
-    </item>
-    <item>
       <title>将 PyTorch 模型导出到 ONNX</title>
       <link>https://stackoverflow.com/questions/78964817/export-pytorch-model-to-onnx</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78964817/export-pytorch-model-to-onnx</guid>
       <pubDate>Mon, 09 Sep 2024 09:33:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否可以通过SVM选出距离超平面最远的那些错误分类的样本？</title>
-      <link>https://stackoverflow.com/questions/78964423/is-it-possible-to-select-those-misclassified-samples-by-svm-that-are-farthest-fr</link>
-      <description><![CDATA[我正在使用 R 中的 e1071 库中的 SVM 模型，我的问题是我是否可以识别模型错误分类且距离 SVM 超平面最远的样本。
-我的代码如下：
-best_model &lt;- list(
-model = svm(x = omicDataReduced[, -which(colnames(omicDataReduced) == classVariable)],
-y = omicDataReduced[[classVariable]],
-kernel = best_kernel,
-cost = best_C,
-probability = TRUE,
-decision.values = TRUE),
-error = best_error,
-cost = best_C,
-kernel = best_kernel
-)
-
-我的数据集有 790 个样本和 18,710 个预测变量。
-编辑：
-我发现使用“decision.values”属性，您可以获得到超平面的距离。我现在的问题是：我如何检查样本是否超出了边界？
-这是我目前拥有的代码：
-pred &lt;- predict(best_model$model, omicDataReduced[, -which(colnames(omicDataReduced) == classVariable)], decision.value=T)
-
-decision_values &lt;- attr(pred, &quot;decision.values&quot;)
-
-misclassified_indices &lt;- which(as.numeric(pred) != as.numeric(omicDataReduced[[classVariable]]))
-
-misclassified_decision_values &lt;- abs(decision_values[misclassified_indices])
-
-selected_indices &lt;- misclassified_indices[order(misclassified_decision_values, increasing = TRUE)][1:round(diagnosticChangeProbability * length(misclassified_indices))]
-]]></description>
-      <guid>https://stackoverflow.com/questions/78964423/is-it-possible-to-select-those-misclassified-samples-by-svm-that-are-farthest-fr</guid>
-      <pubDate>Mon, 09 Sep 2024 07:52:54 GMT</pubDate>
     </item>
     <item>
       <title>具有主导变量或仅 1 个变量的 ML 模型[关闭]</title>
@@ -285,24 +143,55 @@ selected_indices &lt;- misclassified_indices[order(misclassified_decision_values
       <pubDate>Mon, 09 Sep 2024 03:08:49 GMT</pubDate>
     </item>
     <item>
-      <title>结合语音、面部表情和文本数据进行实时心理健康监测的挑战 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78963600/challenges-in-combining-speech-facial-expression-and-text-data-for-real-time-m</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78963600/challenges-in-combining-speech-facial-expression-and-text-data-for-real-time-m</guid>
-      <pubDate>Mon, 09 Sep 2024 01:01:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>安装 Snap ML 时出错 | 未找到与 snapml 匹配的发行版 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78960743/error-on-installing-snap-ml-no-matching-distribution-found-for-snapml</link>
-      <description><![CDATA[我在 MacOS 机器上（2.6 GHz Intel Core i7）
-我试图安装库“snapml”，但一直出错。
-有人知道问题可能是什么吗？
-我的终端上有几行：
-danilovpavel@Pauls-MacBook-Pro ~ % pip install snapml
-错误：找不到满足要求 snapml 的版本（来自版本：无）
-错误：未找到与 snapml 匹配的发行版]]></description>
-      <guid>https://stackoverflow.com/questions/78960743/error-on-installing-snap-ml-no-matching-distribution-found-for-snapml</guid>
-      <pubDate>Sat, 07 Sep 2024 17:39:40 GMT</pubDate>
+      <title>在函数中创建 VLLM 对象时会导致内存错误，即使明确清除 GPU 缓存也是如此，只有共享引用才能使代码不会崩溃</title>
+      <link>https://stackoverflow.com/questions/78959131/vllm-objects-cause-memory-errors-when-created-in-a-function-even-when-explicitly</link>
+      <description><![CDATA[我在 Python 中使用 VLLM 库时遇到了问题。具体来说，当我在函数内部创建 VLLM 模型对象时，我遇到了内存问题，并且无法有效清除 GPU 内存，即使在删除对象并使用 torch.cuda.empty_cache() 之后也是如此。
+当我尝试在函数内部实例化 LLM 对象时会出现问题，但如果我在父进程或全局范围内实例化该对象，则不会发生这种情况。这表明 VLLM 在函数中创建和管理对象时存在问题，从而导致内存保留和 GPU 耗尽。
+以下是代码的简化版本：
+import torch
+import gc
+from vllm import LLM
+
+def run_vllm_eval(model_name, samples_params, path_2_eval_dataset):
+# 在函数中实例化 LLM
+llm = LLM(model=model_name, dtype=torch.float16, trust_remote_code=True)
+
+# 在此处运行一些 VLLM 推理或评估（简化）
+result = llm.generate([path_2_eval_dataset], samples_params)
+
+# 推理后清理
+del llm
+gc.collect()
+torch.cuda.empty_cache()
+
+# 在此之后，GPU 内存不会被清除正确并导致 OOM 错误
+run_vllm_eval()
+run_vllm_eval()
+run_vllm_eval()
+
+但是
+llm = run_vllm_eval2()
+llm = run_vllm_eval2(llm)
+llm = run_vllm_eval2(llm)
+
+有效。
+即使明确删除 LLM 对象并清除缓存后，GPU 内存仍未正确释放，导致在尝试加载或运行同一脚本中的另一个模型时出现内存不足 (OOM) 错误。
+我尝试过的方法：
+
+使用 del 删除 LLM 对象。
+运行 gc.collect() 以触发 Python 的垃圾集合。
+使用 torch.cuda.empty_cache() 清除 CUDA 内存。
+确保父进程中没有实例化 VLLM 对象。
+
+当在函数内创建 LLM 对象时，这些似乎都无法解决问题。
+问题：
+
+在函数内创建 VLLM 对象时，有人遇到过类似的内存问题吗？
+是否有推荐的方法来管理或清除函数中的 VLLM 对象以防止 GPU 内存保留？
+在这种情况下，是否存在与标准 Hugging Face 或 PyTorch 模型不同的特定 VLLM 处理技术？
+]]></description>
+      <guid>https://stackoverflow.com/questions/78959131/vllm-objects-cause-memory-errors-when-created-in-a-function-even-when-explicitly</guid>
+      <pubDate>Sat, 07 Sep 2024 00:58:59 GMT</pubDate>
     </item>
     <item>
       <title>自定义模型聚合器 TensorFlow Federated</title>
@@ -370,61 +259,26 @@ return tff.templates.AggregationProcess(self.initialize, self.next)
       <pubDate>Mon, 05 Aug 2024 16:06:48 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用预训练的 BERT 词嵌入向量来微调（初始化）其他网络？</title>
-      <link>https://stackoverflow.com/questions/65802782/how-to-use-pretrained-bert-word-embedding-vector-to-finetune-initialize-other</link>
-      <description><![CDATA[当我以前使用 textcnn 进行分类工作时，我曾使用 Word2Vec 和 fasttext 等预训练词嵌入对 textcnn 进行微调。我使用这个过程：
-
-在 textcnn 中创建一个嵌入层
-通过 Word2Vec 或 fasttext 加载这次使用的单词的嵌入矩阵
-由于嵌入层的向量值在训练过程中会发生变化，因此网络正在进行微调。
-
-最近我也想尝试 BERT 来做这件事。我想，“由于使用 BERT 预训练嵌入来初始化其他网络的嵌入层和微调应该没有什么不同，所以应该很容易！”但事实上昨天我试了一整天还是不行。
-我发现的事实是，由于BERT的嵌入是上下文嵌入，特别是在提取词嵌入时，每个句子中每个词的向量都会有所不同，所以似乎没有办法像往常一样使用该嵌入来初始化另一个网络的嵌入层……
-最后，我想到了一种“微调”的方法，步骤如下：
-
-首先，不要在textcnn中定义嵌入层。
-在网络训练部分，我没有使用嵌入层，而是首先将序列标记传递给预训练的BERT模型并获取每个句子的词嵌入。
-将2中的BERT词嵌入放入textcnn并训练textcnn网络。
-
-通过这种方法我终于能够进行训练了，但认真想想，我觉得我根本没有进行微调……
-因为正如你所看到的，每次我开始新的训练循环时，从 BERT 生成的词嵌入总是相同的向量，所以只需将这些不变的向量输入到 textcnn 中，就不会让 textcnn 进行微调，对吧？
-
-更新：
-我想到了一种新方法，可以使用 BERT 嵌入并一起“训练”BERT 和 textcnn。
-我的部分代码如下：
- BERTmodel = AutoModel.from_pretrained(&#39;bert- 
-base-uncased&#39;,output_hidden_​​states=True).to(device)
-TextCNNmodel = TextCNN(EMBD_DIM, CLASS_NUM, KERNEL_NUM, 
-KERNEL_SIZES).to(device)
-optimizer = torch.optim.Adam(TextCNNmodel.parameters(), lr=LR)
-loss_func = nn.CrossEntropyLoss()
-
- for epoch in range(EPOCH):
-TextCNNmodel.train()
-BERTmodel.train()
-for step, (token_batch, seg_batch, y_batch) in enumerate(train_loader):
-token_batch = token_batch.to(device)
-y_batch = y_batch.to(device)
-
-BERToutputs = BERTmodel(token_batch)
-# 我想使用倒数第二个隐藏层作为嵌入，因此
-x_batch = BERToutputs[2][-2]
-
-output = TextCNNmodel(x_batch)
-output = output.squeeze()
-loss = loss_func(output, y_batch)
-
-optimizer.zero_grad()
-loss.backward()
-optimizer.step()
-
-我认为通过在获取嵌入时启用 BERTmodel.train() 并删除 torch.no_grad()，损失梯度可以反向到 BERTmodel， TextCNNmodel的训练过程也很顺利。
-为了以后使用这个模型，我保存了TextCNNmodel和BERTmodel的参数。
-然后为了实验BERTmodel是否真的被训练和改变了，在另一个程序中我加载了BERTModel，并输入一句话来测试BERTModel是否真的被训练了。
-但是我发现原始的&#39;bert-base-uncased&#39;模型和我的&#39;BERTmodel&#39;的输出（嵌入）是一样的，这很令人失望......
-我真的不知道为什么BERTmodel部分没有变化......]]></description>
-      <guid>https://stackoverflow.com/questions/65802782/how-to-use-pretrained-bert-word-embedding-vector-to-finetune-initialize-other</guid>
-      <pubDate>Wed, 20 Jan 2021 03:43:21 GMT</pubDate>
+      <title>卷积神经网络 (CNN) 在决策中使用黑色背景 - LIME</title>
+      <link>https://stackoverflow.com/questions/78640044/convolutional-neural-network-cnn-using-black-background-in-decision-making-l</link>
+      <description><![CDATA[我的二元分类卷积神经网络在验证数据上具有非常高的准确率 (&gt;96%)，在测试数据集上的表现也同样出色。然而，当我使用 LIME 可视化图像中对其决策很重要的部分时，它往往会突出显示背景。所以我的问题是：
+为什么会这样，以前有人见过吗？
+当它在做决定时实际上是看着黑色面具时，它是如何达到 96% 的准确率的？
+我在图像上应用黑色面具的原因是，我得到的整个数据集具有完全相同的背景，即白色滚轮，并且正如您从我上传的其中一张图片中看到的那样，该模型在决策过程中严重依赖滚轮，因此我将背景预处理为完全黑色 (0, 0, 0)RGB 像素，但现在模型似乎以某种方式使用了它。
+我只是被难住了，非常感谢任何帮助！
+模型架构
+滚轮问题示例
+我尝试了各种架构，其中一些使用 keras 层构建，甚至尝试了预训练的 ResNet50。我还改变了大多数重要的超参数，但行为仍然存在。如果有帮助，我可以提供任何细节。
+]]></description>
+      <guid>https://stackoverflow.com/questions/78640044/convolutional-neural-network-cnn-using-black-background-in-decision-making-l</guid>
+      <pubDate>Wed, 19 Jun 2024 00:05:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>准确度和验证预训练模型的准确度没有改变</title>
+      <link>https://stackoverflow.com/questions/73032032/accuracy-and-validation-accuracy-of-pretrained-model-is-not-changed</link>
+      <description><![CDATA[我有 600 000 张图像，我想使用 keras 对它们进行分类。我只是在灰度图像上尝试预训练模型。我正在尝试使用预训练模型的模型架构，如 resnet50、inceptionv3 等。但模型的准确度和验证准确度没有改变，停留在 67%。我尝试改变网络，应用更多 epoch，也改变预训练模型，但我总是得到相同的结果，比如 67% 的准确度和验证准确度。我不明白为什么我会得到相同的结果。请推荐一些关于如何解决这个问题的想法。这是我的代码。在此 steps_per_epochs = no。图像/批次大小，批次大小为 128。训练数据集中的图像数量为 479369，验证数据集中的图像数量为 136962。这是代码的输出。]]></description>
+      <guid>https://stackoverflow.com/questions/73032032/accuracy-and-validation-accuracy-of-pretrained-model-is-not-changed</guid>
+      <pubDate>Tue, 19 Jul 2022 06:22:43 GMT</pubDate>
     </item>
     <item>
       <title>如何暂时禁用 MLFlow？</title>
@@ -435,16 +289,83 @@ optimizer.step()
       <pubDate>Tue, 07 Apr 2020 20:14:15 GMT</pubDate>
     </item>
     <item>
-      <title>CNN 的面部表情识别数据准备</title>
-      <link>https://stackoverflow.com/questions/37452073/facial-expression-recognition-data-preparation-for-cnn</link>
-      <description><![CDATA[我正在研究通过深度学习，特别是 CNN 进行面部表情识别。我对准备和/或预处理数据有一些疑问。
-我有正面面部表情的分段视频（例如，根据某人的注释，2-3 秒的视频中某人表达了快乐情绪）。
-注意：我的参与者表现出的表情强度很低（不是夸张的表情/微表情）
-一般问题：现在，我应该如何准备数据以使用 CNN 进行训练（我有点倾向于使用深度学习库 TensorFlow）？
-问题 1：我读过一些基于深度学习的面部表情识别 (FER) 论文，这些论文建议取该表情的峰值（很可能是单个图像）并将该图像用作训练数据的一部分。我如何知道表情的峰值？我的依据是什么？如果我要拍摄单张图片，参与者表现出的微妙表情的一些重要帧会不会丢失？
-问题 2：或者，在 OpenCV 中执行分段视频以检测（例如 Viola-Jones）、裁剪并保存每帧的面部，并将这些图像与相应的标签一起用作我的训练数据的一部分，这样是否也正确？我猜有些面部帧是多余的。但是，由于我们知道数据中的参与者表现出低强度的表情（微表情），因此面部的一些动作也可能很重要。]]></description>
-      <guid>https://stackoverflow.com/questions/37452073/facial-expression-recognition-data-preparation-for-cnn</guid>
-      <pubDate>Thu, 26 May 2016 05:11:23 GMT</pubDate>
+      <title>我的卷积神经网络过度拟合</title>
+      <link>https://stackoverflow.com/questions/59998763/my-convolutional-neural-network-is-overfitting</link>
+      <description><![CDATA[我构建了一个简单的卷积神经网络，用于手势图像识别，使用背景减法使手在屏幕上呈现白色形状，背景为黑色。它主要使用 keras Conv2D 构建。我的数据集有 1000 张用于训练的图片和 100 张用于验证和测试的图片。奇怪的是，问题在第一个 epoch 之后立即出现，在此期间模型的损失大幅下降。它通常会在第二个 epoch 开始时从 183 这样的大数字下降到 1。数据集中的所有图片都是使用 cv2 从我自己的手上获取的，但我只用自己的手进行了测试，所以这应该不会有什么问题。如果数据集是问题所在，我尝试获取 3 个不同的数据集，一个使用 cv2 的 Canny 方法，该方法本质上是描绘手的一条线，并将图片的其余部分变为黑色，以查看是否有差异。无论如何，同样的事情继续发生。此外，我在不同的地方添加了多个 Dropout 层来观察效果，​​总是发生同样的事情，即损失急剧减少，并且显示出过度拟合的迹象。我还实现了 EarlyStopping 和多层来查看是否有帮助，但似乎总是会出现相同的结果。
+model = Sequential()
+model.add(Conv2D(32, (3,3),activation = &#39;relu&#39;,
+input_shape = (240, 215, 1)))
+model.add(MaxPooling2D((2,2)))
+model.add(Dropout(0.25))
+model.add(Conv2D(64, (3,3),activation = &#39;relu&#39;))
+model.add(Conv2D(64, (3,3),activation = &#39;relu&#39;))
+model.add(MaxPooling2D((2,2)))
+model.add(Dropout(0.25))
+model.add(Conv2D(128, (3,3),activation = &#39;relu&#39;))
+model.add(MaxPooling2D((2,2)))
+model.add(Dropout(0.25))
+model.add(Conv2D(256, (3,3), 激活 = &#39;relu&#39;))
+model.add(MaxPooling2D((2,2)))
+model.add(Dropout(0.25))
+#model.add(Conv2D(256, (3,3), 激活 = &#39;relu&#39;))
+#model.add(MaxPooling2D((2,2)))
+#model.add(Conv2D(128, (3,3), 激活 = &#39;relu&#39;))
+#model.add(MaxPooling2D((2,2)))
+#model.add(Conv2D(64, (3,3), 激活 = &#39;relu&#39;))
+#model.add(MaxPooling2D((2,2)))
+model.add(Flatten())
+model.add(Dense(150, 激活 = &#39;relu&#39;))
+#model.add(Dropout(0.25))
+#model.add(Dense(1000, 激活 = &#39;relu&#39;))
+model.add(Dropout(0.75))
+model.add(Dense(6, 激活 = &#39;softmax&#39;))
+model.summary()
+model.compile(optimizer = &#39;adam&#39;, loss = &#39;categorical_crossentropy&#39;,
+metrics = [&#39;acc&#39;])
+callbacks_list = [EarlyStopping(monitor = &#39;val_loss&#39;, waiting = 10),
+ModelCheckpoint(filepath = &#39;model.h6&#39;, monitor = &#39;val_loss&#39;,
+save_best_only = True),]
+
+代码中注释的部分是我尝试实施的更改。我还对 Dropout 值和它们的位置进行了很大的改变，但没有什么重大变化。有人能提供一些建议，说明为什么我的模型会这么快过度拟合吗？]]></description>
+      <guid>https://stackoverflow.com/questions/59998763/my-convolutional-neural-network-is-overfitting</guid>
+      <pubDate>Fri, 31 Jan 2020 06:14:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>我怎样才能提高我的 CNN 的准确性？</title>
+      <link>https://stackoverflow.com/questions/57834240/how-can-i-improve-my-cnns-accuracy-evolution</link>
+      <description><![CDATA[因此，我正在尝试创建一个 CNN，它可以预测胸部 x 射线图像中是否有任何“支撑设备”，但在训练我的模型时，它似乎没有学到任何东西。
+我正在使用一个名为“CheXpert”的数据集，它有超过 200,000 张图像可供使用。经过一些“清理”后，最终数据集最终有 100,000 张图像。
+就模型而言，我导入了 vgg16 预训练模型的卷积基，并自行添加了 2 个完全连接的层。然后，我冻结了所有卷积基，只训练完全连接的层。这是代码：
+from keras.layers import GlobalAveragePooling2D
+from keras.models import Model
+
+pretrained_model = VGG16(weights=&#39;imagenet&#39;, include_top=False)
+
+pretrained_model.summary()
+
+for layer in pretrained_model.layers:
+layer.trainable = False
+
+x = pretrained_model.output
+x = GlobalAveragePooling2D()(x)
+
+dropout = Dropout(0.25)
+
+# 让我们添加一个全连接层
+x = Dense(1024,activation=&#39;relu&#39;)(x)
+x = dropout(x)
+x = Dense(1024,activation =&#39;relu&#39;)(x)
+predictions = Dense(1,activation=&#39;sigmoid&#39;)(x)
+
+final_model = Model(inputs=pretrained_model.input, output=predictions)
+
+final_model.compile(loss=&#39;binary_crossentropy&#39;, optimizer=&#39;rmsprop&#39;, metrics=[&#39;accuracy&#39;])
+
+据我所知，正常行为应该是准确率从低开始，然后随着时期的推移而增长。但在这里，它只在相同的值（0.93 和 0.95）之间波动。很抱歉，我无法上传图片来向您展示图表。
+总而言之，我想知道准确率的微小差异是否意味着模型没有学到任何东西。
+我有一个假设：在数据集的所有 100,000 张图像中，95,000 张带有标签“1”，只有 5,000 张带有标签“0”。我认为，如果将带有“1”的图像减少并使其与带有“0”的图像相等，结果就会改变。]]></description>
+      <guid>https://stackoverflow.com/questions/57834240/how-can-i-improve-my-cnns-accuracy-evolution</guid>
+      <pubDate>Sat, 07 Sep 2019 13:42:46 GMT</pubDate>
     </item>
     </channel>
 </rss>
