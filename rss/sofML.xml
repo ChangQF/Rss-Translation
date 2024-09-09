@@ -4,19 +4,145 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 09 Sep 2024 09:18:46 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Sep 2024 12:32:12 GMT</lastBuildDate>
     <item>
-      <title>大型语言模型中的 d 维参数向量是否具有相等的平方和？</title>
-      <link>https://stackoverflow.com/questions/78964442/are-d-dim-vectors-of-parameters-in-large-language-models-have-equal-sums-of-squa</link>
+      <title>强化学习中，如何避免 RGB 图像训练数据的内存泄漏？</title>
+      <link>https://stackoverflow.com/questions/78965096/how-to-avoid-memory-leaks-in-training-data-for-rgb-images-in-reinforcement-learn</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78965096/how-to-avoid-memory-leaks-in-training-data-for-rgb-images-in-reinforcement-learn</guid>
+      <pubDate>Mon, 09 Sep 2024 10:51:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>图像分类中的错误预测</title>
+      <link>https://stackoverflow.com/questions/78964898/incorrect-prediction-in-image-classification</link>
+      <description><![CDATA[我正在使用 Kaggel 数据集 https://www.kaggle.com/datasets/praveengovi/coronahack-chest-xraydataset/data 来开发图像分类模型，但我没有获得所需的预测准确度，我的模型只学习一个类并只预测一个类，准确度不佳。
+这是我的 CNN 类
+import torch.nn as nn
+import torch.nn. functional as F
+import torch
+
+class XrayCNN(nn.Module):
+def __init__(self,num_classes=2):
+super(XrayCNN,self).__init__()
+
+#convolution layer
+self.conv1 = nn.Conv2d(in_channels=1,out_channels=32,kernel_size=3,padding=1)
+self.conv2 = nn.Conv2d(in_channels=32,out_channels=64,kernel_size=3,padding=1)
+self.conv3 = nn.Conv2d(in_channels=64,out_channels=128,kernel_size=3, padding=1)
+self.conv4 = nn.Conv2d(in_channels=128,out_channels=256,kernel_size=3,padding=1)
+self.conv5 = nn.Conv2d(in_channels=256,out_channels=512,kernel_size=3, padding=1)
+
+#池化层
+self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+
+#连接层
+self.fc1 = nn.Linear(512*9*9,1024)
+self.fc2 = nn.Linear(1024,512)
+self.fc3 = nn.Linear(512,num_classes)
+
+#dropout
+self.dropout = nn.Dropout(0.25)
+
+self.bn1 = nn.BatchNorm2d(32)
+self.bn2 = nn.BatchNorm2d(64)
+self.bn3 = nn.BatchNorm2d(128)
+self.bn4 = nn.BatchNorm2d(256)
+self.bn5 = nn.BatchNorm2d(512)
+
+def forward(self,x):
+x = self.pool(F.relu(self.bn1(self.conv1(x))))
+x = self.pool(F.relu(self.bn2(self.conv2(x))))
+x = self.pool(F.relu(self.bn3(self.conv3(x))))
+x = self.pool(F.relu(self.bn4(self.conv4(x))))
+x = self.pool(F.relu(self.bn5(self.conv5(x))))
+
+# print(x.shape)
+
+size = x.size()[1:]
+num_features = 1
+for s in size:
+num_features *= s
+
+x = x.view(-1,num_features)
+
+x = F.relu(self.fc1(x))
+x = self.dropout(x)
+x = F.relu(self.fc2(x))
+x = self.dropout(x)
+
+x = self.fc3(x)
+
+return x
+
+num_classes = 2
+device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39; )
+model = XrayCNN(num_classes=num_classes).to(device)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+我试图预测 Normal 和 Pnemonia 图像，但它将所有图像都预测为 Pnemonia，在我的数据集中，我将 Normal 和 Pnemonoia 图像分别下采样为 400 张图像进行分类，但它不起作用，即使 val 准确率为 87%，它在测试数据上也惨不忍睹
+## 数据增强
+image_transform =变换。Compose（[
+变换。调整大小（（300,300）），
+变换。随机水平翻转（p=0.5），
+变换。随机垂直翻转（p=0.5），
+变换。随机旋转（度=35），
+变换。灰度（num_output_channels=1），
+变换。ToTensor（），
+变换。随机Affine（度=0，平移=（0.2,0.2）），
+变换。正则化（平均值=[0.485]，标准差=[0.229]）
+
+])
+
+class CustomXrayDataset（Dataset）：
+def __init__（self，image_label_dict，train_dir，transforms=None）：
+self.image_label_dict = image_label_dict
+self.train_dir = train_dir
+self.transforms = image_transform
+self.image_list = list(image_label_dict.keys())
+#self.label_list = list(image_label_dict.values())
+
+def __len__(self):
+return len(self.image_list)
+
+def label_encoding(self, label):
+label_dict = {
+&#39;Normal&#39;:0,
+# &#39;COVID-19&#39;:1,
+&#39;Pnemonia&#39;:1
+
+}
+return label_dict[label]
+
+def __getitem__(self,idx):
+image_name = self.image_list[idx]
+
+image = Image.open(os.path.join(self.train_dir,image_name))
+label = self.image_label_dict[image_name]
+label = self.label_encoding(label)
+if self.transforms:
+image = self.transforms(image)
+return image,label
+
+想知道哪里出了问题，我开始一个简单的模型，但添加了层以期解决分类问题。
+我的 Kaggle Notebook 链接：https://www.kaggle.com/code/siddharthsehgal/notebooka8a9efe8fa
+我在 Collab 中运行了它]]></description>
+      <guid>https://stackoverflow.com/questions/78964898/incorrect-prediction-in-image-classification</guid>
+      <pubDate>Mon, 09 Sep 2024 09:55:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>大型语言模型中的 d-dim 参数向量是否具有相等的平方和？[关闭]</title>
+      <link>https://stackoverflow.com/questions/78964442/do-d-dim-vectors-of-parameters-in-large-language-models-have-equal-sums-of-squar</link>
       <description><![CDATA[我正在做大型语言模型中的力学分析研究，想解释注意力模块的参数和FF模块的参数。但我有一个疑问，大型语言模型中的d维参数向量（Wq Wk Wv Wo矩阵的列向量和K V矩阵的行向量）在预训练之后是否仍然具有相等的平方和，并且这些参数的初始化满足假设。我发现了一些类似的研究（训练自然语言生成模型中的表示退化问题、IsoScore：测量嵌入空间利用的均匀性、语境化的词表示有多语境化？比较 BERT、ELMo 和 GPT-2 嵌入的几何形状、通过频谱控制改进神经语言生成），但它们专注于词嵌入的各向同性，并指出嵌入不是各向同性的。
 初始化时，这些参数满足假设，条目从均值为零、方差有限的分布 D 中独立同分布采样。该说法的证明很简单。但我不知道如何调查它们在预训练后是否仍然满足，是否有一些与此相关的研究？]]></description>
-      <guid>https://stackoverflow.com/questions/78964442/are-d-dim-vectors-of-parameters-in-large-language-models-have-equal-sums-of-squa</guid>
+      <guid>https://stackoverflow.com/questions/78964442/do-d-dim-vectors-of-parameters-in-large-language-models-have-equal-sums-of-squar</guid>
       <pubDate>Mon, 09 Sep 2024 07:57:18 GMT</pubDate>
     </item>
     <item>
-      <title>是否可以从 e1071 中选出距离超平面最远的那些被 SVM 错误分类的样本？</title>
-      <link>https://stackoverflow.com/questions/78964423/is-it-possible-to-select-those-misclassified-samples-by-svm-from-e1071-that-are</link>
-      <description><![CDATA[我正在使用 R 中的 e1071 库中的 SVM 模型，我的问题只是我是否可以识别模型错误分类且距离 SVM 超平面最远的样本。
+      <title>是否可以通过SVM选出距离超平面最远的那些错误分类的样本？</title>
+      <link>https://stackoverflow.com/questions/78964423/is-it-possible-to-select-those-misclassified-samples-by-svm-that-are-farthest-fr</link>
+      <description><![CDATA[我正在使用 R 中的 e1071 库中的 SVM 模型，我的问题是我是否可以识别模型错误分类且距离 SVM 超平面最远的样本。
 我的代码如下：
 best_model &lt;- list(
 model = svm(x = omicDataReduced[, -which(colnames(omicDataReduced) == classVariable)],
@@ -31,15 +157,24 @@ kernel = best_kernel
 )
 
 我的数据集有 790 个样本和 18,710 个预测变量。
-在此先谢谢您，如果您如果需要其他任何东西，请随时询问。
-此致，
-José Adrián。
+编辑：
+我发现使用“decision.values”属性，您可以获得到超平面的距离。我现在的问题是：我如何检查样本是否超出了边界？
+这是我目前拥有的代码：
+pred &lt;- predict(best_model$model, omicDataReduced[, -which(colnames(omicDataReduced) == classVariable)], decision.value=T)
+
+decision_values &lt;- attr(pred, &quot;decision.values&quot;)
+
+misclassified_indices &lt;- which(as.numeric(pred) != as.numeric(omicDataReduced[[classVariable]]))
+
+misclassified_decision_values &lt;- abs(decision_values[misclassified_indices])
+
+selected_indices &lt;- misclassified_indices[order(misclassified_decision_values, increasing = TRUE)][1:round(diagnosticChangeProbability * length(misclassified_indices))]
 ]]></description>
-      <guid>https://stackoverflow.com/questions/78964423/is-it-possible-to-select-those-misclassified-samples-by-svm-from-e1071-that-are</guid>
+      <guid>https://stackoverflow.com/questions/78964423/is-it-possible-to-select-those-misclassified-samples-by-svm-that-are-farthest-fr</guid>
       <pubDate>Mon, 09 Sep 2024 07:52:54 GMT</pubDate>
     </item>
     <item>
-      <title>具有一个主导变量或仅 1 个变量的 ML 模型</title>
+      <title>具有主导变量或仅 1 个变量的 ML 模型[关闭]</title>
       <link>https://stackoverflow.com/questions/78964182/ml-model-with-a-dominant-or-just-1-variable</link>
       <description><![CDATA[您能否推荐一些学术资源，例如研究论文或书籍章节，用于研究使用具有主导变量的机器学习模型的效果，这些模型可以解释目标中的大部分方差，或者仅使用一个变量构建的模型？具体来说，我有兴趣了解与这些方法相关的潜在缺点、偏见或局限性。]]></description>
       <guid>https://stackoverflow.com/questions/78964182/ml-model-with-a-dominant-or-just-1-variable</guid>
@@ -59,20 +194,12 @@ José Adrián。
       <link>https://stackoverflow.com/questions/78963755/why-does-nn-linearin-features-out-features-use-a-weight-matrix-of-shape-out</link>
       <description><![CDATA[我试图理解为什么 PyTorch 的 nn.Linear(in_features, out_features) 层的权重矩阵具有形状 (out_features, in_features) 而不是 (in_features, out_features)。
 从基本矩阵乘法的角度来看，具有形状 (in_features, out_features) 似乎可以消除在乘法过程中转置权重矩阵的需要。例如，对于形状为 (batch_size, in_features) 的输入张量 x，与形状为 (in_features, out_features) 的权重矩阵相乘将直接产生形状为 (batch_size, out_features) 的输出，而无需转置操作。
-但是，PyTorch 将权重矩阵定义为 (out_features, in_features)，这意味着它在前向传递过程中会被转置。这种设计有什么好处？它如何与线性代数和神经网络实现的更广泛原则保持一致？这种选择背后是否有任何效率或一致性考虑使其更可取？
-我很感激任何关于这一设计决策背后理由的见解。]]></description>
+但是，PyTorch 将权重矩阵定义为 (out_features, in_features)，这意味着它在前向传递过程中会被转置。这种设计有什么好处？它如何与线性代数和神经网络实现的更广泛原则保持一致？这种选择背后是否有任何效率或一致性考虑使其更可取？]]></description>
       <guid>https://stackoverflow.com/questions/78963755/why-does-nn-linearin-features-out-features-use-a-weight-matrix-of-shape-out</guid>
       <pubDate>Mon, 09 Sep 2024 03:08:49 GMT</pubDate>
     </item>
     <item>
-      <title>无法让 MMCV 构建来检测我的 Conda Env 的 Cuda</title>
-      <link>https://stackoverflow.com/questions/78963624/cant-get-mmcv-build-to-detect-my-conda-envs-cuda</link>
-      <description><![CDATA[我通过 conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia 安装了 pytorch，然后安装了 conda install cuda=11.8 -c nvidia 以获取构建工具，但是在运行 pip install -U openmim 然后运行 ​​mim install mmcv 之后，我得到了一个 Thedetected CUDA version (12.5) mismatches the version that was used to compile PyTorch (11.8). Please make sure to use the same CUDA editions. 错误，即使运行 nvcc -V 显示 cuda 11.8。我的主机正在运行 cuda 12.5。我该如何解决这个问题？（以及 cuda、cudatoolkit、cudatoolkit-dev 和 cuda-toolkit 等所有 cuda conda 包之间有什么区别？）]]></description>
-      <guid>https://stackoverflow.com/questions/78963624/cant-get-mmcv-build-to-detect-my-conda-envs-cuda</guid>
-      <pubDate>Mon, 09 Sep 2024 01:22:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>结合语音、面部表情和文本数据进行实时心理健康监测的挑战</title>
+      <title>结合语音、面部表情和文本数据进行实时心理健康监测的挑战 [关闭]</title>
       <link>https://stackoverflow.com/questions/78963600/challenges-in-combining-speech-facial-expression-and-text-data-for-real-time-m</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78963600/challenges-in-combining-speech-facial-expression-and-text-data-for-real-time-m</guid>
@@ -92,7 +219,7 @@ José Adrián。
       <pubDate>Sun, 08 Sep 2024 22:50:51 GMT</pubDate>
     </item>
     <item>
-      <title>如何在增加训练数据时调整 LightGBM 参数（如“min_child_samples”）？</title>
+      <title>增加训练数据时如何调整 LightGBM 参数（如“min_child_samples”）？[关闭]</title>
       <link>https://stackoverflow.com/questions/78963446/how-to-adjust-lightgbm-parameters-like-min-child-samples-when-increasing-train</link>
       <description><![CDATA[我正在训练 LightGBM 模型，目前面临着增加训练数据量时参数调整的困境。
 最初，我将数据集分成 90% 用于训练，10% 用于测试。使用网格搜索，我找到了模型的最佳参数。现在，我想利用 100% 的数据来训练模型，使其尽可能强大。
@@ -102,13 +229,6 @@ José Adrián。
       <pubDate>Sun, 08 Sep 2024 22:50:25 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Raspberry Pi 5 在 Edge TPU 上运行 YOLOv8 分割模型时出现 KeyError</title>
-      <link>https://stackoverflow.com/questions/78963308/keyerror-when-running-yolov8-segmentation-model-on-edge-tpu-with-raspberry-pi-5</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78963308/keyerror-when-running-yolov8-segmentation-model-on-edge-tpu-with-raspberry-pi-5</guid>
-      <pubDate>Sun, 08 Sep 2024 21:01:01 GMT</pubDate>
-    </item>
-    <item>
       <title>优化心理健康应用程序中的实时多模式数据集成和机器学习[关闭]</title>
       <link>https://stackoverflow.com/questions/78962995/optimizing-real-time-multimodal-data-integration-and-machine-learning-in-a-menta</link>
       <description><![CDATA[]]></description>
@@ -116,101 +236,17 @@ José Adrián。
       <pubDate>Sun, 08 Sep 2024 17:57:14 GMT</pubDate>
     </item>
     <item>
-      <title>Pytorch 中的 Autograd Trainstep 中的 Lightning</title>
-      <link>https://stackoverflow.com/questions/78956646/autograd-in-pytorch-lightning-in-trainstep</link>
-      <description><![CDATA[我想实现一个基于 Pytorch Lightning 的 ML 训练，其中我使用 autograd 功能进行训练损失计算：
-def training_step(self, batch, batch_idx):
-x, y = batch
-y_hat = self(x)
-loss = self.loss_function(y_hat, y)
-return loss
-
-X 的每个样本 x 都是一个二维向量 x = [v, a]。
-在训练步骤中，我想计算 y_hat 相对于 的梯度。到 v。
-损失进一步通过以下方式计算：
-loss = mse(y,y_hat) + mse(gradient,gradient_hat)
-
-其中给出了（真实）梯度。
-到目前为止，尝试了 y_hat.backward() 的（典型）方法，但无法使其工作：
-def training_step(self, batch, batch_idx):
-x, y = batch
-x.requires_grad_(True) # 确保我们跟踪 x 的梯度
-y_hat = self(x)
-
-# 计算 y_hat 相对于 v 的梯度（x[:, 0]）
-v = x[:, 0]
-grads = torch.autograd.grad(y_hat, v, grad_outputs=torch.ones_like(y_hat), create_graph=True)[0] # ...
-]]></description>
-      <guid>https://stackoverflow.com/questions/78956646/autograd-in-pytorch-lightning-in-trainstep</guid>
-      <pubDate>Fri, 06 Sep 2024 10:08:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Keras 中使用 flow_from_directory 和多个目录实现多输出神经网络</title>
-      <link>https://stackoverflow.com/questions/78951880/how-to-use-flow-from-directory-with-multiple-directories-for-multi-output-neural</link>
-      <description><![CDATA[我需要使用 Keras 中的 flow_from_directory 从多个目录加载图像。我的目录结构如下：
-Images_folder/ 
-═── Carpet_1/ 
-│ ═── training/ 
-│ │ ═── class_1/ 
-│ │ ═── class_2/ 
-│ ═── validation/ 
-═── Carpet_2/ 
-│ ═── training/ 
-│ │ ═── class_1/ 
-│ │ ═── class_2/ 
-│ ═── validation/ 
-...
-
-每个“Carpet”目录（例如 Carpet_1、Carpet_2）包含相同的一组类（class_1、class_2 等）。我想使用来自所有这些目录的图像来训练 CNN。我的目标是构建一个多输出神经网络，其中一个输出预测“Carpet”数字（1、2、3、...），另一个输出预测该地毯内的类别。
-鉴于这种结构，我如何使用 ImageDataGenerator 或 Keras 中的任何其他方法来加载和预处理这些图像？有没有办法将所有这些目录中的图像组合成一个生成器，同时仍然允许我区分不同的地毯？]]></description>
-      <guid>https://stackoverflow.com/questions/78951880/how-to-use-flow-from-directory-with-multiple-directories-for-multi-output-neural</guid>
-      <pubDate>Thu, 05 Sep 2024 07:56:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>我可以使用 Google Teachable 机器模型作为对象检测模型吗？[关闭]</title>
-      <link>https://stackoverflow.com/questions/78951811/can-i-use-google-teachable-machine-model-as-object-detection-model</link>
-      <description><![CDATA[我正在开发一款带有对象检测功能的移动自动收银应用程序。我面临的问题是，自定义项目的变体太多了（大约 250 个类别）。如果我要对以前的模型（如 MobileNet 或 YOLO）进行微调，这将花费太多时间，因为我仍然需要创建 POS、数据库和集成热敏打印机。
-那么，我是否可以只使用 Google Teachable Machine 来处理我的对象检测数据集（假设背景相同），而不是对以前的模型进行微调？
-应用程序的工作方式是，收银员将在白色背景上拍摄买家想要购买的商品的照片，然后应用程序将自动检测出哪些商品在画面中（使用 Google Teachable Machine .tflite 模型）。
-Teachable Machine .tflite 模型是否可以替换下面代码中的 modelPath？
-private fun runObjectDetection(bitmap: Bitmap) {
-// 步骤 1：创建 TFLite 的 TensorImage 对象
-val image = TensorImage.fromBitmap(bitmap)
-
-// 步骤 2：初始化检测器对象
-val options = ObjectDetector.ObjectDetectorOptions.builder()
-.setMaxResults(5)
-.setScoreThreshold(0.5f)
-.build()
-val detector = ObjectDetector.createFromFileAndOptions(
-this, // 应用程序上下文
-**&quot;model.tflite&quot;, **
-options
-)
-// 步骤 3：将给定的图像输入模型并打印检测结果
-val results = detector.detect(image)
-
-// 步骤 4：解析检测结果并显示
-debugPrint(results)
-
-val resultToDisplay = results.map {
-// 获取 top-1 类别并制作显示文本
-val category = it.categories.first()
-val text = &quot;${category.label}, ${category.score.times(100).toInt()}%&quot;
-
-// 创建数据对象，用于显示检测结果
-DetectionResult(it.boundingBox, text)
-}
-
-// 将检测结果绘制到位图上并显示。
-val imgWithResult = drawDetectionResult(bitmap, resultToDisplay)
-runOnUiThread {
-inputImageView.setImageBitmap(imgWithResult)
-}
-}
-]]></description>
-      <guid>https://stackoverflow.com/questions/78951811/can-i-use-google-teachable-machine-model-as-object-detection-model</guid>
-      <pubDate>Thu, 05 Sep 2024 07:38:34 GMT</pubDate>
+      <title>安装 Snap ML 时出错 | 未找到与 snapml 匹配的发行版 [关闭]</title>
+      <link>https://stackoverflow.com/questions/78960743/error-on-installing-snap-ml-no-matching-distribution-found-for-snapml</link>
+      <description><![CDATA[我在 MacOS 机器上（2.6 GHz Intel Core i7）
+我试图安装库“snapml”，但一直出错。
+有人知道问题可能是什么吗？
+我的终端上有几行：
+danilovpavel@Pauls-MacBook-Pro ~ % pip install snapml
+错误：找不到满足要求 snapml 的版本（来自版本：无）
+错误：未找到与 snapml 匹配的发行版]]></description>
+      <guid>https://stackoverflow.com/questions/78960743/error-on-installing-snap-ml-no-matching-distribution-found-for-snapml</guid>
+      <pubDate>Sat, 07 Sep 2024 17:39:40 GMT</pubDate>
     </item>
     <item>
       <title>我的 pytorch 模型 FPS 低且延迟严重</title>
@@ -270,6 +306,75 @@ processor_thread.start()
 ]]></description>
       <guid>https://stackoverflow.com/questions/78943962/low-fps-and-lot-of-delay-with-my-pytorch-model</guid>
       <pubDate>Tue, 03 Sep 2024 10:50:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用预训练的 BERT 词嵌入向量来微调（初始化）其他网络？</title>
+      <link>https://stackoverflow.com/questions/65802782/how-to-use-pretrained-bert-word-embedding-vector-to-finetune-initialize-other</link>
+      <description><![CDATA[当我以前使用 textcnn 进行分类工作时，我曾使用 Word2Vec 和 fasttext 等预训练词嵌入对 textcnn 进行微调。我使用这个过程：
+
+在 textcnn 中创建一个嵌入层
+通过 Word2Vec 或 fasttext 加载这次使用的单词的嵌入矩阵
+由于嵌入层的向量值在训练过程中会发生变化，因此网络正在进行微调。
+
+最近我也想尝试 BERT 来做这件事。我想，“由于使用 BERT 预训练嵌入来初始化其他网络的嵌入层和微调应该没有什么不同，所以应该很容易！”但事实上昨天我试了一整天还是不行。
+我发现的事实是，由于BERT的嵌入是上下文嵌入，特别是在提取词嵌入时，每个句子中每个词的向量都会有所不同，所以似乎没有办法像往常一样使用该嵌入来初始化另一个网络的嵌入层……
+最后，我想到了一种“微调”的方法，步骤如下：
+
+首先，不要在textcnn中定义嵌入层。
+在网络训练部分，我没有使用嵌入层，而是首先将序列标记传递给预训练的BERT模型并获取每个句子的词嵌入。
+将2中的BERT词嵌入放入textcnn并训练textcnn网络。
+
+通过这种方法我终于能够进行训练了，但认真想想，我觉得我根本没有进行微调……
+因为正如你所看到的，每次我开始新的训练循环时，从 BERT 生成的词嵌入总是相同的向量，所以只需将这些不变的向量输入到 textcnn 中，就不会让 textcnn 进行微调，对吧？
+
+更新：
+我想到了一种新方法，可以使用 BERT 嵌入并一起“训练”BERT 和 textcnn。
+我的部分代码如下：
+ BERTmodel = AutoModel.from_pretrained(&#39;bert- 
+base-uncased&#39;,output_hidden_​​states=True).to(device)
+TextCNNmodel = TextCNN(EMBD_DIM, CLASS_NUM, KERNEL_NUM, 
+KERNEL_SIZES).to(device)
+optimizer = torch.optim.Adam(TextCNNmodel.parameters(), lr=LR)
+loss_func = nn.CrossEntropyLoss()
+
+ for epoch in range(EPOCH):
+TextCNNmodel.train()
+BERTmodel.train()
+for step, (token_batch, seg_batch, y_batch) in enumerate(train_loader):
+token_batch = token_batch.to(device)
+y_batch = y_batch.to(device)
+
+BERToutputs = BERTmodel(token_batch)
+# 我想使用倒数第二个隐藏层作为嵌入，因此
+x_batch = BERToutputs[2][-2]
+
+output = TextCNNmodel(x_batch)
+output = output.squeeze()
+loss = loss_func(output, y_batch)
+
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
+
+我认为通过在获取嵌入时启用 BERTmodel.train() 并删除 torch.no_grad()，损失梯度可以反向到 BERTmodel， TextCNNmodel的训练过程也很顺利。
+为了以后使用这个模型，我保存了TextCNNmodel和BERTmodel的参数。
+然后为了实验BERTmodel是否真的被训练和改变了，在另一个程序中我加载了BERTModel，并输入一句话来测试BERTModel是否真的被训练了。
+但是我发现原始的&#39;bert-base-uncased&#39;模型和我的&#39;BERTmodel&#39;的输出（嵌入）是一样的，这很令人失望......
+我真的不知道为什么BERTmodel部分没有变化......]]></description>
+      <guid>https://stackoverflow.com/questions/65802782/how-to-use-pretrained-bert-word-embedding-vector-to-finetune-initialize-other</guid>
+      <pubDate>Wed, 20 Jan 2021 03:43:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>CNN 的面部表情识别数据准备</title>
+      <link>https://stackoverflow.com/questions/37452073/facial-expression-recognition-data-preparation-for-cnn</link>
+      <description><![CDATA[我正在研究通过深度学习，特别是 CNN 进行面部表情识别。我对准备和/或预处理数据有一些疑问。
+我有正面面部表情的分段视频（例如，根据某人的注释，2-3 秒的视频表达了某人的快乐情绪）。
+注意：我的参与者表现出的表情强度很低（不是夸张的表情/微表情）
+一般问题：现在，我应该如何准备数据以使用 CNN 进行训练（我有点倾向于使用深度学习库 TensorFlow）？
+问题 1：我读过一些基于深度学习的面部表情识别 (FER) 论文，这些论文建议取该表情的峰值（很可能是单个图像）并将该图像用作训练数据的一部分。我如何知道表情的峰值？我的依据是什么？如果我要拍摄单张图片，那么参与者所展现的微妙表情的一些重要帧会不会丢失？
+问题 2：或者，在 OpenCV 中执行分段视频以检测（例如 Viola-Jones）、裁剪并保存每帧的面部，并将这些图像与相应的标签一起用作我的训练数据的一部分，这样是否也正确？我猜有些面部帧是多余的。但是，由于我们知道数据中的参与者表现出低强度的表情（微表情），因此面部的一些动作也可能很重要。]]></description>
+      <guid>https://stackoverflow.com/questions/37452073/facial-expression-recognition-data-preparation-for-cnn</guid>
+      <pubDate>Thu, 26 May 2016 05:11:23 GMT</pubDate>
     </item>
     </channel>
 </rss>
