@@ -4,21 +4,103 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 10 Sep 2024 09:18:21 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 10 Sep 2024 12:32:49 GMT</lastBuildDate>
+    <item>
+      <title>zero123 的更大分辨率输出</title>
+      <link>https://stackoverflow.com/questions/78969143/bigger-resolution-output-of-zero123</link>
+      <description><![CDATA[我在 instantMesh 上下文中使用 zero123，我想知道 zero123 是否有可能输出更大分辨率的图像？
+目前分辨率为 320x320，对于从 InstantMesh 的 3d 重建管道获得良好的输出纹理来说，这个分​​辨率有点低。
+代码使用方式如下：
+import torch
+import request
+from PIL import Image
+from diffusers import DiffusionPipeline, EulerAncestralDiscreteScheduler
+
+# 加载管道
+pipeline = DiffusionPipeline.from_pretrained(
+&quot;sudo-ai/zero123plus-v1.1&quot;, custom_pipeline=&quot;sudo-ai/zero123plus-pipeline&quot;,
+torch_dtype=torch.float16
+)
+
+# 随意调整调度程序！
+# `timestep_spacing` 参数在旧版本的 `diffusers` 中不受支持
+# 因此可能会降低性能
+# 我们建议使用 `diffusers==0.20.2`
+pipeline.scheduler = EulerAncestralDiscreteScheduler.from_config(
+pipeline.scheduler.config, timestep_spacing=&#39;trailing&#39;
+)
+pipeline.to(&#39;cuda:0&#39;)
+
+# 下载示例图像。
+cond = Image.open(requests.get(&quot;https://d.skis.ltd/nrp/sample-data/lysol.png&quot;, stream=True).raw)
+
+# 运行管道！
+result = pipeline(cond, num_inference_steps=75).images[0]
+# 对于一般物体的一般真实和合成图像
+# 通常大约有 28 个推理步骤就足够了
+# 对于具有面部等精细细节的图像（真实或动漫）
+# 您可能需要 75-100 个步骤来构建细节
+
+result.show()
+result.save(&quot;output.png&quot;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/78969143/bigger-resolution-output-of-zero123</guid>
+      <pubDate>Tue, 10 Sep 2024 10:55:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在HuggingFace中组织机器学习项目？</title>
+      <link>https://stackoverflow.com/questions/78969051/how-to-organize-a-machine-learning-project-in-huggingface</link>
+      <description><![CDATA[虽然我同意没有一种适用于每种用例的“理想”组织方案，但我正在寻找一种标准化的方式来组织 HuggingFace 环境中机器学习 (ML) 项目中编译的代码、脚本、模型和数据。
+根据我的经验，机器学习项目包括：
+
+数据：用于训练和评估模型的一个或多个数据集（理想情况下，版本受控）。
+模型：ML 模型的权重（同样，版本受控）
+代码：用于以下操作的脚本集合：
+
+收集和探索数据；
+
+预处理、聚合数据并创建数据集；和
+
+训练、调整和评估模型。
+
+
+
+
+其他项目可能有其他组件，我有兴趣了解任何其他解决方案。例如，就我而言，我有一个应用程序的源代码，该应用程序利用模型实现特定目标。此应用程序使用 GitHub 进行版本控制。
+为了使我的 ML 研究最开放和可重复，我希望将数据集和模型与脚本一起发布。这样，任何人都可以以与我完全相同的方式以最自动化的方式收集数据并训练模型。我发现 HuggingFace 是存储模型和数据集的绝佳场所，尽管无法找到一种结构化的方式将数据和模型脚本包含在各自的存储库中。
+目前，我一直将模型和数据集上传到 HuggingFace，但脚本与应用程序源代码一起存储在 GitHub 中。我认为这并不正确，因为脚本与 ML 管道的关系比与后来使用它们的应用程序的关系更密切。]]></description>
+      <guid>https://stackoverflow.com/questions/78969051/how-to-organize-a-machine-learning-project-in-huggingface</guid>
+      <pubDate>Tue, 10 Sep 2024 10:30:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>Gradcam 与预期结果不符</title>
+      <link>https://stackoverflow.com/questions/78968918/gradcam-doesnt-match-with-expected-results</link>
+      <description><![CDATA[我为胸部 X 光 (CXR) 图像创建了 GradCAM 可视化，但结果并不如我所料。通常，GradCAM 热图会突出显示整个相关模式，如狗的脸或猫的腿，如下例所示：
+我在互联网上看到的任何地方都能看到那些漂亮的热图，它们包裹着应该找到的整个模式
+示例：
+
+在这里，您可以清楚地看到模型专注于狗的脸或猫腿后部的图案。这也是人类会解读为猫或狗的部分。
+但是，我的 GradCAM 结果看起来不同：
+
+在我的可视化中，倒数第二层（Conv3_1）关注边缘，最后一层（Conv3_2）显示随机点，主要在心脏或胸骨上。尽管如此，我的模型的性能指标确实很好：
+我只是假设我的模型只是做出了错误的预测，但准确率约为 96%，模型没有过度拟合，指标非常好
+测试准确率：0.9570
+测试损失：0.1253
+测试 AUC：0.9896
+测试精度：0.9719
+测试召回率：0.9412
+
+有人能向我解释一下为什么我制作的 gradcam 没有覆盖整个肺部吗？或者病理部位？
+它学习的模式是否如此具体，以至于在最后一层只发现一小部分区域？]]></description>
+      <guid>https://stackoverflow.com/questions/78968918/gradcam-doesnt-match-with-expected-results</guid>
+      <pubDate>Tue, 10 Sep 2024 09:57:16 GMT</pubDate>
+    </item>
     <item>
       <title>Prophet 模型如何进行预测？它也能处理损坏的数据吗？</title>
       <link>https://stackoverflow.com/questions/78968204/how-prophet-model-make-predictions-can-it-deal-with-broken-data-too</link>
       <description><![CDATA[我知道 lstm。如果序列长度为 7，那么模型将使用前 7 天的数据来预测第 8 天，然后采用滑动窗口方法。现在我听说了先知模型，它也用于时间序列预测。所以有人能告诉我先知模型如何进行预测吗？如果它是时间序列数据，那么它是否也需要连续的先前数据来进行预测？]]></description>
       <guid>https://stackoverflow.com/questions/78968204/how-prophet-model-make-predictions-can-it-deal-with-broken-data-too</guid>
       <pubDate>Tue, 10 Sep 2024 06:44:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>矢量数据库是一种NoSQL数据库吗？</title>
-      <link>https://stackoverflow.com/questions/78968129/is-a-vector-database-a-type-of-nosql-database</link>
-      <description><![CDATA[目前我知道 NoSQL 数据库有四种类型，例如键值数据库、文档数据库、列族数据库和图形数据库。但我对机器学习中使用的矢量数据库很感兴趣。这是一种 NoSQL 数据库吗？因为它是动态的，还是更像固定模式（SQL 数据库）
-我尝试研究它，但答案是一种新型的 NoSQL 数据库，我很好奇为什么 NoSQL 是动态模式，但矢量数据库确实有固定模式，因为它在每个数据中都有一个等效的矢量？]]></description>
-      <guid>https://stackoverflow.com/questions/78968129/is-a-vector-database-a-type-of-nosql-database</guid>
-      <pubDate>Tue, 10 Sep 2024 06:20:54 GMT</pubDate>
     </item>
     <item>
       <title>甜甜圈模型在预测时出现拼写错误</title>
@@ -64,21 +146,6 @@ return outputs.last_hidden_​​state.mean(dim=1).squeeze().numpy()
 ]]></description>
       <guid>https://stackoverflow.com/questions/78966320/optimal-methods-for-segmenting-histology-images-of-neurons</guid>
       <pubDate>Mon, 09 Sep 2024 16:00:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 R 进行自然语言处理</title>
-      <link>https://stackoverflow.com/questions/78965606/natural-language-processing-using-r</link>
-      <description><![CDATA[我对自然语言处理很感兴趣。我有一个路线图，比如获取韩语（任何语言，英语除外）的 PDF，然后在应用一些操作（例如：数据导入、清理、标记化、删除停用词）后，我想将该语言翻译成英语。
-我正在使用 R。您能建议我路线图需要进行哪些更改以及哪些库很重要吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78965606/natural-language-processing-using-r</guid>
-      <pubDate>Mon, 09 Sep 2024 13:03:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>将 PyTorch 模型导出到 ONNX</title>
-      <link>https://stackoverflow.com/questions/78964817/export-pytorch-model-to-onnx</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78964817/export-pytorch-model-to-onnx</guid>
-      <pubDate>Mon, 09 Sep 2024 09:33:30 GMT</pubDate>
     </item>
     <item>
       <title>在函数中创建 VLLM 对象时会导致内存错误，即使明确清除 GPU 缓存也是如此，只有共享引用才能使代码不会崩溃</title>
