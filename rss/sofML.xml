@@ -4,7 +4,233 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 11 Sep 2024 18:21:20 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 11 Sep 2024 21:15:52 GMT</lastBuildDate>
+    <item>
+      <title>Ray 自定义环境渲染</title>
+      <link>https://stackoverflow.com/questions/78975679/ray-custom-environment-render</link>
+      <description><![CDATA[我正在创建自己的 gym 环境来测试 freeze-tag 问题。我正在尝试使用 Ray 来做 MAPPO。我有两个问题：
+1：我的模拟没有渲染
+2：它创建了多个 PyGame 窗口
+我已将渲染方法和训练脚本的片段附加到附件中。
+# 渲染函数
+def render(self):
+self.screen.fill((255, 255, 255))
+
+for agent in self.all_agents:
+if agent.status == 1:
+pygame.draw.circle(self.screen, agent.color, (agent.x, agent.y), agent.size)
+
+elif agent.status == 0:
+pygame.draw.circle(self.screen, (0, 255, 255), (agent.x, agent.y),agent.size)
+
+pygame.display.flip()
+
+# Train_MAPPO_FTP.py
+import ray
+from ray.rllib.algorithms.ppo import PPOConfig
+from ray.tune.registry import register_env
+import gym_FTP as e
+import pygame
+import numpy as np
+
+# 环境创建函数
+def env_creator(config):
+robots = 5
+adversaries = 2
+time_steps = 500
+
+screen = pygame.display.set_mode([1000, 1000])
+gym_ftp = e.gym_FTP(screen, robots, 0, adversaries, time_steps, 15)
+return gym_ftp
+
+def train_and_evaluate(time_steps):
+# 初始化 Ray
+ray.init(ignore_reinit_error=True)
+
+# 注册环境
+register_env(&quot;Env_FTP&quot;, env_creator)
+
+# create_env_on_local_worker = True
+# 配置算法
+config = PPOConfig() \
+.environment(&quot;Env_FTP&quot;) \
+.rollouts(num_rollout_workers=1,
+rollout_fragment_length=1,
+create_env_on_local_worker=True) \
+.training(
+train_batch_size=1, # 每次训练更新前汇总经验
+sgd_minibatch_size=1,
+model={&quot;fcnet_hiddens&quot;: [64, 64]}
+) \
+.framework(&quot;torch&quot;) \
+.evaluation(evaluation_num_workers=1) \
+.resources(num_gpus=0) # 设置 GPU 数量
+
+# 构建算法
+algo = config.build()
+
+# 参数
+episodes = 5
+iterations = time_steps / 10
+
+for episode in range(episodes):
+for i in range(int(iterations)):
+results = algo.train()
+print(f&quot;训练迭代 {i + 1} 已完成。mean_reward {results[&#39;episode_reward_mean&#39;]},&quot;
+f&quot; 总损失 {results[&#39;info&#39;][&#39;learner&#39;][&#39;__all__&#39;][&#39;total_loss&#39;]}&quot;)
+
+# 关闭 Ray
+ray.shutdown()
+
+def main():
+time_steps = 500
+train_and_evaluate(time_steps)
+
+main()
+
+
+我已进行多次检查，以测试我的代理的速度是否根据新操作进行更新，以及位置是否正在更新，因此我确定这不是问题所在。当我使用其他算法进行测试时，此环境也有效。我可以正确使用 gym 环境的其他功能，并让它渲染和做一些有趣的事情。这似乎完全是 RAY 的问题。我的目标是拥有 n 个机器人和 m 个对手。我想根据环境状态为 n 个代理获取新操作。我想每集训练 500 个时间步，收集 10 个批次。例如前 10 个时间步，然后再添加 10 个时间步作为经验，然后再添加 10 个。所以我们每集最多更新 50 次。我们将进行 100 集。]]></description>
+      <guid>https://stackoverflow.com/questions/78975679/ray-custom-environment-render</guid>
+      <pubDate>Wed, 11 Sep 2024 20:54:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>跳过多步预测框架的训练窗口和测试范围之间的时间点</title>
+      <link>https://stackoverflow.com/questions/78975635/skipping-timepoints-between-the-training-window-and-testing-horizon-for-a-multi</link>
+      <description><![CDATA[我正在使用 caret 包构建一个随机森林模型，使用多个预测因子来预测时间序列结果。更具体地说，我使用 createTimeSlices 函数创建不同时间顺序的训练和测试集：
+
+但是，此函数似乎不允许跳过训练窗口（该函数的 initialWindow 参数）和测试窗口（该函数的 horizo​​n 参数）之间的时间观察，以便创建一个看起来像多步预测框架的框架Rob Hyndman 在此建议：
+
+我知道同一函数中存在 skip 参数，但这只会操纵您在每对训练和测试时间片之间跳过的观察结果，而不是操纵每个训练和测试时间片本身之间跳过的观察结果。我如何跳过训练集和测试集之间的观察结果以生成多步预测框架？]]></description>
+      <guid>https://stackoverflow.com/questions/78975635/skipping-timepoints-between-the-training-window-and-testing-horizon-for-a-multi</guid>
+      <pubDate>Wed, 11 Sep 2024 20:40:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>“无监督”二值图像聚类：聚类效果看似不错，但结果却很糟糕？我做错了什么？</title>
+      <link>https://stackoverflow.com/questions/78975401/unsupervised-binary-image-clustering-bad-results-despite-seemingly-good-clust</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78975401/unsupervised-binary-image-clustering-bad-results-despite-seemingly-good-clust</guid>
+      <pubDate>Wed, 11 Sep 2024 19:16:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>FFN 模型在预测总和方面实现了 100% 的准确率</title>
+      <link>https://stackoverflow.com/questions/78975293/ffn-model-achieving-100-accuracy-in-predicting-sums</link>
+      <description><![CDATA[我有一个模型，可以对 -10 到正 10 之间的数字进行加法运算，但使用神经网络通过两个数字相加的数据集来预测结果。然而，在获得训练准确度时，它只是打印出很多 100% 的准确度。我不确定模型是否只是快速训练，或者是否存在问题并且没有正确学习。有人能提供一些见解吗？
+这是我的代码
+import torch
+import torch.nn as nn
+import torch.nn. functional as F
+from torch.utils.data import DataLoader,TensorDataset
+from sklearn.model_selection import train_test_split
+
+import numpy as np
+
+import matplotlib.pyplot as plt
+import matplotlib_inline.backend_inline
+matplotlib_inline.backend_inline.set_matplotlib_formats(&#39;svg&#39;)
+
+data = []
+labels = []
+
+datasetAmount = 2000
+
+for i in range(datasetAmount):
+x = np.random.randint(-10, 10)
+y = np.random.randint(-10,10)
+bothNumber = [x,y]
+data.append(bothNumber)
+labels.append(x+y)
+
+data_np = np.array(data)
+labels_np = np.array(labels).reshape(-1,1)
+
+train_data, test_data, train_labels, test_labels = train_test_split(data_np, labels_np, train_size =.9)
+
+train_data = TensorDataset(torch.tensor(train_data),torch.tensor(train_labels))
+test_data = TensorDataset(torch.tensor(test_data),torch.tensor(test_labels))
+
+batchsize = 20
+
+train_loader = DataLoader(train_data, batch_size = batchsize, shuffle = True, drop_last = True)
+test_loader = DataLoader(test_data, batch_size = test_data.tensors[0].shape[0])
+
+def createModel():
+class myModel(nn.Module):
+def __init__(self):
+super().__init__()
+
+self.input = nn.Linear(2,8)
+self.fc1 = nn.Linear(8,8)
+self.output = nn.Linear(8,1)
+
+def forward(self,x):
+x = F.relu( self.input(x) )
+x = F.relu( self.fc1(x) )
+return self.output(x)
+
+net = myModel()
+lossfun = nn.MSELoss()
+optimizer = torch.optim.SGD(net.parameters(),lr=.001)
+
+return net,lossfun,optimizer
+
+def trainModel():
+
+numepochs = 100
+net,lossfun,optimizer = createModel()
+loss = torch.zeros(numepochs)
+trainacc = []
+testacc = []
+
+for epochi in range(numepochs):
+batchLoss = []
+
+for X,y in train_loader:
+X = X.float()
+y = y.float()
+yHat = net(X)
+
+loss = lossfun(yHat,y)
+batchLoss.append(loss.item())
+
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
+
+loss[epochi] = np.mean(batchLoss)
+
+with torch.no_grad():
+train_predictions = []
+train_labels = []
+for x_train, y_train in train_loader:
+x_train = x_train.float()
+y_train = y_train.float()
+train_pred = net(x_train)
+train_predictions.append(train_pred)
+train_labels.append(y_train)
+
+train_predictions = torch.cat(train_predictions)
+train_labels = torch.cat(train_labels)
+
+train_acc = 100 * torch.mean((np.abs(train_predictions - train_labels) &lt; 1).float())
+trainacc.append(train_acc.item())
+
+X,y = next(iter(test_data))
+X = X.float() # 将 X 转换为浮点数用于测试数据
+y = y.float() # 将 y 转换为浮点数用于测试数据
+with torch.no_grad():
+yHat = net(X)
+
+testacc= 100*torch.mean((np.abs(yHat-y)&lt; 1).float())
+
+return trainacc,testacc,losses,net
+
+trainAcc, testAcc, loss , net = trainModel()
+
+
+模型有什么问题吗？]]></description>
+      <guid>https://stackoverflow.com/questions/78975293/ffn-model-achieving-100-accuracy-in-predicting-sums</guid>
+      <pubDate>Wed, 11 Sep 2024 18:43:48 GMT</pubDate>
+    </item>
     <item>
       <title>为什么我的神经网络模型无法学习绝对函数 abs(x1-x2)？</title>
       <link>https://stackoverflow.com/questions/78974546/why-cant-my-neural-network-model-learn-absolute-function-absx1-x2</link>
@@ -28,7 +254,8 @@ df[&#39;x14&#39;] = abs (df[&#39;x1&#39;]-df[&#39;x4&#39;])
 我尝试在模型中使用不同的激活函数。
 从线性激活函数、relu 激活函数、leaky relu、prelu 开始。
 但是它们都没有给我 98% 的准确率（不使用三个手动创建的特征）。
-这是我的模型的样子：-
+这是我的模型的样子：
+def create_dense_model(input_shape, num_outputs, LR):
 
 inputs = Input(shape=input_shape)
 
@@ -95,109 +322,11 @@ optimizer=Adam(learning_rate=LR)
       <pubDate>Wed, 11 Sep 2024 05:31:44 GMT</pubDate>
     </item>
     <item>
-      <title>Transformer 架构中填充批次的掩蔽和计算损失[关闭]</title>
-      <link>https://stackoverflow.com/questions/78970293/masking-and-computing-loss-for-a-padded-batch-in-a-transformer-architecture</link>
-      <description><![CDATA[我正尝试基于 带注释的 Transformer 松散地重新创建 Transformer 模型。我的问题是关于填充：
-
-带注释的 Transformer 如何处理填充序列？我可以看到他们创建了方法 Batch.make_std_mask，据说该方法（也）会屏蔽所有填充标记，但这仅适用于合成数据。
-在基于 Transformer 的架构中，通常应如何处理填充序列？我可以看到提及（再次，在带注释的 Transformer 中，搜索“批处理对速度非常重要。”）以最小化填充，我猜这是为了找到最小化填充的序列长度？我非常确定必须将整个填充序列传入模型，否则自注意力机制就会出现问题。除了在嵌入 (pytorch) 中设置 padding_idx 之类的内容外，模型本身是否应该处理填充标记？损失计算索引目标和模型输出是否应忽略所有填充的标记？
-
-我已经看过这个问题（在 pytorch 中通过具有线性输出层的 RNN 发送的填充批次的掩码和计算损失） - 对于基于注意力的模型，该过程是否相同，或者是否存在差异，因为注意力机制如何一次“看到”整个序列？
-我也看过这个问题（Transformer 编码器中的查询填充掩码和键填充掩码），但我不确定它是否处理了同样的问题。如果是这样，我仍然希望得到澄清（并以那里的答案的形式），因为我既不完全理解这个问题，也不完全理解目前接受的（唯一）答案。]]></description>
-      <guid>https://stackoverflow.com/questions/78970293/masking-and-computing-loss-for-a-padded-batch-in-a-transformer-architecture</guid>
-      <pubDate>Tue, 10 Sep 2024 15:48:06 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 Pytorch 进行人体分割会失败，但使用 Tensorflow Keras 不会失败</title>
       <link>https://stackoverflow.com/questions/78969962/human-segmentation-fails-with-pytorch-not-with-tensorflow-keras</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78969962/human-segmentation-fails-with-pytorch-not-with-tensorflow-keras</guid>
       <pubDate>Tue, 10 Sep 2024 14:18:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>用 R 预测股票波动性</title>
-      <link>https://stackoverflow.com/questions/78969928/forecasting-volatility-of-stocks-in-r</link>
-      <description><![CDATA[项目概述：
-我正在开展一个项目，使用 469 天内 292 只股票的每日数据来预测股票指数的波动性。我有一个包含 104 个特征的数据集，包括特定于股票的特征、滞后变量和移动平均线。此外，我计算了 6 个波动代理，并计划对每个代理进行 1 天、5 天和 10 天的预测。
-目标：
-我的目标是：使用经典的时间序列预测方法（例如 ARIMA、GARCH）对波动性进行建模。
-应用机器学习技术（例如随机森林、梯度提升、RNN）来提高预测准确性。
-具体挑战：
-鉴于我的数据结构（每日股票数据、波动代理和各种特征），我不确定如何最好地进行传统时间序列模型和机器学习模型的特征选择和预处理。
-我正在寻找有关模型选择的指导、在多变量环境中处理时间序列数据的最佳实践以及任何可以帮助我获得的相关文献开始。
-问题：
-
-使用时间序列模型和机器学习技术预测波动性的最佳起点是什么？
-
-是否有任何推荐的资源或论文解释如何使用这样的数据集进行波动性预测？
-
-我应该如何处理多元时间序列预测的特征工程和模型验证？
-
-
-我正在开展一个预测股票指数波动性的项目，但由于缺乏使用某些技术的经验，我不知道如何开始。
-以下是我想做的事情：
-
-我有 469 天内 292 只股票的每日数据。
-我的数据集包括 104 个特征，例如股票特定变量、滞后变量和移动平均线。
-我已经计算了 6 个波动代理，我的目标是预测每个代理未来 1、5 和 10 天的情况。
-我计划从经典的时间序列预测方法（例如 ARIMA、GARCH）开始，然后探索机器学习技术，如随机森林或 RNN。
-
-我遇到的困难：
-我不确定如何开始这个项目。具体来说，我无法理解如何构建数据、选择特征和应用适当的模型。我不知道如何进行时间序列和机器学习方法的特征选择、模型验证和性能评估。
-我希望得到一些关于从哪里开始的指导、推荐的方法以及任何可以帮助我学习最佳实践的资源或文献。]]></description>
-      <guid>https://stackoverflow.com/questions/78969928/forecasting-volatility-of-stocks-in-r</guid>
-      <pubDate>Tue, 10 Sep 2024 14:11:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 OpenCV 改进这种图像自然背景扩展方法？</title>
-      <link>https://stackoverflow.com/questions/78969286/how-can-i-improve-this-approach-for-natural-background-extension-in-an-image-usi</link>
-      <description><![CDATA[我正在使用 Python 中的 OpenCV 扩展图像的背景。我目前的方法是复制边框并对扩展区域应用高斯模糊以将它们混合到原始图像中。目标是使背景扩展看起来更自然，尤其是对于具有一致纹理的图像。
-这是我当前使用的代码：
-import cv2
-import numpy as np
-
-def expand_image_with_smart_blend(image_path, top=50, bottom=50, left=50, right=50):
-img = cv2.imread(image_path)
-original_h, original_w = img.shape[:2]
-
-expanded_img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_REPLICATE)
-
-blured_img = expand_img.copy()
-
-if top &gt; 0:
-blured_img[0:top, :] = cv2.GaussianBlur(expanded_img[0:top, :], (51, 51), 0)
-
-如果底部 &gt; 0:
-blured_img[original_h + top:original_h + top + bottom, :] = cv2.GaussianBlur(expanded_img[original_h + top:original_h + top + bottom, :], (51, 51), 0)
-
-如果左侧 &gt; 0:
-blured_img[:, 0:left] = cv2.GaussianBlur(expanded_img[:, 0:left], (51, 51), 0)
-
-如果右侧 &gt; 0:
-blured_img[:, original_w + left:original_w + left + right] = cv2.GaussianBlur(expanded_img[:, original_w + left:original_w + left + right], (51, 51), 0)
-
-cv2.namedWindow(&quot;智能混合扩展图像&quot;, cv2.WINDOW_NORMAL)
-cv2.namedWindow(&quot;原始图像&quot;, cv2.WINDOW_NORMAL)
-cv2.imwrite(&#39;expanded_smart_blended_image.jpg&#39;, blured_img)
-cv2.imshow(&#39;智能混合扩展图像&#39;, blured_img)
-cv2.imshow(&quot;原始图像&quot;, img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-expand_image_with_smart_blend(&#39;test_img.jpg&#39;, top=100, bottom=100, left=100, right=100)
-
-我尝试过的方法：
-cv2.BORDER_REPLICATE：我使用它将原始图像的边缘复制到新扩展的区域中。
-高斯模糊：应用于扩展区域以柔化原始图像和新区域之间的过渡。
-问题：
-结果在某种程度上是可以接受的，但过渡仍然看起来不像我想要的那样自然。特别是：
-某些区域的过度模糊使背景看起来不真实。
-对于纹理更复杂的图像，边缘复制并不总是有效。
-原始图像 结果图像
-问题：
-在 OpenCV 或其他库中，是否有更复杂的方法来扩展图像的背景，从而产生更自然、无缝的结果？我愿意接受涉及高级图像处理技术或机器学习的方法。任何使用扩散模型的方法都可以。]]></description>
-      <guid>https://stackoverflow.com/questions/78969286/how-can-i-improve-this-approach-for-natural-background-extension-in-an-image-usi</guid>
-      <pubDate>Tue, 10 Sep 2024 11:32:09 GMT</pubDate>
     </item>
     <item>
       <title>高效的 PyTorch 带矩阵到密集矩阵乘法</title>
@@ -232,7 +361,7 @@ tridiag += torch.diag_embed(lower_diag, offset=-1)
     <item>
       <title>是否可以使用 `sklearn` 管道中的 `ravel()` 或 `to_numpy()` 转换目标变量？</title>
       <link>https://stackoverflow.com/questions/78958361/is-it-possible-to-transform-a-target-variable-using-ravel-or-to-numpy-in</link>
-      <description><![CDATA[我在 R markdown 文档中使用 RStudio 和 tidymodels。我想合并一些来自 scikit-learn 的模型。将数据从 R 代码块传输到 Python 代码块效果很好，但是当我使用以下代码训练和测试模型时：
+      <description><![CDATA[我在 R markdown 文档中使用 RStudio 和 tidymodels。我想整合一些来自 scikit-learn 的模型。将数据从 R 代码块传输到 Python 代码块效果很好，但是当我使用以下代码训练和测试模型时：
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 
@@ -246,11 +375,40 @@ log_reg_pipe.fit(X_train, y_train).score(X_val, y_val)
 DataConversionWarning：当预期为 1d 数组时，传递了列向量 y。
 请将 y 的形状更改为 (n_samples, )，例如使用 ravel()。
 
-我可以通过使用 y_train[&#39;clinical_course&#39;].to_numpy() 训练数据来解决这个问题，但我希望这可以在管道中直接完成。这可能吗？
-请注意，上面的代码只是一个简单的示例，用于展示我的问题。在这种情况下，X_train 有四列，y_train 有一列。
+我可以通过使用 y_train[&#39;clinical_course&#39;].to_numpy() 训练数据来解决这个问题，但我希望这直接在管道中完成。这可能吗？
+请注意，上面的代码只是一个简单的示例来展示我的问题。在这种情况下，X_train 有四列，y_train 有一列。
 如上所述，我尝试使用 .to_numpy()，但我想要一个在管道内完成所有转换的解决方案。]]></description>
       <guid>https://stackoverflow.com/questions/78958361/is-it-possible-to-transform-a-target-variable-using-ravel-or-to-numpy-in</guid>
       <pubDate>Fri, 06 Sep 2024 18:31:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>Pytorch 中的 Autograd Trainstep 中的 Lightning</title>
+      <link>https://stackoverflow.com/questions/78956646/autograd-in-pytorch-lightning-in-trainstep</link>
+      <description><![CDATA[我想实现一个基于 Pytorch Lightning 的 ML 训练，其中我使用 autograd 功能进行训练损失计算：
+def training_step(self, batch, batch_idx):
+x, y = batch
+y_hat = self(x)
+loss = self.loss_function(y_hat, y)
+return loss
+
+X 的每个样本 x 都是一个二维向量 x = [v, a]。
+在训练步骤中，我想计算 y_hat 相对于 的梯度。到 v。
+损失进一步通过以下方式计算：
+loss = mse(y,y_hat) + mse(gradient,gradient_hat)
+
+其中给出了（真实）梯度。
+到目前为止，尝试了 y_hat.backward() 的（典型）方法，但无法使其工作：
+def training_step(self, batch, batch_idx):
+x, y = batch
+x.requires_grad_(True) # 确保我们跟踪 x 的梯度
+y_hat = self(x)
+
+# 计算 y_hat 相对于 v 的梯度（x[:, 0]）
+v = x[:, 0]
+grads = torch.autograd.grad(y_hat, v, grad_outputs=torch.ones_like(y_hat), create_graph=True)[0] # ...
+]]></description>
+      <guid>https://stackoverflow.com/questions/78956646/autograd-in-pytorch-lightning-in-trainstep</guid>
+      <pubDate>Fri, 06 Sep 2024 10:08:53 GMT</pubDate>
     </item>
     <item>
       <title>具有中间层输出的 Keras 多输出自定义损失</title>
@@ -286,22 +444,55 @@ model.compile(optimizer=&#39;adam&#39;,loss = MyLoss)
       <pubDate>Mon, 08 Mar 2021 08:39:20 GMT</pubDate>
     </item>
     <item>
-      <title>Transformer 编码器中的查询填充掩码和密钥填充掩码</title>
-      <link>https://stackoverflow.com/questions/65262928/query-padding-mask-and-key-padding-mask-in-transformer-encoder</link>
-      <description><![CDATA[我正在使用 pytorch nn.MultiheadAttention 在 transformer 编码器中实现自注意力部分，并在 transformer 的填充掩码中进行混淆。
-下图显示了查询（行）和键（列）的自注意力权重。
-如您所见，有一些标记“&lt;PAD&gt;”，我已经在键中对其进行了掩码。因此 token 不会计算注意力权重。
+      <title>按特定日期（而非观察结果）进行训练和测试</title>
+      <link>https://stackoverflow.com/questions/61096540/train-and-test-splits-by-unique-dates-not-observations</link>
+      <description><![CDATA[我正在尝试使用 R 中的随机森林训练一个模型。我有一个时间序列，其中包含每个日期的多只股票的信息，并创建了一个非常简化的版本：
+日期 &lt;- rep(seq(as.Date(&quot;2009/01/01&quot;), by = &quot;day&quot;, length.out = 100), 10)
+名称 &lt;- c(rep(&quot;Stock A&quot;, 100), rep(&quot;Stock B&quot;,100), rep(&quot;Stock C&quot;, 100), rep(&quot;Stock D&quot;, 100), rep(&quot;Stock E&quot;,100), rep(&quot;Stock F&quot;,100), rep(&quot;Stock G&quot;,100), rep(&quot;Stock H&quot;,100), rep(&quot;Stock I&quot;, 100), rep(&quot;Stock J&quot;, 100))
+类别 &lt;- sample(1:10, 1000, replace=TRUE)
 
-还有两个问题：
+DF &lt;- data.frame(Date, Name, Class)
+DF &lt;- DF %&gt;% 排列(Date, Name)
 
-在查询部分，除了红色方块部分，我还可以屏蔽它们（“&lt;PAD&gt;”）吗？这合理吗？
+看起来像这样：
+ 日期 名称 类
+1 2009-01-01 股票 A 5
+2 2009-01-01 股票 B 2
+3 2009-01-01 股票 C 4
+4 2009-01-01 股票 D 10
+5 2009-01-01 股票 E 7
+6 2009-01-01 股票 F 3
+...
+11 2009-01-02 股票 A 10
+12 2009-01-02 股票 B 8
+13 2009-01-02 股票 C 9
 
-我该如何屏蔽“&lt;PAD&gt;”在查询中？
 
+使用时trainControl 用于将数据拆分为训练和测试期，拆分是基于每个观察进行的，但我希望基于特定日期进行。到目前为止，我所做的是：
+timecontrol &lt;- DF %&gt;% group_by(Date) %&gt;% trainControl(
+method = &#39;timeslice&#39;,
+initialWindow = 10,
+horizo​​n = 5,
+skip = 4,
+fixedWindow = TRUE,
+returnData = TRUE, 
+classProbs = TRUE
+)
 
-注意权重还通过在 src_mask 或 src_key_padding_mask 参数中提供掩码，沿行使用 softmax 函数。如果我将所有 &lt;PAD&gt;&gt; 行设置为 -inf，则 softmax 将返回 nan，损失将为 nan]]></description>
-      <guid>https://stackoverflow.com/questions/65262928/query-padding-mask-and-key-padding-mask-in-transformer-encoder</guid>
-      <pubDate>Sat, 12 Dec 2020 08:19:34 GMT</pubDate>
+fitRF &lt;- train(Class ~ ., 
+data = DF,
+method = &quot;ranger&quot;,
+tuneGrid = tunegrid,
+na.action = na.omit,
+trControl = timecontrol)
+
+这给了我一个包含 10 个观察的训练集，后面是 5 个测试观察。
+但是，我希望有一个训练集（和测试集......）包含 10 个不同日期的所有观测值，这样，一个训练集将是 10 天乘以每天的观测值数量，并且在各个时间段之间跳跃，以便每个测试时间段都基于全新的数据（因此 skip=4）。
+第一个训练/测试拆分应该是训练=10 数据集的第一个不同日期，测试=接下来的 5 个不同日期，然后第二个训练/测试拆分应该是测试集 2 是第一个测试集之后的 5 天。
+与我上面显示的数据集不同，我的数据集每天包含不同数量的观测值。我的数据集包含 417497 个观测值，但只有 2482 个不同日期，因此能够根据“分组”日期进行训练/测试拆分会产生很大的不同。 
+我能否使用 trainControl 来获得所需的分割，还是必须手动分割所有数据？]]></description>
+      <guid>https://stackoverflow.com/questions/61096540/train-and-test-splits-by-unique-dates-not-observations</guid>
+      <pubDate>Wed, 08 Apr 2020 08:33:55 GMT</pubDate>
     </item>
     <item>
       <title>如何处理正态分布中的零项</title>
@@ -310,55 +501,6 @@ model.compile(optimizer=&#39;adam&#39;,loss = MyLoss)
 ]]></description>
       <guid>https://stackoverflow.com/questions/60408826/how-to-handle-entries-of-zero-in-an-otherwise-normal-distribution</guid>
       <pubDate>Wed, 26 Feb 2020 07:30:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 PyTorch 中，通过具有线性输出层的 RNN 发送填充批次的掩蔽和计算损失</title>
-      <link>https://stackoverflow.com/questions/59292708/masking-and-computing-loss-for-a-padded-batch-sent-through-an-rnn-with-a-linear</link>
-      <description><![CDATA[虽然这是一个典型的用例，但我找不到一个简单明了的指南来说明当通过 RNN 发送时，在 pytorch 中计算填充小批量损失的规范方法是什么。
-我认为规范的管道可能是：
-
-pytorch RNN 期望填充的批量张量形状为：(max_seq_len, batch_size, emb_size)
-
-因此，我们给出一个嵌入层，例如这个张量：
-tensor([[1, 1],
-[2, 2],
-[3, 9]])
-
-
-9 是填充索引。批量大小为 2。嵌入层将使其形状为 (max_seq_len, batch_size, emb_size)。批次中的序列按降序排列，因此我们可以打包它。
-
-我们应用 pack_padded_sequence，应用 RNN，最后应用 pad_packed_sequence。此时我们有 (max_seq_len、batch_size、hidden_​​size)
-
-现在我们在结果上应用线性输出层，假设是 log_softmax。所以最后我们有一个批次分数的张量，形状为：(max_seq_len、batch_size、linear_out_size)
-
-
-我应该如何从这里计算损失，掩盖填充部分（使用任意目标）？]]></description>
-      <guid>https://stackoverflow.com/questions/59292708/masking-and-computing-loss-for-a-padded-batch-sent-through-an-rnn-with-a-linear</guid>
-      <pubDate>Wed, 11 Dec 2019 19:25:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>隔离森林 Sklearn 用于一维数组或列表以及如何调整超参数</title>
-      <link>https://stackoverflow.com/questions/50957340/isolation-forest-sklearn-for-1d-array-or-list-and-how-to-tune-hyper-parameters</link>
-      <description><![CDATA[有没有办法为 1D 数组或列表实现 sklearn 隔离森林？我遇到的所有示例都是针对 2 维或更高维度的数据。
-我现在已经开发了一个具有三个特征的模型，示例代码片段如下：
-# 三列的数据框
-df_data = datafr[[&#39;col_A&#39;, &#39;col_B&#39;, &#39;col_C&#39;]]
-w_train = page_data[:700]
-w_test = page_data[700:-2]
-
-from sklearn.ensemble import IsolationForest
-# 拟合模型
-clf = IsolationForest(max_samples=&#39;auto&#39;)
-clf.fit(w_train)
-
-# 使用测试集进行测试
-y_pred_test = clf.predict(w_test)
-
-我主要依赖的参考资料：IsolationForest 示例 | scikit-learn
-df_data 是一个包含三列的数据框。我实际上想在 1 维或列表数据中查找异常值。
-另一个问题是如何调整隔离森林模型？其中一种方法是增加污染值以减少误报。但如何使用其他参数，如 n_estimators、max_samples、max_features、versbose 等。]]></description>
-      <guid>https://stackoverflow.com/questions/50957340/isolation-forest-sklearn-for-1d-array-or-list-and-how-to-tune-hyper-parameters</guid>
-      <pubDate>Wed, 20 Jun 2018 21:32:17 GMT</pubDate>
     </item>
     </channel>
 </rss>
