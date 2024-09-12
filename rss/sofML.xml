@@ -4,7 +4,15 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 12 Sep 2024 15:16:50 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Sep 2024 18:23:02 GMT</lastBuildDate>
+    <item>
+      <title>线性模型中的规范化</title>
+      <link>https://stackoverflow.com/questions/78979243/normalization-in-linear-models</link>
+      <description><![CDATA[我知道对于线性模型来说，有必要对所有数据进行归一化。但是如果我们得到一个预测，它也将被归一化。我怎样才能在原始尺度上得到这个预测？
+例如，如果我进行标准化（减去平均值并除以方差），我认为当我得到模型预测（假设为 X）时，我可以执行 X_original = X * 方差 + 平均值。但是有没有内置的方法可以做到这一点？]]></description>
+      <guid>https://stackoverflow.com/questions/78979243/normalization-in-linear-models</guid>
+      <pubDate>Thu, 12 Sep 2024 17:03:00 GMT</pubDate>
+    </item>
     <item>
       <title>使用电子邮件 ID 识别垃圾邮件用户和真正用户 [关闭]</title>
       <link>https://stackoverflow.com/questions/78976869/identifying-spam-users-and-genuine-users-using-email-ids</link>
@@ -239,7 +247,7 @@ y_bins = np.arange(df[&#39;StageCoordsNM.Y&#39;].min(), df[&#39;StageCoordsNM.Y&
 df[&#39;X_bin&#39;] = pd.cut(df[&#39;StageCoordsNM.X&#39;], bins=x_bins, labels=False)
 df[&#39;Y_bin&#39;] = pd.cut(df[&#39;StageCoordsNM.Y&#39;], bins=y_bins, labels=False)
 
-我想要做什么：现在假设，我已经将舞台扫过同一区域 25 次。在 x 和 y 方向上进行分箱后，每个箱将有 25 个数据点，意味着每个箱有 25 个测量舞台位置误差。现在对于每个箱，我想提取误差的系统或可重复部分。每个箱 25 个数据点可能不足以得出任何可靠的结论。因此使用机器学习很困难。我想找出一种更具统计性的方法来做到这一点。
+我想要做的：现在假设，我已经将舞台扫过同一区域 25 次。在 x 和 y 方向上进行分箱后，每个箱将有 25 个数据点，意味着每个箱有 25 个测量舞台位置误差。现在对于每个箱，我想提取误差的系统或可重复部分。每个箱 25 个数据点可能不足以得出任何可靠的结论。因此使用机器学习很困难。我想找出一种更具统计性的方法来做到这一点。
 我到目前为止所做的：计算了“归一化加权调整重复性指数”。这应该表明我对特定分箱误差是否可重复的信心。忽略 &#39;_before&#39; 下标。
 #*__Pk-to-Pk X 和 Y__
 df[&#39;Error_pk2pk_X&#39;] = df.groupby([&#39;X_bin&#39;, &#39;Y_bin&#39;])[&#39;SkewNM.X&#39;].transform(lambda x: x.max() - x.min())
@@ -493,57 +501,6 @@ trainAcc, testAcc, loss , net = trainModel()
 模型有什么问题吗？]]></description>
       <guid>https://stackoverflow.com/questions/78975293/ffn-model-achieving-100-accuracy-in-predicting-sums</guid>
       <pubDate>Wed, 11 Sep 2024 18:43:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>按特定日期（而非观察结果）进行训练和测试</title>
-      <link>https://stackoverflow.com/questions/61096540/train-and-test-splits-by-unique-dates-not-observations</link>
-      <description><![CDATA[我正在尝试使用 R 中的随机森林训练一个模型。我有一个时间序列，其中包含每个日期的多只股票的信息，并创建了一个非常简化的版本：
-日期 &lt;- rep(seq(as.Date(&quot;2009/01/01&quot;), by = &quot;day&quot;, length.out = 100), 10)
-名称 &lt;- c(rep(&quot;Stock A&quot;, 100), rep(&quot;Stock B&quot;,100), rep(&quot;Stock C&quot;, 100), rep(&quot;Stock D&quot;, 100), rep(&quot;Stock E&quot;,100), rep(&quot;Stock F&quot;,100), rep(&quot;Stock G&quot;,100), rep(&quot;Stock H&quot;,100), rep(&quot;Stock I&quot;, 100), rep(&quot;Stock J&quot;, 100))
-类别 &lt;- sample(1:10, 1000, replace=TRUE)
-
-DF &lt;- data.frame(Date, Name, Class)
-DF &lt;- DF %&gt;% 排列(Date, Name)
-
-看起来像这样：
- 日期 名称 类
-1 2009-01-01 股票 A 5
-2 2009-01-01 股票 B 2
-3 2009-01-01 股票 C 4
-4 2009-01-01 股票 D 10
-5 2009-01-01 股票 E 7
-6 2009-01-01 股票 F 3
-...
-11 2009-01-02 股票 A 10
-12 2009-01-02 股票 B 8
-13 2009-01-02 股票 C 9
-
-
-使用时trainControl 用于将数据拆分为训练和测试期，拆分是基于每个观察进行的，但我希望基于特定日期进行。到目前为止，我所做的是：
-timecontrol &lt;- DF %&gt;% group_by(Date) %&gt;% trainControl(
-method = &#39;timeslice&#39;,
-initialWindow = 10,
-horizo​​n = 5,
-skip = 4,
-fixedWindow = TRUE,
-returnData = TRUE, 
-classProbs = TRUE
-)
-
-fitRF &lt;- train(Class ~ ., 
-data = DF,
-method = &quot;ranger&quot;,
-tuneGrid = tunegrid,
-na.action = na.omit,
-trControl = timecontrol)
-
-这给了我一个包含 10 个观察的训练集，后面是 5 个测试观察。
-但是，我希望有一个训练集（和测试集......）包含 10 个不同日期的所有观测值，这样，一个训练集将是 10 天乘以每天的观测值数量，并且在各个时间段之间跳跃，以便每个测试时间段都基于全新的数据（因此 skip=4）。
-第一个训练/测试拆分应该是训练=10 数据集的第一个不同日期，测试=接下来的 5 个不同日期，然后第二个训练/测试拆分应该是测试集 2 是第一个测试集之后的 5 天。
-与我上面显示的数据集不同，我的数据集每天包含不同数量的观测值。我的数据集包含 417497 个观测值，但只有 2482 个不同日期，因此能够根据“分组”日期进行训练/测试拆分会产生很大的不同。 
-我能否使用 trainControl 来获得所需的分割，还是必须手动分割所有数据？]]></description>
-      <guid>https://stackoverflow.com/questions/61096540/train-and-test-splits-by-unique-dates-not-observations</guid>
-      <pubDate>Wed, 08 Apr 2020 08:33:55 GMT</pubDate>
     </item>
     <item>
       <title>MS Azure autoML 准备中出现错误 - 文件格式/编码错误？</title>
