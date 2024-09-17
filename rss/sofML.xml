@@ -4,7 +4,87 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 17 Sep 2024 03:19:51 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 17 Sep 2024 06:21:55 GMT</lastBuildDate>
+    <item>
+      <title>如何使用 MobileNetV2 模型来处理灰度图像</title>
+      <link>https://stackoverflow.com/questions/78992679/how-do-i-use-mobilenetv2-model-to-use-gray-scale-images</link>
+      <description><![CDATA[我使用 MobileNetV2 模型作为基础模型，但我添加了 5 个新的可训练层，并在两个新类别上重新训练它：猴痘阳性和猴痘阴性。猴痘阴性图像文件夹包含不同的皮肤感染，这些感染看起来与猴痘相似，但感染方式与水痘类似。我有一个包含彩色图像的数据集，但我将它们转换为灰度（下面的代码）。
+当我尝试运行模型时，我遇到了以下问题：
+层“Conv1”的输入 0 与层不兼容：预期输入形状的轴 -1 具有值 3，但收到的输入形状为 (None, 200, 200, 1)
+
+我知道我必须欺骗模型，让其认为 1 的值是 3，但我不确定如何做。我正在使用 imagenet 作为权重。
+从 tensorflow.keras.preprocessing 导入图像作为 IMAGE
+导入 numpy 作为 np
+导入 cv2
+导入 os
+os.environ[&quot;CUDA DEVICE ORDER&quot;]=&quot;PCI BUS ID&quot;
+os.environ[&quot;CUDA VISIBLE DEVICES&quot;]=&quot;0&quot;
+
+从 tensorflow.keras 导入模型
+从 tensorflow.keras.applications.mobilenet_v2 导入 MobileNetV2、preprocess_input
+从 tensorflow.keras.preprocessing.image 导入 ImageDataGenerator
+从 tensorflow.keras.layers 导入 Dense、GlobalAveragePooling2D
+从 tensorflow.keras.optimizers 导入 Adam
+从 tensorflow.keras.preprocessing 导入图像
+导入 matplotlib.pyplot 作为 plt
+
+导入 tensorflow 作为 tf
+从 PIL 导入图像
+从 google.colab.patches 导入 cv2_imshow
+
+!pip3 安装 tensorflowjs
+
+导入 tensorflowjs 作为 tfjs
+
+train = ImageDataGenerator(rescale = 1/255)
+test = ImageDataGenerator（重新缩放 = 1/255）
+val = ImageDataGenerator（重新缩放 = 1/255）
+
+training_set = train.flow_from_directory（“/content/drive/MyDrive/mpox_data/Train”，
+target_size=(200,200)，
+batch_size = 15，
+class_mode = “categorical”，
+color_mode=&#39;rgb&#39;
+)
+
+testing_set = test.flow_from_directory（“/content/drive/MyDrive/mpox_data/Test”，
+target_size=(200,200)，
+batch_size = 15，
+class_mode = “categorical”，
+color_mode=&#39;rgb&#39;
+)
+validation_set = val.flow_from_directory(&quot;/content/drive/MyDrive/mpox_data/Val&quot;,
+target_size=(200,200),
+batch_size=15,
+class_mode = &quot;categorical&quot;,
+color_mode=&#39;rgb&#39;
+)
+
+x, y = training_set[0]
+a, b = testing_set[0]
+d, c = validation_set[0]
+
+base_model = MobileNetV2(weights = &quot;imagenet&quot;, include_top = False)
+
+x = base_model.output
+x = GlobalAveragePooling2D()(x)
+x = Dense(42,activation=&quot;relu&quot;)(x)
+x = Dense(64,activation = &quot;relu&quot;)(x)
+x = Dense(32,激活=&quot;relu&quot;)(x)
+preds = Dense(2, 激活 = &quot;sigmoid&quot;)(x)
+
+模型 = 模型(输入 = base_model.input, 输出 = preds)
+
+epochs = 5
+优化器 = Adam(learning_rate = 0.0003)
+模型.编译(损失 = &quot;binary_crossentropy&quot;, 优化器 = 优化器, 指标 = [&quot;Accuracy&quot;])
+模型.fit(training_set, 验证数据 = 验证集, epochs = epochs, shuffle=True)
+
+我尝试在模型中使用灰度图像，希望它能成功运行，但它给了我上面提到的错误。
+为什么我的程序无法运行，我该如何修复它，让模型继续在灰度上进行自我训练图像？]]></description>
+      <guid>https://stackoverflow.com/questions/78992679/how-do-i-use-mobilenetv2-model-to-use-gray-scale-images</guid>
+      <pubDate>Tue, 17 Sep 2024 05:48:26 GMT</pubDate>
+    </item>
     <item>
       <title>R 中的单个相互信息是什么意思？</title>
       <link>https://stackoverflow.com/questions/78992403/what-does-a-single-mutual-information-mean-in-r</link>
@@ -13,28 +93,27 @@
       <pubDate>Tue, 17 Sep 2024 03:04:36 GMT</pubDate>
     </item>
     <item>
-      <title>使用多个输出的反向预测来达到目标</title>
-      <link>https://stackoverflow.com/questions/78992262/using-reverse-prediction-for-multiple-outputs-to-reach-a-target</link>
-      <description><![CDATA[我有一个人生阶段预测模型（模型 1），它根据一组规则为每个人生阶段分配分数，总分数最高的人生阶段被视为赢家。这种无监督模型在识别样本客户是青少年、单身、夫妻、有小孩等方面效果很好。
-然后我使用决策树（模型 2）来预测所有客户的生活阶段。在每次模型运行结束时，我都会总结结果以获得每个人生阶段内客户的比例。这些模型每三个月运行一次，如果不进行补救，每次的最终比例都会与目标比例相差太大。目前，我使用反复试验的方法重新平衡比例，方法是在模型 1 中的每个生命阶段增加或减少少量点，以将边缘客户转移到另一个生命阶段类别，然后重新运行模型 2。
-我想要的是一种自动化方法，可以指定重新校准最终比例所需的点，以比我的手动方法更少的麻烦（更少的迭代）来匹配目标比例。本质上，协调点（recon_pts）是模型 1 的输入，预测的生命阶段是关键输出，尽管比例是在此阶段计算的（model_1_pn）。预测的生命阶段是模型 2 的输入，它给出自己的更新比例（model_2_pn）作为输出。我希望模型 2 的输出比例与目标比例 (target_pn) 相匹配。
-一个例子肯定有助于说明我所追求的目标。请注意，以下是实际观察到的结果，但我不想要使用或输出这些精确数字的工具，而是使用机器学习来更有效地重现我的反复试验方法。
+      <title>对多个相互交织的目标使用反向预测</title>
+      <link>https://stackoverflow.com/questions/78992262/using-reverse-prediction-for-multiple-intertwined-targets</link>
+      <description><![CDATA[我有一个人生阶段预测模型，它根据一组规则为每个潜在的人生阶段分配点数，总点数最高的人生阶段被视为赢家。这种无监督模型在识别样本客户是青少年、单身、夫妻、有小孩等方面效果很好。
+在每次模型运行结束时，我都会总结结果，以获得每个人生阶段的客户比例。该模型每三个月运行一次，如果不进行补救，每次的最终比例都会与目标比例相差太大。目前，我使用反复试验来重新平衡比例，通过在每个人生阶段增加或减去少量点数，将边缘客户转移到另一个人生阶段类别。
+我想要的是一种自动化方法，可以指定重新校准最终比例所需的点数，以比我的手动方法更轻松（更少的迭代次数）地匹配目标比例。本质上，协调点 (recon_pts) 是模型的输入，预测每个客户的生命阶段是关键输出，同时还有相应的比例 (model_pn)。我希望模型比例最终与目标比例 (target_pn) 相匹配。
+一个例子肯定有助于说明我所追求的。请注意，以下是实际观察到的结果，但我不想要使用或输出这些精确数字的工具，而是使用机器学习来更有效地重现我的反复试验方法。
 假设起始位置为：
 
 提供者：
 life_stage=c(&#39;CHD&#39;, &#39;TNG&#39;, &#39;TWS&#39;, &#39;SGL&#39;, &#39;CPL&#39;, &#39;YGF&#39;, &#39;PTF&#39;, &#39;OLF&#39;, &#39;ENR&#39;),
-recon_pts=c(0.215, -0.143, -0.086, 0.024, -0.049, -0.079, -0.14, -0.162, .083),
-model_1_pn=c(0.012, 0.084, 0.091, 0.066, 0.112, 0.116, 0.125, 0.122, 0.271),
-model_2_pn=c(0.012, 0.087, 0.091, 0.065, 0.113, 0.115, 0.123, 0.122, 0.273),
+recon_pts=c(0.215, -0.143, -0.086, 0.024, -0.049, -0.079, -0.14, -0.162, 0.083),
+model_pn=c(0.012, 0.087, 0.091, 0.065, 0.113, 0.115, 0.123, 0.122, 0.273),
 target_pn=c(0.014, 0.091, 0.095, 0.065, 0.114, 0.114, 0.107, 0.122, 0.277))
 
-模型 2 得出的 CHD 生命阶段比例太低 (1.2%)，因为它低于目标 (1.4%)。另一方面，模型 2 得出的 PTF 太高 (12.3%)，因为它高于目标 (10.7%)。
-在我的手动方法下，我选择将 CHD 的 recon_pts 从 0.215 增加到 0.22，以便在这个生命阶段获得更多客户。同时，我还将 PTF 的分数从 -0.14 减少到 -0.17，因此分配到此处的客户更少。
+CHD 生命阶段比例过低 (1.2%)，低于目标 (1.4%)。在另一个极端，PTF 太高 (12.3%)，因为它高于目标 (10.7%)。
+在我的手动方法下，我选择将 CHD 的 recon_pts 从 0.215 增加到 0.22，这样我就能在这个生命阶段获得更多客户。同时，我还将 PTF 的分数从 -0.14 减少到 -0.17，这样分配到这里的客户就会减少。
 然后我得到了这些结果，所有比例都经过了调整。 CHD 比例更接近目标但仍然太低，PTF 现在太低，因为比例已低于目标，其他一切都需要注意：
 
-因此，在下一次迭代中，我可能会选择增加 CHD 的 recon_pts，减少 PTF 的点数并减少 YFG 的点数。然后以痛苦的方式继续下去！
-对我来说，这看起来像是机器学习的理想候选者，其中过程可以学习如何调整 recon_pts，以便 model_2_pn 最终匹配每个生命阶段的 target_pn。 什么是实现此目的的最佳 R 包，请问该过程的概述是什么样的？ 如果需要，您可以使用 model_1_pn 作为中间层，或者可以忽略它。如果仅运行模型 1（针对 250K 个样本客户）后就能获得良好的首次结果，那么每次运行模型 2（针对 500 万个客户）都会节省时间。model_1_pn 和 model_2_pn 之间存在非常强的关系，但当您调整 recon_pts 时，移动不会完全是线性的。]]></description>
-      <guid>https://stackoverflow.com/questions/78992262/using-reverse-prediction-for-multiple-outputs-to-reach-a-target</guid>
+因此，在下一次迭代中，我可能会选择增加 CHD 的 recon_pts，增加 PTF 的点数并减少 YFG 的点数。然后它以非常缓慢的方式继续进行！
+对我来说，这看起来像是机器学习的理想候选者，其中过程可以学习如何调整 recon_pts，以便 model_pn 最终匹配每个生命阶段的 target_pn。 实现此目的的最佳 R 包是什么？请概述该过程是什么样的？]]></description>
+      <guid>https://stackoverflow.com/questions/78992262/using-reverse-prediction-for-multiple-intertwined-targets</guid>
       <pubDate>Tue, 17 Sep 2024 01:29:30 GMT</pubDate>
     </item>
     <item>
@@ -233,21 +312,6 @@ rllib_checkpoint.json
       <pubDate>Mon, 16 Sep 2024 11:24:47 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 React 应用程序中离线运行 roboflow 模型？</title>
-      <link>https://stackoverflow.com/questions/78989326/how-to-run-roboflow-models-offline-in-a-react-app</link>
-      <description><![CDATA[我在 Mac 上本地运行了 Roboflow 推理服务器，但我不确定如何使用 inferencejs 包在本地推理服务器上进行推理，更具体地说是在 Vite 中。
-我已经将弃用的（我认为）Roboflowjs 库与 window.roboflow.auth 等一起使用，但我不确定如何向本地推理服务器发出请求。]]></description>
-      <guid>https://stackoverflow.com/questions/78989326/how-to-run-roboflow-models-offline-in-a-react-app</guid>
-      <pubDate>Mon, 16 Sep 2024 08:08:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 pytesseract OCR 检测“数字单位”格式的文本，将数字转换为浮点数时出现 ValueError</title>
-      <link>https://stackoverflow.com/questions/78989261/detect-text-in-format-number-unit-using-pytesseract-ocr-valueerror-on-converti</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/78989261/detect-text-in-format-number-unit-using-pytesseract-ocr-valueerror-on-converti</guid>
-      <pubDate>Mon, 16 Sep 2024 07:49:42 GMT</pubDate>
-    </item>
-    <item>
       <title>如何实现用于预测和逆设计问题的自动编码器？</title>
       <link>https://stackoverflow.com/questions/78565562/how-to-implement-autoencoders-for-prediction-and-inverse-design-problems</link>
       <description><![CDATA[我正在探索使用自动编码器解决两类问题：预测和逆向设计。具体来说，我想要：
@@ -361,27 +425,115 @@ z = self.decode(z)
       <pubDate>Fri, 19 Apr 2024 15:39:03 GMT</pubDate>
     </item>
     <item>
-      <title>Keras 中“Flatten”起什么作用？</title>
-      <link>https://stackoverflow.com/questions/43237124/what-is-the-role-of-flatten-in-keras</link>
-      <description><![CDATA[我正在尝试了解 Keras 中 Flatten 函数的作用。下面是我的代码，这是一个简单的两层网络。它接收形状为 (3, 2) 的二维数据，并输出形状为 (1, 4) 的一维数据：
-model = Sequential()
-model.add(Dense(16, input_shape=(3, 2)))
-model.add(Activation(&#39;relu&#39;))
-model.add(Flatten())
-model.add(Dense(4))
-model.compile(loss=&#39;mean_squared_error&#39;, optimizer=&#39;SGD&#39;)
+      <title>我正在使用 MNIST 数据集和 jupyter notebook 做一个机器学习项目[关闭]</title>
+      <link>https://stackoverflow.com/questions/68442936/im-doing-a-machine-learning-project-using-mnist-data-set-with-jupyter-notebook</link>
+      <description><![CDATA[我对机器学习还很陌生，我正在 Jupyter 笔记本中编写 Python 代码，用于对 MNIST 数据集执行手写识别。但是当我尝试运行笔记本时，出现以下错误。有人能帮我找出原因吗？x_train 数组是一个 (70000,784) 数组。
+~\AppData\Local\Temp/ipykernel_6700/1983129579.py in &lt;module&gt;
+1 shuffle_index = np.random.permutation(6000)
+----&gt; 2 x_train, y_train = x_train[shuffle_index], y_train[shuffle_index]
 
-x = np.array([[[1, 2], [3, 4], [5, 6]]])
+c:\users\hp\appdata\local\programs\python\python39\lib\site-packages\pandas\core\frame.py 在 __getitem__(self, key) 中
+3459 if is_iterator(key):
+3460 key = list(key)
+-&gt; 3461 indexer = self.loc._get_listlike_indexer(key, axis=1)[1]
+3462 
+3463 # take() 不接受布尔索引器
 
-y = model.predict(x)
+c:\users\hp\appdata\local\programs\python\python39\lib\site-packages\pandas\core\indexing.py in _get_listlike_indexer(self, key, axis)
+1312 keyarr, indexer, new_indexer = ax._reindex_non_unique(keyarr)
+1313 
+-&gt; 1314 self._validate_read_indexer(keyarr, indexer, axis)
+1315 
+1316 if needs_i8_conversion(ax.dtype) or isinstance(
 
-print y.shape
+c:\users\hp\appdata\local\programs\python\python39\lib\site-packages\pandas\core\indexing.py in _validate_read_indexer(self, key, indexer, axis)
+1372 if use_interval_msg:
+1373 key = list(key)
+-&gt; 1374 raise KeyError(f&quot;[{key}] 中没有一个在 [{axis_name}] 中&quot;)
+1375 
+1376 not_found = list(ensure_index(key)[missing_mask.nonzero()[0]].unique())
 
-这会打印出 y 具有形状 (1, 4)。但是，如果我删除 Flatten 行，则它会打印出 y 具有形状 (1, 3, 4)。
-我不明白这一点。根据我对神经网络的理解，model.add(Dense(16, input_shape=(3, 2))) 函数正在创建一个隐藏的完全连接层，其中包含 16 个节点。这些节点中的每一个都连接到每个 3x2 输入元素。因此，第一层输出处的 16 个节点已经是“平坦的”。因此，第一层的输出形状应该是 (1, 16)。然后，第二层将其作为输入，并输出形状为 (1, 4) 的数据。
-那么，如果第一层的输出已经是“平坦的”并且形状为 (1, 16)，为什么我需要进一步将其平坦化？]]></description>
-      <guid>https://stackoverflow.com/questions/43237124/what-is-the-role-of-flatten-in-keras</guid>
-      <pubDate>Wed, 05 Apr 2017 16:48:24 GMT</pubDate>
+KeyError: &quot;没有一个[Int64Index([4112, 3293, 403, 2579, 942, 987, 3778, 3831, 3053, 3412,\n ...\n 642, 2789, 3410, 3946, 5883, 3439, 2029, 2776, 4626, 497],\n dtype=&#39;int64&#39;, length=6000)] 位于 [columns]&quot;
+]]></description>
+      <guid>https://stackoverflow.com/questions/68442936/im-doing-a-machine-learning-project-using-mnist-data-set-with-jupyter-notebook</guid>
+      <pubDate>Mon, 19 Jul 2021 15:14:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>图像颜色和纹理的均匀性</title>
+      <link>https://stackoverflow.com/questions/54166908/uniformity-of-color-and-texture-in-image</link>
+      <description><![CDATA[我是深度学习领域的新手，在确定两幅图像是否具有均匀的颜色和纹理方面遇到了问题。例如，我有一个 
+主图像 -
+
+现在，对于这张图片，我需要确定以下图片是否具有均匀的纹理和颜色分布 -
+图像 1 -
+ 
+图像 2 -
+
+图片 3 - 
+
+我需要开发一种算法，用主图像评估这 3 张图像。该算法应该批准图像 1，并拒绝图像 2（因为它的颜色），拒绝图像 3（因为它的颜色和纹理均匀性）。
+我解决这个问题的方法是直接分析图像以进行纹理检测。我发现局部二元模式方法在所有纹理识别方法中表现不错（但我不确定）。我在 python 中使用 opencv 实现了它的 skimage 并发现该方法有效。 
+from skimage import feature
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+
+class LocalBinaryPatterns:
+def __init__(self, numPoints, radius):
+# 存储点数和半径
+self.numPoints = numPoints
+self.radius = radius
+
+def describe(self, image, eps=1e-7):
+# 计算图像的局部二元模式表示
+# 然后使用 LBP 表示
+# 构建模式直方图
+lbp = feature.local_binary_pattern(image, self.numPoints,
+self.radius, method=&quot;uniform&quot;)
+(hist, _) = np.histogram(lbp.ravel(),
+bins=np.arange(0, self.numPoints + 3),
+range=(0, self.numPoints + 2))
+
+# 标准化直方图
+hist = hist.astype(&quot;float&quot;)
+hist /= (hist.sum() + eps)
+
+# 返回局部二值模式的直方图
+return hist
+
+desc = LocalBinaryPatterns(24, 8)
+
+image = cv2.imread(&quot;main.png&quot;)
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+hist = desc.describe(gray)
+
+plt.plot(hist,&#39;b-&#39;)
+plt.ylabel(&#39;Feature Vectors&#39;)
+plt.show()
+
+它检测了特征并制作了特征向量的直方图。我使用 matplotlib 绘制了直方图，清楚地发现图像 1 和图像 2 的纹理特征与主图像几乎相似。并且图像 3 的纹理特征不匹配。
+然后我开始分析图像的颜色。我使用 opencv 绘制了颜色直方图 - 
+import cv2
+from matplotlib import pyplot as plt
+
+def draw_image_histogram(image, channels, color=&#39;k&#39;):
+hist = cv2.calcHist([image], channels, None, [256], [0, 256])
+plt.plot(hist, color=color)
+plt.xlim([0, 256])
+
+def show_color_histogram(image):
+for i, col in enumerate([&#39;b&#39;, &#39;g&#39;, &#39;r&#39;]):
+draw_image_histogram(image, [i], color=col)
+plt.show()
+
+show_color_histogram(cv2.imread(&quot;test1.jpg&quot;))
+
+我发现图像 1 的颜色直方图与主图像匹配。图像 2 和 3 的颜色直方图不匹配。这样我就能发现图像 1 匹配，而图像 2 和 3 不匹配。
+但是，这是一种非常简单的方法，我不知道它会匹配多少假阳性。此外，我不知道这个问题的解决方法是否是最好的。
+我也希望通过像 CNN 这样的单一而强大的算法来完成此操作（但计算成本不应太高）。但我没有使用 CNN 的经验。那么我应该用主图像训练 CNN 吗？请为我指明正确的方向。我也遇到了 LBCNN，它们能解决这个问题吗？还有其他更好的方法吗？
+非常感谢您的帮助]]></description>
+      <guid>https://stackoverflow.com/questions/54166908/uniformity-of-color-and-texture-in-image</guid>
+      <pubDate>Sun, 13 Jan 2019 07:30:49 GMT</pubDate>
     </item>
     </channel>
 </rss>
