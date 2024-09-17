@@ -4,7 +4,120 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 17 Sep 2024 12:31:32 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 17 Sep 2024 15:17:48 GMT</lastBuildDate>
+    <item>
+      <title>比较具有和不具有交互项的线性混合模型</title>
+      <link>https://stats.stackexchange.com/questions/654485/comparing-linear-mixed-models-with-and-without-interaction-terms</link>
+      <description><![CDATA[我想比较具有和不具有交互项的不同模型，看看哪一个最适合我的数据。我只是想检查我的方法是否正确。
+我像这样构建我的模型
+my_model &lt;- lmer(myoutcome ~ predictor1 + predictor2 + predictor3 + covariate1 + (1 | ParticipantID), data = mydata)
+
+my_model2 &lt;- lmer(myoutcome ~ predictor1*predictor2 + predictor1*predictor3 + predictor2*predictor3 + covariate1 + (1 | ParticipantID), data = mydata)
+
+my_model3 &lt;- lmer(myoutcome ~ predictor1*predictor2*predictor3 + covariate1 + (1 | ParticipantID), data = mydata)
+
+然后，我会像这样比较它们，看看添加二向和三向交互项是否会改进模型。
+anova(my_model, my_model2, my_model3)
+
+我还在考虑简约性、AICc 和对数似然等因素。
+我有以下问题：
+
+将所有双向交互项都包含在单个模型中是否正确？
+在更复杂的模型中同时指定主效应和交互作用是否正确？ （因此 predictor1*predictor2 而不是 predictor1:predictor2
+如果我对所有双向交互都不感兴趣，我可以将 my_model2.1 &lt;- lmer(myoutcome ~ predictor1*predictor2 + predictor3 + covariate1 + (1 | ParticipantID), data = mydata) 之类的模型与 model3 进行比较吗？
+我还应该将我的协变量包括在我的交互模型中吗？
+在报告主要影响和交互作用时，我被教导要报告第一个模型的主要影响，并且只报告交互模型的交互影响。但是我现在质疑这是否正确。例如，使用上述方法，我得到了以下仅具有固定效应的模型摘要
+
+
+此摘要包含一个双向交互作用
+
+我们可以看到，在仅具有固定效应的模型中不显著的变量之一（第二行），在模型中包含交互项时现在变得显著（它是交互作用中的变量之一）。报告结果时，我应该使用第一个还是第二个表中的值？请注意，我不是在谈论解释 - 因为交互作用无论如何都符合主效应，我只想知道哪些数据应包含在我的结果表中 :)
+提前致谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/654485/comparing-linear-mixed-models-with-and-without-interaction-terms</guid>
+      <pubDate>Tue, 17 Sep 2024 13:38:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>对零假设下 p 值的均匀分布感到困惑</title>
+      <link>https://stats.stackexchange.com/questions/654484/confused-about-the-uniform-distribution-of-p-values-under-the-null-hypothesis</link>
+      <description><![CDATA[我目前正在学习一门生物信息学入门课程，我对零假设下（当零假设为真时）p 值的均匀分布感到困惑。
+已经广泛证明和讨论过，在正确的条件下，当零假设成立时，p 值是均匀分布的，正如这篇文章所解释的那样：为什么 p 值在零假设下是均匀分布的？。
+我的困惑更多的是关于这个想法背后的直觉和实际意义。
+例如，让我们考虑一个简单的（尽管是离散的）场景：抛硬币。如果掷出正面的概率（表示为&quot;1&quot;）为 $p = 0.3$，且我们进行 $1000$ 次抛掷，我们预计大多数情况下掷出正面的次数约为 $300$ 次。因此，我们预计在大多数情况下 p 值将在 $P(X &lt; 300)$ 左右（左尾 p 值，其中 $X$ 是二项式（$1000$，$p$）变量）。
+但是，这似乎与 p 值在零假设下应均匀分布的想法相矛盾。如果 p 值是均匀的，那么所有 p 值是否都应该具有同等可能性，而不是聚集在某个值附近？
+有人可以解释为什么这个均匀分布在这个例子中仍然成立，或者我是否误解了一些基本的东西？
+我已运行以下模拟作为示例：
+library(ggplot2)
+
+n_experiments &lt;- 100000 # 实验次数（抛硬币）
+n_trials &lt;- 100000 # 每个实验的试验次数
+p &lt;- 0.3 # 获得“1”（成功）的概率
+
+# 模拟实验
+set.seed(123) # 为了可重复性
+results &lt;- rbinom(n_experiments, n_trials, p) # 每个实验中 1 的数量
+
+# 计算每个实验的 p 值
+p_values &lt;- sapply(results, function(x) pbinom(x, n_trials, p))
+
+# 创建用于绘图的数据框
+df &lt;- data.frame(Experiment = 1:n_experiments, 
+Number_of_1s = results, 
+p_value = p_values)
+
+# 绘制“1”的数量直方图
+ggplot(df, aes(x = Number_of_1s)) +
+geom_histogram(binwidth = 1, fill = &#39;skyblue&#39;, color = &#39;black&#39;) +
+labs(title = &quot;100 次实验中 1 的数量直方图&quot;, 
+x = &quot;1 的数量&quot;, 
+y = &quot;频率&quot;) +
+theme_minimal()
+
+# 绘制 p 值的直方图
+ggplot(df, aes(x = p_value)) +
+geom_histogram(binwidth = 0.01, fill = &#39;coral&#39;, color = &#39;black&#39;) +
+labs(title = &quot;100 次实验中的 p 值直方图&quot;, 
+x = &quot;p 值&quot;, 
+y = &quot;频率&quot;) +
+theme_minimal()
+
+我发现以下预期结果对我来说感觉矛盾，值的分布不均匀，但 p 值的分布是均匀的。
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/654484/confused-about-the-uniform-distribution-of-p-values-under-the-null-hypothesis</guid>
+      <pubDate>Tue, 17 Sep 2024 13:24:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中纵向数据中缺失数据的插补</title>
+      <link>https://stats.stackexchange.com/questions/654483/missing-data-imputation-in-longitudinal-data-in-r</link>
+      <description><![CDATA[我有非常大的数据集（大约 1000 万行），其中重复测量了大约 500 000 个个体，这些个体随时间不规则地分布。我的最终目标是进行 IPTW 并拟合具有随时间变化的协变量和竞争风险的加权 cox 回归。（比较某些药物对中风风险的影响和死亡竞争风险）。我有几个变量的缺失数据百分比很大（缺失范围从 0 到 50%），一些是连续的，一些是二进制的，一些是序数的。
+我想在分析之前估算这些数据，因为完整的案例分析会有偏差，而且据我所知，ipw 包不允许在混杂因素中出现缺失数据。
+问题是，由于我们有重复测量，所以这些是聚类数据，因此我们需要 2 级估算。
+我正在考虑使用 R 中的 mice 包尝试 2 级多重插补和预测均值匹配。
+我的问题是：
+
+这是一种有效的方法吗？
+这种方法在高端台式机上是否可以计算，比如说 5 次插补和 10 次迭代？
+还有其他更有效和/或更有效的方法吗？
+
+最重要的是，实现是否以更适合初学者的方式描述，也许是一个好的教程或示例？
+附言：到目前为止，我只在 SPSS 中做过 PMM，而且它出奇地容易实现。理想情况下，我想要一种数据操作最少的方法，但我不知道这是否可行。]]></description>
+      <guid>https://stats.stackexchange.com/questions/654483/missing-data-imputation-in-longitudinal-data-in-r</guid>
+      <pubDate>Tue, 17 Sep 2024 13:16:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>我可以同时使用 Greenhouse-Geisser 和 Huynh-Feldt 吗？</title>
+      <link>https://stats.stackexchange.com/questions/654482/can-i-use-both-greenhouse-geisser-and-huynh-feldt</link>
+      <description><![CDATA[基本上，我正在对以下相互作用进行重复测量方差分析：
+刺激、
+情绪、
+时间-刺激、
+时间-情绪、
+刺激-情绪、
+时间-刺激-情绪
+违反了 Mauchly 的球形度检验，Greenhouse-Geisser ε 对某些变量 &gt; .75，对另一些变量 &lt; .75。我的样本量相当小（19），所以我更倾向于 Huynh-Feldt。我想知道，我是否可以结合使用这两种校正，还是只选择更合适的一种？]]></description>
+      <guid>https://stats.stackexchange.com/questions/654482/can-i-use-both-greenhouse-geisser-and-huynh-feldt</guid>
+      <pubDate>Tue, 17 Sep 2024 12:34:00 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用交叉验证比较 GAMlSS 模型</title>
       <link>https://stats.stackexchange.com/questions/654476/how-to-compare-between-gamlss-model-using-cross-validation</link>
@@ -123,7 +236,7 @@ $$
 
 问题
 
-如论文中所写，如果观察到 $X_i$，通常用 $X_i$ 来估计 $\xi_i$。我不清楚作者是建议我们针对 $X_i$ 随机变量观察单个 $x_i$ 个观测值并取 $\xi_i=x_i$，还是建议针对每个 $X_i$ 随机变量观察一系列观测值，$x_1, ... x_k$，然后取样本均值，即 $\xi_i = \frac{x_1+...+x_k}{k}$？
+如论文中所述，如果观察到 $X_i$，通常用 $X_i$ 来估计 $\xi_i$。我不清楚作者是建议我们针对 $X_i$ 随机变量观察单个 $x_i$ 个观测值并取 $\xi_i=x_i$，还是建议针对每个 $X_i$ 随机变量观察一系列观测值，$x_1, ... x_k$，然后取样本均值，即 $\xi_i = \frac{x_1+...+x_k}{k}$？
 Stien 的论文是在多元正态分布的背景下撰写的。是否有针对其他分布（例如学生分布）的扩展？
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/654472/question-on-inadmissibility-of-the-usual-estimator-for-the-mean-of-a-multivaria</guid>
@@ -361,7 +474,7 @@ Deg。自由度
       <pubDate>Tue, 17 Sep 2024 08:32:43 GMT</pubDate>
     </item>
     <item>
-      <title>确定变量（生存）的基线风险和效应</title>
+      <title>确定变量（生存）的基线风险和影响</title>
       <link>https://stats.stackexchange.com/questions/654468/identify-the-baseline-hazard-and-effect-of-variable-survival</link>
       <description><![CDATA[这是一个统计问题。我希望它不会被从网站上删除。
 以下是来自以下链接的模拟代码
@@ -451,88 +564,6 @@ Cox 比例风险模型显示死亡的风险比 (HR) 为 5.05；95% CI 1.50–17.
 如果我从已知分布（例如标准正态分布）中抽取一个 iid 随机样本，但我对其进行审查，例如如下：我忽略任何遵循负值的观察结果，否则我会记录它 - 我最终会得到标准正态分布吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/654466/distribution-of-censored-sample</guid>
       <pubDate>Tue, 17 Sep 2024 05:39:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>在一个预测因子是基线物质使用情况而结果是随时间推移的物质使用的模型中，截距意味着什么？</title>
-      <link>https://stats.stackexchange.com/questions/654464/what-does-the-intercept-mean-in-a-model-where-the-predictor-is-substance-use-at</link>
-      <description><![CDATA[我知道标题很长，但我不知道该如何提问。我有一个二项回归模型，其结果是前 28 天使用安非他明的天数。在一年的治疗过程中，会多次测量该天数。我想估计治疗开始前 28 天/基线使用安非他明的天数对安非他明使用变化率的影响。因此，我使用结果的基线测量值作为预测因子。这是混合效应回归的输出。ats_baseline 是时不变数值预测因子，即基线前 28 天的使用天数。yearsFromStart 是指示变量，表示从治疗开始到每次测量安非他明使用情况的年数，然后是交互项。系数是对数几率。
-回归系数：
-估计误差 l-95% CI u-95% CI 
-截距 -4.39 0.16 -4.70 -4.09 
-ats_baseline 0.27 0.02 0.24 0.31 
-yearsFromStart 0.59 0.20 0.19 0.98 
-ats_baseline:yearsFromStart -0.32 0.04 -0.39 -0.25 
-
-很高兴在这一点上受到反驳，但看起来，当对不同水平的安非他明使用进行平均时，任何一天安非他明使用的对数几率都会随着时间的推移而增加（每年对数几率增加 0.59 [CI：0.19, 0.98]）。此外，基线时每多使用一天安非他明，对数几率每年变化的减少量为 0.32（CI：-0.39，-0.25）。
-让我感到困惑的是截距。截距是估计在基线时某一天使用安非他明的对数几率，该对数几率适用于在开始治疗前 28 天内未使用过安非他明的人。这对我来说没有多大意义。ats_baseline 系数也是如此，请纠正我，该系数是估计在基线时任何一天使用安非他明的对数几率的增加量，基线时安非他明使用天数每增加 1 天？
-这一切对我来说感觉非常递归。这种分析合理吗？如果不合理，有什么更好的方法可以做到这一点。 此帖子讨论了该问题，但并未明确讨论系数的含义。
-任何建议都非常感谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/654464/what-does-the-intercept-mean-in-a-model-where-the-predictor-is-substance-use-at</guid>
-      <pubDate>Tue, 17 Sep 2024 04:50:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>运行 G*Power 以使用泊松回归计算样本量的指南</title>
-      <link>https://stats.stackexchange.com/questions/654459/guidance-on-running-gpower-to-calculate-the-sample-size-using-poisson-regressio</link>
-      <description><![CDATA[我正在写一篇论文，以确定远程学习之前和远程学习之后的具体纪律处分数量（5 个计数因变量）是否存在差异（具有 2 个级别的分类自变量）。我计划使用泊松回归进行分析。我想我知道尾部、误差和功效。其他输入我不确定。我不确定 exp、基准利率、平均暴露、r² 其他 x 和 x parm π 应该输入什么。]]></description>
-      <guid>https://stats.stackexchange.com/questions/654459/guidance-on-running-gpower-to-calculate-the-sample-size-using-poisson-regressio</guid>
-      <pubDate>Tue, 17 Sep 2024 02:25:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>对具有相关因变量的模型进行多重比较的校正</title>
-      <link>https://stats.stackexchange.com/questions/654432/correction-for-multiple-comparison-across-models-with-related-dependent-variable</link>
-      <description><![CDATA[为了澄清这是一篇转帖，我做了一些调整，使其更加简洁明了。
-我正在使用线性混合效应模型对我的实验进行统计评估。该实验由在受试者体内随机进行的几种不同的干预方案组成。每次干预都有 3 个不同的时间段。我希望评估每个时间段内干预方案的效果以及每个干预方案内时间段之间的差异。
-具体来说，我的模型如下：
-fit_simple &lt;- lmer(log(target_variable) ~ Protocol * period + sex + (1 | contestant), data = input_data, REML = TRUE)
-
-（数据经过对数变换，因此满足残差正态性的假设 - 请不要对此发表评论，这与问题无关）。
-我在略有不同的数据上运行了该模型 4 次，这些数据是相关的，并且在生物学意义上是相关的（从相同的逐搏心电图数据计算出的 4 个不同的 HRV 参数）。为了回答我的问题，即每个协议中的时间段之间是否存在差异以及每个时间段内的协议之间是否存在差异，我正在使用估计边际均值（emmeans 包 R）进行成对比较。
-emm &lt;- emmeans(fit_simple, ~ Protocol * period)
-
-# 每个协议中时间段级别之间的成对比较
-
-pairwise_comparisons_Protocol &lt;-contrast(emm, method = &quot;pairwise&quot;, by = &quot;Protocol&quot;, adjust = &quot;tukey&quot;)
-
-# 每个时间段内协议级别之间的成对比较
-
-pairwise_comparisons_period &lt;-contrast(emm, method = &quot;pairwise&quot;, by = &quot;period&quot;, adjust = &quot;tukey&quot;)
-
-为了纠正家族错误率，我使用了 Tukey 的HSD。
-之后，我还使用 Holm 对模型中的所有成对比较系列进行了校正：
-all_pvals &lt;- data.frame(
-Comparison = c(rep(&quot;Protocol_within_Period&quot;, length(summary_protokol$p.value)),
-rep(&quot;Period_within_Protocol&quot;, length(summary_obdobje$p.value))),
-p_value = c(summary_protokol$p.value, summary_obdobje$p.value)
-)
-all_pvals$holm_adjusted &lt;- p.adjust(all_pvals$p_value, method = &quot;holm&quot;)
-
-所以我剩下的就是考虑 4 个相关且相关的因变量。我需要在所有 4 个模型的所有成对比较系列中进行校正，这肯定会校正 1 型错误，但也可能过多地增加 2 型错误的可能性。
-有没有更好的、不那么保守的校正方法？这是我第一次对相关的变量进行几个线性模型，所以我有点迷茫。我应该重新建模并将所有 4 个变量纳入多变量模型吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/654432/correction-for-multiple-comparison-across-models-with-related-dependent-variable</guid>
-      <pubDate>Mon, 16 Sep 2024 14:52:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么随机效应和固定效应会产生相同的结果？</title>
-      <link>https://stats.stackexchange.com/questions/654399/why-random-effects-and-fixed-effects-produce-the-same-results</link>
-      <description><![CDATA[我进行了一项实验，有 40 名参与者和 16 种治疗组合（平衡数据，640 个数据点）。16 种治疗组合基于 5 个二元变量（我研究的主要影响）。
-由于我对同一个人进行了重复测量，因此我选择了固定效应回归模型。
-由于我还想在分析中包含参与者特定的控制变量（例如工作经验、年龄），因此我特意选择了“随机效应模型”。豪斯曼检验的结果：p 值 &lt; 0.01。
-问题 1：
-随机效应和固定效应模型对斜率和 t 统计量产生完全相同的结果。只有截距、个体效应和 $R^2$ 略有不同。随机效应和固定效应只改变个别效应，对斜率没有影响，这正常吗？
-代码：
-固定效应（Python：来自 linearmodels.panel 的 PanelOLS）：
-mod = PanelOLS(y, X, entity_effects=True, time_effects=False)
-results = mod.fit(cov_type=&#39;clustered&#39;, cluster_entity=True)
-随机效应（Python：来自 linearmodels.panel 的 RandomEffects）：
-mod = RandomEffects(y, X)
-results = mod.fit(cov_type=&#39;clustered&#39;, cluster_entity=True)
-问题2：
-当我现在将控制变量（6 个参与者特定变量）添加到随机效应模型时，它再次对主效应的斜率没有影响。只有截距和个体效应不同。同样的问题：有和没有控制变量的随机效应产生相同的主效应斜率是正常的吗？
-非常感谢您对这个主题的支持！
-编辑
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/654399/why-random-effects-and-fixed-effects-produce-the-same-results</guid>
-      <pubDate>Sun, 15 Sep 2024 15:09:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
