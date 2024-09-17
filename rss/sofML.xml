@@ -4,7 +4,142 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 16 Sep 2024 18:21:57 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 17 Sep 2024 01:00:24 GMT</lastBuildDate>
+    <item>
+      <title>尝试改变 vae 模型的输出以满足损失函数，但有些不起作用</title>
+      <link>https://stackoverflow.com/questions/78991901/tried-changing-the-output-of-vae-model-to-satisfy-loss-function-but-something-do</link>
+      <description><![CDATA[我尝试创建一个 VAE 模型，该模型通常包含自定义损失，使用 GradientTape() 或类来实现。我不想使用这些方法，而是尝试了一种解决方法，但效果不如预期，我想知道原因。
+我尝试的模型代码 - （编码器和解码器只是基本模型，其中编码器输出 z_mean、z_log_var、z，解码器输出一批图像） -
+def build_vae(encoder,coder, input_shape):
+input_layer = layer.Input(shape=input_shape)
+z_mean, z_log_var, z =coder(input_layer)
+generated_images =coder(z)
+
+return models.Model(input_layer, [generated_images, z_mean, z_log_var])
+
+自定义损失 -
+def custom_vae_loss(y_true, y_pred):
+generated_images = y_pred[0]
+z_mean = y_pred[1]
+z_log_var = y_pred[2]
+
+r_loss = tf.reduce_mean(tf.keras.losses.binary_crossentropy(y_true, generated_images))
+kl_loss = -0.5 * (tf.reduce_mean(1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var)))
+
+return r_loss+kl_loss
+
+训练代码 -
+vae.train_on_batch(batch, batch)
+错误是 target_shape = (8, 256, 256, 3) 与 output_shape = (256, 256, 3) 不匹配
+我当时想的是，应该是 y_pred 的列表被挤压了，或者其他什么原因，以至于 z_mean 和z_log_var 已被删除，这意味着 y_pred（来自 custom_vae_loss）是一批生成的图像，因此 generated_images 只是该批次中第一个生成的图像。
+在损失函数中添加打印语句后，
+y_pred 为 Tensor(&quot;vae_1/decoder_1/conv2d_transpose_31_1/Sigmoid:0&quot;, shape=(8, 256, 256, 3), dtype=float32)
+y_true 的形状：(8, 256, 256, 3)
+generated_images 的形状：(256, 256, 3)
+z_mean 的形状：(256, 256, 3)
+z_log_var 的形状：(256, 256, 3)
+我该如何修复此问题？最好不使用 GradientTape() 或类。（我想不使用那些方法）]]></description>
+      <guid>https://stackoverflow.com/questions/78991901/tried-changing-the-output-of-vae-model-to-satisfy-loss-function-but-something-do</guid>
+      <pubDate>Mon, 16 Sep 2024 21:39:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用移动窗口训练神经网络？</title>
+      <link>https://stackoverflow.com/questions/78991549/how-to-train-a-neural-network-with-a-shifting-window</link>
+      <description><![CDATA[我有一个个人数据集，它具有季节性并且随时间而变化。每个季节性都定义为一个过滤周期。
+我首先从数据框中提取训练和测试数据，然后对其进行缩放：
+#training data
+Qp_values = my_df[&#39;Set UF Permeate Flowrate (GPM)&#39;].values 
+TMP_values = my_df[&#39;UF-TMP (psi)&#39;].values
+backwash_states = my_df[&#39;Backwash (0=Off, 1=On)&#39;].values
+elapsed_time = my_df[&#39;Elapsed Time (hr)&#39;].values
+
+scaler = MinMaxScaler()
+Qp_values = scaler.fit_transform(Qp_values.reshape(-1, 1)).flatten()
+TMP_values = scaler.fit_transform(TMP_values.reshape(-1, 1)).flatten()
+
+#testing数据
+Qp_values_test = my_df[&#39;设置 UF 渗透流量 (GPM)&#39;].values
+TMP_values_test = my_df[&#39;UF-TMP (psi)&#39;].values
+backwash_states_test = my_df[&#39;反冲洗 (0=关闭, 1=开启)&#39;].values
+
+Qp_values_test = scaler.fit_transform(Qp_values_test.reshape(-1, 1)).flatten()
+TMP_values_test = scaler.fit_transform(TMP_values_test.reshape(-1, 1)).flatten()
+
+然后我确定了季节性周期的数量，在我的数据中也称为过滤周期。我检查了一下，这是正确的。
+#根据反冲洗状态的变化识别过滤循环
+def find_contamination_cycles(stats):
+cycles = [] #存储的元组列表，包括过滤循环的开始和结束索引
+start = 0 #过滤循环的起始索引，设置为 0，因为过滤循环从头开始
+in_cycle = True #布尔标志，用于指示过滤阶段是否在循环中，True，因为它是
+
+for i in range(1, len(stats)):
+if in_cycle and stats[i] == 1 and stats[i-1] == 0:
+cycles.append((start, i))
+in_cycle = False
+elif not in_cycle and stats[i] == 0 and stats[i-1] == 1:
+start = i
+in_cycle = True
+
+#处理循环延伸到循环末尾的情况列表
+if in_cycle:
+cycles.append((start, len(stats)-1))
+
+return cycles
+
+filte_filte_cycles = find_filte_cycles(backwash_states)
+
+然后我定义我的神经网络模型如下：
+# 输入：Qp_values (k) 和 TMP(k)
+# 输出：TMP(k+1)，其中 k 是数据点 
+class TMP_Prediction_Model(nn.Module):
+def __init__(self, in_features=2, h1=10, h2=8, h3=8, h4=8, out_features=1):
+super().__init__()
+self.fc1 = nn.Linear(in_features, h1)
+self.fc2 = nn.Linear(h1, h2)
+self.fc3 = nn.Linear(h2, h3)
+self.fc4 = nn.Linear(h3, h4)
+self.out = nn.Linear(h4, out_features)
+
+def forward(self, x):
+x = F.relu(self.fc1(x))
+x = F.relu(self.fc2(x))
+x = F.relu(self.fc3(x))
+x = F.relu(self.fc4(x))
+x = self.out(x)
+return x
+
+torch.manual_seed(41)
+
+# 实例化模型、优化器和损失函数
+model = TMP_Prediction_Model()
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+现在，如何在 0 到 8 个过滤周期上训练我的神经网络并在下一个周期上进行测试9 到 17 个过滤循环？然后再次重复此步骤，我将训练和测试窗口移动 1？]]></description>
+      <guid>https://stackoverflow.com/questions/78991549/how-to-train-a-neural-network-with-a-shifting-window</guid>
+      <pubDate>Mon, 16 Sep 2024 19:36:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>将成分/特征分成标有“0”或“1”的单独列</title>
+      <link>https://stackoverflow.com/questions/78991472/separate-a-ingredients-feature-into-separate-columns-that-is-marked-with-0-or</link>
+      <description><![CDATA[我正在查看一些食物浪费数据，其中包括食物成分等大量数据。我正在尝试对数据进行一些机器学习，但在准备过程中遇到了一些麻烦。
+示例
+我能够将所有单个成分分离到各自的列中，但当该成分在成分列表/列中时，我很难将其标记为 1。
+示例 2
+我一直在尝试逐行查看列名是否在成分列中，然后将其更改为 1。我根本没有接近目标，但这是我目前尝试的灾难。还尝试了 get_dummies 和其他一些方法。
+有没有更简单的方法？
+def xs_os(df, Ingredients_Column):
+df2 = df.drop(&quot;Ingredients&quot;, axis = 0) 
+for z in df:
+for x in list(df2.columns.values):
+if x in str(Ingredients_Column):
+df.at[z, df[x]] = 1
+xs_os(df, df[&#39;Ingredients&#39;])
+df.head()
+]]></description>
+      <guid>https://stackoverflow.com/questions/78991472/separate-a-ingredients-feature-into-separate-columns-that-is-marked-with-0-or</guid>
+      <pubDate>Mon, 16 Sep 2024 19:07:49 GMT</pubDate>
+    </item>
     <item>
       <title>根据周围站点数据预测某个站点温度的建议和想法[关闭]</title>
       <link>https://stackoverflow.com/questions/78990923/suggestions-ideas-for-predicting-a-certain-stations-temperature-based-on-surro</link>
@@ -46,19 +181,6 @@ rllib_checkpoint.json
 我正在使用 Ultralytics 库来训练我的模型。]]></description>
       <guid>https://stackoverflow.com/questions/78990077/unexpected-spike-in-train-kobj-loss-at-epoch-90-while-training-yolov8m-pose-esti</guid>
       <pubDate>Mon, 16 Sep 2024 12:01:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该如何开发这个计算机视觉项目？狗消除检测器，通过 RTSP 摄像头、Web 应用程序发出警报 [关闭]</title>
-      <link>https://stackoverflow.com/questions/78989939/how-should-i-approach-in-developing-this-computer-vision-project-dog-eliminatio</link>
-      <description><![CDATA[我目前正在开发一个项目，旨在使用 YOLOv8 开发一个狗消除检测器，并使用声音警报来阻止在摄像机的视觉范围允许的指定地点的狗。此应用程序可通过带有登录门户的网页查看。
-堆栈：Python、Django、YOLOv8、OpenCV、HTML、CSS、JS。
-我遇到了许多问题，我不确定我是否为这个项目使用了正确的模型，我目前正在使用 yolov8s.pt 进行迁移学习，并在一个包含 1 个类别（大便狗）的数据集上进行训练。
-它看起来是这样的：
-results = model.train(data=&quot;config.yaml&quot;, epochs=100,patient=15, batch=4,workers=6,device=[0])
-
-然而，经过多次尝试和整理数据集，我似乎总是得不到任何检测结果，而当我得到检测结果时，它们总是误报。难道物体检测是错误的选择，考虑到项目目标，姿势估计会更好吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78989939/how-should-i-approach-in-developing-this-computer-vision-project-dog-eliminatio</guid>
-      <pubDate>Mon, 16 Sep 2024 11:25:56 GMT</pubDate>
     </item>
     <item>
       <title>使用特定时间之前 30 分钟的历史数据来预测该事件是否以及在哪个时间戳将在接下来的 15 分钟内发生</title>
@@ -213,253 +335,118 @@ Epoch 5999：训练损失 = 0.0148，测试准确率 = 96.75%
       <pubDate>Mon, 16 Sep 2024 01:00:02 GMT</pubDate>
     </item>
     <item>
-      <title>带有随机森林的分类链：为什么即使 Base Estimator 可以处理 np.nan 却不支持它？</title>
-      <link>https://stackoverflow.com/questions/78981288/classifierchain-with-random-forest-why-is-np-nan-not-supported-even-though-base</link>
-      <description><![CDATA[我正在研究一个多标签分类问题，使用ClassifierChain方法，以RandomForestClassifier作为基础估计器。我遇到了一个问题，我的输入矩阵X包含np.nan值。当单独使用RandomForestClassifier时，它可以毫无问题地处理NaN值，因为它通过其内部树分割机制原生支持缺失值。
-这让我很困惑，因为基础估计器（RandomForestClassifier）确实可以正确处理NaN值。我不明白为什么 ClassifierChain（它只是一个包装器）会在底层分类器没有 NaN 问题的情况下引发此错误。
-当我训练一个简单的 RandomClassifier 时，它确实会处理 np.nan：
-from sklearn.ensemble import RandomForestClassifier
-import numpy as np
+      <title>如何实现用于预测和逆设计问题的自动编码器？</title>
+      <link>https://stackoverflow.com/questions/78565562/how-to-implement-autoencoders-for-prediction-and-inverse-design-problems</link>
+      <description><![CDATA[我正在探索使用自动编码器解决两类问题：预测和逆向设计。具体来说，我想要：
+a. 设置输入变量并使用自动编码器的训练解码器通过前向传播预测可能的结果。
+b. 输入预定义的结果，让编码器建议可能的变量设置，然后使用解码器输出可能的结果。
+以下是我的问题：
 
-X = np.array([np.nan, -1, np.nan, 1]).reshape(-1, 1)
-y_single_label = [0, 0, 1, 1]
+如何实现自动编码器？我应该在 GitHub 上寻找一个实用的库，还是需要从头开始编写一个？
 
-tree = RandomForestClassifier(random_state=0)
-tree.fit(X, y_single_label)
-X_test = np.array([np.nan]).reshape(-1, 1)
-tree.predict(X_test)
+对于我描述的问题，我应该考虑哪种类型的自动编码器？变分自编码器（VAE）还是条件变分自编码器（CVAE）更合适？
 
-即使我使用 MultiOutputClassifier 而不是ClassifierChain（不模拟标签之间的依赖关系），训练进行时没有任何错误，即使输入中有 NaN - 正如预期的那样。
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.multioutput import ClassifierChain , MultiOutputClassifier
 
-X = np.array([np.nan, -1, np.nan, 1]).reshape(-1, 1)
+Dired 结果：
+模型方案
+Dired 正向训练结果
+Dired 反向训练结果]]></description>
+      <guid>https://stackoverflow.com/questions/78565562/how-to-implement-autoencoders-for-prediction-and-inverse-design-problems</guid>
+      <pubDate>Sun, 02 Jun 2024 05:47:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 VAE 减少和重建 CNN 模型参数</title>
+      <link>https://stackoverflow.com/questions/78457309/reducing-and-reconstruction-cnn-model-parameters-using-a-vae</link>
+      <description><![CDATA[假设我有一个带有 2 个 Conv2D 层的简单 CNN 模型，我在我的图像数据集上训练了这个模型，我将把这个 CNN 模型的参数输入到 VAE（作为编码器的输入）中，首先将它们的参数减少到嵌入空间（Z 或 VAE 的潜在空间）。然后，我想使用 VAE 解码器的输出重建 CNN 参数（具有其原始尺寸）。
+我不知道如何在 PyTorch 中实现这一点，并将训练好的 CNN 的参数输入到 VAE 模型的编码器输入中，最后将参数向量重建为 CNN 模型参数。
+提前致谢！
+这是 CNN 模型：
+class Net(nn.Module):
+def __init__(self):
+super(Net, self).__init__()
+self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+self.conv2_drop = nn.Dropout2d()
+self.fc1 = nn.Linear(320, 50)
+self.fc2 = nn.Linear(50, 10)
 
-# 用于多标签分类的两个标签列
-y = np.array([[0, 1], [0, 0], [1, 0], [1, 1]])
+def forward(self, x):
+x = F.relu(F.max_pool2d(self.conv1(x), 2))
+x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
+x = x.view(-1, 320)
+x = F.relu(self.fc1(x))
+x = F.dropout(x, training=self.training)
+x = self.fc2(x)
+return F.log_softmax(x)
 
-# 基础分类器
-base_clf = RandomForestClassifier()
+以下代码用于 VAE：
+class VAE(nn.Module):
+def __init__(self, image_channels=1, h_dim=1024, z_dim=32):
+super(VAE, self).__init__()
+self.encoder = nn.Sequential(
+nn.Conv2d(image_channels, 32, kernel_size=4, stride=2),
+nn.ReLU(),
+nn.Conv2d(32, 64, kernel_size=4, stride=2),
+nn.ReLU(),
+nn.Conv2d(64, 128, kernel_size=4, stride=2),
+nn.ReLU(),
+nn.Conv2d(128, 256, kernel_size=4, stride=2),
+nn.ReLU(),
+Flatten()
+)
 
-# MultiOutputClassifier（二元相关性）与基础分类器
-clf_BR = MultiOutputClassifier(base_clf)
+self.fc1 = nn.Linear(h_dim, z_dim)
+self.fc2 = nn.Linear(h_dim, z_dim)
+self.fc3 = nn.Linear(z_dim, h_dim)
 
-# 拟合模型
-clf_BR.fit(X, y)
+self.decoder = nn.Sequential(
+UnFlatten(),
+nn.ConvTranspose2d(h_dim, 128, kernel_size=5, stride=2),
+nn.ReLU(),
+nn.ConvTranspose2d(128, 64, kernel_size=5, stride=2),
+nn.ReLU(),
+nn.ConvTranspose2d(64, 32, kernel_size=6, stride=2),
+nn.ReLU(),
+nn.ConvTranspose2d(32, image_channels, kernel_size=6, stride=2),
+nn.Sigmoid(),
+)
 
-但是，当我切换到 ClassifierChain 方法时：
-# 带有基础分类器的分类器链
-clf_chain = ClassifierChain(base_clf)
+def reparameterize(self, mu, logvar):
+std = logvar.mul(0.5).exp_()
+# return torch.normal(mu, std)
+esp = torch.randn(*mu.size())
+z = mu + std * esp
+返回 z
 
-# 拟合模型
-clf_chain.fit(X, y)
+def bottleneck(self, h):
+mu, logvar = self.fc1(h), self.fc2(h)
+z = self.reparameterize(mu, logvar)
+返回 z, mu, logvar
 
-我在超参数调整期间收到以下错误：
+def encode(self, x):
+h = self.encoder(x)
+z, mu, logvar = self.bottleneck(h)
+返回 z, mu, logvar
 
-试验 0 失败，参数为：{&#39;n_estimators&#39;: 30, &#39;max_depth&#39;: 16, &#39;max_samples&#39;: 0.4497444900238575, &#39;max_features&#39;: 550, &#39;order_type&#39;: &#39;random&#39;}，错误原因如下：ValueError(&#39;输入 X 包含 NaN.\nClassifierChain 不接受编码为 NaN 的缺失值原生。对于监督学习，您可能需要考虑 sklearn.ensemble.HistGradientBoostingClassifier 和 Regressor，它们原生接受编码为 NaN 的缺失值。或者，可以预处理数据，例如通过在管道中使用 imputer 转换器或删除具有缺失值的样本。请参阅https://scikit-learn.org/stable/modules/impute.html 您可以在以下页面找到处理 NaN 值的所有估算器的列表：https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values&#39;)
+def decrypt(self, z):
+z = self.fc3(z)
+z = self.decoder(z)
+返回 z
 
-由于保持缺失值原样而不是对其进行插补或删除非常重要，我想知道是否有办法让 ClassifierChain 处理缺失值。是否有任何解决方法或我遗漏了什么？
-以下是我的环境详细信息：
-
-Python 版本：3.12.5（由 conda-forge 打包）
-scikit-learn 版本：1.5.1
+def forward(self, x):
+z, mu, logvar = self.encode(x)
+z = self.decode(z)
+返回 z, mu, logvar
 ]]></description>
-      <guid>https://stackoverflow.com/questions/78981288/classifierchain-with-random-forest-why-is-np-nan-not-supported-even-though-base</guid>
-      <pubDate>Fri, 13 Sep 2024 08:25:24 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/78457309/reducing-and-reconstruction-cnn-model-parameters-using-a-vae</guid>
+      <pubDate>Thu, 09 May 2024 22:59:50 GMT</pubDate>
     </item>
     <item>
-      <title>Ray 自定义环境渲染</title>
-      <link>https://stackoverflow.com/questions/78975679/ray-custom-environment-render</link>
-      <description><![CDATA[我正在创建自己的 gym 环境来测试 freeze-tag 问题。我正在尝试使用 Ray 来做 MAPPO。我有两个问题：
-1：我的模拟没有渲染
-2：它创建了多个 PyGame 窗口
-我已将渲染方法和训练脚本的片段附加到附件中。
-# 渲染函数
-def render(self):
-self.screen.fill((255, 255, 255))
-
-for agent in self.all_agents:
-if agent.status == 1:
-pygame.draw.circle(self.screen, agent.color, (agent.x, agent.y), agent.size)
-
-elif agent.status == 0:
-pygame.draw.circle(self.screen, (0, 255, 255), (agent.x, agent.y),agent.size)
-
-pygame.display.flip()
-
-# Train_MAPPO_FTP.py
-import ray
-from ray.rllib.algorithms.ppo import PPOConfig
-from ray.tune.registry import register_env
-import gym_FTP as e
-import pygame
-import numpy as np
-
-# 环境创建函数
-def env_creator(config):
-robots = 5
-adversaries = 2
-time_steps = 500
-
-screen = pygame.display.set_mode([1000, 1000])
-gym_ftp = e.gym_FTP(screen, robots, 0, adversaries, time_steps, 15)
-return gym_ftp
-
-def train_and_evaluate(time_steps):
-# 初始化 Ray
-ray.init(ignore_reinit_error=True)
-
-# 注册环境
-register_env(&quot;Env_FTP&quot;, env_creator)
-
-# create_env_on_local_worker = True
-# 配置算法
-config = PPOConfig() \
-.environment(&quot;Env_FTP&quot;) \
-.rollouts(num_rollout_workers=1,
-rollout_fragment_length=1,
-create_env_on_local_worker=True) \
-.training(
-train_batch_size=1, # 每次训练更新前汇总经验
-sgd_minibatch_size=1,
-model={&quot;fcnet_hiddens&quot;: [64, 64]}
-) \
-.framework(&quot;torch&quot;) \
-.evaluation(evaluation_num_workers=1) \
-.resources(num_gpus=0) # 设置 GPU 数量
-
-# 构建算法
-algo = config.build()
-
-# 参数
-episodes = 5
-iterations = time_steps / 10
-
-for episode in range(episodes):
-for i in range(int(iterations)):
-results = algo.train()
-print(f&quot;训练迭代 {i + 1} 已完成。mean_reward {results[&#39;episode_reward_mean&#39;]},&quot;
-f&quot; 总损失 {results[&#39;info&#39;][&#39;learner&#39;][&#39;__all__&#39;][&#39;total_loss&#39;]}&quot;)
-
-# 关闭 Ray
-ray.shutdown()
-
-def main():
-time_steps = 500
-train_and_evaluate(time_steps)
-
-main()
-
-
-我已进行多次检查，以测试我的代理的速度是否根据新操作进行更新，以及位置是否正在更新，因此我确定这不是问题所在。当我使用其他算法进行测试时，此环境也有效。我可以正确使用 gym 环境的其他功能，并让它渲染和做一些有趣的事情。这似乎完全是 RAY 的问题。我的目标是拥有 n 个机器人和 m 个对手。我想根据环境状态为 n 个代理获取新操作。我想每集训练 500 个时间步，收集 10 个批次。例如前 10 个时间步，然后再添加 10 个时间步作为经验，然后再添加 10 个。所以我们每集最多更新 50 次。我们将进行 100 集。]]></description>
-      <guid>https://stackoverflow.com/questions/78975679/ray-custom-environment-render</guid>
-      <pubDate>Wed, 11 Sep 2024 20:54:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>级联分段-通道设置是否正确？</title>
-      <link>https://stackoverflow.com/questions/78951423/cascade-segmentation-are-the-channels-set-up-correctly</link>
-      <description><![CDATA[我想训练一个机器学习模型，用于处理 2D DICOM 图像中的精细蒙版细节。我有 500 张图像准备进行标记/注释。我可以使用这种技术吗？还是我理解错了？
-鱼 + 脊椎的注释
-
-
-我用 1 个类别注释了 500 张图像：鱼。然后我训练一个 model1.pth，将鱼从背景中分割出来。该模型有 2 个 out_channels：鱼和背景。
-
-我再次注释相同的 500 幅图像，但现在有 2 个类别：鱼 + 脊椎。我加载 model1.pth 并创建一个具有 2 个 in_channels 和 3 个 out_channels 的模型：脊椎、鱼和背景，并将模型保存为 model2.pth
-
-最后，我再次注释了 500 幅图像，但现在我包括了变形。如果我有 3 种类型的变形，则每种变形都会有自己的类别。我加载 model2.pth，创建一个具有 3 个 in_channels 和 6 个 out_channels 的模型：背景、鱼、脊柱、deform1、deform2、deform3，并将模型保存为 model3.pth。
-
-该模型现在可以直接用于新图像。这是它的工作原理吗？
-
-
-背景和细节。我尝试过的方法
-目标是找到鱼脊柱中的变形。到目前为止，我已尝试通过使用 MONAI 的 UNet 模型 来分割 3 个类 + 背景。这些图像是转换为 NifTi 格式 (.dcm.nii.gz) 的 2D DICOM 图像，典型尺寸为 2000x900 像素。我使用 3Dslicer 进行注释。类别（到目前为止）：
-
-背景
-
-鱼
-
-脊椎
-
-变形
-
-
-到目前为止，我已经在（仅）12 张训练图像上进行了测试，只是为了让它运行，我得到了所有 3 个类别的结果，但我猜模型训练过度了。此外，我猜这种技术使得在训练结束后进行微小更改变得更加困难。例如我想要多种不同类型的变形。
-我的结果：红线左侧：来自 tensorboard，红线右侧：在新图像上测试模型
-
-在开始注释 500 张图像之前，我想验证我是否走在正确的道路上。我希望通过使用级联技术，我可以获得一个可以轻松分割鱼和脊椎的模型，并且我可以随后尝试不同的变形注释。]]></description>
-      <guid>https://stackoverflow.com/questions/78951423/cascade-segmentation-are-the-channels-set-up-correctly</guid>
-      <pubDate>Thu, 05 Sep 2024 05:34:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>优化欺诈检测不平衡数据的指标</title>
-      <link>https://stackoverflow.com/questions/77444565/optimize-metrics-for-fraud-detection-imbalanced-data</link>
-      <description><![CDATA[我需要您的帮助来提高我的模型性能。就像大多数欺诈检测一样，我有一个不平衡的数据集（0.1/0.9）。我想优化目标 1 和 0 的召回率，因为一方面我想避免欺诈检测，另一方面我想限制将非欺诈客户定位为欺诈的成本，因为 5% 的错误分类会使我的收入减少 3000 欧元（而定位正确的欺诈者会让我为检测到的每位客户节省 1000 欧元的损失）。
-我的第一个问题是：您会根据这个问题考虑哪些指标？我更关注召回率，但我会阅读您的意见。
-第二个问题：我如何提高模型性能？
-到目前为止，我在不降低阈值的情况下获得的最佳结果是：
-准确率：0.89
-混淆矩阵：
-[[3153 279]
-[ 145 297]]
-分类报告：
-准确率 召回率 f1 分数 支持
- 0 0.96 0.92 0.94 3432
-1 0.52 0.67 0.58 442
-
-准确率 0.89 3874
-
-而如果我降低阈值以增加目标 1 的召回率：
-准确率：0.61
-混淆矩阵：
-[[1959 1473]
-[ 42 400]]
-分类报告：
-准确率 召回率 f1 分数 支持率
- 0 0.98 0.57 0.72 3432
-1 0.21 0.90 0.35 442
-
-准确率 0.61 3874
-
-我尝试了几种模型：
-线性回归、XGBoost、随机森林和 SVM
-此外，甚至过采样/反采样技术（仅在训练集上）
-RandomOverSampling、RandomUnderSampling、SMOTE
-您还有其他建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/77444565/optimize-metrics-for-fraud-detection-imbalanced-data</guid>
-      <pubDate>Wed, 08 Nov 2023 10:08:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习无法预测正确的结果</title>
-      <link>https://stackoverflow.com/questions/69469083/machine-learning-not-predicting-correct-results</link>
-      <description><![CDATA[我正在创建一个简单的 Python 机器学习脚本，该脚本将根据以下参数预测贷款是否会被批准
-商业经验：应大于 7
-成立年份：应在 2015 年之后
-贷款：没有以前或当前的贷款
-
-如果符合上述条件，则只会批准贷款。该数据集可从此链接下载：
-https://drive.google.com/file/d/1QtJ3EED7KDqJDrSHxHB6g9kc5YAfTlmF/view?usp=sharing
-对于上述数据，我有以下脚本
-from sklearn.linear_model import LogisticRegression
-import pandas as pd
-import numpy as np
-
-data = pd.read_csv(&quot;test2.csv&quot;)
-data.head()
-
-X = data[[&quot;Business Exp&quot;, &quot;Year of Founded&quot;, &quot;上一个/当前贷款&quot;]]
-Y = data[&quot;OUTPUT&quot;]
-
-clf = LogisticRegression()
-clf.fit(X, Y)
-
-test_x2 = np.array([[9, 2017, 0]])
-Y_pred = clf.predict(test_x2)
-print(Y_pred)
-
-我在 test_x2 中传递测试数据。测试数据是，如果业务 exp 为 9，成立年份为 2017 年，没有当前/以前的贷款，则意味着将提供贷款。因此它应该预测，结果应该是 1，但它显示为 0。代码或数据集是否存在问题。由于我是机器学习的初学者，并且仍在学习它，因此我创建了这个自定义数据集以供我自己理解。]]></description>
-      <guid>https://stackoverflow.com/questions/69469083/machine-learning-not-predicting-correct-results</guid>
-      <pubDate>Wed, 06 Oct 2021 16:07:20 GMT</pubDate>
+      <title>使用 keras 3 与 pytorch 后端时出现 RuntimeError</title>
+      <link>https://stackoverflow.com/questions/78354838/runtimeerror-when-using-keras-3-with-pytorch-backend</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/78354838/runtimeerror-when-using-keras-3-with-pytorch-backend</guid>
+      <pubDate>Fri, 19 Apr 2024 15:39:03 GMT</pubDate>
     </item>
     <item>
       <title>Keras 中“Flatten”起什么作用？</title>
