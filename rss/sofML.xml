@@ -4,7 +4,90 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 19 Sep 2024 01:13:45 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 19 Sep 2024 03:20:18 GMT</lastBuildDate>
+    <item>
+      <title>缩放极右偏斜的受抚养者</title>
+      <link>https://stackoverflow.com/questions/79000716/scaling-a-super-right-skewed-dependant</link>
+      <description><![CDATA[我正在研究在线文章的数据集，并根据文章的分享次数来衡量受欢迎程度。因变量（分享次数）向右严重倾斜，因为中位数是 800，最小值为 0，最大值为 800,000。
+我试过对数缩放，但没有帮助。
+我的问题是这样的。
+如果我使用 Z 分数（与平均值的距离）缩放因变量，然后使用 MinMax Scalar，会不会有效。这应该会导致均匀分布。
+我的第二个选择是使用 Z 分数将因变量更改为类，这样我就可以更改每个类的值范围
+Marc]]></description>
+      <guid>https://stackoverflow.com/questions/79000716/scaling-a-super-right-skewed-dependant</guid>
+      <pubDate>Thu, 19 Sep 2024 02:59:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>核密度估计，通过交叉验证选择带宽</title>
+      <link>https://stackoverflow.com/questions/79000625/kernel-density-estimation-bandwidth-selection-via-cross-validation</link>
+      <description><![CDATA[我尝试使用核密度估计来非参数化平滑期权隐含密度。分布的形状高度依赖于带宽。出于研究目的，我想在一系列带宽上使用交叉验证（使用全局带宽时我遇到了虚假振荡问题）
+我相信我有一个工作模型，但我注意到网格搜索总是在我的带宽候选数组中选择最大的带宽，这显然是不正确的。我尝试了一系列临时技术，但无济于事。这是我的代码。
+使用带宽 #1 绘图
+使用带宽 #2 绘图
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neighbors import KernelDensity
+from sklearn.model_selection import GridSearchCV
+
+##选项数据硬编码。
+strike_prices = np.array([20000, 25000, 26000, 28000, 30000, 31000, 32000, 33000, 34000, 35000, 36000, 
+37000, 38000, 39000, 40000, 41000, 42000, 44000, 45000, 46000, 48000, 50000, 
+52000, 54000, 55000, 56000, 58000, 60000, 65000, 70000, 75000, 80000, 85000])
+
+option_prices=np.array([
+17703, 12679.6, 11684.7, 9694.98, 7705.26, 6710.4, 5724.03, 4749.47, 
+3774.91, 2814.05, 1928.94, 1064.75, 489.491, 188.266, 85.9672, 63.398, 
+40.8287, 22.4558, 13.2693, 9.41329, 9.41329, 9.41329, 9.41329, 
+9.41329, 9.41329, 9.41329, 9.41329, 9.41329, 9.41329, 9.41329, 9.41329])
+
+##通过对行使价进行两次数值微分获得期权隐含密度
+first_derivative=np.gradient(option_prices,strike_prices)
+option_pdf=np.gradient(first_derivative,strike_prices)
+option_pdf = np.clip(option_pdf, a_min=0, a_max=None) #微小的负值被移位为零。
+
+#绘制初步分布
+plt.figure(figsize=(10, 6))
+plt.scatter(strike_prices, option_pdf, color=&#39;blue&#39;, s=100, alpha=0.6, edgecolor=&#39;k&#39;, label=&#39;Option PDF&#39;)
+plt.xlabel(&quot;执行价格&quot;, fontsize=14)
+plt.ylabel(&quot;概率&quot;, fontsize=14)
+plt.title(&quot;期权隐含密度&quot;, fontsize=16)
+
+###########################################核密度帮助###############################
+###尝试使用核密度估计来平滑此分布，并通过交叉验证选择带宽。
+
+x = strike_prices.reshape(-1,1) # 对于 sklearn，x 值必须是 2D
+bandwidths = np.linspace(10, 1000, 250) # 我们探索从 10 到 1000 的带宽。
+#bandwidths = np.linspace(10, 5000, 250) # 我们探索从 10 到 5000 的带宽。
+
+# 执行交叉验证以选择最佳带宽
+grid = GridSearchCV(KernelDensity(kernel=&quot;gaussian&quot;), {&#39;bandwidth&#39;: broadbands}, cv=5)
+grid.fit(x, sample_weight=option_pdf) # 由于我们已经有了分布，我根据每个观察值的发生概率对其进行加权。
+
+best_bandwidth = grid.best_params_[&#39;bandwidth&#39;]
+print(f&quot;最佳带宽：{best_bandwidth}&quot;)
+
+kde = KernelDensity(bandwidth=best_bandwidth)
+kde.fit(x, sample_weight=option_pdf)
+
+x_fine = np.linspace(strike_prices[0], strike_prices[-1], 1000).reshape(-1,1) # 创建更密集 x 值的 2D 数组
+
+# 在更精细的网格上评估 KDE
+log_density = kde.score_samples(x_fine)
+smooth_pdf = np.exp(log_density) 
+
+plt.figure(figsize=(10, 6))
+plt.plot(x_fine, smooth_pdf, label=&#39;KDE Smoothed PDF&#39;, color=&#39;green&#39;, lw=2)
+plt.scatter(strike_prices, option_pdf, color=&#39;blue&#39;, s=100, alpha=0.6, edgecolor=&#39;k&#39;, label=&#39;Raw Data&#39;)
+
+# 在标题中显示最佳带宽（格式化）
+plt.title(f&quot;KDE with Best Bandwidth {best_bandwidth:.2f}&quot;, fontsize=16)
+plt.xlabel(&quot;Strike Prices&quot;, fontsize=14)
+plt.ylabel(&quot;Probability&quot;, fontsize=14)
+plt.legend()
+]]></description>
+      <guid>https://stackoverflow.com/questions/79000625/kernel-density-estimation-bandwidth-selection-via-cross-validation</guid>
+      <pubDate>Thu, 19 Sep 2024 01:53:24 GMT</pubDate>
+    </item>
     <item>
       <title>CustomScaler 类型的对象未在 gurobi_ml 中注册/支持</title>
       <link>https://stackoverflow.com/questions/79000471/object-of-type-customscaler-is-not-registered-supported-with-gurobi-ml</link>
@@ -156,7 +239,7 @@ writer.add_image(&#39;Validation Gen Comparison&#39;, gen_image_grid, epoch)
       <pubDate>Wed, 18 Sep 2024 01:48:03 GMT</pubDate>
     </item>
     <item>
-      <title>如何重新训练 ML 模型[关闭]</title>
+      <title>如何重新训练 ML 模型</title>
       <link>https://stackoverflow.com/questions/78996028/how-to-re-train-ml-model</link>
       <description><![CDATA[我正在使用 AWS Sagemaker，用一些带标签的数据训练了一个模型，将其部署到终端并设置 Lambda 以提供预测。
 一切都很好，但我想定期重新训练我的模型，例如使用 1 周的历史数据。
@@ -170,82 +253,6 @@ writer.add_image(&#39;Validation Gen Comparison&#39;, gen_image_grid, epoch)
       <pubDate>Tue, 17 Sep 2024 22:44:46 GMT</pubDate>
     </item>
     <item>
-      <title>生存分析的校准图</title>
-      <link>https://stackoverflow.com/questions/78995759/calibration-plots-for-survival-analysis</link>
-      <description><![CDATA[我无法为我的生存分析项目创建校准图。（食管癌数据集）
-经过调整后，我已经完成了我的模型（AORSF）：
-aorsf_fit &lt;- last_fit(
-final_aorsf_wf,
-split = initial_split(final_main, prop = 0.75),
-metrics = survivor_metrics,
-eval_time = time_points_complete,
-)
-
-然后我使用以下代码收集我的预测集：
-&gt; predictions &lt;- collect_predictions(aorsf_fit)
-&gt; predictions 
-# A tibble: 687 × 6
-.pred .pred_time id .row surv .config 
-&lt;list&gt; &lt;dbl&gt; &lt;chr&gt; &lt;int&gt; &lt;Surv&gt; &lt;chr&gt; 
-1 &lt;tibble [8 × 3]&gt; 107. 训练/测试分割 3 57.8+ Preprocessor1_Model1
-2 &lt;tibble [8 × 3]&gt; 96.1 训练/测试分割 7 96.8+ Preprocessor1_Model1
-3 &lt;tibble [8 × 3]&gt; 94.2 训练/测试分割 11 130.0 Preprocessor1_Model1
-4 &lt;tibble [8 × 3]&gt; 11.4 训练/测试分割 15 9.0 Preprocessor1_Model1
-5 &lt;tibble [8 × 3]&gt; 102. 训练/测试分割 16 69.1+ Preprocessor1_Model1
-6 &lt;tibble [8 × 3]&gt; 37.8 训练/测试分割 17 33.0 Preprocessor1_Model1
-7 &lt;tibble [8 × 3]&gt; 103. 训练/测试分割 18 142.8 Preprocessor1_Model1
-8 &lt;tibble [8 × 3]&gt; 23.4 训练/测试分割 20 13.5 Preprocessor1_Model1
-9 &lt;tibble [8 × 3]&gt; 89.7 训练/测试分割 21 146.5 Preprocessor1_Model1
-10 &lt;tibble [8 × 3]&gt; 107. 训练/测试分割 23 60.1+ Preprocessor1_Model1
-# ℹ 677 更多行
-
-我甚至能够获得时间相关的 ROC 曲线（感谢 roc_curve_survival() 函数）：
-predictions |&gt; 
-roc_curve_survival(truth = surv, .pred)|&gt; 
-filter(.eval_time == 60) |&gt; 
-ggplot(aes(1 - specificity,sensitive)) +
-geom_line() +
-theme_minimal()
-
-但是，我无法使用“.pred”列表创建校准图。我尝试使用链接中建议的代码：使用 tidymodels 进行校准的简介
-我希望能够使用“predictions”对象中的预测生存数据来构建校准图。predictions 对象中的“.pred”变量包含以下 3 行：
-.eval_time
-.pr​​ed_survival
-.weight_censored
-我确信，如果以某种方式提取，它可以用于创建校准图（如链接中所示），然后可以用来显示模型相对于观察到的生存率的运行情况！（我也观察到了我的数据集的生存率）
-我只尝试了以下方法，但没有结果：
-predictions |&gt; 
-+ ggplot(aes(.pred_survival))
-]]></description>
-      <guid>https://stackoverflow.com/questions/78995759/calibration-plots-for-survival-analysis</guid>
-      <pubDate>Tue, 17 Sep 2024 20:49:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>对多个相互交织的目标使用反向预测[关闭]</title>
-      <link>https://stackoverflow.com/questions/78992262/using-reverse-prediction-for-multiple-intertwined-targets</link>
-      <description><![CDATA[我有一个人生阶段预测模型，它根据一组规则为每个潜在的人生阶段分配点数，总点数最高的人生阶段被视为赢家。这种无监督模型在识别样本客户是青少年、单身、夫妻还是有年幼的孩子等方面效果很好。
-在每次模型运行结束时，我都会总结结果，以获得每个人生阶段内的客户比例。该模型每三个月运行一次，如果不进行补救，每次的最终比例都会与目标比例相差太大。目前，我使用反复试验来重新平衡比例，通过在每个人生阶段增加或减去少量点数，将边缘客户转移到另一个人生阶段类别。
-我想要的是一种自动化方法，可以指定重新校准最终比例所需的点数，以比我的手动方法更轻松（更少的迭代次数）地匹配目标比例。本质上，协调点 (recon_pts) 是模型的输入，预测每个客户的生命阶段是关键输出，同时还有相应的比例 (model_pn)。我希望模型比例最终与目标比例 (target_pn) 相匹配。
-一个例子肯定有助于说明我所追求的。请注意，以下是实际观察到的结果，但我不想要使用或输出这些精确数字的工具，而是使用机器学习来更有效地重现我的反复试验方法。
-假设起始位置为：
-
-提供者：
-life_stage=c(&#39;CHD&#39;, &#39;TNG&#39;, &#39;TWS&#39;, &#39;SGL&#39;, &#39;CPL&#39;, &#39;YGF&#39;, &#39;PTF&#39;, &#39;OLF&#39;, &#39;ENR&#39;),
-recon_pts=c(0.215, -0.143, -0.086, 0.024, -0.049, -0.079, -0.14, -0.162, 0.083),
-model_pn=c(0.012, 0.087, 0.091, 0.065, 0.113, 0.115, 0.123, 0.122, 0.273),
-target_pn=c(0.014, 0.091, 0.095, 0.065, 0.114, 0.114, 0.107, 0.122, 0.277))
-
-CHD 生命阶段比例过低 (1.2%)，低于目标 (1.4%)。在另一个极端，PTF 太高 (12.3%)，因为它高于目标 (10.7%)。
-在我的手动方法下，我选择将 CHD 的 recon_pts 从 0.215 增加到 0.22，这样我就能在这个生命阶段获得更多客户。同时，我还将 PTF 的分数从 -0.14 减少到 -0.17，这样分配到这里的客户就会减少。
-然后我得到了这些结果，所有比例都经过了调整。 CHD 比例更接近目标但仍然太低，PTF 现在太低，因为比例已低于目标，其他所有方面也都需要注意：
-
-因此，在下一次迭代中，我可能会选择增加 CHD 的 recon_pts，增加 PTF 的点数并减少 YFG 的点数。然后它就以一种极其缓慢的方式继续下去了！
-对我来说，这看起来像是机器学习的理想候选者，其中的过程可以学习如何调整 recon_pts，以便 model_pn 最终匹配每个生命阶段的 target_pn。
-如何在 R 中有效地编码？]]></description>
-      <guid>https://stackoverflow.com/questions/78992262/using-reverse-prediction-for-multiple-intertwined-targets</guid>
-      <pubDate>Tue, 17 Sep 2024 01:29:30 GMT</pubDate>
-    </item>
-    <item>
       <title>将safetensors模型格式（LLaVA模型）转换为gguf格式</title>
       <link>https://stackoverflow.com/questions/78763327/convert-safetensors-model-formatllava-model-into-gguf-format</link>
       <description><![CDATA[我想在 ollama 中进行 LLaVA 推理，因此我需要将其转换为 gguf 文件格式。
@@ -255,7 +262,7 @@ https://github.com/ollama/ollama/blob/main/docs/import.md
 我遵循了 llama.cpp 的说明，并在此处使用了代码 convert_lora_to_gguf.py，
 https://github.com/ggerganov/llama.cpp/blob/master/convert_lora_to_gguf.py
 但是我收到如下错误：
-ERROR:lora-to-gguf:不支持 Model LlavaLlamaForCausalLM
+ERROR:lora-to-gguf:Model LlavaLlamaForCausalLM 不受支持
 
 如果我在模型文件的 config.json 中写入 llama 模型并运行以下代码，则会收到另一个错误。
 model_instance.gguf_writer.add_string(gguf.Keys.General.TYPE, gguf.GGUFType.ADAPTER)
