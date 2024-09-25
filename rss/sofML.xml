@@ -4,7 +4,165 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 25 Sep 2024 01:16:39 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Sep 2024 03:24:47 GMT</lastBuildDate>
+    <item>
+      <title>如何将 CIFAR10 模型的准确率提高到 80% 以上？</title>
+      <link>https://stackoverflow.com/questions/79020893/how-to-increase-accurracy-for-cifar10-model-above-80-accuracy</link>
+      <description><![CDATA[有人能帮助我吗？我使用来自 tensorflow 数据集的 CIFAR10 数据集训练我的机器学习模型，但我无法将模型准确率提高到 80% 以上...
+有人能给我一个建议吗？
+import tensorflow as tf
+import time
+import tensorflow_datasets as tfds
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras.utils import to_categorical
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+(train_images, train_labels), (test_images, test_labels) = cifar10.load_data()
+
+def normalize(train_images, test_images):
+normalized_train_dataset = tf.cast(train_images, tf.float32) / 255.0
+normalized_test_dataset = tf.cast(test_images, tf.float32) / 255.0
+返回 normalized_train_dataset, normalized_test_dataset
+
+# Normalisasi Dataset
+train_dataset, test_dataset = normalize(train_images, test_images)
+
+def visual(image, image_sample=2):
+for i in range (image_sample):
+
+print(f&quot;弯曲图像：{np.shape(image)}&quot;)
+print(f&quot;弯曲数据：{image[i].dtype}&quot;)
+print(f&quot;Nilai 最大图像：{np.max(image[i])}&quot;)
+print(f&quot;Nilai 最小图像：{np.min(image[i])}&quot;)
+
+plt.figure(figsize=(6,6))
+plt.imshow(image[i])
+plt.axis(&#39;off&#39;)
+plt.colorbar()
+plt.title(&quot;Gambar CIFAR-10&quot;)
+plt.grid(False)
+plt.show()
+
+visualization(train_dataset)
+
+train_labels = np.squeeze(train_labels)
+test_labels = np.squeeze(test_labels)
+
+print(f&quot;Shape Of Train Label : {train_labels.shape}&quot;)
+
+print(f&quot;Shape Of Test_Label : {test_labels.shape}&quot;)
+
+train_labels= to_categorical(train_labels, num_classes=10)
+test_labels = to_categorical(test_labels, num_classes=10)
+
+从 tensorflow.keras.preprocessing.image 导入 ImageDataGenerator
+
+datagen = ImageDataGenerator(
+rotation_range=20,
+width_shift_range=0.2,
+height_shift_range=0.2,
+sheath_range=0.2,
+zoom_range=0.2,
+Horizo​​ntal_flip=True,
+fill_mode=&#39;nearest&#39;
+)
+
+model = tf.keras.models.Sequential([
+tf.keras.layers.Conv2D(32, (3,3), padding=&#39;same&#39;,activation=tf.nn.relu, input_shape=(32, 32, 3)),
+tf.keras.layers.BatchNormalization(),
+tf.keras.layers.MaxPool2D((2,2), strides=2),
+
+tf.keras.layers.Conv2D(64, (3,3), padding=&#39;same&#39;,activation=tf.nn.relu),
+tf.keras.layers.BatchNormalization(),
+tf.keras.layers.MaxPool2D((2,2), strides=2),
+
+tf.keras.layers.Conv2D(128, (3,3), padding=&#39;same&#39;, 激活=tf.nn.relu),
+tf.keras.layers.BatchNormalization(),
+tf.keras.layers.MaxPool2D((2,2), strides=2),
+
+tf.keras.layers.Conv2D(128, (3,3), padding=&#39;same&#39;, 激活=tf.nn.relu),
+tf.keras.layers.BatchNormalization(),
+tf.keras.layers.MaxPool2D((2,2), strides=2),
+
+tf.keras.layers.Conv2D(512, (3,3)，padding=&#39;same&#39;，activation=tf.nn.relu，kernel_regularizer=tf.keras.regularizers.l2(0.01))，
+tf.keras.layers.BatchNormalization()，
+tf.keras.layers.MaxPool2D((2,2)，strides=2)，
+
+tf.keras.layers.Flatten()，
+tf.keras.layers.Dense(512，activation=tf.nn.relu)，
+tf.keras.layers.Dropout(0.3)，
+
+tf.keras.layers.Dense(128，activation=tf.nn.relu)，
+tf.keras.layers.Dropout(0.5)，
+
+tf.keras.layers.Dense(10，激活=tf.nn.softmax)
+])
+
+model.summary()
+
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+loss=&#39;categorical_crossentropy&#39;,
+metrics=[&#39;accuracy&#39;])
+
+early_stopping = tf.keras.callbacks.EarlyStopping(
+monitor=&#39;val_loss&#39;,
+patience=5,
+restore_best_weights=True
+)
+
+reducer_lr = tf.keras.callbacks.ReduceLROnPlateau(
+monitor=&#39;val_loss&#39;,
+factor=0.2,
+patience=3,
+verbose=1,
+min_lr=0.00001
+)
+
+callbacks = [early_stopping, reducer_lr]
+
+start_time = time.time()
+
+history = model.fit(datagen.flow(
+train_dataset,
+train_labels,
+batch_size=64),
+epochs=30,
+validation_data=(test_dataset, test_labels),
+callbacks=callbacks,
+verbose=1
+)
+
+end_time = time.time()
+training_time = end_time - start_time
+print(f&quot;训练时间：{training_time/60:.2f} 分钟&quot;)
+
+model.save(&#39;hand_gesture_detect.keras&#39;)
+
+# 评估模型
+loss_val, accuracy_val = model.evaluate(test_dataset, test_labels)
+print(f&quot;损失：{loss_val}&quot;)
+print(f&quot;准确率：{accuracy_val}&quot;)
+
+来自 tensorflow.keras.applications 导入 ResNet50
+
+base_model = ResNet50(weights=&#39;ImageNet&#39;, include_top=False, input_tensor=(32, 32, 3))
+
+我已经使我的模型复杂化，但准确率仍然只有 77-80%，我不知道如何提高我的模型准确率]]></description>
+      <guid>https://stackoverflow.com/questions/79020893/how-to-increase-accurracy-for-cifar10-model-above-80-accuracy</guid>
+      <pubDate>Wed, 25 Sep 2024 01:55:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 GPU 上运行 gridSearchCV 或 randonizedSerchCV</title>
+      <link>https://stackoverflow.com/questions/79020888/how-to-run-gridsearchcv-or-randonizedserchcv-on-gpu</link>
+      <description><![CDATA[我想运行 gridSearchCV 或 randonizedSerchCV 来使用 GPU 在 Colab 环境中调整超参数。
+但我找不到这些函数与 GPU 兼容的实现。
+在这种情况下，我该如何调整超参数？
+因此，由于我找不到在 GPU 上调整超参数的函数，我尝试实现 randonizedSerchCV。但我认为一定有一种方法可以做到这一点，而无需手动实现该函数。]]></description>
+      <guid>https://stackoverflow.com/questions/79020888/how-to-run-gridsearchcv-or-randonizedserchcv-on-gpu</guid>
+      <pubDate>Wed, 25 Sep 2024 01:53:20 GMT</pubDate>
+    </item>
     <item>
       <title>如何在 PyTorch 中训练眼睛验证（而非识别）模型？[关闭]</title>
       <link>https://stackoverflow.com/questions/79019854/how-to-train-an-eye-verification-not-recognition-model-in-pytorch</link>
@@ -163,58 +321,6 @@ run_model(grid, X_train,y_train,X_test, y_test)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79016340/predicting-toxicity-assay-through-mass-testing-of-models</guid>
       <pubDate>Mon, 23 Sep 2024 21:25:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>有人知道如何修复库错误吗？</title>
-      <link>https://stackoverflow.com/questions/79015388/does-anyone-know-how-to-fix-library-error</link>
-      <description><![CDATA[我遇到了这个错误，尝试了所有方法，但还是无法解决：
-ModuleNotFoundError Traceback (most recent call last)
-&lt;ipython-input-13-6c7180fd4822&gt; in &lt;cell line: 1&gt;()
-----&gt; 1 from crewapi_module import CrewAPI # 用正确的导入路径替换
-2 
-3 crew_api = CrewAPI(api_key=&quot;your_crewai_api_key&quot;)
-4 
-5 # 现在您可以与 API 交互，例如：
-
-ModuleNotFoundError：没有名为“crewapi_module”的模块
-]]></description>
-      <guid>https://stackoverflow.com/questions/79015388/does-anyone-know-how-to-fix-library-error</guid>
-      <pubDate>Mon, 23 Sep 2024 15:52:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>受不同聚类大小约束的 KMeans</title>
-      <link>https://stackoverflow.com/questions/79015120/kmeans-constrained-with-different-cluster-size</link>
-      <description><![CDATA[我有一个包含商店坐标的数据框，我想根据供应商应该访问该商店的日期将它们划分为簇。例如，假设供应商应该访问 180 家商店。他应该在周一到周五访问 30-34 家商店，周六，他应该访问其他日子的 60%。
-我该怎么做？使用 kmeans-constrained，我只能将它们划分为大小相等的簇。也许我需要使用某种解算器或在集群之间移动点以达到我想要的数字，但我不知道如何做到这一点。
-以下是将它们均等划分的代码：
-# 循环遍历供应商集群
-for vendor in df[&quot;vendor&quot;].unique():
-
-# 每个供应商的商店数量
-n_shops = df.loc[df[&quot;vendor&quot;] == vendor][&quot;cod_shop&quot;].count()
-
-# 索引
-idx = df.loc[df[&quot;vendor&quot;] == vendor].index
-
-# 一周中各天的集群数量
-num_clusters = 5 # 星期一至星期五
-
-# 集群的平均大小
-avg_size = n_shops / (num_clusters + 0.6)
-
-# 定义限制
-min_shops = round(avg_size - n_shops * pct, 0)
-max_shops = math.ceil(avg_size + n_shops * pct)
-
-# 模型
-kmeans = KMeansConstrained(n_clusters=num_clusters, size_min=min_shops, size_max=max_shops, random_state=42)
-labels = kmeans.fit_predict(df.loc[df[&quot;vendor&quot;] == vendor][[&quot;latitude&quot;, &quot;longitude&quot;]])
-
-# 向数据框添加标签
-df.loc[idx, &quot;visit_day&quot;] = labels
-]]></description>
-      <guid>https://stackoverflow.com/questions/79015120/kmeans-constrained-with-different-cluster-size</guid>
-      <pubDate>Mon, 23 Sep 2024 14:42:09 GMT</pubDate>
     </item>
     <item>
       <title>构建 OCR 模型 [关闭]</title>
