@@ -4,7 +4,101 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 25 Sep 2024 03:24:47 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Sep 2024 06:24:24 GMT</lastBuildDate>
+    <item>
+      <title>SBERT 微调总是在完成所有 epoch 之前停止</title>
+      <link>https://stackoverflow.com/questions/79021064/sbert-fine-tuning-always-stops-before-finish-all-epochs</link>
+      <description><![CDATA[我正在使用 SBERT 预训练模型（特别是 MiniLM）进行一个包含 995 个分类的文本分类项目。我大部分时间都在按照此处列出的步骤进行操作，一切似乎都运行正常。
+我的问题出现在实际训练模型时。无论我在训练参数中设置什么值，训练似乎总是提前结束，并且永远不会完成所有批次。例如，我设置了 num_train_epochs=1，但它最多只能达到 0.49 个 epoch。如果 num_train_epochs=4，它总是在 3.49 个 epoch 处结束。
+这是我的代码：
+from datasets import load_dataset
+from sentence_transformers import (
+SentenceTransformer,
+SentenceTransformerTrainer,
+SentenceTransformerTrainingArguments,
+SentenceTransformerModelCardData,
+)
+from sentence_transformers.losses import BatchAllTripletLoss
+from sentence_transformers.training_args import BatchSamplers
+from sentence_transformers.evaluation import TripletEvaluator
+
+model = SentenceTransformer(
+&quot;nreimers/MiniLM-L6-H384-uncased&quot;,
+model_card_data=SentenceTransformerModelCardData(
+language=&quot;en&quot;,
+license=&quot;apache-2.0&quot;,
+model_name=&quot;all-MiniLM-L6-v2&quot;,
+)
+)
+
+loss = BatchAllTripletLoss(model)
+# 损失概述：https://www.sbert.net/docs/sentence_transformer/loss_overview.html
+# 此特定损失方法：https://www.sbert.net/docs/package_reference/sentence_transformer/losses.html#batchalltripletloss
+
+# 训练参数：https://huggingface.co/docs/transformers/main/en/main_classes/trainer#transformers.TrainingArguments
+args = SentenceTransformerTrainingArguments(
+# 必需参数：
+output_dir=&quot;finetune/model20240924&quot;,
+# 可选训练参数：
+num_train_epochs=1,
+max_steps = -1,
+per_device_train_batch_size=8,
+per_device_eval_batch_size=8,
+learning_rate=1e-5,
+warmup_ratio=0.1,
+fp16=True, # 如果您收到 GPU 无法在 FP16 上运行的错误，请设置为 False
+bf16=False, # 如果您拥有支持 BF16 的 GPU，请设置为 True
+batch_sampler=BatchSamplers.GROUP_BY_LABEL, # 
+# 可选的跟踪/调试参数：
+eval_strategy=&quot;no&quot;,
+eval_steps=100,
+save_strategy=&quot;epoch&quot;,
+# save_steps=100,
+save_total_limit=2,
+logs_steps=100,
+run_name=&quot;miniLm-triplet&quot;, # 如果在 W&amp;B 中使用`wandb` 已安装
+)
+
+trainer = SentenceTransformerTrainer(
+model=model,
+args=args,
+train_dataset=trainDataset,
+eval_dataset=devDataset,
+loss=loss,
+#evaluator=dev_evaluator,
+)
+trainer.train()
+
+请注意，我没有使用评估器，因为我们正在创建模型，并在事后使用专用的测试值集对其进行测试。我的数据集结构如下：
+Dataset({
+features: [&#39;Title&#39;, &#39;Body&#39;, &#39;label&#39;],
+num_rows: 23961
+})
+
+与 dev 数据集具有相同的结构，只是行数较少。这将提供以下输出：
+ [1473/2996 57:06 &lt; 59:07，0.43 it/s，Epoch 0/1]
+步骤训练损失
+100 1.265600
+200 0.702700
+300 0.633900
+400 0.505200
+500 0.481900
+600 0.306800
+700 0.535600
+800 0.369800
+900 0.265400
+1000 0.345300
+1100 0.516700
+1200 0.372600
+1300 0.392300
+1400 0.421900
+
+TrainOutput(global_step=1473, training_loss=0.5003972503496366, metrics={&#39;train_runtime&#39;: 3427.9198, &#39;train_samples_per_second&#39;: 6.99, &#39;train_steps_per_second&#39;: 0.874, &#39;total_flos&#39;: 0.0, &#39;train_loss&#39;: 0.5003972503496366, &#39;epoch&#39;: 0.4916555407209613})
+
+尽管我调整了值，但还是无法完成所有批次。任何建议都将不胜感激！]]></description>
+      <guid>https://stackoverflow.com/questions/79021064/sbert-fine-tuning-always-stops-before-finish-all-epochs</guid>
+      <pubDate>Wed, 25 Sep 2024 03:55:44 GMT</pubDate>
+    </item>
     <item>
       <title>如何将 CIFAR10 模型的准确率提高到 80% 以上？</title>
       <link>https://stackoverflow.com/questions/79020893/how-to-increase-accurracy-for-cifar10-model-above-80-accuracy</link>
@@ -321,31 +415,6 @@ run_model(grid, X_train,y_train,X_test, y_test)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79016340/predicting-toxicity-assay-through-mass-testing-of-models</guid>
       <pubDate>Mon, 23 Sep 2024 21:25:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>构建 OCR 模型 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79013996/building-ocr-model</link>
-      <description><![CDATA[我正在研究一个机器学习模型，其中输入是图像和实体名称，目标是从图像中提取相应的实体值。例如，如果实体名称是“高度”，并且图像包含门的高度，则模型应提取此值（例如 6 英尺）以及正确的单位。
-输入：
-图像：包含对象（例如门）和相关信息（例如高度或其他相关测量值）。
-实体名称：关键字，例如“高度”或“重量”，指定要从图像中提取的值。
-输出：
-与图像中的实体相对应的值及其单位（例如“6 英尺”）。
-挑战：
-实体值可以出现在图像的不同部分，具有不同的文本格式、字体或样式。
-需要识别和提取测量单位（例如，米、英尺）以及值。
-问题：
-
-处理此类任务的最佳方法或模型架构是什么？
-是否有任何特定技术或预训练模型可以帮助将图像和实体名称组合为输入，以从图像中提取相应的值？
-我应该如何预处理图像和标签以训练此类任务的模型？
-是否有任何关于框架和工具的指导、参考或建议？
-
-我尝试使用带有 CTC 损失的 CNN+RNN，但我的损失接近 20 并且没有进一步减少
-这里我附上了我的 google cloab 链接
-笔记本链接]]></description>
-      <guid>https://stackoverflow.com/questions/79013996/building-ocr-model</guid>
-      <pubDate>Mon, 23 Sep 2024 09:27:35 GMT</pubDate>
     </item>
     <item>
       <title>使用 Deepface Deepface.represent 从 ROI 获取嵌入时出错</title>
