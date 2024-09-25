@@ -4,7 +4,86 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 25 Sep 2024 12:33:16 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Sep 2024 15:18:43 GMT</lastBuildDate>
+    <item>
+      <title>应该用置信区间还是 t 检验来评估统计显著性？</title>
+      <link>https://stats.stackexchange.com/questions/654897/should-one-assess-statistically-significance-with-confidence-intervals-or-a-t-te</link>
+      <description><![CDATA[我对评估温差的统计显著性感兴趣。
+为了这个目标，我生成了历史和未来时期的平均值的引导时间序列。
+然后我遵循了两种方法：
+A. 计算引导差异的 95% 置信区间，并认为零不在置信区间内的区域具有统计显著性。
+B. 使用历史和未来引导均值之间的配对 t 检验 (scipy.stats.ttest_rel) 来计算 p 值，并认为 p 值低于 .05 的区域具有统计显著性
+以下哪个选项是正确的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/654897/should-one-assess-statistically-significance-with-confidence-intervals-or-a-t-te</guid>
+      <pubDate>Wed, 25 Sep 2024 15:15:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>球体上的采样角度：从广义协方差矩阵到浓度参数</title>
+      <link>https://stats.stackexchange.com/questions/654893/sampling-angles-on-a-sphere-from-a-general-covariance-matrix-to-concentration-p</link>
+      <description><![CDATA[我正在尝试使用 Python 提取球体上的点。
+我必须在天空中定位事件并使用 healpy 生成地图。
+在测试期间，我使用了 von Mises-Fisher，因为我假设 $\theta$ 的方差与 $\phi$ 的方差相同。一切运行良好，我能够通过使用 $\kappa=1/\sigma^2$ 获得浓度参数 $\kappa$。
+我用于评估像素中概率的函数是
+def Mises_Fisher(theta,phi,DS_theta,DS_phi,conc):
+meanvec=hp.ang2vec(DS_theta,DS_phi)
+meanvec=np.asarray(meanvec,dtype=np.float128)
+norm=np.sqrt(np.dot(meanvec,meanvec))
+meanvec=meanvec/norm
+
+var=hp.ang2vec(theta,phi)
+var=np.asarray(var,dtype=np.float128)
+norm=np.sqrt(np.dot(var,var))
+var=var/norm
+
+factor=np.dot(conc*var,meanvec)
+factor=np.float128(factor)
+#归一化是徒劳的，我们将除以总和
+#fullnorm=conc/(2*np.pi*(np.exp(conc)-np.exp(-conc)))
+ret=np.float128(np.exp(factor))#/fullnorm
+#ret=factor
+return ret
+
+然后，对于 healpy 图中的每个像素，我可以分配一个概率。
+现在我有一个不再各向同性的协方差矩阵，在这种情况下，我如何在球体上生成点？我知道Kent 分布的存在，但我没有所需的数量，例如$\gamma$、$\beta$ 和 $\kappa$。我不知道是否有办法根据协方差矩阵获得这些。
+为了进一步复杂化问题，矩阵是 11 维的，但我只需要投影到 (distance,$\theta$,$\phi$) 空间，然后生成地图。
+现在我尝试从多元高斯中提取，但由于高斯在切平面上，对于某些方差，分布产生的角度超出了 $\theta$ 和 $\phi$ 的范围。
+这是我用来提取点的代码
+num_samples = 10**7
+samples = np.random.multivariate_normal(perm_mean, perm_cov, num_samples)
+
+phi = samples[:, 2]
+theta = samples[:, 1]
+print(np.min(theta),np.max(theta))
+print(np.min(phi),np.max(phi))
+print(&#39;starting mean values&#39;)
+print(&#39;theta={}, phi={}&#39;.format(perm_mean[1],perm_mean[2]))
+
+关键是，对于某些矩阵，方差使得角度可以超出范围。我无法对矩阵采取行动，这些矩阵是由其他一些代码提供给我的，应被视为固定数据。
+提前感谢大家！
+*编辑
+在这里我澄清一下，使我的陈述更加严格。
+因此，矩阵是另一段代码给我的协方差矩阵，我无法更改。我必须评估引力波 (GW) 事件的天空定位。在我的例子中，这意味着将包括天空位置在内的 11 个参数提供给程序，并且此代码会返回一个协方差矩阵。对于这个问题的范围，该程序可以被视为一个黑匣子，因为我无法修改那里的任何东西。
+现在我可以从这个矩阵中采样并获得 $\theta$ 和 $\phi$，即天空位置。
+让我们以单位球体为中心，表面上的每个点都由指向引力波事件天空坐标的向量标识。我们现在可以忘记其他参数。
+如果事件定位良好，这意味着如果角度的变化“很小”，我们可以想象建立一个与天空相切的平面，法向量沿径向，从引力波位置开始。现在，如果我们对高斯分布进行采样，该分布的参数为 $\mu$ 和 $\Sigma$，其中 $\mu$ 为 11 个起始参数给出的均值向量，$\Sigma$ 为 cov 矩阵，我们可以获得 $\theta$ 和 $\phi$ 的样本。这种方法效果很好，但是一旦方差足够大，我们开始“感觉”我们在球体上而不是在平面上，这种方法就会失效。解决这个问题的分布是 Kent 分布。我的问题是
+给定一个均值向量$\mu$和一个协方差矩阵$\Sigma$，是否可以构造肯特分布中所需的必要量？]]></description>
+      <guid>https://stats.stackexchange.com/questions/654893/sampling-angles-on-a-sphere-from-a-general-covariance-matrix-to-concentration-p</guid>
+      <pubDate>Wed, 25 Sep 2024 13:00:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>交叉验证不起作用</title>
+      <link>https://stats.stackexchange.com/questions/654892/cross-validation-doesnt-work</link>
+      <description><![CDATA[我目前在当地大学听一场数据科学演讲。我们是从工作单位来的，我从事 DS/ML 工作，已经 7 年了，但我的学位是计算机科学，因此我在 DS/ML 方面主要是自学的。
+这个人告诉我们，DS 文章中写到的很多东西实际上都不起作用。
+例如，他提到精确度、召回率和 F1 分数很少使用（相反，他更喜欢 AUC）。
+但对我来说，另一个更古怪的事情是，交叉验证也不应该用于业务问题。他解释说它不起作用，因为它不代表现实生活。在现实生活中，你的目标不是预测数据分布中的随机样本，而是必须根据过去 x 年建立一个模型来预测未来 y 个月的数据。
+所以他说交叉验证基本上是无用的，应该使用前向优化。
+首先，它是如何工作的？它只用于验证还是也可以用于优化？怎么做？
+此外，CV 真的那么没用吗？这是我读过的关于 DS 的任何文章中最被接受的验证形式。但也许这是我自学知识的不足之处。
+还有什么关于很多事情的“神话”更高大上，但在现实生活中却不起作用？]]></description>
+      <guid>https://stats.stackexchange.com/questions/654892/cross-validation-doesnt-work</guid>
+      <pubDate>Wed, 25 Sep 2024 12:55:02 GMT</pubDate>
+    </item>
     <item>
       <title>估计低人口规模的误差幅度</title>
       <link>https://stats.stackexchange.com/questions/654891/estimating-margin-of-error-with-low-population-sizes</link>
@@ -22,7 +101,7 @@ n = 总回答
       <pubDate>Wed, 25 Sep 2024 12:24:31 GMT</pubDate>
     </item>
     <item>
-      <title>如何在单个 mids 对象中合并多重插补的并行处理结果？</title>
+      <title>如何在单个 mids 对象中合并多重插补的并行处理结果？[已迁移]</title>
       <link>https://stats.stackexchange.com/questions/654890/how-can-i-combine-the-results-of-parallel-processing-of-multiple-imputation-in-a</link>
       <description><![CDATA[我一直在尝试使用 miceadds 进行多重插补（我使用 2l.pmm 方法，但 mice 中没有该方法）。这是并行处理的代码：
 library(foreach)
@@ -123,6 +202,16 @@ model$final_coef
       <pubDate>Wed, 25 Sep 2024 10:13:35 GMT</pubDate>
     </item>
     <item>
+      <title>二项分布中中位数和众数有什么关系</title>
+      <link>https://stats.stackexchange.com/questions/654894/whats-the-relationship-of-median-and-mode-in-binomial-distribution</link>
+      <description><![CDATA[假设$X\sim B(30,\frac{1}{3})$。
+可以说中位数是$15$。
+如果我们要找出$\Pr(X\gt15)$和$\Pr(X\lt15)$哪个值更大，众数大于中位数（右偏）是否表示$\Pr(X\gt15)$值更大，反之亦然。
+这个逻辑正确吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/654894/whats-the-relationship-of-median-and-mode-in-binomial-distribution</guid>
+      <pubDate>Wed, 25 Sep 2024 10:08:04 GMT</pubDate>
+    </item>
+    <item>
       <title>信用风险神经网络：召回率、准确度还是精确度？[重复]</title>
       <link>https://stats.stackexchange.com/questions/654880/credit-risk-neural-networks-recall-accuracy-or-precision</link>
       <description><![CDATA[]]></description>
@@ -145,85 +234,6 @@ model$final_coef
 但是，我从未遇到过这样使用置信区间的界限。理论上，置信区间内的任何参数值都具有相同的概率，我的直觉是这样做没问题，但我想知道在进一步分析中选择参数置信区间的极限之一是否存在任何统计复杂性。]]></description>
       <guid>https://stats.stackexchange.com/questions/654878/can-the-lower-or-upper-for-that-matter-limit-of-a-confidence-interval-be-chos</guid>
       <pubDate>Wed, 25 Sep 2024 06:30:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>3 种条件下刺激效果比较</title>
-      <link>https://stats.stackexchange.com/questions/654875/comparing-stimulation-efficacy-under-3-conditions</link>
-      <description><![CDATA[我有一个数据集，其中比较了 3 种药物条件（药物 a、药物 b、药物 a+b），我的读数是培养皿中对药物有反应的细胞数量。药物 a 和药物 b 有 4 种不同的剂量浓度，因此实际上我们总共有 16 种组合。我在 5 种不同的培养皿中完成了这项工作。
-我想确定不同水平的药物 a+b 条件在统计上是否与仅药物 a 或仅药物 b 不同。
-最好的测试形式是某种重复测量克鲁斯卡尔沃利斯法吗？
-提前谢谢大家]]></description>
-      <guid>https://stats.stackexchange.com/questions/654875/comparing-stimulation-efficacy-under-3-conditions</guid>
-      <pubDate>Wed, 25 Sep 2024 02:10:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用插值逻辑函数避免数值不稳定性[重复]</title>
-      <link>https://stats.stackexchange.com/questions/654874/avoiding-numerical-instability-with-interpolating-logistic-function</link>
-      <description><![CDATA[我目前正在尝试将三个数据点 $(x_0,y_0)$、$(x_1,y_1)$ 和 $(x_1,y_1&#39;)$ 插入到类似逻辑的函数中，其中 $y_1&#39;$ 是 $(x_1,y_1)$ 处的斜率。该函数为
-$$
-f(x) = \frac{L}{1+C\cdot\exp(-kx)}
-$$
-其中 $C$ 可以是负数也可以是正数。分配 $k$、$C$ 和 $L$ 的解决方案得出
-$$
-\begin{align*}
-k &amp;= \frac{y_1(y_1-y_0)W_n(\Phi) + y_1&#39;y_0(x_1-x_0)}{y_1(y_1-y_0)(x_0-x_1)}\\
-C &amp;= \frac{y_1 - y_0}{y_0\cdot \exp(-k x_0) - y_1 \cdot \exp(-k x_1)}\\
-L &amp;= y_1 (1 + C \cdot \exp(-k x_1))
-\end{align*}
-$$
-$W_n$ 是 Lambert W 函数，其中 $n$ 为 $0$ 或 $-1$，具体取决于单独的条件，并且
-$$
-\Phi = \frac{y_1&#39; y_0 \cdot \exp\left(\frac{y_1&#39; y_0 (x_0-x_1)}{y_1 (y_1-y_0)}\right) (x_0-x_1)}{y_1 (y_1-y_0)}
-$$
-我遇到的问题是，我有很多情况，其中 $k$ 和 $L$ 的数量级为 $\mathcal{O}(10^{-15})$ 或更小。这导致最终的逻辑拟合在数值上非常不稳定，通常会提供阶梯状函数，此处以红色显示（忽略蓝色）。
-
-其中 $k=5.4138\times 10^{-16}$，$L=-5.9212\times 10^{-17}$，以及 $C=-1$。
-我想知道是否有任何方法可以重写我如何表达逻辑函数本身，或者如何表达 $k$、$C$ 和 $L$ 的解，从而在拟合中恢复一些精度。
-编辑：$C$ 的公式错误。现在已修复]]></description>
-      <guid>https://stats.stackexchange.com/questions/654874/avoiding-numerical-instability-with-interpolating-logistic-function</guid>
-      <pubDate>Wed, 25 Sep 2024 01:13:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>我怎么知道我可以跨不同的分类行做出这些推断？</title>
-      <link>https://stats.stackexchange.com/questions/654873/how-do-i-know-i-can-make-these-inferences-across-separate-categorical-rows</link>
-      <description><![CDATA[我正在学习非常基础的统计学，从双向频率表开始。但是，我对此有很多不确定性，因为似乎有很多...假设，但从未解释过。
-附件是问题的 PNG
-
-根据此表，“似乎”准确地...表明意大利人“更有可能”拥有棕色或淡褐色的眼睛。
-但为什么允许我比较两个完全不同的类别？我不需要注意样本量吗？我不需要知道样本是否随机吗？我不需要知道有多少百分比的人拥有双重国籍吗？我怎样才能获取两个完全不同的行频，然后对它们进行比较？]]></description>
-      <guid>https://stats.stackexchange.com/questions/654873/how-do-i-know-i-can-make-these-inferences-across-separate-categorical-rows</guid>
-      <pubDate>Wed, 25 Sep 2024 01:08:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>量化变异性变化的因果效应</title>
-      <link>https://stats.stackexchange.com/questions/654868/quantifying-the-causal-effect-of-change-in-variability</link>
-      <description><![CDATA[假设有一台木材切割机。当我们调整机器时，机器的精度会增加。这意味着机器应该切割 $\mu$ 英寸的块，但有误差 $\epsilon$。调整时，误差的变化性会降低。
-我想了解调整机器的因果效应。
-利用 Rubin 因果模型，我们可以指定观察到的块英寸的潜在结果并进行对比。
-$$
-Y(0) = \mu + \epsilon(0) 
-$$
-$$
-Y(1) = \mu + \epsilon(1) 
-$$
-潜在误差的差异是特定块调整的因果效应。
-$$
-Y(1) - Y(0) = \epsilon(1) - \epsilon(0)
-$$
-假设误差是分布如下
-$$
-\epsilon(1) \sim N(0, \sigma_t^2) 
-$$
-$$
-\epsilon(0) \sim N(0, \sigma_c^2)
-$$
-现在我们不观察个别潜在结果，因此我们取期望值：
-$$
-{\bf E}[\epsilon(1)] - {\bf E}[\epsilon(0)] = 0
-$$
-期望值为零，表示没有因果关系，这不表明变异性发生了变化。我该如何在潜在结果框架中设置这个问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/654868/quantifying-the-causal-effect-of-change-in-variability</guid>
-      <pubDate>Tue, 24 Sep 2024 22:35:35 GMT</pubDate>
     </item>
     <item>
       <title>检验统计量适中，但 F 检验的 p 值较低</title>
@@ -294,13 +304,6 @@ Res.Df RSS Df Sq F 之和Pr(&gt;F)
       <pubDate>Tue, 24 Sep 2024 15:26:30 GMT</pubDate>
     </item>
     <item>
-      <title>当 Newey-West 标准误差远大于其他类型的标准误差时，这意味着什么</title>
-      <link>https://stats.stackexchange.com/questions/654832/what-does-it-mean-when-newey-west-standard-errors-are-much-larger-than-other-typ</link>
-      <description><![CDATA[我正在使用时间序列数据进行回归分析，当我使用 Newey-West 标准误差时，它们比其他类型的标准误差（异方差稳健和不同聚类）大 3-4 倍。为什么会出现这种情况？这能告诉我一些信息吗？谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/654832/what-does-it-mean-when-newey-west-standard-errors-are-much-larger-than-other-typ</guid>
-      <pubDate>Tue, 24 Sep 2024 09:20:44 GMT</pubDate>
-    </item>
-    <item>
       <title>不同的起点（在生存分析中）</title>
       <link>https://stats.stackexchange.com/questions/654828/different-starting-point-in-survival-analysis</link>
       <description><![CDATA[我们正在进行一项研究，定期对患者进行癌症复发检测。每四个月安排一次检查（T0、T4、T8、T12、T16、T20）。
@@ -320,6 +323,42 @@ ID TIME EVENT GENDER
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/654828/different-starting-point-in-survival-analysis</guid>
       <pubDate>Tue, 24 Sep 2024 08:20:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>我们如何在 R 中计算一个数据集中的一个记录与第二个数据集中的所有记录之间的 Gower 距离？</title>
+      <link>https://stats.stackexchange.com/questions/654811/how-do-we-calculate-the-gower-distance-between-one-record-in-one-dataset-and-all</link>
+      <description><![CDATA[我想计算数据集 1 的一条记录与数据集 2 的所有记录之间的 Gower 距离。第一种方法如下
+library(gower)
+
+data(iris)
+dat1 &lt;- iris[1:10,]
+dat2 &lt;- iris[11:30,]
+
+# 第一种方法
+gower::gower_dist(dat1[1,], dat2)
+
+这给了我长度为 20 的结果。
+0.09079365 0.09873016 0.16142857 0.29476190 0.20920635 0.33079365 
+0.21936508 0.05000000 0.23952381 0.11507937 0.12095238 0.15079365 
+0.16984127 0.24523810 0.16539683 0.12920635 0.17206349 0.03555556 
+0.02761905 0.14063492
+
+我可以将第一个值解释为 dat1[1,] 和 dat2[1,] 之间的 gower 距离，将第二个值解释为 dat1[1,] 和 dat2[2,] 之间的 gower 距离，依此类推吗？
+让我感到困惑的是，如果我计算
+gower::gower_dist(dat1[1,],dat2[1,])
+
+这给了我
+0.75
+
+这与 0.09079365 不同。最终，我想计算 dat1 中每个观测值与 dat2 中每个观测值的 Gower 距离。如果我使用第二种方法，我将需要在 dat2 中的所有观测值上添加一个 for 循环，如下所示。
+# 第二种方法
+for(i in 1:nrow(dat2)) {
+print(gower::gower_dist(dat1[1,],dat2[i,]))
+}
+
+由于这两种方法给出的结果不同，我应该使用哪一种方法来实现目的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/654811/how-do-we-calculate-the-gower-distance-between-one-record-in-one-dataset-and-all</guid>
+      <pubDate>Mon, 23 Sep 2024 17:37:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
