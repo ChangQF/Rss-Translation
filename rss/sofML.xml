@@ -4,7 +4,178 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 26 Sep 2024 09:18:13 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 26 Sep 2024 12:33:40 GMT</lastBuildDate>
+    <item>
+      <title>多头自注意力中的梯度爆炸（NaN 训练损失和验证损失） - Vision Transformer</title>
+      <link>https://stackoverflow.com/questions/79027142/exploding-gradient-nan-training-loss-and-validation-loss-in-multi-head-self-at</link>
+      <description><![CDATA[此多头自注意力代码导致训练损失和验证损失变为 NaN，但当我删除此部分时，一切都恢复正常。我知道当训练损失和验证损失变为 NaN 时，这意味着那里有一个爆炸梯度。但是，我不知道我的代码出了什么问题导致梯度爆炸。当我将它与官方 PyTorch 代码进行比较时，它看起来很相似。当我使用 nn.MultiheadSelfAttention 时，梯度不会爆炸，但当我使用我自己的代码时，梯度开始爆炸。没有显示任何错误消息。有人知道我下面的代码有什么问题吗？
+class MultiHeadAttention(nn.Module):
+def __init__(self, in_dim, num_heads=8, dropout=0):
+super().__init__()
+self.num_heads = num_heads
+self.head_dim = in_dim // num_heads
+self.conv_q = nn.Conv2d(in_dim, in_dim, kernel_size=1)
+self.conv_k = nn.Conv2d(in_dim, in_dim, kernel_size=1)
+self.conv_v = nn.Conv2d(in_dim, in_dim, kernel_size=1)
+self.att_drop = nn.Dropout(dropout)
+self.proj = nn.Conv2d(in_dim, in_dim，kernel_size=1)
+self.proj_drop = nn.Dropout(dropout)
+
+def forward(self, x):
+
+b, _, h, w = x.shape
+
+q = self.conv_q(x)
+k = self.conv_k(x)
+v = self.conv_v(x)
+
+q = rearrange(q，“b (nh hd) h w -&gt; b nh (h w) hd”，nh=self.num_heads)
+k = rearrange(k，“b (nh hd) h w -&gt; b nh (h w) hd”，nh=self.num_heads)
+v = rearrange(v，“b (nh hd) h w -&gt; b nh (h w) hd”，nh=self.num_heads)
+
+att_score = q @ k.transpose(2, 3) ** (self.head_dim ** -0.5)
+att_score = F.softmax(att_score, dim=-1)
+att_score = self.att_drop(att_score)
+
+x = att_score @ v
+
+x = rearrange(x, &#39;b nh (h w) hd -&gt; b (nh hd) h w&#39;, h=h, w=w)
+
+x = self.proj(x)
+x = self.proj_drop(x)
+
+返回 x
+]]></description>
+      <guid>https://stackoverflow.com/questions/79027142/exploding-gradient-nan-training-loss-and-validation-loss-in-multi-head-self-at</guid>
+      <pubDate>Thu, 26 Sep 2024 11:48:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在多个 gpu 上运行 Qwen2-VL 模型？</title>
+      <link>https://stackoverflow.com/questions/79027046/how-to-run-qwen2-vl-models-on-multiple-gpus</link>
+      <description><![CDATA[我有 4 个 gpu，我想运行 Qwen2 VL 模型，但我收到“设备端断言已触发。使用 TORCH_USE_CUDA_DSA 进行编译以启用设备端断言”错误。
+model_name=&quot;Qwen/Qwen2-VL-2B-Instruct&quot;
+model = Qwen2VLForConditionalGeneration.from_pretrained(
+model_name, torch_dtype=&quot;auto&quot;, device_map=&quot;auto&quot;
+)
+model = nn.DataParallel(model)
+processor = AutoProcessor.from_pretrained(model_name)
+
+messages = [
+{
+&quot;role&quot;: &quot;user&quot;,
+&quot;content&quot;: [
+{
+&quot;type&quot;: &quot;image&quot;,
+&quot;image&quot;: file
+},
+{
+&quot;type&quot;: &quot;text&quot;,
+&quot;text&quot;: &quot;&quot;&quot;描述图像&quot;&quot;&quot;
+}
+]
+}
+]
+text = processing.apply_chat_template(
+messages, tokenize=False, add_generation_prompt=True)
+image_inputs, video_inputs = process_vision_info(messages)
+inputs = processing(
+text=[text],
+images=image_inputs,
+videos=video_inputs,
+padding=True,
+return_tensors=&quot;pt&quot;,
+)
+使用 torch.no_grad():
+generated_ids = model.module.generate(**inputs, max_new_tokens=128)
+
+但我总是得到：
+../aten/src/ATen/native/cuda/IndexKernel.cu:92: operator(): block: [35,0,0], thread: [31,0,0] 断言 `-sizes[i] &lt;= index &amp;&amp; index &lt; sizes[i] &amp;&amp; &quot;index out of bounds&quot;` 失败。
+错误：CUDA 错误：设备端断言已触发
+使用 `TORCH_USE_CUDA_DSA` 进行编译以启用设备端断言。
+
+回溯（最近一次调用）：
+文件“/home/ubuntu/projects/mistral-qaC/services/VisionService.py”，第 104 行，位于 ask_vision
+generated_ids = self.model.module.generate(
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件“/home/ubuntu/projects/upper/lib/python3.12/site-packages/torch/utils/_contextlib.py”，第 116 行，位于 decorate_context
+return func(*args, **kwargs)
+^^^^^^^^^^^^^^^^^^^^^^
+文件“/home/ubuntu/projects/upper/lib/python3.12/site-packages/transformers/generation/utils.py”，第2015，在 generate 中
+result = self._sample(
+^^^^^^^^^^^^^^
+文件 &quot;/home/ubuntu/projects/upper/lib/python3.12/site-packages/transformers/generation/utils.py&quot;，第 2965 行，在 _sample 中
+output = self(**model_inputs, return_dict=True)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件 &quot;/home/ubuntu/projects/upper/lib/python3.12/site-packages/torch/nn/modules/module.py&quot;，第 1553 行，在 _wrapped_call_impl 中
+return self._call_impl(*args, **kwargs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件 &quot;/home/ubuntu/projects/upper/lib/python3.12/site-packages/torch/nn/modules/module.py&quot;，第 1562 行，在 _call_impl 中
+return forward_call(*args, **kwargs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件 &quot;/home/ubuntu/projects/upper/lib/python3.12/site-packages/accelerate/hooks.py&quot;，第 169 行，在 new_forward 中
+output = module._old_forward(*args, **kwargs)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件 &quot;/home/ubuntu/projects/upper/lib/python3.12/site-packages/transformers/models/qwen2_vl/modeling_qwen2_vl.py&quot;，第 1598 行，正向
+输入_embeds[image_mask] = image_embeds
+~~~~~~~~~~~~~^^^^^^^^^^^^
+RuntimeError：CUDA 错误：设备端断言已触发
+使用 `TORCH_USE_CUDA_DSA` 进行编译以启用设备端断言。
+
+我试过什么？
+
+使用 CUDA_LAUNCH_BLOCKING=1 python script.py 运行我的 python 脚本，但它也不起作用。
+打印输入和模型设备：模型设备：cuda:0
+输入设备：cuda:0
+torch.cuda.synchronize() 和 torch.cuda.empty_cache() 在生成之前。
+
+我的 transformers 和 pytorch 版本是：
+transformers==4.45.0.dev0
+torch==2.4.1+cu124
+
+如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/79027046/how-to-run-qwen2-vl-models-on-multiple-gpus</guid>
+      <pubDate>Thu, 26 Sep 2024 11:21:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>机器学习与 CT 灌注数据集中的数据重叠</title>
+      <link>https://stackoverflow.com/questions/79026738/dataoverlap-in-machine-learning-with-ct-perfusion-dataset</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79026738/dataoverlap-in-machine-learning-with-ct-perfusion-dataset</guid>
+      <pubDate>Thu, 26 Sep 2024 10:13:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>时间滞后分类问题——选择哪种模型来预测未来时间点的存在与否</title>
+      <link>https://stackoverflow.com/questions/79026715/time-lag-classification-issue-which-model-to-choose-for-predicting-presence-abs</link>
+      <description><![CDATA[在详细说明我的问题之前，我将解释我的数据集。
+我创建了一个生物数据集，其中包含来自 15 个地理位置相近的地点的微生物数据，每个地点都有 100 个时间点，因此总共有 1500 个数据点。为此，我试图根据其他细菌预测某种细菌的存在与否。所以我的 1200 个解释变量是细菌种类，这些是 0 到 1 之间的连续值（例如，如果某种细菌占当天发现的细菌的 50%，那么它将转换为 0.5）。我正在寻找的细菌只在夏季出现，所以我的数据集中有 1420 种不存在，80 种存在，其中 80 种存在位于我 1 年数据集中间的一组中。
+我想创建一系列时间滞后，看看我是否准确地说出这种细菌物种是否会在未来某个时间出现，因为微生物群落在过去看起来是某种样子。为此，我使用了许多回归模型，主要是交叉折叠验证随机森林，效果很好，但我认为这是因为我的数据是非平稳的。理论上，我的数据会在几年内保持平稳，但我只有一年。我已经使用 smote 处理了类别不平衡问题，当我随机化细菌的存在/不存在时，模型效果不佳。
+我期望模型将一些时间点放回到过去，例如，每个位置的 12 个时间点将是 6 周前，因此这不太可能起作用（我认为 4 月中旬的微生物群落应该无法预测 6 月初这种细菌的存在），但测试数据集的混淆矩阵仍然如下所示：真阴性：257，假阴性：4，假阳性：9，真阳性：12。
+在这种情况下，我使用 rf 进行时间滞后的方法是否存在根本缺陷？ LTSM 是否更合适？]]></description>
+      <guid>https://stackoverflow.com/questions/79026715/time-lag-classification-issue-which-model-to-choose-for-predicting-presence-abs</guid>
+      <pubDate>Thu, 26 Sep 2024 10:08:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么我的模型的损失值会上升？</title>
+      <link>https://stackoverflow.com/questions/79026713/why-is-the-loss-value-of-my-model-going-up</link>
+      <description><![CDATA[因此，我正在尝试使用 ml5 和手语，现在我正尝试让模型从移动的手势中学习。我的代码让 mediapipe 收集 3780 帧，处理这些帧并将它们保存在一个变量中，如下所示：
+ {
+&quot;label&quot;: &quot;wave&quot;,
+&quot;vector&quot;: [ 
+0.7023592591285706,
+0.9515798091888428,
+（等（总共 3790 个）
+]
+
+我有 3 个姿势，总共约 35 个示例。当我进行 ML5 训练（使用神经网络）时，我的损失值似乎在上升。
+
+我的模型有以下参数：
+学习率：0.15
+epoch：30
+隐藏单元：20
+是什么导致我的学习率上升？这可能是小批量的结果吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79026713/why-is-the-loss-value-of-my-model-going-up</guid>
+      <pubDate>Thu, 26 Sep 2024 10:08:06 GMT</pubDate>
+    </item>
     <item>
       <title>将 Langchain ChatOpenAI 功能与 LiteLLM 结合使用</title>
       <link>https://stackoverflow.com/questions/79026315/using-langchain-chatopenai-functionality-with-litellm</link>
@@ -34,19 +205,19 @@ return llm
     <item>
       <title>我正在使用集成模型进行二元分类</title>
       <link>https://stackoverflow.com/questions/79026233/iam-doing-a-binary-classification-using-ensembel-model</link>
-      <description><![CDATA[我正在使用 3 个模型，mobilenet、inceptionv3、resnet50。准确率似乎在增加，但验证准确率并没有显示出研究增加，而是在波动。我也做了一些数据增强，重新缩放。但验证准确率仍然在波动。我使用的是平均集成方法。
+      <description><![CDATA[我正在使用 3 个模型，mobilenet、inceptionv3、resnet50。准确率似乎在增加，但验证准确率并没有稳定增加，而是在波动。我也做了一些数据增强，即重新缩放。但验证准确率仍然在波动。我使用的是平均集成方法。
 # 定义 MobileNet 模型
 def create_mobilenet_model():
 输入 = 输入（形状=（224, 224, 3））
 base_model = MobileNet（include_top=False，权重=&#39;imagenet&#39;，输入张量=输入，池化=无）
 x = base_model.output
-x = GlobalAveragePooling2D（）（x）
-x = BatchNormalization（）（x）
-x = Dense（512，激活=&#39;relu&#39;）（x）
-x = Dropout（0.5）（x）
-x = Dense（256，激活=&#39;relu&#39;）（x）
-x = Dropout（0.3）（x）
-输出 = Dense（1，激活=&#39;sigmoid&#39;）（x）
+x = GlobalAveragePooling2D()（x）
+x = BatchNormalization()（x）
+x = Dense(512, 激活=&#39;relu&#39;)(x)
+x = Dropout(0.5)(x)
+x = Dense(256, 激活=&#39;relu&#39;)(x)
+x = Dropout(0.3)(x)
+输出 = Dense(1, 激活=&#39;sigmoid&#39;)(x)
 模型 = Model(inputs=inputs, output=outputs)
 返回模型
 ​
@@ -109,22 +280,23 @@ ensemble_model.compile(optimizer=Adam(learning_rate=0.0001), loss=&#39;binary_cr
 # 模型摘要
 ensemble_model.summary()
 
-结果
+结果：
 111/111 ━━━━━━━━━━━━━━━━━━━━━━ 369s 2s/step - accuracy: 0.6506 - loss: 0.6266 - val_accuracy: 0.3315 - val_loss: 0.9679
 Epoch 2/10
 111/111 ━━━━━━━━━━━━━━━━━━━━━ 45s 403ms/step - 准确度：0.8518 - 损失：0.3550 - val_accuracy：0.8117 - val_loss：0.4355
 Epoch 3/10
-111/111 ━━━━━━━━━━━━━━━━━━━━━━━ 45s 403ms/step - 准确度：0.9218 - 损失：0.2276 - val_accuracy：0.9639 - val_loss：0.2109
+111/111 ━━━━━━━━━━━━━━━━━━━━━━━ 45s 403ms/step - 准确度：0.9218 - 损失： 0.2276 - val_accuracy：0.9639 - val_loss：0.2109
 Epoch 4/10
 111/111 ━━━━━━━━━━━━━━━━━━━━━━ 78s 366ms/step - 准确度：0.9578 - 损失：0.1474 - val_accuracy：0.7565 - val_loss：0.4118
 Epoch 5/10
-111/111 ━━━━━━━━━━━━━━━━━━━━━━━ 41s 367ms/step - 准确度：0.9613 - 损失：0.1276 - val_accuracy：0.9030 - val_loss：0.2680
+111/111 ━━━━━━━━━━━━━━━━━━━━━ 41s 367ms/step - 准确度：0.9613 - 损失：0.1276 - val_accuracy：0.9030 - val_loss：0.2680
 Epoch 6/10
-111/111 ━━━━━━━━━━━━━━━━━━━━━━ 41s 367ms/step - 准确度：0.9811 - 损失：0.0815 - val_accuracy：0.8083 - val_loss：0.3373
+111/111 ━━━━━━━━━━━━━━━━━━━━━━━ 41s 367ms/step - 准确度：0.9811 - 损失：0.0815 - val_accuracy：0.8083 - val_loss：0.3373
 Epoch 7/10
-111/111 ━━━━━━━━━━━━━━━━━━━━━ 82s 369ms/step - 准确度：0.9829 - 损失：0.0829 - val_accuracy：0.7655 - val_loss：0.7217
+111/111 ━━━━━━━━━━━━━━━━━━━━━━ 82s 369ms/step - 准确度：0.9829 - 损失：0.0829 - val_accuracy：0.7655 - val_loss：0.7217
 Epoch 8/10
-111/111 ━━━━━━━━━━━━━━━━━━━━━━━ 41s 367ms/step - 准确度：0.9863 - 损失：0.0569 - val_accuracy：0.5975 - val_loss：1.4897]]></description>
+111/111 ━━━━━━━━━━━━━━━━━━━━━━━ 41s 367ms/step - 准确度：0.9863 - 损失：0.0569 - val_accuracy：0.5975 - val_loss：1.4897
+]]></description>
       <guid>https://stackoverflow.com/questions/79026233/iam-doing-a-binary-classification-using-ensembel-model</guid>
       <pubDate>Thu, 26 Sep 2024 08:24:44 GMT</pubDate>
     </item>
@@ -138,18 +310,18 @@ Epoch 8/10
       <pubDate>Thu, 26 Sep 2024 05:18:24 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习算法的时间复杂度和空间复杂度度量</title>
+      <title>机器学习算法的时间复杂度和空间复杂度测量[关闭]</title>
       <link>https://stackoverflow.com/questions/79025437/machine-learning-algrorithms-time-complexity-and-space-complextiy-measurement</link>
       <description><![CDATA[我已经训练了几个模型来预测/检测数据集中的分类值。
 现在我想看看在这两种情况下哪种模型表现最好：
 
 时间复杂度（预测/检测的时间）
-空间复杂度（模型预测/检测所需的空间（GPU/CPU））
+空间复杂度（模型预测/检测需要多少空间（GPU/CPU））
 我使用的一些模型如下
 RF、CNN、MLP、RNN、LGBM、LSTM、KNN、GRU
 
 由此我可以找到在检测/预测特定情况时可以使用更少时间和更少空间的最佳模型。
-你能解释一下这个 python 代码/sudo 代码吗？]]></description>
+你能解释一下这个 python 代码/伪代码吗？]]></description>
       <guid>https://stackoverflow.com/questions/79025437/machine-learning-algrorithms-time-complexity-and-space-complextiy-measurement</guid>
       <pubDate>Thu, 26 Sep 2024 03:50:39 GMT</pubDate>
     </item>
@@ -177,273 +349,6 @@ RF、CNN、MLP、RNN、LGBM、LSTM、KNN、GRU
       <pubDate>Wed, 25 Sep 2024 21:11:36 GMT</pubDate>
     </item>
     <item>
-      <title>EfficientNet 中的迁移学习在二元分类任务中停留在 50%</title>
-      <link>https://stackoverflow.com/questions/79024541/transfer-learning-in-efficientnet-for-binary-classification-task-stuck-at-50</link>
-      <description><![CDATA[我一直在尝试在二元分类任务中使用 EfficientNet 进行迁移学习。
-我的目录结构如下所示：
-training
-│── label0
-└── label1
-
-validation
-│── label0
-└── label1
-
-我使用它来创建图像数据生成器：
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-train_datagen = ImageDataGenerator(
-rescale=1./255,
-rotation_range=30, 
-width_shift_range=0.0, 
-height_shift_range=0.0,
-sher_range=0.0, 
-zoom_range=0.0, 
-Horizo​​ntal_flip=True,
-fill_mode=&#39;nearest&#39;
-)
-未应用任何增强
-validation_datagen = ImageDataGenerator(rescale=1./255)
-
-train_generator = train_datagen.flow_from_directory(
-&#39;training&#39;,
-target_size=(240, 240), 
-batch_size=128, 
-class_mode=&#39;binary&#39;, # 二元分类
-shuffle=True
-)
-
-validation_generator = validation_datagen.flow_from_directory(
-&#39;validation&#39;, 
-target_size=(240, 240),
-batch_size=128,
-class_mode=&#39;binary&#39;,
-shuffle=True
-)
-
-输出为：
-找到属于 2 个类别的 19747 张图像。
-找到属于 2 个类别的 4938 张图像。
-
-这是构建模型的代码：
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
-from tensorflow.keras.applications import EfficientNetB1
-from tensorflow.keras.models import Model
-from tensorflow.keras import layer
-
-NUM_CLASSES = 2
-IMG_SIZE = 240
-size = (IMG_SIZE, IMG_SIZE)
-
-def build_model():
-inputs = layer.Input(shape=(IMG_SIZE, IMG_SIZE, 3))
-
-model = EfficientNetB1(include_top=False, input_tensor=inputs, weights=&quot;imagenet&quot;)
-
-model.trainable = False
-
-x = layer.GlobalAveragePooling2D(name=&quot;avg_pool&quot;)(model.output)
-x = layer.BatchNormalization()(x)
-# x = layer.Dense(128, 激活=&quot;relu&quot;)(x)
-# top_dropout_rate = 0.2
-# x = layer.Dropout(top_dropout_rate, 名称=&quot;dropout&quot;)(x)
-# 输出 = layer.Dense(1, 激活=&quot;sigmoid&quot;, 名称=&quot;pred&quot;)(x)
-输出 = layer.Dense(1, 激活=&quot;sigmoid&quot;, 名称=&quot;pred&quot;)(x)
-
-模型 = tf.keras.Model(输入、输出、名称=&quot;EfficientNet&quot;)
-优化器 = tf.keras.optimizers.Adam(learning_rate=1e-4)
-model.compile(
-optimizer=optimizer,
-loss=&quot;binary_crossentropy&quot;,
-metrics=[&quot;accuracy&quot;]
-)
-
-return model
-
-你可以看到我尝试了很多方法只是为了让某些东西起作用但都无济于事。我将model.trainable设置为False，因为我正在遵循这个关于迁移学习的实现。我还没有完成第一步。我原本计划在达到 60-70% 后继续解冻，但我甚至无法达到 52%。
-以下是我开始训练的方式：
-model = build_model()
-epochs = 50
-hist = model.fit(train_generator, 
-epochs=epochs, 
-steps_per_epoch=len(train_generator), 
-validation_data=validation_generator,
-validation_steps=len(validation_generator))
-
-并且在前十个时期，准确率和 val_accuracy 始终接近 50%，这只不过是随机猜测。
-我尝试降低或增加学习率（1e-1 到 1e-6）、批量大小（32 - 256）、添加 dropouts（0.1 - 0.5），添加 relu 层（32 - 128），并确保图像属于正确的类别。我能做些什么来让模型真正学习？]]></description>
-      <guid>https://stackoverflow.com/questions/79024541/transfer-learning-in-efficientnet-for-binary-classification-task-stuck-at-50</guid>
-      <pubDate>Wed, 25 Sep 2024 19:42:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>尽管 np.where(np.isnan(X)) 没有返回任何内容，sklearn 仍会引发错误“输入 X 包含 NaN”[关闭]</title>
-      <link>https://stackoverflow.com/questions/79024134/sklearn-raises-error-input-x-contains-nan-despite-np-wherenp-isnanx-return</link>
-      <description><![CDATA[我正在尝试为著名的泰坦尼克号数据集制作一个简单的 Knearestneighbor 算法。尽管我的数据框似乎没有任何 NaN 值，但我还是不断收到标题中的错误。如何解决这个问题？
-y = train_data[&quot;Survived&quot;]
-features = [&quot;Fare&quot;, &quot;Sex&quot;]
-
-X = train_data[features]
-X.loc[:, &#39;Sex&#39;] = X.loc[:, &#39;Sex&#39;].apply(weigh_sex)
-X = ct.fit_transform(X)
-
-X_test = test_data[features]
-X_test.loc[:, &quot;Sex&quot;] = X_test.loc[:, &quot;Sex&quot;].apply(weigh_sex)
-X_test = ct.fit_transform(X_test)
-
-print(np.where(np.isnan(X))) #即使放在 clf.fit() 之后，也不会返回任何内容
-
-clf.fit(X, y)
-
-predictions = clf.predict(X_test) #此行引发错误
-
-完整回溯：
-回溯（最近一次调用）：
-文件“C:\pystuff\StatsSandbox\Titanic.py”，第 65 行，位于&lt;module&gt;
-predictions = clf.predict(X_test) #此行引发错误
-文件“C:\pystuff\learn\StatsSandbox\lib\site-packages\sklearn\neighbors\_classification.py”，第 266 行，在 predict 中
-neigh_ind = self.kneighbors(X, return_distance=False)
-文件“C:\pystuff\learn\StatsSandbox\lib\site-packages\sklearn\neighbors\_base.py”，第 804 行，在 kneighbors 中
-X = self._validate_data(X, accept_sparse=&quot;csr&quot;, reset=False, order=&quot;C&quot;)
-文件“C:\pystuff\learn\StatsSandbox\lib\site-packages\sklearn\base.py”，第 605 行，在 _validate_data 中
-out = check_array(X，input_name=&quot;X&quot;，**check_params)
-文件 &quot;C:\pystuff\learn\StatsSandbox\lib\site-packages\sklearn\utils\validation.py&quot;，第 957 行，在 check_array 中
-_assert_all_finite(
-文件 &quot;C:\pystuff\learn\StatsSandbox\lib\site-packages\sklearn\utils\validation.py&quot;，第 122 行，在 _assert_all_finite
-_assert_all_finite_element_wise(
-文件 &quot;C:\pystuff\learn\StatsSandbox\lib\site-packages\sklearn\utils\validation.py&quot;，第 171 行，在 _assert_all_finite_element_wise
-raise ValueError(msg_err)
-ValueError：输入 X 包含 NaN。
- ]]></description>
-      <guid>https://stackoverflow.com/questions/79024134/sklearn-raises-error-input-x-contains-nan-despite-np-wherenp-isnanx-return</guid>
-      <pubDate>Wed, 25 Sep 2024 17:26:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>鉴于训练和测试集完全不相交，可以使用哪些 ML/DL 模型来玩 Hangman 游戏？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79023327/what-ml-dl-models-can-be-used-to-play-the-game-hangman-given-the-training-and-t</link>
-      <description><![CDATA[Hangman 是一款猜字游戏，玩家需要逐个字母猜出隐藏的单词。每次猜对都会显示单词中该字母的所有实例，而猜错则会减少玩家剩余的尝试次数。目标是在尝试次数用完之前猜出单词。隐藏单词的长度是可变的，最大尝试次数为 5 次。
-我必须想出一个模型/算法来猜测隐藏字符串的字母（例如，如果隐藏单词是“mathematics”，输入是 _ a t h e _ a t i _ s，则模型理想情况下应该猜测“m”或“c”）。测试将通过模拟从完全隐藏的单词（仅下划线）开始的绞刑游戏来完成。
-训练数据是来自英语的单词列表，测试数据将不包含任何这些给定的单词。
-机器学习方法是首选，但不是强制性的。
-我尝试在通过随机删除给定单词中的字母实例生成的数据上训练 BiLSTM 模型，然后为输入字符串中的每个位置（包括已经显示的单词）输出 27 个类别的 softmax（每个字母 1 个，填充字符 1 个）。由于训练集中的最大单词数为 32，因此我将输入字符串填充为 32 个字符。这并没有给出令人满意的结果。
-还尝试了字节对编码 (BPE) 来提取训练词汇表中的相关子词，然后尝试从测试集中猜测单词是 BPE 词汇表中三个单词的组合。
-我还能尝试什么？这会属于哪种问题？我在哪里可以阅读有关此类问题的更多信息？]]></description>
-      <guid>https://stackoverflow.com/questions/79023327/what-ml-dl-models-can-be-used-to-play-the-game-hangman-given-the-training-and-t</guid>
-      <pubDate>Wed, 25 Sep 2024 14:03:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>Jupyter Notebook 和 Python 脚本返回不同的 YOLOV8 实例分割掩码[关闭]</title>
-      <link>https://stackoverflow.com/questions/79023273/jupyter-notebook-and-python-script-return-different-yolov8-instance-segmentation</link>
-      <description><![CDATA[我一直在运行预先训练的 YOLOV8 模型来进行实例分割。为了进行测试和开发，我一直在使用 Anaconda Jupyter Notebook，在部署之前我将其转换为 Python 脚本。
-这是来自 Jupyter Notebook 的（正确）掩码：
-
-这是来自 Python 脚本的结果：
-
-您可以看到 Python 结果在边缘处有奇怪的块我的头和手机。
-
-两个版本的代码完全相同
-Python 虚拟环境直接从 Jupyter 环境导出创建（我仔细检查了：Python 版本相同，所有库的版本也相同）
-CUDA 版本相同
-硬件相同（两个示例都在同一台机器上执行）
-
-有人知道为什么会发生这种情况或我该如何修复它吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79023273/jupyter-notebook-and-python-script-return-different-yolov8-instance-segmentation</guid>
-      <pubDate>Wed, 25 Sep 2024 13:53:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>SBERT 微调总是在完成所有 epoch 之前停止</title>
-      <link>https://stackoverflow.com/questions/79021064/sbert-fine-tuning-always-stops-before-finish-all-epochs</link>
-      <description><![CDATA[我正在使用 SBERT 预训练模型（特别是 MiniLM）进行一个包含 995 个分类的文本分类项目。我大部分时间都在按照此处列出的步骤进行操作，一切似乎都运行正常。
-我的问题出现在实际训练模型时。无论我在训练参数中设置什么值，训练似乎总是提前结束，并且永远不会完成所有批次。例如，我设置了 num_train_epochs=1，但它最多只能达到 0.49 个 epoch。如果 num_train_epochs=4，它总是在 3.49 个 epoch 处结束。
-这是我的代码：
-from datasets import load_dataset
-from sentence_transformers import (
-SentenceTransformer,
-SentenceTransformerTrainer,
-SentenceTransformerTrainingArguments,
-SentenceTransformerModelCardData,
-)
-from sentence_transformers.losses import BatchAllTripletLoss
-from sentence_transformers.training_args import BatchSamplers
-from sentence_transformers.evaluation import TripletEvaluator
-
-model = SentenceTransformer(
-&quot;nreimers/MiniLM-L6-H384-uncased&quot;,
-model_card_data=SentenceTransformerModelCardData(
-language=&quot;en&quot;,
-license=&quot;apache-2.0&quot;,
-model_name=&quot;all-MiniLM-L6-v2&quot;,
-)
-)
-
-loss = BatchAllTripletLoss(model)
-# 损失概述：https://www.sbert.net/docs/sentence_transformer/loss_overview.html
-# 此特定损失方法：https://www.sbert.net/docs/package_reference/sentence_transformer/losses.html#batchalltripletloss
-
-# 训练参数：https://huggingface.co/docs/transformers/main/en/main_classes/trainer#transformers.TrainingArguments
-args = SentenceTransformerTrainingArguments(
-# 必需参数：
-output_dir=&quot;finetune/model20240924&quot;,
-# 可选训练参数：
-num_train_epochs=1,
-max_steps = -1,
-per_device_train_batch_size=8,
-per_device_eval_batch_size=8,
-learning_rate=1e-5,
-warmup_ratio=0.1,
-fp16=True, # 如果您收到 GPU 无法在 FP16 上运行的错误，请设置为 False
-bf16=False, # 如果您拥有支持 BF16 的 GPU，请设置为 True
-batch_sampler=BatchSamplers.GROUP_BY_LABEL, # 
-# 可选的跟踪/调试参数：
-eval_strategy=&quot;no&quot;,
-eval_steps=100,
-save_strategy=&quot;epoch&quot;,
-# save_steps=100,
-save_total_limit=2,
-logs_steps=100,
-run_name=&quot;miniLm-triplet&quot;, # 如果在 W&amp;B 中使用`wandb` 已安装
-)
-
-trainer = SentenceTransformerTrainer(
-model=model,
-args=args,
-train_dataset=trainDataset,
-eval_dataset=devDataset,
-loss=loss,
-#evaluator=dev_evaluator,
-)
-trainer.train()
-
-请注意，我没有使用评估器，因为我们正在创建模型，并在事后使用专用的测试值集对其进行测试。我的数据集结构如下：
-Dataset({
-features: [&#39;Title&#39;, &#39;Body&#39;, &#39;label&#39;],
-num_rows: 23961
-})
-
-与 dev 数据集具有相同的结构，只是行数较少。这将提供以下输出：
- [1473/2996 57:06 &lt; 59:07，0.43 it/s，Epoch 0/1]
-步骤训练损失
-100 1.265600
-200 0.702700
-300 0.633900
-400 0.505200
-500 0.481900
-600 0.306800
-700 0.535600
-800 0.369800
-900 0.265400
-1000 0.345300
-1100 0.516700
-1200 0.372600
-1300 0.392300
-1400 0.421900
-
-TrainOutput(global_step=1473, training_loss=0.5003972503496366, metrics={&#39;train_runtime&#39;: 3427.9198, &#39;train_samples_per_second&#39;: 6.99, &#39;train_steps_per_second&#39;: 0.874, &#39;total_flos&#39;: 0.0, &#39;train_loss&#39;: 0.5003972503496366, &#39;epoch&#39;: 0.4916555407209613})
-
-无论我如何调整值，我都无法让它完成所有批次。如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/79021064/sbert-fine-tuning-always-stops-before-finish-all-epochs</guid>
-      <pubDate>Wed, 25 Sep 2024 03:55:44 GMT</pubDate>
-    </item>
-    <item>
       <title>TypeError：无法找到类“Sequential”[关闭]</title>
       <link>https://stackoverflow.com/questions/79019296/typeerror-could-not-locate-class-sequential</link>
       <description><![CDATA[]]></description>
@@ -456,6 +361,32 @@ TrainOutput(global_step=1473, training_loss=0.5003972503496366, metrics={&#39;tr
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78996950/importerror-dll-load-failed-while-importing-onnx-cpp2py-export-a-dynamic-link</guid>
       <pubDate>Wed, 18 Sep 2024 07:08:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用自定义损失函数处理多类分类中的类别不平衡问题</title>
+      <link>https://stackoverflow.com/questions/77462336/handling-class-imbalance-in-multi-class-classification-with-custom-loss-function</link>
+      <description><![CDATA[我正在使用先进的机器学习技术在 Python 中研究多类分类问题。我正在处理的数据集存在严重的类别不平衡问题，其中一些类别与其他类别相比代表性不足。这种不平衡对我的模型的性能产生了不利影响，尤其是对于少数类别。
+为了解决这个问题，我正在考虑实现一个可以更好地处理类别不平衡的自定义损失函数。我正在使用 TensorFlow/Keras 进行模型开发。我目前的模型结构如下：
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# 示例模型架构
+model = Sequential([
+Dense(128,activation=&#39;relu&#39;,input_shape=(input_shape,)),
+Dense(64,activation=&#39;relu&#39;),
+Dense(num_classes,activation=&#39;softmax&#39;)
+])
+
+model.compile(optimizer=&#39;adam&#39;,loss=&#39;categorical_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
+
+这里，num_classes 表示我的数据集中的类数，input_shape 是输入特征的形状。问题在于损失函数“categorical_crossentropy”，它没有考虑到类别不平衡。
+我正在寻找一种方法来创建一个自定义损失函数，该函数可以将类别权重集成到计算中，从而在训练期间更加重视少数类别。以下是我的具体问题：
+如何在 TensorFlow/Keras 中开发一个自定义损失函数，该函数结合了多类别分类问题的类别权重？
+有哪些最佳实践可以确保此自定义损失函数具有计算效率并且不会对训练时间产生重大负面影响？
+在实施自定义损失函数来处理类别不平衡时，我应该注意哪些潜在的陷阱或常见错误？]]></description>
+      <guid>https://stackoverflow.com/questions/77462336/handling-class-imbalance-in-multi-class-classification-with-custom-loss-function</guid>
+      <pubDate>Fri, 10 Nov 2023 19:09:26 GMT</pubDate>
     </item>
     <item>
       <title>如何解决“无法将类强制转换为data.frame？</title>
@@ -486,21 +417,6 @@ print(MSE)
 ]]></description>
       <guid>https://stackoverflow.com/questions/58870663/how-to-solve-cannot-coerce-class-to-data-frame</guid>
       <pubDate>Fri, 15 Nov 2019 05:09:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>努力理解 R 中完整的预测模型流程</title>
-      <link>https://stackoverflow.com/questions/40127296/struggling-to-understand-complete-predictive-model-process-in-r</link>
-      <description><![CDATA[我正在尝试使用现有客户和已流失客户的数据库来预测客户流失。到目前为止，我已经
-
-获取现有客户和已流失客户的完整客户数据库以及客户服务变量等，用于预测。
-将数据集随机分为 70/30 的训练和测试
-使用 R，我训练了一个随机森林模型来预测，然后使用混淆矩阵将其与实际状态进行比较。
-我已经使用测试数据运行该模型来检查识别流失者的准确性
-
-我现在想做的是获取我们所有的现有客户并预测哪些客户会流失。我是否完全做错了，因为我需要预测是否会流失的很多现有客户已经被模型看到，因为他们出现在训练集中？
-我是否应该使用不属于我需要进行预测的数据集的训练和测试集？]]></description>
-      <guid>https://stackoverflow.com/questions/40127296/struggling-to-understand-complete-predictive-model-process-in-r</guid>
-      <pubDate>Wed, 19 Oct 2016 09:24:33 GMT</pubDate>
     </item>
     </channel>
 </rss>
