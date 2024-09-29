@@ -4,7 +4,188 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 29 Sep 2024 15:17:51 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 29 Sep 2024 18:20:45 GMT</lastBuildDate>
+    <item>
+      <title>时间序列的 AIC 和差分</title>
+      <link>https://stats.stackexchange.com/questions/655080/aic-and-differencing-for-time-series</link>
+      <description><![CDATA[我正在教授一门应用时间序列课程，并想到了一个我不知道如何回答的问题。假设我们有一个非平稳时间序列，我们尝试使用常规差分、季节性差分或两者的模型。这三种转换都会导致数据看起来是平稳的。像这样的例子出现在《Stat 2》一书的第 12 章中，涉及和平桥上的车辆交通。您可以使用以下 R 块获取数据。
+require(Stat2Data)
+data(PeaceBridge2003)
+plot(PeaceBridge2003$Traffic)
+
+我考虑了几个模型，发现其中三个模型的残差没有自相关性，即
+
+模型 1：SARIMA(1,1,0)x(1,0,0)[12]，这是我“手工”得到的模型来自 ACF 和 PACF
+模型 2：SARIMA(0,0,0)x(0,1,1)[12]，auto.arima() 选择的模型
+模型 3：SARIMA(0,1,1)x(1,1,0)[12]，来自 Stat 2 一书的模型
+
+我希望这个符号没问题。第一个表示进行一阶正则差分，然后使用 AR(1) 项和季节性 AR(1) 项 $x_{t-12}$。第二个说进行一阶季节性差分，然后包含季节性 MA(1) 项 $w_{t-12}$。
+要在这些模型之间进行选择，我的直觉是选择最简单的一个（对我来说，就是模型 1），因为差分是一种破坏性的转换。
+但是，我确信我的学生会建议使用 AIC 来比较这三个模型，当你这样做时，它会选择模型 3。我担心的是这三个模型代表了三种不同的转换。响应变量可以是 $\Delta x_t$ 或 $\Delta_{12} x_t = x_t - x_{t-12}$ 或 $\Delta_{12} (\Delta x_t)$。
+众所周知，您不应使用 AIC 来比较对响应变量进行不同变换的模型。例如，对响应变量进行对数或平方根变换将产生截然不同的 AIC，正如之前所介绍的那样。
+令我惊讶的是，当我模拟数据并使用 stats 包中的函数 AIC() 时，我不会像上例中那样为不同类型的差分获得截然不同的值。而且 AIC 通常会在模拟中选择正确的模型。我开始怀疑它在 R 中的实现方式，是否可以用它来比较上述三个模型，也许是因为，归根结底，这三个模型中的响应变量仍然是 $x_t$（例如，R 内置了反向转换）。这样对吗？或者，我们不应该使用 stats 包中的 AIC() 函数来比较具有不同类型差分的上述模型？
+最后，我很清楚，关于使用什么顺序差分的真正决策者是“这种差分后数据是否平稳？”的问题；并且，考虑到生成机制，理论上，三种差分类型中只有一种应该导致平稳性。而且，通常，季节性差异是没有必要的。但问题是，我们没有足够的数据来肯定地说，两个选择会留下非平稳数据，而第三个选择会成功（这里$n = 156$；这是 13 年的月度数据）。据我们所知，这三个选择都是有效的。因此，了解 AIC 是否可用于帮助在这种情况下做出决定将会很有帮助。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655080/aic-and-differencing-for-time-series</guid>
+      <pubDate>Sun, 29 Sep 2024 17:07:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>随机化和因果 Dag</title>
+      <link>https://stats.stackexchange.com/questions/655078/randomization-and-causal-dags</link>
+      <description><![CDATA[假设我们有治疗 T 和结果 O，以及变量 A 和 B，具有以下因果 dag：
+但是，如果我们使用这些治疗和结果变量进行 RCT，那么将因果 dag 想象成：
+
+指向 T 的传入箭头去哪儿了？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655078/randomization-and-causal-dags</guid>
+      <pubDate>Sun, 29 Sep 2024 16:12:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用多种特征进行预测</title>
+      <link>https://stats.stackexchange.com/questions/655077/forecasting-using-many-features</link>
+      <description><![CDATA[我有 n 个特征的时间序列。我的目标是以向前的方式预测目标，即预测模型的长度为 T 的训练周期每 k 个周期后向前移动一次。
+由于 n &gt;&gt; T，我决定将我的特征分组为 m 个组，其中 m &lt; T。此分组基于数据来源和其他特定于域的信息。每个组，我都会在组特征和目标之间拟合预测模型。然后，这 m 个模型的预测又被用作预测目标的特征。这有意义吗？如果有，这种方法叫什么？
+是否有任何统计方法可以将这 n 个特征分组为 m 个组？我尝试过层次聚类，但其结果比现有方法更差。这似乎是由以下事实驱动的：聚类 2 步模型有效地为属于最大特定域组的特征赋予了更多权重。这似乎使结果更糟。有没有办法在创建聚类期间惩罚每个组的聚合权重？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655077/forecasting-using-many-features</guid>
+      <pubDate>Sun, 29 Sep 2024 15:55:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>有没有办法根据变量的同比变化百分比（YoY）来计算指数值（以 100 为基数）？</title>
+      <link>https://stats.stackexchange.com/questions/655076/is-there-away-to-compute-index-values-base-100-from-year-over-year-change-y</link>
+      <description><![CDATA[假设我有这样的时间序列：
+
+
+
+时间段
+同比变化（%）
+
+
+
+
+2024 年 _ Q1
+7.00
+
+
+2024 年 _ Q2
+4.85
+
+
+2024 年 _第三季度
+5.77
+
+
+2024 年 _ 第四季度
+5.66
+
+
+2025 年 _ 第一季度
+6.54
+
+
+2025 年 _ 第二季度
+6.48
+
+
+2025 年 _ 第三季度
+6.36
+
+
+2025 年第四季度
+6.25
+
+
+
+有没有办法将“同比变化百分比”系列转换为“指数值”系列（以给定日期为基数 100）？
+目标系列将类似于：
+
+
+
+时间段
+指数（以 100 为基数，位于 Y2023_Q1）
+
+
+
+
+Y2023 _ Q1
+100
+
+
+Y2023 _ Q2
+103
+
+
+2023 年 _ 第 3 季度
+104
+
+
+2023 年 _ 第 4 季度
+106
+
+
+2024 年 _ 第 1 季度
+107
+
+
+2024 年 _ 第 2 季度
+108
+
+
+2024 年 _ 第 3 季度
+110
+
+
+2024 年 _ 第 4 季度
+112
+
+
+2025 年 _ 第 1 季度
+114
+
+
+2025 年 _ 第 2 季度
+115
+
+
+2025 年 _ 第三季度
+117
+
+
+2025 年 _ 第四季度
+119
+
+
+
+或者可能无法重建 2023 年第一季度的数据，所以也许我应该着眼于构建类似的东西，并在 2024 年第一季度修复基准参考（索引 = 100）：
+
+
+
+时间段
+索引（基数 100 = Y2024_Q1)
+
+
+
+
+Y2024 _ Q1
+100
+
+
+Y2024 _ Q2
+1XX
+
+
+Y2024 _ Q3
+1XX
+
+
+Y2024 _ Q4
+等。
+
+
+
+如果我们有四分位数据，我知道我们可以使用以下公式计算指数的同比变化百分比：
+$$\frac{\mathbf{Index}_{Year\_Y, Quarter\_Q}-\mathbf{Index}_{Year\_(Y-1), Quarter\_Q}}{ \mathbf{Index}_{Year \_(Y-1), Quarter\_Q}}$$
+但我只有 YoY 数据，我想将其反转回指数值。有没有实际的方法可以做到这一点？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655076/is-there-away-to-compute-index-values-base-100-from-year-over-year-change-y</guid>
+      <pubDate>Sun, 29 Sep 2024 15:45:06 GMT</pubDate>
+    </item>
     <item>
       <title>组成数据中的零值和使用狄利克雷分布的问题到底是什么？</title>
       <link>https://stats.stackexchange.com/questions/655075/what-exactly-is-the-issue-with-zero-values-in-compositional-data-and-using-the-d</link>
@@ -41,31 +222,6 @@ p(\omega_i, \tau) := \frac{1}{2} + \frac{1}{2 n} \left[ \sum_{i=1}^{n} \cos (\om
       <pubDate>Sun, 29 Sep 2024 10:23:51 GMT</pubDate>
     </item>
     <item>
-      <title>Maxout 激活函数与 ReLU（权重数量）</title>
-      <link>https://stats.stackexchange.com/questions/655067/maxout-activation-function-vs-relu-number-of-weights</link>
-      <description><![CDATA[据我了解，Maxout 函数的工作原理与 ReLU 完全不同。
-ReLU 函数是 max(0, x)，因此输入 x 是 (W_T x + b)
-Maxout 函数有许多 W，它是 max(W1_T x + b1, W2_T x + b2, ...)
-我理解 ReLU 函数在函数中没有感知器的权重，但 Maxout 函数在函数中有权重。 （并且有更多参数）
-我理解得对吗？
-许多激活函数，例如 ReLU、Sigmoid、tanh、Leaky ReLU 都使用标量值，这是一个已经计算出的值 (W_T x + b)
-Maxout 函数与此不同，对吗？
-Softmax 函数层没有权重吗？
-那么从激活函数的变化来看，权重的数量可以改变吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655067/maxout-activation-function-vs-relu-number-of-weights</guid>
-      <pubDate>Sun, 29 Sep 2024 04:23:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在没有样本偏差的情况下进行超参数调整？</title>
-      <link>https://stats.stackexchange.com/questions/655064/how-to-hyperparameter-tune-without-sample-bias</link>
-      <description><![CDATA[在寻找微调模型超参数 (HP) 的方法时，我发现了多个关于交叉验证技术 (K-folds、LPO、OOB.632+) 和选择最佳超参数组合的方法 (网格搜索、随机搜索等) 的参考资料。许多人说要使用嵌套交叉验证技术来估计模型的一些质量指标，但没有人解释如何选择最终模型将使用的超参数。
-我能找到的最好的文章是有关嵌套交叉验证 (nCV) 或甚至是用于特征选择的 nCV 变体的文章，这将带来相同的模型选择问题。但是这种方法不提供一组唯一的超参数，而是为 CV 技术创建的每个折叠提供多个超参数。
-我试图思考的是使用每个折叠的训练集的最佳超参数组合，并在某种类型的投票系统中考虑它们的平均质量指标和它们的“最佳组合出现”率，以确定哪种组合是最佳的，然后使用所有测试集估计所选超参数的质量指标，但我不确定这是否会导致无偏的 HP 选择和质量估计。
-你有什么文章或解释可能有用吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655064/how-to-hyperparameter-tune-without-sample-bias</guid>
-      <pubDate>Sat, 28 Sep 2024 23:14:32 GMT</pubDate>
-    </item>
-    <item>
       <title>在线性混合效应模型中，随机效应的估计条件模式是否遵循 MVN？</title>
       <link>https://stats.stackexchange.com/questions/655058/do-estimated-conditional-modes-of-random-effects-follow-a-mvn-in-a-linear-mixed</link>
       <description><![CDATA[在教程 GLMM 示例 中提供的 示例中，线性混合效应模型与苔原生态系统的数据（来自 Belshe et al., 2013）拟合，具有以下规范：
@@ -81,76 +237,6 @@ weights=n)
 我从上面提到的建议中推断出，模型中随机效应的条件模式（或均值）的估计值应遵循多元正态（MVN）分布，因此，我们应该检查如果 qqmath(ranef(...)) 确实如此。但是，在线性混合效应模型的公式化中，从未明确假设随机效应的条件模式应具有多元正态分布，对吗？那么使用估计值的 Q-Q 图背后的动机是什么？]]></description>
       <guid>https://stats.stackexchange.com/questions/655058/do-estimated-conditional-modes-of-random-effects-follow-a-mvn-in-a-linear-mixed</guid>
       <pubDate>Sat, 28 Sep 2024 20:52:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>brms 中的 Priors 并未按我预期的那样工作</title>
-      <link>https://stats.stackexchange.com/questions/655043/priors-in-brms-are-not-working-as-i-expect</link>
-      <description><![CDATA[我是贝叶斯统计的新手，我正在尝试使用 brms 拟合一个简单的线性回归并手动设置每个参数的先验，但它并没有像我预期的那样工作
-这是我的代码
-data_2 &lt;- structure(list(YearsExperience = c(1.1, 1.3, 1.5, 2, 2.2, 2.9, 3, 3.2, 3.2, 3.7, 3.9, 4, 4, 4.1, 4.5, 4.9, 5.1, 5.3, 5.9, 6, 
-6.8, 7.1, 7.9, 8.2, 8.7, 9, 9.5, 9.6, 10.3, 10.5), Salary = c(39343L, 
-46205L, 37731L, 43525L, 39891L, 56642L, 60150L, 54445L, 64445L, 
-57189L, 63218L, 55794L, 56957L, 57081L, 61111L, 67938L, 66029L, 
-83088L, 81363L, 93940L, 91738L, 98273L, 101302L, 113812L, 109431L, 
-105582L, 116969L, 112635L, 122391L, 121872L)), class = &quot;data.frame&quot;, row.names = c(NA, 
--30L))
-
-priors &lt;- c(
-set_prior(&quot;normal(28700, 2000)&quot;, class = &quot;Intercept&quot;),
-set_prior(&quot;normal(9006, 1000)&quot;, class = &quot;b&quot;, 
-coef = &quot;YearsExperience&quot;),
-set_prior(&quot;normal(0, 2000)&quot;, class = &quot;sigma&quot;, lb = 0) 
-)
-
-fit_brms &lt;- brm(Salary ~ YearsExperience, data = data_2, Prior=priors)
-
-但是，当我绘制链时，例如，当先验分布远离负值时进行截距。而且我设置的先验并非完全不准确。
-
-如果我使用默认先验进行拟合，效果很好。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655043/priors-in-brms-are-not-working-as-i-expect</guid>
-      <pubDate>Fri, 27 Sep 2024 21:16:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有斜率函数的用户指定值的边际效应</title>
-      <link>https://stats.stackexchange.com/questions/655041/marginal-effects-at-user-specified-values-with-slopes-function</link>
-      <description><![CDATA[我在使用 marginaleffects 包的 slope 函数估计用户指定值的边际效应时遇到了麻烦
-假设我想用帕尔默企鹅数据集预测 body_mass_g
-library(marginaleffects)
-
-dat &lt;- read.csv(
-&quot;https://vincentarelbundock.github.io/Rdatasets/csv/palmerpenguins/penguins.csv&quot;)
-
-
-这是我的函数。我想将 flipper_length 设置为 180，将 bill_length_mm  设置为 39 或 40。
-mod.lm &lt;- lm(body_mass_g ~ bill_length_mm + flipper_length_mm + 
-species, data = dat)
-
-slopes(
-mod.lm,
-newdata = datagrid(
-flipper_length_mm = 180,
-bill_length_mm = c(39,40)))
-
-
-
-我知道一些事情是错误的，因为所有预测因子的估计值都相同，无论 bill_length_mm 的值设置为 39 还是 40。
-我尝试使用 glm 二元结果变量运行类似的模型，它按预期工作。
-dat$large_penguin &lt;- ifelse(dat$body_mass_g &gt; 
-median(dat$body_mass_g, na.rm = TRUE), 1, 0)
-
-mod &lt;- glm(large_penguin ~ bill_length_mm + flipper_length_mm + 
-species, data = dat, family = binomial)
-
-slopes(
-mod,
-newdata = datagrid(
-flipper_length_mm = 180,
-bill_length_mm = c(39,40)))
-
-
-为什么 lm 模型没有按预期执行，而 glm 模型却可以？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655041/marginal-effects-at-user-specified-values-with-slopes-function</guid>
-      <pubDate>Fri, 27 Sep 2024 21:04:18 GMT</pubDate>
     </item>
     <item>
       <title>测试两个变量之间的关联强度随时间的变化</title>
@@ -186,11 +272,65 @@ https://arxiv.org/abs/2211.09283
       <pubDate>Thu, 19 Sep 2024 09:39:01 GMT</pubDate>
     </item>
     <item>
-      <title>我如何确定我的生态 GLMM 是否构建准确？</title>
-      <link>https://stats.stackexchange.com/questions/654219/how-do-i-determine-if-my-ecological-glmm-is-accurately-constructed</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/654219/how-do-i-determine-if-my-ecological-glmm-is-accurately-constructed</guid>
-      <pubDate>Wed, 11 Sep 2024 16:42:13 GMT</pubDate>
+      <title>AR(1) 的手动 MLE 产生了一个奇怪的初始值 $y_0$</title>
+      <link>https://stats.stackexchange.com/questions/648189/manual-mle-of-ar1-yields-a-weird-initial-value-y-0</link>
+      <description><![CDATA[我正在尝试手动实现 AR(1) 模型中参数的最大似然估计 (MLE)
+$$
+y_t = c + \varphi_1 y_{t-1} + \varepsilon_t
+$$
+其中 $\text{Var}(\varepsilon_t)=\sigma^2$。我将我的结果与 forecast 包中的 Arima 获得的结果进行比较（基于 stats 包中的 arima）。
+
+我的可能性略高于 Arima。
+除了初始值 $y_0$ 之外，估计值并不相同，但相当接近。我的估算器给出的值似乎太高（高于 $y$ 的范围），并且远离 Arima 的更合理值。
+
+我尝试了几个不同的手动 MLE 起始值，但每次都得到相同的结果。
+我做错了什么？
+library(fpp2) # 示例数据集所需
+
+# AR(1) 的对数似然
+loglik &lt;- function(pars){
+c &lt;- pars[&quot;c&quot; ] # 常数
+phi1 &lt;- pars[&quot;phi1&quot; ] # 斜率
+sigma2 &lt;- pars[&quot;sigma2&quot;] # 误差方差
+y0 &lt;- pars[&quot;y0&quot; ] # 时间序列的初始值
+T &lt;- length(y)
+e &lt;- rep(NA,T)
+e[1] &lt;- y[1] - ( c + phi1*y0 )
+for(t in 2:T){
+e[t] &lt;- y[t] - ( c + phi1*y[t-1] )
+}
+Li &lt;- dnorm(e, mean=0, sd=sqrt(sigma2))
+loglik &lt;- sum(log(Li))
+return(loglik)
+}
+
+y &lt;- diff(log(oil)) # 1966-2013 年沙特阿拉伯石油产量年度变化百分比
+
+# 优化 loglik 函数
+opars &lt;- c(c=0, phi1=0, sigma2=var(y), y0=mean(y)) # 参数的初始值
+#opt &lt;- optim(par=opars, fn=loglik, method=&quot;BFGS&quot;, control=list(fnscale=-1)) # 无界优化
+opt &lt;- optim(par=opars, fn=loglik, method=&quot;L-BFGS-B&quot;, control=list(fnscale=-1), 
+lower=c(-Inf,-0.99,1e-10,-Inf), 
+upper=c( Inf, 0.99,Inf , Inf)) # 有界优化，-0.99&lt;=phi1&lt;=0.99 且 0&lt;sigma2
+opt$convergence # 值为 0 表示优化算法正确收敛
+optres &lt;- c(opt$par, logL=opt$value) # 主要结果为单个向量
+
+# 与以下内容进行比较`forecast::Arima` 对相同数据产生的结果
+m1 &lt;- Arima(y, order=c(1,0,0), method=&quot;CSS-ML&quot;)
+m1 &lt;- Arima(y, order=c(1,0,0), method=&quot;ML&quot; )
+chat &lt;- unname(m1$coef[2]*(1 - m1$coef[1])) # 用 mu 的估计值表示的 c 估计值
+phi1hat &lt;- unname(m1$coef[1])
+y0hat &lt;- (y[1] - chat - m1$residuals[1]) / phi1hat # y0 的估计值
+m1par &lt;- c(c=chat, phi1=phi1hat, sigma2=m1$sigma2, y0=y0hat) 
+m1res &lt;- c(m1par, logL=m1$loglik) # 单个向量中的主要结果
+
+# 打印并将手动 ML 估计值与 `Arima` 中的估计值进行比较
+估计值&lt;- rbind(optres,m1res)
+rownames(估计值) &lt;- c(&quot;Manual&quot;,&quot;Arima&quot;) 
+print(round(估计值, 数字=6))
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/648189/manual-mle-of-ar1-yields-a-weird-initial-value-y-0</guid>
+      <pubDate>Wed, 29 May 2024 08:09:04 GMT</pubDate>
     </item>
     <item>
       <title>证明对数 Exp 的方差大于对数 Exp 的方差</title>
@@ -208,6 +348,16 @@ $E_{q \sim Q(z|x)} [ \log \frac{p(z,x)}{q(z|x)} ]$，即 ELBO。
       <pubDate>Sun, 26 May 2024 22:05:18 GMT</pubDate>
     </item>
     <item>
+      <title>神经网络分类——以类别概率为目标，而不是类别本身</title>
+      <link>https://stats.stackexchange.com/questions/639435/neural-network-classification-targetting-class-probability-and-not-the-class-t</link>
+      <description><![CDATA[假设我有一个二元分类问题；我想从一组特征中预测两个类 $A$、$B$。
+但是，我还得到了一个（预测的 - 接近准确的）概率，它是类 $A$ 的概率，以及它是类 $B$ 的概率。假设分别为 $0.78、0.22$。这些概率正是我想要解决的问题。
+如果我只采用标准路线 $BinaryCrossentropy()$ 损失，那么网络对我想要解决的这些概率一无所知。
+这现在会变成回归问题吗？或者可能是分类问题，但具有自定义损失函数？]]></description>
+      <guid>https://stats.stackexchange.com/questions/639435/neural-network-classification-targetting-class-probability-and-not-the-class-t</guid>
+      <pubDate>Fri, 16 Feb 2024 13:13:08 GMT</pubDate>
+    </item>
+    <item>
       <title>寻找具有多个部分和不同尺度的损失函数的系数</title>
       <link>https://stats.stackexchange.com/questions/579487/finding-coefficients-for-a-loss-function-with-multiple-parts-and-different-scale</link>
       <description><![CDATA[我正在努力重复使用论文Pixel2Mesh++：通过变形生成多视图 3D 网格，该论文将 3D 网格变形以使其适合某些 2D 图像，但场景与原始场景不同。
@@ -221,77 +371,6 @@ $E_{q \sim Q(z|x)} [ \log \frac{p(z,x)}{q(z|x)} ]$，即 ELBO。
 所以，我的问题是：对于具有多个部分且并非所有部分都具有相同比例的损失函数，有哪些方法可以找到良好的系数？]]></description>
       <guid>https://stats.stackexchange.com/questions/579487/finding-coefficients-for-a-loss-function-with-multiple-parts-and-different-scale</guid>
       <pubDate>Tue, 21 Jun 2022 12:48:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果我使用 R 中的 wilcox.test 来处理配对数据，它到底返回什么？我想根据这个结果计算效应大小</title>
-      <link>https://stats.stackexchange.com/questions/542165/if-i-use-the-wilcox-test-from-r-for-paired-data-what-exactly-it-returns-i-want</link>
-      <description><![CDATA[我想计算成对 Wilcoxon（有符号秩）的效应大小。
-有两个选项：Z/sqrt(N_pairs)
-或秩-双列相关性。
-wilcox.test(... paired=TRUE) 返回“V”。
-文献中有很多字母：对于 Mann-Whitney（非成对），它要么是“U”，要么是“W” （取决于方法，即 Wilcoxon 方法），对于成对的 Wilcoxon，它是 Z 或 V。
-在我的情况下，V = 0。
-数据：
-d &lt;- structure(list(PatientId = structure(c(1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 6L, 6L, 7L, 7L, 8L, 8L, 9L, 9L, 10L, 10L, 11L, 11L, 12L, 12L), .Label = c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5&quot;, &quot;6&quot;, &quot;7&quot;, 
-&quot;8&quot;, &quot;9&quot;, &quot;10&quot;, &quot;11&quot;, &quot;12&quot;), class = &quot;factor&quot;), 时间点 = 结构 (c(1L, 
-2L, 1L, 2L, 1L, 2L, 1L, 2L, 1L, 2L, 1L, 2L, 1L, 2L, 1L, 2L, 1L, 
-2L, 1L, 2L, 1L, 2L, 1L, 2L), .标签 = c(&quot;基线&quot;, &quot;第 3 个月&quot;
-), class = &quot;factor&quot;), 结果 = c(0, 9, 6, 8, 0, 0, 0, 0, 0, 0, 
-0, 0, 1, 2, 3, 3, 1, 2, 1, 1, 3, 3, 7, 7)), row.names = c(NA, 
--24L), class = &quot;data.frame&quot;)
-
-&gt; wilcox.test(结果 ~ 时间点，配对 = TRUE，数据 = d)
-
-带连续性校正的 Wilcoxon 符号秩检验
-
-数据：按时间点的结果
-V = 0，p 值 = 0.1
-备选假设：真实位置偏移不等于 0
-
-警告消息：
-1：在 wilcox.test.default(x = c(0, 6, 0, 0, 0, 0, 1, 3, 1, 1, 3, 7) 中，:
-无法计算具有关系的精确 p 值
-2：在 wilcox.test.default(x = c(0, 6, 0, 0, 0, 0, 1, 3, 1, 1, 3, 7) 中，:
-无法计算具有零的精确 p 值
-
-rank_biserial 不起作用：
-&gt; rank_biserial(结果 ~ 时间点，配对 = TRUE，数据 = d)
-r (等级 biserial) | 95% CI
-----------------------------------
--1.00 | [-1.00, -1.00]
-警告消息：
-在 ranktransform.numeric((x - y) - mu, sign = TRUE, verbose = verbose) 中：
-检测到零。这些不能进行符号等级转换。
-
-但 rstatix 包实现返回了其他内容（匹配 wilcox.test 而没有连续性校正）：
-coin::wilcoxsign_test(结果 ~ 时间点 | PatientId，数据=d，zero.method = &quot;Wilcoxon&quot;)
-
-渐近 Wilcoxon 符号秩检验
-
-数据：y x (pos, neg) 
-按区块分层
-Z = -2，p 值 = 0.07
-备选假设：真 mu 不等于 0
-
-&gt; wilcox.test(结果 ~ 时间点，配对 = TRUE，数据 = d，正确 = FALSE)
-
-Wilcoxon 符号秩检验
-
-数据：按时间点的结果
-V = 0，p 值 = 0.07
-备选假设：真实位置偏移不等于 0
-
-警告消息：
-1：在 wilcox.test.default(x = c(0, 6, 0, 0, 0, 0, 1, 3, 1, 1, 3, 7) 中，:
-无法计算具有关系的精确 p 值
-2：在 wilcox.test.default(x = c(0, 6, 0, 0, 0, 0, 1, 3, 1, 1, 3, 7) 中，:
-无法计算具有零的精确 p 值
-
-因此，“V”与“Z”？
-在这种情况下，我可以使用 Z/sqrt(12) = 0.577 来计算效果大小，该值是中等到大（根据 Cohen 的说法）。
-那么，是否有机会直接从 R 库 wilcox.test 获取 Z（并计算效果大小）？我想坚持使用基础库。]]></description>
-      <guid>https://stats.stackexchange.com/questions/542165/if-i-use-the-wilcox-test-from-r-for-paired-data-what-exactly-it-returns-i-want</guid>
-      <pubDate>Wed, 01 Sep 2021 11:05:27 GMT</pubDate>
     </item>
     </channel>
 </rss>
