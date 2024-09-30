@@ -4,7 +4,119 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 30 Sep 2024 12:35:11 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 30 Sep 2024 15:19:04 GMT</lastBuildDate>
+    <item>
+      <title>使用 R 中的随机搜索优化随机森林超参数：ranger 包的长时间运行和错误</title>
+      <link>https://stackoverflow.com/questions/79039614/optimizing-random-forest-hyperparameters-with-random-search-in-r-long-runtime-a</link>
+      <description><![CDATA[我尝试使用“随机搜索”方法确定随机森林模型的参数 ntree、mtry 和 nodesize 的最优值。我还尝试使用交叉验证来评估每个组合的预测准确度并选择最佳超参数值。
+我运行了模型，如下面的代码所示，但这个过程需要很长时间。我等了 4 个小时，但它仍然没有完成。我正在寻找专家建议，看看代码在当前状态下是否正确。我尝试使用 ranger 包，但遇到了错误“错误：调整参数网格应该有列 mtry、splitrule、min.node.size
+&quot;。对于这个我想应用于连续数据的任务，您有更好的解决方案吗？
+library(caret)
+library(randomForest) 
+
+# 将数据拆分为训练 (70%) 和验证 (30%) 集
+set.seed(123)
+train_index3 &lt;- createDataPartition(all_data3$LST, p = 0.7, list = FALSE)
+train_data3 &lt;- all_data3[train_index3, ]
+validation_data3 &lt;- all_data3[-train_index3, ]
+
+# 设置使用随机搜索的交叉验证
+train_control &lt;- trainControl(method = &quot;cv&quot;, number = 5, search = &quot;random&quot;)
+
+# 创建要调整的超参数列表
+ntree_values &lt;- seq(100, 500, by = 10)
+nodesize_values &lt;- c(1:30)
+mtry_values &lt;- c(1:30)
+
+# 初始化数据框以存储结果
+results &lt;- data.frame(ntree = numeric(), nodesize = numeric(), mtry = numeric(), 
+R2 = numeric(), MAE = numeric())
+
+# 手动执行随机搜索
+for (ntree in ntree_values) {
+for (nodesize in nodesize_values) {
+for (mtry in mtry_values) {
+
+# 为每个组合训练模型
+set.seed(123)
+rf_model &lt;- randomForest(
+LST ~ .
+data = train_data3,
+method = &quot;rf&quot;,
+mtry = mtry,
+ntree = ntree,
+nodesize = nodesize,
+significance = TRUE
+)
+
+# 获取验证集上的预测
+predictions &lt;- predict(rf_model, validation_data3)
+
+# 计算性能指标 (R² 和 MAE)
+R2 &lt;- caret::R2(predictions, validation_data3$LST)
+MAE &lt;- caret::MAE(predictions, validation_data3$LST)
+
+# 存储结果
+results &lt;- rbind(results, data.frame(ntree = ntree, nodesize = nodesize, mtry = mtry, 
+R2 = R2, MAE = MAE))
+}
+}
+}
+
+# 查看结果
+print(results)
+
+# 步骤 1：预测训练数据
+train_predictions3 &lt;- predict(rf_model, newdata = train_data3[, -c(1:5)])
+
+# 第 2 步：根据验证数据进行预测
+validation_predictions3 &lt;- predict(rf_model, newdata = validation_data3[, -c(1:5)])
+]]></description>
+      <guid>https://stackoverflow.com/questions/79039614/optimizing-random-forest-hyperparameters-with-random-search-in-r-long-runtime-a</guid>
+      <pubDate>Mon, 30 Sep 2024 13:37:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于压力检测的心电图分析</title>
+      <link>https://stackoverflow.com/questions/79039477/ecg-analysis-for-stress-detection</link>
+      <description><![CDATA[有人使用过数据集 SWELL 进行压力检测吗？您能帮我识别其中的各种参数列表吗？有人能告诉我数据集中与压力高度相关的最佳匹配特征吗？我应该使用回归分类进行压力预测吗？
+我期待对数据集的准确解释]]></description>
+      <guid>https://stackoverflow.com/questions/79039477/ecg-analysis-for-stress-detection</guid>
+      <pubDate>Mon, 30 Sep 2024 13:02:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>了解 K 折交叉验证、模型训练和 R² 分数</title>
+      <link>https://stackoverflow.com/questions/79039465/understanding-k-fold-cross-validation-model-training-and-r%c2%b2-scores</link>
+      <description><![CDATA[我正在使用网格搜索设置中的 K 折交叉验证来调整超参数。我对模型的训练和评估方式有几个问题：
+
+当我使用 GridSearchCV 时，模型会在多个折（假设为 10 个）上进行评估。对于每个超参数组合，模型会在 (K-1) 个折上进行训练，并在剩余的折上进行验证。当我在网格搜索后获得 best_grid 模型时，该模型是在哪些特定训练数据（即哪些折）上进行训练的？
+
+当我调用 best_grid.predict(X_test) 时，该模型在哪个数据集上进行预测？它是否在网格搜索后对整个数据集进行了训练，还是仍然基于交叉验证期间使用的折叠？
+
+如果 best_grid 模型尚未在整个数据集上进行训练，我是否需要在进行预测之前再次将其明确地拟合到完整数据集？
+
+
+顺便说一句，我正在处理非常小的数据集，小 n&lt;&lt;p，所以我没有足够的数据进行正常的训练测试分割。 （遗憾的是，执行 LOOCV 不是一个选项，因为我们需要查看 R2 结果）
+谢谢 :)
+
+我想获得 R² 训练分数，但我对使用以下代码时收到的分数感到困惑：
+param_grid = {f&#39;regressor__regressor__{param}&#39;: values for param, values in model_info[&#39;params&#39;].items()}
+grid_search = GridSearchCV(full_pipeline, param_grid, cv=stratified_kf.split(X, y_binned),scoring=&quot;r2&quot;, n_jobs=4, return_train_score=True)
+
+grid_search.fit(X,y)
+
+if grid_search.best_score_ &gt; best_score:
+best_score = grid_search.best_score_
+best_model = model_name
+best_grid = grid_search
+
+mean_train_score = best_grid.cv_results_[&#39;mean_train_score&#39;][best_grid.best_index_] #
+print(mean_train_score) # 这里就是这个
+
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79039465/understanding-k-fold-cross-validation-model-training-and-r%c2%b2-scores</guid>
+      <pubDate>Mon, 30 Sep 2024 12:59:27 GMT</pubDate>
+    </item>
     <item>
       <title>“ValueError：在 Keras 模型中组合图像、掩码和 CSV 数据时输入形状无效”</title>
       <link>https://stackoverflow.com/questions/79039003/valueerror-invalid-input-shape-when-combining-image-mask-and-csv-data-in-ker</link>
@@ -133,14 +245,6 @@ return df1.values
       <pubDate>Mon, 30 Sep 2024 03:42:07 GMT</pubDate>
     </item>
     <item>
-      <title>使用模糊逻辑和人工智能进行名称匹配评分</title>
-      <link>https://stackoverflow.com/questions/79036523/name-matching-score-using-fuzzy-logic-and-ai</link>
-      <description><![CDATA[我有一个 excel，里面有两个姓名列和一个显示两个姓名的姓名匹配分数的列，即两个数字匹配的百分比。
-我需要一个用 Python 编写的机器学习代码，该代码可以在这个 excel 上进行训练，并且能够预测姓名匹配分数的进一步值。]]></description>
-      <guid>https://stackoverflow.com/questions/79036523/name-matching-score-using-fuzzy-logic-and-ai</guid>
-      <pubDate>Sun, 29 Sep 2024 13:44:05 GMT</pubDate>
-    </item>
-    <item>
       <title>XFormersMetadata.__init__() 收到意外的关键字参数“is_prompt”</title>
       <link>https://stackoverflow.com/questions/79036452/xformersmetadata-init-got-an-unexpected-keyword-argument-is-prompt</link>
       <description><![CDATA[]]></description>
@@ -166,57 +270,6 @@ roc12 &lt;- roc(data$y, t12)
 有没有办法在 pROC 中制作多因素模型？]]></description>
       <guid>https://stackoverflow.com/questions/79036243/how-to-make-a-multifactor-model-in-proc</guid>
       <pubDate>Sun, 29 Sep 2024 11:16:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>RubixML 模型在 PHP 中始终返回相同的预测</title>
-      <link>https://stackoverflow.com/questions/79035928/rubixml-model-always-return-the-same-prediction-in-php</link>
-      <description><![CDATA[我尝试使用 https://rubixml.com/ 提取不同句子的产品价格，但它总是返回 260，这是我给它的第一个标签
-&lt;?php
-include_once &#39;../vendor/autoload.php&#39;;
-
-use Rubix\ML\Datasets\Labeled;
-use Rubix\ML\Datasets\Unlabeled;
-use Rubix\ML\Classifiers\KNearestNeighbors;
-use Rubix\ML\Transformers\WordCountVectorizer;
-use Rubix\ML\Transformers\TfIdfTransformer;
-use Rubix\ML\Pipeline;
-use Rubix\ML\Extractors\CSV;
-
-$samples= [&#39;价格是 260&#39;,&#39;成本是 500&#39;,&#39;这件衬衫的成本是 300&#39;,&#39;这件商品的价值是 450&#39;,&#39;售价 150 美元&#39;];
-$labels = [&#39;260&#39;, &#39;500&#39;, &#39;300&#39;, &#39;450&#39;, &#39;150&#39;];
-
-$dataset = new Labeled($samples, $labels);
-
-// 生成模型
-$pipeline = new Pipeline([
-new WordCountVectorizer(100),
-new TfIdfTransformer(),
-], new KNearestNeighbors(3));
-
-// 使用数据集进行训练
-$pipeline-&gt;train($dataset);
-
-// 分析新的 frace
-$new = Unlabeled::build([
-[&#39;价格：1200&#39;],
-]);
-
-// 预测
-$predictions = $pipeline-&gt;predict($new);
-var_dump($predictions);
-
-我更改了 KNearestNeighbors 的值，为训练数据集提供了更大的输入，更改了 Vectorizer。但什么都没有改变。]]></description>
-      <guid>https://stackoverflow.com/questions/79035928/rubixml-model-always-return-the-same-prediction-in-php</guid>
-      <pubDate>Sun, 29 Sep 2024 08:25:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 python 和 scikit-image 在 xray 图像上分割肺部对象时出现问题[关闭]</title>
-      <link>https://stackoverflow.com/questions/79035911/problem-when-segmenting-lung-objects-on-xray-images-using-python-and-scikit-ima</link>
-      <description><![CDATA[如何分割肺部切片？我尝试了几次，但效果并不完美。这是因为肺部前部的骨头部分。
-肺部图像
-我尝试模糊图像以使骨头更透明，但它影响了物体的周围环境。]]></description>
-      <guid>https://stackoverflow.com/questions/79035911/problem-when-segmenting-lung-objects-on-xray-images-using-python-and-scikit-ima</guid>
-      <pubDate>Sun, 29 Sep 2024 08:16:12 GMT</pubDate>
     </item>
     <item>
       <title>如何使用每个数据集在每次训练迭代中训练一个 LSTM 自动编码器？</title>
@@ -289,13 +342,6 @@ model.save(&#39;anomaly_model_&#39;+ i +&#39;.h5&#39;)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79035730/how-can-i-train-an-lstm-autoencoder-for-each-iteration-of-training-with-each-dat</guid>
       <pubDate>Sun, 29 Sep 2024 06:28:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>Keras 模型中的自定义编码器和解码器层显示为未构建</title>
-      <link>https://stackoverflow.com/questions/79034907/custom-encoder-and-decoder-layers-within-keras-model-show-as-unbuilt</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79034907/custom-encoder-and-decoder-layers-within-keras-model-show-as-unbuilt</guid>
-      <pubDate>Sat, 28 Sep 2024 18:27:22 GMT</pubDate>
     </item>
     <item>
       <title>将基于 Bert 的 PyTorch 模型导出到 CoreML。如何让 CoreML 模型适用于任何输入？</title>
@@ -485,6 +531,15 @@ ValueError：只有 `keras.Layer` 的实例可以添加到 Sequential 模型中�
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/77781734/sagemaker-batch-transformer-with-my-own-pre-trained-model</guid>
       <pubDate>Mon, 08 Jan 2024 15:54:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>从 K 折交叉验证中选择哪个模型</title>
+      <link>https://stackoverflow.com/questions/45480894/which-model-to-pick-from-k-fold-cross-validation</link>
+      <description><![CDATA[我读过关于交叉验证的文章，以及它如何用于选择最佳模型和估计参数，但我并不真正理解它的含义。
+假设我建立一个线性回归模型并进行 10 倍交叉验证，我认为这 10 个模型中的每一个都会有不同的系数值，现在我应该从 10 个不同的模型中选择哪一个作为我的最终模型或估计参数。
+或者我们使用交叉验证只是为了找到平均误差（在我们的例子中是 10 个模型的平均值）并与另一个模型进行比较？]]></description>
+      <guid>https://stackoverflow.com/questions/45480894/which-model-to-pick-from-k-fold-cross-validation</guid>
+      <pubDate>Thu, 03 Aug 2017 09:59:13 GMT</pubDate>
     </item>
     </channel>
 </rss>
