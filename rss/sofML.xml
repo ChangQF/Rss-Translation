@@ -4,7 +4,97 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 01 Oct 2024 12:34:13 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 01 Oct 2024 15:18:38 GMT</lastBuildDate>
+    <item>
+      <title>AWS SageMaker 上的 Flask 应用程序无法通过异步端点调用处理 S3 视频处理</title>
+      <link>https://stackoverflow.com/questions/79043743/flask-app-on-aws-sagemaker-fails-to-handle-s3-video-processing-via-async-endpoin</link>
+      <description><![CDATA[我正在 AWS SageMaker 中部署一个 Flask 应用程序，该应用程序旨在处理异步调用。该应用程序应从 S3 获取视频文件，使用面部情绪预测模型对其进行处理，然后返回结果。但是，我的设置没有按预期工作。
+以下是我的流程中步骤的摘要：
+异步 SageMaker 调用：我使用 Python 脚本中的invoke_endpoint_async 方法触发 SageMaker 端点的调用，为视频文件提供 S3 URI。
+response = Runtime.invoke_endpoint_async(
+EndpointName=endpoint_name,
+InputLocation=&quot;&lt;s3 URI&gt;&quot;, 
+ContentType=&quot;application/json&quot;
+)
+
+Flask 应用程序（通过 ECR 部署）：Flask 应用程序在 /invocations 端点监听 POST 请求，从请求正文中提取 S3 URI，下载视频文件，处理它，然后返回预测。
+import os
+from flask import Flask, request, jsonify
+import source.face_emotion_utils.predict as face_predict
+import boto3
+import logs
+
+app = Flask(__name__)
+
+# 设置 S3 客户端
+s3 = boto3.client(&#39;s3&#39;)
+
+@app.route(&#39;/ping&#39;, methods=[&#39;GET&#39;])
+def ping():
+return jsonify({&#39;status&#39;: 200})
+
+@app.route(&#39;/invocations&#39;, methods=[&#39;POST&#39;])
+def faceInvocations():
+try:
+# 提取 JSON 负载
+payload = request.get_json()
+s3_uri = payload.get(&#39;InputLocation&#39;)
+
+if not s3_uri:
+return jsonify({&#39;error&#39;: &#39;s3_uri is required&#39;}), 400
+
+# 从 S3 URI 解析存储桶名称和密钥
+bucket_name, key = s3_uri.replace(&quot;s3://&quot;, &quot;&quot;).split(&quot;/&quot;, 1)
+filename = key.split(&quot;/&quot;)[-1]
+file_path = os.path.join(&#39;/app/input_files&#39;, filename)
+
+# 从 S3 下载文件
+s3.download_file(bucket_name, key, file_path)
+
+# 处理文件（预测情绪）
+prediction = face_predict.predict(file_path, video_mode=True)
+
+# 清理临时文件
+if os.path.exists(file_path):
+os.remove(file_path)
+
+return jsonify({&#39;prediction&#39;: prediction})
+except Exception as e:
+logs.error(f&quot;Error: {str(e)}&quot;)
+return jsonify({&#39;error&#39;: str(e)}), 500
+
+if __name__ == &#39;__main__&#39;:
+app.run(host=&#39;0.0.0.0&#39;, port=8080)
+
+我的期望：
+
+SageMaker 端点应该从异步调用接收 S3 URI。Flask 应用应该下载视频文件、运行情绪预测并返回结果。
+
+问题：
+调用失败，我在 Flask 日志中收到错误。似乎 S3 文件没有被正确下载或处理。以下是一些日志：
+INFO:root:Entered faceInvocations function
+INFO:root:S3 URI: &lt;s3 URI&gt;
+ERROR:root:下载文件时出错：调用 HeadObject 操作时发生错误 (404)：未找到
+
+
+我还可以看到到目前为止的日志 INFO:root:Created directory
+我尝试过的方法：
+
+确保 S3 URI 有效且文件存在。
+验证附加到 SageMaker 端点的 IAM 角色是否具有 S3 存储桶的 s3:GetObject 权限。
+检查 Flask 应用代码是否存在处理 S3 URI 的错误，并能够使用 docker 获取结果
+在日志中打印 S3 存储桶名称和密钥，以确保它们被正确解析。
+
+问题：
+
+为什么我的 Flask 应用无法从中下载视频文件S3，即使 S3 URI 看起来正确？
+我在 Flask 应用程序中处理 S3 URI 的方式是否存在问题？
+在传递 S3 URI 时，我是否遗漏了 SageMaker 异步调用的特定内容？
+
+如能提供任何帮助或建议，我们将不胜感激！]]></description>
+      <guid>https://stackoverflow.com/questions/79043743/flask-app-on-aws-sagemaker-fails-to-handle-s3-video-processing-via-async-endpoin</guid>
+      <pubDate>Tue, 01 Oct 2024 15:09:40 GMT</pubDate>
+    </item>
     <item>
       <title>在 TensorFlow/Keras 中使用 tf.keras.utils.image_dataset_from_directory 时出现 ValueError</title>
       <link>https://stackoverflow.com/questions/79042251/valueerror-when-using-tf-keras-utils-image-dataset-from-directory-in-tensorflow</link>
@@ -43,8 +133,8 @@ load_from=&#39;/path/to/yolo.pt&#39;
       <title>神经网络输入数据中的特征应该是行还是列？</title>
       <link>https://stackoverflow.com/questions/79041608/should-features-be-rows-or-columns-in-input-data-for-neural-networks</link>
       <description><![CDATA[我已经实现了一个神经网络，并且对处理输入矩阵的数据形状的正确方法有疑问。具体来说，我想知道输入数据 X 是否应该在行上有示例而在列上有特征，或者反过来（行上有特征而在列上有示例）。
-目前，我已经实现了它以采用形状为 (num_features, num_examples) 的 X。但是，我发现相互矛盾的来源表明，许多库和框架中的常态恰恰相反。例如，当我加载 MNIST 数据集时，它会以 (num_examples, num_features) 的形式出现，这要求我在将数据作为输入提供给神经网络之前对其进行转置
-鉴于此，如果常见的做法确实是使用 (num_examples, num_features)：
+目前，我已经实现了它以采用形状为 (num_features, num_examples) 的 X。但是，我发现相互矛盾的来源表明，在许多库和框架中，相反的做法是常态。例如，当我加载 MNIST 数据集时，它会以 (num_examples, num_features) 的形式出现，这要求我在将数据作为输入提供给神经网络之前对其进行转置
+鉴于此情况，如果常见的做法确实是使用 (num_examples, num_features)：
 
 我是否应该接受原始形状的 X 并在内部对其进行转置？
 我是否应该更改实现以直接使用其他维度的 X？
@@ -58,11 +148,11 @@ load_from=&#39;/path/to/yolo.pt&#39;
       <link>https://stackoverflow.com/questions/79039614/optimizing-random-forest-hyperparameters-with-random-search-long-runtime-and-er</link>
       <description><![CDATA[我尝试使用“随机搜索”方法确定随机森林模型的参数 ntree、mtry 和 nodesize 的最优值。我还尝试使用交叉验证来评估每个组合的预测准确度并选择最佳超参数值。
 我运行了模型，如下面的代码所示，但这个过程需要很长时间。我等了 4 个小时，但它仍然没有完成。我正在寻找专家建议，看看代码在当前状态下是否正确。我尝试使用 ranger 包，但遇到了错误“错误：调整参数网格应该有列 mtry、splitrule、min.node.size
-&quot;。对于这个我想应用于连续数据的任务，您有更好的解决方案吗？
+&quot;。对于这个我想应用于连续数据的任务，您还有更好的解决方案吗？
 library(caret)
 library(randomForest) 
 
-# 将数据拆分为训练 (70%) 和验证 (30%) 集
+# 将数据拆分为训练集 (70%) 和验证集 (30%)
 set.seed(123)
 train_index3 &lt;- createDataPartition(all_data3$LST, p = 0.7, list = FALSE)
 train_data3 &lt;- all_data3[train_index3, ]
@@ -169,7 +259,7 @@ print(mean_train_score) # 这里就是这个东西
 
 图像：灰度 CT 扫描，形状为 (256, 256, 1)。
 
-蒙版：对应于分割的二进制蒙版，形状为 (256, 256, 1)。
+蒙版：对应于形状 (256, 256, 1) 的分割的二进制蒙版。
 
 CSV 数据：各种出血类型的数值数据，形状为 (6,)。
 
@@ -224,33 +314,6 @@ CSV：(batch_size、6)
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79038878/how-to-reduce-overfitting-or-reduce-effect-from-class-similarity</guid>
       <pubDate>Mon, 30 Sep 2024 10:10:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何加载预训练的 iresnet100 模型</title>
-      <link>https://stackoverflow.com/questions/79038806/how-to-load-pretrained-iresnet100-model</link>
-      <description><![CDATA[找到了这些代码行，但它们似乎不再起作用了，有人知道加载 iresnet100 模型的更新语法是什么吗？
-上下文是我正在编辑使用 resnet50 预训练模型 model = models.resnet50(pretrained=True).cuda() 的现有 python 代码。我需要用 iresnet100 模型替换它
-import insightface
-
-embedder = insightface.iresnet100(pretrained=True)
-
-AttributeError Traceback (most recent call last)
-Cell In[28], line 2
-1 import insightface
-----&gt; 2 embedder = insightface.iresnet100(pretrained=True)
-3 embedder.eval()
-
-AttributeError: 模块“insightface”没有属性“iresnet100”
-
-import torch
-from insightface.model_zoo import get_model
-
-embedder = get_model(&#39;buffalo_s&#39;, pretrained=True).cuda() # 使用适当的模型名称
-embedder.eval() # 将模型设置为评估模式
-
-试过了这些，但没用]]></description>
-      <guid>https://stackoverflow.com/questions/79038806/how-to-load-pretrained-iresnet100-model</guid>
-      <pubDate>Mon, 30 Sep 2024 09:48:03 GMT</pubDate>
     </item>
     <item>
       <title>我应该使用什么输入来预测 rl 模型？它会被缩放还是被反转缩放？</title>
@@ -330,9 +393,9 @@ X_train, y_train = create_sequences(train[[&#39;velocity(m/s)&#39;]],train[&#39;
 # 自动编码器是一种神经网络模型旨在学习输入的压缩表示。
 # 它们使用监督学习方法进行训练，称为自监督。
 # 在这种架构中，编码器 LSTM 模型逐步读取输入序列。
-# 读取整个输入序列后，该模型的隐藏状态或输出表示
+# 读取整个输入序列后，此模型的隐藏状态或输出表示
 # 整个输入序列的内部学习表示为固定长度向量。
-# 然后将该向量作为输入提供给解码器模型，解码器模型将其解释为输出序列中的每个步骤
+# 然后将此向量作为输入提供给解码器模型，解码器模型将其解释为输出序列中的每个步骤
 # 生成。
 # timesteps = X_train.shape[1]
 num_features = X_train.shape[2]
