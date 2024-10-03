@@ -4,7 +4,132 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 02 Oct 2024 21:18:39 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 03 Oct 2024 01:16:04 GMT</lastBuildDate>
+    <item>
+      <title>使用分层数据的无监督学习</title>
+      <link>https://stackoverflow.com/questions/79048804/unsupervised-learning-with-hierarchical-data</link>
+      <description><![CDATA[首先，请原谅我对这个话题的无知。但是，除了简单地输入数据（比如说一组元素 A）并对 A 中的元素进行聚类/分析之外，是否可以在一组集合之间比较和聚类元素。例如，输入集合 A 后，输入集合 B、集合 C、D 等，然后找出元素 B3 是否与元素 A2 相似，或者元素 C6 是否与 D7 相似。
+让我用两个例子来说明。
+示例 1：比较一群运动员的统计数据，看看在个人层面上哪些运动员彼此最相似。
+示例 2：比较一群团队，看看这些团队中的哪些运动员在团队中扮演着类似的角色。就像运动员 A 与 X 团队一样，运动员 B 与 Y 团队一样。如果运动员 A 传球次数更多，并且与 X 队的其他球员相比覆盖范围更大，那么他很可能是一名组织核心。Z 队的 B 也是如此。
+因此，您要根据这些元素对各自集合的“意义”对不同集合中的单个元素进行聚类。]]></description>
+      <guid>https://stackoverflow.com/questions/79048804/unsupervised-learning-with-hierarchical-data</guid>
+      <pubDate>Thu, 03 Oct 2024 00:22:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>C# 中的 LSTM 模型预测问题 - 警告：未编译的模型指标</title>
+      <link>https://stackoverflow.com/questions/79048630/issue-with-lstm-model-prediction-in-c-sharp-warning-uncompiled-model-metrics</link>
+      <description><![CDATA[我使用以下代码预测 LSTM 模型：
+import os
+
+os.environ[&#39;TF_ENABLE_ONEDNN_OPTS&#39;] = &#39;0&#39; 
+os.environ[&#39;TF_CPP_MIN_LOG_LEVEL&#39;] = &#39;1&#39; 
+
+import sys
+import numpy as np
+import warnings
+from tensorflow.keras.models import load_model
+import joblib
+
+warnings.filterwarnings(&quot;ignore&quot;, category=UserWarning, message=&quot;Compiled the loaded model, but the compilation metrics have yet to be build.&quot;)
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(current_dir, &#39;lstm_model.h5&#39;)
+scaler_path = os.path.join(current_dir, &#39;minmax_scaler.pkl&#39;)
+
+def mse(y_true, y_pred):
+return np.mean(np.square(y_true - y_pred))
+
+def predict_lstm(input_sequence):
+# 加载经过训练的 LSTM 模型
+model = load_model(model_path, custom_objects={&#39;mse&#39;: mse})
+
+# 加载拟合的缩放器
+scaler = joblib.load(scaler_path)
+
+input_sequence_scaled = scaler.transform(np.array(input_sequence).reshape(-1, 1))
+
+input_sequence_scaled = input_sequence_scaled.reshape(1, len(input_sequence_scaled), 1)
+
+prediction_scaled = model.predict(input_sequence_scaled)
+
+prediction = scaler.inverse_transform(prediction_scaled)
+
+返回 prediction[0][0]
+
+如果 __name__ == &quot;__main__&quot;:
+input_sequence = [float(arg) for arg in sys.argv[1:]]
+
+如果 len(input_sequence) &lt; 10:
+print(&quot;错误：需要至少 10 个过去的时间戳才能进行 LSTM 预测。&quot;)
+else:
+try:
+predict_value = predict_lstm(input_sequence)
+print(f&quot;预测值：{predicted_value:.6f}&quot;)
+except Exception as e:
+print(f&quot;发生错误：{str(e)}&quot;)
+
+我可以使用以下命令在终端中成功运行预测脚本（我得到 112）：
+python predict_lstm.py 10 20 30 40 50 60 70 80 90 100
+
+但是，当我尝试使用 Swagger 通过 C# 控制器调用此脚本时，我收到以下警告：
+错误：WARNING:absl:Compiled已加载模型，但编译的指标尚未构建。在训练或评估模型之前，model.compile_metrics 将为空。
+
+这是我的 C# 控制器：
+[HttpGet(&quot;lstm&quot;)]
+public IActionResult PredictLstm([FromQuery] LstmInputModel model)
+{
+if (model == null || model.Timestamps == null || model.Timestamps.Length == 0)
+{
+return BadRequest(&quot;Invalid input. An array of timestamps is required.&quot;);
+}
+
+string scriptPath = &quot;Solutions/predict_lstm.py&quot;;
+string result = RunPythonScript(scriptPath, model.Timestamps);
+
+if (!string.IsNullOrEmpty(result))
+{
+return Ok(result);
+}
+else
+{
+return BadRequest(&quot;执行预测脚本时出错。&quot;);
+}
+}
+
+private string RunPythonScript(string scriptPath, double[] features)
+{
+try
+{
+string featuresString = string.Join(&quot; &quot;, features.Select(f =&gt; f.ToString()));
+ProcessStartInfo psi = new ProcessStartInfo
+{
+FileName = &quot;python&quot;,
+Arguments = $&quot;\&quot;{scriptPath}\&quot; {featuresString}&quot;,
+RedirectStandardOutput = true,
+RedirectStandardError = true,
+UseShellExecute = false,
+CreateNoWindow = true
+};
+
+using (Process process = Process.Start(psi))
+{
+process.WaitForExit();
+string output = process.StandardOutput.ReadToEnd();
+string errors = process.StandardError.ReadToEnd();
+返回 !string.IsNullOrEmpty(errors) ? $&quot;Error: {errors}&quot; : output;
+}
+}
+catch (System.Exception ex)
+{
+返回 $&quot;Exception occurred: {ex.Message}&quot;;
+}
+}
+
+什么原因可能导致此问题？我该如何解决？]]></description>
+      <guid>https://stackoverflow.com/questions/79048630/issue-with-lstm-model-prediction-in-c-sharp-warning-uncompiled-model-metrics</guid>
+      <pubDate>Wed, 02 Oct 2024 22:25:42 GMT</pubDate>
+    </item>
     <item>
       <title>R 中 cox 模型的 c 指数</title>
       <link>https://stackoverflow.com/questions/79048475/c-index-in-r-for-cox-model</link>
@@ -192,12 +317,12 @@ def find_sinr_over_group(H, W):
         h_g = H[:, :, :, g] # 形状: (batch_size, M, K)
 
         # 矩阵乘法计算总功率
-        t = tf.matmul(w_h, h_g) # 形状：(batch_size, G, K)
+        t = tf.matmul(w_h, h_g) # 形状: (batch_size, G, K)
         t = tf.math.real(tf.math.multiply(t, tf.math.conj(t)))
         # t = tf.math.abs(t) ** 2 # 形状：(batch_size, G, K)
         Total_power.append(tf.reduce_sum(t, axis=1)) # 对 G 求和得到 (batch_size, K)
 
-    Total_power = tf.stack(total_power, axis=-1) # 形状: (batch_size, K, G)
+    Total_power = tf.stack(total_power, axis=-1) # 形状：(batch_size, K, G)
 
     # 通过从总功率中减去信号功率来隔离干扰功率
     干扰功率 = 总功率 - 信号功率 # 形状：(batch_size, K, G)
@@ -235,10 +360,13 @@ cv2.imwrite(&quot;./test_output.jpg&quot;, t2.reshape((640, 640, 3)))
  subtract(images[i], mean, images[i]);
 multiply(images[i], scalefactor, images[i]);
 
-说实话，看起来在 opencv lib 中实现的方式相同，但想请教一下你们的意见。
+说实话，看起来在 opencv lib 中实现的方式相同，但想请教一下大家的意见。
 另一个问题是，如果输入的是完整的 u8 rgb 值，为什么会变成灰度？
-我尝试通过应用类似的公式转换 4d ndarray 以匹配 blobFromImage 的输出。但输出不一样。
-我希望转换为 (1, 3, w, h) 的 ndarray 的图像减去平均值并乘以比例因子，当您转换回 (width, height, channel) 时，与 blobFromImage 的输出相同。]]></description>
+我尝试通过应用类似的公式转换 4d ndarray 以匹配 blobFromImage 的输出。但输出并不相同。
+我希望将图像转换为 (1, 3, w, h) 的 ndarray，减去平均值并乘以比例因子，当您转换回 (width, height, channel) 时，与 blobFromImage 的输出相同。
+编辑：感谢您对添加输入和输出图像的建议。
+输入
+输出]]></description>
       <guid>https://stackoverflow.com/questions/79048116/why-does-opencv-dnn-blobfromimage-output-converted-back-to-rgb-image-contain-g</guid>
       <pubDate>Wed, 02 Oct 2024 18:53:23 GMT</pubDate>
     </item>
@@ -429,86 +557,16 @@ cluster_labels = kmeans.labels_
 image_cluster_map = {}
 # 循环遍历图像并为其赋予标签
 for i, labels in enumerate(cluster_labels):
-# print(f&quot;Image {i} 属于群集 {labels}&quot;)
+# print(f&quot;Image {i} 属于集群 {labels}&quot;)
 image_cluster_map[f&#39;image_{name_list[i]}&#39;] = labels
 
-# 查看我们的最终群集
+# 查看我们的最终集群
 for i, (key, value) in enumerate(image_cluster_map.items()):
 print(key, &quot;标记为：“，值）
 
 ]]></description>
       <guid>https://stackoverflow.com/questions/79046818/next-steps-i-can-take-to-make-a-good-image-duplicate-and-near-duplicate-finder</guid>
       <pubDate>Wed, 02 Oct 2024 12:49:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>是不是只有我一个人觉得 Python 模块的设置简直就是一场噩梦？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79044839/is-it-just-me-or-are-python-modules-a-nightmare-to-setup</link>
-      <description><![CDATA[我最近改用 Python 来探索 ML 和 AI。我使用 Linux Mint 和 Jupyter 笔记本来处理 Python。所以我安装了 Tensorflow、TFlearn 和 six.moves，以及感觉像二十或两个其他模块。我尝试运行以下命令，
-from __future__ import absolute_import, division, print_function
-
-import os
-import pickle
-from six.moves import urllib
-
-import tflearn
-from tflearn.data_utils import *
-
-我得到
-AttributeError：模块“PIL.Image”没有属性“ANTIALIAS”
-
-当我运行它时。所以我试着研究它，你知道在我问问题之前试着做一个好孩子，似乎枕头模块不再受支持或该功能已弃用。我怎样才能让 tflearn 工作？
-所以我尝试了不同的方法，我尝试使用 langchain 在本地运行 huggingface。我安装了模块并运行代码，结果出现有关未安装模块的错误。所以我会安装该模块并再次运行代码，结果却出现有关未安装模块的另一个错误。所以我安装了那个模块，重新运行代码，结果却出现另一个错误。最后我让这些行运行起来
-from langchain.llms import HuggingFacePipeline
-from langchain import PromptTemplate, LLMChain
-
-在让上述代码最终运行后，我尝试了以下操作。这都是我尝试遵循的教程中的内容。
-model_id = &quot;lmsys/fastchat-t5-3b-v1.0&quot;
-llm = HuggingFacePipeline.from_model_id(
-model_id=model_id,
-task=&quot;text2text-generation&quot;,
-model_kwargs={&quot;temperature&quot;: 0, &quot;max_length&quot;: 1000},
-)
-
-我遇到了大量的属性错误和异常。T 尝试了另一种方式来使用本地 LLM 并安装了 Dalai Llama 下载了 13b 羊驼模型，然后通过端口将其打开到浏览器中。然后我问了一些问题，但没有得到任何回应。所以现在我想知道为什么我还要继续使用 Python。尽管 Python 被宣传为“适合初学者”，但它一直非常令人沮丧。我可以仅使用文本编辑器和 Linux 上的 Bash 以及运行 docker 镜像来在 C++ 中运行 SDL2 程序，因此我并不是一个完全的新手，但到目前为止，我使用 python 的编程经验只是调试环境，仅此而已。
-似乎我尝试了一切。我只是希望它能工作。如果模块无法使用更新的代码安装它自己的必备组件，那它有什么用呢？
-*编辑
-所以我想问题的重点是，我是唯一一个在使用 tflearn 设置 python 环境时遇到问题的人吗？如果我必须进入我安装的代码并更改某些内容才能使其真正工作，那么 Tflearn 实际上就坏了。我不得不找到一个疯狂的解决方法来修复我的 c++ 编译器，但一旦完成，就完成了。我在 c++ 之前尝试过 Python，但对模块地狱感到沮丧。我玩了几年 C++，作为一种爱好，但当我想更深入地了解神经网络和机器学习时，我听说了 tensorflow 和 tflearn，结果又回到了模块地狱。也许我应该忘记 tflearn，尝试 torch，但我担心我会再次找到模块。]]></description>
-      <guid>https://stackoverflow.com/questions/79044839/is-it-just-me-or-are-python-modules-a-nightmare-to-setup</guid>
-      <pubDate>Tue, 01 Oct 2024 21:49:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>创建 PartitionedDatasets 的 Kedro PartitionedDataset</title>
-      <link>https://stackoverflow.com/questions/79044783/create-kedro-partitioneddataset-of-partitioneddatasets</link>
-      <description><![CDATA[我正在做一个 kedro 项目，我想自动标记数千个音频文件，对它们进行转换，然后将它们存储在一个文件夹中，每个子文件夹对应一个标签。我希望该文件夹成为我的 yml 文件的目录条目
-我遵循此 Kedro 教程并创建了我自己的自定义数据集，用于在 kedro 目录中保存/加载 .wav 文件。我还能够在 catalog.yml 中创建 PartitionedDataset  目录条目，例如
-audio_folder:
-type:partitions.PartitionedDataset
-dataset:my_kedro_project.datasets.audio_dataset.SoundDataset
-path:data/output/audios/
-filename_suffix:&quot;.WAV&quot;
-
-用于在 Kedro 目录中保存/加载 .WAV 文件的文件夹。
-我需要的下一个抽象级别是能够创建一个与包含文件夹（例如上面的 audio_folder）相对应的目录条目。我不想通过动态创建目录条目来实现这一点，而是通过扩展 PartitionedDataset 类来实现。这是因为我希望文件夹的文件夹成为我的 catalog.yml 的一部分。我的问题是
-
-这可能吗？你们有人尝试过这样的事情吗？
-如果可能的话，我的自定义类应该只包含 _load、_save 和 _describe 方法，就像我在自定义 AbstractDataset 时一样？
-]]></description>
-      <guid>https://stackoverflow.com/questions/79044783/create-kedro-partitioneddataset-of-partitioneddatasets</guid>
-      <pubDate>Tue, 01 Oct 2024 21:22:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络输入数据中的特征应该是行还是列？</title>
-      <link>https://stackoverflow.com/questions/79041608/should-features-be-rows-or-columns-in-input-data-for-neural-networks</link>
-      <description><![CDATA[我已经实现了一个神经网络，并且对处理输入矩阵的数据形状的正确方法有疑问。具体来说，我想知道输入数据 X 是否应该在行上有示例而在列上有特征，或者反过来（行上有特征而在列上有示例）。
-目前，我已经实现了它以采用形状为 (num_features, num_examples) 的 X。但是，我发现相互矛盾的来源表明，许多库和框架中的常态恰恰相反。例如，当我加载 MNIST 数据集时，它会以 (num_examples, num_features) 的形式出现，这要求我在将数据作为输入提供给神经网络之前对其进行转置
-鉴于此，如果常见的做法确实是使用 (num_examples, num_features)：
-
-我是否应该接受原始形状的 X 并在内部对其进行转置？
-我是否应该更改实现以直接使用其他维度的 X？
-我是否应该简单地在网络文档中记录预期形状？
-]]></description>
-      <guid>https://stackoverflow.com/questions/79041608/should-features-be-rows-or-columns-in-input-data-for-neural-networks</guid>
-      <pubDate>Tue, 01 Oct 2024 04:07:49 GMT</pubDate>
     </item>
     <item>
       <title>XFormersMetadata.__init__() 收到意外的关键字参数“is_prompt”</title>
@@ -520,7 +578,7 @@ filename_suffix:&quot;.WAV&quot;
     <item>
       <title>给定的梯度下降代码是按顺序还是同时更新参数？</title>
       <link>https://stackoverflow.com/questions/78582076/is-the-given-code-for-gradient-descent-updating-the-parameters-sequentially-or-s</link>
-      <description><![CDATA[我是机器学习的新手，一直在学习梯度下降算法。我相信此代码使用同时更新，即使它看起来像顺序更新。由于偏导数的值是在更新 w 或 b 之前计算的，即从原始 w 和 b 开始，因此应用于单个 w、b 的算法是从原始值开始应用的。我错了吗？
+      <description><![CDATA[我是机器学习的新手，一直在学习梯度下降算法。我相信此代码使用同时更新，即使它看起来像是顺序更新。由于偏导数的值是在更新 w 或 b 之前计算的，即从原始 w 和 b 开始，因此应用于单个 w、b 的算法是从原始值开始应用的。我错了吗？
 
 dj_dw=((w*x[i]+b-y[i])*x[i])/m
 dj_db=(w*x[i]+b-y[i])/m
@@ -573,6 +631,17 @@ CodePen 链接 CodePen 参考
 需要将背景图像或视频应用于分段视频帧。]]></description>
       <guid>https://stackoverflow.com/questions/78087416/virtual-backgrounds-not-rendering-properly-seeking-guidance-on-webrtc-implement</guid>
       <pubDate>Fri, 01 Mar 2024 11:28:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>文件名中的键值对是否有标准的文件命名约定？</title>
+      <link>https://stackoverflow.com/questions/10087079/is-there-a-standard-file-naming-convention-for-key-value-pairs-in-filename</link>
+      <description><![CDATA[我有多个以它们所包含的内容命名的数据文件。例如
+machine-testM_pid-1234_key1-value1.log
+
+键和值由 - 和 _ 分隔。有没有更好的语法？有没有自动读取这些文件/文件名的解析器？
+这里的想法是文件名是人类和机器可读的。]]></description>
+      <guid>https://stackoverflow.com/questions/10087079/is-there-a-standard-file-naming-convention-for-key-value-pairs-in-filename</guid>
+      <pubDate>Tue, 10 Apr 2012 10:32:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
