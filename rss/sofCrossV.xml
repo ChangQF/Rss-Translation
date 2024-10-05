@@ -4,7 +4,77 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 05 Oct 2024 15:16:38 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 05 Oct 2024 18:20:23 GMT</lastBuildDate>
+    <item>
+      <title>模拟具有跨层交互作用的线性混合模型，解释随机斜率的方差</title>
+      <link>https://stats.stackexchange.com/questions/655372/simulating-a-linear-mixed-model-with-a-cross-level-interaction-explaining-varian</link>
+      <description><![CDATA[我尝试使用线性混合模型在 R 中模拟数据集，该模型旨在展示跨级别交互作用，以解释随机斜率的方差。但是，下面的代码导致随机截距的方差比例很大，但随机斜率却没有。我还尝试定义 u1，它表示斜率的方差是 2 级预测因子 mean_iq 的函数，但没有成功。任何帮助都将不胜感激。
+library(lme4)
+
+set.seed(8437)
+# 设置参数
+n_studies &lt;- 100
+n_per_group &lt;- 50
+n_total &lt;- n_studies * n_per_group
+
+# 生成 1 级预测器
+study_id &lt;- rep(1:n_studies, each = n_per_group)
+treatment &lt;- factor(sample(c(&quot;CG&quot;, &quot;EG&quot;), n_total, replace = TRUE, prob = c(0.5, 0.5)))
+iq &lt;- rnorm(n_total, 100, 10) # 连续 1 级预测器
+mean_iq &lt;- ave(iq, study_id)# 2 级预测器
+
+# 指定固定效果
+b0 &lt;- 0.5 # 截距（参考水平：CG）
+b1 &lt;- 1.7 # 治疗效果（EG vs CG）
+b2 &lt;- 0.2 # 智商效果（水平 1）
+b3 &lt;- 2.5 # 水平 2 预测因子效果（每组平均智商）
+b4 &lt;- 0.3 # 交互作用（EG 中的治疗 * 平均智商）
+
+# 生成随机效果
+u0 &lt;- rnorm(n_studies, .1, 0.5)[study_id] # 随机截距
+u1 &lt;- rnorm(n_studies, .3, 0.3)[study_id] # 智商的随机斜率
+
+# 计算具有交互作用的结果
+y &lt;- b0 + 
+b1 * (treatment == &quot;EG&quot;) + 
+b2 * 智商 + 
+b3 * mean_iq +
+b4 * (treatment == &quot;EG&quot;) * mean_iq + 
+u0 + u1 * iq + 
+rnorm(n_total, 0, 1)
+
+# 合并到数据集
+data &lt;- data.frame(y, treatment, iq, study_id)
+
+# 拟合完整模型
+model_full &lt;- lmer(y ~ iq + treatment * mean_iq + (1 + iq | study_id), data = data)
+summary(model_full)
+
+model_reduced &lt;- lmer(y ~ iq + treatment + mean_iq + (1 + iq | study_id), data = data)
+summary(model_reduced)
+
+# 比较模型
+anova(model_reduced, model_full)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/655372/simulating-a-linear-mixed-model-with-a-cross-level-interaction-explaining-varian</guid>
+      <pubDate>Sat, 05 Oct 2024 17:12:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>皮尔逊卡方检验：检验统计量如何遵循 $\chi^2$ 分布？</title>
+      <link>https://stats.stackexchange.com/questions/655370/pearson%c2%b4s-chi-squared-test-how-does-the-test-statistic-follow-chi2-distribu</link>
+      <description><![CDATA[我试图理解 Pearson 卡方检验中的检验统计量如何大致遵循 $\chi^2$ 分布。
+因此，我们有 $n$ 个观测值，来自 $k$ 个类别，其中每个类别都有观测值编号 $x_i$。零假设是观测值遵循分类分布，其中第 $i$ 个类的概率为 $p_i$，且 $\sum_{i=1}^{k}p_i=1$。
+我们建立以下数量：$X^2 = \sum_{i=1}^{k}\dfrac{(x_i - np_i)^2}{np_i}$。当 $n$ 足够大时，我们预计大约 $X^2$ 遵循 $\chi^2$ 分布。我想了解我们是如何得出这个结论的。独立标准正态变量 $Z_1, Z_2, \dots Z_k$ 的总和服从 $\chi^2$ 分布，自由度为 $k$。我可以看到观测项 $x_i$ 单独服从二项分布，其中 $x_i \sim Binomial(p_i,n)$。当 $n$ 足够大时，$x_i$ 可以很好地近似于 $\mu=np_i$ 和 $\sigma^2=np_i(1-p_i)$ 的正态分布。因此我们假设 $x_i \sim N(np_i,np_i(1-p_i))$。然后我们需要证明求和中的每个项 $X^2 = \sum_{i=1}^{k}\dfrac{(x_i - np_i)^2}{np_i}$ 应该近似为标准正态分布。如果每个项都有 $(\dfrac{x_i - np_i}{\sqrt{np_i(1-p_i)}})^2=\dfrac{(x_i - np_i)^2}{np_i(1-p_i)}$，它们将遵循标准正态分布。但是，我们的实际检验统计量缺少除以 $(1-p_i)$。当项缺少除以 $(1-p_i)$ 时，$X^2$ 如何遵循 $\chi^2$ 分布，因此它们不是标准正态分布？我们是否假设 $p_i$ 通常接近于零，使得 $(1-p_i)$ 接近于 $1$ 并且可以忽略？我在这里遗漏了什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655370/pearson%c2%b4s-chi-squared-test-how-does-the-test-statistic-follow-chi2-distribu</guid>
+      <pubDate>Sat, 05 Oct 2024 16:35:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>多项回归：有和无混合效应</title>
+      <link>https://stats.stackexchange.com/questions/655371/multinomial-regressions-with-and-without-mixed-effects</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/655371/multinomial-regressions-with-and-without-mixed-effects</guid>
+      <pubDate>Sat, 05 Oct 2024 15:13:24 GMT</pubDate>
+    </item>
     <item>
       <title>将相关矩阵分解为具有成对双变量正态项的向量以应用显着性检验？</title>
       <link>https://stats.stackexchange.com/questions/655365/decomposing-correlation-matrices-into-vectors-which-have-pairwise-bivariate-norm</link>
@@ -30,50 +100,228 @@ $$\left &lt; \phi(x), \phi(y) \right &gt; = k(x,y) = \rho_{x,y}$$
       <pubDate>Sat, 05 Oct 2024 13:16:21 GMT</pubDate>
     </item>
     <item>
-      <title>我怎样才能使用稍后编码的异构图有效地呈现一组信息？</title>
-      <link>https://stats.stackexchange.com/questions/655362/how-can-i-present-a-set-of-information-efficiently-using-a-heterogeneous-graph-t</link>
-      <description><![CDATA[我试图用此处描述的异构图呈现一组信息（前提、推理规则、结论、攻击）。例如，我们有以下信息：
-物体呈现红色，因此除非物体被红光照亮，否则物体是红色的。
-为此，我设计了以下图表。考虑到实际图表可能有数百个每种类型的节点和边的实例，并且我稍后会对此进行编码，此图表是否足够有效地呈现此类信息？如果不是，可以对此设计进行哪些修改？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/655362/how-can-i-present-a-set-of-information-efficiently-using-a-heterogeneous-graph-t</guid>
-      <pubDate>Sat, 05 Oct 2024 09:45:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>证明 $E[X]$ 的有限性等价于 $E[|X|]$ 的有限性</title>
-      <link>https://stats.stackexchange.com/questions/655356/prove-that-the-finiteness-of-ex-is-equivalent-to-the-finiteness-of-ex</link>
-      <description><![CDATA[我知道网上有解决方案，但我先自己尝试了一下，想问问我的方法是否有效。
-证明$E[X]$的有限性等同于$E[|X|]$的有限性。注意$E[X]$的有限性意味着$|E[X]| &lt; \infty$，这意味着证明$|E[X]| &lt; \infty \iff E[|X|] &lt; \infty$。使用以下事实：$X^+ = X$ 表示 $X \geq 0$，$X^- = -X$ 表示 $X &lt; 0$。
-我尝试了以下方法：
-$$
-X = X^+ - X^- \quad \text{and} \quad |X| = X^+ + X^-
-$$
-$$
-|E[X]| = |E[X^+] - E[X^-]| \leq |E[X^+]| + |E[X^-]|
-$$
-$$
-E[|X|] = E[X^+ + X^-] = E[X^+] + E[X^-] = |E[X^+] + E[X^-]| \leq |E[X^+]| + |E[X^-]|
-$$
-使用三角不等式两次。然后我会争论 $|E[X]| &lt; \infty \iff E[|X|] &lt; \infty$ 是否成立，因为两者都有相同的上限。但我不确定以下步骤是否有效：$E[X^+] + E[X^-] = |E[X^+] + E[X^-]|$。我的想法是，根据任务中的定义，$X^+$ 和 $X^-$ 都必须为正数。感谢您的帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655356/prove-that-the-finiteness-of-ex-is-equivalent-to-the-finiteness-of-ex</guid>
-      <pubDate>Sat, 05 Oct 2024 08:00:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>帮助解决编码安全风险[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/655355/help-with-coding-security-risks</link>
-      <description><![CDATA[我正在研究一些数据安全风险对一些机构实施云计算的影响。基于 LR 和专家访谈，我发现了一些风险。例如其中之一就是“数据泄露”。现在，在收集数据后，我需要根据 5 点李克特量表对答案进行编码。我变得非常困惑。假设是
-“数据泄露对云计算实施有显著影响”
-陈述如下：
+      <title>利用已知的未来变量进行多元时间序列预测</title>
+      <link>https://stats.stackexchange.com/questions/655373/conducting-multivariate-time-series-prediction-with-a-known-future-variable</link>
+      <description><![CDATA[我有一个数据集，其中包含 71 个不同的变量，这些变量是 1960 年至 2023 年每月运行的扩展时间序列，我想预测当其中一个标记为 coa 的变量（未在下面显示）达到预定的未来值时，所有这些变量的值。以下是数据片段：
 
-我认为对与云存储相关的潜在数据泄露的担忧会影响我们机构关于实施云计算技术的决策。
-我认为我们的机构由于担心数据泄露而避免使用云计算服务进行涉及敏感数据的研究。
-我认为数据泄露的风险阻碍了我们机构某些部门实施云计算服务。
-我认为数据泄露的风险对我们机构主要活动中云计算的使用产生了不利影响。
-请问，您有什么建议？
-我是否认为这些陈述是积极的，因此得到 5 分（非常同意），还是认为它们是消极的，因此得到 1 分（非常同意）？谢谢。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/655355/help-with-coding-security-risks</guid>
-      <pubDate>Sat, 05 Oct 2024 06:13:55 GMT</pubDate>
+
+
+日期
+ure
+potc
+alu
+iro
+cop
+lea
+tin
+nic
+zin
+gol
+pla
+sil
+
+
+
+
+Jan 1960
+42.25
+28.50
+511.47
+11.42
+715.40
+206.10
+2180.40
+1631.00
+260.80
+35.27
+83.50
+0.91
+
+
+2月1960
+42.25
+28.50
+511.47
+11.42
+728.19
+203.70
+2180.40
+1631.00
+244.90
+35.27
+83.50
+0.91
+
+
+三月1960
+42.25
+28.50
+511.47
+11.42
+684.94
+210.30
+2173.80
+1631.00
+248.70
+35.27
+83.50
+0.91
+
+
+4月1960
+42.25
+28.50
+511.47
+11.42
+723.11
+213.60
+2178.20
+1631.00
+254.60
+35.27
+83.50
+0.91
+
+
+五月1960
+42.25
+28.50
+511.47
+11.42
+684.75
+213.40
+2162.70
+1631.00
+253.80
+35.27
+83.50
+0.91
+
+
+6月1960
+42.25
+28.50
+511.47
+11.42
+691.59
+202.40
+2184.80
+1631.00
+249.80
+35.27
+83.50
+0.91
+
+
+7月1960
+42.25
+28.50
+511.47
+11.42
+702.39
+196.20
+2248.70
+1631.00
+248.70
+35.27
+83.50
+0.91
+
+
+8月1960
+42.25
+28.50
+511.47
+11.42
+675.94
+195.30
+2204.60
+1631.00
+241.00
+35.27
+83.50
+0.91
+
+
+9月1960
+42.25
+28.50
+511.47
+11.42
+647.06
+192.70
+2226.70
+1631.00
+240.10
+35.27
+83.50
+0.91
+
+
+十月1960
+42.25
+28.50
+511.47
+11.42
+612.66
+185.20
+2226.70
+1631.00
+242.30
+35.27
+83.50
+0.91
+
+
+11月1960
+42.25
+28.50
+511.47
+11.42
+642.13
+188.10
+2204.60
+1631.00
+241.40
+35.27
+83.50
+0.91
+
+
+十二月1960
+42.25
+28.50
+511.47
+11.42
+636.91
+179.20
+2189.20
+1631.00
+228.20
+35.27
+83.50
+0.91
+
+
+1月1961
+42.25
+30.00
+511.47
+11.02
+606.71
+175.90
+2162.70
+1711.00
+218.00
+35.25
+83.50
+0.91
+
+
+
+我已经用多元线性回归测试了这一点，但这些预测的置信度和一致性不足以进行建模，我想使用向量自回归、VAR 或其他相关模型像 VARMA 和 VARMAX 一样进行相同的测试。将 coa 的预定未来值合并到 VAR 模型中并根据新的预定值预测所有其他变量的值的最佳方法是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655373/conducting-multivariate-time-series-prediction-with-a-known-future-variable</guid>
+      <pubDate>Sat, 05 Oct 2024 08:43:26 GMT</pubDate>
     </item>
     <item>
       <title>将 NA 重新编码为因子中的不同级别</title>
@@ -88,49 +336,6 @@ ii. 最好进行两项不同的分析：一项针对首次怀孕的女性，另�
 我尝试过 na.action = na.pass，但这对我的模型不起作用。]]></description>
       <guid>https://stats.stackexchange.com/questions/655354/recoding-nas-as-a-different-level-in-a-factor</guid>
       <pubDate>Sat, 05 Oct 2024 06:12:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>混合效应回归模型是否存在过度分散？</title>
-      <link>https://stats.stackexchange.com/questions/655353/can-a-mixed-effects-regression-model-overdispersion</link>
-      <description><![CDATA[采用常见的泊松 GLM：
-$$ Y_i \sim \text{Poisson}(\lambda_i) $$
-$$ \log(\lambda_i) = X_i\beta $$
-$$ L(\beta | Y) = \prod_{i=1}^n \frac{e^{-\lambda_i} \lambda_i^{y_i}}{y_i!} $$
-$$ = \prod_{i=1}^n \frac{e^{-\exp(X_i\beta)} \exp(X_i\beta)^{y_i}}{y_i!} $$
-$$ E(Y_i) = \lambda_i = \exp(X_i\beta) $$
-$$ \text{Var}(Y_i) = \lambda_i = \exp(X_i\beta) $$
-如果我有计数数据，并且我认为泊松回归是一个不错的选择 - 但随后我注意到数据的平均值和方差不相等，这违反了泊松分布的假设。在这种情况下，我们可以添加过度分散参数来考虑这一点。但是，这样做后，我们不再具有确切的可能性，而具有四重似然性：
-$$
-E(Y) = \mu
-$$
-$$
-\text{Var}(Y) = \phi\mu
-$$
-$$
-Q(\mu; y) = \int_{y}^{\mu} \frac{y - t}{\phi t} dt
-$$
-$$
-l(\mu; y) = \frac{y \log(\mu) - \mu}{\phi}
-$$
-$$
-L(\mu; y) = \sum_{i=1}^{n} \frac{y_i \log(\mu_i) - \mu_i}{\phi}
-$$
-我有以下问题：假设我们定义一个基于泊松分布的混合效应回归模型：
-$$ Y_i | u_i \sim \text{Poisson}(\lambda_i) $$
-$$ \log(\lambda_i) = X_i\beta + u_i $$
-$$ u_i \sim N(0, \sigma^2_u) $$
-$$ L(\beta, \sigma^2_u | Y) = \prod_{i=1}^n \int_{-\infty}^{\infty} \frac{e^{-\exp(X_i\beta + u_i)} \exp(X_i\beta + u_i)^{y_i}}{y_i!} \cdot \frac{1}{\sqrt{2\pi\sigma^2_u}} \exp(-\frac{u_i^2}{2\sigma^2_u}) du_i $$
-如果我们写出具有随机效应的泊松回归的均值和方差：
-$$ E(Y_i) = E(E(Y_i|u_i)) = E(\exp(X_i\beta + u_i)) $$
-$$ = \exp(X_i\beta) E(\exp(u_i)) = \exp(X_i\beta + \frac{\sigma^2_u}{2}) $$
-$$ \begin{align*}
-\text{Var}(Y_i) &amp;= E(\text{Var}(Y_i|u_i)) + \text{Var}(E(Y_i|u_i)) \\
-&amp;= E(\lambda_i) + \text{Var}(\lambda_i) \\
-&amp;= \exp(X_i\beta + \frac{\sigma^2_u}{2}) + [\exp(2X_i\beta + \sigma^2_u)](\exp(\sigma^2_u) - 1)
-\end{align*} $$
-我现在可以看到，这种混合效应泊松回归的均值和方差现在有一个额外的项，看起来它隐含地解释了过度分散。因此，似乎过度离散的泊松回归实际上也可以使用完全似然而不是仅仅使用拟似然来编写 - 这是正确的解释吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655353/can-a-mixed-effects-regression-model-overdispersion</guid>
-      <pubDate>Sat, 05 Oct 2024 06:11:38 GMT</pubDate>
     </item>
     <item>
       <title>错误类型和不确定性的术语：内在的？拟合的？</title>
@@ -219,19 +424,6 @@ https://www.middleprofessor.com/files/applied-biostatistics_bookdown/_book/model
       <pubDate>Wed, 02 Oct 2024 06:53:23 GMT</pubDate>
     </item>
     <item>
-      <title>是否可以获得顺序统计量的中位数或众数？</title>
-      <link>https://stats.stackexchange.com/questions/655162/can-median-or-mode-of-the-order-statistics-be-obtained</link>
-      <description><![CDATA[假设 $X_1, X_2,\cdots, X_n$ 是来自连续概率分布的随机样本，大小为 $n$，该分布具有累积分布函数 (CDF) $F(x)$ 和概率密度函数 (PDF) $f(x)$。令 $X_{(1:n)}\leq X_{(2:n)}\leq\cdots\leq X_{(n:n)}$ 表示相应的顺序统计量。 $r^{th}$ 阶统计量 $X_{r:n}$ 的 PDF 由以下公式给出；
-$$f_{r:n}(x)=\frac{n!}{(n-r)!(r-1)!}[F(x)]^{r-1}[1-F(x)]^{n-r}f(x)$$
-而相应的 $r^{th}$ 阶统计量的 $1^{st}$ 阶矩由以下公式给出；
-$$E(X_{r:n})=\mu_{r:n}=\frac{n!}{(n-r)!(r-1)!}\int_{-\infty}^{\infty}x[F(x)]^{r-1}[1-F(x)]^{n-r}f(x)dx$$
-已证明，只要 $E(X)$ 存在，$\mu_{r:n}$ 也存在。
-现在，在柯西分布、log-t 分布和逆威布尔分布等许多分布中，有限矩并不存在。在这种情况下，我们能获得 $X_{r:n}$ 的中位数或众数吗？
-注意：在这篇文章中提出了与此问题相关的具体上下文问题。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655162/can-median-or-mode-of-the-order-statistics-be-obtained</guid>
-      <pubDate>Tue, 01 Oct 2024 10:25:29 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么在训练模型时要计算两次 MSE？</title>
       <link>https://stats.stackexchange.com/questions/655368/why-is-the-mse-calculated-twice-when-training-a-model</link>
       <description><![CDATA[我对这件事有疑问。
@@ -257,6 +449,38 @@ https://arxiv.org/abs/2211.09283
 如何实现基于 EER 的回归主动学习？包含 Python 代码/伪代码的答案是最好的，但即使只是对算法和要使用的方程式的详细解释也足够了（然后我可以尝试自己用 Python 实现它，如果遇到困难，请在 StackOverflow 上提问）。]]></description>
       <guid>https://stats.stackexchange.com/questions/654594/expected-error-reduction-for-regression-problems</guid>
       <pubDate>Thu, 19 Sep 2024 09:39:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>水库取样与不包括替换的取样</title>
+      <link>https://stats.stackexchange.com/questions/654572/reservoir-sampling-vs-sampling-excluding-replacements</link>
+      <description><![CDATA[我试图理解使用蓄水池抽样算法 L 与生成随机值之间的权衡，直到我拥有足够多的唯一值。这分为在给定总体规模 $N$ 和样本规模 $k$ 的情况下寻找两个随机过程的预期值。我假设检查重复结果比生成随机值快得多。
+简单抽样：
+因此，我希望确定具有 $k$ 个唯一值的均匀随机整数 $[0, N)$ 的预期数量。根据此 Stats Exchange Post，我有生成 k 个唯一值的预期样本数：
+$$
+E[\text{PRNG 调用以生成 }k\text{ 唯一值}]=\sum_{j=N-(k-1)}^N \frac{N}{j} = N(H_N - H_{N-k})
+$$
+水库采样：
+这是我遇到麻烦的地方。我还想找到算法 L的预期 PRNG 调用次数。以下是我对算法 L 的理解：
+
+将大小为 $k$ 的储存器初始化为前 $[0,k)$ 个值。
+
+使用一次 PRNG 调用对 $k$ 均匀分布 $[0,1]$ 随机变量的 $k^\text{th}$ 阶统计量的分布进行采样。这是阈值 $W$。
+
+用 $k$ 初始化 $i$，然后使用 PRNG 对由 $W$ 参数化的移位几何分布进行采样，以添加到结果中。
+
+
+当 $i &lt; N$:
+
+使用 PRNG 对均匀整数分布 $[0,k)$ 进行采样，并将 $i^\text{th}$ 值分配给储层中的该索引。
+
+通过使用 PRNG 对 $i$ 均匀分布 $[0,1]$ 随机变量的 $k^\text{th}$ 阶统计量的分布进行采样，更新阈值 $W$。 $W=W \exp{(\log{(u[0,1])}/k)}$
+
+通过使用 PRNG 对由更新的 $W$ 参数化的移位几何分布进行采样，从而增加 $i$。
+
+
+我被困在更新阈值 $W$ 上。如何找到需要增加 $i$ 多少次并更新 $i\ge{}N$ 的 $W$ 的预期值？]]></description>
+      <guid>https://stats.stackexchange.com/questions/654572/reservoir-sampling-vs-sampling-excluding-replacements</guid>
+      <pubDate>Wed, 18 Sep 2024 22:31:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
