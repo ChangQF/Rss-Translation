@@ -4,11 +4,98 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 05 Oct 2024 18:20:23 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 05 Oct 2024 21:16:03 GMT</lastBuildDate>
+    <item>
+      <title>卡尔曼滤波器的非标准应用</title>
+      <link>https://stats.stackexchange.com/questions/655379/on-a-non-standard-application-of-kalman-filter</link>
+      <description><![CDATA[当我阅读 R.S. Gurkaynak、B. Kisacikoglu 和 J.H. 撰写的论文事件研究中的缺失事件：识别部分测量的新闻意外的影响的在线附录 D时，这些问题出现了。 Wright。
+作者声称使用 EM 算法和卡尔曼滤波器来发现方程 $$y_t=\beta&#39;s_t+\gamma d_tf_t+\varepsilon_t,$$ 中的一个潜在变量 $f_t$
+其中 $y_t$ 是一个 $n\times1$ 向量，$s_t$ 是一个 $K\times1$ 向量，这些向量是无误差观测的，$d_t$ 是一个虚拟变量，如果在时间发生事件，则为 $1$ $t$ 或 $0$ 否则，$f_t$ 为 iid $N(0,\sigma_f^2)$ 潜变量，$\beta$ 为 $K\times n$ 矩阵，$\gamma$ 为 $n\times1$ 向量，$\varepsilon_t$ 为 iid，均值为零，对角方差-协方差矩阵为 $\Sigma_\varepsilon.$
+对数似然函数如下：
+$$\begin{aligned}l(\theta)=-\frac{1}{2}\Sigma_{t=1}^{T}\mathbf{1}(d_{t}=1)\{(y_{t}-\beta^{\prime}s_{t})^{\prime}(\Sigma_{\varepsilon}+\gamma\gamma^{\prime})^{-1}(y_{t}-\beta^{\p rime}s_{t})\\&amp;+\log(|\Sigma_{\varepsilon}+\gamma\gamma^{\prime}|)\}\\&amp;+\mathbf{1}(d_{t}=0)\{y_{t}^{\prime}\Sigma_{\varepsilon}^{-1}y_{t}+\log(|\Sigma_{\varepsilon}|)\}\end{aligned}.$$
+至确定参数后，作者求解以下方程组，该方程组通过最大化对数似然函数获得：
+$$\beta=E(\mathbf{1}(d_t=1)s_ts_t^{\prime})^{-1}E(\mathbf{1}(d_t=1)s_ty_t^{\prime}),$$
+$$\Sigma_{\varepsilon}=E(y_{t}^{\prime}y_{t}\mathbf{1}(d_{t}=0)),$$ $$\gamma\gamma^{\prime}=E((y_{t}-\beta^{\prime}s_{t})^{\prime}(y_{t}-\beta^{\prime}s_{t})\mathbf{1}(d_{t}=1))-\Sigma_{\varepsilon}.$$
+但是 $f_t$ 并未出现在上述方程中。这是否意味着求解 $\beta$、$\gamma$ 和 $\Sigma_{\epsilon}$ 时实际上不需要卡尔曼滤波器？有人能给我解释一下吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655379/on-a-non-standard-application-of-kalman-filter</guid>
+      <pubDate>Sat, 05 Oct 2024 20:40:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将两个图（密度图和轮廓图）合并为一个图？</title>
+      <link>https://stats.stackexchange.com/questions/655378/how-to-combine-2-plots-density-and-contour-plots-into-one-plot</link>
+      <description><![CDATA[我想将密度图和轮廓图合并到一个图中，就像 RStudio 中的下图一样。
+library(MASS)
+library(plotly) 
+set.seed(123)
+
+lambda1 &lt;- 4
+k1 &lt;- 3
+theta1 &lt;- 5
+k2 &lt;- 1
+theta2 &lt;- 6
+num_simulations &lt;- 1000
+
+n &lt;- rpois(num_simulations, lambda1)
+n_truncated &lt;- n[n &gt; 0]
+num_simulations &lt;- length(n_truncated)
+
+generate_gamma_sums &lt;- function(counts, k, theta) {
+
+sapply(counts, function(x) sum(rgamma(x, shape = k, scale = theta)))
+}
+
+ssx &lt;- data.frame(
+sx = generate_gamma_sums(n_truncated, k1, theta1),
+sy = generate_gamma_sums(n_truncated, k2, theta2)
+)
+
+colnames(ssx) &lt;- c(&quot;X&quot;, &quot;Y&quot;)
+
+density_data &lt;- kde2d(ssx$X, ssx$Y, n = 50)
+
+x_vals &lt;- rep(density_data$x, each = length(density_data$y))
+y_vals &lt;- rep(density_data$y, length(density_data$x))
+z_vals &lt;- as.vector(density_data$z)
+
+xlim &lt;- range(density_data$x)
+ylim &lt;- range(density_data$y)
+
+pdf_3d_plot &lt;- plot_ly(x = ~x_vals, y = ~y_vals, z = ~z_vals, type = &#39;mesh3d&#39;, intense = ~z_vals,
+showscale = TRUE, colorscale = list(c(0, 1), c(&quot;black&quot;, &quot;white&quot;))) %&gt;%
+layout(
+scene = list(
+xaxis = list(title = &quot;X 轴&quot;, range = xlim, showgrid = TRUE, zeroline = FALSE, showline = TRUE),
+yaxis = list(title = &quot;Y 轴&quot;, range = ylim, showgrid = TRUE, zeroline = FALSE, showline = TRUE),
+zaxis = list(title = &quot;密度&quot;, showgrid = TRUE, zeroline = FALSE),
+camera = list(eye = list(x = 1.5, y = 1.5, z = 1.2)) 
+),
+title = list(text = &quot;3D PDF 表面&quot;, x = 0.5)
+) 
+
+contour_2d_plot &lt;- plot_ly(x = density_data$x, y = density_data$y, z = density_data$z,
+type = &quot;contour&quot;,
+contours = list(coloring = &quot;none&quot;, showlabels = TRUE),
+line = list(color = &#39;black&#39;)) %&gt;%
+layout(
+xaxis = list(title = &quot;X-axis&quot;, range = xlim, showgrid = TRUE, zeroline = FALSE, showline = TRUE),
+yaxis = list(title = &quot;Y-axis&quot;, range = ylim, showgrid = TRUE, zeroline = FALSE, showline = TRUE),
+title = list(text = &quot;2D 轮廓图&quot;, x = 0.5))
+
+&lt;img alt=&quot;输入图片描述在这里” src =“https://i.sstatic.net/fzJpxfC6.jpg” /&gt;]]></description>
+      <guid>https://stats.stackexchange.com/questions/655378/how-to-combine-2-plots-density-and-contour-plots-into-one-plot</guid>
+      <pubDate>Sat, 05 Oct 2024 20:21:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>王者归来</title>
+      <link>https://stats.stackexchange.com/questions/655376/the-return-of-the-king</link>
+      <description><![CDATA[如果国王在 a8，那么第二步回到 a8 的概率是多少？如果我计算所有可能的走法，我可以找到 3 个 a8 回归的走法。所以我认为概率是 3/18=1/6。但是，如果我画一个图，概率似乎是 1/3.1/5+1/3.1/5+1/3.1/8=7/40，这是不同的。哪个是正确的解决方案？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655376/the-return-of-the-king</guid>
+      <pubDate>Sat, 05 Oct 2024 19:29:18 GMT</pubDate>
+    </item>
     <item>
       <title>模拟具有跨层交互作用的线性混合模型，解释随机斜率的方差</title>
       <link>https://stats.stackexchange.com/questions/655372/simulating-a-linear-mixed-model-with-a-cross-level-interaction-explaining-varian</link>
-      <description><![CDATA[我尝试使用线性混合模型在 R 中模拟数据集，该模型旨在展示跨级别交互作用，以解释随机斜率的方差。但是，下面的代码导致随机截距的方差比例很大，但随机斜率却没有。我还尝试定义 u1，它表示斜率的方差是 2 级预测因子 mean_iq 的函数，但没有成功。任何帮助都将不胜感激。
+      <description><![CDATA[我尝试使用线性混合模型在 R 中模拟数据集，该模型旨在展示解释随机斜率方差的跨级别交互作用。但是，下面的代码导致随机截距中解释的方差占很大比例，但随机斜率中没有。我还尝试定义 u1，它将斜率方差表示为 2 级预测器 mean_iq 的函数，但没有成功。任何帮助都将不胜感激。
 library(lme4)
 
 set.seed(8437)
@@ -61,11 +148,11 @@ anova(model_reduced, model_full)
     </item>
     <item>
       <title>皮尔逊卡方检验：检验统计量如何遵循 $\chi^2$ 分布？</title>
-      <link>https://stats.stackexchange.com/questions/655370/pearson%c2%b4s-chi-squared-test-how-does-the-test-statistic-follow-chi2-distribu</link>
+      <link>https://stats.stackexchange.com/questions/655370/pearsons-chi-squared-test-how-does-the-test-statistic-follow-chi2-distribu</link>
       <description><![CDATA[我试图理解 Pearson 卡方检验中的检验统计量如何大致遵循 $\chi^2$ 分布。
 因此，我们有 $n$ 个观测值，来自 $k$ 个类别，其中每个类别都有观测值编号 $x_i$。零假设是观测值遵循分类分布，其中第 $i$ 个类的概率为 $p_i$，且 $\sum_{i=1}^{k}p_i=1$。
 我们建立以下数量：$X^2 = \sum_{i=1}^{k}\dfrac{(x_i - np_i)^2}{np_i}$。当 $n$ 足够大时，我们预计大约 $X^2$ 遵循 $\chi^2$ 分布。我想了解我们是如何得出这个结论的。独立标准正态变量 $Z_1, Z_2, \dots Z_k$ 的总和服从 $\chi^2$ 分布，自由度为 $k$。我可以看到观测项 $x_i$ 单独服从二项分布，其中 $x_i \sim Binomial(p_i,n)$。当 $n$ 足够大时，$x_i$ 可以很好地近似于 $\mu=np_i$ 和 $\sigma^2=np_i(1-p_i)$ 的正态分布。因此我们假设 $x_i \sim N(np_i,np_i(1-p_i))$。然后我们需要证明求和中的每个项 $X^2 = \sum_{i=1}^{k}\dfrac{(x_i - np_i)^2}{np_i}$ 应该近似为标准正态分布。如果每个项都有 $(\dfrac{x_i - np_i}{\sqrt{np_i(1-p_i)}})^2=\dfrac{(x_i - np_i)^2}{np_i(1-p_i)}$，它们将遵循标准正态分布。但是，我们的实际检验统计量缺少除以 $(1-p_i)$。当项缺少除以 $(1-p_i)$ 时，$X^2$ 如何遵循 $\chi^2$ 分布，因此它们不是标准正态分布？我们是否假设 $p_i$ 通常接近于零，使得 $(1-p_i)$ 接近于 $1$ 并且可以忽略？我在这里遗漏了什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655370/pearson%c2%b4s-chi-squared-test-how-does-the-test-statistic-follow-chi2-distribu</guid>
+      <guid>https://stats.stackexchange.com/questions/655370/pearsons-chi-squared-test-how-does-the-test-statistic-follow-chi2-distribu</guid>
       <pubDate>Sat, 05 Oct 2024 16:35:19 GMT</pubDate>
     </item>
     <item>
@@ -89,13 +176,13 @@ $$t = \frac{\rho_{x,y}}{\sqrt{\frac{1-\rho_{x,y}^2}{m-2}}}$$
 如果给定一个正定 Gram 矩阵，则可以执行 Cholesky 分解或 KPCA 以获得向量 $\phi(x), x \in X$，这些向量
 可以解释为具有以下属性的随机向量：
 $$\left &lt; \phi(x), \phi(y) \right &gt; = k(x,y) = \rho_{x,y}$$
-这些向量的维度$d$将对应于个体的数量$m$，并且在 Cholesky 分解或 KPCA 中，此数字将最大，其中$m=n$。
-因此，自由度将是$df = n-2 = |X| - 2$。
+这些向量的维度 $d$ 将对应于个体数量 $m$，并且在 Cholesky 分解或 KPCA 中，此数字将最大，其中 $m=n$。
+因此，自由度将是 $df = n-2 = |X| - 2$。
 对于每个 Gram 矩阵，可以有不同的向量来实现该矩阵。
 出现的问题是，是否有一种方法可以找到向量 $(\phi(x), \phi(y))$，以便它们具有成对的双变量正态分布的条目。
 然后，人们可以满怀信心地应用统计数据中的 t 检验，而无需实际找到这些向量。
 应用：
-如这些注释中所述，人们可以借助上述统计测试，进行定量/概率逻辑，这取决于某些观点。]]></description>
+如这些笔记中所述，人们可以借助上述统计测试，进行定量/概率逻辑，这取决于某些观点。]]></description>
       <guid>https://stats.stackexchange.com/questions/655365/decomposing-correlation-matrices-into-vectors-which-have-pairwise-bivariate-norm</guid>
       <pubDate>Sat, 05 Oct 2024 13:16:21 GMT</pubDate>
     </item>
@@ -319,7 +406,7 @@ Jan 1960
 
 
 
-我已经用多元线性回归测试了这一点，但这些预测的置信度和一致性不足以进行建模，我想使用向量自回归、VAR 或其他相关模型像 VARMA 和 VARMAX 一样进行相同的测试。将 coa 的预定未来值合并到 VAR 模型中并根据新的预定值预测所有其他变量的值的最佳方法是什么？]]></description>
+我已经用多元线性回归测试了这一点，但这些预测的置信度和一致性不足以用于我的建模，我想使用向量自回归、VAR 或其他相关模型像 VARMA 和 VARMAX 一样进行相同的测试。将 coa 的预定未来值合并到 VAR 模型中并根据新的预定值对所有其他变量的值进行预测的最佳方法是什么？]]></description>
       <guid>https://stats.stackexchange.com/questions/655373/conducting-multivariate-time-series-prediction-with-a-known-future-variable</guid>
       <pubDate>Sat, 05 Oct 2024 08:43:26 GMT</pubDate>
     </item>
@@ -336,64 +423,6 @@ ii. 最好进行两项不同的分析：一项针对首次怀孕的女性，另�
 我尝试过 na.action = na.pass，但这对我的模型不起作用。]]></description>
       <guid>https://stats.stackexchange.com/questions/655354/recoding-nas-as-a-different-level-in-a-factor</guid>
       <pubDate>Sat, 05 Oct 2024 06:12:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>错误类型和不确定性的术语：内在的？拟合的？</title>
-      <link>https://stats.stackexchange.com/questions/655348/terminology-for-types-of-errors-and-uncertainty-intrinsic-fitting</link>
-      <description><![CDATA[假设我有一系列给定变量$x_i$、$i=1,\ldots,n-1$和响应$y_i$，我们探索模型$y_i\sim \text{Normal}(\alpha x_i,\sigma^2)$，其中$y_i$独立于$y_j$，其中$i\neq j$。
-我们使用最大似然法拟合参数 $\alpha$ 和 $\sigma$。
-假设我们希望在给定 $x_n$ 的情况下预测 $y_n$。显然，对 $y_n$ 的最佳预测将是 $\alpha_\text{MLE}\,x_n$。据我所知，至少有两种类型的不确定性：
-
-模型固有的不确定性，即 $\sigma$。我们不能指望以比$\sigma$更高的精度预测$y_n$，这类似于“观测误差”。
-不确定性源自 MLE 估计量具有预期 Fisher 信息给出的方差，与似然函数的二阶导数或曲率最大相关。这可以通俗地称为$\alpha_\text{MLE}$的“拟合误差/不确定性”。当然，这个“误差”会传播到$y_n$的最佳估计量，从而产生另一个不确定性来源。
-
-这两种不确定性使用什么标准术语？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655348/terminology-for-types-of-errors-and-uncertainty-intrinsic-fitting</guid>
-      <pubDate>Sat, 05 Oct 2024 00:35:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>已知有限总体与所有可能的引导样本均值的方差</title>
-      <link>https://stats.stackexchange.com/questions/655345/variance-of-known-finite-population-from-all-possible-bootstrap-sample-means</link>
-      <description><![CDATA[我知道这个问题没有什么实际意义，但我被问到这个问题，并为此苦思了一天。
-如果我们从小的/有限的总体 N 中取出所有可能的引导样本大小为 n 的集合，并仅保留样本均值，我们能得到总体方差吗？我们当然有样本均值，所以我们可以得到均值的方差和样本均值的均值。
-设 N = 10，n = 3；可能样本均值的引导集是一个大小为 220 的集合。我们有 220 个均值，其中袋装均值当然等于真实总体均值。但我们如何才能从中获得总体方差？这可能吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655345/variance-of-known-finite-population-from-all-possible-bootstrap-sample-means</guid>
-      <pubDate>Fri, 04 Oct 2024 23:40:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 Lan DeMets alpha 支出函数方法计算临界值</title>
-      <link>https://stats.stackexchange.com/questions/655363/critical-values-calculation-using-lan-demets-alpha-spending-function-approach</link>
-      <description><![CDATA[我需要计算 2 阶段设计的临界值，其中第一阶段是在 0.7 信息分数下进行的中期分析，第二阶段是在 1.0 信息分数下进行的最终分析。使用具有 O’Brien-Fleming 边界的 Lan DeMets alpha 支出函数进行计算，总 I 型错误为 0.05。
-这可以在 SAS 中调用 proc seqdesign 过程或在 R 中使用 ldBounds 函数来实现。
-SAS:
- proc seqdesign;
-design method = errfuncobf
-alt = twosided
-nstages = 2
-info = cum(0.7 1)
-alpha = 0.05
-;
-run;
-
-分别为中间值和最终值给出临界值 2.43799 和 1.99993
-proc seqdesign 输出
-R:
- obf_bounds &lt;- ldBounds(c(0.7, 1), alpha = 0.05)
-summary(obf_bounds)
-
-与 SAS 程序中的临界值相同
-ldBounds 输出
-临界值通过求解
-Pr{|Z1| &lt; c1, . . . 来确定, |Zk−1| &lt; ck−1, Zk ≥ z} = π_k / 2, k = 1, . . . , K
-
-Jennison 和 Turnbull 编写的《应用于临床试验的组序贯方法》教科书中描述了求解该方程的迭代算法。
-我的问题是如何从上面的示例中获取第一个临界值 c1，即 2.43799。
-
-在我看来，临界值是从方程 Pr{Z1 ≥ z} = π_1 / 2 中获得的，它是正态分布的第 (1-π_1 / 2) 个百分位数，其中 π_1 由 Lan DeMets alpha 消耗函数给出，O’Brien-Fleming 边界在适当的信息分数水平上进行评估。 f(t) = min{2 − 2(zα/2/√t), α} 在 0.7 信息分数下求值可得出 π_1 = 0.01914964。
-但是，(1-0.01914964/2) 百分位数是 2.342605，这不是正确的数字（正确的数字是 2.43799）。
-我非常感谢大家的评论，指出了上述 c1 计算逻辑中的差距。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655363/critical-values-calculation-using-lan-demets-alpha-spending-function-approach</guid>
-      <pubDate>Fri, 04 Oct 2024 22:51:03 GMT</pubDate>
     </item>
     <item>
       <title>优化对数似然（针对具有自相关系统性风险的 Vasicek 损失模型）</title>
