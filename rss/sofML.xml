@@ -4,24 +4,83 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 06 Oct 2024 09:17:16 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 06 Oct 2024 12:30:30 GMT</lastBuildDate>
     <item>
-      <title>这里有人熟悉 parlai 吗？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/79058452/is-there-anyone-here-is-familiar-with-parlai</link>
-      <description><![CDATA[我现在是一名大学生，我必须研究这篇论文 AUTODIAL 作为我的期中作业。作者在 github 上提供了这个 源代码，我的老师要求我必须运行此代码以将我的结果与作者的结果进行比较。但是，我有点卡住了，在包含用于训练模型 promt_bart 的代码的文件中，尝试导入一个名为 parlai.core.core_utils 的模块，我在每个 parlai 版本中都找不到它，甚至文档也没有提到它！我试图联系作者，但得到答复的机会似乎不大。我真的需要帮助，因为截止日期快到了=（]]></description>
-      <guid>https://stackoverflow.com/questions/79058452/is-there-anyone-here-is-familiar-with-parlai</guid>
-      <pubDate>Sun, 06 Oct 2024 06:00:38 GMT</pubDate>
+      <title>NEAT-python：如何找到/改变神经元的潜力？（试图播种/直接修改种群）</title>
+      <link>https://stackoverflow.com/questions/79059007/neat-python-how-to-find-change-the-potential-of-a-neuron-trying-to-seed-direc</link>
+      <description><![CDATA[我正在使用 neat-python。我试图让 CTRNN 模拟正弦函数，并希望使用 CTRNN 演示神经元作为种子。然而，我尝试修改的神经元完全是非确定性的；除非我在 pop=neat.Population(config) 之前放置种子，否则每次运行代码时它们的行为都会改变。我唯一没有找到的值是“潜在”或神经元的衰减（如本CTRNN 文档所述。我查看了 github 源代码、配置文档，并使用 dir 命令查看了各种 Python 对象的对象描述。
+这是具体代码，带有确定性的种子），使用config-ctrnn 来自单极平衡。
+import neat
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+
+simulationSteps = 100
+timeConst = 1/100
+goalFunc = lambda step: np.sin(step*25)
+
+config = neat.Config(
+neat.DefaultGenome,
+neat.DefaultReproduction,
+neat.DefaultSpeciesSet,
+neat.DefaultStagnation,
+r&quot;path_to\CTRNNconfig&quot;
+)
+
+random.seed(5)
+pop = neat.Population(config)
+pop.add_reporter(neat.StdOutReporter(False))
+
+# 播种
+for i in range(100, 200):
+gen = pop.population[i+1]
+n1, n2 = list(gen.nodes.keys())[1:]
+for node, bias in zip((n1,n2), (-2.75/5, -1.75/5)):
+# gen.nodes[node].aggregation = sum
+# gen.nodes[node].activation = sigmoid_activation
+gen.nodes[node].bias = bias
+gen.nodes[node].response = 1
+gen.add_connection(config.genome_config, n1, n1, 0.9, True)
+gen.add_connection(config.genome_config, n1, n2, 0.2, True)
+gen.add_connection(config.genome_config, n2, n1,-0.2, True)
+gen.add_connection(config.genome_config, n2, n2, 0.9, True)
+
+# 仅绘制最后一个种子基因组
+network = neat.ctrnn.CTRNN.create(gen, config, timeConst)
+network.set_node_value(n1, 0)
+network.set_node_value(n2, 0)
+network.set_node_value(0, 0.5)
+
+actions = []
+correct = []
+for step in range(simulationSteps):
+action = network.advance(
+[], 
+timeConst, 
+timeConst,
+)
+action.append(action[0])
+correct.append(goalFunc(step)/3 + 0.5)
+
+plt.plot(actions, label=&quot;Network&quot;)
+plt.plot(correct, label=&quot;Goal&quot;)
+plt.legend()
+plt.show()
+]]></description>
+      <guid>https://stackoverflow.com/questions/79059007/neat-python-how-to-find-change-the-potential-of-a-neuron-trying-to-seed-direc</guid>
+      <pubDate>Sun, 06 Oct 2024 11:52:31 GMT</pubDate>
     </item>
     <item>
-      <title>将预训练模型应用于具有修剪机制的新 Transformer 架构中，并以特定的 RoI 为目标</title>
-      <link>https://stackoverflow.com/questions/79058245/using-pretrained-models-into-a-new-transformer-architecture-with-pruning-mechani</link>
-      <description><![CDATA[我发现由 Strudel 等人创建的模型称为 Segmenter 架构，用于使用视觉转换器 (ViT) 分割图像，我尝试使用它进行推理并得到这个
-Transformers 很重，处理图像时更重，所以我尝试找到方法让它“更轻”，至少对于仅使用 CPU 的机器训练来说是这样。
-假设我只想取树的一部分或河流的一部分，我发现我可以更改参数使其偏向应该关注的东西，就像传统的掩蔽一样，或者我可以使用像 SPViT 这样的方法来进行模型修剪。
-但是 SPViT 有自己的 Transformer 训练迭代，所以基本上它会“擦除”或“压缩”不必要的像素，直到它达到每个 Transformer 训练迭代的一定商定准确度（因此有多次训练，但每次迭代的负载越来越少，直到它可以专注于某个 RoI）。有什么方法可以将模型“注入”到整个 SPViT 架构中 ViT 训练的第一次迭代中，并将其用作“修剪决定因素”变量，这样它就不必像被告知从头开始训练那样使用那么多计算？我在这里寻找什么方法？
-抱歉，我还是新手，每个“名称”都是我试图找到的名称，但无法确定它是什么。但我想我可以得出结论，您不能随意分离嵌入表？]]></description>
-      <guid>https://stackoverflow.com/questions/79058245/using-pretrained-models-into-a-new-transformer-architecture-with-pruning-mechani</guid>
-      <pubDate>Sun, 06 Oct 2024 02:18:09 GMT</pubDate>
+      <title>无法运行 Github 存储库</title>
+      <link>https://stackoverflow.com/questions/79058738/not-able-to-run-github-repository</link>
+      <description><![CDATA[我的项目是“社交媒体中的多模态命名实体识别”（尝试将其扩展为聊天机器人）
+我正尝试使用这个 github 存储库作为基础
+https://github.com/Multimodal-NER/RpBERT
+尽管尝试了几次，我还是无法运行它。
+有人可以帮我吗？你能告诉我如何实现它的步骤吗？
+我已经将它克隆到我的系统中。我的系统中的 loader.py 文件出现错误，但不知何故修复了它。我运行了 main.py 文件。它似乎正在运行。但我仍然有几个疑问。我想知道如何从头开始实现它。]]></description>
+      <guid>https://stackoverflow.com/questions/79058738/not-able-to-run-github-repository</guid>
+      <pubDate>Sun, 06 Oct 2024 09:38:24 GMT</pubDate>
     </item>
     <item>
       <title>分类神经网络不收敛[关闭]</title>
@@ -265,22 +324,6 @@ ModuleExceptionMessage:InvalidSQLScript: SQL 查询“SELECT * FROM t1 WHERE t1.
       <pubDate>Sat, 05 Oct 2024 14:23:29 GMT</pubDate>
     </item>
     <item>
-      <title>分类器的数据集极度不平衡[关闭]</title>
-      <link>https://stackoverflow.com/questions/79055091/extremely-imbalanced-dataset-for-a-classifier</link>
-      <description><![CDATA[我正在研究一种二分类器。我面临的挑战是我的数据集是多么的不平衡。只有 2% 的行属于 A 类（正）。剩下的 98% 属于 B 类（负）。
-在这种情况下，获得很高的准确率并不意味着什么。你可以想象我追求的是真正的阳性。
-我曾尝试在 Azure 机器学习设计器上使用 SMOTE，但得到的结果很差。为了防止发生任何数据泄露，我在拆分数据后应用了 SMOTE。
-我曾尝试过自动化机器学习，希望它能以某种方式处理不平衡的数据集，但事实并非如此。它只是向我发送了一条关于 Imalabace 类的警告消息。结果也很糟糕。
-我想知道我是否也可以应用 SMOTE 和可能的 Tomek Links，但仅限于 Auto ML 的训练数据集。
-我想我需要去笔记本，复制排名最高的自动化模型的代码，并对其进行调整，以便我可以将这些转换仅应用于训练部分（如果可能的话）。此外，通过这样做，我不会使用自动化 ML 的功能，但我只使用自动化 ml 生成的模型之一。
-有什么想法和指导吗？
-在 Azure ML Designer 上应用了 SMOTE，希望更平衡的训练数据集能够帮助模型学习。但是我得到的结果并不好。
-我尝试使用 AutomatedML，因为我读到它有一些内置功能可以帮助解决不平衡的数据集。但是，我没有看到任何进展。
-在这两种情况下，我选择的指标都是精度。我也尝试了 Designer AUC 加权，但没有任何改善。]]></description>
-      <guid>https://stackoverflow.com/questions/79055091/extremely-imbalanced-dataset-for-a-classifier</guid>
-      <pubDate>Fri, 04 Oct 2024 16:10:32 GMT</pubDate>
-    </item>
-    <item>
       <title>nnUNetv2_plan_and_preprocess：未找到命令</title>
       <link>https://stackoverflow.com/questions/79054923/nnunetv2-plan-and-preprocess-command-not-found</link>
       <description><![CDATA[在程序中，U-Mamba，
@@ -509,6 +552,24 @@ TypeError: vars() 参数必须具有 dict 属性
 知道我做错了什么吗？]]></description>
       <guid>https://stackoverflow.com/questions/69539538/error-vars-argument-must-have-dict-attribute-when-trying-to-use-trainer-t</guid>
       <pubDate>Tue, 12 Oct 2021 11:12:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>错误 conda.core.link:_execute(698): 安装包“defaults::icu-58.2-ha925a31_3”时发生错误</title>
+      <link>https://stackoverflow.com/questions/63871492/error-conda-core-link-execute698-an-error-occurred-while-installing-package</link>
+      <description><![CDATA[我使用 anaconda prompt conda create -n talkingbot python=3.5 创建了环境，然后安装了 pip install tensorflow==1.0.0（遵循与 udemy 课程中使用的相同命令），但是当我尝试使用 conda install spyder 安装 spyder 时，它给了我这个错误：
+准备交易：完成
+验证交易：完成
+执行交易：完成
+错误 conda.core.link:_execute(698)：安装包“defaults::icu-58.2-ha925a31_3”时发生错误。
+回滚事务：完成
+
+[Errno 13] 权限被拒绝：&#39;C:\\Users\\Lenovo\\anaconda3\\envs\\talkingbot\\Library\\bin\\icudt58.dll&#39;
+()
+
+然后我尝试使用 anaconda navigator 安装 spyder，但 spyder 也未安装。
+帮我解决这个问题。]]></description>
+      <guid>https://stackoverflow.com/questions/63871492/error-conda-core-link-execute698-an-error-occurred-while-installing-package</guid>
+      <pubDate>Sun, 13 Sep 2020 13:42:24 GMT</pubDate>
     </item>
     <item>
       <title>机器学习中用列的平均值填补缺失值</title>
