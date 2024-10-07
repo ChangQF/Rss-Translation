@@ -4,36 +4,78 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 07 Oct 2024 12:33:51 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 07 Oct 2024 15:18:21 GMT</lastBuildDate>
     <item>
-      <title>尝试在 SageMaker 实例中下载数据时无法执行对 S3 的请求</title>
-      <link>https://stackoverflow.com/questions/79061602/unable-to-execute-request-to-s3-while-trying-to-donwload-data-in-sagemaker-insta</link>
-      <description><![CDATA[我正尝试在存储在 S3 存储桶中的数据集上专门训练一个模型 meta-textgeneration-llama-2-7b，但每次我尝试将数据集下载到 SageMaker 实例中时，我都会不断收到
-UnexpectedStatusException：训练作业 meta-textgeneration-llama-2-7b-2024-10-07-09-50-08-039 的错误：失败。原因：ClientError：数据下载失败：无法下载数据。ListObjectsV2 对 s3://genaiwithawsproject2024/training-datasets/medical 失败，nextToken：[null]：无法执行对 S3 的请求。查看常见错误的故障排除指南：https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-python-sdk-troubleshooting.html
+      <title>如何微调时间序列转换器超参数以超越 LSTM 性能？</title>
+      <link>https://stackoverflow.com/questions/79062287/how-to-finetune-time-series-transformer-hyper-parameters-to-beat-the-lstm-perfor</link>
+      <description><![CDATA[我正在尝试在时间序列数据上训练 ML 模型。输入是 10 个时间序列，本质上是传感器数据。输出是另一组三个时间序列。我给模型输入 100 个窗口。因此，输入形状变为 (100, 10)。我想预测单个时间步长的输出时间序列值。因此，输出形状变为 (1, 3)。（如果我创建大小为 x 的小批量，输入和输出形状将变为 (x, 100, 10) 和 (x, 1, 3)）。
+我的方法是首先在较少的记录上对模型进行过度拟合。看看模型是否确实在学习/能够过度拟合数据。然后添加一些正则化（主要是 dropout），然后尝试在完整数据集上训练模型。
+首先，我尝试在小数据集上过度拟合 LSTM 模型并可视化结果。它表现不错。所以，我尝试在整个数据集上训练它。它表现还不错，但在某些地方仍然很挣扎。我尝试的LSTM模型如下：
+class LSTMModel(nn.Module):
+def __init__(self, in_dim=10, hidden_​​size=1400, num_layers=1, output_size=3):
+super(LSTMModelV3, self).__init__()
 
-我不确定为什么这个问题一直出现。
-我正在使用的代码
-from sagemaker.jumpstart.estimator import JumpStartEstimator
-import boto3
+self.lstm_1 = nn.LSTM(in_dim, hidden_​​size, num_layers, batch_first=True) 
+self.lstm_2 = nn.LSTM(hidden_​​size, hidden_​​size, num_layers, batch_first=True)
+self.lstm_3 = nn.LSTM(hidden_​​size, hidden_​​size, num_layers, batch_first=True)
+self.lstm_4 = nn.LSTM(hidden_​​size, hidden_​​size, num_layers, batch_first=True)
+self.fc = nn.Linear(hidden_​​size, output_size)
 
-estimator = JumpStartEstimator(model_id=model_id, environment={&quot;accept_eula&quot;: &quot;true&quot;},instance_type = &quot;ml.g5.2xlarge&quot;) 
+def forward(self, x):
+x, _ = self.lstm_1(x)
+x, _ = self.lstm_2(x)
+x, _ = self.lstm_3(x)
+x, _ = self.lstm_4(x)
+output = self.fc(x[:, -1, :])
+return output
 
-estimator.set_hyperparameters(instruction_tuned=&quot;False&quot;, epoch=&quot;5&quot;)
+我也尝试添加 dropouts，但没有带来任何显著的改进。因此，我尝试训练 PatchTST transformer 模型。首先，我尝试过拟合较小的模型，效果很好。事实上，当我可视化输出时，我意识到它能够比 LSTM 模型获得更紧密的过拟合。因此，我尝试在整个数据集上对其进行训练。但性能与 LSTM 完全不相上下。
+我尝试的 PatchTST 初始版本如下：
+config = PatchTSTConfig(
+num_input_channels=10,
+context_length=100,
+num_targets=3,
+patch_length=10,
+patch_stride=5,
+prediction_length=1,
+num_hidden_​​layers=5,
+num_attention_heads=3,
+d_model=300,
+)
 
-#使用您要从上面使用的数据集填写下面的代码
-#示例： estimator.fit({&quot;training&quot;: f&quot;s3://genaiwithawsproject2024/training-datasets/finance&quot;})
-estimator.fit({&quot;training&quot;: f&quot;s3://genaiwithawsproject2024/training-datasets/finance&quot;})
+model = PatchTSTForRegression(config)
 
-有解决方案吗？
-到目前为止，我为解决这个问题所采取的步骤如下：
+以此为基本配置，我尝试对其进行不同的更改以进行超参数优化：
 
-确保我使用的 IAM 角色具有执行此任务的正确权限。我确保我可以使用 !aws s3 ls s3://genaiwithawsproject2024/training-datasets/medical 在 Jupyter Notebook 中列出和移动 S3 存储桶中的文件，该操作有效。
-更新了 sageMaker 数据集。
-在 pytorch 和 tensorflow 之间切换，因为我发现 pytorch 有时在访问 S3 存储桶时会出现问题。
-多次创建和销毁 SageMaker 实例和 IAM 角色，但都没有成功。
+d_model = 600
+d_model = 800
+d_model = 600, num_hidden_​​layer = 7
+d_model = 600，patch_stride = 7
+d_model = 300，patch_stride = 7，num_hidden_​​layers = 8
+
+还有一些组合。选择这些超参数组合是为了让我能够在具有 24GB 内存的 GPU 中拟合模型。但是，没有任何配置会产生与 LSTM 相当的验证损失。这些是 LSTM 与 PatchTST 的曲线：
+
+相应的学习率曲线如下：
+
+如果 7 个 epoch 内性能没有提高，我过去常常会降低学习率。
+我这里遗漏了什么？我是否错过了任何与时间序列转换器相关的见解？
+我正在使用 AdamW 优化器。
+PS1：是的，基础 LR 从 0.00005 开始，然后逐步下降到 0.000005、0.0000005、0.00000005。我知道这些非常小。但是，一开始我尝试用更大的基数训练 LSTM，如 0.001、LR 0.005、0.0005 等，但根本不起作用。只有在从 0.00005 开始后，一切才开始起作用。可能是因为我的传感器值本身非常小。
+PS2：似乎 LSTM val 损失已经接近 0。但这只是因为我在图中运行的验证损失更高 PatchTST。如果我删除它们并添加 LSTM 过度拟合运行，那么它看起来像这样：
 ]]></description>
-      <guid>https://stackoverflow.com/questions/79061602/unable-to-execute-request-to-s3-while-trying-to-donwload-data-in-sagemaker-insta</guid>
-      <pubDate>Mon, 07 Oct 2024 10:35:34 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/79062287/how-to-finetune-time-series-transformer-hyper-parameters-to-beat-the-lstm-perfor</guid>
+      <pubDate>Mon, 07 Oct 2024 14:08:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>3D加工零件特征识别（点云、网格）</title>
+      <link>https://stackoverflow.com/questions/79062004/3d-machining-part-feature-recognition-point-cloud-mesh</link>
+      <description><![CDATA[我有一个加工部件 (.STL)，想要识别（并提取）它的加工特征。有些特征很简单，但有些更复杂，这就是为什么我认为机器学习方法会很合适，因为我无法用数学方式描述该特征。
+有一个 FeatureNet，它基本上可以完成这项工作，但它无法识别多个特征，并且代码无法按预期工作。
+我还知道 AAGNet，它可以完成我想要的工作，但它使用 .STEP 作为输入，但我有一个网格（如果我转换它，则是点云）。
+由于有更多的点云存储库，我认为我可以使用它们来解决我的问题。像 FPFH 这样的东西是正确的方向吗，还是我走错了路？
+如果我使用机器学习方法，我可以轻松创建标记数据集。]]></description>
+      <guid>https://stackoverflow.com/questions/79062004/3d-machining-part-feature-recognition-point-cloud-mesh</guid>
+      <pubDate>Mon, 07 Oct 2024 12:41:25 GMT</pubDate>
     </item>
     <item>
       <title>验证多元线性回归模型的 AUC 计算</title>
@@ -68,8 +110,8 @@ print(f&quot;AUC (probabilities): {auc_prob}&quot;)
       <pubDate>Mon, 07 Oct 2024 10:12:43 GMT</pubDate>
     </item>
     <item>
-      <title>使用 DDP 时，在多 GPU 上获得相同的损失，但梯度不同</title>
-      <link>https://stackoverflow.com/questions/79061290/get-same-loss-but-different-grad-on-multi-gpus-when-using-ddp</link>
+      <title>使用 DDP（分布式数据并行）时，在多 GPU 上获得相同的损失，但梯度不同</title>
+      <link>https://stackoverflow.com/questions/79061290/get-same-loss-but-different-grad-on-multi-gpus-when-using-ddp-distributeddatapa</link>
       <description><![CDATA[当将 torch.nn.parallel.DistributedDataParallel 添加到单 GPU 训练代码时，我遇到一个问题，即在不同的 GPU 上得到相同的损失但不同的梯度。与之前的单 GPU 训练代码相比，我确信损失是正确的，但在 loss.backward() 之后，我观察了各层的权重和偏差的梯度，发现在 all_gather 之前它们在不同的 GPU 上是不同的，在 all_gather 和计算损失之间的各层的梯度在不同的 GPU 上是相同的。
 
 这是一个对比学习代码，所以我 all_gather 所有 GPU 上的张量来计算共同的最终损失。
@@ -169,7 +211,7 @@ all_gradients = torch.stack(grads)
 torch.distributed.all_reduce(all_gradients)
 return all_gradients[torch.distributed.get_rank()]
 ]]></description>
-      <guid>https://stackoverflow.com/questions/79061290/get-same-loss-but-different-grad-on-multi-gpus-when-using-ddp</guid>
+      <guid>https://stackoverflow.com/questions/79061290/get-same-loss-but-different-grad-on-multi-gpus-when-using-ddp-distributeddatapa</guid>
       <pubDate>Mon, 07 Oct 2024 09:03:30 GMT</pubDate>
     </item>
     <item>
@@ -199,7 +241,7 @@ UPC（通用产品代码）
 QGIS 用于创建研究区域的地形模型（海拔、坡度）。
 SWMM 用于模拟各种降雨事件并计算每个路口的洪水值，计算不同情景下特定区域的径流和洪水深度值。
 我打算使用这些数据训练 ConvLSTM 模型来预测每个路口的径流和周边地区的洪水深度。
-通常，ConvLSTM 用于处理连续的 2D 图像数据，例如视频。但是，就我而言，我正在处理包括降雨事件（例如，随时间变化的降雨强度）和地形信息（例如，海拔、坡度）的时空数据。这些数据随时间变化而形成 2D 网格，但它并不代表实际的图像序列；相反，它代表降雨和地形数据。
+通常，ConvLSTM 用于处理连续的 2D 图像数据，例如视频。但是，就我而言，我处理的是时空数据，其中包括降雨事件（例如，随时间变化的降雨强度）和地形信息（例如，海拔、坡度）。这些数据随时间变化而形成 2D 网格，但它并不代表实际的图像序列；相反，它代表降雨和地形数据。
 我的问题是：
 
 是否可以使用 TensorFlow 的 ConvLSTM 模型来处理 2D 网格数据（如降雨和地形信息）而不是图像序列？
@@ -296,96 +338,125 @@ image_ds = image_ds.filter(lambda img, mask: img is not None and mask is not Non
       <pubDate>Sun, 06 Oct 2024 22:45:18 GMT</pubDate>
     </item>
     <item>
-      <title>为什么我的 Auto ARIMA 预测与具有明显趋势和季节性的实际需求数据不一致？</title>
-      <link>https://stackoverflow.com/questions/79060171/why-is-my-auto-arima-forecast-showing-misalignment-with-actual-demand-data-with</link>
-      <description><![CDATA[我正在使用 Auto ARIMA 模型来预测时间序列数据集的需求。查看结果后，我注意到预测值与实际需求数据不太吻合，尽管我绘制了残差并且它是随机的。
-以下是模型拟合代码：
-import pandas as pd
-import matplotlib.pyplot as plt
-from pmdarima import auto_arima
-from sklearn.metrics import mean_squared_error
-import numpy as np
-
-# 假设您的 DataFrame 是“df”，其中包含“需求”列
-
-df[&#39;demand&#39;] = df[&#39;demand&#39;].interpolate(method=&#39;linear&#39;) # 使用插值填充 NaN 值
-
-# 设置频率（根据需要调整：“D”表示每日，“M”表示每月等）
-df = df.asfreq(&#39;D&#39;)
-
-# 将数据集拆分为训练集和测试集（80% 训练，20% 测试）
-train_size = int(len(df) * 0.8)
-train, test = df[:train_size], df[train_size:]
-
-# 使用自动 ARIMA 找到最佳模型
-model = auto_arima(train[&#39;demand&#39;], 
-seasonal=True, # 如果存在季节性
-m=12, # 设置为 7 表示每周季节性（如果是每日数据）
-d=1, # 设置非季节性差异
-D=1, # 设置季节性差异
-trace=True, # 打印进度
-suppress_warnings=True, 
-stepwise=True) # 使用逐步搜索
-
-# 打印最佳模型摘要
-print(model.summary())
-
-绘图代码：
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error
-
-# 计算 RMSE
-rmse = np.sqrt(mean_squared_error(test[&#39;demand&#39;], Forecast))
-
-# 创建图
-plt.figure(figsize=(10, 6))
-
-# 绘制测试（实际）需求
-plt.plot(test.index, test[&#39;demand&#39;], label=&#39;Actual Demand&#39;, color=&#39;blue&#39;)
-
-# 绘制预测需求
-plt.plot(forecast_index, Forecast, label=&#39;Forecasted Demand&#39;, color=&#39;red&#39;)
-
-# 添加标签和标题
-plt.title(&#39;Actual vs Forecasted Demand (Zoomed In)&#39;)
-plt.xlabel(&#39;Date&#39;)
-plt.ylabel(&#39;Demand&#39;)
-plt.legend()
-
-# 在图上显示 RMSE
-plt.text(forecast_index[-1], test[&#39;demand&#39;].max(), f&#39;RMSE: {rmse:.2f}&#39;, fontsize=12, ha=&#39;right&#39;, color=&#39;black&#39;)
-
-plt.show()
-
-# 打印预测需求检查值
-打印（预测）
+      <title>PyTorch 中多元时间序列预测的 LSTM 模型中的验证损失和早期停止</title>
+      <link>https://stackoverflow.com/questions/76345515/validation-loss-and-early-stopping-in-an-lstm-model-for-multivariate-time-series</link>
+      <description><![CDATA[我正在尝试训练一个 LSTM 模型来预测油价，并遵循一些教程。
+我的数据集：
 
 
-结果图：
-在此处输入图片描述
-我尝试使用不同的值更改自动 ARIMA 中的 m 参数，但结果不错！]]></description>
-      <guid>https://stackoverflow.com/questions/79060171/why-is-my-auto-arima-forecast-showing-misalignment-with-actual-demand-data-with</guid>
-      <pubDate>Sun, 06 Oct 2024 22:15:09 GMT</pubDate>
+
+日期
+美元指数
+油价
+
+
+
+
+2019 年 10 月 12 日
+50
+66
+
+
+2019 年 10 月 13 日
+51
+60
+
+
+
+其中油价是目标列。
+序列大小 = 7，输出 = 1。
+我无法添加验证数据并打印除训练和测试损失之外的验证损失。
+这是我的代码和尝试：
+ #split 为训练、验证和测试（数据集大小为 2380。因此 150 用于测试，100 用于验证，其余用于训练）
+X_train = X_seq[:-150]
+y_train = y_seq[:-150]
+X_test = X_seq[-150:]
+y_test = y_seq[-150:] 
+X_val = X_train[-100:]
+y_val = y_train [-100:]
+X_train= X_train [:-100]
+y_train = y_train[:-100]
+
+LSTM 模型
+class LSTM(nn.Module):
+def __init__(self, num_classes, input_size, hidden_​​size, num_layers):
+super().__init__()
+self.num_classes = num_classes # 输出大小
+self.num_layers = num_layers # lstm 中的循环层数量
+self.input_size = input_size # 输入大小
+self.hidden_​​size = hidden_​​size # 每个 lstm 层中的神经元
+# LSTM 模型
+self.lstm = nn.LSTM(input_size=input_size, hidden_​​size=hidden_​​size, 
+num_layers=num_layers, batch_first=True, dropout=0.2) # lstm
+self.fc_1 = nn.Linear(hidden_​​size, 128) # 完全连接
+self.fc_2 = nn.Linear(128, num_classes) # 完全连接最后一层
+self.relu = nn.ReLU()
+
+def forward(self,x):
+# 隐藏状态
+h_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_​​size))
+# 单元状态
+c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_​​size))
+# 通过 LSTM 传播输入
+output, (hn, cn) = self.lstm(x, (h_0, c_0)) # (输入、隐藏和内部状态)
+hn = hn.view(-1, self.hidden_​​size) # 重塑密集层的数据
+out = self.relu(hn)
+out = self.fc_1(out) # 第一个密集
+out = self.relu(out) # relu
+out = self.fc_2(out) # 最终输出
+return out
+
+这是循环：
+def training_loop(n_epochs, lstm, optimiser, loss_fn, X_train, y_train, X_test, y_test,
+X_val , y_val,):
+for epoch in range(n_epochs):
+lstm.train()
+output = lstm.forward(X_train) # 前向传递
+optimiser.zero_grad() # 计算梯度，手动设置为 0
+# 获取损失函数
+loss = loss_fn(outputs, y_train)
+#val_loss = loss_fn(y_val, y_test).item()
+#####
+###
+loss.backward() # 计算损失函数的损失
+optimiser.step() # 从损失改进，即反向传播测试损失
+lstm.eval()
+test_preds = lstm(X_test) 
+test_loss = loss_fn(test_preds, y_test)
+if epoch % 100 == 0:
+print(&quot;Epoch: %d, 训练损失: %1.5f, 测试损失: %1.5f&quot; % (epoch, 
+loss.item(), 
+test_loss.item()))
+
+这是我对模型的调用方式：
+n_epochs = 1000 
+learning_rate = 0.001 
+
+input_size = 3 # 特征数量
+hidden_​​size = 2 # 隐藏状态的特征数量
+num_layers = 1 # 堆叠的 lstm 层数
+num_classes = 1 # 输出类数
+
+lstm = LSTM(num_classes, input_size, hidden_​​size, num_layers)
+
+loss_fn = torch.nn.MSELoss() # 回归的均方误差
+optimiser = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
+
+training_loop(n_epochs=n_epochs,lstm=lstm, optimiser=optimiser, loss_fn=loss_fn, X_train=X_train_tensors,y_train=y_train_tensors, X_test=X_test_tensors, y_test=y_test_tensors, X_val=X_val_tensors,y_val=y_val_tensors) 
+
+
+如何通过训练时要考虑的验证集并计算验证损失并在此基础上进行提前停止？]]></description>
+      <guid>https://stackoverflow.com/questions/76345515/validation-loss-and-early-stopping-in-an-lstm-model-for-multivariate-time-series</guid>
+      <pubDate>Sat, 27 May 2023 05:51:12 GMT</pubDate>
     </item>
     <item>
-      <title>是DataLoader的问题还是模型的问题？</title>
-      <link>https://stackoverflow.com/questions/79059527/is-the-problem-with-the-dataloader-or-the-model</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79059527/is-the-problem-with-the-dataloader-or-the-model</guid>
-      <pubDate>Sun, 06 Oct 2024 16:04:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法运行 Github 存储库 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79058738/not-able-to-run-github-repository</link>
-      <description><![CDATA[我的项目是“社交媒体中的多模态命名实体识别”（尝试将其扩展为聊天机器人）
-我正尝试使用这个 github 存储库作为基础
-https://github.com/Multimodal-NER/RpBERT
-尽管尝试了几次，我还是无法运行它。
-有人可以帮我吗？你能告诉我如何实现它的步骤吗？
-我已经将它克隆到我的系统中。我的系统中的 loader.py 文件出现错误，但不知何故修复了它。我运行了 main.py 文件。它似乎正在运行。但我仍然有几个疑问。我想知道如何从头开始实现它。]]></description>
-      <guid>https://stackoverflow.com/questions/79058738/not-able-to-run-github-repository</guid>
-      <pubDate>Sun, 06 Oct 2024 09:38:24 GMT</pubDate>
+      <title>如何格式化时间序列数据以用于 PyTorch LSTM 分类？</title>
+      <link>https://stackoverflow.com/questions/76321333/how-can-i-format-my-time-series-data-for-pytorch-lstm-classification</link>
+      <description><![CDATA[如何预处理时间序列数据以解决分类问题并将其输入 PyTorch LSTM 模型？我有如下图所示的数据集。
+
+此处，event_type 是目标列，这是一个二元分类问题。我想使用 LSTM 训练此数据集。]]></description>
+      <guid>https://stackoverflow.com/questions/76321333/how-can-i-format-my-time-series-data-for-pytorch-lstm-classification</guid>
+      <pubDate>Wed, 24 May 2023 08:05:02 GMT</pubDate>
     </item>
     <item>
       <title>如何将 Stanza 导出为 ONNX 格式？</title>
@@ -430,7 +501,7 @@ products_rf_model = {key:rf_fit(df) for key, df in products_pre_processed_data .
 
 
 sudo/sample code # 因为我无法找到将 product_models 传递到优化器。
-from pyswarm import pso
+从 pyswarm 导入 pso
 def obj(x):
 model1 = products_rf_model.get(&#39;A&#39;)
 model2 = products_rf_model.get(&#39;B&#39;)
