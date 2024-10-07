@@ -4,7 +4,151 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 07 Oct 2024 06:25:17 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 07 Oct 2024 09:19:30 GMT</lastBuildDate>
+    <item>
+      <title>使用 DDP 时，在多 GPU 上获得相同的损失，但梯度不同</title>
+      <link>https://stackoverflow.com/questions/79061290/get-same-loss-but-different-grad-on-multi-gpus-when-using-ddp</link>
+      <description><![CDATA[当将 torch.nn.parallel.DistributedDataParallel 添加到单 GPU 训练代码时，我遇到一个问题，即在不同的 GPU 上得到相同的损失但不同的梯度。与之前的单 GPU 训练代码相比，我确信损失是正确的，但在 loss.backward() 之后，我观察了各层的权重和偏差的梯度，发现在 all_gather 之前它们在不同的 GPU 上是不同的，在 all_gather 和计算损失之间的各层的梯度在不同的 GPU 上是相同的。
+
+这是一个对比学习代码，所以我 all_gather 所有 GPU 上的张量来计算共同的最终损失。
+
+以下是该模型的部分代码：
+import torch.nn as nn
+import torch
+from config.base_config import Config
+from modules.transformer import Transformer
+from modules.stochastic_module import StochasticText
+from modules.basic_utils import AllGather
+allgather = AllGather.apply
+from modules.tokenization_clip 导入 SimpleTokenizer
+
+class CLIPStochastic(nn.Module):
+def __init__(self, config: Config):
+super(CLIPStochastic, self).__init__()
+self.config = config
+
+从 transformers 导入 CLIPModel
+如果 config.clip_arch == &#39;ViT-B/32&#39;:
+self.clip = CLIPModel.from_pretrained(&quot;openai/clip-vit-base-patch32&quot;)
+elif config.clip_arch == &#39;ViT-B/16&#39;:
+self.clip = CLIPModel.from_pretrained(&quot;openai/clip-vit-base-patch16&quot;)
+else:
+引发 ValueError
+
+self.task_config = config
+config.pooling_type = &#39;transformer&#39;
+self.pool_frames = Transformer(config)
+self.stochastic = StochasticText(config)
+
+def forward(self, data, return_all_frames=False, is_train=True):
+batch_size = data[&#39;video&#39;].shape[0]
+text_data = data[&#39;text&#39;] # text_data[&quot;input_ids&quot;].shape = torch.Size([16, 17])
+video_data = data[&#39;video&#39;] # [16, 12, 3, 224, 224]
+video_data = video_data.reshape(-1, 3, self.config.input_res, self.config.input_res) # [192, 3, 224, 224]
+
+if is_train:
+
+text_features = self.clip.get_text_features(**text_data)
+video_features = self.clip.get_image_features(video_data)
+
+video_features = video_features.reshape(batch_size, self.config.num_frames, -1) # [bs, #F, 512]
+
+text_features = allgather(text_features,self.task_config)
+video_features = allgather(video_features,self.task_config)
+torch.distributed.barrier()
+
+video_features_pooled = self.pool_frames(text_features, video_features)
+
+# @WJM：执行随机文本
+text_features_stochstic, text_mean, log_var = self.stochastic(text_features, video_features)
+
+if return_all_frames:
+return text_features, video_features, video_features_pooled, text_features_stochstic, text_mean, log_var
+
+return text_features, video_features_pooled, text_features_stochstic, text_mean, log_var
+
+else:
+
+text_features = self.clip.get_text_features(**text_data)
+video_features = self.clip.get_image_features(video_data)
+
+video_features = video_features.reshape(batch_size, self.config.num_frames, -1)
+video_features_pooled = self.pool_frames(text_features, video_features)
+
+# @WJM：文本的重新参数化（独立于文本条件池化）
+text_features_stochstic, _, _ = self.stochastic(text_features, video_features)
+
+if return_all_frames:
+return text_features, video_features, video_features_pooled, text_features_stochstic
+
+return text_features, video_features_pooled, text_features_stochstic
+
+
+allgather 函数如下：
+class AllGather(torch.autograd.Function):
+&quot;&quot;&quot;对张量执行 allgather 的 autograd 函数。&quot;&quot;&quot;
+
+@staticmethod
+def forward(ctx, tensor, args):
+output = [torch.empty_like(tensor) for _ in range(args.world_size)]
+torch.distributed.all_gather(output, tensor)
+ctx.rank = local_rank
+ctx.batch_size = tensor.shape[0]
+return torch.cat(output, dim=0)
+
+@staticmethod
+def behind(ctx, grad_output):
+local_grad = grad_output[ctx.batch_size * ctx.rank : ctx.batch_size * (ctx.rank + 1)]
+return local_grad, None
+
+我尝试在 AllGather 类中向后添加 all_reduce，代码如下，但似乎不起作用，可能是因为 DDP 自带了同步梯度函数？
+def behind(ctx, *grads):
+all_gradients = torch.stack(grads)
+torch.distributed.all_reduce(all_gradients)
+return all_gradients[torch.distributed.get_rank()]
+]]></description>
+      <guid>https://stackoverflow.com/questions/79061290/get-same-loss-but-different-grad-on-multi-gpus-when-using-ddp</guid>
+      <pubDate>Mon, 07 Oct 2024 09:03:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用销售数据（价格、SKU、UPC、单位、日期）来预测盈利产品？[关闭]</title>
+      <link>https://stackoverflow.com/questions/79061087/how-can-i-use-my-sales-data-price-sku-upc-units-date-to-predict-profitable</link>
+      <description><![CDATA[作为店主，我想使用销售数据来预测下个季度（3 个月）哪些商品的库存利润最高，这样我就可以优化库存并实现销售最大化。
+验收标准：
+
+我可以上传我的销售数据，包括：
+每件商品的销售价格
+SKU（库存单位）
+UPC（通用产品代码）
+产品名称
+每件商品的销售单位（在 1 到 10 之间随机分配）
+销售日期（在 1 月 1 日至 12 月 30 日之间随机分配）
+
+如何构建模型？
+我尝试使用逻辑回归，也使用了时间序列分析，但由于数据集很小，因此可视化效果不合适。我希望首先将数据集可视化并从中提取有意义的特征，然后进行可视化，之后我希望构建能够以最高准确度和更少错误预测销售量的模型。]]></description>
+      <guid>https://stackoverflow.com/questions/79061087/how-can-i-use-my-sales-data-price-sku-upc-units-date-to-predict-profitable</guid>
+      <pubDate>Mon, 07 Oct 2024 07:57:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>ConvLSTM 能否处理降雨事件和地形模型中的时空数据以进行洪水预测？[关闭]</title>
+      <link>https://stackoverflow.com/questions/79061076/can-convlstm-handle-spatiotemporal-data-from-rainfall-events-and-terrain-models</link>
+      <description><![CDATA[我正在开展一个洪水预测项目，我想使用 ConvLSTM 模型根据降雨事件作为输入来预测特定区域的径流和洪水深度。
+为了准备数据，我使用了 QGIS 和 SWMM：
+QGIS 用于创建研究区域的地形模型（海拔、坡度）。
+SWMM 用于模拟各种降雨事件并计算每个路口的洪水值，计算不同情景下特定区域的径流和洪水深度值。
+我打算使用这些数据训练 ConvLSTM 模型来预测每个路口的径流和周边地区的洪水深度。
+通常，ConvLSTM 用于处理连续的 2D 图像数据，例如视频。但是，就我而言，我正在处理包括降雨事件（例如，随时间变化的降雨强度）和地形信息（例如，海拔、坡度）的时空数据。这些数据随时间变化而形成 2D 网格，但它并不代表实际的图像序列；相反，它代表降雨和地形数据。
+我的问题是：
+
+是否可以使用 TensorFlow 的 ConvLSTM 模型来处理 2D 网格数据（如降雨和地形信息）而不是图像序列？
+
+如果可以，在 TensorFlow 中构建 ConvLSTM 模型以将时空网格数据作为输入来预测洪水深度和径流时，我应该考虑什么？
+
+
+最初，我计划使用图像数据训练 ConvLSTM 模型。但是，这种方法需要通过 SWMM 和 QGIS 生成图像，因此很难根据实时降雨数据预测洪水。为了解决这个问题，我设计了上述方法，以便模型可以仅使用实时降雨数据工作。我想知道这种方法在理论上和实践上是否可行。]]></description>
+      <guid>https://stackoverflow.com/questions/79061076/can-convlstm-handle-spatiotemporal-data-from-rainfall-events-and-terrain-models</guid>
+      <pubDate>Mon, 07 Oct 2024 07:55:06 GMT</pubDate>
+    </item>
     <item>
       <title>为什么我的 Auto ARIMA 预测与具有明显趋势和季节性的实际需求数据不一致？</title>
       <link>https://stackoverflow.com/questions/79060171/why-is-my-auto-arima-forecast-showing-misalignment-with-actual-demand-data-with</link>
@@ -86,110 +230,6 @@ plt.show()
       <pubDate>Sun, 06 Oct 2024 16:04:47 GMT</pubDate>
     </item>
     <item>
-      <title>Amazon Sagemaker 无法识别 xgboost 中的超参数</title>
-      <link>https://stackoverflow.com/questions/79059204/amazon-sagemaker-is-not-able-to-recognize-a-hyperparameter-in-xgboost</link>
-      <description><![CDATA[我创建了一个 AWS 笔记本实例来对客户流失进行分类，并尝试训练模型：
-hyperparameters = {
-&quot;objective&quot;:&quot;binary:logistic&quot;,
-&quot;num_round&quot;:&quot;50&quot;}
-
-estimator = XGBoost(entry_point = &quot;train.py&quot;, 
-framework_version=&#39;1.7-1&#39;,
-hyperparameters=hyperparameters,
-role=sagemaker.get_execution_role(),
-instance_count=1,
-instance_type=&#39;ml.m5.2xlarge&#39;,
-output_path=output_path)
-
-我收到此错误
-参数“objective”应为以下选项之一
-
-以及目标的相应选项，在我的情况下是客户流失，所以它要么是 0，要么是 1，所以我将它设置为
-binary:logistic
-
-这是一个有效的选项，但我收到了这个错误。如何解决？
-我也尝试使用 estimator.set_hyperparameters() 设置超参数，仍然是同样的错误。]]></description>
-      <guid>https://stackoverflow.com/questions/79059204/amazon-sagemaker-is-not-able-to-recognize-a-hyperparameter-in-xgboost</guid>
-      <pubDate>Sun, 06 Oct 2024 13:32:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>在大学聊天机器人中微调 chatgpt 时出现问题 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79059023/problems-in-finetuning-chatgpt-to-use-it-in-college-chatbot</link>
-      <description><![CDATA[我无法进行微调...所有方法我都无法应用
-我想要一个值得信赖的方法
-我尝试了 YouTube 上的很多方法，但
-所有方法都出现 git 错误
-我需要一个可以在 google colab 中使用的代码
-或者为我提供与我的项目相关的微调过程的网站。]]></description>
-      <guid>https://stackoverflow.com/questions/79059023/problems-in-finetuning-chatgpt-to-use-it-in-college-chatbot</guid>
-      <pubDate>Sun, 06 Oct 2024 12:04:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 NEAT 查找/改变神经元的潜力？</title>
-      <link>https://stackoverflow.com/questions/79059007/how-to-find-change-the-potential-of-a-neuron-with-neat</link>
-      <description><![CDATA[我正在使用 neat-python。我试图让 CTRNN 模拟正弦函数，并希望使用 CTRNN 演示神经元作为种子。然而，我尝试修改的神经元完全是非确定性的；除非我在 pop=neat.Population(config) 之前放置种子，否则每次运行代码时它们的行为都会改变。我唯一没有找到的值是“潜在”或神经元的衰减（如本CTRNN 文档所述。我查看了 github 源代码、配置文档，并使用 dir 命令查看了各种 Python 对象的对象描述。
-这是具体代码，带有确定性的种子），使用config-ctrnn 来自单极平衡。
-import neat
-import numpy as np
-import matplotlib.pyplot as plt
-import random
-
-simulationSteps = 100
-timeConst = 1/100
-goalFunc = lambda step: np.sin(step*25)
-
-config = neat.Config(
-neat.DefaultGenome,
-neat.DefaultReproduction,
-neat.DefaultSpeciesSet,
-neat.DefaultStagnation,
-r&quot;path_to\CTRNNconfig&quot;
-)
-
-random.seed(5)
-pop = neat.Population(config)
-pop.add_reporter(neat.StdOutReporter(False))
-
-# 播种
-for i in range(100, 200):
-gen = pop.population[i+1]
-n1, n2 = list(gen.nodes.keys())[1:]
-for node, bias in zip((n1,n2), (-2.75/5, -1.75/5)):
-# gen.nodes[node].aggregation = sum
-# gen.nodes[node].activation = sigmoid_activation
-gen.nodes[node].bias = bias
-gen.nodes[node].response = 1
-gen.add_connection(config.genome_config, n1, n1, 0.9, True)
-gen.add_connection(config.genome_config, n1, n2, 0.2, True)
-gen.add_connection(config.genome_config, n2, n1,-0.2, True)
-gen.add_connection(config.genome_config, n2, n2, 0.9, True)
-
-# 仅绘制最后一个种子基因组
-network = neat.ctrnn.CTRNN.create(gen, config, timeConst)
-network.set_node_value(n1, 0)
-network.set_node_value(n2, 0)
-network.set_node_value(0, 0.5)
-
-actions = []
-correct = []
-for step in range(simulationSteps):
-action = network.advance(
-[], 
-timeConst, 
-timeConst,
-)
-action.append(action[0])
-correct.append(goalFunc(step)/3 + 0.5)
-
-plt.plot(actions, label=&quot;Network&quot;)
-plt.plot(correct, label=&quot;Goal&quot;)
-plt.legend()
-plt.show()
-]]></description>
-      <guid>https://stackoverflow.com/questions/79059007/how-to-find-change-the-potential-of-a-neuron-with-neat</guid>
-      <pubDate>Sun, 06 Oct 2024 11:52:31 GMT</pubDate>
-    </item>
-    <item>
       <title>无法运行 Github 存储库 [关闭]</title>
       <link>https://stackoverflow.com/questions/79058738/not-able-to-run-github-repository</link>
       <description><![CDATA[我的项目是“社交媒体中的多模态命名实体识别”（尝试将其扩展为聊天机器人）
@@ -200,39 +240,6 @@ https://github.com/Multimodal-NER/RpBERT
 我已经将它克隆到我的系统中。我的系统中的 loader.py 文件出现错误，但不知何故修复了它。我运行了 main.py 文件。它似乎正在运行。但我仍然有几个疑问。我想知道如何从头开始实现它。]]></description>
       <guid>https://stackoverflow.com/questions/79058738/not-able-to-run-github-repository</guid>
       <pubDate>Sun, 06 Oct 2024 09:38:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>分类神经网络不收敛[关闭]</title>
-      <link>https://stackoverflow.com/questions/79058176/classification-neural-network-not-converging</link>
-      <description><![CDATA[我为 MNIST 开发了一个基本的分类网络，但在训练期间，验证准确率在 10% 左右。我尝试过各种优化器（SGD、Adam、Nadam）以及不同的学习率（0.1、1e-3、1e-4、1e-5），但验证准确率在每个时期都保持在 10% 左右。
-这是我的代码：
-import tensorflow as tf
-from tensorflow import keras
-
-(X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
-X_train, X_val = X_train[5000:]/255.0, X_train[:5000]/255.0
-y_train, y_val = y_train[5000:]/255.0, y_train[:5000]/255.0
-
-class_NN = keras.models.Sequential([
-keras.layers.Input(shape = [28, 28]),
-keras.layers.Flatten(),
-keras.layers.Dense(300, 激活 = &quot;relu&quot;),
-keras.layers.Dense(100, 激活 = &quot;relu&quot;),
-keras.layers.Dense(10, 激活 = &quot;softmax&quot;)
-])
-
-class_NN.compile(loss = &quot;sparse_categorical_crossentropy&quot;,
-optimizer = keras.optimizers.SGD(learning_rate = 1e-3), 
-metrics = [&quot;accuracy&quot;])
-class_NN.fit(X_train, y_train, epochs = 15,
-validation_data = (X_val, y_val))
-
-我在写这道题的时候，在开始训练之前从代码中去掉了/255.0。目前，验证的准确率随着训练的进行而提高。我的验证准确率达到了 96% 左右。是什么原因导致在训练过程中去掉/255.0后验证准确率有所提高？
-X_train, X_val = X_train[5000:], X_train[:5000]
-y_train, y_val = y_train[5000:], y_train[:5000]
-]]></description>
-      <guid>https://stackoverflow.com/questions/79058176/classification-neural-network-not-converging</guid>
-      <pubDate>Sun, 06 Oct 2024 00:55:12 GMT</pubDate>
     </item>
     <item>
       <title>LogisticRegression 未返回正确结果</title>
@@ -275,95 +282,172 @@ columns=[&quot;&quot;, &quot;timestamp&quot;, &quot;UTC time&quot;, &quot;label&
       <pubDate>Sat, 05 Oct 2024 19:41:26 GMT</pubDate>
     </item>
     <item>
-      <title>如何将自动编码器模型实现为 PMML？</title>
-      <link>https://stackoverflow.com/questions/79038884/how-to-implement-an-autoencoder-model-as-pmml</link>
-      <description><![CDATA[假设我们有以下模型：
+      <title>如何建立随机森林和粒子群优化器的混合模型来寻找产品的最优折扣？</title>
+      <link>https://stackoverflow.com/questions/63413064/how-to-build-hybrid-model-of-random-forest-and-particle-swarm-optimizer-to-find</link>
+      <description><![CDATA[我需要找到每种产品（例如 A、B、C）的最佳折扣，以便最大化总销售额。我为每种产品都建立了随机森林模型，将折扣和季节与销售额进行映射。我如何组合这些模型并将它们提供给优化器以找到每个产品的最佳折扣？
+选择模型的原因：
+
+RF：它能够提供更好的（相对于线性模型）预测因子和响应（sales_uplift_norm）之间的关系。
+PSO：在许多白皮书中都有建议（可在researchgate/IEEE 获得），也可以在此处和此处的python 包中找到。
+
+输入数据：样本数据用于在产品级别构建模型。数据一览如下：
+
+我的想法/步骤：
+
+针对每个产品构建 RF 模型
+ # 预处理数据
+products_pre_processed_data = {key:pre_process_data(df, key) for key, df in df_basepack_dict.items()}
+# rf 模型
+products_rf_model = {key:rf_fit(df) for key, df in products_pre_processed_data .items()}
 
 
-我们如何构建这样的模型并将其导出为 PMML 文件？
-PMML 能够对这样的模型结构进行编码吗？
-PMML 中生成此模型中的 N 个输出节点所需的组件是什么？我理解对每个输出节点使用 &lt;OutputField ... feature=&quot;predictedValue&gt; 不会给出预期的结果。
+
+
+将模型传递给优化器
+
+目标函数：最大化sales_uplift_norm（RF 模型的响应变量）
+约束：
+
+总支出（A + B + C 的支出&lt;= 20），支出 = 产品总销售量 * 折扣百分比 * 产品 mrp_of_products
+产品下限（A、B、C）：[0.0, 0.0, 0.0] # 折扣百分比下限
+产品上限（A、B、C）：[0.3, 0.4, 0.4] # 折扣百分比上限
+
+
+
+
+sudo/sample code # 因为我无法找到将 product_models 传递到优化器。
+from pyswarm import pso
+def obj(x):
+model1 = products_rf_model.get(&#39;A&#39;)
+model2 = products_rf_model.get(&#39;B&#39;)
+model3 = products_rf_model.get(&#39;C&#39;)
+return -(model1 + model2 + model3) # -ve 符号表示最大化
+
+def con(x):
+x1 = x[0]
+x2 = x[1]
+x3 = x[2]
+return np.sum(units_A*x*mrp_A + unit_B*x*mrp_B + unit_C* x *spend_C)-20 # 支出预算
+
+lb = [0.0, 0.0, 0.0]
+ub = [0.3, 0.4, 0.4]
+
+xopt, fopt = pso(obj, lb, ub, f_ieqcons=con)
+
+如何将 PSO 优化器（如果我没有遵循正确的优化器，可以使用任何其他优化器）与 RF 一起使用？
+添加用于模型的函数：
+def pre_process_data(df,product):
+data = df.copy().reset_index()
+# print(data)
+bp = product
+print(&quot;-------product: {}-------&quot;.format(bp))
+# 预处理步骤
+print(&quot;pre process df.shape {}&quot;.format(df.shape))
+#1. 响应变量转换
+response = data.sales_uplift_norm # 已转换
+
+#2.预测器数值变量转换 
+numeric_vars = [&#39;discount_percentage&#39;] # 可能包括 mrp、深度
+df_numeric = data[numeric_vars]
+df_norm = df_numeric.apply(lambda x: scale(x), axis = 0) # 中心和尺度
+
+#3. char 字段 dummification
+#选择类别字段
+cat_cols = data.select_dtypes(&#39;category&#39;).columns
+#选择字符串字段
+str_to_cat_cols = data.drop([&#39;product&#39;], axis = 1).select_dtypes(&#39;object&#39;).astype(&#39;category&#39;).columns
+# 合并所有分类字段
+all_cat_cols = [*cat_cols,*str_to_cat_cols]
+# print(all_cat_cols)
+
+#将 cat 转换为 dummies
+df_dummies = pd.get_dummies(data[all_cat_cols])
+
+#4.将 num 和 char df 组合在一起
+df_combined = pd.concat([df_dummies.reset_index(drop=True), df_norm.reset_index(drop=True)], axis=1)
+
+df_combined[&#39;sales_uplift_norm&#39;] = response
+df_processed = df_combined.copy()
+print(&quot;post process df.shape {}&quot;.format(df_processed.shape))
+# print(&quot;model fields: {}&quot;.format(df_processed.columns))
+return(df_processed)
+
+def rf_fit(df, random_state = 12):
+
+train_features = df.drop(&#39;sales_uplift_norm&#39;, axis = 1)
+train_labels = df[&#39;sales_uplift_norm&#39;]
+
+#随机森林回归器
+rf = RandomForestRegressor(n_estimators = 500,
+random_state = random_state,
+bootstrap = True,
+oob_score=True)
+# RF 模型
+rf_fit = rf.fit(train_features, train_labels)
+
+return(rf_fit)
 ]]></description>
-      <guid>https://stackoverflow.com/questions/79038884/how-to-implement-an-autoencoder-model-as-pmml</guid>
-      <pubDate>Mon, 30 Sep 2024 10:14:02 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/63413064/how-to-build-hybrid-model-of-random-forest-and-particle-swarm-optimizer-to-find</guid>
+      <pubDate>Fri, 14 Aug 2020 12:47:25 GMT</pubDate>
     </item>
     <item>
-      <title>信用风险中的神经网络：召回率、准确度还是精确度？</title>
-      <link>https://stackoverflow.com/questions/79019012/neural-network-in-credit-risk-recall-accuracy-or-precision</link>
+      <title>我的目标变量在时间上分布不均匀</title>
+      <link>https://stackoverflow.com/questions/59667381/my-target-variable-is-not-evenly-distributed-in-time</link>
+      <description><![CDATA[我尝试使用机器学习来预测哪些客户会购买特定产品（购买产品是我的目标变量）。我拥有大量有关客户的特征和足够的历史数据。
+我的问题是，我的目标变量具有很强的季节性——大多数产品在 12 月售出，其他月份的销量很少。
+我必须做什么来弥补这种不平衡？目标变量是否需要进行一些调整？我需要模型在所有月份都具有一致的性能。]]></description>
+      <guid>https://stackoverflow.com/questions/59667381/my-target-variable-is-not-evenly-distributed-in-time</guid>
+      <pubDate>Thu, 09 Jan 2020 15:34:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否可以将单一回归技术应用于具有不同模式的数据？</title>
+      <link>https://stackoverflow.com/questions/52666845/is-it-possible-to-apply-a-single-regression-technique-to-data-that-has-different</link>
+      <description><![CDATA[我想根据温度估算多种不同产品的销售量，有些产品之间存在关系。对于其中一种产品，销售额和温度之间的关系绘制出来后如下所示：
+
+这只是一种产品，但这里有一个总体趋势，即从 10 度之后销售额会增加。对于其他产品，关系可能更线性，其他产品可能有多项式关系，而其他产品可能根本没有关系。另一个产品的例子是，其销量和温度之间没有相关性，可能是这个产品：
+
+首先，我想从一个产品中预测一些东西，所以我使用了第一个图中的产品来尝试建模。我最终将数据拆分，这样我就得到了一个数据框，其中包含从 -5 度到 10 度的所有值，并执行了线性回归，类似地，我将 10 度拆分到 30 度以执行线性回归，如下所示：
+
+这里的一个问题是，我正在做各种各样的事情来将我的数据仅适合一种产品。我有一个包含 1000 种产品的数据集，我希望能够根据温度估算某些产品的销量。我想以某种方式循环遍历我的所有数据集，找出哪些数据集在销售和温度之间有某种关系，然后自动应用该特定产品的最佳回归模型，在给定某个温度 X 的情况下估算该产品的销售量。
+我看过很多不同的神经网络回归教程，但我根本不知道如何开始或搜索什么，或者我尝试做的事情是否可行？]]></description>
+      <guid>https://stackoverflow.com/questions/52666845/is-it-possible-to-apply-a-single-regression-technique-to-data-that-has-different</guid>
+      <pubDate>Fri, 05 Oct 2018 13:34:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 sklearn LogisticRegression 和 RandomForest 模型的 Predict() 总是预测少数类 (1)</title>
+      <link>https://stackoverflow.com/questions/51968669/predict-with-sklearn-logisticregression-and-randomforest-models-always-predict</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79019012/neural-network-in-credit-risk-recall-accuracy-or-precision</guid>
-      <pubDate>Tue, 24 Sep 2024 14:12:11 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/51968669/predict-with-sklearn-logisticregression-and-randomforest-models-always-predict</guid>
+      <pubDate>Wed, 22 Aug 2018 14:03:52 GMT</pubDate>
     </item>
     <item>
-      <title>错误 conda.core.link:_execute(698): 安装包“defaults::icu-58.2-ha925a31_3”时发生错误</title>
-      <link>https://stackoverflow.com/questions/63871492/error-conda-core-link-execute698-an-error-occurred-while-installing-package</link>
-      <description><![CDATA[我使用 anaconda prompt conda create -n talkingbot python=3.5 创建了环境，然后安装了 pip install tensorflow==1.0.0（遵循与 udemy 课程中使用的相同命令），但是当我尝试使用 conda install spyder 安装 spyder 时，它给了我这个错误：
-准备交易：完成
-验证交易：完成
-执行交易：完成
-错误 conda.core.link:_execute(698)：安装包“defaults::icu-58.2-ha925a31_3”时发生错误。
-回滚事务：完成
+      <title>使用 sklearn 的 RandomForestRegressor 进行预测</title>
+      <link>https://stackoverflow.com/questions/46694664/prediction-using-sklearns-randomforestregressor</link>
+      <description><![CDATA[我的数据如下...
+date,locale,category,site,alexa_rank,sessions,user_logins
+20170110,US,1,google,1,500,5000
+20170110,EU,1,google,2,400,2000
+20170111,US,2,facebook,2,400,2000
 
-[Errno 13] 权限被拒绝：&#39;C:\\Users\\Lenovo\\anaconda3\\envs\\talkingbot\\Library\\bin\\icudt58.dll&#39;
-()
+... 等等。这只是我想出的一个玩具数据集，但与原始数据相似。
+我正在尝试使用 sklearn 的 RandomForestRegressor 构建一个模型来预测特定网站将有多少用户登录和会话。
+我做了一些常规工作，将类别编码为标签，并根据今年前八个月的数据训练了我的模型，现在我想预测第九个月的登录和会话。我创建了一个针对登录进行训练的模型，以及另一个针对会话进行训练的模型。
+我的测试数据集具有相同的形式：
+date,locale,category,site,alexa_rank,sessions,user_logins
+20170910,US,1,google,1,500,5000
+20170910,EU,1,google,2,400,2000
+20170911,US,2,facebook,2,400,2000
 
-然后我尝试使用 anaconda navigator 安装 spyder，但从那里 spyder 也没有安装。
-帮我解决这个问题。]]></description>
-      <guid>https://stackoverflow.com/questions/63871492/error-conda-core-link-execute698-an-error-occurred-while-installing-package</guid>
-      <pubDate>Sun, 13 Sep 2020 13:42:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络模型准确率超低</title>
-      <link>https://stackoverflow.com/questions/59278771/super-low-accuracy-for-neural-network-model</link>
-      <description><![CDATA[我按照教程使用交叉验证对神经网络模型进行评估，代码如下：
-# 使用鸢尾花数据集进行多类分类 
-import numpy 
-import pandas 
-from keras.models import Sequential 
-from keras.layers import Dense 
-from keras.wrappers.scikit_learn import KerasClassifier 
-from keras.utils import np_utils 
-from sklearn.model_selection import cross_val_score 
-from sklearn.model_selection import KFold 
-from sklearn.preprocessing import LabelEncoder 
-from sklearn.pipeline import Pipeline 
-# 修复随机种子以实现可重复性 
-seed = 7 
-numpy.random.seed(seed) 
-# 加载数据集 
-dataframe = pandas.read_csv(&quot;/content/drive/My Drive/iris.data&quot;, header=None) 
-dataset = dataframe.values 
-X = dataset[:,0:4].astype(float) 
-Y = dataset[:,4] 
+理想情况下，我希望传入测试数据集时不包含我需要预测的列，但 RandomForestRegressor 抱怨训练集和测试集之间的维度不同。
+当我以当前形式传入测试数据集时，模型会预测 sessions 中的 精确 值，并且在大多数情况下，user_logins 列为零，否则值会有微小变化。
+我将测试数据中的 sessions 和 user_logins 列归零，并将其传递给模型，但模型预测几乎全部为零。
 
-# 将类值编码为整数 
-encoder = LabelEncoder() 
-encoder.fit(Y) 
-encoded_Y =coder.transform(Y) 
-
-# 将整数转换为虚拟变量（即独热编码） 
-dummy_y = np_utils.to_categorical(encoded_Y) 
-
-# 定义基线模型 
-def baseline_model():
-
-# 创建模型
-model = Sequential()
-model.add(Dense(4, input_dim=4,activation=&quot;relu&quot;, kernel_initializer=&quot;normal&quot;))
-model.add(Dense(3,activation=&quot;sigmoid&quot;, kernel_initializer=&quot;normal&quot;))
-
-# 编译模型
-model.compile(loss= &#39;categorical_crossentropy&#39; , optimizer= &#39;adam&#39; , metrics=[ &#39;accuracy&#39; ])
-
-返回模型 
-estimator = KerasClassifier(build_fn=baseline_model, nb_epoch=200, batch_size=5, verbose=0) 
-kfold = KFold(n_splits=10, shuffle=True, random_state=seed) 
-results = cross_val_score(estimator, X, dummy_y, cv=kfold) 
-print(&quot;Accuracy: %.2f%% (%.2f%%)&quot; % (results.mean()*100, results.std()*100))
-
-准确率应该在 95.33% (4.27%) 左右，但我尝试了几次，得到的结果是 ~Accuracy: 34.00% (13.15%)。模型代码似乎完全相同。我按照说明从此处下载了数据。可能出现什么问题？]]></description>
-      <guid>https://stackoverflow.com/questions/59278771/super-low-accuracy-for-neural-network-model</guid>
-      <pubDate>Wed, 11 Dec 2019 04:08:32 GMT</pubDate>
+我的工作流程正确吗？我是否正确使用了 RandomForestRegressor？
+当我的测试数据集确实包含实际值时，我如何如此接近实际值？测试数据中的实际值是否用于预测？
+如果模型正常工作，如果我将要预测的列（sessions 和 user_logins）归零，我不应该得到相同的预测值吗？
+]]></description>
+      <guid>https://stackoverflow.com/questions/46694664/prediction-using-sklearns-randomforestregressor</guid>
+      <pubDate>Wed, 11 Oct 2017 17:55:37 GMT</pubDate>
     </item>
     <item>
       <title>Python 神经网络准确性-正确实现？</title>
@@ -428,11 +512,11 @@ features_all[500:] = np.ones(192)
 
 现在，由于我希望网络仅基于从屏幕上的像素获得的信息进行操作，因此它必须学习非常丰富的表示才能有效地玩游戏，因为这可能需要它知道（至少隐式地）如何将游戏世界划分为对象以及如何与它们交互。
 所有这些信息都必须以某种方式传授给网络。我无论如何也想不出如何训练这个东西。我唯一的想法是让一个单独的程序从屏幕上直观地提取游戏中天生的好/坏东西（例如健康、金币、经验），然后在强化学习过程中使用该统计数据。我认为这将是答案的一部分，但我认为这还不够；从原始视觉输入到面向目标的行为，抽象层次实在太多，以至于在我有生之年，仅靠如此有限的反馈无法训练出一个网络。
-所以，我的问题是：您还能想到哪些其他方法来训练网络来完成这项任务的至少一部分？最好不要制作数千个带标签的示例。
+所以，我的问题是：您还能想到什么其他方法来训练网络来完成这项任务的至少一部分？最好不要制作数千个带标签的示例。
 仅提供一点指导：我正在寻找其他强化学习来源和/或任何无监督方法来提取此设置中的有用信息。或者，如果您能想到一种无需手动标记即可从游戏世界中获取带标签数据的方法，则可以使用监督算法。
 更新（2012 年 4 月 27 日）：
 奇怪的是，我仍在研究这个问题，似乎正在取得进展。让 ANN 控制器工作的最大秘诀是使用适合该任务的最先进的 ANN 架构。因此，我一直在使用由分解的条件限制玻尔兹曼机组成的深度信念网络，我以无人监督的方式对其进行了训练（在我玩游戏的视频中），然后使用时间差反向传播（即使用标准前馈 ANN 的强化学习）进行微调。
-仍在寻找更有价值的输入，尤其是关于实时动作选择问题以及如何编码颜色图像用于 ANN 处理 :-) 
+仍在寻找更有价值的输入，尤其是关于实时动作选择问题以及如何编码颜色的问题图像用于 ANN 处理 :-) 
 更新（2015 年 10 月 21 日）：
 我刚想起来我以前问过这个问题，我想我应该提一下，这不再是一个疯狂的想法。自从我上次更新以来，DeepMind 发表了他们的自然关于让神经网络通过视觉输入玩 Atari 游戏的论文。事实上，唯一阻止我使用他们的架构来玩《暗黑破坏神 2》的一个有限子集的原因是缺乏对底层游戏引擎的访问。渲染到屏幕然后将其重定向到网络实在是太慢了，无法在合理的时间内进行训练。因此，我们可能不会很快看到这种机器人玩《暗黑破坏神 2》，但这只是因为它将玩一些开源游戏或具有渲染目标 API 访问权限的游戏。（也许是《雷神之锤》？）]]></description>
       <guid>https://stackoverflow.com/questions/6542274/how-to-train-an-artificial-neural-network-to-play-diablo-2-using-visual-input</guid>
