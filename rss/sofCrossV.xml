@@ -4,7 +4,198 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 08 Oct 2024 12:31:44 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 08 Oct 2024 15:18:36 GMT</lastBuildDate>
+    <item>
+      <title>在时变生存模型中模拟时间固定混杂因素</title>
+      <link>https://stats.stackexchange.com/questions/655473/simulating-time-fixed-confounder-in-time-varying-survival-model</link>
+      <description><![CDATA[我试图在 R 中模拟具有随时间变化暴露的生存 Cox PH 设置。目标是评估时间固定混杂因素在暴露-结果关系中的影响。
+我试图使用以下代码来定义一个纵向数据集，该数据集可以由组变量 (grp)（混杂因素）部分解释。然后，我使用这些数据模拟事件发生时间数据集，该数据集也由变量 grp 部分解释。
+问题：grp 变量似乎没有发挥任何混杂效应，我不明白为什么。据我所知，将其从模型中排除应该会导致暴露系数的估计出现偏差，但它似乎没有这种影响。
+我的尝试：
+纵向数据的模拟（基于之前的问题）
+########################################################################################
+#SIMULATE SURVIVAL DATA WITH TIME_VARYING CONTINUOUS EXPOSURE
+########################################################################################
+
+set.seed(1234)
+
+#Load包
+library(MASS)
+library(nlme)
+library(survival)
+library(PermAlgo)
+library(data.table)
+library(fastDummies)
+
+### 设置个体数量
+n &lt;- 10000
+
+### 平均截距和斜率
+beta0 &lt;- 10.0
+beta1 &lt;- -2.0
+
+### 真实自相关
+ar.val &lt;- -.8
+
+### 真实误差 SD、截距 SD、斜率 SD 和截距斜率相关
+sigma &lt;- 1.5
+tau0 &lt;- 2.5
+tau1 &lt;- 2.0
+tau01 &lt;- 0.3
+
+### 可能观测值的最大数量（例如年数）
+m &lt;- 10
+
+### 模拟每个个体的观察次数
+p &lt;- round(runif(n,4,m))
+p &lt;- rep(m,n)
+
+### 模拟观察时刻（假设每个人都有 10 个观察）
+obs&lt;-rep(1:m, n)
+
+### 设置带有 id 和二进制时间固定协变量 X1 的数据框
+dat &lt;- data.frame(id=rep(1:n, times=p), obs=obs,
+x1=rep(rbinom(n, 1, 0.3), each=m))
+
+### 模拟混杂因素作为具有 4 个级别和相应值（grpnum）的组变量
+grp&lt;-c(rep(1,n*0.2),
+rep(2,n*0.3),
+rep(3,n*0.4),
+rep(4,n*0.1))
+dat$grp&lt;-as.factor(grp)
+
+grpnum&lt;-c(rnorm(n = n*0.2,mean = 0,sd = 3),
+rnorm(n = n*0.3,mean=3,sd = 1),
+rnorm(n = n*0.4,mean=-1,sd = 1),
+rnorm(n = n*0.1,mean=-2,sd = 4))
+dat$grpnum&lt;-grpnum
+
+### 模拟截距和斜率的（相关）随机效应
+mu &lt;- c(0,0)
+S &lt;- matrix(c(1, tau01, tau01, 1), nrow=2)
+tau &lt;- c(tau0, tau1)
+S &lt;- diag(tau) %*% S %*% diag(tau)
+U &lt;- mvrnorm(n, mu=mu, Sigma=S)
+
+### 模拟 AR(1) 误差，然后模拟实际结果
+dat$eij &lt;- c(sapply(p, function(x) arima.sim(model=list(ar=ar.val), n=x) * sqrt(1-ar.val^2) * sigma))
+dat$yij &lt;- round((beta0 + rep(U[,1], times=p)) +
+(beta1 + rep(U[,2], times=p)) * log(obs) * dat$grpnum + dat$eij ,2)
+
+### 注意：使用 arima.sim(model=list(ar=ar.val), n=x) * sqrt(1-ar.val^2) * sigma
+### 构造，使得真实误差 SD 等于 sigma
+
+#定义纵向数据
+dat&lt;-as.matrix(dat[c(&quot;x1&quot;,&quot;grp&quot;,&quot;yij&quot;)])
+
+#从&quot;grp&quot; 定义虚拟变量列，因为 Permalgo 不接受因子
+dat &lt;- dummy_cols(dat,select_columns = &quot;grp&quot;,remove_selected_columns = T)
+dat &lt;- as.matrix(sapply(dat, as.numeric)) 
+
+
+模拟以三个协变量为条件的事件时间
+# 在调用算法的函数之前生成事件和审查时间的向量
+# eventRandom &lt;- round(runif(n, 1,10),0)
+censorRandom &lt;- round(runif(n, 1,10),0)
+
+# 生成以三个协变量为条件的生存数据
+data &lt;- permalgorithm(n, m, dat[,1:5], 
+XmatNames=c(&quot;sex&quot;, &quot;exposure&quot;,&quot;grp1&quot;,&quot;grp2&quot;,&quot;grp3&quot;), 
+eventRandom=eventRandom,
+censorRandom=censorRandom,
+betas=c(log(1.5), log(1.3), 
+log(0.8), log(0.8),
+log(1.5)))
+
+#运行模型
+
+#包括grp
+coxph(Surv(Start, Stop, Event) ~ sex + Exposure + grp1 + grp2 + grp3 , data=data)
+
+#不包括grp
+coxph(Surv(Start, Stop, Event) ~ sex + Exposure , data=data)
+
+#暴露系数不变!
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/655473/simulating-time-fixed-confounder-in-time-varying-survival-model</guid>
+      <pubDate>Tue, 08 Oct 2024 14:05:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>正态分布中给定百分位数的值的公式是什么[重复]</title>
+      <link>https://stats.stackexchange.com/questions/655472/what-is-the-formula-for-the-value-of-a-given-percentile-in-a-normal-distribution</link>
+      <description><![CDATA[我试图找出公式来返回百分位数 $p$ 的值，假设这些值呈正态分布，平均值为 $\mu$，标准差为 $\sigma$。
+如果我没记错的话，该值由逆 CDF 函数给出，但我还想知道，如果给定样本量，我如何计算假设样本量为 $n$ 的数值周围的置信区间（比如 95%）。
+我意识到这个问题与这个问题类似：公式是什么正态理论中均值的置信区间？，但这个问题没有公认的答案，在评论中反复出现。
+同样，就我而言，我不是在寻找仅围绕均值的置信区间，而是围绕任意百分位数的置信区间。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655472/what-is-the-formula-for-the-value-of-a-given-percentile-in-a-normal-distribution</guid>
+      <pubDate>Tue, 08 Oct 2024 13:27:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>两层细胞之间的空间关系 - 顶层会影响底层吗？</title>
+      <link>https://stats.stackexchange.com/questions/655470/spatial-relationships-between-cells-of-two-layers-does-the-top-layer-influence</link>
+      <description><![CDATA[
+data &lt;- data.frame(
+Layer = c(rep(&quot;TopLayer&quot;, 9), rep(&quot;BottomLayer&quot;, 9)),
+CellNumber = rep(1:9, 2),
+Rows = rep(1:3, each = 3, times = 2),
+Columns = c(&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;),
+Organism_A = c(2384106527, 1536784094, 1539751217, 1523052513, 1590814987, 
+1352107649, 1489242422, 1324947256, 1436861411,
+28989707.78, 13804448.59, 9445083.257, 10938353.51, 6964463.102, 
+3054182.127, 25332055.04, 6898327.535, 6106191.811),
+
+Organism_B = c(2200824832, 689252420.8, 773417652.8, 781621554.2, 900596793.4,
+799927709.2, 877576655.6, 882006114.1, 1185177471,
+12995607.78, 3990189.403, 3478803.283, 4269672.447, 4336314.549, 
+1772615.585, 9455652.995, 2166266.218, 3354112.17),
+
+Organism_C = c(565141031.9, 407109923.1, 399919019.7, 515591332, 350369021.1, 
+124343494, 236922640.3, 315508071.3, 388405241.6,
+9021589.754, 1282827.48, 289038.1483, 1856107.588, 669560.0038, 
+402480.99, 16047493.08, 4076703.421, 2540274.561),
+
+Organism_D = c(13886816.39, 5917155.69, 9076079.724, 6364479.436, 6603299.193, 
+2377757.035, 3409059.65, 5316280.163, 7019860.52,
+589742.1374, 50374.84351, 24320.78487, 27717.46694, 33827.55107, 
+17236.38709, 2966871.601, 3383635.365, 243522.6605),
+
+Organism_E = c(81810916.23, 23506996.31, 33640850.07, 60426641.66, 39478621.87, 
+18547510.22, 28971068.71, 30003359.9, 29142667.22,
+13305779.94, 5571703.603, 2251696.156, 6018467.227, 1475516.435, 
+267636.2172, 20126618.14, 28724649.18, 7349550.19))
+
+您好，
+我有两层，每层有 9 个单元格（第 1 行：3 和 A 列：C）。每个单元格内都有来自 5 种不同生物的值。我想知道彼此重叠的单元格之间是否存在连接。换句话说，是否存在空间模式？顶层会影响底层吗？
+我能做到这一点吗？这是互相关的吗？有没有办法在空间上显示相似性？
+我可以使用 R 或 Python。
+谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655470/spatial-relationships-between-cells-of-two-layers-does-the-top-layer-influence</guid>
+      <pubDate>Tue, 08 Oct 2024 13:08:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何根据不良残差特性自动过滤掉适合 auto.arima 函数的模型？</title>
+      <link>https://stats.stackexchange.com/questions/655469/how-to-automatically-filter-out-models-fitted-with-auto-arima-function-based-on</link>
+      <description><![CDATA[我正在寻找一种简单的方法来过滤掉 auto.arima 函数拟合的“坏”模型。
+这些是具有不同参数的 SARIMA 模型，我所说的“好”模型是指具有良好残差属性的模型 - 即残差不应自相关且应为正态。到目前为止，我一直在目视检查每个模型的残差直方图、ACF 和 PACF 图，但对于超过 30 个模型来说，它太慢且容易出错。我想为每个模型添加数值测试，以便能够快速过滤掉不好的模型。
+fit_models &lt;- function(...){
+# 1. 运行 auto.arima 并捕获输出，然后创建包含拟合模型参数的表
+# 2. 为每个模型重新拟合并将诊断图保存到输出目录
+# 3. 缺失部分：对每个模型测试自相关和正态性
+# 残差的数值并附加结果（“通过”或“未通过”）
+# 作为摘要 df 中的额外列，其中包含模型参数和 BIC 值
+}
+
+我想添加类似这样的内容：
+每个模型的残差的#
+shapiro_pass &lt;- (shapiro.test(residuals)$p_value &gt; 0.05)
+kol_smir_pass &lt;- (ks.test(residuals)$p_value &gt; 0.05)
+
+# 将这些附加到模型摘要行
+
+但我不知道如何轻松测试 ACF 和 PACF 值的显著性。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655469/how-to-automatically-filter-out-models-fitted-with-auto-arima-function-based-on</guid>
+      <pubDate>Tue, 08 Oct 2024 12:32:03 GMT</pubDate>
+    </item>
     <item>
       <title>解决多类阈值问题的最佳方法？</title>
       <link>https://stats.stackexchange.com/questions/655468/best-way-to-solve-a-multi-class-thresholding-problem</link>
@@ -97,7 +288,7 @@ model = sm.OLS(y,sm.add_constant(X[feature_set]))
       <pubDate>Tue, 08 Oct 2024 10:42:42 GMT</pubDate>
     </item>
     <item>
-      <title>r 中的箱线图，在箱内绘制须</title>
+      <title>r 中的箱线图，在箱内绘制的晶须[关闭]</title>
       <link>https://stats.stackexchange.com/questions/655463/boxplot-in-r-whiskers-drawn-inside-the-box</link>
       <description><![CDATA[我使用 r 绘制箱线图，但晶须最终位于箱线内。
 有人可以帮忙吗？]]></description>
@@ -109,13 +300,13 @@ model = sm.OLS(y,sm.add_constant(X[feature_set]))
       <link>https://stats.stackexchange.com/questions/655462/natural-direct-indirect-effect-for-continuous-treatment-causal-mediation</link>
       <description><![CDATA[我正在阅读因果中介的主题，并希望将其应用于具有所有连续变量、治疗中介相互作用并假设线性的案例。我想计算自然间接效应 (NIE) 和自然直接效应 (NDE)。这是我从此处阅读的内容中得出的当前理解。具有以下模型，包括治疗 T、中介 M、目标 Y 和控制 Cm 和 Cy：
 中介模型：
-M = a0 + a1 * T + a2 * Cm + em
+$M = a_0 + a_1 * T + a_2 * C_m + e_m$
 结果模型：
-Y = x0 + x1 * T + x2 * M + x3 * T * M + x4 * Cy + ey
-我们可以按以下方式估计这 2 个效果：
-NDE = (x1 + x3 * (a0 + a1 * T° + a2 * Cm)) * (T-T°)
-NIE = (a1 * (x2 + x3 * T)) * (T-T°)
-我不太明白连续情况下的 T 和 T°。我的方法是循环遍历 T 和 的合理值范围，使 T = T° + 1，然后将结果绘制为线图，作为取决于治疗水平的效果范围。这有意义吗，还是我错过了应对持续治疗的特定方法？]]></description>
+$Y = x_0 + x_1 * T + x_2 * M + x_3 * T * M + x_4 * C_y + e_y$
+我们可以按以下方式估计这 2 种效应：
+$NDE = (x_1 + x_3 * (a_0 + a_1 * T^* + a_2 * C_m)) * (T-T^*)$
+$NIE = (a_1 * (x_2 + x_3 * T)) * (T-T^*)$
+我不太明白的是连续情况下的 $T$ 和 $T^*$。我的方法是循环遍历 $T$ 的合理值范围，并得到 $T = T^* + 1$，然后将结果绘制为线图，作为取决于治疗水平的效果范围。这有意义吗，还是我缺少应对连续治疗的具体方法？]]></description>
       <guid>https://stats.stackexchange.com/questions/655462/natural-direct-indirect-effect-for-continuous-treatment-causal-mediation</guid>
       <pubDate>Tue, 08 Oct 2024 09:46:10 GMT</pubDate>
     </item>
@@ -168,48 +359,11 @@ NIE = (a1 * (x2 + x3 * T)) * (T-T°)
       <pubDate>Mon, 07 Oct 2024 18:11:44 GMT</pubDate>
     </item>
     <item>
-      <title>研究力量对第一类错误有影响吗？</title>
-      <link>https://stats.stackexchange.com/questions/655433/does-study-power-impact-on-type-1-error</link>
-      <description><![CDATA[通常人们认为研究效力仅与 2 型错误相关，但在几项研究1中，2作者声称“低效力也会降低统计显著结果反映真实效应的可能性”
-我不太明白这到底是什么意思。作者没有直接说明功效对 1 型错误的影响，但他们似乎有这样的意思。
-因此，我们有计算阳性预测值 (PPV) 的公式：
-PPV = ([1 - β] x R)/([1 - β] x R + α)
-我想知道，只有当我们考虑无限数量的潜在研究时，这个公式才真正有用。那么，在一项特定研究中发现的概率取决于这项研究的功效。
-因为公式的分母 ([1 - β] x R + α) 似乎这个分母计算了所有可能的结果 ([1 - β] x R) 加上所有可能存在的研究中的所有假阳性结果 (α)。因此，这个 alpha (α) 并没有告诉我们，在研究的实际结果 ([1 - β] x R) 中，其中一定比例 (即 0.05) 是错误的，而是在所有可能存在的研究中，一定比例的结果将是假阳性。
-因此，如果我们有一项研究的功效较低，但结果具有统计显著性，我们不能得出结论说这项研究的 PPV 较低，我们不应该考虑该结果。相反，如果我们进行荟萃分析，那么我们才应该考虑不同研究的 PPV，以计算它们的权重和可信度，以便进一步解释数据。
-那么，我的一些想法错了吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655433/does-study-power-impact-on-type-1-error</guid>
-      <pubDate>Mon, 07 Oct 2024 12:28:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>固定效应和随机效应中考虑的参数相同吗？</title>
-      <link>https://stats.stackexchange.com/questions/655426/the-same-parameters-considered-in-both-fixed-and-random-effects</link>
-      <description><![CDATA[我正在尝试使用 l R 包中的 glmmTMB() 函数来指定随机效应结构。
-在我的实验中，我在不同时期在五个地点采样，以探索浓度与不同环境因素之间的关系。在这些环境因素中，pH、浊度、EC 等水质总是不同的，但采样点到现场的距离总是相同的。
-我在 R 中设置了如下命令：
-library(glmmTMB)
-model&lt;-glmmTMB(concentration ~ turbidity + distance + EC + pH +
-(1|site),data = data,family = gaussian)
-
-虽然每个站点都包含在随机效应中，但距离包含在固定效应中。但是，由于这些距离对于每个站点来说都是唯一的值。从概念上讲，它们在固定效应和随机效应中都是相同的参数。
-这会导致不正确的拟合结果吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655426/the-same-parameters-considered-in-both-fixed-and-random-effects</guid>
-      <pubDate>Mon, 07 Oct 2024 10:53:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于蒙提霍尔问题的符号</title>
-      <link>https://stats.stackexchange.com/questions/655398/notations-regarding-the-monty-hall-problem</link>
-      <description><![CDATA[我看到有人给出了蒙提霍尔问题的这个解决方案，想知道这个符号是否错误：
-让$C$表示首先做出正确选择的事件，让$W$表示赢得一辆汽车的事件。
-然后，如果参赛者换人，$P(W) = P(C \cap W) + P(C^c \cap W) = \frac 2 3$。
-如果他们不换人，$P(W) = P(C \cap W) + P(C^c \cap W) = \frac 1 3$。
-我知道这是有问题的，这是我修复它的尝试：
-让$C$表示首先做出正确选择的事件，$W$表示赢得汽车的事件，$S$表示参赛者在看到另一扇门后改变主意的事件。
-然后如果参赛者切换，$P(W|S) = P(C \cap W|S) + P(C^c \cap W|S) = \frac 2 3$。
-如果他们不切换，$P(W|S^c) = P(C \cap W|S^c) + P(C^c \cap W|S^c) = \frac 1 3$。
-这有意义吗？有没有办法证明我看到的解决方案？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655398/notations-regarding-the-monty-hall-problem</guid>
-      <pubDate>Sun, 06 Oct 2024 14:28:58 GMT</pubDate>
+      <title>优化对数似然（针对具有自相关系统性风险的 Vasicek 损失模型）</title>
+      <link>https://stats.stackexchange.com/questions/655313/optimizing-loglikelihood-for-vasicek-loss-model-with-autocorrelated-systemic-ri</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/655313/optimizing-loglikelihood-for-vasicek-loss-model-with-autocorrelated-systemic-ri</guid>
+      <pubDate>Fri, 04 Oct 2024 10:50:23 GMT</pubDate>
     </item>
     <item>
       <title>为什么$P(X)$的后验计算很困难？</title>
@@ -221,28 +375,6 @@ $$P(X)=\sum_{Z}P(X|Z)P(Z)$$
 我不明白为什么 $P(X)$ 的计算很难？我认为难度意味着计算它的时间。当提到 $P(X)$ 难以处理时，是否意味着计算 $P(X)$ 的时间是无限的或非常大的？]]></description>
       <guid>https://stats.stackexchange.com/questions/655168/why-computation-of-px-is-hard-in-posterior</guid>
       <pubDate>Tue, 01 Oct 2024 11:47:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何计算和比较不同规模群体之间相互作用的明显可能性</title>
-      <link>https://stats.stackexchange.com/questions/655157/how-to-calculate-and-compare-the-apparent-likelihood-of-an-interaction-between-g</link>
-      <description><![CDATA[计算并比较我认为的三个不同年龄组内和之间的病毒传播风险：儿童（0-19，N= 20,000）、成人（20-65，N= 60,000）和老年人（66+，N=20,000）。
-儿童感染儿童（n=2000）的风险为 10%；儿童感染成人（n=4000）的风险为 20%；儿童感染老年人（n=2000）的风险为 10%。
-但这些风险可以相对比较吗：相对于儿童感染其他儿童的风险，儿童感染成人的风险高出 2 倍，感染老年人的风险相同。显然，成年人口是感染目标的 3 倍，这是相关的，但在本次比较中没有考虑。
-从另一个角度来看，这也说明了这个难题，一个成年人被一个儿童感染的风险（n=4000）是 6.67%；一个成年人被另一个成年人感染的风险（n=6000）是 10%，被一个老年人感染的风险（n=2000）是 5%。
-我不确定是否可以简单地从两个角度呈现风险，并澄清相对风险不考虑相互作用一方的人口规模；或者将目标人群纳入风险计算，就像他们在这个问题/答案中做的那样。也许还有其他方法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655157/how-to-calculate-and-compare-the-apparent-likelihood-of-an-interaction-between-g</guid>
-      <pubDate>Tue, 01 Oct 2024 08:17:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>简单线性回归系数的量纲分析</title>
-      <link>https://stats.stackexchange.com/questions/654524/dimensional-analysis-of-a-simple-linear-regression-coefficient</link>
-      <description><![CDATA[我向 ChatGPT 询问了 beta 系数背后的直觉，经过一番反复讨论后，它给出了一个有趣的回答。它说我们可以使用维度分析来提高对系数的理解。其阐述如下：
-
-
-根据 LLM，这就是为什么我们将系数解释为给定 X 单位变化的 Y 的 (beta) 单位。
-这种维度分析的应用正确吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/654524/dimensional-analysis-of-a-simple-linear-regression-coefficient</guid>
-      <pubDate>Wed, 18 Sep 2024 04:08:42 GMT</pubDate>
     </item>
     </channel>
 </rss>

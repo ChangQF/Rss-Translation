@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 08 Oct 2024 12:31:50 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 08 Oct 2024 15:18:41 GMT</lastBuildDate>
     <item>
       <title>ValueError：调用层“bert_preprocess”（类型 KerasLayer）时遇到异常</title>
       <link>https://stackoverflow.com/questions/79065272/valueerror-exception-encountered-when-calling-layer-bert-preprocess-type-ker</link>
@@ -328,7 +328,7 @@ image_ds = image_ds.filter(lambda img, mask: img is not None and mask is not Non
 无排序 = 所有第 2 类
 随机排序 = 所有第 2 类
 等类数排序 = 给我一个答案，其中点被归类在所有 4 个类别中，但当我将它们插入在线最终测试表格时，我的准确率得分为 26%，这与随机机会相同。所以，我没有正确处理数据，我不确定在哪里。我希望有更多回归分类经验的人能为我指明正确的方向。
-编辑：在调用 LogisticRegression 之前，我是否需要重新格式化（转换）train_X、train_y 和 test_X 数组？如果需要，该怎么做？也许我只是给它提供了格式错误的数据。
+在调用 LogisticRegression 之前，我是否需要重新格式化（转换）train_X、train_y 和 test_X 数组？如果需要，该怎么做？也许我只是给它提供了格式错误的数据？
 # 形成表格以推动逻辑回归
 train_X = []
 train_y = []
@@ -554,113 +554,12 @@ training_loop(n_epochs=n_epochs,lstm=lstm, optimiser=optimiser, loss_fn=loss_fn,
       <pubDate>Sun, 17 Oct 2021 02:51:17 GMT</pubDate>
     </item>
     <item>
-      <title>如何建立随机森林和粒子群优化器的混合模型来寻找产品的最优折扣？</title>
-      <link>https://stackoverflow.com/questions/63413064/how-to-build-hybrid-model-of-random-forest-and-particle-swarm-optimizer-to-find</link>
-      <description><![CDATA[我需要找到每种产品（例如 A、B、C）的最佳折扣，以便最大化总销售额。我为每种产品都建立了随机森林模型，将折扣和季节与销售额进行映射。我如何组合这些模型并将它们提供给优化器以找到每个产品的最佳折扣？
-选择模型的原因：
-
-RF：它能够提供更好的（相对于线性模型）预测因子和响应（sales_uplift_norm）之间的关系。
-PSO：在许多白皮书中都有建议（可在researchgate/IEEE 获得），也可以在此处和此处的python 包中找到。
-
-输入数据：样本数据用于在产品级别构建模型。数据一览如下：
-
-我的想法/步骤：
-
-针对每个产品构建 RF 模型
- # 预处理数据
-products_pre_processed_data = {key:pre_process_data(df, key) for key, df in df_basepack_dict.items()}
-# rf 模型
-products_rf_model = {key:rf_fit(df) for key, df in products_pre_processed_data .items()}
-
-
-
-
-将模型传递给优化器
-
-目标函数：最大化sales_uplift_norm（RF 模型的响应变量）
-约束：
-
-总支出（A + B + C 的支出&lt;= 20），支出 = 产品总销售量 * 折扣百分比 * 产品 mrp_of_products
-产品下限（A、B、C）：[0.0, 0.0, 0.0] # 折扣百分比下限
-产品上限（A、B、C）：[0.3, 0.4, 0.4] # 折扣百分比上限
-
-
-
-
-sudo/sample code # 因为我无法找到将 product_models 传递到优化器。
-从 pyswarm 导入 pso
-def obj(x):
-model1 = products_rf_model.get(&#39;A&#39;)
-model2 = products_rf_model.get(&#39;B&#39;)
-model3 = products_rf_model.get(&#39;C&#39;)
-return -(model1 + model2 + model3) # -ve 符号表示最大化
-
-def con(x):
-x1 = x[0]
-x2 = x[1]
-x3 = x[2]
-return np.sum(units_A*x*mrp_A + unit_B*x*mrp_B + unit_C* x *spend_C)-20 # 支出预算
-
-lb = [0.0, 0.0, 0.0]
-ub = [0.3, 0.4, 0.4]
-
-xopt, fopt = pso(obj, lb, ub, f_ieqcons=con)
-
-如何将 PSO 优化器（如果我没有遵循正确的优化器，可以使用任何其他优化器）与 RF 一起使用？
-添加用于模型的函数：
-def pre_process_data(df,product):
-data = df.copy().reset_index()
-# print(data)
-bp = product
-print(&quot;-------product: {}-------&quot;.format(bp))
-# 预处理步骤
-print(&quot;pre process df.shape {}&quot;.format(df.shape))
-#1. 响应变量转换
-response = data.sales_uplift_norm # 已转换
-
-#2.预测器数值变量转换 
-numeric_vars = [&#39;discount_percentage&#39;] # 可能包括 mrp、深度
-df_numeric = data[numeric_vars]
-df_norm = df_numeric.apply(lambda x: scale(x), axis = 0) # 中心和尺度
-
-#3. char 字段 dummification
-#选择类别字段
-cat_cols = data.select_dtypes(&#39;category&#39;).columns
-#选择字符串字段
-str_to_cat_cols = data.drop([&#39;product&#39;], axis = 1).select_dtypes(&#39;object&#39;).astype(&#39;category&#39;).columns
-# 合并所有分类字段
-all_cat_cols = [*cat_cols,*str_to_cat_cols]
-# print(all_cat_cols)
-
-#将 cat 转换为 dummies
-df_dummies = pd.get_dummies(data[all_cat_cols])
-
-#4.将 num 和 char df 组合在一起
-df_combined = pd.concat([df_dummies.reset_index(drop=True), df_norm.reset_index(drop=True)], axis=1)
-
-df_combined[&#39;sales_uplift_norm&#39;] = response
-df_processed = df_combined.copy()
-print(&quot;post process df.shape {}&quot;.format(df_processed.shape))
-# print(&quot;model fields: {}&quot;.format(df_processed.columns))
-return(df_processed)
-
-def rf_fit(df, random_state = 12):
-
-train_features = df.drop(&#39;sales_uplift_norm&#39;, axis = 1)
-train_labels = df[&#39;sales_uplift_norm&#39;]
-
-#随机森林回归器
-rf = RandomForestRegressor(n_estimators = 500,
-random_state = random_state,
-bootstrap = True,
-oob_score=True)
-# RF 模型
-rf_fit = rf.fit(train_features, train_labels)
-
-return(rf_fit)
-]]></description>
-      <guid>https://stackoverflow.com/questions/63413064/how-to-build-hybrid-model-of-random-forest-and-particle-swarm-optimizer-to-find</guid>
-      <pubDate>Fri, 14 Aug 2020 12:47:25 GMT</pubDate>
+      <title>局部回归和局部似然方法的实现[关闭]</title>
+      <link>https://stackoverflow.com/questions/14411627/implementations-of-local-regression-and-local-likelihood-methods</link>
+      <description><![CDATA[我正在寻找局部回归 (LOESS) 和局部似然方法（如局部逻辑回归）的有效实现（例如，在 Hastie 等人撰写的 统计学习要素第 6.5 节中讨论了局部似然方法）。
+我更喜欢 C++ 或 Python 实现，但指向 R（我知道 LOESS 已实现，但我找不到局部似然方法）或 Java 的指针也足够了。]]></description>
+      <guid>https://stackoverflow.com/questions/14411627/implementations-of-local-regression-and-local-likelihood-methods</guid>
+      <pubDate>Sat, 19 Jan 2013 06:00:58 GMT</pubDate>
     </item>
     </channel>
 </rss>
