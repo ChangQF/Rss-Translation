@@ -4,7 +4,132 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 09 Oct 2024 18:22:25 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 09 Oct 2024 21:15:28 GMT</lastBuildDate>
+    <item>
+      <title>Neal 算法 1 是如何推导出来的？</title>
+      <link>https://stats.stackexchange.com/questions/655568/how-is-neals-algorithm-1-derived</link>
+      <description><![CDATA[我正在阅读 Neal 的狄利克雷过程混合模型的马尔可夫链抽样方法。我无法理解方程 3.2、3.3 和 3.4 是如何推导出来的。它们直观上是有意义的，但我很难想出一个正式的推导，特别是方程 3.4。
+摘自论文：
+
+这是我所得到的（不正确？）
+$$\begin{align*}
+p(\theta_i|\theta_{-i}, y_i)&amp;\propto p(\theta_i, \theta_{-i}, y_i)\\
+&amp;=p(y_i|\theta_i, \theta_{-i})p(\theta_i|\theta_{-i})p(\theta_{-i})\\
+&amp;=p(y_i|\theta_i)p(\theta_i|\theta_{-i})p(\theta_{-i}) \quad\text{since}\;{y_i\perp \theta_{-i}|\theta_i}\\
+&amp;\propto p(y_i|\theta_i)p(\theta_i|\theta_{-i})
+\end{align*}$$
+我不确定积分从何而来。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655568/how-is-neals-algorithm-1-derived</guid>
+      <pubDate>Wed, 09 Oct 2024 20:43:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>证明 $\mathbb{E} (|X-Y|) = 0 \implies X^2 = Y^2$</title>
+      <link>https://stats.stackexchange.com/questions/655565/proof-of-mathbbe-x-y-0-implies-x2-y2</link>
+      <description><![CDATA[$\boxed{\text{设 } X,Y \text{ 为任意随机变量。证明如果 } \mathbb{E}(​​|X-Y|) = 0，\text{则 } X^2 = Y^2。}$
+我们有 $\mathbb{E}(​​|X-Y|) = 0$，我认为如果我能以某种方式证明 $X=Y$，那么它直接意味着 $X^2 = Y^2$，但我不知道如何实现。
+附言：这不是任何形式的家庭作业，我只是在大学概率课程的往期考试中看到了这个问题，想尝试一下。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655565/proof-of-mathbbe-x-y-0-implies-x2-y2</guid>
+      <pubDate>Wed, 09 Oct 2024 19:54:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>所有相关性荟萃分析</title>
+      <link>https://stats.stackexchange.com/questions/655563/all-correlations-meta-analysis</link>
+      <description><![CDATA[我是 MetaSEM 的新手。我正在尝试进行一个简单的元分析（我只想分析 2 个相关性；见图）。
+在这里您可以找到我使用的一些模拟数据的代码，但如果没有回归，我就无法让它工作（除非我添加回归系数，否则它会永远工作下去）。这应该是一个简单的模型，但我被卡住了。我只想要两个协方差，我已经将所有方差固定为一个。换句话说，我只想对 S-D 和 I-D 之间的相关性进行元分析。
+S 和 D、S 和 I 以及 D 和 I 之间的相关性存储在此处：
+rSD &lt;- c(0.85, 0.8, 0.90, 0.78, 0.70,NA,NA,NA,NA,NA)
+rSI &lt;- c(NA,NA,NA,NA,NA,0.85,NA,NA,NA,NA)
+rDI &lt;- c(NA,NA,NA,NA,NA,0.60, 0.50, 0.55, 0.60, 0.55)
+
+rSI 可能是 al NA，因为我对这种相关性不感兴趣。
+我读过关于 SEM 和 RAM 模型的文章，我认为这个模型是可以识别的，应该很容易拟合。任何帮助和指导都将不胜感激。
+library(metaSEM)
+source(&quot;http://www.suzannejak.nl/MASEM_functions.R&quot;)
+
+rSD &lt;- c(0.85, 0.8, 0.90, 0.78, 0.70,NA,NA,NA,NA,NA)
+rSI &lt;- c(NA,NA,NA,NA,NA,0.85,NA,NA,NA,NA)
+rDI &lt;- c(NA,NA,NA,NA,NA,0.60, 0.50, 0.55, 0.60, 0.55)
+
+N &lt;- c(10000,40000, 30000, 10000, 10000,20000,10000, 50000, 10000, 10000 )
+
+数据 &lt;- as.data.frame(cbind(rSD,rSI,rDI, N))
+
+nvar &lt;- 3
+varnames &lt;- c(&quot;S&quot;,&quot;D&quot;, &quot;I&quot;)
+labels &lt;- list(varnames,varnames)
+
+cormatrices &lt;- readstack(data[,c(2,1,3)], no.var = nvar, var.names = varnames, diag = FALSE)
+
+n &lt;- data$N
+
+pattern.na(cormatrices, show.na=F)
+pattern.n(cormatrices, n=n)
+
+my.df &lt;- Cor2DataFrame(cormatrices, n, acov = &quot;weighted&quot;)
+
+## 使用指定模型lavaan 语法
+模型 &lt;-
+&#39;
+
+# 协方差
+D ~~ I
+D ~~ S
+# 方差
+
+D ~~ 1*D
+S ~~ 1*S
+I ~~ 1*I
+&#39;
+
+RAM1 &lt;- lavaan2RAM(model, obs.variables=varnames)
+RAM1
+
+## 创建具有隐式对角线约束的模型隐含相关结构
+M0 &lt;- create.vechsR(A0=RAM1$A, S0=RAM1$S)
+
+## 创建异质性方差-协方差矩阵
+T0 &lt;- create.Tau2(RAM=RAM1, RE.type=&quot;Diag&quot;, Transform=&quot;expLog&quot;, RE.startvalues=0.05)
+
+## 拟合模型
+mx.fit0 &lt;- osmasem(model.name=&quot;No moderator&quot;, Mmatrix=M0, Tmatrix=T0, data=my.df)
+
+## 查看结果
+summary(mx.fit0, fitIndices = TRUE)
+VarCorr(mx.fit0)
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/655563/all-correlations-meta-analysis</guid>
+      <pubDate>Wed, 09 Oct 2024 19:33:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>在风险函数的定义中，$\leq$ 应该放在哪里？</title>
+      <link>https://stats.stackexchange.com/questions/655562/where-should-the-leq-go-in-the-definition-of-the-hazard-function</link>
+      <description><![CDATA[我在几本教科书和在线资源中都看到过两种风险函数定义。
+定义 1。这里例如。
+$$h(t) = \lim_{\epsilon \to 0+}\dfrac{P(t &lt; T \leq t + \epsilon \mid T &gt; t)}{\epsilon},$$
+定义 2。这里例如。
+$$h(t) = \lim_{\epsilon \to 0+}\dfrac{P(t \leq T &lt; t + \epsilon \mid T \geq t)}{\epsilon}.$$
+我推测如果 $T$ 是绝对连续的，那么它们是等价的。但是，是否存在它们不同的情况？如果有，哪一个是正确的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655562/where-should-the-leq-go-in-the-definition-of-the-hazard-function</guid>
+      <pubDate>Wed, 09 Oct 2024 18:40:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>需要帮助理解具有多个随机变量的条件概率分布</title>
+      <link>https://stats.stackexchange.com/questions/655561/need-help-with-understanding-conditional-probability-distributions-with-multiple</link>
+      <description><![CDATA[我试图理解我正在阅读的一些机器学习讲义中介绍的以下步骤。在这种情况下，我们想要用参数化函数类 $\mathcal{F}(\Theta)$ 中的函数来近似函数 $f^*: \mathcal{X} \to \mathcal{Y}$，其中该类中的每个函数都依赖于一些参数 $\theta \in \Theta$。我们给出了输入 $x_{1:n}$ 和标签 $y_{1:n}$，其中我们使用符号 $x_{1:n} = (x_1, \ldots, x_n)^T$。我们假设标签是独立同分布的，并且 $y_i \sim p( \cdot | x_i, \theta)$ 成立。此外，我们假设参数 $\theta$ 具有先验分布 $p(\theta)$。我们现在希望通过对 $\theta$ 进行条件设定，预测新输入 $x^*$ 时的输出 $y^*$：
+$$p(y^* | x^*, x_{1:n}, y_{1:n}) = \int_{\Theta}p(y^*, \theta | x^*, x_{1:n}, y_{1:n}) d\theta = \int_{\Theta}p(y^* | x^*, \theta) \cdot p(\theta | x_{1:n}, y_{1:n})d\theta,$$
+根据讲义，第一个等式如下根据求和规则，其表述为
+$$p(x_{1:i - 1}, x_{i + 1:n}) = \int_{X_i(\Omega)}p(x_{1:i-1},x_i, x_{i + 1: n}) dx_i,$$
+第二个等式根据 $y^* \perp x_{1:n}, y_{1:n} | \theta$ 和乘积规则，其表述为
+$$p(x_{1:n}) = p(x_1) \prod_{i = 2}^np(x_i | x_{1: i-1}).$$
+我认为我理解第一个等式，因为根据条件概率分布的定义，我们有
+$$p(x_{1:i-1}, x_{i+1:n} | y_{1:n}) = \frac{p(x_{1:i-1}, x_{i+1:n}, y_{1:n})}{p(y_{1:n})} = \frac{\int_{X_i(\Omega)}p(x_{1:i-1},x_i, x_{i + 1: n}, y_{1:n}) dx_i}{p(y_{1:n})} = $$
+$$ = \frac{\int_{X_i(\Omega)} p(y_{1:n})p(x_{1:i-1},x_i, x_{i + 1: n} | y_{1:n}) dx_i}{p(y_{1:n})} = \int_{X_i(\Omega)}p(x_{1:i-1},x_i, x_{i + 1: n} | y_{1:n}) dx_i.$$
+但是，我不明白第二个等式如何从 $y^* \perp 得出x_{1:n}, y_{1:n} | \theta$ 和所述乘积规则。
+如能得到任何帮助，我们将不胜感激！]]></description>
+      <guid>https://stats.stackexchange.com/questions/655561/need-help-with-understanding-conditional-probability-distributions-with-multiple</guid>
+      <pubDate>Wed, 09 Oct 2024 18:33:29 GMT</pubDate>
+    </item>
     <item>
       <title>寻找使用“求解方程”带宽进行核密度估计的可靠教程</title>
       <link>https://stats.stackexchange.com/questions/655559/looking-for-robust-tutorial-using-solve-the-equation-bandwidth-for-kernel-dens</link>
@@ -13,7 +138,7 @@ $$
 h = 0.9 \min\left\{\widehat{\sigma}, \frac{IQR}{1.34} \right\}
 $$
 （顺序问题，我发现很多不同的规则被称为 Silverman 经验法则，因此这 可能 实际上不是 Silverman 经验法则。请在评论中纠正我，但这最终与我的询问无关）。
-我还想使用 Solve-the-Equation（糟糕的品牌名称）带宽计算来估算这一点，但我找不到任何关于如何进行此操作的易于理解的演示文稿/来源/参考资料。如果有人可以指出有关如何为 KDE 进行 Solve-the-Equation 带宽的详尽解释/来源，我将不胜感激。尤其是不会掩盖太多细节的那种。这种数学不是我的强项。或者，如果网上找不到这样的教程，可以在这里介绍一个强大的教程。此外，请纠正任何]]></description>
+我还想使用 Solve-the-Equation（糟糕的品牌名称）带宽计算来估算这一点，但我找不到任何关于如何进行此操作的易于理解的演示文稿/来源/参考资料。如果有人可以指出有关如何为 KDE 进行 Solve-the-Equation 带宽的详尽解释/来源，我将不胜感激。尤其是不会掩盖太多细节的。这种数学不是我的强项。或者，如果网上找不到这样的教程，可以在这里介绍一个强大的教程。此外，请纠正我的术语中的任何错误。]]></description>
       <guid>https://stats.stackexchange.com/questions/655559/looking-for-robust-tutorial-using-solve-the-equation-bandwidth-for-kernel-dens</guid>
       <pubDate>Wed, 09 Oct 2024 18:04:25 GMT</pubDate>
     </item>
@@ -47,9 +172,11 @@ $$
 这意味着我必须为每个部分创建一个可靠性分数，以查看是否需要培训。此外，公式还必须考虑评级是否接近。
 这就是为什么例如简单的百分比可靠性不起作用的原因（我认为）
 此外，像 Fleiss Kappa 这样的公式也不起作用，因为它无法确定一个主题的单个部件（或项目）的 kappa。
-例如，我们有 50 位评分者，并且特定部件的评级为 5 次“0”，5 次“1”，10 次“2”，30 次“3”，其他部件没有投票。还有一个权重也应该计算在内。评级为“1”表示未通过，而“0”表示该部件无法评级。数字上很接近，但对主题来说却是灾难性的。然后，一个评分员给他打了不及格分，而另一个评分员给他打了不及格分。
+例如，我们有 50 位评分者，并且特定部件的评级为 5 次“0”，5 次“1”，10 次“2”，30 次“3”，其他部件没有投票。还有一个权重也应该计算在内。评级为“1”表示未通过，而“0”表示该部件无法评级。数字上很接近，但对主题来说却是灾难性的。然后，一个评分员给他打了不及格分，另一个评分员给他打了不及格分。
 有没有办法计算一个项目的分数、Kappa 值或其他东西，并以某种方式对其进行加权？
-正如我所说，我不太喜欢统计学，但当我知道要寻找什么时，我认为这会有所帮助。]]></description>
+正如我所说，我不太喜欢统计，但当我知道要寻找什么时，我认为这会有所帮助。
+编辑：我可能必须澄清一下。
+整个设置都是法律规定的。因此，员工，即教员，观看视频。他们必须根据不同的能力对视频中的受训者进行评分。他的知识如何，他的领导能力如何等。他们必须用上述等级对每项能力进行评分。目标是确保每个教员的评分几乎相同。因为如果不是这样，受训者在现实生活中将高度依赖他得到的教员。这就是我们需要这个培训计划的原因。我们必须评估我们必须与教员合作的能力。为此，我们需要一个量表。我们收到了一家公司的报价，他们使用 Landis Koch 量表并借助 kappa 进行评估。但他们当然没有告诉我们具体是哪种。我们想重建它，自己在公司内部制造。但我们知道这在某种程度上是可行的。这就是为什么我们需要为每项能力设置一个分数或其他东西。遗憾的是，设置无法更改。]]></description>
       <guid>https://stats.stackexchange.com/questions/655556/create-inter-rater-reliability-on-one-subject-and-per-item</guid>
       <pubDate>Wed, 09 Oct 2024 17:39:48 GMT</pubDate>
     </item>
@@ -172,106 +299,6 @@ https://svivek.com/teaching/lectures/slides/logistic-regression/logistic-regress
 也许 2 的后续问题是，在最大后验估计中，我们总是最大化常数的似然，还是最大化随机变量的似然？]]></description>
       <guid>https://stats.stackexchange.com/questions/655545/widespread-inconsistency-in-maximum-likelihood-estimation-approach-to-logistic-r</guid>
       <pubDate>Wed, 09 Oct 2024 15:14:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解释 MLPE 的估计？ [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/655544/c%c3%b3mo-interpretar-los-estimados-de-un-mlpe</link>
-      <description><![CDATA[我使用 MLPE 来评估环境变量（amt、ap、pcq、pwq、i）和形态变量（SVL）对歌曲变化（音符、音符和歌曲的持续时间、频率）的影响青蛙的公告我的问题是预测变量和响应变量是否暗示着一种关系（？），指的是估计的符号，以了解关系的走向。
-例如，频率模型使用 SVL、amt 和 ap 作为预测变量。 SVL 估计值为正，据我了解，这表明如果 SVL 增加，频率也应该增加（急性频率）。但在相同数据的描述性统计中，其关系是负的，即SVL增大，则频率降低（严重频率）。
-我很困惑，因为在建立模型时，预测变量 (SVL) 的符号表明了我的数据在频率方面的性质以外的东西。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655544/c%c3%b3mo-interpretar-los-estimados-de-un-mlpe</guid>
-      <pubDate>Wed, 09 Oct 2024 15:12:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 sklearn 对 100% 数据集进行最终预测</title>
-      <link>https://stats.stackexchange.com/questions/655543/make-a-final-prediction-with-100-of-dataset-with-sklearn</link>
-      <description><![CDATA[我使用以下步骤验证模型以进行分类：
-
-选择 75% 的数据集使用 train_test_split 进行训练
-SequentialFeatureSelector 获取最佳特征
-RandomForest 进行分类
-AdaBoost 改进分类
-
-我的分数不错，但现在我想使用 100% 的数据进行最终分类。
-我有几种选择可以将 100% 的数据用于训练：
-
-创建一个包含 100% 数据的新模型进行训练（只需用 100% 的数据重新拟合模型？）
-
-为每个折叠创建一个包含 n 个模型的交叉预测，并将它们与 VotingClassifier 结合起来
-
-直接将 cross_val_predict 与第一个模型一起使用，但具体如何操作？
-
-
-您认为最合适、最公平的方法是什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655543/make-a-final-prediction-with-100-of-dataset-with-sklearn</guid>
-      <pubDate>Wed, 09 Oct 2024 14:49:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何为我们的数据选择最合适的分布[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/655542/how-to-choose-most-suitable-distribution-for-our-data</link>
-      <description><![CDATA[我们想对我们的数据进行一些回归分析。我们的数据可能是依赖的，并且是时间序列（数据 - 狍子种群、年份和气候变化指数）。我们想看看这个指数对狍子种群的影响。我们还想使用 R。我们也不知道如何计算 lambda。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655542/how-to-choose-most-suitable-distribution-for-our-data</guid>
-      <pubDate>Wed, 09 Oct 2024 14:36:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中泊松回归的替代脚本[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/655541/alternative-script-of-poisson-regression-in-r</link>
-      <description><![CDATA[我正在 R 中编写另一个版本的泊松回归。在“身份”中案例，使用 glm 函数的代码
-y = c(2,3,5,4) # 因变量
-x = c(1,2,3,4) # 解释变量
-
-# 标准编码 (link=&quot;identity&quot;)
-res &lt;- glm(y ~ x, family=poisson(link=&quot;identity&quot;))
-res$coef
-#(Intercept) x 
-# 1.2783528 0.8886589 
-
-与下面的代码相同。
-# 替代编码 (link=&quot;identity&quot;)
-w = c(1,1,1,1) # 初始权重值 
-for (i in 1:10) { 
-r = lm(y ~ x, weights=w)
-lambda = predict(r)
-print(c(as.numeric(r$coef), -sum(y*log(lambda)-lambda)))
-w = 1 / lambda
-}
-r$coef
-#(Intercept) x 
-# 1.2783467 0.8886613 
-
-但是，我不确定“log”情况的替代编码。我怎样才能用下面的代码得到相同的结果？
-# 标准情况 (link=&quot;log&quot;)
-res &lt;- glm(y ~ x, family=poisson(link=&quot;log&quot;))
-res$coef
-# (截距) x 
-# 0.6392647 0.2320399 
-
-下面的代码不一样... .
-w = c(1,1,1,1)
-for (i in 1:10) { 
-r = lm(log(y) ~ x, weights=w)
-lambda = exp(predict(r))
-print(c(as.numeric(r$coef), -sum(y*log(lambda)-lambda)))
-w = 1 / lambda
-}
-r$coef
-#(截距) x 
-# 0.4684634 0.2938401 
-
-我需要替代编码的原因是我面临标准情况的非收敛问题。因此，我只是尝试对其进行编码并寻找替代方法与标准方法相同的原因。此外，我也不确定如何向替代情况添加偏移项。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655541/alternative-script-of-poisson-regression-in-r</guid>
-      <pubDate>Wed, 09 Oct 2024 14:36:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>哪项测试用于三组之间的标准化量化数据</title>
-      <link>https://stats.stackexchange.com/questions/655540/which-test-for-normalised-quantification-data-between-three-groups</link>
-      <description><![CDATA[我想比较三个组（疾病 1、疾病 2 和非疾病）之间的一个变量的数量（分配给念珠菌的读取次数）
-当我使用不同的方法进行测试时，结果并不总是相同的。如果我使用钢或 Dunnett 测试（针对控制非疾病），我会得到不同的结果
-如果我使用 Mann Whitney，我会得到一个显着的差异，并且通过所有成对比较，我再次得到不同的东西。
-我真的不知道该遵循哪一个，有人可以帮忙吗？
-非常感谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/655540/which-test-for-normalised-quantification-data-between-three-groups</guid>
-      <pubDate>Wed, 09 Oct 2024 14:26:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
