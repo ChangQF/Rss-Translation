@@ -4,7 +4,144 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 08 Oct 2024 21:17:40 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 09 Oct 2024 01:15:41 GMT</lastBuildDate>
+    <item>
+      <title>我们如何阻止贝叶斯估计过度自信？</title>
+      <link>https://stats.stackexchange.com/questions/655504/how-do-we-stop-bayesian-estimates-from-being-overconfident</link>
+      <description><![CDATA[我今天发布了一个关于小样本回归策略的问题。我认为贝叶斯回归可能是一个不错的选择：用于校正小样本的贝叶斯回归
+有一件事我很好奇，我读到贝叶斯推理的优势在于它可以防止在我们对数据没有信心或样本量较小的情况下估计值出现非常大的方差。在这种情况下，与数据相比，估计值可以向先验收缩，从而与非贝叶斯方法相比，降低了参数估计值的方差。
+我只是想知道，我们如何防止/我们如何知道贝叶斯方差的减少不是明显低估方差？在我看来，唯一要做的就是选择一个非常大的先验（例如非信息先验）来反映我们的不确定性，然而这样做似乎会将方差拉回到非贝叶斯方向。除此之外，听起来没有免费的午餐，而且贝叶斯推理只有在你真正对自己的先验选择有信心的情况下才有优势？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655504/how-do-we-stop-bayesian-estimates-from-being-overconfident</guid>
+      <pubDate>Wed, 09 Oct 2024 01:10:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何实现和记录二维矩阵到三维张量的复制/变换以及三维张量到二维矩阵的求和/变换？</title>
+      <link>https://stats.stackexchange.com/questions/655503/how-to-implement-and-notate-the-replication-transformation-of-a-2d-matrix-to-a-3</link>
+      <description><![CDATA[背景：
+我有一个模型，其维度为 $T$，代表 $time$；维度为 $N$，代表 $technologies$；维度为 $P$，代表 $prices$。在此模型中进行计算时，我想添加 $T$ 维度（为每个时间步骤复制数据），并删除 $N$ 维度（总和 N）。
+我必须在 numpy 中实现此模型，并以数学方式记录它。我如何
+
+实现并记录 2D 矩阵到 3D 张量的复制/转换？
+实现并记录 3D 张量到 2D 矩阵的求和/转换？
+
+一方面，符号应使用尽可能接近使用的 numpy 操作的数学运算符/操作，但也要保持数学文档的正确性，让没有数学学位的用户（比如我）也能读懂。另一方面，使用的 numpy 操作应该可以用数学运算符/概念来表达。
+有时不同的数学运算似乎具有相同的数学符号。在其他情况下，在我看来，一个数学运算可以用不同的运算符表示，在某些情况下，一个数学运算似乎有许多可能的 numpy 实现。
+如果没有正确或错误的答案，我会对意见、惯例或最佳实践感兴趣。我不确定这是否更适合 stack exchange 数学、stackoverflow 或此平台。
+
+复制维度
+从 1D 到 2D：我有一个行向量 $A \in \mathbb{R}^{1 \times P}$。现在，我想将此向量复制到矩阵 $C \in \mathbb{R}^{N \times P}$，例如，每种技术应该具有相同的价格。我考虑过用一个向量来表示这个克罗内克积：
+$C^{N \times P} = 1^{N \times 1} \otimes A^{1 \times P}$
+C_NxP = np.kron(one_Nx1, A_1xP)
+
+从 2 D 到 3D：现在，我想将这个 $C^{N \times P}$ 矩阵转换为 $D \in \mathbb{R}^{T \times N \times P}$ 张量，例如，每个时间步骤都具有相同的技术和价格。我考虑将其表示为张量积，其符号似乎与克罗内克积相同
+$D^{T \times N \times P} = 1^{T \times 1} \otimes C^{N \times P}$
+D_Tx1xNxP = np.tensordot(One_Tx1, C_NxP, axis=0) # 错误：返回 Tx1xNxP
+
+但如果 $1^{T \times 1}$ 是实际的 numpy 列向量（形状为 Tx1），则相应的 numpy 操作将返回错误的形状，并且我更希望不要明确地将 2D numpy 向量重塑为 1D numpy 向量。但是，使用 np.einsum 可以工作：
+D_TxNxP = np.einsum(&#39;io,jk-&gt;ijk&#39;, One_Tx1, C_NxP)
+
+因此，将其表示为 $T_{ijk} = D_{i1} \cdot C_{jk}$ 是否更好？这里的 Tensorproduct 和 Einstein sum 是否相同？如果是，我可以将其表示为 Tensorproduct 吗？
+
+求和/减少维度：
+从 2D 到 1D：我有 $G \in \mathbb{R}^{T \times N}$，我想按时间步长对技术求和。我认为将其表示为矩阵乘法：
+$E^{T \times 1} = C^{T \times N} * 1^{N \times 1}$
+E_Tx1 = G_TxN @ 1_Nx1
+
+从 3D 到 2D：现在，我想将其应用于张量 $D \in \mathbb{R}^{T \times N \times P}$ 并求和每个价格水平 p 的技术值，例如求和“内部”矩阵 ${N \times P}$ 维度为 N。看来爱因斯坦求和约定又起作用了。
+$M_{tp} = B_{tnp} \, C_n$
+M_TxP = np.einsum(&#39;tnp,n-&gt;tp&#39;, B_TxNxP, C_Nx1) 
+
+但据我所知，我也可以将其表示为 n 模乘积，这对我来说看起来更具可读性：
+$M^{T \times P} = B^{T \times N \times P} \times_{\!N}\, C^{N \times 1}$
+这样对吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655503/how-to-implement-and-notate-the-replication-transformation-of-a-2d-matrix-to-a-3</guid>
+      <pubDate>Wed, 09 Oct 2024 00:58:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>2024 年诺贝尔物理学奖获奖声明不正确吗？</title>
+      <link>https://stats.stackexchange.com/questions/655502/is-the-nobel-prize-in-physics-2024-statement-of-merit-incorrect</link>
+      <description><![CDATA[今天，诺贝尔基金会宣布 2024 年诺贝尔物理学奖，获奖理由如下：
+
+表彰那些使机器学习和人工神经网络成为可能的基础性发现和发明
+
+此外，此外：
+
+Hopfield 和 Hinton 开发的开创性方法和概念对塑造 ANN 领域起到了重要作用。
+
+我的问题是：J. Hopfield 和 G. E. Hinton 的工作是否真的使机器学习能够与 ANN 结合？他们是否真的塑造了 ANN 领域？如果没有他们提出和研究的循环神经网络，那么 ANN 中是否就没有机器学习？（带有反向传播的简单有向 3 层网络又如何呢）
+据我所知，他们的工作不仅不是使用 ANN 进行机器学习的核心（更不用说“基础”），而且已经过时，如今没有真正重要的应用（诺贝尔奖意义上的重要应用，即研究必须“给人类带来最大的利益”）。这是一个过时的工具，不是吗？
+（最初发布于AI，经过修改）]]></description>
+      <guid>https://stats.stackexchange.com/questions/655502/is-the-nobel-prize-in-physics-2024-statement-of-merit-incorrect</guid>
+      <pubDate>Wed, 09 Oct 2024 00:53:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>马尔可夫状态 GBM 的最大似然</title>
+      <link>https://stats.stackexchange.com/questions/655501/max-likelihood-of-gbm-with-markov-state</link>
+      <description><![CDATA[考虑随机过程
+$$dX_t = \mu_{\epsilon_t}X_tdt + \sigma_{\epsilon_t}X_tdW_t$$
+其中$W_t$是标准布朗运动。过程$X_t$是几何布朗运动，其均值和方差取决于具有状态空间$\{H,L\}$的独立两状态马尔可夫链。因此，我们有四个参数
+
+$\mu_H$：状态 $H$ 的平均漂移
+$\mu_H$：状态 $L$ 的平均漂移
+$\sigma_H$：状态 $H$ 的标准差
+$\sigma_L$：状态 $L$ 的标准差
+
+马尔可夫过程有自己的转移矩阵：
+
+$p_H$ 是从状态 $L$ 跳转到状态 $H$ 的条件概率
+
+$p_L$ 是从状态 $H$ 跳转到状态 $L$ 的条件概率
+
+
+总体而言，该模型有六个参数。请注意，马尔可夫过程并非隐藏的，并且假定是可观察的。
+
+问题：如果 $X_t$ 是具有对数正态分布的标准几何布朗运动，我可以根据 $X_t$ 的实现时间序列，找到 $\mu$ 和 $\sigma$ 的简单最大似然估计量。但在更一般的设置中该怎么做？具有状态切换的 $X_t$ 是否也具有已知的 MLE？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655501/max-likelihood-of-gbm-with-markov-state</guid>
+      <pubDate>Wed, 09 Oct 2024 00:24:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>统计方法分析不同类型医院 PCI 中复杂程度不同的手术量-结果关系</title>
+      <link>https://stats.stackexchange.com/questions/655500/statistical-approach-for-analyzing-volume-outcome-relationship-in-pci-with-varyi</link>
+      <description><![CDATA[我正在开展一项研究，以评估 PCI（经皮冠状动脉介入治疗）中的数量-结果关系。我有一个数据集，其中包含以下详细信息：
+操作员特征，包括：
+终生 PCI 经验（每个操作员执行的程序总数）。
+自第一次 STEMI 程序以来的年数。
+医院类型：每个操作员是在大学医院还是非大学医院工作。
+医院 PCI 数量：每家医院的总体 PCI 数量。
+从以前的研究中，我知道 30 天死亡率通常用作数量-结果分析的主要结果，但我也有关于其他患者结果的数据，如出血并发症等。
+问题是大学医院往往处理更复杂的病例，这可能导致与非大学医院相比，每个操作员的 PCI 数量较低。
+另一方面，非大学医院通常处理大量 PCI 手术，但通常处理的病例不太复杂。
+评估这种数量-结果关系的最佳统计模型是什么？具体来说：
+我如何解释大学医院的操作员可能由于病例复杂性较高而导致 PCI 数量较低，而非大学医院的 PCI 数量可能较高但病例复杂程度较低这一事实？
+我是否应该使用具有医院和操作员随机效应的多变量混合效应逻辑回归模型来解释这种聚类，或者是否有其他方法可能更适合这些数据？
+如果您能提供关于如何对此进行建模的建议或类似分析的示例，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655500/statistical-approach-for-analyzing-volume-outcome-relationship-in-pci-with-varyi</guid>
+      <pubDate>Tue, 08 Oct 2024 22:51:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>newey-west 错误的具体滞后</title>
+      <link>https://stats.stackexchange.com/questions/655499/specific-lag-for-newey-west-errors</link>
+      <description><![CDATA[
+我目前正在进行一个关于股票收益的研究项目，但我真的不知道该如何进行。我已经在 STATA 上生成了残差的相关图，以了解自相关结构，如图所示。但我真的不知道如何在这种情况下应用 newey-west 误差，因为它要求我为回归指定特定的截断滞后，而自相关结构到处都是。我真的不确定 newey-west 经验法则 q=4(T/100)^2/9 是否合适或应该在这里使用，或者是否应该指定另一个滞后长度。如果有人能帮助我，我将不胜感激。谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/655499/specific-lag-for-newey-west-errors</guid>
+      <pubDate>Tue, 08 Oct 2024 22:36:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何根据似然比检验构建置信区域？</title>
+      <link>https://stats.stackexchange.com/questions/655496/how-to-construct-confidence-regions-based-on-the-likelihood-ratio-test</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/655496/how-to-construct-confidence-regions-based-on-the-likelihood-ratio-test</guid>
+      <pubDate>Tue, 08 Oct 2024 21:42:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有重复列的岭回归实际上会将系数减半吗？</title>
+      <link>https://stats.stackexchange.com/questions/655495/does-ridge-regression-with-a-duplicate-column-actually-halve-the-coefficient</link>
+      <description><![CDATA[以下摘录自 Trevor Hastie 的《岭正则化：数据科学中的基本概念》。
+
+如何实际证明这一点？这似乎取决于理解在复制一列时奇异值和右奇异向量如何变化，但似乎并不清楚这些变化究竟是如何变化的（例如，https://math.stackexchange.com/questions/244399/how-does-the-left-singular-value-decomposition-change-when-one-duplicates-a-colu）]]></description>
+      <guid>https://stats.stackexchange.com/questions/655495/does-ridge-regression-with-a-duplicate-column-actually-halve-the-coefficient</guid>
+      <pubDate>Tue, 08 Oct 2024 21:24:12 GMT</pubDate>
+    </item>
     <item>
       <title>重复测量多元方差分析在这里合适吗？</title>
       <link>https://stats.stackexchange.com/questions/655494/is-repeated-measure-manova-appropriate-here</link>
@@ -115,66 +252,9 @@ RM MANCOVA 是否是分析这些数据的合适方法？]]></description>
       <pubDate>Tue, 08 Oct 2024 20:15:00 GMT</pubDate>
     </item>
     <item>
-      <title>解决 Cox 模型中的内生性问题</title>
-      <link>https://stats.stackexchange.com/questions/655486/addressing-endogeneity-issue-in-cox-model</link>
-      <description><![CDATA[我正在处理面板数据，其中变量是群体层面的绩效指标。简而言之，预测因子是群体层面的总量（例如，成员的平均声誉），它在几个时期内随时间变化（预测变量是群体绩效）。我有理由相信，预测因子不是严格外生的，因为有时群体的组建目的是使其表现良好。然而，预测因子的“一部分”是外生的——当群体成员在某个时期突然退出群体时（死亡或某种原因，这严格是外生的），就会发生这种情况。因此，为了进行识别，我考虑在我的数据集中创建预测因子的两个组成部分：第一个是假设没有外生冲击的群体水平（声誉）度量（即，群体成员没有离开群体），第二个组成部分将是 delta（预测因子）只有存在外生冲击（死亡或其他原因）时，如果退出群体成员的声誉高于平均水平，则该 delta（预测因子）将为负数，如果退出群体成员的声誉低于平均水平，则该 delta（预测因子）将为正数。无论如何，第二个组成部分将是预测因子的外生组成部分，并且其系数在测试所提出的假设时应该是理想的显著的。现在说了这么多，为了使问题稍微复杂化，我使用了 Cox 回归（预测是一个持续时间变量）和随时间变化的协变量，但这不是重点，因为你们所有人提出的关键问题是我的策略是否合理。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655486/addressing-endogeneity-issue-in-cox-model</guid>
-      <pubDate>Tue, 08 Oct 2024 18:52:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 10 个样本中，从 21 个列表中选择少于 4 个唯一数字的概率（有放回）</title>
-      <link>https://stats.stackexchange.com/questions/655485/probability-of-selecting-less-than-4-unique-numbers-from-a-list-of-21-in-10-samp</link>
-      <description><![CDATA[我有一份包含 21 个数字的列表，编号为 0 到 20（或 1 到 21，无所谓）。我随机挑选 10 次，每次都使该选择可用于下一次选择。这 10 次选择中唯一数字少于 4 个的概率是多少？
-我用一个我认为正确的公式来解决组合问题，但是当我在电子表格上模拟该过程时，我得到了一个非常不同的结果：请问​​正确的公式是什么？以下是我对如何获得公式和模拟结果的解释。
-选择少于 4 个唯一数字的概率是始终选择相同数字的概率 + 选择 2 个不同数字的概率 + 选择 3 个不同数字的概率。
-$$P(&lt;4) = P(1) + P(2) +P(3)$$
-我第一次从 10 个数字中挑选出一个独特的数字。第二次挑选时，我可以选择相同的数字，概率为 $\frac1{21}$，也可以选择不同的数字，概率为 $\frac{20}{21}$。在第一次选择之后的 9 次选择中始终选择相同数字的概率为
-$$P(1) = \left(\frac1{21}\right)^9$$
-在第二次选择之后，我选择了一个与第一次不同的数字，然后我还有第三次选择，我可以选择前 2 个数字中的一个，概率为 $\frac2{21}$，或者选择第三个不同的数字，概率为 $\frac{19}{21}$。在前 2 个数字之后，我在剩余的 8 次选择中继续选择相同的 2 个数字的概率为
-$(\frac{2}{21})^8$，因此
-$$P(2) = \frac{20}{21}\left(\frac{2}{21}\right)^8$$
-继续同样的思路，在第 4 次选择时，我可以选择之前选择的 3 个数字之一，概率为 $\frac3{21}$，或者选择第 4 个不同的数字，概率为 $\frac{18}{21}$。在前 3 个数字之后，我在剩余的 7 次选择中继续选择相同的 3 个数字的概率为
-$(\frac{3}{21})^7$，因此
-$$P(3) = \frac{20}{21}\frac{19}{21}\left(\frac3{21}\right)^7$$
-将三项相加
-$$P(&lt;4) = \left(\frac1{21}\right)^9 + \frac{20}{21}\left[\left(\frac{2}{21}\right)^8 + \frac{19}{21}\left(\frac3{21}\right)^7\right] = $$
-这给了我大约 $P(&lt;4) = 0.00011\%$
-当我尝试通过在 Google 表格中模拟该过程来验证结果时，我无法模拟足够的试验进行计算；上面的概率意味着大约 909,000 次试验的平均值是 1，但我发现 Google 表格允许我模拟大约 47,500 次试验。因此，我将问题从 10 次选择缩减为 8 次选择，通过归纳法获得
-$$P(&lt;4) = \left(\frac1{21}\right)^7 + \frac{20}{21}\left[\left(\frac{2}{21}\right)^6 + \frac{19}{21}\left(\frac3{21}\right)^5\right] = 0.0052\%$$
-但是当我模拟它时，我得到 $P(&lt;4) = 0.016\%$
-我用来模拟上述结果的 Google Sheets 公式是
-=countif( byrow( map(RANDarray(55000, 8), lambda(x, int(x*21))), lambda(trial,COUNTUNIQUE(trial)) ), &quot;&lt;4&quot;) / 55000
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/655485/probability-of-selecting-less-than-4-unique-numbers-from-a-list-of-21-in-10-samp</guid>
-      <pubDate>Tue, 08 Oct 2024 18:49:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>用于校正小样本量的贝叶斯回归</title>
-      <link>https://stats.stackexchange.com/questions/655481/bayesian-regression-for-correcting-small-sample-sizes</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/655481/bayesian-regression-for-correcting-small-sample-sizes</guid>
-      <pubDate>Tue, 08 Oct 2024 17:26:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否有可能测试 R 中不同回归的两个系数之间的差异？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/655480/is-possible-to-test-the-differente-between-two-coefficients-for-different-regres</link>
-      <description><![CDATA[我有两个回归，我需要测试系数之间是否存在差异。
-
-df1 = data.frame(estimate = c(0.04854144, -0.00105855,0.00051479),
-std.error = c(0.00918019, 0.00501731,0.00680725), row.names =
-c(&#39;(Intercept)&#39;, &#39;first&#39;, &#39;second&#39;) )
-df2 = data.frame(estimate = c(0.55632466, 0.03208915, -0.00066974),
-std.error = c(0.07542807, 0.00231743, 0.00165630), row.names =
-c(&#39;(Intercept)&#39;, &#39;first&#39;, &#39;second&#39;) )
-
-但我不知道该怎么做，以及是否可行。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655480/is-possible-to-test-the-differente-between-two-coefficients-for-different-regres</guid>
-      <pubDate>Tue, 08 Oct 2024 16:52:38 GMT</pubDate>
-    </item>
-    <item>
       <title>因果推理中两种潜在结构的等价性</title>
       <link>https://stats.stackexchange.com/questions/655478/equivalence-of-two-latent-structures-in-causal-inference</link>
-      <description><![CDATA[这是 Pearl 在其经典专著因果关系：模型、推理和推论（第 2.1 节脚注 5）中提出的主张。对于下面的两个因果结构（其中“$(*)$”表示具有任意数量状态的隐藏变量），作者指出
+      <description><![CDATA[这是 Judea Pearl 教授在其经典专著因果关系：模型、推理和推论（第 2.1 节脚注 5）中提出的主张。对于下面的两个因果结构（其中“$(*)$”表示具有任意数量状态的隐藏变量），作者指出
 
 为了验证 (a) 和 (b) 是否等价，我们注意到，如果我们让链接 $a \leftarrow *$ 在两个变量之间施加相等性，则 (b) 可以模仿 (a)。相反，(a) 可以模仿 (b)，因为它能够生成具有 (b) 所包含的独立性的每个分布。
 
@@ -212,273 +292,33 @@ p(b)p(c|a, b) = \sum_u p(u|a)p(c|u, b) \tag{1}\label{1}
       <pubDate>Tue, 08 Oct 2024 15:48:31 GMT</pubDate>
     </item>
     <item>
-      <title>在时变生存模型中模拟时间固定混杂因素</title>
-      <link>https://stats.stackexchange.com/questions/655473/simulating-time-fixed-confounder-in-time-varying-survival-model</link>
-      <description><![CDATA[我试图在 R 中模拟具有随时间变化的暴露的生存 Cox PH 设置。目标是评估时间固定混杂因素在暴露-结果关系中的影响。
-我试图使用以下代码来定义一个纵向数据集，该数据集可以由组变量 (grp)（混杂因素）部分解释。然后，我使用这些数据模拟事件发生时间数据集，该数据集也由变量 grp 部分解释。
-问题：grp 变量似乎没有发挥任何混杂效应，我不明白为什么。据我所知，将其从模型中排除应该会导致暴露系数的估计出现偏差，但它似乎没有这种影响。
-我的尝试：
-纵向数据的模拟（基于之前的问题）
-########################################################################################
-#SIMULATE SURVIVAL DATA WITH TIME_VARYING CONTINUOUS EXPOSURE
-########################################################################################
+      <title>为（概率）客户流失模型选择数据的正确方法是什么？</title>
+      <link>https://stats.stackexchange.com/questions/655476/correct-way-to-select-data-for-probabilistic-churn-model</link>
+      <description><![CDATA[背景：我所在的团队希望根据客户的特定协变量对客户流失的概率进行建模。我们有两个主要想法：使用生存分析的模型和使用二元分类方法的模型。我的直觉是使用分类的方法是“错误的”，但我无法完全解释原因。
+问题：
+我的问题是，这种方法是否错误？如果是，我们能否提供一些背景信息来说明“为什么”这种方法是错误的？我想加深我的理解。
+信息：
+假设我们有大量来自具有（时间依赖的）协变量 X 的客户的面板数据。在分类方法中，我们遵循以下方法：
 
-set.seed(1234)
+我们选择了将“训练”数据集与“测试”数据集分开的日期。训练数据分为“训练”部分和“验证”部分，用于稍后校准。
+每个客户要么拥有产品，要么没有，用 1 和 0 表示。我们通过查看 t_0 和 t_1 上的产品拥有情况来创建一个特征 y_target。如果客户从 1→0，则在 t0 标记为“1”。如果客户从 1→1，则在 t0 标记为“0”。0→0 和 0→1 设置为 NA。
+对于训练集：
+a. 由于流失事件非常罕见，我们在开始日期和结束日期之间的任何时间点为每个具有 y_target = 1 的客户选择一个数据点。
+b. 对于其余客户，选择一个 y_target 不为 NA 的随机时刻
+对于验证和测试集：
+a.我们为每个客户选择一个随机时刻
+我们在训练集上训练模型，在验证集上校准模型，并在测试集上评估模型。
 
-#Load包
-library(MASS)
-library(nlme)
-library(survival)
-library(PermAlgo)
-library(data.table)
-library(fastDummies)
+此图说明了配方：
 
-### 设置个体数量
-n &lt;- 10000
-
-### 平均截距和斜率
-beta0 &lt;- 10.0
-beta1 &lt;- -2.0
-
-### 真实自相关
-ar.val &lt;- -.8
-
-### 真实误差 SD、截距 SD、斜率 SD 和截距斜率相关
-sigma &lt;- 1.5
-tau0 &lt;- 2.5
-tau1 &lt;- 2.0
-tau01 &lt;- 0.3
-
-### 可能观测值的最大数量（例如年数）
-m &lt;- 10
-
-### 模拟每个个体的观察次数
-p &lt;- rep(m,n)
-
-### 模拟观察时刻（假设每个人都有 10 个观察）
-obs&lt;-rep(1:m, n)
-
-### 设置带有 id 和二进制时间固定协变量 X1 的数据框
-dat &lt;- data.frame(id=rep(1:n, times=p), obs=obs,
-x1=rep(rbinom(n, 1, 0.3), each=m))
-
-### 模拟混杂因素作为具有 4 个级别和相应值（grpnum）的组变量
-grp&lt;-c(rep(1,n*0.2),
-rep(2,n*0.3),
-rep(3,n*0.4),
-rep(4,n*0.1))
-dat$grp&lt;-as.factor(grp)
-
-grpnum&lt;-c(rnorm(n = n*0.2,mean = 0,sd = 3),
-rnorm(n = n*0.3,mean=3,sd = 1),
-rnorm(n = n*0.4,mean=-1,sd = 1),
-rnorm(n = n*0.1,mean=-2,sd = 4))
-dat$grpnum&lt;-grpnum
-
-### 模拟截距和斜率的（相关）随机效应
-mu &lt;- c(0,0)
-S &lt;- matrix(c(1, tau01, tau01, 1), nrow=2)
-tau &lt;- c(tau0, tau1)
-S &lt;- diag(tau) %*% S %*% diag(tau)
-U &lt;- mvrnorm(n, mu=mu, Sigma=S)
-
-### 模拟 AR(1) 误差，然后模拟实际结果
-dat$eij &lt;- c(sapply(p, function(x) arima.sim(model=list(ar=ar.val), n=x) * sqrt(1-ar.val^2) * sigma))
-dat$yij &lt;- round((beta0 + rep(U[,1], times=p)) +
-(beta1 + rep(U[,2], times=p)) * log(obs) * dat$grpnum + dat$eij ,2)
-
-### 注意：使用 arima.sim(model=list(ar=ar.val), n=x) * sqrt(1-ar.val^2) * sigma
-### 构造，使得真实误差 SD 等于 sigma
-
-#定义纵向数据
-dat&lt;-as.matrix(dat[c(&quot;x1&quot;,&quot;grp&quot;,&quot;yij&quot;)])
-
-#从&quot;grp&quot; 定义虚拟变量列，因为 Permalgo 不接受因子
-dat &lt;- dummy_cols(dat,select_columns = &quot;grp&quot;,remove_selected_columns = T)
-dat &lt;- as.matrix(sapply(dat, as.numeric)) 
-
-
-模拟以三个协变量为条件的事件时间
-# 在调用算法的函数之前生成事件和审查时间的向量
-# eventRandom &lt;- round(runif(n, 1,10),0)
-censorRandom &lt;- round(runif(n, 1,10),0)
-
-# 生成以三个协变量为条件的生存数据
-data &lt;- permalgorithm(n, m, dat[,1:5], 
-XmatNames=c(&quot;sex&quot;, &quot;exposure&quot;,&quot;grp1&quot;,&quot;grp2&quot;,&quot;grp3&quot;), 
-eventRandom=eventRandom,
-censorRandom=censorRandom,
-betas=c(log(1.5), log(1.3), 
-log(0.8), log(0.8),
-log(1.5)))
-
-#运行模型
-
-#包括grp
-coxph(Surv(Start, Stop, Event) ~ sex + Exposure + grp1 + grp2 + grp3 , data=data)
-
-#不包括grp
-coxph(Surv(Start, Stop, Event) ~ sex + Exposure , data=data)
-
-#暴露系数不变!
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/655473/simulating-time-fixed-confounder-in-time-varying-survival-model</guid>
-      <pubDate>Tue, 08 Oct 2024 14:05:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>两层细胞之间的空间关系——顶层会影响底层吗？</title>
-      <link>https://stats.stackexchange.com/questions/655470/spatial-relationships-between-cells-of-two-layers-does-the-top-layer-influence</link>
-      <description><![CDATA[
-data &lt;- data.frame(
-Layer = c(rep(&quot;TopLayer&quot;, 9), rep(&quot;BottomLayer&quot;, 9)),
-CellNumber = rep(1:9, 2),
-Rows = rep(1:3, each = 3, times = 2),
-Columns = c(&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;),
-Organism_A = c(2384106527, 1536784094, 1539751217, 1523052513, 1590814987, 
-1352107649, 1489242422, 1324947256, 1436861411,
-28989707.78, 13804448.59, 9445083.257, 10938353.51, 6964463.102, 
-3054182.127, 25332055.04, 6898327.535, 6106191.811),
-
-Organism_B = c(2200824832, 689252420.8, 773417652.8, 781621554.2, 900596793.4,
-799927709.2, 877576655.6, 882006114.1, 1185177471,
-12995607.78, 3990189.403, 3478803.283, 4269672.447, 4336314.549, 
-1772615.585, 9455652.995, 2166266.218, 3354112.17),
-
-Organism_C = c(565141031.9, 407109923.1, 399919019.7, 515591332, 350369021.1, 
-124343494, 236922640.3, 315508071.3, 388405241.6,
-9021589.754, 1282827.48, 289038.1483, 1856107.588, 669560.0038, 
-402480.99, 16047493.08, 4076703.421, 2540274.561),
-
-Organism_D = c(13886816.39, 5917155.69, 9076079.724, 6364479.436, 6603299.193, 
-2377757.035, 3409059.65, 5316280.163, 7019860.52,
-589742.1374, 50374.84351, 24320.78487, 27717.46694, 33827.55107, 
-17236.38709, 2966871.601, 3383635.365, 243522.6605),
-
-Organism_E = c(81810916.23, 23506996.31, 33640850.07, 60426641.66, 39478621.87, 
-18547510.22, 28971068.71, 30003359.9, 29142667.22,
-13305779.94, 5571703.603, 2251696.156, 6018467.227, 1475516.435, 
-267636.2172, 20126618.14, 28724649.18, 7349550.19))
-
-我有两层，每层有 9 个单元格（第 1 行：3 和第 A 列：C）。每个单元格内都有来自 5 种不同生物的值。我想知道彼此重叠的单元格之间是否存在连接。换句话说，是否存在空间模式？顶层是否会影响底层？
-我能做到这一点吗？这是互相关吗？有没有办法在空间上显示相似性？
-我可以使用 R 或 Python。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655470/spatial-relationships-between-cells-of-two-layers-does-the-top-layer-influence</guid>
-      <pubDate>Tue, 08 Oct 2024 13:08:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>R：两层细胞之间的空间关系——顶层会影响底层吗？</title>
-      <link>https://stats.stackexchange.com/questions/655488/r-spatial-relationships-between-cells-of-two-layers-does-the-top-layer-influe</link>
-      <description><![CDATA[
-data &lt;- data.frame(
-Layer = c(rep(&quot;TopLayer&quot;, 9), rep(&quot;BottomLayer&quot;, 9)),
-CellNumber = rep(1:9, 2),
-Rows = rep(1:3, each = 3, times = 2),
-Columns = c(&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;A&quot;,&quot;B&quot;,&quot;C&quot;),
-Organism_A = c(2384106527, 1536784094, 1539751217, 1523052513, 1590814987, 
-1352107649, 1489242422, 1324947256, 1436861411,
-28989707.78, 13804448.59, 9445083.257, 10938353.51, 6964463.102, 
-3054182.127, 25332055.04, 6898327.535, 6106191.811),
-
-Organism_B = c(2200824832, 689252420.8, 773417652.8, 781621554.2, 900596793.4,
-799927709.2, 877576655.6, 882006114.1, 1185177471,
-12995607.78, 3990189.403, 3478803.283, 4269672.447, 4336314.549, 
-1772615.585, 9455652.995, 2166266.218, 3354112.17),
-
-Organism_C = c(565141031.9, 407109923.1, 399919019.7, 515591332, 350369021.1, 
-124343494, 236922640.3, 315508071.3, 388405241.6,
-9021589.754, 1282827.48, 289038.1483, 1856107.588, 669560.0038, 
-402480.99, 16047493.08, 4076703.421, 2540274.561),
-
-Organism_D = c(13886816.39, 5917155.69, 9076079.724, 6364479.436, 6603299.193, 
-2377757.035, 3409059.65, 5316280.163, 7019860.52,
-589742.1374, 50374.84351, 24320.78487, 27717.46694, 33827.55107, 
-17236.38709, 2966871.601, 3383635.365, 243522.6605),
-
-Organism_E = c(81810916.23, 23506996.31, 33640850.07, 60426641.66, 39478621.87, 
-18547510.22, 28971068.71, 30003359.9, 29142667.22,
-13305779.94, 5571703.603, 2251696.156, 6018467.227, 1475516.435, 
-267636.2172, 20126618.14, 28724649.18, 7349550.19))
-
-
-您好，
-我有两层，每层有 9 个单元格（第 1 行：3 和 A 列：C）。每个单元格内都有来自 5 种不同生物的值。我想知道彼此重叠的单元格之间是否存在连接。换句话说，是否存在空间模式？顶层会影响底层吗？
-我能做到这一点吗？这是互相关的吗？有没有办法在空间上显示相似性？
-我可以使用 R 或 Python。
-谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655488/r-spatial-relationships-between-cells-of-two-layers-does-the-top-layer-influe</guid>
-      <pubDate>Tue, 08 Oct 2024 08:29:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>将模型拟合到严重右偏的数据</title>
-      <link>https://stats.stackexchange.com/questions/655489/fitting-a-model-to-heavily-right-skewed-data</link>
-      <description><![CDATA[我试图将 GAM（来自 mgcv 包）拟合到我的严重右偏数据中。我尝试使用高斯和伽马分布作为参数，但它们并没有像您预期的那样产生良好的拟合模型。
-对于看起来像这样的数据，是否有任何转换方法或分布假设？
-&gt; 平均值（数据$variable）；sd（数据$variable）；偏度（数据$variable）
-[1] 4669.741
-[1] 39656.86
-[1] 43.11364
-
-&gt; ggplot(数据，aes(x = 变量)) + geom_density(填充=(&quot;lightblue&quot;))
-
-
-&gt; ggplot(data, aes(x = variable)) + geom_density(fill=(&quot;lightblue&quot;)) + xlim(0,500)
-
-
-欢迎提出任何建议！]]></description>
-      <guid>https://stats.stackexchange.com/questions/655489/fitting-a-model-to-heavily-right-skewed-data</guid>
-      <pubDate>Tue, 08 Oct 2024 06:51:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何计算 R 中回归中的参考水平交互？</title>
-      <link>https://stats.stackexchange.com/questions/655439/how-to-calculate-the-reference-level-interaction-in-regression-in-r</link>
-      <description><![CDATA[我对 R 中回归中参考水平交互的计算非常困惑。
-以下是示例代码：
-library(magrittr)
-set.seed(123)
-x = c(1,2,1,2,1,2,2,1)
-x %&lt;&gt;% as.factor()
-z=c(1,2,3,1,2,3,3,3)
-z %&lt;&gt;% as.factor()
-
-y = runif(8)
-
-lm(y~x*x1)
-lm(y~x:x1)
-lm(y~x+x1)
-
-结果如下：
-&gt; lm(y ~ x*z)
-
-调用：
-lm(formula = y ~ x * z)
-
-系数：
-(截距) x2 z2 z3 x2:z2 x2:z3 
-0.18883 0.09349 0.07071 0.17709 -0.21342 0.08697 
-
-&gt; lm(y ~ x:x1)
-
-调用：
-lm(formula = y ~ x:z)
-
-系数：
-(截距) x1:z1 x2:z1 x1:z2 x2:z2 x1:z3 x2:z3 
-0.5464 -0.3576 -0.2641 -0.2868 -0.4068 -0.1805 NA 
-
-&gt; lm(y ~ x+z)
-
-调用：
-lm(formula = y ~ x + z)
-
-系数：
-(截距) x2 z2 z3 
-0.19377 0.08362 -0.03600 0.22057 
-
-如何从 lm(y~x*z) 计算参考水平交互项 x1:z1？
-例如 $x1:z2 = z2 - x2:z2 = 0.07071 - (-0.21342)$?
-此外，为什么 r 没有像 lm(y~x:z) 中的回归一样估计 x1:z2 和 x1:z3 的系数？这与共线性有关吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/655439/how-to-calculate-the-reference-level-interaction-in-regression-in-r</guid>
-      <pubDate>Mon, 07 Oct 2024 15:16:20 GMT</pubDate>
+我们的目标是创建一个模型，该模型可以尽可能接近“真实”概率地估计 P(y | X )；这意味着该模型根据我们当前掌握的客户的所有信息，估计客户在下一个时间步骤中流失的真实概率。这个概率分数对于其他用途很重要
+我预计这种构建数据集的方式的问题是，生成的模型不会给出正确的概率。我怀疑该模型在基于“排名”或“分类”意义上的特征识别流失者方面是合理的。如果有一些特征可以识别流失者，那么我相信该模型可以很好地学习这种关联。
+在某种程度上，通过从每个客户中选择随机月份和单个数据点，我正在模拟一个随机客户在随机月份流失产品的事件，假设该客户拥有该产品和一组功能。但是，我认为根据数据的创建方式，该模型无法对实际流失概率给出很好的估计。但是我无法提出很好的论据来解释为什么会这样……
+我觉得在某种程度上你不能将测试集和训练集相互比较，因为测试集中的任何人都比训练集和验证集中的人“存活”的时间更长。另一方面，一旦我开始使用模型，它似乎确实模拟了我期望模型有多好的情况。
+另一个困扰我的方面是我没有使用很多可用的数据。我有每个客户的面板数据，但我只使用每个客户随机选择的一个数据点。我也不会对已经流失的客户（很久以前）做任何事情。这会导致预测不太理想还是出现偏见？
+有谁可以解释一下这种方法吗？任何正确的帮助都将不胜感激！]]></description>
+      <guid>https://stats.stackexchange.com/questions/655476/correct-way-to-select-data-for-probabilistic-churn-model</guid>
+      <pubDate>Tue, 08 Oct 2024 15:32:23 GMT</pubDate>
     </item>
     </channel>
 </rss>
