@@ -4,7 +4,88 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 09 Oct 2024 15:18:35 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 09 Oct 2024 18:22:31 GMT</lastBuildDate>
+    <item>
+      <title>当批处理大小不等于 1 时，UNet 执行过程中会出现错误</title>
+      <link>https://stackoverflow.com/questions/79071235/an-error-occurs-during-the-execution-of-unet-when-the-batch-size-is-not-equal-to</link>
+      <description><![CDATA[我尝试使用 DDIM 反演教程中提供的代码运行稳定扩散模型。但是，当输入的批处理大小设置为大于 1 的值（例如 32）时，我遇到以下错误：
+RuntimeError：张量 a（131072）的大小必须与非单维度 1 上的张量 b（4096）的大小匹配。
+看起来 131072 可能来自 32 x 4096，表明张量维度不匹配。发生错误的具体行是：
+noisy_residual = self.unet(input, t.to(input.device), **denoise_kwargs).sample
+
+这是我的代码中与反演过程相关的部分：
+## 反演 (https://github.com/huggingface/diffusion-models-class/blob/main/unit4/01_ddim_inversion.ipynb)
+def invert_process(self, guide_scale, input, denoise_kwargs):
+
+pred_images = []
+pred_latents = []
+
+decrypt_kwargs = {&#39;vae&#39;: self.vae}
+
+# 反转时间步&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
+timesteps = reversed(self.scheduler.timesteps)
+num_inference_steps = len(self.scheduler.timesteps)
+
+with torch.no_grad():
+for i in tqdm(range(0, num_inference_steps)):
+
+t = timesteps[i]
+self.cur_t = t.item()
+
+# 对于稳定扩散的文本条件
+if &#39;encoder_hidden_​​states&#39; in denoise_kwargs.keys():
+bs = denoise_kwargs[&#39;encoder_hidden_​​states&#39;].shape[0]
+input = torch.cat([input] * bs)
+
+# 预测噪声残差
+noisy_residual = self.unet(input, t.to(input.device), **denoise_kwargs).sample
+noise_pred = noisy_residual
+
+#对于稳定扩散的文本条件
+if noisy_residual.shape[0] == 2:
+# 执行指导
+noise_pred_text, noise_pred_uncond = noisy_residual.chunk(2)
+noisy_residual = noise_pred_uncond + guide_scale * (noise_pred_text - noise_pred_uncond)
+input, _ = input.chunk(2)
+
+current_t = max(0, self.cur_t - (1000//num_inference_steps)) #t
+next_t = t # min(999, t.item() + (1000//num_inference_steps)) # t+1
+alpha_t = self.scheduler.alphas_cumprod[current_t].to(self.device)
+alpha_t_next = self.scheduler.alphas_cumprod[next_t].to(self.device)
+
+latents = input
+
+# 反转更新步骤（重新安排更新步骤以获得 x(t)（新潜伏）作为 x(t-1)（当前潜伏）的函数
+# 向潜伏添加噪声
+
+latents = (latents - (1-alpha_t).sqrt()*noise_pred)*(alpha_t_next.sqrt()/alpha_t.sqrt()) + (1-alpha_t_next).sqrt()*noise_pred
+
+input = latents
+
+pred_latents.append(latents)
+pred_images.append(decode_latent(latents, **decode_kwargs))
+
+return pred_images, pred_latents
+
+
+可能导致当批量大小大于 1 时，张量大小不匹配？如何在模型中保持批量大小大于 1 的同时解决此问题？
+如能提供任何帮助，我们将不胜感激！
+我尝试将 t 的大小更改为形状为 (批量大小,) 的张量。
+此外，我确认当批量大小为 1 时，模型可以正常工作。]]></description>
+      <guid>https://stackoverflow.com/questions/79071235/an-error-occurs-during-the-execution-of-unet-when-the-batch-size-is-not-equal-to</guid>
+      <pubDate>Wed, 09 Oct 2024 16:32:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>在小数据集上生成合成数据</title>
+      <link>https://stackoverflow.com/questions/79071218/generating-synthetic-data-on-small-dataset</link>
+      <description><![CDATA[我有一个只有 5 个数据点的小数据集，包括材料成分、机械性能和物理性能。由于数据量太小，无法进行预测，我尝试生成合成数据。我使用过 GAN、VAE、高斯混合模型和 Copula 模型。其中，C-Vine Copula 模型比其他模型的结果更好。但我仍然面临问题：
+*使用 C-Vine Copula，分布中存在 40% 的误差，合成数据和真实数据之间的关系中存在 7% 的误​​差。这使得数据质量不足以进行预测。
+*当使用这些合成数据预测物理特性时，我得到了很好的验证分数，但在新的、看不见的数据点上得到了非常差的结果——可能是由于过度拟合或数据质量差造成的。
+*我还尝试使用原始真实数据（5 个数据点）预测物理特性，但结果并不准确。
+我不知道如何提高合成数据的质量，或者是否有更好的方法可以尝试进行预测。对此有什么建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79071218/generating-synthetic-data-on-small-dataset</guid>
+      <pubDate>Wed, 09 Oct 2024 16:26:17 GMT</pubDate>
+    </item>
     <item>
       <title>我正在使用 RL 优化 AGV 路径规划以提高能源效率。我不明白为什么网络没有学习</title>
       <link>https://stackoverflow.com/questions/79069663/im-optimizing-agv-path-planning-for-energy-efficiency-using-rl-i-cant-figure</link>
@@ -37,41 +118,13 @@ DistanceFunction = new HdbscanSharp.Distance.ManhattanDistance()
       <pubDate>Wed, 09 Oct 2024 09:47:31 GMT</pubDate>
     </item>
     <item>
-      <title>如何在时间序列分类任务中对看不见的数据应用数据转换管道？</title>
-      <link>https://stackoverflow.com/questions/79066893/how-to-apply-data-transformation-pipeline-on-unseen-data-on-task-of-time-series</link>
-      <description><![CDATA[我正在研究一项根据给定姿势数据对人类活动进行分类的任务。由于应用姿势估计模型时图像的质量，它包含许多缺失值。我针对此训练数据集的数据转换管道包括缺失值插值和具有预定义限制的回填/前填插补。
-我的问题是：何时何地将此管道应用于训练数据：在整个数据集上还是在每个切片上，将使用滑动窗口给出？
-由于在推理时我将实时逐帧获取姿势数据，直到收集到 window_size 长度的切片，我应该在此窗口上应用上述管道吗？
-实际上，我并没有尝试同时应用这两种方法。我想就预处理此类时间序列数据征求一些建议。]]></description>
-      <guid>https://stackoverflow.com/questions/79066893/how-to-apply-data-transformation-pipeline-on-unseen-data-on-task-of-time-series</guid>
-      <pubDate>Tue, 08 Oct 2024 16:15:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>VS 2022 ML.NET 教程 - 训练永不停止</title>
-      <link>https://stackoverflow.com/questions/79066874/vs-2022-ml-net-tutorial-training-never-stops</link>
-      <description><![CDATA[我第一次尝试使用 ML。我尝试从简单开始，ML 会在 3 个不同的情境中告诉我退款了多少钱。
-我选择的“场景”是“问答”
-
-我的“环境”是“本地 (GPU)”使用符合 CUDA 标准的 GPU
-
-我认为我已经创建了具有正确列标题的文件，并正确计算了 AnswerIndex。
-请参见下面的屏幕截图。
-
-我有一台 Intel i7-10700F 2.90Ghz 处理器，配备 32GB RAM 和 NVIDIA Ge|Force GTX 1080 配备最新驱动程序。
-当“训练”进行时，我从未看到 Visual Studio 的 GPU 百分比超过 4%
-我还确保安装了最新版本的 VS 扩展。
-我的问题是训练永远不会结束，即使经过数小时的训练也是如此。
-任何关于我可能做错的事情的指示都将不胜感激。或者训练需要几个小时？]]></description>
-      <guid>https://stackoverflow.com/questions/79066874/vs-2022-ml-net-tutorial-training-never-stops</guid>
-      <pubDate>Tue, 08 Oct 2024 16:10:36 GMT</pubDate>
-    </item>
-    <item>
       <title>将 ML 模型从一个 Azure Databricks 工作区复制到另一个 Databricks 工作区</title>
       <link>https://stackoverflow.com/questions/79065062/copy-a-ml-model-from-one-azure-databricks-workspace-to-another-databricks-worksp</link>
       <description><![CDATA[我运行了以下代码以在基于 Azure Databricks 的 mlflow 中导出 ML 模型，但我似乎收到了此错误
+
 MLflow 主机或令牌配置不正确
 
-我无法弄清楚问题是什么。工作区的 URL 和 PAT 令牌都是正确的。
+我无法找出问题所在。工作区的 URL 和 PAT 令牌都是正确的。
 export_import 工具有很多错误。它需要 mlfow 库，但 Databricks ML Runtime 附带的是 mlflow-skinny。
 import mlflow
 import os
