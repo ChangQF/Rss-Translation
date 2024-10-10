@@ -4,13 +4,100 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 10 Oct 2024 15:18:18 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 10 Oct 2024 18:22:21 GMT</lastBuildDate>
     <item>
-      <title>我怎样才能改善姿势分类？</title>
+      <title>我使用了 ML dev 建议的所有选项，但我想知道为什么测试准确率与训练分数相比太低？</title>
+      <link>https://stackoverflow.com/questions/79075597/i-used-all-the-options-suggested-by-ml-dev-but-i-want-to-know-why-the-test-accur</link>
+      <description><![CDATA[我有一个分为 Train、Val 和 Test 的文件夹。train 包含来自 4 个子文件夹的大约 4262 张图片，val 包含来自 4 个子文件夹的 915 张图片，test 包含来自 4 个子文件夹的 913 张图片。我在分割图像之前做了增强过程，将每张图片概括为 35 个副本，然后我根据 70/30 分割集手动分割，其中 15% 用于验证，15% 用于测试，我使用 VGG16 模型对四个文档进行分类，训练结果约为 96%，这是模型实现的最后结果
+134/134 [================================] - 96s 717ms/step - 
+loss: 0.0311 - accuracy: 0.9916 - val_loss: 1.8162 - val_accuracy: 0.5694 
+
+为什么差距太大，问题出在哪里？我怎样才能达到至少 89% 的准确率？
+我已经尝试过降低学习率、增加和减少 dropout 层、使用批量标准化、增加 epoch。我需要帮助来分析和指定我正在处理的问题。
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Flatten, BatchNormalization
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import regularizers
+
+# 定义目录路径
+base_dir = &#39;/content/dataset/rose_edit&#39;
+train_dir = f&quot;{base_dir}/train&quot;
+val_dir = f&quot;{base_dir}/val&quot;
+test_dir = f&quot;{base_dir}/test&quot;
+
+# 加载数据集
+train_dataset = tf.keras.preprocessing.image_dataset_from_directory(
+train_dir,
+image_size=(224, 224), # VGG16 需要 224x224 图像
+batch_size=32,
+label_mode=&#39;categorical&#39; # 使用 categorical 进行多类分类
+)
+
+val_dataset = tf.keras.preprocessing.image_dataset_from_directory(
+val_dir,
+image_size=(224, 224),
+batch_size=32,
+label_mode=&#39;categorical&#39;
+)
+
+test_dataset = tf.keras.preprocessing.image_dataset_from_directory(
+test_dir,
+image_size=(224, 224),
+batch_size=32,
+label_mode=&#39;categorical&#39;
+)
+
+# 初始化 VGG16 基础模型，无需顶层并冻结其层
+vgg_base = VGG16(weights=&#39;imagenet&#39;, include_top=False, input_shape=(224, 224, 3))
+vgg_base.trainable = False # 冻结 VGG16 层
+
+# 构建模型
+model = Sequential()
+model.add(vgg_base)
+model.add(Flatten()) # 将 VGG16 的输出展平为密集层
+
+# 使用 L2 正则化的自定义密集层
+model.add(Dense(256,activation=&#39;relu&#39;, kernel_regularizer=regularizers.l2(0.001)))
+model.add(Dropout(0.5))
+model.add(BatchNormalization())
+
+model.add(Dense(64,activation=&#39;relu&#39;, kernel_regularizer=regularizers.l2(0.001)))
+model.add(Dropout(0.5))
+model.add(BatchNormalization())
+
+# 输出层（4 个类，带 softmax）
+model.add(Dense(4,activation=&#39;softmax&#39;))
+
+# 编译模型
+model.compile(optimizer=Adam(learning_rate=0.0001),
+loss=&#39;categorical_crossentropy&#39;,
+metrics=[&#39;accuracy&#39;])
+
+# 模型摘要
+model.summary()
+
+# 训练模型
+history = model.fit(
+train_dataset,
+validation_data=val_dataset,
+epochs=11, # 根据需要调整 epoch 数
+)
+
+# 在测试数据集上评估模型
+test_loss, test_accuracy = model.evaluate(test_dataset)
+print(f&quot;测试准确率： {test_accuracy * 100:.2f}%&quot;)
+]]></description>
+      <guid>https://stackoverflow.com/questions/79075597/i-used-all-the-options-suggested-by-ml-dev-but-i-want-to-know-why-the-test-accur</guid>
+      <pubDate>Thu, 10 Oct 2024 17:43:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>我怎样才能改善姿势分类？ [关闭]</title>
       <link>https://stackoverflow.com/questions/79074518/how-can-i-improve-pose-classification</link>
-      <description><![CDATA[目前，我使用 mediapipe 进行姿势检测，我想对运动姿势进行分类，但大多数姿势都很相似，我使用的是 tensorflow 本身提供的姿势分类。
+      <description><![CDATA[我使用 mediapipe 进行姿势检测，我想对运动姿势进行分类，但大多数姿势都很相似，我使用的是 tensorflow 本身提供的姿势分类。
 我面临的问题是，对每一帧都进行分类，这也会导致错误检测，能够正确摆姿势，但也会导致错误检测。
-结果是连续的，就像所需的动作（如 crikerter 击中六分）恰好在第 23 帧中，并且被正确识别，但我在第 25 和第 26 帧也得到了错误检测的动作，我想避免这种情况
+结果是连续的，就像所需的动作（如 crikerter 击中六分）恰好在第 23 帧，并且被正确识别，但我在第 25 和第 26 帧也得到了错误检测的动作，我想避免这种情况
 我尝试纠正数据，提供增强数据，增加过滤置信度，获得更多嵌入（如角度、距离等）。]]></description>
       <guid>https://stackoverflow.com/questions/79074518/how-can-i-improve-pose-classification</guid>
       <pubDate>Thu, 10 Oct 2024 12:59:54 GMT</pubDate>
@@ -172,9 +259,9 @@ Epoch 6: valLoss = 39.1865906792718
       <description><![CDATA[我花了一些时间研究 Python 中的拼图生成器，该生成器接收图像、行数 (M) 和列数 (N)，并将原始图像分解为 M*N 个 png 图像块输出到文件夹中。这些图像是正方形，带有不规则形状的制表符和空格，因此每个块只能放在一个位置。
 接下来我想做的是创建一个拼图解算器，它可以接收这些 png 图像，提取一些关键特征并确定它们的位置。
 这里是图像的示例。如果您好奇它是如何实现的，您还可以查看生成器代码。
-到目前为止，这些碎片没有任何旋转，但这是我希望将来能够处理的事情。由于碎片是方形的，因此无法仅使用尺寸来确定方向，因此在提取边缘进行比较时，我无法轻松缩小它们的范围。
+到目前为止，这些碎片没有任何旋转，但我希望将来能够处理这个问题。由于碎片是方形的，因此无法仅使用尺寸来确定方向，因此在提取边缘进行比较时，我无法轻松缩小它们的范围。
 我曾考虑使用 SIFT 进行特征检测，但图像的可见层没有重叠，因此这种方法失败了。
-我是机器学习的初学者，但我想尝试通过这个项目将我的技能付诸实践。我的主要问题是我不知道从哪里开始。我遇到过制作拼图解算器的不同方法，但其中大多数都是使用拼图碎片的照片，而不是合成数据，因此形状不同。我看到的另一种方法是使用深度学习来分析图像片段，但我也不确定从哪里开始实施这种方法。]]></description>
+我遇到的主要问题是我不知道从哪里开始。我遇到过制作拼图解算器的不同方法，但其中大多数都是使用拼图碎片的照片，而不是合成数据，因此形状不同。我见过的另一种方法是使用深度学习来分析图像片段，但我也不确定从哪里开始实施这种方法。]]></description>
       <guid>https://stackoverflow.com/questions/79072271/how-can-i-use-deep-learning-to-solve-a-jigsaw-puzzle-composed-of-synthetic-data</guid>
       <pubDate>Wed, 09 Oct 2024 22:50:24 GMT</pubDate>
     </item>
@@ -261,37 +348,6 @@ return pred_images, pred_latents
       <pubDate>Wed, 09 Oct 2024 16:26:17 GMT</pubDate>
     </item>
     <item>
-      <title>我正在使用 RL 优化 AGV 路径规划以提高能源效率。我不明白为什么网络没有学习 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79069663/im-optimizing-agv-path-planning-for-energy-efficiency-using-rl-i-cant-figure</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79069663/im-optimizing-agv-path-planning-for-energy-efficiency-using-rl-i-cant-figure</guid>
-      <pubDate>Wed, 09 Oct 2024 10:02:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Java Android 中实现 HDBSCAN 聚类</title>
-      <link>https://stackoverflow.com/questions/79069600/how-to-implement-hdbscan-clustering-in-java-android</link>
-      <description><![CDATA[我想将 HDBscan 算法实现到 Java Android 应用程序中。我正在将 C# 移植到 Java。在 C# 中，它们是使用名为 Hdbscansharp 的库完成的。我尝试在 Java 中使用 ELKI，但没有成功。原始 C# 代码是
- double avgTgtSpd = (tgt1.speed + tgt2.speed) / 2;
-filteredHits.Add(new FilteredHit(avgTgtDist, avgTgtSpd, currTgtDirection)); 
-aggregateSpeed += avgTgtSpd;
-
-// HDBSCAN Clustering
-double[][] twoDfilteredHits =filteredHits.Select(hit =&gt; new double[] { hit.pos 
-}).ToArray(); // 将过滤后的命中结果放入 hdbscan lib 可以使用的格式中
-HdbscanResult hdbscanResult = HdbscanRunner.Run(new HdbscanParameters&lt;double[]&gt;
-{
-DataSet = twoDfilteredHits.ToArray(),
-MinPoints = 3, 
-MinClusterSize = 4
-DistanceFunction = new HdbscanSharp.Distance.ManhattanDistance()
-});
-
-我能够将代码移植到 java 中的“twoDfilter”，但在 HDBSCan 的实现中卡住了。
-如何在 java 中获取“hdbscanResult”？]]></description>
-      <guid>https://stackoverflow.com/questions/79069600/how-to-implement-hdbscan-clustering-in-java-android</guid>
-      <pubDate>Wed, 09 Oct 2024 09:47:31 GMT</pubDate>
-    </item>
-    <item>
       <title>将 ML 模型从一个 Azure Databricks 工作区复制到另一个 Databricks 工作区</title>
       <link>https://stackoverflow.com/questions/79065062/copy-a-ml-model-from-one-azure-databricks-workspace-to-another-databricks-worksp</link>
       <description><![CDATA[我运行了以下代码以在基于 Azure Databricks 的 mlflow 中导出 ML 模型，但我似乎收到了此错误
@@ -328,13 +384,6 @@ export_metadata_tags=True
 ]]></description>
       <guid>https://stackoverflow.com/questions/79065062/copy-a-ml-model-from-one-azure-databricks-workspace-to-another-databricks-worksp</guid>
       <pubDate>Tue, 08 Oct 2024 08:39:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>执行 3D U-net 时，每次执行都会得到截然不同的指标，有时准确率、召回率、DICE 和 IoU 的指标都会 >99.99%</title>
-      <link>https://stackoverflow.com/questions/79062464/executing-a-3d-u-net-i-get-widely-different-metrics-in-each-execution-sometimes</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79062464/executing-a-3d-u-net-i-get-widely-different-metrics-in-each-execution-sometimes</guid>
-      <pubDate>Mon, 07 Oct 2024 15:02:22 GMT</pubDate>
     </item>
     <item>
       <title>LogisticRegression 未返回正确结果</title>
@@ -375,15 +424,85 @@ columns=[&quot;&quot;, &quot;timestamp&quot;, &quot;UTC time&quot;, &quot;label&
       <pubDate>Sat, 05 Oct 2024 19:41:26 GMT</pubDate>
     </item>
     <item>
-      <title>使用哪个 Python 库来对调查数据进行定性分析？[关闭]</title>
-      <link>https://stackoverflow.com/questions/60967882/which-python-library-to-use-for-qualitative-analysis-of-survey-data</link>
-      <description><![CDATA[我有一个数据集，其中包含大约 300 人填写的问卷。该问卷涉及公共交通中的用户体验和行为。我们对 3 家公交公司进行了调查。大多数问题都是“是/否”、“3 家公司中最好的”或“3 家公司中最差的”。
-如果可能的话，我想建立一个模型，根据答案推荐三家公司中最好的一家。问题包括“公交车的可用性、公交车的可靠性、用户的偏好和公交车的物理维护”。
-我希望模型能够分析数据集并返回最好的公交公司，该公司将很容易获得、干净且维护良好、可靠并且用户会更喜欢它。
-此外，诸如“您喜欢哪辆公交车？”之类的问题的答案应该在决策中占有更大的权重。
-我对机器学习还很陌生，希望有人能建议从哪种算法开始训练模型。]]></description>
-      <guid>https://stackoverflow.com/questions/60967882/which-python-library-to-use-for-qualitative-analysis-of-survey-data</guid>
-      <pubDate>Wed, 01 Apr 2020 09:39:52 GMT</pubDate>
+      <title>错误：所有估算器都应实现拟合和变换，或者在使用 make_column_transformer 时可以使用“drop”或“passthrough”说明符</title>
+      <link>https://stackoverflow.com/questions/71566189/error-all-estimators-should-implement-fit-and-transform-or-can-be-drop-or</link>
+      <description><![CDATA[我正在尝试实现一个使用 ColumnTransformer() 和 SVC() 的模型。
+我的转换方法如下所示：
+num_features = X_train_svm.select_dtypes(include=np.number).columns.to_list()
+cat_features = X_train_svm.select_dtypes(include=[&#39;object&#39;]).columns.to_list()
+
+transform1 = make_column_transformer([(StandardScaler(), num_features),
+(OneHotEncoder(), cat_features)
+])
+
+后面跟着一个管道：
+pipe = make_pipeline(transform1, svm.SVC())
+
+然后当我尝试拟合训练和测试数据时:
+pipe.fit(X_train, y_train)
+
+我收到错误 :: TypeError：所有估算器都应实现 fit 和 transform，或者可以是“drop”或“passthrough”说明符。&#39;(StandardScaler(), [&#39;Height&#39;, &#39;Age&#39;, &#39;Weight&#39;, &#39;Quantity&#39;, &#39;Cost&#39;])&#39; (type &lt;class &#39;tuple&#39;&gt;) 不适用。
+请帮我修复此错误。
+我尝试将缩放器更改为 Ordinal Scaler，尝试使用 (-1,1) 重塑数据，但没有任何效果。]]></description>
+      <guid>https://stackoverflow.com/questions/71566189/error-all-estimators-should-implement-fit-and-transform-or-can-be-drop-or</guid>
+      <pubDate>Tue, 22 Mar 2022 02:13:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>添加我自己的密集层后，vgg16模型的可训练参数发生了变化</title>
+      <link>https://stackoverflow.com/questions/65651051/trainable-parameters-of-vgg16-model-get-changed-after-adding-my-own-dense-layer</link>
+      <description><![CDATA[vgg16_model = tf.keras.applications.vgg16.VGG16()
+
+model= Sequential()
+
+for layer in vgg16_model.layers[:-1]:
+
+model.add(layer)
+
+model.summary() #最后一个密集层到现在为止已被移除 
+
+
+for layer in model.layers:
+
+layer.trainable=False #对于迁移学习，我已冻结了这些层
+
+model.add(Dense(2,activation=&#39;softmax&#39;))
+
+model.summary() #现在当我添加密集层时，模型的可训练参数会发生变化
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/65651051/trainable-parameters-of-vgg16-model-get-changed-after-adding-my-own-dense-layer</guid>
+      <pubDate>Sun, 10 Jan 2021 07:39:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Keras 迁移学习的边界框回归准确率为 0%。具有 Sigmoid 激活的输出层仅输出 0 或 1</title>
+      <link>https://stackoverflow.com/questions/65459399/bounding-box-regression-using-keras-transfer-learning-gives-0-accuracy-the-out</link>
+      <description><![CDATA[我正在尝试创建一个对象定位模型来检测汽车图像中的车牌。我使用了 VGG16 模型并排除了顶层以添加我自己的密集层，最后一层有 4 个节点和 S 形激活以获得 (xmin、ymin、xmax、ymax)。
+我使用 keras 提供的函数读取图像，并将其调整为 (224, 244, 3)，还使用 ​​preprocess_input() 函数来处理输入。我还尝试通过使用填充调整大小来手动处理图像以保持比例，并通过除以 255 对输入进行规范化。
+当我训练时，似乎什么都不起作用。我的训练和测试准确率为 0%。下面是我为该模型编写的代码。
+def get_custom(output_size, optimizer, loss):
+
+vgg = VGG16(weights=&quot;imagenet&quot;, include_top=False, input_tensor=Input(shape=IMG_DIMS))
+
+vgg.trainable = False
+
+flatten = vgg.output
+flatten = Flatten()(flatten)
+
+bboxHead = Dense(128,activation=&quot;relu&quot;)(flatten)
+bboxHead = Dense(32,activation=&quot;relu&quot;)(bboxHead)
+
+bboxHead = Dense(output_size,activation=&quot;sigmoid&quot;)(bboxHead)
+
+model = Model(inputs=vgg.input,outputs=bboxHead)
+model.compile(loss=loss,optimizer=optimizer,metrics=[&#39;accuracy&#39;])
+
+return模型
+
+X 和 y 分别为 (616, 224, 224, 3) 和 (616, 4)。我将坐标除以相应边的长度，因此 y 中的每个值都在 (0,1) 范围内。
+我将在下面链接我的 github 中的 python 笔记本，以便您可以看到完整的代码。我正在使用 google colab 来训练模型。
+https://github.com/gauthamramesh3110/image_processing_scripts/blob/main/License_Plate_Detection.ipynb]]></description>
+      <guid>https://stackoverflow.com/questions/65459399/bounding-box-regression-using-keras-transfer-learning-gives-0-accuracy-the-out</guid>
+      <pubDate>Sat, 26 Dec 2020 18:24:41 GMT</pubDate>
     </item>
     <item>
       <title>Plotly：如何使用热图制作带注释的混淆矩阵？</title>
