@@ -4,93 +4,86 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 10 Oct 2024 18:22:21 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 10 Oct 2024 21:17:04 GMT</lastBuildDate>
     <item>
-      <title>我使用了 ML dev 建议的所有选项，但我想知道为什么测试准确率与训练分数相比太低？</title>
-      <link>https://stackoverflow.com/questions/79075597/i-used-all-the-options-suggested-by-ml-dev-but-i-want-to-know-why-the-test-accur</link>
-      <description><![CDATA[我有一个分为 Train、Val 和 Test 的文件夹。train 包含来自 4 个子文件夹的大约 4262 张图片，val 包含来自 4 个子文件夹的 915 张图片，test 包含来自 4 个子文件夹的 913 张图片。我在分割图像之前做了增强过程，将每张图片概括为 35 个副本，然后我根据 70/30 分割集手动分割，其中 15% 用于验证，15% 用于测试，我使用 VGG16 模型对四个文档进行分类，训练结果约为 96%，这是模型实现的最后结果
-134/134 [================================] - 96s 717ms/step - 
-loss: 0.0311 - accuracy: 0.9916 - val_loss: 1.8162 - val_accuracy: 0.5694 
+      <title>尝试训练 yolo 自定义模型时，data.yaml 文件中的相对路径出现问题</title>
+      <link>https://stackoverflow.com/questions/79075311/issue-with-relative-paths-in-data-yaml-file-when-trying-to-train-yolo-custom-mod</link>
+      <description><![CDATA[我正在尝试创建一个训练管道，以使用用户输入的带标签图像来训练自定义 yolov9 模型。
+我遇到了一个问题，如果我使用相对路径来设置 data.yaml 文件，就会出现错误：
+ RuntimeError：数据集“OIT_model/customOIT/customdatasetyolo/data.yaml”错误
+数据集“OIT_model/customOIT/customdatasetyolo/data.yaml”图像未找到，缺少路径“C:\GitHub\Anomaly_detection_combine\OIT_model\Anomaly_detection_combine\OIT_model\customOIT\customdatasetyolo\Anomaly_detection_combine\OIT_model\customOIT\customdatasetyolo\val”
 
-为什么差距太大，问题出在哪里？我怎样才能达到至少 89% 的准确率？
-我已经尝试过降低学习率、增加和减少 dropout 层、使用批量标准化、增加 epoch。我需要帮助来分析和指定我正在处理的问题。
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten, BatchNormalization
-from tensorflow.keras.applications import VGG16
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import regularizers
+更奇怪的是，错误路径提及，
+&#39;C:\\GitHub\\Anomaly_detection_combine\\OIT_model\\Anomaly_detection_combine\\OIT_model\\customOIT\\customdatasetyolo\\Anomaly_detection_combine\\OIT_model\\customOIT\\customdatasetyolo\\val&#39;
 
-# 定义目录路径
-base_dir = &#39;/content/dataset/rose_edit&#39;
-train_dir = f&quot;{base_dir}/train&quot;
-val_dir = f&quot;{base_dir}/val&quot;
-test_dir = f&quot;{base_dir}/test&quot;
+不是存在或正在任何地方请求的路径。实际路径是
+&#39;C:\\GitHub\\Anomaly_detection_combine\\OIT_model\\customOIT\\customdatasetyolo\\val&#39;
 
-# 加载数据集
-train_dataset = tf.keras.preprocessing.image_dataset_from_directory(
-train_dir,
-image_size=(224, 224), # VGG16 需要 224x224 图像
-batch_size=32,
-label_mode=&#39;categorical&#39; # 使用 categorical 进行多类分类
-)
+由于某种原因，它重复了路径的第一部分 3 次。
+这是 data.yaml 文件：
+ path: OIT_model/customOIT/customdatasetyolo
+train: OIT_model/customOIT/customdatasetyolo/train
+val: OIT_model/customOIT/customdatasetyolo/val
+nc: 1
+names: [&#39;5&#39;]
 
-val_dataset = tf.keras.preprocessing.image_dataset_from_directory(
-val_dir,
-image_size=(224, 224),
-batch_size=32,
-label_mode=&#39;categorical&#39;
-)
+这是开始训练的代码：
 
-test_dataset = tf.keras.preprocessing.image_dataset_from_directory(
-test_dir,
-image_size=(224, 224),
-batch_size=32,
-label_mode=&#39;categorical&#39;
-)
+def train_custom_dataset_yolo(data_path, epochs=100, imgsz=64, verbose=True):
+model = YOLO(&quot;OIT_model/yolov9c.pt&quot;)
+# 指定训练运行的保存目录
+save_dir = &#39;OIT_model/customOIT/yolocustomtrainoutput&#39;
+if os.path.exists(save_dir):
+for file in os.listdir(save_dir):
+file_path = os.path.join(save_dir, file)
+if os.path.isfile(file_path) or os.path.islink(file_path):
+os.unlink(file_path)
+elif os.path.isdir(file_path):
+shutter.rmtree(file_path)
+os.makedirs(save_dir, exist_ok=True)
+model.train(data=data_path, epochs=epochs, imgsz=imgsz, verbose=verbose, save_dir=save_dir)
+return
+train_custom_dataset_yolo(&#39;OIT_model/customOIT/customdatasetyolo/data.yaml&#39;, epochs=1,imgsz=64, verbose=True)
 
-# 初始化 VGG16 基础模型，无需顶层并冻结其层
-vgg_base = VGG16(weights=&#39;imagenet&#39;, include_top=False, input_shape=(224, 224, 3))
-vgg_base.trainable = False # 冻结 VGG16 层
+然而，非常奇怪的是，当我用绝对路径替换相对路径时，如下所示：
+ path: C:/GitHub/fix/Anomaly_detection_combine/OIT_model/customOIT/customdatasetyolo
+train: C:/GitHub/fix/Anomaly_detection_combine/OIT_model/customOIT/customdatasetyolo/train
+val: C:/GitHub/fix/Anomaly_detection_combine/OIT_model/customOIT/customdatasetyolo/val
+nc: 1
+names: [&#39;5&#39;]
 
-# 构建模型
-model = Sequential()
-model.add(vgg_base)
-model.add(Flatten()) # 将 VGG16 的输出展平为密集层
+训练没有问题。对于我来说，使用绝对路径不是一个选择，因为这个应用程序需要在其他机器上可重现。]]></description>
+      <guid>https://stackoverflow.com/questions/79075311/issue-with-relative-paths-in-data-yaml-file-when-trying-to-train-yolo-custom-mod</guid>
+      <pubDate>Thu, 10 Oct 2024 16:13:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>卷积-反卷积，同时保持原始图像大小</title>
+      <link>https://stackoverflow.com/questions/79074519/convolution-deconvolution-while-maintaining-the-original-image-size</link>
+      <description><![CDATA[我正在尝试在 tensorflow 中实现 pspnet。
+它需要一个池化模块来接收输入，以及几个内核大小：
 
-# 使用 L2 正则化的自定义密集层
-model.add(Dense(256,activation=&#39;relu&#39;, kernel_regularizer=regularizers.l2(0.001)))
-model.add(Dropout(0.5))
-model.add(BatchNormalization())
+使用每个内核AveragePooling2D对输入进行平均池化
 
-model.add(Dense(64,activation=&#39;relu&#39;, kernel_regularizer=regularizers.l2(0.001)))
-model.add(Dropout(0.5))
-model.add(BatchNormalization())
+进行 1x1 卷积，之后使用 UpSampling2D
 
-# 输出层（4 个类，带 softmax）
-model.add(Dense(4,activation=&#39;softmax&#39;))
 
-# 编译模型
-model.compile(optimizer=Adam(learning_rate=0.0001),
-loss=&#39;categorical_crossentropy&#39;,
-metrics=[&#39;accuracy&#39;])
+最后将所有不同的 conv-deconv 输出连接在一起并前馈
+def pyramid_pooling_module(x, pool_sizes):
+pool_outputs = []
+for pool_size in pool_sizes:
+pooled=layers.AveragePooling2D(pool_size)(x)
+pooled=layers.Conv2D(512, (1,1), padding=&#39;same&#39;)(pooled)
+pooled=layers.UpSampling2D(size=pool_size, interpolation=&#39;bilinear&#39;)(pooled)
+print(pool_size)
+pool_outputs.append(pooled)
+return layer.Concatenate()(pool_outputs)
 
-# 模型摘要
-model.summary()
-
-# 训练模型
-history = model.fit(
-train_dataset,
-validation_data=val_dataset,
-epochs=11, # 根据需要调整 epoch 数
-)
-
-# 在测试数据集上评估模型
-test_loss, test_accuracy = model.evaluate(test_dataset)
-print(f&quot;测试准确率： {test_accuracy * 100:.2f}%&quot;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/79075597/i-used-all-the-options-suggested-by-ml-dev-but-i-want-to-know-why-the-test-accur</guid>
-      <pubDate>Thu, 10 Oct 2024 17:43:12 GMT</pubDate>
+输入的维度为 68, 120
+因此，所使用的内核 (1x1, 2x2, 3x3, 6x6) 会与 3x3, 6x6 的平均池化层产生舍入误差
+因此这些层的最终池化输出为 (66, 120)
+我不确定如何修复此问题，是否应该将输入调整为可以被 6x6 整除的大小？还有其他方法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79074519/convolution-deconvolution-while-maintaining-the-original-image-size</guid>
+      <pubDate>Thu, 10 Oct 2024 13:00:23 GMT</pubDate>
     </item>
     <item>
       <title>我怎样才能改善姿势分类？ [关闭]</title>
@@ -247,21 +240,12 @@ Epoch 6: valLoss = 39.1865906792718
       <pubDate>Thu, 10 Oct 2024 08:13:20 GMT</pubDate>
     </item>
     <item>
-      <title>微调 Transformer 模型并未提高性能</title>
-      <link>https://stackoverflow.com/questions/79072711/fine-tuning-transformer-model-not-improving-performance</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79072711/fine-tuning-transformer-model-not-improving-performance</guid>
-      <pubDate>Thu, 10 Oct 2024 04:16:15 GMT</pubDate>
-    </item>
-    <item>
       <title>如何使用深度学习来解决由合成数据组成的拼图游戏？[关闭]</title>
       <link>https://stackoverflow.com/questions/79072271/how-can-i-use-deep-learning-to-solve-a-jigsaw-puzzle-composed-of-synthetic-data</link>
       <description><![CDATA[我花了一些时间研究 Python 中的拼图生成器，该生成器接收图像、行数 (M) 和列数 (N)，并将原始图像分解为 M*N 个 png 图像块输出到文件夹中。这些图像是正方形，带有不规则形状的制表符和空格，因此每个块只能放在一个位置。
-接下来我想做的是创建一个拼图解算器，它可以接收这些 png 图像，提取一些关键特征并确定它们的位置。
-这里是图像的示例。如果您好奇它是如何实现的，您还可以查看生成器代码。
-到目前为止，这些碎片没有任何旋转，但我希望将来能够处理这个问题。由于碎片是方形的，因此无法仅使用尺寸来确定方向，因此在提取边缘进行比较时，我无法轻松缩小它们的范围。
-我曾考虑使用 SIFT 进行特征检测，但图像的可见层没有重叠，因此这种方法失败了。
-我遇到的主要问题是我不知道从哪里开始。我遇到过制作拼图解算器的不同方法，但其中大多数都是使用拼图碎片的照片，而不是合成数据，因此形状不同。我见过的另一种方法是使用深度学习来分析图像片段，但我也不确定从哪里开始实施这种方法。]]></description>
+接下来，我想创建一个拼图解算器来接收这些 PNG 图像，提取关键特征并确定它们的位置。
+这里是图像的示例。如果您对它的实现方式感到好奇，也可以查看生成器代码。
+我遇到过制作拼图解算器的不同方法，但我对使用深度学习感兴趣。我的主要问题是我不知道从哪里开始。截至目前，这些碎片没有任何旋转，但我希望将来能够解决这个问题。]]></description>
       <guid>https://stackoverflow.com/questions/79072271/how-can-i-use-deep-learning-to-solve-a-jigsaw-puzzle-composed-of-synthetic-data</guid>
       <pubDate>Wed, 09 Oct 2024 22:50:24 GMT</pubDate>
     </item>
