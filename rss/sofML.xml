@@ -4,7 +4,75 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 10 Oct 2024 09:19:08 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 10 Oct 2024 12:33:18 GMT</lastBuildDate>
+    <item>
+      <title>使用 Swin Transformer V2 Backbone 在 PyTorch 上定制 Faster R-CNN 模型</title>
+      <link>https://stackoverflow.com/questions/79074104/customizing-a-faster-r-cnn-model-on-pytorch-with-swin-transformer-v2-backbone</link>
+      <description><![CDATA[对于我的对象检测项目，我一直在使用 fasterrcnn_resnet50_fpn_v2 模型。我的输入图像是高分辨率的（大约 3000 x 4000 像素），我将它们拼接成 1200 x 1600 像素的图块以进行训练和推理。但是，我很难用这个模型有效地检测小物体（小到 10 x 10 像素）。
+在寻找替代方案时，我读到了 SwinTransformer V2，我发现它很有前途，尤其是对于高分辨率图像的应用程序。由于我的数据集中的所有图像尺寸也是 1200 x 1600，而且我不想缩小它们的尺寸，所以我想自定义 Faster R-CNN 以使用 Swin V2 主干，并可能添加 FPN 并实现 Cascade R-CNN 头。但是，我面临的挑战是骨干、颈部和 RPN 头部之间的尺寸不匹配。
+这是我目前想到的（我决定使用基础模型）；
+import torch
+from torch import nn
+from torchvision.models.detection import FasterRCNN
+from torchvision.models.detection.rpn import AnchorGenerator
+from torchvision.models.swin_transformer import swin_v2_b, Swin_V2_B_Weights
+from torchvision.ops import MultiScaleRoIAlign
+import torchvision.transforms as transforms
+import request
+from PIL import Image
+
+NUM_CLASSES = 100 
+trainable_layers = 2
+
+class CustomSwin(nn.Module):
+def __init__(self, backbone):
+super().__init__()
+self.backbone = backbone
+self.out_channels = 1024
+
+def forward(self, x):
+return torch.permute(self.backbone(x), (0, 3, 1, 2))
+
+backbone = swin_v2_b(weights=Swin_V2_B_Weights.DEFAULT)
+
+# 删除分类头 
+backbone.norm = nn.Identity()
+backbone.permute = nn.Identity()
+backbone.avgpool = nn.Identity()
+backbone.flatten = nn.Identity()
+backbone.head = nn.Identity()
+
+# 冻结所有参数
+for param in backbone.parameters():
+param.requires_grad = False
+
+# 取消冻结最后的 trainable_layers
+for layer in list(backbone.features)[-trainable_layers:]:
+for param in layer.parameters():
+param.requires_grad = True
+
+custom_backbone = CustomSwin(backbone)
+
+# 为非常小的物体添加较小的尺寸
+anchor_generator = AnchorGenerator(
+sizes=((8, 16, 32, 64, 128, 256, 512),), aspects_ratios=((0.5, 1.0, 2.0),)
+)
+
+roi_pooler = MultiScaleRoIAlign(featmap_names=[&quot;0&quot;], output_size=7, samples_ratio=2)
+
+model = FasterRCNN(
+custom_backbone,
+num_classes=NUM_CLASSES,
+rpn_anchor_generator=anchor_generator,
+box_roi_pool=roi_pooler,
+min_size=1224, 
+max_size=1632,
+)
+
+我不确定当前的实现是否是最佳的，或者添加 FPN（特征金字塔网络）或 Cascade R-CNN 等组件是否会增强模型的性能（我有一个相当大的数据集）。有人成功实施了这些修改吗？任何指导都将不胜感激！]]></description>
+      <guid>https://stackoverflow.com/questions/79074104/customizing-a-faster-r-cnn-model-on-pytorch-with-swin-transformer-v2-backbone</guid>
+      <pubDate>Thu, 10 Oct 2024 11:07:43 GMT</pubDate>
+    </item>
     <item>
       <title>为什么我的 PyTorch 调度程序似乎不能正常工作？</title>
       <link>https://stackoverflow.com/questions/79073506/why-my-pytorch-scheduler-doesnt-seem-to-work-properly</link>
@@ -75,6 +143,13 @@ Epoch 6: valLoss = 39.1865906792718
       <pubDate>Thu, 10 Oct 2024 08:51:32 GMT</pubDate>
     </item>
     <item>
+      <title>Tensorflow Keras 面部识别计算机视觉图像分类模型，准确率高 (95%)/验证率低 (0%)</title>
+      <link>https://stackoverflow.com/questions/79073365/tensorflow-keras-facial-recognition-computer-vision-image-classification-model-w</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79073365/tensorflow-keras-facial-recognition-computer-vision-image-classification-model-w</guid>
+      <pubDate>Thu, 10 Oct 2024 08:13:20 GMT</pubDate>
+    </item>
+    <item>
       <title>微调 Transformer 模型并未提高性能</title>
       <link>https://stackoverflow.com/questions/79072711/fine-tuning-transformer-model-not-improving-performance</link>
       <description><![CDATA[]]></description>
@@ -97,8 +172,7 @@ Epoch 6: valLoss = 39.1865906792718
       <title>当批处理大小不等于 1 时，UNet 执行过程中会出现错误</title>
       <link>https://stackoverflow.com/questions/79071235/an-error-occurs-during-the-execution-of-unet-when-the-batch-size-is-not-equal-to</link>
       <description><![CDATA[我尝试使用 DDIM 反演教程中提供的代码运行稳定扩散模型。但是，当输入的批处理大小设置为大于 1 的值（例如 32）时，我遇到以下错误：
-RuntimeError：张量 a (131072) 的大小必须与非单例维度 1 上的张量 
-b (4096) 的大小匹配。
+RuntimeError：张量 a (131072) 的大小必须与非单例维度 1 上的张量 b (4096) 的大小匹配。
 
 看来 131072 可能来自 32 x 4096，表明张量维度不匹配。发生错误的具体行是：
 noisy_residual = self.unet(input, t.to(input.device), **denoise_kwargs).sample
@@ -245,219 +319,11 @@ export_metadata_tags=True
       <pubDate>Tue, 08 Oct 2024 08:39:33 GMT</pubDate>
     </item>
     <item>
-      <title>无法加载 Arcface 模型</title>
-      <link>https://stackoverflow.com/questions/79063234/arcface-model-cant-be-loaded</link>
-      <description><![CDATA[我正在开发人脸识别系统，其中我使用 arcface 作为其算法，我从 github 下载了 arcface 模型，链接为 https://github.com/Martlgap/livefaceidapp/blob/main/model.onnx%5C。但我遇到了这个错误：
-ERROR:root:发生错误：KerasTensor 不能用作 
-TensorFlow 函数的输入。KerasTensor 是形状和 dtype 的符号占位符，
-用于构建 Keras 函数模型或 Keras 函数。您只能
-将其用作 Keras 层或 Keras 操作的输入（来自命名空间 
-`keras.layers` 和 `keras.operations`）。您可能正在执行类似以下操作：
-
-x = Input(...)
-...
-tf_fn(x) # 无效。
-
-您应该做的是将 `tf_fn` 包装在一个层中：
-
-class MyLayer(Layer):
-def call(self, x):
-return tf_fn(x)
-
-x = MyLayer()(x)
-
-我已经向 ai 或 gpt 询问了这个问题，它提到了 tensorflow 库的兼容性，但是当我在 github 上看到要求时，没有需要特定版本的 tensorflow。我也已经检查了模型是否在新的 py 文件上运行良好，并且它运行良好，我使用 model.onnx 生成嵌入，它也运行良好。
-我的人脸识别脚本发生了什么，如何解决？
-以防你们想知道我是如何初始化 arcface 模型的，这里是
-import cv2
-import os
-import time
-import logs
-import numpy as np
-import pandas as pd
-from tkinter import font as tkFont
-from PIL import Image, ImageTk
-import torch
-from arcface import ArcFace 
-import psycopg2
-import datetime
-import face_alignment 
-import onnxruntime
-from retinaface import RetinaFace
-
-# ArcFace model
-arcface_model = onnxruntime.InferenceSession(r&quot;RetinaFace_ArcFace\model.onnx&quot;)
-
-DATABASE_CONFIG = {
-&#39;database&#39;: &#39;postgres&#39;, 
-&#39;user&#39;: &#39;postgres&#39;, 
-&#39;password&#39;: &#39;root&#39;, 
-&#39;host&#39;: &#39;localhost&#39;, 
-&#39;port&#39;: 5432 
-}
-
-class Face_Recognizer:
-def __init__(self):
-self.font = cv2.FONT_HERSHEY_SIMPLEX
-# FPS
-self.frame_time = 0
-self.frame_start_time = 0
-self.fps = 0
-self.fps_show = 0
-self.start_time = time.time()
-
-# cnt for frame
-self.frame_cnt = 0
-
-# 将人脸特征保存到数据库中
-self.face_features_known_list = []
-# / 在数据库中保存人脸名称
-self.face_name_known_list = []
-
-# 列表保存第 N-1 帧和第 N 帧中 ROI 的质心位置
-self.last_frame_face_centroid_list = None
-self.current_frame_face_centroid_list = None
-
-# 列表保存第 N-1 帧和第 N 帧中物体的名称
-self.last_frame_face_name_list = [None]
-self.current_frame_face_name_list = None
-
-# 第 N-1 帧和第 N 帧中人脸的 cnt
-self.last_frame_face_cnt = 0
-self.current_frame_face_cnt = 0
-
-# 保存识别时 faceX 的 e-distance
-self.current_frame_face_X_e_distance_list = []
-
-# 保存当前捕获的人脸位置和名称
-self.current_frame_face_position_list = []
-# 保存当前帧中人物的特征
-self.current_frame_face_feature_list = []
-
-# 上一帧和当前帧中 ROI 质心之间的 e 距离
-self.last_current_frame_centroid_e_distance = 0
-
-# 在“reclassify_interval”帧后重新分类
-self.reclassify_interval_cnt = 0
-self.reclassify_interval = 10
-
-# 边界框持久性
-self.bbox_history = {} 
-self.bbox_persistence_frames = 12
-
-# 连接到数据库
-self.connect_to_db()
-
-def get_face_database(self):
-if os.path.exists(&quot;data/features_arcface.csv&quot;):
-path_features_known_csv = &quot;data/features_arcface.csv&quot;
-csv_rd = pd.read_csv(path_features_known_csv, header=None)
-for i in range(csv_rd.shape[0]):
-features_someone_arr = []
-self.face_name_known_list.append(csv_rd.iloc[i][0])
-for j in range(1, 513):
-features_someone_arr.append(float(csv_rd.iloc[i][j]))
-self.face_features_known_list.append(features_someone_arr)
-login.info(&quot;数据库中的人脸： %d&quot;, len(self.face_features_known_list))
-return 1
-else:
-login.warning(&quot;未找到&#39;features_arcface.csv&#39;！&quot;)
-login.warning(&quot;先运行代码生成人脸特征！&quot;)
-返回 0
-]]></description>
-      <guid>https://stackoverflow.com/questions/79063234/arcface-model-cant-be-loaded</guid>
-      <pubDate>Mon, 07 Oct 2024 18:34:59 GMT</pubDate>
-    </item>
-    <item>
       <title>执行 3D U-net 时，每次执行都会得到截然不同的指标，有时准确率、召回率、DICE 和 IoU 的指标都会 >99.99%</title>
       <link>https://stackoverflow.com/questions/79062464/executing-a-3d-u-net-i-get-widely-different-metrics-in-each-execution-sometimes</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79062464/executing-a-3d-u-net-i-get-widely-different-metrics-in-each-execution-sometimes</guid>
       <pubDate>Mon, 07 Oct 2024 15:02:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解决“未知的图像文件格式。需要 JPEG、PNG、GIF、BMP 之一”？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79060211/how-to-resolve-unknown-image-file-format-one-of-jpeg-png-gif-bmp-required</link>
-      <description><![CDATA[我正在构建一个 U-Net 模型来检测乳腺癌，我从这里获取了数据集：https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset
-尽管所有图像都是 png 格式，但在尝试训练我的模型时，会出现错误，指出我的图像格式不正确。
-错误如下：
----------------------------------------------------------------------------
-InvalidArgumentError Traceback（最近一次调用最后一次）
-Cell In[51]，第 7 行
-5 train_dataset = image_ds.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
-6 print(image_ds.element_spec)
-----&gt; 7 model_history = unet.fit(train_dataset, epochs=EPOCHS)
-
-文件 ~\anaconda3\Lib\site-packages\keras\src\utils\traceback_utils.py:122，位于 filter_traceback.&lt;locals&gt;.error_handler(*args, **kwargs)
-119filtered_tb = _process_traceback_frames(e.__traceback__)
-120 # 要获取完整的堆栈跟踪，请调用：
-121 # `keras.config.disable_traceback_filtering()`
---&gt; 122 从 None 引发 e.with_traceback(filtered_tb)
-123 最后：
-124 delfiltered_tb
-
-文件 ~\anaconda3\Lib\site-packages\tensorflow\python\eager\execute.py:53，在 quick_execute(op_name, num_outputs, input, attrs, ctx, name) 中
-51 尝试：
-52 ctx.ensure_initialized()
----&gt; 53 张量 = pywrap_tfe.TFE_Py_Execute(ctx._handle, device_name, op_name,
-54 输入、属性、输出)
-55 除 core._NotOkStatusException 外，因为 e:
-56 如果名称不为 None:
-
-InvalidArgumentError：图形执行错误：
-
-在节点处检测到，decode_image/DecodeImage 定义在（最近一次调用最后一次）：
-&lt;堆栈跟踪不可用&gt;
-传递给 MapDataset:3 转换的用户定义函数中的错误，迭代器：Iterator::Root::Prefetch::BatchV2::Shuffle::MemoryCacheImpl::Filter::ParallelMapV2：未知图像文件格式。需要 JPEG、PNG、GIF、BMP 之一。
-[[{{node decrypt_image/DecodeImage}}]]
-[[IteratorGetNext]] [Op:__inference_one_step_on_iterator_9520]
-
-错误仅在尝试训练模型时发生，它引用此函数：
-def preprocess_image(image, mask, target_size=(256, 256)):
-try:
-# 安全地解码图像和掩码
-image = tf.io.decode_image(image, channels=3, expand_animations=False)
-mask = tf.io.decode_image(mask, channels=1, expand_animations=False)
-
-# 检查未定义或零维度
-if image.shape is None or image.shape[0] == 0 or image.shape[1] == 0:
-print(f&quot;Error: Image has undefined or zero Dimensions: {image.shape}&quot;)
-return None, None
-
-if mask.shape is None or mask.shape[0] == 0 or mask.shape[1] == 0:
-print(f&quot;Error: Mask 具有未定义或零维度：{mask.shape}&quot;)
-return None, None
-
-# 确保图像恰好有 3 个通道 (RGB)
-if image.shape[-1] != 3:
-print(f&quot;Error: Image does not have 3 channels (found {image.shape[-1]}).&quot;)
-return None, None
-
-# 将图像标准化为范围 [0, 1]
-image = tf.image.convert_image_dtype(image, tf.float32)
-
-# 将图像和 mask 的大小调整为目标尺寸 (256*256)
-image = tf.image.resize(image, target_size, method=&#39;nearest&#39;)
-mask = tf.image.resize(mask, target_size, method=&#39;nearest&#39;)
-
-#将 mask 转换为二进制（0 或 1）格式以用于分类任务
-mask = tf.cast(tf.math.reduce_max(mask, axis=-1, keepdims=True) &gt; 0, tf.float32) # 确保二进制 mask
-
-return image, mask
-
-except Exception as e:
-print(f&quot;Error during preprocessing: {str(e)}&quot;)
-return None, None
-
-# 将预处理函数应用于数据集
-image_ds = dataset.map(preprocess_image)
-
-# 过滤掉 preprocess_image 返回的 None 值
-image_ds = image_ds.filter(lambda img, mask: img is not None and mask is not None)
-
-我尝试了多种方法尝试使用 chatgpt 修复此问题，但似乎没有任何效果。]]></description>
-      <guid>https://stackoverflow.com/questions/79060211/how-to-resolve-unknown-image-file-format-one-of-jpeg-png-gif-bmp-required</guid>
-      <pubDate>Sun, 06 Oct 2024 22:45:18 GMT</pubDate>
     </item>
     <item>
       <title>LogisticRegression 未返回正确结果</title>
@@ -550,7 +416,7 @@ np.mean(scores)
     <item>
       <title>使用哪个 Python 库来对调查数据进行定性分析？[关闭]</title>
       <link>https://stackoverflow.com/questions/60967882/which-python-library-to-use-for-qualitative-analysis-of-survey-data</link>
-      <description><![CDATA[我有一个数据集，其中包含大约 300 人填写的问卷。该问卷涉及公共交通中的用户体验和行为。我们对 3 家公交公司进行了调查。大多数问题都是“是/否”、“3 家公司中最好的”或“3 家公司中最差的”。
+      <description><![CDATA[我有一个数据集，其中包含大约 300 人完成的问卷调查的回复。该问卷调查涉及公共交通中的用户体验和行为。我们对 3 家公交公司进行了调查。大多数问题都是“是/否”、“3 家公司中最好的”或“3 家公司中最差的”。
 如果可能的话，我想建立一个模型，根据答案推荐三家公司中最好的一家。问题包括“公交车的可用性、公交车的可靠性、用户的偏好和公交车的物理维护”。
 我希望模型能够分析数据集并返回最好的公交公司，该公司将很容易获得、干净且维护良好、可靠并且用户会更喜欢它。
 此外，诸如“您喜欢哪辆公交车？”之类的问题的答案应该在决策中占有更大的权重。
@@ -559,13 +425,31 @@ np.mean(scores)
       <pubDate>Wed, 01 Apr 2020 09:39:52 GMT</pubDate>
     </item>
     <item>
-      <title>如何将机器学习分类方法应用于一维时间序列数据？</title>
-      <link>https://stackoverflow.com/questions/50519856/how-do-i-apply-machine-learning-classification-methods-to-1d-time-series-data</link>
-      <description><![CDATA[我在各种锻炼（深蹲、俯卧撑、仰卧起坐、波比跳）过程中获得了 IMU 数据（加速度计、磁力计和陀螺仪）。这些锻炼是在单个 1D 时间序列信号中完成的，我想使用机器学习分类方法来识别信号中的不同锻炼。我不想将信号压缩为 0D 峰值并以此方式构建我的特征，而是保持时间域完整。下图显示了包含四种锻炼的加速度计的示例数据。
-因此，我的问题是 - 哪种方法最有效？ K-means 聚类在 0D 意义上是完美的，那么是否有 1D 等效物？
-]]></description>
-      <guid>https://stackoverflow.com/questions/50519856/how-do-i-apply-machine-learning-classification-methods-to-1d-time-series-data</guid>
-      <pubDate>Fri, 25 May 2018 00:18:01 GMT</pubDate>
+      <title>Plotly：如何使用热图制作带注释的混淆矩阵？</title>
+      <link>https://stackoverflow.com/questions/60860121/plotly-how-to-make-an-annotated-confusion-matrix-using-a-heatmap</link>
+      <description><![CDATA[我喜欢使用 Plotly 来可视化一切，我试图通过 Plotly 可视化混淆矩阵，这是我的代码：
+def plot_confusion_matrix(y_true, y_pred, class_names):
+fusion_matrix = metrics.confusion_matrix(y_true, y_pred)
+confusion_matrix =fusion_matrix.astype(int)
+
+layout = {
+&quot;title&quot;: &quot;混淆矩阵&quot;,
+&quot;xaxis&quot;: {&quot;title&quot;: &quot;预测值&quot;},
+&quot;yaxis&quot;: {&quot;title&quot;: &quot;实际值&quot;}
+}
+
+fig = go.Figure(data=go.Heatmap(z=confusion_matrix,
+x=class_names,
+y=class_names,
+hoverongaps=False),
+layout=layout)
+fig.show()
+
+结果是
+
+我怎样才能在相应的单元格内显示数字而不是悬停，像这样]]></description>
+      <guid>https://stackoverflow.com/questions/60860121/plotly-how-to-make-an-annotated-confusion-matrix-using-a-heatmap</guid>
+      <pubDate>Thu, 26 Mar 2020 02:18:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
