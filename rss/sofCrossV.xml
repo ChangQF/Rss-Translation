@@ -4,7 +4,83 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 10 Oct 2024 03:21:50 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 10 Oct 2024 06:24:15 GMT</lastBuildDate>
+    <item>
+      <title>方差总是等于二阶导数的倒数吗？</title>
+      <link>https://stats.stackexchange.com/questions/655583/is-variance-always-equal-to-the-inverse-of-the-second-derivative</link>
+      <description><![CDATA[这是基于 Fisher 评分法（本质上是 Newton-Raphson 优化算法的统计版本）估计模型参数的著名公式：
+$$\theta^{(k+1)} = \theta^{(k)} + [I(\theta^{(k)})]^{-1}U(\theta^{(k)})$$
+其中：
+
+$\theta^{(k)}$ 是迭代时的估计值 $k$
+$U(\theta)$ 是得分函数（对数似然的一阶导数）
+$I(\theta)$ 是 Fisher 信息矩阵（基于 Hessian，即二阶导数）
+
+我认为 Fisher 评分的真正酷之处在于它同时估计参数的方差：
+$$E[-\nabla^2 \log L(\theta)] = I(\theta)$$
+$$\text{Var}(\hat{\theta}) \approx I^{-1}(\hat{\theta})$$
+在之前的问题中（例如如何防止似然优化中的负方差估计？），我了解到许多软件实现实际上并没有使用这种精确的 Fisher 评分方法，因为执行使用 Fisher 评分方法所需的矩阵微积分可能非常复杂。而是使用拟牛顿方法，例如 BFGS 算法。
+BFGS 算法（具有与 Fisher 评分非常相似的结构）按如下方式更新 $\theta$ 的估计值：
+$$\theta^{(k+1)} = \theta^{(k)} - \alpha^{(k)} H^{(k)} \nabla L(\theta^{(k)})$$
+其中：
+
+$\alpha^{(k)}$ 是由线搜索确定的步长
+$H^{(k)}$ 是逆 Hessian 的近似值矩阵
+$\nabla L(\theta^{(k)})$ 是对数似然的梯度
+梯度$\nabla L(\theta)$与 Fisher 评分中的得分函数$U(\theta)$相同。
+
+所有这些都让我感到疑惑。假设 BFGS 中产生的最终 Hessian（即收敛时）表示为 $H_{final}$。
+这样说公平吗？
+$$H_{final} \xrightarrow{p} [-\nabla^2 \log L(\theta)]^{-1}$$
+$$\text{Var}(\hat{\theta}) \approx H_{final}$$
+最终呢？
+$$\text{Var}(\hat{\theta}) \approx \begin{cases}
+I^{-1}(\hat{\theta}) &amp; \text{for Fisher Scoring} \\
+H_{final} &amp; \text{for BFGS}
+\end{cases}$$
+因此，BFGS 算法似乎也估计了参数估计的方差（就像 Fisher Scoring 一样）。
+如果这是真的（即 BFGS 通过避免 Fisher Scoring 所需的矩阵微积分节省了时间，并且 BFGS 仍然提供方差估计），那么为什么 Fisher Scoring 在应用中会使用呢？在我看来，Fisher Scoring 只有在一些非常具体的建模情况下才会真正具有优势（例如指数族、GLM），在这些情况下，我们已经事先知道填充得分函数和预期的 hessian 所需的精确矩阵微积分？或者也许从优化的角度来看，Fisher Scoring 更稳定，与 BFGS 相比，它不太可能陷入困境？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655583/is-variance-always-equal-to-the-inverse-of-the-second-derivative</guid>
+      <pubDate>Thu, 10 Oct 2024 04:26:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何建立 Piegorsch、Weinberg 和 Margolin（1988）中剂量反应关系的二项回归模型？</title>
+      <link>https://stats.stackexchange.com/questions/655582/how-to-formulate-a-binomial-regression-model-for-the-dose-response-relationship</link>
+      <description><![CDATA[我正在尝试将逻辑回归模型应用于二项式比例数据。具体来说，我正在研究 $Biometrics$ 论文“探索多因素比例表中的简单独立作用”，作者是 Piegorsch、Weinberg 和 Margolin (1988)。
+以下是论文中的数据，关于暴露于两种药剂 TNF 和 IFN 后分化的细胞数量。在两种药剂的 16 种组合中，每种组合都暴露了 200 个细胞。
+
+我正在尝试根据暴露于 TNF 和 IFN 来模拟反应的分布。
+在论文中，我看到作者将解释变量 TNF 和 IFN 建模为因子，每个因子包含 4 个级别。
+但是，我正在尝试使用基于 TNF 和 IFN 剂量的连续解释变量。我尝试使用平方根、对数和正弦函数转换解释变量，并尝试了 logit 和 cloglog 链接。
+残差图似乎没有表明模型拟合度足够。
+除其他外，我尝试的模型如下：
+$$
+\log\left( \frac{\pi_i}{1 - \pi_i} \right) = \beta_0 + \beta_1 \text{TNF}_i + \beta_2 \text{IFN}_i + \beta_3 \log(\text{TNF}_i + 1) + \beta_4 \log(\text{IFN}_i + 1)
+$$
+我的偏差残差图如下所示：
+
+使用 cloglog 链接，我有：
+$$
+\log\left( -\log(1 - \pi_i) \right) = \beta_0 + \beta_1 \text{TNF}_i + \beta_2 \text{IFN}_i + \beta_3 \log(\text{TNF}_i + 1) + \beta_4 \log(\text{IFN}_i + 1)
+$$
+以下是我对 cloglog 的偏差残差链接：
+
+除了对数转换，我还尝试了 TNF 和 IFN 的平方根以及 TNF 和 IFN 的正弦。
+我这里遗漏了什么吗？或者我可以做些不同的事情？如果您能分享有关在此处建模剂量反应关系的任何建议或意见，我将不胜感激。非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/655582/how-to-formulate-a-binomial-regression-model-for-the-dose-response-relationship</guid>
+      <pubDate>Thu, 10 Oct 2024 03:39:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>估计量乘积的集中不等式</title>
+      <link>https://stats.stackexchange.com/questions/655581/the-concentration-inequality-of-the-product-of-the-estimators</link>
+      <description><![CDATA[当我尝试获取 $\|\hat{\Omega}\hat{\Sigma}-\Omega\Sigma\|_2$ 的收敛速度时，我发现我必须面对项 $\|\Omega-\hat{\Omega}\|_2\|\Sigma-\hat{\Sigma}\|_2$，它是浓度不等式的乘积。那是因为
+$$
+\|\hat{\Omega}\hat{\Sigma}-\Omega\Sigma\|_2 \le \|\Omega-\hat{\Omega}\|_2\|\Sigma-\hat{\Sigma}\|_2+\|\Omega-\hat{\Omega}\|_2\|\Sigma\|_2+\|\Sigma-\hat{\Sigma}\|_2\|\Omega\|_2。
+$$
+我可以分别得到$\|\Omega-\hat{\Omega}\|_2 \le C_1\sqrt{\frac{p}{n}}$和$\|\Sigma-\hat{\Sigma}\|_2\le C_2\sqrt{\frac{p}{n}}$的收敛速度，但是两个估计量的乘积让我感到困惑。$\sqrt{\frac{p}{n}}$和$\frac{p}{n}$会同时出现在最终结果中。但这在论文中似乎很少见。这是正确的吗？我猜测最终的收敛速度中可能只有$\sqrt{\frac{p}{n}}$会出现，因为$\frac{p}{n}$可以被$\sqrt{\frac{p}{n}}$所限制。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655581/the-concentration-inequality-of-the-product-of-the-estimators</guid>
+      <pubDate>Thu, 10 Oct 2024 03:34:47 GMT</pubDate>
+    </item>
     <item>
       <title>概率/标准正态分布作业帮助</title>
       <link>https://stats.stackexchange.com/questions/655578/probability-standard-normal-distribution-homework-help</link>
@@ -122,76 +198,6 @@ p(\theta_i|\theta_{-i}, y_i)&amp;\propto p(\theta_i, \theta_{-i}, y_i)\\
       <pubDate>Wed, 09 Oct 2024 19:54:07 GMT</pubDate>
     </item>
     <item>
-      <title>所有相关性荟萃分析</title>
-      <link>https://stats.stackexchange.com/questions/655563/all-correlations-meta-analysis</link>
-      <description><![CDATA[我是 MetaSEM 的新手。我正在尝试进行一个简单的元分析（我只想分析 2 个相关性；见图）。
-在这里您可以找到我使用的一些模拟数据的代码，但如果没有回归，我就无法让它工作（除非我添加回归系数，否则它会永远工作下去）。这应该是一个简单的模型，但我被卡住了。我只想要两个协方差，我已经将所有方差固定为一个。换句话说，我只想对 S-D 和 I-D 之间的相关性进行元分析。
-S 和 D、S 和 I 以及 D 和 I 之间的相关性存储在此处：
-rSD &lt;- c(0.85, 0.8, 0.90, 0.78, 0.70,NA,NA,NA,NA,NA)
-rSI &lt;- c(NA,NA,NA,NA,NA,0.85,NA,NA,NA,NA)
-rDI &lt;- c(NA,NA,NA,NA,NA,0.60, 0.50, 0.55, 0.60, 0.55)
-
-rSI 可能是 al NA，因为我对这种相关性不感兴趣。
-我读过关于 SEM 和 RAM 模型的文章，我认为这个模型是可以识别的，应该很容易拟合。任何帮助和指导都将不胜感激。
-library(metaSEM)
-source(&quot;http://www.suzannejak.nl/MASEM_functions.R&quot;)
-
-rSD &lt;- c(0.85, 0.8, 0.90, 0.78, 0.70,NA,NA,NA,NA,NA)
-rSI &lt;- c(NA,NA,NA,NA,NA,0.85,NA,NA,NA,NA)
-rDI &lt;- c(NA,NA,NA,NA,NA,0.60, 0.50, 0.55, 0.60, 0.55)
-
-N &lt;- c(10000,40000, 30000, 10000, 10000,20000,10000, 50000, 10000, 10000 )
-
-数据 &lt;- as.data.frame(cbind(rSD,rSI,rDI, N))
-
-nvar &lt;- 3
-varnames &lt;- c(&quot;S&quot;,&quot;D&quot;, &quot;I&quot;)
-labels &lt;- list(varnames,varnames)
-
-cormatrices &lt;- readstack(data[,c(2,1,3)], no.var = nvar, var.names = varnames, diag = FALSE)
-
-n &lt;- data$N
-
-pattern.na(cormatrices, show.na=F)
-pattern.n(cormatrices, n=n)
-
-my.df &lt;- Cor2DataFrame(cormatrices, n, acov = &quot;weighted&quot;)
-
-## 使用指定模型lavaan 语法
-模型 &lt;-
-&#39;
-
-# 协方差
-D ~~ I
-D ~~ S
-# 方差
-
-D ~~ 1*D
-S ~~ 1*S
-I ~~ 1*I
-&#39;
-
-RAM1 &lt;- lavaan2RAM(model, obs.variables=varnames)
-RAM1
-
-## 创建具有隐式对角线约束的模型隐含相关结构
-M0 &lt;- create.vechsR(A0=RAM1$A, S0=RAM1$S)
-
-## 创建异质性方差-协方差矩阵
-T0 &lt;- create.Tau2(RAM=RAM1, RE.type=&quot;Diag&quot;, Transform=&quot;expLog&quot;, RE.startvalues=0.05)
-
-## 拟合模型
-mx.fit0 &lt;- osmasem(model.name=&quot;No moderator&quot;, Mmatrix=M0, Tmatrix=T0, data=my.df)
-
-## 查看结果
-summary(mx.fit0, fitIndices = TRUE)
-VarCorr(mx.fit0)
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/655563/all-correlations-meta-analysis</guid>
-      <pubDate>Wed, 09 Oct 2024 19:33:34 GMT</pubDate>
-    </item>
-    <item>
       <title>在风险函数的定义中，$\leq$ 应该放在哪里？</title>
       <link>https://stats.stackexchange.com/questions/655562/where-should-the-leq-go-in-the-definition-of-the-hazard-function</link>
       <description><![CDATA[我在几本教科书和在线资源中都看到过两种风险函数定义。
@@ -208,9 +214,9 @@ $$h(t) = \lim_{\epsilon \to 0+}\dfrac{P(t \leq T &lt; t + \epsilon \mid T \geq t
       <link>https://stats.stackexchange.com/questions/655561/need-help-with-understanding-conditional-probability-distributions-with-multiple</link>
       <description><![CDATA[我试图理解我正在阅读的一些机器学习讲义中介绍的以下步骤。在这种情况下，我们想要用参数化函数类 $\mathcal{F}(\Theta)$ 中的函数来近似函数 $f^*: \mathcal{X} \to \mathcal{Y}$，其中该类中的每个函数都依赖于一些参数 $\theta \in \Theta$。我们给出了输入 $x_{1:n}$ 和标签 $y_{1:n}$，其中我们使用符号 $x_{1:n} = (x_1, \ldots, x_n)^T$。我们假设标签是独立同分布的，并且 $y_i \sim p( \cdot | x_i, \theta)$ 成立。此外，我们假设参数 $\theta$ 具有先验分布 $p(\theta)$。我们现在希望通过对 $\theta$ 进行条件设定，预测新输入 $x^*$ 时的输出 $y^*$：
 $$p(y^* | x^*, x_{1:n}, y_{1:n}) = \int_{\Theta}p(y^*, \theta | x^*, x_{1:n}, y_{1:n}) d\theta = \int_{\Theta}p(y^* | x^*, \theta) \cdot p(\theta | x_{1:n}, y_{1:n})d\theta,$$
-根据讲义，第一个等式如下根据求和规则，其表述为
+根据讲义，第一个等式如下来自求和规则，其表述为
 $$p(x_{1:i - 1}, x_{i + 1:n}) = \int_{X_i(\Omega)}p(x_{1:i-1},x_i, x_{i + 1: n}) dx_i,$$
-第二个等式根据 $y^* \perp x_{1:n}, y_{1:n} | \theta$ 和乘积规则，其表述为
+第二个等式来自 $y^* \perp x_{1:n}, y_{1:n} | \theta$ 和乘积规则，其表述为
 $$p(x_{1:n}) = p(x_1) \prod_{i = 2}^np(x_i | x_{1: i-1}).$$
 我认为我理解第一个等式，因为根据条件概率分布的定义，我们有
 $$p(x_{1:i-1}, x_{i+1:n} | y_{1:n}) = \frac{p(x_{1:i-1}, x_{i+1:n}, y_{1:n})}{p(y_{1:n})} = \frac{\int_{X_i(\Omega)}p(x_{1:i-1},x_i, x_{i + 1: n}, y_{1:n}) dx_i}{p(y_{1:n})} = $$
@@ -219,38 +225,6 @@ $$ = \frac{\int_{X_i(\Omega)} p(y_{1:n})p(x_{1:i-1},x_i, x_{i + 1: n} | y_{1:n})
 如能得到任何帮助，我们将不胜感激！]]></description>
       <guid>https://stats.stackexchange.com/questions/655561/need-help-with-understanding-conditional-probability-distributions-with-multiple</guid>
       <pubDate>Wed, 09 Oct 2024 18:33:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>寻找使用“求解方程”带宽进行核密度估计的可靠教程</title>
-      <link>https://stats.stackexchange.com/questions/655559/looking-for-robust-tutorial-using-solve-the-equation-bandwidth-for-kernel-dens</link>
-      <description><![CDATA[我目前正在从事的工作是让我为通过任意有界函数 $z=p(\vec{x})$ 诱导的分布生成 CDF 函数，其中 $p:\mathcal{D} \subset \mathbb{R}^m \to \mathcal{R} \subset \mathbb{R}$，并且 $\mathcal{D}:=\times_{i=1}^m [a_i,b_i]$ 和 $-\infty &lt; a_i &lt; b_i &lt; \infty$。更具体地说，我取随机变量$ \vec{X} \sim \mathcal{U}(\mathcal{D})$，并诱导随机变量$Z = p(\vec{X})$，并使用$n$个样本构建近似值$F_n(z)$，以获得“真实的”（可能/通常不可知的）累积分布函数$F(z)$。我正在使用高斯核的核密度估计构建这个近似值，$K(t) = (2\pi)^{-1/2}\exp(-t^2/2)$，并应用 Silverman 的经验法则来计算带宽的值，$h$。此规则为
-$$
-h = 0.9 \min\left\{\widehat{\sigma}, \frac{IQR}{1.34} \right\}
-$$
-（顺序问题，我发现很多不同的规则被称为 Silverman 经验法则，因此这 可能 实际上不是 Silverman 经验法则。请在评论中纠正我，但这最终与我的询问无关）。
-我还想使用 Solve-the-Equation（糟糕的品牌名称）带宽计算来估算这一点，但我找不到任何关于如何进行此操作的易于理解的演示文稿/来源/参考资料。如果有人可以指出有关如何为 KDE 进行 Solve-the-Equation 带宽的详尽解释/来源，我将不胜感激。尤其是不会掩盖太多细节的。这种数学不是我的强项。或者，如果网上找不到这样的教程，可以在这里介绍一个强大的教程。此外，请纠正我的术语中的任何错误。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655559/looking-for-robust-tutorial-using-solve-the-equation-bandwidth-for-kernel-dens</guid>
-      <pubDate>Wed, 09 Oct 2024 18:04:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>创建针对一个主题和每个项目的评分者间信度</title>
-      <link>https://stats.stackexchange.com/questions/655556/create-inter-rater-reliability-on-one-subject-and-per-item</link>
-      <description><![CDATA[我公司接到一项任务，因为我不太懂统计学，也没有找到解决我的问题的具体方法，所以我想问问你们。
-那么我的任务是什么呢？
-我们必须每年培训员工。培训如下：
-员工们正在观看一个主题的视频，然后他们必须对视频的不同部分进行 1-5 的评分，如果无法评估，则为 0。
-目标是评估不同的评分者是否对特定部分给出了相同的评分。例如，可以使用 Landis Koch 基准来评估可靠性。
-如果特定部分高于某个阈值，则公司感到满意。如果没有，则必须对员工进行该特定部分的培训。
-这意味着我必须为每个部分创建一个可靠性分数，以查看是否需要培训。此外，公式还必须考虑评级是否接近。
-这就是为什么例如简单的百分比可靠性不起作用的原因（我认为）
-此外，像 Fleiss Kappa 这样的公式也不起作用，因为它无法确定一个主题的单个部件（或项目）的 kappa。
-例如，我们有 50 位评分者，并且特定部件的评级为 5 次“0”，5 次“1”，10 次“2”，30 次“3”，其他部件没有投票。还有一个权重也应该计算在内。评级为“1”表示未通过，而“0”表示该部件无法评级。数字上很接近，但对主题来说却是灾难性的。然后，一个评分员给他打了不及格分，另一个评分员给他打了不及格分。
-有没有办法计算一个项目的分数、Kappa 值或其他东西，并以某种方式对其进行加权？
-正如我所说，我不太喜欢统计，但当我知道要寻找什么时，我认为这会有所帮助。
-编辑：我可能必须澄清一下。
-整个设置都是法律规定的。因此，员工，即教员，观看视频。他们必须根据不同的能力对视频中的受训者进行评分。他的知识如何，他的领导能力如何等。他们必须用上述等级对每项能力进行评分。目标是确保每个教员的评分几乎相同。因为如果不是这样，受训者在现实生活中将高度依赖他得到的教员。这就是我们需要这个培训计划的原因。我们必须评估我们必须与教员合作的能力。为此，我们需要一个量表。我们收到了一家公司的报价，他们使用 Landis Koch 量表并借助 kappa 进行评估。但他们当然没有告诉我们具体是哪种。我们想重建它，自己在公司内部制造。但我们知道这在某种程度上是可行的。这就是为什么我们需要为每项能力设置一个分数或其他东西。遗憾的是，设置无法更改。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655556/create-inter-rater-reliability-on-one-subject-and-per-item</guid>
-      <pubDate>Wed, 09 Oct 2024 17:39:48 GMT</pubDate>
     </item>
     <item>
       <title>逻辑回归的最大似然估计方法中存在普遍的不一致性</title>
@@ -287,15 +261,18 @@ https://svivek.com/teaching/lectures/slides/logistic-regression/logistic-regress
       <pubDate>Wed, 09 Oct 2024 15:14:21 GMT</pubDate>
     </item>
     <item>
-      <title>哪项测试用于三组之间的标准化量化数据</title>
-      <link>https://stats.stackexchange.com/questions/655540/which-test-for-normalised-quantification-data-between-three-groups</link>
-      <description><![CDATA[我想比较三个组（疾病 1、疾病 2 和非疾病）之间的一个变量的数量（分配给念珠菌的读取次数）
-当我使用不同的方法进行测试时，结果并不总是相同的。如果我使用钢或 Dunnett 测试（针对控制非疾病），我会得到不同的结果
-如果我使用 Mann Whitney，我会得到一个显着的差异，并且通过所有成对比较，我再次得到不同的东西。
-我真的不知道该遵循哪一个，有人可以帮忙吗？
-非常感谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/655540/which-test-for-normalised-quantification-data-between-three-groups</guid>
-      <pubDate>Wed, 09 Oct 2024 14:26:32 GMT</pubDate>
+      <title>多元线性回归：共线性或接近共线性的参数的部分效应解释</title>
+      <link>https://stats.stackexchange.com/questions/655518/multiple-linear-regression-partial-effects-interpretation-of-parameters-at-near</link>
+      <description><![CDATA[我正在看一个最简单的多元线性回归模型示例：
+\begin{equation}\label{linreg}
+Y = \beta_1 X_1 + \beta_2 X_2 + \varepsilon,
+\end{equation&gt;
+我对当 $X_1=X_2$（共线性）或 $\text{cor}(X_1, X_2)$ 非常高（可能是 $\text{cor}(X_1, X_2)&gt;0.999$）时获得的参数估计值（同时估计）感兴趣。
+回归系数的标准解释是偏效应：$\beta_1$ 是 $X_1$ 增加一个单位时 $Y$ 的变化，同时控制所有其他变量（此处仅 $X_2$）。但是，如果 $X_1=X_2$，则一旦我们控制了 $X_2$，$X_1$ 显然无法再解释 $Y$ 中的任何变化。基于此推理，我期望得到估计值$\hat\beta_1=0$，并且基于相同推理，我期望得到$\hat\beta_2=0$。
+但是，如果我估计回归模型（在完全共线情况下使用贝叶斯模型，或在近共线情况下使用贝叶斯/频率论），我会得到 beta 系数，其总和等于真实参数的总和$\beta_1+\beta_2$。从优化的角度来看，这也是有道理的，因为如果 $X_1=X_2$，则上述模型的 RHS 可以重写为 $(\beta_1+\beta_2)X_1 + \varepsilon$，这也说明了为什么模型无法识别。
+基于上述内容，似乎 $\beta_1, \beta_2$ 的部分效应解释与我在（近）共线情况下得到的结果不一致。显然，我犯了一个推理错误，我希望有人能指出这一点。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655518/multiple-linear-regression-partial-effects-interpretation-of-parameters-at-near</guid>
+      <pubDate>Wed, 09 Oct 2024 08:49:59 GMT</pubDate>
     </item>
     </channel>
 </rss>
