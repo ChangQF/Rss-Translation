@@ -4,7 +4,57 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 11 Oct 2024 12:32:38 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 11 Oct 2024 15:17:28 GMT</lastBuildDate>
+    <item>
+      <title>bf16 和 float32 在 cuda 中如何处理？</title>
+      <link>https://stackoverflow.com/questions/79078710/how-are-bf16-and-float32-handled-in-cuda</link>
+      <description><![CDATA[不幸的是，下面的注释和代码对我来说毫无意义。grad_thresholds[] 被定义为浮点数组。我认为因为这是一个 .cu 文件，一个 cuda 文件，所以这些本质上是 C 声明。
+但是有一个预处理器指令检查 FP_32；在这种情况下，数组值会再次设置。
+注释还提到了 bf16，但我认为没有使用“大脑浮点”16。
+有人可以解释一下这段代码与注释的关系吗？
+它来自这个文件：
+此外，我在学习 CUDA/机器学习时做了一些笔记。这些注释位于代码下方。
+ // 在 fp32 中一次性比较所有参数的梯度
+// 我通过检查每个张量的几个元素的梯度差异来手动设置公差。bf16 看起来不错，但在这里并不惊人。
+// 可能存在潜在的错误，或者可能是 bf16。不能 100% 确定。
+// 此外，如果代码发生变化并且其中一些被触发，如果不是太多的话，这可能是没问题的，
+// 因为我们使用的随机舍入会增加一些非确定性的“胡椒噪声”。
+// 在这种情况下，在手动检查后，可以稍微延长公差。
+// 此外，不同的 GPU 可能使用不同的矩阵乘法算法，因此
+// 实际错误可能是硬件特定的。
+
+float grad_thresholds[NUM_PARAMETER_TENSORS] = {5e-1f, 4e-3f, 1e-1f, 3.5e-2f, 2e-2f, 3e-2f, 5e-2f, 5e-2f, 5e-2f, 1.5e-2f, 5e-4f, 8e-3f, 1.5e-3f, 2.5e-3f, 1e-1f, 2e-2f};
+#如果已定义 (ENABLE_FP32)
+for (int i = 0; i &lt; NUM_PARAMETER_TENSORS; i++) {
+grad_thresholds[i] = 1e-6f; // 在 FP32 中我们可以更加精确
+}
+#endif
+
+注释
+
+Cuda 使用 C 和 C++ 语法；C++ 是 C 的超集。Cuda 是 C++ 的超集。
+全局阈值被分解为组以进行梯度比较。
+更新建议
+
+根据平均值和标准偏差确定阈值。
+为噪声添加 10% 的缓冲区。
+重构动态阈值的逻辑
+记录任何故障
+创建单元测试。测试测试？
+
+
+类型
+BF16 代表大脑浮点 16。BF16 有一个 8 位指数，与 FP32 相同，允许非常大和非常小的数字。它有一个 7 位尾数。
+FP32 代表浮点 32。
+
+试图理解此代码的用途。
+标签
+c、cuda、机器学习
+标题
+cuda 中如何处理 bf16 和 float32？]]></description>
+      <guid>https://stackoverflow.com/questions/79078710/how-are-bf16-and-float32-handled-in-cuda</guid>
+      <pubDate>Fri, 11 Oct 2024 14:46:17 GMT</pubDate>
+    </item>
     <item>
       <title>网格搜索为带有 LOGO 或 LOO 的 best_score 给出 nan，而不是 k 倍 CV</title>
       <link>https://stackoverflow.com/questions/79076968/grid-search-gives-nan-for-best-score-with-logo-or-loo-not-k-fold-cv</link>
@@ -362,17 +412,6 @@ return pred_images, pred_latents
 此外，我确认当批量大小为 1 时模型可以正常工作。]]></description>
       <guid>https://stackoverflow.com/questions/79071235/an-error-occurs-during-the-execution-of-unet-when-the-batch-size-is-not-equal-to</guid>
       <pubDate>Wed, 09 Oct 2024 16:32:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>在小数据集上生成合成数据[关闭]</title>
-      <link>https://stackoverflow.com/questions/79071218/generating-synthetic-data-on-small-dataset</link>
-      <description><![CDATA[我有一个只有 5 个数据点的小数据集，包括材料成分、机械性能和物理性能。由于数据量太小，无法进行预测，我尝试生成合成数据。我使用过 GAN、VAE、高斯混合模型和 Copula 模型。其中，C-Vine Copula 模型比其他模型的结果更好。但我仍然面临问题：
-*使用 C-Vine Copula，分布中存在 40% 的误差，合成数据和真实数据之间的关系中存在 7% 的误​​差。这使得数据质量不足以进行预测。
-*当使用这些合成数据预测物理特性时，我得到了很好的验证分数，但在新的、看不见的数据点上得到了非常差的结果——可能是由于过度拟合或数据质量差造成的。
-*我还尝试使用原始真实数据（5 个数据点）预测物理特性，但结果并不准确。
-我不知道如何提高合成数据的质量，或者是否有更好的方法可以尝试进行预测。对此有什么建议吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79071218/generating-synthetic-data-on-small-dataset</guid>
-      <pubDate>Wed, 09 Oct 2024 16:26:17 GMT</pubDate>
     </item>
     <item>
       <title>错误：所有估算器都应实现拟合和变换，或者在使用 make_column_transformer 时可以使用“drop”或“passthrough”说明符</title>
