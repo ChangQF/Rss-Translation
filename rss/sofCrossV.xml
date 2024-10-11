@@ -4,7 +4,85 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 11 Oct 2024 15:17:24 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 11 Oct 2024 18:21:49 GMT</lastBuildDate>
+    <item>
+      <title>tensorflow 到 pytorch 权重转移[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/655658/tensorflow-to-pytorch-weights-transfer</link>
+      <description><![CDATA[我正尝试在 pytorch 中模拟一个经过修改的 efficientnet TF 模型。我在 pytorch 中对模型进行了架构更改，转储了 TF 模型权重，然后将其重新加载到新的 pytorch 模型中。使用以下代码在 TF 中转储权重：
+model = tf.saved_model.load(model_path)
+ws = []
+for i in range(len(model.variables)):
+ws.append((i, model.variables[i].name, model.variables[i].numpy()))
+
+with open(&quot;manually_dumped_contentnet_weights.pkl&quot;, &quot;wb&quot;) as ofile:
+pickle.dump(ws, ofile)
+
+pytorch 中的权重形状似乎与架构和导入的权重相匹配（在 conv2d 和深度 conv2d 之间进行转换之后）。我可以毫无错误地运行模型。但输出结果与 TF 模型的输出结果大不相同。
+我注意到在 TF 代码中，模型不是直接加载的，而是在 tf Session 中加载的：
+with Session(graph=Graph(), config=ConfigProto(allow_soft_placement=True, log_device_placement=False)) as sess:
+saved_model.loader.load(sess, [saved_model.tag_constants.SERVING], model_path)
+patch_feature, patch_label = sess.run(output_nodes,feed_dict={input_node: patch})
+
+现在我想知道我最初转储模型权重的尝试是否做得不正确。或者如果我遗漏了其他内容。
+我在加载数据时进行的转置是 conv2d 的 (3,2,0,1) 和深度 conv2d 的 (2,3,0,1)：
+def reload_conv2d(layer, weights):
+### weights 是一个元组，其中每个元素都由一个三元组组成：(1) 索引号，(2) TF 中权重转储的层的名称，以及 (3) 权重
+count = 0
+if (
+&quot;/conv2d/kernel&quot; not in weights[0][1]
+and &quot;/conv2d_1/kernel&quot; not in weights[0][1]
+and &quot;depthwise_conv2d/depthwise_kernel&quot; not in weights[0][1]
+and &quot;final_conv2d/final_conv2d&quot; 不在 weights[0][1] 中 :
+raise ValueError(
+f&quot;需要在第一个索引上有 conv2d/kernel，但得到了 {weights[0][1]}&quot;
+)
+transpose_shape = (2,3,0,1) if &quot;depthwise&quot;在 weights[0][1] 中否则（3、2、0、1）
+transposed_weights = torch.from_numpy（weights[0][2].transpose（transpose_shape[0]、transpose_shape[1]、transpose_shape[2]、transpose_shape[3]））
+layer.weight.data = transposed_weights
+count += 1
+如果 layer.bias 不是 None 或 layer.bias:
+如果（
+&quot;/conv2d/bias&quot; 不在 weights[1][1] 中
+并且 &quot;/conv2d_1/bias&quot; 不在 weights[1][1] 中
+）：
+引发 ValueError（
+f&quot;需要在第二个索引上有 conv2d/bias 但得到了 {weights[1][1]}&quot;
+)
+layer.bias.data = (
+torch.from_numpy(weights[1][2])
+如果type(weights[1][2]) == np.ndarray
+else torch.from_numpy(weights[1][2])
+)
+count += 1
+return layer, count
+
+为什么 pytorch 和 TF 模型对相同输入给出完全不同的结果？是因为权重倾倒，还是权重加载……或者是模型架构变化？输入 TF 权重（在模型更改和转置之后）加载正常，我可以毫无问题地运行模型，但这对于调试它没有任何帮助。]]></description>
+      <guid>https://stats.stackexchange.com/questions/655658/tensorflow-to-pytorch-weights-transfer</guid>
+      <pubDate>Fri, 11 Oct 2024 16:26:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>关系数据的趋势分析[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/655657/trend-analysis-on-relational-data</link>
+      <description><![CDATA[我是数据分析新手，不确定应该使用什么工具和/或编程语言来解决以下问题。
+我在 SQL Server DB 中有一个表，其中包含大量企业的每日财务指标（收入、支出、付款等）。此表中的每一行如下所示：
+
+企业 ID日期当天收入当天支出当天付款等等
+
+每天都会有数千行这样的行，每行对应特定企业的财务指标。该表包含了几年的此类数据。
+我想找到六个月内每日收入呈上升趋势的所有企业。这是我需要执行的一次性离线分析，以生成报告。计算和内存成本不是我需要优化的东西——用最少的努力获得结果更重要。有什么想法可以让我进行这样的分析吗？
+在最坏的情况下，我可以用 Java / C# 编写代码来进行这种分析，但我觉得这不是最有效的解决方案。任何提示/指示都将不胜感激。新手在此先行致谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/655657/trend-analysis-on-relational-data</guid>
+      <pubDate>Fri, 11 Oct 2024 16:22:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>时间依赖性协变量和结果乐观性</title>
+      <link>https://stats.stackexchange.com/questions/655656/time-dependent-covariates-and-optimism-of-results</link>
+      <description><![CDATA[我有一个涵盖 2019-2023 年的数据集，以及一组按年份和邮政编码连接的分类协变量。为了进行验证，2023 年被排除在外，该年的协变量是前几年的平均值。基于随机分割的交叉验证期间的模型显示出极大的乐观性。当对测试数据进行评估时，甚至没有接近。我建议对用于训练模型的协变量使用估计值，而不是原始值。
+有人可以指出我关于这个主题的文献吗？它是时空的，但涉及对新时间段的估计。
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/655656/time-dependent-covariates-and-optimism-of-results</guid>
+      <pubDate>Fri, 11 Oct 2024 15:58:48 GMT</pubDate>
+    </item>
     <item>
       <title>基于梯度法的攻击对于神经网络来说似乎没有意义，因为训练误差是非凸的</title>
       <link>https://stats.stackexchange.com/questions/655655/the-gradient-method-based-attack-does-not-seem-make-sense-for-neural-networks-be</link>
@@ -134,25 +212,6 @@ r(A,L) (Y - m(A,L)) + m(\mathbb{d}(A,L), L) - \theta,
       <pubDate>Fri, 11 Oct 2024 11:34:19 GMT</pubDate>
     </item>
     <item>
-      <title>在 R 中拟合一个分布，平均值是一些变量的线性组合</title>
-      <link>https://stats.stackexchange.com/questions/655644/fit-a-distribution-in-r-with-the-mean-as-a-linear-combination-of-some-variable</link>
-      <description><![CDATA[我想将 PDF 拟合到我的数据（最好是 Gamma），但我想使形状 $k$（或比例 $\theta$）线性依赖于某个外部变量 $t$：$k=a+bt$，其中 $a, b$ 系数待定。
-奇怪的是，我知道如何使用 extRemes 对极值分布执行此操作，但我不知道如何在更一般的环境中执行此操作。也许这很简单，我不知道，我对 R 还比较陌生。谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655644/fit-a-distribution-in-r-with-the-mean-as-a-linear-combination-of-some-variable</guid>
-      <pubDate>Fri, 11 Oct 2024 11:17:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>从未知分布估计概率值大于 x</title>
-      <link>https://stats.stackexchange.com/questions/655642/estimate-probability-value-is-greater-than-x-from-an-unknow-distribution</link>
-      <description><![CDATA[假设我们有 N 个项目的总体，其值从 0 到 6000。
-假设总体的平均值是 $\mu$。
-我们不知道项目的分布。
-我们从这个总体中提取一个项目，我们如何估计 $P(x\geq 2500)$？
-同样的问题，假设分布是均匀的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655642/estimate-probability-value-is-greater-than-x-from-an-unknow-distribution</guid>
-      <pubDate>Fri, 11 Oct 2024 08:52:55 GMT</pubDate>
-    </item>
-    <item>
       <title>推导单位 n 球面上均匀分布矢量/点的 k 个坐标平方和的概率密度</title>
       <link>https://stats.stackexchange.com/questions/655611/derivation-for-the-probability-density-of-the-squared-sum-of-k-coordinates-of-a</link>
       <description><![CDATA[
@@ -172,16 +231,6 @@ n 球面上均匀分布的向量/点的多个坐标的平方和的分布也是 b
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/655609/selecting-statistical-test-for-significant-difference-between-groups-from-count</guid>
       <pubDate>Thu, 10 Oct 2024 15:41:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>标准化 beta 强度有一般解释吗？</title>
-      <link>https://stats.stackexchange.com/questions/655605/is-there-a-general-interpretation-for-standardized-beta-strentgh</link>
-      <description><![CDATA[运行线性回归模型后，我得到了 beta 作为效果大小。此线性回归模型在 r 中使用 geeglm 函数运行，指定 family= &quot;gaussian&quot;。该模型包括组状态（3 个级别）作为预测因子、结果和可交换相关结构，以解释数据集中的熟悉度（兄弟姐妹）。
-例如：geeglm(educational_level ~ group_status, family = &quot;gaussian&quot;, id = ID, data = data, corstr = &quot;exchangeable&quot;)
-通过标准化我的结果变量并运行相同的分析，我假设得到标准化 beta 而不是 beta 作为输出。
-有了标准化 beta，我想评论一下我的关联的强度。我明白标准化 beta 值越高，关联越强。但是，是否有标准/通用的方法来解释标准化 beta 强度？就像解释 r 系数（皮尔逊相关系数）或 Cohen&#39;s D 的经验法则一样。]]></description>
-      <guid>https://stats.stackexchange.com/questions/655605/is-there-a-general-interpretation-for-standardized-beta-strentgh</guid>
-      <pubDate>Thu, 10 Oct 2024 14:08:20 GMT</pubDate>
     </item>
     <item>
       <title>方差总是等于二阶导数的倒数吗？</title>
