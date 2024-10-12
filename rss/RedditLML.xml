@@ -4,20 +4,62 @@
     <title>学习机器学习</title>
     <link>https://www.reddit.com/r/learnmachinelearning/</link>
     <description>一个致力于学习机器学习的 subreddit</description>
-    <lastBuildDate>Sat, 12 Oct 2024 12:29:46 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 12 Oct 2024 15:16:13 GMT</lastBuildDate>
+    <item>
+      <title>ML 工程师的职业发展是怎样的？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g22acb/how_does_ml_engineer_career_progression_look_like/</link>
+      <description><![CDATA[从入门级到中级/高级 ML 工程师的职业发展是什么样的？随着人们的经验越来越丰富，他们的日常工作/角色/和期望是什么样的或会发生变化？可以期待什么？    提交人    /u/Sea-Highway4576   [link] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g22acb/how_does_ml_engineer_career_progression_look_like/</guid>
+      <pubDate>Sat, 12 Oct 2024 15:13:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在本地运行 OpenAI 的 Whisper 文本转语音模型</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g21nwc/how_to_run_openais_whisper_text_to_speech_model/</link>
+      <description><![CDATA[        由    /u/jakecoolguy  提交  [链接] [评论] ]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g21nwc/how_to_run_openais_whisper_text_to_speech_model/</guid>
+      <pubDate>Sat, 12 Oct 2024 14:44:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>需要帮助学习如何制作抹布！！</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g21mr2/need_help_with_learning_how_to_make_a_rag/</link>
+      <description><![CDATA[我正在构建一个可以读取 word 文档并回答有关该 word 文档的问题的 rag。我希望它能够将聊天记录保存到 mongo db，并且输出包含从哪个文档获取信息的来源和页码。我还在使用 google collab，因为我的笔记本电脑无法运行 doom。到目前为止，这是我已经下载的代码： 来自 langchain_community.document_loaders 导入 Docx2txtLoader 来自 langchain.text_splitter 导入 RecursiveCharacterTextSplitter 来自 langchain.chains 导入 RetrievalQA 来自 langchain.vectorstores 导入 Chroma 来自 langchain.embeddings 导入 HuggingFaceEmbeddings 来自 transformers 导入 AutoModelForCausalLM、AutoTokenizer、pipeline 来自 langchain.llms 导入 HuggingFacePipeline 来自 langchain.memory 导入 ConversationBufferMemory 来自 langchain_core.output_parsers 导入 StrOutputParser 来自 langchain.prompts 导入 PromptTemplate 来自 langchain_core.runnables 导入 RunnablePassthrough 来自 pymongo 导入 MongoClient 导入 o​​s 导入 torch # 从本地文件加载文档 doc_paths = [&quot;./Minecraft Basics for AI.docx&quot;, &quot;./Minecraft Mining for AI.docx&quot;] all_documents = [] for doc_path in doc_paths: if os.path.isfile(doc_path): loader = Docx2txtLoader(doc_path) data = loader.load() for page_num, doc in enumerate(data): doc.metadata = {&quot;source&quot;: doc_path, &quot;page_number&quot;: page_num + 1} all_documents.append(doc) else: print(f&quot;文件 {doc_path} 不存在。&quot;) # 使用更小、更高效的模型创建嵌入 embeddings = HuggingFaceEmbeddings(model_name=&quot;sentence-transformers/all-MiniLM-L6-v2&quot;) # 如果有有效文档，则创建检索器 if all_documents: text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200) splits = text_splitter.split_documents(all_documents) # 创建 Chroma 向量存储 vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings) # 创建检索器 triester = vectorstore.as_retriever(search_type=&quot;similarity&quot;, search_kwargs={&quot;k&quot;: 6}) else: print(&quot;No valid documents were loaded.&quot;) trieser = None # 使用较小的模型设置 LLM 模型以减少 RAM 使用量 model_name = &quot;EleutherAI/gpt-neo-1.3B&quot; tokenizer = AutoTokenizer.from_pretrained(model_name) pipe = pipeline(&quot;text-generation&quot;, model=model_name, tokenizer=tokenizer, max_length=512, device=&#39;cuda&#39; if torch.cuda.is_available() else -1) # 如果可用，使用 GPU llm = HuggingFacePipeline(pipeline=pipe) # 定义提示模板 prompt_template = &quot;&quot;&quot; &lt;|system|&gt; 根据您的知识回答问题。使用以下上下文来帮助： {context} &lt;/s&gt; &lt;|user|&gt; {question} &lt;/s&gt; &lt;|assistant|&gt; &quot;&quot;&quot; prompt = PromptTemplate( input_variables=[&quot;context&quot;, &quot;question&quot;], template=prompt_template, ) # MongoDB 设置 mongo_client = MongoClient(&quot;mongodb://localhost:27017/&quot;) db = mongo_client[&quot;chat_history_db&quot;] chat_collection = db[&quot;chats&quot;] # 设置对话缓冲区内存 memory = ConversationBufferMemory(memory_key=&quot;chat_history&quot;, return_messages=True) # 使用文档组合器设置 QA 链 llm_chain = prompt | llm | StrOutputParser() rag_chain = {&quot;context&quot;: trieser, &quot;question&quot;: RunnablePassthrough()} | llm_chain # 通过终端与机器人交互的函数 def chat_with_bot(): print(&quot;开始与机器人聊天（输入&#39;exit&#39;停止）&quot;) while True: user_input = input(&quot;你：&quot;) if user_input.lower() == &#39;exit&#39;: break response = rag_chain.run(user_input) # 将聊天记录保存到 MongoDB chat_record = { &quot;user&quot;: user_input, &quot;bot&quot;: response, } chat_collection.insert_one(chat_record) # 显示机器人回复 print(f&quot;Bot: {response}&quot;) if __name__ == &quot;__main__&quot;: chat_with_bot()     submitted by    /u/HistoricalDraft6708   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g21mr2/need_help_with_learning_how_to_make_a_rag/</guid>
+      <pubDate>Sat, 12 Oct 2024 14:43:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>ISL，即使用 Scikit-Learn 和 TensorFlow 进行动手机器学习，或机器学习数学（Deisenroth 等）：作为业余爱好者，我应该从哪里开始？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g21f99/isl_or_handson_machine_learning_with_scikitlearn/</link>
+      <description><![CDATA[嗨，我愿意深入了解 ML 以构建项目，我对所需的最低线性代数主题感到满意，但不熟悉多元微积分或概率论。哪一本书能达到良好的平衡？ 欢迎提出建议，我不是大学本科生，所以我没有正式的知识。 我之前曾使用 TensorFlow 进行过基本项目，但感觉就像货物编程 + 冒名顶替综合症。 学历：12 年级    提交人    /u/Apprehensive-Key9995   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g21f99/isl_or_handson_machine_learning_with_scikitlearn/</guid>
+      <pubDate>Sat, 12 Oct 2024 14:33:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>您认为哪个平台最适合设计基于人工智能的聊天机器人？</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g21cxg/which_platform_would_you_consider_the_most/</link>
+      <description><![CDATA[如果有人有想法，请在评论中告诉我。    提交人    /u/protectivedominion1   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g21cxg/which_platform_would_you_consider_the_most/</guid>
+      <pubDate>Sat, 12 Oct 2024 14:30:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>从哪里学习 ML 和 AI</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g21asf/from_where_to_learn_ml_and_ai/</link>
+      <description><![CDATA[  由    /u/karansingh2024  提交  [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g21asf/from_where_to_learn_ml_and_ai/</guid>
+      <pubDate>Sat, 12 Oct 2024 14:27:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>T 检验说明</title>
+      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g200jz/ttest_explained/</link>
+      <description><![CDATA[        提交人    /u/Personal-Trainer-541   [链接] [评论] ]]></description>
+      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g200jz/ttest_explained/</guid>
+      <pubDate>Sat, 12 Oct 2024 13:22:22 GMT</pubDate>
+    </item>
     <item>
       <title>图论项目构想</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1ylmd/graph_theory_project_idea/</link>
       <description><![CDATA[大家好，我是三年级计算机科学和数学专业的学生。我们被要求做一个图论项目以获得一定的分数，但必须是独特而新颖的。我真的无法用我现有的知识想出任何新的东西。请提出一些建议。我愿意为该项目的竞争而学习。    提交人    /u/Acceptable_Ad466   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1ylmd/graph_theory_project_idea/</guid>
       <pubDate>Sat, 12 Oct 2024 12:02:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用具有不同类别标签的两个模型进行集成学习</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1y1ai/ensemble_learning_with_two_models_that_have/</link>
-      <description><![CDATA[我正在为大学作业构建一个检测驾驶员困倦程度的项目 是否可以使用两个模型进行集成学习，一个模型使用包含 4 个类的数据集构建：闭眼、睁眼、打哈欠、不打哈欠（使用 CNN），另一个模型使用包含 2 个类的数据集构建：困倦、不困倦。 如果可以，我应该采用哪种方法来结合预测，即平均、投票、堆叠？    提交人    /u/FlyingKiter   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1y1ai/ensemble_learning_with_two_models_that_have/</guid>
-      <pubDate>Sat, 12 Oct 2024 11:26:24 GMT</pubDate>
     </item>
     <item>
       <title>OpenAI 的多代理编排框架：Swarm</title>
@@ -36,30 +78,9 @@
     <item>
       <title>哪个 Python 库可用于简单的 ML 文本分类？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1x677/which_python_library_to_use_for_a_simple_ml_text/</link>
-      <description><![CDATA[假设我有一小组预定义的文章类别 - 例如“娱乐”、“政治”、“金融”、“育儿”和“体育”。对于给定的一篇英文小文本文章，我想计算它属于哪个类别。或者，更好的是，给定的文章 80% 是关于财务的，20% 是关于政治的，3% 是关于体育的。 当然，我有一个大约 10,000 篇文章的训练集，其中已经分配了正确的类别。 我应该使用哪个 Python 库来对这 10,000 篇文章进行模型训练，然后计算给定新文章的类别（或每个类别的概率）？ 我认为词袋模型 + 贝叶斯分类器（或最大熵分类器）完全可以满足我的需求。我想要一些轻量级和简单的东西，可以在我的笔记本电脑上运行，并且不依赖于外部 API…… 谢谢！    提交人    /u/pachura3   [链接] [评论]]]></description>
+      <description><![CDATA[假设我有一小组预定义的文章类别 - 例如“娱乐”、“政治”、“金融”、“育儿”和“体育”。对于给定的一篇英文小文本文章，我想计算它属于哪个类别。或者，更好的是，给定的文章 80% 是关于财务，20% 是关于政治，3% 是关于体育。 当然，我有一个大约 10,000 篇文章的训练集，其中已经分配了正确的类别。 我应该使用哪个 Python 库来对这 10,000 篇文章进行模型训练，然后计算给定新文章的类别（或每个类别的概率）？ 我认为词袋模型 + 贝叶斯分类器（或最大熵分类器）完全可以满足我的需求。我想要一些轻量级和简单的东西，可以在我的笔记本电脑上运行，并且不依赖于外部 API…… 谢谢！    提交人    /u/pachura3   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1x677/which_python_library_to_use_for_a_simple_ml_text/</guid>
       <pubDate>Sat, 12 Oct 2024 10:24:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>Leetcode 真的能为 ML 带来工作吗？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1wyp9/can_leetcode_really_land_jobs_for_ml/</link>
-      <description><![CDATA[我很久以前就知道 leetcode 以及人们如何使用它来掌握相关编码和准备面试。但是，我刚刚在 reddit 上读到这篇帖子，一个人声称他已经练习 leetcode 一段时间了，并且已经获得了 google 和 meta 的面试机会，甚至后来被录用和赞助（不确定是哪家公司还是其他公司）。他还是一名本科生，在一家公司全职工作，同时赚了很多钱。 这是真的吗？leetcode 真的能帮你找到工作吗？他没有提到他正在从事哪种类型的编程，但可能不是 ML。 这是尝试获得面试和工作并获得聘用的合理路线图吗？公司真的会为这样的人才支付和赞助签证吗？ML 呢？这里有没有人从 leetcode 找到过 ML 相关的工作？    提交人    /u/ammar201101   [link] [comments]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1wyp9/can_leetcode_really_land_jobs_for_ml/</guid>
-      <pubDate>Sat, 12 Oct 2024 10:09:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>PyTorch 到 TFLite 的转换</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1wkfx/pytorch_to_tflite_conversion/</link>
-      <description><![CDATA[大家好！ 我在 pytorch 到 tflite 转换方面寻求帮助。我找到了一些方法将我的模型 ResNet18 模型转换为 TFLite 并将其集成到我的 Android Studio 程序中。但是，大多数方法都没有用。 然后，我找到了 Google AI Edge Torch，它成功地将我的模型转换为 tflite。但是，当我将它集成到我的应用程序中时，我目前遇到了问题。我想可能是因为它的输入是 [1, 3, 224, 224]，如果我错了，请纠正我。    提交人    /u/chadmomentgiga   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1wkfx/pytorch_to_tflite_conversion/</guid>
-      <pubDate>Sat, 12 Oct 2024 09:40:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>这条 ROC 曲线是一个好兆头吗？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1te36/is_this_roc_curve_a_good_sign/</link>
-      <description><![CDATA[      因此，我构建了一个二元分类器来对图像中的人体进行分类。 这些是我遵循的步骤：  在 Open Images v7 (https://storage.googleapis.com/openimages/web/download\_v7.html) 中获取人体类别的图像及其 bbox 注释 从 PASS 数据集获取图像（该数据集以其中没有人体的图像而闻名）。 （https://thor.robots.ox.ac.uk/pass/pass\_urls.txt）  我的目标是从头开始构建 Faster RCNN。为此：  我选择了在 ImageNet 1k 上预训练的 VGG19 作为分类器。 冻结它的层 更改输出层，以便它可以提供 2 而不是 1000 的输出张量 从 PASS 数据集下载了 70k 张图像（通过从列表中选择随机 URL） 然后我准备了图像数据并微调了我的 VGG19 并保存了这些新权重  https://preview.redd.it/gs8om998i9ud1.png?width=1260&amp;format=png&amp;auto=webp&amp;s=4d68ff5882edd79ab5c82490f54eb973f705155e 这是在评估模型时获得的 ROC 曲线，这是为计算 ROC 曲线而编写的代码 import torch from sklearn.metrics import roc_curve, auc import matplotlib.pyplot as plt import numpy as np # 列表存储真实标签和预测概率 test = torch.load(&#39;../vgg19_human/vgg19_human.pth&#39;) all_labels = [] all_probs = [] # 模型评估 test.eval() # 将模型设置为评估模式 with torch.no_grad(): # 禁用梯度计算 for img, label in tqdm(val_loader, desc=&quot;Evaluating ROC&quot;): img, label = img.to(device), label.to(device) # 前向传递以获取输出 output = test(img) # 应用 softmax 来获取概率 probs = torch.softmax(output, dim=1) # 为正类（索引 1）附加真实标签和预测概率 all_labels.extend(label.cpu().numpy()) all_probs.extend(probs[:, 1].cpu().numpy()) # 假设类 1 是“人类” # 将列表转换为 numpy 数组 all_labels = np.array(all_labels) all_probs = np.array(all_probs) # 计算 ROC 曲线和 AUC fpr、tpr、thresholds = roc_curve(all_labels、all_probs、pos_label=1) roc_auc = auc(fpr、tpr) print(f&#39;ROC AUC: {roc_auc:.4f}&#39;) # 绘制 ROC 曲线 plt.figure(figsize=(8, 6)) plt.plot(fpr, tpr, color=&#39;darkorange&#39;, lw=2, label=f&#39;ROC curve (area = {roc_auc:.4f})&#39;) plt.plot([0, 1], [0, 1], color=&#39;navy&#39;, lw=2, linestyle=&#39;--&#39;) # 对角线（随机分类器） plt.xlim([0.0, 1.0]) plt.ylim([0.0, 1.05]) plt.xlabel(&#39;假阳性率&#39;) plt.ylabel(&#39;真阳性率&#39;) plt.title(&#39;接收者操作特性 (ROC) 曲线&#39;) plt.legend(loc=&quot;右下&quot;) plt.grid(True) plt.show()     提交人    /u/Available-Telephone8   [链接] [评论] ]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1te36/is_this_roc_curve_a_good_sign/</guid>
-      <pubDate>Sat, 12 Oct 2024 05:36:49 GMT</pubDate>
     </item>
     <item>
       <title>（端到端）Apache Spark 中的 20 个机器学习项目</title>
@@ -71,7 +92,7 @@
     <item>
       <title>问：有完整的 ML 项目吗？</title>
       <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1j6bn/question_any_complete_ml_projects/</link>
-      <description><![CDATA[嗨，我正在寻找完整的机器学习项目，其中的代码利用了回归、决策树和 SVM（但不是 LLM）等基本算法。在大学学习期间，我们单独学习了机器学习主题 - 例如，一周学习回归，另一周学习超参数优化，然后是分类、深度学习等。但是，我们没有涵盖将所有内容整合在一起或专注于部署模型的完整项目。 您能否推荐任何包含代码的综合示例，涵盖整个过程 - 数据预处理、测试多个模型、超参数调整和部署？ 再次。代码会很好。理想情况下还有一篇已发表的论文（可选）或者它可以是您的私人项目。 谢谢！    提交人    /u/Odd-Establishment604   [链接] [评论]]]></description>
+      <description><![CDATA[嗨，我正在寻找完整的机器学习项目，其中的代码利用了回归、决策树和 SVM（但不是 LLM）等基本算法。在大学学习期间，我们单独讨论了机器学习主题 - 例如，一周讨论回归，另一周讨论超参数优化，然后是分类、深度学习等。但是，我们没有涵盖将所有内容整合在一起或专注于部署模型的完整项目。 您能否推荐任何包含代码的综合示例，涵盖整个过程 - 数据预处理、测试多个模型、超参数调整和部署？ 再次。代码会很好。理想情况下还有一篇已发表的论文（可选）或者它可以是您的私人项目。 谢谢！    提交人    /u/Odd-Establishment604   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1j6bn/question_any_complete_ml_projects/</guid>
       <pubDate>Fri, 11 Oct 2024 20:23:30 GMT</pubDate>
     </item>
@@ -81,27 +102,6 @@
       <description><![CDATA[  由   提交  /u/AccomplishedCat4770   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1hx5i/a_summary_of_ilya_sutskevers_ai_reading_list/</guid>
       <pubDate>Fri, 11 Oct 2024 19:27:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>当你训练 NLP 分类器时，如何决定是否对大模型进行微调，还是使用固定大模型的嵌入来训练小型 MLP？</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1ftdf/when_youre_training_an_nlp_classifier_how_do_you/</link>
-      <description><![CDATA[我对分类并不陌生，但我对使用 BERT 等 PLM 和 FNN/MLP 进行分类还不熟悉，而且我正在尝试在两种我见过的训练 NLP 分类器的方法之间做出选择（这两种方法似乎也经常被混淆）。我很好奇人们如何在这些选项之间做出选择，以及权衡利弊。我怀疑一种方法是否适合所有情况。 方法 1：微调预训练语言模型 (PLM；例如 BERT) 在 BERT 之上添加一个线性分类层（Transformers 默认设置），然后微调 BERT 在分类任务上的权重。 方法 2：使用 BERT 嵌入训练小型 MLP/FNN 只需将 BERT 用作固定模型，它将您的文档转换为嵌入表，而不进行其他任何操作。使用嵌入来训练 FNN/MLP 进行分类。 一方面，方法一似乎会带来更高的性能，但代价是更高的计算要求和过度拟合的风险。另一方面，训练定制的 MLP/FNN 分类器可能表现不佳，但训练/使用所需的计算要少得多。 我很好奇：在实践中，您使用其中哪一种方法？    提交人    /u/empirical-sadboy   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1ftdf/when_youre_training_an_nlp_classifier_how_do_you/</guid>
-      <pubDate>Fri, 11 Oct 2024 17:54:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>让我学习更轻松的最重要的事情</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1fq3r/the_no_1_crucial_thing_that_made_learning_easier/</link>
-      <description><![CDATA[TL;DR：大量谈论 ML 极大地提升了我的知识。 法学硕士 (LLM) 和机器学习 自从我体验到法学硕士 (LLM) 的功能以来，我对机器学习的兴趣就一路飙升。法学硕士不仅激发了我对人工智能的更大兴趣，还为我提供了一种工具，让我能够不断参与该主题。在最初使用这项技术几周后，我意识到了一些事情。持续“谈论机器学习”极大地加速了我的学习进度。 解释有所不同 据我观察，谈论它有两个好处——一个很明显，一个不那么明显。  明显：可以澄清对具体问题等的开放式问题。 不那么明显：您可以用自己的话不断向模型解释主题。   可以说，自从我开始使用 ChatGPT/Claude 以来，我更多地通过自己的世界心理模型来处理这个话题。常识告诉我们，只有当你能解释一个主题时，你才真正理解它。然而，我刚刚意识到，我的技能水平和我花在解释上的时间是直接相关的。由于我从事不同的领域，我花在讨论机器学习主题上的时间大多局限于与 ChatGPT 的对话。出于这个原因，我寻找了第二个“解释渠道”，因此从 6 月开始就在 YouTube 上展示我的项目（感兴趣的人可以在这里观看我最新的视频这里）。从那时起，我对基础知识（如神经网络的数学背景）的了解又增长了不少。 我给自己的建议是： 向任何人解释你目前正在从事的项目。唯一重要的是你谈论它（很多）。只有当基本问题得到解答时，你才能理解一个话题。这些问题只有在你谈论它时才会出现。这对我帮助很大。也许它也会对你有帮助。     提交人    /u/vtimevlessv   [link] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1fq3r/the_no_1_crucial_thing_that_made_learning_easier/</guid>
-      <pubDate>Fri, 11 Oct 2024 17:50:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>为学生、学者、研究人员和博士建立了人工智能研究平台 (Paperguide)。寻求您的反馈</title>
-      <link>https://www.reddit.com/r/learnmachinelearning/comments/1g1adie/built_aipowered_research_platform_paperguide_for/</link>
-      <description><![CDATA[我很高兴向您介绍 Paperguide，这是一个由人工智能驱动的研究平台，可帮助用户轻松发现、阅读、管理和撰写。 Paperguide 可提高您的工作效率并加速以下人员的研究：  博士生 硕士生 教授 研究助理 本科生 机构/大学 企业研究中心  Paperguide 可帮助：  发现相关论文 使用聊天和摘要更快地阅读研究论文 进行全面的文献综述 管理和组织参考文献 注释和做研究笔记 提高学术写作水平  在 Paperguide，我们的使命是加速研究，以便更快地找到解决世界复杂问题（包括气候变化和疾病）的方法。 Paperguide（最初称为 ChatWithPDF）作为一款用于理解大型 PDF 的简单工具推出。自去年推出以来，已有超过 500,000 名用户使用了我们的工具。 通过用户反馈，我们发现学生和研究人员构成了我们用户群的大多数。 我们意识到，与其继续保持通用工具的地位，不如通过根据研究人员和学生的需求调整我们的重点，从而产生更大的影响。 如果您是研究人员或参与与研究相关的工作，请尝试一下 → https://paperguide.ai Paperguide 如何协助您的研究过程？我们很乐意听到您的想法和反馈。提前谢谢您     提交人    /u/yjftw2099   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/learnmachinelearning/comments/1g1adie/built_aipowered_research_platform_paperguide_for/</guid>
-      <pubDate>Fri, 11 Oct 2024 13:55:45 GMT</pubDate>
     </item>
     <item>
       <title>机器学习相关的简历审查帖</title>
