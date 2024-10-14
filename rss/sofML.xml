@@ -4,7 +4,89 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 14 Oct 2024 12:33:36 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 14 Oct 2024 15:18:49 GMT</lastBuildDate>
+    <item>
+      <title>高斯过程二元分类：为什么 GPy 的方差比 scikit-learn 小得多？</title>
+      <link>https://stackoverflow.com/questions/79086293/gaussian-process-binary-classification-why-is-the-variance-with-gpy-much-smalle</link>
+      <description><![CDATA[我正在学习使用高斯过程进行二元分类，并且正在将 GPy 与 scikit-learn 进行比较，解决一个受 Martin Krasser 的博客文章启发的玩具一维问题。两种实现（GPy 和 scikit-learn）似乎都使用带有 RBF 内核的类似设置。优化内核超参数后，长度尺度相似，但方差相差很大。GPy 内核方差似乎太小了。
+我如何修改我的 GPy 实现并获得与 scikit-learn 类似的结果？我怀疑这与每个算法的内部实现有关，但我不知道是什么导致了这种巨大的差异。下面我将进一步解释为什么我认为我的 GPy 实现需要修复。
+实现细节：Python 3.9 搭配 GPy 1.13.2 和 scikit-learn 1.5.1。可重现的示例：
+import numpy as np
+from scipy.stats import bernoulli
+from scipy.special import expit as sigmoid
+
+##############################
+# 第 1 部分：玩具数据集创建
+#################################
+
+np.random.seed(0)
+X = np.arange(0, 5, 0.05).reshape(-1, 1)
+X_test = np.arange(-2, 7, 0.1).reshape(-1, 1)
+
+a = np.sin(X * np.pi * 0.5) * 2 # 潜在函数
+t = bernoulli.rvs(sigmoid(a)) # Bernoulli 训练数据（0 和1s)
+
+#####################################
+# 第 2 部分：scikit-learn 实现
+#####################################
+
+从 sklearn.gaussian_process 导入 GaussianProcessClassifier
+从 sklearn.gaussian_process.kernels 导入 ConstantKernel，RBF
+
+rbf = ConstantKernel(1.0, constant_value_bounds=(1e-3, 10)) \
+* RBF(length_scale=1.0, length_scale_bounds=(1e-3, 10))
+gpc = GaussianProcessClassifier(
+kernel=rbf,
+optimizer=&#39;fmin_l_bfgs_b&#39;,
+n_restarts_optimizer=10)
+
+gpc.fit(X_scaled, t.ravel())
+
+print(gpc.kernel_)
+# 1.5**2 * RBF(length_scale=0.858)
+
+############################
+# 第 3 部分：GPy 实现
+############################
+
+导入 GPy
+
+kern = GPy.kern.RBF(
+input_dim=1,
+variance=1.,
+lengthscale=1.)
+kern.lengthscale.unconstrain()
+kern.variance.unconstrain()
+kern.lengthscale.constrain_bounded(1e-3, 10)
+kern.variance.constrain_bounded(1e-3, 10)
+
+m = GPy.core.GP(
+X=X,Y=t, kernel=kern, 
+inference_method=GPy.inference.latent_function_inference.laplace.Laplace(), 
+可能性=GPy.likelihoods.Bernoulli())
+
+m.optimize_restarts(
+num_restarts=10, optimizer=&#39;lbfgs&#39;,
+verbose=True, robust=True)
+
+print(m.kern)
+# rbf。| 值 | 约束 | 先验
+# 方差 | 0.8067562453940487 | 0.001,10.0 | 
+# lengthscale | 0.8365668826459536 | 0.001,10.0 |
+
+lenghtscale 值大致相似 (0.858 vs 0.836)，但方差值非常不同 (scikit-learn 为 1.5**2 = 2.25，而 GPy 仅为 0.806)。
+我认为我的 GPy 实现需要调整的原因是，即使有 +/- 2 个标准偏差界限，真正的潜在函数 (参见上面代码第 1 部分中的“a”) 也与预测函数不紧密匹配。另一方面，scikit-learn 实现与之相当匹配（可以使用 scikit-learn 检索潜在函数平均值和标准差如此处所示）。
+
+ 左：两个模型的预测概率相似（这是有道理的，因为它们共享相似的长度尺度值）。右：GPy 的预测潜在函数与真实潜在函数的拟合度不如 scikit-learn 模型。 
+到目前为止，我尝试过的方法，结果没有显著变化：
+
+输入特征 (X) 归一化
+使用 GPy.inference.latent_function_inference.expectation_propagation.EP() 作为 GPy 推理方法，而不是拉普拉斯方法
+按照此处的建议，将 WhiteKernel 组件添加到 scikit-learn 实现中&gt;
+]]></description>
+      <guid>https://stackoverflow.com/questions/79086293/gaussian-process-binary-classification-why-is-the-variance-with-gpy-much-smalle</guid>
+      <pubDate>Mon, 14 Oct 2024 13:10:16 GMT</pubDate>
+    </item>
     <item>
       <title>我在 google colab 中工作，我的单元格中有访问地球数据的代码，它永远运行</title>
       <link>https://stackoverflow.com/questions/79085474/im-working-in-google-colab-and-my-cell-that-has-code-to-access-data-from-earth</link>
@@ -114,7 +196,7 @@ ImportError：未找到非结构化包，请使用`pip install unstructured`安�
     <item>
       <title>Gymnasium 自定义环境“太多值无法解压”错误</title>
       <link>https://stackoverflow.com/questions/79084313/gymnasium-custom-environment-too-many-values-to-unpack-error</link>
-      <description><![CDATA[我正在尝试使用具有体育馆和稳定基线的自定义群体聚集环境。我有一个自定义策略和训练循环。
+      <description><![CDATA[我正在尝试使用具有体育馆和稳定基线的自定义群体群集环境。我有一个自定义策略和训练循环。
 我的行动和观察空间如下：
 min_action = np.array([-5, -5] * len(self.agents), dtype=np.float32)
 max_action = np.array([5, 5] * len(self.agents), dtype=np.float32)
@@ -321,19 +403,6 @@ MemoryError：无法为形状为 (1048576,) 且数据类型为 &lt;U420  的数�
       <pubDate>Sun, 13 Oct 2024 03:26:07 GMT</pubDate>
     </item>
     <item>
-      <title>结合几种监督学习技术？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79081793/combining-several-supervised-learning-techniques</link>
-      <description><![CDATA[我的数据集包含大量图像和制表数据（存储在 .csv 文件中）。我打算使用我拥有的所有数据（图像和制表数据）创建一个能够对案例 A 和案例 B 进行分类/识别的机器学习模型。
-是否可以结合几种监督学习技术，例如使用 CNN 处理图像，使用随机森林分析制表数据？目标是创建一个对两种类型的数据进行训练的组合模型，该模型可以将案例 A 和案例 B 进行分类。
-我的问题是这种方法在机器学习中是否可行。
-是否可以在训练过程中整合图像和制表数据？
-对于这些类型的数据，通常推荐使用哪种机器学习算法？
-我相信 CNN 是图像的不错选择，但我不确定制表数据的最佳方法是什么。
-最适合用于此任务的 Python 包是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/79081793/combining-several-supervised-learning-techniques</guid>
-      <pubDate>Sat, 12 Oct 2024 19:52:24 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么飞机没有显示在 matplotlib 图中</title>
       <link>https://stackoverflow.com/questions/79081747/why-the-plane-doesnt-show-in-matplotlib-plot</link>
       <description><![CDATA[我正在对具有 13 个特征的波士顿房屋数据集实施 SLP。我为 X 选择“rm”和“zn”，为目标 Y 选择“medv”。我还从头实施了一个感知器类。在这个类中，我有一个名为 plot_losses 的函数，它在一个窗口中绘制预测线（2d）和损失，还绘制 3d 图的预测平面，这就是问题所在，即 3d 部分。
@@ -435,19 +504,6 @@ slp.plot_losses(X_train,Y_train, &#39;员工工资和经验感知器&#39;, &#39;
       <pubDate>Sat, 12 Oct 2024 19:31:21 GMT</pubDate>
     </item>
     <item>
-      <title>结合 CNN 和随机森林方法？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79081396/combining-cnn-and-random-forest-approach</link>
-      <description><![CDATA[我的数据集包含大量图像和制表数据（存储在 .csv 文件中）。我打算使用我拥有的所有数据（图像和制表数据）创建一个能够对案例 A 和案例 B 进行分类/识别的机器学习模型。
-是否可以结合几种监督学习技术，例如，使用 CNN 处理图像，使用随机森林分析制表数据？目标是创建一个对两种类型的数据进行训练的组合模型，该模型可以将案例 A 和案例 B 进行分类。
-我的问题是这种方法在机器学习中是否可行。
-是否可以在训练过程中集成图像和制表数据？
-对于这些类型的数据，通常推荐使用哪种机器学习算法？
-我认为 CNN 是图像的不错选择，但我不确定制表数据的最佳方法是什么。
-最适合用于此任务的 Python 包是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/79081396/combining-cnn-and-random-forest-approach</guid>
-      <pubDate>Sat, 12 Oct 2024 16:08:46 GMT</pubDate>
-    </item>
-    <item>
       <title>只有输入张量可以作为位置参数传递</title>
       <link>https://stackoverflow.com/questions/78360982/only-input-tensors-may-be-passed-as-positional-arguments</link>
       <description><![CDATA[从 PIL 导入图像
@@ -475,7 +531,7 @@ def extract_features(filename, model):
 try:
 image = Image.open(filename)
 except:
-print(&quot;ERROR: 无法打开图像！请确保图像路径和扩展名正确&quot;)
+print(&quot;ERROR: 无法打开图片！请确保图片路径和扩展名正确&quot;)
 image = image.resize((299, 299))
 image = np.array(image)
 if image.shape[2] == 4:
@@ -524,10 +580,10 @@ model = tf.keras.models.load_model(model_path)
 
 我尝试以各种方式运行此代码，但出现错误：
  model = tf.keras.models.load_model(model_path)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 文件“C:\Users\DELL\AppData\Local\Programs\Python\Python312\Lib\site-packages\keras\src\saving\saving_api.py”，第 183 行，位于 load_model
 return legacy_h5_format.load_model_from_hdf5(filepath)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 文件 “C:\Users\DELL\AppData\Local\Programs\Python\Python312\Lib\site-packages\keras\src\legacy\saving\legacy_h5_format.py”，第 133 行，位于 load_model_from_hdf5
 model = saving_utils.model_from_config(
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -564,6 +620,33 @@ ValueError: 只能将输入张量作为位置参数传递。以下参数值应�
 Apple M1：进程完成，退出代码为 132（被信号 4 中断：sigill，解决方案是从上面安装包：https://github.com/apple/tensorflow_macos/issues/270]]></description>
       <guid>https://stackoverflow.com/questions/74563984/error-tensorflow-with-ml-compute-acceleration-is-only-available-on-macos-11-0-a</guid>
       <pubDate>Thu, 24 Nov 2022 16:46:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>nn.Parameter 上的 Torch 操作</title>
+      <link>https://stackoverflow.com/questions/71490306/torch-operation-on-nn-parameter</link>
+      <description><![CDATA[我有一个参数列表，我想对列表中的所有元素求和
+import torch
+from torch import nn
+
+a = nn.Parameter(torch.rand(1))
+b = nn.Parameter(torch.rand(1))
+
+my_list = [a, b]
+torch.sum(*my_list)
+
+我收到错误
+
+回溯（最近一次调用最后一次）：
+文件“&lt;input&gt;&gt;”，第 8 行，在&lt;module&gt;
+TypeError: sum() 收到的参数组合无效 - 得到 (Parameter, Parameter)，但预期为以下之一：
+* (Tensor 输入，*，torch.dtype dtype)
+* (Tensor 输入，整数元组 dim，bool keepdim，*，torch.dtype dtype，Tensor out)
+* (Tensor 输入，名称元组 dim，bool keepdim，*，torch.dtype dtype，Tensor out)
+
+
+我想知道是否有办法对 Parameter 执行 torch.sum 之类的操作？]]></description>
+      <guid>https://stackoverflow.com/questions/71490306/torch-operation-on-nn-parameter</guid>
+      <pubDate>Tue, 15 Mar 2022 23:52:24 GMT</pubDate>
     </item>
     <item>
       <title>为什么自然语言处理中的 Transformer 需要一堆编码器？</title>
