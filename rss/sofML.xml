@@ -4,7 +4,190 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 15 Oct 2024 12:33:20 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 15 Oct 2024 15:18:47 GMT</lastBuildDate>
+    <item>
+      <title>Numpy 中的感知器简单实现与其列表实现截然不同</title>
+      <link>https://stackoverflow.com/questions/79090615/perceptron-naive-implementation-in-numpy-drastically-diverges-from-its-list-impl</link>
+      <description><![CDATA[在制作一个简单的机器学习项目时，我决定使用 numpy 数组重新设计一段列表逻辑。只需将循环中的数值增量更改为 numpy 算法。但是，numpy 实现给出的决策边界与循环实现的决策边界相差甚远，行为混乱，并且不会收敛。
+完整的工作示例可以在 Google Colab 中找到：https://colab.research.google.com/drive/1zLy0oTidhm2lrwkASgT1lpsI9yfrBPvx?usp=sharing
+这真的让我很困扰。如果是 numpy 精度错误，在较大的项目中可能不那么明显，并会阻碍结果。如果是概念错误，我看不到。这个问题很可能看起来很幼稚，但我真的想知道出了什么问题。
+考虑以下感知器训练的列表实现。其背后的逻辑将在下文中进一步解释，但最重要的是，看看 W 和 b 的循环 num 值增量如何没有什么特别的。
+def perceptronStep(X, y, W, b, learn_rate = 0.01):
+diff = []
+for i in range(len(X)):
+y_hat = prediction(X[i],W,b)[0]
+# diff=0 表示预测正确
+# diff=1 或 diff=-1 表示 W 和 b 变化的方向
+diff.append(y[i] - y_hat)
+dif = diff[i]
+W[0] += dif * X[i][0]*learn_rate
+W[1] += dif * X[i][1]*learn_rate
+b += dif * learn_rate
+return W, b, diff
+
+在我看来，以下numpy 实现应该可以完美地重现 perceptronStep 的行为方式。
+def np_perceptronStep(X, y, W, b, learn_rate = 0.01):
+Y_hat = np.squeeze(prediction(X, W, b))
+diff = y - Y_hat
+sumX = np.sum(X * diff[..., np.newaxis], axis=0, keepdims=True)
+W += learn_rate * sumX.T # W_np
+b += learn_rate * np.sum(diff) # b_np
+return W, b, diff
+
+但事实并非如此。 W_np 和 b_np 与 W 和 b 有所不同，从第 0 纪元开始相差 1.0e-16 秒，在训练结束时相差 10 秒。b_np 到处跳跃，而 b 表明它应该很快稳定下来。混乱。
+
+通过阶跃函数获得预测。
+def prediction(X, W, b):
+Y_hat = np.matmul(X,W)+b
+# 阶跃函数
+Y_hat[Y_hat &gt;= 0] = 1
+Y_hat[Y_hat &lt; 0] = 0
+返回 Y_hat
+
+上下文
+我学习了Udacity 上的 PyTorch 机器学习入门。在教授梯度下降之前，介绍了一个粗略的技巧。考虑一个感知器，它有一个线性分类器 Wx+b，在本例中为 w1x1 + w2x2 + b，其中两个可能的类是 0 和 1。将点 x&#39; 的真实类别与预测类别之间的差异设为 c，感知器将按如下方式更新：W + acx&#39; 和 b + ac，其中 a 是学习率。非常简单。
+我尝试在 np_perceptronStep 中手动从循环过渡到 np，希望一件事会导致问题。我尝试了确定 diff、W 和 b 的不同组合 - 无论是在循环中还是使用 np。我跟踪了两个实现的 W 和 b 之间的差异如何变化。它们发生了变化，但 np_perceptronStep 从未接近 perceptronStep 结果。]]></description>
+      <guid>https://stackoverflow.com/questions/79090615/perceptron-naive-implementation-in-numpy-drastically-diverges-from-its-list-impl</guid>
+      <pubDate>Tue, 15 Oct 2024 15:14:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>多类 SVM 中的一个类别几乎所有数据点都作为支持向量（scikit-learn）是正常的吗？</title>
+      <link>https://stackoverflow.com/questions/79090407/is-it-normal-for-a-class-in-multiclass-svm-to-have-nearly-all-data-points-as-sup</link>
+      <description><![CDATA[我正在使用 scikit-learn 的 SVC 对鸢尾花数据集进行多类分类，其中一个类几乎所有数据点都作为支持向量。这是预期的结果吗，还是我的实现或参数设置存在问题？
+import pandas as pd
+import numpy as np
+from sklearn.svm import SVC
+from sklearn.multiclass import OneVsRestClassifier
+
+# 读取 Excel 文件
+df = pd.read_excel(&quot;Classification iris.xlsx&quot;, index_col=&quot;instance_id&quot;)
+
+# 将数据拆分为训练数据和测试数据
+train_data = pd.concat([
+df.loc[1:35],
+df.loc[51:85],
+df.loc[101:135]
+])
+
+test_data = pd.concat([
+df.loc[36:50],
+df.loc[86:100],
+df.loc[136:150]
+])
+
+# 分离特征和目标变量
+train_features = train_data.drop(columns=[&#39;class&#39;])
+train_target = train_data[&#39;class&#39;]
+test_features = test_data.drop(columns=[&#39;class&#39;])
+test_target = test_data[&#39;class&#39;]
+
+# 使用 One-vs-Rest 策略构建支持向量机
+svm = OneVsRestClassifier(SVC(kernel=&#39;linear&#39;, C=1e5))
+svm.fit(train_features, train_target)
+
+# 进行预测
+targets_train_pred = svm.predict(train_features)
+targets_test_pred = svm.predict(test_features)
+
+# 计算总误差
+total_training_error = sum(targets_train_pred != train_target) / len(train_data)
+total_testing_error = sum(targets_test_pred != test_target) / len(test_data)
+
+# 打印总训练和测试错误
+print(f&quot;Q2.2.2 使用标准 SVM 模型计算:\ntotal training error: {total_training_error:.10f}, total testing error: {total_testing_error:.10f}&quot;)
+
+# 初始化列表以存储结果
+classes = [&#39;setosa&#39;, &#39;versicolor&#39;, &#39;virginica&#39;]
+linear_separable = []
+
+for i, class_name in enumerate(classes):
+# 获取当前类的二分类器
+classifier = svm.estimators_[i]
+
+# 计算每个类的错误
+train_class_error = sum((targets_train_pred == class_name) != (train_target == class_name)) / len(train_data)
+test_class_error = sum((targets_test_pred == class_name) != (test_target == class_name)) / len(test_data)
+
+# 获取权重向量 w 和偏差 b
+w = classifier.coef_[0]
+b = classifier.intercept_[0]
+support_vector_indices = classifier.support_
+
+# 以正确的格式打印每个类的结果
+print(f&quot;\nclass {class_name}:&quot;)
+print(f&quot;training error: {train_class_error:.10f}, testing error: {test_class_error:.10f}&quot;)
+print(f&quot;w: [{&#39;, &#39;.join([f&#39;{x:.10f}&#39; for x in w])}]&quot;)
+print(f&quot;b: {b:.10f}&quot;)
+print(f&quot;support vector indices: {support_vector_indices.tolist()}&quot;)
+
+# 检查类是否线性可分
+if train_class_error == 0:
+linear_separable.append(class_name)
+
+print(f&quot;\nLinear separable classes: {&#39;, &#39;.join(linear_separable)}&quot;)
+
+这是输出：
+Q2.2.2 使用标准 SVM 模型进行计算：
+总训练误差：0.0571428571，总测试误差：0.0888888889
+
+class setosa：
+训练误差：0.0000000000，测试误差：0.0000000000
+w：[0.0097327108， 0.5377790363, -0.8273513712, -0.3820427629]
+b: 0.7734548984
+支持向量索引：[42, 23, 24]
+
+类 versicolor:
+训练错误：0.0000000000，测试错误：0.0000000000
+w：[1.8485997715, -4.5023738999, -1.1043393026, 0.3212849949]
+b：5.6773042297
+支持向量索引：[1, 2, 8, 9, 13, 25, 27, 34, 71, 72, 73, 77, 78, 80, 81, 86, 88, 89, 90, 91, 92, 93, 96, 99, 100, 102, 103, 104, 35, 36, 37, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 52, 55, 58, 59, 60, 61, 62, 63, 65, 66, 67, 68, 69]
+
+class virginica:
+训练错误：0.0000000000，测试错误：0.0000000000
+w：[-3.6465034341， -5.1763639697, 7.4285254512, 11.0024158268]
+b：-17.5703922240
+支持向量索引：[55, 57, 62, 68, 96, 97, 99, 103]
+
+线性可分类别：setosa、versicolor、virginica
+
+由于 Versicolor 只有 35 个训练数据点，因此根据我对 SVM 的理论理解，我并不认为它们都是支持向量。此外，现在各个类别的训练误差对我来说似乎有点奇怪。
+非常感谢您的帮助！]]></description>
+      <guid>https://stackoverflow.com/questions/79090407/is-it-normal-for-a-class-in-multiclass-svm-to-have-nearly-all-data-points-as-sup</guid>
+      <pubDate>Tue, 15 Oct 2024 14:28:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>Unet 或者如何创建幽灵模特效果？</title>
+      <link>https://stackoverflow.com/questions/79090398/unet-or-how-do-i-create-a-ghost-mannequin-effect</link>
+      <description><![CDATA[**我很好奇如何才能只提取衣服而不是手或其他部分，只提取衣服的全貌？
+我们可以使用 U-net 等。它就像幽灵模特效果或半身像`**
+``import sys
+sys.path.append(&#39;/content/clothes-extractor&#39;)
+from dataset import ClothesDataset, ClothesDataLoader
+from config import Config
+
+cfg = Config()
+cfg.dataset_dir = &quot;/content/clothes-extractor/data/train&quot; 
+cfg.load_height = 224
+cfg.load_width = 224
+cfg.batch_size = 1
+
+clothes_dataset = ClothesDataset(cfg, dataset_mode=&quot;train&quot;, device=&quot;cpu&quot;)
+clothes_loader = ClothesDataLoader(dataset=clothes_dataset, batch_size=cfg.batch_size)
+
+for idx in range(len(clothes_loader)):
+result = clothes_loader[idx]
+img_name = result[&quot;img_name&quot;]
+
+print(f&quot;Extracted clothing from {img_name}&quot;)
+
+result = clothes_dataset[2] # 大小：已验证 2 个字符
+
+image_keys = [&quot;centered_mask_body&quot;, &quot;cloth_mask&quot;, &quot;target&quot;]
+fig,axes=plt.subplots(1,len(image_keys),figsize=(20,20))`
+]]></description>
+      <guid>https://stackoverflow.com/questions/79090398/unet-or-how-do-i-create-a-ghost-mannequin-effect</guid>
+      <pubDate>Tue, 15 Oct 2024 14:27:04 GMT</pubDate>
+    </item>
     <item>
       <title>没有传感器数据，预测模型还能有效吗？[关闭]</title>
       <link>https://stackoverflow.com/questions/79089664/can-predictive-models-be-effective-without-sensor-data</link>
@@ -19,7 +202,7 @@
       <link>https://stackoverflow.com/questions/79089453/image-overlap-detection-with-ai</link>
       <description><![CDATA[我正在研究一个项目，需要检测图像或图形是否重叠。我一直在研究 AWS Rekognition，因为它们可以进行一些图像分析并提供边界框，我可以通过这些边界框计算它们是否重叠。但是，我正在寻找其他想法的指针，这些想法可能更强大、更可扩展。
 我遇到过 openCV，但从未听说过，也没有尝试过。这可能是一个负责任的解决方案，有人可以提供一些见解吗？
-我有很多可以通过监督学习提供的图像，因此我可以使用我已经拥有的数据来训练模型也可能是一个有效的选择。
+我有很多可以提供监督学习的图像，因此我可以使用我已经拥有的数据来训练模型也可能是一个有效的选择。
 有任何意见、想法或指向我可以进行更多研究的地方的指针吗？
 ]]></description>
       <guid>https://stackoverflow.com/questions/79089453/image-overlap-detection-with-ai</guid>
@@ -86,142 +269,12 @@ print (combined_data)
       <pubDate>Tue, 15 Oct 2024 03:21:28 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Java 读取 Quick Draw! 二进制文件 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79087951/reading-quick-draw-binary-files-in-java</link>
-      <description><![CDATA[我一直在从头开始试验机器学习算法，并用 Java 构建了一个模型，现在我想在 MNIST 数字以外的一些数据上训练它。我想使用 Quick, Draw! 数据，并想尝试读取我下载的一些涂鸦的二进制文件，但我不太明白。
-我写了这段代码来读取数据：
-public class QuickDrawReader {
-
-public static void unpackDrawing(InputStream inputStream) throws IOException {
-DataInputStream dataInputStream = new DataInputStream(inputStream);
-
-long keyId = dataInputStream.readLong();
-System.out.println(&quot;keyId: &quot; + keyId);
-
-byte[] countryCodeBytes = new byte[2];
-dataInputStream.readFully(countryCodeBytes);
-String countryCode = new String(countryCodeBytes, &quot;UTF-8&quot;);
-System.out.println(&quot;CountryCode: &quot; + countryCode);
-
-byte perceived = dataInputStream.readByte();
-System.out.println(&quot;Recognized: &quot; + perceived);
-
-int timestamp = dataInputStream.readInt();
-System.out.println(&quot;Timestamp: &quot; + timestamp);
-
-int nStrokes = dataInputStream.readUnsignedShort();
-System.out.println(&quot;NStrokes: &quot; + nStrokes);
-
-List&lt;int[]&gt; image = new ArrayList&lt;&gt;();
-// 如何填充图像列表???
-}
-
-public static void unpackDrawings(String filename) throws IOException {
-try (FileInputStream fileInputStream = new FileInputStream(filename)) {
-while (true) {
-try {
-unpackDrawing(fileInputStream);
-} catch (EOFException e) {
-break;
-}
-}
-}
-}
-}
-
-它似乎可以工作，直到它读取 nStrokes，我甚至不知道如何开始读取图像数据。有人能帮我弄清楚如何完成读取这些数据吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79087951/reading-quick-draw-binary-files-in-java</guid>
-      <pubDate>Mon, 14 Oct 2024 23:13:46 GMT</pubDate>
-    </item>
-    <item>
       <title>具有离散变量的线性回归问题，略有不同[关闭]</title>
       <link>https://stackoverflow.com/questions/79087896/linear-regression-problem-with-discrete-variables-with-a-twist</link>
       <description><![CDATA[我正在尝试开发一种 ML 算法来预测从更大的群体中选出的团队的表现。该组有 G 名成员，每个成员都用他们的名字来标识，并且通过从该组中选择 T 名成员来组建团队。数字 G 和 T 永远不会改变，组中每个成员的身份也不会改变。唯一改变的是我们选择哪个 T。这是监督学习，所以我有一组训练数据，每个数据都包含一个特定的团队选择及其获得的分数。成本函数试图最大化所有游戏的总分。从质量上讲，我知道不仅仅是某些团队成员的得分始终优于其他成员，而且某些成员组合的表现也优于其他组合。
 我如何构建模型和算法来解决这个问题？我考虑过为每个团队成员或组中的每个人（在团队中或不在团队中）进行独热编码，但这并不能正确捕获所有约束（例如，成员在团队中出现的次数不应超过一次）。]]></description>
       <guid>https://stackoverflow.com/questions/79087896/linear-regression-problem-with-discrete-variables-with-a-twist</guid>
       <pubDate>Mon, 14 Oct 2024 22:42:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>高斯过程二元分类：为什么 GPy 的方差比 scikit-learn 小得多？</title>
-      <link>https://stackoverflow.com/questions/79086293/gaussian-process-binary-classification-why-is-the-variance-with-gpy-much-smalle</link>
-      <description><![CDATA[我正在学习使用高斯过程进行二元分类，并且正在将 GPy 与 scikit-learn 进行比较，解决一个受 Martin Krasser 的博客文章启发的玩具一维问题。两种实现（GPy 和 scikit-learn）似乎都使用带有 RBF 内核的类似设置。优化内核超参数后，长度尺度相似，但方差相差很大。GPy 内核方差似乎太小了。
-我如何修改我的 GPy 实现并获得与 scikit-learn 类似的结果？我怀疑这与每个算法的内部实现有关，但我不知道是什么导致了这种巨大的差异。下面我将进一步解释为什么我认为我的 GPy 实现需要修复。
-实现细节：Python 3.9 搭配 GPy 1.13.2 和 scikit-learn 1.5.1。可重现的示例：
-import numpy as np
-from scipy.stats import bernoulli
-from scipy.special import expit as sigmoid
-
-##############################
-# 第 1 部分：玩具数据集创建
-#################################
-
-np.random.seed(0)
-X = np.arange(0, 5, 0.05).reshape(-1, 1)
-X_test = np.arange(-2, 7, 0.1).reshape(-1, 1)
-
-a = np.sin(X * np.pi * 0.5) * 2 # 潜在函数
-t = bernoulli.rvs(sigmoid(a)) # Bernoulli 训练数据（0 和1s)
-
-#####################################
-# 第 2 部分：scikit-learn 实现
-#####################################
-
-从 sklearn.gaussian_process 导入 GaussianProcessClassifier
-从 sklearn.gaussian_process.kernels 导入 ConstantKernel，RBF
-
-rbf = ConstantKernel(1.0, constant_value_bounds=(1e-3, 10)) \
-* RBF(length_scale=1.0, length_scale_bounds=(1e-3, 10))
-gpc = GaussianProcessClassifier(
-kernel=rbf,
-optimizer=&#39;fmin_l_bfgs_b&#39;,
-n_restarts_optimizer=10)
-
-gpc.fit(X_scaled, t.ravel())
-
-print(gpc.kernel_)
-# 1.5**2 * RBF(length_scale=0.858)
-
-############################
-# 第 3 部分：GPy 实现
-############################
-
-导入 GPy
-
-kern = GPy.kern.RBF(
-input_dim=1,
-variance=1.,
-lengthscale=1.)
-kern.lengthscale.unconstrain()
-kern.variance.unconstrain()
-kern.lengthscale.constrain_bounded(1e-3, 10)
-kern.variance.constrain_bounded(1e-3, 10)
-
-m = GPy.core.GP(
-X=X,Y=t, kernel=kern, 
-inference_method=GPy.inference.latent_function_inference.laplace.Laplace(), 
-可能性=GPy.likelihoods.Bernoulli())
-
-m.optimize_restarts(
-num_restarts=10, optimizer=&#39;lbfgs&#39;,
-verbose=True, robust=True)
-
-print(m.kern)
-# rbf。| 值 | 约束 | 先验
-# 方差 | 0.8067562453940487 | 0.001,10.0 | 
-# lengthscale | 0.8365668826459536 | 0.001,10.0 |
-
-lenghtscale 值大致相似 (0.858 vs 0.836)，但方差值非常不同 (scikit-learn 为 1.5**2 = 2.25，而 GPy 仅为 0.806)。
-我认为我的 GPy 实现需要调整的原因是，即使有 +/- 2 个标准偏差界限，真正的潜在函数 (参见上面代码第 1 部分中的“a”) 也与预测函数不紧密匹配。另一方面，scikit-learn 实现与之相当匹配（可以使用 scikit-learn 检索潜在函数平均值和标准差如此处所示）。
-
- 左：两个模型的预测概率相似（这是有道理的，因为它们共享相似的长度尺度值）。右：GPy 的预测潜在函数与真实潜在函数的拟合度不如 scikit-learn 模型。 
-到目前为止，我尝试过的方法，结果没有显著变化：
-
-输入特征 (X) 归一化
-使用 GPy.inference.latent_function_inference.expectation_propagation.EP() 作为 GPy 推理方法，而不是拉普拉斯方法
-按照此处的建议，将 WhiteKernel 组件添加到 scikit-learn 实现中&gt;
-]]></description>
-      <guid>https://stackoverflow.com/questions/79086293/gaussian-process-binary-classification-why-is-the-variance-with-gpy-much-smalle</guid>
-      <pubDate>Mon, 14 Oct 2024 13:10:16 GMT</pubDate>
     </item>
     <item>
       <title>使用 YoloV5 减慢相机速度</title>
@@ -347,11 +400,44 @@ cv2.destroyAllWindows()
       <pubDate>Thu, 10 Oct 2024 13:44:29 GMT</pubDate>
     </item>
     <item>
-      <title>具有高精度（95%）/低验证率（0%）的面部识别计算机视觉图像分类模型</title>
-      <link>https://stackoverflow.com/questions/79073365/facial-recognition-computer-vision-image-classification-model-with-high-accuracy</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79073365/facial-recognition-computer-vision-image-classification-model-with-high-accuracy</guid>
-      <pubDate>Thu, 10 Oct 2024 08:13:20 GMT</pubDate>
+      <title>GNU Octave 是多线程的吗？</title>
+      <link>https://stackoverflow.com/questions/79050512/is-gnu-octave-multi-threaded</link>
+      <description><![CDATA[根据这个老问题的答案，GNU Octave 似乎是一个单线程应用程序。
+但是，我正在试验一个名为nnet的旧 Octave 神经网络包，并惊讶地发现我的 Octave 程序使用了笔记本电脑的所有 4 个核心。自从我链接的问题提出以来，情况有变化吗？GNU Octave 现在是多线程的吗？据我所知，我没有看到 nnet 内部有任何并行实现。
+有关我的安装的一些信息：
+
+我的操作系统是 Linux Mint 20
+我的机器有 4 个处理单元（这是 nproc 在我的终端中显示的内容）
+我的 Octave 版本是 5.2.0（如果这有区别的话，我正在使用 GUI）
+
+我的代码相当简单，只导入了 nnet 包，没有其他内容。当我查看运行程序时的资源时，我看到所有核心都已使用（下面是 htop 屏幕截图）
+
+这是我正在做的事情：
+pkg load nnet
+
+starttime = clock();
+
+# 取自 http://matlab.izmiran.ru/help/toolbox/nnet/newff.html
+Pr = -1:0.00005:1;
+Tr = 3*sin(pi*Pr)-cos(pi*Pr);
+Prmin = min(Pr);
+Prmax = max(Pr);
+net = newff([Prmin Prmax],[3 2 1],{&#39;tansig&#39;,&#39;logsig&#39;,&#39;purelin&#39;},&#39;trainlm&#39;);
+[net] = train(net,Pr,Tr,[],[],[]);
+[netoutput] = sim(net,Pr);
+
+etime(clock(),starttime)
+
+% 测试结果 
+plot(Pr,Tr,&#39;b+&#39;);
+hold on; 
+plot(Pr,netoutput,&#39;r-&#39;);
+hold off;
+
+编辑
+按照评论中的 @JérômeRichard 提示和 @NickJ 建议，我通过在终端中执行 export OMP_NUM_THREADS=1 并启动 Octave 来启动 Octave，只为 BLAS 分配 1 个线程。该脚本的速度是原始设置的两倍（根据上面发布的 htop 屏幕截图，默认设置是 4）。我确保我的程序只使用一个核心和 htop。]]></description>
+      <guid>https://stackoverflow.com/questions/79050512/is-gnu-octave-multi-threaded</guid>
+      <pubDate>Thu, 03 Oct 2024 12:19:13 GMT</pubDate>
     </item>
     <item>
       <title>YOLOv5 类别不平衡和过度拟合问题</title>
@@ -437,39 +523,6 @@ cv2.BORDER_REPLICATE：我使用它将原始图像的边缘复制到新扩展的
 在 OpenCV 或其他库中，是否有更复杂的方法来扩展图像的背景，从而产生更自然、无缝的结果？我愿意接受涉及高级图像处理技术或机器学习的方法。任何使用扩散模型的方法都可以。]]></description>
       <guid>https://stackoverflow.com/questions/78969286/how-can-i-improve-this-approach-for-natural-background-extension-in-an-image-usi</guid>
       <pubDate>Tue, 10 Sep 2024 11:32:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 PyTorch 中有效地实现非全连接线性层？</title>
-      <link>https://stackoverflow.com/questions/70269663/how-to-efficiently-implement-a-non-fully-connected-linear-layer-in-pytorch</link>
-      <description><![CDATA[我制作了一个示例图，展示了我试图实现的缩小版本：
-
-因此，顶部两个输入节点仅完全连接到顶部三个输出节点，并且相同的设计适用于底部两个节点。到目前为止，我已经想出了两种在 PyTorch 中实现此目的的方法，但都不是最佳方法。
-第一种方法是创建一个包含许多较小线性层的 nn.ModuleList，并在前向传递期间，通过它们迭代输入。对于图表的示例，它看起来像这样：
-class Module(nn.Module):
-def __init__(self):
-self.layers = nn.Module([nn.Linear(2, 3) for i in range(2)])
-
-def forward(self, input):
-output = torch.zeros(2, 3)
-for i in range(2):
-output[i, :] = self.layers[i](input.view(2, 2)[i, :])
-return output.flatten()
-
-因此，这完成了图中的网络，主要问题是它非常慢。我认为这是因为 PyTorch 必须按顺序处理 for 循环，而不能并行处理输入张量。
-要“矢量化”模块以便 PyTorch 可以更快地运行它，我有这个实现：
-class Module(nn.Module):
-def __init__(self):
-self.layer = nn.Linear(4, 6)
-self.mask = # 创建 1 和 0 的掩码来“阻止”某些层连接
-
-def forward(self, input):
-prune.custom_from_mask(self.layer, name=&#39;weight&#39;, mask=self.mask)
-return self.layer(input)
-
-这也完成了图表的网络，通过使用权重修剪来确保完全连接层中的某些权重始终为零（例如，连接顶部输入节点和底部输出节点的权重将始终为零，因此它实际上是“断开连接的”）。这个模块比上一个快得多，因为没有 for 循环。现在的问题是这个模块占用了更多的内存。这可能是因为，即使大多数层的权重为零，PyTorch 仍会将网络视为它们存在。此实现本质上保留了比需要更多的权重。
-有人遇到过这个问题并想出了有效的解决方案吗？]]></description>
-      <guid>https://stackoverflow.com/questions/70269663/how-to-efficiently-implement-a-non-fully-connected-linear-layer-in-pytorch</guid>
-      <pubDate>Wed, 08 Dec 2021 03:41:06 GMT</pubDate>
     </item>
     <item>
       <title>保留 TFIDF 结果以预测新内容</title>
