@@ -4,7 +4,7 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 21 Oct 2024 01:17:36 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 21 Oct 2024 03:26:11 GMT</lastBuildDate>
     <item>
       <title>如果基础特征已经具有相同的单位，那么多元线性回归中的标准化是否必要？</title>
       <link>https://stats.stackexchange.com/questions/656060/is-standardizing-in-multiple-linear-regression-necessary-if-underlying-features</link>
@@ -58,7 +58,7 @@ glmmTMB R 包目前不允许拟合多变量模型（即在单个模型中有多�
 如何确保在超参数调整后，我的模型在测试集上表现良好，而测试集在权重训练和 hp 调整期间均未使用？
 我将在此处包含模型结果的图像（最底线是测试集上的准确性）：
 
-在 stack exchange 和 stack overflow 上发布此内容后，我被告知将其发布在此处。希望这次我能得到回复。提前感谢您的帮助。]]></description>
+在 stack exchange 和 stack overflow 上发布此信息后，我被告知将其发布在此处。希望这次我能得到回复。提前感谢您的帮助。]]></description>
       <guid>https://stats.stackexchange.com/questions/656057/reposted-model-performs-well-on-train-and-cross-validation-sets-but-inaccurate</guid>
       <pubDate>Sun, 20 Oct 2024 21:09:21 GMT</pubDate>
     </item>
@@ -253,56 +253,235 @@ rep 2控制
 
 我试图回答的统计问题是治疗组与对照组中所有观察值（所有行）在 T=0 后的变化是否不同（与对照组相比，观察值作为一个整体对治疗的反应是否显著不同）。
 使用所有可用数据来检验这一假设最合适的统计方法是什么？我相信这是一个混合效应模型，但我不太确定如何设置它。
-编辑：请注意，数据是“成对的” - 每行代表两个重复，每个独立单元被分成两半，每半独立地暴露于治疗和对照。每行都是一个生物学重复，每个“重复”列都是其技术重复。]]></description>
+编辑：请注意，数据是“配对的” - 每行代表两个重复，每个独立单元被分成两半，每半独立地暴露于治疗和对照。每行都是一个生物学重复，每个“重复”列都是其技术重复。]]></description>
       <guid>https://stats.stackexchange.com/questions/656050/statistical-model-test-for-difference-in-change-over-time-for-two-conditions</guid>
       <pubDate>Sun, 20 Oct 2024 18:01:48 GMT</pubDate>
     </item>
     <item>
-      <title>XGBoost 如何保证以牛顿法下降？</title>
-      <link>https://stats.stackexchange.com/questions/656049/how-xgboost-guarantees-descend-with-a-newton-step</link>
-      <description><![CDATA[我正在阅读有关 XGBoost 的文章，我发现与梯度提升相比，每次迭代的步长由牛顿法而不是梯度下降给出。
-但是，牛顿法不能保证下降，甚至可能上升。XGBoost 如何保证我们每一步都真正下降？我唯一想到的是，由于常用损失函数（例如 MSE）的性质（凸），迭代将下降。
-以下摘录似乎证实了我的直觉，但我不确定。在论文中的公式 2（pdf 的第 2 页）之后，作者指出：
+      <title>时间和性别对生存和检测概率的影响的灵活代码</title>
+      <link>https://stats.stackexchange.com/questions/656045/nimble-code-for-time-and-sex-effet-on-survival-and-detection-probability</link>
+      <description><![CDATA[我们在 R 中有一个来自捕获-标记-重新捕获数据的数据框。
+set.seed(123)
+n &lt;- 111
+years &lt;- 1997:2004
+year_data &lt;- as.data.frame(matrix(sample(0:1, n * length(years), 
+replace = TRUE), nrow = n, ncol = length(years)))
+names(year_data) &lt;- years
 
-这里 $l$ 是一个可微分凸损失函数，用于测量
-预测 $\hat{y}_i$ 和目标 $y_i$ 之间的差异。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/656049/how-xgboost-guarantees-descend-with-a-newton-step</guid>
-      <pubDate>Sun, 20 Oct 2024 17:58:23 GMT</pubDate>
+sex &lt;- sample(1:2, n, replace = TRUE)
+oxy &lt;- round(runif(n, min = 120, max = 160), 1)
+
+seagull &lt;- data.frame(year_data, sex = sex, oxy = oxy)
+
+head(seagull)
+
+&lt;!-- end片段 --&gt;
+
+我们想看看性别和时间如何影响生存和检测概率。我们应用了时间效应对检测概率的影响，以及性别效应对生存概率的影响，但不知道如何将它们结合起来。
+这就是我们建模的方式。
+y &lt;- seagull[, 2:9]
+
+# 场合数
+
+T &lt;- ncol(y)
+
+# 找出第一次接触海鸥的场合
+
+first &lt;- apply(y, 1, function(x) min(which(x !=0)))
+first
+
+SEX &lt;- seagull$sex
+SEX 
+summary(SEX )
+maxsex &lt;- max(SEX )
+maxsex
+minsex &lt;- min(SEX )
+minsex
+nsex &lt;- maxsex - minsex + 1
+nsex
+sex &lt;- SEX
+
+zinits &lt;-函数 (y) {
+T &lt;- length(y)
+first &lt;- min(which(y != 0))
+last &lt;- max(which(y == 1))
+z &lt;- rep(NA, T)
+if(last == T) {
+z[first:T] &lt;- 1
+} else {
+if(last == (T - 1)) {
+z[first:(T - 1)] &lt;- 1
+z[T] &lt;- sample(1:2, size = 1)
+} else {
+death &lt;- sample((last + 1):T, size = 1)
+z[first:(death - 1)] &lt;- 1
+z[death:T] &lt;- 2
+}
+}
+return(z)
+}
+
+nobs &lt;- sum(apply(y, 1, sum) != 0)
+nobs
+
+for (i in 1:nobs){
+if(first[i] &gt; 1) y[i, 1:(first[i]-1)] &lt;- NA
+}
+
+my.data &lt;- list(y = y + 1)
+
+z &lt;- t(apply(y, 1, zinits))
+p = runif(T-1, 0, 1)
+beta = rnorm(nsex, 0, 1)
+
+initial.values &lt;- list(beta = beta,
+p = p,
+z = z)
+
+my.constants &lt;- list(N = nrow(y), # 个体数
+T = ncol(y), # 场合数
+first = first, # 首次捕获的场合
+sex = sex, # pod 大小
+nsex = nsex
+) 
+my.constants
+
+# 模型
+hmm.phipodgroup.pt &lt;- nimbleCode({
+delta[1] &lt;- 1 # Pr(alive t = 1) = 1
+delta[2] &lt;- 0 # Pr(dead t = 1) = 0
+
+for (g in 1:nsex){ # 以群组为单位的 pod 大小的先验
+beta[g] ~ dnorm(T-1, sd = 1.5)
+}
+
+for (i in 1: N){
+logit(phi[i]) &lt;- beta[sex[i]]
+gamma[1,1,i] &lt;- phi[i] # Pr(alive t -&gt; alive t+1)
+gamma[1,2,i] &lt;- 1 - phi[i] # Pr(alive t -&gt; dead t+1)
+gamma[2,1,i] &lt;- 0 # Pr(dead t -&gt;存活 t+1)
+gamma[2,2,i] &lt;- 1 # Pr(死亡 t -&gt; 死亡 t+1)
+}
+
+for (t in 1:(T-1)){
+
+p[t] ~ dunif(0, 1) # 先前检测
+
+omega[1,1,t] &lt;- 1 - p[t] # Pr(存活 t -&gt; 未检测到 t)
+omega[1,2,t] &lt;- p[t] # Pr(存活 t -&gt; 检测到 t)
+omega[2,1,t] &lt;- 1 # Pr(死亡 t -&gt; 未检测到 t)
+omega[2,2,t] &lt;- 0 # Pr(死亡 t -&gt; 检测到 t)
+}
+
+# 可能性
+for (i in 1:N){
+z[i,first[i]] ~ dcat(delta[1:2])
+for (j in (first[i]+1):T){
+z[i,j] ~ dcat(gamma[z[i,j-1], 1:2, i])
+y[i,j] ~ dcat(omega[z[i,j], 1:2, j-1])
+}
+}
+})
+
+parameters.to.save &lt;- c(&quot;p&quot;, &quot;beta&quot;)
+
+n.iter &lt;- 5000
+n.burnin &lt;- 2000
+nc &lt;- 4
+nt &lt;- 4
+
+output.orca &lt;- nimbleMCMC(code = hmm.phipodgroup.pt, # 模型代码 
+constants = my.constants, # 常量
+data = my.data, # 数据
+inits = initial.values，# 初始值
+monitors = parameters.to.save，
+# 要监视的参数
+niter = n.iter，# 迭代次数
+nburnin = n.burnin，
+# 老化期长度
+nchains = nc，# 链数
+summary = TRUE，WAIC=TRUE)
+
+MCMCsummary(output.orca$samples，round = 4)
+
+MCMCplot(output.orca$samples)
+
+MCMCplot(output.orca$samples，params=c(&#39;beta&#39;))
+
+MCMCtrace(output.orca$samples，pdf=FALSE，ind=TRUE)
+
+output.orca$WAIC$WAIC
+
+我们如何让这个模型显示对每个变量的两种影响？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656045/nimble-code-for-time-and-sex-effet-on-survival-and-detection-probability</guid>
+      <pubDate>Sun, 20 Oct 2024 15:25:09 GMT</pubDate>
     </item>
     <item>
-      <title>SpliceCurve 为何返回“曲线构建失败”？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/656048/why-does-splicecurve-come-back-with-curve-failed-to-build</link>
-      <description><![CDATA[我刚刚注册了 SpliceCloud。我上传了一个简单的 Excel 文件，其中显示了天数与温度的关系。单击“拟合曲线”时，散点图看起来不错。转到“添加曲线”时，它返回“无法构建曲线”。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656048/why-does-splicecurve-come-back-with-curve-failed-to-build</guid>
-      <pubDate>Sun, 20 Oct 2024 17:56:16 GMT</pubDate>
+      <title>如何根据时间范围内的密度生成随机变量？</title>
+      <link>https://stats.stackexchange.com/questions/656062/how-to-generate-a-random-variable-given-a-density-across-the-time</link>
+      <description><![CDATA[假设我可以在时间间隔 $(0,1)$ 内观察到其密度 $f$。换句话说，我知道随时间变化的可能性。我不知道真正的 $f$ 是什么。我只有观察到的密度。现在我想进行抽样。假设我想从这个变量及其密度中抽取 200 个随机值。请注意，这 200 个随机值不包含时间信息。这只是重新采样。
+例如，时间间隔 $(0,1)$ 内的以下 50 个密度观测值：
+[1] 6.397494e-03 2.851705e-02 1.313016e-01 1.678541e-04 9.803000e-06 6.820610e-02 5.282000e-07 3.746964e-03
+[9] 1.483590e-02 1.210750e-02 6.205821e-02 1.246754e-01 1.228650e-03 3.747048e-02 1.252511e-02 7.730145e-02 [17] 3.462294e+00 2.197282e-03 3.759454e-02 1.712373e+01 1.801570e-05 8.980809e-03 .132994e-04 4.948000e-07 [25] 2.481309e-02 1.180191e-01 2.097358e+01 1.477098e-02 1.493750e-03 2.860386e-02 1.073369e-01 5.086009e-03 [33] 4.559620e-03 2.331729e-02 5.502453e+00 1.175939e-02 6.951684e-02 2.664841e-03 5.525742e-02 5.367860e-05 1] 1.982810e-02 2.773967e-01 4.631920e-04 3.474500e-05 1.355636e+00 7.440144e-03 7.726980e-05 7.122710e-02 [49] 3.375027e-02 7.498346e-02
+现在给定上述随时间观察到的密度，我想进行抽样。怎么做？
+感谢 Henry 指出错误。我没有对密度进行标准化。标准化后，
+sum(density[1:50,1])
+
+[1] 1
+
+density[1:50,1]
+[1] 0.0001279499 0.0005703410 0.0026260318 0.0000033571 0.0000001961 0.0013641219 0.0000000106 0.0000749393
+[9] 0.0002967180 0.0002421500 0.0012411641 0.0024935086 0.0000245730 0.0007494095 0.0002505022 0.0015460290 [17] 0.0692458852 0.0000439456 0.0007518908 0.3424745260 0.0000003603 0.0001796162 0 .0000102660 0.0000000099 [25] 0.0004962617 0.0023603813 0.4194716299 0.0002954195 0.0000298750 0.0005720771 0.0021467388 0.0001017202 [33] 0.0000911924 0.0004663458 0.1100490689 0.0002351879 0.0013903367 0.0000532968 0.0011051485 0.0000010736 [4 1] 0.0003965620 0.0055479335 0.0000092638 0.0000006949 0.0271127247 0.0001488029 0.0000015454 0.0014245419 [49] 0.0006750054 0.0014996692
+
+这确实是时间间隔 [0,1] 上的适当概率密度函数。有 50 个点，对应于 50 个时间点。每个值代表过程在该特定时间点处于特定状态的相对可能性。
+我现在想做什么？我想生成遵循此经验分布的随机值。这些随机样本（大小 = 200）将代表此密度函数所描述的过程的可能实现。它们只是我的经验密度函数所描述的随机变量的实现。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656062/how-to-generate-a-random-variable-given-a-density-across-the-time</guid>
+      <pubDate>Sat, 19 Oct 2024 04:02:24 GMT</pubDate>
     </item>
     <item>
-      <title>第 4 位顾客选择新菜单项的概率</title>
-      <link>https://stats.stackexchange.com/questions/656046/probability-of-4th-customer-choosing-new-menu-item</link>
-      <description><![CDATA[我有一个与快餐店场景相关的概率问题。这家餐厅有 5 种菜单项。四位顾客进来，每人随机选择一种菜品。我想确定第四位顾客订购前三位顾客都没有订购的菜品的概率。
-详细信息：
+      <title>转换单位，用 extRemes 拟合极值分布时得到不同的结果</title>
+      <link>https://stats.stackexchange.com/questions/655986/convert-units-get-different-results-when-fitting-extreme-value-distribution-wit</link>
+      <description><![CDATA[我正在使用 fevd() 和 lr.test() 函数通过 extRemes R 包检查降水量。我的主要问题是，当我使用英寸和毫米作为输入数据时，我会得到不同的结果。其次，有时我会收到警告，我想知道它们是否表示采取了不同的路径来优化参数。
+下面是一个示例，展示了乘数如何产生不同的结果。此外，如果我将种子设置为 3，则不会产生任何警告。如果将种子设置为 4，则当我使用 location.fun 参数拟合 fevd() 时会产生警告。
+library(extRemes)
+set.seed(3)
+dat &lt;- data.frame(values = rnorm(30, mean = 3, sd = 1.5),
+years = 1990:2019)
+dat$values25 &lt;- dat$values*25
+dat
 
-菜单上有 5 个不同的菜品，编号从 1 到 5。
-前三位顾客可以以相同的概率独立选择这 5 个菜品中的任何一个。
-我想知道第四位顾客选择的菜品与前三位顾客选择的菜品不同的概率。
+gev_fit &lt;- fevd(x = values, data = dat, type = &quot;GEV&quot;)
+gev_fit25 &lt;- fevd(x = values25, data = dat, type = &quot;GEV&quot;)
+gev_fit
+gev_fit25
 
-我考虑过：
-我相信我可以根据前三位顾客选择的结果计算出概率，$\mathbb{P}(X_4=i|X_1≠i,X_2≠i,X_3≠i)$
-即第四位顾客选择菜品的概率$i$，假设每个先前的顾客都选择了不同的商品。是否有必要为所有 $i=1,2,3,4,5$ 计算这个，还是只为一个 $i$ 计算就足够了？另外，我想知道是否有办法使用条件概率，或者是否有更简单的方法来解决这个问题，也许使用多项分布或对称参数？
-任何关于如何解决这个问题或正确概率计算的指导都将不胜感激！]]></description>
-      <guid>https://stats.stackexchange.com/questions/656046/probability-of-4th-customer-choosing-new-menu-item</guid>
-      <pubDate>Sun, 20 Oct 2024 17:04:54 GMT</pubDate>
+# 拟合非平稳 GEV 分布
+gev_fit_loc &lt;- fevd(x = values, data = dat, location.fun = ~ years, 
+type = &quot;GEV&quot;)
+gev_fit_loc25 &lt;- fevd(x = values25, data = dat, 
+location.fun = ~ years, type = &quot;GEV&quot;)
+gev_fit_loc
+gev_fit_loc25
+
+lr.test(gev_fit, gev_fit_loc)
+lr.test(gev_fit25, gev_fit_loc25)
+
+这是我的主要关注点：
+第一个 lr.test() 给出 p 值为 0.7642，第二个报告 p 值为 1.0，尽管唯一的区别是第二个“25”示例中的输入数据已乘以 25。
+有人知道为什么会发生这种情况吗？我是否忽略了一些显而易见的东西？
+其次，如果我运行上述代码但将种子设置为 4，我会收到此警告：
+&gt;In log(z) : NaNs generated
+
+在拟合非平稳 GEV 时，但仅适用于“values”，而不是“values25”。有人能提供一些关于这个警告指示什么的见解吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/655986/convert-units-get-different-results-when-fitting-extreme-value-distribution-wit</guid>
+      <pubDate>Thu, 17 Oct 2024 14:57:56 GMT</pubDate>
     </item>
     <item>
-      <title>这个结果的解释是什么？使用的 p 值是多少？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/656043/what-is-the-interpretation-of-this-result-and-what-is-the-p-value-used</link>
-      <description><![CDATA[表 11- Pearson 的 r 结果显示，师范学院学生日常英语使用与语法熟练程度之间存在显著关系
-类别 Sig（双尾）
-师范学院学生日常英语使用频率 .223
-师范学院学生语法熟练程度 .223]]></description>
-      <guid>https://stats.stackexchange.com/questions/656043/what-is-the-interpretation-of-this-result-and-what-is-the-p-value-used</guid>
-      <pubDate>Sun, 20 Oct 2024 15:53:15 GMT</pubDate>
+      <title>如何制作两个完全负相关的增长几何布朗运动（GBM）系列？（不可能）</title>
+      <link>https://stats.stackexchange.com/questions/655735/how-to-make-two-perfectly-negatively-correlated-growing-geometric-brownian-motio</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/655735/how-to-make-two-perfectly-negatively-correlated-growing-geometric-brownian-motio</guid>
+      <pubDate>Fri, 11 Oct 2024 23:13:17 GMT</pubDate>
     </item>
     </channel>
 </rss>
