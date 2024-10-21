@@ -4,7 +4,99 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 21 Oct 2024 15:19:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 21 Oct 2024 18:22:59 GMT</lastBuildDate>
+    <item>
+      <title>如何仅通过查看数据来决定是否包含交互？</title>
+      <link>https://stats.stackexchange.com/questions/656098/how-to-decide-to-include-interactions-just-by-looking-at-the-data</link>
+      <description><![CDATA[我有点难以理解如何解释和理解回归模型中的交互项。我制作了一个 R 示例来说明我感到困惑的地方（https://www.dropbox.com/scl/fi/yxf1n75dfdta45q8pj3vz/dropbox_code-1-1.txt?rlkey=gazzbhach9i5q3m1nkf01g9l4&amp;st=lptm3zgr&amp;dl=0）。
+假设我有两个数据集 - 其中一个是在没有交互的情况下创建的，另一个是在有交互的情况下创建的相互作用：
+n &lt;- 1000
+x1 &lt;- rnorm(n)
+x2 &lt;- rnorm(n)
+x3 &lt;- rnorm(n)
+
+# 数据集 1：y 是 x1、x2、x3 的函数，无相互作用
+y1 &lt;- 2 + 0.5*x1 + 0.3*x2 + 0.7*x3 + rnorm(n, 0, 0.5)
+# 数据集 2：y 是 x1、x2、x3 的函数，有相互作用
+y2 &lt;- 2 + 0.5*x1 + 0.3*x2 + 0.7*x3 + 0.4*x1*x2 + 0.2*x1*x3 + 0.1*x2*x3 + rnorm(n, 0, 0.5)
+
+df1 &lt;- data.frame(y = y1, x1 = x1, x2 = x2, x3 = x3)
+df2 &lt;- data.frame(y = y2, x1 = x1, x2 = x2, x3 = x3)
+
+查看散点图时，这些相互作用对我来说不是立即清楚的：
+
+然后，我拟合 4 个回归模型来覆盖所有组合：
+# 为数据集 1 拟合回归模型
+model1_without_int &lt;- lm(y ~ x1 + x2 + x3, data = df1)
+model1_with_int &lt;- lm(y ~ x1 * x2 * x3, data = df1)
+
+# 为数据集 2 拟合回归模型
+model2_without_int &lt;- lm(y ~ x1 + x2 + x3, data = df2)
+model2_with_int &lt;- lm(y ~ x1 * x2 * x3, data = df2)
+
+这样做后，看起来交互项在具有交互作用的数据上拟合的模型中很重要：
+数据集 1 交互作用估计：
+&gt; print(summary(model1_with_int)$coefficients[c(&quot;x1:x2&quot;, &quot;x1:x3&quot;, &quot;x2:x3&quot;), ])
+估计标准差。误差 t 值 Pr(&gt;|t|)
+x1:x2 0.002490521 0.01574894 0.1581389 0.87437950
+x1:x3 -0.027456680 0.01637998 -1.6762337 0.09400753
+x2:x3 -0.034349287 0.01675775 -2.0497550 0.04065083
+&gt; cat(&quot;\n数据集 2 交互估计:\n&quot;)
+
+数据集 2 交互估计:
+&gt; print(summary(model2_with_int)$coefficients[c(&quot;x1:x2&quot;, &quot;x1:x3&quot;, &quot;x2:x3&quot;), ])
+估计标准差。误差 t 值 Pr(&gt;|t|)
+x1:x2 0.39563591 0.01585618 24.951520 4.811481e-107
+x1:x3 0.18470379 0.01649152 11.199922 1.682661e-27
+x2:x3 0.06967006 0.01687187 4.129363 3.943817e-05
+
+在我看来，交互系数 0.39 意味着 x1 每增加一个单位，x2 对 y 的影响就会增加 0.39 个单位，反之亦然。假设主效应是 (x1): 0.5 和 (x2): 0.3。有了交互项，效果将是：
+
+x1 = 0.5 + 0.39 * x2 的效果
+x2 = 0.3 + 0.39 * x1 的效果
+
+此外，似乎具有交互作用的模型更适合具有交互作用的数据集，而没有交互作用的模型更适合没有交互作用的数据：
+ 模型 AIC BIC 残差平方和
+1 数据集 1 - 无交互作用 1442.595 1467.134 245.2979
+2 数据集 1 - 有交互作用 1442.326 1486.496 243.2780
+3 数据集 2 - 无交互作用 2044.821 2069.359 447.9577
+4 数据集 2 - 有相互作用 1455.899 1500.069 246.6025
+
+然后我查看了所有 4 个模型的相互作用的轮廓图：
+
+弯曲的轮廓显然是相互作用的标志（我不完全确定为什么）
+我的问题是：为什么相互作用在轮廓图中如此明显，但在原始数据中却不明显？通过查看数据而不拟合模型，我如何决定包含相互作用？这只能事后才有可能吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656098/how-to-decide-to-include-interactions-just-by-looking-at-the-data</guid>
+      <pubDate>Mon, 21 Oct 2024 18:05:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>对于任何一对有限大小为 n 的不同实值双变量样本，是否总是可以通过旋转一个样本来获得另一个样本？</title>
+      <link>https://stats.stackexchange.com/questions/656097/for-any-pair-of-distinct-real-valued-bivariate-samples-of-finite-size-n-can-on</link>
+      <description><![CDATA[显然，仅仅通过将单个这样的样本旋转到二维的所有不同角度，无法获得所有可能的有限大小 $n$ 的实值双变量样本。我的问题是：给定第三个协变量，能否通过三维旋转获得所有可能的长度为 $n$ 的双变量样本？
+具体来说，让 $(X_1, Y_1)$ 和 $(X_2, Y_2)$ 为任意一对有限大小 $n$ 的实值双变量样本。令协变量$Z$为$n$个单变量实数观测序列，即，我们有：$(X_1, Y_1, Z)$。对于每一对这样的双变量样本，是否必须存在某个实数 $-\frac{\pi}{2}&lt;\alpha&lt;\frac{\pi}{2}$ 和某个 $Z$，使得将 $(X_1, Y_1)$ $\alpha$ 弧度旋转 $Z$ 等于 $(X_2, Y_2)$？
+如果是这样，是否必须对于每个 $(X_1, Y_1)$，我们都允许 $\alpha$为上述范围内的任意实数并且允许$Z$为任何可能的$n$长度向量？或者，例如，对于每个不同的 $(X_1, Y_1)$，可能存在一个唯一的 $Z$，这样，用这个 $Z$ 旋转 $(X_1, Y_1)$ 就能得到每个 $(X_2, Y_2)$，只需改变 $\alpha$ 即可？
+附加问题：对于 $k &gt; 1$，答案是否适用于所有 $k$ 变量样本？如果是，如何推广？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656097/for-any-pair-of-distinct-real-valued-bivariate-samples-of-finite-size-n-can-on</guid>
+      <pubDate>Mon, 21 Oct 2024 17:58:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>当截距已知（未拟合）时，残差总和是否为零</title>
+      <link>https://stats.stackexchange.com/questions/656095/is-the-sum-of-residuals-is-zero-when-the-intercept-is-known-not-fitted</link>
+      <description><![CDATA[当存在截距时，简单线性回归中的残差总和为零。但是，如果存在已知的真实非零截距，该怎么办？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656095/is-the-sum-of-residuals-is-zero-when-the-intercept-is-known-not-fitted</guid>
+      <pubDate>Mon, 21 Oct 2024 17:41:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于 R 平方和调整后的 R2 的问题</title>
+      <link>https://stats.stackexchange.com/questions/656088/question-on-r-square-and-adjusted-r2</link>
+      <description><![CDATA[我正在阅读一篇论文，该论文使用 Box-Behnken 设计 (BBD) 来研究一些参数及其对细菌生长的影响。我很难理解作者对 R 平方和 R 平方调整值的结果的陈述。作者写道：
+“给定的预测 R2 (0.83) 和 R2 adj. (0.72) 值表明该模型可以描述 72-83% 的变异性。”
+现在我想知道：这在技术上是否正确？您确实可以这样说，该模型可以根据 R2 和 adj. 描述 72-83% 的变异性吗？ R2 值？
+我不是统计学专家，但我一直认为：R2 值（和调整后的 R2 值）说明了预测值与实际测量值的拟合程度。
+对我来说，这与作者所说的不同，但也许我错了。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656088/question-on-r-square-and-adjusted-r2</guid>
+      <pubDate>Mon, 21 Oct 2024 15:51:50 GMT</pubDate>
+    </item>
     <item>
       <title>R 中的生存分析：使用 survfit() 和 coxph() 进行分类与连续基因表达分析</title>
       <link>https://stats.stackexchange.com/questions/656084/survival-analysis-in-r-using-categorical-vs-continuous-gene-expression-with-su</link>
@@ -40,14 +132,12 @@ cox_fit &lt;- coxph(surv_object ~ Expression, data = dpy_surv_data, method = &qu
       <link>https://stats.stackexchange.com/questions/656083/path-analysis-with-a-variable-use-d-as-grouping-variable-and-predictor-at-the-sa</link>
       <description><![CDATA[我正在使用结构方程模型 (SEM) 进行路径分析，并且对在我的模型中使用分组变量有一个疑问。我的主要纵向假设之一是家庭收入和后期收入之间的关联是否因家庭收入水平而异。
 为了调查这一点，我创建了一个分组变量（低/中/高家庭收入），并将其用作后期收入的预测因子（每个组中的连续家庭收入）。但是，我不确定这种方法是否合理。我担心的是，对家庭收入等连续变量进行分组会降低其在每个组中的可变性，这可能会影响结果。
-将家庭收入同时用作分组变量和预测因子是否可行？如果是，是否有任何参考文献或研究可以证明这种方法的合理性？或者，我是否可以考虑其他方法来检查家庭收入与后期收入之间的关系是否因收入水平而异？
-任何见解或建议都将不胜感激！
-谢谢！]]></description>
+将家庭收入同时用作分组变量和预测因子是否可行？如果是，是否有任何参考文献或研究可以证明这种方法的合理性？或者，我是否可以考虑其他方法来检查家庭收入和后期收入之间的关系是否因收入水平而异？]]></description>
       <guid>https://stats.stackexchange.com/questions/656083/path-analysis-with-a-variable-use-d-as-grouping-variable-and-predictor-at-the-sa</guid>
       <pubDate>Mon, 21 Oct 2024 14:03:58 GMT</pubDate>
     </item>
     <item>
-      <title>关于 Nyström 方法和矩阵求逆的探究</title>
+      <title>关于 Nyström 方法和矩阵求逆的询问 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/656082/inquiry-about-the-nystr%c3%b6m-method-and-matrix-inversion</link>
       <description><![CDATA[我一直在研究用于获得矩阵低秩近似的 Nyström 方法，并想询问它在计算矩阵逆方面的适用性。
 在我的研究中，我偶然发现了以下文章：Nyström 近似。但是，我不清楚作者如何应用 Woodbury 恒等式来计算此上下文中的逆。
@@ -66,18 +156,44 @@ cox_fit &lt;- coxph(surv_object ~ Expression, data = dpy_surv_data, method = &qu
       <pubDate>Mon, 21 Oct 2024 12:34:40 GMT</pubDate>
     </item>
     <item>
-      <title>如何正确表述配对设计中重复测量的随机效应</title>
-      <link>https://stats.stackexchange.com/questions/656072/how-do-i-correctly-formulate-the-random-effects-with-repeated-measures-in-a-pair</link>
-      <description><![CDATA[抱歉，这是交叉发布，但我还没有找到我的问题的确切解决方案。
-假设我有一个 20 个家庭的实验，每个家庭有 2 个人（1 名女性 + 1 名男性）。
-在 30 年的时间里，我对每个人测量了相同的变量，但根据家庭的不同，测量次数可能不同，而且不同家庭测量的年份也不同。选择家庭的方式是使配对尽可能相似（例如年龄等）。
-因此，我对每个家庭（HOUSEH）中的每个人（ID）进行了重复测量。
-（不幸的是，这是一个类似于我的实际实验的构造示例，因此我无法分享最少的数据示例）
-由于我主要对性别的影响感兴趣，例如收入 一个测量响应，我制定了以下模型：
-lmer(响应 ~ 性别 * 收入 + (1|HOUSEH/ID), 数据 = 数据, REML = FALSE)
-通过此模型，我考虑了对人员 (ID) 的重复测量，并且每个 ID 属于特定家庭 (HOUSEH)。但是，如果我不考虑任何固定效应，此模型总会因为奇异性而发出警告。随机效应的公式化是否存在问题，或者这仅仅是因为 ID 内几乎没有变化？我将非常感谢任何见解。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656072/how-do-i-correctly-formulate-the-random-effects-with-repeated-measures-in-a-pair</guid>
-      <pubDate>Mon, 21 Oct 2024 10:16:40 GMT</pubDate>
+      <title>我得到了两个不同的置信区间。我做错了什么？</title>
+      <link>https://stats.stackexchange.com/questions/656090/i-have-got-two-different-confidence-intervals-what-am-i-doing-wrong</link>
+      <description><![CDATA[我使用 R 计算了 OLS 回归截距的 90% 置信区间。当我使用 confint(model, &#39;(Intercept)&#39;, level=0.90) 时，我得到的 CI 与使用 [beta0-qnorm(0.95)*beta0_se, beta0+qnorm(0.95)*beta0_se] 计算的 CI 不同。
+以下是 R 代码和输出。
+library(estimatr)
+data(&quot;mtcars&quot;)
+
+model &lt;- lm_robust(mpg ~ hp, data = mtcars)
+summary(model)
+
+beta0_estimate &lt;- summary(model)$coefficients[&quot;(Intercept)&quot;, &quot;Estimate&quot;]
+beta0_se &lt;- summary(model)$coefficients[&quot;(Intercept)&quot;, &quot;Std.错误”]
+
+confint(model, &#39;(Intercept)&#39;, level = 0.90)
+beta0_estimate-qnorm(0.95)*beta0_se
+beta0_estimate+qnorm(0.95)*beta0_se
+
+调用：
+lm_robust(formula = mpg ~ hp, data = mtcars)
+
+标准错误类型：HC2 
+
+系数：
+估计标准差。误差 t 值 Pr(&gt;|t|) CI 下限 CI 上限 DF
+(截距) 30.09886 2.19301 13.725 1.814e-14 25.62013 34.57759 30
+hp -0.06823 0.01471 -4.637 6.485e-05 -0.09828 -0.03818 30
+
+多重 R 平方：0.6024，调整后的 R 平方：0.5892
+
+F 统计量：1 和 30 DF 上的 21.5，p 值：6.485e-05
+5 % 95 %
+(截距) 26.37675 33.82097
+[1] 26.49168
+[1] 33.70604
+
+我也尝试了 95% 的置信区间，顺便说一下，问题仍然存在。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656090/i-have-got-two-different-confidence-intervals-what-am-i-doing-wrong</guid>
+      <pubDate>Mon, 21 Oct 2024 07:43:53 GMT</pubDate>
     </item>
     <item>
       <title>如果基础特征已经具有相同的单位，那么多元线性回归中的标准化是否必要？</title>
@@ -95,71 +211,21 @@ lmer(响应 ~ 性别 * 收入 + (1|HOUSEH/ID), 数据 = 数据, REML = FALSE)
       <pubDate>Sun, 20 Oct 2024 21:25:25 GMT</pubDate>
     </item>
     <item>
-      <title>模型在训练和交叉验证集上表现良好，但在测试集上不准确。如何解决？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/656057/model-performs-well-on-train-and-cross-validation-sets-but-inaccurate-in-the-tes</link>
-      <description><![CDATA[我一直在研究 CNN 二元分类模型，该模型在训练集和交叉验证集上的表现都相当不错（两者的准确率实际上都为 1.0）。但是，我还持有一个独特的测试集，用于在最后设置我的模型。
-我这样做是因为我使用基于交叉验证准确率的超参数调整。我认为这可能会导致模型架构根据 cv 集过度拟合。
-如何确保在超参数调整后，我的模型在测试集上表现良好，而该测试集在权重训练和 hp 调整期间均未使用？
-我将在此处附上模型结果的图像（最底线是测试集上的准确率）：
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/656057/model-performs-well-on-train-and-cross-validation-sets-but-inaccurate-in-the-tes</guid>
-      <pubDate>Sun, 20 Oct 2024 21:09:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>中介模型需要对称的 sigma 矩阵</title>
-      <link>https://stats.stackexchange.com/questions/656056/mediation-models-require-a-sigma-matrix-that-is-symmetric</link>
-      <description><![CDATA[我正在尝试适应以下称为final的可重现中介模型。但是我收到一条错误消息：
+      <title>第四位顾客选择新菜单项的概率</title>
+      <link>https://stats.stackexchange.com/questions/656046/probability-of-4th-customer-choosing-new-menu-item</link>
+      <description><![CDATA[我有一个与快餐店场景相关的概率问题。这家餐厅有 5 种菜单项。四位顾客进来，每人随机选择一种菜品。我想确定第四位顾客订购前三位顾客都没有订购的菜品的概率。
+详细信息：
 
-sigma 必须是对称矩阵
+菜单上有 5 个不同的菜品，编号从 1 到 5。
+前三位顾客可以以相同的概率独立选择这 5 个菜品中的任何一个。
+我想知道第四位顾客选择的菜品与前三位顾客选择的菜品不同的概率。
 
-您能告诉我如何克服这个错误吗？
-可重现的 R 代码：
-df &lt;- read.csv(&quot;https://raw.githubusercontent.com/fpqq/w/refs/heads/main/t.csv&quot;)
-
-library(glmmTMB)
-library(mediation)
-
-mediator &lt;- glmmTMB(pic_percent ~ con +
-(0+con | ID) +
-(0+con | TRIAL_INDEX),
-data=df,
-family = beta_family(),
-ziformula = ~1)
-
-outcome &lt;- glmmTMB(acc ~ con + pic_percent +
-(0+con+pic_percent | Q),
-数据 = df,
-家庭 = 二项式())
-
-最终 &lt;- mediate(mediator, 成果, sims=50,
-treat=&quot;con&quot;, mediator=&quot;pic_percent&quot;)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/656056/mediation-models-require-a-sigma-matrix-that-is-symmetric</guid>
-      <pubDate>Sun, 20 Oct 2024 20:30:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>当某些点的不确定性未知时，我应该如何在分位数回归中加权点？</title>
-      <link>https://stats.stackexchange.com/questions/656053/how-should-i-weight-points-in-a-quantile-regression-when-the-uncertainty-is-unkn</link>
-      <description><![CDATA[我正在尝试分析来自不同实验研究的汇编数据，并希望得到有关如何思考分位数回归的加权点的建议。
-我并不是想做经典的荟萃分析。相反，我想对响应 $Y$ 执行分位数回归，该回归是两个连续预测变量 $X_1$ 和 $X_2$（均在实验中操纵）的函数。我的目标是获得 $X_1$ 和 $X_2$ 对 $Y$ 的第 90 分位数的影响的最佳参数估计值（平均值/中位数不具有科学意义）。
-数据有几个限制：
-
-在相当一部分论文中，原始数据不可用 - 每种处理中只有 $Y$ 的平均值。
-更糟糕的是，只有大约 2/3 的病例报告了平均值，也报告了相关的不确定性（SD/SE/方差）。
-在许多使用回归设计的案例中，根本没有复制（科学和统计上合理）。
-当我计算所有报告的病例的 1/方差时具有不确定性的平均值，我得到的值相差 2-3 个数量级。我认为这大大低估了高权重情况下的不确定性，可能是因为方差通常是从很少的测量值中估计出来的。
-[可能不相关，但作为背景] 理想情况下，实验将使用回归设计，并在 $X_1$ 和 $X_2$ 的一致值范围内测量 $Y$。但是，实验不仅在 $X_1$ 和 $X_2$ 的值方面存在很大差异，而且在级别数量方面也存在很大差异 - 有些实验仅使用 1 或 2 个 $X_1$ 和 $X_2$ 级别。
-
-我对加权最小二乘法的经验有限，在分位数回归方面更是一无所知。我理解，在更简单的回归中，典型的方法是仅用 1/方差对均值进行加权。我认为我可以将所有具有原始数据值的案例转换为均值和方差。
-但是，至少有 2 个主要问题我不知道如何解决：
-
-均值没有相关不确定性的案例。
-每个治疗组合中只有一个值且没有重复的案例。
-
-解决这些问题的最佳方法是什么？由于我的目标是进行分位数回归，因此是否存在其他复杂情况？
-注意：我在这里完全忽略了随机效应，因为我认为这不是一个重要的问题。但我很高兴在混合/分层模型的背景下也回答了这个问题。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656053/how-should-i-weight-points-in-a-quantile-regression-when-the-uncertainty-is-unkn</guid>
-      <pubDate>Sun, 20 Oct 2024 19:06:46 GMT</pubDate>
+我考虑过：
+我相信我可以根据前三位顾客选择的结果计算出概率，$\mathbb{P}(X_4=i|X_1≠i,X_2≠i,X_3≠i)$
+即第四位顾客选择菜品的概率$i$，假设每个先前的顾客都选择了不同的商品。是否有必要为所有 $i=1,2,3,4,5$ 计算这个，还是只为一个 $i$ 计算就足够了？另外，我想知道是否有办法使用条件概率，或者是否有更简单的方法来解决这个问题，也许使用多项分布或对称参数？
+任何关于如何解决这个问题或正确概率计算的指导都将不胜感激！]]></description>
+      <guid>https://stats.stackexchange.com/questions/656046/probability-of-4th-customer-choosing-new-menu-item</guid>
+      <pubDate>Sun, 20 Oct 2024 17:04:54 GMT</pubDate>
     </item>
     <item>
       <title>寻找 $3\theta_2^2$ 的 MVUE 的技术背后的动机</title>
@@ -190,13 +256,6 @@ $$T&#39; = \frac{n}{3\left(n-1\right)^2} \sum_{i=1}^n \left(X_i - \overline X\ri
       <pubDate>Fri, 11 Oct 2024 23:13:17 GMT</pubDate>
     </item>
     <item>
-      <title>约束截距时不计算稳健拟合指数</title>
-      <link>https://stats.stackexchange.com/questions/655190/robust-fit-indices-not-calculating-when-constraining-intercepts</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/655190/robust-fit-indices-not-calculating-when-constraining-intercepts</guid>
-      <pubDate>Tue, 01 Oct 2024 20:01:55 GMT</pubDate>
-    </item>
-    <item>
       <title>名义连续序数变量之间的关系</title>
       <link>https://stats.stackexchange.com/questions/655167/relationship-between-nominal-continuous-ordinal-variables</link>
       <description><![CDATA[我有一个包含多个二分、连续和序数变量的数据集。作为探索性数据分析的一部分，我发现相关矩阵是一个非常有用的工具，可以查看哪些变量可能与其他变量之间存在关系。我可以使用 Spearman 相关性一次性对连续和序数变量进行此操作。由于二分变量编码“是/否”情况，我可以使用 Cramer&#39;s V 或修正的 Cramer&#39;s V 值创建一个关联矩阵，但我如何定量地看到二分-连续变量之间、名义非二分和连续变量之间或序数和名义变量之间的关系的强度？
@@ -210,13 +269,6 @@ $$T&#39; = \frac{n}{3\left(n-1\right)^2} \sum_{i=1}^n \left(X_i - \overline X\ri
 我们如何才能说明吸烟、体重、年龄和性别与序数变量健康问题之间的关系有多强？我们如何才能看到其他变量之间的关系让我们假设连续变量不是正态分布的。]]></description>
       <guid>https://stats.stackexchange.com/questions/655167/relationship-between-nominal-continuous-ordinal-variables</guid>
       <pubDate>Tue, 01 Oct 2024 11:36:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>预测的可能性::Arima 与手动复制</title>
-      <link>https://stats.stackexchange.com/questions/654959/likelihood-from-forecastarima-vs-manual-replication</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/654959/likelihood-from-forecastarima-vs-manual-replication</guid>
-      <pubDate>Thu, 26 Sep 2024 16:07:18 GMT</pubDate>
     </item>
     </channel>
 </rss>
