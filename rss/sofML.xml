@@ -4,16 +4,153 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 21 Oct 2024 18:23:04 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 21 Oct 2024 21:15:43 GMT</lastBuildDate>
     <item>
-      <title>请进一步优化此代码。目前模型的训练准确率为 83%，测试准确率为 80%。我们使用了 Densenet121</title>
+      <title>SRGAN Android Tensorflow Lite 推理输出与 Python 版本不匹配</title>
+      <link>https://stackoverflow.com/questions/79111493/srgan-android-tensorflow-lite-inference-output-doesnt-match-to-python-version</link>
+      <description><![CDATA[我尝试使用此模型的 tflite 版本实现 Android Kotlin 应用，https://github.com/krasserm/super-resolution/blob/master/model/common.py
+我有一个 gan_generator.tflite 模型。我可以推断它并在 Python 中使用它获得正确的输出。但即使我进行了相同的后处理操作，我也无法在 Android Kotlin 中获得与位图相同的结果。我遗漏了什么？
+from model.srgan import generator
+from utils import load_image, plot_sample
+from model import resolve_single
+import tensorflow as tf
+
+model = generator()
+model.load_weights(&#39;weights/srgan/gan_generator.h5&#39;)
+
+# 从 Keras 模型创建 TFLite 转换器
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
+
+# 设置转换参数（可选）
+converter.optimizations = [tf.lite.Optimize.DEFAULT] 
+converter.target_spec.supported_types = [tf.float32]
+
+# 转换模型
+tflite_model = converter.convert()
+
+# 将 TFLite 模型保存到文件
+with open(&#39;gan_generator.tflite&#39;, &#39;wb&#39;) as f:
+f.write(tflite_model)
+
+interpreter = tf.lite.Interpreter(model_path=&#39;gan_generator.tflite&#39;)
+interpreter.allocate_tensors()
+
+input_details = interpretationer.get_input_details()
+
+output_details = interpretationer.get_output_details()
+
+input_shape = input_details[0][&#39;shape&#39;]
+
+input_data = np.asarray(load_image(&#39;demo/0869x4-crop.png&#39;), dtype=np.float32)
+input_data = np.expand_dims(input_data, axis=0)
+input_data = np.reshape(input_data, (1, input_data.shape[1], input_data.shape[2], 3))
+
+# 设置输入张量
+interpreter.resize_tensor_input(input_details[0][&#39;index&#39;], (1, input_data.shape[1], input_data.shape[2], 3),strict=True)
+interpreter.allocate_tensors()
+
+interpreter.set_tensor(input_details[0][&#39;index&#39;], input_data)
+
+interpreter.invoke()
+
+# 获取输出
+output_data = interpretation.get_tensor(output_details[0][&#39;index&#39;])
+
+output_data = np.squeeze(output_data)
+output_data = np.clip(output_data, 0, 255).astype(np.uint8)
+
+# 从 NumPy 数组创建 PIL 图像
+image = Image.fromarray(output_data)
+image #此处创建的输出图像成功
+
+###----------Android 端-------------------------
+ val tensorImage = TensorImage(INPUT_IMAGE_TYPE).also { it.load(inputBitmap) }
+val processingImage = imageProcessor.process(tensorImage)
+
+//[1,4X,4X,3] 输出
+val outputBuffer = TensorBuffer.createFixedSize(
+intArrayOf(
+1,
+processingImage.width * outputShapeForScaling,
+processingImage.height * outputShapeForScaling,
+3
+),
+OUTPUT_IMAGE_TYPE
+)
+
+// [1, None, None, 3] 动态输入
+explainer!!.resizeInput(
+explainer!!.getInputTensor(0).index(),
+intArrayOf(1, processingImage.width, processingImage.height, 3)
+)
+
+解释器！！.allocateTensors()
+
+解释器！！.run(processedImage.buffer, outputBuffer.buffer)
+
+val processingOutput = processOutput(
+outputBuffer,
+width = processingImage.width * 4,
+height = processingImage.height * 4
+)
+
+
+##---------后期处理---------------------------
+private fun processOutput(outputBuffer: TensorBuffer, width: Int, height: Int): Bitmap {
+val data = outputBuffer.floatArray
+
+// 检查浮点数组是否具有正确数量的元素
+if (data.size != width * height * 3) {
+throw IllegalArgumentException(&quot;数据大小与预期图像大小不匹配。&quot;)
+}
+
+// 创建一个空的 Bitmap
+val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+//遍历浮点数组并设置位图中的像素
+var index: Int
+for (y in 0 till height) {
+for (x in 0 till width) {
+index = (y * width + x) * 3
+// 从浮点数组中提取 RGB 值
+val r = data[index].coerceIn(0f, 255f).toInt()
+val g = data[index + 1].coerceIn(0f, 255f).toInt()
+val b = data[index + 2].coerceIn(0f, 255f).toInt()
+
+// 设置像素颜色（我们将 alpha 设置为 255 以实现完全不透明度）
+bitmap.setPixel(x, y, Color.rgb(r, g, b))
+}
+}
+
+return bitmap
+}
+
+结果：
+]]></description>
+      <guid>https://stackoverflow.com/questions/79111493/srgan-android-tensorflow-lite-inference-output-doesnt-match-to-python-version</guid>
+      <pubDate>Mon, 21 Oct 2024 19:24:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>无法单击我的 LinkedIn 自动化脚本中的“连接”按钮</title>
+      <link>https://stackoverflow.com/questions/79111488/trouble-clicking-connect-button-in-my-linkedin-automation-script</link>
+      <description><![CDATA[我使用 Selenium 开发了一个简单的机器人，它可以打开 LinkedIn 并搜索“数据科学家”和“首席数据科学家”职位。虽然该机器人成功执行了搜索，但目前无法单击“连接”按钮。我将不胜感激任何有关解决此问题的指导。错误消息
+GitHub 代码
+我尝试过的方法：
+我使用 Selenium 创建了一个机器人，它可以打开 LinkedIn 并搜索术语“数据科学家”和“首席数据科学家”。我已经实现了搜索功能，可以成功检索搜索结果。但是，当我尝试点击显示的个人资料的“连接”按钮时，机器人不会记录点击操作。
+我的期望：
+我希望机器人不仅执行搜索，还会自动点击找到的相关个人资料的“连接”按钮。这将使我能够简化 LinkedIn 上的社交流程。]]></description>
+      <guid>https://stackoverflow.com/questions/79111488/trouble-clicking-connect-button-in-my-linkedin-automation-script</guid>
+      <pubDate>Mon, 21 Oct 2024 19:21:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>请进一步优化此代码。目前模型的训练准确率为 83%，测试准确率为 80%。我们使用了 Densenet121 [关闭]</title>
       <link>https://stackoverflow.com/questions/79111255/please-give-further-optimization-for-this-code-currently-models-accuracy-is-of</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79111255/please-give-further-optimization-for-this-code-currently-models-accuracy-is-of</guid>
       <pubDate>Mon, 21 Oct 2024 18:07:54 GMT</pubDate>
     </item>
     <item>
-      <title>有没有快速的方法可以提高对象检测模型的置信度？</title>
+      <title>有没有快速的方法可以提高物体检测模型的置信度？[关闭]</title>
       <link>https://stackoverflow.com/questions/79111080/is-there-a-fast-way-to-raise-the-confidence-levels-of-an-object-detection-model</link>
       <description><![CDATA[我目前正在构建一个对象检测模型，用于识别冰箱图片中的食物成分。我使用 Google Colab 来编码和训练我的模型，并使用 RESNET-50 的架构。我删除了已经存在的类别，并使用 Google Colab 最好的 GPU 在包含约 6,000 张图像（已注释，70% 为训练，15% 为有效，15% 为测试）的数据集上对其进行训练。训练后，我的模型似乎仍然没有学到任何东西。取得如此糟糕的结果是否正常，或者有没有办法更快地进行训练并获得更好的结果？我听说过 Google Cloud，但我不知道它是否会有所不同。我是否遗漏了一些隐藏参数？
 为了训练我的模型，我使用了 pytorch_lightning 的 Trainer。然而，训练需要很长时间，甚至在训练了 30 个时期之后，当预测正确时（通常情况并非如此），未知数据的置信度仍然低于 5％。]]></description>
@@ -30,8 +167,8 @@
     <item>
       <title>如何逐步训练人脸识别模型而无需从头开始重新训练？</title>
       <link>https://stackoverflow.com/questions/79110748/how-to-incrementally-train-a-face-recognition-model-without-retraining-from-scra</link>
-      <description><![CDATA[我是深度学习的新手，目前正在构建人脸识别模型。我已经使用两个人（克里斯蒂亚诺·罗纳尔多和莱昂内尔·梅西）的图像训练了一个模型。现在，我想将更多人（例如玛丽亚·莎拉波娃）添加到模型中，而无需从头开始重新训练所有内容，因为我的笔记本电脑没有足够的计算能力。
-有没有办法使用新数据集训练模型？如果是这样，我如何有效地将新的训练数据与现有模型合并？我只是想学习一些新东西，并希望得到任何指导或代码示例。谢谢！
+      <description><![CDATA[我正在构建人脸识别模型。我已经使用两个人（克里斯蒂亚诺·罗纳尔多和莱昂内尔·梅西）的图像训练了一个模型。现在，我想向模型中添加更多人（例如玛丽亚·莎拉波娃），而无需从头开始重新训练所有内容。
+有没有办法使用新数据集训练模型？如果是这样，我该如何有效地将新的训练数据与现有模型合并？
 这是我现有的代码
 import torch
 import torchvision
@@ -67,11 +204,9 @@ num_classes = len(class_names)
 model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
 
 device = torch.device(&quot;cpu&quot;)
-
 model = model.to(device)
 
 criterion = torch.nn.CrossEntropyLoss()
-
 optimizer = torch.optim.SGD(model.parameters(), lr=0.001, influence=0.9)
 
 num_epochs = 10
@@ -253,63 +388,6 @@ print(future_df_all_countries)
       <pubDate>Mon, 21 Oct 2024 08:03:58 GMT</pubDate>
     </item>
     <item>
-      <title>从处理后的图像中提取文本</title>
-      <link>https://stackoverflow.com/questions/79108131/extract-text-from-processed-image</link>
-      <description><![CDATA[我正在尝试从任何欧盟车牌的裁剪图像中提取文本。我尝试使用 easyocr，但结果对我来说太不准确了。我已经训练了一个 YOLOV8 模型来检测车牌，然后我裁剪了图像并对其进行了一些处理，如灰度和阈值处理。有人能帮我完成最后一步，从裁剪和处理过的车牌中提取文本吗？我的代码目前看起来像这样
-from ultralytics import YOLO
-import cv2
-from inference import get_model
-import easyocr
-
-reader = easyocr.Reader([&#39;en&#39;])
-
-plate_model = get_model(model_id=&quot;plate-recogniser/3&quot;, api_key=&lt;API_KEY&gt;)
-
-# 加载图像
-image_file = r&quot;C:\Users\46723\Desktop\Plate Recognition\samples\swedish.jpg&quot;
-image = cv2.imread(image_file)
-
-# 执行推理以检测车牌
-results = plate_model.infer(image)[0]
-
-for prediction in results.predictions:
-x_center = prediction.x
-y_center = prediction.y
-width = prediction.width
-height = prediction.height
-
-# 计算边界框坐标
-x1 = int(x_center - width / 2)
-y1 = int(y_center - height / 2)
-x2 = int(x_center + width / 2)
-y2 = int(y_center + height / 2)
-
-# 裁剪检测到的车牌区域
-license_plate_crop = image[y1:y2, x1:x2]
-
-# 转换为灰度
-license_plate_crop_gray = cv2.cvtColor(license_plate_crop, cv2.COLOR_BGR2GRAY)
-
-# 自适应阈值化
-license_plate_crop_thresh = cv2.adaptiveThreshold(
-license_plate_crop_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-cv2.THRESH_BINARY_INV, 11, 2
-)
-
-text_results = reader.readtext(license_plate_crop_thresh)
-
-for (bbox, text, prob) in text_results:
-print(f&quot;检测到的车牌文本：{text}，置信度：{prob:.2f}&quot;)
-
-cv2.imshow(&quot;裁剪后的车牌&quot;, license_plate_crop)
-cv2.waitKey(0)
-
-cv2.destroyAllWindows()
-]]></description>
-      <guid>https://stackoverflow.com/questions/79108131/extract-text-from-processed-image</guid>
-      <pubDate>Sun, 20 Oct 2024 21:56:49 GMT</pubDate>
-    </item>
-    <item>
       <title>ValueError：使用 MSE 时无法将字符串转换为浮点数：'？'</title>
       <link>https://stackoverflow.com/questions/79107349/valueerror-could-not-convert-string-to-float-while-working-with-mse</link>
       <description><![CDATA[我正在使用 auto-mpg 数据集。我在下面给出了数据集的链接：
@@ -379,90 +457,6 @@ ValueError：无法将字符串转换为浮点数：&#39;？&#39;
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79088393/how-to-add-eos-when-training-t5</guid>
       <pubDate>Tue, 15 Oct 2024 04:22:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 tf.keras.metrics.R2Score 导致 Tensorflow 出现错误</title>
-      <link>https://stackoverflow.com/questions/78056806/using-tf-keras-metrics-r2score-results-in-an-error-in-tensorflow</link>
-      <description><![CDATA[我正在使用 Tensorflow 制作回归模型，但是当我使用 tf.keras.metrics.R2Score() 作为指标时，它在第一个 epoch 之后失败，并出现 ValueError: Tensor conversion requested dtype int32 for Tensor with dtype float32: &lt;tf.Tensor: shape=(), dtype=float32, numpy=0.0&gt;。 （但在此之前工作正常）但是，如果我使用不同的指标（tf.keras.metrics.RootMeanSquaredError()），它工作正常。
-import pandas as pd
-
-weather_states = pd.read_sql(&quot;SELECT stations.id, stations.capacity_kw, start, wind_speed_10m, wind_direction_10m, wind_speed_80m, wind_direction_80m, wind_speed_180m, wind_direction_180m FROM stations INNER JOIN weather_states ON stations.id = weather_states.station WHERE weather_states.source = &#39;openmeteo_forecast/history/best&#39; AND stations.source = &#39;wind&#39;&quot;, db_client)
-
-grid_states = pd.read_sql(&quot;SELECT start, wind来自 grid_states&quot;, db_client)
-
-def create_x_y(df: tuple[Any, pd.DataFrame]):
-start = df[1][&quot;start&quot;].iloc[0]
-res = df[1].sort_values(&quot;id&quot;).drop([&quot;id&quot;, &quot;start&quot;], axis=1)
-temp_wind = grid_states.loc[grid_states[&quot;start&quot;] == start][&quot;wind&quot;].to_list()
-wind_kw = temp_wind if len(temp_wind) &gt;= 1 else None
-res_flat_df = pd.DataFrame(res.to_numpy().reshape((1, -1)))
-res_flat_df[&quot;wind_kw&quot;] = wind_kw
-返回res_flat_df
-
-data = pd.concat(map(create_x_y, weather_states.groupby(&quot;start&quot;))).dropna()
-来自 sklearn.model_selection 导入 train_test_split
-
-data = data.astype(&quot;float32&quot;)
-train, test = train, test = train_test_split(data.dropna(), test_size=0.2)
-
-train_y = train.pop(&quot;wind_kw&quot;)
-train_x = train
-
-test_y = test.pop(&quot;wind_kw&quot;)
-test_x = test
-
-norm = tf.keras.layers.Normalization()
-norm.adapt(train_x)
-
-model = tf.keras.Sequential([
-norm,
-tf.keras.layers.Dense(16,activation=&quot;linear&quot;),
-tf.keras.layers.Dropout(0.3),
-tf.keras.layers.Dense(1, 激活=&quot;线性&quot;),
-])
-
-model.compile(
-优化器=tf.keras.optimizers.legacy.Adam(0.001),
-指标=[tf.keras.metrics.R2Score(dtype=tf.float32)],
-损失=tf.keras.losses.MeanSquaredError(),
-)
-
-model.fit(train_x, train_y, epochs=7, batch_size=2)
-
-tf.keras.models.save_model(model, &#39;wind.keras&#39;)
-
-print(data.describe())
- 0 1 2 3 4 ... 241 242 243 244 wind_kw
-计数 1896.0 1896.000000 1896.000000 1896.000000 1896.000000 ... 1896.000000 1896.000000 1896.000000 1896.000000 1896.000000
-平均值 144000.0 4.315717 189.610759 5.791377 193.830169 ... 3.881292 145.420359 4.572205 143.642405 1292.576958
-标准差 0.0 2.482439 113.178764 2.926497 113.685887 ... 2.612259 93.293471 2.775681 94.721086 611.333721
-最小值 144000.0 0.100000 1.000000 0.100000 1.000000 ... 0.100000 2.000000 0.000000 1.000000 34.263000
-25% 144000.0 2.110000 88.000000 3.487500 90.000000 ... 1.900000 67.000000 2.500000 63.000000 793.109500
-50% 144000.0 4.110000 199.000000 5.500000 231.000000 ... 3.075000 137.000000 3.940000 135.000000 1251.590000
-75% 144000.0 6.220000 291.000000 7.882500 294.000000 ... 5.502500 205.000000 6.082500 205.000000 1761.926750
-最大144000.0 11.670000 360.000000 15.210000 360.000000 ... 14.460000 360.000000 16.980000 360.000000 3008.125000
-
-print(type(data))
-#&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
-print(data.dtypes)
-#0 float32
-#1 float32
-#2 float32
-#3 float32
-#4 float32
-# ... 
-#241 float32
-#242 float32
-#243 float32
-#244 float32
-#wind_kw float32
-#Length: 246, dtype: object
-print(data.shape)
-#(1896, 246)
-
-我似乎无法在网上找到有关使用 R2Score 时出现此错误的任何信息 - 您对问题可能是什么有任何想法吗？]]></description>
-      <guid>https://stackoverflow.com/questions/78056806/using-tf-keras-metrics-r2score-results-in-an-error-in-tensorflow</guid>
-      <pubDate>Sun, 25 Feb 2024 16:40:38 GMT</pubDate>
     </item>
     <item>
       <title>我应该如何正确使用 torch.compile？</title>
