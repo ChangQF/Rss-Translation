@@ -4,14 +4,148 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 25 Oct 2024 12:33:02 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 25 Oct 2024 15:17:49 GMT</lastBuildDate>
     <item>
-      <title>我是否需要使用具有混合值的 kprototype 聚类来缩放数据？</title>
+      <title>有没有快速的方法可以提高对象检测模型的置信度？</title>
+      <link>https://stackoverflow.com/questions/79126036/is-there-a-fast-way-to-raise-the-confidence-levels-of-an-object-detection-model</link>
+      <description><![CDATA[我目前正在构建一个对象检测模型，用于识别冰箱图片中的食品成分。我使用 Google Colab 来编码和训练我的模型，并使用 RESNET-50 的架构。我删除了现有的类别，并使用 Google Colab 最好的 GPU 在包含约 6,000 张图像（已注释，70% 为训练，15% 为有效，15% 为测试）的数据集上对其进行训练。训练后，我的模型似乎仍然没有学到任何东西。取得如此糟糕的结果是否正常，或者是否有方法可以更快地进行训练并获得更好的结果？我听说过 Google Cloud，但我不知道它是否会有所作为。我是否遗漏了一些隐藏参数？
+这是我编写所有内容的 Google-Colab Notebook：https://colab.research.google.com/drive/1m4zbNE8-qVUkep-37Mz2S3URvELdGWX6?usp=sharing
+为了训练我的模型，我使用了 pytorch_lightning 的 Trainer。然而，训练需要很长时间，即使经过 30 个时期的训练，当预测正确时（通常情况并非如此），未见数据的置信度仍然低于 5%。
+编辑：目前，我正在使用一个新的、更定性的数据集，其中包含 20k 张图像，分为 68 个类别。我没有对模型进行足够的测试，因为我发现预测太低了，如果你看看笔记本，你会发现我必须设置 CONFIDENCE_THRESHOLD_2 = 0.03 才能获得任何结果，但我认为这是由于训练不足造成的。]]></description>
+      <guid>https://stackoverflow.com/questions/79126036/is-there-a-fast-way-to-raise-the-confidence-levels-of-an-object-detection-model</guid>
+      <pubDate>Fri, 25 Oct 2024 14:02:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 Accord.NET 中使用隔离森林进行异常检测的问题：缺少命名空间</title>
+      <link>https://stackoverflow.com/questions/79125178/issue-with-using-isolation-forest-for-anomaly-detection-in-accord-net-missing-n</link>
+      <description><![CDATA[在此处输入图片描述
+我尝试使用 Accord.NET 库（特别是使用 Isolation Forest 算法）在我的 C# 应用程序中实现异常检测。但是，我遇到一个错误，指示 Accord.MachineLearning.AnomalyDetection 命名空间不存在。
+\&lt;PackageReference Include=&quot;Accord.MachineLearning&quot; Version=&quot;3.8.0&quot; /\&gt;
+
+\&lt;PackageReference Include=&quot;Accord.Math&quot; Version=&quot;3.8.0&quot; /\&gt;
+
+\&lt;PackageReference Include=&quot;Accord.Statistics&quot; Version=&quot;3.8.0&quot; /\&gt;
+
+\&lt;PackageReference Include=&quot;CsvHelper&quot; Version=&quot;33.0.1&quot; /\&gt;
+
+CS0234：类型或命名空间名称“AnomalyDetection”在命名空间“Accord.MachineLearning”中不存在（您是否缺少程序集引用？）
+
+using CsvHelper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using CVAnomalyDetection.Models;
+
+public class HomeController : Controller
+{
+private List&lt;CsvData&gt; _csvData;
+
+public IActionResult Index()
+{
+return View();
+}
+
+[HttpPost]
+public IActionResult Upload(IFormFile file)
+{
+if (file != null &amp;&amp; file.Length &gt; 0)
+{
+using (var reader = new StreamReader(file.OpenReadStream()))
+using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+{
+_csvData = csv.GetRecords&lt;CsvData&gt;().ToList();
+}
+return View(&quot;Index&quot;, _csvData);
+}
+return RedirectToAction(&quot;Index&quot;);
+}
+
+[HttpPost]
+public IActionResult Predict()
+{
+var anomalies = DetectAnomalies(_csvData);
+return View(&quot;AnomalyResults&quot;, anomalies);
+}
+
+private List&lt;CsvData&gt; DetectAnomalies(List&lt;CsvData&gt; data)
+{
+// 独热编码分类列
+var uniqueValuesProductCategory = data.Select(x =&gt; x.ProductCategory).Distinct().ToList();
+var uniqueValuesCustomerRegion = data.Select(x =&gt; x.CustomerRegion).Distinct().ToList();
+var uniqueValuesPaymentMethod = data.Select(x =&gt; x.PaymentMethod).Distinct().ToList();
+
+// 创建用于异常检测的输入数据数组
+var combinedData = new List&lt;double[]&gt;();
+
+foreach (var item in data)
+{
+var features = new List&lt;double&gt;();
+
+// ProductCategory 的独热编码
+foreach (var value in uniqueValuesProductCategory)
+{
+features.Add(value == item.ProductCategory ? 1.0 : 0.0);
+}
+
+// CustomerRegion 的独热编码
+foreach (var value in uniqueValuesCustomerRegion)
+{
+features.Add(value == item.CustomerRegion ? 1.0 : 0.0);
+}
+
+// PaymentMethod 的独热编码
+foreach (var value in uniqueValuesPaymentMethod)
+{
+features.Add(value == item.PaymentMethod ? 1.0 : 0.0);
+}
+
+combinedData.Add(features.ToArray());
+}
+
+// 初始化隔离森林
+varisolationForest = new Accord.MachineLearning.IsolationForest()
+{
+NumberOfTrees = 100,
+Contamination = 0.05 // 根据需要进行调整
+};
+
+// 使用组合数据训练隔离森林模型
+isolationForest.Learn(combinedData.ToArray());
+
+// 预测异常
+var predictions =isolationForest.Decide(combinedData.ToArray());
+
+// 查找并返回实际的异常记录
+return data.Where((d, index) =&gt; predictions[index] == -1).ToList(); // -1 表示异常
+}
+
+private double EuclideanDistance(double[] a, double[] b)
+{
+return Math.Sqrt(a.Zip(b, (x, y) =&gt; Math.Pow(x - y, 2)).Sum());
+}
+}
+]]></description>
+      <guid>https://stackoverflow.com/questions/79125178/issue-with-using-isolation-forest-for-anomaly-detection-in-accord-net-missing-n</guid>
+      <pubDate>Fri, 25 Oct 2024 10:02:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>我是否需要使用具有混合值的 kprototype 聚类来缩放数据？[关闭]</title>
       <link>https://stackoverflow.com/questions/79124536/do-i-need-to-scale-the-data-with-kprototype-clustering-with-mixed-value</link>
       <description><![CDATA[我想使用 kmodes.kprototypes 中的 kprototype 对一些混合数据进行聚类。因此，有些是数值数据，有些是分类数据。我需要缩放数据吗？如果是，我是否只需要缩放数值数据？
 我不熟悉 kprototype 的实现，我想对一些混合数据进行聚类。缩放能给我带来更好的结果吗？]]></description>
       <guid>https://stackoverflow.com/questions/79124536/do-i-need-to-scale-the-data-with-kprototype-clustering-with-mixed-value</guid>
       <pubDate>Fri, 25 Oct 2024 06:48:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 MIRNet 模型保存和重复使用低光增强？</title>
+      <link>https://stackoverflow.com/questions/79124119/how-to-save-and-reuse-low-light-enhancement-using-mirnet-model</link>
+      <description><![CDATA[我最近在 Keras 上发现了一个关于图像增强的有趣教程。代码没问题，我运行没有任何错误，但我不知道如何保存模型并重新使用它。
+我试了很多次，但无法保存模型。有人能帮帮我吗，谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/79124119/how-to-save-and-reuse-low-light-enhancement-using-mirnet-model</guid>
+      <pubDate>Fri, 25 Oct 2024 02:48:27 GMT</pubDate>
     </item>
     <item>
       <title>尽管 Keras 模型在训练中具有很高的准确率，但它对所有输入都给出完全相同的预测值</title>
@@ -52,67 +186,6 @@
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79123110/time-series-forecasting-how-to-predict-future-values-using-features-calculated</guid>
       <pubDate>Thu, 24 Oct 2024 17:39:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>将 Python 模型集成到 Power Bi</title>
-      <link>https://stackoverflow.com/questions/79122864/integrate-python-model-to-power-bi</link>
-      <description><![CDATA[在 power BI 中，我必须创建一个基于 NLP 的聊天机器人，就像我们在 power bi 中有 QnA visual 一样，它可以回答自然语言处理中提出的问题，但由于它的一些限制，我无法使用它。
-我想使用 python 训练我的数据集并创建一个可以回答任何自然语言问题的模型。
-然而问题是我无法将 python 脚本运行到 Power bi 中，因为它没有网关连接，所以它不会刷新，我不需要在我的本地系统中执行此操作，只需将其发送给最终用户即可。任何我加载到 power bi 中的东西最终都会看起来像一张表格，我必须创建它的视觉效果。
-我想知道以何种方式可以使用用 python 编写的 QnA 模型将 python 模型灌输到 power bi 中，以便用户可以用自然语言搜索他们想要问的问题。
-有没有办法使用 python 让最终用户可以像聊天机器人一样输入他们的问题并得到他们的答案？]]></description>
-      <guid>https://stackoverflow.com/questions/79122864/integrate-python-model-to-power-bi</guid>
-      <pubDate>Thu, 24 Oct 2024 16:24:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>pytorch 的 mask r-cnn 推理 ONNX 模型从不起作用</title>
-      <link>https://stackoverflow.com/questions/79122467/inferencing-onnx-model-of-pytorchs-mask-r-cnn-never-works</link>
-      <description><![CDATA[问题：推理 onnx 模型给出空结果或形状奇怪的结果
-我正在尝试：pytorch 预训练 mask-rcnn -&gt; 在数据集上微调 -&gt; 另存为 onnx -&gt; 在 onnx 上推理 -&gt; 绘制结果
-我目前拥有的一切都在推理之前有效。
-我的 main.py 文件：https://pastebin.com/3jNfZdBi
-获取有关我保存的 onnx 模型的信息
-模型输入信息：
-名称：输入
-形状：[&#39;batch_size&#39;, 3, &#39;height&#39;, &#39;width&#39;]
-类型：张量（浮点）
-
-模型输出信息：
-名称：boxes
-形状：[&#39;Concatboxes_dim_0&#39;, 4]
-类型：张量（浮点）
-名称：labels
-形状：[&#39;Gatherlabels_dim_0&#39;]
-类型：张量（int64）
-名称：分数
-形状：[&#39;Gatherlabels_dim_0&#39;]
-类型：张量（浮点）
-名称：掩码
-形状：[&#39;Unsqueezemasks_dim_0&#39;, &#39;Unsqueezemasks_dim_1&#39;, &#39;Unsqueezemasks_dim_2&#39;, &#39;Unsqueezemasks_dim_3&#39;]
-类型：张量（浮点）
-
-我的推理代码：https://pastebin.com/wxvp649G
-我怀疑我要么：错误地将内容保存到 onnx，要么没有正确地预处理我的数据，要么我的推理代码是错误的（或其他我不知道的东西）
-保存到 onnx 的代码
-def save_model_onnx(models_file_path, model, torch_input):
-#传统的导出方法。还有一种实验性的 dynamo_export 方法
-torch.onnx.export(
-model.cpu(),
-torch_input.cpu(),
-models_file_path, # 模型的完整路径，包括模型本身，即 ./models/model.onnx
-export_params = True,
-opset_version=15, # 选择支持的 ONNX opset 版本
-do_constant_folding=True, # 折叠常量节点以进行优化
-input_names = [&#39;input&#39;],
-output_names = [&#39;boxes&#39;, &#39;labels&#39;, &#39;scores&#39;, &#39;masks&#39;],
-dynamic_axes={
-&quot;input&quot;: {0: &quot;batch_size&quot;, 2: &quot;height&quot;, 3: &quot;width&quot;}, 
-}
-)
-logstash.info(f&quot;模型保存在{models_file_path}&quot;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/79122467/inferencing-onnx-model-of-pytorchs-mask-r-cnn-never-works</guid>
-      <pubDate>Thu, 24 Oct 2024 14:41:59 GMT</pubDate>
     </item>
     <item>
       <title>ML.NET 混合预测和预测</title>
@@ -241,44 +314,6 @@ Price：服务费用（例如，“30 美元”）
 我使用 chatgpt 将服务标记为类别取得了一些成功，但我认为这对于如此大的数据集来说不是一个可行的解决方案。]]></description>
       <guid>https://stackoverflow.com/questions/79112237/clustering-based-on-text-descriptions</guid>
       <pubDate>Tue, 22 Oct 2024 02:14:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>OpenCV 与 OpenVINO 后端：动态批次大小问题</title>
-      <link>https://stackoverflow.com/questions/79097169/opencv-with-openvino-backend-problem-whit-dynamic-batch-size</link>
-      <description><![CDATA[我正在使用 OpenCV（版本 4.10.0）和 OpenVINO（2023.0.1）后端编译来加载和处理深度学习模型。我已使用 ovc 和 omz_downloader 成功将模型从 Open Model Zoo 转换为 OpenVINO IR 格式。转换工作正常，但在将模型导入 OpenCV 进行推理时遇到了问题。
-问题：
-模型使用动态批处理大小（[-1, 3, 112, 112]）进行转换。当我尝试使用 cv::dnn::readNetFromModelOptimizer() 函数在 OpenCV 中加载此模型时，我在 OpenCV 源代码的这一部分中收到异常：
-NetImplOpenVINO::createNetworkFromModelOptimizer(std::shared_ptr&lt;ov::Model&gt;&amp; ieNet) 函数
-{
-....
-for (auto&amp; it : ieNet-&gt;get_parameters())
-{
-inputNames.push_back(it-&gt;get_friendly_name());
-std::vector&lt;size_t&gt; dims = it-&gt;get_shape(); // 此处发生异常
-inp_shapes.push_back(std::vector&lt;int&gt;(dims.begin(), dims.end()));
-}
-.....
-}
-
-在 OpenCV 代码中调用 it-&gt;get_shape() 时发生异常，可能是因为模型具有动态形状。
-问题：
-使用 OpenVINO 后端时，如何在 OpenCV 的 DNN 模块中处理具有动态批处理大小的模型？
-是否有在 OpenCV 中加载具有动态输入形状的模型的解决方法，还是应该直接使用 OpenVINO 的推理引擎管理动态批处理？
-环境：
-OpenCV 4.10.0
-OpenVINO 2023.1
-Windows 11
-环境 c++
-
-静态批处理大小：我使用静态批处理大小 ([1, 3, 112, 112]) 转换了模型，并且它运行良好。但是，我需要为我的应用程序处理动态批次大小。
-后端设置：我正在使用以下方法将后端设置为 OpenVINO：
-
-`net.setPreferableBackend(cv::dnn::DNN_BACKEND_INFERENCE_ENGINE);
-net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);`
-
-任何有关使用 OpenVINO 处理 OpenCV 中的动态批次大小的帮助或见解都将不胜感激！]]></description>
-      <guid>https://stackoverflow.com/questions/79097169/opencv-with-openvino-backend-problem-whit-dynamic-batch-size</guid>
-      <pubDate>Thu, 17 Oct 2024 08:22:34 GMT</pubDate>
     </item>
     <item>
       <title>使用 scikit learn 训练机器学习模型进行时间序列预测</title>
