@@ -4,7 +4,125 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 27 Oct 2024 09:16:45 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 27 Oct 2024 12:30:19 GMT</lastBuildDate>
+    <item>
+      <title>线性变换和参数估计</title>
+      <link>https://stats.stackexchange.com/questions/656374/linear-transformations-and-parameter-estimation</link>
+      <description><![CDATA[我正在对模型应用转换（这里是我线性化的指数），并希望估计参数。
+# 清除环境
+rm(list=ls())
+# 加载所需库
+library(ggplot2)
+
+# 生成 x 值、y 值和 y 上的相应误差
+x_values_exp &lt;- c(0.1, 0.2, 0.5, 1, 2, 3, 4) 
+y_values_exp &lt;- c(9, 8.5, 7.5, 6.4, 5.2, 4.7, 4.5)
+y_values_exp_error &lt;- rep(0.58, length(x_values_exp))
+# 创建数据框
+my_data &lt;- data.frame(x = x_values_exp, y = y_values_exp , y_error = y_values_exp_error)
+
+这里我知道错误 (y_values_exp_error)，然后我可以使用或不使用权重进行拟合。
+# 使用已知权重拟合非线性模型 (exp)
+nlMMERROR_known_weigths &lt;- nls(y ~ A * exp(B * x), data = my_data, start = list(A = 1, B = 1), weights = 1/(y_values_exp_error^2))
+# 使用未知权重拟合非线性模型 (exp)
+nlMMERROR_unknown_weigths &lt;- nls(y ~ A * exp(B * x), data = my_data, start = list(A = 1, B = 1))
+
+对于第二次拟合，我可以使用以下方法估计误差：
+# 估计 nlMMERROR_unknown_weigths 上的误差（因为我有 2 个参数，所以是 2）
+residuals &lt;- residuals(nlMMERROR_unknown_weigths)
+y_error_estimated &lt;- sqrt(sum(residuals^2)/(length(residuals)-2))
+y_error_estimated
+
+结果为：
+&gt; y_error_estimated
+[1] 0.5640254
+
+此值非常接近预期值 (0.58)。
+现在，让我们线性化模型：
+y_lin &lt;- log(y_values_exp)
+# 我必须计算 y 上的相应误差（使用误差传播）
+y_values_exp_known_error &lt;- y_values_exp_error/y_values_exp
+y_values_exp_estimated_error &lt;-y_error_estimated / y_values_exp
+my_data_lin &lt;- data.frame(x = x_values_exp, y = y_lin, y_values_exp_known_error = y_values_exp_known_error, y_values_exp_estimated_error = y_values_exp_estimated_error)
+
+并拟合：
+# 拟合线性模型（使用转换后的数据并考虑已知误差）
+nlMMERROR_lin_weigths_known &lt;- nls(y ~ A + B * x, data = my_data_lin, start = list(A = 1, B = 1), weights = 1/(y_values_exp_known_error^2))
+# 拟合线性模型（使用转换后的数据并考虑估计误差）
+nlMMERROR_lin_weigths_estimated &lt;- nls(y ~ A + B * x, data = my_data_lin, start = list(A = 1, B = 1), weights = 1/(y_values_exp_estimated_error^2))
+
+
+# print A (线性)
+A_values &lt;- c(
+&quot;A (线性化已知权重)&quot; = coef(nlMMERROR_lin_weigths_known)[1],
+&quot;A (线性化估计权重)&quot; = coef(nlMMERROR_lin_weigths_estimated)[1]
+)
+
+print(A_values)
+
+# 这是已知权重的 nls 拟合
+print(log(coef(nlMMERROR_known_weigths)[1]))
+# 这是未知权重的 nls 拟合
+print(log(coef(nlMMERROR_unknown_weigths)[1]))
+
+结果为：
+&gt; print(A_values)
+A (线性化已知权重).A A (线性化估计权重).A 
+2.154402 2.154402 
+&gt; 
+&gt; # 这是已知权重的 nls 拟合
+&gt; print(log(coef(nlMMERROR_known_weigths)[1]))
+A 
+2.151668 
+&gt; # 这是具有未知权重的 nls 拟合
+&gt; print(log(coef(nlMMERROR_unknown_weigths)[1]))
+A 
+2.151668 
+
+然后我想知道为什么我得到不同的 A 值（2.151668 与 2.154402）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656374/linear-transformations-and-parameter-estimation</guid>
+      <pubDate>Sun, 27 Oct 2024 11:52:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>短面板数据的最佳统计分析方法</title>
+      <link>https://stats.stackexchange.com/questions/656372/best-statistical-analysis-method-for-short-panel-data</link>
+      <description><![CDATA[我正在开展一个研究项目，该项目使用一个包含 2 个时间段 (T = 2) 内 175 个观测值的短面板数据集来检查多个独立变量对因变量的同时和部分影响。
+鉴于我的数据集的局限性，我对能够有效解决未观察到的异质性和潜在内生性问题的统计分析方法特别感兴趣。我考虑过多元回归和面板数据分析等方法，但希望对可能适用于我的情况的更强大的替代方案或特定技术有见解。您会推荐哪些统计方法来分析短面板数据？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656372/best-statistical-analysis-method-for-short-panel-data</guid>
+      <pubDate>Sun, 27 Oct 2024 11:17:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>小样本观察的重要性</title>
+      <link>https://stats.stackexchange.com/questions/656371/significance-of-an-observation-in-a-small-sample</link>
+      <description><![CDATA[在 10000 人的群体中，我测试了 30 个人，发现他们全都患有一种疾病。基于这个样本量，我能否进行一些统计测试来表明这种疾病确实在人群中显著存在？
+我正在进行类似 Cochrane 测试的测试，以找到给定重要性的样本量，但我无法找到上述问题的确切解决方案]]></description>
+      <guid>https://stats.stackexchange.com/questions/656371/significance-of-an-observation-in-a-small-sample</guid>
+      <pubDate>Sun, 27 Oct 2024 11:06:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>来自 Marden (1982) 的计算该函数的最佳方法（平衡速度/准确性）？</title>
+      <link>https://stats.stackexchange.com/questions/656370/best-balancing-speed-accuracy-way-of-computing-this-function-from-marden-1982</link>
+      <description><![CDATA[TL;DR：什么是最好的“现代”使用 R 近似以下函数的方法？
+在 Marden (1982) 中，此函数定义 (4.2，第 272 页)：
+$$r(\nu, \mu)=\inf \left\{s&gt;0 \left\lvert\, \inf _{z&gt;0} \frac{\partial}{\partial z} \frac{\partial}{\partial z^s} \log {}_1F_1(z ;(\nu+\mu) / 2, \nu / 2) \geq 0\right.\right\}$$
+并且他们已经证明 (Marden and Perlman, 1982) $\max (1 / 2, \nu /(\nu+\mu))&lt;r&lt;1$。
+我已将 Marden 和 Perlman (1982, p. 178) 附录中的 FORTRAN 代码翻译成 R 语言（即使对于 $\nu,\mu$），我可以重现它们的值表（p. 148），所以我知道它是有效的（至少部分有效）。
+R 代码的要点可在此处找到：https://gist.github.com/richarddmorey/c80ab1ea10d2eef14dca6a8149b81468。
+他们描述了代码（Marden and Perlman，1982，第 176 页）：
+
+函数 $\operatorname{RSTAR}(\nu, \mu)$ 计算 $\nu$ 和 $\mu$ 的 $r(\nu, \mu)$，如下所示。利用逆线性插值法，不断迭代直到得到 $z_0$ 其中 $\left|\operatorname{DT}\left(\nu, \mu, z_0\right)\right| \leq 5 \times 10^{-10}$，并设 $\operatorname{RSTAR}=\operatorname{T}\left(\nu, \mu, z_0\right) 。 \quad$ 通过逆线性插值找到 $q(z)$ 的根，我们的意思是迭代
+$$\quad z_{i+1}=z_i-q\left(z_i\right)\left(z_i-z_{i-1}\right) /\left(q\left(z_i\right)-q\left(z_{i-1}\right)\right)$$
+直到 $\left|q\left(z_{i+1}\right)\right| \leq \varepsilon$。
+
+（关于各个函数的进一步解释可从第 175 页开始找到；例如，函数 zeroF0 近似于 ${}_1F_1$。）
+我的问题是：使用 R 生态系统中可用的函数和包，近似函数 $r(\nu,\mu)$ 的最佳方法是什么？
+
+Marden, J. I. (1982)。组合独立非中心卡方或 $F$ 检验。《统计年鉴》，10(1)，266–277。 https://doi.org/10.1214/aos/1176345709
+
+Marden, J. I., &amp; Perlman, M. D. (1982)。用于组合独立非中心 $F$-检验的最小完整程序类。在 S. S. Gupta &amp; J. O. Berger (Eds.) 的《统计决策理论和相关主题 III》（第 139-181 页）中。Academic Press。 https://doi.org/10.1016/B978-0-12-307502-4.50014-3  ]]></description>
+      <guid>https://stats.stackexchange.com/questions/656370/best-balancing-speed-accuracy-way-of-computing-this-function-from-marden-1982</guid>
+      <pubDate>Sun, 27 Oct 2024 09:26:33 GMT</pubDate>
+    </item>
     <item>
       <title>不确定性：蒙特卡洛或误差传播</title>
       <link>https://stats.stackexchange.com/questions/656369/uncertainty-montercalo-or-error-propagation</link>
@@ -15,7 +133,7 @@
       <pubDate>Sun, 27 Oct 2024 06:16:13 GMT</pubDate>
     </item>
     <item>
-      <title>变分推理描述的难解性问题中的困惑</title>
+      <title>变分推理描述的难解性问题中的混淆[关闭]</title>
       <link>https://stats.stackexchange.com/questions/656368/confusion-in-intractability-issue-described-by-variational-inference</link>
       <description><![CDATA[（已在 reddit 上发布）
 我阅读 VAE 论文 已经有一段时间了，并且查阅了各种资料，以便对指定的难解性问题有清晰的了解。然而，在试图理解它时，我仍然面临很多困惑。我会解释，但这里只是一些符号，以确保我们的观点一致：
@@ -57,59 +175,6 @@ P(Z|X) = P(Z) * P(X|Z) / P(X)
 大家好，请问粉红色突出显示的方程式是如何推导出来的？通过展开矩阵，其余三个项如何得出 n(avg X)(avg X)T？抱歉，这个问题比较基础，但我在读这本书的这一部分时卡住了。谢谢。]]></description>
       <guid>https://stats.stackexchange.com/questions/656365/question-about-matrix</guid>
       <pubDate>Sun, 27 Oct 2024 03:23:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>输入图像与模型输入层不兼容？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/656364/input-image-is-not-compatible-with-model-input-layer</link>
-      <description><![CDATA[我正在构建一个模型，我想测试它的性能，因此我导入了一个本地文件并加载它，并尝试使用以下代码预测它的标签：
-from tensorflow.preprocessing import image
-# tensorlfow 等的其他导入。
-
-#...
-
-# 示例图像
-img_path = &quot;./Model/data/brain/train/Glioma/images/gg (2).jpg&quot;
-img = image.load_img(img_path,target_size=(256,256))
-arr = image.img_to_array(img)
-t_img = tf.convert_to_tensor(arr)
-print(t_img.shape) # 返回 (256,256,3)
-# 客户端测试
-client = Client(&quot;brain&quot;) # 自定义类。包含模型：顺序（已编译和训练）
-client.predict(img=t_img) # 调用 self.model.predict(t_img)
-
-但是我收到以下错误：
-输入 Tensor(&quot;data:0&quot;, shape=(32, 256, 3), dtype=float32) 的输入形状无效。预期形状 (None, 256, 256, 3)，但输入具有不兼容的形状 (32, 256, 3)
-
-我在训练模型中有一个输入层，其 input_shape=[256,256,3]（来自图像宽度、高度和 rgb 值）
-您能帮助我理解问题并解决它吗？谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656364/input-image-is-not-compatible-with-model-input-layer</guid>
-      <pubDate>Sun, 27 Oct 2024 03:08:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于有向图模型定义中“循环性”的澄清</title>
-      <link>https://stats.stackexchange.com/questions/656361/clarification-on-circularity-in-definition-of-a-directed-graphical-model</link>
-      <description><![CDATA[我正在研究有向图模型 (DGM) 的定义，我们首先将 DGM 定义为：
-设 $G = (V, E)$ 为有向无环图 (DAG)，其中 $V = \{1, \dots, n\}$。有向图模型 (DGM)，也称为贝叶斯网络，是 $X_V$ 上的一类分布，定义如下：
-$$
-L(G) \triangleq \{ p \text{ 是 } X_V 上的分布： \exists \text{ 合法因子 } f_i \text{&#39;s}
-$$
-$$
-\text{s.t. } p(x_V) = \prod_{i=1}^n f_i(x_i | x_{\pi_i}) \, \forall x_V \} 
-$$
-然后使用叶子采摘属性，我们证明上面的定义等同于下面的定义：
-
-图 $G$ 上的 DGM 是根据 $G$ 分解的分布集 $p(x)$，表示为 $p(x) \in $ $L(G)$，如果：
-$$p(x) = \prod_{i=1}^n p(x_i | x_{\pi_i})$$
-其中 $x_{\pi_i}$ 表示图 $G$ 中 $x_i$ 的父节点。
-
-换句话说，我们表明第一个定义中的因子必须是从联合定义的条件概率。但为什么要经历所有这些麻烦，为什么我们不直接从第二个定义开始呢？根据我的课堂笔记，
-
-原因是，如果没有证明 [使用 DGM 的叶子拔除属性]，我们就不知道我们的定义是否有意义，因为这个定义是循环的。确实，条件 $p(x_i | x_{\pi_i})$ 是从联合 $p(x)$ 定义的。因此，我们通常不允许通过乘以条件来定义联合（因为您可能无法获得满足此属性的分布）。
-
-但是，我很难看出这里的循环性。据我所知，如果我们从已知的联合分布中获得条件 $p(x_i | x_{\pi_i})$，但这些条件的乘积与联合分布不匹配，那么它只会意味着该联合分布不是此 DGM 的成员（即，它不满足图 $G$ 指定的因式分解）。我认为我们只是将这种分解用作标准来识别$L(G)$中的有效分布，而不是将其用作联合分布的构造方法。
-有人可以解释为什么这个定义被认为是循环的，以及这种担忧是否有效吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656361/clarification-on-circularity-in-definition-of-a-directed-graphical-model</guid>
-      <pubDate>Sun, 27 Oct 2024 00:26:48 GMT</pubDate>
     </item>
     <item>
       <title>卡方检验后的事后检验和卡方替代检验</title>
@@ -161,24 +226,6 @@ https://en.m.wikipedia.org/wiki/Multivariate_normal_distribution#/media/File%3AM
       <pubDate>Sat, 26 Oct 2024 22:34:35 GMT</pubDate>
     </item>
     <item>
-      <title>当 Hessian 矩阵过于敏感时该怎么办？</title>
-      <link>https://stats.stackexchange.com/questions/656350/what-does-one-do-when-the-hessian-matrix-is-too-sensitive</link>
-      <description><![CDATA[我使用 R 中的生存包来计算 R 中威布尔回归系数的最大似然估计值。然后，我尝试通过编写对数似然函数并使用 maxLik 包将其最大化来复制结果，使用“NR”方法，即 Newton-Raphson。这两个包的点估计值相似，但标准误差却截然不同（见下文）。我尝试通过查找这两种方法的 Hessian 矩阵进行调查，发现它们也非常相似，但并不完全相同（见下文）。我得出 Hessian 极其敏感的结论是不是做错了？如果我是对的，那么如何通过计算获得类似的结果？如果我想最大化可能性并找到任何包中都没有的自定义函数的 ML 估计值，那么如果 Hessian 如此敏感，我该如何信任我得到的标准错误？
-生存包点估计：
-ma​​xLik 包点估计：
-
-两个包的协方差矩阵非常不同，如下所示。
-生存包协方差矩阵：
-ma​​xLik 包协方差矩阵：
-我通过取信息矩阵的负数，即负数，找到了生存包结果的 Hessian协方差矩阵的逆）。Hessian 矩阵几乎相同，如下所示。
-survival 包 Hessian
-ma​​xLik 包 Hessian
-编辑
-仅供参考。以下是 vcov(fitWeibull) 的输出。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656350/what-does-one-do-when-the-hessian-matrix-is-too-sensitive</guid>
-      <pubDate>Sat, 26 Oct 2024 16:10:28 GMT</pubDate>
-    </item>
-    <item>
       <title>样本相关矩阵与其真实值的偏差</title>
       <link>https://stats.stackexchange.com/questions/656344/the-deviation-of-the-sample-correlation-matrix-from-its-true-value</link>
       <description><![CDATA[在HDP 书中，我发现了协方差矩阵的集中不等式
@@ -207,23 +254,28 @@ $$
       <pubDate>Sat, 26 Oct 2024 04:00:48 GMT</pubDate>
     </item>
     <item>
-      <title>我正在尝试理解假设检验</title>
-      <link>https://stats.stackexchange.com/questions/656296/i-am-trying-to-understand-hypothesis-testing</link>
+      <title>是否可以使用 p 值进行假设检验，而不是将检验统计量与给定重要性水平的临界值进行比较？</title>
+      <link>https://stats.stackexchange.com/questions/656296/can-one-use-the-p-value-to-perform-hypothesis-testing-instead-of-comparing-the-t</link>
       <description><![CDATA[在假设检验中，如果问题表明了显著性水平，即 alpha，那么这是否一定意味着我们必须使用经典方法？（意味着找到临界值，然后查看表格）。如果我使用 p 值得出假设被拒绝或被接受的结论，结果会怎样？这是正确的吗？
 例如：
-随机抽取 64 袋白切达爆米花样本，平均重量为 5.23 盎司，标准差为 0.24 盎司。在 0.05 显著性水平下，检验假设
-μ= 5.5 盎司与备选假设 μ&lt;5.5 盎司的对应关系
+随机抽取 64 袋白切达爆米花样本，平均重量为 5.23 盎司，标准差为 0.24 盎司。在 0.05 显著性水平上，检验假设
+$\mu= 5.5$ 盎司与备选假设$\mu&lt;5.5$ 盎司的对比
 （这是《科学家和工程师概率与统计学》第 9 版中的一个问题）
-请看示例..（上面提供的）我被教导通过找到临界值然后查看表格来解决这个问题，但我想要做的是使用 p 值，然后查看正态分布表来陈述假设是被接受还是被拒绝。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656296/i-am-trying-to-understand-hypothesis-testing</guid>
+请看示例..（上面提供的）我被教导通过找到临界值然后查看表格来解决这个问题，但我想要做的是使用 p 值，然后查看正态分布表来陈述假设是否被接受或拒绝。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656296/can-one-use-the-p-value-to-perform-hypothesis-testing-instead-of-comparing-the-t</guid>
       <pubDate>Fri, 25 Oct 2024 10:05:48 GMT</pubDate>
     </item>
     <item>
-      <title>具有高 R² 和诊断指标的 GLS 回归结果的解释和验证</title>
-      <link>https://stats.stackexchange.com/questions/656253/interpretation-and-validation-of-gls-regression-results-with-high-r%c2%b2-and-diagnos</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/656253/interpretation-and-validation-of-gls-regression-results-with-high-r%c2%b2-and-diagnos</guid>
-      <pubDate>Thu, 24 Oct 2024 12:30:30 GMT</pubDate>
+      <title>交换观察值而非标签的错误模型叫什么？</title>
+      <link>https://stats.stackexchange.com/questions/656289/what-do-you-call-the-error-model-of-swapping-observations-not-labels</link>
+      <description><![CDATA[我正在研究分类问题，并有理由相信分类器犯的唯一错误是由于将某些案例的预测与未观察到的其他案例的预测交换。这种交换以 $ r $ 的速率发生，与类别无关。正式：
+$$
+P(\text{Predicted}=c \mid \text{Actual}=c) = \underbrace{(1 - r)}_{\text{not swapped}} + \underbrace{r \cdot P(\text{Actual}=c)}_{\text{swapped with another unobserved case of the same class}}
+$$
+这与恒定误差模型不同，在恒定误差模型中，预测以与类别无关的速率被交换到不同的类别（即完全随机地标记噪声）。
+我搜索了文献，但找不到该模型的描述。这种模型和参数$r$的通用名称是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656289/what-do-you-call-the-error-model-of-swapping-observations-not-labels</guid>
+      <pubDate>Fri, 25 Oct 2024 08:32:26 GMT</pubDate>
     </item>
     <item>
       <title>从两个时间序列之间的滚动相关性推断非线性关系</title>
@@ -241,24 +293,6 @@ $$
 我可以看到以下内容：相关性随时间而变化。它如何表明存在非线性关系？]]></description>
       <guid>https://stats.stackexchange.com/questions/656245/inferring-non-linear-relationship-from-rolling-correlation-between-2-time-series</guid>
       <pubDate>Thu, 24 Oct 2024 10:41:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何根据数据估计平均值和方差？</title>
-      <link>https://stats.stackexchange.com/questions/656191/how-do-i-estimate-the-mean-and-variance-from-data</link>
-      <description><![CDATA[我已经根据一些 1D 数据制作了一个周期图（下图所示），我想估计它的偏差和方差。因为通过最小化两者，我可以选择计算周期图的理想窗口大小。我没有基础模型，也没有真实值/目标值可以比较。为了进行比较，我该如何估计数据的偏差和方差。我可以使用原始周期图（蓝色）吗？
-例如，
-
-此处的橙色和蓝色曲线表示经过后处理的相同数据集，但通过更改变量（窗口大小）。
-有关时间序列的详细信息：
-
-时间序列是非平稳的（从中抽取值的分布矩以随机间隔变化。）
-时间序列以相等的间隔进行抽样。它是一个以相等的时间间隔返回值的检测器。
-窗口大小：我必须使用 3000 个点的窗口大小来获取橙色曲线。总时间序列有 170 万个数据点。
-
-如何找到最佳窗口大小。我的一个想法是通过找到偏差和方差权衡最小的大小来找到帕累托最优解（在进行比较之前可能需要对它们进行权衡以获得某种等价性）？
-第一次弯曲后的线段的斜率对我来说很重要。斜率随窗口大小而变化。因此寻找最佳的窗口大小！！]]></description>
-      <guid>https://stats.stackexchange.com/questions/656191/how-do-i-estimate-the-mean-and-variance-from-data</guid>
-      <pubDate>Wed, 23 Oct 2024 11:44:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
