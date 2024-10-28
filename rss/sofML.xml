@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 28 Oct 2024 06:26:02 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 28 Oct 2024 09:19:18 GMT</lastBuildDate>
     <item>
       <title>调用 BroadcastTo.call() 时遇到异常</title>
       <link>https://stackoverflow.com/questions/79131334/exception-encountered-when-calling-broadcastto-call</link>
@@ -81,68 +81,30 @@ client.predict(img=t_img) # 调用 self.model.predict(t_img)
       <pubDate>Sun, 27 Oct 2024 11:57:01 GMT</pubDate>
     </item>
     <item>
-      <title>从 CLIP 的中间层提取嵌入</title>
-      <link>https://stackoverflow.com/questions/79130488/extracting-embeddings-from-clips-intermediate-layers</link>
-      <description><![CDATA[我正在试验 CLIP 模型。
-我加载了一个预训练模型，想看看中间层的嵌入是什么样子。我使用的代码如下：
-dataset = CelebADataset(root_dir=&quot;celeba/img_align_celeba&quot;, transform=preprocess)
-dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
+      <title>Python 中的 Tensorflow predict() 时间序列对齐</title>
+      <link>https://stackoverflow.com/questions/79106002/tensorflow-predict-timeseries-alignment-in-python</link>
+      <description><![CDATA[假设我在 Tensorflow 中创建一个顺序输入 LSTM，如下所示：
+def Sequential_Input_LSTM(df, input_sequence):
+df_np = df.to_numpy()
+X = []
+y = []
 
-device = &quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;
-model, _ = clip.load(&quot;ViT-B/32&quot;, device=device)
+for i in range(len(df_np) - input_sequence):
+row = [a for a in df_np[i:i + input_sequence]]
+X.append(row)
+label = df_np[i + input_sequence]
+y.append(label)
 
-features = {}
-def hook_fn(module, input, output):
-features[module] = output[:, 0, :]
+return np.array(X), np.array(y)
 
-# model.patch_embed.register_forward_hook(hook_fn) # 不为 patch_embed 层注册钩子
+X, y = Sequential_Input_LSTM(df_data , 10) # pandas DataFrame df_data 包含我们的数据
 
-for i, block in enumerate(model.visual.transformer.resblocks):
-block.register_forward_hook(hook_fn) # 每个块
-
-all_features = {
-# &#39;patch_embed&#39;: [],
-&#39;block_0&#39;: [],
-&#39;block_1&#39;: [],
-&#39;block_2&#39;: [],
-&#39;block_3&#39;: [],
-&#39;block_4&#39;: [],
-&#39;block_5&#39;: [],
-&#39;block_6&#39;: [],
-&#39;block_7&#39;: [],
-&#39;block_8&#39;: [],
-&#39;block_9&#39;: [],
-&#39;block_10&#39;: [],
-&#39;block_11&#39;: [],
-&#39;final&#39;: []
-}
-all_labels = []
-
-使用 torch.no_grad():
-for input in tqdm(dataloader):
-input = input.to(device)
-final_output = model.encode_image(inputs)
-
-# 将特征转换为 numpy 并存储
-for i in range(12):
-all_features[f&#39;block_{i}&#39;].append(features[model.visual.transformer.resblocks[i]].cpu().numpy())
-all_features[&#39;final&#39;].append(final_output.cpu().numpy())
-
-# all_labels.append(labels.cpu().numpy())
-
-for key在 all_features 中：
-all_features[key] = np.concatenate(all_features[key], axis=0)
-# all_labels = np.concatenate(all_labels, axis=0)
-
-np.save(&quot;celeba_block0.npy&quot;, all_features[f&#39;block_{0}&#39;])
-np.save(&quot;celeba_block1.npy&quot;, all_features[f&#39;block_{1}&#39;])
-...
-
-我之前用 Dino 做过类似的事情，在对 Dino 的嵌入进行降维后，我可以看到不同标签组中的图像形成了不同的簇。然而，当我检查 CLIP 的嵌入时，除了最终的嵌入之外，我没有看到清晰的集群。
-这是因为 CLIP 的网络结构与 Dino 不同，还是我的代码错误？
-我试图查看 CLIP 的结构，但我无法找到对此的解释。]]></description>
-      <guid>https://stackoverflow.com/questions/79130488/extracting-embeddings-from-clips-intermediate-layers</guid>
-      <pubDate>Sun, 27 Oct 2024 11:38:57 GMT</pubDate>
+在此示例中，我将数据切片X（输入向量）和 y（标签），例如前 10 个值（序列长度）用作 X，第 11 个值用作第一个 y。然后，将 10 个值的窗口向右移动一步（再移动一个时间步），我们再次为 X 取 10 个值，并将第二行之后的值作为下一个 y，依此类推。
+然后假设我将 X 的一部分作为我的 X_test，并使用 LSTM model 进行时间序列预测，例如 predictions = model.predict(X_test)。
+当我实际尝试此操作并绘制 predict(X_test) 的结果时，它看起来像 y 数组，并且预测结果是同步的，无需进一步调整。我预计在将预测数组与标签一起绘制时，我必须手动将预测数组向右移动 10 个时间步，因为我无法解释预测的前 10 个时间戳来自哪里。
+由于模型尚未收到 10 个输入序列值，X_test 的前 10 个时间步的预测来自哪里？Tensorflow 是否使用 X_test 中的最后几个时间步来创建前 10 个值的预测，还是一开始的预测只是纯粹的猜测？]]></description>
+      <guid>https://stackoverflow.com/questions/79106002/tensorflow-predict-timeseries-alignment-in-python</guid>
+      <pubDate>Sat, 19 Oct 2024 21:37:05 GMT</pubDate>
     </item>
     <item>
       <title>迁移学习预训练模型</title>
