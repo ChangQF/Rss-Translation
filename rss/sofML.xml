@@ -4,9 +4,106 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 28 Oct 2024 12:34:15 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 28 Oct 2024 15:19:00 GMT</lastBuildDate>
     <item>
-      <title>将注意力机制增强至 O(log N)：基于树的 Transformer 模型优化方法</title>
+      <title>当没有部分拟合选项时，如何训练分区数据集？</title>
+      <link>https://stackoverflow.com/questions/79133844/how-do-i-train-a-partitioned-dataset-when-there-is-not-an-option-for-partial-fit</link>
+      <description><![CDATA[我正在从包含 10 个分区的数据集训练 ML 模型，这样我就不会耗尽可用内存。我目前正在每个分区上训练 3 个不同的模型，然后将它们放入 VotingRegressor 中，然后再次进行拟合，但是由于它占用了大量内存，我无法将其拟合到整个训练集。这里有一个小片段
+all_feature_cols = [f&quot;feature_{i:02d}&quot; for i in range(79)]
+
+if TRAINING:
+# 初始化列表以存储模型
+lgbm_models = []
+xgb_models = []
+cat_models = []
+
+# 逐步训练每个模型
+for partion in range(10):
+start_time = time.time()
+
+# 为每个分区创建新的模型实例
+lgbm = LGBMRegressor(num_leaves=127, n_estimators=200, max_depth=3, 
+learning_rate=0.05, device_type=&#39;gpu&#39;, verbose=-1,
+reg_alpha = 0.1, reg_lambda = 0.1)
+xgb = XGBRegressor(n_estimators=200, min_child_weight=5, max_depth=7, 
+learning_rate=0.01, device=&#39;cpu&#39;,
+reg_alpha = 0.1, reg_lambda = 0.1)
+cat = CatBoostRegressor(n_estimators=200, max_depth=7, learning_rate=0.05, 
+reg_lambda = 0.1, task_type=&#39;GPU&#39;, verbose=False)
+
+# 过滤当前分区并分别收集目标
+partition_df = df.filter(pl.col(&quot;partition_id&quot;) ==partition)
+
+# 在预处理之前提取并收集目标列
+y =partition_df.select(&quot;responder_6&quot;).collect().to_numpy().ravel()
+
+# 预处理特征（不包括目标）
+X =partition_df.select(all_feature_cols).collect().to_numpy()
+
+# 分成训练/验证并保持时间顺序
+train_idx = int(len(X) * 0.8)
+X_train, X_test = X[:train_idx], X[train_idx:]
+y_train, y_test = y[:train_idx], y[train_idx:]
+
+# 在此分区上训练模型
+lgbm.fit(X_train, y_train)
+xgb.fit(X_train, y_train)
+cat.fit(X_train, y_train)
+
+# 使用分区标识符保存训练好的模型
+lgbm_models.append((f&#39;lgbm_{partition}&#39;, deepcopy(lgbm)))
+xgb_models.append((f&#39;xgb_{partition}&#39;, deepcopy(xgb)))
+cat_models.append((f&#39;cat_{partition}&#39;, deepcopy(cat)))
+
+# 计算已用时间
+end_time = time.time()
+elapsed_time = end_time - start_time
+elapsed_str = str(timedelta(seconds=int(elapsed_time)))
+print(f&quot;分区 {partition} 在 {elapsed_str} 内完成&quot;)
+
+# 清理内存
+if partition &lt; 9:
+del X, y, X_train, X_test, y_train, y_test, partition_df
+else:
+del X, y, X_train, y_train, partition_df
+gc.collect()
+
+# 创建并拟合 VotingRegressor 和所有经过训练的模型
+model = VotingRegressor(lgbm_models + xgb_models + cat_models)
+
+# 拟合模型
+model.fit(X_test, y_test)
+
+y_pred = model.predict(X_test)
+print(r2_score(y_test, y_pred))
+
+# 保存最终模型 
+dump(model, &quot;/kaggle/working/JS_model.joblib&quot;)
+```
+]]></description>
+      <guid>https://stackoverflow.com/questions/79133844/how-do-i-train-a-partitioned-dataset-when-there-is-not-an-option-for-partial-fit</guid>
+      <pubDate>Mon, 28 Oct 2024 14:30:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 IBM Watson Assistant 响应中动态包含来自 Watson Discovery 的完整且正确的 URL？[关闭]</title>
+      <link>https://stackoverflow.com/questions/79133652/how-to-dynamically-include-full-and-correct-urls-from-watson-discovery-in-ibm-wa</link>
+      <description><![CDATA[我正在使用 IBM Watson Assistant，使用 Llama 3.8 作为语言模型，我面临的一个问题是，模型始终无法在其响应中检索正确的 URL。我从 Watson Discovery 中的文档中动态提取这些 URL，并且每个响应都需要根据提出的问题包含不同的特定链接。尽管我的提示明确指示模型包含一个特定的完整链接，但模型的响应始终包含不正确或不完整的链接。
+是否有人遇到过与 IBM Watson Assistant 或其他 LLM 类似的问题，即模型无法检索确切的指定 URL，尤其是在不同响应中需要不同的链接时？是否有任何已知的解决方法、配置或提示调整可以确保模型可靠地从 Watson Discovery 中检索并显示正确的链接？
+以下是我尝试过的概述：
+提示调整：我在提示中包含了明确的指示“包含整个链接而不缩短它”，我甚至尝试将链接直接放在提示中作为示例。但是，模型要么生成不完整的链接，要么生成完全错误的链接。
+提示示例：
+下面是我的提示的简化版本，它指示模型将 {DOCUMENTATION_LINK} 替换为与每个问题相关的文档的实际链接：
+&quot;您是客户关系经理。您的目的是提供 CRM 流程的简要摘要。如果用户需要详细步骤，请回复：&#39;有关完整流程和所有详细步骤，请点击此链接：{DOCUMENTATION_LINK}&#39;。始终将“{DOCUMENTATION_LINK}”替换为问题中文档的实际链接。&quot;
+配置详细信息：
+温度：0.5
+最大新令牌：900
+停止序列：[&quot; &quot;]
+重复惩罚：1]]></description>
+      <guid>https://stackoverflow.com/questions/79133652/how-to-dynamically-include-full-and-correct-urls-from-watson-discovery-in-ibm-wa</guid>
+      <pubDate>Mon, 28 Oct 2024 13:41:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>将注意力机制增强至 O(log N)：一种基于树的 Transformer 模型优化方法</title>
       <link>https://stackoverflow.com/questions/79133220/enhancing-attention-mechanism-to-olog-n-a-tree-based-approach-for-optimizing</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79133220/enhancing-attention-mechanism-to-olog-n-a-tree-based-approach-for-optimizing</guid>
@@ -20,52 +117,96 @@
       <pubDate>Mon, 28 Oct 2024 11:41:21 GMT</pubDate>
     </item>
     <item>
-      <title>调用 BroadcastTo.call() 时遇到异常</title>
-      <link>https://stackoverflow.com/questions/79131334/exception-encountered-when-calling-broadcastto-call</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79131334/exception-encountered-when-calling-broadcastto-call</guid>
-      <pubDate>Sun, 27 Oct 2024 19:29:36 GMT</pubDate>
+      <title>使用没有跳跃连接的 U-Net 进行图像到图像处理。这是真的吗？</title>
+      <link>https://stackoverflow.com/questions/79132335/image-to-image-with-u-net-with-no-skip-connections-is-it-real</link>
+      <description><![CDATA[如果我想从其他图像（图像到图像）获取一些图像，我可以使用没有跳过连接的 U-Net 吗？因为我不需要保留结构。例如，为了改变某些对象的相机视角。
+例如，此模型为 256x256px。它适用于 3 对训练对（输入图像-输出图像），并带有角度增强（+/- 5 度、+/-10 度、+/-15 度），但不适用于 1.000 对。
+# 编码器
+c = layer.Conv2D(32, kernel_size=4, strides=2, padding=&quot;same&quot;)(inputs)
+c = layer.LeakyReLU(negative_slope=0.2)(c) 
+
+c = layer.Conv2D(64, kernel_size=4, strides=2, padding=&quot;same&quot;)(c)
+c = layer.LeakyReLU(negative_slope=0.2)(c)
+
+c = layer.Conv2D(128, kernel_size=4, strides=2, padding=&quot;same&quot;)(c)
+c =层。LeakyReLU（负斜率=0.2）（c）
+
+c = 层。Conv2D（256，kernel_size=4，strides=2，padding=“相同”（c）
+
+c = 层。LeakyReLU（负斜率=0.2）（c）
+
+c = 层。Conv2D（512，kernel_size=4，strides=2，padding=“相同”（c）
+
+c = 层。LeakyReLU（负斜率=0.2）（c）
+
+c = 层。Conv2D（1024，kernel_size=4，strides=2，padding=“相同”（c）
+
+c = 层。LeakyReLU（负斜率=0.2）（c）
+
+# 瓶颈
+b = InstanceNormalization（）（c）
+
+b =图层。重塑((-1,))(b)
+b = 图层。密集(512*4*4, kernel_regularizer=l2_reg,)(b)
+b = 图层。LeakyReLU(negative_slope=0.2)(b)
+
+b = 图层。Dropout(0.2)(b)
+
+b = 图层。密集(512*4*4*2, kernel_regularizer=l2_reg,)(b)
+b = 图层。LeakyReLU(negative_slope=0.2)(b)
+b = 图层。重塑((4,4,1024))(b)
+
+# 解码器
+d = 图层。UpSampling2D(size=(2, 2))(b)
+d = 图层。Conv2D(1024, kernel_size=4, padding=&quot;same&quot;)(d)
+d =层。LeakyReLU（负斜率=0.2）（d）
+
+d = 层。UpSampling2D（大小=（2, 2））（d）
+
+d = 层。Conv2D（512，内核大小=4，填充=“相同”）（d）
+
+d = 层。LeakyReLU（负斜率=0.2）（d）
+
+d = 层。UpSampling2D（大小=（2, 2））（d）
+
+d = 层。Conv2D（256，内核大小=4，填充=“相同”）（d）
+
+d = 层。LeakyReLU（负斜率=0.2）（d）
+
+d = 层。UpSampling2D（大小=（2, 2））（d）
+
+d = 层。Conv2D（128，内核大小=4，填充=“相同”）（d）
+
+d =层。LeakyReLU（负斜率=0.2）（d）
+
+d = 层。UpSampling2D（大小=（2，2））（d）
+
+d = 层。Conv2D（64，kernel_size=4，padding=“相同”（d）
+
+d = 层。LeakyReLU（负斜率=0.2）（d）
+
+d = 层。UpSampling2D（大小=（2，2））（d）
+
+d = 层。Conv2D（32，kernel_size=4，padding=“相同”（d）
+
+d = 层。LeakyReLU（负斜率=0.2）（d）`
+
+# 输出
+输出 = 层。Conv2D（3，kernel_size=3，padding=“相同”，激活=“tanh”（d）
+
+模型 = models.Model(inputs=inputs, output=outputs, name=&quot;build_unet&quot;)
+return model`
+
+无论输入图像是否旋转或扭曲，我都需要获取输出。]]></description>
+      <guid>https://stackoverflow.com/questions/79132335/image-to-image-with-u-net-with-no-skip-connections-is-it-real</guid>
+      <pubDate>Mon, 28 Oct 2024 07:00:00 GMT</pubDate>
     </item>
     <item>
-      <title>绝对、相对、旋转和学习位置编码之间的区别[关闭]</title>
-      <link>https://stackoverflow.com/questions/79131034/difference-between-absolute-relative-rotary-and-learned-positional-encodings</link>
-      <description><![CDATA[位置编码（绝对、相对、旋转）和学习到的位置编码之间有什么区别？
-我了解绝对、相对和旋转编码之间的区别，但我无法识别这些编码和学习到的位置编码之间的任何区别。]]></description>
-      <guid>https://stackoverflow.com/questions/79131034/difference-between-absolute-relative-rotary-and-learned-positional-encodings</guid>
-      <pubDate>Sun, 27 Oct 2024 16:39:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>删除所有人口后，Python NEAT 给出错误</title>
-      <link>https://stackoverflow.com/questions/79130999/python-neat-giving-error-after-deleting-all-the-population</link>
+      <title>删除所有人口后，NEAT 给出错误</title>
+      <link>https://stackoverflow.com/questions/79130999/neat-giving-error-after-deleting-all-the-population</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79130999/python-neat-giving-error-after-deleting-all-the-population</guid>
+      <guid>https://stackoverflow.com/questions/79130999/neat-giving-error-after-deleting-all-the-population</guid>
       <pubDate>Sun, 27 Oct 2024 16:27:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络中的负损失没有减少</title>
-      <link>https://stackoverflow.com/questions/79130961/negative-loss-not-decreasing-in-neural-network</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79130961/negative-loss-not-decreasing-in-neural-network</guid>
-      <pubDate>Sun, 27 Oct 2024 16:07:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么卷积层的输出形状不能跨通道相乘？</title>
-      <link>https://stackoverflow.com/questions/79130753/why-doesn-t-the-output-shape-multiply-across-channels-in-convolutional-layers</link>
-      <description><![CDATA[# 第一个卷积层：输入通道 = 1，输出通道 = 32，内核大小 = 5x5，填充 = 2（相同）
-self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5, stride=1, padding=2)
-# 第一个池化层：最大池化，内核大小 = 2x2，步长 = 2
-self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-# 第二个卷积层：输入通道 = 32，输出通道 = 64，内核大小 = 5x5，填充 = 2（相同）
-self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, stride=1, padding=2)
-# 第二个池化层：最大池化，内核大小 = 2x2， stride = 2
-self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-为什么第二个卷积层后的输出不是
-14 * 14 * 32 * 64？对于32通道的输入，每个卷积核只作用于一个通道，因此会产生64种不同的结果。难道不应该将32个通道相乘吗？
-我得到的答案是：对于输入的每个14 * 14位置，5532核与5532输入区域进行点积将产生14*14的单通道输出。核大小不是5 * 5吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79130753/why-doesn-t-the-output-shape-multiply-across-channels-in-convolutional-layers</guid>
-      <pubDate>Sun, 27 Oct 2024 14:14:47 GMT</pubDate>
     </item>
     <item>
       <title>输入图像与 TensorFlow 模型输入形状不兼容</title>
@@ -93,6 +234,29 @@ client.predict(img=t_img) # 调用 self.model.predict(t_img)
 您能帮助我理解问题并解决它吗？]]></description>
       <guid>https://stackoverflow.com/questions/79130521/input-image-is-not-compatible-with-tensorflow-model-input-shape</guid>
       <pubDate>Sun, 27 Oct 2024 11:57:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将 AWS Bedrock 与我的数据库集成以实现基于向量的 LLM 响应上下文检索？</title>
+      <link>https://stackoverflow.com/questions/79130070/how-can-i-integrate-aws-bedrock-with-my-database-to-enable-vector-based-context</link>
+      <description><![CDATA[我正在构建一个 AI 驱动的忠诚度应用程序，并希望利用大型语言模型 (LLM) 根据我的数据库内容提供响应。我目前的计划是：
+
+将数据库数据转换为向量嵌入：我想将我的结构化数据转换为向量嵌入，以便 LLM 可以更轻松地使用它。
+将嵌入存储在向量数据库中：这个想法是存储嵌入以实现基于相似性的高效检索。
+使用 AWS Bedrock LLM：我想根据用户的查询从我的数据库中检索上下文，并使用 AWS Bedrock 将此上下文输入到 LLM 中以生成响应。
+
+我将不胜感激任何有关以下方面的指导：
+
+嵌入转换：是否有任何推荐的工具或与 AWS Bedrock 兼容的模型用于将关系数据库中的结构化数据转换为有用的嵌入？ Amazon Titan 是否适合这种情况，还是其他模型更好？
+
+向量数据库选项：对于存储和查询嵌入，Amazon OpenSearch 是否合适，还是我应该考虑 FAISS 之类的东西？我的目标是实现高容量、实时的检索效率。
+
+LLM 集成最佳实践：检索类似嵌入后，格式化并将此上下文传递给 AWS Bedrock 上的 LLM 的最佳方法是什么？有任何示例、文章或模板吗？
+
+有关特定工具、模型或文章的建议，可以提供关于在 AWS Bedrock 上设置此工作流程的进一步见解。
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79130070/how-can-i-integrate-aws-bedrock-with-my-database-to-enable-vector-based-context</guid>
+      <pubDate>Sun, 27 Oct 2024 07:10:23 GMT</pubDate>
     </item>
     <item>
       <title>Python 中的 Tensorflow predict() 时间序列对齐</title>
@@ -203,6 +367,14 @@ print(algo.predict(&#39;924&#39;, &#39;559&#39;))
       <pubDate>Mon, 14 Dec 2020 02:19:44 GMT</pubDate>
     </item>
     <item>
+      <title>Bert 句子嵌入</title>
+      <link>https://stackoverflow.com/questions/58168936/bert-sentence-embeddings</link>
+      <description><![CDATA[我正在尝试获取 Bert 的句子嵌入，但我不太确定我是否做得正确……是的，我知道已经存在这样的工具，例如 bert-as-service，但我想自己做并了解它的工作原理。
+假设我想从以下句子“I am.”的单词嵌入中提取一个句子嵌入。据我了解，Bert 以 (12, seq_lenght, 768) 的形式输出。我从最后一个编码器层以 (1, 768) 的形式提取每个单词嵌入。我现在的疑问在于从这两个词向量中提取句子。如果我有 (2,768)，我应该将 dim=1 相加并获得 (1,768) 的向量吗？或者也许将两个单词 (1, 1536) 连接起来并应用 (均值) 池化并获得形状为 (1, 768) 的句子向量。我不确定针对这个给定的例子获取句子向量的正确方法是什么。 ]]></description>
+      <guid>https://stackoverflow.com/questions/58168936/bert-sentence-embeddings</guid>
+      <pubDate>Mon, 30 Sep 2019 13:29:18 GMT</pubDate>
+    </item>
+    <item>
       <title>深度强化学习 - 如何处理动作空间中的边界[关闭]</title>
       <link>https://stackoverflow.com/questions/51127979/deep-reinforcement-learning-how-to-deal-with-boundaries-in-action-space</link>
       <description><![CDATA[我构建了一个自定义强化学习环境和代理，它类似于迷宫游戏。
@@ -225,26 +397,6 @@ print(algo.predict(&#39;924&#39;, &#39;559&#39;))
 它返回一个名为 -1 的“聚类”，这些点不属于任何聚类。对于这些点，我想确定它与最近聚类之间的距离，以获得类似于该点异常程度的指标。这可能吗？或者这种指标还有其他选择吗？]]></description>
       <guid>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</guid>
       <pubDate>Thu, 18 May 2017 07:31:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>QLearning 和永无止境的剧集</title>
-      <link>https://stackoverflow.com/questions/1836731/qlearning-and-never-ending-episodes</link>
-      <description><![CDATA[假设我们有一个 (x,y) 平面，机器人可以在其中移动。现在我们将世界的中心定义为目标状态，这意味着一旦机器人达到该状态，我们将给予它 100 的奖励。
-现在，假设有 4 个状态（我将其称为 A、B、C、D）可以导致目标状态。
-第一次处于 A 并进入目标状态时，我们将按如下方式更新 QValues 表：
-Q(state = A, action = going to goal state) = 100 + 0
-
-可能会发生以下两种情况之一。我可以在这里结束这一集，然后开始另一个集，让机器人再次找到目标状态，或者我可以继续探索世界，即使我找到了目标状态。如果我尝试这样做，我会看到一个问题。如果我处于目标状态并返回到状态 A，它的 Qvalue 将如下所示：
-Q(state = goalState, action = going to A) = 0 + gamma * 100
-
-现在，如果我尝试再次从 A 转到目标状态：
-Q(state = A, action = going to goal state) = 100 + gamma * (gamma * 100)
-
-这意味着如果我继续这样做，因为 0 &lt;= gamma &lt;= 0，两个 qValues 都会永远上升。
-这是 QLearning 的预期行为吗？我做错了什么吗？如果这是预期行为，这不会导致问题吗？我知道从概率上讲，所有 4 个状态（A、B、C 和 D）都会以相同的速率增长，但即便如此，让它们永远增长也让我有点烦。
-允许代理在找到目标后继续探索的想法与代理距离目标状态越近，就越有可能处于可以立即更新的状态有关。]]></description>
-      <guid>https://stackoverflow.com/questions/1836731/qlearning-and-never-ending-episodes</guid>
-      <pubDate>Wed, 02 Dec 2009 23:53:13 GMT</pubDate>
     </item>
     </channel>
 </rss>
