@@ -4,7 +4,230 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 29 Oct 2024 12:33:37 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 29 Oct 2024 15:18:48 GMT</lastBuildDate>
+    <item>
+      <title>问题：ValueError：分类指标无法处理多类多输出和多标签指标目标的混合</title>
+      <link>https://stackoverflow.com/questions/79137738/problem-valueerror-classification-metrics-cant-handle-a-mix-of-multiclass-mu</link>
+      <description><![CDATA[ValueError：分类指标无法处理多类多输出和多标签指标目标的混合
+这是我第一次训练模型。
+我检查了预测和 y 的 dtype 和维度是否相同，但错误仍然存​​在。
+这是我的代码。
+希望有人能帮我解决问题。
+def train(tr_set, dv_set, model, config, device):
+&#39;&#39;&#39; 多标签分类的训练函数 &#39;&#39;&#39;
+
+n_epochs = config[&#39;n_epochs&#39;]
+optimizer = getattr(torch.optim, config[&#39;optimizer&#39;])(model.parameters(), **config[&#39;optim_hparas&#39;])
+best_acc = 0.0
+loss_record = {&#39;train&#39;: [], &#39;dev&#39;: []}
+early_stop_cnt = 0
+epoch = 0
+criterion = nn.BCEWithLogitsLoss()
+
+while epoch &lt; n_epochs:
+model.train()
+total_correct = 0
+total_samples = 0
+total_train_loss = 0.0
+all_labels = []
+all_preds = []
+
+for x, y in tr_set:
+optimizer.zero_grad()
+x = x.to(device)
+y = y.float().to(device)
+pred = model(x)
+loss = criterion(pred, y)
+loss.backward()
+total_train_loss += loss.detach().cpu().item()
+optimizer.step()
+
+# 记录损失和准确度指标
+loss_record[&#39;train&#39;].append(loss.detach().cpu().item())
+predict = (torch.sigmoid(pred) &gt; 0.5).float()
+all_labels.append(y.cpu())
+all_preds.append(predicted.cpu())
+
+correct_preds = (predicted == y).float().mean().item()
+total_correct += correct_preds
+total_samples += 1
+.......
+
+print(f&#39;在 {epoch} 个 epoch 后完成训练&#39;)
+return best_acc, loss_record
+
+def dev(dv_set, model, device, criterion):
+&#39;&#39;&#39; 在验证集上评估 &#39;&#39;&#39;
+model.eval()
+total_loss = 0.0
+all_labels = []
+all_preds = []
+
+with torch.no_grad():
+for x, y in dv_set:
+x = x.to(device)
+y = y.float().to(device)
+pred = model(x)
+loss = criterion(pred, y)
+total_loss += loss.item()
+
+# 附加标签和预测以进行指标计算
+predicted = (torch.sigmoid(pred) &gt; 0.5).float()
+all_labels.append(y.cpu())
+all_preds.append(predicted.cpu())
+
+all_labels = torch.cat(all_labels).numpy()
+all_preds = torch.cat(all_preds).numpy()
+
+# 计算指标
+accuracy = accuracy_score(all_labels, all_preds)
+precision = precision_score(all_labels, all_preds, average=&#39;micro&#39;, zero_division=1)
+recall = recall_score(all_labels, all_preds, average=&#39;micro&#39;, zero_division=1)
+f1 = f1_score(all_labels, all_preds, average=&#39;micro&#39;, zero_division=1)
+
+dev_acc = accuracy
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79137738/problem-valueerror-classification-metrics-cant-handle-a-mix-of-multiclass-mu</guid>
+      <pubDate>Tue, 29 Oct 2024 14:49:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 TensorFlow 进行多轮训练时如何控制内存增长？</title>
+      <link>https://stackoverflow.com/questions/79137676/how-to-control-memory-growth-when-using-tensorflow-in-multi-round-training</link>
+      <description><![CDATA[在使用 TensorFlow 进行多轮训练时，我遇到了与内存增长相关的问题。具体来说，我有一个模型训练循环，其中我在每个循环中生成训练和评估数据，并且我的内存使用量似乎不断增长，最终导致内存不足错误。我正在尝试了解如何在这些迭代过程中有效地管理或释放内存。
+在此处输入图片描述
+这是我的代码的简化版本
+# 定义用于训练数据的 TensorFlow 变量
+for num_round in range(1, 1 + total_num_round):
+
+train_data = generate_all_batch_s_path_samples(s_0_, net_list_c, batch_size, epochs_t + 1)
+eval_data = generate_all_batch_s_path_samples(s_0_, net_list_c, batch_size, eval_num_batch)
+
+# 训练和评估过程
+
+# 删除使用的数据
+del train_data, eval_data
+gc.collect()
+
+我遇到的问题面临：
+
+每轮生成的 train_data 和 eval_data 占用大量内存，我似乎无法有效地释放这些内存，导致内存不断增长。
+函数 generate_all_batch_s_path_samples 没有使用 tf.function 修饰，因为它使用线程进行并行计算，这使其与 tf.function 不兼容。
+
+问题：
+
+除了使用 tf.keras.backend.clear_session() 之外，还有更有效的方法来在迭代之间释放内存吗？
+是否有推荐的方法来管理这种多轮训练场景中的内存增长？
+
+任何建议、建议或代码非常感谢您的示例！在此先谢谢大家的帮助。
+上下文：
+
+我使用的是 TensorFlow 2.16.0。
+数据生成过程（generate_all_batch_s_path_samples）在每一轮中都会创建新的张量用于训练和评估。
+
+再次感谢您的支持！
+
+我尝试了几种方法来控制内存使用情况：
+
+使用 assign() 而不是重复定义 train_data 和 eval_data。
+使用 gc.collect() 和 del train_data, eval_data 释放内存，但这些方法不起作用。
+
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79137676/how-to-control-memory-growth-when-using-tensorflow-in-multi-round-training</guid>
+      <pubDate>Tue, 29 Oct 2024 14:36:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 azureml 中对多个节点执行扫描</title>
+      <link>https://stackoverflow.com/questions/79137274/how-to-perform-a-sweep-on-multiple-nodes-in-azureml</link>
+      <description><![CDATA[我一直尝试在 azureml 上进行分布式训练，同时使用扫描功能，但每次我尝试将 instance_count 设置为超过 1 个节点时，当我创建作业时，它只会创建 1 个节点。无论我对管道进行什么更改，它总是只在 1 个节点上运行每个试验，而不是我请求的 8 个节点。我正在运行的集群有 30 个可用节点，当我不使用扫描步骤时，管道适用于分布式训练。 PytorchDistribution 已全部设置并存在于作业中，但 instance_count 始终显示 1，即使我在管道中将其设置为 8
+from azure.ai.ml import MLClient, Input
+from azure.ai.ml.dsl import pipeline
+from azure.ai.ml.constants import AssetTypes
+from azure.ai.ml.sweep import Uniform, MedianStoppingPolicy
+
+@pipeline(
+name=&quot;training_pipeline&quot;,
+display_name=&quot;Training Pipeline&quot;,
+experiment_name=&quot;test-pipeline&quot;,
+default_compute=&quot;my-cluster&quot;,
+)
+def training_pipeline(
+development_data: str,
+test_data: str,
+name: str,
+description: str
+):
+preprocess = components[&quot;model_preprocess&quot;]
+preprocess_node =预处理（
+development_data=development_data，
+test_data=test_data，
+label_col=&quot;label&quot;，
+tokenizer_name=&quot;distilbert/distilbert-base-uncased&quot;
+)
+
+train = components[&quot;model_train&quot;]
+train_node = train（
+dataset=preprocess_node，
+model_name=&quot;distilbert/distilbert-base-uncased&quot;，
+task=&quot;token-classification&quot;，
+learning_rate=Uniform（min_value=5e-07，max_value=5e-03），
+weight_decay=Uniform（min_value=0.0，max_value=1.0）
+)
+train_node.set_resources（
+instance_type=&quot;my-cluster&quot;，
+instance_count=8
+)
+
+sweep_node = train_node.sweep（
+采样算法=“bayesian”，
+primary_metric=“eval_overall_f1”，
+goal=“maximize”，
+max_total_trials=30，
+max_concurrent_trials=3，
+early_termination_policy=MedianStoppingPolicy（delay_evaluation=5，evaluation_interval=2），
+compute=“my-cluster”，
+)
+
+compress = components[“model_compress”]
+compress_node = compress(
+model=sweep_node，
+tokenizer_name=“distilbert/distilbert-base-uncased”
+)
+
+quantize = components[&quot;model_quantize&quot;]
+quantize_node = quantize(
+compressed_model=compress_node
+)
+
+register = components[&quot;model_register&quot;]
+register(
+model=quantize_node,
+name=name,
+description=description
+)
+
+如果 __name__ == &quot;__main__&quot;:
+dev_input = Input(
+type=AssetTypes.URI_FILE, path=&quot;azureml:train_data:1&quot;
+)
+test_input = Input(
+type=AssetTypes.URI_FILE, path=&quot;azureml:test_data:1&quot;
+)
+pipeline_job = training_pipeline(
+development_data=dev_input,
+test_data=test_input,
+name=&quot;test-model&quot;,
+description=&quot;用于测试的模型&quot;
+)
+
+mlclient.jobs.create_or_update(pipeline_job)
+
+当我运行此代码时，它使管道和扫描步骤运行良好，但每次试验只有 1 个实例
+只有 1 个 instance_count]]></description>
+      <guid>https://stackoverflow.com/questions/79137274/how-to-perform-a-sweep-on-multiple-nodes-in-azureml</guid>
+      <pubDate>Tue, 29 Oct 2024 12:44:26 GMT</pubDate>
+    </item>
     <item>
       <title>对整个数据集进行标准化（MinMax）是否会对看不见的时间序列数据产生更好的结果？</title>
       <link>https://stackoverflow.com/questions/79136221/normalization-minmax-on-the-whole-dataset-produces-better-results-on-unseen-ti</link>
@@ -265,8 +488,8 @@ Epoch 10/10
 #load libraries#
 
 library(tidiverse)
-
 library(Metrics)
+library(caret)
 
 #create simulation data
 
@@ -278,9 +501,9 @@ date&lt;-sample(1:662)
 
 dat&lt;-data.frame(date,y,X1_L12,X2_L12)
 
-#create the function to compute mase setting the naive prediction at t-12
+#create the function to compute mase setting the t-12 时的简单预测
 
-mase_lag16 &lt;- function(data, lev = NULL, model = NULL) {
+mase_lag12 &lt;- function(data, lev = NULL, model = NULL) {
 data$pred &lt;- as.numeric(data$pred)
 data$obs &lt;- as.numeric(data$obs)
 masefunction = mase(data$obs,data$pred,12)
@@ -298,7 +521,7 @@ fixedWindow = TRUE,
 summaryFunction = mase_lag12)
 
 #model
-glmnetmod_lag16 = train(y~X1_L12+X2_L12,
+glmnetmod_lag12 = train(y~X1_L12+X2_L12,
 method = &quot;glmnet&quot;,
 family=&quot;poisson&quot;,
 trControl = myTimeControlmase,maximize=FALSE,
@@ -310,111 +533,6 @@ actual[1:naive_end] 中的错误：只有 0 可以与负下标混合
 ]]></description>
       <guid>https://stackoverflow.com/questions/79134999/error-with-mase-cant-indexes-rows-beyond-data-when-evaluating-model-forecasti</guid>
       <pubDate>Mon, 28 Oct 2024 20:20:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>快速 AI 暹罗模型没有改进</title>
-      <link>https://stackoverflow.com/questions/79134990/fast-ai-siamese-model-not-improving</link>
-      <description><![CDATA[所以我按照这个教程：Fast Ai Siamese，然而在我完成它之后，我的准确率只有 50%。我尝试了很多方法，但都没有奏效。所以我认为问题可能出在 Siamese 实现本身，但我对 fast.ai 经验很少，也不知道如何修复它，甚至不知道从哪里开始。也许我遗漏了一些明显的东西？无论如何，任何评论都有帮助。这是我的代码
-class SiameseImage(fastuple):
-
-def show(self, ctx=None, **kwargs):
-if len(self) &gt; 2：
-img1，img2，相似度 = 自身
-其他：
-img1，img2 = 自身
-相似度 = &#39;未确定&#39;
-
-如果不是 isinstance(img1，Tensor)：
-如果 img2.size != img1.size： img2 = img2.resize(img1.size)
-t1 = 张量(img1)
-t2 = 张量(img2)
-t1 = t1.permute(2,0,1)
-t2 = t2.permute(2,0,1)
-其他：
-t1 = img1
-t2 = img2
-
-line = t1.new_zeros(t1.shape[0]，t1.shape[1]，10)
-返回 show_image(torch.cat([t1，line，t2]，dim=2)，title = 相似度，ctx=ctx， **kwargs) 
-
-class ImageTuple(fastuple):
-
-@classmethod
-def create(cls, fns): return cls(tuple(PILImage.create(f) for f in fns))
-
-def show(self, ctx=None, **kwargs): 
-t1,t2 = self
-if not isinstance(t1, Tensor) or not isinstance(t2, Tensor) or t1.shape != t2.shape: return ctx
-line = t1.new_zeros(t1.shape[0], t1.shape[1], 10)
-return show_image(torch.cat([t1,line,t2], dim=2), ctx=ctx, **kwargs)
-
-class SiameseModel(Module):
-
-def __init__(self,coder, head):
-self.encoder =coder
-self.head = head
-
-def forward(self, x1, x2):
-ftrs = torch.cat([self.encoder(x1), self.encoder(x2)], dim = 1)
-return self.head(ftrs)
-
-class SiameseTransform(Transform):
-
-def __init__(self, files, splits, labels):
-self.labels = labels
-self.splbl2files = [{l: [f for f in files[splits[i]] if parent_label(f) == l] for l in labels}
-for i in range(2)]
-self.valid = {f: self._draw(f,1) for f in files[splits[1]]}
-
-def encodes(self, f):
-f2,same = self.valid.get(f, self._draw(f,0))
-img1,img2 = PILImage.create(f),PILImage.create(f2)
-return SiameseImage(img1, img2, int(same))
-
-def _draw(self, f, split=0):
-same = random.random() &lt; 0.5
-cls = parent_label(f)
-如果不相同：cls = random.choice(L(l for l in self.labels if l != cls)) 
-返回 random.choice(self.splbl2files[split][cls])，相同
-
-def get_x(t): 返回 t[:2]
-def get_y(t): 返回 t[2]
-
-def siamese_splitter(model):
-返回 [params(model.encoder), params(model.head)]
-
-def loss_func(out, targ):
-返回 CrossEntropyLossFlat()(out, targ.long())
-
-def train(dataset_path):
-files = get_image_files(dataset_path)
-
-labels = list(set(files.map(parent_label)))
-
-coder = create_body(resnet50(), cut=-2)
-head = create_head(2048*2, 2, ps=0.5)
-model = SiameseModel(编码器，head)
-
-splits = RandomSplitter()(文件)
-tfm = SiameseTransform(文件，splits，标签)
-tls = TfmdLists(文件，tfm，splits=splits)
-dls = tls.dataloaders(
-after_item=[Resize(256, method=&#39;squash&#39;), ToTensor], 
-after_batch=[IntToFloatTensor, *aug_transforms(flip_vert=True, do_flip=True, max_rotate=50, max_warp=0.4, max_zoom=1.3), Normalize.from_stats(*imagenet_stats)],
-bs = 8
-)
-
-torch.cuda.empty_cache()
-learn = Learner(dls， model, loss_func=loss_func, splitter=siamese_splitter, metrics=accuracy)
-learn.fine_tune(
-epochs = 15,
-base_lr=2.51e-5,
-cbs=[SaveModelCallback(monitor=&#39;valid_loss&#39;), EarlyStoppingCallback(monitor=&#39;valid_loss&#39;, waiting=5)])
-learn.export(&#39;siamese1.pkl&#39;)
-
-我尝试更改批量大小、不同的架构、图像大小、epoch、各种批量转换和其他内容，但没有任何变化，我的准确率始终为 50%...]]></description>
-      <guid>https://stackoverflow.com/questions/79134990/fast-ai-siamese-model-not-improving</guid>
-      <pubDate>Mon, 28 Oct 2024 20:17:44 GMT</pubDate>
     </item>
     <item>
       <title>如何通过递归特征消除来选择最佳的特征数量和具有最高F1和ROC的最佳算法？</title>
@@ -447,13 +565,6 @@ print(f&#39;特征数量：{i},精确度：&#39;, precision)
       <pubDate>Mon, 28 Oct 2024 19:57:20 GMT</pubDate>
     </item>
     <item>
-      <title>模型（输入，训练=True）和模型（输入，训练=False）之间的巨大差异[关闭]</title>
-      <link>https://stackoverflow.com/questions/79134261/huge-difference-between-modelinput-training-true-and-modelinput-training-fa</link>
-      <description><![CDATA[我被要求根据我读过的一篇文章实现一个机器学习模型。为此，该论文推荐了一种特定类型的预测可靠性度量：该模型运行 M 次随机前向传递，其中有 M 种不同的 dropout 模式（其中 alpha=0.5%）。但是，我注意到，模型（输入，训练=True）的 M 次随机运行的平均输出与模型（输入，训练=False）的 M 次随机运行的平均输出有很大不同。这是由于什么原因？如果不使用 droput 模式，运行不应该收敛到相似的值吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79134261/huge-difference-between-modelinput-training-true-and-modelinput-training-fa</guid>
-      <pubDate>Mon, 28 Oct 2024 16:16:55 GMT</pubDate>
-    </item>
-    <item>
       <title>删除所有人口后，NEAT 给出错误</title>
       <link>https://stackoverflow.com/questions/79130999/neat-giving-error-after-deleting-all-the-population</link>
       <description><![CDATA[]]></description>
@@ -468,50 +579,6 @@ print(f&#39;特征数量：{i},精确度：&#39;, precision)
 我尝试删除所有可学习的投影（查询、键、值）并直接将点积应用于 token 本身。但是，我正在寻找一种替代方案，其中可以在不使用可学习参数的情况下将 token 投影到更有意义的维度。有什么想法吗？]]></description>
       <guid>https://stackoverflow.com/questions/79120787/do-the-transformers-really-need-the-learnable-self-attention-layer</guid>
       <pubDate>Thu, 24 Oct 2024 07:21:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 p5.js 中更改 bodySegmentation-mask-body-parts 的默认背景？</title>
-      <link>https://stackoverflow.com/questions/79110858/how-to-change-the-default-background-of-bodysegmentation-mask-body-parts-in-p5-j</link>
-      <description><![CDATA[我试图更改检测到的身体部位背后的背景，但无法使其工作。即使我修改了 background(...) 函数，它仍然默认为白色。有人能解释为什么会发生这种情况吗？
-这是我正在处理的文件的链接：
-https://editor.p5js.org/speedyonion/sketches/X9mwX9XB9
-let bodySegmentation;
-let video;
-let fragmentation;
-
-let options = {
-maskType: &quot;parts&quot;,
-};
-
-function preload() {
-bodySegmentation = ml5.bodySegmentation(&quot;BodyPix&quot;, options);
-}
-
-function setup() {
-createCanvas(640, 480);
-// 创建视频
-video = createCapture(VIDEO);
-video.size(640, 480);
-video.hide();
-
-bodySegmentation.detectStart(video, gotResults);
-}
-
-function draw() {
-background(0,0,0);
-image(video, 0, 0);
-if (segmentation) {
-image(segmentation.mask, 0, 0, width, height);
-}
-}
-
-// 身体分割回调函数
-function gotResults(result) {
-fragmentation = result;
-}
-]]></description>
-      <guid>https://stackoverflow.com/questions/79110858/how-to-change-the-default-background-of-bodysegmentation-mask-body-parts-in-p5-j</guid>
-      <pubDate>Mon, 21 Oct 2024 16:01:40 GMT</pubDate>
     </item>
     <item>
       <title>如果不重新嵌入数据，更新 Qdrant vectordb 中的点是否安全？</title>
@@ -530,37 +597,81 @@ PS：避免重新嵌入数据的原因是嵌入数据的成本很高，因为我
       <pubDate>Sun, 21 Jul 2024 21:14:04 GMT</pubDate>
     </item>
     <item>
+      <title>stable_baselines 模块错误 -> ‘gym.logger’ 没有属性 ‘MIN_LEVEL’</title>
+      <link>https://stackoverflow.com/questions/71449872/stable-baselines-module-error-gym-logger-has-no-attribute-min-level</link>
+      <description><![CDATA[我尝试使用 stable_baselines，但我尝试使用的任何模型都给出了相同的错误：
+模块“gym.logger”没有属性“MIN_LEVEL”
+我已从他们的网站上附上了一个示例，该示例给出了相同的错误。我尝试在线查找，但没有成功。此外，我目前正在使用 Conda 创建具有以下设置的环境。
+Tensorflow：1.15.0
+Python：3.7.11
+代码如下。
+import gym
+
+from stable_baselines.common.policies import MlpPolicy
+from stable_baselines.common import make_vec_env
+from stable_baselines import PPO2
+
+# 多进程环境
+env = make_vec_env(&#39;CartPole-v1&#39;, n_envs=4)
+
+model = PPO2(MlpPolicy, env, verbose=1)
+model.learn(total_timesteps=25000)
+model.save(&quot;ppo2_cartpole&quot;)
+
+del model # 删除以演示保存和加载
+
+model = PPO2.load(&quot;ppo2_cartpole&quot;)
+
+# 享受训练有素的代理
+obs = env.reset()
+while True:
+action, _states = model.predict(obs)
+obs, rewards, dones, info = env.step(action)
+env.render()
+
+完整错误：
+-------------------------------------------------------------------------------
+AttributeError Traceback（最近一次调用最后一次）
+/var/folders/2l/c0wfhk2x0qz3v_6x0ylvvdr00000gn/T/ipykernel_4323/1825670659.py in &lt;module&gt;
+8 env = make_vec_env(&#39;CartPole-v1&#39;, n_envs=4)
+9 
+---&gt; 10 model = PPO2(MlpPolicy, env, verbose=1)
+11 model.learn(total_timesteps=25000)
+12 model.save(&quot;ppo2_cartpole&quot;)
+
+~/miniconda3/envs/tf15/lib/python3.7/site-packages/stable_baselines/ppo2/ppo2.py in __init__(self, policy, env, gamma, n_steps, ent_coef, learning_rate, vf_coef, max_grad_norm, lam, nminibatches, noptepochs, cliprange, cliprange_vf, verbose, tensorboard_log, _init_setup_model, policy_kwargs, full_tensorboard_log, seed, n_cpu_tf_sess)
+95 
+96 if _init_setup_model:
+---&gt; 97 self.setup_model()
+98 
+99 def _make_runner(self):
+
+~/miniconda3/envs/tf15/lib/python3.7/site-packages/stable_baselines/ppo2/ppo2.py in setup_model(self)
+108 
+109 def setup_model(self):
+--&gt; 110 with SetVerbosity(self.verbose):
+111 
+112 assert issubclass(self.policy, ActorCriticPolicy), &quot;Error: PPO2 模型的输入策略必须是 &quot; \
+
+~/miniconda3/envs/tf15/lib/python3.7/site-packages/stable_baselines/common/base_class.py in __enter__(self)
+1127 self.tf_level = os.environ.get(&#39;TF_CPP_MIN_LOG_LEVEL&#39;, &#39;0&#39;)
+1128 self.log_level = logger.get_level()
+-&gt; 1129 self.gym_level = gym.logger.MIN_LEVEL
+1130 
+1131 if self.verbose &lt;= 1:
+
+AttributeError: 模块“gym.logger”没有属性“MIN_LEVEL”
+]]></description>
+      <guid>https://stackoverflow.com/questions/71449872/stable-baselines-module-error-gym-logger-has-no-attribute-min-level</guid>
+      <pubDate>Sat, 12 Mar 2022 12:55:23 GMT</pubDate>
+    </item>
+    <item>
       <title>sklearn：获取点到最近聚类的距离</title>
       <link>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</link>
       <description><![CDATA[我正在使用 DBSCAN 之类的聚类算法。
 它返回一个名为 -1 的“聚类”，这些点不属于任何聚类。对于这些点，我想确定它与最近聚类之间的距离，以获得类似于该点异常程度的指标。这可能吗？或者这种指标还有其他选择吗？]]></description>
       <guid>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</guid>
       <pubDate>Thu, 18 May 2017 07:31:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>免费提供的真实公共数据[关闭]</title>
-      <link>https://stackoverflow.com/questions/24962111/freely-available-real-public-data</link>
-      <description><![CDATA[注意：我不是在寻找样本数据。
-不同域中向公众免费公开的真实数据集：
-例如：
-
-FCM 的财务报告。
-http://www.cftc.gov/MarketReports/FinancialDataforFCMs/HistoricalFCMReports/index.htm
-YouTube 数据：（频道的受欢迎程度指标和统计数据）
-https://developers.google.com/youtube/analytics/
-
-如果有更多此类数据，请分享。 
-可能与以下内容或其他任何可能有用的内容相关。
-可能涉及医疗领域、药房、药品消费。
-不同城市、道路等的交通、事故、伤亡。
-不同地区的妇女安全指标。
-食品/饮料消费、价格。
-根据地区/公寓的垃圾收集量、洗手间。
-有多少孤儿院以及他们获得了多少资助。
-一个城市有多少个残疾人停车位等。
-如果您认为这个问题不适合这种类型的平台，我将非常感激您为我推荐一个更好的论坛。]]></description>
-      <guid>https://stackoverflow.com/questions/24962111/freely-available-real-public-data</guid>
-      <pubDate>Fri, 25 Jul 2014 18:18:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
