@@ -4,7 +4,164 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 29 Oct 2024 01:17:40 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 29 Oct 2024 03:24:59 GMT</lastBuildDate>
+    <item>
+      <title>xgboost 值错误：按要求创建数组时无法避免复制</title>
+      <link>https://stackoverflow.com/questions/79135634/xgboost-value-error-unable-to-avoid-copy-while-creating-an-array-as-requested</link>
+      <description><![CDATA[我正在尝试拟合 xgboost 模型，但它给出了一个错误：
+import xgboost as xgb
+from sklearn.metrics import mean_squared_error, r2_score
+
+# 假设 y_train 和 y_val 是具有多列的 DataFrames
+y_train_single = y_train[&#39;Fraction_Insertions&#39;] # 替换为您的特定目标
+y_val_single = y_val[&#39;Fraction_Insertions&#39;] # 替换为您的特定目标
+
+# 创建 DMatrix 对象
+train = xgb.DMatrix(X_train, label=y_train_single)
+test = xgb.DMatrix(X_val, label=y_val_single)
+
+# 设置参数
+params = {
+&#39;objective&#39;: &#39;reg:squarederror&#39;,
+&#39;eval_metric&#39;: &#39;rmse&#39;,
+&#39;eta&#39;: 0.1,
+&#39;max_depth&#39;: 3,
+&#39;seed&#39;: 42
+}
+
+# 训练模型
+model = xgb.train(params, train, num_boost_round=100)
+
+# 进行预测
+y_pred = model.predict(test)
+
+# 评估
+print(&quot;均方误差 (MSE)：&quot;, mean_squared_error(y_val_single, y_pred))
+print(&quot;R^2 分数：&quot;, r2_score(y_val_single, y_pred))
+
+
+{
+&quot;name&quot;: &quot;ValueError&quot;,
+&quot;message&quot;: &quot;按要求创建数组时无法避免复制。
+如果使用 `np.array(obj, copy=False)`，请将其替换为 `np.asarray(obj)`，以便在需要时进行复制（NumPy 1.x 中没有行为变化）。
+有关更多详细信息，请参阅 https://numpy.org/devdocs/numpy_2_0_migration_guide.html#adapting-to-changes-i
+]]></description>
+      <guid>https://stackoverflow.com/questions/79135634/xgboost-value-error-unable-to-avoid-copy-while-creating-an-array-as-requested</guid>
+      <pubDate>Tue, 29 Oct 2024 02:12:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>训练 CNN 模型时的损失和指标问题</title>
+      <link>https://stackoverflow.com/questions/79135625/a-loss-and-metrics-problem-while-training-a-cnn-model</link>
+      <description><![CDATA[我的自定义损失和指标出现了问题。我的目的是用图像训练一个 CNN 模型，并使用图像中物体的角度方向的切线，我有一列指示切线是正还是负。最后我有两个输出，一个是切线（回归），另一个是（分类）。现在，当我编写 model.evaluate 时，我把回归写为第一个出现的东西，但它并没有作为第一个出现。我不确定它们是否以某种方式被反转了。因为我找不到我得到的奇怪结果的解释。这是我的代码：
+# 自定义损失和度量函数
+@keras.utils.register_keras_serializable(package=&quot;Custom&quot;)
+
+def angular_loss(y_true, y_pred):
+angles_true = tf.math.atan(y_true) * 180.0 / np.pi
+angles_pred = tf.math.atan(y_pred) * 180.0 / np.pi
+return tf.abs(angles_true - angles_pred)
+
+@keras.utils.register_keras_serializable(package=&quot;Custom&quot;)
+def rmse_degrees(y_true, y_pred):
+a = tf.constant(np.pi)
+angles_true = tf.math.atan(y_true) * 180.0 / a
+angles_pred = tf.math.atan(y_pred) * 180.0 / a
+b = tf.square(angles_true - angles_pred)
+return tf.reduce_mean(b)
+# 定义模型
+input_image = Input(shape=X_train_images.shape[1:], name=&#39;input_image&#39;)
+x = layer.Conv2D(32, (3, 3),activation=&#39;relu&#39;)(input_image)
+x = layer.MaxPooling2D((2, 2))(x)
+x = layer.Dropout(0.3)(x)
+x = layer.Conv2D(64, (3, 3),activation=&#39;relu&#39;)(x)
+x = layer.MaxPooling2D((2, 2))(x)
+x = layer.Dropout(0.3)(x)
+x = layer.Flatten()(x)
+x = layer.Dense(128,activation=&#39;relu&#39;)(x) # 中间密集层
+x = layer.Dropout(0.3)(x)
+
+output_regression = layer.Dense(1,activation=&#39;linear&#39;,name=&#39;reg_output&#39;)(x)
+output_classification = layer.Dense(1,activation=&#39;sigmoid&#39;,name=&#39;cls_output&#39;)(x)
+model = keras.Model(inputs=input_image,outputs=[output_regression,output_classification])
+model.summary()
+model.save(&quot;modelfinal3.keras&quot;)
+# 编译模型
+
+model.compile(
+optimizer = RMSprop(learning_rate=0.0001),
+loss={
+&#39;reg_output&#39;: angular_loss,
+&#39;cls_output&#39;:&#39;binary_crossentropy&#39;
+},
+metrics={
+&#39;reg_output&#39;: [rmse_degrees],
+&#39;cls_output&#39;: [&#39;accuracy&#39;]
+}
+)
+
+# 定义 ModelCheckpoint 回调以保存最佳模型
+callbacks = [
+keras.callbacks.ModelCheckpoint(&quot;modelfinal3.keras&quot;, monitor=&quot;reg_output_loss&quot;, save_best_only=True , mode=&#39;min&#39;),
+keras.callbacks.EarlyStopping(monitor=&#39;reg_output_loss&#39; , waiting = 8 ,mode=&#39;min&#39; )
+]
+
+# 在没有验证数据的情况下训练模型
+history = model.fit(
+X_train_images,{&#39;reg_output&#39; : Y1_regression ,&#39;cls_output&#39; : Y2_classification} ,
+epochs= 10 ,
+batch_size= 64,
+回调=回调
+)
+
+test_model =keras.models.load_model(&quot;modelfinal3.keras&quot;, custom_objects ={&#39;angular_loss&#39;: angular_loss, &#39;rmse_degrees&#39;: rmse_degrees })
+results = test_model.evaluate(X_test_images, {&#39;reg_output&#39; : Y1_regression_test ,&#39;cls_output&#39; : Y2_classification_test },return_dict=True )
+
+print(results)
+
+结果
+30/30 ━━━━━━━━━━━━━━━━━━━━━━ 51s 2s/步 - cls_output_accuracy：0.6618 - cls_output_loss：9.0815 - 损失：14.4716 - reg_output_loss：5.3914 - reg_output_rmse_degrees：2806.2744
+Epoch 7/10
+30/30 ━━━━━━━━━━━━━━━━━━━━━━ 53s 2s/步 - cls_output_accuracy：0.6401 - cls_output_loss：8.9781 - 损失：14.7173 - reg_output_loss：5.7363 - reg_output_rmse_degrees： 2787.8420
+时代 8/10
+30/30 ━━━━━━━━━━━━━━━━━━━━━━ 51s 2s/步 - cls_output_accuracy：0.6524 - cls_output_loss：9.0007 - 损失：14.5403 - reg_output_loss：5.5401 - reg_output_rmse_degrees：2789.3442
+时代 9/10
+30/30 ━━━━━━━━━━━━━━━━━━━━━ 51 秒 2 秒/步 - cls_output_accuracy：0.6674 - cls_output_loss：9.4412 - 损失：14.7438 - reg_output_loss：5.3030 - reg_output_rmse_degrees：2844.9971
+Epoch 10/10
+30/30 ━━━━━━━━━━━━━━━━━━━━━━━ 52 秒 2 秒/步 - cls_output_accuracy：0.6610 - cls_output_loss：9.3189 - 损失：14.7248 - reg_output_loss：5.4059 - reg_output_rmse_degrees：2828.9368
+11/11 ━━━━━━━━━━━━━━━━━━━━━━ 2s 142ms/步 - cls_output_accuracy：1.0000 - cls_output_loss：9.4424 - 损失：9.4928 - reg_output_loss：1.1921e-07 - reg_output_rmse_degrees： 2435.0107
+{&#39;cls_output_accuracy&#39;: 1.0, &#39;cls_output_loss&#39;: 8.932900428771973, &#39;loss&#39;: 9.235373497009277, &#39;reg_output_loss&#39;: 1.1920930376163597e-07, &#39;reg_output_rmse_degrees&#39;: 2396.7568359375}
+
+进程已完成，退出代码为 0 
+
+我预计 cls 指标的正常值约为 90%，reg 指标的正常值约为 4。]]></description>
+      <guid>https://stackoverflow.com/questions/79135625/a-loss-and-metrics-problem-while-training-a-cnn-model</guid>
+      <pubDate>Tue, 29 Oct 2024 02:11:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>ValueError：Pandas 数据转换为对象的 numpy dtype。使用 np.asarray(data) 检查输入数据。解决它</title>
+      <link>https://stackoverflow.com/questions/79135568/valueerror-pandas-data-cast-to-numpy-dtype-of-object-check-input-data-with-np</link>
+      <description><![CDATA[https://colab.research.google.com/drive/1O98QhAdit3D8s61WCSGj35AkKAGkBtu8?usp=sharing
+解决无错误代码
+测试此部分使用的两个数据集来自加州大学欧文分校机器学习
+存储库。您可以下载这些数据集并手动将其加载到您的程序中，也可以使用 ucimlrepo python 包导入它们，可以使用命令 pip install ucimlrepo 安装（每个存储库的网页都有使用 ucimlrepo 直接从 python 中加载数据所需的代码）。
+说明：请在单个 Python 文件和 pdf 文件中提供您的代码，并附上您的书面回复。
+
+使用混凝土抗压强度数据集
+(https://archive.ics.uci.edu/dataset/165/concrete+compressive+strength)：
+(a) (15 分) 使用其他 8 个变量执行线性回归以预测混凝土抗压强度。报告您获得的拟合系数以及 R2 值，并写出您的拟合方程。
+(b) (5 分) 报告拟合的 F 统计量的 p 值。F 统计量的零假设可以拒绝吗？
+(c) (5 分) 报告每个系数的 p 值，并说明是否可以拒绝零假设。
+使用电离层数据集
+(https://archive.ics.uci.edu/dataset/52/ionosphere)：
+(a) (5 分) 拟合逻辑回归模型，使用其他 34 个变量作为输入预测因子，预测接收到的信号是“好”还是“坏”。
+(b) (5 分) 根据拟合的 p 值，是否可以从模型中删除任何属性？提供答案的理由。
+(c) (5 分) 使用 k 倍交叉验证优化此数据集上高斯朴素贝叶斯分类器的 var_smoothing 参数。提供图表并说明所选最优值的理由。
+(d) (5 分) 使用 k 倍交叉验证优化此数据集上的 KNN 的 k。提供图表并说明所选最优值的理由。
+(e) (5 分) 在三个拟合模型中，哪一个最准确？请务必为您的答案提供理由。
+]]></description>
+      <guid>https://stackoverflow.com/questions/79135568/valueerror-pandas-data-cast-to-numpy-dtype-of-object-check-input-data-with-np</guid>
+      <pubDate>Tue, 29 Oct 2024 01:50:29 GMT</pubDate>
+    </item>
     <item>
       <title>评估模型预测性能时，mase() 错误无法索引数据以外的行</title>
       <link>https://stackoverflow.com/questions/79134999/error-with-mase-cant-indexes-rows-beyond-data-when-evaluating-model-forecasti</link>
@@ -24,7 +181,7 @@ X1_L12&lt;-runif(662,-1,1)#假设 X1 滞后 12 天
 X2_L12&lt;-runif(662,-1:1)#假设 X2 滞后 12 天
 date&lt;-sample(1:662)
 
-dat&lt;-data.frame(date,cases,X1_L12,X2_L12)
+dat&lt;-data.frame(date,y,X1_L12,X2_L12)
 
 #create the function to compute mase setting the naive prediction at t-12
 
@@ -46,7 +203,7 @@ fixedWindow = TRUE,
 summaryFunction = mase_lag12)
 
 #model
-glmnetmod_lag16 = train(cases~X1_L12+X2_L12,
+glmnetmod_lag16 = train(y~X1_L12+X2_L12,
 method = &quot;glmnet&quot;,
 family=&quot;poisson&quot;,
 trControl = myTimeControlmase,maximize=FALSE,
@@ -265,7 +422,7 @@ elapsed_str = str(timedelta(seconds=int(elapsed_time)))
 print(f&quot;分区 {partition} 在 {elapsed_str} 内完成&quot;)
 
 # 清理内存
-if partition &lt; 9:
+if partion &lt; 9:
 del X, y, X_train, X_test, y_train, y_test, partition_df
 else:
 del X, y, X_train, y_train, partition_df
@@ -288,137 +445,11 @@ dump(model, &quot;/kaggle/working/JS_model.joblib&quot;)
       <pubDate>Mon, 28 Oct 2024 14:30:48 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 IBM Watson Assistant 响应中动态包含来自 Watson Discovery 的完整且正确的 URL？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79133652/how-to-dynamically-include-full-and-correct-urls-from-watson-discovery-in-ibm-wa</link>
-      <description><![CDATA[我正在使用 IBM Watson Assistant，使用 Llama 3.8 作为语言模型，我面临的一个问题是，模型始终无法在其响应中检索正确的 URL。我从 Watson Discovery 中的文档中动态提取这些 URL，并且每个响应都需要根据提出的问题包含不同的特定链接。尽管我的提示明确指示模型包含一个特定的完整链接，但模型的响应始终包含不正确或不完整的链接。
-是否有人遇到过与 IBM Watson Assistant 或其他 LLM 类似的问题，即模型无法检索确切的指定 URL，尤其是在不同响应中需要不同的链接时？是否有任何已知的解决方法、配置或提示调整可以确保模型可靠地从 Watson Discovery 中检索并显示正确的链接？
-以下是我尝试过的概述：
-提示调整：我在提示中包含了明确的指示“包含整个链接而不缩短它”，我甚至尝试将链接直接放在提示中作为示例。但是，模型要么生成不完整的链接，要么生成完全错误的链接。
-提示示例：
-下面是我的提示的简化版本，它指示模型将 {DOCUMENTATION_LINK} 替换为与每个问题相关的文档的实际链接：
-&quot;您是客户关系经理。您的目的是提供 CRM 流程的简要摘要。如果用户需要详细步骤，请回复：&#39;有关完整流程和所有详细步骤，请点击此链接：{DOCUMENTATION_LINK}&#39;。始终将“{DOCUMENTATION_LINK}”替换为问题中文档的实际链接。&quot;
-配置详细信息：
-温度：0.5
-最大新令牌：900
-停止序列：[&quot; &quot;]
-重复惩罚：1]]></description>
-      <guid>https://stackoverflow.com/questions/79133652/how-to-dynamically-include-full-and-correct-urls-from-watson-discovery-in-ibm-wa</guid>
-      <pubDate>Mon, 28 Oct 2024 13:41:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用没有跳跃连接的 U-Net 进行图像到图像处理。这是真的吗？</title>
-      <link>https://stackoverflow.com/questions/79132335/image-to-image-with-u-net-with-no-skip-connections-is-it-real</link>
-      <description><![CDATA[如果我想从其他图像（图像到图像）获取一些图像，我可以使用没有跳过连接的 U-Net 吗？因为我不需要保留结构。例如，为了改变某些对象的相机视角。
-例如，此模型为 256x256px。它适用于 3 对训练对（输入图像-输出图像），并带有角度增强（+/- 5 度、+/-10 度、+/-15 度），但不适用于 1.000 对。
-# 编码器
-c = layer.Conv2D(32, kernel_size=4, strides=2, padding=&quot;same&quot;)(inputs)
-c = layer.LeakyReLU(negative_slope=0.2)(c) 
-
-c = layer.Conv2D(64, kernel_size=4, strides=2, padding=&quot;same&quot;)(c)
-c = layer.LeakyReLU(negative_slope=0.2)(c)
-
-c = layer.Conv2D(128, kernel_size=4, strides=2, padding=&quot;same&quot;)(c)
-c =层。LeakyReLU（负斜率=0.2）（c）
-
-c = 层。Conv2D（256，kernel_size=4，strides=2，padding=“相同”（c）
-
-c = 层。LeakyReLU（负斜率=0.2）（c）
-
-c = 层。Conv2D（512，kernel_size=4，strides=2，padding=“相同”（c）
-
-c = 层。LeakyReLU（负斜率=0.2）（c）
-
-c = 层。Conv2D（1024，kernel_size=4，strides=2，padding=“相同”（c）
-
-c = 层。LeakyReLU（负斜率=0.2）（c）
-
-# 瓶颈
-b = InstanceNormalization（）（c）
-
-b =图层。重塑((-1,))(b)
-b = 图层。密集(512*4*4, kernel_regularizer=l2_reg,)(b)
-b = 图层。LeakyReLU(negative_slope=0.2)(b)
-
-b = 图层。Dropout(0.2)(b)
-
-b = 图层。密集(512*4*4*2, kernel_regularizer=l2_reg,)(b)
-b = 图层。LeakyReLU(negative_slope=0.2)(b)
-b = 图层。重塑((4,4,1024))(b)
-
-# 解码器
-d = 图层。UpSampling2D(size=(2, 2))(b)
-d = 图层。Conv2D(1024, kernel_size=4, padding=&quot;same&quot;)(d)
-d =层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。UpSampling2D（大小=（2, 2））（d）
-
-d = 层。Conv2D（512，内核大小=4，填充=“相同”）（d）
-
-d = 层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。UpSampling2D（大小=（2, 2））（d）
-
-d = 层。Conv2D（256，内核大小=4，填充=“相同”）（d）
-
-d = 层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。UpSampling2D（大小=（2, 2））（d）
-
-d = 层。Conv2D（128，内核大小=4，填充=“相同”）（d）
-
-d =层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。UpSampling2D（大小=（2，2））（d）
-
-d = 层。Conv2D（64，kernel_size=4，padding=“相同”（d）
-
-d = 层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。UpSampling2D（大小=（2，2））（d）
-
-d = 层。Conv2D（32，kernel_size=4，padding=“相同”（d）
-
-d = 层。LeakyReLU（负斜率=0.2）（d）`
-
-# 输出
-输出 = 层。Conv2D（3，kernel_size=3，padding=“相同”，激活=“tanh”（d）
-
-模型 = models.Model(inputs=inputs, output=outputs, name=&quot;build_unet&quot;)
-return model`
-
-无论输入图像是否旋转或扭曲，我都需要获取输出。]]></description>
-      <guid>https://stackoverflow.com/questions/79132335/image-to-image-with-u-net-with-no-skip-connections-is-it-real</guid>
-      <pubDate>Mon, 28 Oct 2024 07:00:00 GMT</pubDate>
-    </item>
-    <item>
       <title>删除所有人口后，NEAT 给出错误</title>
       <link>https://stackoverflow.com/questions/79130999/neat-giving-error-after-deleting-all-the-population</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79130999/neat-giving-error-after-deleting-all-the-population</guid>
       <pubDate>Sun, 27 Oct 2024 16:27:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何将 AWS Bedrock 与我的数据库集成以实现基于向量的 LLM 响应上下文检索？</title>
-      <link>https://stackoverflow.com/questions/79130070/how-can-i-integrate-aws-bedrock-with-my-database-to-enable-vector-based-context</link>
-      <description><![CDATA[我正在构建一个 AI 驱动的忠诚度应用程序，并希望利用大型语言模型 (LLM) 根据我的数据库内容提供响应。我目前的计划是：
-
-将数据库数据转换为向量嵌入：我想将我的结构化数据转换为向量嵌入，以便 LLM 可以更轻松地使用它。
-将嵌入存储在向量数据库中：这个想法是存储嵌入以实现基于相似性的高效检索。
-使用 AWS Bedrock LLM：我想根据用户的查询从我的数据库中检索上下文，并使用 AWS Bedrock 将此上下文输入到 LLM 中以生成响应。
-
-我将不胜感激任何有关以下方面的指导：
-
-嵌入转换：是否有任何推荐的工具或与 AWS Bedrock 兼容的模型用于将关系数据库中的结构化数据转换为有用的嵌入？ Amazon Titan 是否适合这种情况，还是其他模型更好？
-
-向量数据库选项：对于存储和查询嵌入，Amazon OpenSearch 是否合适，还是我应该考虑 FAISS 之类的东西？我的目标是实现高容量、实时的检索效率。
-
-LLM 集成最佳实践：检索类似嵌入后，格式化并将此上下文传递给 AWS Bedrock 上的 LLM 的最佳方法是什么？有任何示例、文章或模板吗？
-
-有关特定工具、模型或文章的建议，可以提供关于在 AWS Bedrock 上设置此工作流程的进一步见解。
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79130070/how-can-i-integrate-aws-bedrock-with-my-database-to-enable-vector-based-context</guid>
-      <pubDate>Sun, 27 Oct 2024 07:10:23 GMT</pubDate>
     </item>
     <item>
       <title>Transformer 真的需要可学习的自注意力层吗？[关闭]</title>
@@ -474,30 +505,12 @@ fragmentation = result;
       <pubDate>Mon, 21 Oct 2024 16:01:40 GMT</pubDate>
     </item>
     <item>
-      <title>迁移学习预训练模型</title>
-      <link>https://stackoverflow.com/questions/78875648/transfer-learning-pretrained-model</link>
-      <description><![CDATA[我在 Google Colab 上拟合迁移学习模型。但是，我在代码中遇到了一条警告消息
-Epoch 1/30
-/usr/local/lib/python3.10/dist-packages/keras/src/trainers/data_adapters/py_dataset_adapter.py:121: 
-UserWarning：您的 `PyDataset` 类应在其构造函数中调用 `super().__init__(**kwargs)`。`**kwargs` 可以包括 `workers`、`use_multiprocessing`、`max_queue_size`。
-请勿将这些参数传递给 `fit()`，因为它们将被忽略。
-self._warn_if_super_not_called()
-
-在第一个 epoch 之后，我收到以下错误：
-----------------------------------------------------------------------------------------
-KeyboardInterrupt Traceback（最近一次调用最后一次）
-&lt;ipython-input-23-962a870d4412&gt; in &lt;cell line: 16&gt;()
-14 # 拟合模型
-15 # 运行单元。执行需要一些时间
----&gt; 16 training_history = model_efficientnet.fit(
-17 training_set,
-18 validation_data=validate_set,
-
-我已经成功地拟合了其他六个迁移学习模型，没有任何问题，它们的准确率令人满意。
-如何解决这个问题？
-我想获得训练准确率和验证准确率]]></description>
-      <guid>https://stackoverflow.com/questions/78875648/transfer-learning-pretrained-model</guid>
-      <pubDate>Thu, 15 Aug 2024 14:49:45 GMT</pubDate>
+      <title>sklearn：获取点到最近聚类的距离</title>
+      <link>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</link>
+      <description><![CDATA[我正在使用 DBSCAN 之类的聚类算法。
+它返回一个名为 -1 的“聚类”，这些点不属于任何聚类。对于这些点，我想确定它与最近聚类之间的距离，以获得类似于该点异常程度的指标。这可能吗？或者这种指标还有其他选择吗？]]></description>
+      <guid>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</guid>
+      <pubDate>Thu, 18 May 2017 07:31:36 GMT</pubDate>
     </item>
     <item>
       <title>如何在spark集群环境下高效训练word2vec模型？</title>
