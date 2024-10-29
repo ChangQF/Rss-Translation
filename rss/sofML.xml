@@ -4,7 +4,36 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 29 Oct 2024 06:25:20 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 29 Oct 2024 09:18:37 GMT</lastBuildDate>
+    <item>
+      <title>对整个数据集进行标准化（MinMax）是否会对看不见的时间序列数据产生更好的结果？</title>
+      <link>https://stackoverflow.com/questions/79136221/normalization-minmax-on-the-whole-dataset-produces-better-results-on-unseen-ti</link>
+      <description><![CDATA[我已经训练了一个模型，用于预测 15 天内价格的最小最大值：1 最大值；0.5 无，0 最小值。问题是 Keras 中的 mse 回归，模型是无状态的：
+RNN(PeepholeCell(units=2,activation=&#39;relu&#39;))
+TimeDistributed(Dense(1))
+Dense(1)
+优化器是 Adam。形状：
+test_X.shape = (69501, 1, 45); test_y.shape = (11508, 1, 1)
+我进行了如下拟合：
+history = model.fit(train_X, train_y,
+epochs=num_epochs, batch_size=10080, validation_data=(test_X, test_y), verbose=2,
+shuffle=False, callbacks=[
+earlystopping,
+reduce_lr
+]
+, class_weight=class_weights
+)
+
+我对不同的模型配置、学习率策略进行了不同的训练尝试，并使用了 2014 年至 2021 年的每小时汇总数据，并使用了 2019 年至 2021 年的数据进行测试。对于验证，我使用了当前未见的数据（最近 900 天），粒度为 1 天，（最近 900 * 24）粒度为 1 小时。要预测的 y 数据为 0（表示最小相对值），1（表示最大值），否则为 0.5。标签 (y) 具有振荡统计数据，但在不同批次（平均值、标准差、最大值、最小值、QR）中，其幅度随时间相同。除了一些大小反映价格幅度变化的特征外，这些特征还具有恒定范围（例如振荡器）。
+我发现，通过回测对未见数据执行的最佳模型是仅将 MinMax 缩放器（scikit）应用于整个数据集的模型。我尝试在训练数据集上安装 RobustScaling 和 MinMax 标准化，并用它来转换测试数据。
+我的理解是，仅应用 MinMax 缩放器，而不进行标准化或异常值移除，将保留数据的分布，即使不均匀，NN 也应该能够从中学习。
+这样，模型可以专注于学习 x 数据幅度差异的两个阶段，同时不会将信息泄露给 y 变量，因为分布相似且幅度恒定。
+为了避免过度拟合，我恰当地将 LSTM 的单位减少到最小值，与更高的单位值相比，该值表现最佳。
+你觉得我做错了什么吗？
+因此，对整个数据集进行规范化（MinMax）可以在看不见的时间序列数据上产生更好的结果？]]></description>
+      <guid>https://stackoverflow.com/questions/79136221/normalization-minmax-on-the-whole-dataset-produces-better-results-on-unseen-ti</guid>
+      <pubDate>Tue, 29 Oct 2024 07:40:35 GMT</pubDate>
+    </item>
     <item>
       <title>AttributeError：'KerasHistory'对象没有属性'layer'</title>
       <link>https://stackoverflow.com/questions/79135894/attributeerror-kerashistory-object-has-no-attribute-layer</link>
@@ -498,52 +527,6 @@ fragmentation = result;
 它返回一个名为 -1 的“聚类”，这些点不属于任何聚类。对于这些点，我想确定它与最近聚类之间的距离，以获得类似于该点异常程度的指标。这可能吗？或者这种指标还有其他选择吗？]]></description>
       <guid>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</guid>
       <pubDate>Thu, 18 May 2017 07:31:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在spark集群环境下高效训练word2vec模型？</title>
-      <link>https://stackoverflow.com/questions/34377742/how-to-train-word2vec-model-efficiently-in-the-spark-cluster-environment</link>
-      <description><![CDATA[我想在我的 Spark 集群上训练 10G 新闻语料的 word2vec 模型。
-以下是我的 spark 集群的配置：
-
-一个 Master 和 4 个 Worker
-每个都有 80G 内存和 24 个核心
-
-但是我发现使用 Spark Mllib 训练 Word2vec 并没有充分利用集群的资源。
-例如：
-ubuntu 中的 top 命令图片
-如上图所示，只有一个 worker 使用了 100% 的 cpu，其他三个 worker 未使用（因此不粘贴它们的图片）并且我刚刚如何训练一个关于 2G 新闻语料的 word2vec 模型，大约需要 6 小时，所以我想知道如何更有效地训练模型？提前谢谢大家:)
-
-UPDATE1：以下命令是我在 spark-shell 中使用的
-
-如何启动 spark-shell
-spark-shell \
---master spark://ip:7077 \
---executor-memory 70G \
---driver-memory 70G \
---conf spark.akka.frameSize=2000 \
---conf spark.driver.maxResultSize=0 \
---conf spark.default.parallelism=180
-以下命令是我在spark-shell中训练word2vec模型时使用的：
-//导入相关包
-import org.apache.spark._
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
-import org.apache.spark.mllib.feature.{Word2Vec, Word2VecModel}
-//读取约10G newsdata 语料库
-val newsdata = sc.textFile(&quot;hdfs://ip:9000/user/bd/newsdata/*&quot;,600).map(line =&gt; line.split(&quot; &quot;).toSeq)
-//配置word2vec参数
-val word2vec = new Word2Vec()
-word2vec.setMinCount(10)
-word2vec.setNumIterations(10)
-word2vec.setVectorSize(200)
-//训练模型
-val model = word2vec.fit(newsdata)
-
-
-更新2：
-我已经训练模型大约24小时了，但还没有完成。集群运行如下：
-只有一个worker使用了100%的cpu，其他三个worker没有像以前一样被使用。]]></description>
-      <guid>https://stackoverflow.com/questions/34377742/how-to-train-word2vec-model-efficiently-in-the-spark-cluster-environment</guid>
-      <pubDate>Sun, 20 Dec 2015 03:40:58 GMT</pubDate>
     </item>
     <item>
       <title>免费提供的真实公共数据[关闭]</title>
