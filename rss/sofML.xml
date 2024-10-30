@@ -4,7 +4,60 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 29 Oct 2024 21:16:03 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 30 Oct 2024 01:16:38 GMT</lastBuildDate>
+    <item>
+      <title>验证数据的输入形状无效</title>
+      <link>https://stackoverflow.com/questions/79139121/invalid-input-shape-for-validation-data</link>
+      <description><![CDATA[我正在使用 Tensorflow 在 Python 中开发一个简单的 ML 模型。代码如下：
+import tensorflow as tf
+import pandas as pd
+
+# 加载 CSV 数据
+def load_data(filename):
+data = pd.read_csv(filename)
+X = data[[&#39;X0&#39;,&#39;X1&#39;,&#39;X2&#39;,&#39;X3&#39;]]
+Y = data[[&#39;Y0&#39;,&#39;Y1&#39;]]
+return tf.data.Dataset.from_tensor_slices((X.values, Y.values))
+
+training_data = load_data(&quot;binarydatatraining.csv&quot;)
+print(training_data)
+
+# 构建一个简单的神经网络模型
+model = tf.keras.models.Sequential([
+tf.keras.layers.Dense(4,activation=&#39;relu&#39;),
+tf.keras.layers.Dense(2)
+])
+# 编译模型
+model.compile(optimizer=&#39;adam&#39;,
+loss=&#39;mean_squared_error&#39;)
+
+# 加载验证数据
+validation_data = load_data(&quot;binarydatavalidation.csv&quot;)
+print(validation_data)
+
+# 训练模型
+model.summary()
+model.fit(training_data.batch(9), epochs=5)
+model.summary()
+model.fit(training_data.batch(9), epochs=1, validation_data = validation_data, validation_steps = 2)
+
+一切都运行正常，直到我开始包含验证数据，该数据具有与训练数据相同数量的参数。然后我收到错误
+ValueError：调用 Sequential.call() 时遇到异常。
+
+[1m输入 Tensor(&quot;sequence_1/Cast:0&quot;, shape=(4,), dtype=float32) 的输入形状无效。预期形状 (None, 4)，但输入具有不兼容的形状 (4,)[0m
+
+Sequential.call() 收到的参数：
+• 输入=tf.Tensor(shape=(4,), dtype=int64)
+• 训练=False
+• 掩码=None
+
+打印验证和训练数据集显示它们具有相同的维度，并且运行 print(training_data) 和 print(validation_data) 都给出
+&lt;_TensorSliceDataset element_spec=(TensorSpec(shape=(4,), dtype=tf.int64, name=None), TensorSpec(shape=(2,), dtype=tf.int64, name=None))&gt;
+
+如何正确设置验证数据以与 model.fit 内联运行？]]></description>
+      <guid>https://stackoverflow.com/questions/79139121/invalid-input-shape-for-validation-data</guid>
+      <pubDate>Tue, 29 Oct 2024 21:59:29 GMT</pubDate>
+    </item>
     <item>
       <title>我应该怎么做才能将 SHAP 与 CLIP 模型一起使用？[关闭]</title>
       <link>https://stackoverflow.com/questions/79138283/what-should-i-do-to-use-the-shap-together-with-a-clip-model</link>
@@ -241,190 +294,70 @@ mlclient.jobs.create_or_update(pipeline_job)
       <pubDate>Tue, 29 Oct 2024 12:44:26 GMT</pubDate>
     </item>
     <item>
-      <title>对整个数据集进行标准化（MinMax）是否会对看不见的时间序列数据产生更好的结果？</title>
-      <link>https://stackoverflow.com/questions/79136221/normalization-minmax-on-the-whole-dataset-produces-better-results-on-unseen-ti</link>
-      <description><![CDATA[我已经训练了一个模型，用于预测 15 天内价格的最小最大值：1 最大值；0.5 无，0 最小值。问题是 Keras 中的 mse 回归，模型是无状态的：
-RNN(PeepholeCell(units=2,activation=&#39;relu&#39;))
-TimeDistributed(Dense(1))
-Dense(1)
-优化器是 Adam。形状：
-test_X.shape = (69501, 1, 45); test_y.shape = (11508, 1, 1)
-我进行了如下拟合：
-history = model.fit(train_X, train_y,
-epochs=num_epochs, batch_size=10080, validation_data=(test_X, test_y), verbose=2,
-shuffle=False, callbacks=[
-earlystopping,
-reduce_lr
-]
-, class_weight=class_weights
-)
+      <title>AttributeError：'KerasHistory'对象没有属性'layer'</title>
+      <link>https://stackoverflow.com/questions/79135894/attributeerror-kerashistory-object-has-no-attribute-layer</link>
+      <description><![CDATA[我在使用 Keras 模型时遇到错误“AttributeError：&#39;KerasHistory&#39; 对象没有属性 &#39;layer&#39;”。
+我尝试访问层信息，但似乎我引用了错误的对象。我尝试将名称层更改为操作，但没有成功。
+我使用的是 TensorFlow v2.17.0。这是代码：
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.initializers import glorot_uniform
+from tensorflow.keras.layers import Input, ZeroPadding2D, Conv2D, MaxPooling2D, BatchNormalization, Activation, Add, AveragePooling2D, Flatten, Dense, Dropout
 
-我对不同的模型配置、学习率策略进行了不同的训练尝试，并使用了 2014 年至 2021 年的每小时汇总数据，并使用了 2019 年至 2021 年的数据进行测试。对于验证，我使用了当前未见的数据（最近 900 天），粒度为 1 天，（最近 900 * 24）粒度为 1 小时。要预测的 y 数据为 0（表示最小相对值），1（表示最大值），否则为 0.5。标签 (y) 具有振荡统计数据，但在不同批次（平均值、标准差、最大值、最小值、QR）中，其幅度随时间相同。除了一些大小反映价格幅度变化的特征外，这些特征还具有恒定范围（例如振荡器）。
-我发现，通过回测对未见数据执行的最佳模型是仅将 MinMax 缩放器（scikit）应用于整个数据集的模型。我尝试在训练数据集上安装 RobustScaling 和 MinMax 标准化，并用它来转换测试数据。
-我的理解是，仅应用 MinMax 缩放器，而不进行标准化或异常值移除，将保留数据的分布，即使不均匀，NN 也应该能够从中学习。
-这样，模型可以专注于学习 x 数据幅度差异的两个阶段，同时不会将信息泄露给 y 变量，因为分布相似且幅度恒定。
-为了避免过度拟合，我恰当地将 LSTM 的单位减少到最小值，与更高的单位值相比，该值表现最佳。
-你觉得我做错了什么吗？
-因此，对整个数据集进行规范化（MinMax）可以在看不见的时间序列数据上产生更好的结果？]]></description>
-      <guid>https://stackoverflow.com/questions/79136221/normalization-minmax-on-the-whole-dataset-produces-better-results-on-unseen-ti</guid>
-      <pubDate>Tue, 29 Oct 2024 07:40:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>xgboost 值错误：按要求创建数组时无法避免复制</title>
-      <link>https://stackoverflow.com/questions/79135634/xgboost-value-error-unable-to-avoid-copy-while-creating-an-array-as-requested</link>
-      <description><![CDATA[我正在尝试拟合 xgboost 模型，但它给出了一个错误：
-import xgboost as xgb
-from sklearn.metrics import mean_squared_error, r2_score
+input_shape = (96, 96, 1)
 
-# 假设 y_train 和 y_val 是具有多列的 DataFrames
-y_train_single = y_train[&#39;Fraction_Insertions&#39;] # 替换为您的特定目标
-y_val_single = y_val[&#39;Fraction_Insertions&#39;] # 替换为您的特定目标
+# 输入张量形状
+X_input = Input(input_shape)
 
-# 创建 DMatrix 对象
-train = xgb.DMatrix(X_train, label=y_train_single)
-test = xgb.DMatrix(X_val, label=y_val_single)
+# 零填充
+X = ZeroPadding2D((3,3))(X_input)
 
-# 设置参数
-params = {
-&#39;objective&#39;: &#39;reg:squarederror&#39;,
-&#39;eval_metric&#39;: &#39;rmse&#39;,
-&#39;eta&#39;: 0.1,
-&#39;max_depth&#39;: 3,
-&#39;seed&#39;: 42
-}
+# 1 - 阶段
+X = Conv2D(64, (7,7), strides= (2,2), name = &#39;conv1&#39;, kernel_initializer= glorot_uniform(seed = 0))(X)
+X = BatchNormalization(axis =3, name = &#39;bn_conv1&#39;)(X)
+X = Activation(&#39;relu&#39;)(X)
+X = MaxPooling2D((3,3), strides= (2,2))(X)
 
-# 训练模型
-model = xgb.train(params, train, num_boost_round=100)
+# 2 - 阶段
+X = res_block(X, filter= [64,64,256], stage= 2)
 
-# 进行预测
-y_pred = model.predict(test)
+# 3 - 阶段
+X = res_block(X, filter= [128,128,512], stage= 3)
 
-# 评估
-print(&quot;均方误差 (MSE)：&quot;, mean_squared_error(y_val_single, y_pred))
-print(&quot;R^2 分数：&quot;, r2_score(y_val_single, y_pred))
+# 平均池化
+X = AveragePooling2D((2,2), name = &#39;Averagea_Pooling&#39;)(X)
 
+# 最终层
+X = Flatten()(X)
+X = Dense(4096, 激活 = &#39;relu&#39;)(X)
+X = Dropout(0.2)(X)
+X = Dense(2048, 激活 = &#39;relu&#39;)(X)
+X = Dropout(0.1)(X)
+X = Dense(30, 激活 = &#39;relu&#39;)(X)
 
-{
-&quot;name&quot;: &quot;ValueError&quot;,
-&quot;message&quot;: &quot;按要求创建数组时无法避免复制。
-如果使用 `np.array(obj, copy=False)`，请将其替换为 `np.asarray(obj)`，以便在需要时进行复制（NumPy 1.x 中没有行为变化）。
-有关更多详细信息，请参阅 https://numpy.org/devdocs/numpy_2_0_migration_guide.html#adapting-to-changes-i
+model_1_facialKeyPoints = Model(inputs= X_input, 输出 = X)
+model_1_facialKeyPoints.summary()
+
+这是回溯：
+AttributeError Traceback (最近一次调用最后一次)
+&lt;ipython-input-366-fd266d53d661&gt; 在 &lt;cell line: 34&gt;()
+32 
+33 
+---&gt; 34 model_1_facialKeyPoints = Model( 输入= X_input，输出 = X)
+35 model_1_facialKeyPoints.summary()
+
+4 帧
+/usr/local/lib/python3.10/dist-packages/tensorflow/python/keras/engine/ functional.py in _validate_graph_inputs_and_outputs(self)
+692 # 检查 x 是否为输入张量。
+693 # pylint：disable=protected-access
+--&gt; 694 
+695 layer = x._keras_history.layer
+696 if len(layer._inbound_nodes) &gt; 1 or (
+
+AttributeError: &#39;KerasHistory&#39; 对象没有属性 &#39;layer&#39;
 ]]></description>
-      <guid>https://stackoverflow.com/questions/79135634/xgboost-value-error-unable-to-avoid-copy-while-creating-an-array-as-requested</guid>
-      <pubDate>Tue, 29 Oct 2024 02:12:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>训练 CNN 模型时的损失和指标问题</title>
-      <link>https://stackoverflow.com/questions/79135625/a-loss-and-metrics-problem-while-training-a-cnn-model</link>
-      <description><![CDATA[我的自定义损失和指标出现了问题。我的目的是用图像训练一个 CNN 模型，并使用图像中物体的角度方向的切线，我有一列指示切线是正还是负。最后我有两个输出，一个是切线（回归），另一个是（分类）。现在，当我编写 model.evaluate 时，我把回归写为第一个出现的东西，但它并没有作为第一个出现。我不确定它们是否以某种方式被反转了。因为我找不到我得到的奇怪结果的解释。这是我的代码：
-# 自定义损失和度量函数
-@keras.utils.register_keras_serializable(package=&quot;Custom&quot;)
-
-def angular_loss(y_true, y_pred):
-angles_true = tf.math.atan(y_true) * 180.0 / np.pi
-angles_pred = tf.math.atan(y_pred) * 180.0 / np.pi
-return tf.abs(angles_true - angles_pred)
-
-@keras.utils.register_keras_serializable(package=&quot;Custom&quot;)
-def rmse_degrees(y_true, y_pred):
-a = tf.constant(np.pi)
-angles_true = tf.math.atan(y_true) * 180.0 / a
-angles_pred = tf.math.atan(y_pred) * 180.0 / a
-b = tf.square(angles_true - angles_pred)
-return tf.reduce_mean(b)
-# 定义模型
-input_image = Input(shape=X_train_images.shape[1:], name=&#39;input_image&#39;)
-x = layer.Conv2D(32, (3, 3),activation=&#39;relu&#39;)(input_image)
-x = layer.MaxPooling2D((2, 2))(x)
-x = layer.Dropout(0.3)(x)
-x = layer.Conv2D(64, (3, 3),activation=&#39;relu&#39;)(x)
-x = layer.MaxPooling2D((2, 2))(x)
-x = layer.Dropout(0.3)(x)
-x = layer.Flatten()(x)
-x = layer.Dense(128,activation=&#39;relu&#39;)(x) # 中间密集层
-x = layer.Dropout(0.3)(x)
-
-output_regression = layer.Dense(1,activation=&#39;linear&#39;,name=&#39;reg_output&#39;)(x)
-output_classification = layer.Dense(1,activation=&#39;sigmoid&#39;,name=&#39;cls_output&#39;)(x)
-model = keras.Model(inputs=input_image,outputs=[output_regression,output_classification])
-model.summary()
-model.save(&quot;modelfinal3.keras&quot;)
-# 编译模型
-
-model.compile(
-optimizer = RMSprop(learning_rate=0.0001),
-loss={
-&#39;reg_output&#39;: angular_loss,
-&#39;cls_output&#39;:&#39;binary_crossentropy&#39;
-},
-metrics={
-&#39;reg_output&#39;: [rmse_degrees],
-&#39;cls_output&#39;: [&#39;accuracy&#39;]
-}
-)
-
-# 定义 ModelCheckpoint 回调以保存最佳模型
-callbacks = [
-keras.callbacks.ModelCheckpoint(&quot;modelfinal3.keras&quot;, monitor=&quot;reg_output_loss&quot;, save_best_only=True , mode=&#39;min&#39;),
-keras.callbacks.EarlyStopping(monitor=&#39;reg_output_loss&#39; , waiting = 8 ,mode=&#39;min&#39; )
-]
-
-# 在没有验证数据的情况下训练模型
-history = model.fit(
-X_train_images,{&#39;reg_output&#39; : Y1_regression ,&#39;cls_output&#39; : Y2_classification} ,
-epochs= 10 ,
-batch_size= 64,
-回调=回调
-)
-
-test_model =keras.models.load_model(&quot;modelfinal3.keras&quot;, custom_objects ={&#39;angular_loss&#39;: angular_loss, &#39;rmse_degrees&#39;: rmse_degrees })
-results = test_model.evaluate(X_test_images, {&#39;reg_output&#39; : Y1_regression_test ,&#39;cls_output&#39; : Y2_classification_test },return_dict=True )
-
-print(results)
-
-结果
-30/30 ━━━━━━━━━━━━━━━━━━━━━━ 51s 2s/步 - cls_output_accuracy：0.6618 - cls_output_loss：9.0815 - 损失：14.4716 - reg_output_loss：5.3914 - reg_output_rmse_degrees：2806.2744
-Epoch 7/10
-30/30 ━━━━━━━━━━━━━━━━━━━━━━ 53s 2s/步 - cls_output_accuracy：0.6401 - cls_output_loss：8.9781 - 损失：14.7173 - reg_output_loss：5.7363 - reg_output_rmse_degrees： 2787.8420
-时代 8/10
-30/30 ━━━━━━━━━━━━━━━━━━━━━━ 51s 2s/步 - cls_output_accuracy：0.6524 - cls_output_loss：9.0007 - 损失：14.5403 - reg_output_loss：5.5401 - reg_output_rmse_degrees：2789.3442
-时代 9/10
-30/30 ━━━━━━━━━━━━━━━━━━━━━ 51 秒 2 秒/步 - cls_output_accuracy：0.6674 - cls_output_loss：9.4412 - 损失：14.7438 - reg_output_loss：5.3030 - reg_output_rmse_degrees：2844.9971
-Epoch 10/10
-30/30 ━━━━━━━━━━━━━━━━━━━━━━━ 52 秒 2 秒/步 - cls_output_accuracy：0.6610 - cls_output_loss：9.3189 - 损失：14.7248 - reg_output_loss：5.4059 - reg_output_rmse_degrees：2828.9368
-11/11 ━━━━━━━━━━━━━━━━━━━━━━ 2s 142ms/步 - cls_output_accuracy：1.0000 - cls_output_loss：9.4424 - 损失：9.4928 - reg_output_loss：1.1921e-07 - reg_output_rmse_degrees： 2435.0107
-{&#39;cls_output_accuracy&#39;: 1.0, &#39;cls_output_loss&#39;: 8.932900428771973, &#39;loss&#39;: 9.235373497009277, &#39;reg_output_loss&#39;: 1.1920930376163597e-07, &#39;reg_output_rmse_degrees&#39;: 2396.7568359375}
-
-进程已完成，退出代码为 0 
-
-我预计 cls 指标的正常值约为 90%，reg 指标的正常值约为 4。]]></description>
-      <guid>https://stackoverflow.com/questions/79135625/a-loss-and-metrics-problem-while-training-a-cnn-model</guid>
-      <pubDate>Tue, 29 Oct 2024 02:11:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：Pandas 数据转换为对象的 numpy dtype。使用 np.asarray(data) 检查输入数据。解决它</title>
-      <link>https://stackoverflow.com/questions/79135568/valueerror-pandas-data-cast-to-numpy-dtype-of-object-check-input-data-with-np</link>
-      <description><![CDATA[https://colab.research.google.com/drive/1O98QhAdit3D8s61WCSGj35AkKAGkBtu8?usp=sharing
-解决无错误代码
-测试此部分使用的两个数据集来自加州大学欧文分校机器学习
-存储库。您可以下载这些数据集并手动将其加载到您的程序中，也可以使用 ucimlrepo python 包导入它们，可以使用命令 pip install ucimlrepo 安装（每个存储库的网页都有使用 ucimlrepo 直接从 python 中加载数据所需的代码）。
-说明：请在单个 Python 文件和 pdf 文件中提供您的代码，并附上您的书面回复。
-
-使用混凝土抗压强度数据集
-(https://archive.ics.uci.edu/dataset/165/concrete+compressive+strength)：
-(a) (15 分) 使用其他 8 个变量执行线性回归以预测混凝土抗压强度。报告您获得的拟合系数以及 R2 值，并写出您的拟合方程。
-(b) (5 分) 报告拟合的 F 统计量的 p 值。F 统计量的零假设可以拒绝吗？
-(c) (5 分) 报告每个系数的 p 值，并说明是否可以拒绝零假设。
-使用电离层数据集
-(https://archive.ics.uci.edu/dataset/52/ionosphere)：
-(a) (5 分) 拟合逻辑回归模型，使用其他 34 个变量作为输入预测因子，预测接收到的信号是“好”还是“坏”。
-(b) (5 分) 根据拟合的 p 值，是否可以从模型中删除任何属性？提供答案的理由。
-(c) (5 分) 使用 k 倍交叉验证优化此数据集上高斯朴素贝叶斯分类器的 var_smoothing 参数。提供图表并说明所选最优值的理由。
-(d) (5 分) 使用 k 倍交叉验证优化此数据集上的 KNN 的 k。提供图表并说明所选最优值的理由。
-(e) (5 分) 在三个拟合模型中，哪一个最准确？请务必为您的答案提供理由。
-]]></description>
-      <guid>https://stackoverflow.com/questions/79135568/valueerror-pandas-data-cast-to-numpy-dtype-of-object-check-input-data-with-np</guid>
-      <pubDate>Tue, 29 Oct 2024 01:50:29 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/79135894/attributeerror-kerashistory-object-has-no-attribute-layer</guid>
+      <pubDate>Tue, 29 Oct 2024 05:11:46 GMT</pubDate>
     </item>
     <item>
       <title>评估模型预测性能时，mase() 错误无法索引数据以外的行[关闭]</title>
@@ -519,27 +452,43 @@ print(f&#39;估计器：{estimator_name}，特征数量：{n_features}，PRC AUC
       <pubDate>Mon, 28 Oct 2024 19:57:20 GMT</pubDate>
     </item>
     <item>
-      <title>删除所有人口后，NEAT 给出错误</title>
-      <link>https://stackoverflow.com/questions/79130999/neat-giving-error-after-deleting-all-the-population</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79130999/neat-giving-error-after-deleting-all-the-population</guid>
-      <pubDate>Sun, 27 Oct 2024 16:27:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果不重新嵌入数据，更新 Qdrant vectordb 中的点是否安全？</title>
-      <link>https://stackoverflow.com/questions/78776361/is-updating-points-in-qdrant-vectordb-without-re-embedding-the-data-safe</link>
-      <description><![CDATA[我正在使用 Langchain 构建一个 RAG 聊天机器人，使用我存储在 Qdrant 矢量数据库中的数据。
-我想更改我的 qdrant 矢量数据库中一些文档的元数据。
-为此，我单独存储了这些文档（包括矢量），删除了旧数据，修改了元数据并将它们重新插入，而无需再次嵌入它们。我想知道这样做是否安全。
-（注意：我只更改了元数据。页面内容相同。）
-仅供参考，当我滚动点时，记录看起来像这样：
-Record(id=&#39;001c7e73032a40158b0c629f163e3bcf&#39;, payload={&#39;page_content&#39;: &#39;猫（Felis catus），通常称为家猫或家猫，是一种小型家养食肉哺乳动物。它是唯一被驯化的物种...&#39;, &#39;metadata&#39;: {&#39;source&#39;: &#39;Wikipedia&#39;, &#39;url&#39;: &#39;https://en.wikipedia.org/wiki/Cat&#39;, &#39;count&#39;: 1}}, vector=[-0.013379335966146134, 0.007072219895927447, -0.0018562082621154511, -0.0036226000104401957, -0.005558645199573012, 0.012487823730867539, -0.023378909852710315,...
+      <title>警告：tensorflow：顺序模型中的层只能有一个输入张量</title>
+      <link>https://stackoverflow.com/questions/73181243/warningtensorflowlayers-in-a-sequential-model-should-only-have-a-single-input</link>
+      <description><![CDATA[我从 tensorflow 网站对自动编码器的第一个示例的介绍 复制了过去的代码，以下代码适用于 mnist 时尚数据集，但不适用于我的数据集。这给了我一个很长的警告。请告诉我我的数据集出了什么问题
+警告
+屏幕上缺少相同的错误
+这里 x_train 是我的数据集：
+tf.shape(x_train)
 
-所以我的问题是：
-我保留了向量、page_content 和 id。这是否消除了重新嵌入数据的需要？
-PS：避免重新嵌入数据的原因是嵌入数据的成本很高，因为我有很多数据。]]></description>
-      <guid>https://stackoverflow.com/questions/78776361/is-updating-points-in-qdrant-vectordb-without-re-embedding-the-data-safe</guid>
-      <pubDate>Sun, 21 Jul 2024 21:14:04 GMT</pubDate>
+输出 &lt;tf.Tensor: shape=(3,), dtype=int32, numpy=array([169,** **28, 28])&gt;
+
+这里 x_train 是 mnist 数据集：
+tf.shape(x_train)
+
+输出&lt;tf.Tensor: shape=(3,), dtype=int32, numpy=array([60000, 28, 28])&gt;
+
+我制作数据集的整个代码：
+dir_path=&#39;auto/ttt/&#39;
+data=[]
+x_train=[]
+for i in os.listdir(dir_path):
+img=image.load_img(dir_path+&#39;//&#39;+i,color_mode=&#39;grayscale&#39;,target_size=(28,28)) 
+data=np.array(img)
+data=data/255.0
+x_train.append(data)
+
+这是警告：
+警告：tensorflow：顺序模型中的层应该只有一个输入张量。已接收：输入=(&lt;tf.Tensor&#39;IteratorGetNext:0&#39;shape=(None, 28)dtype=float32&gt;,&lt;tf.Tensor&#39;IteratorGetNext:1&#39;shape=(None, 28)dtype=float32&gt;,&lt;tf.Tensor&#39;IteratorGetNext:2&#39;shape=(None, 28)
+dtype=float32&gt;,&lt;tf.Tensor&#39;IteratorGetNext:3&#39;shape=(None, 28)
+dtype=float32&gt;,&lt;tf.Tensor&#39;IteratorGetNext:4&#39;shape=(None, 28)dtype=float32&gt;,&lt;tf.Tensor&#39;IteratorGetNext:5&#39;shape=(None, 28)dtype=float32&gt;,&lt;tf.Tensor &#39;IteratorGetNext:6&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:7&#39; shape=(None, 28) dtype=flo...
+
+还有这个值错误（相同的警告）：
+ValueError：调用层“sequential_4”（类型为 Sequential）时遇到异常。
+
+层“flatten_2”需要 1 个输入，但它收到了 169 个输入张量。收到的输入：[&lt;tf.Tensor &#39;IteratorGetNext:0&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:1&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:2&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:3&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:4&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:5&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:6&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:7&#39; shape=(None, 28) dtype=float32&gt;, &lt;tf.Tensor &#39;IteratorGetNext:8&#39; shape=(None, 28) dtype=float3...
+]]></description>
+      <guid>https://stackoverflow.com/questions/73181243/warningtensorflowlayers-in-a-sequential-model-should-only-have-a-single-input</guid>
+      <pubDate>Sun, 31 Jul 2022 06:54:28 GMT</pubDate>
     </item>
     <item>
       <title>stable_baselines 模块错误 -> ‘gym.logger’ 没有属性 ‘MIN_LEVEL’</title>
@@ -611,12 +560,210 @@ AttributeError: 模块“gym.logger”没有属性“MIN_LEVEL”
       <pubDate>Sat, 12 Mar 2022 12:55:23 GMT</pubDate>
     </item>
     <item>
-      <title>sklearn：获取点到最近聚类的距离</title>
-      <link>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</link>
-      <description><![CDATA[我正在使用 DBSCAN 之类的聚类算法。
-它返回一个名为 -1 的“聚类”，这些点不属于任何聚类。对于这些点，我想确定它与最近聚类之间的距离，以获得类似于该点异常程度的指标。这可能吗？或者这种指标还有其他选择吗？]]></description>
-      <guid>https://stackoverflow.com/questions/44041347/sklearn-get-distance-from-point-to-nearest-cluster</guid>
-      <pubDate>Thu, 18 May 2017 07:31:36 GMT</pubDate>
+      <title>ValueError：层“顺序”的输入 0 与层不兼容</title>
+      <link>https://stackoverflow.com/questions/71370360/valueerror-input-0-of-layer-sequential-is-incompatible-with-the-layer</link>
+      <description><![CDATA[我有一个聊天机器人模型，我用数据集对其进行了训练，以提供“标准”对话，例如你好，你好吗等。现在我想用一个数据集来“扩展”现有模型，该数据集可以提供与运输、库存等相关的问题的答案。
+这是我的工作/已经训练过的模型：
+# 创建顺序模型
+model = Sequential()
+
+# 添加第一层，其输入形状取决于输入的大小和“relu”激活函数
+model.add(Dense(256, input_shape=(len(training_data_x[0]),),activation=activations.relu))
+
+# 添加 Dropout 以防止过度拟合
+model.add(Dropout(0.6))
+# 具有 64 个神经元的附加层
+model.add(Dense(128,activation=activations.relu))
+model.add(Dropout(0.2))
+# 具有类别神经元数量的附加密集层 &amp; softmax 激活函数
+# -&gt; 将输出层中的结果添加到“1”得到 %
+model.add(Dense(len(training_data_y[0]),activation=activations.softmax))
+# print(len(training_data_y[0])) = 71
+sgd = SGD(learning_rate=0.01, decay=1e-6, motivation=0.9, nesterov=True)
+# 编译模型
+model.compile(loss=&#39;categorical_crossentropy&#39;, optimizer=sgd, metrics=[&#39;accuracy&#39;])
+
+output = model.fit(np.array(training_data_x), np.array(training_data_y), epochs=200, batch_size=5, verbose=1)
+plot_model_output(output)
+model.summary()
+model.save(&#39;./MyModel_tf&#39;, save_format=&#39;tf&#39;)
+
+训练数据准备如下一个单独的类，并将某个 json 文件作为输入。
+现在我只需将 JSON 文件替换为包含与我想添加到模型中的内容相关的数据的文件，并尝试像这样拟合它：
+json_data = json.loads(open(&#39;data.json&#39;).read())
+
+model = load_model(&#39;MyModel_tf&#39;)
+
+model.fit(np.array(training_data_x), np.array(training_data_y), epochs=200, batch_size=5, verbose=1)
+
+但是当我运行它时，我收到此错误：
+ValueError: 输入 0 of layer &quot;sequence&quot;与层不兼容：预期形状=（无，652），发现形状=（无，71）
+
+我假设数据是问题所在……但它的结构完全相同，只是更短。
+我的问题：
+
+我尝试实现它的方式有意义吗？
+我应该尝试以不同的方式添加其他数据吗？
+第二个数据集的长度必须与第一个数据集的长度相同吗？
+]]></description>
+      <guid>https://stackoverflow.com/questions/71370360/valueerror-input-0-of-layer-sequential-is-incompatible-with-the-layer</guid>
+      <pubDate>Sun, 06 Mar 2022 12:41:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>SVM 模型将概率得分大于 0.1（默认阈值 0.5）的实例预测为正例</title>
+      <link>https://stackoverflow.com/questions/68475534/svm-model-predicts-instances-with-probability-scores-greater-than-0-1default-th</link>
+      <description><![CDATA[我正在研究一个二分类问题。我遇到的情况是，我使用了从 sklearn 导入的逻辑回归和支持向量机模型。这两个模型适合相同的、不平衡的训练数据，并调整了类别权重。它们取得了相当的表现。当我使用这两个预训练模型来预测一个新的数据集时。LR 模型和 SVM 模型预测的正例数量相似。并且预测的实例有很大的重叠。
+然而，当我查看被归类为正例的概率分数时，LR 的分布从 0.5 到 1，而 SVM 从 0.1 左右开始。我调用函数 model.predict(prediction_data) 来找出预测为每个类别的实例，并调用函数
+model.predict_proba(prediction_data) 给出被分类为 0（neg）和 1（pos）的概率分数，并假设它们都具有默认阈值 0.5。
+我的代码没有错误，我不知道为什么 SVM 也将概率分数 &lt; 0.5 的实例预测为正值。对如何解释这种情况有什么想法吗？]]></description>
+      <guid>https://stackoverflow.com/questions/68475534/svm-model-predicts-instances-with-probability-scores-greater-than-0-1default-th</guid>
+      <pubDate>Wed, 21 Jul 2021 19:36:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>维度问题：检查输入时出错：预期 conv2d_1_input 有 4 个维度，但得到的数组形状为 (26, 26, 1)</title>
+      <link>https://stackoverflow.com/questions/60802354/dimension-problems-error-when-checking-input-expected-conv2d-1-input-to-have-4</link>
+      <description><![CDATA[我有一个 CNN，它以以下通过 Canny 边缘检测转换为二值图像的图像作为输入。
+​​并输出三个类别之一。
+img = cv2.imread(path)
+img = cv2.Canny(img, 33, 76)
+img = np.resize(img, (26, 26, 1))
+imgs.append(img)
+
+据我所知，我必须将其转换为 3 维 (26,26,1) 图像，以便网络可以使用它。这是我的网络：
+IMG_HEIGHT = 26
+IMG_WIDTH = 26
+no_Of_Filters=60
+size_of_Filter=(5,5)
+size_of_pool=(2,2)
+no_Of_Nodes = 500
+model_new = Sequential([
+Conv2D(no_Of_Filters, size_of_Filter, padding=&#39;same&#39;,activation=&#39;relu&#39;, input_shape=(IMG_HEIGHT, IMG_WIDTH , 1)),
+MaxPooling2D(pool_size=size_of_pool),
+Conv2D(no_Of_Filters, size_of_Filter, padding=&#39;same&#39;,activation=&#39;relu&#39;),
+MaxPooling2D(pool_size=size_of_pool),
+Conv2D(64, size_of_Filter, padding=&#39;same&#39;,激活=&#39;relu&#39;),
+MaxPooling2D(pool_size=size_of_pool),
+Flatten(),
+Dense(512, 激活=&#39;relu&#39;),
+Dense(3, 激活=&#39;softmax&#39;)
+])
+
+训练效果良好。在我训练并创建模型后，我想针对该网络测试图像
+test_image = cv2.Canny(test_image ,33,76)
+test_image = np.resize(test_image, (26, 26, 1))
+test_image = test_image [np.newaxis, ...]
+prediction = model.predict(test_image)
+print(prediction)
+
+现在我收到错误：
+ValueError：检查输入时出错：预期 conv2d_1_input 有 4 个维度，但得到的数组形状为 (26, 26, 1)
+
+为什么训练后的模型现在需要 4 维输入？]]></description>
+      <guid>https://stackoverflow.com/questions/60802354/dimension-problems-error-when-checking-input-expected-conv2d-1-input-to-have-4</guid>
+      <pubDate>Sun, 22 Mar 2020 17:06:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将输入图像与 CNN 中第一个卷积层的神经元进行映射？</title>
+      <link>https://stackoverflow.com/questions/60690923/how-to-map-input-image-with-neurons-in-first-conv-layer-in-cnn</link>
+      <description><![CDATA[我很难将输入图像与第一个 CNN 转换层中的神经元进行映射，但我对输入特征如何映射到 ANN 中的第一个隐藏层有基本的了解。
+理解输入图像与第一个转换层中的神经元之间的映射的最佳方法是什么？
+我如何澄清对以下代码示例的疑问？代码取自 Coursera 的 DL 课程。
+def initialize_parameters():
+&quot;&quot;&quot;
+初始化权重参数以使用 tensorflow 构建神经网络。形状为：
+W1：[4, 4, 3, 8]
+W2：[2, 2, 8, 16]
+返回：
+参数——包含 W1、W2 的张量字典
+&quot;&quot;&quot;
+
+tf.set_random_seed(1) # 以便您的&quot;random&quot;数字与我们的数字相匹配
+
+### 此处开始代码 ###（大约 2 行代码）
+W1 = tf.get_variable(&quot;W1&quot;,[4,4,3,8],initializer = tf.contrib.layers.xavier_initializer(seed = 0))
+W2 = tf.get_variable(&quot;W2&quot;,[2,2,8,16],initializer = tf.contrib.layers.xavier_initializer(seed = 0))
+### 此处结束代码 ###
+
+parameters = {&quot;W1&quot;: W1,
+&quot;W2&quot;: W2}
+
+返回参数
+
+def forward_propagation(X,parameters):
+&quot;&quot;&quot;
+为模型实现前向传播：
+CONV2D -&gt; RELU -&gt; MAXPOOL -&gt; CONV2D -&gt; RELU -&gt; MAXPOOL -&gt; FLATTEN -&gt; FULLYCONNECTED
+
+参数：
+X -- 输入数据集占位符，形状为 (输入大小、示例数量)
+参数 -- 包含参数“W1”、“W2”的 Python 字典
+形状在 Initialize_parameters 中给出
+
+返回：
+Z3 -- 最后一个 LINEAR 单元的输出
+“”
+
+# 从字典“parameters”中检索参数
+W1 = 参数[&#39;W1&#39;]
+W2 = 参数[&#39;W2&#39;]
+
+### 此处开始代码 ###
+# CONV2D：步幅为 1，填充“相同”
+Z1 = tf.nn.conv2d(X,W1, strides = [1,1,1,1], padding = &#39;相同&#39;)
+# RELU
+A1 = tf.nn.relu(Z1)
+# MAXPOOL：窗口 8x8，步幅 8，填充“相同”
+P1 = tf.nn.max_pool(A1, ksize = [1,8,8,1], strides = [1,8,8,1], padding = &#39;相同&#39;)
+# CONV2D：过滤器 W2，步幅 1，填充“相同”
+Z2 = tf.nn.conv2d(P1,W2, strides = [1,1,1,1], padding = &#39;SAME&#39;)
+# RELU
+A2 = tf.nn.relu(Z2)
+# MAXPOOL: 窗口 4x4, 步幅 4, padding &#39;SAME&#39;
+P2 = tf.nn.max_pool(A2, ksize = [1,4,4,1], strides = [1,4,4,1], padding = &#39;SAME&#39;)
+# FLATTEN
+P2 = tf.contrib.layers.flatten(P2)
+# FULLY-CONNECTED，无非线性激活函数（不调用 softmax）。
+# 输出层中有 6 个神经元。提示：其中一个参数应该是“activation_fn=None”
+Z3 = tf.contrib.layers.fully_connected(P2, 6,activation_fn=None)
+### END CODE HERE ###
+
+return Z3
+
+with tf.Session() as sess:
+np.random.seed(1)
+X, Y = create_placeholders(64, 64, 3, 6)
+parameters = initialize_parameters()
+Z3 = forward_propagation(X, parameters)
+init = tf.global_variables_initializer()
+sess.run(init)
+a = sess.run(Z3, {X: np.random.randn(1,64,64,3), Y: np.random.randn(1,6)})
+print(&quot;Z3 = &quot; + str(a))
+
+这个输入图像的大小是多少64643 由 8 个大小为 443 的过滤器处理？
+stride = 1、padding = same 和 batch_size = 1。
+到目前为止，我所理解的是，第一个卷积层中的每个神经元将有 8 个过滤器，每个过滤器的大小为 443。第一个卷积层中的每个神经元将获取与过滤器大小相同的输入图像部分（这里是 443），并应用卷积运算并产生八个 64*64 特征映射。
+如果我的理解正确，那么：
+
+为什么我们需要跨步操作，因为每个神经元处理的内核大小和输入图像部分是相同的，如果我们应用步幅 = 1（或 2），则输入图像部分的边界是交叉的，这是我们不需要的，对吗？
+
+我们如何知道输入图像的哪一部分（与内核大小相同）映射到第一个卷积层的哪个神经元？
+
+
+如果不是，那么：
+
+输入图像如何在第一个卷积层的神经元上传递，是完整的输入图像传递给每个神经元（就像在完全连接的 ANN 中一样，其中所有输入特征被映射到第一个隐藏层中的每个神经元）？
+
+或输入图像的一部分？我们如何知道输入图像的哪一部分映射到第一个卷积层的哪个神经元？
+
+上述示例（W1= [4, 4, 3, 8]）指定的内核数量是每个神经元还是第一个卷积层中的内核总数？
+
+我们如何知道上述示例在第一个卷积层中使用了多少个神经元？
+
+神经元数量和第一个卷积层的内核数量之间有什么关系吗？
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/60690923/how-to-map-input-image-with-neurons-in-first-conv-layer-in-cnn</guid>
+      <pubDate>Sun, 15 Mar 2020 08:16:45 GMT</pubDate>
     </item>
     </channel>
 </rss>
