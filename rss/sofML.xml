@@ -4,35 +4,161 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 31 Oct 2024 09:17:42 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 31 Oct 2024 12:33:02 GMT</lastBuildDate>
+    <item>
+      <title>尽管 MPS（Apple Silicon）可用且可检测到，但 PyTorch 模型仍在 CPU 上运行</title>
+      <link>https://stackoverflow.com/questions/79144698/pytorch-model-running-on-cpu-despite-mps-apple-silicon-being-available-and-det</link>
+      <description><![CDATA[我尝试使用 MPS（Metal Performance Shaders）在我的 Apple Silicon Mac 上运行 HuggingFace Transformers 模型，但尽管 MPS 可用且被检测到，该模型仍在 CPU 上运行，导致严重的性能问题。
+这是我的模型初始化代码：
+python
+def instantiate_model(cfg: dict):
+model_fp = cfg[&#39;model&#39;][&#39;model_fp&#39;]
+batch_size = cfg[&#39;model&#39;][&#39;batch_size&#39;]
+default_threshold = float(cfg[&#39;postprocessing&#39;][&#39;threshold&#39;])
+
+# 清除所有缓存内存
+torch.mps.empty_cache()
+
+# 设置设备
+if torch.backends.mps.is_available():
+device = torch.device(&quot;mps&quot;)
+print(f&quot;MPS device found: {device}&quot;)
+else:
+device = torch.device(&quot;cpu&quot;)
+print(f&quot;MPS not available, using: {device}&quot;)
+
+# 加载模型
+model = AutoModelForTokenClassification.from_pretrained(
+model_fp,
+torch_dtype=torch.float32
+)
+model.eval()
+model = model.to(device)
+
+# 训练参数设置
+args = TrainingArguments(
+model_fp,
+learning_rate=3e-5,
+per_device_train_batch_size=batch_size,
+per_device_eval_batch_size=batch_size,
+weight_decay=0.01,
+evaluation_strategy=IntervalStrategy.STEPS,
+eval_steps=100,
+max_steps=4000,
+load_best_model_at_end=True,
+metric_for_best_model=&#39;f1&#39;,
+save_total_limit=5,
+no_cuda=True,
+use_mps_device=torch.backends.mps.is_available()
+)
+
+trainer = MultiLabelTrainer(model, args)
+tokenizer = AutoTokenizer.from_pretrained(model_fp)
+
+return {&#39;trainer&#39;: trainer, &#39;tokenizer&#39;: tokenizer, &#39;default_threshold&#39;: default_threshold}
+
+代码正确检测了 MPS 并打印“MPS 设备已找到：mps”，但监控我的系统显示处理仍在 CPU 上进行。
+环境详细信息：
+Apple Silicon (M2) 上的 macOS
+Python 3.10
+安装了 MPS 支持的 PyTorch
+transformers 库最新版本
+我已经尝试：
+明确将设备设置为
+使用 torch.backends.mps.is_available() 确认 MPS 可用性&gt;
+使用 model.to(device) 将模型移动到设备&gt;
+在 TrainingArguments 中设置 use_mps_device=True
+如何确保模型实际在 MPS 而不是 CPU 上运行？
+
+明确将设备设置为“mps”：
+python
+device = torch.device(&quot;mps&quot;)
+model = model.to(device)
+
+
+验证 MPS 是否实际可用：
+pythonCopyprint(f&quot;MPS 是否可用？ {torch.backends.mps.is_available()}&quot;)
+print(f&quot;MPS 是否已构建？{torch.backends.mps.is_built()}&quot;)
+
+输出显示两者都为 True
+
+移动模型设备后检查它：
+pythonCopyprint(f&quot;模型设备：{next(model.parameters()).device}&quot;)
+
+输出显示“mps”
+
+
+在模型执行期间监控 CPU 使用率显示 CPU 利用率为 600%（GPU 使用率几乎为 0%），这表明尽管模型已移动到 MPS 设备，但并未使用 GPU
+在 TrainingArguments 中设置 use_mps_device=True
+预期行为：
+模型应通过 MPS 使用 Apple Silicon GPU
+由于计算被卸载到 GPU，CPU 使用率应更低
+与 CPU 执行相比，处理速度应明显更快
+实际行为：
+尽管检测到 MPS 并将模型移动到 MPS 设备
+在模型执行期间，CPU 使用率仍为 100%
+处理速度与仅使用 CPU 执行相同
+由于 CPU 处理，系统变得过载]]></description>
+      <guid>https://stackoverflow.com/questions/79144698/pytorch-model-running-on-cpu-despite-mps-apple-silicon-being-available-and-det</guid>
+      <pubDate>Thu, 31 Oct 2024 12:17:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>我有一些特征，数据通常很大，但问题是其中两个特征（列）完全缺失，我们如何计算这些？</title>
+      <link>https://stackoverflow.com/questions/79144583/i-have-some-feature-and-data-is-usually-large-but-the-problem-is-that-two-of-the</link>
+      <description><![CDATA[我有 20 个特征，数据通常很大，但问题是其中两个特征（列）完全缺失，我们如何使用机器学习根据其他值计算这些特征？问题是我们无法删除该列，需要检索该特征？
+我学习了许多处理少量缺失值的方法，但无法逻辑地检索此问题。]]></description>
+      <guid>https://stackoverflow.com/questions/79144583/i-have-some-feature-and-data-is-usually-large-but-the-problem-is-that-two-of-the</guid>
+      <pubDate>Thu, 31 Oct 2024 11:45:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>NeuralProphet 想要预测 Dataframe 中的 y 列</title>
+      <link>https://stackoverflow.com/questions/79144504/neuralprophet-wants-y-column-in-predict-dataframe</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79144504/neuralprophet-wants-y-column-in-predict-dataframe</guid>
+      <pubDate>Thu, 31 Oct 2024 11:22:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>用于对图像集平均值进行标注的工具（而不是单个图片）</title>
+      <link>https://stackoverflow.com/questions/79144252/tools-for-captioning-an-average-of-image-set-instead-of-individial-pictures</link>
+      <description><![CDATA[我正在寻找能够用一个句子描述一组图像的 AI 字幕模型。或者，我需要一种方法来在概念上平均一组图像，然后再将该“概念”（可能是特征向量）提供给常规字幕模型。
+为什么？
+用于训练数据集管理。在适合整个提示上测试训练后的生成模型会很有帮助，而不是选择单个图像的字幕或尝试找出它们之间的共同点。此外，这还允许生成单个负面提示来测试模型在范围外提示上的表现。
+我到目前为止所做的：
+我已经修改了现有的 CLIP+BLIP 询问器以处理图像集。然而，虽然 CLIP 字幕允许在使用图像特征选择最佳字幕之前对其进行平均，但它的准确性远低于 BLIP 生成的字幕，后者仅适用于单幅图像。我需要一个可以像 CLIP 一样接收特征向量的模型，这样我就可以对它们进行预处理。]]></description>
+      <guid>https://stackoverflow.com/questions/79144252/tools-for-captioning-an-average-of-image-set-instead-of-individial-pictures</guid>
+      <pubDate>Thu, 31 Oct 2024 09:57:53 GMT</pubDate>
+    </item>
     <item>
       <title>寻找集群：DBSCAN 还是 Friends-of-Friends？</title>
       <link>https://stackoverflow.com/questions/79143343/finding-clusters-dbscan-or-friends-of-friends</link>
-      <description><![CDATA[在我读本科的时候，我使用 Friends-of-Friends 算法在宇宙学模拟中搜索暗物质晕。
+      <description><![CDATA[我使用 Friends-of-Friends 算法在宇宙学模拟中搜索了暗物质晕。
 https://swift.dur.ac.uk/docs/FriendsOfFriends/algorithm_description.html
-现在我是一名研究生，我使用 DBSCAN 算法在射电望远镜数据中搜索 HI 云。
+现在我使用 DBSCAN 算法在射电望远镜数据中搜索 HI 云。
 https://en.wikipedia.org/wiki/DBSCAN
 我发现这两种算法有一些相同之处，例如：
 
-基于密度的聚类：DBSCAN 和从广义上讲，FoF 可以视为基于密度的方法。DBSCAN 根据数据点的密度明确定义聚类，而 FoF 还可以根据点之间的连接（即朋友）密度识别聚类。
-聚类识别：两种算法都通过将某种意义上彼此接近的点分组在一起来识别聚类。在 DBSCAN 中，这基于指定半径内的点的密度，而在 FoF 中，这基于连通性或共享邻居的数量。
-无需预定义聚类数量：两种算法都不需要提前指定聚类数量。DBSCAN 根据密度参数确定聚类，而 FoF 根据连通性结构查找聚类，而无需事先设置聚类数量。
+基于密度的聚类：DBSCAN 和 FoF 都可以被视为基于密度的方法广义上。DBSCAN 根据数据点的密度明确定义聚类，而 FoF 还可以根据点之间的连接（即朋友）密度识别聚类。
+聚类识别：两种算法都通过将某种意义上彼此接近的点分组在一起来识别聚类。在 DBSCAN 中，这基于指定半径内的点的密度，而在 FoF 中，它基于连通性或共享邻居的数量。
+不需要预定义的聚类数量：两种算法都不需要提前指定聚类数量。DBSCAN 根据密度参数确定聚类，而 FoF 根据连通性结构查找聚类，而无需事先设置聚类数量。
 处理噪声和异常值：两种方法都可以处理噪声或异常值，尽管它们处理的方式不同。DBSCAN 明确将不适合任何聚类的点归类为噪声。在 FoF 中，与其他点连接不够的点最终可能会被孤立或不属于任何重要聚类。
 聚类形状灵活性：两种算法都能够识别任意形状的聚类。DBSCAN 以其基于密度的方法而闻名，能够找到各种形状和大小的聚类。FoF 还可以根据连接模式找到形状不规则的聚类。
 
-我想知道它们之间是否存在一些重大差异，以便我可以更好地选择在聚类时使用哪个，谢谢！]]></description>
+我想知道它们之间是否存在一些重大差异，以便我可以更好地选择在聚类时使用哪种算法。]]></description>
       <guid>https://stackoverflow.com/questions/79143343/finding-clusters-dbscan-or-friends-of-friends</guid>
       <pubDate>Thu, 31 Oct 2024 02:40:27 GMT</pubDate>
     </item>
     <item>
-      <title>如何训练具有两个相互依赖的特征的分类（K 邻域）模型</title>
-      <link>https://stackoverflow.com/questions/79142864/how-to-train-a-classification-k-neighbor-model-with-2-features-that-are-depend</link>
-      <description><![CDATA[我有一组质谱图，并尝试用它们在 sklearn 上训练一个模型。因此，特征是“m/z”和“强度”，目标是“茶叶品种”。问题是，这两个特征是不可分割的，我想以某种方式将它们连接起来，如下所示：
+      <title>如何训练具有两个相互依赖的特征的 knn 分类模型？</title>
+      <link>https://stackoverflow.com/questions/79142864/how-to-train-a-knn-classification-model-with-2-features-that-are-dependant-to-ea</link>
+      <description><![CDATA[我收集了一系列质谱图，并尝试用它们在 sklearn 上训练一个模型。因此，特征是“m/z”和“强度”，目标是“茶叶品种”。问题是，这两个特征是不可分割的，我想以某种方式将它们连接起来，如下所示：
 &#39;spectrum id&#39; &#39;m/z-intensity&#39; &#39;tea variety&#39;
+
 1 ; [[1,2],[2,3],...] ; var1
+
 2 ; [[1,2],[2,3],...] ; var1
-但是发生了一个错误，指出有一个列表需要浮点数，所以我只是连接了所有 m/z 和强度值，并在一个单元格中为每个值创建了一个数据框，虽然有效但完全不准确。有没有更好的方法来做到这一点？]]></description>
-      <guid>https://stackoverflow.com/questions/79142864/how-to-train-a-classification-k-neighbor-model-with-2-features-that-are-depend</guid>
+
+但是发生了错误，指出有一个列表需要浮点数，所以我只是将所有 m/z 和强度值连接起来，并在一个单元格中为每个值创建一个数据框，虽然有效但完全不准确。有没有更好的方法来做到这一点？]]></description>
+      <guid>https://stackoverflow.com/questions/79142864/how-to-train-a-knn-classification-model-with-2-features-that-are-dependant-to-ea</guid>
       <pubDate>Wed, 30 Oct 2024 21:34:24 GMT</pubDate>
     </item>
     <item>
@@ -94,6 +220,20 @@ F1 分数：
 我只是想知道我的模型是否正常。]]></description>
       <guid>https://stackoverflow.com/questions/79141961/validation-accuracy-better-than-train-accuracy-problem</guid>
       <pubDate>Wed, 30 Oct 2024 16:22:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何根据模式从地图中提取数据</title>
+      <link>https://stackoverflow.com/questions/79141905/how-to-extract-data-from-a-map-based-on-pattern</link>
+      <description><![CDATA[我有一张这样的地图（jpg 图像）：
+
+以及相应的图案：
+
+我想根据图案创建多边形（在 .shp 文件中）。
+目标是叠加一个多边形，然后查看哪些图案落在该叠加多边形中。
+我尝试使用opencv 但结果并不理想。
+有没有办法做类似的事情，哪怕是近似的？是在 qgis 中，还是使用纯 python 或其他软件？]]></description>
+      <guid>https://stackoverflow.com/questions/79141905/how-to-extract-data-from-a-map-based-on-pattern</guid>
+      <pubDate>Wed, 30 Oct 2024 15:58:26 GMT</pubDate>
     </item>
     <item>
       <title>训练 IP-Adapter plus 模型后的推理错误</title>
@@ -326,8 +466,8 @@ Epoch 30/30
 210/210 - 0s - 损失：0.6935 - 准确率：0.4990 - 389ms/epoch - 2ms/step
 
 我只是按照教程操作，但不明白我哪里犯了错误。
-在手动生成的简单数据集上建立一个简单的顺序模型。
-准确率预计会提高，但会滞后约 50%。]]></description>
+手动生成的简单数据集上的简单顺序模型。
+准确率有望提高，但滞后约 50%。]]></description>
       <guid>https://stackoverflow.com/questions/78812358/model-performance-lagging-under-50-in-this-simple-dataset</guid>
       <pubDate>Tue, 30 Jul 2024 14:37:43 GMT</pubDate>
     </item>
@@ -398,76 +538,9 @@ data = truth_north[1].data
 
 （奖励问题，回答赢得汽车！）为什么有这么多相互矛盾的答案？这些答案有什么不同？我觉得不太可能只是很多人完全错了 - 我想他们只是在谈论不同的案例或一些不同的基本假设。我遗漏了什么区别？
 
-我知道我可以使用 softmax。我还知道 sigmoid 可用于非排他性多类分类（来源多 1、来源多 2、来源多 3） - 尽管即便如此，仍不清楚这种多重 sigmoid 是否输出各种类别的概率，或者仅仅是“是或否”，但对于多个类别。但就我而言，我对专有的二分类（二进制）感兴趣，以及是否可以使用 S 型函数来确定其概率，或者是否应该使用二分类 Softmax。]]></description>
+我知道我可以使用 softmax。我还知道 sigmoid 可用于非排他性多类分类（来源多 1、来源多 2、来源多 3） - 尽管即便如此，仍不清楚这种多重 sigmoid 是否输出各种类别的概率，或者仅仅是“是或否”，但对于多个类别而言。但就我而言，我对专有的二分类（二进制）感兴趣，以及是否可以使用 S 型函数来确定其概率，或者是否应该使用二分类 Softmax。]]></description>
       <guid>https://stackoverflow.com/questions/59058867/sigmoid-output-can-it-be-interpreted-as-probability</guid>
       <pubDate>Tue, 26 Nov 2019 20:27:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于使用 R 进行 KNN 的 k 倍交叉验证的问题</title>
-      <link>https://stackoverflow.com/questions/55328424/question-regarding-k-fold-cross-validation-for-knn-using-r</link>
-      <description><![CDATA[我正在尝试对几个 k 值进行 5 倍交叉验证。我使用了 ISLR 包中的 OJ 数据集。
-到目前为止我的代码如下，
-library(ISLR)
-library(class)
-ks=c(1:5)
-err.rate.test &lt;- numeric(length = 5)
-folds &lt;- cut(seq(1,nrow(OJ)),breaks=5,labels=FALSE)
-
-for (j in seq(along = ks)) {
-set.seed(123)
-cv.knn &lt;- sapply(1:5, FUN = function(i) {
-testID &lt;- which(folds == i, arr.ind = TRUE)
-test.X &lt;- OJ[testID, 3]
-test.Y &lt;- OJ[testID, 1]
-train.X &lt;- OJ[-testID, 3]
-train.Y &lt;- OJ[-testID, 1]
-knn.test &lt;- knn(data.frame(train.X), data.frame(test.X), train.Y, k = ks[j])
-cv.test.est &lt;- mean(knn.test != test.Y)
-return(cv.test.est)
-})
-err.rate.test[j] &lt;- mean(cv.knn)
-
-}
-
-err.rate.test
-[1] 0.3757009 0.3757009 0.3757009 0.3757009 0.3757009
-
-代码没有给出任何错误。但出于某种原因，我对每个 k 值的测试错误率都相同。这对我来说似乎很奇怪。所以我认为我的代码有问题。
-有人能帮我解决这个问题吗？]]></description>
-      <guid>https://stackoverflow.com/questions/55328424/question-regarding-k-fold-cross-validation-for-knn-using-r</guid>
-      <pubDate>Sun, 24 Mar 2019 20:48:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何为 k-NN 找到最佳的 k 值？</title>
-      <link>https://stackoverflow.com/questions/46599534/how-to-find-the-best-value-of-k-for-the-k-nn</link>
-      <description><![CDATA[我有 4 个不同的数据集，每个数据集包含属于以下两个类别之一的二维样本：1 或 2。每个样本的类别标签（1 或 2）位于最后一列。第一列和第二列包含代表样本的二维点的坐标。我的任务是：
-对于 k-NN，找到 k 的最佳值，并使用 scikit-learn 将其与 1-NN 的值进行比较。
-我是机器学习和 Python 的新手。请告诉我如何找到最佳 k，以及我们必须根据哪种度量来选择最佳 k。]]></description>
-      <guid>https://stackoverflow.com/questions/46599534/how-to-find-the-best-value-of-k-for-the-k-nn</guid>
-      <pubDate>Fri, 06 Oct 2017 06:26:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>Matlab 交叉验证和 K-NN</title>
-      <link>https://stackoverflow.com/questions/35560228/matlab-cross-validation-and-k-nn</link>
-      <description><![CDATA[我正在尝试在 Matlab 中构建一个带有交叉验证的 knn 分类器。由于我的 MATLAB 版本，我使用了 knnclassify() 来构建分类器 (classKNN = knnclassify (sample_test, sample_training, training_label))。
-我无法使用 crossval()。]]></description>
-      <guid>https://stackoverflow.com/questions/35560228/matlab-cross-validation-and-k-nn</guid>
-      <pubDate>Mon, 22 Feb 2016 17:38:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用交叉验证的 KNN 分类器</title>
-      <link>https://stackoverflow.com/questions/23174032/knn-classifier-using-cross-validation</link>
-      <description><![CDATA[我正在尝试使用交叉验证方法实现 KNN 分类器，其中我有某个角色的不同图像用于训练（例如 5 张图像），另外两张用于测试。现在我明白了交叉验证的原理，只需在训练时选择误差值最小的 K，然后将其与测试数据一起使用，以查看结果的准确性。
-如何在 matlab 中训练图像以获取 K 值？我是否应该比较它们并尝试找出不匹配项？！]]></description>
-      <guid>https://stackoverflow.com/questions/23174032/knn-classifier-using-cross-validation</guid>
-      <pubDate>Sat, 19 Apr 2014 18:46:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>k近邻算法中k的值</title>
-      <link>https://stackoverflow.com/questions/11568897/value-of-k-in-k-nearest-neighbor-algorithm</link>
-      <description><![CDATA[我有 7 个需要分类的类别，并且有 10 个特征。在这种情况下，我需要使用 k 的最优值吗？或者我必须对 1 到 10 之间的 k 值（大约 10）运行 KNN，然后借助算法本身确定最佳值？]]></description>
-      <guid>https://stackoverflow.com/questions/11568897/value-of-k-in-k-nearest-neighbor-algorithm</guid>
-      <pubDate>Thu, 19 Jul 2012 20:36:46 GMT</pubDate>
     </item>
     </channel>
 </rss>
