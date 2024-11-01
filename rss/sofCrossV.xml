@@ -4,7 +4,231 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 01 Nov 2024 18:22:28 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 01 Nov 2024 21:15:34 GMT</lastBuildDate>
+    <item>
+      <title>时间相关效应：使用 coxph() 中的 nsk() 的 tt 函数</title>
+      <link>https://stats.stackexchange.com/questions/656611/time-dependent-effects-tt-function-using-nsk-in-coxph</link>
+      <description><![CDATA[我使用 coxph() 比较三种处理方法（大、小、对照）之间的树苗存活率数据。然而，coxzph() 显示小处理方法的系数随时间而变化。为了解决这个问题，我在 coxph () 中添加了一个 tt(Small)，并使用 nsk() 来实现回归样条，并且我正在使用指示变量进行治疗。
+我的问题是，当使用 tt() 和 nsk() 时，系数是如何解释的，特别是对于时间相关变量？
+以下是模型输出。
+cox.tt4 &lt;- coxph (Surv (no.yrs.alive, censor) ~ Large + Small +
+tt(Small) + frailty (Line), data = spruce.complete,
+tt = function (x,t,...) x*nsk(t, knots = c(3)))
+summary(cox.tt4)
+## 调用：
+## coxph(formula = Surv(no.yrs.alive, censor) ~ Large + Small + 
+## tt(小) + frailty(Line), 数据 = spruce.complete, tt = function(x, 
+## t, ...) x * nsk(t, knots = c(3)))
+## 
+## n= 96, 事件数= 35 
+## 
+## coef se(coef) se2 Chisq DF p 
+## 大 -2.520 0.7409 0.7396 11.57 1.00 0.00067
+## 小 -3.427 1.2067 1.2065 8.07 1.00 0.00450
+## tt(小)1 3.056 1.7592 1.7585 3.02 1.00 0.08200
+## tt(小)2 3.183 1.4072 1.4061 5.12 1.00 0.02400
+## frailty(Line) 6.24 2.33 0.06000
+## 
+## exp(coef) exp(-coef) lower .95 upper .95
+## Large 0.08044 12.43122 0.018830 0.3436
+## Small 0.03249 30.77809 0.003052 0.3458
+## tt(小)1 21.23826 0.04708 0.675532 667.7166
+## tt(小)2 24.12159 0.04146 1.529754 380.3560
+## gamma:L1 1.06620 0.93791 0.575824 1.9742
+## gamma:L2 0.59206 1.68903 0.283618 1.2359
+## gamma:L3 1.27464 0.78454 0.713532 2.2770
+## gamma:L5 1.39426 0.71722 0.780017 2.4922
+## gamma:L6 0.67284 1.48624 0.326825 1.3852
+## 
+## 迭代次数：6 外部，22 Newton-Raphson
+## 随机效应方差 = 0.1925677 I-似然 = -134.1 
+## 项的自由度 = 1.0 1.0 2.0 2.3 
+## 一致性 = 0.813 (se = 0.041 )
+## 似然比检验 = 44.22 on 6.32 df, p=9e-08
+
+时间相关的 Therneau 等人。 2024 插图第 4.2 节指出“系数是节点 2、3 处的预测值，... - 节点 1 处的预测值”。
+在这种情况下，这是否意味着第一个时间段（时间 0 到时间 3）的小治疗系数将是 -3.427 + 3.056 = -0.371？而对于第二个时间段（&gt;时间 3），-3.427 + 3.056 = -0.244？
+此外，我可以对这些系数取指数来计算相对于参考治疗的风险比，两个时间段的风险比不同吗？
+我对这种方法还不熟悉，非常感谢任何见解或建议。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656611/time-dependent-effects-tt-function-using-nsk-in-coxph</guid>
+      <pubDate>Fri, 01 Nov 2024 20:17:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何计算和解释 R 中的多级方差膨胀因子？</title>
+      <link>https://stats.stackexchange.com/questions/656610/how-to-compute-and-interpret-a-multilevel-variance-inflation-factor-in-r</link>
+      <description><![CDATA[我正在 R 中运行一些多级（混合效应）模型，该模型有两个级别：三个评估时间点（级别 1）在个体内聚类（级别 2）。我想检查模型中预测因子之间的多重共线性。这是一个示例模型，其中焦虑（主要预测因子）和抑郁（协变量）预测担忧，焦虑在每个时间点都以人均值为中心（级别 1），并且对每个人的时间点取平均值（级别 2）。
+lmer(worry ~ anxious_person_centered + anxious_person_mean_centered + inhibition + (1|participant)
+
+这个 10 年前的问题是 Cross Validated 上唯一相关的问题，它链接到这个 13 年前的博客帖子，其中提供了git 存储库中的一些代码来计算多级方差膨胀因子，复制如下。fit 参数是要测试的 lmer 模型。
+vif.mer &lt;- function (fit) {
+## 改编自 rms::vif
+
+v &lt;- vcov(fit)
+nam &lt;- names(fixef(fit))
+
+## 排除截距
+ns &lt;- sum(1 * (nam == &quot;Intercept&quot; | nam == &quot;(Intercept)&quot;))
+if (ns &gt; 0) {
+v &lt;- v[-(1:ns), -(1:ns), drop = FALSE]
+nam &lt;- nam[-(1:ns)]
+}
+
+d &lt;- diag(v)^0.5
+v &lt;- diag(solve(v/(d %o% d)))
+names(v) &lt;- nam
+v}
+
+我试过这个代码，它给了我每个预测变量的一个数字，但我不明白它是如何获得这些数字的。出于出版原因，我需要能够引用一篇已发表的经验文章（不是博客文章），说明计算多级 VIF 是一件事情，并且这个代码可以完成它应该做的事情。我无法引用Patrick Carl Clark Jr 未发表的论文，而且我很难理解Yu 及其同事 (2015) - 我不知道“条件数 kappa”是什么。
+您能否像我是一名聪明的高中生一样向我解释一下上述多层级 VIF 代码的作用，并提供此方法的引用（如果有的话）来帮助我解释？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656610/how-to-compute-and-interpret-a-multilevel-variance-inflation-factor-in-r</guid>
+      <pubDate>Fri, 01 Nov 2024 20:16:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>交叉验证子弹穿透松木的效果 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/656609/cross-validate-the-penetration-of-a-bullet-into-pine-wood</link>
+      <description><![CDATA[这是针对 Skeptics Stack Exchange 提出的一个问题，重点关注 9 毫米子弹穿透木材的情况：
+
+问题：基于抗拉强度和动能，预测 9 毫米尖头子弹穿透木材的深度的理论模型有多准确？
+在最近的一次讨论中，提出了一个理论模型来计算 9 毫米子弹穿透木材的深度，其中考虑了抗拉强度、动能、长径比 (L/D) 和弹丸形状。该模型表明，穿透深度可以通过以下过程确定：
+
+抗拉强度：木材的抗拉强度约为 50 MJ/kg，考虑到木材密度（500 kg/m³），则为 25,000,000 J/m³。
+
+动能计算：对于典型的 9 毫米子弹，其质量为 0.0075 kg，速度为 360 m/s，动能计算为大约 486 J。
+
+初始穿透深度：使用每单位体积的动能与抗拉强度之比，初始穿透深度计算为大约 1.94 毫米。
+
+长径比和形状的调整：考虑考虑到长径比为 2 和弹丸的形状（据报道，尖头弹丸的穿透效果是钝弹丸的两倍），最终调整后的穿透深度估计约为 7.76 毫米。
+
+
+实际测量到的硬木穿透深度约为 3 英寸或 60 毫米，或三倍。额外的尖头调整，考虑木材和谷物的弹性区域，将穿透深度提高到 62.08 毫米或 2.5 英寸。
+未成熟松木的抗拉强度为 20mpa，由于我们使用速度较低的子弹，实际穿透深度可能更高。互联网来源指出 9 毫米子弹可以穿透 9 英寸的松木板。
+根据这些计算，这些理论模型在预测实验数据中观察到的实际穿透深度方面有多可靠？是否有具体研究或实证测试可以证实或反驳该模型对 9 毫米弹丸穿透木材的预测？
+
+此问题征求专家意见并参考实证研究，适合 Skeptics Stack Exchange。如果您需要调整或附加详细信息，请告诉我！]]></description>
+      <guid>https://stats.stackexchange.com/questions/656609/cross-validate-the-penetration-of-a-bullet-into-pine-wood</guid>
+      <pubDate>Fri, 01 Nov 2024 19:42:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>统计学习要素公式 2.28</title>
+      <link>https://stats.stackexchange.com/questions/656608/elements-of-statistical-learning-equation-2-28</link>
+      <description><![CDATA[我正在阅读 T.Hastie 的《统计学习要素》。我对公式 2.28 感到困惑
+
+我其实不是想推导这个公式，而是想通过实验来了解它。然而，我得到的结果总是方差项。我根本看不到 var*p/N 项。所以我认为我还没有完全理解这个设置。目前我有以下内容
+
+一个函数 f(x)，它在输入 X 中是线性的，但包含一个噪声参数
+ def f(X):
+n,p = X.shape
+beta = np.arange(p)/p
+result = np.dot(X, beta)
+noise = np.random.normal(0, 1, n)
+return result + noise
+
+
+X 是一个取自均匀分布 U[-1,1]^p 的 p 维数组
+
+我有一个函数 fhat(x0) 来估计 f(x0) 的输出：
+
+以 x0 作为参数。该函数将返回 yhat0。
+
+生成 1000 个 X 样本
+
+对每个样本调用 f(x) 以生成 1000 个 y（目标）样本
+
+拟合用 X 和 y 参数化的线性回归
+
+通过在模型上调用 predict(x0) 返回 y0 的估计值
+ def fhat(x0, n_samples=1_000):
+p= x0.shape[1]
+X = X = np.random.uniform(-1, 1, (n_samples, p))
+y = f(X)
+model = LinearRegression(fit_intercept=False)
+model.fit(X, y)
+y_hat0 = model.predict(x0)
+return y_hat0[0]
+
+
+
+
+一次实验涉及以下步骤
+
+从分布中提取一个 X 值并将其称为 x0
+通过调用 f(x0) 1000 次生成 1000 个 y0 的向量
+通过调用 fhat(x0) 1000 次生成 1000 个 yhat0 的向量
+将 EPE 计算为 EPE = np.mean((y0 - y_hat)**2)
+根据书中的公式 2.27 断言 EPE = var(y0) + var(noise)
+
+def run_once(n_loops=1_000, n_samples=1_000):
+x0 = np.random.uniform(-1, 1, (1,5))
+y0 = f(x=np.repeat(x0, n_loops, axis=0))
+yhat0 = np.zeros(n_loops)
+for i in range(n_loops):
+yhat0[i] = fhat(x0, n_samples=n_samples)
+EPE = np.mean((y0 - y_hat)**2)
+var = y_hat.var()
+noise_var =1 # 噪声的方差为 1
+assert np.isclose(EPE, var + noise_var, atol=0.01) # ESL 书中的方程 2.27
+return EPE```
+
+
+
+如果我运行上面的代码，我会看到我想要的结果从 ESL 方程 2.27 中得到期望。EPE 等于 var(noise) + var(y0)。所以我很有信心我做对了这一点
+
+对于上述情况，x0 始终是相同的样本。据我了解，要看到 2.28 的结果，需要进行更改，我们需要用许多 x0 重复上述实验。即它是所有 x0 的期望。但是，当我多次运行上述操作时，我没有看到 EPE(所有 x0)=var(noise)*p/N + var(noise) 的预期结果。我只看到 EPE(所有 x0)=var(噪音)
+
+
+def run_many_points(n, p):
+results = np.zeros(n)
+for i in range(n):
+x0= np.random.uniform(-1, 1, (1,p))
+EPE = run_once(x0, n=1000, n_samples=200)
+print(f&quot;Processing {i+1}/10&quot;, end=&#39;\r&#39;)
+return results.mean()
+r20 = run_many_points(300, 20)
+print(r20)
+&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;
+1.002
+
+有人能发现我做错了什么吗？等式中的 N 值是每次测试的样本数 T 吗？还是所有测试的数量？如果是所有测试的数量，那么在实验中可能很难证明这一点……]]></description>
+      <guid>https://stats.stackexchange.com/questions/656608/elements-of-statistical-learning-equation-2-28</guid>
+      <pubDate>Fri, 01 Nov 2024 18:32:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>估计 PyMC 中截断分布的参数</title>
+      <link>https://stats.stackexchange.com/questions/656607/estimating-the-parameters-of-a-truncated-distribution-in-pymc</link>
+      <description><![CDATA[我是 PyMC 的新手，我正在尝试估算我的数据集的广义极值分布的参数。我的数据已被人为截断，因此我想使用此分布的截断版本。我可以在不截断的情况下估计 GEV 分布的参数，但我在截断分布时遇到了麻烦。
+下面的代码确实有效，无需截断：
+data = read_in_data() # 一个 numpy 浮点数组
+basic_model = pm.Model()
+with basic_model: 
+# Priors 
+mu = pm.Uniform(&quot;mu&quot;, lower = 1300, upper = 1500)
+sigma = pm.Uniform(&quot;sigma&quot;, lower = 90, upper = 150)
+xi = pm.TruncatedNormal(&quot;chi&quot;, mu=0, sigma=0.4, lower=-0.7, upper=0.7) 
+# 估计
+gev = pmx.GenExtreme(&quot;gev&quot;, mu=mu, sigma=sigma, xi=xi, perceived=data)
+gev_idata = pm.sample()
+
+但是，我相信我的数据来自截断的 GEV 分布。在阅读此处的文档后，我尝试使用截断的 GEV 分布，如下所示：
+data = read_in_data() # 一个 numpy 浮点数组
+basic_model = pm.Model()
+with basic_model: 
+# Priors 
+mu = pm.Uniform(&quot;mu&quot;, lower = 1300, upper = 1500)
+sigma = pm.Uniform(&quot;sigma&quot;, lower = 90, upper = 150)
+xi = pm.TruncatedNormal(&quot;chi&quot;, mu=0, sigma=0.4, lower=-0.7, upper=0.7) 
+# 估计
+gev_full = pmx.GenExtreme.dist(&quot;gev_full&quot;, mu=mu, sigma=sigma, xi=xi)
+gev = pm.Truncated(&quot;gev&quot;, gev_full, upper=2000, lower = None, perceived=data)
+gev_idata = pm.sample()
+
+我收到错误：
+TypeError: GenExtreme.dist() 获得了参数“mu”的多个值
+
+我还尝试不为 mu、sigma 和 xi 定义先验，以防它不期望参数上的分布，但如果我省略这些行，我仍然会收到相同的错误。我在 Google 上搜索了一番，但还是无法找出导致此错误的原因。
+如何实现截断的 GEV 分布？提前致谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/656607/estimating-the-parameters-of-a-truncated-distribution-in-pymc</guid>
+      <pubDate>Fri, 01 Nov 2024 18:26:07 GMT</pubDate>
+    </item>
     <item>
       <title>使用 k 倍交叉验证进行阈值移动</title>
       <link>https://stats.stackexchange.com/questions/656605/threshold-moving-with-k-fold-cross-validation</link>
@@ -138,29 +362,6 @@ plt.show()
       <pubDate>Fri, 01 Nov 2024 13:03:18 GMT</pubDate>
     </item>
     <item>
-      <title>检验 Spearmann 相关系数显著性的 T 分布</title>
-      <link>https://stats.stackexchange.com/questions/656587/t-distribution-for-testing-significance-of-spearmann-correlation-coefficient</link>
-      <description><![CDATA[我正在寻找一个证据，证明可以使用统计数据 $t=r_s \sqrt\frac{n-2}{1-r_s^2}$，该统计数据服从 t 分布，自由度为 n-2。用于检验 Spearmann 相关系数是否不等于零。我知道它适用于假设双变量正态基础变量的 Pearson 相关系数，但我找不到理由来解释为什么它在 Spearman 系数的情况下也是很好的近似值。维基百科文章仅引用了一篇具有数值依据的论文：https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient#Determining_significance。
-我真的很感激一个解释或书籍参考。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656587/t-distribution-for-testing-significance-of-spearmann-correlation-coefficient</guid>
-      <pubDate>Fri, 01 Nov 2024 12:14:56 GMT</pubDate>
-    </item>
-    <item>
-      <title>小鼠多层级插补：不使用多层级方法指定聚类变量（预测矩阵中的“-2”）是否会导致聚类稳健插补？</title>
-      <link>https://stats.stackexchange.com/questions/656584/mice-multilevel-imputation-does-specifying-cluster-variable-2-in-predictor</link>
-      <description><![CDATA[简而言之：当我在预测矩阵中仅用“-2”指定聚类变量但在插补期间不使用多级模型时，mice 的插补是否具有聚类稳健性？
-对于聚类数据，通常建议使用多级方法进行插补和分析。但是，当观察结果是聚类的但我的研究问题与多级结构无关时，在分析期间使用聚类稳健标准误差估计通常被认为足够，而无需使用多级模型（例如在 sandwich 中使用 vcovCL）。mice 中的插补有类似之处吗？当我在预测矩阵中用“-2”指定聚类变量而不使用多级方法进行插补时，mice 会做什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656584/mice-multilevel-imputation-does-specifying-cluster-variable-2-in-predictor</guid>
-      <pubDate>Fri, 01 Nov 2024 11:32:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>多元回归和伪重复</title>
-      <link>https://stats.stackexchange.com/questions/656583/multiple-regression-and-pseudoreplication</link>
-      <description><![CDATA[我有一个实验，通过 2 种不同的测定方法在 3 个不同的时间点非破坏性地估计吸虫感染情况。经过一定周数后，宰杀动物，取出肝脏，确定最终的、终末的测定方法，即肝脏中的吸虫数量。我想评估两种不同的测定方法和评估时间对估计肝脏中的吸虫数量的影响。我想得到一些关于最佳方法的建议。我使用了多元回归，但要做到这一点，它确实有效，但对于我的软件 NCSS，我必须复制吸虫数量以匹配 3 个时间点，因为每个个体只有一个终末吸虫测定方法，并且在 3 个时间点中的每一个时间点进行测定，以进行非破坏性测定。感觉还不错，但我脑海里浮现的是伪重复的问题。有什么建议吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656583/multiple-regression-and-pseudoreplication</guid>
-      <pubDate>Fri, 01 Nov 2024 09:46:19 GMT</pubDate>
-    </item>
-    <item>
       <title>$R^2$ 与相互信息之间的联系</title>
       <link>https://stats.stackexchange.com/questions/656573/connection-between-r2-and-mutual-information</link>
       <description><![CDATA[将 MI 解释为“通过添加一些信息消除的不确定性量”，我希望与 $R^2$ 有某种联系，它是“通过添加一些信息解释的方差量”。
@@ -175,15 +376,6 @@ $$
 我做错了什么/说了什么编造的东西吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/656573/connection-between-r2-and-mutual-information</guid>
       <pubDate>Fri, 01 Nov 2024 01:00:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>添加或乘以常数时的收敛和有界性</title>
-      <link>https://stats.stackexchange.com/questions/656527/convergence-and-boundedness-when-a-constant-is-added-or-multiplied</link>
-      <description><![CDATA[已知 $X_{n} = O_p(a_n)$ 和 $Y_n - c = O_p(a_n)$，其中 $a_n$ 是一个趋于零的序列。鉴于此，我想证明 $X_{n}/Y_n = O_p(a_n)$。
-由于 $a_n$ 趋于零，我们可以说 $X_{n} = o_p(1)$，类似地 $Y_n - c = o_p(1)$。这反过来意味着 $Y_n - c = O_p(1)$。这里的 c 是一个常数。如果我们说 $Y_n - c$ 是随机有界的，那么我们是否也可以说 $Y_n$ 本身是随机有界的。因此，如果 $X_{n} = o_p(1)$ 或以概率收敛到 0，那么 $X_{n}/Y_n$ 也以概率收敛到 0？此外，我们是否可以说，由于 $X_{n} = o_p(1)$，所以 $X_{n}/c$ 也是如此？
-我想利用 $X_n/Y_n = X_n/c + (X_n/Y_n)(c-Y_n)(1/c)$ 这一事实来得出所需的结果。如果有更好的方法，请告诉我。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656527/convergence-and-boundedness-when-a-constant-is-added-or-multiplied</guid>
-      <pubDate>Thu, 31 Oct 2024 07:04:37 GMT</pubDate>
     </item>
     <item>
       <title>累积发生率函数 - 比较达到特定累积发生率的时间</title>
@@ -210,18 +402,6 @@ $$
 许多人均指标使其更容易解释，但我想知道我应该使用哪种修复方法。]]></description>
       <guid>https://stats.stackexchange.com/questions/656422/spurious-correlation-of-ratios-in-per-capita-analyses</guid>
       <pubDate>Mon, 28 Oct 2024 16:18:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>小样本多变量分析用什么模型</title>
-      <link>https://stats.stackexchange.com/questions/656316/what-model-to-use-for-multivariable-analysis-with-small-sample-size</link>
-      <description><![CDATA[我的样本量很小，大约 350 个，其中大约 20 个左右发生了事件。我有大约 12 个变量可能与事件相关，并希望进行多变量分析，其中一些变量的数量也很少，大约 10 个。我很想知道 1 个特定变量，以及考虑到其他变量后它是否对事件有重大影响。
-我应该使用哪种统计模型？我认为简单的逻辑回归我的事件规模太小了。
-
-附录
-感谢您的意见。我想要做的是使用多个变量进行分析。我想看看一个特定的变量 X（分类数据）是否会影响事件发生的风险（希望输出几率比）。但我知道还有另外 11 个已知变量对事件有贡献，所以我想看看在考虑所有其他影响变量的情况下，X 是否对事件有重大影响。这样是不是更清楚了？
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/656316/what-model-to-use-for-multivariable-analysis-with-small-sample-size</guid>
-      <pubDate>Fri, 25 Oct 2024 14:39:56 GMT</pubDate>
     </item>
     </channel>
 </rss>
