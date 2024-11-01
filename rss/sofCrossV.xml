@@ -4,7 +4,186 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 31 Oct 2024 21:16:31 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 01 Nov 2024 01:21:45 GMT</lastBuildDate>
+    <item>
+      <title>$R^2$ 与相互信息之间的联系</title>
+      <link>https://stats.stackexchange.com/questions/656573/connection-between-r2-and-mutual-information</link>
+      <description><![CDATA[将 MI 解释为“通过添加一些信息消除的不确定性量”，我希望与 $R^2$ 有某种联系，它是“通过添加一些信息解释的方差量”。
+特别是，$I(X,Y) = H(Y)-H(Y|X)$，其表述不当，即“您对 $Y$ 一开始有多不确定” - “在了解 $X$ 之后，您对 $Y$ 有多不确定”
+另一方面，$R^2 = 1-\frac{\sum (y_i - f(x_i))^2}{\sum (y_i - \bar{y})^2}$，对我来说，这可能是错误的，它有点假设 $p(Y|X) \sim N(0, \sigma_1^2)$ 其中 $\sigma_1^2 = N^{-1}\sum (y_i - f(x_i))^2$ 和 $p(Y)\sim N(0, \sigma_2^2)$ 其中 $\sigma_2^2 = N^{-1}\sum (y_i - \bar{y})^2$... 这给我们留下了 $R^2 = 1-Var[p(y|x)]/Var[p(y)]$
+现在，如果我们定义 $\hat{R^2} = \frac{Var[p(y)]}{Var[p(y|x)]} \propto R^2$（以非线性方式成比例），我会说它看起来像这样：
+$$
+I(X,Y) \stackrel{?}{=} \alpha\ln \hat{R^2} = \alpha(\ln(Var[p(y)]) -\ln(Var[p(y|x)])),\,\, \text{for some }\alpha \in \mathbb{R}^+
+$$
+事实上，高斯分布的熵是 $\ln c\sigma^2$
+换句话说，如果我们假设 $p(y)$ 和 $p(y|x)$ 是，那么 $R^2$（或者至少是其虚构的兄弟 $\hat{R^2}$）和相互信息之间似乎确实存在联系高斯
+我是不是做错了什么/说了什么胡编乱造的话？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656573/connection-between-r2-and-mutual-information</guid>
+      <pubDate>Fri, 01 Nov 2024 01:00:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>通过 R 中 udpipe 包中的 udpipe_annotate 生成的句法网络解释</title>
+      <link>https://stats.stackexchange.com/questions/656571/interpretation-of-syntactic-network-generated-through-udpipe-annotate-from-udpip</link>
+      <description><![CDATA[我正在尝试使用 udpipe 在 R 中对语音数据进行句法网络分析。
+以下是存储在 ordered.txt 文件中的示例数据。
+你叫什么名字？
+我叫什么名字？
+我叫 Neeraj。
+
+以下是我的代码片段：
+# 加载库
+library(udpipe)
+library(igraph)
+library(ggraph)
+
+# 加载转录本（假设您已经将文本读入变量）
+transcript &lt;- readLines(&quot;ordered.txt&quot;)
+
+# 预处理文本：清理和标记（您可以根据需要修改清理）
+transcript_clean &lt;- gsub(&quot;(unintelligible|\\.|\\?|,|!|:)&quot;, &quot;&quot;, transcript) # 删除标点符号和难以理解的标记
+
+# 加载预先训练的英语模型进行句法分析
+ud_model &lt;- udpipe_download_model(language = &quot;english&quot;)
+udpipe_model &lt;- udpipe_load_model(ud_model$file_model)
+
+# 执行句法解析
+parsed_transcript &lt;- udpipe_annotate(udpipe_model, x = transcript_clean)
+parsed_df &lt;- as.data.frame(parsed_transcript)
+
+# 检查句法解析结果
+head(parsed_df)
+
+# 使用 head 依赖关系创建句法网络
+edges &lt;- parsed_df[!is.na(parsed_df$head_token_id), c(&quot;token&quot;, &quot;head_token_id&quot;, &quot;dep_rel&quot;)]
+colnames(edges) &lt;- c(&quot;from&quot;, &quot;to&quot;, &quot;relation&quot;)
+
+# 构建图表
+syntactic_graph &lt;- graph_from_data_frame(edges, focused = TRUE)
+
+# 可视化句法网络
+ggraph(syntactic_graph, layout = &quot;fr&quot;) +
+geom_edge_link(aes(label = relation), arrow = arrow(length = unit(4, &#39;mm&#39;))) +
+geom_node_text(aes(label = name), vjust = 1, hjust = 1) +
+theme_minimal()
+
+此代码生成如下所示的网络。
+
+在此代码中，使用 parsed_df 创建边，具体使用列token、head_token_id 和 dep_rel。但是，我无法正确解释网络。在右下角，节点“whatandneeraj连接到名为 0（表示根）的节点，其中 head_token_id 为 0，因为这两个词在语法上不依赖于任何其他词。此外，udpipe_annotate` 对文本进行词形还原，结果派生词被转换为其基本形式，例如，is 和 was 都转换为其基本形式“be”。但是，在网络中，它们都是单独的节点。我该如何解决这个问题？
+此外，在左下角，我看到 My 连接到标记为 2 的节点，而我原本期望“my”连接到单词节点“name”如下面的parsed_df的输出截图所示。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656571/interpretation-of-syntactic-network-generated-through-udpipe-annotate-from-udpip</guid>
+      <pubDate>Thu, 31 Oct 2024 22:59:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>互相关 SD</title>
+      <link>https://stats.stackexchange.com/questions/656570/cross-correlation-sd</link>
+      <description><![CDATA[是否有已知的最佳实践或数学上定义良好的方法来计算互相关的连续 SD？或者您只是在每个采样点计算 SD？我很好奇，因为出于重要性的目的，例如当信号变得明显不同或不再明显不同时，您需要应用多个测试校正，我只是想知道这在连续时间内如何发挥作用？
+这是在 numpy 中绘制它的模拟：
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import relate
+
+# 生成用于可视化的合成数据
+np.random.seed(0)
+signal_1 = np.sin(np.linspace(0, 10, 1000)) + 0.1 * np.random.normal(size=1000)
+signal_2 = np.sin(np.linspace(0, 10, 1000) + np.pi / 4) + 0.1 * np.random.normal(size=1000)
+
+# 计算互相关
+cross_corr = relate(signal_1, signal_2, mode=&#39;full&#39;)
+lags = np.arange(-len(signal_1) + 1, len(signal_2))
+
+# 计算 1000 个 bootstrap 样本的标准差
+bootstrap_samples = 1000
+sample_sd = np.zeros(len(cross_corr))
+
+for i in range(bootstrap_samples):
+# 为 bootstrap 生成随机样本
+sampled_signal_1 = signal_1 + np.random.normal(scale=0.1, size=len(signal_1))
+sampled_signal_2 = signal_2 + np.random.normal(scale=0.1, size=len(signal_2))
+sampled_corr =相关（sampled_signal_1，sampled_signal_2，mode=&#39;full&#39;）
+sample_sd += (sampled_corr - cross_corr) ** 2
+
+sample_sd = np.sqrt(sample_sd / bootstrap_samples)
+
+# 绘制带有 SD 的互相关
+plt.figure(figsize=(10, 6))
+plt.plot(lags, cross_corr, label=&#39;Cross-correlation&#39;)
+plt.fill_between(lags, cross_corr - sample_sd, cross_corr + sample_sd, color=&#39;gray&#39;, alpha=0.3, label=&#39;SD over 1000 samples&#39;)
+plt.xlabel(&#39;Lags&#39;)
+plt.ylabel(&#39;Cross-correlation&#39;)
+plt.title(&#39;带有标准差的互相关偏差&#39;)
+plt.legend()
+plt.grid()
+plt.show()
+
+请注意，另一个 slack 上发布了一个关于此问题的问题，但从未得到回答，而且写得很糟糕：https://stackoverflow.com/questions/78669859/how-to-calculate-the-confidence-intervals-for-a-time-lagged-cross-correlation]]></description>
+      <guid>https://stats.stackexchange.com/questions/656570/cross-correlation-sd</guid>
+      <pubDate>Thu, 31 Oct 2024 22:25:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>检测峰值是否及时出现</title>
+      <link>https://stats.stackexchange.com/questions/656569/test-for-presence-of-peak-in-time</link>
+      <description><![CDATA[我有许多基因的 RNA-Seq 计数数据，这些数据通常用负二项式建模，并随时间测量。我想找出哪些基因具有“峰值”模式。
+处理此类数据的方法是具有负二项式家族的 GAM。但是，它捕获了随时间变化的不同基因模式。例如，这里我对 gene_2 感兴趣，它在特定时间点附近达到峰值，但我对 gene_1 不感兴趣：尽管它随时间变化，但它不是峰值模式。两者在 GAM 拟合中都具有显著的 p 值。
+
+当然，在许多情况下，我有数千个基因需要测试，因此有几万个测试，其中大约三分之一我预计是显著的。我不知道先验脉冲的确切形状，有时可能更宽或更窄。
+问题：我如何测试具有这种“脉冲”形状的基因？零形状可以是随时间恒定的基因，也可以是变化但不出现峰值的基因（如 gene_1）。
+想法：
+我首先想到的是调整 mgcv::gam 中使用的样条基础进行拟合，但找不到合适的方法，也找不到形状先验的平滑器。
+我还考虑过使用 GLM 来拟合二次和三次多项式并比较它们的 AIC（即我们是否“需要”三次多项式），但在这两种情况下，AIC 都会随着三次多项式而降低，我不确定有没有更好的方法来进行这种比较。
+也许另一种方法可能是某种形式的拟合优度，但我不确定如何进行。计算到模拟的“峰值”的 Wasserstein 距离形状？
+最后一个想法可能是对拟合的曲线进行聚类并识别正确的聚类（例如使用 {funHDDC），我还没有探索这个想法。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656569/test-for-presence-of-peak-in-time</guid>
+      <pubDate>Thu, 31 Oct 2024 22:16:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>保留或归纳包含愿意或不愿意回答的数据的最佳方法是什么？</title>
+      <link>https://stats.stackexchange.com/questions/656568/what-would-be-the-best-way-to-retain-or-impute-data-containing-willing-or-not-wi</link>
+      <description><![CDATA[我想在调查中填补缺失数据。
+在我的数据集中，参与者可以选择不回答某些个人问题（例如年龄、家庭背景），从而导致数据有意缺失和无意缺失。鉴于这种结构，建议采用哪些填补策略来确保数据完整性并尽量减少偏差？
+我最初的方法是使用 Little 的 MCAR 测试来对数值进行测试。如果数据被确认为 MCAR，单一填补方法 EM（期望最大化）填补可能会有效，因为它们会引入最小的偏差。如果测试表明数据为非 MCAR，我们可以假设 MAR，根据我们对数据的假设，MNAR 的可能性较小，从而使 EM 填补仍然可行。
+这种方法也适用于分类响应，尽管数据的结构至关重要，因为有些值是故意缺失的。鉴于此，首先根据参与者是否同意分享信息对数据进行细分，然后在这些子组内应用归因分析是否合理？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656568/what-would-be-the-best-way-to-retain-or-impute-data-containing-willing-or-not-wi</guid>
+      <pubDate>Thu, 31 Oct 2024 22:10:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何找到 Beta_1 帽子和 Beta_3 帽子之间相关性的估计值</title>
+      <link>https://stats.stackexchange.com/questions/656567/how-to-find-the-estimate-of-the-correlation-between-beta-1-hat-and-beta-3-hat</link>
+      <description><![CDATA[我正在研究多元线性回归，并致力于寻找 Beta_1 帽子和 Beta_3 帽子之间相关性的估计值。
+给定回归模型 y = B_0 + Beta_1x_1 + Beta_2x_2 + Beta_3*x_3 + 15 个案例的误差。我们有 MSE s^2 = 3。我们有
+(X^T X)^(-1) =
+[0.5 0.3 0.2 0.6]
+[0.3 6.0 0.5 0.4]
+[0.2 0.5 0.2 0.7]
+[0.6 0.4 0.7 3.0]
+我正在寻找 Corr(Beta_1 帽、Beta_3 帽) 的估计值。请帮忙，因为我不知道该使用哪个公式。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656567/how-to-find-the-estimate-of-the-correlation-between-beta-1-hat-and-beta-3-hat</guid>
+      <pubDate>Thu, 31 Oct 2024 21:59:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>根据实际值和预测值得出倍数</title>
+      <link>https://stats.stackexchange.com/questions/656566/deriving-a-multiple-based-on-actuals-and-forecast-values</link>
+      <description><![CDATA[就上下文而言，我们正在使用 DeepAR 模型进行需求规划预测。目前的预测往往低估了实际需求。有人建议我们使用更高的分位数来高估需求。尽管如此，我认为我们不应该向另一个方向走得太远，所以我的评估是，我们应该让预测超过实际需求，但前提是它不低于实际需求的几倍。如果这清楚的话请告诉我。
+现在，我需要以某种方式使用数字得出这个倍数。作为第一步，我计算了预测值和实际值之间的绝对差，然后我可以得到一些指标，如平均值、中位数绝对偏差和标准偏差，它们分别是
+平均值：10661.739321234914
+中位数绝对偏差：181.05746332806666
+标准偏差：391088.08675914136
+
+我有点困惑，不知道该如何制定一个倍数。我原本打算只使用 1.5 或 2 作为倍数，但我需要量化我的推理，否则它只是凭空而来。任何建议都将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656566/deriving-a-multiple-based-on-actuals-and-forecast-values</guid>
+      <pubDate>Thu, 31 Oct 2024 21:57:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何处理非常罕见的检测事件的数据？</title>
+      <link>https://stats.stackexchange.com/questions/656565/how-to-analyze-data-with-very-rare-detection-events</link>
+      <description><![CDATA[我正在分析几个样本中按大小排列的颗粒。我需要确定两组样本（每组 n=50）之间的平均颗粒数是否存在统计差异。
+数据是通过测量落入特定尺寸箱中的颗粒来收集的。例如，&gt;5um、&gt;15um、&gt;30um 等。对于最大尺寸箱（&gt;500um），很少检测到颗粒。在 100 个样本中，大约有 20 个检测到颗粒；其余的没有。对于我的特定样本，每个样本检测到的 &gt;500um 颗粒从未超过一个。这导致数据不符合 Anderson-Darling 正态分布。对于所有其他颗粒尺寸，分布为正态分布。
+我希望能够对每个颗粒尺寸箱中的所有样本进行方差分析，以确定平均值是否显著不同。当然，如果数据是非正态的，这种方法就不适用了。
+是否可以假设，不管样本数据如何，较大粒径粒子群的实际分布也像较小粒径粒子一样遵循正态分布？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656565/how-to-analyze-data-with-very-rare-detection-events</guid>
+      <pubDate>Thu, 31 Oct 2024 21:49:40 GMT</pubDate>
+    </item>
     <item>
       <title>Metropolis-Hastings 从以子集约束为条件的分布中抽样</title>
       <link>https://stats.stackexchange.com/questions/656564/metropolis-hastings-to-sample-from-a-distribution-conditioned-on-a-subset-constr</link>
@@ -12,7 +191,7 @@
 $$
 p(\mathbf{y}| \mathcal{C}_{p}) \propto p(\mathbf{y}, \mathcal{C}_{p})\{\mathbf{y} \in \mathcal{C}_{p}\}
 $$
-其中 $\mathcal{C}_{p}$ 是根据某些标准对分布 $p(\mathbf{y})$ 进行的限制。例如，$\mathcal{C}_{p}$ 可以是 $p(\mathbf{y})$ 到 100 个最可能实现的限制。既然我们无法提前计算 $p(\mathbf{y},\mathcal{C}_{p})$，那么如何为该目标分布设计马尔可夫链呢？]]></description>
+其中 $\mathcal{C}_{p}$ 是根据某些标准对分布 $p(\mathbf{y})$ 进行的限制。例如，$\mathcal{C}_{p}$ 可以是 $p(\mathbf{y})$ 到 100 个最可能实现的限制。既然我们无法提前知道子集 $\mathcal{C}_{p}$，那么如何为该目标分布设计马尔可夫链呢？]]></description>
       <guid>https://stats.stackexchange.com/questions/656564/metropolis-hastings-to-sample-from-a-distribution-conditioned-on-a-subset-constr</guid>
       <pubDate>Thu, 31 Oct 2024 21:11:20 GMT</pubDate>
     </item>
@@ -21,7 +200,7 @@ $$
       <link>https://stats.stackexchange.com/questions/656563/log-rank-test-statistic-for-multi-way-splitting-in-survival-trees</link>
       <description><![CDATA[在生存树中，对数秩检验统计量最常用于分割选择。这涉及选择产生最大对数秩检验统计量的二元分割。
 这假设具有相等组大小的对数秩检验统计量值与具有不等组大小的对数秩检验统计量值相当，因为根据当前候选分割点的位置，生成的子节点的大小会有所不同。
-现在我感兴趣的是执行多向分割，其中每个节点被分割成两个以上的子节点。在这里，我想使用两个以上组的对数秩检验的检验统计量来选择多向分割的分割点，以便子节点在生存方面差异最大。
+现在我感兴趣的是执行多路分割，其中每个节点被分割成两个以上的子节点。在这里，我想使用两个以上组的对数秩检验的检验统计量来选择多路分割的分割点，以便子节点在生存方面差异最大。
 但我不确定这种方法是否有效。这是因为我不知道不同相对组大小（总观察次数相同）的对数秩检验统计量的可比性是否也适用于两个以上组的对数秩检验。然而，后者对于选择多路分割是必要的，而不偏向于强平衡或强不平衡的划分。
 我很感激对此的任何猜测或见解。]]></description>
       <guid>https://stats.stackexchange.com/questions/656563/log-rank-test-statistic-for-multi-way-splitting-in-survival-trees</guid>
@@ -77,129 +256,6 @@ M &lt;- A &lt;- D
       <pubDate>Thu, 31 Oct 2024 18:48:45 GMT</pubDate>
     </item>
     <item>
-      <title>如何计算重力负荷？</title>
-      <link>https://stats.stackexchange.com/questions/656554/how-to-calculate-g-loading</link>
-      <description><![CDATA[# install.packages(&quot;psych&quot;,repos = &quot;https://cloud.r-project.org&quot;)
-library(jsonlite)
-library(psych)
-data_matrix &lt;- fromJSON(&quot;data.json&quot;)
-tetra_corr &lt;- tetrachoric(data_matrix)$rho
-fa_result &lt;- fa(r = tetra_corr, nfactors = 1, rotate = &quot;varimax&quot;)
-print(fa_result)
-
-这给了我一份每个项目的 g 负荷列表，对吗？我如何根据此列表计算测试的总体 g 负荷？
-我的 JSON 是一个项目响应数组，其中每个响应都是 0 或 1（不正确或正确）。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656554/how-to-calculate-g-loading</guid>
-      <pubDate>Thu, 31 Oct 2024 16:58:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>随机森林模型 - 模拟偏差的影响</title>
-      <link>https://stats.stackexchange.com/questions/656551/random-forest-model-impact-of-simulated-bias</link>
-      <description><![CDATA[作为演示项目的一部分，我们正在使用 IBM 人员流失数据（可从 Kaggle 等网站获取的虚构数据）进行模拟。目的是展示两种效果 -
-
-对于训练和测试数据集，通过曲线下面积测量额外随机噪声对预测的影响。绿色是原始数据集中给出的结果，对于每个模型都是相同的。
-
-
-
-额外偏差（转向积极结果）对预测的影响。
-
-
-每个箱线图来自使用 R 函数 ranger 对随机森林进行的 1,000 次模拟。每个预测都基于对训练或测试数据的预测，并添加了给定水平的随机噪声或偏差，与“真实”结果（流失）或嘈杂/有偏差的结果进行比较。
-因此问题
-
-噪声的影响或多或少是我所期望的，我相信预测“真实”结果（数据集中给出的结果）的更好结果反映了“真实”结果与“嘈杂”结果相比的较低可变性。有人可以纠正我，或者让我参考文献中关于这一点的讨论。
-
-偏见的影响不是我所期望的。鉴于这里建模的偏见（随着变量 DistanceFromHome 的值的增加而具有更强的影响）只能增加积极结果的数量，我原本预计“真实”值的预测会比有偏差的值更差。我不明白为什么添加正偏差会以这种方式影响测试数据集的结果。请注意，这个偏差变量在预测集中，但我得到了定性相似的结果，偏差变量的重要性较低，几乎为零。非常欢迎提出想法或参考。
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/656551/random-forest-model-impact-of-simulated-bias</guid>
-      <pubDate>Thu, 31 Oct 2024 16:03:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法将 plm 支持 model="between" 与某些权重一起打包吗？</title>
-      <link>https://stats.stackexchange.com/questions/656549/cant-package-plm-support-model-between-with-some-weights</link>
-      <description><![CDATA[我测试了 plm 的示例，发现 plm 无法处理带权重的“between”模型。
-复制了 Baltagi (2013) 表 3.1 中的一些结果
-data(&quot;Grunfeld&quot;, package = &quot;plm&quot;)
-p &lt;- plm(inv ~ value + capital,
-data = Grunfeld, model = &quot;pooling&quot;)
-
-设置“within”模型带权重就可以了
-data(&quot;Grunfeld&quot;, package = &quot;plm&quot;)
-p &lt;- plm(inv ~ value + capital,
-data = Grunfeld, model = &quot;pooling&quot;)
-
-update(p, model = &quot;within&quot;)
-
-模型公式：inv ~ value + capital
-
-系数：
-value capital 
-0.11012 0.31007 
-
-update(p, model = &quot;within&quot;, weights = 1:200)
-
-模型公式：inv ~ value + capital
-
-系数：
-value capital 
-0.09545 0.20708 
-
-
-设置模型 &quot;between&quot;没有权重也可以
-update(p, model = &quot;between&quot;) 
-
-模型公式：inv ~ value + capital
-
-系数：
-(截距) value capital 
--8.527114 0.134646 0.032031 
-
-但是设置带有权重的模型 &quot;between&quot; 会失败
-update(p, model = &quot;between&quot;, weights = 1:10) |&gt; try() 
-# 变量长度不同（找到 &#39;(weights)&#39;）
-
-update(p, model = &quot;between&quot;, weights = 1:30) |&gt; try() 
-# 变量长度不同（找到 &#39;(weights)&#39;）
-
-update(p, model = &quot;between&quot;, weights = 1:200) |&gt; try() 
-# 尺寸 [product 30] 与对象 [200] 的长度不匹配
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/656549/cant-package-plm-support-model-between-with-some-weights</guid>
-      <pubDate>Thu, 31 Oct 2024 15:54:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>多任务逻辑回归中的概率表达</title>
-      <link>https://stats.stackexchange.com/questions/656546/probability-expression-in-multi-task-logistic-regression</link>
-      <description><![CDATA[我试图理解这篇论文（将患者特定癌症生存分布作为依赖回归量序列进行学习）的作者如何获得第页上观察生存状态序列的概率的一般公式。
-显然，R 包 MTLR 基于这种方法。
-对于给定的随机变量 $T$，由 $\vec x$ 描述的生物体在 $T\geq t$ 时的存活概率被假定为
-$$
-P(T&gt;t|\vec x) = \frac{1}{1+ e^{\vec\theta_t\cdot \vec x + b_t}}.
-$$
-现在假设我们想通过时间序列$\{t_i\}$来研究生存的概率，即我们想计算生物在$T=t\in(t_i,t_i+1)$时死亡的概率。
-正如作者所说，最终目标是获得生物的生存时间分布。
-我们仍然假设
-$$
-p_i = P(T&gt;t_i|\vec x) = \frac{1}{1+ e^{\vec\theta_i\cdot \vec x + b_i}}。
-$$
-作者提出的表达式为
-%$$
-P(\vec y|\vec x) = \frac{e^{y_1(\vec\theta_1\cdot x+b_1) + \cdots + y_n(\vec\theta_n\cdot x+b_n)}}{e^{\vec\theta_n\cdot\vec x + b_n}+ e ^{\vec\theta_{n-1}\cdot x+b_{n-1} + \vec\theta_n\cdot x+b_n} + \cdots + e^{\vec\theta_1\cdot x+b_1 + \cdots + \vec\theta_n\cdot x+b_n}},
-$$
-其中$\vec y$ 时间序列中的观察结果：如果生物体仍然活着，则 $y_i = y(t_i) = 0$，否则为 $1$。
-我尝试使用不同的 $p_i$ 推导出 $P(\vec y|\vec x)$ 的公式，但没有成功。
-公式不是乘积，因为 $p_i$ 取决于 $p_{i-1}$，我不知道它们是如何组合的。
-我试图理解最简单的情况 $n=2$ 和 $y=(0,0)$（即生物体始终活着）。
-对于这种情况
-$$
-P = \frac{1}{e^{\vec\theta_2\cdot\vec x + b_2} + e^{\vec\theta_1\cdot\vec x + b_1 + \vec\theta_2\cdot\vec x + b_2}}。
-$$
-有什么想法吗？谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/656546/probability-expression-in-multi-task-logistic-regression</guid>
-      <pubDate>Thu, 31 Oct 2024 15:44:27 GMT</pubDate>
-    </item>
-    <item>
       <title>群体敏感性的超几何近似及其非线性性质</title>
       <link>https://stats.stackexchange.com/questions/656545/hypergeometric-approximation-of-herd-sensitivity-and-its-non-linear-nature</link>
       <description><![CDATA[我最近一直在探索 Cannon 2001 年论文“感觉与敏感性”中描述的方程在群体敏感性方面的应用（我喜欢这个名字）。
@@ -210,72 +266,6 @@ $$
 然而，我正在努力寻找一种方法来量化或估计这种群体敏感性的“损失”，因为了解由于采用不同的不太敏感的测试协议而导致群体敏感性下降的程度会很有用。任何建议或意见都将不胜感激！]]></description>
       <guid>https://stats.stackexchange.com/questions/656545/hypergeometric-approximation-of-herd-sensitivity-and-its-non-linear-nature</guid>
       <pubDate>Thu, 31 Oct 2024 14:57:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解释简单调节分析中协变量的非显著影响？</title>
-      <link>https://stats.stackexchange.com/questions/656542/how-do-i-explain-non-significant-effect-of-covariates-in-simple-moderation-analy</link>
-      <description><![CDATA[我正在使用一个独立变量 (IV)、一个调节变量 (M) 和一个因变量 (DV) 进行简单的调节分析。结果发现没有显著的相互作用，这意味着我的 M 不起调节作用。我添加了协变量以查看它是否可以改变相互作用，但我的所有协变量也不显著，相互作用结果保持不变。我如何在报告中解释这一点？如果您有类似的结果/论文可以举例说明，请分享]]></description>
-      <guid>https://stats.stackexchange.com/questions/656542/how-do-i-explain-non-significant-effect-of-covariates-in-simple-moderation-analy</guid>
-      <pubDate>Thu, 31 Oct 2024 14:28:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何计算合并标准误差</title>
-      <link>https://stats.stackexchange.com/questions/656530/how-to-compute-a-pooled-standard-error</link>
-      <description><![CDATA[我正在 $d$ 个数据集中比较 $m$ 个方法。通过我的实验，我获得了所有方法和所有数据集的平均值、标准差和标准误差，因此我有平均值
-$$
-\bar x_{1,1}, \dots, \bar x_{1, m},
-\\
-\vdots
-\\
-\bar x_{d,1}, \dots, \bar x_{d, m},
-$$
-和标准误差
-$$
-\hat s_{1,1}, \dots, \hat s_{1, m},
-\\
-\vdots
-\\
-\hat s_{d,1}, \dots, \hat s_{d, m}.
-$$
-我想针对所有数据集中每个方法做出声明，即我想汇总这两个数量。因此，我非常确定我可以计算每个方法的平均值 $k$，因为
-$$
-\bar X_k = \frac 1 d \sum_{i=1}^d \bar x_{i, k}
-$$
-但我该如何处理标准误差？是否可以以类似的方式组合它们，即
-$$
-\hat S_k = \sqrt{\frac 1 d} \; \sum_{i = 1}^d \hat s_{i, k},
-$$
-或者我需要以不同的方式处理这个问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656530/how-to-compute-a-pooled-standard-error</guid>
-      <pubDate>Thu, 31 Oct 2024 08:34:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>一般来说，我们是否应该在 SEM 分析中删除所有不显著的路径？</title>
-      <link>https://stats.stackexchange.com/questions/656523/generally-are-we-supposed-to-remove-all-nonsignificant-paths-in-an-sem-analysis</link>
-      <description><![CDATA[鉴于我们在科学中主张简约，如果非显著路径不会导致模型拟合度明显下降，我们是否应该删除这些不显著的路径？
-在我们删除不显著的路径后，其他路径也变得不显著，我们是否继续删除路径，直到所有路径都具有统计显著性（当然，如果它们不会导致模型拟合度下降）？
-如果不是，那么我们如何决定删除哪条路径？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656523/generally-are-we-supposed-to-remove-all-nonsignificant-paths-in-an-sem-analysis</guid>
-      <pubDate>Thu, 31 Oct 2024 01:41:25 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较逻辑回归系数</title>
-      <link>https://stats.stackexchange.com/questions/656518/comparing-logistic-regression-coefficients</link>
-      <description><![CDATA[我有代表个体群体和感兴趣的二元结果的数据。协变量本​​身通常是概率。例如，协变量 1 到 5 是此个体属于组 1（到 5）的概率的估计值。还有其他非概率协变量。
-我已选择组 1 作为我的参考组，我很想测试以下假设：“属于组 $j$ 与结果 $d$ 的关联性高于参考组”，其中 $j=2, ..., 5$ 和某个预定阈值 $d$。例如，我的结果可能是“是否被捕”，我的群体成员协变量可能是人口统计估计值，而我的其他协变量可能是涉嫌犯罪的各个方面。如果 $d=0.1$，那么我试图回答这个问题“成为人口统计 $j$ 的成员是否会使一个人的被捕率（与参考人口统计相比）至少增加 10 个百分点？”
-我正在使用 statsmodels 在 Python 中运行逻辑回归，我很好奇执行完整分析的正确过程是什么。特别是：
-
-我应该标准化（0 均值，单位标准差）我的数据吗？对于非群体成员协变量，我认为答案是“是”——我并不特别关心那些系数。对于组成员协变量，输出介于 0 和 1 之间（概率）。我的人口分布不均匀：其中一些组成员协变量的均值接近 0.8，而其他均值接近 0.1。
-
-回归后，我是否需要以某种方式转换系数才能进行假设检验？（例如，从对数几率转向……其他东西？）
-
-有了系数后，如何正确地将每个组的结果与参考组的结果加上 $d$ 进行比较？我应该按照 regression_results.wald_test(&quot;(group2 + d = const)&quot;) 的方式运行 Wald 检验（或 F 检验？或 T 检验？或其他东西）吗？我想做一个关于自卑、优越和平等的测试，因为我有三个感兴趣的结果：（a）这个组的结果可能小于参考组的$+d$；（b）这个组的结果可能大于参考组的$+d$；（c）我们不知道哪个更大。
-
-
-最后一行问题可能有点草率，我很抱歉在假设检验方面没有更好的基础。我来自机器学习领域，我想象用 95% 的置信区间 $\beta_j - const$ 来回答我的问题，其中 $\beta_j$ 是组 $j$ 成员的系数。可视化置信区间，要么整个值小于 $d$，要么整个值大于 $d$，要么它包含 $d$。这些结果中的每一个都会推动不同的决策。对于 (a)，我们可能对所分析的系统感到满意。对于 (b)，我们认为所分析的系统存在需要修复的问题。对于 (c)，我们无法判断是否存在问题，可能需要收集更多数据或采取其他方法。
-谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656518/comparing-logistic-regression-coefficients</guid>
-      <pubDate>Wed, 30 Oct 2024 20:23:17 GMT</pubDate>
     </item>
     </channel>
 </rss>
