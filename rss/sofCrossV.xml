@@ -4,7 +4,81 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 07 Nov 2024 06:23:34 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 07 Nov 2024 09:17:43 GMT</lastBuildDate>
+    <item>
+      <title>在 mgcv 中选择 GAM 的惩罚，bs =“ts”或 select = TRUE 之间的区别？</title>
+      <link>https://stats.stackexchange.com/questions/656878/choosing-penalty-for-gam-in-mgcv-difference-between-bs-ts-or-select-true</link>
+      <description><![CDATA[我正在研究一些环境数据，使用 GAM 模型来了解土壤中 DOC 的控制因素。我在选择合适的 GAM 模型和惩罚方面遇到了一些问题。在 mgcv::gam 中，有两种方法可以向协变量引入额外的惩罚：
+*) bs = &quot;ts 用于薄板样条函数； bs = &quot;cs&quot; 表示三次样条函数，用于惩罚零空间。
+*) select = TRUE 表示对模型中的所有样条函数进行双重惩罚，同时惩罚零空间和范围空间。
+更多信息请参见 此处 和 此处。
+我有这四个模型
+mod1 &lt;- mgcv::gam(y ~ s(x1) + s(x2) + s(x3), select = TRUE)
+mod2 &lt;- mgcv::gam(y ~ s(x1, bs = &quot;ts&quot;) + s(x2, bs = &quot;cs&quot;) + s(x3, bs = &quot;ts&quot;))
+mod3 &lt;- mgcv::gam(y ~ s(x1) + s(x2, bs = &quot;cr&quot;) + s(x3), select = TRUE)
+mod4 &lt;- mgcv::gam(y ~ s(x1, bs = &quot;ts&quot;) + s(x2, bs = &quot;cs&quot;) + s(x3), select = TRUE)
+s(x1) 和s(x3) 是具有一定意义的预测因子，而 s(x2) 是时间。
+我在这里尝试做的事情：我想通过额外的惩罚来选择一个模型，同时还为一些变量选择样条基函数的类型，我对收缩方法与双重惩罚方法的用法感到困惑。
+对我来说，模型 mod4 没有意义，因为它会对基样条的范围和零空间造成 select = TRUE 的双重惩罚，而样条的零空间已经受到 &quot;ts&quot; 和 &quot;cs&quot; 收缩版本的惩罚。
+同时，mod3 在我看来是在您有一个时间变量需要通过 bs = 进行平滑的情况下的最佳选择&quot;cr&quot; 加上一个协变量，并且您希望在零空间和范围空间中惩罚平滑项以进行模型选择。
+根据我对此的基本理解，最佳选择是 mod2 或 mod3，因为 mod1 只会假设所有平滑的薄板基函数，而情况并非如此，因为 s(x2) 是时间。
+最后，如果 mod4 规范完全错误，mgcv::gam 不应该弹出警告或错误吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656878/choosing-penalty-for-gam-in-mgcv-difference-between-bs-ts-or-select-true</guid>
+      <pubDate>Thu, 07 Nov 2024 09:03:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>线性混合模型的平行中介分析</title>
+      <link>https://stats.stackexchange.com/questions/656876/parallel-mediation-analysis-with-linear-mixed-model</link>
+      <description><![CDATA[我想用线性混合模型进行并行中介分析，因为我的数据是非正态的。
+HAMA_psy 和 RRS_brood 是中介，Sadness 是 IV，Melankoli 是 DV。
+我已经创建了一个模型，并使用引导函数计算了间接效应，但是当我不使用 lavaan 时，我没有考虑路径间依赖关系。这就是我认为它错误的原因。
+如果您能帮助我使用 LME 进行并行调解，我将非常高兴。
+我的模型是：
+
+sadness_to_hama_psy &lt;- lmer(HAMA_psy ~ Sadness + (1 | PartID), data = df)
+sadness_to_rrs_brood &lt;- lmer(RRS_brood ~ Sadness + (1 | PartID), data = df)
+hama_psy_to_melankoli &lt;- lmer(Melankoli ~ HAMA_psy + Sadness + (1 | PartID), data = df)
+rrs​​_brood_to_melankoli &lt;- lmer(Melankoli ~ RRS_brood + Sadness + (1 | PartID), data = df)
+indirect_effect_hama_psy &lt;- fixef(sadness_to_hama_psy)[&quot;悲伤&quot;] * fixef(hama_psy_to_melankoli)[&quot;HAMA_psy&quot;]
+indirect_effect_rrs_brood &lt;- fixef(sadness_to_rrs_brood)[&quot;悲伤&quot;] *fixef(rrs_brood_to_melankoli)[&quot;RRS_brood&quot;]
+
+total_indirect_effect &lt;- indirect_effect_hama_psy + indirect_effect_rrs_brood
+
+direct_effect &lt;- fixef(hama_psy_to_melankoli)[&quot;悲伤&quot;] + fixef(rrs_brood_to_melankoli)[&quot;悲伤&quot;]
+
+total_effect &lt;- total_indirect_effect + direct_effect
+boot_results &lt;- boot(data = df, 
+statistic = function(data, indices) {
+d &lt;- data[indices, ] # 重新采样数据
+
+# 将模型重新拟合到引导样本
+model_sadness_to_hama_psy &lt;- lmer(HAMA_psy ~ Sadness + Stage + (1 | PartID), data = d)
+model_sadness_hama_psy_to_melankoli &lt;- lmer(Melankoli ~ Sadness + HAMA_psy + Stage + (1 | PartID), data = d)
+model_sadness_rrs_brood_to_melankoli &lt;- lmer(Melankoli ~ Sadness + RRS_brood + Stage + (1 | PartID), data = d)
+
+# 从每个模型中提取系数（固定效应）
+coefs_sadness_to_hama_psy &lt;- fixef(model_sadness_to_hama_psy)
+coefs_sadness_hama_psy_to_melankoli &lt;- fixef(model_sadness_hama_psy_to_melankoli)
+coefs_sadness_rrs_brood_to_melankoli &lt;- fixef(model_sadness_rrs_brood_to_melankoli)
+
+# 计算直接和间接影响
+direct_effect &lt;- coefs_sadness_hama_psy_to_melankoli[&quot;Sadness&quot;]
+
+indirect_hama_psy &lt;- coefs_sadness_to_hama_psy[&quot;Sadness&quot;] * coefs_sadness_hama_psy_to_melankoli[&quot;HAMA_psy&quot;]
+
+indirect_rrs_brood &lt;- coefs_sadness_rrs_brood_to_melankoli[&quot;Sadness&quot;] * coefs_sadness_rrs_brood_to_melankoli[&quot;RRS_brood&quot;]
+
+total_indirect_effect &lt;- indirect_hama_psy + indirect_rrs_brood
+
+},
+R = 1000)
+
+boot.ci(boot.out = boot_results, type = &quot;perc&quot;)
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656876/parallel-mediation-analysis-with-linear-mixed-model</guid>
+      <pubDate>Thu, 07 Nov 2024 08:18:53 GMT</pubDate>
+    </item>
     <item>
       <title>Seber 和 Lee 的“线性回归分析”中的证明</title>
       <link>https://stats.stackexchange.com/questions/656871/proof-in-linear-regression-analysis-by-seber-and-lee</link>
@@ -197,40 +271,6 @@ $$
       <pubDate>Wed, 06 Nov 2024 21:09:25 GMT</pubDate>
     </item>
     <item>
-      <title>我真的很困惑如何解释这个 GLM</title>
-      <link>https://stats.stackexchange.com/questions/656859/im-really-confused-how-to-interpret-this-glm</link>
-      <description><![CDATA[这是我第一次在 glm 上下文中处理二项式数据和不相关变量“x”，所以我很难理解。
-这是我的数据，我希望使用互补对数对数链接和 R 函数 glm() 中的二项分布使用此数据拟合广义线性模型。
-x,r,y
-1.6907,59,6
-1.7242,60,13
-1.7552,62,18
-1.7842,56,28
-1.8113,63,52
-1.8369,59,53
-1.8610,62,61
-1.8839,60,60
-
-
-这是输出答案的正确 R 代码
-&gt;响应 &lt;- cbind(y, r - y)
-&gt; 模型 &lt;- glm(response ~ x, data = dat, family = binomial(link = &quot;cloglog&quot;))
-&gt; summary(model)
-
-我不明白 cbind(y, r-y) 的目的是什么，因为它是二项式的，我们不是要绘制从 0 到 1 的概率吗？这与 x 有什么联系？我想我漏掉了什么
-有什么提示吗？
-非常感谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/656859/im-really-confused-how-to-interpret-this-glm</guid>
-      <pubDate>Wed, 06 Nov 2024 20:52:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>逐步向前/向后推算的数学依据</title>
-      <link>https://stats.stackexchange.com/questions/656858/mathematical-justification-for-stepwise-forward-backward</link>
-      <description><![CDATA[是否有任何参考资料以数学方式陈述并证明回归（尤其是逻辑回归）的逐步前向和后向变量选择？我找不到任何此类来源。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656858/mathematical-justification-for-stepwise-forward-backward</guid>
-      <pubDate>Wed, 06 Nov 2024 20:22:49 GMT</pubDate>
-    </item>
-    <item>
       <title>卡方二项式或 t 检验是比较二分变量的正确检验吗？</title>
       <link>https://stats.stackexchange.com/questions/656855/is-a-binomial-of-chi-square-or-t-test-the-correct-test-to-compare-dichotomous-va</link>
       <description><![CDATA[您有一个 ML 模型，该模型输出二分变量 0 或 1 的一百万个观测值中的 100,000 个。您想要查看模型输出的 100,000 个观测值的分布是否与 100 万相似。您应用该模型 3 次，我们将它们称为 A、B 和 C，您将获得 3 组 100,000 个观测值。您想要测试它们是否具有与原始 1,000,000 相同的分布。您在 100,000 和 1,000,000 中的三个之间应用 T 检验，然后在 100,000 和 1,000,000 中的三个之间应用卡方检验，然后应用二项检验。t 检验和二项检验都认为 B 与整个集合相似，A 和 C 不同，但卡方表明只有 C 相似。那么，哪个模型最能近似这 1,000,000 行？]]></description>
@@ -238,37 +278,48 @@ x,r,y
       <pubDate>Wed, 06 Nov 2024 19:30:40 GMT</pubDate>
     </item>
     <item>
-      <title>相关组：混合效应作为因子模型</title>
-      <link>https://stats.stackexchange.com/questions/656851/correlated-groups-mixed-effects-as-a-factor-model</link>
-      <description><![CDATA[这已发布在量化交易所中，但没有人感兴趣，所以我想我可以在这里重新发布它。
-我正在尝试建立一个 Fama-French 风格的基本因子模型。我有 FF 因子以及我的资产所属的行业。对于不熟悉 FF 的人，您可以将其视为一些基本因素（与通货膨胀或 GDP 相同）
-该模型指定为：
+      <title>如何将 2 个方差与观察到的方差分开？</title>
+      <link>https://stats.stackexchange.com/questions/656846/how-to-separate-2-variances-from-observed-variance</link>
+      <description><![CDATA[我将其分解为以下内容：
+var(predicted_conc) = actual_conc*var1 + var2
+请注意，随机变量生成器是独立的，因此添加的是方差而不是标准差。
+我首先运行模拟来重新生成该信息。
+actual_conc &lt;- c(0,3, 5, 10, 20, 30,50,80,90, 100, 150, 180)
+
+predicted_conc &lt;- c()
+for(i in actual_conc){
+predicted_conc &lt;- c(predicted_conc, i + rnorm(1000, mean =0, sd = (0.05*i)) + rnorm(1000, mean = 0, sd = 0.1))
+}
+
+如您所见，我必须将随机变量生成与按浓度缩放或只是常数分开。
+但是，这种关系不是线性的。然后我计算方差，非线性关系变得非常明显，如果我拟合线性或二次回归，我会得到负截距，其中实际常数方差为 0.01。
+尽管我在这个模拟中接近真实值，如果我使用 sd 而不是 var，并且将 sd~conc 建模为常数方差很小，但我认为这应该是更正确的建模方法。
+欢迎提出想法。
+谢谢！
+编辑
+我猜这与方差有关，因为零会导致零结果！我当然有坚定的假设，即浓度在任何时候都不会为负。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656846/how-to-separate-2-variances-from-observed-variance</guid>
+      <pubDate>Wed, 06 Nov 2024 16:42:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>难道预期 Sarsa 是离策略的，而 SARSA 只是预期 SARSA 的 MC 估计，为什么它是在线策略的？</title>
+      <link>https://stats.stackexchange.com/questions/656843/is-expected-sarsa-is-off-policy-and-sarsa-is-just-an-mc-estimate-of-expected-sa</link>
+      <description><![CDATA[因此，预期 SARSA 将更新定义为：
 $$
-\mathbf{Y} = \mathbf{X}\beta + \mathbf{Z}\gamma + \epsilon 
+Q(s,a) = Q(s,a) +\alpha (R+ \mathbb{E}_{a\sim\pi(s&#39;)}[Q(s&#39;, a)] - Q(s,a))
 $$
-其中，$\mathbf{Y}$ 是 $N$ 资产和 $T$ 每周回报的横截面时间序列矩阵； $\mathbf{X}$ 是 Fama-French 因子（HML、SMB、WML 和 Market-RF 投资组合的每周回报）；$\mathbf{Z}$ 是随机效应矩阵。我有一个简单的案例，其中只有随机截距而没有随机斜率，即$\mathbf{Z}$ 是一个由 1 和 0 组成的矩阵，表示资产所属的行业。 $\epsilon$ 是分布为 $N(0,1)$ 的残差，$\gamma$ 是随机截距 $N(0,\mathbf{G})$，而 $\beta$ 是本例中通常的固定斜率（和一个固定截距）。
-我们可以使用 statsmodels&#39; 混合线性模型 来拟合该模型。
-数据框如下所示：
+其中 SARSA 将更新定义为 $a&#39;\sim\pi(s&#39;)$：
+$$
+Q(s,a) = Q(s,a) +\alpha (R+ Q(s&#39;, a&#39;) - Q(s,a))
+$$
+那么 SARSA 怎么会不仅仅是 ExpSARSA 的 MC 估计呢？既然 MC 是无偏的，那么为什么 SARSA 不应该是一种离策略算法呢？
 
-我们只需通过以下方式拟合模型：
-md = smf.mixedlm(&quot;y ~ MktRF + SMB + HML + WML&quot;, X, groups=X[&quot;sector&quot;])
-res = md.fit()
+编辑：由于我指的 MC 估计值似乎很清楚，出于某种原因，我的问题是：
 
-摘要如下所示。然而，结果很糟糕。残差和拟合值之间几乎存在完美的线性关系。
-
-
-我怀疑协方差矩阵$\mathbf{G}$出了问题，因为它接近奇异值。关于这个问题，我读到的常见方法之一是，随机效应可能过度参数化，并且可能存在多重共线性。因此，我计算了（出于必要，做了一些填充）行业之间的相关性 - 我们的随机截距。
-
-嗯，是的，这些组是相互关联的（尤其是一些组）。
-问题：
-
-我们能做些什么？我可以重新分组一些相关的行业，但这似乎不是一个好主意。例如，“金融”和“工业”的相关性很高，但这些是完全不同的组，可能与其他组具有不同的相关性。
-
-协方差真的是个问题吗？也可能是其他原因？我读过这篇帖子，其中讨论了零方差并不一定意味着模型有问题，即可能没有组变异，所有变异都被残差变异捕获 - 但这仍然不能解释数据和残差之间的线性关系。
-
+这两个更新仅在预期值和 $Q(s&#39;, a&#39;\sim\pi(s&#39;)) \approx \mathbb{E}_{a\sim\pi(s&#39;)}[Q(s&#39;, a)]$ 上有所不同，因为它是一个样本蒙特卡罗估计，是一个无偏估计，所以没有理由一个应该是在策略上而另一个应该是在策略外，因为在预期中它们会导致相同的更新
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/656851/correlated-groups-mixed-effects-as-a-factor-model</guid>
-      <pubDate>Wed, 06 Nov 2024 18:28:13 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/656843/is-expected-sarsa-is-off-policy-and-sarsa-is-just-an-mc-estimate-of-expected-sa</guid>
+      <pubDate>Wed, 06 Nov 2024 15:53:03 GMT</pubDate>
     </item>
     <item>
       <title>对于非线性自动编码器的泛化我们了解多少？</title>
@@ -283,37 +334,11 @@ $$\epsilon(x) = ||x-ABx||^2$$
       <pubDate>Wed, 06 Nov 2024 06:20:30 GMT</pubDate>
     </item>
     <item>
-      <title>具有随机变化的生物时间序列数据：回归是否合适以及中心变量是否能消除年份效应</title>
-      <link>https://stats.stackexchange.com/questions/656809/biological-time-series-data-with-random-variation-is-regression-suitable-and-ce</link>
-      <description><![CDATA[我有多年树木作物的数据：产量、树冠体积等。还有 2 个因素（品种、管理）。
-我试图找出我的一些变量之间是否存在相关性，例如树冠和产量。我接触过一位非常严格和严谨的统计学家。他提出了一些主张，我想知道这些主张是否完全正确，是否必须像他建议的那样严格遵守。现在，另一方面，我的老板正在挑战统计学家希望我这样做的方式，并希望我能说服他。统计学家的说法是：
-
-我必须将数据居中（从每个数据点中减去年平均值并添加总体平均值）以消除年份效应。我的老板对此不满意，因为这意味着散点图中的值不再是真实值，并且具有误导性。此外，它还缩小了数据的范围。树冠体积和产量从早年的接近零上升到树木成熟时的很高数字。统计学家说，如果我不将数据集中，就会产生误导，因为产量的增加是由于年龄（即年份）而不是树冠。从生物学的角度来看，我认为这有点愚蠢，但我确实理解这个概念。
-
-我无法拟合回归模型。原因显然是我的实验没有设计成解释变量被复制，因此没有错误。我的解释变量（树冠）是一个观察值，而不是设计值。他让我参考了一篇论文（Powers 2021，《应用生物学年鉴》编辑部），但在同一篇论文中写道：“在其他研究中，将研究由成对的观察值组成的收集数据，以考虑它们之间的关系，而不一定在每个级别都进行复制[就像我的实验中的情况一样]……重要的是评估所提出的关系的统计质量。首先，实际上，应该问是否真的需要拟合关系。&#39;这意味着拟合模型是一种选择，尽管并非总是最佳选择。而统计学家说这是错误的，就是这样。他引用了一本书（Draper 和 Smith 的《应用回归分析》）：“回归分析的一个假设是预测变量不受随机变化的影响”[在我看来它们是]。我的统计学书（Crawley 的《统计学。使用 R 的介绍》）说：“也许知道何时回归是合适的分析的最简单方法是看散点图是否是合适的图形。&#39;[在我看来，它绝对是]另一个重要的事实是，我所在领域的大量其他论文都在做同样的事情：将回归线拟合到像我这样的数据中。这就是我老板使用的论点：人们期望看到直线和 r2，而你需要有一个很好的理由来以不同的方式去做。统计学家建议我使用带有皮尔逊相关系数的散点图，但没有线。
-
-
-我感觉自己陷入了进退维谷的境地（两个非常强大和自信的个性），我需要更多的解释/意见，才能感觉自己可以更好地辩论。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656809/biological-time-series-data-with-random-variation-is-regression-suitable-and-ce</guid>
-      <pubDate>Tue, 05 Nov 2024 23:17:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>调整多项式拟合参数数量</title>
-      <link>https://stats.stackexchange.com/questions/656772/adjusting-polynomial-fit-number-of-parameters</link>
-      <description><![CDATA[我正在探索一种确定 Python 中多项式回归的最佳次数的方法。以下是我的方法：
-
-我迭代地拟合次数增加的多项式（最高次数为 50），并计算每次拟合的调整后的 R²。
-
-然后，我将逻辑函数拟合到这些调整后的 R² 值，以模拟拟合优度如何随多项式次数的变化。
-
-最后，我确定在实际调整后的 R² 和逻辑模型的预测之间产生最大正残差的多项式次数，并将其选为最佳次数。
-
-
-这种方法在统计上合理吗？是否有更成熟或计算效率更高的方法来确定回归分析中的多项式次数？
-多项式似乎表现良好，我正在使用它来生成时间序列数据的趋势。
-在我看来，由于参数次数高，它们似乎没有太多的预测能力，但它们可能对分析历史趋势有用。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656772/adjusting-polynomial-fit-number-of-parameters</guid>
-      <pubDate>Tue, 05 Nov 2024 08:21:14 GMT</pubDate>
+      <title>二项式（logit 链接）模型的条件效应：是否存在正确的估计技术来预测要绘制的值？</title>
+      <link>https://stats.stackexchange.com/questions/656673/conditional-effects-from-binomial-logit-link-models-is-there-a-correct-estima</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/656673/conditional-effects-from-binomial-logit-link-models-is-there-a-correct-estima</guid>
+      <pubDate>Sun, 03 Nov 2024 15:46:37 GMT</pubDate>
     </item>
     <item>
       <title>在反向传播中对权重矩阵进行区分时避免使用张量</title>
