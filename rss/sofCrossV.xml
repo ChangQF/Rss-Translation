@@ -4,7 +4,117 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 08 Nov 2024 03:21:06 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 08 Nov 2024 06:24:19 GMT</lastBuildDate>
+    <item>
+      <title>时间数据泄露是如何发生的？</title>
+      <link>https://stats.stackexchange.com/questions/656935/how-does-temporal-data-leakage-happen</link>
+      <description><![CDATA[假设我使用移动窗口来切分每日股票收盘价历史数据。使用过去 7 天来预测第二天。对于每个训练实例，我严格使用历史数据来预测未来事件。但是，在将数据处理成许多小主干后，每个主干都有 7 天 -&gt; 1 天（特征 -&gt; 标签）对，如果我丢弃实际日期并混合所有记录，然后将数据拆分为训练和测试，这通常被认为是数据泄漏，对吗？
+我想知道为什么。假设数据是在 DNN 上训练的。对于每次前向和后向传递，损失仅考虑没有泄漏的特征+标签。泄漏发生在何时何地？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656935/how-does-temporal-data-leakage-happen</guid>
+      <pubDate>Fri, 08 Nov 2024 04:50:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>纵向研究中的模拟与基于公式的功效计算：为什么差异这么大？</title>
+      <link>https://stats.stackexchange.com/questions/656934/simulation-vs-formula-based-power-calculations-for-longitudinal-studies-why-the</link>
+      <description><![CDATA[我想了解在纵向 RCT 的混合线性模型背景下，使用基于公式的方法与模拟的功效计算获得不同结果的原因。我相对无知，非常感激您的见解。
+让我们看一个示例小插图，它略微修改自“纵向数据线性模型的功效及其在阿尔茨海默病 II 期研究设计中的应用”1
+考虑一项阿尔茨海默病 RCT，其中每三个月进行一次评估，持续 18 个月（7 次访问）。我们假设试验药物的最小可检测效应大小为阿尔茨海默病评估量表 (ADAS-Cog) 认知部分的 0.75 分。假设受试者按 1:1 的比例分为安慰剂组和药物组。根据初步研究，我们假设随机截距的方差为 55，随机斜率的方差为 24，残差方差为 10。随机斜率项和随机截距项之间的相关性为 0.8。
+为了构建此场景的混合线性模型，我们假设 ADAS-Cog 每年下降 10 分，并假设平均基线（截距）为 -10。
+为简单起见，假设没有流失，并且 ADAS-Cog 随时间线性下降。假设随机斜率和截距来自二元正态分布。
+首先使用 longpower 包中的 edland.linear.power 函数通过公式计算功率。让我们确定总共 100 个受试者的功效：
+install.packages(&quot;longpower&quot;)
+library(longpower)
+sig2.i = 55
+# 随机斜率的变量
+sig2.s = 24
+# 残差变量
+sig2.e = 10
+# 斜率和截距的协方差
+cov.s.i &lt;- 0.8*sqrt(sig2.i)*sqrt(sig2.s)
+t = seq(0,1.5,0.25)
+
+out &lt;- edland.linear.power(delta=.75, t=t, sig2.int = sig2.i, sig.b0b1 = cov.s.i, sig2.s = sig2.s, sig2.e = sig2.e, sig.level=0.05, n = 50, lambda = 1)
+
+
+输出：
+power ~ 0.1
+请注意，long power 包中基于 GEE 的 Diggle 公式产生的结果几乎相同。2
+现在让我们尝试模拟：
+install.packages(MASS)
+install.packages(&quot;lmerTest&quot;)
+library(MASS) # for MVRNORM
+library(lmerTest)
+
+nsim = 500
+pval &lt;- numeric()
+
+for (i in 1:nsim) {
+
+# 受试者总数
+ni = 100
+
+# 随机变量截距
+sig2.i = 55
+# 随机斜率的变量
+sig2.s = 24
+# 残差变量
+sig2.e = 10
+# 截距和斜率之间的相关性
+rho = .8
+# 斜率和截距的协方差
+cov.s.i &lt;- rho*sqrt(sig2.i)*sqrt(sig2.s)
+
+psi = matrix(c(sig2.i,cov.s.i, cov.s.i, sig2.s), 2, 2)
+RE = mvrnorm(ni, mu=c(0,0), psi)
+colnames(RE) = c(&quot;ints&quot;,&quot;slopes&quot;); t(round(RE,2))
+time = seq(0,1.5,0.25) # 访问
+nj = as.numeric(length(time)) 
+
+# 制作协变量和随机误差的数据框
+df = data.frame(ID = rep(1:ni, each=nj, times = 1), 
+time = (rep(time, times=ni)),
+group = rep(gl(2, (ni*nj)/2, labels = c (&quot;placebo&quot;, &quot;drug&quot;))),
+time.group &lt;- c(rep(0, each = (ni*nj)/2, 
+times = 1),as.numeric(rep(1:nj, times=(ni/2)))),
+RE.i = rep(RE[,1], each=nj),
+RE.s = rep(RE[,2], each=nj)
+)
+
+colnames(df) = c(&#39;ID&#39;, &#39;time&#39; ,&#39;group&#39;,&#39;time.group&#39;,&#39;RE.i&#39;, &#39;RE.s&#39;)
+
+e &lt;- rnorm(n=ni*nj, mean=0, sd=sqrt(sig2.e)) #残差
+df$e = e
+
+#生成 y
+y = with(df, (-10 + RE.i) + (-10 + RE.s)*time + .75*(time.group) + e)
+df$y = y
+
+m1 &lt;- lmer(y ~ time*group + (time| ID), data = df, REML = F, control = lmerControl(optimizer =&quot;Nelder_Mead&quot;))
+
+summary(m1)
+out &lt;- anova(m1)
+pval[i] &lt;- out$&#39;Pr(&gt;F)&#39;[3]
+
+}
+
+power &lt;- sum(pval &lt; 0.05)/nsim
+
+功效约为 0.8。
+问题是，为什么纵向 RCT 中基于公式和基于模拟的治疗效果功效计算之间存在巨大差异？
+我在计算中犯了根本性错误吗？
+这些分析在备选假设下的分布是否存在真正的差异？为什么？
+任何见解都非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656934/simulation-vs-formula-based-power-calculations-for-longitudinal-studies-why-the</guid>
+      <pubDate>Fri, 08 Nov 2024 04:45:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>估计离散信号中某一点的变异性或波动性</title>
+      <link>https://stats.stackexchange.com/questions/656933/estimating-variability-or-volatility-at-a-point-in-discrete-signal</link>
+      <description><![CDATA[我有一个离散信号/时间序列 $X_t$，其值由传感器以半规则频率记录。我想在每个时间戳上创建一些可变性/波动性/噪声的度量。我考虑过使用滑动窗口来计算每个时间戳的标准偏差，结果还不错，但想知道是否还有其他方法。
+我熟悉 ARCH/GARCH，但我不确定模型假设是否适用于此（信号本质上更接近正弦）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656933/estimating-variability-or-volatility-at-a-point-in-discrete-signal</guid>
+      <pubDate>Fri, 08 Nov 2024 04:41:19 GMT</pubDate>
+    </item>
     <item>
       <title>似然导数的外积近似</title>
       <link>https://stats.stackexchange.com/questions/656931/outer-product-approximation-of-derivatives-of-likelihood</link>
@@ -12,13 +122,13 @@
 另外，论文中好像外积近似和Hessian的符号是一样的，但是不应该是相反的吗？另外，我很好奇为什么
 1/N 没有在近似值中相乘。
 总之，我想知道为什么方程式是这样给出的
-$$\partial^2F/\partial\sigma \partial\sigma&#39; = \Sigma \partial (F(r)/\partial\sigma)( \partial F(r)/\partial\sigma&#39;)$$
+$$\partial^2F/\partial\sigma \partial\sigma&#39; = \sum \partial (F(r)/\partial\sigma)( \partial F(r)/\partial\sigma&#39;)$$
 而不是
-$$\partial^2F/\partial\sigma \partial\sigma&#39; = -(1/N)\Sigma \partial (F(r)/\partial\sigma)( \partial F(r)/\partial\sigma&#39;)$$?
-谢谢你
+$$\partial^2F/\partial\sigma \partial\sigma&#39; = -(1/N)\sum \partial (F(r)/\partial\sigma)( \partial F(r)/\partial\sigma&#39;)$$?
+
 参考文献：
 
-Muthén，B.（1984）。具有二分、有序分类和连续潜变量指标的一般结构方程模型。Psychometrika，49，115-132。（https://www.statmodel.com/wlscv.shtml）
+Muthén, B. (1984)。具有二分、有序分类和连续潜变量指标的一般结构方程模型。 Psychometrika，49, 115-132。(https://www.statmodel.com/wlscv.shtml)
 https://www.sherrytowers.com/mle_introduction.pdf
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/656931/outer-product-approximation-of-derivatives-of-likelihood</guid>
@@ -97,115 +207,6 @@ homoskedasticity.cutoff=0.05)$filtered
       <pubDate>Thu, 07 Nov 2024 21:07:26 GMT</pubDate>
     </item>
     <item>
-      <title>涉及高斯和 t-学生密度乘积的多元积分</title>
-      <link>https://stats.stackexchange.com/questions/656916/multivariate-integral-involving-a-gaussian-and-a-product-of-t-student-densities</link>
-      <description><![CDATA[设 $N \ge 1$ 为整数，设 $A$ 为正定 $N\times N$ 矩阵，设 $b$ 为 $N\times 1$ 实数向量。设 $\nu &gt; 2$ 并定义 $n:= (\nu+1)/2$。
-我们感兴趣的是推导样本协方差矩阵的分布，其中观测值来自特定的非高斯分布。在这里，我们决定用 t-Student 分布代替高斯分布。这将是 Wishart 分布的类似物，其中总体为 t-Student。
-现在，事实证明，计算此类矩阵的拉普拉斯变换可得出下面的多元积分。
-\begin{eqnarray}
-{\mathfrak f}_\nu^{(A,b)} &amp;:=&amp; \int\limits_{{\mathbb R}^N}
-\frac{e^{-\frac{1}{2} z^{T} \cdot A \cdot z + b^T \cdot z} }{\sqrt{(2\pi)^N \cdot \det(A^{-1})}} \cdot 
-\left(
-\prod\limits_{i=1}^N
-\frac{d z_i}{\left(1 + \frac{z_i^2}{\nu}\right)^n}
-\right) \tag{1}
-\end{eqnarray&gt;
-上述积分是给定在另一篇文章中。
-我们定义一个新矩阵，该矩阵由原始矩阵的对角线元素乘以积分变量的逆而生成，即${\tilde A}(\eta) := \left( A_{i,j}\cdot (1 + \delta_{i,j} (\frac{1}{\eta_i}-1) ) \right)_{i,j=1}^N$。
-现在，通过使用 t-Student 密度的表示作为正态分布的连续混合，其逆方差为 Gamma 分布，然后交换积分顺序，进行多元高斯积分并简化结果，我们得出以下结果。
-\begin{eqnarray}
-&amp;&amp;{\mathfrak f}_\nu^{(A,b)} =
-e^{\frac{\nu}{2} \cdot Tr[A]} \cdot \sqrt{\det[A]} \cdot \left(\prod\limits_{i=1}^N (\frac{\nu}{2} A_{i,i})^n \right) \cdot \frac{1}{((n-1)!)^N} \cdot
-\int\limits_{(0,1)^N}
-\left[\prod\limits_{i=1}^N \frac{1}{\eta_i^2} \left( \frac{1-\eta_i}{\eta_i} \right)^{n-1} \cdot e^{-\frac{\nu}{2} \frac{A_{i,i}}{\eta_i} } \right]
-%
-\frac{\exp\left( \frac{1}{2} b^T \cdot [{\tilde A}(\eta)]^{-1} \cdot b\right)}{\sqrt{\det {\tilde A}(\eta) }}
-%
-\left[\prod\limits_{i=1}^N d \eta_i \right] \tag{2}
-\end{eqnarray&gt;
-下面的 Mathematica 代码片段确认结果是正确的。我们开始吧：
-(*Dimension 等于 NN。*)
-NN = 3; Clear[z, A, b, n, \[Eta]];
-A = RandomReal[{-1, 1}, {NN, NN}]; A = 
-Transpose[A] .对角矩阵[随机实数[{1/2, 1}, NN]] 。 
-A; A += +恒等矩阵[NN];
-正定矩阵Q[A]
-b = 随机实数[{1, 2}, {NN, 1}];
-\[Nu] = 随机实数[{3, 5}];
-n = (\[Nu] + 1)/2;
-
-1/Sqrt[(2 \[Pi])^NN Det[A]^-1]
-NIntegrate[
-Exp[-1/2 Sum[A[[i, j]] z[i] z[j], {i, 1, NN}, {j, 1, NN}] + 
-Sum[b[[i]] z[i], {i, 1, NN}]] Product[1/(1 + z[i]^2/\[Nu])^
-n, {i, 1, NN}], 
-Evaluate[
-Sequence @@ Table[{z[i], -Infinity, +Infinity}, {i, 1, NN}]]]
-
-Exp[\[Nu]/2 Tr[A]] Sqrt[Det[A]] Product[(\[Nu]/2 A[[i, i]])^
-n, {i, 1, NN}] 1/((n - 1)!)^NN NIntegrate[
-Product[1/\[Eta][i]^2 ((1 - \[Eta][i])/\[Eta][i])^(n - 1)
-Exp[-\[Nu]/2 A[[i, i]]/\[Eta][i]], {i, 1, NN}] Exp[
-1/2 Flatten[
-b] . (Inverse[
-Table[If[i == j, 1/\[Eta][i], 1] A[[i, j]], {i, 1, NN}, {j, 
-1, NN}]] . Flatten[b])]/Sqrt[
-Det[Table[
-If[i == j, 1/\[Eta][i], 1] A[[i, j]], {i, 1, NN}, {j, 1, NN}]]], 
-Evaluate[Sequence @@ Table[{\[Eta][i], 0, 1}, {i, 1, NN}]]]
-
-$(2)$。&quot; /&gt;
-
-说了这么多，我的问题是，当$\nu$很大时，我们如何使用稳态相近似来得出我们数量的近似封闭形式？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656916/multivariate-integral-involving-a-gaussian-and-a-product-of-t-student-densities</guid>
-      <pubDate>Thu, 07 Nov 2024 18:52:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 python 中设计/构建模型来预测多维序列数据？</title>
-      <link>https://stats.stackexchange.com/questions/656913/how-to-design-build-model-to-predict-multi-dimension-sequence-data-in-python</link>
-      <description><![CDATA[我有学生考试成绩（按学生分组）
-student_id 工作日 小时 年龄 location_id 分数
-────────── ──────── ────- ──────────── ─────
-alice 5 14 12.3 123 88 
-alice 3 8 12.5 123 85
-alice 3 11 12.8 555 92 
-alice 1 10 13.1 888 90 
-alice 2 16 13.3 123 82 
-...
-bob 1 10 13.1 555 97 
-bob 3 8 13.3 888 90
-bob 2 9 13.5 123 99 
-bob 5 14 13.7 888 82 
-bob 1 15 13.9 888 88 
-...
-
-我想建立一个模型来预测学生的“下一个”测试成绩。
- ┌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┐
-student_id ╎ 工作日 小时 年龄 location_id 成绩 ╎
-────────── ╎ ─────── ────────── ────── ╎◀╌╌ 一个输入数据点
-bob ╎ 1 10 13.1 555 97 ╎
-╎ ╎
-bob ╎ 3 8 13.3 888 90 ╎
-╎ ╎
-bob ╎ 2 9 13.5 123 99 ╎ 
-╎ ╎
-bob ╎ 5 14 13.7 888 82 ╎
-╎ ┏━━━━━━━━┪
-bob ╎ 1 15 13.9 888 ┃ 88 ┃◀━━ 预测器输出
-└╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌┺━━━━━━━━┛
-
-
-每个数据点只包含一个学生的数据。
-如果需要，行数可以固定……这意味着每个数据点将恰好包含 n 行（此示例中为 n==5）。
-哦，还有，每个学生都会有许多（滚动）数据点。
-我在哪里可以找到一个示例类似架构的模型？
-有人能给我指出正确的总体方向吗？
-请帮帮我！！！
-谢谢！！！]]></description>
-      <guid>https://stats.stackexchange.com/questions/656913/how-to-design-build-model-to-predict-multi-dimension-sequence-data-in-python</guid>
-      <pubDate>Thu, 07 Nov 2024 18:24:37 GMT</pubDate>
-    </item>
-    <item>
       <title>如何计算我的 MCMC 样本和目标分布之间的 KL 散度？</title>
       <link>https://stats.stackexchange.com/questions/656911/how-do-i-compute-the-kl-divergence-between-my-mcmc-samples-and-the-target-distri</link>
       <description><![CDATA[假设 $(E,\mathcal E,\lambda)$ 是一个 $\sigma$-有限测度空间，并且 $\nu$ 是 $(E,\mathcal E)$ 上的概率测度，且 $\nu\ll\lambda$。此外，假设$\mu=\sum_{i=0}^{n-1}\delta_{X_i}$，其中$(X_n)_{n\in\mathbb N_0}$是$(E,\mathcal E)$上的马尔可夫链，其分布为$\nu$不变。我们能否给出 $\mu$ 和 $\nu$ 之间的 KL 散度 $$H(\mu,\nu):=\begin{cases}\displaystyle\int\ln\frac{{\rm d}\mu}{{\rm d}\nu}\;{\rm d}\mu=\int\frac{{\rm d}\mu}{{\rm d}\nu}\ln\frac{{\rm d}\mu}{{\rm d}\nu}\;{\rm d}\nu&amp;\text{, if }\mu\ll\nu;\\\infty&amp;\text{, else}\end{cases}$$ 的表达式？我的想法是，我想计算 MCMC 方法的样本 $x_0,\ldots,x_{n-1}$ 之间的 KL 散度，这些样本对应于 $X_0,\ldots,X_{n-1}$ 的实现，以及目标分布 $\nu$。如果必要的话，你可以假设 $\lambda$ 是 $d$ 维勒贝格测度。根据遍历定理，我们应该能够得到 $H(\mu,\nu)$ 的估计量。但我不明白为什么我们应该有$\mu\ll\nu$...]]></description>
@@ -223,45 +224,6 @@ bob ╎ 1 15 13.9 888 ┃ 88 ┃◀━━ 预测器输出
       <pubDate>Thu, 07 Nov 2024 16:17:00 GMT</pubDate>
     </item>
     <item>
-      <title>R 中的卡方检验困难</title>
-      <link>https://stats.stackexchange.com/questions/656914/difficulties-with-chi-squared-test-in-r</link>
-      <description><![CDATA[我尝试执行 3 个单独的卡方检验来确定 BMI 和 2 型糖尿病之间是否存在显著性。一个针对男性和女性，一个仅针对男性，一个仅针对女性。但是，当我尝试运行代码时，我得到了非常大的 X 平方值和 n/a 的 df 值。
-EMLabData 表
-代码：
-combined &lt;- table(EMLabData$BMI, EMLabData$T2D)
-men &lt;- table(EMLabData$BMI[EMLabData$Sex==&quot;Male&quot;], EMLabData$T2D[EMLabData$Sex==&quot;Male&quot;])
-women &lt;- table(EMLabData$BMI[EMLabData$Sex==&quot;Female&quot;], EMLabData$T2D[EMLabData$Sex==&quot;Female&quot;])
-
-chisq.test(combined, mock.p.value = TRUE)
-chisq.test(men, mock.p.value = TRUE)
-chisq.test(women, mock.p.value = TRUE)
-
-输出：
-数据：combined
-X-squared = 1423.4, df = NA, p-value = 0.0004998
-
-数据：men
-X-squared = 727.94, df = NA, p-value = 0.04798
-
-数据：women
-X-squared = 1.2297, df = NA, p-value = 1
-
-我不确定出了什么问题以及如何修复它。任何帮助都将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656914/difficulties-with-chi-squared-test-in-r</guid>
-      <pubDate>Thu, 07 Nov 2024 16:09:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有积极 p 删除的分层回归真的比逐步回归“更好”吗？</title>
-      <link>https://stats.stackexchange.com/questions/656902/is-hierachical-regression-with-aggressive-p-deletion-really-much-better-than-s</link>
-      <description><![CDATA[在许多医学领域，“分层回归”是一种流行的方法。
-该方法是将变量分成几类，一次添加一类变量，然后在添加下一组变量之前删除它们。
-我看到的一种辩护是，由于“领域专业知识选择变量”，因此问题较少。当然，这种情况经常发生，具体取决于如何执行分层回归。
-但是，一些团体/研究人员在进行分层回归时，坚持在非常低的阈值（0.05 甚至更低；有人告诉我，我必须在较低的阈值下删除“以纠正多重比较”）。过程是：添加变量类别 --&gt; 丢弃 p &lt; 0.05 的所有内容 --&gt;对每个类别执行相同的操作，直到完成。
-这种分层回归的特定方法是否不会重现逐步选择的大部分相同问题？领域专业知识唯一能说明的是类别及其顺序；它不会用于决定是否删除，这由 p 值决定，就像逐步选择一样。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656902/is-hierachical-regression-with-aggressive-p-deletion-really-much-better-than-s</guid>
-      <pubDate>Thu, 07 Nov 2024 15:43:58 GMT</pubDate>
-    </item>
-    <item>
       <title>当增加对数正态分布的标准差时，它是否会趋向于指数分布？</title>
       <link>https://stats.stackexchange.com/questions/656881/does-a-log-normal-distribution-tend-to-an-exponential-distribution-when-increas</link>
       <description><![CDATA[对数正态分布 lognorm(mu, sigma) 随着其标准差 sigma 的增加而变得越来越偏斜。
@@ -271,25 +233,24 @@ X-squared = 1.2297, df = NA, p-value = 1
       <pubDate>Thu, 07 Nov 2024 10:59:27 GMT</pubDate>
     </item>
     <item>
-      <title>在回归模型中仅使用滞后预测变量而不使用非滞后预测变量？</title>
-      <link>https://stats.stackexchange.com/questions/656870/only-using-a-lagged-predictor-in-a-regression-model-and-not-the-unlagged</link>
-      <description><![CDATA[在统计回归模型中，仅使用预测变量的滞后值是否很常见？例如
-
-选项 1
-
+      <title>难道预期 Sarsa 是离策略的，而 SARSA 只是预期 SARSA 的 MC 估计，为什么它是在策略的呢？</title>
+      <link>https://stats.stackexchange.com/questions/656843/is-expected-sarsa-is-off-policy-and-sarsa-is-just-an-mc-estimate-of-expected-sa</link>
+      <description><![CDATA[因此，预期 SARSA 将更新定义为：
 $$
-s_{t} = f(i_{t}, i_{t-1}, u_{t}, u_{t-1})
+Q(s,a) = Q(s,a) +\alpha (R+ \mathbb{E}_{a\sim\pi(s&#39;)}[Q(s&#39;, a)] - Q(s,a))
 $$
+其中 SARSA 将更新定义为 $a&#39;\sim\pi(s&#39;)$：
+$$
+Q(s,a) = Q(s,a) +\alpha (R+ Q(s&#39;, a&#39;) - Q(s,a))
+$$
+那么 SARSA 怎么会不仅仅是 ExpSARSA 的 MC 估计呢？既然 MC 是无偏的，那么为什么 SARSA 不应该是一种离策略算法呢？
 
-选项 2
+编辑：由于我指的 MC 估计值似乎很清楚，出于某种原因，我的问题是：
 
-$$
-s_{t} = f(i_{t}, u_{t})
-$$
-其中 $s_{t}$ 是时间 $t$ 的销售额，而 $i_{t}$ 和 $u_{t}$ 是通货膨胀以及 $t$ 时刻的失业率。
-我的逻辑是，也许前一个时间段的信息比当前时间段的信息更能描述销售额？选项 2 是统计分析建模中的常见做法吗？还是非滞后变量也是强制性的（选项 1）？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656870/only-using-a-lagged-predictor-in-a-regression-model-and-not-the-unlagged</guid>
-      <pubDate>Thu, 07 Nov 2024 05:02:57 GMT</pubDate>
+这两个更新仅在预期值和 $Q(s&#39;, a&#39;\sim\pi(s&#39;)) \approx \mathbb{E}_{a\sim\pi(s&#39;)}[Q(s&#39;, a)]$ 上有所不同，因为它是一个样本蒙特卡罗估计，是一个无偏估计，所以没有理由一个应该是在策略上而另一个应该是在策略外，因为在预期中它们会导致相同的更新
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656843/is-expected-sarsa-is-off-policy-and-sarsa-is-just-an-mc-estimate-of-expected-sa</guid>
+      <pubDate>Wed, 06 Nov 2024 15:53:03 GMT</pubDate>
     </item>
     <item>
       <title>“最好的测试是无偏见的”这一说法的证明</title>
@@ -297,6 +258,21 @@ $$
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/656832/proof-of-the-statement-the-best-test-is-unbiased</guid>
       <pubDate>Wed, 06 Nov 2024 12:41:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有随机变化的生物时间序列数据：回归是否合适以及中心变量是否能消除年份效应</title>
+      <link>https://stats.stackexchange.com/questions/656809/biological-time-series-data-with-random-variation-is-regression-suitable-and-ce</link>
+      <description><![CDATA[我有多年树木作物的数据：产量、树冠体积等。还有 2 个因素（品种、管理）。
+我试图找出我的一些变量之间是否存在相关性，例如树冠和产量。我接触过一位非常严格和严谨的统计学家。他提出了一些主张，我想知道这些主张是否完全正确，是否必须像他建议的那样严格遵守。现在，另一方面，我的老板正在挑战统计学家希望我这样做的方式，并希望我能说服他。统计学家的说法是：
+
+我必须将数据居中（从每个数据点中减去年平均值并添加总体平均值）以消除年份效应。我的老板对此不满意，因为这意味着散点图中的值不再是真实值，并且具有误导性。此外，它还缩小了数据的范围。树冠体积和产量从早年的接近零上升到树木成熟时的很高数字。统计学家说，如果我不将数据集中，就会产生误导，因为产量的增加是由于年龄（即年份）而不是树冠。从生物学的角度来看，我认为这有点愚蠢，但我确实理解这个概念。
+
+我无法拟合回归模型。原因显然是我的实验没有设计成解释变量被复制，因此没有错误。我的解释变量（树冠）是一个观察值，而不是设计值。他让我参考了一篇论文（Powers 2021，《应用生物学年鉴》编辑部），但在同一篇论文中写道：“在其他研究中，将研究由成对的观察值组成的收集数据，以考虑它们之间的关系，而不一定在每个级别都进行复制[就像我的实验中的情况一样]……重要的是评估所提出的关系的统计质量。首先，实际上，应该问是否真的需要拟合关系。&#39;这意味着拟合模型是一种选择，尽管并非总是最佳选择。而统计学家说这是错误的，就是这样。他引用了一本书（Draper 和 Smith 的《应用回归分析》）：“回归分析的一个假设是预测变量不受随机变化的影响”[在我看来它们是]。我的统计学书（Crawley 的《统计学。使用 R 的介绍》）说：“也许知道何时回归是合适的分析的最简单方法是看散点图是否是合适的图形。&#39;[在我看来，它绝对是]另一个重要的事实是，我所在领域的大量其他论文都在做同样的事情：将回归线拟合到像我这样的数据中。这就是我老板使用的论点：人们期望看到直线和 r2，而你需要有一个很好的理由来以不同的方式去做。统计学家建议我使用带有皮尔逊相关系数的散点图，但没有线。
+
+
+我感觉自己陷入了进退维谷的境地（两个非常强大和自信的个性），我需要更多的解释/意见，才能感觉自己可以更好地辩论。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656809/biological-time-series-data-with-random-variation-is-regression-suitable-and-ce</guid>
+      <pubDate>Tue, 05 Nov 2024 23:17:29 GMT</pubDate>
     </item>
     </channel>
 </rss>
