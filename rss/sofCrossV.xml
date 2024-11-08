@@ -4,23 +4,138 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 08 Nov 2024 12:32:06 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 08 Nov 2024 15:17:40 GMT</lastBuildDate>
+    <item>
+      <title>需要帮助决定运行什么测试</title>
+      <link>https://stats.stackexchange.com/questions/656957/need-help-with-what-test-to-run</link>
+      <description><![CDATA[大家好，
+我每个月都会监测 4 个不同地点的环境参数，持续一整年。我计算了这些参数的平均值及其标准差。我想看看地点、月份或两者的组合是否会影响我测量的值。我只是不知道要运行什么测试。
+对于三月、四月、九月和十月，我只有 3 个地点的数据。我不确定这是否会改变任何事情。附件是我的一个参数（叶绿素）的图表。非常感谢任何帮助，统计不是我的强项 (:]]></description>
+      <guid>https://stats.stackexchange.com/questions/656957/need-help-with-what-test-to-run</guid>
+      <pubDate>Fri, 08 Nov 2024 15:10:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>与泊松和二项回归相比，负二项式下的低估</title>
+      <link>https://stats.stackexchange.com/questions/656953/underestimation-under-negative-binomial-compared-to-poisson-and-binomial-regress</link>
+      <description><![CDATA[我尝试使用下面的 R 代码，在一个包含两个组（第 1 组和第 2 组）的玩具数据集上比较泊松、负二项和二项回归模型。我观察到了一些有趣的结果。
+我从第 1 组创建了 1000 个样本，它们是二项式（5，0.25）。然后，我从第 2 组创建了 10 个样本，它们是二项式（500，0.75）。请注意，我保持总观察次数（1000 * 5 vs 500 * 10）相同，但它们的分配不同。
+我进行了两次测试：
+
+首先，当我省略组变量时，泊松和二项回归给我的估计值约为 0.5（介于 0.25 和 0.75 之间）。这将是我期望回归返回的值。然而，负二项式似乎非常有利于第 1 组的结果，并返回 0.26。这是违反直觉的。
+在我的第二个测试中，我添加了组变量，所有三个回归都一致。
+
+任何关于为什么会出现这些差异的见解都将不胜感激。假设我无法访问实际数据中的组变量，我该如何论证一个模型优于另一个模型？
+library(MASS)
+
+# 设置参数
+n1 &lt;- 5 # 第 1 组的每个样本总数
+p1 &lt;- 0.25 # 第 1 组的概率
+m1 &lt;- 1000 # 第 1 组的独立样本数
+
+n2 &lt;- 500 # 第 2 组的每个样本总数
+p2 &lt;- 0.75 # 第 2 组的概率
+m2 &lt;- 10 # 第 2 组的独立样本数
+
+# 为第 1 组生成二项式数据
+set.seed(42) # 为了可重复性
+outcome1 &lt;- rbinom(m1, size = n1, prob = p1)
+total_count1 &lt;- rep(n1, m1)
+
+# 生成第 2 组的二项式数据
+outcome2 &lt;- rbinom(m2, size = n2, prob = p2)
+total_count2 &lt;- rep(n2, m2)
+
+# 合并为单个数据集
+group &lt;- rep(c(&quot;Group1&quot;, &quot;Group2&quot;), times = c(m1, m2))
+outcome &lt;- c(outcome1, consequence2)
+total_count &lt;- c(total_count1, total_count2)
+dataset &lt;- data.frame(group = factor(group), consequence = consequence, total_count = total_count)
+dataset[&quot;failures&quot;] = dataset[&quot;total_count&quot;] - dataset[&quot;outcome&quot;]
+
+# 泊松回归
+poisson &lt;- glm(outcome ~ offset(log(total_count)), data = dataset, family = poisson(link = &quot;log&quot;))
+summary(poisson)
+exp(poisson$coefficients[1]) # 0.4925（在中间某处）
+
+# NB 回归
+nb &lt;- glm.nb(outcome ~offset(log(total_count)), data = dataset)
+summary(nb)
+exp(nb$coefficients[1]) # 0.264666（对较小的点赋予较大的权重）
+
+# 二项回归
+binom &lt;- glm(cbind(outcome, Failures) ~ 1, data = dataset, family = binomial(link=&quot;log&quot;))
+summary(binom)
+exp(binom$coefficients[1]) # 0.4925（在中间某处）
+
+# 现在用组变量重复
+# 泊松回归
+poisson &lt;- glm(outcome ~ group + offset(log(total_count)), data = dataset, family = poisson(link = &quot;log&quot;))
+summary(poisson)
+exp(poisson$coefficients[1]) # 0.2424 (应该是这样的)
+exp(poisson$coefficients[1] + poisson$coefficients[2]) # 0.7426 (应该是这样的)
+
+# NB 回归
+nb &lt;- glm.nb(outcome ~ group + offset(log(total_count)), data = dataset)
+summary(nb)
+exp(nb$coefficients[1]) # 0.2424 (应该是这样的)
+exp(nb$coefficients[1] + nb$coefficients[2]) # 0.7426（应该是这样的）
+
+# 二项式回归
+binom &lt;- glm(cbind(outcome, Failures) ~ group, data = dataset, family = binomial(link=&quot;log&quot;))
+summary(binom)
+exp(binom$coefficients[1]) # 0.2424（应该是这样的）
+exp(binom$coefficients[1] + binom$coefficients[2]) # 0.7426（应该是这样的）
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656953/underestimation-under-negative-binomial-compared-to-poisson-and-binomial-regress</guid>
+      <pubDate>Fri, 08 Nov 2024 13:54:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用坐标（UTM）在 GAMLSS 中进行高斯马尔可夫随机场拟合</title>
+      <link>https://stats.stackexchange.com/questions/656951/gaussian-markov-random-field-fitting-in-gamlss-with-coordinates-utms</link>
+      <description><![CDATA[我正在 gamlss 中构建一个模型，该模型包含空间相关的存在/不存在生态数据（二进制）。看来我在 gamlss 中的主要选择是在 GAMLSS 模型中包含一个 MRF 加法项，但到目前为止我发现的所有插图/帖子都只提供了带有相邻多边形的示例。有人可以提供一些示例代码来说明如何使用与每个观察相关的坐标（UTM 或纬度/经度）构建 gmrf 项吗？或者这个函数只适用于多边形？
+我最初尝试在 gamm 模型中指定相关结构，但最近发现其他帖子表明 PQL 在二进制数据中表现不佳。我也尝试过 sdmTMB，但我的几个协变量是非线性的，我发现 sdmTMB 中的平滑函数有限/难以可视化（特别是因为我想使用惩罚 b 样条）。虽然 gamm4 可以很好地处理二进制数据，但据我所知没有相关结构的选项。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656951/gaussian-markov-random-field-fitting-in-gamlss-with-coordinates-utms</guid>
+      <pubDate>Fri, 08 Nov 2024 13:34:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>条件均值 $E(Y|X)$ 是否也能最小化测试集（在总体中）的二次损失？</title>
+      <link>https://stats.stackexchange.com/questions/656950/does-the-conditional-mean-eyx-also-minimizes-the-quadratic-loss-on-testing</link>
+      <description><![CDATA[我们知道条件均值$E(Y|X)$是所有平方可积$h(X)$中$E(Y-h(X))^2$的最小值。我对这个结果的确切含义有以下疑问：
+
+这个说法是否仅适用于训练集（在总体中），原则上任何事情都可能发生在测试集（在总体中）上？也就是说，测试集$E_{test}(Y-h(X))^2$上的预期二次损失可能不会被$E(Y|X)$最小化（即使$E(Y|X)$最小化了$E(Y-h(X))^2$）。
+
+如果问题 1 的答案是肯定的。似乎这个结果在机器学习中不是很有用，因为在机器学习中我们关心的是测试集（未见过的新数据）上最好的预测因子是什么。这是正确的吗？
+
+“$E(Y|X)$ 是 $E(Y-h(X))^2$ 的最小化器”这一事实何时意味着 $E(Y|X)$ 也最小化 $E_{test}(Y-h(X))^2$？我能想到的简单情况是训练和测试集是相同分布的（这种简单情况在应用中通常会发生吗？如果是，我们如何获得相同分布的训练和测试数据？）。还有其他情况吗？或者有什么一般理论可以描述训练集上的最佳预测器何时也可能最适合未见过的新数据？
+
+
+除了您的答案之外，如果您能推荐一些高质量的讲座幻灯片或教科书来链接、关联、比较和解释这些对象，那就太好了。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656950/does-the-conditional-mean-eyx-also-minimizes-the-quadratic-loss-on-testing</guid>
+      <pubDate>Fri, 08 Nov 2024 12:57:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>标准差、对象内标准差和无偏标准差之间的差异</title>
+      <link>https://stats.stackexchange.com/questions/656949/differences-bettween-standar-deviation-standar-deviation-within-subject-and-unb</link>
+      <description><![CDATA[作为可重复性的测量，标准差、对象内标准差和无偏标准差之间有何区别？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656949/differences-bettween-standar-deviation-standar-deviation-within-subject-and-unb</guid>
+      <pubDate>Fri, 08 Nov 2024 12:48:39 GMT</pubDate>
+    </item>
     <item>
       <title>对于几何分布的似然函数是什么，是否存在任何疑问？</title>
       <link>https://stats.stackexchange.com/questions/656948/is-there-any-question-as-to-what-the-likelihood-function-for-a-geometric-distrib</link>
       <description><![CDATA[因为我读过它要么是
 
-$g(x) = $$
-\prod_{i=1}^∞\ p(1-p)^{xi}$
+$g(x) = 
+\prod_{i=1}^∞\ p(1-p)^{x_i}$
 
 或者
 
-$g(x) = $$
-\prod_{i=1}^∞\ p(1-p)^{xi-1}$
+$g(x) = 
+\prod_{i=1}^∞\ p(1-p)^{x_i-1}$
 
 所以我真的很困惑。
 参考：https://math.stackexchange.com/questions/4429910/mle-of-the-geometric-distribution
-编辑：我的 iid 观察结果来自 x1、x2 等。]]></description>
+编辑：我的 iid 观察来自 $x_1, x_2$ 等...]]></description>
       <guid>https://stats.stackexchange.com/questions/656948/is-there-any-question-as-to-what-the-likelihood-function-for-a-geometric-distrib</guid>
       <pubDate>Fri, 08 Nov 2024 12:24:02 GMT</pubDate>
     </item>
@@ -65,43 +180,11 @@ $g(x) = $$
       <pubDate>Fri, 08 Nov 2024 09:38:19 GMT</pubDate>
     </item>
     <item>
-      <title>以下是否是Z估计量/M估计量？</title>
-      <link>https://stats.stackexchange.com/questions/656941/whether-the-following-is-z-estimator-m-estimator</link>
-      <description><![CDATA[据我了解，Z 估计量由以下方程定义：
-$$ E(f(Y; \theta)) = 0 $$
-其中 $ f(Y; \theta) $ 是一个函数，其相对于真实分布的期望等于零。基于观测数据的该估计量的经验版本由以下公式给出：
-$$ \frac{1}{n} \sum_{i=1}^{n} f(Y_i; \hat{\theta}) = 0 $$
-我现在很好奇以下形式是否也可以定义 Z 估计量：
-$$ E(m(Y; \theta)) E(f(Y; \theta)) = 0 $$
-其中 $m(Y; \theta)$ 和 $f(Y; \theta)$ 是 $Y $ 和 $\theta$。这个公式与 Z 估计量的概念一致吗？或者它的估计量是什么]]></description>
-      <guid>https://stats.stackexchange.com/questions/656941/whether-the-following-is-z-estimator-m-estimator</guid>
-      <pubDate>Fri, 08 Nov 2024 09:26:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何确定固定数量的目标函数评估的最佳开发-探索权衡</title>
-      <link>https://stats.stackexchange.com/questions/656939/how-to-determine-the-optimal-exploitation-exploration-trade-off-for-a-fixed-numb</link>
-      <description><![CDATA[在贝叶斯优化中，我们通过查找$x = \textrm{argmax}_x \alpha(x)$来猜测下一个采样点，其中$\alpha(x)$是采集函数。为简单起见，我们考虑上限置信边界 (UCB) 采集函数：$\alpha(x) = \mu(x) + \beta \sigma(x)$，其中$\mu(x)$是通常的平均值，$\sigma(x)$表示通常的方差平方根。这里，$\beta$ 当然是无量纲参数 ($\beta\geq0$)，用于调整探索 (高 $\beta$) 和利用 (低 $\beta$) 之间的权衡。
-假设我有 $N$ 个目标函数评估的计算或实验预算。是否有将 $\beta$ 设置为 $N$ 函数的算法或启发式方法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656939/how-to-determine-the-optimal-exploitation-exploration-trade-off-for-a-fixed-numb</guid>
-      <pubDate>Fri, 08 Nov 2024 08:21:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>给定 M 的后验，求 M/N 的后验。（伽马分布）</title>
-      <link>https://stats.stackexchange.com/questions/656937/finding-posterior-of-m-n-given-posterior-of-m-gamma-distribution</link>
-      <description><![CDATA[我正在尝试解决有关 Gamma 标量乘法/除法的后验分布的问题。我将在此给出该问题的一些背景：
-$Y_1,..., Y_n$ 被建模为 IID Pois($\mu$) 随机变量，其中 $\mu=N\pi$。（$N$ 是每个 $Y_i$ 可以取 $\{0,...,N\}$ 的一组值）。令 $M$ 为 $\mu$ 的 (贝叶斯) 随机版本，因此 $M=N\Pi$。$M$ 的合理先验为 $Gamma(\nu, \lambda)$。证明在此先验下，后验分布为 $Gamma(\nu+n\bar{y}, \lambda + n)$。
-我能够使用贝叶斯规则证明这一点（后验与先前时间的似然成比例。我对 Y 变量使用了泊松似然）
-问题的下一部分要求证明 $\frac{M}{N}|y_1,...,y_n$ 的后验分布为 $Gamma(\nu + n\bar{y}, N(\lambda+n))$。
-我尝试使用身份 $cX \sim Gamma(\nu, c\lambda)$，然而这让我得到 $\frac{M}{N}|y_1,...,y_n \sim Gamma(\nu + n\bar{y}, \frac{\lambda+n}{N})$。我应该在这里采用什么方法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656937/finding-posterior-of-m-n-given-posterior-of-m-gamma-distribution</guid>
-      <pubDate>Fri, 08 Nov 2024 06:34:29 GMT</pubDate>
-    </item>
-    <item>
       <title>纵向研究中的模拟与基于公式的功效计算：为什么差异这么大？</title>
       <link>https://stats.stackexchange.com/questions/656934/simulation-vs-formula-based-power-calculations-for-longitudinal-studies-why-the</link>
-      <description><![CDATA[我想了解在纵向 RCT 的混合线性模型背景下，使用基于公式的方法与模拟的功效计算获得不同结果的原因。我相对无知，非常感激您的见解。
+      <description><![CDATA[我想了解在纵向 RCT 的混合线性模型背景下，使用基于公式的方法与模拟进行功效计算所获得结果不同的原因。我相对无知，非常感激您提供一些见解。
 让我们看一个示例小插图，它略微修改自“纵向数据线性模型的功效及其在阿尔茨海默病 II 期研究设计中的应用”1
-考虑一项阿尔茨海默病 RCT，其中每三个月进行一次评估，持续 18 个月（7 次访问）。我们假设试验药物的最小可检测效应大小为阿尔茨海默病评估量表 (ADAS-Cog) 认知部分的 0.75 分。假设受试者按 1:1 的比例分为安慰剂组和药物组。根据初步研究，我们假设随机截距的方差为 55，随机斜率的方差为 24，残差方差为 10。随机斜率项和随机截距项之间的相关性为 0.8。
+考虑一项阿尔茨海默病 RCT，其中每三个月进行一次评估，持续 18 个月（7 次访问）。我们假设试验药物在阿尔茨海默病评估量表 (ADAS-Cog) 的认知部分上可检测到的最小效应大小为 0.75 分。假设受试者按 1:1 的比例分为安慰剂组和药物组。根据试点研究，我们假设随机截距的方差为 55，随机斜率的方差为 24，残差方差为 10。随机斜率项和随机截距项之间的相关性为 0.8。
 为了构建此场景的混合线性模型，我们假设 ADAS-Cog 每年下降 10 分，并假设平均基线（截距）为 -10。
 为简单起见，假设没有流失，并且 ADAS-Cog 随时间线性下降。假设随机斜率和截距来自二元正态分布。
 首先使用 longpower 包中的 edland.linear.power 函数通过公式计算功率。让我们确定总共 100 个受试者的功效：
@@ -133,10 +216,10 @@ pval &lt;- numeric()
 
 for (i in 1:nsim) {
 
-# 受试者总数
+# 受试者总数 
 ni = 100
 
-# 随机变量截距
+# 随机截距的变量
 sig2.i = 55
 # 随机斜率的变量
 sig2.s = 24
@@ -191,58 +274,6 @@ power &lt;- sum(pval &lt; 0.05)/nsim
       <pubDate>Fri, 08 Nov 2024 04:45:55 GMT</pubDate>
     </item>
     <item>
-      <title>估计离散信号中某一点的变异性或波动性</title>
-      <link>https://stats.stackexchange.com/questions/656933/estimating-variability-or-volatility-at-a-point-in-discrete-signal</link>
-      <description><![CDATA[我有一个离散信号/时间序列 $X_t$，其值由传感器以半规则频率记录。我想在每个时间戳上创建一些可变性/波动性/噪声的度量。我考虑过使用滑动窗口来计算每个时间戳的标准偏差，结果还不错，但想知道是否还有其他方法。
-我熟悉 ARCH/GARCH，但我不确定模型假设是否适用于此（信号本质上更接近正弦）。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656933/estimating-variability-or-volatility-at-a-point-in-discrete-signal</guid>
-      <pubDate>Fri, 08 Nov 2024 04:41:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的条件推理树与随机森林如此不同？</title>
-      <link>https://stats.stackexchange.com/questions/656938/why-is-my-conditional-inference-tree-so-different-from-my-random-forest</link>
-      <description><![CDATA[我正在使用条件推理树和随机森林分析数据集，使用 R 包 partykit（v. 1.2.20）。对于我的因变量（响应可能性），树和森林产生的解决方案非常不同，这使得它们中的任何一个都很难解释。我怎么才能理解这里发生了什么？
-下面是我的代码以及树和森林的图像。如有必要，我可以共享数据集。
-set.seed(2356)
-library(partykit)
-
-&gt; head(s1_images_response_item[,-2])
-# A tibble：6 × 14
-# 组：项目 [6]
-项目类别 response_mean_img 因果关系 丰富多彩 熟悉度 成长 意图
-&lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1 飞机 移动臂… 1 3.25 2.57 4.4 1 1.29
-2 藻类 植物 趣味… 0.887 2.44 3.57 2.1 4.14 1.06
-3 羚羊 动物 0.981 4.25 2.79 3.85 4.77 3.53
-4 自行车 移动臂… 1 2.12 2.64 4.65 1.05 1.12
-5 船 移动臂… 0.981 3.19 2.64 3.65 1 1 
-6 巨石 不动… 0.943 1.88 1.5 3 1.45 1.18
-# ℹ 6 个其他变量：交互 &lt;dbl&gt;、运动 &lt;dbl&gt;、自然&lt;dbl&gt;,
-# 感知 &lt;dbl&gt;, 重现 &lt;dbl&gt;, 提示 &lt;chr&gt;
-
-条件推理树：
-tree1.i.h &lt;- ctree(response_mean_img ~ 因果关系 + 意图 + 交互 + 运动 + 感知 + 熟悉度 + 自然 + 生长 + 重现 + 多彩, data=s1_images_response_item)
-
-plot(tree1.i.h, terminal_panel = node_boxplot(tree1.i.h,id=T),
-inner_panel = node_inner(tree1.i.h,id=F, pval = F), 
-edge_panel = edge_simple(tree1.i.h, digits = 2))
-
---&gt;熟悉度是唯一重要的预测因素：
-Ctree 图像
-随机森林：
-f1.i.h &lt;- cforest(response_mean_img ~ 因果关系 + 意图 + 互动 + 运动 + 感知 + 熟悉度 + 自然 + 生长 + 繁殖 + 多彩，数据=s1_images_response_item，ntree = 1000)
-
-f1.i.h.varimp &lt;- varimp(f1.i.h)
-
-dotchart(sort(f1.i.h.varimp,decreasing = F), main = &quot;变量对研究 1B 试验反应性的条件重要性&quot;)
-
---&gt;预测因子交互、重现、感知和因果关系都具有比熟悉度更高的条件重要性值：
-随机森林图像
-为什么交互、重现、感知和因果关系都没有出现在树中？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656938/why-is-my-conditional-inference-tree-so-different-from-my-random-forest</guid>
-      <pubDate>Fri, 08 Nov 2024 02:26:03 GMT</pubDate>
-    </item>
-    <item>
       <title>“方差效应”对任意分布都成立吗？</title>
       <link>https://stats.stackexchange.com/questions/656927/does-the-variance-effect-hold-for-any-arbitrary-distribution</link>
       <description><![CDATA[设$F(\mu,\sigma)$为某个二参数分布，参数分别为均值和标准差。以下所有 rv 都是独立的。
@@ -256,60 +287,15 @@ dotchart(sort(f1.i.h.varimp,decreasing = F), main = &quot;变量对研究 1B 试
       <pubDate>Thu, 07 Nov 2024 23:43:10 GMT</pubDate>
     </item>
     <item>
-      <title>$\epsilon$-贪婪算法对 $k$ 臂老虎机的精确后悔值</title>
-      <link>https://stats.stackexchange.com/questions/656894/exact-regret-of-epsilon-greedy-algorithm-for-k-armed-bandit</link>
-      <description><![CDATA[对于 $k$ 臂老虎机，$\epsilon$ 贪婪算法在每一轮中以 $\epsilon$ 的成功概率抛硬币，并执行以下操作：
-
-如果不成功，则选择迄今为止最好的臂，并且
-如果成功，则随机选择一个臂。
-
-我想证明
+      <title>您能在线性模型中添加主成分 (PC) 和其他预测因子之间的交互作用吗？</title>
+      <link>https://stats.stackexchange.com/questions/656922/can-you-add-interactive-effects-between-principal-components-pcs-and-other-pre</link>
+      <description><![CDATA[我正在构建一个 glmm，其中有 3 个 PC（主成分）作为模型中的预测因子。这些 PC 基于土壤变量（pH、CEC、营养物质），因此我有理由相信它们可能与模型中的其他环境预测因子（即土壤水分、冠层间隙指数）相互作用。以下内容是否有效：
 $$
-\lim_{n\to\infty}R_n=\frac{\epsilon}{k}\sum_{i}\Delta_i
+y = x_{1} + x_{2} + x_{3}PC_{1} + x_{4}PC_{2} + \epsilon
 $$
-其中 $\Delta_i$ 是臂 $i$。我可以看到遗憾值受右侧值的限制，因为我们可以假设在每个阶段，到目前为止最好的臂实际上是最好的臂。但我看不出如何严格证明左侧限制了右侧。我必须以某种方式论证，随着 $n$ 趋近于无穷大，每个臂的观测平均值趋近于其预期值，因此最终我们会得到右侧的线性界限，但我不知道如何做到这一点。（我怀疑应该使用大数定律，但我不知道如何阐明这一点。）]]></description>
-      <guid>https://stats.stackexchange.com/questions/656894/exact-regret-of-epsilon-greedy-algorithm-for-k-armed-bandit</guid>
-      <pubDate>Thu, 07 Nov 2024 13:45:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>Cox 比例风险与 AFT 和比例风险假设的比较</title>
-      <link>https://stats.stackexchange.com/questions/656893/cox-proportionall-hazards-compared-to-aft-and-the-proportional-hazards-assumptio</link>
-      <description><![CDATA[我正在使用 R 对包含数百万行的大型人口数据集进行生存分析。我的第一个选择是 cox 回归
-cox_model &lt;- coxph(Surv(time, event) ~ 
-var1+ var2+ var3 , data = data)
-
-然而，基于 Schoenfeld 残差，比例风险假设在某些协变量和全局上被违反。我尝试了时间转换，但考虑到数据的大小，模型无法进行计算处理（有关 70-80Gb 向量分配的错误消息）。
-作为替代方案，我尝试拟合 AFT。
-model_wei &lt;- survreg(Surv(time, event)~ 
-var1+ var2+ var3 , data = data, dist = &quot;weib&quot;, maxiter=100)
-
-在使用 exp、wei、logn 和 logl 创建模型后，logn 模型（基于 AIC）提供了最佳拟合。
-您能帮助我理解 Cox 回归中的风险比和 AFT 中的 exp(coef) 之间的解释差异吗？
-我为 AFT 选择最佳分布的程序是比较 AIC，然后绘制残差以检查正态性如下：
-resid &lt;- log(data$time) - model.lognormal$linear.predictors 
-qqnorm(resid)
-qqline(resid)
-
-结果图为
-
-考虑审查时：
-library(rms)
-f &lt;- psm(Surv(time, event) ~ var1 + var2+ var3+ ... + var20,
-dist=&#39;lognormal&#39;, y=TRUE, data=data)
-r &lt;- resid(f)
-with(data, {
-survplot(r, label.curve=FALSE)
-
-} )
-
-来源
-我得到：
-
-这可以被认为是足够的吗？
-如果不是，我有什么选择？
-最后一个问题是，如果风险似乎不会随着时间的推移而发生太大变化，并且方向始终保持不变，那么即使比例风险假设被违反，提出一个 cox 回归模型是否有意义？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656893/cox-proportionall-hazards-compared-to-aft-and-the-proportional-hazards-assumptio</guid>
-      <pubDate>Thu, 07 Nov 2024 13:33:11 GMT</pubDate>
+其中，$x_{3}$ 和 $x_{4}$ 是土壤水分和冠层间隙指数，它们与主成分相互作用。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656922/can-you-add-interactive-effects-between-principal-components-pcs-and-other-pre</guid>
+      <pubDate>Thu, 07 Nov 2024 21:26:29 GMT</pubDate>
     </item>
     <item>
       <title>线性混合模型的平行中介分析</title>
@@ -319,17 +305,24 @@ HAMA_psy 和 RRS_brood 是中介，Sadness 是 IV，Melankoli 是 DV。
 我已经创建了一个模型，并使用引导函数计算了间接效应，但是当我不使用 lavaan 时，我没有考虑路径间依赖关系。这就是我认为它错误的原因。
 如果您能帮助我使用 LME 进行并行调解，我将非常高兴。
 我的模型是：
+sadness_to_hama_psy &lt;- lmer(HAMA_psy ~ Sadness + 
+(1 | PartID), data = df)
+sadness_to_rrs_brood &lt;- lmer(RRS_brood ~ Sadness + 
+(1 | PartID), data = df)
+hama_psy_to_melankoli &lt;- lmer(Melankoli ~ HAMA_psy + Sadness + 
+(1 | PartID), data = df)
+rrs​​_brood_to_melankoli &lt;- lmer(Melankoli ~ RRS_brood + Sadness + 
+(1 | PartID), data = df)
+间接效应 hama_psy &lt;- fixef(sadness_to_hama_psy)[&quot;悲伤&quot;] * 
+fixef(hama_psy_to_melankoli)[&quot;HAMA_psy&quot;]
+间接效应 rrs_brood &lt;- fixef(sadness_to_rrs_brood)[&quot;悲伤&quot;] * 
+fixef(rrs_brood_to_melankoli)[&quot;RRS_brood&quot;]
 
-sadness_to_hama_psy &lt;- lmer(HAMA_psy ~ Sadness + (1 | PartID), data = df)
-sadness_to_rrs_brood &lt;- lmer(RRS_brood ~ Sadness + (1 | PartID), data = df)
-hama_psy_to_melankoli &lt;- lmer(Melankoli ~ HAMA_psy + Sadness + (1 | PartID), data = df)
-rrs​​_brood_to_melankoli &lt;- lmer(Melankoli ~ RRS_brood + Sadness + (1 | PartID), data = df)
-indirect_effect_hama_psy &lt;- fixef(sadness_to_hama_psy)[&quot;悲伤&quot;] * fixef(hama_psy_to_melankoli)[&quot;HAMA_psy&quot;]
-indirect_effect_rrs_brood &lt;- fixef(sadness_to_rrs_brood)[&quot;悲伤&quot;] *fixef(rrs_brood_to_melankoli)[&quot;RRS_brood&quot;]
+总间接效应 &lt;- indirect_effect_hama_psy + 
+indirect_effect_rrs_brood
 
-total_indirect_effect &lt;- indirect_effect_hama_psy + indirect_effect_rrs_brood
-
-direct_effect &lt;- fixef(hama_psy_to_melankoli)[&quot;悲伤&quot;] + fixef(rrs_brood_to_melankoli)[&quot;悲伤&quot;]
+直接效应 &lt;- fixef(hama_psy_to_melankoli)[&quot;悲伤&quot;] + 
+fixef(rrs_brood_to_melankoli)[&quot;悲伤&quot;]
 
 total_effect &lt;- total_indirect_effect + direct_effect
 boot_results &lt;- boot(data = df, 
@@ -337,32 +330,102 @@ statistic = function(data, indices) {
 d &lt;- data[indices, ] # 重新采样数据
 
 # 将模型重新拟合到引导样本
-model_sadness_to_hama_psy &lt;- lmer(HAMA_psy ~ Sadness + Stage + (1 | PartID), data = d)
-model_sadness_hama_psy_to_melankoli &lt;- lmer(Melankoli ~ Sadness + HAMA_psy + Stage + (1 | PartID), data = d)
-model_sadness_rrs_brood_to_melankoli &lt;- lmer(Melankoli ~ Sadness + RRS_brood + Stage + (1 | PartID), data = d)
+model_sadness_to_hama_psy &lt;- lmer(HAMA_psy ~ 
+悲伤 + 阶段 + (1 | PartID), data = d)
+model_sadness_hama_psy_to_melankoli &lt;- 
+lmer(Melankoli ~ Sadness + HAMA_psy + Stage + 
+(1 | PartID), data = d)
+model_sadness_rrs_brood_to_melankoli &lt;- 
+lmer(Melankoli ~ Sadness + RRS_brood + 
+Stage + (1 | PartID), data = d)
 
-# 从每个模型中提取系数（固定效应）
-coefs_sadness_to_hama_psy &lt;- fixef(model_sadness_to_hama_psy)
-coefs_sadness_hama_psy_to_melankoli &lt;- fixef(model_sadness_hama_psy_to_melankoli)
-coefs_sadness_rrs_brood_to_melankoli &lt;- fixef(model_sadness_rrs_brood_to_melankoli)
+# 从 
+# 每个模型中提取系数（固定效应）
+coefs_sadness_to_hama_psy &lt;- 
+fixef(model_sadness_to_hama_psy)
+coefs_sadness_hama_psy_to_melankoli &lt;- 
+fixef(model_sadness_hama_psy_to_melankoli)
+coefs_sadness_rrs_brood_to_melankoli &lt;- 
+fixef(model_sadness_rrs_brood_to_melankoli)
 
 # 计算直接和间接影响
-direct_effect &lt;- coefs_sadness_hama_psy_to_melankoli[&quot;Sadness&quot;]
+direct_effect &lt;- 
+coefs_sadness_hama_psy_to_melankoli[&quot;Sadness&quot;]
 
-indirect_hama_psy &lt;- coefs_sadness_to_hama_psy[&quot;Sadness&quot;] * coefs_sadness_hama_psy_to_melankoli[&quot;HAMA_psy&quot;]
+indirect_hama_psy &lt;- 
+coefs_sadness_to_hama_psy[&quot;Sadness&quot;] * 
+coefs_sadness_hama_psy_to_melankoli[&quot;HAMA_psy&quot;]
 
-indirect_rrs_brood &lt;- coefs_sadness_rrs_brood_to_melankoli[&quot;Sadness&quot;] * coefs_sadness_rrs_brood_to_melankoli[&quot;RRS_brood&quot;]
+indirect_rrs_brood &lt;- 
+coefs_sadness_rrs_brood_to_melankoli[&quot;Sadness&quot;] * 
+coefs_sadness_rrs_brood_to_melankoli[&quot;RRS_brood&quot;]
 
-total_indirect_effect &lt;- indirect_hama_psy + indirect_rrs_brood
-
+total_indirect_effect &lt;- indirect_hama_psy + 
+indirect_rrs_brood 
 },
 R = 1000)
 
 boot.ci(boot.out = boot_results, type = &quot;perc&quot;)
 
-]]></description>
+
+传统的中介分析对正态分布很敏感。我使用后续数据进行研究。我认为你说集群时指的是分层的，但我的模型不是分层的。如果在中介分析中添加额外的路径，结果就会发生变化。换句话说，添加的变量会改变结果，但这不会发生在 LMM 中。更准确地说，我做不到。]]></description>
       <guid>https://stats.stackexchange.com/questions/656876/parallel-mediation-analysis-with-linear-mixed-model</guid>
       <pubDate>Thu, 07 Nov 2024 08:18:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>RCT 中的随机重复观察</title>
+      <link>https://stats.stackexchange.com/questions/656869/random-repeated-observations-in-rct</link>
+      <description><![CDATA[我的问题是关于 RCT 的，其中我们每个单元都会收到许多重复的观察结果，但我们不一定想将它们汇总在一起。下面是一个具体的例子。
+假设我正在为现实世界中的学生运行一个学习工具的两个版本的 RCT。每个学生都会报告他们的家庭作业成绩，但我们事先不知道他们会报告多少观察结果。
+假设是实验组的家庭作业分数会提高（比如从 70% 提高到 75%）。我在治疗分配时有学生协变量（例如，GPA、在校年份等），我计划在回归中使用这些协变量。
+
+
+
+治疗
+学生 ID
+观察
+
+
+
+
+1
+1
+90/100（主题 1），8/10（主题 3），7/10（主题 5）
+
+
+1
+2
+80/100（主题2）
+
+
+1
+3
+40/50（科目 4），15/20（科目 2）
+
+
+0
+4
+70/100（科目 2）
+
+
+0
+5
+7/10（科目 1），40/50（科目 3）
+
+
+0
+6
+7/10（科目 5）
+
+
+
+一些具体的问题：
+
+一种方法是通过对分子和分母求和来将所有数据聚合在一起。现在每个学生都有一个观察值（对于学生 1，观察值是 105/120），但这似乎不会遗漏我所掌握的全部信息。有没有办法设计一个回归设置，帮助我在不聚合的情况下分析这些数据？除了学生协变量之外，我还应该使用学生随机效应吗？
+假设学生还报告了家庭作业的科目。由于这些是在治疗分配后观察到的，因此不应将它们用作回归模型中的协变量。有没有办法使用这些信息？由于观察结果可以针对不同的科目，因此观察结果会有一些变化，我不确定如何处理。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656869/random-repeated-observations-in-rct</guid>
+      <pubDate>Thu, 07 Nov 2024 04:53:14 GMT</pubDate>
     </item>
     <item>
       <title>相关组：混合效应作为因子模型</title>
@@ -398,24 +461,61 @@ res = md.fit()
       <pubDate>Wed, 06 Nov 2024 18:28:13 GMT</pubDate>
     </item>
     <item>
-      <title>难道预期 Sarsa 是离策略的，而 SARSA 只是预期 SARSA 的 MC 估计，为什么它是在策略的呢？</title>
-      <link>https://stats.stackexchange.com/questions/656843/is-expected-sarsa-is-off-policy-and-sarsa-is-just-an-mc-estimate-of-expected-sa</link>
-      <description><![CDATA[因此，预期 SARSA 将更新定义为：
-$$
-Q(s,a) = Q(s,a) +\alpha (R+ \mathbb{E}_{a\sim\pi(s&#39;)}[Q(s&#39;, a)] - Q(s,a))
-$$
-其中 SARSA 将更新定义为 $a&#39;\sim\pi(s&#39;)$：
-$$
-Q(s,a) = Q(s,a) +\alpha (R+ Q(s&#39;, a&#39;) - Q(s,a))
-$$
-那么 SARSA 怎么会不仅仅是 ExpSARSA 的 MC 估计呢？既然 MC 是无偏的，那么为什么 SARSA 不应该是一种离策略算法呢？
+      <title>样本量越大，错误拒绝原假设的风险是否会越大？</title>
+      <link>https://stats.stackexchange.com/questions/656828/does-the-risk-of-incorrectly-rejecting-the-null-hypothesis-increase-with-a-large</link>
+      <description><![CDATA[我经常看到类似这样的话：“如果样本量足够大，较小的效应量可以产生显著的结果”。我不太明白这一点。
+对我来说，这听起来是这样的：增加样本量，你最终肯定会拒绝零假设（也就是说，如果你将样本量增加到一定大小，你 100% 肯定会拒绝 0 假设）。
+重新阅读此主题。据我所知，鉴于我在统计学方面的经验，零假设被正确地拒绝了。
+决定在 ttest_1samp 测试的代码中检查这一点，使 popmean=15.03 与样本 (mean=15) 的差异非常小。滑块选择 N - 样本，并实时重新绘制分布，垂直条是上限值（蓝色）和 p_value（橙色）。
+更新 08.11.2024
+由于数组的平均值与声明的平均值不同，为了准确起见，我通过向其添加一些值使值 mu_0 = mu_1 + value。mu_0 在图表上以绿色绘制，置信区间为洋红色。该图还显示 p 值本身、平均值和间隔（CI）。更改 N，图形将动态重新绘制。现在我还检查了均值差异很大，需要样本量来拒绝更小的样本。可以通过 value 设置差异。
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import t, norm, ttest_1samp
+from matplotlib.widgets import Slider
 
-编辑：由于我指的 MC 估计值似乎很清楚，出于某种原因，我的问题是：
+fig, ax = plt.subplots()
+fig.subplots_adjust(bottom=0.25)
 
-这两个更新仅在预期值和 $Q(s&#39;, a&#39;\sim\pi(s&#39;)) \approx \mathbb{E}_{a\sim\pi(s&#39;)}[Q(s&#39;, a)]$ 上有所不同，因为它是一个样本蒙特卡罗估计，是一个无偏估计，所以没有理由一个应该是在策略上而另一个应该是在策略外，因为在预期中它们会导致相同的更新
+ax_n = fig.add_axes([0.25, 0.15, 0.65, 0.03])
+s_n = Slider(ax_n, &quot;N&quot;, valmin=7, valmax=30000,valinit=21, valstep=1)
+
+value = 0.03
+
+def update(val):
+N = s_n.val
+rvs = np.sort(norm.rvs(loc=15,比例=1，大小=N，random_state=1））
+    mu, std = np.mean(rvs), np.std(rvs)
+    mu_0 = mu + 值
+    z_values = (rvs - mu) / std
+    df = N - 1
+    pdf = t.pdf(rvs, loc=mu, 比例=std, df=df)
+    tst = ttest_1samp(rvs, popmean=mu_0)
+    l、r = t.ppf(1 - 0.975, df=df), t.ppf(0.975, df=df)
+    ci = tst.confidence_interval(confidence_level=0.95)
+    ci_0, ci_1 = np.round(ci, 4)
+    ci = (ci - mu) / std
+ax.clear()
+ax.plot(z_values, pdf, lw=2, color=&quot;red&quot;)
+ax.axvline(x=(mu_0 - mu) / std, color=&quot;green&quot;, label=&quot;mean 0&quot;)# 0 假设的平均值
+ax.axvline(x=ci[0], linestyle=&quot;--&quot;, color=&quot;magenta&quot;, label=&quot;CI&quot;)
+ax.axvline(x=ci[1], linestyle=&quot;--&quot;, color=&quot;magenta&quot;)
+ax.axvline(x=l, linestyle=&quot;--&quot;, color=&quot;blue&quot;, label=&quot;alfa&quot;)# alfa
+ax.axvline(x=r, linestyle=&quot;--&quot;, color=&quot;blue&quot;)# alfa
+ax.axvline(x=t.ppf(tst[1]/2, df=df), linestyle=&quot;--&quot;, color=&quot;orange&quot;, label=&quot;p-value&quot;)#p-value
+ax.axvline(x=-t.ppf(tst[1]/2, df=df), linestyle=&quot;--&quot;, color=&quot;orange&quot;)#p-value
+ax.text(0, (np.max(pdf) + np.min(pdf))/2, &quot;p_value =&quot; + str(round(tst[1], 4))
++ &quot;\n&quot; + &quot;mu_0 =&quot; + str(round(mu_0, 5)) + &quot;\n&quot; + &quot;mu_1 =&quot; + str(round(mu, 5)) +
+&quot;\n&quot; + &quot;ci_0 =&quot; + str(ci_0) + &quot;\n&quot; + &quot;ci_1 =&quot; + str(ci_1), fontsize=12)
+ax.legend()
+
+s_n.on_changed(update)
+update(0)
+
+plt.show()
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/656843/is-expected-sarsa-is-off-policy-and-sarsa-is-just-an-mc-estimate-of-expected-sa</guid>
-      <pubDate>Wed, 06 Nov 2024 15:53:03 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/656828/does-the-risk-of-incorrectly-rejecting-the-null-hypothesis-increase-with-a-large</guid>
+      <pubDate>Wed, 06 Nov 2024 11:43:12 GMT</pubDate>
     </item>
     </channel>
 </rss>
