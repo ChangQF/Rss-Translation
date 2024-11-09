@@ -4,7 +4,67 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 09 Nov 2024 09:15:25 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 09 Nov 2024 12:29:23 GMT</lastBuildDate>
+    <item>
+      <title>在逻辑回归中，什么使得曲线拟合得好</title>
+      <link>https://stats.stackexchange.com/questions/656987/what-makes-a-curve-a-good-fit-in-the-context-of-logistic-regression</link>
+      <description><![CDATA[因为我想更好地理解为什么在逻辑回归的背景下分离是一个问题，所以我在 R 中创建了两个模型，一个模型中 y 在 $x=5$ 处完全分离，另一个模型则不是。为了可重复性，这里是生成的数据集和用于生成具有一定范围的 beta（具有相同截距）的各种曲线估计的代码，并添加了 ML 估计器，并将所有内容与数据点一起绘制：
+library(dplyr)
+library(ggplot2)
+library(boot)
+library(tidyr)
+
+df_sep &lt;- data.frame(x=seq(0,9.9,by=0.1),y=c(rep(0,50),rep(1,50)))
+df_notsep &lt;- data.frame(x=seq(0,9.9,by=0.1),y=c(rbinom(50,1,0.2),rbinom(50,1,0.8)))
+
+mod_sep &lt;- glm(y~x,df_sep,family=&quot;binomial&quot;)
+# (截距) x 
+# -1650.0708 333.3476 
+df_sep &lt;- df_sep %&gt;% mutate(y_beta100= inv.logit(coef(mod_sep)[1]+100*x), 
+y_beta200=inv.logit(coef(mod_sep)[1]+200*x), 
+y_beta300=inv.logit(coef(mod_sep)[1]+300*x),
+y_beta400=inv.logit(coef(mod_sep)[1]+400*x))
+df_sep$y_pred &lt;-预测（mod_sep，type=&quot;response&quot;）
+
+df_sep_long &lt;- df_sep %&gt;% pivot_longer（cols = starts_with(&quot;y&quot;))
+
+mod_notsep &lt;- glm(y~x,df_notsep,family=&quot;binomial&quot;)
+# (截距) x 
+# -2.5422783 0.5515725 
+
+df_notsep &lt;- df_notsep %&gt;% mutate(y_beta0_2=inv.logit(coef(mod_notsep)[1]+0.2*x), 
+y_beta0_3=inv.logit(coef(mod_notsep)[1]+0.3*x),
+y_beta0_5=inv.logit(coef(mod_notsep)[1]+0.5*x),
+y_beta0_7=inv.logit(coef(mod_notsep)[1]+0.7*x))
+
+df_notsep$y_pred &lt;- predict(mod_notsep,type=&quot;response&quot;)
+
+df_notsep_long &lt;- df_notsep %&gt;% pivot_longer(cols = starts_with(&quot;y&quot;))
+
+ggplot(df_sep_long, aes(x = x, y = value, colour = name, shape=name, group = name)) + 
+geom_point(data=df_sep_long %&gt;% filter(name==&quot;y&quot;),alpha = 0.5) + 
+geom_path(data=df_sep_long %&gt;% filter(name!=&quot;y&quot;), aes(x = x, y = value, colour = name, group = name)) +
+theme_bw()
+
+ggplot(df_notsep_long, aes(x = x, y = value, colour = name, shape=name, group = name)) + 
+geom_point(data=df_notsep_long %&gt;% filter(name==&quot;y&quot;),alpha = 0.5) + 
+geom_path(data=df_notsep_long %&gt;% filter(name!=&quot;y&quot;), aes(x = x, y = value, colour = name, group = name)) +
+theme_bw()
+
+我没有更好地理解分离数据的收敛问题，但另一方面，能够想象一下为什么预测的 beta 在该上下文中提供最大似然，因为它几乎是一个分段函数，因此很明显它是允许 $\max{x}$ 的值与 $y=0$ 的值和 $\min{x}$ 的值与 $y=1$ 的值之间的最短线的值。
+但是，对于非分离数据，我不清楚为什么 ML 是最佳拟合。如果我们有一个 OLS，我们会尝试最小化点和线之间的距离，这很容易理解，但是在估计最大化似然函数的 $\beta$ 时我们到底在做什么？
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656987/what-makes-a-curve-a-good-fit-in-the-context-of-logistic-regression</guid>
+      <pubDate>Sat, 09 Nov 2024 10:22:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>在岭回归中修复 $\lambda$ 的动机</title>
+      <link>https://stats.stackexchange.com/questions/656986/motivation-for-fixing-lambda-in-ridge-regression</link>
+      <description><![CDATA[在岭回归中，你想要优化$f(\beta_0,\beta_1,\beta_n)=\sum_n(y_n-\beta_0+\beta_1x^1_n,+\beta_2x^2_n)^2$，其中$x^i=(x_1^i,x_2^i,...,x_N^i)$，受$||(\beta_0,\beta_1,\beta_2)||_2\leq c$约束。定义$\mathcal{L}(\beta_0,\beta_1,\beta_2,\lambda)=f(\beta_0,\beta_1,\beta_2)-\lambda(c-||(\beta_0,\beta_1\beta_2)||_2)$，我们通常会寻找$\mathcal{L}$的临界点，但据我所知，我们不是针对$\lambda$进行优化，而是仅针对$(\beta_0,\beta_1,\beta_2)$进行优化，这给出了岭回归的形式。我的问题是，为什么我们要固定$\lambda$，而不是试图找到$(\beta_0,\beta_1,\beta_2,\lambda)$，使得$\mathcal{L}$为零，因此$f$对于那些$\beta_0,\beta_1,\beta_2$是最优的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656986/motivation-for-fixing-lambda-in-ridge-regression</guid>
+      <pubDate>Sat, 09 Nov 2024 10:21:23 GMT</pubDate>
+    </item>
     <item>
       <title>关于 Kruskal-Wallis H 检验结果解释的澄清</title>
       <link>https://stats.stackexchange.com/questions/656984/clarification-on-the-interpretation-of-kruskal-wallis-h-test-results</link>
@@ -53,148 +113,12 @@ $\max$ 中的 $0$ 值只能在 $\theta &lt;0$。
       <pubDate>Fri, 08 Nov 2024 23:00:16 GMT</pubDate>
     </item>
     <item>
-      <title>如何识别一系列马哈拉诺比斯距离的分布？</title>
-      <link>https://stats.stackexchange.com/questions/656973/how-can-i-identify-the-distribution-of-a-series-of-mahalanobis-distances</link>
-      <description><![CDATA[如果我的数据集服从多元 t 分布，样本外数据点的马哈拉诺比斯距离的 cdf 是多少？换句话说，如果我想使用数据点与分布均值的马哈拉诺比斯距离来计算数据点属于数据集分布的概率，我应该使用什么 cdf？
-换句话说，我想知道某个 $\vec X$ 的 $d_M(\vec X, \vec \mu)$ 分布，该 $\vec X$ 服从多元 $t$ 分布，均值为 $\vec\mu$，其中 $d_M$ 是马哈拉诺比斯距离。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656973/how-can-i-identify-the-distribution-of-a-series-of-mahalanobis-distances</guid>
-      <pubDate>Fri, 08 Nov 2024 20:53:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>MCMC 采样器给出明显不同的分布——哪个更好？</title>
-      <link>https://stats.stackexchange.com/questions/656972/mcmc-samplers-give-noticeably-different-distributions-which-is-better</link>
-      <description><![CDATA[背景
-我们构建了两个 MCMC 采样器，用于对具有 4-20 多个参数的分层贝叶斯模型的后验进行采样。这两个采样器使用不同的方法。对于大多数数据集，它们给出的结果几乎相同（基于比较边际分布）。但是，我们遇到了一些数据集，结果明显不同——边际分布具有相同的基本形状，但根据采样器略有偏移。
-问题
-如何最好地展示哪个采样器生成的样本更接近后验？在任何给定点，比例后验似然都很容易计算。
-一个想法
-到目前为止，我有一个想法是拟合两个高斯混合——每个样本一个。然后将混合物视为重要性采样的提议分布，并计算每个样本的权重，就好像它来自提议分布一样。权重的方差将表明每个提议分布与后验的匹配程度（权重的方差越低，匹配程度就越高）。
-这种方法有点复杂，但可行。不过，我很高兴能有一个更好的方法。]]></description>
-      <guid>https://stats.stackexchange.com/questions/656972/mcmc-samplers-give-noticeably-different-distributions-which-is-better</guid>
-      <pubDate>Fri, 08 Nov 2024 20:43:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 R 中是否以及如何使用 Gamma 分布拟合 GAM</title>
-      <link>https://stats.stackexchange.com/questions/656966/whether-and-how-to-fit-a-gam-with-a-gamma-distribution-in-r</link>
-      <description><![CDATA[我想通过 mgcv 中的 gam() 函数和 Gamma 分布在 R 中使用海拔作为预测因子、化学浓度作为响应来拟合 GAM。但是，使用 gam(..., bs = &quot;cs&quot;, family = Gamma(link = &quot;log&quot;), method = &quot;REML&quot;, data = dat) 会导致在零处拟合出一条平坦的线
-(图 1，ag2_p &lt;- predict_gam(ag_gam2) ag2_p %&gt;% ggplot(aes(elevation, fit)) + geom_smooth_ci()+ geom_point(data = dat, aes(y = alpha.guaiene, x =elevation))+ theme_classic())，而高斯分布（我认为不适合浓度数据）的结果看起来像一个合理的拟合（图 2，ag1_p1 &lt;- predict_gam(ag_gam1) ag1_p1 %&gt;% ggplot(aes(elevation, fit)) + geom_smooth_ci()+ geom_point(data = dat, aes(y = alpha.guaiene, x =elevation))+ theme_classic()).后者的脚本是 gam(..., bs = &quot;cs&quot;, family = gaussian(link = &quot;identity&quot;), method = &quot;REML&quot;, data = dat)
-我怀疑问题可能出在绘图脚本而不是模型上，因为当我调用 plot(mod) 时，伽马模型看起来相当不错，如图 3 右侧所示（而高斯在左侧），但我不知道问题是什么。
-我的问题是：
-(1) 我对伽马分布使用的语法是否正确？
-(2) 伽马分布是否确实更适合这些数据
-(3) 如果 1 和 2 的答案是肯定的，为什么我得到的伽马模型拟合效果如此糟糕？
-
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/656966/whether-and-how-to-fit-a-gam-with-a-gamma-distribution-in-r</guid>
-      <pubDate>Fri, 08 Nov 2024 19:25:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用分类器预测作为具有受试者内数据的独立变量？</title>
-      <link>https://stats.stackexchange.com/questions/656964/using-classifier-prediction-as-independent-variable-with-within-subjects-data</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/656964/using-classifier-prediction-as-independent-variable-with-within-subjects-data</guid>
-      <pubDate>Fri, 08 Nov 2024 17:05:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中的嵌套方差分析产生警告消息“Error（）模型是奇异的”</title>
-      <link>https://stats.stackexchange.com/questions/656958/nested-anova-in-r-produces-warning-message-error-model-is-singular</link>
-      <description><![CDATA[我正在尝试理解嵌套方差分析，特别是使用 R 中的 aov() 函数，但我遇到了一些概念问题，我相信这也是因为互联网上的术语不一致。
-作为数据集，我修改了来自此处的“dragons”数据集。除其他外，现在它包含一个数字响应变量（“testScore”）、一个（嵌套）“较低级别”因子变量（“Observer”，8 个级别）和固定的“较高级别”因子变量“Species”（4 个级别）。设计相当平衡，每个“Species”级别包含两个“Observer”级别：
-&gt;表（dragons$Species，dragons$Observer）
-
-Erika Hannah Judith Julia Marie Paul Tarek Till
-Deathmist 0 0 0 0 0 0 55 63
-Fire 0 69 0 56 0 0 0 0
-Green 0 0 0 0 54 53 0 0
-Thorntail 64 0 66 0 0 0 0 0
-
-目的是测试预测变量“物种”的不同级别是否在响应变量“testScore”中有所不同，同时校正了嵌套因子“观察者”。
-我的理解是，嵌套因子始终是一种随机效应（具体而言：较低“随机”因子中给定级别的样本始终只出现在固定“较高”因子的一个级别中，但固定因子级别有来自多个随机因子级别的样本）。但是，包括“嵌套因子”的方差分析有时在互联网上表示为 Y ~ A/B（具有固定因子 A 的主要影响及其与随机因子 B 的相互作用），术语为“因子 B 嵌套在固定因子 A 中”...
-&gt; summary(aov(testScore~Species/Observer, data=dragons))
-Df Sum Sq Mean Sq F value Pr(&gt;F) 
-Species 3 12913 4304 13.30 2.38e-08 ***
-Species:Observer 4 87969 21992 67.98 &lt; 2e-16 ***
-Residuals 472 152704 324 
-
-(这个结果似乎不对，因为物种在 testScore 中可能不会有差异)
-...虽然有时它表示为 Y ~ A + Error(B/A)，术语切换为“固定因子 A 嵌套在随机因子 B 中” （再次参阅此处和此处的回复）...
-&gt; summary(aov(testScore~Species+Error(Observer/Species), data=dragons))
-
-错误：观察者
-Df Sum Sq Mean Sq F 值 Pr(&gt;F)
-物种 3 12913 4304 0.196 0.894
-残差 4 87969 21992 
-
-错误：在内
-Df Sum Sq Mean Sq F 值 Pr(&gt;F)
-残差 472 152704 323.5 
-警告消息：
-在 aov(testScore ~ Species + Error(Observer/Species), data = dragons) 中：
-Error() 模型是奇异的
-
-后一个示例提供了我预期的测试结果，其中物种没有差异。但是，警告消息引起了我对给定数据集的模型有效性的担忧。此外，假设后一种方法是正确的，那么何时使用“Y ~ A/B”？
-如果有人能帮助我解决我的困惑，并可能建议我警告消息可能暗示什么，我如何针对此数据集更正我的模型，或者数据必须是什么样子才能适用于此模型，我将不胜感激。谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/656958/nested-anova-in-r-produces-warning-message-error-model-is-singular</guid>
-      <pubDate>Fri, 08 Nov 2024 10:44:32 GMT</pubDate>
-    </item>
-    <item>
       <title>如何确定固定数量的目标函数评估的最佳开发-探索权衡</title>
       <link>https://stats.stackexchange.com/questions/656939/how-to-determine-the-optimal-exploitation-exploration-trade-off-for-a-fixed-numb</link>
       <description><![CDATA[在贝叶斯优化中，我们通过查找$x = \textrm{argmax}_x \alpha(x)$来猜测下一个采样点，其中$\alpha(x)$是采集函数。为简单起见，我们考虑上限置信边界 (UCB) 采集函数：$\alpha(x)=\mu(x) + \sqrt\beta \sigma(x)$，其中$\mu(x)$是通常的平均值，$\sigma(x)$表示方差的通常平方根。这里，$\beta$ 当然是无量纲参数 ($\beta\geq0$)，用于调整探索 (高 $\beta$) 和利用 (低 $\beta$) 之间的权衡。
 假设我有 $N$ 个目标函数评估的计算或实验预算。是否有将 $\beta$ 设置为 $N$ 函数的算法或启发式方法？]]></description>
       <guid>https://stats.stackexchange.com/questions/656939/how-to-determine-the-optimal-exploitation-exploration-trade-off-for-a-fixed-numb</guid>
       <pubDate>Fri, 08 Nov 2024 08:21:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的条件推理树与随机森林如此不同？</title>
-      <link>https://stats.stackexchange.com/questions/656938/why-is-my-conditional-inference-tree-so-different-from-my-random-forest</link>
-      <description><![CDATA[我正在使用条件推理树和随机森林分析数据集，使用的是 R 包 partykit（v. 1.2.20）。对于我的因变量（响应可能性），树和森林产生的解决方案非常不同，这使得它们都很难解释。我该如何理解这里发生了什么？
-下面是我的代码以及树和森林的图像。如有必要，我可以共享数据集。
-set.seed(2356)
-library(partykit)
-
-&gt; head(s1_images_response_item[,-2])
-# A tibble：6 × 14
-# 组：item [6]
-item category response_mean_img causation colourful familiarity grow intent
-&lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1 飞机 移动臂… 1 3.25 2.57 4.4 1 1.29
-2 藻类 植物 趣味… 0.887 2.44 3.57 2.1 4.14 1.06
-3 羚羊 动物 0.981 4.25 2.79 3.85 4.77 3.53
-4 自行车 移动臂… 1 2.12 2.64 4.65 1.05 1.12
-5 船 移动臂… 0.981 3.19 2.64 3.65 1 1 
-6 巨石 不动… 0.943 1.88 1.5 3 1.45 1.18
-# ℹ 6 个其他变量：交互 &lt;dbl&gt;、运动 &lt;dbl&gt;、自然&lt;dbl&gt;,
-# 感知 &lt;dbl&gt;, 重现 &lt;dbl&gt;, 提示 &lt;chr&gt;
-
-条件推理树：
-tree1.i.h &lt;- ctree(response_mean_img ~ 因果关系 + 意图 + 
-交互 + 运动 + 感知 + 熟悉度 + 自然 + 
-生长 + 重现 + 多彩, data=s1_images_response_item)
-
-plot(tree1.i.h, terminal_panel = node_boxplot(tree1.i.h,id=T),
-inner_panel = node_inner(tree1.i.h,id=F, pval = F), 
-edge_panel = edge_simple(tree1.i.h, digits = 2))
-
---&gt;熟悉度是唯一重要的预测因素：
-
-随机森林：
-f1.i.h &lt;- cforest(response_mean_img ~ causation + intent + 
-interaction + movement + perception + familiarity + natural + 
-grow + reproduce + colourful, data=s1_images_response_item, 
-ntree = 1000)
-
-f1.i.h.varimp &lt;- varimp(f1.i.h)
-
-dotchart(sort(f1.i.h.varimp,decreasing = F), 
-main = &quot;研究 1B 试验的变量条件重要性响应性”）
-
---&gt; 预测因子交互、再现、感知和因果关系都具有比熟悉度更高的条件重要性值：
-
-为什么交互、再现、感知和因果关系都没有出现在树中？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656938/why-is-my-conditional-inference-tree-so-different-from-my-random-forest</guid>
-      <pubDate>Fri, 08 Nov 2024 02:26:03 GMT</pubDate>
     </item>
     <item>
       <title>R 中的卡方检验困难</title>
@@ -227,6 +151,110 @@ X 平方 = 1.2297，df = NA，p 值 = 1
       <pubDate>Thu, 07 Nov 2024 16:09:45 GMT</pubDate>
     </item>
     <item>
+      <title>样本量越大，错误拒绝原假设的风险是否会越大？</title>
+      <link>https://stats.stackexchange.com/questions/656828/does-the-risk-of-incorrectly-rejecting-the-null-hypothesis-increase-with-a-large</link>
+      <description><![CDATA[我经常看到类似这样的话：“如果样本量足够大，较小的效应量可以产生显著的结果”。我不太明白这一点。
+对我来说，这听起来是这样的：增加样本量，你最终肯定会拒绝零假设（也就是说，如果你将样本量增加到一定大小，你 100% 肯定会拒绝 0 假设）。
+重新阅读此主题。据我所知，鉴于我在统计学方面的经验，零假设被正确地拒绝了。
+决定在 ttest_1samp 测试的代码中检查这一点，使 popmean=15.03 与样本 (mean=15) 的差异非常小。滑块选择 N - 样本，并实时重新绘制分布，垂直条是上限值（蓝色）和 p_value（橙色）。
+更新 08.11.2024
+由于数组的平均值与声明的平均值不同，为了准确起见，我通过向其添加一些值使值 mu_0 = mu_1 + value。mu_0 在图表上以绿色绘制，置信区间为洋红色。该图还显示 p 值本身、平均值和间隔（CI）。更改 N，图形将动态重新绘制。现在我还检查了均值差异很大，需要样本量来拒绝更小的样本。可以通过 value 设置差异。
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import t, norm, ttest_1samp
+from matplotlib.widgets import Slider
+
+fig, ax = plt.subplots()
+fig.subplots_adjust(bottom=0.25)
+
+ax_n = fig.add_axes([0.25, 0.15, 0.65, 0.03])
+s_n = Slider(ax_n, &quot;N&quot;, valmin=7, valmax=30000,valinit=21, valstep=1)
+
+value = 0.03
+
+def update(val):
+N = s_n.val
+rvs = np.sort(norm.rvs(loc=15,规模= 1，大小= N，random_state = 1））mu，std = np.mean（rvs），np.std（rvs）mu_0 = mu +值z_values =（rvs - mu）/ std df = N - 1 pdf = t.pdf（rvs，loc = mu，scale = std，df = df）tst = ttest_1samp（rvs，popmean = mu_0）l，r = t.pp f(1 - 0.975, df=df), t.ppf(0.975, df=df) ci = tst.confidence_interval(confidence_level=0.95) ci_0, ci_1 = np.round(ci, 4) ci = (ci - mu) / std
+ax.clear()
+ax.plot(z_values, pdf, lw=2, color=&quot;red&quot;)
+ax.axvline(x=(mu_0 - mu) / std, color=&quot;green&quot;, label=&quot;mean 0&quot;)# 0 假设的平均值
+ax.axvline(x=ci[0], linestyle=&quot;--&quot;, color=&quot;magenta&quot;, label=&quot;CI&quot;)
+ax.axvline(x=ci[1], linestyle=&quot;--&quot;, color=&quot;magenta&quot;)
+ax.axvline(x=l, linestyle=&quot;--&quot;, color=&quot;blue&quot;, label=&quot;alfa&quot;)# alfa
+ax.axvline(x=r, linestyle=&quot;--&quot;, color=&quot;blue&quot;)# alfa
+ax.axvline(x=t.ppf(tst[1]/2, df=df), linestyle=&quot;--&quot;, color=&quot;orange&quot;, label=&quot;p-value&quot;)#p-value
+ax.axvline(x=-t.ppf(tst[1]/2, df=df), linestyle=&quot;--&quot;, color=&quot;orange&quot;)#p-value
+ax.text(0, (np.max(pdf) + np.min(pdf))/2, &quot;p_value =&quot; + str(round(tst[1], 4))
++ &quot;\n&quot; + &quot;mu_0 =&quot; + str(round(mu_0, 5)) + &quot;\n&quot; + &quot;mu_1 =&quot; + str(round(mu, 5)) +
+&quot;\n&quot; + &quot;ci_0 =&quot; + str(ci_0) + &quot;\n&quot; + &quot;ci_1 =&quot; + str(ci_1), fontsize=12)
+ax.legend()
+
+s_n.on_changed(update)
+update(0)
+
+plt.show()
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/656828/does-the-risk-of-incorrectly-rejecting-the-null-hypothesis-increase-with-a-large</guid>
+      <pubDate>Wed, 06 Nov 2024 11:43:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>因子分析，特征值与平方因子载荷与碎石图特征值 [重复]</title>
+      <link>https://stats.stackexchange.com/questions/656682/factor-analysis-eigenvalues-vs-squared-factor-loadings-vs-scree-plot-eigenval</link>
+      <description><![CDATA[我对一个包含 8 个变量的数据集进行了探索性因子分析。我还进行了 KMO 和 Bartlett 检验，以确保数据符合本次检查的条件。
+我准备了碎石图，并对不同数量的因子（从 1 到 9）进行了因子分析，使用了 2 种不同的旋转：方差最大和斜率最小。到目前为止一切顺利。
+肘部法建议使用 2 个因子，碎石图上的特征值仅对 1 个因子高于 1。从整个数据集捕获的因子的方差在 5 个因子的情况下达到最大值，并且卡方拟合优度检验在因子大于 3 时失去其显著性。
+我复制了 fa() 调用的输出，其中包含 5 个因子和方差最大旋转（psych 包）：
+使用 method = minres 的因子分析
+调用：fa(r = df_sq1sq9, nfactors = 5, rotate = &quot;varimax&quot;)
+基于相关矩阵的标准化载荷（模式矩阵）
+MR1 MR3 MR2 MR5 MR4 h2 u2 com
+SQ1 0.13 0.37 0.01 -0.01 0.42 0.33 0.665 2.2
+SQ2 0.16 0.07 -0.06 0.09 0.66 0.48 0.517 1.2
+SQ3 0.33 0.88 0.01 0.04 0.21 0.94 0.063 1.4
+SQ4 0.43 0.10 0.16 0.82 0.11 0.89 0.106 1.7
+SQ5 0.85 0.16 -0.06 0.17 0.28 0.86 0.141 1.4
+SQ6 0.85 0.34 0.02 0.25 0.16 0.92 0.079 1.6
+SQ7 0.34 0.53 0.25 0.30 0.04 0.55 0.450 2.9
+SQ8 -0.04 0.08 0.98 0.12 -0.07 1.00 0.005 1.1
+SQ9 0.75 0.30 0.00 0.21 0.13 0.70 0.296 1.5
+
+MR1 MR3 MR2 MR5 MR4
+SS 载荷 2.44 1.45 1.06 0.91 0.81
+比例方差 0.27 0.16 0.12 0.10 0.09
+累积方差 0.27 0.43 0.55 0.65 0.74
+解释比例 0.37 0.22 0.16 0.14 0.12
+累积比例 0.37 0.58 0.74 0.88 1.00
+
+平均项目复杂度 = 1.7
+检验假设 5 个因素就足够。
+
+df 零模型 = 36，目标函数 = 4.83，卡方 = 290.78
+
+模型的 df 为 1，目标函数为 0
+
+残差的均方根 (RMSR) 为 0
+
+df 校正的残差均方根为 0.01
+
+谐波 n.obs 为 65，经验卡方为 0.02，概率 &lt; 0.89
+
+总 n.obs 为 65，似然卡方 = 0.15，概率 &lt; 0.69 
+
+
+fa() 调用的结果还包含一个列表 fa_results[[&quot;e.values&quot;]]
+其值如下：
+fa_results[[&quot;e.values&quot;]]
+4.2142109 1.3128191 1.0559469 0.8085356 0.5378116 0.4403557 0.2829727 0.2444338 0.1029137
+
+问题 1：为什么平方载荷之和与特征值不同？理解这一点很重要，因为如果我计算因子可以捕获的方差，那么在一种情况下，我会得到 74%（SS 载荷），而根据列表中的特征值，我会得到 88%。
+答案： (1) PCA 将整个方差归因于已识别的主成分，而因子分析假设方差被划分为共享方差（由因子解释的方差）和唯一方差（不能由因子解释）；(2) 由于旋转，它们也不同。请参阅易于阅读的清晰解释：https://stats.oarc.ucla.edu/spss/seminars/efa-spss/ 或 ttnphns 发布的链接上的答案：因子分析中初始特征值和平方载荷和之间的关系是什么？
+问题 2：碎石图（平行分析）上的特征值与fa_results[[&quot;e.values&quot;]]  并且它们也与 ss 因子载荷不同。为什么？发布的链接上没有解释这一点。
+感谢大家的回复！]]></description>
+      <guid>https://stats.stackexchange.com/questions/656682/factor-analysis-eigenvalues-vs-squared-factor-loadings-vs-scree-plot-eigenval</guid>
+      <pubDate>Sun, 03 Nov 2024 19:10:19 GMT</pubDate>
+    </item>
+    <item>
       <title>结合多年复杂调查数据的横断面分析</title>
       <link>https://stats.stackexchange.com/questions/656652/cross-sectional-analysis-combining-multiple-years-of-complex-survey-data</link>
       <description><![CDATA[许多大型健康调查，例如欧洲健康、老龄化和退休调查，都具有纵向复杂的调查设计，并且有多年的数据收集能力。我知道可以使用多年堆叠的复杂调查设计对象进行纵向比较，如以下博客文章中所述（即 https://www.r-bloggers.com/2015/11/statistically-significant-trends-with-multiple-years-of-complex-survey-data/），其中提供了此 R 代码作为示例：
@@ -244,7 +272,7 @@ nest = TRUE
 但是，我很好奇是否可以将相同的方法应用于横断面研究问题。以下问题：
 问题 1) 一般。一般而言，当研究人员有兴趣研究多年期小组调查中的横断面关联时，构建多年期堆叠复杂调查设计对象是否是一种好的做法？我还没有看到任何论文这样做，但它不会增加统计能力并避免遗漏可用数据吗？
 问题 2）聚类。我假设参数 id = ~psu 足以调整同一参与者可以包含在多个年份的事实（前提是他们在每个年份都有相同的 psu 值）。
-问题 3）权重。我假设每波的横截面抽样权重可以简单地除以包含的波数以保留正确的总数，如下所述：合并多年调查数据 - 调整调查权重。
+问题 3）权重。我假设每波的横截面抽样权重可以简单地除以包含的波数以保留正确的总数，如下所述：合并多年的调查数据 - 调整调查权重。
 问题 4）分层。交互参数是否为 strata = ~interaction( stratum , year ) 如果使用数据进行横断面关联也合适吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/656652/cross-sectional-analysis-combining-multiple-years-of-complex-survey-data</guid>
       <pubDate>Sat, 02 Nov 2024 21:02:16 GMT</pubDate>
@@ -271,18 +299,36 @@ $E((Y^*-\hat{f}(x^*))^2)=\sigma^2\left(\frac{1}{n}+\frac{(\overline{x}-x^*)^2}{S
       <pubDate>Wed, 30 Oct 2024 11:26:46 GMT</pubDate>
     </item>
     <item>
-      <title>针对元分析，应选择哪个估计量^REML 还是使用 Wild Bootstrap 的 CR2？</title>
-      <link>https://stats.stackexchange.com/questions/656000/which-estimator-to-choose-for-meta-analysis-reml-or-cr2-with-wild-bootstrap</link>
-      <description><![CDATA[我正在关注以下书籍：https://bookdown.org/MathiasHarrer/Doing_Meta_Analysis_in_R/multilevel-ma.html
-我无法选择要使用哪个估计器：REML 还是带有 Wild Bootstrap 的 CR2。
-或者也许同时运行它们并呈现为敏感性分析，尽管我看不到任何其他元分析这样做，所以也许这会进一步使文章的读者感到困惑。
-一些细节：
-我的样本量很小（两者都可以帮助）
-和依赖效应大小（CR2 最适合它）
-我的结果是一个连续变量（REML 似乎更适合）
-如果您有类似的问题，您能否建议您做了什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/656000/which-estimator-to-choose-for-meta-analysis-reml-or-cr2-with-wild-bootstrap</guid>
-      <pubDate>Sat, 19 Oct 2024 12:01:22 GMT</pubDate>
+      <title>SLOPE 与 Benjamini-Hochberg 程序之间的联系</title>
+      <link>https://stats.stackexchange.com/questions/652379/the-link-between-slope-and-the-benjamini-hochberg-procedure</link>
+      <description><![CDATA[假设我们正在执行 $m$ 测试，该测试生成 $m$ 个 p 值 $p_1 \leq \ldots \leq p_m$（按索引排序）。 BH 程序如下：
+
+对于给定的 $\alpha$（所需的 FDR 水平），找到最大的 $k$，使得 $p_k \leq \frac{k}{m}\alpha$。
+对所有 $i\leq k$，拒绝零假设 $H_i$。
+
+现在，我已经阅读了一些关于基于此的 Sorted L-One Penalized Estimation (SLOPE) 模型，但我很难看出其中的确切联系。在 SLOPE 论文 中，BH 程序描述如下（并且该公式用于推导 SLOPE 惩罚序列）：
+对于回归模型 $y = X\beta + z,$，其中 $z \sim N(0,\sigma^2)$ 和正交矩阵 $X^TX = I$，将 $\tilde{y} = X^Ty$ 的条目排序为 $|y|_{(1)} \geq \ldots \geq |y|_{(m)}$ 和拒绝所有假设 $H_i$ 其中 $i\leq k_\text{BH}$ 其中
+$$k_\text{BH} = \max\left\{k:
+\frac{|\tilde{y}|_{(k)}}{\sigma} \geq \Phi^{(-1)}\left(1-\frac{k\alpha}{2m}\right)\right\}.$$
+现在，我想知道这两者之间有什么联系以及分位数是如何使用的。我猜这与我们在 SLOPE 中使用 $\tilde{y}$ 而不是 p 值有关，我们需要以某种方式将其转换为与 p 值比较相同的比例。]]></description>
+      <guid>https://stats.stackexchange.com/questions/652379/the-link-between-slope-and-the-benjamini-hochberg-procedure</guid>
+      <pubDate>Tue, 06 Aug 2024 12:44:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何正确解释卡方大于 2x2 的交叉表中的调整残差？</title>
+      <link>https://stats.stackexchange.com/questions/585735/how-to-properly-interpret-adjusted-residuals-in-crosstabs-with-chi-squares-large</link>
+      <description><![CDATA[如果能给我一个通俗易懂的答案，我将不胜感激。据我所知，如果调整后的残差为 +/- 1.96 或更大（如果为负则更小），那么一定有什么问题。调整后的残差到底告诉了我什么，如果可能的话，请举例说明。我正在使用 SPSS。
+根据 SPSS 中的解释（来自 https://www.ibm.com/support/pages/interpreting-adjusted-residuals-crosstabs-cell-statistics），他们陈述如下：“正如 Agresti 所指出的，标准化残差（在 Agresti 中称为 Pearson 残差）也作为 Crosstabs 中的单元格统计数据提供，在独立性零假设下也呈渐近正态分布，均值为 0。”
+但是，如果调整后的残差大于 1.96 或小于 -1.96，这究竟意味着什么呢？]]></description>
+      <guid>https://stats.stackexchange.com/questions/585735/how-to-properly-interpret-adjusted-residuals-in-crosstabs-with-chi-squares-large</guid>
+      <pubDate>Tue, 16 Aug 2022 20:31:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>面板数据随机效应模型中异方差的校正</title>
+      <link>https://stats.stackexchange.com/questions/552874/correction-of-heteroskedasticity-in-random-effect-models-in-panel-data</link>
+      <description><![CDATA[考虑到随机效应使用 GLS 估计量，而该估计量用于校正异方差，在随机效应模型中是否有必要担心校正此类问题，是否有必要校正此类问题？]]></description>
+      <guid>https://stats.stackexchange.com/questions/552874/correction-of-heteroskedasticity-in-random-effect-models-in-panel-data</guid>
+      <pubDate>Fri, 19 Nov 2021 13:34:22 GMT</pubDate>
     </item>
     </channel>
 </rss>
