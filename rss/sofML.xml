@@ -4,7 +4,82 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 10 Nov 2024 15:15:52 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 10 Nov 2024 18:20:15 GMT</lastBuildDate>
+    <item>
+      <title>Python 中高斯过程回归矩阵乘法的 `ValueError` 实现</title>
+      <link>https://stackoverflow.com/questions/79175150/valueerror-in-matrix-multiplication-for-gaussian-process-regression-implementa</link>
+      <description><![CDATA[我正在使用平方指数核在 Python 中实现高斯过程回归 (GPR) 模型。但是，我在 predict 方法的矩阵乘法步骤中遇到了 ValueError，特别是在尝试计算平均预测时。
+我看到的错误是：
+ValueError：matmul：输入操作数 1 在其核心维度 0 中不匹配，gufunc 签名为 
+(n?,k),(k,m?)-&gt;(n?,m?)（大小 10 与 100 不同）
+
+代码详细信息
+以下是此错误中涉及的代码的细分：
+import numpy as np
+
+class SquaredExponentialKernel:
+def __init__(self, length_scale=1.0, variance=1.0):
+self.length_scale = length_scale
+self.variance = variance
+
+def __call__(self, x1, x2):
+dist_sq = np.sum((x1 - x2)**2)
+return self.variance * np.exp(-0.5 * dist_sq / self.length_scale**2)
+
+def cov_matrix(x1, x2, cov_function) -&gt; np.array:
+返回 np.array([[cov_function(a, b) for a in x1] for b in x2])
+
+class GPR:
+def __init__(self, data_x, data_y, covariance_function=SquaredExponentialKernel(), white_noise_sigma: float = 0):
+self.noise = white_noise_sigma
+self.data_x = data_x
+self.data_y = data_y
+self.covariance_function = covariance_function
+self._inverse_of_covariance_matrix_of_input_noise_adj = np.linalg.inv(
+cov_matrix(data_x, data_x, covariance_function) + self.noise * np.identity(len(self.data_x))
+)
+self._memory = None
+
+def predict(self, test_data: np.ndarray) -&gt;; np.ndarray:
+KXX_star = cov_matrix(test_data, self.data_x, self.covariance_function)
+KX_starX_star = cov_matrix(test_data, test_data, self.covariance_function)
+mean_test_data = KXX_star @ (self._inverse_of_covariance_matrix_of_input_noise_adj @ self.data_y)
+cov_test_data = KX_starX_star - KXX_star @ (self._inverse_of_covariance_matrix_of_input_noise_adj @ KXX_star.T)
+var_test_data = np.diag(cov_test_data)
+self._memory = {&#39;mean&#39;: mean_test_data, &#39;covariance_matrix&#39;: cov_test_data, &#39;variance&#39;: var_test_data}
+返回 mean_test_data
+
+# 测试数据
+np.random.seed(69)
+data_x = np.linspace(-5, 5, 10).reshape(-1, 1)
+data_y = np.sin(data_x) + 0.1 * np.random.randn(10, 1)
+
+# 实例化并预测
+gpr_se = GPR(data_x, data_y, covariance_function=SquaredExponentialKernel(), white_noise_sigma=0.1)
+test_data = np.linspace(-6, 6, 100).reshape(-1, 1)
+mean_predictions = gpr_se.predict(test_data)
+
+维度细分
+这是矩阵乘法的维度分析，其中误差发生：
+
+KXX_star 计算为 cov_matrix(test_data, self.data_x, self.covariance_function)，结果形状为 (100, 10)。
+self._inverse_of_covariance_matrix_of_input_noise_adj 在 __init__ 方法中计算，形状为 (10, 10)。
+self.data_y 形状为 (10, 1)。
+
+有问题的行是：
+mean_test_data = KXX_star @ (self._inverse_of_covariance_matrix_of_input_noise_adj @ self.data_y)
+
+这应该产生形状为 (100, 1) 的结果，因为：
+
+KXX_star 具有形状 (100, 10)，
+(self._inverse_of_covariance_matrix_of_input_noise_adj @ self.data_y) 导致形状为 (10, 1)。
+
+问题：当矩阵乘法的维度似乎对齐时，为什么我在这里收到维度不匹配错误？我该如何修复它？
+感谢您的任何见解或建议！ ~Max
+我预计这个矩阵乘法能够正常工作，因为尺寸在纸面上看起来是兼容的：KXX_star (100, 10) 乘以 (10, 1) 应该得到 (100, 1)。然而，错误表明尺寸不匹配，这意味着某些东西没有按预期对齐。我检查了 self.data_y、self._inverse_of_covariance_matrix_of_input_noise_adj 和 KXX_star 的形状。还尝试重塑 data_y 以确保它始终为 (10, 1)，但错误仍然存​​在。我预计会得到 test_data 的平均预测作为形状为 (100, 1) 的向量，没有任何尺寸问题。]]></description>
+      <guid>https://stackoverflow.com/questions/79175150/valueerror-in-matrix-multiplication-for-gaussian-process-regression-implementa</guid>
+      <pubDate>Sun, 10 Nov 2024 15:14:18 GMT</pubDate>
+    </item>
     <item>
       <title>训练 XGBoost 模型时超参数显示为“无”</title>
       <link>https://stackoverflow.com/questions/79174302/hyperparameters-show-as-none-when-training-xgboost-model</link>
@@ -354,40 +429,6 @@ model.compile(optimizer=Adam(learning_rate=LEARNING_RATE), loss=&#39;binary_cros
       <pubDate>Sat, 09 Nov 2024 03:24:43 GMT</pubDate>
     </item>
     <item>
-      <title>如何训练 seq2seq 模型来转换结构化文本？</title>
-      <link>https://stackoverflow.com/questions/79171901/how-to-train-a-seq2seq-model-for-converting-structured-text</link>
-      <description><![CDATA[我正在尝试训练一个模型，将一些旧模板转换为 jinja2。
-{if $logged_in}
-欢迎，&lt;font color=&quot;{#fontColor#}&quot;&gt;{$name}!&lt;/font&gt;
-{else}
-嗨，{$name}
-{/if}
-
-to
-{% if context.logged_in %}
-欢迎，&lt;font color=&quot;{{ fontColor }}&quot;&gt;{{ context.name }}!&lt;/font&gt;
-{% else %}
-嗨，{{ context.name }}
-{% endif %}
-
-我已经将方法缩小到 seq2seq，并编写了一个小程序，引用了各种博客文章和教程。
-但我在保持文本序列方面遇到了麻烦。
-我该如何训练它，使它只需要担心 {} 里面的东西，而其他一切都可以原封不动地复制粘贴？]]></description>
-      <guid>https://stackoverflow.com/questions/79171901/how-to-train-a-seq2seq-model-for-converting-structured-text</guid>
-      <pubDate>Sat, 09 Nov 2024 00:34:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该安装哪个版本的 torch 和 torchtext [关闭]</title>
-      <link>https://stackoverflow.com/questions/79171450/which-version-of-torch-and-torchtext-should-i-insitall</link>
-      <description><![CDATA[我使用的是 Windows，python 版本是 3.11.4，pandas 版本是 2.2.1
-
-我尝试安装 torch 和 torchtext，但总是出现依赖错误。
-
-这两个版本应该安装哪个版本？]]></description>
-      <guid>https://stackoverflow.com/questions/79171450/which-version-of-torch-and-torchtext-should-i-insitall</guid>
-      <pubDate>Fri, 08 Nov 2024 20:20:10 GMT</pubDate>
-    </item>
-    <item>
       <title>使用余弦相似度来研究推荐特征[关闭]</title>
       <link>https://stackoverflow.com/questions/79171143/working-on-a-recommendation-feature-using-cosine-similarity</link>
       <description><![CDATA[我正在开展一个实习管理项目，其中包括一个推荐功能，用于将学生与实习机会进行匹配。我正在考虑使用余弦相似度，但由于我对这种方法还不熟悉，我想确认我的方法是否可行。
@@ -489,6 +530,14 @@ shap_values = explainer(data.iloc[[1,0,2,3], :])
 我不知道有什么区别。]]></description>
       <guid>https://stackoverflow.com/questions/79152799/why-i-get-different-shap-values-according-to-the-different-order-of-inputs-by-us</guid>
       <pubDate>Sun, 03 Nov 2024 13:22:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Gradio 中的输入/输出前添加标题或文本？</title>
+      <link>https://stackoverflow.com/questions/76901604/how-to-add-heading-or-text-before-input-output-in-gradio</link>
+      <description><![CDATA[我做了一个 MNIST 机器学习项目，并将其部署在 gradio 上。任何用户都不会明白他应该输入什么才能使用该模型。所以我想在 gradio live 网站上添加标题或描述，以便任何人都能理解。
+我尝试使用 gradio block、gradio.markdown，但它在 Google colab 上不起作用]]></description>
+      <guid>https://stackoverflow.com/questions/76901604/how-to-add-heading-or-text-before-input-output-in-gradio</guid>
+      <pubDate>Mon, 14 Aug 2023 19:17:22 GMT</pubDate>
     </item>
     <item>
       <title>AttributeError：'tuple' 没有属性 'to'</title>
