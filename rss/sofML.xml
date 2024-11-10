@@ -4,7 +4,120 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 10 Nov 2024 01:18:59 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 10 Nov 2024 03:21:34 GMT</lastBuildDate>
+    <item>
+      <title>Tensorflow 模型权重无法正确加载</title>
+      <link>https://stackoverflow.com/questions/79173992/tensorflow-model-weights-not-loading-correctly</link>
+      <description><![CDATA[我正在尝试用 C++ 为国际象棋引擎加载一个 TensorFlow 神经网络。该模型是在 Python 中训练的，我正在将权重转换为二进制文件，但在 C++ 中加载时尺寸错误。
+Python 模型架构：
+
+输入：768 个神经元（扁平的 8x8x12 棋盘状态）
+隐藏层：1024 -&gt; 512 -&gt; 256 -&gt; 128 -&gt; 64
+输出：1 个神经元（tanh 激活）
+
+在 c++ 中加载时，我得到维度不匹配：
+输入大小：768
+层数：6
+处理层 0
+输入大小：1024 # 应为 768
+输出大小：768 # 应为 1024
+
+这是我的 python 转换代码：
+def convert_model_to_binary(model_path, output_path):
+# 加载 TensorFlow 模型
+chess_nn = pickle.load(open(model_path, &quot;rb&quot;))
+model = chess_nn.model
+
+with open(output_path, &quot;wb&quot;) as f:
+# 写入密集层的数量
+dense_layers = [
+layer
+for layer in model.layers
+if isinstance(layer, tf.keras.layers.Dense)
+]
+np.array([len(dense_layers)], dtype=np.int32).tofile(f)
+
+for layer in density_layers:
+weights,biases = layer.get_weights()
+
+# 转换为 float32 以实现 c++ 兼容性
+weights = weights.astype(
+np.float32
+)# 无需转置（权重已经处于正确的形状）
+biases = biases.astype(np.float32)
+
+# 写入输入和输出维度
+input_dim = weights.shape[0]# 行数（输入维度）
+output_dim = weights.shape[
+1
+]# 列数（输出维度）
+
+np.array([input_dim, output_dim], dtype=np.int32).tofile(f)
+np.array([output_dim], dtype=np.int32).tofile(f) # 偏置形状
+
+weights.tofile(f)
+biases.tofile(f)
+
+和 c++ 加载代码：
+bool load_model(const std::string &amp;filename)
+{
+std::ifstream file(filename, std::ios::binary);
+int32_t num_layers;
+file.read(reinterpret_cast&lt;char&gt;(&amp;num_layers), sizeof(int32_t));
+la​​yer.resize(num_layers);
+对于 (int i = 0; i &lt; num_layers; i++)
+{
+int32_t weight_shape[2];
+file.read(reinterpret_cast&lt;char&gt;(weight_shape), 2 sizeof(int32_t));
+int32_t bias_shape[1];
+file.read(reinterpret_cast&lt;char&gt;(bias_shape), sizeof(int32_t));
+la​​yer[i].input_size = weight_shape[1];
+layer[i].output_size = weight_shape[0];
+layer[i].weights.resize(weight_shape[0] weight_shape[1]);
+la​​yer[i].biases.resize(bias_shape[0]);
+file.read(reinterpret_cast&lt;char&gt;(layers[i].weights.data()), layer[i].weights.size() sizeof(float));
+file.read(reinterpret_cast&lt;char&gt;(layers[i].biases.data()), layers[i].biases.size() sizeof(float));
+}
+return true;
+}
+
+我尝试过的方法：
+
+在保存之前在 python 中转置权重：
+
+weights = weights.T.astype(np.float32)
+
+仍然有维度不匹配，但顺序相反
+
+在 c++ 中交换输入/输出维度：
+
+layers[i].input_size = weight_shape[0];
+layers[i].output_size = weight_shape[1];
+
+错误相同但维度不同
+
+在 c++ 中更改权重指数计算：
+
+size_t weight_idx = i * layer.input_size + j; // 原始
+size_t weight_idx = j * layer.output_size + i; // 尝试过这个
+size_t weight_idx = i + j layer.output_size; // 和这个
+
+仍然得到错误的预测
+预期：
+
+权重应以正确的尺寸加载（768-&gt;1024-&gt;512-&gt;256-&gt;128-&gt;64-&gt;1）
+模型应给出与 Python 版本类似的预测
+输入板状态应正确处理所有层
+
+实际结果：
+
+尺寸反转（1024-&gt;768、512-&gt;1024 等）
+在每一层都得到“输入大小不匹配”错误
+最终预测总是返回 0
+]]></description>
+      <guid>https://stackoverflow.com/questions/79173992/tensorflow-model-weights-not-loading-correctly</guid>
+      <pubDate>Sun, 10 Nov 2024 01:32:39 GMT</pubDate>
+    </item>
     <item>
       <title>尽管进行了超参数调整，模型始终将图像以高置信度分类为猫</title>
       <link>https://stackoverflow.com/questions/79173890/model-always-classifies-images-as-cats-with-high-confidence-despite-hyperparamet</link>
@@ -197,7 +310,7 @@ model.compile(optimizer=Adam(learning_rate=LEARNING_RATE), loss=&#39;binary_cros
       <title>有没有可以用不同语言唱歌的 Python 库？[关闭]</title>
       <link>https://stackoverflow.com/questions/79172152/is-there-a-python-library-for-singing-in-different-languages</link>
       <description><![CDATA[我需要使用 Python 创建人声音轨。如何才能轻松完成此操作？是否有任何 Python 库？
-我尝试使用 Tacotron 2 并创建 LSTM NN，但这非常困难并且会产生 brrrr 声音。我需要一种更简单的方法来用不同的语言制作人声。
+我尝试使用 Tacotron 2 并创建 LSTM NN，但这非常困难并且会产生 brrrr 声音。我需要一种更简单的方法来制作不同语言的人声。
 非常感谢。]]></description>
       <guid>https://stackoverflow.com/questions/79172152/is-there-a-python-library-for-singing-in-different-languages</guid>
       <pubDate>Sat, 09 Nov 2024 05:10:10 GMT</pubDate>
@@ -265,13 +378,6 @@ to
       <pubDate>Fri, 08 Nov 2024 18:10:50 GMT</pubDate>
     </item>
     <item>
-      <title>JAX 的怪异行为</title>
-      <link>https://stackoverflow.com/questions/79170871/spooky-behaviour-of-jax</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79170871/spooky-behaviour-of-jax</guid>
-      <pubDate>Fri, 08 Nov 2024 16:33:17 GMT</pubDate>
-    </item>
-    <item>
       <title>如何修复 ValueError：预期输入 batch_size (49) 与目标 batch_size (64) 匹配</title>
       <link>https://stackoverflow.com/questions/79168959/how-to-fix-valueerror-expected-input-batch-size-49-to-match-target-batch-size</link>
       <description><![CDATA[]]></description>
@@ -279,13 +385,12 @@ to
       <pubDate>Fri, 08 Nov 2024 05:55:50 GMT</pubDate>
     </item>
     <item>
-      <title>了解 YOLO 的训练方式</title>
-      <link>https://stackoverflow.com/questions/60881576/understanding-how-yolo-is-trained</link>
-      <description><![CDATA[我试图了解 YOLO (v2) 是如何训练的。为此，我使用此 keras 实现 https://github.com/experiencor/keras-yolo2 在 VOC 数据集上从头开始训练 YOLO（我愿意接受其他实现，但我从未使用过 pytorch，因此，keras 实现将是首选）。
-据我了解，YOLO 首先在 imageNet 上进行分类训练，然后这些训练过的权重（用于分类）应该在训练 yolo 进行回归（检测边界框）时使用。在互联网上找到的大多数从头开始训练 yolo（用于回归）的代码中，我看不到加载这些分类权重的部分。什么时候发生的？训练yolo回归时什么时候用到分类权重？
-我上面描述的理解正确吗？]]></description>
-      <guid>https://stackoverflow.com/questions/60881576/understanding-how-yolo-is-trained</guid>
-      <pubDate>Fri, 27 Mar 2020 07:27:09 GMT</pubDate>
+      <title>TensorFlow 中的步骤和时期有什么区别？</title>
+      <link>https://stackoverflow.com/questions/38340311/what-is-the-difference-between-steps-and-epochs-in-tensorflow</link>
+      <description><![CDATA[在大多数模型中，都有一个 steps 参数，表示在数据上运行的步骤数。但我在大多数实际使用中看到，我们还会执行拟合函数 N epochs。
+用 1 个 epoch 运行 1000 步和用 10 个 epoch 运行 100 步有什么区别？在实践中哪一个更好？连续 epoch 之间有任何逻辑变化吗？数据混洗？]]></description>
+      <guid>https://stackoverflow.com/questions/38340311/what-is-the-difference-between-steps-and-epochs-in-tensorflow</guid>
+      <pubDate>Tue, 12 Jul 2016 23:20:22 GMT</pubDate>
     </item>
     </channel>
 </rss>
