@@ -4,7 +4,115 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 09 Nov 2024 21:15:11 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 10 Nov 2024 01:18:59 GMT</lastBuildDate>
+    <item>
+      <title>尽管进行了超参数调整，模型始终将图像以高置信度分类为猫</title>
+      <link>https://stackoverflow.com/questions/79173890/model-always-classifies-images-as-cats-with-high-confidence-despite-hyperparamet</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79173890/model-always-classifies-images-as-cats-with-high-confidence-despite-hyperparamet</guid>
+      <pubDate>Sat, 09 Nov 2024 23:32:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>值错误：预期输入形状的轴 -1 的值为 444，但收到的输入形状为 (None, 708)</title>
+      <link>https://stackoverflow.com/questions/79173764/value-error-expected-axis-1-of-input-shape-to-have-value-444-but-received-inp</link>
+      <description><![CDATA[我正在尝试训练一个 FNN 模型来检测信用卡欺诈。我的分类特征是商家、类别、城市和州。我还使用 StandardScaler 标准化了我的数值特征。我首先对分类特征使用标签编码将它们转换为整数值。然后我想为神经网络模型的分类特征创建嵌入。当我尝试运行代码时，我收到此错误：
+ValueError：调用 Functional.call() 时遇到异常。
+
+层“dense_6”的输入 0与层不兼容：预期输入形状的轴 -1 的值为 444，但收到的输入形状为 (None, 708)
+这是我的代码：
+# 将数据拆分为训练、验证和测试集 (70%、15%、15%)
+from sklearn.model_selection import train_test_split
+X = df.drop(columns=[&#39;is_fraud&#39;])
+y = df[&#39;is_fraud&#39;]
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42) # 70% 训练，30% 临时
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42) # 拆分temp 变成 15% val 和 15% test
+
+来自 sklearn.preprocessing 导入 LabelEncoder、StandardScaler
+# 标签编码
+categorical_columns = [&#39;merchant&#39;, &#39;category&#39;, &#39;city&#39;, &#39;state&#39;]
+label_encoded = {}
+for col in categorical_columns:
+le = LabelEncoder()
+X_train[col] = le.fit_transform(X_train[col])
+X_val[col] = le.transform(X_val[col])
+X_test[col] = le.transform(X_test[col])
+label_encoded[col] = le
+
+# 规范化
+scaler = StandardScaler()
+numerical_features = [&#39;cc_num&#39;, &#39;amt&#39;, &#39;lat&#39;, &#39;long&#39;, &#39;merch_lat&#39;, &#39;merch_long&#39;, &#39;trans_hour&#39;, &#39;trans_day&#39;, &#39;trans_year&#39;, &#39;amt_ratio&#39;, &#39;daily_transaction_count&#39;, &#39;user_location_distance&#39;]
+X_train_numerical = scaler.fit_transform(X_train[numerical_features])
+X_val_numerical = scaler.transform(X_val[numerical_features])
+X_test_numerical = scaler.transform(X_test[numerical_features])
+
+来自 tensorflow.keras.models 导入模型
+来自 tensorflow.keras.layers 导入输入、嵌入、密集、扁平化、连接
+来自 sklearn.metrics 导入 precision_score、recall_score、roc_auc_score、roc_curve
+导入 matplotlib.pyplot 作为 plt
+
+# 定义嵌入维度
+embedding_dim = {
+&#39;merchant&#39;: 200,
+&#39;category&#39;: 7,
+&#39;city&#39;: 200,
+&#39;state&#39;: 25
+}
+
+# 创建嵌入并将其展平为 1D 向量
+merchant_input = Input(shape=(1,), name=&#39;merchant&#39;)
+merchant_embedding = Embedding(input_dim=len(label_encoded[&#39;merchant&#39;].classes_), output_dim=embedding_dim[&#39;merchant&#39;])(merchant_input)
+merchant_embedding = Flatten()(merchant_embedding)
+
+category_input = Input(shape=(1,), name=&#39;category&#39;)
+category_embedding = Embedding(input_dim=len(label_encoded[&#39;category&#39;].classes_), output_dim=embedding_dim[&#39;category&#39;])(category_input)
+category_embedding = Flatten()(category_embedding)
+
+city_input = 输入(shape=(1,), name=&#39;city&#39;)
+city_embedding = 嵌入(input_dim=len(label_encoded[&#39;city&#39;].classes_), output_dim=embedding_dim[&#39;city&#39;])(city_input)
+city_embedding = Flatten()(city_embedding)
+
+state_input = 输入(shape=(1,), name=&#39;state&#39;)
+state_embedding = 嵌入(input_dim=len(label_encoded[&#39;state&#39;].classes_), output_dim=embedding_dim[&#39;state&#39;])(state_input)
+state_embedding = Flatten()(state_embedding)
+
+numerical_input =输入（形状=（len（numerical_features）），名称=&#39;numerical_features&#39;）
+
+# 连接嵌入和数值输入
+concat_embed = Concatenate()([merchant_embedding, category_embedding, city_embedding, state_embedding])
+
+concat_layer = Concatenate()([concat_embed, numeric_input])
+
+# FNN 模型
+x = Dense(32,activation=&#39;relu&#39;)(concat_layer)
+x = Dense(32,activation=&#39;relu&#39;)(x)
+输出 = Dense(1,activation=&#39;sigmoid&#39;)(x)
+
+fnn_model = Model(输入=[merchant_input, category_input, city_input, state_input, numeric_input],输出=输出)
+fnn_model.compile(optimizer=tf.keras.optimizers.Adam(0.001), loss=&#39;binary_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+
+# 准备训练和验证数据
+train_inputs = {
+&#39;merchant&#39;: X_train[&#39;merchant&#39;],
+&#39;category&#39;: X_train[&#39;category&#39;],
+&#39;city&#39;: X_train[&#39;city&#39;],
+&#39;state&#39;: X_train[&#39;state&#39;],
+&#39;numerical_features&#39;: X_train_numerical
+}
+
+val_inputs = {
+&#39;merchant&#39;: X_val[&#39;merchant&#39;],
+&#39;category&#39;: X_val[&#39;category&#39;],
+&#39;city&#39;: X_val[&#39;city&#39;],
+&#39;state&#39;: X_val[&#39;state&#39;],
+&#39;numerical_features&#39;: X_val_numerical
+}
+
+# 训练模型
+history = fnn_model.fit(train_inputs, y_train，epochs=100，batch_size=32，validation_data=(val_inputs，y_val)，verbose=0)
+]]></description>
+      <guid>https://stackoverflow.com/questions/79173764/value-error-expected-axis-1-of-input-shape-to-have-value-444-but-received-inp</guid>
+      <pubDate>Sat, 09 Nov 2024 21:51:08 GMT</pubDate>
+    </item>
     <item>
       <title>哪些项目值得纳入我的投资组合？[关闭]</title>
       <link>https://stackoverflow.com/questions/79173665/what-projects-are-worthy-to-be-in-my-portfolio</link>
@@ -62,13 +170,12 @@ model.compile(optimizer=Adam(learning_rate=LEARNING_RATE), loss=&#39;binary_cros
 由于这 3 个的性能相同，我认为我做错了一些我不知道的事情。
 此外，如果我计划通过解冻一些层来进行微调，那么正确的方法是什么？
 
-首先通过冻结所有基础模型层来训练模型几个时期（假设 10 个）。然后解冻一些基础模型层并重新编译和训练几个时期。
+首先通过冻结所有基础模型层来训练模型几个时期（假设 10 个）。然后解冻一些基础模型层并重新编译和训练几个 epoch。
 
 首先解冻一些基础模型层并编译和训练一次。
 
 
-那么哪一个是正确的方法 1 或 2？
-提前感谢您的帮助。]]></description>
+那么方法 1 和方法 2 哪一个是正确的？]]></description>
       <guid>https://stackoverflow.com/questions/79172708/what-is-the-correct-way-of-fine-tuning-a-pre-trained-model-on-custom-dataset</guid>
       <pubDate>Sat, 09 Nov 2024 12:03:02 GMT</pubDate>
     </item>
@@ -100,8 +207,7 @@ model.compile(optimizer=Adam(learning_rate=LEARNING_RATE), loss=&#39;binary_cros
       <link>https://stackoverflow.com/questions/79172071/how-to-train-ssd300-model-with-custom-data</link>
       <description><![CDATA[我有一个我国的汽车数据集，我想用SSD300模型重新训练这个数据集，我使用python语言，使用pytorch。
 我尝试了github上的一些源代码，但大多数都有库错误或识别效果不佳。
-我正在寻找适用于python3.12的pytorch源代码
-谢谢。]]></description>
+我正在寻找适用于python3.12的pytorch源代码]]></description>
       <guid>https://stackoverflow.com/questions/79172071/how-to-train-ssd300-model-with-custom-data</guid>
       <pubDate>Sat, 09 Nov 2024 03:40:55 GMT</pubDate>
     </item>
@@ -180,28 +286,6 @@ to
 我上面描述的理解正确吗？]]></description>
       <guid>https://stackoverflow.com/questions/60881576/understanding-how-yolo-is-trained</guid>
       <pubDate>Fri, 27 Mar 2020 07:27:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>对 YOLO 流程感到困惑</title>
-      <link>https://stackoverflow.com/questions/51737958/confused-about-yolo-process</link>
-      <description><![CDATA[为了理解这个概念，我阅读了 Mauricio Menegaz 撰写的这篇文章，并在 YouTube 上观看了 Deeplearning.ai 的 视频，但我对 S x S x (B * 5 +C) 部分感到困惑。我知道 S x S 代表网格大小，5 代表边界框的组件，C 代表类别。B 是否与锚框相同？如果我只想检测一个类别（例如车牌），这是否意味着只有 1 个 B？
-在将图像输入神经网络之前，是否会在图像上创建边界框？]]></description>
-      <guid>https://stackoverflow.com/questions/51737958/confused-about-yolo-process</guid>
-      <pubDate>Wed, 08 Aug 2018 02:51:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>R 中支持向量机和朴素贝叶斯分类器的变量重要性</title>
-      <link>https://stackoverflow.com/questions/36845303/variable-importance-for-support-vector-machine-and-naive-bayes-classifiers-in-r</link>
-      <description><![CDATA[我正在用 R 语言构建癌症数据集的预测分类器。
-我正在使用随机森林、支持向量机和朴素贝叶斯分类器。我无法计算 SVM 和 NB 模型上的变量重要性 
-我最终收到以下错误。
-
-UseMethod(&quot;varImp&quot;) 中的错误：
-没有适用于“c(&#39;svm.formula&#39;, &#39;svm&#39;)”类对象的“varImp”的适用方法
-
-如果有人能帮助我，我将不胜感激。]]></description>
-      <guid>https://stackoverflow.com/questions/36845303/variable-importance-for-support-vector-machine-and-naive-bayes-classifiers-in-r</guid>
-      <pubDate>Mon, 25 Apr 2016 15:46:58 GMT</pubDate>
     </item>
     </channel>
 </rss>
