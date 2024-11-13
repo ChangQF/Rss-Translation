@@ -4,7 +4,170 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 13 Nov 2024 01:15:09 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 13 Nov 2024 03:21:54 GMT</lastBuildDate>
+    <item>
+      <title>在 R 中模拟 rstpm2 模型随时间变化的协变量</title>
+      <link>https://stats.stackexchange.com/questions/657178/simulating-time-varying-covariates-for-a-rstpm2-model-in-r</link>
+      <description><![CDATA[我正在尝试生成随时间变化的协变量来运行模拟。问题是，对于灵活的参数生存模型，估计误差非常大。我不确定为什么会发生这种情况。我的随时间变化协变量生成过程是否正确？我在这里做错了什么？
+gendata &lt;- function(n){
+
+n = n # 患者人数
+lambda = 0.001 # 威布尔尺度参数（基线风险）
+gamma = 1.5 # 威布尔形状参数（基线风险）
+time_max = 60 # 最大随访时间
+alpha = 0.1 # 真实系数
+beta = 0.2 # 空间系数
+sigma = 0.5 # 测量误差的标准偏差
+censoring_rate = 0.25
+
+times &lt;- numeric(n) 
+event &lt;- numeric(n)
+event_times &lt;- numeric(n)
+covariate_trajectory &lt;- list()
+
+beta0 &lt;- rnorm(n, 0, 1) 
+beta1 &lt;- rnorm(n, 1, 0.5)
+X2 = rnorm(n, 0, 1) # 随机地理标记
+
+# 使用指数分布生成审查时间
+censoring_times &lt;- -log(runif(n)) / censoring_rate
+
+for (i in 1:n) {
+
+# 定义随时间变化的协变量的函数 W(t) = beta0 + beta1 * t
+covariate_function &lt;- function(t) {
+beta0[i] + beta1[i] * t
+}
+
+# 使用威布尔基线风险的随时间变化的协变量和空间效应的风险函数
+hazard_function &lt;- function(t) {
+W_t &lt;- covariate_function(t)
+h_t &lt;- lambda * gamma * t^(gamma - 1) * exp(alpha * W_t + beta * X2[i])
+return(h_t)
+}
+
+# 累积风险函数（数值积分）
+cumulative_hazard_function &lt;- function(t) {
+integrate(hazard_function, lower = 0, upper = t)$value
+}
+
+u &lt;- runif(1)
+
+# 定义寻根目标函数（求解生存时间）
+target_function &lt;- function(t) {
+cumulative_hazard_function(t) + log(u)
+}
+
+# 使用 uniroot 求解生存时间（寻根方法）
+f_lower &lt;- target_function(0)
+f_upper &lt;- target_function(time_max)
+
+if (f_lower * f_upper &lt; 0) {
+# 仅在确认相反符号时运行 uniroot
+sol &lt;- uniroot(target_function, lower = 0, upper = time_max, tol = 1e-8)
+times[i] &lt;- sol$root 
+} else {
+# 使用近似方法细化 times[i]
+times[i] &lt;- max(time_max, -f_lower / (f_upper - f_lower) * time_max)
+}
+
+event_times[i] &lt;- min(times[i], censoring_times[i])
+
+event[i] &lt;- ifelse(times[i] &lt; censoring_times[i], 1, 0)
+
+# 生成具有测量误差的协变量测量值
+measurement_times &lt;- seq(0.001, times[i], length.out = 10) 
+covariate_values &lt;- covariate_function(measurement_times) + rnorm(length(measurement_times), 0, sigma)
+
+# 存储此人的协变量测量值
+covariate_trajectory[[i]] &lt;- data.frame(time = measure_times, W_t = covariate_values)
+
+}
+survdata = data.frame(id = 1:n, time = times, event = event, X2 = X2)
+
+result = list(survival_data = survdata, covariate_trajectory = covariate_trajectory)
+
+# 提取生存数据和协变量轨迹
+survivor_data &lt;- result$survival_data
+covariate_trajectory &lt;- result$covariate_trajectory
+
+combined_data &lt;- do.call(rbind, lapply(1:n, function(i) {
+# 获取个体的协变量轨迹
+cov_trajectory &lt;- covariate_trajectory[[i]]
+
+# 将生存时间和事件状态添加到协变量轨迹中
+cov_trajectory$id &lt;- i # 分配受试者 ID
+cov_trajectory$survival_time &lt;- survivor_data$time[i] # 添加生存时间
+
+cov_trajectory$event &lt;- 0 # 用 0 初始化事件列
+cov_trajectory$event[nrow(cov_trajectory)] &lt;- survivor_data$event[i] # 添加事件状态
+
+return(cov_trajectory)
+}))
+
+names(combined_data) &lt;- c(&#39;survtime&#39;, &#39;X1&#39;, &#39;id&#39;, &#39;survival_time&#39;, &#39;event&#39;)
+
+var2 = as.data.frame(X2)
+var2 = cbind(1:nrow(var2), var2)
+colnames(var2) &lt;- c(&#39;id&#39;, &#39;X2&#39;)
+
+simdata = combined_data %&gt;% left_join(var2, by = &#39;id&#39;) 
+
+return(simdata)
+}
+
+simd2 = gendata(1000)
+
+s = stpm2(Surv(survtime, event) ~ X1+X2, tvc = list(X1 = 2), data = simd2, df = 2)
+
+
+系数结果为
+系数：
+X1 -0.5818367
+X2 0.4652501
+其中 |X1 - 0.1| = 0.68
+和 |X2 - 0.2| = 0.36
+这些偏差应该低得多，表明数据生成过程或模型 rstpm2 本身存在问题。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657178/simulating-time-varying-covariates-for-a-rstpm2-model-in-r</guid>
+      <pubDate>Wed, 13 Nov 2024 03:12:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>夏皮罗-威尔克与正态分布的箱线图</title>
+      <link>https://stats.stackexchange.com/questions/657176/shapiro-wilk-vs-box-plot-for-normality-distribution</link>
+      <description><![CDATA[我运行了 Shapiro-Wilk 正态性检验 (n=8)，以决定是否使用参数或非参数检验进行显著性检验。结果表明我的数据呈正态分布 (p &gt;0.05)，但箱线图的目视检查并未表明呈正态分布。样本量很小，所以我想知道是否是因为这个原因，但现在我不确定是否要继续进行重复测量方差分析或 Friedman 检验。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657176/shapiro-wilk-vs-box-plot-for-normality-distribution</guid>
+      <pubDate>Wed, 13 Nov 2024 02:08:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>模型堆叠训练测试拆分方法</title>
+      <link>https://stats.stackexchange.com/questions/657175/model-stacking-train-test-split-methdods</link>
+      <description><![CDATA[我试图验证我的流程，即我如何参与二元分类的模型堆叠。假设我有两个模型作为我的基础模型，模型 A 和 B 都具有不同的分类器，而模型 C 是我的元模型。
+我的步骤如下。
+
+将数据拆分为训练集和测试集
+将我的测试集拆分为验证集（用于我的元模型训练）和最终测试集。
+使用 CV 在训练集上训练我的基础模型 A 和 B。在我的最终测试集上返回基础模型的测试统计数据。
+使用第 2 部分中在验证集上的基础模型中生成的概率训练我的元模型。在最终测试集上返回元模型的测试统计数据。
+比较模型 A、B、C 的测试结果。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657175/model-stacking-train-test-split-methdods</guid>
+      <pubDate>Wed, 13 Nov 2024 01:58:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>当响应变量和解释变量都是自相关的时，如何指定回归模型？</title>
+      <link>https://stats.stackexchange.com/questions/657174/how-do-you-specify-a-regression-model-when-both-the-response-and-explanatory-var</link>
+      <description><![CDATA[我有两组数据点：
+
+第一组中的每个数据点 (y_t) 代表未来十年月回报数据的年化回报，即，这是前瞻性数据，因此我的最后一个数据点来自 2014 年 10 月
+第二组中的每个数据点 (x_t) 代表过去十年的月平均值，即，这是回顾性数据，因此我有截至 2024 年上个月的数据
+
+第二组数据是一个经济指标，许多人用它来描述股市按历史标准是昂贵还是便宜，我想尝试用它来预测十年的年化回报。从经验上看，存在明显的线性关系，但这两个时间序列的性质让我怀疑如何正确指定我的模型。
+鉴于响应变量和解释变量都依赖于如此多的相邻数据，并且基本 OLS 的残差表明存在自相关性（经验和 Durbin-Watson），我不知道下一步该怎么做。一阶差分增加了平稳性，这由显著的 Dickey-Fuller 检验统计量证明，但我不确定是否还需要为我的响应变量和解释变量添加滞后变量，以及考虑到创建数据集的前向和后向范围，这些滞后应该延伸到多远。 ACF 和 PACF 图表强烈暗示我需要多个滞后变量，我已经开始阅读如何实施 Cochrane-Orcutt 程序，但在将互联网上的学术笔记翻译并应用到适用于我的场景的 Python 代码时遇到了困难。
+在偶然发现一篇有点相关的帖子（在 R 中校正简单线性回归中的自相关）后，深入探讨了误差调整与模型更改的利弊，我想知道我一直在追求的转变是否完全必要。使用异方差和自相关稳健标准误差是否能满足预测的要求，或者模型错误指定导致的无效系数是否更有可能使预测失去信心？
+如果有人遇到过这个问题并且有任何我可能忽略的阅读建议或 Python 包，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657174/how-do-you-specify-a-regression-model-when-both-the-response-and-explanatory-var</guid>
+      <pubDate>Wed, 13 Nov 2024 01:34:22 GMT</pubDate>
+    </item>
     <item>
       <title>重复测量方差分析/线性混合效应模型和缺失数据</title>
       <link>https://stats.stackexchange.com/questions/657171/repeated-measures-anova-linear-mixed-effects-model-and-missing-data</link>
@@ -104,74 +267,6 @@ $$\mathbf{RMSD}=\sqrt{\frac{1}{n}\sum_{i=1}^n{(x_i-y_i)^2}}$$
       <pubDate>Tue, 12 Nov 2024 20:43:54 GMT</pubDate>
     </item>
     <item>
-      <title>排序样本的含义</title>
-      <link>https://stats.stackexchange.com/questions/657161/meaning-of-sorted-samples</link>
-      <description><![CDATA[假设您有一组来自某个分布的有限样本。
-您取出这些样本，按值从小到大排序，然后制作图表。像这样：
-
-横轴是排序位置（任意），纵轴是样本值。
-我的问题是：这个形状说明了样本来自的分布是什么？我很想说它是累积分布函数的逆函数，但我无法证明这一点。
-我知道它能说明很多关于分布的信息，因为我已经非常习惯阅读这些图表（因为在 Excel 2007 中制作直方图很麻烦）。例如，对于上图，我可以看到底层分布是一条钟形曲线，右尾较短，左尾较长。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657161/meaning-of-sorted-samples</guid>
-      <pubDate>Tue, 12 Nov 2024 19:55:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>从专家判断中选择最佳类别样本的适当统计分析是什么？</title>
-      <link>https://stats.stackexchange.com/questions/657160/whats-the-appropriate-statistical-analysis-for-selecting-best-category-exemplar</link>
-      <description><![CDATA[我正在寻求有关适当统计分析的建议，以便根据我正在进行的虚假新闻实验中的专家判断选择最佳类别样本。
-我的研究背景：
-
-我构建了 39 个虚假新闻刺激。
-11 位专家评委将每个刺激归类为 7 个可能的类别之一（名义数据）。类别 A、B、C、D、E、F 和“以上都不是”。结果是一个 39×11 矩阵（429 个单元格），其中每个单元格包含 7 个可能的类别之一。
-我的目标是从六个类别中每个类别中选择总共 24 个最佳/最具代表性的样本。如果某些类别最终变得不平衡，或者最终出现一个没有任何刺激的类别，这都没关系。
-
-当前分析：
-
-我计算了 Fleiss&#39; Kappa 与 39 个刺激的总体一致性。
-然后对于刺激选择，我开发了一个“一致性指数”，该指数减去第一个投票最多的类别的百分比减去第二个投票最多的类别（目的是“惩罚”刺激的模糊性）。
-
-
-例如，如果 70% 的人投票给 A 类，15% 的人投票给 B 类，其余的人分布在其他类别中，则刺激获得 55 个百分点。
-如果类别之间有平局，则刺激获得 0 分。
-
-
-再次计算“最佳”24 个刺激子集的 Fleiss&#39; Kappa。
-
-问题：
-
-我没有关于我最终使用的“一致性指数”的参考资料，也找不到任何使用类似方法或存在类似问题的手册或论文，即必须找到类别的最佳代表。
-Fleiss&#39; Kappa 用于估计多个评估者之间的一致性，但使用完整的数据集（具有 429 个值的矩阵）。据我了解，我需要为每个刺激单独估计一个指数。
-当我在 RStudio 中修改 Fleiss&#39; Kappa 包以计算每个刺激的 kappa 时，我最终没有得到一个显著的 p 值（可能是因为每个刺激只有 11 个值，并且 Fleiss&#39; Kappa 不打算以这种方式使用）。
-大多数系数都关注评估者之间的一致性，但我需要关注的是，其中哪一个刺激被大多数人认为是其类别的最佳典范。
-
-问题：
-
-选择最佳类别典范的适当统计分析是什么？
-什么是分析这种类型数据的最合适的系数？ （我的意思是第二步）
-是否有既定的方法，可根据多位评委的分类选择最佳类别范例？
-Fleiss&#39; Kappa 是否以这些方式正确使用并考虑到这些目标？
-
-我是认真的，感谢您提供的任何指导或相关参考资料，我将不胜感激。另外，真的希望我在这里提出的研究问题能够说清楚。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657160/whats-the-appropriate-statistical-analysis-for-selecting-best-category-exemplar</guid>
-      <pubDate>Tue, 12 Nov 2024 19:38:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>ARIMA：对于通货膨胀数据，对数差分比二阶差分更好吗？</title>
-      <link>https://stats.stackexchange.com/questions/657158/arima-log-differencing-is-better-tnan-two-order-differencing-on-inflation-data</link>
-      <description><![CDATA[我正在尝试对通货膨胀数据执行 ARIMA
-我可以看到：
-
-我需要两个顺序差分才能获得平稳性数据
-并且只需要一个对数差分即可获得平稳性。
-在对数差分中，我有两个数据下降，然后在 2020 年出现大幅飙升
-在两次差分中，我首先出现大幅飙升，然后在 2020 年出现低点
-两者在 ADF 测试中的 p 值几乎相同（约为 .01）。
-
-在这种情况下，最好的差分方法是什么，以获得更好的 ARIMA？（我在 Rstudio 中工作）谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/657158/arima-log-differencing-is-better-tnan-two-order-differencing-on-inflation-data</guid>
-      <pubDate>Tue, 12 Nov 2024 19:08:03 GMT</pubDate>
-    </item>
-    <item>
       <title>进行“最大 p 值估计”而不是最大似然估计</title>
       <link>https://stats.stackexchange.com/questions/657156/doing-maximum-p-value-estimation-instead-of-maximum-likelihood</link>
       <description><![CDATA[每当我们进行最大似然估计时，我们都会寻找最大化数据概率密度的参数。另一方面，当我们计算 p 值时，我们会查看获得至少与数据一样极端的事物的尾部概率。这种不匹配通常会导致数据在其自己的 MLE 参数上无法通过假设检验。
@@ -180,6 +275,29 @@ Fleiss&#39; Kappa 是否以这些方式正确使用并考虑到这些目标？
 例如，假设我们从 $[0, \theta]$ 均匀地抽取一个 $X$，并且我们想要估计 $\theta$。MLE 只是 $\hat \theta = X$。但是，假设我们使用双侧假设检验，以 $\hat theta$ 的值作为零假设，则 $X$ 是一个极端异常值，p 值为 0。选择 $\hat \theta$ 来最大化该 p 值，则会得到 $\hat \theta = 2X$，在这种情况下也与 MVUE 一致。]]></description>
       <guid>https://stats.stackexchange.com/questions/657156/doing-maximum-p-value-estimation-instead-of-maximum-likelihood</guid>
       <pubDate>Tue, 12 Nov 2024 18:04:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>零点的中位绝对偏差</title>
+      <link>https://stats.stackexchange.com/questions/657149/median-absolute-deviation-of-zero</link>
+      <description><![CDATA[我使用 MAD 来衡量不同数字数据分布的分布范围，其中一些分布的 MAD 为 0。我很好奇，这怎么可能呢？如果我理解正确的话，MAD 是衡量数据集变异性的指标。我检查了一下，这些数据集的观测值并非全部相同。如果是这样的话，MAD 怎么会是零呢？
+对于那些好奇的人，我在 R 中使用 mad() 函数。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657149/median-absolute-deviation-of-zero</guid>
+      <pubDate>Tue, 12 Nov 2024 16:39:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>连接“自由度”的两种不同含义</title>
+      <link>https://stats.stackexchange.com/questions/657145/connecting-2-different-meanings-of-degree-of-freedom</link>
+      <description><![CDATA[我至少听说过 2 个“自由度”的含义。
+
+t 分布中的参数。
+
+统计量的最终计算中可以自由变化的值的数量（例如使用 $n-1$ 来估计样本方差）。
+
+
+它们之间有什么联系吗？
+这个问题来自 @Glen_b 在另一个主题中的评论。他说，“当某些随机变量（例如 t 统计量）具有 t 分布时，两个 df 之间存在联系。”]]></description>
+      <guid>https://stats.stackexchange.com/questions/657145/connecting-2-different-meanings-of-degree-of-freedom</guid>
+      <pubDate>Tue, 12 Nov 2024 15:32:46 GMT</pubDate>
     </item>
     <item>
       <title>柯西分布数据的模型比较</title>
@@ -198,65 +316,6 @@ Fleiss&#39; Kappa 是否以这些方式正确使用并考虑到这些目标？
 为了使引导程序工作，我认为我需要在每个磁场值下多次运行相同的测量。这样，我将获得每个磁场的峰值位置分布，可以在引导程序期间重新采样。不幸的是，我无法进行更多测量，所以我正在寻找其他选择。]]></description>
       <guid>https://stats.stackexchange.com/questions/657142/model-comparison-on-data-with-cauchy-distribution</guid>
       <pubDate>Tue, 12 Nov 2024 13:53:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>广义加性模型中的平滑因子相互作用</title>
-      <link>https://stats.stackexchange.com/questions/657140/smooth-factor-interactions-in-generalized-additive-models</link>
-      <description><![CDATA[我目前正在尝试理解 GAM 模型中的平滑因子相互作用，但我很难理解主效应和交互效应之间的分离。考虑以下简单函数：
-$$
-f(x) = \sin(x) + A + A\times \cos(x), 
-$$
-其中 $A$ 是取值为 0 或 1 的因子变量。
-对我来说，将不同的术语视为：
-$\sin(x)$：协变量 x 的主要影响
-$A$：因子变量的主要影响
-$A\times\cos(x)$：A 和 x 之间的相互作用。
-我现在构建一个合成数据集，如下所示如下：
-data &lt;- expand.grid(x = seq(0,10), A = c(0,1))
-data$y &lt;- sin(data$x) + data$A + data$A*cos(data$x)
-data$A &lt;- as.factor(data$A)
-
-我使用一个简单的交互模型来拟合这些：
-model &lt;- mgcv::gam(y ~ s(x) + A + ti(x, by = A),
-data = data,
-family = gaussian(),
-method = &quot;REML&quot;)
-
-我天真的期望是这个模型能够准确恢复上面的主要和交互效应。但这不是我从模型摘要或结果平滑中看到的。我的模型规范是否错误，或者我误解了平滑因子相互作用？
-系列：高斯
-
-链接函数：身份
-
-公式：
-y ~ s(x) + A + ti(x, by = A)
-
-参数系数：
-估计标准误差 t 值 Pr(&gt;|t|) 
-(截距) 0.12829 0.07626 1.682 0.126 
-A1 0.96205 0.10785 8.920 7.28e-06 ***
----
-显著性。代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-平滑项的近似显著性：
-edf Ref.df F p 值 
-s(x) 6.675 7.738 12.784 0.000457 ***
-ti(x):A0 2.666 2.827 5.253 0.028219 * 
-ti(x):A1 1.342 1.474 0.892 0.406407 
----
-显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-排名：18/19
-R-sq.(adj) = 0.937 偏差解释 = 97.2%
--REML = 19.568 尺度估计 = 0.063974 n = 22
-
-s(x):
-
-ti(x,A=0):
-
-ti(x,A=1)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/657140/smooth-factor-interactions-in-generalized-additive-models</guid>
-      <pubDate>Tue, 12 Nov 2024 12:23:29 GMT</pubDate>
     </item>
     <item>
       <title>执行单样本加权 t 检验的自由度是多少</title>
@@ -316,32 +375,6 @@ summary(model_forward)
 现在，由于经过转换的变量的重要性，我认为模型会将它们作为协变量，但与使用不经过转换的前向选择方法相比，我获得了更大的 AIC 和对数似然。我做错了什么吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/657144/logistic-regression-model-with-splines-covariates</guid>
       <pubDate>Tue, 12 Nov 2024 12:02:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>需要帮助 F 统计要求</title>
-      <link>https://stats.stackexchange.com/questions/657134/need-help-f-statistics-requirment</link>
-      <description><![CDATA[我做论文的时候卡在F检验，之前用0.05或者5%的概率值，但是检验结果不够或者超出条件，现在想试试用0.1或者10%的概率值来满足条件。
-我的问题是，10%的概率值有没有依据或者参考，这个概率值一定要是5%吗？有参考资料的请帮忙，谢谢
-我现在在eviews 10上使用面板模型]]></description>
-      <guid>https://stats.stackexchange.com/questions/657134/need-help-f-statistics-requirment</guid>
-      <pubDate>Tue, 12 Nov 2024 10:18:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何对各组进行比较，同时考虑所有组的每日波动？</title>
-      <link>https://stats.stackexchange.com/questions/657074/how-to-compare-groups-while-accounting-for-daily-fluctuations-in-all-groups</link>
-      <description><![CDATA[有一项新技术可以从地表水中获取和储存热量：
-在夏季，一台机器将湖中的热水泵送到热交换器。热量被转移到地下水库（例如，在冬季可用于加热建筑物）。
-在某些情况下，在热交换器前放置过滤器，以防止水生生物和碎屑穿过或堵塞热交换器。
-因此，这台机器有 2 或 3 个部件：泵、热交换器和（可能）过滤器。
-在机器之前和每个机器部件之后都有关于水的化学参数的数据。例如：叶绿素 a 浓度或溶解氧浓度。
-每两周在机器内/周围的至少两个位置测量一次化学参数。测量一个位置和另一个位置之间间隔 30 分钟。
-现在，我想知道是否有任何机器部件影响化学参数。例如：叶绿素浓度是否会因过滤器、热交换器和/或泵而下降？如果会，下降多少？
-问题在于，天然湖泊中的化学参数波动很大。叶绿素浓度可能在几分钟内很高，而在下几分钟内很低。而且某一天的浓度可能通常高于另一天。这实际上没有简单的（线性）模式。
-我不知道我是否可以校正一天中的变化。
-为了校正天之间的变化，我想我需要分别比较每个机器部件在每个测量日的测量值。例如，2024 年 11 月 11 日，过滤后的叶绿素 a 浓度明显低于湖中的浓度，但在 2024 年 9 月 8 日和 2024 年 10 月 5 日则并非如此。
-但是，我如何使用所有这些 p 值来得到一个答案：过滤器是否降低了叶绿素 a 浓度？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657074/how-to-compare-groups-while-accounting-for-daily-fluctuations-in-all-groups</guid>
-      <pubDate>Mon, 11 Nov 2024 12:00:47 GMT</pubDate>
     </item>
     </channel>
 </rss>
