@@ -4,21 +4,91 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 14 Nov 2024 15:18:04 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 14 Nov 2024 18:23:21 GMT</lastBuildDate>
+    <item>
+      <title>XGBoost 提前停止轮次</title>
+      <link>https://stackoverflow.com/questions/79189607/xgboost-early-stopping-rounds</link>
+      <description><![CDATA[下面的代码一直在崩溃，我不知道发生了什么
+import optuna
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# 假设 `X` 和 `y` 是你的特征矩阵和目标数组
+X_train, X_valid, y_train, y_valid = train_test_split(df_combined, y, test_size=0.2, random_state=42)
+
+# 为 Optuna 定义目标函数
+def objective(trial):
+# 为超参数建议值
+params = {
+&quot;objective&quot;: &quot;reg:squarederror&quot;,
+&quot;eval_metric&quot;: &quot;rmse&quot;,
+&quot;tree_method&quot;: &quot;hist&quot;, # 使用 hist 方法
+&quot;device&quot;: &quot;cuda&quot;, # 指定使用 GPU
+&quot;learning_rate&quot;: trial.suggest_float(&quot;learning_rate&quot;, 0.01, 0.3, log=True),
+&quot;max_depth&quot;: trial.suggest_int(&quot;max_depth&quot;, 3, 10),
+&quot;min_child_weight&quot;: trial.suggest_float(&quot;min_child_weight&quot;, 1, 10),
+&quot;gamma&quot;: trial.suggest_float(&quot;gamma&quot;, 0, 1),
+&quot;subsample&quot;: trial.suggest_float(&quot;subsample&quot;, 0.5, 1.0),
+&quot;colsample_bytree&quot;: trial.suggest_float(&quot;colsample_bytree&quot;, 0.5, 1.0),
+&quot;lambda&quot;: trial.suggest_float(&quot;lambda&quot;, 1e-3, 10.0, log=True),
+&quot;alpha&quot;: trial.suggest_float(&quot;alpha&quot;, 1e-3, 10.0, log=True),
+&quot;n_estimators&quot;: 1000 # 在模型初始化中定义 n_estimators
+}
+
+# 初始化模型
+model = xgb.XGBRegressor(**params)
+
+# 使用早期停止回调训练模型
+model.fit(
+X_train,
+y_train,
+eval_set=[(X_valid, y_valid)],
+verbose=False,
+early_stopping_rounds=50 # 如果之后没有改进则停止50 轮
+)
+
+# 预测并计算验证集的 RMSE
+preds = model.predict(X_valid)
+rmse = mean_squared_error(y_valid, preds, squared=False)
+
+return rmse # Optuna 将其最小化
+
+# 设置 Optuna 研究
+study = optuna.create_study(direction=&quot;minimize&quot;)
+
+# 优化超参数
+study.optimize(objective, n_trials=100, n_jobs=40) # 100 次试验，40 次并行作业
+
+# 显示最佳试验
+print(&quot;最佳试验：&quot;)
+trial = study.best_trial
+print(f&quot;值 (RMSE)：{trial.value}&quot;)
+print(&quot; 参数：&quot;)
+for key, value in trial.params.items():
+print(f&quot; {key}: {value}&quot;)
+
+我得到
+TypeError：XGBModel.fit() 获得意外的关键字参数“early_stopping_rounds”
+
+我已更新所有内容以确保我拥有所有更新的库。
+提前停止轮次是正确的（我认为），但由于某种原因，它会爆炸。]]></description>
+      <guid>https://stackoverflow.com/questions/79189607/xgboost-early-stopping-rounds</guid>
+      <pubDate>Thu, 14 Nov 2024 16:14:40 GMT</pubDate>
+    </item>
     <item>
       <title>我在 SVR 建模中做错了什么？</title>
       <link>https://stackoverflow.com/questions/79188969/what-have-i-done-wrong-in-my-svr-modeling</link>
-      <description><![CDATA[我尝试使用 SVR 模型预测风速，因为我的数据集都是连续数字。我按照惯例对数据进行训练测试分割，并使用 minmax 缩放器对数据集进行归一化。
+      <description><![CDATA[我正在尝试使用 SVR 模型预测风速，因为我的数据集都是连续数字。我按照惯例对数据进行训练测试分割，并使用 minmax 缩放器来规范化我的数据集。
 # 训练 - 测试分割
 X_train , X_test , y_train , y_test = train_test_split (X , y , test_size =0.3 , random_state =42)
 
-# 归一化数据 - MinMax 缩放器
+# 规范化数据 - MinMax 缩放器
 scaler = MinMaxScaler ()
 df_normalized = scaler.fit_transform(df)
 df_normalized = pd.DataFrame(df_normalized, columns=df.columns)
 X_train = scaler.fit_transform ( X_train )
 X_test = scaler.transform ( X_test )
-
 
 # 支持向量回归 (SVR) 模型
 svr_model = SVR(kernel=&#39;rbf&#39;)
@@ -28,26 +98,94 @@ svr_model.fit(X_train, y_train)
 y_pred = svr_model.predict(X_test)
 
 # 可视化 SVR 结果 
-plt.scatter(X_train, y_train, color = &#39;magenta&#39;, label = &#39;Actual Data&#39;)
-plt.plot(X_test, y_pred, color = &#39;blue&#39;, label = &#39;SVR Prediction&#39;)
+plt.scatter(X_train, y_train, color = &#39;magenta&#39;, label = &#39;实际数据&#39;)
+plt.plot(X_test, y_pred, color = &#39;blue&#39;, label = &#39;SVR 预测&#39;)
 plt.title(&quot;SVR - 风速预测&quot;)
-plt.xlabel(&#39;Position Level&#39;)
-plt.ylabel(&#39;Wind Speed&#39;)
+plt.xlabel(&#39;位置级别&#39;)
+plt.ylabel(&#39;风速&#39;)
 plt.legend()
 plt.show()
 
-plt.scatter(X_train, y_train, color = &#39;magenta&#39;, label = &#39;Actual&#39;) 存在问题数据&#39;)
+plt.scatter(X_train, y_train, color = &#39;magenta&#39;, label = &#39;实际数据&#39;)
 引发 ValueError(&quot;x 和 y 必须大小相同&quot;)
-ValueError: x 和 y 必须大小相同
-我尝试使用 X_grid 和 Y_grid，但问题相同。有人能帮我解决这个问题吗 ;-;]]></description>
+ValueError：x 和 y 必须大小相同
+
+我尝试使用 X_grid 和 Y_grid，但问题相同。有人能帮我解决这个问题吗？]]></description>
       <guid>https://stackoverflow.com/questions/79188969/what-have-i-done-wrong-in-my-svr-modeling</guid>
       <pubDate>Thu, 14 Nov 2024 13:30:38 GMT</pubDate>
     </item>
     <item>
+      <title>分割任务中神经网络中编码器层和解码器层的不一致</title>
+      <link>https://stackoverflow.com/questions/79188395/inconsistency-of-encoder-and-decoder-layers-in-a-neural-network-for-a-segmentati</link>
+      <description><![CDATA[在我的神经网络中，瓶颈层之后，它拒绝接受该值并给出错误：
+无效的 output_size &#39;torch.Size(\[16, 16\])&#39;（dim 0 必须介于 16 和 18 之间）。
+
+这是我的模型的代码：
+class SegNet(nn.Module):
+def __init__(self):
+super().__init__()
+
+self.enc_conv0 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=2, padding=2)
+self.enc_conv1 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=2, padding=2)
+self.enc_conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=2)
+self.enc_conv3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=2)
+
+self.pool0 = nn.MaxPool2d(kernel_size=2, stride=1, return_indices=True) # 256 -&gt; 128
+self.pool1 = nn.MaxPool2d(kernel_size=2, stride=1, return_indices=True) # 128 -&gt; 64
+self.pool2 = nn.MaxPool2d(kernel_size=2, stride=1, return_indices=True) # 64 -&gt; 32
+self.pool3 = nn.MaxPool2d(kernel_size=2, stride=1, return_indices=True) # 32 -&gt; 16
+
+# 瓶颈
+self.bottleneck_conv = nn.Conv2d(in_channels=256, out_channels=256, kernel_size=1, stride=1)
+
+# 解码器（上采样）
+
+self.dec_conv0 = nn.Conv2d(in_channels=256, out_channels=128, kernel_size=3, stride=2, padding=2)
+self.dec_conv1 = nn.Conv2d(in_channels=128, out_channels=64, kernel_size=3, stride=2, padding=2)
+self.dec_conv2 = nn.Conv2d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=2)
+self.dec_conv3 = nn.Conv2d(in_channels=32, out_channels=2, kernel_size=3, stride=2, padding=2)
+
+self.upsample0 = nn.MaxUnpool2d(kernel_size=2, stride=1) # 16 -&gt; 32
+self.upsample1 = nn.MaxUnpool2d(kernel_size=2, stride=1) # 32 -&gt; 64
+self.upsample2 = nn.MaxUnpool2d(kernel_size=2, stride=1) # 64 -&gt; 128
+self.upsample3 = nn.MaxUnpool2d(kernel_size=2, stride=1) # 128 -&gt; 256
+
+def forward(self, x):
+# 编码器
+print(f&#39;x = {x.size()}&#39;)
+e0, indices0 = self.pool0(F.relu(self.enc_conv0(x)))
+print(f&#39;e0 = {e0.size()}&#39;)
+e1, indices1 = self.pool1(F.relu(self.enc_conv1(e0)))
+print(f&#39;e1 = {e1.size()}&#39;)
+e2, indices2 = self.pool2(F.relu(self.enc_conv2(e1)))
+print(f&#39;e2 = {e2.size()}&#39;)
+e3, indices3 = self.pool3(F.relu(self.enc_conv3(e2)))
+print(f&#39;e3 = {e3.size()}&#39;)
+
+# 瓶颈
+b = self.bottleneck_conv(e3)
+print(b.size())
+
+# 解码器
+d0 = F.relu(self.dec_conv0(self.upsample0(b, indices3, output_size=e3.size()))) #self.upsample0(F.relu(self.dec_conv0(b)), indices3)
+print(f&#39;d0 = {d0.size()}&#39;)
+d1 = F.relu(self.dec_conv1(self.upsample1(d0, indices2, output_size=e2.size())))
+print(f&#39;d1 = {d1.size()}&#39;)
+d2 = F.relu(self.dec_conv2(self.upsample2(d1, indices1, output_size=e1.size())))
+print(f&#39;d2 = {d2.size()}&#39;)
+d3 = self.dec_conv3(self.upsample3(d2, indices0, output_size=e0.size())) # 无激活
+print(f&#39;d3 = {d3.size()}&#39;)
+return d3
+
+当值不合适时，我已经解决过许多类似的问题，但我不知道如何处理这个问题。]]></description>
+      <guid>https://stackoverflow.com/questions/79188395/inconsistency-of-encoder-and-decoder-layers-in-a-neural-network-for-a-segmentati</guid>
+      <pubDate>Thu, 14 Nov 2024 10:42:35 GMT</pubDate>
+    </item>
+    <item>
       <title>无法训练我的 UNET 多类别细分模型</title>
       <link>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</link>
-      <description><![CDATA[我尝试使用 pytorch 从头开始​​制作 UNET，但什么也没得到，只有黑色蒙版作为模型的输出。我需要分割汽车上的损坏，所以我实现了彩色图。我确信 70% 的数据集有问题，正是这张彩色图的问题。这是多类预测任务，所以我使用交叉熵损失函数。我将提供我的数据集和训练文件的代码。
-#dataset.py
+      <description><![CDATA[我尝试使用 pytorch 从头开始​​制作 UNET。我的模型输出只有黑色蒙版。我需要分割汽车上的损坏，所以我实现了一个彩色图。我确信 70% 的数据集有问题，而这个彩色图恰恰就是其中的原因。任务是多类预测，所以我使用交叉熵损失函数。我将提供我的数据集和训练文件的代码。
+# dataset.py
 import os
 from PIL import Image
 from torch.utils.data import Dataset
@@ -82,7 +220,7 @@ label_mask = torch.tensor(label_mask, dtype=torch.long)
 
 返回图像，label_mask
 
-#train.py
+# train.py
 从模型导入 UNET
 从 tqdm 导入 tqdm
 从数据集导入 Segm_Dataset
@@ -99,7 +237,7 @@ NUM_WORKERS = 2
 IMAGE_HEIGHT = 180
 IMAGE_WIDTH = 180
 PIN_MEMORY = True
-LOAD_MODEL = False
+LOAD_MODEL =错误
 TRAIN_IMG_DIR = r&#39;data\train\images&#39;
 TRAIN_MASK_DIR = r&#39;data\train\masks&#39;
 VAL_IMG_DIR = r&#39;data\val\images&#39;
@@ -111,10 +249,10 @@ color_map = {
 (166, 255, 71): 1, # 破损部分：#A6FF47
 (180, 45, 56): 2, # 划痕：#B42D38
 (225, 150, 96): 3, # 破裂：#E19660
-(144, 60, 89): 4, # 凹痕：#903C59
-(167, 116, 27): 5, # 剥落：#A7741B
-(180, 14, 19): 6, # 油漆剥落：#B40E13
-(115, 194, 206): 7, # 腐蚀：#73C2CE
+(144, 60, 89): 4, # 凹痕： #903C59
+(167, 116, 27): 5, # 剥落: #A7741B
+(180, 14, 19): 6, # 油漆剥落: #B40E13
+(115, 194, 206): 7, # 腐蚀: #73C2CE
 }
 
 train_dataset = Segm_Dataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, color_map)
@@ -170,9 +308,11 @@ checkpoint = {
 
 torch.save(checkpoint, os.path.join(SAVED_MODELS_PATH, f&#39;unet_epoch_{epoch}.pth&#39;))
 
-一些训练时期：
-时期：[9/10]：100%|████████████████| 888/888 [34:24&lt;00:00, 2.32s/it, train_loss=0.000271, val_batch=880, val_loss=0.000278]
-纪元：[10/10]：100%|█████████████████| 888/888 [34:29&lt;00:00, 2.33s/it, train_loss=0.000163, val_batch=880, val_loss=0.000167]]]></description>
+一些训练 epoches:
+Epoch: [9/10]: 100%|████████████████| 888/888 [34:24&lt;00:00, 2.32s/it, train_loss=0.000271, val_batch=880, val_loss=0.000278]
+
+Epoch：[10/10]：100%|███████████████| 888/888 [34:29&lt;00:00, 2.33s/it, train_loss=0.000163, val_batch=880, val_loss=0.000167]
+]]></description>
       <guid>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</guid>
       <pubDate>Thu, 14 Nov 2024 09:17:27 GMT</pubDate>
     </item>
@@ -423,7 +563,7 @@ best_iteration = xgb_model.best_iteration
       <title>模型严重偏向少数群体，但准确率、召回率和精确率得分都非常好[关闭]</title>
       <link>https://stackoverflow.com/questions/79184102/model-extremely-biased-towards-the-minority-class-but-the-accuracy-recall-and-pr</link>
       <description><![CDATA[我正在使用 xgboost 分类器来预测下一次事件发生的时间。这是一个二元分类，0:1 的比例是 1.6:1
-验证集和验证预测中的类分布相似，性能指标非常好，但是混淆矩阵显示几乎所有样本都被归入类 1（少数类），而不是 0（多数类），你们知道这是为什么吗？
+验证集和验证预测中的类分布相似，性能指标确实很好，但是混淆矩阵显示几乎所有样本都被归入类 1（少数类），而不是 0（多数类），你们知道这是为什么吗？
 我尝试处理 scale_pos_weight：
 
 我首先将 scale_pos_weight 提高到 1.6，但它给了我更多类 1 偏斜的结果。
@@ -488,80 +628,50 @@ np.mean(means_of_each_array)
       <pubDate>Wed, 13 Nov 2024 05:52:27 GMT</pubDate>
     </item>
     <item>
-      <title>VSCode 安装 hugginface relik 库时出错</title>
-      <link>https://stackoverflow.com/questions/79182549/vscode-install-error-for-the-hugginface-relik-library</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79182549/vscode-install-error-for-the-hugginface-relik-library</guid>
-      <pubDate>Tue, 12 Nov 2024 19:53:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>Pytorch + Ray Tune 报告 ImplicitFunc 太大，不知道哪个引用很大</title>
-      <link>https://stackoverflow.com/questions/79181943/pytorch-ray-tune-reporting-implicitfunc-is-too-large-no-idea-which-reference</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79181943/pytorch-ray-tune-reporting-implicitfunc-is-too-large-no-idea-which-reference</guid>
-      <pubDate>Tue, 12 Nov 2024 16:21:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法使用 transformers 在本地加载模型</title>
-      <link>https://stackoverflow.com/questions/79169173/fail-to-use-transformers-to-load-model-locally</link>
-      <description><![CDATA[我已使用 transformers 函数将整个模型
-下载到本地目录：/home/marcus/Desktop/project/OCR_transformer_practices/models/moondream2
-代码如下：
-from huggingface_hub import snap_download
-
-# 指定模型 ID 和修订版本
-model_id = &quot;vikhyatk/moondream2&quot;
-revision = &quot;2024-08-26&quot;
-
-# 指定要下载模型的目录
-download_directory = &quot;/home/marcus/Desktop/project/OCR_transformer_practices/models/moondream2&quot; # 将其更改为您想要的路径
-
-# 将模型文件下载到指定目录
-local_model_path = snapping_download(repo_id=model_id, revision=revision, local_dir=download_directory)
-
-模型保存在目录中：
-当我使用以下代码通过 transformers 从本地目录加载模型时：
-from PIL import Image
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from pathlib import Path
-import os
-
-# 获取父目录
-project_dir = Path(__file__).parent
-model_folder_name = &#39;models/moondream2&#39;
-model_dir = str(project_dir/model_folder_name)
-
-# 使用正确的模型 ID 加载 tokenizer 和模型
-# model_id = &quot;vikhyatk/moondream2&quot;
-tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=model_dir, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained( pretrained_model_name_or_path=model_dir, use_safetensors=True, trust_remote_code=True,)
-
-弹出错误消息：
-回溯（最近一次调用最后一次）：
-文件“/home/marcus/Desktop/project/OCR_transformer_practices/moondream_test.py”，第 15 行，位于&lt;module&gt;
-model = AutoModelForCausalLM.from_pretrained( pretrained_model_name_or_path=model_dir, use_safetensors=True, trust_remote_code=True,)
-文件 &quot;/home/marcus/Desktop/project/OCR_transformer_practices/.venv/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py&quot;，第 553 行，在 from_pretrained 中
-model_class = get_class_from_dynamic_module(
-文件 &quot;/home/marcus/Desktop/project/OCR_transformer_practices/.venv/lib/python3.10/site-packages/transformers/dynamic_module_utils.py&quot;，第 552 行，在 get_class_from_dynamic_module 中
-return get_class_in_module(class_name, final_module, force_reload=force_download)
-文件 &quot;/home/marcus/Desktop/project/OCR_transformer_practices/.venv/lib/python3.10/site-packages/transformers/dynamic_module_utils.py&quot;，第 237 行，在 get_class_in_module 中
-module_files: List[Path] = [module_file] + sorted(map(Path, get_relative_import_files(module_file)))
-文件 &quot;/home/marcus/Desktop/project/OCR_transformer_practices/.venv/lib/python3.10/site-packages/transformers/dynamic_module_utils.py&quot;，第 128 行，在 get_relative_import_files 中
-new_imports.extend(get_relative_imports(f))
-文件&quot;/home/marcus/Desktop/project/OCR_transformer_practices/.venv/lib/python3.10/site-packages/transformers/dynamic_module_utils.py&quot;, line 97, in get_relative_imports
-with open(module_file, &quot;r&quot;, encoding=&quot;utf-8&quot;) as f:
-FileNotFoundError: [Errno 2] 没有这样的文件或目录：&#39;/home/marcus/.cache/huggingface/modules/transformers_modules/moondream2/fourier_features.py&#39;
-
-如何解决？]]></description>
-      <guid>https://stackoverflow.com/questions/79169173/fail-to-use-transformers-to-load-model-locally</guid>
-      <pubDate>Fri, 08 Nov 2024 07:38:50 GMT</pubDate>
-    </item>
-    <item>
       <title>尝试保存自定义 Keras 模型时出现“TypeError：不支持的整数大小 (0)”</title>
       <link>https://stackoverflow.com/questions/79032646/typeerror-unsupported-integer-size-0-when-attempted-to-save-custom-keras-mo</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79032646/typeerror-unsupported-integer-size-0-when-attempted-to-save-custom-keras-mo</guid>
       <pubDate>Fri, 27 Sep 2024 19:14:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>随机森林的蜂群图与 SHAP 值</title>
+      <link>https://stackoverflow.com/questions/78037608/bee-swarm-plot-with-shap-values-for-random-forest</link>
+      <description><![CDATA[在下面提供的代码中，我将可视化随机森林模型的 SHAP 值结果。
+代码在 R 中，如下所示：
+# 加载必要的库
+library(randomForest)
+library(DALEX)
+library(beeswarm)
+
+data &lt;- my_database
+
+# 将数据拆分为特征和目标
+features &lt;- data[, -which(names(data) %in% &quot;Clus.1&quot;)]
+target &lt;- data$Clus.1
+
+# 训练随机森林模型
+rf_model &lt;- randomForest(features, target)
+
+# 创建解释器对象
+explainer &lt;- DALEX::explain(rf_model, data = features, y = target)
+
+# 计算 SHAP 值
+shapley_values &lt;- DALEX::predict_parts(explainer, new_observation = features)
+
+# 绘制蜜蜂群
+beeswarm(shapley_values$shap_1)
+
+我尝试使用 beeswarm 包
+最后出现了这个错误：
+beeswarm(shapley_values$shap_1)
+rep(nms, sapply(x, length)) 中的错误：无效的“times”参数
+
+您能否建议我 beeswarm 或其他类似包有什么问题？
+我尝试执行的操作的输出
+如果我使用 plot(shapley_values)，则这是我得到的输出]]></description>
+      <guid>https://stackoverflow.com/questions/78037608/bee-swarm-plot-with-shap-values-for-random-forest</guid>
+      <pubDate>Wed, 21 Feb 2024 23:15:30 GMT</pubDate>
     </item>
     </channel>
 </rss>
