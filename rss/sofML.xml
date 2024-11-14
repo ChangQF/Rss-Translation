@@ -4,7 +4,147 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 14 Nov 2024 06:24:57 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 14 Nov 2024 09:18:23 GMT</lastBuildDate>
+    <item>
+      <title>无法训练我的 UNET 多类别细分模型</title>
+      <link>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</link>
+      <description><![CDATA[我尝试使用 pytorch 从头开始​​制作 UNET，但什么也没得到，只有黑色蒙版作为模型的输出。我需要分割汽车上的损坏，所以我实现了彩色图。我确信 70% 的数据集有问题，正是这张彩色图的问题。这是多类预测任务，所以我使用交叉熵损失函数。我将提供我的数据集和训练文件的代码。
+#dataset.py
+import os
+from PIL import Image
+from torch.utils.data import Dataset
+import numpy as np
+import torch
+
+class Segm_Dataset(Dataset):
+def __init__(self, image_dir, mask_dir, color_map):
+self.image_dir = image_dir
+self.mask_dir = mask_dir
+self.image_files = os.listdir(self.image_dir)
+self.mask_files = os.listdir(self.mask_dir)
+self.color_map = color_map
+
+def __len__(self):
+return len(self.image_files)
+
+def __getitem__(self, idx):
+image_path = os.path.join(self.image_dir, self.image_files[idx])
+mask_path = os.path.join(self.mask_dir, self.mask_files[idx])
+image = np.array(Image.open(image_path).convert(&#39;RGB&#39;))
+mask = np.array(Image.open(mask_path).convert(&#39;RGB&#39;), dtype=np.float32)
+label_mask = np.zeros((mask.shape[0], mask.shape[1]), dtype=np.int64)
+
+for color, label in self.color_map.items():
+color_array = np.array(color, dtype=np.float32)
+mask_area = np.all(mask == color_array, axis=-1)
+label_mask[mask_area] = label
+
+image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
+label_mask = torch.tensor(label_mask, dtype=torch.long)
+
+返回图像，label_mask
+
+#train.py
+从模型导入 UNET
+从 tqdm 导入 tqdm
+从数据集导入 Segm_Dataset
+导入 torch
+从 torch.utils.data 导入 DataLoader
+导入 torch.nn 作为 nn
+导入 torch.optim 作为 optim
+导入 os
+
+LEARNING_RATE = 1e-4
+BATCH_SIZE = 5
+NUM_EPOCHS = 10
+NUM_WORKERS = 2
+IMAGE_HEIGHT = 180
+IMAGE_WIDTH = 180
+PIN_MEMORY = True
+LOAD_MODEL = False
+TRAIN_IMG_DIR = r&#39;data\train\images&#39;
+TRAIN_MASK_DIR = r&#39;data\train\masks&#39;
+VAL_IMG_DIR = r&#39;data\val\images&#39;
+VAL_MASK_DIR = r&#39;data\val\masks&#39;
+SAVED_MODELS_PATH = r&#39;saved_models&#39;
+
+color_map = {
+(19, 164, 201): 0, # 缺失部分：#13A4C9
+(166, 255, 71): 1, # 破损部分：#A6FF47
+(180, 45, 56): 2, # 划痕：#B42D38
+(225, 150, 96): 3, # 破裂：#E19660
+(144, 60, 89): 4, # 凹痕：#903C59
+(167, 116, 27): 5, # 剥落：#A7741B
+(180, 14, 19): 6, # 油漆剥落：#B40E13
+(115, 194, 206): 7, # 腐蚀：#73C2CE
+}
+
+train_dataset = Segm_Dataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, color_map)
+train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+val_dataset = Segm_Dataset(VAL_IMG_DIR, VAL_MASK_DIR, color_map)
+val_loader = DataLoader(dataset=val_dataset, batch_size=BATCH_SIZE)
+
+model = UNET(in_channels=3, out_channels=len(color_map))
+model = model.cuda() if torch.cuda.is_available() else model
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+for epoch in range(NUM_EPOCHS):
+train_loop = tqdm(enumerate(train_loader), total=len(train_loader))
+
+for batch_index, (data, target) in train_loop: 
+#前向传递
+scores = model(data)
+train_loss = criterion(scores, target)
+
+#后向传递
+optimizer.zero_grad()
+train_loss.backward()
+
+#梯度下降或优化器步骤
+optimizer.step()
+
+if batch_index % 10 == 0:
+current_batch = batch_index
+val_loss = 0
+with torch.no_grad():
+for val_data, val_targets in val_loader:
+val_scores = model(val_data)
+val_loss = criterion(val_scores, val_targets)
+
+#更新进度条
+train_loop.set_description(f&#39;Epoch: [{epoch+1}/{NUM_EPOCHS}]&#39;)
+train_loop.set_postfix(train_loss=train_loss.item(), val_loss=val_loss.item(), val_batch=current_batch)
+
+else:
+train_loop.set_description(f&#39;Epoch: [{epoch+1}/{NUM_EPOCHS}]&#39;)
+train_loop.set_postfix(train_loss=train_loss.item(), val_loss=val_loss.item(), val_batch=current_batch)
+
+checkpoint = {
+&#39;epoch&#39;: epoch + 1,
+&#39;model_state_dict&#39;: model.state_dict(),
+&#39;optimizer_state_dict&#39;: optimizer.state_dict(),
+&#39;train_loss&#39;: train_loss.item(),
+&#39;val_loss&#39;: val_loss.item()
+}
+
+torch.save(checkpoint, os.path.join(SAVED_MODELS_PATH, f&#39;unet_epoch_{epoch}.pth&#39;))
+
+一些训练时期：
+时期：[9/10]：100%|████████████████| 888/888 [34:24&lt;00:00, 2.32s/it, train_loss=0.000271, val_batch=880, val_loss=0.000278]
+纪元：[10/10]：100%|█████████████████| 888/888 [34:29&lt;00:00, 2.33s/it, train_loss=0.000163, val_batch=880, val_loss=0.000167]]]></description>
+      <guid>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</guid>
+      <pubDate>Thu, 14 Nov 2024 09:17:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>RuntimeError：预期隐藏[0]大小（2，50，1024），在PyTorch中得到[1，50，1024]</title>
+      <link>https://stackoverflow.com/questions/79187818/runtimeerror-expected-hidden0-size-2-50-1024-got-1-50-1024-in-pytorc</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79187818/runtimeerror-expected-hidden0-size-2-50-1024-got-1-50-1024-in-pytorc</guid>
+      <pubDate>Thu, 14 Nov 2024 07:55:37 GMT</pubDate>
+    </item>
     <item>
       <title>寻求顶点项目的建议：本地 Raspberry Pi 与使用深度学习的多物联网系统的基于云的解决方案</title>
       <link>https://stackoverflow.com/questions/79186425/seeking-advice-for-capstone-project-local-raspberry-pi-vs-cloud-based-solution</link>
@@ -30,33 +170,129 @@ TL;DR：争论使用 Raspberry Pi 为每个绘图提供本地解决方案，这�
       <pubDate>Wed, 13 Nov 2024 19:43:38 GMT</pubDate>
     </item>
     <item>
+      <title>使用 Apache Spark ML 进行预测</title>
+      <link>https://stackoverflow.com/questions/79186067/prediction-with-apache-spark-ml</link>
+      <description><![CDATA[我是 Apache Spark ML 的新手。
+我想预测按年龄和国家/地区划分的余额。作为输入，我有一个以下格式的 CSV 文件：
+RowNumber,Age,Country,Balance
+
+模型已构建，也可以针对测试数据进行训练。到目前为止一切正常。
+我现在的问题是当我想对新客户记录进行预测时
+Dataset&lt;Row&gt; newCustomer = spark.createDataFrame(Collections.singletonList(
+new Customer(28, ‘Germany’)), Customer.class);
+Dataset&lt;Row&gt; newCustomerPrediction = model.transform(newCustomer);
+
+我收到以下错误消息：
+java.lang.IllegalArgumentException：CountryIndex 不存在。可用：年龄、国家。
+
+如何获取新数据集的预测？
+public static void main(String[] args) {
+
+SparkSession spark = SparkSession
+.builder()
+.master(&quot;local[*]&quot;) 
+.appName(&quot;JavaGeneralizedLinearRegressionExample&quot;)
+.getOrCreate();
+
+Dataset&lt;Row&gt; data = spark.read()
+.option(&quot;header&quot;, &quot;true&quot;)
+.option(&quot;inferSchema&quot;, &quot;true&quot;)
+.option(&quot;delimiter&quot;, &quot;,&quot;) // oder &quot;,&quot;您可以使用 Dataiformat
+.csv(&quot;/data/testdaten_v4.csv&quot;);
+
+StringIndexer countryIndexer = new StringIndexer()
+.setInputCol(&quot;Country&quot;)
+.setOutputCol(&quot;CountryIndex&quot;)
+.setHandleInvalid(&quot;skip&quot;);
+OneHotEncoder countryEncoder = new OneHotEncoder()
+.setInputCol(&quot;CountryIndex&quot;)
+.setOutputCol(&quot;CountryVec&quot;);
+
+VectorAssembler assembler = new VectorAssembler()
+.setInputCols(new String[]{&quot;Age&quot;, &quot;CountryVec&quot;}) // 可以添加其他 Features
+.setOutputCol(&quot;features&quot;);
+
+StandardScaler scaler = new StandardScaler()
+.setInputCol(&quot;features&quot;)
+.setOutputCol(&quot;scaledFeatures&quot;);
+
+LinearRegression lr = new LinearRegression()
+.setLabelCol(&quot;Balance&quot;)
+.setFeaturesCol(&quot;scaledFeatures&quot;)
+.setMaxIter(100)
+.setRegParam(0.3)
+.setElasticNetParam(0.8);
+
+Pipeline pipeline = new Pipeline()
+.setStages(new PipelineStage[]{countryIndexer, countryEncoder, assembler, scaler, lr});
+
+PipelineModel model = pipeline.fit(data);
+
+Dataset&lt;Row&gt;[] splits = data.randomSplit(new double[]{0.8, 0.2}, 42);
+数据集&lt;Row&gt; trainData = splits[0];
+数据集&lt;Row&gt; testData = splits[1];
+
+数据集&lt;Row&gt; predictions = model.transform(testData);
+predictions.select(&quot;Age&quot;, &quot;Country&quot;, &quot;Balance&quot;, &quot;prediction&quot;).show();
+
+RegressionEvaluator evaluator = new RegressionEvaluator()
+.setLabelCol(&quot;Balance&quot;)
+.setPredictionCol(&quot;prediction&quot;)
+.setMetricName(&quot;rmse&quot;);
+double rmse = evaluator.evaluate(predictions);
+
+数据集&lt;Row&gt; newCustomer = spark.createDataFrame(Collections.singletonList(
+new Customer(28, &quot;Germany&quot;)), Customer.class);
+Dataset&lt;Row&gt; newCustomerPrediction = model.transform(newCustomer);
+newCustomerPrediction.select(&quot;prediction&quot;).show();
+
+spark.stop();
+}
+
+public static class Customer {
+private int Age;
+private String Country;
+
+public Customer(int age, String country) {
+this.Age = age;
+this.Country = country;
+}
+
+public int getAge() { return Age; }
+public String getCountry() { return Country; } 
+}
+]]></description>
+      <guid>https://stackoverflow.com/questions/79186067/prediction-with-apache-spark-ml</guid>
+      <pubDate>Wed, 13 Nov 2024 17:42:53 GMT</pubDate>
+    </item>
+    <item>
       <title>使用《Python 深度学习》中的 Keras 进行多类分类的准确率与教科书上的准确率相差甚远</title>
       <link>https://stackoverflow.com/questions/79185545/multiclass-classifier-using-keras-from-deep-learning-with-python-yields-very-d</link>
-      <description><![CDATA[以下是 François Chollet 所著《使用 Python 进行深度学习》第 4 章中多类分类器的代码。教科书提到此代码将产生 &gt;95% 的准确率，但我的环境似乎停留在 50%。
+      <description><![CDATA[以下是 François Chollet 所著《使用 Python 进行深度学习》第 4 章中多类分类器的代码。教科书提到此代码将产生&gt;95% 的训练准确率，但我的环境似乎与教科书相比产生了非常低的准确率&lt;50%。
 Keras 版本 - 3.6
 Tensorflow - 2.18
 硬件 - Apple M1 Pro
 import keras
 from tensorflow.keras.datasets import reuters
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras import layer
 import matplotlib.pyplot as plt
 import numpy as np
 
 (train_data, train_labels), (test_data, test_labels) = reuters.load_data(num_words=10000)
 
-# 多热编码文本。每个序列都是一篇新闻文章
-
 def vectorize_sequences(sequences, dimension=10000):
 results = np.zeros((len(sequences), dimension))
 for i, serial in enumerate(sequences):
-for j in serial:
+for j in series:
 results[i, j] = 1.
 return results
 
 x_train = vectorize_sequences(train_data)
 x_test = vectorize_sequences(test_data)
 
-# 模型定义
+y_train = to_categorical(train_labels)
+y_test = to_categorical(test_labels)
 
 model = keras.Sequential([
 layer.Dense(64,activation=&quot;relu&quot;),
@@ -81,19 +317,22 @@ partial_y_train = y_train[1000:]
 history = model.fit(
 partial_x_train,
 partial_y_train,
-epochs=20,
+epochs=10,
 batch_size=512,
-validation_data=(x_val,y_val)
+validation_data=(x_val, y_val)
 )
 
-# 绘制准确度
-
+# 绘制训练图 &amp;验证准确率
+history_dict = history.history
+loss_values = history_dict[&quot;loss&quot;]
+val_loss_values = history_dict[&quot;val_loss&quot;]
+epochs = range(1, len(loss_values) + 1)
 acc = history_dict[&quot;accuracy&quot;]
 val_acc = history_dict[&quot;val_accuracy&quot;]
 plt.plot(epochs, acc, &quot;bo&quot;, label=&quot;Training acc&quot;)
-plt.plot(epochs, val_acc, &quot;b&quot;, label=&quot;验证 acc&quot;)
+plt.plot(epochs, val_acc, &quot;b&quot;, label=&quot;Validation acc&quot;)
 plt.xlabel(&quot;Epochs&quot;)
-plt.ylabel(&quot;准确度&quot;)
+plt.ylabel(&quot;Accuracy&quot;)
 plt.legend()
 plt.show()
 
@@ -225,49 +464,6 @@ np.mean(means_of_each_array)
       <pubDate>Tue, 12 Nov 2024 16:21:39 GMT</pubDate>
     </item>
     <item>
-      <title>输入数据类型与 SHAP 中请求的输入类型不匹配</title>
-      <link>https://stackoverflow.com/questions/79181696/input-data-type-does-not-match-the-requested-input-type-in-shap</link>
-      <description><![CDATA[我创建了一个自动编码器模型，而不是使用 Model()。
-但我想分析输入矩阵的元素特征，以估计每个元素对潜在空间值的贡献。我使用 SHAP 深度解释器进行分析。但我自己创建的模型与 SHAP 中请求的数据类型不匹配。
-我想问是否有其他 SHAP 算法可以使用 tensorflow.tensor 而不是 keras.tensor。
-错误信息：
-raise ValueError(
-ValueError：所有 `inputs` 值都必须是 KerasTensors。收到：inputs=[[[ 0.5075143 1.1158173 0.27439427 ... 0.44567809 0.82088786
-
-warnings.warn(&quot;您的 TensorFlow 版本比 2.4.0 新，因此图形支持已在 Eager 模式下被移除，并且一些静态图可能不受支持。请参阅 PR #1483 进行讨论。&quot;)
-multiprocessing.pool.RemoteTraceback: 
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79181696/input-data-type-does-not-match-the-requested-input-type-in-shap</guid>
-      <pubDate>Tue, 12 Nov 2024 15:12:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>当我想运行 HuggingFace 模型时，Jupyter Notebook 崩溃了</title>
-      <link>https://stackoverflow.com/questions/79181010/jupyter-notebook-is-crashing-when-i-want-to-run-huggingface-models</link>
-      <description><![CDATA[我使用 Jupyter Notebook 运行 HuggingFace 的一些 ML 模型。
-我使用的是 Mac（M2 芯片，内存 32 GB）
-这是我的代码：
-import torch
-from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
-
-# 步骤 1：从 Hugging Face 的 Model Hub 中选择一个预先训练的 NER 模型
-# 这里我们使用&quot;dbmdz/bert-large-cased-finetuned-conll03-english&quot;，这是一个在 CoNLL-2003 数据集上微调的常见 NER 模型
-model_name = &quot;dbmdz/bert-large-cased-finetuned-conll03-english&quot;
-
-# 步骤 2：加载模型和 tokenizer
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForTokenClassification.from_pretrained(model_name)
-
-在步骤 2 中，我的内核总是崩溃。我尝试了几种模型，但总是一样。这是错误：
-内核重新启动
-&lt;kernel name&gt; 的内核似乎已死。它将自动重新启动。
-
-你能帮帮我吗？
-我的内存没有满，笔记本电脑是全新的。]]></description>
-      <guid>https://stackoverflow.com/questions/79181010/jupyter-notebook-is-crashing-when-i-want-to-run-huggingface-models</guid>
-      <pubDate>Tue, 12 Nov 2024 12:02:09 GMT</pubDate>
-    </item>
-    <item>
       <title>无法使用 transformers 在本地加载模型</title>
       <link>https://stackoverflow.com/questions/79169173/fail-to-use-transformers-to-load-model-locally</link>
       <description><![CDATA[我已使用 transformers 函数将整个模型
@@ -328,76 +524,6 @@ FileNotFoundError: [Errno 2] 没有这样的文件或目录：&#39;/home/marcus/
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79032646/typeerror-unsupported-integer-size-0-when-attempted-to-save-custom-keras-mo</guid>
       <pubDate>Fri, 27 Sep 2024 19:14:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 Tensorflow 在低资源语言和葡萄牙语之间进行机器翻译的语言模型</title>
-      <link>https://stackoverflow.com/questions/78911175/a-language-model-for-machine-translation-between-a-low-resource-language-and-por</link>
-      <description><![CDATA[我正在尝试使用 Tensorflow 训练一种语言模型，用于在低资源语言和葡萄牙语之间进行机器翻译。不幸的是，我收到以下错误：
-PS C:\Users\myuser\PycharmProjects\teste&gt; python .\tensorflow_model.py 
-2024-08-23 21:29:50.839647：I tensorflow/core/platform/cpu_feature_guard.cc:182] 此 TensorFlow 二进制文件经过优化，可在性能关键型操作中使用可用的 CPU 指令。
-要启用以下指令：SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX512F AVX512_VNNI AVX512_BF16 FMA，在其他操作中，使用适当的编译器标志重建 TensorFlow。
-回溯（最近一次调用）：
-文件“.\tensorflow_model.py”，第 52 行，位于 &lt;module&gt;
-数据集 = tf.data.Dataset.from_tensor_slices((src_tensor, tgt_tensor)).shuffle(BUFFER_SIZE)
-文件 &quot;C:\Users\myuser\PycharmProjects\teste\.venv\lib\site-packages\tensorflow\python\data\ops\dataset_ops.py&quot;，第 831 行，在 from_tensor_slices 中
-返回 from_tensor_slices_op._from_tensor_slices(tensors, name)
-文件 &quot;C:\Users\myuser\PycharmProjects\teste\.venv\lib\site-packages\tensorflow\python\data\ops\from_tensor_slices_op.py&quot;，第 25 行，在 _from_tensor_slices 中
-返回 _TensorSliceDataset(tensors, name=name)
-文件&quot;C:\Users\myuser\PycharmProjects\teste\.venv\lib\site-packages\tensorflow\python\data\ops\from_tensor_slices_op.py&quot;，第 45 行，在 __init__
-batch_dim.assert_is_compatible_with(
-File &quot;C:\Users\myuser\PycharmProjects\teste\.venv\lib\site-packages\tensorflow\python\framework\tensor_shape.py&quot;，第 300 行，在 assert_is_compatible_with
-raise ValueError(&quot;Dimensions %s and %s are notcompatible&quot; %
-ValueError: Dimensions 21 and 22 are notcompatible
-
-我该如何克服这个错误？
-import tensorflow as tf
-import numpy as np
-import re
-import os
-
-# Clean数据
-def preprocess_sentence(sentence):
-sentence = sentence.lower().strip()
-sentence = re.sub(r&quot;([?.!,¿])&quot;, r&quot; \1 &quot;, sentence)
-sentence = re.sub(r&#39;[&quot; &quot;]+&#39;, &quot; &quot;, sentence)
-sentence = re.sub(r&quot;[^a-zA-Z?.!,¿]+&quot;, &quot; &quot;, sentence)
-sentence = sentence.strip()
-sentence = &#39;&lt;start&gt; &#39; + sentence + &#39; &lt;end&gt;&#39;
-返回句子
-
-#加载数据的函数
-def load_data(file_path_src, file_path_tgt):
-src_sentences = open(file_path_src, &#39;r&#39;, encoding=&#39;utf-8&#39;).read().strip().split(&#39;\n&#39;)
-tgt_sentences = open(file_path_tgt, &#39;r&#39;, encoding=&#39;utf-8&#39;).read().strip().split(&#39;\n&#39;)
-
-src_sentences = [preprocess_sentence(sentence) for sentence in src_sentences]
-tgt_sentences = [preprocess_sentence(sentence) for sentence in tgt_sentences]
-
-返回 src_sentences, tgt_sentences
-
-#加载数据
-src_sentences, tgt_sentences = load_data(&#39;src_language.txt&#39;, &#39;portuguese.txt&#39;)
-
-#标记化
-src_tokenizer = tf.keras.preprocessing.text.Tokenizer(filters=&#39;&#39;)
-tgt_tokenizer = tf.keras.preprocessing.text.Tokenizer(filters=&#39;&#39;)
-
-src_tokenizer.fit_on_texts(src_sentences)
-tgt_tokenizer.fit_on_texts(tgt_sentences)
-
-src_tensor = src_tokenizer.texts_to_sequences(src_sentences)
-tgt_tensor = tgt_tokenizer.texts_to_sequences(tgt_sentences)
-
-src_tensor = tf.keras.preprocessing.sequence.pad_sequences(src_tensor, padding=&#39;post&#39;)
-tgt_tensor = tf.keras.preprocessing.sequence.pad_sequences(tgt_tensor, padding=&#39;post&#39;)
-
-BUFFER_SIZE = len(src_tensor)
-
-#创建数据集
-dataset = tf.data.Dataset.from_tensor_slices((src_tensor, tgt_tensor)).shuffle(BUFFER_SIZE) 
-]]></description>
-      <guid>https://stackoverflow.com/questions/78911175/a-language-model-for-machine-translation-between-a-low-resource-language-and-por</guid>
-      <pubDate>Sun, 25 Aug 2024 12:06:55 GMT</pubDate>
     </item>
     <item>
       <title>无法在 python 中安装 lap==0.4.0 库</title>
