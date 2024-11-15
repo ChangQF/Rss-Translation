@@ -4,7 +4,47 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 15 Nov 2024 15:18:30 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 15 Nov 2024 18:23:26 GMT</lastBuildDate>
+    <item>
+      <title>尝试在 R 中使用 tensorflow 和 teras 进行图像识别时出错</title>
+      <link>https://stackoverflow.com/questions/79193329/error-trying-to-do-image-recognition-using-tensorflow-and-teras-in-r</link>
+      <description><![CDATA[我正在按照本教程进行操作 -
+https://www.r-bloggers.com/2021/03/how-to-build-your-own-image-recognition-app-with-r-part-1/amp/
+但是遇到了一个错误。
+model_function &lt;- function(learning_rate = 0.001, 
+dropoutrate=0.2, n_dense=1024){
+
+k_clear_session()
+
+model &lt;- keras_model_sequence() %&gt;%
+mod_base %&gt;% 
+layer_global_average_pooling_2d() %&gt;% 
+layer_dense(units = n_dense) %&gt;%
+layer_activation(&quot;relu&quot;) %&gt;%
+layer_dropout(dropoutrate) %&gt;%
+layer_dense(units=output_n,activation=&quot;softmax&quot;)
+
+model %&gt;% compile(
+loss = &quot;categorical_crossentropy&quot;,
+optimizer = optimizer_adam(lr = learning_rate),
+metrics = &quot;accuracy&quot;
+)
+
+return(model)
+
+}
+
+model &lt;- model_function()
+
+此代码的最后一行出现以下错误 -
+py_call_impl(callable, call_args$unnamed, call_args$named) 中的错误: 
+ValueError：层的输入应为张量。层“xception”的输入为“&lt;Sequential name=sequential,built=False&gt;”（类型为&lt;class&#39;keras.src.models.sequential.Sequential&#39;&gt;）。
+运行`reticulate::py_last_error()`了解详情。
+
+有人知道我该如何修复这个问题吗？或者有其他教程可以推荐吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79193329/error-trying-to-do-image-recognition-using-tensorflow-and-teras-in-r</guid>
+      <pubDate>Fri, 15 Nov 2024 17:01:55 GMT</pubDate>
+    </item>
     <item>
       <title>是否应将规范化应用于交互特征或交互项</title>
       <link>https://stackoverflow.com/questions/79192800/should-normalization-be-applied-on-interaction-feature-or-interaction-term</link>
@@ -151,141 +191,6 @@ RMSE Rsquared MAE
 我打算用它们来验证我将要做出的预测（或者甚至在需要时将其用作输入来预测人的下一个动作）。]]></description>
       <guid>https://stackoverflow.com/questions/79190691/how-to-make-gate-predictions-for-certain-movements-using-hmm-model</guid>
       <pubDate>Thu, 14 Nov 2024 23:15:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法训练我的 UNET 多类别细分模型</title>
-      <link>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</link>
-      <description><![CDATA[我尝试使用 pytorch 从头开始​​制作 UNET。我的模型输出只有黑色蒙版。我需要分割汽车上的损坏，所以我实现了一个彩色图。我确信 70% 的数据集有问题，而这个彩色图恰恰就是其中的原因。任务是多类预测，所以我使用交叉熵损失函数。我将提供我的数据集和训练文件的代码。
-# dataset.py
-import os
-from PIL import Image
-from torch.utils.data import Dataset
-import numpy as np
-import torch
-
-class Segm_Dataset(Dataset):
-def __init__(self, image_dir, mask_dir, color_map):
-self.image_dir = image_dir
-self.mask_dir = mask_dir
-self.image_files = os.listdir(self.image_dir)
-self.mask_files = os.listdir(self.mask_dir)
-self.color_map = color_map
-
-def __len__(self):
-return len(self.image_files)
-
-def __getitem__(self, idx):
-image_path = os.path.join(self.image_dir, self.image_files[idx])
-mask_path = os.path.join(self.mask_dir, self.mask_files[idx])
-image = np.array(Image.open(image_path).convert(&#39;RGB&#39;))
-mask = np.array(Image.open(mask_path).convert(&#39;RGB&#39;), dtype=np.float32)
-label_mask = np.zeros((mask.shape[0], mask.shape[1]), dtype=np.int64)
-
-for color, label in self.color_map.items():
-color_array = np.array(color, dtype=np.float32)
-mask_area = np.all(mask == color_array, axis=-1)
-label_mask[mask_area] = label
-
-image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
-label_mask = torch.tensor(label_mask, dtype=torch.long)
-
-返回图像，label_mask
-
-# train.py
-从模型导入 UNET
-从 tqdm 导入 tqdm
-从数据集导入 Segm_Dataset
-导入 torch
-从 torch.utils.data 导入 DataLoader
-导入 torch.nn 作为 nn
-导入 torch.optim 作为 optim
-导入 os
-
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 5
-NUM_EPOCHS = 10
-NUM_WORKERS = 2
-IMAGE_HEIGHT = 180
-IMAGE_WIDTH = 180
-PIN_MEMORY = True
-LOAD_MODEL =错误
-TRAIN_IMG_DIR = r&#39;data\train\images&#39;
-TRAIN_MASK_DIR = r&#39;data\train\masks&#39;
-VAL_IMG_DIR = r&#39;data\val\images&#39;
-VAL_MASK_DIR = r&#39;data\val\masks&#39;
-SAVED_MODELS_PATH = r&#39;saved_models&#39;
-
-color_map = {
-(19, 164, 201): 0, # 缺失部分：#13A4C9
-(166, 255, 71): 1, # 破损部分：#A6FF47
-(180, 45, 56): 2, # 划痕：#B42D38
-(225, 150, 96): 3, # 破裂：#E19660
-(144, 60, 89): 4, # 凹痕： #903C59
-(167, 116, 27): 5, # 剥落: #A7741B
-(180, 14, 19): 6, # 油漆剥落: #B40E13
-(115, 194, 206): 7, # 腐蚀: #73C2CE
-}
-
-train_dataset = Segm_Dataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, color_map)
-train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-
-val_dataset = Segm_Dataset(VAL_IMG_DIR, VAL_MASK_DIR, color_map)
-val_loader = DataLoader(dataset=val_dataset, batch_size=BATCH_SIZE)
-
-model = UNET(in_channels=3, out_channels=len(color_map))
-model = model.cuda() if torch.cuda.is_available() else model
-
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
-for epoch in range(NUM_EPOCHS):
-train_loop = tqdm(enumerate(train_loader), total=len(train_loader))
-
-for batch_index, (data, target) in train_loop: 
-#前向传递
-scores = model(data)
-train_loss = criterion(scores, target)
-
-#后向传递
-optimizer.zero_grad()
-train_loss.backward()
-
-#梯度下降或优化器步骤
-optimizer.step()
-
-if batch_index % 10 == 0:
-current_batch = batch_index
-val_loss = 0
-with torch.no_grad():
-for val_data, val_targets in val_loader:
-val_scores = model(val_data)
-val_loss = criterion(val_scores, val_targets)
-
-#更新进度条
-train_loop.set_description(f&#39;Epoch: [{epoch+1}/{NUM_EPOCHS}]&#39;)
-train_loop.set_postfix(train_loss=train_loss.item(), val_loss=val_loss.item(), val_batch=current_batch)
-
-else:
-train_loop.set_description(f&#39;Epoch: [{epoch+1}/{NUM_EPOCHS}]&#39;)
-train_loop.set_postfix(train_loss=train_loss.item(), val_loss=val_loss.item(), val_batch=current_batch)
-
-checkpoint = {
-&#39;epoch&#39;: epoch + 1,
-&#39;model_state_dict&#39;: model.state_dict(),
-&#39;optimizer_state_dict&#39;: optimizer.state_dict(),
-&#39;train_loss&#39;: train_loss.item(),
-&#39;val_loss&#39;: val_loss.item()
-}
-
-torch.save(checkpoint, os.path.join(SAVED_MODELS_PATH, f&#39;unet_epoch_{epoch}.pth&#39;))
-
-一些训练 epoches:
-Epoch: [9/10]: 100%|████████████████| 888/888 [34:24&lt;00:00, 2.32s/it, train_loss=0.000271, val_batch=880, val_loss=0.000278]
-
-Epoch：[10/10]：100%|███████████████| 888/888 [34:29&lt;00:00, 2.33s/it, train_loss=0.000163, val_batch=880, val_loss=0.000167]
-]]></description>
-      <guid>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</guid>
-      <pubDate>Thu, 14 Nov 2024 09:17:27 GMT</pubDate>
     </item>
     <item>
       <title>RuntimeError：预期隐藏[0]大小（2，50，1024），在PyTorch中得到[1，50，1024]</title>
