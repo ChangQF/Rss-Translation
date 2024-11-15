@@ -4,7 +4,124 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 15 Nov 2024 03:29:18 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 15 Nov 2024 09:19:19 GMT</lastBuildDate>
+    <item>
+      <title>在物种分布建模的哪个阶段需要标准化变量并检查共线性</title>
+      <link>https://stats.stackexchange.com/questions/657302/at-what-stage-of-the-species-distribution-modelling-to-standardize-variables-and</link>
+      <description><![CDATA[我尝试使用基于多个气候变量的广义线性模型（R 中的 glm()）对物种的分布（生态位）进行建模，然后应用该模型预测（映射）我感兴趣的领土内的分布。这些变量可作为栅格文件用于我的领土。
+我的程序如下：首先使用整个目标领土的平均值和标准差对变量进行标准化，准备标准化变量的栅格；然后提取我的存在/不存在位置的标准化变量并将其用于建模。
+这个顺序是否正确，或者我应该首先提取存在/不存在位置的原始变量，然后根据其平均值和标准差对该样本进行标准化？如果第二种方法更好，如何准备用于预测（映射）的栅格——我应该使用样本的平均值和标准差对它们进行标准化吗？最后一个问题在这里进行了讨论，但似乎没有明确的结论。
+同样，在什么级别检查变量的共线性——完整数据集（领土）还是样本？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657302/at-what-stage-of-the-species-distribution-modelling-to-standardize-variables-and</guid>
+      <pubDate>Fri, 15 Nov 2024 08:15:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何为 OBB 数据集正确实现 NMS 和 Dice Loss？</title>
+      <link>https://stats.stackexchange.com/questions/657300/how-do-i-correctly-implement-nms-and-dice-loss-for-obb-dataset</link>
+      <description><![CDATA[我正在构建一个模型，该模型使用文本识别从给定图像中检测盲文脚本，如本论文中所实现。我在实现用于检测模型预测的边界框的损失函数时遇到了问题。
+运行模型后，它卡在了所有时期的损失为 6.3。
+任何帮助都将非常有用。
+损失函数定义为：
+$$
+loss = {loss_{cross-entropy} + \lambda * loss_{dice}}
+$$
+不幸的是，我的实现代码很大，完整的代码（模型的笔记本）位于这里。
+def loss(bbox_predictions, class_predictions, ground_truth):
+&quot;&quot;&quot;
+bbox_predictions：（batch_size，786，9） -&gt; [box_probability，OBB_coordinates] 的 786 个预测
+class_prediction：（batch_size，63）
+ground_truth：（batch_size，N，9） -&gt; N：存在的 bbox 数量，
+9：[class_name，OBB_coordinates]
+
+OBB 格式：[x1 y1 x2 y2 x3 y3 x4 y4]
+&quot;&quot;&quot;
+def dice_loss(bbox_predictions, gt):
+def find_intersection(box1, box2):
+尝试:
+box1 = [(box1[i], box1[i + 1]) for i in range(0, len(box1), 2)]
+box1.append(box1[0])
+box2 = [(box2[i], box2[i + 1]) for i in range(0, len(box2), 2)]
+box2.append(box2[0])
+box1 = shapely.geometry.Polygon(box1)
+box2 = shapely.geometry.Polygon(box2)
+
+Intersection = box1.intersection(box2)
+如果 Intersection.is_valid，则返回 Intersection.area，否则为 1e-7
+除外:
+返回 1e-7
+
+def find_union(box1, box2):
+尝试:
+box1 = [(box1[i], box1[i + 1]) for i in range(0, len(box1), 2)]
+box1.append(box1[0])
+box2 = [(box2[i], box2[i + 1]) for i in range(0, len(box2), 2)]
+box2.append(box2[0])
+box1 = shapely.geometry.Polygon(box1)
+box2 = shapely.geometry.Polygon(box2)
+if not box1.is_valid:
+box1 = box1.buffer(0)
+if not box2.is_valid:
+box2 = box2.buffer(0)
+
+union = box1.union(box2)
+return union.area if union.is_valid else 1e-7
+except:
+return 1e-7
+
+batch_size = bbox_predictions.size(0)
+total_loss = 0
+
+for b in range(batch_size):
+pred_boxes = bbox_predictions[b] # (786, 9)
+gt_boxes = gt[b] # (N, 9)
+
+image_loss = 0
+valid_preds = pred_boxes[pred_boxes[:, 0] &gt; 0.3] # 阈值概率为 0.3
+for pred_box in valid_preds:
+pred_coords = pred_box[1:].reshape(-1).tolist()
+max_dice = 0
+
+for gt_box in gt_boxes:
+gt_coords = gt_box[1:].reshape(-1).tolist()
+
+junction = find_intersection(pred_coords, gt_coords)
+union = find_union(pred_coords, gt_coords)
+
+dice = (2 * 交集) / (并集 + 交集)
+max_dice = max(max_dice, dice)
+
+image_loss += (1 - max_dice)
+
+total_loss += image_loss
+
+return total_loss / batch_size
+
+def cross_entropy_loss(class_predictions, gt):
+batch_size = class_predictions.shape[0]
+total_loss = 0
+
+for b in range(batch_size):
+gt_boxes = gt[b] # (N, 9)
+gt_class_labels = gt_boxes[:, 0].long() # (N,)
+
+class_loss = 0
+
+for gt_class in gt_class_labels:
+class_probs = class_predictions[b] # (63,)
+class_loss += nn. functional.cross_entropy(class_probs.unsqueeze(0), gt_class.unsqueeze(0), reduction=&#39;sum&#39;)
+total_loss += class_loss
+
+return total_loss / batch_size
+
+loss_dice = dice_loss(bbox_predictions, ground_truth)
+loss_cross_entropy = cross_entropy_loss(class_predictions, ground_truth)
+LAMBDA = 1
+
+返回 loss_cross_entropy + LAMBDA * loss_dice
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657300/how-do-i-correctly-implement-nms-and-dice-loss-for-obb-dataset</guid>
+      <pubDate>Fri, 15 Nov 2024 07:03:35 GMT</pubDate>
+    </item>
     <item>
       <title>“完美”数据的标准误差太小</title>
       <link>https://stats.stackexchange.com/questions/657299/standard-error-is-too-small-on-perfect-data</link>
@@ -92,50 +209,13 @@ print(levy_fit)
       <pubDate>Fri, 15 Nov 2024 00:34:22 GMT</pubDate>
     </item>
     <item>
-      <title>分层测试集引导法用于度量 UQ 的缺点</title>
-      <link>https://stats.stackexchange.com/questions/657292/drawbacks-of-stratified-test-set-bootstrapping-for-metric-uq</link>
-      <description><![CDATA[我正在使用测试集（百分位数）引导来量化各种模型性能指标（例如 AUROC、AUPR 等）的不确定性。
-为避免混淆，方法很简单：
-
-引导测试集
-计算每个引导测试集上的目标指标，为我提供指标值的分布
-计算指标分布的百分位数，为我提供 CI。
-
-（是的，我知道对于各种特定指标，有更有效的方法来获取 CI；我在工具箱中使用它作为一种万能的 UQ 方法，适用于我可以向其抛出的任何/所有指标。）
-现在回答我的问题：特别是在较小的测试集或类别不平衡性很强的情况下，在自举样本中，经常出现没有正值或负值的现象，从而导致各种指标除以零。
-解决这个问题的一种方法是简单地使用分层自举法，即在整个自举样本中保持正值的数量（或指标分母中的相关数字）不变，这种方法有什么重要的缺点吗？为什么这不是默认方法？或者它是？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657292/drawbacks-of-stratified-test-set-bootstrapping-for-metric-uq</guid>
-      <pubDate>Fri, 15 Nov 2024 00:06:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 LongituRF 中使用混合效应随机森林 (MERF) 时遇到的错误</title>
-      <link>https://stats.stackexchange.com/questions/657289/error-experienced-when-using-mixed-effects-random-forest-merf-in-longiturf</link>
-      <description><![CDATA[我一直在使用 LongituRF 运行混合效应随机森林模型，并且对 predict.longituRF() 函数有疑问。
-我使用训练数据 (n = 222) 创建了一个 MERF，并且想使用此模型拟合来预测子集（测试数据，n = 75）。但是，当我使用代码时：
-predictions_merf_df &lt;-
-predict(
-object = MERF_bird_Shannon,
-X = data.frame(Test_list$X),
-id = Test_list$id,
-Z = Test_list$Z,
-time = Test_list$time)
-
-我收到错误：
-Ypred[w] 中的错误 &lt;- f[w] + Z[w, , drop = FALSE] %*% object$random_effects[k, :
-replacement 的长度为零
-
-我遇到了一些困难，如果有人愿意分享见解，我将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657289/error-experienced-when-using-mixed-effects-random-forest-merf-in-longiturf</guid>
-      <pubDate>Thu, 14 Nov 2024 22:47:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>auto.arima 中非平稳模型的拟合值</title>
-      <link>https://stats.stackexchange.com/questions/657285/fitted-values-in-auto-arima-for-non-stationary-models</link>
+      <title>auto.arima 中非平稳模型的初始观测值的拟合值</title>
+      <link>https://stats.stackexchange.com/questions/657285/fitted-values-of-initial-observations-in-auto-arima-for-non-stationary-models</link>
       <description><![CDATA[如果我理解正确的话，在 R 预测包的 auto.arima 中返回的拟合值是模型在估计参数（使用所有训练数据）后给出的一步预测。
 假设我已拟合非平稳 ARIMA 模型，例如航空公司模型 $(0,1,1)(0,1,1)_{12}$。在这种情况下，如何计算前 $13$ 个拟合值？由于我们没有关于该系列初始状态的信息，我们如何计算第一个时期的一步预测？请注意，这种情况与平稳情况完全不同，在平稳情况下，我们可以使用平稳均值和方差作为初始状态。
 我已经看到 auto.arima 依赖于 stats 包中的 arima 函数，所以我想问题也可以改写为：在非平稳情况下，arima 函数如何计算前几个时期的残差？
-提前非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657285/fitted-values-in-auto-arima-for-non-stationary-models</guid>
+提前谢谢您。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657285/fitted-values-of-initial-observations-in-auto-arima-for-non-stationary-models</guid>
       <pubDate>Thu, 14 Nov 2024 21:32:15 GMT</pubDate>
     </item>
     <item>
@@ -235,66 +315,6 @@ $$\begin{pmatrix} \beta_1^{(s)} \\ \beta_2^{(s)} \end{pmatrix} \sim N\left(\begi
       <pubDate>Thu, 14 Nov 2024 18:40:16 GMT</pubDate>
     </item>
     <item>
-      <title>二项式模型与 GLM 偏移泊松模型之间的区别是什么</title>
-      <link>https://stats.stackexchange.com/questions/657270/whats-the-difference-between-binomial-model-versus-poisson-model-with-an-offset</link>
-      <description><![CDATA[我正在处理由 $( i = 1, \ldots, n )$ 索引的分箱数据，其中对于每个箱 $i$，我有：
-
-$( X_i )$：成功次数
-$( N_i )$：总试验次数
-
-我想对每个箱内的成功比例进行建模，并且我正在尝试决定是使用 二项式 还是 泊松 广义线性模型 (GLM)。
-当前方法：
-我的理解是，我可以用二项式的最大似然估计来定义成功比例数据为：
-\begin{align}
-p_i = \frac{X_i}{N_i}
-\end{align&gt;
-一种常见的方法是使用二项式 GLM 对 $ p_i $ 进行建模：
-\begin{align}
-\text{logit}\left( E(p_i) \right) = \beta_0 + \beta_1 x_{1,i} + \dots + \beta_{p-1} x_{p-1,i}
-\end{align&gt;
-或者，我可以使用带有偏移的 泊松模型 直接对计数 $ X_i $ 进行建模：
-\begin{align}
-\log\left(E(X_i)\right) = \beta_0 + \beta_1 x_{1,i} + \dots + \beta_{p-1} x_{p-1,i} + \log(N_i)
-\end{align&gt;
-因为我们可以将其重写为：
-\begin{align}
-\log\left(E(X_i)\right) - \log(N_i) = \log\left(\frac{E(X_i)}{N_i}\right),
-\end{align&gt;
-这有效地模拟了相对于总试验次数的成功率（或比例）。
-问题：
-鉴于我的主要兴趣是模拟相对于总试验次数的成功发生率每个箱子（即每个空间/时间箱子 $ i $ 中的成功比例 $ \frac{X_i}{N_i} $），我应该支持哪种模型：二项式 GLM 还是带偏移的泊松 GLM？
-具体来说：
-
-是否存在一种模型比另一种模型更合适的情况？
-选择是否取决于我的数据的属性（例如，$ N_i $ 在箱子之间的分布或比例的变化）？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/657270/whats-the-difference-between-binomial-model-versus-poisson-model-with-an-offset</guid>
-      <pubDate>Thu, 14 Nov 2024 18:33:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>证明 (X, Y, Z) 相互独立意味着在给定 Z 的情况下 X 和 Y 是独立的</title>
-      <link>https://stats.stackexchange.com/questions/657266/proving-mutual-independence-of-x-y-z-implies-independence-of-x-and-y-given-z</link>
-      <description><![CDATA[我想证明或反驳以下结果：
-设$(\Omega, \mathcal F, \mathbb P)$为概率空间，且$X, Y, Z : \Omega \to \mathbb R$为相互独立的、$(\mathcal F, \mathcal B(\mathbb R))$-可测随机变量；那么 $X$ 和 $Y$ 在给定 $Z$ 的情况下是独立的。
-我读到了以下问题的答案：在给定 Z 的情况下，X、Y、Z 的相互独立性是否意味着 X 和 Y 的条件独立性，然而在我看来，它假设 $X$、$Y$ 和 $Z$ 具有密度（相对于同一测量）。这不是我希望做出的假设。
-我想使用的条件独立性、概率和独立性的特征如下（如果它们不正确，请告知）：
-
-$X$ 和 $Y$ 是独立的，给定 $Z$，如果 $\mathbb P((X, Y) \in A \times B | Z) = \mathbb P(X \in A | Z) \mathbb P(Y \in B | Z)$ 对每对 borelian 集 $(A, B)$ 成立；
-$\mathbb P(Y \in A | Z) = \mathbb E[\boldsymbol 1_{A} \circ Y | Z]$ 对于每个 borelian 集 $A$;
-$\mathbb E[U | Z]$ 对于一个$(\mathcal F, \mathcal B(\mathbb R))$-可测变量，定义为唯一（几乎处处相等）$(\sigma(Z), \mathcal B(\mathbb R))$-可测随机变量，满足$\int_\Omega \boldsymbol (1_A \circ U)\ U \text d\mathbb P = \int_\Omega \mathbb E[U | Z] \boldsymbol 1_A \circ U \text d \mathbb P$ 对于每个 borelian 集 $A \subseteq \mathbb R$。
-
-我仍然对所有这些符号感到困惑，并希望正式推导结果，尽可能合理地使用测度理论符号而不是概率符号。
-我的问题是：
-
-结果在一般情况下仍然正确吗？
-我给出的预期期望定义是否正确（它应该是将我的教科书中给出的定义翻译成测度理论语言，但我可能遗漏了一些东西）？
-这种表征是证明结果的合理起点吗？
-我应该如何开始？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/657266/proving-mutual-independence-of-x-y-z-implies-independence-of-x-and-y-given-z</guid>
-      <pubDate>Thu, 14 Nov 2024 18:11:34 GMT</pubDate>
-    </item>
-    <item>
       <title>证明 $X=Y$ 几乎肯定 $\implies E[X] = E[Y]$</title>
       <link>https://stats.stackexchange.com/questions/657263/prove-x-y-almost-surely-implies-ex-ey</link>
       <description><![CDATA[我不太确定我们如何从概率得到期望。以下是我目前所得到的：
@@ -308,109 +328,156 @@ $E(Z) = 0 \implies E[X] = E[Y]$。
       <pubDate>Thu, 14 Nov 2024 17:47:04 GMT</pubDate>
     </item>
     <item>
-      <title>生物标志物发现中的事后多重比较调整</title>
-      <link>https://stats.stackexchange.com/questions/657261/post-hoc-multiple-comparisons-adjustment-in-biomarker-discovery</link>
-      <description><![CDATA[我有一个数据集，其中包含 3 个组中脑脊液 (CSF) 和血清中测试的 10 种生物标志物。我想在组对之间事后比较 6 种分析物（其水平升高）。此外，患有炎症的患者更有可能同时出现多种分析物升高。我需要调整 p 值以进行多重比较，但我不确定最佳方法。
-以下是我的具体问题：
-1. Holm-Bonferroni 与 FDR：鉴于我正在进行事后比较并控制多重比较，哪种调整方法更适合我的情况？
-2. 由于我同时拥有 CSF 和血清测量值，在应用 p 值调整时，我是否可以考虑分别测试它们（生物学上不同的行为），或者将它们视为一组比较会更好？
-3. 要调整哪些测试？：我正在比较组对之间的 6 种分析物（那些水平升高的分析物）。我应该仅根据这 6 种分析物调整 p 值，还是应该针对所有 10 种生物标志物进行调整（即使只有 6 种升高）？
-4. 多重共线性：鉴于炎症患者往往会同时出现多种分析物升高，我担心多重共线性。我应该如何解决这个问题？
-我很感激任何指导或建议！]]></description>
-      <guid>https://stats.stackexchange.com/questions/657261/post-hoc-multiple-comparisons-adjustment-in-biomarker-discovery</guid>
-      <pubDate>Thu, 14 Nov 2024 17:03:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较幸存和未幸存的一组个体的不同时间点的测量值（1、2、3、4）</title>
-      <link>https://stats.stackexchange.com/questions/657254/comparing-different-timepoints-of-measurments-1-2-3-4-for-a-group-of-individua</link>
-      <description><![CDATA[希望您能帮上忙！？在大多数情况下，我们会对一组从疾病中幸存或未幸存（生存）的个体（重复测量）进行基于时间序列的测量（CD8T）。基于时间点的测量部分不完整，因为缺少数据，这就是为什么有时系列不完整（Time_Point）。我们想知道成分（CD8T）随时间的变化是否对生存有影响。此外，我们希望根据年龄和性别进行校正。您会建议什么模型？非常感谢任何帮助和设计、对比和在 R 中应用的代码。期待您的建议。希望您能为我指明正确的方向。
-提前致谢。
+      <title>R：计算 party::cforest 的 AUC</title>
+      <link>https://stats.stackexchange.com/questions/657255/r-calculating-auc-for-partycforest</link>
+      <description><![CDATA[我有二元结果和多个协变量。我想计算拟合森林的 AUC（我正在使用 party::cforest 来拟合随机森林）。对我来说最令人困惑的部分是如何分成训练集和测试集，因为 party::cforest 已经使用袋外数据来测试森林。
+现在我有以下代码，请告诉我我做错了什么（我使用 iris 数据集作为示例）：
+library(caret)
+library(party)
+library(pROC)
+
+iris$Species &lt;- iris$Species %&gt;%
+fct_collapse(&quot;virginica&quot; = c(&quot;virginica&quot;, &quot;versicolor&quot;))
+splitIndex &lt;- createDataPartition(
+iris$Species, p = .75, list = FALSE, times = 1)
+
+train_set &lt;- iris[ splitIndex,]
+test_set &lt;- iris[-splitIndex,]
+
+crf &lt;- party::cforest(Species ~ ., data = train_set, 
+control = cforest_unbiased(mtry =2, ntree = 1500))
+pred_response &lt;- predict(crf, test_set,type = &quot;response&quot;,OOB = TRUE)
+roc &lt;- roc(train_set$Species, as.numeric(pred_response))
+auc &lt;- auc(roc)
+auc
 ]]></description>
-      <guid>https://stats.stackexchange.com/questions/657254/comparing-different-timepoints-of-measurments-1-2-3-4-for-a-group-of-individua</guid>
-      <pubDate>Thu, 14 Nov 2024 15:07:41 GMT</pubDate>
+      <guid>https://stats.stackexchange.com/questions/657255/r-calculating-auc-for-partycforest</guid>
+      <pubDate>Thu, 14 Nov 2024 15:28:12 GMT</pubDate>
     </item>
     <item>
-      <title>为什么我的累积链接混合模型的阈值系数看起来很大？</title>
-      <link>https://stats.stackexchange.com/questions/657284/why-are-the-threshold-coefficients-of-my-cumulative-link-mixed-model-seemingly-v</link>
-      <description><![CDATA[我正在使用 ordinal 包拟合累积链接混合模型。数据是重复测量（在三个时间点进行的调查）。该模型收敛没有问题，估计值在我看来是合理的，但阈值系数似乎非常夸大，我很想知道潜在原因和后果（即，该模型是否仍然可能提供信息）。
-library(ordinal)
-data(q1_data)
-
-head(q1_data)
-
-id day response sex glp weight1 weight2
-&lt;dbl&gt; &lt;fct&gt; &lt;ord&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1 1 day7 5 m 100. -1.40 -1.45
-2 1 day2 4 m 100. -1.40 -1.45
-3 1 day0 3 m 100. -1.40 -1.45
-4 2 day7 5 f 97.8 -1.10 -1.55
-5 2 day2 5 f 97.8 -1.10 -1.55
-6 2 day0 6 f 97.8 -1.10 -1.55
-
-运行模型：
-q1_clmm &lt;- clmm(response ~ day + weight1 * weight2 + glp + (1 | id),
-data = q1_data,
-link = &quot;logit&quot;,
-nAGQ = 5)
-summary(q1_clmm)
-
-不确定我应该粘贴多少，但要给出完整的上下文：
- 累积链接混合模型采用自适应高斯-埃尔米特 
-具有 5 个求积点的求积近似 
-
-公式：响应 ~ day + weight1 * weight2 + glp + (1 | id)
-
-数据：q1_data
-
-链接阈值 nobs logLik AIC niter max.grad cond.H 
-logit 灵活 159 -219.91 465.82 793(3020) 4.28e-04 6.3e+06
-
-随机效应：
-组名称方差标准差
-id（截距）1.194 1.093 
-组数：id 53 
-
-系数：
-估计标准差。误差 z 值 Pr(&gt;|z|) 
-dayday2 -0.59368 0.37344 -1.590 0.11189 
-dayday7 -0.07920 0.38261 -0.207 0.83602 
-weight1 -1.41946 0.46628 -3.044 0.00233 **
-weight2 0.39884 0.16354 2.439 0.01473 * 
-glp 0.06027 0.02302 2.618 0.00884 **
-weight1:weight2 -0.50004 0.17551 -2.849 0.00438 **
----
-Signif。代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-阈值系数：
-估计标准误差 z 值
-0|1 -0.2991 2.4189 -0.124
-1|2 0.8646 2.2783 0.379
-2|3 2.2481 2.2304 1.008
-3|4 3.4143 2.2253 1.534
-4|5 5.1067 2.2478 2.272
-5|6 7.2607 2.3074 3.147
-
-我担心的是阈值估计值和 SE 非常高。越来越高的值也与我预期的方向相反，因为数据在 1-3 左右有点稀疏，而在 4-6 左右响应频率较高。我的理解是，这些是 logdds，指数结果为 1423 的 OR 和 5|6 截止值的上限 OR 为 131018。
-我推测这是一个问题？这是否意味着模型很难准确地建模数据？我的建模过程出了什么问题？过度拟合的可能性（性能指标似乎合理，例如，R2 cond 为 0.4，RMSE = 4.34，并且这些值不会因进一步简化模型而发生显着改变）？
-如果需要其他信息，请告诉我，我会更新此 OP。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657284/why-are-the-threshold-coefficients-of-my-cumulative-link-mixed-model-seemingly-v</guid>
-      <pubDate>Thu, 14 Nov 2024 08:16:37 GMT</pubDate>
+      <title>是否存在类似 Z 分数但适用于高度偏斜分布的东西？</title>
+      <link>https://stats.stackexchange.com/questions/657246/is-there-something-like-z-score-but-for-highly-skewed-distributions</link>
+      <description><![CDATA[我正在分析我的 anki 评论回答时间。由于我有大量数据（超过 14 年），评论之间存在差距，不同的学习模式也不同，所以我想以群组形式进行分析。
+我想创建的一个指标是我对答案的“信心”：我想知道“与典型情况相差多远”特定答案是，但我想要一个可以在群组之间一致使用的指标（并在它们之间进行比较）。
+我在一个类似的问题上找到了这个答案，它建议使用百分位数，但我认为百分位数并不能完全满足我的需求 - 有些群组的典型回答时间接近中位数，但也有一些群组远离中位数。
+我可以使用例如（值 - 模式）/四分位数间范围作为我的指标吗？或者我可以使用类似的东西吗？
+我知道我的回答时间严重右偏。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657246/is-there-something-like-z-score-but-for-highly-skewed-distributions</guid>
+      <pubDate>Thu, 14 Nov 2024 12:25:53 GMT</pubDate>
     </item>
     <item>
-      <title>为什么高斯过程回归（GPR）是非参数的？</title>
-      <link>https://stats.stackexchange.com/questions/657239/why-gaussian-process-regression-gpr-is-non-parametric</link>
-      <description><![CDATA[鉴于高斯过程 (GP) 回归依赖于具有特定超参数的核来控制点之间的关系和平滑度，GP 回归真的可以被视为非参数技术吗？我有以下几点。
+      <title>如何计算这类数据之间的差异？</title>
+      <link>https://stats.stackexchange.com/questions/657277/how-to-calculate-the-difference-between-this-type-of-data</link>
+      <description><![CDATA[我有一个实验，观察频率振荡随时间的变化。我无法分析数据。
+我想从我的数据集中获得：谷值之前的值的平均值，图谷内的平均值。
 
-GP 的行为在很大程度上取决于核的参数结构，这限制了函数形式与某些假设（例如平滑度、周期性）的一致性。这使其成为由超参数控制的确定性过程，而不是固有灵活的无参数模型。
+我只尝试过绘图，并试图识别 FWHM，但不幸的是，我们想要的是最小值。
+Col1 - 以秒为单位的已用时间
+Col2 - 频率
+时间频率
+33 9986054
+34 9986054
+35 9986054
+36 9986054
+37 9986054
+38 9986054
+39 9986054
+40 9986054
+41  9986054 42 9986054 43 9986054 44 9986054 45 9986054 46 9986054 47 9986054 48 9985915.8 49 9985732.9 50 9985549.7 51 998536 6.3 52 9985183.1 53 9984999.7 54 9984816.2 55 9984632.6 56 9984449 57 9984265.4 58 9984220 59 9984219.3 60 9984218.9 61 9984218.7
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657277/how-to-calculate-the-difference-between-this-type-of-data</guid>
+      <pubDate>Thu, 14 Nov 2024 11:55:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>“使用动态评估赌博，O.Peters”中遍历性定义存在问题</title>
+      <link>https://stats.stackexchange.com/questions/657131/a-problem-with-the-definition-of-ergodicity-in-evaluating-gambles-using-dynamic</link>
+      <description><![CDATA[本文介绍了一个加性时间随机过程：
+$$ W_{t+ \delta t \times T} - W_t = \sum^T_{i=1} D_i $$
+其中 $W_t$ 表示时间 $t$ 的财富，$\delta t$ 是时间增量的长度，$D_i$ 是 iid 离散随机变量（对应于赌博）。
+作者随后指出，这个过程是平稳的（平凡遍历的），因此我们应该有：
+$$ \underset{T \rightarrow \infty}{\lim} \frac{1}{\delta t~ T} ( W_{t+ \delta t T} - W_t) = \frac{1}{\delta t}\mathbb{E}[D_1]$$
+这应该是遍历系统中时间平均值和集合平均值的相等。
+我的问题是：
+LHS 不应该是吗
+$$\underset{T \rightarrow \infty}{\lim} \frac{1}{\delta t~ T} \sum^T_{i=1} ( W_{t+\delta t \times i} - W_t)$$
+也就是说我们必须在每个时间步骤上求和然后取平均值。我这里漏掉了什么吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657131/a-problem-with-the-definition-of-ergodicity-in-evaluating-gambles-using-dynamic</guid>
+      <pubDate>Tue, 12 Nov 2024 09:36:24 GMT</pubDate>
+    </item>
+    <item>
+      <title>“当我们构建条件概率时，概率的相对比例保持不变。”是什么意思？</title>
+      <link>https://stats.stackexchange.com/questions/657129/what-is-meant-by-when-we-construct-conditional-probabilities-the-relative-prop</link>
+      <description><![CDATA[在课程“概率论简介”中，John Tsitsiklis 陈述了以下内容：
+“当我们构建条件概率时，...，概率的相对比例保持不变。
+条件概率与无条件概率成比例。 &quot;
+讲座可在此处找到：https://www.youtube.com/watch?v=2f9EfEga4Oo&amp;list=PLUl4u3cNGP60hI9ATjSFgLZpbNJ7myAg6&amp;index=45&amp;ab_channel=MITOpenCourseWare
+以及第 8 分 20 秒的声明。
+如果没有额外的假设，这似乎是错误的。
+如果条件概率与无条件概率成比例概率，则存在一个数字 $a_B$，该数字取决于 $B$ s.t。
+$$a_B P(A) = P(A|B) = \frac{P(A\cap B)}{P(B)}$$
+对于两个事件 $A, B$，其中 $P(B) &gt; 0$。这将导致
+$$a_B P(A) P(B) = P(A\cap B)$$
+如果 $A$ 和 $B$ 不相交且 $a_B = 0$ 或者如果 $A$ 和 $B$ 独立且 $a_B = 1$，则该结论成立。
+一般情况下该结论不成立。例如考虑 $A$ 和 $0 &lt; P(A) &lt; 1$ 且 $B = A$。则 $a_A * P(A)^2 = P(A \cap A) = P(A)$ 且因此 $a_A = 1 / P(A)$。但是
+$$a_A * P(A^c) * P(A) = P(A^c) \ne 0 = P(A \cap A^c)$$
+有人能帮我更好地理解 J. Tsitsiklis 的陈述或它在什么条件下成立吗？
+也许他指的是以下等式：
+$$\frac{P(A\cap B)}{P(C\cap B)} = \frac{P(A\cap B)P(B)}{P(C\cap B)P(B)} = \frac{P(A|B)}{P(C|B)} $$
+给定 $P(C \cap B) &gt; 0$，$P(B)&gt;0$。也就是说，条件概率与感兴趣的事件与条件交点的概率成比例，但我不确定我是否遗漏了什么，而且这不是他明确说的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657129/what-is-meant-by-when-we-construct-conditional-probabilities-the-relative-prop</guid>
+      <pubDate>Tue, 12 Nov 2024 09:15:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中的 MatchThem 和混合效应逻辑回归</title>
+      <link>https://stats.stackexchange.com/questions/657071/matchthem-and-mixed-effects-logistic-regression-in-r</link>
+      <description><![CDATA[R 中的 MatchThem 和 Logistic 回归
+我正在开展一项非随机研究，以评估两种治疗方法之间并发症发生率的差异。观察到的并发症发生率在两组之间有显著差异（22% vs. 50%）。为了考虑潜在的混杂因素，我计划使用二项式 Logistic 回归模型。鉴于样本量相对较小（130 名患者，分为 53 名 vs. 77 名），并且我的一个协变量（合并症）中存在 7 个缺失值，我选择使用 MICE（链式方程多重插补）方法插补缺失数据，以避免失去这些患者。代码如下：
+# 估算缺失值
+new_df_imputed &lt;- mice(selected_data, m = 5, maxit = 50, method = &quot;pmm&quot;, seed = 123)
 
-与任何参数技术（例如 DFT 或 AR 模型）一样，随着数据量的增长，GP 可以更精确地估计更适合数据的超参数。这种数据改进可以被认为类似于减少参数估计中的次优性，而不是反映开放的无参数结构。此外，从后验分布中绘制多个函数的能力（如使用抽样或引导方法的参数模型）并不意味着非参数模型。
+接下来，我使用 MatchThem 包执行倾向得分匹配 (PSM)：
+# 在每个估算数据集中执行匹配
+m.out_model1 &lt;- matchthem(Treatment_type_tumor_near_gallbladder ~ age + sex + bmi + ASA + comorbidities + Systemic_treatment_prior_local_treatment + Segments_treated_per_session + Metastasis_size_at_treatment_mm + min_distance_gallblad_mm + stage, 
+data = new_df_imputed, 
+method = &quot;nearest&quot;, 
+distance = &quot;logit&quot;,
+replace = TRUE,
+ratio = 3,
+caliper = 0.2) 
 
-虽然每个 GP 实现都代表一个潜在函数，但它们都遵循由内核建立的底层规则，该规则有效地控制了样本拟合观察到的数据的方式。因此，仅仅因为函数形式不是完全可预测而将 GP 标记为非参数可能是不准确的，因为内核参数化并限制了 GP 灵活性。
+匹配过程实现了良好的平衡，结果令人满意：
+平衡平均差异计数
+count
+平衡，&lt;0.1 16
+不平衡，&gt;0.1 2
 
+平均差异最大的变量
+Variable Max.Diff.Adj M.Threshold
+Segments_treated_per_session 0.1602 不平衡，&gt;0.1
 
-总之，由于内核作为指导模型行为的明确参数化结构的作用，GP 回归不应该被视为参数方法吗？在我看来，它确实是一个参数核估计器，当与贝叶斯框架一起使用时，会产生后验预测。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657239/why-gaussian-process-regression-gpr-is-non-parametric</guid>
-      <pubDate>Thu, 14 Nov 2024 06:48:07 GMT</pubDate>
+插补的平均样本量
+0 1
+全部 53. 77. 
+匹配（ESS） 29.34 67.8
+匹配（未加权） 46.8 67.8
+不匹配 6.2 9.2
+
+之后，我实施了一个多变量使用以下代码进行分析：
+结果 &lt;- with(m.out_model1, svyglm(complications ~ Treatment_type_tumor_near_gallbladder + age + sex + bmi + ASA + comorbidities + Systemic_treatment_prior_local_treatment + Segments_treated_per_session + Metastasis_size_at_treatment_mm + min_distance_gallblad_mm + stage,
+family = quasibinomial()))
+
+输出 &lt;- pool(results, dfcom = NULL)
+
+summary(output, exponentiate = TRUE, conf.int = TRUE) %&gt;% 
+mutate(across(where(is.numeric), round, digits = 3))
+
+问题 1：
+svyglm 函数是否自动考虑因为我进行了替换匹配并使用了 3:1 的比例？
+问题 2：
+是否可以对模型摘要执行向后消除过程？这有意义吗？
+提前感谢您的任何建议。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657071/matchthem-and-mixed-effects-logistic-regression-in-r</guid>
+      <pubDate>Mon, 11 Nov 2024 10:50:46 GMT</pubDate>
     </item>
     </channel>
 </rss>
