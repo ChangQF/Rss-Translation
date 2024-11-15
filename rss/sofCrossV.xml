@@ -4,15 +4,89 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 15 Nov 2024 01:20:02 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 15 Nov 2024 03:29:18 GMT</lastBuildDate>
+    <item>
+      <title>“完美”数据的标准误差太小</title>
+      <link>https://stats.stackexchange.com/questions/657299/standard-error-is-too-small-on-perfect-data</link>
+      <description><![CDATA[在学习线性回归时，我遇到了这种奇怪的情况。
+我正在将数据拟合到线性模型$\beta_0 + \beta_1 x$，并运行 Wald 检验来检查是否$H_0: \beta_0 = 0$。这是一个简单的 Python 函数，它返回 $\hat{\beta_0}$、$\mathrm{se}(\hat{\beta_0})$ 和 $p$-score:
+import numpy as np
+from scipy.stats import norm
+
+np.random.seed(0)
+
+def test_regress(x, y):
+X = np.vstack([np.ones_like(x), x]).T
+params = np.linalg.lstsq(X, y)[0]
+
+residuals = y - X @ params
+n, p = X.shape
+var = np.sum(residuals**2) / (n - p)
+cov = var * np.linalg.inv(X.T @ X)
+se = np.sqrt(np.diag(cov))
+
+w = (params[0]) / se[0]
+p = 2 * norm.cdf(-np.abs(w))
+return params[0], se[0], p
+
+这适用于具有 i.i.d 残差的数据：
+&gt;&gt;&gt; x = np.arange(1000)
+&gt;&gt;&gt; y = x + np.random.normal(size=1000)
+&gt;&gt;&gt; test_regress(x, y)
+(np.float64(-0.035945884568210226),
+np.float64(0.06244021277994775),
+np.float64(0.5648282169352368))
+
+p 值很大，因此不能拒绝零假设。
+但是，它在完全没有残差的数据上失败了：
+&gt;&gt;&gt; x = np.arange(1000)
+&gt;&gt;&gt; y = x
+&gt;&gt;&gt; test_regress(x, y)
+(np.float64(1.5683571961333255e-13),
+np.float64(1.1045055269032826e-14),
+np.float64(9.209482575035801e-46))
+
+$\beta_0$ 几乎为零，但标准误差太小，因此 p 值极小。
+结果并不令人惊讶，而且在现实世界中确实不太可能发生。但理论上，我该如何处理这种情况？我是否需要先测试不可忽略的 $\hat{se}$？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657299/standard-error-is-too-small-on-perfect-data</guid>
+      <pubDate>Fri, 15 Nov 2024 02:28:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>阶梯楔形设计的协变量约束随机化：R 或 SAS 实现</title>
+      <link>https://stats.stackexchange.com/questions/657296/covariate-constrained-randomization-for-stepped-wedge-design-r-or-sas-implement</link>
+      <description><![CDATA[我目前正在研究一个涉及 28 个集群和 12 个时间段的阶梯式楔形设计 (SWD)，并且在实施协变量约束随机化 (CCR) 方面遇到了困难。
+我需要有关可以处理阶梯式楔形设计的协变量约束随机化的任何 R 或 SAS 包的建议。我将不胜感激任何有关如何在 R 或 SAS 中实现这一点的示例代码或指导，或任何有关如何在将集群分配给干预期时确保协变量平衡的建议。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657296/covariate-constrained-randomization-for-stepped-wedge-design-r-or-sas-implement</guid>
+      <pubDate>Fri, 15 Nov 2024 01:55:33 GMT</pubDate>
+    </item>
     <item>
       <title>RMSE 的替代方法来评估稳定分布参数的拟合优度</title>
       <link>https://stats.stackexchange.com/questions/657293/alternatives-for-rmse-to-eavluate-goodness-of-fit-for-stable-distribution-parame</link>
-      <description><![CDATA[我正在从一系列数值数据中估计稳定分布的参数（alpha、beta、gamma、delta）。我的教授建议使用 RMSE 来评估拟合优度，类似于机器学习模型评估。但是，由于没有因变量，并且 RMSE 将预测值与实际观察值进行比较，因此我质疑它是否适合这项任务。
-我相信对数似然法可能更适合在这种情况下评估优度，我也在研究其他方法。我将不胜感激任何关于以下方面的见解：
+      <description><![CDATA[我正在估计稳定分布的参数（alpha、beta、gamma、delta） 来自数值数据列表。我使用了一个包来从一种稳定分布（特别是标准 Levy 分布）生成数据。
+if (!require(&quot;stable&quot;)) {
+install.packages(&quot;stable&quot; , repos = &quot;http://R-Forge.R-project.org&quot;)
+library(stable)
+}
+
+# 设置可重复性的种子
+set.seed(123)
+
+# 从标准 Lévy 分布生成 100 个点
+levy_data &lt;- rstable （n = 100，alpha = 0.5，beta = 1，gamma = 1，delta = 0，pm = 0）
+
+之后，我使用简单的 MLE 方法来找到四个参数.
+# 执行最大似然估计 (MLE) 来估计参数
+levy_fit &lt;- stable.fit(levy_data, method = 1) # 使用 method = 1 进行 MLE
+
+# 打印估计的参数
+print(levy_fit)
+
+
+现在，由于对于实际数据集，我们不知道参数。因此，我们需要一种方法来衡量我们获得的理论分布与数据的拟合优度。我的教授建议使用 RMSE 来评估拟合优度，类似于机器学习模型评估。然而，由于没有依赖变量和 RMSE 比较预测值与实际观测值，我质疑它是否适合这项任务。
+我相信对数似然法可能更适合在这种情况下评估优劣，我正在研究其他方法以及。我很感激任何关于以下方面的见解：
 
 为什么 RMSE 可能不适合概率分布拟合。
-用于测量稳定分布拟合优度的替代方法。
+测量稳定分布拟合优度的替代方法。&lt; /li&gt;
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/657293/alternatives-for-rmse-to-eavluate-goodness-of-fit-for-stable-distribution-parame</guid>
       <pubDate>Fri, 15 Nov 2024 00:34:22 GMT</pubDate>
@@ -67,7 +141,7 @@ replacement 的长度为零
     <item>
       <title>如何将从 flexsurv 包获得的回归系数的标准误差转换为来自 survivor 包的标准误差？</title>
       <link>https://stats.stackexchange.com/questions/657281/how-to-convert-the-standard-errors-of-regression-co-efficients-obtained-from-the</link>
-      <description><![CDATA[我理解 flexsurv 包中使用的参数化与 survival 包中的参数化不同。我使用这两个包拟合了一个对数正态回归模型。flexsurvreg 的文档提到，它只是 survreg 的包装器，用于对数正态分布，并且它只将结果转换为 flexsurvreg 中使用的参数化。我想了解如何对回归系数标准误差进行转换。输出中的点估计匹配，但回归系数的标准误差不匹配。 （请注意，Scale 的标准误差（在 survival 包中）与 flexsurvreg 中 sdlog 的标准误差相匹配。只是回归系数的标准误差不同）数据可在此处获得，其中独立变量 Stress box cox 已用 lambda = -2 进行变换。
+      <description><![CDATA[我理解 flexsurv 包中使用的参数化与 survival 包中的参数化不同。我使用这两个包拟合了相同的对数正态回归模型。flexsurvreg 的文档提到，它只是 survreg 的包装器，用于对数正态分布，并且它只将结果转换为 flexsurvreg 中使用的参数化。我想了解如何对回归系数标准误差进行转换。输出中的点估计匹配，但回归系数的标准误差不匹配。 （请注意，Scale 的标准误差（在 survival 包中）与 flexsurvreg 中 sdlog 的标准误差相匹配。只是回归系数的标准误差不同）数据可在此处获得，其中独立变量 Stress box cox 已用 lambda = -2 进行变换。
 输出自survival:
 &gt; para_fit_logNormal.lambda &lt;- survivor::survreg(Surv(Cycles, delta) ~ Stress.boxCox, data = sheets, dist = &quot;lognormal&quot;)
 &gt; 
@@ -115,6 +189,52 @@ AIC = 1785.23
       <pubDate>Thu, 14 Nov 2024 21:02:08 GMT</pubDate>
     </item>
     <item>
+      <title>我们可以用引导回归系数来代替数据吗？</title>
+      <link>https://stats.stackexchange.com/questions/657271/can-we-bootstrap-regression-coefficients-instead-of-data</link>
+      <description><![CDATA[我对在传统 bootstrap 方法可能很复杂（例如纵向/聚类数据、不规则参数，例如两个边际效应估计值的比率等）的情况下使用 bootstrap 有疑问（例如边际效应比率的置信区间？（GAM 回归））。
+以下是我对传统 bootstrap 的解释：
+
+原始模型：$y_i = X_i\beta + \epsilon_i$
+原始估计：$\hat{\beta}$ 从拟合模型到 $(y_i, X_i)$，其中 $i=1,...,n$
+对于 bootstrap 迭代 $b = 1,...,B$:
+
+从 $(y_i, X_i)$ 重新取样，得到 $(y_i^{(b)}, X_i^{(b)})$
+通过将模型拟合到每个 bootstrap 样本，得到 $\hat{\beta}^{(b)}$
+
+
+Bootstrap 分布来自 $\{\hat{\beta}^{(1)},...,\hat{\beta}^{(B)}\}$
+
+我在想，当这种传统的引导方法可能无法实现时，也许我们可以使用参数估计的渐近方差性质来推导引导估计？
+
+例如，假设我对某些数据拟合回归模型。使用渐近方差性质，我知道（对于特定类型的模型）：
+$$ 
+\begin{pmatrix} \hat{\beta}_1 \\ \hat{\beta}_2 \end{pmatrix} \sim N\left(\begin{pmatrix} \beta_1 \\ \beta_2 \end{pmatrix}, \begin{pmatrix} \sigma_{11} &amp; \sigma_{12} \\ \sigma_{12} &amp; \sigma_{22} \end{pmatrix}\right)
+$$
+
+现在，对于$s = 1,...,S$，我从多元正态分布中抽取样本分布：
+
+生成：
+$$\begin{pmatrix} \beta_1^{(s)} \\ \beta_2^{(s)} \end{pmatrix} \sim N\left(\begin{pmatrix} \hat{\beta}_1 \\ \hat{\beta}_2 \end{pmatrix}, \begin{pmatrix} \hat{\sigma}_{11} &amp; \hat{\sigma}_{12} \\ \hat{\sigma}_{12} &amp; \hat{\sigma}_{22} \end{pmatrix}\right)$$
+
+
+
+
+假设我是对某个依赖于 $\hat{\beta_1}$ 和 $\hat{\beta_2}$ 的数量 $\hat{\theta}$ 感兴趣，例如 $\hat{\theta} = \hat{\beta_1} / \hat{\beta_2}$。这是一个不规则参数，根据模型推导方差的分析公式可能非常复杂。
+
+
+我现在计算比率 $\theta^{(s)} = \beta_1^{(s)}/\beta_2^{(s)}$
+
+并且 $\theta$ 的分布来自 $\{\theta^{(1)},...,\theta^{(S)}\}$
+
+
+当无法使用引导方法时，这是一种获得置信区间的统计有效方法吗？也就是说，是否有可能引导回归系数（通过模拟它们的联合分布）而不是引导数据？
+
+注意：需要特别注意确定回归系数的正确联合概率分布。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657271/can-we-bootstrap-regression-coefficients-instead-of-data</guid>
+      <pubDate>Thu, 14 Nov 2024 18:40:16 GMT</pubDate>
+    </item>
+    <item>
       <title>二项式模型与 GLM 偏移泊松模型之间的区别是什么</title>
       <link>https://stats.stackexchange.com/questions/657270/whats-the-difference-between-binomial-model-versus-poisson-model-with-an-offset</link>
       <description><![CDATA[我正在处理由 $( i = 1, \ldots, n )$ 索引的分箱数据，其中对于每个箱 $i$，我有：
@@ -150,31 +270,6 @@ p_i = \frac{X_i}{N_i}
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/657270/whats-the-difference-between-binomial-model-versus-poisson-model-with-an-offset</guid>
       <pubDate>Thu, 14 Nov 2024 18:33:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>Cochrane (2005) 的《资产定价》中的横截面回归公式对我来说毫无意义</title>
-      <link>https://stats.stackexchange.com/questions/657267/the-cross-sectional-regression-formulae-in-asset-pricing-by-cochrane-2005-do-n</link>
-      <description><![CDATA[我正在阅读 Cochrane (2005) 的《资产定价》，我了解公式背后的理论，但我对其有效性提出质疑。显然，我忽略了一些东西。
-在书的第 237 页，作者指出：在 OLS 回归 $Y = X\beta +u$ 和 $E(uu&#39;)​​ = \Omega$ 中，$\beta$ 估计的方差为
-$$
-Var(\hat{\beta}) = (X&#39;X)^{-1} X&#39; \Omega X(X&#39;X)^{-1}
-$$
-残差协方差矩阵为
-$$
-Var(y-\hat{y}) = [I - X(X&#39;X)^{-1}X&#39;]\Omega[I - X(X&#39;X)^{-1}X&#39;]&#39;
-$$
-我不同意。
-如果 $Var(u) = \Omega$ 其中 $\Omega \ne \sigma^2 I$ 那么回归方程的解不再是 $\hat{\beta} = (X&#39;X)^{-1}X&#39;y$。现在，解决方案是 $\hat{\beta} = (X&#39;\Omega^{-1}X)^{-1}X&#39;\Omega^{-1}y$，这给出
-$$
-Var(\hat{\beta}) = (X&#39;\Omega^{-1}X)^{-1}
-$$
-并且
-$$
-Var(y-\hat{y}) = \Omega - X(X&#39;\Omega^{-1}X)^{-1}X&#39;
-$$
-我遗漏了什么？ OLS 回归假设 $\Omega = \sigma^2I$，这就是我们得到 $Var(\hat{\beta}) = (X&#39;X)^{-1} X&#39; \Omega X(X&#39;X)^{-1} = \sigma^2(X&#39;X)^{-1}$ 的原因。但是，如果 $\Omega \ne \sigma^2I$，则整个公式需要重新计算，因为解决方案不再是相同的形式。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657267/the-cross-sectional-regression-formulae-in-asset-pricing-by-cochrane-2005-do-n</guid>
-      <pubDate>Thu, 14 Nov 2024 18:26:11 GMT</pubDate>
     </item>
     <item>
       <title>证明 (X, Y, Z) 相互独立意味着在给定 Z 的情况下 X 和 Y 是独立的</title>
@@ -235,148 +330,87 @@ $E(Z) = 0 \implies E[X] = E[Y]$。
       <pubDate>Thu, 14 Nov 2024 15:07:41 GMT</pubDate>
     </item>
     <item>
-      <title>如何平均发动机性能：直接还是加权？</title>
-      <link>https://stats.stackexchange.com/questions/657251/how-to-average-engine-performance-direct-or-weighted</link>
-      <description><![CDATA[我不确定在我的分析中应该使用哪种方法来计算平均值。以下是我的设置：
-场景：我有三个新引擎（A、B 和 C）和两个主要目标：
+      <title>为什么我的累积链接混合模型的阈值系数看起来很大？</title>
+      <link>https://stats.stackexchange.com/questions/657284/why-are-the-threshold-coefficients-of-my-cumulative-link-mixed-model-seemingly-v</link>
+      <description><![CDATA[我正在使用 ordinal 包拟合累积链接混合模型。数据是重复测量（在三个时间点进行的调查）。该模型收敛没有问题，估计值在我看来是合理的，但阈值系数似乎非常夸大，我很想知道潜在原因和后果（即，该模型是否仍然可能提供信息）。
+library(ordinal)
+data(q1_data)
 
-确定每个引擎的总体性能
-（标记为 W 代表引擎 A、X 代表引擎 B、Y 代表引擎 C）
-计算所有三个引擎的综合总体性能
-（标记为 Z）。
+head(q1_data)
 
-数据详细信息：每个引擎都有不同数量的数据点（例如，引擎 A 有 3 个数据点，引擎 B 有 12 个，等等）。
-以下是有关引擎 A 数据的表格（插图）：
+id day response sex glp weight1 weight2
+&lt;dbl&gt; &lt;fct&gt; &lt;ord&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 1 day7 5 m 100. -1.40 -1.45
+2 1 day2 4 m 100. -1.40 -1.45
+3 1 day0 3 m 100. -1.40 -1.45
+4 2 day7 5 f 97.8 -1.10 -1.55
+5 2 day2 5 f 97.8 -1.10 -1.55
+6 2 day0 6 f 97.8 -1.10 -1.55
 
-其中 %Efficiency 计算如​​下：
+运行模型：
+q1_clmm &lt;- clmm(response ~ day + weight1 * weight2 + glp + (1 | id),
+data = q1_data,
+link = &quot;logit&quot;,
+nAGQ = 5)
+summary(q1_clmm)
 
-这是回答我的第二个目标 (Z) 的预期表格
+不确定我应该粘贴多少，但要给出完整的上下文：
+ 累积链接混合模型采用自适应高斯-埃尔米特 
+具有 5 个求积点的求积近似 
 
-我得到的部分困惑：
+公式：响应 ~ day + weight1 * weight2 + glp + (1 | id)
 
-对于 W、X 和 Y（单个引擎性能）：
+数据：q1_data
 
-方法 1：通过直接平均计算 %Efficiency。
-方法 2：将数据点产生的总燃料和电力相加，然后计算新的组合 L/kWh 并使用它来计算 %Efficiency。
+链接阈值 nobs logLik AIC niter max.grad cond.H 
+logit 灵活 159 -219.91 465.82 793(3020) 4.28e-04 6.3e+06
 
+随机效应：
+组名称方差标准差
+id（截距）1.194 1.093 
+组数：id 53 
 
-对于 Z（所有引擎的整体性能）：
+系数：
+估计标准差。误差 z 值 Pr(&gt;|z|) 
+dayday2 -0.59368 0.37344 -1.590 0.11189 
+dayday7 -0.07920 0.38261 -0.207 0.83602 
+weight1 -1.41946 0.46628 -3.044 0.00233 **
+weight2 0.39884 0.16354 2.439 0.01473 * 
+glp 0.06027 0.02302 2.618 0.00884 **
+weight1:weight2 -0.50004 0.17551 -2.849 0.00438 **
+---
+Signif。代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-方法 1：与上文相同
-方法 2：与上文相同
-方法 3：计算 %Efficiency 的加权平均值，其中每个引擎的权重基于其数据点数量。
+阈值系数：
+估计标准误差 z 值
+0|1 -0.2991 2.4189 -0.124
+1|2 0.8646 2.2783 0.379
+2|3 2.2481 2.2304 1.008
+3|4 3.4143 2.2253 1.534
+4|5 5.1067 2.2478 2.272
+5|6 7.2607 2.3074 3.147
 
-
-
-我的问题：
-
-对于 W、X 和 Y，哪种方法是正确的，为什么？
-对于 Z，哪种方法是正确的，为什么？
-
-注意：你能不能解释得简单点，因为我不是统计学或数学专业的学生 :&#39;)]]></description>
-      <guid>https://stats.stackexchange.com/questions/657251/how-to-average-engine-performance-direct-or-weighted</guid>
-      <pubDate>Thu, 14 Nov 2024 13:58:36 GMT</pubDate>
+我担心的是阈值估计值和 SE 非常高。越来越高的值也与我预期的方向相反，因为数据在 1-3 左右有点稀疏，而在 4-6 左右响应频率较高。我的理解是，这些是 logdds，指数结果为 1423 的 OR 和 5|6 截止值的上限 OR 为 131018。
+我推测这是一个问题？这是否意味着模型很难准确地建模数据？我的建模过程出了什么问题？过度拟合的可能性（性能指标似乎合理，例如，R2 cond 为 0.4，RMSE = 4.34，并且这些值不会因进一步简化模型而发生显着改变）？
+如果需要其他信息，请告诉我，我会更新此 OP。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657284/why-are-the-threshold-coefficients-of-my-cumulative-link-mixed-model-seemingly-v</guid>
+      <pubDate>Thu, 14 Nov 2024 08:16:37 GMT</pubDate>
     </item>
     <item>
-      <title>为什么数据引导可以修改来自同一分布的总体的斜率？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/657250/why-could-data-bootstraping-modifiy-the-slope-of-a-population-comming-from-the-s</link>
-      <description><![CDATA[我正在引导一些样本来计算斜率（有替换）。一旦完成，应该具有相同分布的斜率就不会具有相同的分布。要清楚，我不是要求调试代码，而是要求理解为什么我会引入偏差。
-这是 R 中可重现的代码：
-library(plotly)
+      <title>为什么高斯过程回归（GPR）是非参数的？</title>
+      <link>https://stats.stackexchange.com/questions/657239/why-gaussian-process-regression-gpr-is-non-parametric</link>
+      <description><![CDATA[鉴于高斯过程 (GP) 回归依赖于具有特定超参数的核来控制点之间的关系和平滑度，GP 回归真的可以被视为非参数技术吗？我有以下几点。
 
-N&lt;- 3000
-x &lt;- runif(N,0,1)*5
-y &lt;- x + rnorm(N, 1, .2)
-y2 &lt;- x + rnorm(N, 1, .2)
-t.test(y,y2)
-dummy &lt;- rep(c(TRUE,FALSE),each = N)
-df &lt;- data.frame(x = c(x,x), y = c(y,y2), dummy = dummy)
+GP 的行为在很大程度上取决于核的参数结构，这限制了函数形式与某些假设（例如平滑度、周期性）的一致性。这使其成为由超参数控制的确定性过程，而不是固有灵活的无参数模型。
 
-fig &lt;- plot_ly() %&gt;%
-add_trace(x = df[df$dummy == TRUE,]$x, y = df[df$dummy == TRUE,]$y) %&gt;%
-add_trace(x = df[df$dummy == FALSE,]$x, y= df[df$dummy == FALSE,]$y)
-图
+与任何参数技术（例如 DFT 或 AR 模型）一样，随着数据量的增长，GP 可以更精确地估计更适合数据的超参数。这种数据改进可以被认为类似于减少参数估计中的次优性，而不是反映开放的无参数结构。此外，从后验分布中绘制多个函数的能力（如使用抽样或引导方法的参数模型）并不意味着非参数模型。
 
-boot_strap &lt;- function(data, n_bootstraps){
-输出 &lt;- sapply(1:n_bootstraps, function(i){
-tmp &lt;- data[sample(seq_len(nrow(data)), nrow(data), replace = TRUE),]
-模型 &lt;- lm(y ~ x, data = tmp)
-return(coef(model)[2])
-})
-返回（输出）
-}
-
-for (size in c(1e2, 2e2, 5e2, 1e3, 1e4)){
-sample_1 &lt;- boot_strap(df[df$dummy == TRUE,], size)
-sample_2 &lt;- boot_strap(df[df$dummy == FALSE,], size) 
-print(paste0(&#39;Size: &#39;, size,&#39; - Pvalue: &#39;, t.test(sample_1, sample_2)$p.value))
-}
-
-fig &lt;- plot_ly() %&gt;%
-add_histogram(sample_1) %&gt;%
-add_histogram(sample_2)
-fig
-
-数据：
+虽然每个 GP 实现都代表一个潜在函数，但它们都遵循由内核建立的底层规则，该规则有效地控制了样本拟合观察到的数据的方式。因此，仅仅因为函数形式不是完全可预测而将 GP 标记为非参数可能是不准确的，因为内核参数化并限制了 GP 灵活性。
 
 
-这里我们没有差异，因为来自同一人群（如第一个 T 检验所示）是预期的
-但另一方面，斜率的分布明显不同。
-
-
-我的偏见在哪里？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657250/why-could-data-bootstraping-modifiy-the-slope-of-a-population-comming-from-the-s</guid>
-      <pubDate>Thu, 14 Nov 2024 13:56:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较两个具有相同数量观测值且均值相同但方差不同的样本</title>
-      <link>https://stats.stackexchange.com/questions/657248/comparing-two-samples-with-same-number-of-observations-and-having-same-mean-but</link>
-      <description><![CDATA[假设两个不同的数据集样本具有相同的平均值和相同的观测值数量；如果它们的方差相同，可以得出什么结论？如果两个方差不同，可以得出什么结论？
-测试问题中只写了这些，没有更详细的信息。问题不是英文的，所以我尽力翻译了。我不知道这是什么意思，但它似乎是在询问方差差异在比较两个不同样本时的影响的一般信息。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657248/comparing-two-samples-with-same-number-of-observations-and-having-same-mean-but</guid>
-      <pubDate>Thu, 14 Nov 2024 12:44:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何计算这类数据之间的差异？</title>
-      <link>https://stats.stackexchange.com/questions/657277/how-to-calculate-the-difference-between-this-type-of-data</link>
-      <description><![CDATA[我有一个实验，观察频率振荡随时间的变化，我在分析 R 中的数据时遇到了麻烦。这是我想从我的数据集中获取的一些信息：谷值之前的值的平均值，绘图谷值的平均值。谢谢！
-
-我只尝试过绘图，并尝试识别 FWHM，但不幸的是，我们想要的是最小值。
-Col1 - 以秒为单位的已用时间
-Col2 - 频率
-时间频率
-33 9986054
-34 9986054
-35 9986054
-36 9986054
-37 9986054
-38 9986054
-39 9986054
-40 9986054
-41 9986054
-42 9986054
-43 9986054
-44 9986054
-45 9986054
-46 9986054
-47 9986054
-48 9985915.8
-49 9985732.9
-50 9985549.7
-51 9985366.3
-52 9985183.1
-53 9984999.7
-54 9984816.2
-55 9984632.6
-56 9984449
-57 9984265.4
-58 9984220
-59 9984219.3
-60 9984218.9
-61 9984218.7
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/657277/how-to-calculate-the-difference-between-this-type-of-data</guid>
-      <pubDate>Thu, 14 Nov 2024 11:55:35 GMT</pubDate>
+总之，由于内核作为指导模型行为的明确参数化结构的作用，GP 回归不应该被视为参数方法吗？在我看来，它确实是一个参数核估计器，当与贝叶斯框架一起使用时，会产生后验预测。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657239/why-gaussian-process-regression-gpr-is-non-parametric</guid>
+      <pubDate>Thu, 14 Nov 2024 06:48:07 GMT</pubDate>
     </item>
     </channel>
 </rss>
