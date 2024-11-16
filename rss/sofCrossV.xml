@@ -4,7 +4,54 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 16 Nov 2024 15:16:42 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 16 Nov 2024 18:21:02 GMT</lastBuildDate>
+    <item>
+      <title>具有替代特定属性的 R 中的多项 Logit</title>
+      <link>https://stats.stackexchange.com/questions/657367/multinomial-logit-in-r-with-alternative-specific-attributes</link>
+      <description><![CDATA[我想问一个关于在 R 中使用 mlogit 的问题。
+当使用多项选择或混合逻辑对离散选择进行建模时，有些情况下，使替代方案有吸引力的属性并不适用于竞争替代方案。
+例如，比较传统汽车与电动汽车 (EV)，传统汽车中不存在 EV 组件的成本。或者在出行方式选择的背景下，当比较仅使用汽车与两种公共交通选项时，等待时间或舒适度适用于公共交通选项，但不适用于仅使用汽车。当属性因替代方案而异时，如何使用 mlogit？我在网上搜索过，最常见的建议是为不适用于替代方案的属性值分配 NA，但看起来 mlogit 不接受此选项。
+我将不胜感激任何反馈。
+问候，
+鲍勃]]></description>
+      <guid>https://stats.stackexchange.com/questions/657367/multinomial-logit-in-r-with-alternative-specific-attributes</guid>
+      <pubDate>Sat, 16 Nov 2024 16:47:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>匹配和边际效应</title>
+      <link>https://stats.stackexchange.com/questions/657366/matchthem-and-marginaleffect</link>
+      <description><![CDATA[这是我的代码：
+# 在每个估算数据集中执行匹配
+m.out_model1 &lt;- matchthem(Treatment_type_tumor_near_gallbladder ~ age + sex + bmi + ASA + comorbidities + Systemic_treatment_prior_local_treatment + Segments_treated_per_session + Metastasis_size_at_treatment_mm + min_distance_gallblad_mm + stage_binary, 
+data = new_amcore_imputed, 
+method = &quot;nearest&quot;, 
+distance = &quot;logit&quot;,
+replace = TRUE,
+ratio = 3,
+caliper = 0.2)
+
+# 对匹配的数据执行逻辑回归
+results &lt;- with(m.out_model1, svyglm(complications ~ Treatment_type_tumor_near_gallbladder + age + sex + bmi + ASA + 合并症 + Systemic_treatment_prior_local_treatment + Segments_treated_per_session + Metastasis_size_at_treatment_mm + min_distance_gallblad_mm + stage_binary,
+family = quasibinomial()), cluster = FALSE)
+
+完成此步骤后，如何正确使用 marginaleffects::avg_comparisons() 函数？
+我尝试了以下操作：
+# 计算平均边际效应
+comparisons &lt;- marginaleffects::avg_comparisons(results)
+summary(comparisons, exponentiate = TRUE)
+
+但是，我不确定这是否正确，因为输出不是我所期望的。我按照这里提供的教程操作：https://ngreifer.github.io/blog/treatment-effects-mi/，但我无法将其应用于我的情况。
+我也尝试了这种方法，它给了我一个更易于理解的输出：
+output &lt;- pool(results, dfcom = NULL)
+
+summary(output, exponentiate = TRUE, conf.int = TRUE) %&gt;% 
+mutate(across(where(is.numeric), round, digits = 3))
+
+这两种方法可以比较吗？
+提前感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/657366/matchthem-and-marginaleffect</guid>
+      <pubDate>Sat, 16 Nov 2024 15:48:18 GMT</pubDate>
+    </item>
     <item>
       <title>建立对数正态模型的时间参数</title>
       <link>https://stats.stackexchange.com/questions/657364/building-time-parameters-for-lognormal-model</link>
@@ -123,53 +170,6 @@ OP2 = c(&quot;B&quot;,&quot;C&quot;)
       <pubDate>Sat, 16 Nov 2024 13:19:44 GMT</pubDate>
     </item>
     <item>
-      <title>阻断吉布斯采样</title>
-      <link>https://stats.stackexchange.com/questions/657357/blocked-gibbs-sampling</link>
-      <description><![CDATA[我正在研究贝叶斯模型，其中后验密度由以下公式给出：
-$
-p(a, b \mid x) \propto \prod_{i} p(x_i \mid a_i) \prod_{i} p(a_i \mid b) p(b)
-$
-这里，$x_i$ 是数据点，$a_i$ 和 $b$ 是参数。我打算使用马尔可夫链蒙特卡罗方法模拟这个后验密度。吉布斯型采样器在完整条件之间进行迭代：
-$ p(a_i \mid b, x_i) \propto p(x_i \mid a_i) p(a_i \mid b)\\
-p(b \mid a_i) \propto \prod_{i} p(a_i \mid b) p(b)$
-在我的例子中，由于条件独立性，第一步基于对 $ i $ 并行的 Metropolis 更新，而第二步允许使用闭式众所周知的条件来更新 $b$。
-现在事实证明 $\int p(a_i \mid b) p(b) db$得出$p(a_i)$的解析表达式。为了提高 MCMC 效率，我想构建一个阻塞采样器来“直接”模拟从 $ p(a, b \mid x) $ 中迭代 1) 使用 Metropolis 更新对所有 $i$ 从边际后验 $p(a_i \mid x)$ 进行采样，以及 2) 从条件后验 $p(b \mid a_i)$ 中采样，如上面的原始算法所示：
-$ p(a_i \mid x) \propto p(x_i \mid a_i) p(a_i)\\
-p(b \mid a_i) \propto \prod_i p(a_i \mid b) p(b)。
-$
-在实现这两个采样器时，我观察到它们产生的结果相似，但显然并不等效。阻塞采样器的推导是否存在缺陷？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657357/blocked-gibbs-sampling</guid>
-      <pubDate>Sat, 16 Nov 2024 12:48:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>`sklearn.datasets.make_regression` 中 `n_informative` 参数的具体含义是什么？</title>
-      <link>https://stats.stackexchange.com/questions/657350/what-is-the-exact-meaning-of-n-informative-parameter-in-sklearn-datasets-make</link>
-      <description><![CDATA[sklearn 的官方文档指出
-
-[sklearn.datasets.make_regression] 的输出是通过将具有 n_informative 非零回归量的（可能有偏差的）随机线性回归模型应用于先前生成的输入和一些具有可调比例的高斯中心噪声而生成的。
-
-我很难理解这些词的确切含义。“n_informative 非零回归量”的数学模型是什么？这是否意味着我们生成 n_informative 系数 $w_{k}$，形式为 $w_{0}+\sum_{k=1}^{\text{n_informative}-1}w_{k}x_{k}$，并将其与一些随机噪声一起应用于 n_features 随机字符串以生成初始数据？我们是否生成随机 n_informative$\times$n_features 矩阵？我们如何生成 y 列？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657350/what-is-the-exact-meaning-of-n-informative-parameter-in-sklearn-datasets-make</guid>
-      <pubDate>Sat, 16 Nov 2024 05:29:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否应将规范化应用于交互特征</title>
-      <link>https://stats.stackexchange.com/questions/657349/should-normalization-be-applied-on-interaction-feature</link>
-      <description><![CDATA[我正在机器学习模型中使用交互特征，通过将数值变量与编码分类特征相乘来创建新特征。我的问题是：
-是否应该对这些交互项应用规范化？
-如果是，那么规范化不会改变交互项的含义吗？具体来说，当我先对数值特征进行归一化，然后创建交互项时，交互项是否仍表示其最初要捕获的关系？
-如果在创建交互项之前对数值变量进行归一化，交互项是否会失去其真实比例或含义？
-例如，如果我将归一化数值特征与分类变量（可以是独热编码）相乘，我是否会扭曲数值特征与类别之间的原始关系？
-我希望澄清交互项是否应进行归一化或保持原样，尤其是在交互项在捕获特定关系中起关键作用的情况下。
-谢谢！
-我尝试了什么：
-我尝试在创建交互项之前对数值特征进行归一化。具体来说，我先对数值变量进行归一化，然后将其与编码的分类特征相乘。我还尝试在不先对数值变量进行归一化的情况下创建交互特征，以比较这两种方法。
-我期望什么？
-我希望了解在创建交互项之前对数值特征进行归一化是否会影响模型捕捉数值和分类特征之间预期关系的能力。我还很好奇，由于数值特征的归一化，交互项的含义是否会保留或扭曲。我希望了解归一化是否会导致交互项失去其原始规模和重要性，或者它是否有利于模型收敛和性能。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657349/should-normalization-be-applied-on-interaction-feature</guid>
-      <pubDate>Sat, 16 Nov 2024 04:02:58 GMT</pubDate>
-    </item>
-    <item>
       <title>如果 alpha = 0.05 时 p 值为 0.0503，我们是否拒绝原假设？如果有的话，用什么方法可以验证拒绝？</title>
       <link>https://stats.stackexchange.com/questions/657324/do-we-reject-null-if-we-have-a-pvalue-of-0-0503-at-alpha-0-05-what-way-to-val</link>
       <description><![CDATA[我知道它大于 0.05，但我只是想知道，因为将其四舍五入到小数点后两位会得到 0.05。我只是想确保我没有错误地接受零假设。有没有办法说，即使这个值接近 alpha，也有足够的证据拒绝零假设？
@@ -259,6 +259,42 @@ Error() 模型是奇异的
       <pubDate>Fri, 08 Nov 2024 10:44:32 GMT</pubDate>
     </item>
     <item>
+      <title>何时回归模型优于简单方法？</title>
+      <link>https://stats.stackexchange.com/questions/656897/when-regression-models-outperforms-the-naive-methods</link>
+      <description><![CDATA[我遵循了此问题
+
+案例 1：
+我有以下任务要做：通过连续 3 天的训练来预测每个第 4 天。每天的数据代表一个尺寸为 24x25 的 CSV 文件。每个 CSV 文件的每个数据点都是像素。
+现在，我需要这样做，使用训练数据第 1 天、第 2 天、第 3 天（即连续三天）预测第 4 天（即第 4 天），然后计算预测的第 4 天数据和原始第 4 天数据之间的 mse。我们称之为 mse1。
+同样，我需要使用训练数据 day2、day3、day4 预测 day5（即第 5 天），然后计算 mse2（预测的第 5 天数据与原始的第 5 天数据之间的 mse）
+我需要使用训练数据 day3、day4、day5 预测 day6（即第 6 天），然后计算 mse3（预测的第 6 天数据与原始的第 6 天数据之间的 mse）
+..........
+最后，我想使用训练数据 day90、day91、day92 预测 day93，计算 mse90（预测的第 93 天数据与原始的第 93 天数据之间的 mse）
+我想使用 Ridge 回归，线性回归和 LSTM 模型。每个模型都有 90 mse。
+案例 2：
+这里我使用的是被称为“朴素预测”或“随机游走”预测的方法。它通常很难被打败。
+朴素方法是：
+任何一天的猜测都只是前一天的地图。我的意思是简单地猜测第 2 天与第 1 天相同，猜测第 3 天与第 2 天相同，猜测第 4 天与第 3 天相同，......，猜测第 91 天与第 90 天相同。我的意思是使用当天的数据 (predicted_data = current_day_data) 预测第二天的数据。然后计算 next_day_data 和 current_day_data 之间的 mse。
+结果：
+
+在案例 1 中，我观察到，在数据较少的情况下，非常简单的方法 (回归模型) 的表现优于复杂方法 (lstm) 的情况极为常见。 这令人满意，正如预期的那样。简单的方法在数据较少的情况下尤其具有竞争力。&quot;有竞争力&quot;很简单，就意味着“更低的预测误差”。
+
+在案例 2 中，我们知道朴素方法通常很难被击败，这意味着更低的 MSE，但在案例 1 中，简单回归方法的表现优于朴素方法。
+
+
+
+我的问题：
+
+在哪种情况下，一个简单的回归模型（在案例 1 中）会胜过一个简单的方法（在案例 2 中）？我的意思是，如何具体知道为什么一种简单方法在我的特定数据集上优于另一种简单方法？
+
+如何挖掘我的数据集以了解一种简单方法优于另一种简单方法？
+
+
+我的数据样本例如第 1 天、第 2 天、第 3 天，第 4 天。]]></description>
+      <guid>https://stats.stackexchange.com/questions/656897/when-regression-models-outperforms-the-naive-methods</guid>
+      <pubDate>Thu, 07 Nov 2024 14:09:12 GMT</pubDate>
+    </item>
+    <item>
       <title>机器学习模型是否有类似间隔重复学习的东西？</title>
       <link>https://stats.stackexchange.com/questions/624601/is-there-anything-like-spaced-repetition-learning-for-machine-learning-models</link>
       <description><![CDATA[我想知道是否存在类似间隔重复的方法，但这种方法可以帮助机器学习模型学习。
@@ -266,10 +302,18 @@ Error() 模型是奇异的
 例如，如果抽认卡正确，你会在一天内再次看到它。如果再次正确，你会在两天后看到它，然后是四天，依此类推。如果你做错了，你的记忆时间就会降到零天，你必须重新做一遍。它基于赫尔曼·艾宾浩斯对遗忘曲线的发现。从 1880 年到 1885 年，他通过记忆一种假语言的单词对自己进行了实验（因为没有其他人愿意这样做）。这使他无法将已知单词与他试图记忆的单词联系起来，因此他可以获得更好的原始记忆数据。如今，确定等待时间的算法稍微复杂一些，但基本思想仍然适用。（如果您有兴趣尝试，请谷歌搜索“anki”）
 
 将这个想法应用于机器学习会产生任何好处吗？或者已经存在类似的东西？基本上是相同的想法，但使用时期而不是天来管理何时应该进行审查。我知道灾难性遗忘是一种现象，但如果以类似于间隔重复的方式进行训练，也许有一些架构会保留在记忆中。这个想法让我想到了批处理，有时如果你不同时关注所有示例的梯度，你就可以摆脱局部最小值。
-还有一些细节：你如何判断模型是否“正确”？例如，假设你正在训练一个分类模型，当它对正确类别有 90% 的确定性时，它是否正确？也许你可以随着每张卡片的训练而将正确所需的百分比降低到更高的水平，以将其引入 99.99% 的领域？也许有一种更好的通用方法可以根据该卡片的确定性历史来确定何时进行审查？使用这种方法是否存在偏见的危险？ （即：它会对有困难的练习进行更艰苦的训练，因此它会变得更好，但在它认为容易的练习上却变得更糟，并且来回反复？）在开启间隔重复之前，你是否必须进行一段时间的定期训练才能使其发挥作用？
+还有一些细节：你如何判断模型是否“正确”？例如，假设你正在训练一个分类模型，当它对正确类别有 90% 的确定性时，它是否正确？也许你可以随着每张卡片的训练而将正确所需的百分比降低到更高的水平，以将其引入 99.99% 的领域？也许有一种更好的通用方法可以根据该卡片的确定性历史来确定何时进行审查？使用这种方法是否存在偏见的危险？ （即：它会对有困难的练习进行更艰苦的训练，因此，它会在这方面做得更好，但在它认为容易的练习上却变得更糟，并且来回反复？）在开启间隔重复之前，你是否必须进行一段时间的定期训练才能使其发挥作用？
 谢谢阅读。]]></description>
       <guid>https://stats.stackexchange.com/questions/624601/is-there-anything-like-spaced-repetition-learning-for-machine-learning-models</guid>
       <pubDate>Tue, 22 Aug 2023 13:24:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么我们不使用敏感度和特异性的调和平均值？</title>
+      <link>https://stats.stackexchange.com/questions/610364/why-dont-we-use-the-harmonic-mean-of-sensitivity-and-specificity</link>
+      <description><![CDATA[F-1 分数上有这个问题，询问为什么我们计算精确度和召回率的调和平均值而不是算术平均值。答案中有很多支持调和平均值的论据，特别是它适合取比率的平均值，并且当其中一个比率为零时，它就会降至零。
+这引出了一个问题，为什么敏感性和特异性的调和平均值不是一个东西（据我所知）？存在两个比率，并且可以应用相同的论据。]]></description>
+      <guid>https://stats.stackexchange.com/questions/610364/why-dont-we-use-the-harmonic-mean-of-sensitivity-and-specificity</guid>
+      <pubDate>Wed, 22 Mar 2023 21:28:27 GMT</pubDate>
     </item>
     <item>
       <title>如果我只能计算 $g(X)$ 的平均值，那么 LOTUS 的意义何在？</title>
@@ -282,22 +326,6 @@ $$E[g(X)]=\int_{-\infty}^{\infty}\,g(x)f_X(x)\,dx,\;\text{(continuous).}$$
 但是，这是我的问题：如果我们知道并且可以访问所有实现$y=g(x)$，那么为什么我们不计算$g$的平均值呢？为什么我要涉及$X$的 PDF/PMF？]]></description>
       <guid>https://stats.stackexchange.com/questions/602510/what-is-the-point-of-lotus-if-i-can-just-compute-the-average-of-gx</guid>
       <pubDate>Thu, 19 Jan 2023 13:00:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>时间序列是 ML 模型的几个输入之一</title>
-      <link>https://stats.stackexchange.com/questions/599307/time-series-as-one-of-several-inputs-to-ml-model</link>
-      <description><![CDATA[我有一个看似相对简单的问题，尽管搜索了很长时间，却仍无法找到令人满意的答案：
-分析时间序列数据的经典方法似乎是 RNN 的某种形式。但是，我见过的大多数示例都使用单个时间序列作为 RNN 的输入。我的应用程序需要稍微复杂一点的架构 - 给定推理的输入将是几个短时间序列以及几个单独参数的组合。在视觉形式中，这可能看起来像以下内容：
-
-这里有两个主要问题：
-
-我如何处理这里有两种不同类型的时间序列这一事实 - 它们不能轻易地堆叠并输入到同一个 RNN 中（或者可以吗？）
-我如何处理所涉及的参数在时间序列过程中不会改变这一事实？我是否只需将这些参数中的每一个添加到时间序列的每个时间步上，还是做其他事情？
-
-现在，我正在考虑尝试做一些 hacky Concatenate layer 的东西，但似乎像这样的常见情况需要更优雅的解决方案。
-我发现了一些相关问题：这个，它提到了我几乎完全相同的问题，但从未得到答案，这个，它具有可变数量的输入时间序列并希望对它们执行一些特定操作，以及本教程讨论了串联。]]></description>
-      <guid>https://stats.stackexchange.com/questions/599307/time-series-as-one-of-several-inputs-to-ml-model</guid>
-      <pubDate>Sat, 17 Dec 2022 00:32:48 GMT</pubDate>
     </item>
     </channel>
 </rss>
