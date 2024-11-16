@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 16 Nov 2024 06:22:41 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 16 Nov 2024 09:16:26 GMT</lastBuildDate>
     <item>
       <title>Rectools‘Dataset’对象没有属性‘from_dataset’</title>
       <link>https://stackoverflow.com/questions/79194068/rectools-dataset-object-has-no-attribute-from-dataset</link>
@@ -119,17 +119,6 @@ ValueError：层的输入应为张量。层“xception”的输入为“&lt;Sequ
       <pubDate>Fri, 15 Nov 2024 12:24:08 GMT</pubDate>
     </item>
     <item>
-      <title>对图像集的平均值进行标注[关闭]</title>
-      <link>https://stackoverflow.com/questions/79192357/captioning-an-average-of-image-set</link>
-      <description><![CDATA[我正在寻找一种用一个句子描述一组图像的方法。或者，我需要一种方法来在概念上平均一组图像，然后再将该“概念”（可能是特征向量）提供给常规字幕模型。
-为什么？
-用于 Lora 训练评估。在适合整个数据集的提示上测试训练后的生成模型会很有用，而不是选择单个图像的标题或尝试找出它们之间的共同点。此外，这还允许生成单个负面提示来测试模型在范围外的提示上的表现。
-我到目前为止所做的：
-我已经修改了现有的 CLIP+BLIP 询问器以处理图像集（它也可以生成负片）。然而，虽然 CLIP 字幕允许在使用图像特征选择最佳字幕之前对其进行平均，但它的准确性远低于 BLIP 生成的字幕，后者仅适用于单幅图像。我需要一个可以像 CLIP 一样接收特征向量的模型，这样我就可以对它们进行预处理。]]></description>
-      <guid>https://stackoverflow.com/questions/79192357/captioning-an-average-of-image-set</guid>
-      <pubDate>Fri, 15 Nov 2024 12:19:27 GMT</pubDate>
-    </item>
-    <item>
       <title>如何从 CoreML 预测中获取置信度变量</title>
       <link>https://stackoverflow.com/questions/79192127/how-can-i-get-the-confidence-variable-from-a-coreml-prediction</link>
       <description><![CDATA[我正在使用 CreateML 工具训练文本分类器，当我使用预览功能并输入一个句子时，它会给我一个预测以及一个置信度变量
@@ -236,6 +225,77 @@ RMSE Rsquared MAE
 我打算用它们来验证我将要做出的预测（或者甚至在需要时将其用作输入来预测人的下一个动作）。]]></description>
       <guid>https://stackoverflow.com/questions/79190691/how-to-make-gate-predictions-for-certain-movements-using-hmm-model</guid>
       <pubDate>Thu, 14 Nov 2024 23:15:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>XGBoost 提前停止轮次</title>
+      <link>https://stackoverflow.com/questions/79189607/xgboost-early-stopping-rounds</link>
+      <description><![CDATA[下面的代码一直在崩溃，我不知道发生了什么
+import optuna
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# 假设 `X` 和 `y` 是你的特征矩阵和目标数组
+X_train, X_valid, y_train, y_valid = train_test_split(df_combined, y, test_size=0.2, random_state=42)
+
+# 为 Optuna 定义目标函数
+def objective(trial):
+# 为超参数建议值
+params = {
+&quot;objective&quot;: &quot;reg:squarederror&quot;,
+&quot;eval_metric&quot;: &quot;rmse&quot;,
+&quot;tree_method&quot;: &quot;hist&quot;, # 使用 hist 方法
+&quot;device&quot;: &quot;cuda&quot;, # 指定使用 GPU
+&quot;learning_rate&quot;: trial.suggest_float(&quot;learning_rate&quot;, 0.01, 0.3, log=True),
+&quot;max_depth&quot;: trial.suggest_int(&quot;max_depth&quot;, 3, 10),
+&quot;min_child_weight&quot;: trial.suggest_float(&quot;min_child_weight&quot;, 1, 10),
+&quot;gamma&quot;: trial.suggest_float(&quot;gamma&quot;, 0, 1),
+&quot;subsample&quot;: trial.suggest_float(&quot;subsample&quot;, 0.5, 1.0),
+&quot;colsample_bytree&quot;: trial.suggest_float(&quot;colsample_bytree&quot;, 0.5, 1.0),
+&quot;lambda&quot;: trial.suggest_float(&quot;lambda&quot;, 1e-3, 10.0, log=True),
+&quot;alpha&quot;: trial.suggest_float(&quot;alpha&quot;, 1e-3, 10.0, log=True),
+&quot;n_estimators&quot;: 1000 # 在模型初始化中定义 n_estimators
+}
+
+# 初始化模型
+model = xgb.XGBRegressor(**params)
+
+# 使用早期停止回调训练模型
+model.fit(
+X_train,
+y_train,
+eval_set=[(X_valid, y_valid)],
+verbose=False,
+early_stopping_rounds=50 # 如果之后没有改进则停止50 轮
+)
+
+# 预测并计算验证集的 RMSE
+preds = model.predict(X_valid)
+rmse = mean_squared_error(y_valid, preds, squared=False)
+
+return rmse # Optuna 将其最小化
+
+# 设置 Optuna 研究
+study = optuna.create_study(direction=&quot;minimize&quot;)
+
+# 优化超参数
+study.optimize(objective, n_trials=100, n_jobs=40) # 100 次试验，40 次并行作业
+
+# 显示最佳试验
+print(&quot;最佳试验：&quot;)
+trial = study.best_trial
+print(f&quot;值 (RMSE)：{trial.value}&quot;)
+print(&quot; 参数：&quot;)
+for key, value in trial.params.items():
+print(f&quot; {key}: {value}&quot;)
+
+我得到
+TypeError：XGBModel.fit() 获得意外的关键字参数“early_stopping_rounds”
+
+我已更新所有内容以确保我拥有所有更新的库。
+提前停止轮次是正确的（我认为），但由于某种原因，它会爆炸。]]></description>
+      <guid>https://stackoverflow.com/questions/79189607/xgboost-early-stopping-rounds</guid>
+      <pubDate>Thu, 14 Nov 2024 16:14:40 GMT</pubDate>
     </item>
     <item>
       <title>Keras 模型中的自定义编码器和解码器层显示为未构建</title>
