@@ -4,7 +4,126 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 18 Nov 2024 12:35:34 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 18 Nov 2024 15:19:40 GMT</lastBuildDate>
+    <item>
+      <title>使用 keras 预处理层构建预处理管道时，adapt() 在 tf.data.Dataset.map() 中不起作用</title>
+      <link>https://stackoverflow.com/questions/79199946/adapt-doesnt-work-within-tf-data-dataset-map-while-building-a-preprocessing</link>
+      <description><![CDATA[我正在尝试创建一个神经网络，根据员工的技能为他们分配任务（https://www.kaggle.com/datasets/umerfarooq09/skill-based-task-assignment）。
+数据包含分类特征。我在预处理函数中使用 Keras 预处理层。数据不是太大，所以我选择根据特征调整预处理层来构建词汇表（而不是使用预先构建的词汇表）。但是每当我尝试对某个特征使用 adapt() 时，它都会抛出以下错误：
+dataset = tf.data.experimental.make_csv_dataset(csv_path, 
+label_name=label, 
+batch_size=128, 
+num_epochs=1, 
+shuffle=True, 
+shuffle_buffer_size=1000)
+
+def preprocess(features, label):
+preprocessed_features = {}
+for name, feature in features.items():
+if feature.dtype == &#39;string&#39;:
+coder = layer.StringLookup(output_mode=&#39;one_hot&#39;)
+coder.adapt(feature)
+preprocessed_features[name] =coder(feature)
+
+elif feature.dtype == &#39;int&#39;:
+normalizer = layer.Normalization(output_mode=&#39;one_hot&#39;)
+normalizer.adapt(feature)
+preprocessed_features[name] = normalizer(feature)
+
+return preprocessed_features, label
+
+dataset = dataset.map(preprocess)
+
+OperatorNotAllowedInGraphError: 在用户代码中:
+
+文件 &quot;C:\Users\User\AppData\Local\Temp\4\ipykernel_7508\1668558205.py&quot;，第 8 行，在 preprocess 中 *
+coder.adapt(feat[name])
+文件 &quot;c:\Users\User\Spark\spark_env\Lib\site-packages\keras\src\layers\preprocessing\string_lookup.py&quot;，第 368 行，在 adapt 中 **
+super().adapt(data, steps=steps)
+文件&quot;c:\Users\User\Spark\spark_env\Lib\site-packages\keras\src\layers\preprocessing\index_lookup.py&quot;，第 582 行，在 adapt
+self.finalize_state()
+文件 &quot;c:\Users\User\Spark\spark_env\Lib\site-packages\keras\src\layers\preprocessing\index_lookup.py&quot;，第 626 行，在 finalize_state
+if self._has_input_vocabulary or tf.equal(self.token_counts.size(), 0):
+
+OperatorNotAllowedInGraphError：不允许将符号 `tf.Tensor` 用作 Python `bool`。您可以尝试以下方法解决该问题：如果您在 Graph 模式下运行，请使用 Eager 执行模式或使用 @tf.function 修饰此函数。如果您使用的是 AutoGraph，则可以尝试使用 @tf.function 修饰此函数。如果此方法无效，则可能是您使用了不受支持的功能，或者 AutoGraph 可能无法看到您的源代码。有关更多信息，请参阅 https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/autograph/g3doc/reference/limitations.md#access-to-source-code。
+
+我认为问题是由于 adapt() 在符号张量上实现而导致的，该张量不包含任何数据。所以我获取了一批数据，并将特征和标签保存在内存中以传递给 adapt()。
+[(feat, label)] = dataset.take(1)
+
+def preprocess(features, label):
+preprocessed_features = {}
+for name, feature in features.items():
+if feature.dtype == &#39;string&#39;:
+coder = layer.StringLookup(output_mode=&#39;one_hot&#39;)
+coder.adapt(feat[name])
+preprocessed_features[name] =coder(feature)
+
+elif feature.dtype == &#39;int&#39;:
+normalizer = layer.Normalization(output_mode=&#39;one_hot&#39;)
+normalizer.adapt(feat[name])
+preprocessed_features[name] = normalizer(feature)
+
+return preprocessed_features, label
+
+dataset.map(preprocess)
+
+此代码仍然产生相同的结果错误。我做错了什么？
+既然我们这样做了，那么，如果数据太大而无法保存在内存中（我的不是，但我将来可能会遇到这种情况），构建可以在批量数据上异步运行的输入和预处理管道的最佳方法是什么（最好不使用 pandas）？
+我计划将预处理模型和训练模型彼此分开（因为 tf 文档称这是预处理分类特征的最佳方法）。]]></description>
+      <guid>https://stackoverflow.com/questions/79199946/adapt-doesnt-work-within-tf-data-dataset-map-while-building-a-preprocessing</guid>
+      <pubDate>Mon, 18 Nov 2024 12:40:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>为 TensorFlow 创建 TF 记录时遇到问题</title>
+      <link>https://stackoverflow.com/questions/79199941/facing-issue-in-creating-tf-records-for-tensorflow</link>
+      <description><![CDATA[当我运行此代码来生成 TF 记录时：
+!python {SCRIPTS_PATH + &#39;/generate_tfrecord.py&#39;} -x {IMAGE_PATH + &#39;/train&#39;} -l {ANNOTATION_PATH + &#39;/label_map.pbtxt&#39;} -o {ANNOTATION_PATH + &#39;/train.record&#39;}!python {SCRIPTS_PATH + &#39;/generate_tfrecord.py&#39;} -x {IMAGE_PATH + &#39;/test&#39;} -l {ANNOTATION_PATH + &#39;/label_map.pbtxt&#39;} -o {ANNOTATION_PATH + &#39;/test.record&#39;}
+
+我收到此错误：
+2024-11-16 16:28:22.414068：我tensorflow/core/util/port.cc:153] oneDNN 自定义操作已开启。由于不同计算顺序的浮点舍入误差，您可能会看到略有不同的数值结果。要关闭它们，请设置环境变量 `TF_ENABLE_ONEDNN_OPTS=0`。
+2024-11-16 16:28:23.793272：I tensorflow/core/util/port.cc:153] oneDNN 自定义操作已开启。由于不同计算顺序的浮点舍入误差，您可能会看到略有不同的数值结果。要关闭它们，请设置环境变量 `TF_ENABLE_ONEDNN_OPTS=0`。
+回溯（最近一次调用最后一次）：
+文件“C:\Users\rishi\RealTimeObjectDetection\Tensorflow\scripts\generate_tfrecord.py”，第 62 行，位于 &lt;module&gt;
+label_map_dict = label_map_util.get_label_map_dict(label_map)
+文件 &quot;C:\Users\rishi\anaconda3\lib\site-packages\object_detection\utils\label_map_util.py&quot;，第 166 行，在 get_label_map_dict 中
+label_map = load_labelmap(label_map_path)
+文件 &quot;C:\Users\rishi\anaconda3\lib\site-packages\object_detection\utils\label_map_util.py&quot;，第 135 行，在 load_labelmap 中
+label_map_string = fid.read()
+文件 &quot;C:\Users\rishi\anaconda3\lib\site-packages\tensorflow\python\lib\io\file_io.py&quot;，第 116 行，在 read 中
+self._preread_check()
+文件&quot;C:\Users\rishi\anaconda3\lib\site-packages\tensorflow\python\lib\io\file_io.py&quot;，第 77 行，在 _preread_check
+self._read_buf = _pywrap_file_io.BufferedInputStream(
+TypeError: __init__(): 不兼容的构造函数参数。支持以下参数类型：
+1. tensorflow.python.lib.io._pywrap_file_io.BufferedInputStream(filename: str, buffer_size: int, token: tensorflow.python.lib.io._pywrap_file_io.TransactionToken = None)
+
+调用方式：item {
+name: &quot;Hello&quot;
+id: 1
+}
+item {
+name: &quot;Yes&quot;
+id: 2
+}
+item {
+name: &quot;No&quot;
+id: 3
+}
+item {
+name: &quot;ThankYou&quot;
+id: 4
+}
+item {
+name: &quot;ILoveYou&quot;
+id: 5
+}
+, 524288
+
+我已检查所有路径以及 label_map 文件（.pbtxt 文件）及其格式，但似乎没有任何效果。
+此外，在生成 tf 记录代码中，import tensorflow.compat.v1 as tf 语句不知何故显示错误。即使多次下载 python 和 tensorflow，它仍显示没有名为 compat 的模块。这可能与此有关，但我不确定。
+请提出建议。]]></description>
+      <guid>https://stackoverflow.com/questions/79199941/facing-issue-in-creating-tf-records-for-tensorflow</guid>
+      <pubDate>Mon, 18 Nov 2024 12:38:56 GMT</pubDate>
+    </item>
     <item>
       <title>带有 Weka Predictions 的 Spring Boot 应用程序在构建后的第一天运行正常，但随后几天出现故障</title>
       <link>https://stackoverflow.com/questions/79198921/spring-boot-application-with-weka-predictions-works-on-the-first-day-after-build</link>
@@ -111,25 +230,6 @@ confusionMatrix.default(pred, as.factor(test$Fail (1=yes))) 中的错误：
       <pubDate>Sun, 17 Nov 2024 22:38:11 GMT</pubDate>
     </item>
     <item>
-      <title>项目 ML 预测设置 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79197789/project-ml-forecasting-setup</link>
-      <description><![CDATA[我是数据科学的新手，目前正在从事一个预测来年产品销售的项目。我有过去三年中每种产品的每日历史销售数据。
-我的目标是使用预测模型（如随机森林）预测明年全年的销售额。但是，我很难理解如何在没有任何实际销售数据的情况下对未来时期进行预测。
-我当前的数据集（基表）包括以下特征：
-
-product_id
-purchase_date
-purchase_year
-purchase_month
-sales（目标变量）
-product_category
-滞后特征（例如前几天或前几周的销售额）
-
-我不确定如何根据这些数据预测未来的销售额。您能否帮助我了解该过程并帮助我如何为该任务设置模型和基表（高级）？重要的一点是，预测应按年度针对每个产品进行。]]></description>
-      <guid>https://stackoverflow.com/questions/79197789/project-ml-forecasting-setup</guid>
-      <pubDate>Sun, 17 Nov 2024 17:42:37 GMT</pubDate>
-    </item>
-    <item>
       <title>有条件地更改 RGB 图像中的像素值，然后删除通道</title>
       <link>https://stackoverflow.com/questions/79196999/conditionally-changing-the-pixel-values-in-an-rgb-image-then-removing-the-chann</link>
       <description><![CDATA[我只想比较图像的像素，如果这个像素是粉红色（R 值 = 0.502、G 值 = 0.0、B 值 = 0.502）则将其更改为黑色，否则将其更改为白色。在此之后，我想删除通道，只得到一个 (512,512,) 形状的张量。
@@ -221,38 +321,139 @@ print(&quot;\nTest accuracy:&quot;, test_acc)
       <pubDate>Sun, 17 Nov 2024 10:29:27 GMT</pubDate>
     </item>
     <item>
-      <title>XGBRegressor 模型在时间序列模型中欠拟合</title>
-      <link>https://stackoverflow.com/questions/79196179/xgbregressor-model-underfitting-in-time-series-model</link>
-      <description><![CDATA[编辑：添加 10 个数据点的 repex。
-data = {
-&quot;time&quot;: [327, 330, 333, 336, 339, 342, 345, 348, 351, 354],
-&quot;resistance&quot;: [140000.0, 139000.0, 137000.0, 136000.0, 134000.0,
-134000.0, 133000.0, 132000.0, 132000.0, 131000.0]
+      <title>无法训练我的 UNET 多类分割模型 [关闭]</title>
+      <link>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</link>
+      <description><![CDATA[我尝试使用 pytorch 从头开始​​制作 UNET。我的模型输出只有黑色蒙版。我需要分割汽车上的损坏，所以我实现了一个彩色图。我确信 70% 的数据集有问题，而这个彩色图恰恰就是其中的原因。任务是多类预测，所以我使用交叉熵损失函数。我将提供我的数据集和训练文件的代码。
+# dataset.py
+import os
+from PIL import Image
+from torch.utils.data import Dataset
+import numpy as np
+import torch
+
+class Segm_Dataset(Dataset):
+def __init__(self, image_dir, mask_dir, color_map):
+self.image_dir = image_dir
+self.mask_dir = mask_dir
+self.image_files = os.listdir(self.image_dir)
+self.mask_files = os.listdir(self.mask_dir)
+self.color_map = color_map
+
+def __len__(self):
+return len(self.image_files)
+
+def __getitem__(self, idx):
+image_path = os.path.join(self.image_dir, self.image_files[idx])
+mask_path = os.path.join(self.mask_dir, self.mask_files[idx])
+image = np.array(Image.open(image_path).convert(&#39;RGB&#39;))
+mask = np.array(Image.open(mask_path).convert(&#39;RGB&#39;), dtype=np.float32)
+label_mask = np.zeros((mask.shape[0], mask.shape[1]), dtype=np.int64)
+
+for color, label in self.color_map.items():
+color_array = np.array(color, dtype=np.float32)
+mask_area = np.all(mask == color_array, axis=-1)
+label_mask[mask_area] = label
+
+image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
+label_mask = torch.tensor(label_mask, dtype=torch.long)
+
+返回图像，label_mask
+
+# train.py
+从模型导入 UNET
+从 tqdm 导入 tqdm
+从数据集导入 Segm_Dataset
+导入 torch
+从 torch.utils.data 导入 DataLoader
+导入 torch.nn 作为 nn
+导入 torch.optim 作为 optim
+导入 os
+
+LEARNING_RATE = 1e-4
+BATCH_SIZE = 5
+NUM_EPOCHS = 10
+NUM_WORKERS = 2
+IMAGE_HEIGHT = 180
+IMAGE_WIDTH = 180
+PIN_MEMORY = True
+LOAD_MODEL =错误
+TRAIN_IMG_DIR = r&#39;data\train\images&#39;
+TRAIN_MASK_DIR = r&#39;data\train\masks&#39;
+VAL_IMG_DIR = r&#39;data\val\images&#39;
+VAL_MASK_DIR = r&#39;data\val\masks&#39;
+SAVED_MODELS_PATH = r&#39;saved_models&#39;
+
+color_map = {
+(19, 164, 201): 0, # 缺失部分：#13A4C9
+(166, 255, 71): 1, # 破损部分：#A6FF47
+(180, 45, 56): 2, # 划痕：#B42D38
+(225, 150, 96): 3, # 破裂：#E19660
+(144, 60, 89): 4, # 凹痕： #903C59
+(167, 116, 27): 5, # 剥落: #A7741B
+(180, 14, 19): 6, # 油漆剥落: #B40E13
+(115, 194, 206): 7, # 腐蚀: #73C2CE
 }
-df = pd.DataFrame(data)
 
-我正在尝试拟合 XGBRegressor 来预测传感器的未来行为。数据具有 6 个周期的季节性。当我拟合数据时，训练的 RMSE 会下降，而测试的 RMSE 不会下降太多并开始上升。如果我将学习率改为 1，将最大深度改为 3，它会在训练数据上过度拟合，但在测试上是一条直线。以下是模型的代码训练数据预测
-from xgboost import XGBRegressor
-model = XGBRegressor(n_estimators = 1000, early_stopping_rounds = 50,
-learning_rate = 0.01, max_depth = 5)
-model.fit(X_train, Y_train, 
-eval_set = [(X_train, Y_train), (X_test, Y_test)],
-verbose = 10)
+train_dataset = Segm_Dataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, color_map)
+train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-# 对训练数据进行预测
-Y_train_pred = model.predict(X_train)
+val_dataset = Segm_Dataset(VAL_IMG_DIR, VAL_MASK_DIR, color_map)
+val_loader = DataLoader(dataset=val_dataset, batch_size=BATCH_SIZE)
 
-供参考：X 有 3 个特征是时间（每个点为 3 秒），其他 2 个是
-sin_time = 0.5 * np.sin(time) * 2 * np.sin(time) * time 
-sin_2pi_time = np.sin(2 * np.pi * time)
+model = UNET(in_channels=3, out_channels=len(color_map))
+model = model.cuda() if torch.cuda.is_available() else model
 
-Y 是阻力
-尝试更改参数，但没有成功，即使我过度拟合模型，训练数据预测也是一条直线 测试数据预测
-这是 graphviz 可视化的 5 个最大深度的决策树 tree
-此外，这是 打印的 3 个特征的重要性特征重要性
-[9.9349368e-01 5.7454295e-03 7.6084811e-04]]]></description>
-      <guid>https://stackoverflow.com/questions/79196179/xgbregressor-model-underfitting-in-time-series-model</guid>
-      <pubDate>Sat, 16 Nov 2024 22:36:52 GMT</pubDate>
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
+for epoch in range(NUM_EPOCHS):
+train_loop = tqdm(enumerate(train_loader), total=len(train_loader))
+
+for batch_index, (data, target) in train_loop: 
+#前向传递
+scores = model(data)
+train_loss = criterion(scores, target)
+
+#后向传递
+optimizer.zero_grad()
+train_loss.backward()
+
+#梯度下降或优化器步骤
+optimizer.step()
+
+if batch_index % 10 == 0:
+current_batch = batch_index
+val_loss = 0
+with torch.no_grad():
+for val_data, val_targets in val_loader:
+val_scores = model(val_data)
+val_loss = criterion(val_scores, val_targets)
+
+#更新进度条
+train_loop.set_description(f&#39;Epoch: [{epoch+1}/{NUM_EPOCHS}]&#39;)
+train_loop.set_postfix(train_loss=train_loss.item(), val_loss=val_loss.item(), val_batch=current_batch)
+
+else:
+train_loop.set_description(f&#39;Epoch: [{epoch+1}/{NUM_EPOCHS}]&#39;)
+train_loop.set_postfix(train_loss=train_loss.item(), val_loss=val_loss.item(), val_batch=current_batch)
+
+checkpoint = {
+&#39;epoch&#39;: epoch + 1,
+&#39;model_state_dict&#39;: model.state_dict(),
+&#39;optimizer_state_dict&#39;: optimizer.state_dict(),
+&#39;train_loss&#39;: train_loss.item(),
+&#39;val_loss&#39;: val_loss.item()
+}
+
+torch.save(checkpoint, os.path.join(SAVED_MODELS_PATH, f&#39;unet_epoch_{epoch}.pth&#39;))
+
+一些训练 epoches:
+Epoch: [9/10]: 100%|████████████████| 888/888 [34:24&lt;00:00, 2.32s/it, train_loss=0.000271, val_batch=880, val_loss=0.000278]
+
+Epoch：[10/10]：100%|███████████████| 888/888 [34:29&lt;00:00, 2.33s/it, train_loss=0.000163, val_batch=880, val_loss=0.000167]
+]]></description>
+      <guid>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</guid>
+      <pubDate>Thu, 14 Nov 2024 09:17:27 GMT</pubDate>
     </item>
     <item>
       <title>如何在 PyTorch 中为 Nvidia GeForce RTX 3050 Ti 启用 CUDA？</title>
@@ -311,98 +512,13 @@ x = tf.keras.layers.Dense(units=24)(x)
       <pubDate>Sat, 02 Nov 2024 03:49:47 GMT</pubDate>
     </item>
     <item>
-      <title>使用没有跳跃连接的 U-Net 进行图像到图像处理。这是真的吗？</title>
-      <link>https://stackoverflow.com/questions/79132335/image-to-image-with-u-net-with-no-skip-connections-is-it-real</link>
-      <description><![CDATA[一般来说，需要 U-Net 来创建另一种风格的图像，但保留结构。例如，从草图中绘制完整的图画。对吗？
-我想保留风格，但改变结构。例如，我想拍一张皱巴巴的布料的照片，然后拍下展开的布料。但我不想使用 GAN。为此，我决定从 U-Net 中删除 Skip 连接器以保留结构。而且，我像在 GAN 中一样将输入图像卷积到风格向量。对吗？
-问题是，此代码训练成功，但前提是训练数据库中没有增强。一旦我向输入图像添加 +/- 5、10 和 15 度的角度增强（仅向输入添加，因为输出应该保持不变），那么我得到的不是结果，而是一些噪音。如果我开始在包含多个示例的数据集上进行训练，那么应用增强后的结果是正确的。但随着数据集中示例数量的增加，结果会变得更糟。
-但无论如何，我的曲线（损失：MSE）是完美的）））我的意思是，即使我得到一些噪音（图像），我的曲线看起来也像我得到了一个完美的结果。只是下降的曲线。这是最让我恼火的。我不明白这是怎么可能的。即使我得到一些噪音（图像）曲线也在下降，就像一切都很好一样。大约 0.09/0.05/0.02/0.01/.... 我称之为过度拟合只是因为我不知道它是什么。我的意思是，当我没有得到正确的结果但你得到下降的损失曲线时，这被称为过度拟合。对吗？
-关于我的模型的容量。当然，我考虑过这个问题，改变了层数、层中的过滤器和密集层中的神经元，但无济于事。所以我认为这里有一些概念问题。
-我使用训练数据集中的一些示例作为验证，因为我想确保这个模型至少可以正确处理我的训练数据。但是，正如我之前所说，通过增强，我得到了一些噪音，损失（MSE）完美。无论我使用多少个时期 - 结果都是垃圾，曲线是完美的。学习率 = 0.00006 * K（K = 5,4,3,2,1）。输入/输出 - 图像（2562563）。亚当。
-l2_reg = regularizers.l2(1e-6)
-initializer = initializers.he_normal()
-
-def build_unet(input_shape=(256, 256, 3)):
-输入 = 图层。输入(shape=input_shape)
-
-c = 图层。Conv2D(16, kernel_size=4, strides=2, padding=&quot;same&quot;)(输入)
-c = 图层。LeakyReLU(negative_slope=0.2)(c) 
-
-c = 图层。Conv2D(32, kernel_size=4, strides=2, padding=&quot;same&quot;)(c)
-c = 图层。LeakyReLU(negative_slope=0.2)(c)
-
-c = 图层。Conv2D(64, kernel_size=4, strides=2, padding=“相同”(c)
-c = 层。LeakyReLU(负斜率=0.2)(c)
-
-c = 层。Conv2D(128, kernel_size=4, strides=2, padding=“相同”(c)
-c = 层。LeakyReLU(负斜率=0.2)(c)
-
-c = 层。Conv2D(256, kernel_size=4, strides=2, padding=“相同”(c)
-c = 层。LeakyReLU(负斜率=0.2)(c)
-
-c = 层。Conv2D(512, kernel_size=4, strides=2, padding=“相同”(c)
-c = 层。LeakyReLU(负斜率=0.2)(c)
-
-# 瓶颈
-b = InstanceNormalization()(c)
-
-b = 图层。Reshape((-1,))(b)
-b = 图层。Dense(1024, kernel_regularizer=l2_reg,)(b)
-b = 图层。LeakyReLU(negative_slope=0.2)(b)
-
-b = 图层。Dropout(0.2)(b)
-
-b = 图层。Dense(1024*4*4, kernel_regularizer=l2_reg,)(b)
-b = 图层。LeakyReLU(negative_slope=0.2)(b)
-b = 图层。Reshape((4,4,1024))(b)
-
-# 代码
-d = 图层。Conv2DTranspose(512, kernel_size=4, strides=2, padding=&quot;same&quot;)(b)
-d =层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。Conv2DTranspose（256，kernel_size=4，strides=2，padding=“相同”）（d）
-
-d = 层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。Conv2DTranspose（128，kernel_size=4，strides=2，padding=“相同”）（d）
-
-d = 层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。Conv2DTranspose（64，kernel_size=4，strides=2，padding=“相同”）（d）
-
-d = 层。LeakyReLU（负斜率=0.2）（d）
-
-d = 层。Conv2DTranspose（32， kernel_size=4, strides=2, padding=&quot;same&quot;)(d)
-d = layer.LeakyReLU(negative_slope=0.2)(d)
-
-d = layer.Conv2DTranspose(16, kernel_size=4, strides=2, padding=&quot;same&quot;)(d)
-d = layer.LeakyReLU(negative_slope=0.2)(d)
-
-output = layer.Conv2D(3, kernel_size=3, padding=&quot;same&quot;, activated=&quot;tanh&quot;)(d)
-
-model = models.Model(inputs=inputs, output=outputs, name=&quot;build_unet&quot;)
-return model
-
-unet = build_unet()
-
-adam_optimizer = Adam(
-learning_rate=0.00006*K,
-)
-
-unet.compile(optimizer=adam_optimizer, loss=&#39;mse&#39;, metrics= None)
-]]></description>
-      <guid>https://stackoverflow.com/questions/79132335/image-to-image-with-u-net-with-no-skip-connections-is-it-real</guid>
-      <pubDate>Mon, 28 Oct 2024 07:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>在小型训练数据集上训练的文本转语音模型</title>
-      <link>https://stackoverflow.com/questions/77406851/text-to-speech-model-that-trains-on-small-training-dataset</link>
-      <description><![CDATA[我需要一个可以使用包含最多 20 个句子的成绩单和 wav 文件的数据集进行训练的模型。
-我尝试在这样的数据集上训练 https://github.com/coqui-ai/TTS，但训练效果并不好。推断只是噪音而不是单词。
-我正在研究https://github.com/microsoft/SpeechT5/tree/main/SpeechLM#pre-trained-and-fine-tuned-models，但他们使用的微调数据集似乎也有超过 100 小时的音频内容。
-解决这个问题的最佳研究模型是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/77406851/text-to-speech-model-that-trains-on-small-training-dataset</guid>
-      <pubDate>Thu, 02 Nov 2023 04:00:19 GMT</pubDate>
+      <title>计算逐字符混淆矩阵以进行 OCR 评估？</title>
+      <link>https://stackoverflow.com/questions/77907561/calculate-a-character-wise-confusion-matrix-for-ocr-evaluation</link>
+      <description><![CDATA[我正在从事 OCR 任务，出于评估目的，我想为我的模型计算一个混淆矩阵。我希望它基本上显示一个字符被正确预测的频率以及它被预测为其他字符的频率（以及哪些字符！）。
+我目前的问题是，由于字符串大小不匹配和/或多余/缺失字符（主要是空格），简单的成对比较很困难。我正在考虑使用 Levenshtein 距离计算算法添加有关需要插入/删除字符的频率的信息，但我仍然不确定如何处理。
+是否有任何常用的最先进的方法？我做了一些研究，但没有发现任何重要的东西。]]></description>
+      <guid>https://stackoverflow.com/questions/77907561/calculate-a-character-wise-confusion-matrix-for-ocr-evaluation</guid>
+      <pubDate>Tue, 30 Jan 2024 15:38:07 GMT</pubDate>
     </item>
     <item>
       <title>合并数据框时出现“KeyError”</title>
