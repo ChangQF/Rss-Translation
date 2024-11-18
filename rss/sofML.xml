@@ -4,9 +4,121 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 18 Nov 2024 18:23:49 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 18 Nov 2024 21:14:22 GMT</lastBuildDate>
     <item>
-      <title>可以与 Ren'Py 配合使用的 NumPy 替代品？或者只是让 NumPy 与 Ren'Py 配合使用的一种方法</title>
+      <title>使用 LSTM 模型进行股票价格分析/预测，时间戳问题</title>
+      <link>https://stackoverflow.com/questions/79201451/stock-price-analysis-prediction-with-lstm-model-timestamp-problem</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79201451/stock-price-analysis-prediction-with-lstm-model-timestamp-problem</guid>
+      <pubDate>Mon, 18 Nov 2024 21:09:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何修改我的代码来处理 RGBX（4 通道）图像以进行语义分割？</title>
+      <link>https://stackoverflow.com/questions/79201296/how-to-modify-my-code-to-handle-rgbx-4-channel-images-for-semantic-segmentatio</link>
+      <description><![CDATA[我是该领域的新手，一直在关注 U-Net 教程，使用 3 通道 RGB 图像进行语义分割https://www.youtube.com/watch?v=68HR_eyzk00&amp;list=PLZsOBAyNTZwbR08R959iCvYT3qzhxvGOE&amp;index=2&amp;ab_channel=DigitalSreeni，对我来说效果很好。但是，我现在需要扩展管道以支持 4 通道 RGBX 图像（即 RGB + 一个额外通道），但我不确定如何修改代码以适应额外的通道，尤其是对于预处理和 ImageDataGenerator 部分（我认为 ImageDataGenerator 不支持 4 通道图像）。
+这是代码（将图像修补为（256 * 256 * 4）并将蒙版修补为（256*256）后）：
+import os
+import cv2
+import numpy as np
+import glob
+from matplotlib import pyplot as plt
+from patchify import patchify
+import tensorflow as tf
+import splitfolders
+import fragmentation_models as sm
+from tensorflow.keras.metrics import MeanIoU
+from sklearn.preprocessing import MinMaxScaler
+from keras.utils import to_categorical
+
+input_folder=&#39;我的图像和掩码的文件夹路径&#39;
+
+output_folder=&#39;输出文件夹的路径&#39;
+#按比例分割
+splitfolders.ratio(input_folder, output=output_folder, seed=42, ratio=(.75,.25),group_prefix=None) 
+
+#重新排列用于 keras 增强的文件夹结构
+
+seed=24
+batch_size=16 
+n_classes=2 
+
+scaler=MinMaxScaler()
+
+BACKBONE=&#39;resnet34&#39; 
+preprocess_input=sm.get_preprocessing(BACKBONE)
+
+def preprocess_data(img, mask, num_class):
+#缩放图像
+img=scaler.fit_transform(img.reshape(-1, img.shape[-1])).reshape(img.shape)
+img=preprocess_input(img) #基于预训练的主干进行预处理
+mask=to_categorical(mask, num_class)
+return (img,mask)
+
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+def trainGenerator(train_img_path, train_mask_path, num_class):
+img_data_gen_args=dict(horizo​​ntal_flip=True, vertical_flip=True, fill_mode=&#39;reflect&#39;) #数据增强
+
+image_datagen=ImageDataGenerator(**img_data_gen_args)
+mask_datagen=ImageDataGenerator(**img_data_gen_args)
+
+image_generator=image_datagen.flow_from_directory(train_img_path, class_mode=None, batch_size=batch_size, seed=seed)
+mask_generator=image_datagen.flow_from_directory(train_mask_path, class_mode=None, color_mode=&#39;grayscale&#39;, batch_size=batch_size, seed=seed)
+
+train_generator=zip(image_generator, mask_generator)
+
+for (img, mask) in train_generator:
+img, mask= preprocess_data(img, mask, num_class)
+Yield (img, mask)
+
+train_img_path=&#39;训练图像路径&#39;
+train_mask_path=&#39;训练掩码路径&#39;
+train_img_gen=trainGenerator(train_img_path, train_mask_path, num_class=2)
+
+val_img_path=&#39;验证图像路径&#39;
+val_mask_path=&#39;验证掩码路径&#39;
+val_img_gen=trainGenerator(val_img_path, val_mask_path, num_class=2)
+
+x, y=train_img_gen.__next__()
+
+for i in range(0,3):
+image=x[i]
+mask=np.argmax(y[i], axis=2)
+plt.subplot(1,2,1)
+plt.imshow(image)
+plt.subplot(1,2,2)
+plt.imshow(mask, cmap=&#39;gray&#39;)
+plt.show()
+
+num_train_imgs=len(os.listdir(&#39;训练图像路径&#39;))
+num_val_images=len(os.listdir(&#39;验证路径图像&#39;))
+steps_per_epochs=num_train_imgs//batch_size
+val_steps_per_epoch=num_val_images//batch_size
+
+IMG_HEIGHT=x.shape[1]
+IMG_WIDTH=x.shape[2]
+IMG_CHANNELS=x.shape[3]
+
+n_classes=2
+
+model=sm.Unet(&#39;resnet34&#39;,coder_weights=&#39;None&#39;,input_shape=(IMG_HEIGHT,IMG_WIDTH,IMG_CHANNELS),classes=n_classes,activation=&#39;softmax&#39;)
+model.compile(&#39;Adam&#39;,loss=sm.losses.binary_crossentropy,metrics=[sm.metrics.iou_score,sm.metrics.FScore()])
+
+history=model.fit(train_img_gen, steps_per_epoch=steps_per_epochs, epochs=100, verbose=1, validation_data=val_img_gen, validation_steps=val_steps_per_epoch)
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79201296/how-to-modify-my-code-to-handle-rgbx-4-channel-images-for-semantic-segmentatio</guid>
+      <pubDate>Mon, 18 Nov 2024 20:06:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>标记 3D 网格数据 [关闭]</title>
+      <link>https://stackoverflow.com/questions/79200777/labeling-3d-mesh-data</link>
+      <description><![CDATA[背景：我有关于人体的 3D 网格数据，以未标记的 .obj 和 .stl 文件的形式存在。我想给它贴上标签（如躯干、手等），这样我就可以用它来训练我正在研究的 AI 模型。该模型的目标是通过监督深度学习来分割（实现不同的部分）。
+问题：我有什么选择？人们使用一些软件、python 脚本/程序或其他巧妙的方法吗？您也可以为我提供有关该过程的详细信息吗？我看到一个数据集将 .off 视为未标记，而标记的数据集是 .seg 文件，但我不知道它们是如何从 .off 到达 .seg 的。]]></description>
+      <guid>https://stackoverflow.com/questions/79200777/labeling-3d-mesh-data</guid>
+      <pubDate>Mon, 18 Nov 2024 16:59:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>可以与 Ren'Py 配合使用的 NumPy 替代品？或者只是让 NumPy 与 Ren'Py 配合使用的一种方法 [关闭]</title>
       <link>https://stackoverflow.com/questions/79200623/alternative-to-numpy-that-can-work-with-renpy-or-otherwise-just-a-way-to-get-n</link>
       <description><![CDATA[我正在使用 Ren&#39;Py 进行一个涉及使用 Tensorflow 和 NLTK 进行一些自然语言处理的项目，并且在与 .rpy 脚本相同的文件夹中有一个单独的 Python 脚本，我从中导入一个/一些类，其中一个使用 Num&#39;Py。我已经查过我的问题，知道这是因为 Ren&#39;Py 不支持它，因为它不是纯 Python，但我想找到一种方法来解决这个问题或让它工作。
 如果这些信息有助于提出建议，我只使用 numpy.array() 函数和 predict() 函数，没有其他任何东西。
@@ -14,6 +126,41 @@
 我不想把自己局限在一种答案中，但由于所有 numpy 替代方案都不起作用，我最后的选择是使用 Ren&#39;Py 的自定义版本，但这完全超出了我的知识范围。]]></description>
       <guid>https://stackoverflow.com/questions/79200623/alternative-to-numpy-that-can-work-with-renpy-or-otherwise-just-a-way-to-get-n</guid>
       <pubDate>Mon, 18 Nov 2024 16:03:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用用户定义的类别在 iOS 上动态地重新训练 YOLO 模型，同时保留以前的知识？</title>
+      <link>https://stackoverflow.com/questions/79200388/how-to-dynamically-retrain-a-yolo-model-on-ios-with-user-defined-classes-while-p</link>
+      <description><![CDATA[我正在开发一款 iOS 应用，该应用使用 Vision Kit 和 YOLO（例如 YOLOv4-Tiny）模型来检测卡片上的数据和图像。有时，应用会遇到模型无法识别的新图标。我想要：
+
+允许用户为未知图标提供标签。
+使用这些新数据重新训练现有的 YOLO 模型。
+确保保留以前训练过的类别（避免灾难性遗忘）。
+将更新后的模型无缝部署回 iOS 应用。
+
+要求：
+应用应支持在设备上或通过使用后端进行轻量级再训练。
+再训练过程应将新类别与现有模型的知识合并。
+该解决方案必须在 iPhone 等移动硬件上有效运行。
+我目前的方法：
+
+我正在使用转换为 iOS 版 Core ML 的预训练 YOLOv4-Tiny 模型。
+Vision Kit 负责处理图像预处理和检测。
+
+挑战：
+如何将新用户提供的数据集成到训练管道中？
+如何在 iOS 或后端服务器上高效地重新训练 YOLO，同时保留现有类别？
+将更新的模型部署到应用程序的最佳实践。
+我正在寻找以下方面的指导：
+
+用于设备端或服务器端 YOLO 再训练的工具或库。
+
+用于 YOLO 模型的增量学习或知识提炼的方法。
+
+如何处理将再训练的模型部署到 iOS 设备。
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79200388/how-to-dynamically-retrain-a-yolo-model-on-ios-with-user-defined-classes-while-p</guid>
+      <pubDate>Mon, 18 Nov 2024 14:49:08 GMT</pubDate>
     </item>
     <item>
       <title>使用 keras 预处理层构建预处理管道时，adapt() 在 tf.data.Dataset.map() 中不起作用</title>
@@ -135,6 +282,23 @@ id: 5
       <pubDate>Mon, 18 Nov 2024 12:38:56 GMT</pubDate>
     </item>
     <item>
+      <title>SAM 2.1 是什么导致 hydra.errors.MissingConfigException：未找到主配置模块“sam2”？</title>
+      <link>https://stackoverflow.com/questions/79199682/sam-2-1-what-is-causing-hydra-errors-missingconfigexception-primary-config-modu</link>
+      <description><![CDATA[我正在尝试使用此处给出的 roboflow 指南微调新的 SAM 2.1 分割模型：Sam 2.1 roboflow 指南
+使用 google collab 时，此代码运行正常，没有遇到任何错误。当我在本地机器上运行完全相同的代码时，运行训练代码命令时会出现以下错误：
+!python training/train.py -c &#39;configs/train.yaml&#39; --use-cluster 0 --num-gpus 1
+在 Windows 10 上使用 vscode 运行时出现以下错误：
+hydra.errors.MissingConfigException：未找到主配置模块“sam2”。
+检查它是否正确并包含 __init__.py 文件
+
+我的工作目录：
+C:\..\SAM_2_1\sam2
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79199682/sam-2-1-what-is-causing-hydra-errors-missingconfigexception-primary-config-modu</guid>
+      <pubDate>Mon, 18 Nov 2024 11:00:31 GMT</pubDate>
+    </item>
+    <item>
       <title>句子转换器中的降维</title>
       <link>https://stackoverflow.com/questions/79199199/dimensionality-reduction-in-sentence-transformers</link>
       <description><![CDATA[我需要在预处理中计算大量句子（比如 10K）的嵌入，并且在运行时我必须一次计算一个句子的嵌入向量（用户查询），然后根据嵌入向量找到最相似的句子（使用余弦相似度）。
@@ -148,59 +312,6 @@ model = SentenceTransformer(modules=[base_model, density])
 我是否遗漏了什么，或者添加密集层而不进行重新训练/微调是否真的可行？]]></description>
       <guid>https://stackoverflow.com/questions/79199199/dimensionality-reduction-in-sentence-transformers</guid>
       <pubDate>Mon, 18 Nov 2024 08:31:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>带有 Weka Predictions 的 Spring Boot 应用程序在构建后的第一天运行正常，但随后几天出现故障</title>
-      <link>https://stackoverflow.com/questions/79198921/spring-boot-application-with-weka-predictions-works-on-the-first-day-after-build</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79198921/spring-boot-application-with-weka-predictions-works-on-the-first-day-after-build</guid>
-      <pubDate>Mon, 18 Nov 2024 06:46:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何提高扫描文档的 OCR 准确率？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79198907/how-to-improve-ocr-accuracy-on-scanned-document</link>
-      <description><![CDATA[我正在构建一个应用程序，它将从扫描的格式化文档中提取信息。该文档是计算机生成的，带有一些人工注释，但我们只需要关注计算机生成的信息。
-解决方案需要完全离线，模型必须能够在 4 核 CPU Windows 服务器上运行。
-我当前的解决方案
-
-检测文档的格式：我正在使用模式匹配来匹配徽标是否出现在文档中。
-每个文档都有一组固定的矩形，我将根据文档格式将它们裁剪掉。 [(field, (x1, y1, w, h)), ...]
-裁剪后，我使用 tesseract-ocr api 识别裁剪矩形中的文本。
-映射回去构造一个 json。
-
-问题
-
-固定的矩形集不起作用，因为不同扫描仪扫描的文档会有不同的偏移量。文档可能会溢出，导致新的换行符。
-tesseract-ocr 识别文本的准确率只有 80%。
-
-我已经使用指定的字体和常用词对 tesseract-ocr 模型进行了微调。它确实将准确率从 50% 提高到了 80%。但之后就没那么好了。
-我期望文本识别的准确率达到 99%。]]></description>
-      <guid>https://stackoverflow.com/questions/79198907/how-to-improve-ocr-accuracy-on-scanned-document</guid>
-      <pubDate>Mon, 18 Nov 2024 06:42:40 GMT</pubDate>
-    </item>
-    <item>
-      <title>EOFError：输入不足 - Pickle</title>
-      <link>https://stackoverflow.com/questions/79198550/eoferror-ran-out-of-input-pickle</link>
-      <description><![CDATA[当我尝试以 pickle 格式加载机器学习模型以便它在 Web 应用程序中运行时，我收到此错误，路径显然是正确的，我的所有文件都位于同一文件夹中。但是，错误始终存在，非常感谢您的宝贵帮助
-
-df = pd.DataFrame.from_dict(user_values, orient=&quot;index&quot;).T
-
-with open(&quot;classifier.pkl&quot;, &quot;rb&quot;) as file:
-loaded_model = pickle.load(file)
-
-prediction = loaded_model.predict(df)[0][0]
-
-else:
-prediction = None
-
-return render_template(&quot;index.html&quot;, prediction=prediction)
-
-if __name__ == &quot;__main__&quot;:
-app.run(debug=True)
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79198550/eoferror-ran-out-of-input-pickle</guid>
-      <pubDate>Mon, 18 Nov 2024 02:30:01 GMT</pubDate>
     </item>
     <item>
       <title>有条件地更改 RGB 图像中的像素值，然后删除通道</title>
@@ -359,14 +470,6 @@ Epoch：[10/10]：100%|███████████████| 888/888 [3
       <pubDate>Thu, 14 Nov 2024 09:17:27 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 PyTorch 中为 Nvidia GeForce RTX 3050 Ti 启用 CUDA？</title>
-      <link>https://stackoverflow.com/questions/79165030/how-can-i-enable-cuda-in-pytorch-for-nvidia-geforce-rtx-3050-ti</link>
-      <description><![CDATA[我想在我的显卡（Nvidia GeForce RTX 3050 Ti）上运行 PyTorch 库（我在 PyCharm 的虚拟环境中运行该库）。但是，它在 CPU 上运行，每当我使用命令 import torch 和 print(&quot;cuda is available:&quot;, torch.cuda.is_available()) 时，它总是返回 False。
-我安装了 CUDA 版本 12.6。我还安装了 PyTorch for CUDA 版本 12.4，因为它是 PyTorch 网站上可用的最新版本。考虑到我的显卡类型，我应该安装什么？]]></description>
-      <guid>https://stackoverflow.com/questions/79165030/how-can-i-enable-cuda-in-pytorch-for-nvidia-geforce-rtx-3050-ti</guid>
-      <pubDate>Thu, 07 Nov 2024 04:30:29 GMT</pubDate>
-    </item>
-    <item>
       <title>无法检测/删除图像数据集中两个位置不同的水印</title>
       <link>https://stackoverflow.com/questions/78736804/trouble-detecting-removing-two-watermarks-that-vary-location-across-image-datase</link>
       <description><![CDATA[我在从一组图片中删除水印时遇到了问题。这些水印彼此靠近，但又有所不同（见下文）。其中一个水印是红色方块，里面有白色文字。另一个是半透明的灰色句子。目的是处理图像以用于机器学习。
@@ -391,69 +494,6 @@ Epoch：[10/10]：100%|███████████████| 888/888 [3
 是否有任何常用的最先进的方法？我做了一些研究，但没有发现任何重要的东西。]]></description>
       <guid>https://stackoverflow.com/questions/77907561/calculate-a-character-wise-confusion-matrix-for-ocr-evaluation</guid>
       <pubDate>Tue, 30 Jan 2024 15:38:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>合并数据框时出现“KeyError”</title>
-      <link>https://stackoverflow.com/questions/75846053/keyerror-when-merging-dataframes</link>
-      <description><![CDATA[尝试对我玩的视频游戏进行机器学习，以预测即将到来的价格，从而了解它是否值得保留
-import 请求
-import pandas as pd
-
-headers = {&quot;User-Agent&quot;: &quot;Hohman#4134 - ML project&quot;}
-prices_url = &quot;https://prices.runescape.wiki/api/v1/osrs/latest&quot;
-
-尝试：
-prices_response = 请求。获取（prices_url，headers=headers）
-prices_response.raise_for_status（）
-prices_data = prices_response.json（）
-prices_data_df = pd.DataFrame（prices_data）
-
-除了requests.exceptions.HTTPError：
-print（“错误：无法检索价格数据。请检查您的用户代理。”）
-prices_data_df = pd.DataFrame（）
-
-ids_url = “https://prices.runescape.wiki/api/v1/osrs/mapping”
-
-尝试：
-ids_response = 请求。获取（ids_url，headers=headers）
-ids_response.raise_for_status()
-ids_data = ids_response.json()
-ids_dict = {}
-对于 ids_data 中的项目：
-ids_dict[item[&#39;id&#39;]] = item[&#39;name&#39;]
-
-ids_data_df = pd.DataFrame.from_dict(ids_dict, orient=&#39;index&#39;, columns=[&#39;name&#39;])
-
-除了请求。exceptions.HTTPError：
-print(&quot;错误：无法检索 ID 数据。请检查您的用户代理。&quot;)
-ids_data_df = pd.DataFrame()
-
-merged_df = pd.merge(prices_data_df, ids_data_df, left_on=&#39;id&#39;, right_index=True)
-
-item_name = input(&quot;输入商品名称：&quot;)
-item_data = merged_df[merged_df[&#39;name&#39;].str.contains(item_name, case=False)]
-latest_price = item_data[&#39;high&#39;].iloc[0]
-
-print(f&quot;{item_name} 的预测价格为 {latest_price} GP。&quot;)
-
-这是错误
- 第 33 行，位于 &lt;module&gt;
-merged_df = pd.merge(prices_data_df, ids_data_df, left_on=&#39;id&#39;, right_index=True)
-第 110 行，在 merge 中
-op = _MergeOperation(
-第 703 行，在 
-) = self._get_merge_keys()
-第 1195 行，在 _get_merge_keys 中
-left_keys.append(left._get_label_or_level_values(k))
-第 1850 行，在 _get_label_or_level_values 中
-raise KeyError(key)
-KeyError: &#39;id&#39;**
-
-我试过了，但得到了相同的结果，当时只是命名了 name。我不知道发生了什么。
-merged_df = pd.merge(prices_data_df, ids_data_df, left_on=&#39;name&#39;, right_on=&#39;name&#39;)
-]]></description>
-      <guid>https://stackoverflow.com/questions/75846053/keyerror-when-merging-dataframes</guid>
-      <pubDate>Sun, 26 Mar 2023 05:33:41 GMT</pubDate>
     </item>
     <item>
       <title>用于异常检测的孤立森林</title>
