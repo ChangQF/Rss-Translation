@@ -4,7 +4,43 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 17 Nov 2024 21:15:21 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 18 Nov 2024 01:21:05 GMT</lastBuildDate>
+    <item>
+      <title>惩罚逻辑回归的 F 分数、精度和召回率指标</title>
+      <link>https://stackoverflow.com/questions/79198299/f-score-precision-and-recall-metrics-for-a-penalized-logistic-regression</link>
+      <description><![CDATA[我正在尝试对我制作的惩罚逻辑回归模型进行交叉验证。
+我还注意到，互联网上的一些示例假设我只是手动输入完整数据集中的实际数字和预测数字数组（谁有时间做这个哈哈？）。
+我之前使用 JuliusAI 是因为它可以开箱即用地报告这些内容，但我又回到了 R，因为我现在不相信 Julius 的可重复性（为了全面披露），并且停止使用它，尽管按钮分析很有诱惑力。我希望能够自己忠实地计算这些指标，并且是使用 R 中的交叉验证的新手（通常已经完成了 AIC 和重要性统计）。但关于 JuliusAI 就说这么多。
+问题就在这里。我有一个数据集（n=32），我使用 80/20 分割来训练和测试。那部分没问题。我的预测变量是二进制的。训练数据集称为 train（25 行），测试称为 test（有 7 行）。惩罚逻辑回归模型有 3 个预测变量，结果为失败或不失败。回归过程运行良好，因此我添加了混淆矩阵来获得所需的结果。
+我一直在尝试使用 ConfusionMatrix 命令，但一直收到“混淆矩阵中的错误：数据和参考因素必须具有相同数量的级别”。
+这是我使用的：
+ library(rsample)
+library(caret)
+library(logistf)
+split &lt;- initial_split(newdata1, prop = .8)
+train &lt;- training(split)
+test &lt;- testing(split)
+fit &lt;- logistf(data=train, newdata1$`Fail (1=yes)`~ 
+newdata1$`rev`+newdata1$`totassets`+newdata1$`totliab`)
+prediction &lt;- predict(fit, data = test, type = &#39;response&#39;)
+pred &lt;- factor(ifelse(prediction &lt;= 0.5,0,1))
+result &lt;- caret::confusionMatrix(pred,test$`Fail (1=yes)`)
+
+于是，我尝试：
+ cm &lt;- chaosMatrix(pred, as.factor(test$`Fail (1=yes)`)
+
+结果为“error in chaosMatrix.default(pred, as.factor(test$Fail (1=yes))) :
+数据不能比参考值有更多级别”
+chaosMatrix(pred,as.factor(test$Fail (1=yes)))
+confusionMatrix.default(pred, as.factor(test$Fail (1=yes))) 中的错误：
+数据不能比参考值具有更多级别
+有没有更直接的方法来执行此操作并获取指标？我以为有一个 F1 分数命令，但似乎这需要一个 y_pred，我不知道如何生成或访问它（除非通过 predict()）。
+可能是因为我的数据集有 10 个变量，而我使用了其中的 3 个，还是因为拆分？我该如何解决这个问题？
+你的建议？
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/79198299/f-score-precision-and-recall-metrics-for-a-penalized-logistic-regression</guid>
+      <pubDate>Sun, 17 Nov 2024 22:38:11 GMT</pubDate>
+    </item>
     <item>
       <title>项目 ML 预测设置</title>
       <link>https://stackoverflow.com/questions/79197789/project-ml-forecasting-setup</link>
@@ -75,9 +111,39 @@ img_array = tf.keras.applications.resnet50.preprocess_input(img_array)
 
 # 进行预测
 predictions = model.predict(img_array)
+prediction_class = np.argmax(predictions)
+
+print(f&quot;图像：{img_file} - 预测的类：{predicted_class}&quot;)
+
+将上述代码循环遍历所有类文件夹，并在每次预测后更新准确率：
+total_samples = 0
+correct_predictions = 0
+
+# 遍历代表类的每个子文件夹
+for class_folder in os.listdir(parent_folder_path):
+class_folder_path = os.path.join(parent_folder_path, class_folder)
+
+# 遍历类文件夹中的所有图像
+for img_file in os.listdir(class_folder_path):
+img_path = os.path.join(class_folder_path, img_file)
+
+# 加载并预处理图像
+img = image.load_img(img_path, target_size=(224, 224))
+img_array = image.img_to_array(img)
+img_array = np.expand_dims(img_array, axis=0)
+img_array = tf.keras.applications.resnet50.preprocess_input(img_array)
+
+# 进行预测
+predictions = model.predict(img_array)
 predict_class = np.argmax(predictions)
 
-print(f&quot;图像：{img_file} - 预测类别：{predicted_class}&quot;)
+total_samples += 1
+if predict_class == int(class_folder): #文件夹名称由代表类别的数字组成
+correct_predictions += 1
+
+current_accuracy = correct_predictions/ total_samples * 100
+
+print(f&quot;图像：{img_file} - 预测类别：{predicted_class} - 实际类别：{int(class_folder)} -正确预测：{correct_predictions} - 总样本数：{total_samples} - 当前准确率：{current_accuracy:.2f}%&quot;)
 
 我用来评估模型的代码如下：
 test_datagen = tf.keras.preprocessing.image.ImageDataGenerator(preprocessing_function=tf.keras.applications.resnet50.preprocess_input)
@@ -90,7 +156,7 @@ class_mode=&quot;categorical&quot;
 )
 
 test_loss, test_acc = model.evaluate(test_generator, verbose=2)
-print(&quot;\n测试准确率:&quot;, test_acc)
+print(&quot;\nTest accuracy:&quot;, test_acc)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79196985/resnet50-model-has-high-accuracy-on-test-set-but-performs-poorly-on-the-same-set</guid>
       <pubDate>Sun, 17 Nov 2024 10:29:27 GMT</pubDate>
@@ -242,55 +308,9 @@ array([[1.1699244e-06]], dtype=float32),
       <pubDate>Sat, 16 Nov 2024 21:07:31 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 google colab 中使用从 kaggle 加载的数据（实际使用它）</title>
-      <link>https://stackoverflow.com/questions/79195592/how-to-use-loaded-data-from-kaggle-in-google-colab-to-actually-work-with-it</link>
-      <description><![CDATA[因此，我最近从此 https://www.kaggle.com/datasets/mostafaabla/garbage-classification 网站导入了数据集。尽管我在 google colab 中的文件中有它（已解压和所有这些东西），但我不知道如何在代码本身中实现它。就像来自 tensorflow 的 Fashion mnist 教程 https://www.tensorflow.org/tutorials/keras/classification?hl 它加载为
-fashion_mnist = tf.keras.datasets.fashion_mnist
-(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
-如何将数据导入/加载到代码单元并通过分成类来处理它（因为在该教程数据集中有多个类，而在我的自定义数据集中有 12 个）
-请问如何操作？
-import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-# 定义训练和验证目录的路径
-train_dir = &#39;garbage-classification/train&#39;
-val_dir = &#39;garbage-classification/validation&#39;
-
-# 创建 ImageDataGenerator 进行数据增强
-train_datagen = ImageDataGenerator(rescale=1./255)
-val_datagen = ImageDataGenerator(rescale=1./255)
-
-# 从目录加载图像
-train_generator = train_datagen.flow_from_directory(
-train_dir,
-target_size=(150, 150), # 根据需要调整图像大小
-batch_size=32,
-class_mode=&#39;categorical&#39; # 如果有多个类，请使用 &#39;categorical&#39;
-)
-
-validation_generator = val_datagen.flow_from_directory(
-val_dir,
-target_size=(150, 150),
-batch_size=32,
-class_mode=&#39;categorical&#39;
-)
-
-我使用 perplexity 尝试解决，结果得到了这个。显然它没有起作用，所以..]]></description>
-      <guid>https://stackoverflow.com/questions/79195592/how-to-use-loaded-data-from-kaggle-in-google-colab-to-actually-work-with-it</guid>
-      <pubDate>Sat, 16 Nov 2024 16:34:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>视觉变换器的计算复杂度[关闭]</title>
-      <link>https://stackoverflow.com/questions/79195302/computation-complexity-of-vision-transformer</link>
-      <description><![CDATA[我正在寻求有关 Vision Transformers (ViTs) 计算复杂度的澄清，特别是关于多头自注意力 (MSA)、MLP 块、LayerNorm (LN) 和每个块后应用的残差连接等组件。尽管查阅了大量研究论文和资源，但我发现很难掌握这些组件的计算复杂度是如何得出和计算的清晰而简单的解释。有人能提供更详细、更易于理解的解释吗？提前感谢您的帮助。
-我试图理解如何计算 ViT 的计算复杂度，但我对计算它感到困惑。我期待解释 ViT 计算复杂度部分从补丁嵌入到 MLP 块。]]></description>
-      <guid>https://stackoverflow.com/questions/79195302/computation-complexity-of-vision-transformer</guid>
-      <pubDate>Sat, 16 Nov 2024 14:07:32 GMT</pubDate>
-    </item>
-    <item>
       <title>无法训练我的 UNET 多类别细分模型</title>
       <link>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</link>
-      <description><![CDATA[我尝试使用 pytorch 从头开始​​制作 UNET。我的模型输出只有黑色蒙版。我需要分割汽车上的损坏，所以我实现了一个彩色图。我确信我的数据集有 70% 的问题，而这个彩色图恰恰就是问题所在。任务是多类预测，所以我使用交叉熵损失函数。我将提供我的数据集和训练文件的代码。
+      <description><![CDATA[我尝试使用 pytorch 从头开始​​制作 UNET。我的模型输出只有黑色蒙版。我需要分割汽车上的损坏，所以我实现了一个彩色图。我确信 70% 的数据集有问题，而这个彩色图恰恰就是其中的原因。任务是多类预测，所以我使用交叉熵损失函数。我将提供我的数据集和训练文件的代码。
 # dataset.py
 import os
 from PIL import Image
@@ -421,6 +441,54 @@ Epoch：[10/10]：100%|███████████████| 888/888 [3
 ]]></description>
       <guid>https://stackoverflow.com/questions/79188029/cant-train-my-unet-multiclass-segmentation-model</guid>
       <pubDate>Thu, 14 Nov 2024 09:17:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>Tensorflow 中的眼睛标志模型无法跟踪看不见的数据</title>
+      <link>https://stackoverflow.com/questions/79149930/eye-landmark-model-in-tensorflow-not-tracking-with-unseen-data</link>
+      <description><![CDATA[我一直在使用 UTKFace 数据集创建一个模型，该模型将绘制图像中眼睛周围的点。我使用的训练集大小约为 40000 张图像，包含缩放、旋转和平移的增强图像。它与训练集和验证集配合得很好。但当我用该集中的新增强图像测试它时，它不起作用。我尝试过稍微调整一些参数和训练时间，但结果并没有发生很好的变化。
+我的层目前看起来像这样：
+
+
+inputs = tf.keras.layers.Input(shape=(200, 200, 1))
+x = tf.keras.layers.Conv2D(32, kernel_size=(5, 5))(inputs)
+x = tf.keras.layers.ReLU()(x)
+x = tf.keras.layers.MaxPool2D(pool_size=(2, 2))(x)
+
+x = tf.keras.layers.Conv2D(64, kernel_size=(3, 3))(x)
+x = tf.keras.layers.ReLU()(x)
+x = tf.keras.layers.MaxPool2D(pool_size=(2, 2))(x)
+
+x = tf.keras.layers.Conv2D(128, kernel_size=(3, 3))(x)
+x = tf.keras.layers.ReLU()(x)
+x = tf.keras.layers.MaxPool2D(pool_size=(2, 2))(x)
+
+x = tf.keras.layers.Conv2D(256, kernel_size=(3, 3))(x)
+x = tf.keras.layers.ReLU()(x)
+x = tf.keras.layers.MaxPool2D(pool_size=(2, 2))(x)
+
+x = tf.keras.layers.Conv2D(512, kernel_size=(3, 3))(x)
+x = tf.keras.layers.ReLU()(x)
+x = tf.keras.layers.MaxPool2D(pool_size=(2, 2))(x)
+
+# 线性层。
+x = tf.keras.layers.GlobalAveragePooling2D()(x)
+x = tf.keras.layers.Dense(units=256, kernel_regularizer=tf.keras.regularizers.l2(0.1))(x)
+x = tf.keras.layers.ReLU()(x)
+x = tf.keras.layers.Dense(units=24)(x)
+
+
+
+
+这是训练后验证集的样例输出，这就是我想要的结果。
+
+这是来自验证集的图像。这也是正确的。
+
+这是同一幅图像，但略有增强，但眼睛没有被跟踪。
+
+我很感激任何关于我可以做些什么来改善我的结果的想法。
+编辑：自发布以来，我已经设法通过增加 kernel_size 和利用每个时期的数据集生成器来改善结果。]]></description>
+      <guid>https://stackoverflow.com/questions/79149930/eye-landmark-model-in-tensorflow-not-tracking-with-unseen-data</guid>
+      <pubDate>Sat, 02 Nov 2024 03:49:47 GMT</pubDate>
     </item>
     <item>
       <title>使用没有跳跃连接的 U-Net 进行图像到图像处理。这是真的吗？</title>
