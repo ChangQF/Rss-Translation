@@ -4,7 +4,259 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 18 Nov 2024 21:14:17 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 19 Nov 2024 01:19:35 GMT</lastBuildDate>
+    <item>
+      <title>学习进行参数引导</title>
+      <link>https://stats.stackexchange.com/questions/657477/learning-to-do-the-parametric-bootstrap</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/657477/learning-to-do-the-parametric-bootstrap</guid>
+      <pubDate>Tue, 19 Nov 2024 01:11:49 GMT</pubDate>
+    </item>
+    <item>
+      <title>(mu,sigma) 正态分布的置信区域</title>
+      <link>https://stats.stackexchange.com/questions/657475/confidence-regions-for-mu-sigma-normal-distribution</link>
+      <description><![CDATA[在正态分布中，我想找到二维参数$(\mu,\sigma)$的置信区域。有没有比计算由 Bonferroni 校正的两个独立置信区间的笛卡尔积更好的方法？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657475/confidence-regions-for-mu-sigma-normal-distribution</guid>
+      <pubDate>Mon, 18 Nov 2024 23:04:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有高 auc 值的不同模型</title>
+      <link>https://stats.stackexchange.com/questions/657474/different-models-with-high-auc-values</link>
+      <description><![CDATA[我正在尝试评估两个不同的逻辑回归模型：一个是通过前向选择获得的，另一个是通过套索正则化获得的。我使用嵌套交叉验证进行训练和测试，第一个模型的准确率为 0.9578，第二个模型的准确率为 0.9737。我认为这些值有点高，所以我对两个模型进行了 auc 评分（使用嵌套 cv），得到了 0.9979 和 0.9965，这些值也非常高。我还使用了 brier 评分，得到了 0.021 和 0.424，这对我来说似乎很奇怪，因为两个模型的表现基本相同。我最终绘制了模型的校准图，试图理解一些东西，但我得到的模型的平均绝对误差为 0.001 和 0.005。我做错了什么，或者我在这里遗漏了什么？
+以下是代码：
+第一个模型（前向选择）：
+# 外循环分区
+outer_cv &lt;- createFolds(y, k = outer_folds, list = TRUE)
+
+# 保存结果
+results &lt;- c()
+
+# 外循环
+for (i in 1:outer_folds) {
+# 外循环训练和测试
+test_idx &lt;- outer_cv[[i]]
+train_idx &lt;- setdiff(1:nrow(data), test_idx)
+
+train_data &lt;- data[train_idx, ]
+test_data &lt;- data[test_idx, ]
+
+# 内循环：前向选择
+model_null &lt;- glm(diagnosis ~ 1, data = train_data, family = binomial())
+model_full &lt;- glm(diagnosis ~ ., data = train_data, family = binomial())
+
+# 变量选择
+model_forward &lt;- stepAIC(model_null, 
+scope = list(lower = model_null, upper = model_full), 
+direction = &quot;forward&quot;, 
+trace = FALSE)
+
+# 测试集上的预测
+predictions &lt;- predict(model_forward, newdata = test_data, type = &quot;response&quot;)
+predict_classes &lt;- ifelse(predictions &gt; 0.5, 1, 0)
+
+# 评估准确率
+acc &lt;- mean(predicted_classes == test_data$diagnosis)
+results &lt;- c(results, acc)
+}
+
+# 准确率 平均值
+mean_accuracy &lt;- mean(results)
+print(paste(&quot;Nested CV Accuracy with Forward Selection:&quot;, mean_accuracy))
+
+第二个模型 (LASSO):
+# 外循环分区
+outer_cv &lt;- createFolds(y, k = outer_folds, list = TRUE)
+
+# 保存结果
+results &lt;- c()
+
+# 外循环
+for (i in 1:outer_folds) {
+# 训练和测试
+test_idx &lt;- outer_cv[[i]]
+train_idx &lt;- setdiff(1:length(y), test_idx)
+
+x_train &lt;- X[train_idx, ]
+y_train &lt;- y[train_idx]
+x_test &lt;- X[test_idx, ]
+y_test &lt;- y[test_idx]
+
+# 内部循环：选择最佳 lambda
+inner_cv &lt;- cv.glmnet(x_train, y_train, alpha = 1, family = &quot;binomial&quot;, nfolds = inner_folds)
+best_lambda &lt;- inner_cv$lambda.min
+
+# 使用最佳 lambda 进行训练
+lasso_model2 &lt;- glmnet(x_train, y_train, alpha = 1, family = &quot;binomial&quot;, lambda = best_lambda)
+
+# 测试集上的预测
+predictions &lt;-预测（lasso_model2，x_test，类型 = “响应”）
+预测类 &lt;- ifelse（预测 &gt; 0.5, 1, 0)
+
+# 评估准确率
+acc &lt;- mean(predicted_classes == y_test)
+results &lt;- c(results, acc)
+}
+
+# 准确率平均值
+mean_accuracy &lt;- mean(results)
+print(paste(&quot;Nested CV Accuracy:&quot;, mean_accuracy))
+
+AUC 和 Brier:
+diagnosis_numeric &lt;- as.numeric(data$diagnosis) - 1 # 从因子转换为数字
+# 外循环分区
+outer_cv &lt;- createFolds(y, k = outer_folds, list = TRUE)
+
+# 保存结果
+results &lt;- c()
+results2 &lt;- c()
+
+# 外循环
+for (i in 1:outer_folds) {
+# 训练和测试
+test_idx &lt;- outer_cv[[i]]
+train_idx &lt;- setdiff(1:nrow(data), test_idx)
+
+train_data &lt;- data[train_idx, ]
+test_data &lt;- data[test_idx, ]
+
+# 内部循环：评估两个模型的 auc 分数
+roc1 &lt;- roc(test_data$diagnosis, predict(model_forward, test_data, type = &quot;response&quot;))
+roc2 &lt;- roc(test_data$diagnosis, predict(final_model, test_data, type = &quot;response&quot;))
+
+results &lt;- c(results, auc(roc1))
+results2 &lt;- c(results2, auc(roc2))
+}
+
+# auc 的平均值分数
+mean_roc1 &lt;- 平均值（结果）
+print(paste(&quot;嵌套 CV ROC 1:&quot;, mean_roc1))
+
+mean_roc2 &lt;- 平均值（结果2）
+print(paste(&quot;嵌套 CV ROC 2:&quot;, mean_roc2))
+
+# 评估 Brier 分数
+pred.prob &lt;- 预测（final_model,type=&#39;response&#39;）
+brierScore &lt;- 平均值（（pred.prob-diagnosis_numeric）^2）
+brierScore
+
+pred.prob2 &lt;- 预测（model_forward,type=&#39;response&#39;）
+brierScore2 &lt;- 平均值（（pred.prob2-diagnosis_numeric）^2）
+brierScore2
+
+校准图：
+plot(rms::calibrate(final_model, B = 400))
+plot(rms::calibrate(model_forward, B = 400))
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657474/different-models-with-high-auc-values</guid>
+      <pubDate>Mon, 18 Nov 2024 22:40:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>固定效应水平内的观测值具有相同的随机效应水平</title>
+      <link>https://stats.stackexchange.com/questions/657473/observations-within-a-level-of-fixed-effect-have-the-same-level-of-random-effect</link>
+      <description><![CDATA[我的研究旨在比较人类与模型在数学任务上的表现。
+设置如下：
+共有 700 项独特的作业。每项作业招募 6 名随机人类参与者。总共约有 400 人参与。每位参与者完成大约 10 项作业。
+对于每项作业，我还从 2 个模型中获得了绩效结果。
+因此，对于每项作业，我有 6 名人类参与者的绩效分数和 2 个模型的绩效分数。
+我使用混合线性模型来比较人类和模型的表现。这是 R 中的公式：
+data.model &lt;- lmer(score ~ type + (1 | contestant_id) + (1 | assignment_id), data = data_1)
+type：表示观察结果来自人类（human）还是模型（model）。
+participant_id：每个人类参与者的唯一标识。对于模型，我将 contestant_id 设置为“model”。
+assignment_id：标识任务。
+我的问题是，模型的随机效应 contestant_id 只有一个级别，这有问题吗？如果是这样，我该如何调整模型以适当比较人类和模型的表现？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657473/observations-within-a-level-of-fixed-effect-have-the-same-level-of-random-effect</guid>
+      <pubDate>Mon, 18 Nov 2024 22:33:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何解释 R 中 logit 模型 stargazer 中的系数方向？</title>
+      <link>https://stats.stackexchange.com/questions/657472/how-to-interpret-coefficient-direction-in-logit-models-stargazer-in-r</link>
+      <description><![CDATA[解释民主党和共和党的系数。请记住，与线性回归不同，我们只能从系数中知道关系的方向，而不是幅度。因此，解释这两个变量与因变量之间的关系的方向，同时记住排除的类别是独立的]]></description>
+      <guid>https://stats.stackexchange.com/questions/657472/how-to-interpret-coefficient-direction-in-logit-models-stargazer-in-r</guid>
+      <pubDate>Mon, 18 Nov 2024 22:25:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>多变量（双向/双因素）方差分析事后检验术语区分和显著性计算方法</title>
+      <link>https://stats.stackexchange.com/questions/657470/multivariate-two-way-two-factor-anova-post-hoc-tests-nomenclature-distinction</link>
+      <description><![CDATA[我希望对用于确定多元方差分析事后分析过程中相互作用原因的各种方法的命名法（名称）进行区分，并得到一些紧迫问题的答案。我选择了 R 和 SPSS 作为示例，但在我看来，这无关紧要。
+考虑一个简单的 3x2 方差分析示例，三种药物（药物 A、药物 B 和安慰剂）和两个性别组（M/F）。我们获得了显著的相互作用效应，我们可以继续进行事后分析。
+1)
+首先，我们可以考虑将“一切与一切”进行比较- 我们有（某种程度上）6个子组，我们只是将它们相互比较，创建一个类似这样的矩阵（值是样本 p 值）：
+ 药物 A M 药物 B M 安慰剂 M 药物 A F 药物 B F 安慰剂 F
+药物 A M 
+药物 B M 0,321 
+安慰剂 M 0,251 0,251 
+药物 A F 0,181 0,181 0,181 
+药物 B F 0,111 0,111 0,111 0,111 
+安慰剂 F 0,041 0,041 0,041 0,041 0,041 
+
+我不知道这种方法叫什么，但可以使用 Statistica 软件来完成，或者使用一些分析R.
+2)
+我们可以确定一个分组变量与另一个变量组之间的差异：
+药物 A M vs 药物 A F 0,321
+药物 B M vs 药物 B F 0,251
+安慰剂 M vs 安慰剂 F 0,181
+
+和
+药物 A F vs 药物 B F 0,321
+药物 B F vs 安慰剂 F 0,251
+安慰剂 F vs 药物 A F 0,181
+药物 A M vs 药物 B M 0,111
+药物 B M vs 安慰剂 M 0,041
+安慰剂 M vs 药物 A M 0,251
+
+
+
+
+我们可以简单地接受与我们的理论一致的单一比较，合并组，等等。
+药物 A M + 安慰剂 F vs 药物 A F 0,321
+药物 B M vs 药物 B F + 安慰剂 M 0,251
+
+在我看来，这三种方法给出了不同的结果，更确切地说，使用 Bonferroni 方法给出了不同的统计显著性水平。这并不奇怪，如果第一种方法我考虑了 15 个比较子组，第二种方法考虑了 3 或 6 个，第三种方法考虑了 2 个。根据 Bonferroni 校正规则（将 p 结果乘以比较次数），这给出了完全不同的显著性水平，第一种方法是最保守的。我在 R、SPSS 和 Statistica 中对其进行了测试，并手动计算了我能计算的结果。
+因此，我有一系列问题，主要是关于这些技术的名称。
+
+这三组技术的正确名称是什么？是否有任何科学来源可以引用这种命名？我记得在统计学课程中，第一种方法没有名字，第二种方法被称为“简单效应”，第三种方法的不同变体被称为“对比”——但我可能错了。
+这些方法中的任何一种都可以被认为是普遍正确或不正确的吗？如果它取决于数据的类型和解释，那么是哪种？如果这取决于研究人员的理论，那么如何证明它大致正确？
+在什么条件下，第一种方法会比第二种方法更清楚地展示交互作用？
+由于这三种方法产生不同的重要性水平，如何证明选择其中一种而不是另一种？许多研究报告并解释了示例 2 中的比较，因为它们似乎回答了有关交互作用性质的问题，但这是正确的方法吗？
+SPSS、Jamovi 和许多 R 软件包默认使用示例 2 中的这些比较，Statistica 默认使用示例 1。这些程序的理念有什么不同？
+
+我不期望所有答案，任何建议对我来说都是有价值的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657470/multivariate-two-way-two-factor-anova-post-hoc-tests-nomenclature-distinction</guid>
+      <pubDate>Mon, 18 Nov 2024 21:32:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>功效分析能否计算 n 来检测总体平均值随时间的变化？</title>
+      <link>https://stats.stackexchange.com/questions/657469/can-a-power-analysis-calculate-n-to-detect-changes-in-a-population-mean-over-tim</link>
+      <description><![CDATA[将功效分析解释为：计算检测总体平均值从一个时间点到另一个时间点的变化（%）所需的最小样本量的一种可能方法（？）是否不正确。例如，在未来的调查中，我需要多大的样本量才能检测到总体平均值的 30% 变化？
+以 Cohen 的 D 效应量公式作为功效分析的示例；如果“M”是样本平均值，“σ”是样本标准差（共同估计当前总体平均值），“µ”可以被视为未来总体平均值（当前平均值的 30% 变化，没有样本误差）吗？这是针对“前后”的重复测量设计。
+那么得出这样的结论是错误的吗：
+# 效应大小，Cohen&#39;s D：d=(M-μ)/σ
+# M=1，σ=0.5，µ=0.7
+# 0.6 = (1-0.7)/0.5
+
+&gt; pwr.t.test(d = 0.6, 
++ power = 0.8000, 
++ n = NULL, 
++ type = &quot;paired&quot;,
++ alternative = &quot;two.sided&quot;,
++ sig.level = 0.05)
+
+配对 t 检验功效计算 
+
+n = 23.79452
+d = 0.6
+sig.level = 0.05
+power = 0.8
+alternative = two.sided
+
+注意：n 是 *对* 的数量
+
+结论：样本量为 24 足以在未来调查中检测到当前人口平均值的 +/-30% 变化（双尾检验），概率为 80%，alpha=0.05。
+现在对配对数据定义功效分析是否不正确方式？
+我猜这是不正确的措辞。功效分析不是为了检测从一个时间点到另一个时间点的变化，而是为了通过抽样来测试估计的总体参数的准确性，不是吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657469/can-a-power-analysis-calculate-n-to-detect-changes-in-a-population-mean-over-tim</guid>
+      <pubDate>Mon, 18 Nov 2024 21:16:56 GMT</pubDate>
+    </item>
     <item>
       <title>等到学生回答完调查问卷后才给予评分是否会对答案产生影响？</title>
       <link>https://stats.stackexchange.com/questions/657467/would-withholding-marks-until-students-respond-to-a-survey-bias-the-responses</link>
@@ -62,24 +314,6 @@ $$
 这是处理测量误差的合理方法吗？我们能否将（贝叶斯）先验放在变量而不是参数上，以努力解决测量误差问题？]]></description>
       <guid>https://stats.stackexchange.com/questions/657464/placing-bayesian-priors-on-variables-instead-of-parameters</guid>
       <pubDate>Mon, 18 Nov 2024 17:51:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>在事件研究框架中，我的对照组和治疗组的因变量是否可以具有相同的 t=-1 值？</title>
-      <link>https://stats.stackexchange.com/questions/657462/can-my-control-and-treatment-groups-have-the-same-t-1-value-for-the-dependent-v</link>
-      <description><![CDATA[我正在开展一项事件研究（Callaway 和 Santanna 2021 框架），其中我的因变量是二进制的（如果该人被宣布为无家可归者，则为 1，否则为 0）。我想看看特定公共设施的开放对摆脱无家可归的概率的影响。该设施在不同城市的不同年份开放。数据集仅包含在某个时间点无家可归并且居住在某个时间点开放设施的城市的人，因此对照组由尚未接受治疗的人组成。
-为了实现这一点，我计划将样本限制为仅在 t = -1（设施开放前一年）无家可归的人，这意味着每个人在 t = -1 时都会有等于 1 的因变量。这样可以吗？它会导致共线性，还是会导致与预趋势假设相关的问题？
-提前致谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/657462/can-my-control-and-treatment-groups-have-the-same-t-1-value-for-the-dependent-v</guid>
-      <pubDate>Mon, 18 Nov 2024 17:34:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>统计学中的“解释”是什么意思？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/657461/what-does-explained-mean-in-statistics</link>
-      <description><![CDATA[R 平方是因变量方差中可由自变量解释的份额。
-统计学中的“解释”是什么意思？
-我在网上（包括本网站）寻找过答案，但没有找到这个问题的明确答案。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657461/what-does-explained-mean-in-statistics</guid>
-      <pubDate>Mon, 18 Nov 2024 17:18:52 GMT</pubDate>
     </item>
     <item>
       <title>贝叶斯模型平均的误解</title>
@@ -190,24 +424,6 @@ print(np.exp(model_logit.params))```
       <pubDate>Mon, 18 Nov 2024 16:54:09 GMT</pubDate>
     </item>
     <item>
-      <title>具有高阶邻接矩阵的 GNN</title>
-      <link>https://stats.stackexchange.com/questions/657454/gnns-with-higher-order-adjacency-matrices</link>
-      <description><![CDATA[通常，邻接矩阵存储有关图中节点直接连接的信息。
-来自 k 个邻居的信息在 k 个 GNN 层传递，如原始论文中所述。
-可以将额外信息直接添加到邻接矩阵（不尊重名称）或高阶矩阵，以描述通过其他节点（即高阶）的“连接”，并调节强度。
-这种方法被证明是成功的吗？有没有描述实现的规范论文？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657454/gnns-with-higher-order-adjacency-matrices</guid>
-      <pubDate>Mon, 18 Nov 2024 16:29:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>从两个样本估计两个集合的 Jaccard</title>
-      <link>https://stats.stackexchange.com/questions/657453/estimate-jaccard-of-two-sets-from-two-samples</link>
-      <description><![CDATA[假设我有两个集合，我开始从每个集合中抽样。我如何将样本的重叠推断到整个集合？
-具体示例：假设我有来自集合 A 的 1% 样本，包含 1M 个元素（总共 1 亿个元素），以及来自集合 B 的 0.33% 样本，包含 1M 个元素（集合 B 中总共 3 亿个元素）。如果我了解到来自 A 和 B 的这两个样本之间有 350,000 个重叠，我如何推断以估计非抽样集合的重叠？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657453/estimate-jaccard-of-two-sets-from-two-samples</guid>
-      <pubDate>Mon, 18 Nov 2024 16:26:35 GMT</pubDate>
-    </item>
-    <item>
       <title>治疗变量可以调节中介变量和结果变量之间的关系吗？</title>
       <link>https://stats.stackexchange.com/questions/657452/can-a-treatment-variable-moderate-the-relationship-between-the-mediator-and-the</link>
       <description><![CDATA[基本上，我的问题已经发布在这里：有调节的中介
@@ -231,50 +447,12 @@ print(np.exp(model_logit.params))```
       <pubDate>Mon, 18 Nov 2024 15:56:23 GMT</pubDate>
     </item>
     <item>
-      <title>样本量不一致的配对样本（数据）</title>
-      <link>https://stats.stackexchange.com/questions/657444/paired-sample-data-with-unequal-sample-size</link>
-      <description><![CDATA[我正在阅读一篇出版物，其中作者提到他们使用了配对 t 检验。在他们的研究中，向一组人提供了一份问卷，分别在手术前后检查治疗的效果。问卷中有一个非常重要的问题，即他们感觉到的疼痛程度（从 1 到 10）。有些人在手术前或手术后没有回答这个问题，导致样本量不一致。文章提供了手术前后的平均值和 SD 信息，(mean1、sd1、Mean2、sd2，以及 p 值（通过应用配对 t 检验或 Wilcoxon 符号秩检验）。
-我的问题是：如果他们提供的平均值是基于观察次数（n1：手术前观察次数，n2：手术后观察次数）而不是基于配对观察次数（在删除手术前或手术后缺失信息的受试者后），他们是否正确呈现了信息？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657444/paired-sample-data-with-unequal-sample-size</guid>
-      <pubDate>Mon, 18 Nov 2024 13:45:47 GMT</pubDate>
-    </item>
-    <item>
       <title>随机增加参数族中的 MLE</title>
       <link>https://stats.stackexchange.com/questions/657427/mle-in-stochastically-increasing-parametric-family</link>
       <description><![CDATA[设 $X$ 具有累积密度函数 $F_{\theta}$，假设该族在 $\theta$ 上随机递增，即对于 $\theta_1&lt;\theta_2$，$F(x;\theta_2) \le F(x;\theta_1)$。
 我们有一个数据点，$X$。我相信 $\theta$ 的 MLE 必须是 $X$ 的非递减函数。直观地看，这应该是正确的，因为对于较大的 $\theta$，$X$ 会趋于更大，因此较大的 $X$ 值也可能来自较大的 $\theta$ 值。但是，我无法证明这一点。我发现将随机增加的定义转化为关于可能性的陈述非常困难。]]></description>
       <guid>https://stats.stackexchange.com/questions/657427/mle-in-stochastically-increasing-parametric-family</guid>
       <pubDate>Mon, 18 Nov 2024 07:42:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>广义线性模型真的需要假设误差的分布吗？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/657423/do-generalized-linear-models-really-need-to-assume-the-distribution-of-errors</link>
-      <description><![CDATA[GLM 具有以下形式：
-$$
-g(\mathbb E[Y\mathop | X])=X^T\beta
-$$
-其中 $g$ 是链接函数。我们可以将矩条件写为
-$$
-Y=g^{-1}(X^T\beta)+\varepsilon,\\
-\mathbb E[g^{-1}(X)^T\varepsilon]=0,
-$$
-其样本模拟给出了 GMM 估计量：
-$$
-\frac 1n\sum_{i=1}^ng^{-1}(X_i)^T[Y_i-g^{-1}(X_i^T\hat\beta_{\text{GMM}})]=0.
-$$
-有一点我不明白：许多在线资料都说 GLM 需要指定误差项的分布（例如高斯、泊松、二项式等），但这真的是 GLM 有效所需的假设吗？当指定函数 $g$ 时，我们只需要 GMM 估计量的矩条件即可有效（当模型正确指定时，即 $\mathbb E[\varepsilon \mathop |X]=0$，即为真，即使模型指定错误，我们仍然可以得到一个近似于“真实”$\mathbb E[Y\mathop | X]$ 的“最佳参数预测器”。那么为什么在 GLM 中经常假设误差分布呢？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657423/do-generalized-linear-models-really-need-to-assume-the-distribution-of-errors</guid>
-      <pubDate>Mon, 18 Nov 2024 03:54:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>当对整个人口的一个子群体进行处理时，如何找到因果推断？</title>
-      <link>https://stats.stackexchange.com/questions/657416/how-to-find-causal-inference-when-one-subgroup-of-population-all-are-treated</link>
-      <description><![CDATA[假设我们有一个具有不同特征的数据集，其中一个特征是性别，并且基于二元治疗，我们观察到二元结果（恢复）。数据集中有一个问题。根据数据，所有女性都接受了治疗，但只有一小部分男性接受了治疗。现在，我想确定个体治疗效果 (ITE)。但是，由于所有女性都接受了治疗，因此我无法估计未接受治疗时的结果。
-我认为这违反了因果推断的假设。如果有人能给我一些关于我应该做什么的想法，我将不胜感激。我认为任何方法都会导致有偏差的估计，但任何合乎逻辑的方法都会受到赞赏。我想知道是否可以使用男性数据中的 ITE？
-我想知道像 Heckman 选择模型 这样的模型是否适用于这种情况？
-谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/657416/how-to-find-causal-inference-when-one-subgroup-of-population-all-are-treated</guid>
-      <pubDate>Sun, 17 Nov 2024 22:57:46 GMT</pubDate>
     </item>
     </channel>
 </rss>
