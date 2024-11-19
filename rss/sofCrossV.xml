@@ -4,7 +4,135 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 19 Nov 2024 09:19:02 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 19 Nov 2024 12:34:49 GMT</lastBuildDate>
+    <item>
+      <title>治疗效果预测协变量的最佳阈值</title>
+      <link>https://stats.stackexchange.com/questions/657500/optimal-threshold-for-a-predictive-covariate-on-treatment-effect</link>
+      <description><![CDATA[这里有一位对统计学有一定了解的医生，正在寻求有关分析连续协变量（生物标志物）的指导，我怀疑该变量可以预测治疗效果。我的分析涉及事件发生时间数据，我计划按以下方式对其进行建模（转换除外）：
+Y = a0 + 治疗 + CV + 治疗 * CV
+这里，CV 代表协变量，重点是交互项（治疗 * CV）。我的主要目标是确定使治疗反应差异最大化的协变量值。
+对于预后协变量，我之前曾与统计学家合作，通过使用受限三次样条函数进行非线性拟合来实现类似的目标。我们直观地确定了 95% 置信区间下限超过零值的点。对于生存数据，我们使用最大选择秩统计来获得显著阈值。
+您能否提供指导或推荐一种适合预测协变量的方法？谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/657500/optimal-threshold-for-a-predictive-covariate-on-treatment-effect</guid>
+      <pubDate>Tue, 19 Nov 2024 12:04:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>GAM 计数模型残差中的不确定序列自相关</title>
+      <link>https://stats.stackexchange.com/questions/657495/uncertain-serial-autocorrelation-in-gam-count-model-residuals</link>
+      <description><![CDATA[我希望使用广义加性模型 (GAM) 来平滑计数时间序列并估计一阶导数，即识别计数增加、稳定或减少的时期。
+我正在使用 R 并发现 mgcv::gam() 模型残差中存在序列自相关。由于对非高斯分布加上序列自相关（即 MASS::glmmPQL()）的 mgcv::gamm() 的信心不足，我转向了 mvgam::mvgam()。mvgam 的平滑实际上与 gam 的平滑相同，但 mvgam 模型的诊断没有显示“显著”自相关。
+以下是本文底部示例代码的一些图表（按顺序：gam smooth、mvgam smooth、mvgam diagnostics、gam acf()、mvgam acf()）。
+
+
+
+
+
+gam 模型偏差残差的 acf() 和 pacf() 图表明负“AR3”自相关。 mvgam 模型分位数残差的诊断不表示负自相关，但是平均分位数残差的 acf() 和 pacf() 表示负自相关！
+存在自相关还是不存在？关于矛盾的 mvgam 诊断，我怀疑 acf(平均残差) != 平均值(acf(残差))。
+我确实尝试使用 trend_model = &quot;AR3&quot; 拟合 mvgam，但这些 AR 系数不精确且“不显著”。
+gam 模型适合用途，因为它比 mvgam 更快，更容易提取一阶导数和置信区间，而且我对预测不感兴趣。但是，如果 gam 偏差残差的 acf() 图可靠，则很难说服同行置信区间是准确的。
+为了更彻底地研究序列自相关，我考虑从拟合的 gam 进行模拟以生成 acf() 和 pacf() 系数的分布（类似于 mvgam 所做的）。也许这些模拟会显示序列自相关最常在容差范围内。我不确定如何编码。
+library(&quot;mgcv&quot;) # mgcv_1.9-1
+library(&quot;rstan&quot;) # rstan_2.32.6; cmdstanr 对我不起作用
+library(&quot;mvgam&quot;) # mvgam_1.1.3
+library(&quot;gratia&quot;) # gratia_0.9.2
+## 数据
+# 一些年度计数和人口（100,000）
+# 想法是模拟比率 = 计数 / 100,000 人口
+# n = 29 是一个短时间序列
+dat &lt;- data.frame(time = 1996:2024,
+count = c(314, 590, 725, 953, 1218, 1688, 2227, 2751,
+3395, 4189, 4865, 5650, 5829, 6664, 7097, 8078, 8720,
+9455, 9773, 10382, 10519, 10576, 10814, 11904, 13176,
+14631, 15075, 16282, 17371),
+pop = c(23.48816, 23.81456, 24.08718, 24.39848, 24.71095,
+25.08078, 25.35108, 25.59605, 25.78745, 26.0291, 26.2812,
+26.66912, 27.13734, 27.61413, 28.0111, 28.35941, 28.73572,
+29.17764, 29.64432, 30.10587, 30.59446, 31.10672, 31.52141,
+31.9123, 32.20657, 32.11941, 32.41207, 33.22432, 34.03657))
+## gam 模型（具有负二项式误差分布）
+mod1 &lt;- gam(count ~ offset(log(pop)) + s(time, k=10),
+data = dat, family = nb())
+summary(mod1) # nb theta = 2715.554
+png(filename=&quot;mod1diag.png&quot;)
+gam.check(mod1) # 诊断确定
+dev.off()
+## mvgam 模型
+mod2 &lt;- mvgam(count ~ offset(log(pop)) + s(time, k=10),
+data = dat, family = nb())
+summary(mod2, include_betas=FALSE) # nb theta = 1800
+png(filename=&quot;mod2diag.png&quot;)
+plot(mod2, type=&quot;residuals&quot;) # 自相关在容差范围内
+dev.off()
+## 拟合平滑
+png(filename=&quot;mod1smooth.png&quot;)
+draw(mod1)
+dev.off()
+png(filename=&quot;mod2smooth.png&quot;)
+drawDotmvgam(mod2)
+dev.off()
+## gam 偏差残差；acf 几乎相同 type=&quot;pearson&quot;
+r1 &lt;- residuals(mod1, type=&quot;deviance&quot;)
+png(filename=&quot;mod1acf.png&quot;)
+par(mfrow=c(2,1))
+acf(r1, main=&quot;gam deviance residuals&quot;)
+pacf(r1)
+par(mfrow=c(1,1)) 
+dev.off()
+## mvgam 平均（或中位数）残差与上面的 acf 图相矛盾
+r2 &lt;- residuals(mod2)[, 1]
+png(filename=&quot;mod2acf.png&quot;)
+par(mfrow=c(2,1))
+acf(r2, main=&quot;mvgam 平均分位数残差&quot;)
+pacf(r2) 
+par(mfrow=c(1,1))
+dev.off()
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657495/uncertain-serial-autocorrelation-in-gam-count-model-residuals</guid>
+      <pubDate>Tue, 19 Nov 2024 10:48:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何评估张量积平滑之间的差异？</title>
+      <link>https://stats.stackexchange.com/questions/657494/how-to-assess-differences-between-tensor-product-smooths</link>
+      <description><![CDATA[给出以下 GAM 示例：
+data(iris)
+
+library(mgcv)
+
+library(gratia)
+
+mod &lt;- gam(Sepal.Length ~ s(Sepal.Width) + te(Petal.Length, Petal.Width, by = Species),
+data = iris)
+
+draw(mod)
+
+
+如何评估 Petal.Length 和 Petal.Width 的张量积平滑度在 Species 之间是否存在显著差异？了解是否存在普遍差异以及是否存在普遍差异，这将会很有趣。我知道我可以绘制差异平滑图，但我不确定我是否可以从中推断出某种统计意义？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657494/how-to-assess-differences-between-tensor-product-smooths</guid>
+      <pubDate>Tue, 19 Nov 2024 10:44:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>向线性回归添加新变量[重复]</title>
+      <link>https://stats.stackexchange.com/questions/657493/adding-new-variable-to-a-linear-regression</link>
+      <description><![CDATA[假设我有一组 $n$ 个特征，其 OLS 与给定目标的权重为 $(\beta_i)_{i=1}^n$，截距为 $\beta_0$。假设我现在添加一个新特征，并且我知道所有特征（新旧）与目标之间的所有可能的协方差，即我可以访问一个平方协方差矩阵 $C&#39;$，其中包含 $n+2$ 行/列，假设我还有所有均值的向量 $\mu&#39;$。是否有可用的公式来说明如何通过旧权重 $C&#39;$ 和 $\mu&#39;$ 来计算新的 OLS 权重 $(\beta&#39;_i)_{i=0}^{n+1}$？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657493/adding-new-variable-to-a-linear-regression</guid>
+      <pubDate>Tue, 19 Nov 2024 10:33:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>在具有大量变量和路径的复杂结构方程模型 (SEM) 中报告间接效应的最佳方法</title>
+      <link>https://stats.stackexchange.com/questions/657492/best-way-to-report-indirect-effects-in-a-complex-structural-equation-model-sem</link>
+      <description><![CDATA[我正在拟合一个复杂结构方程模型 (SEM)，该模型包含 4 个潜在变量和 2 个观测变量（15 个直接效应和 36 个间接效应）。重要的是，在这个模型中，给定预测因子对给定结果的一些间接效应是正的，而有些是负的（例如，总效应 = 5，但间接效应 1 = 50，间接效应 2 = -40，间接效应 3 = -5）。
+为了让我的分析更容易理解，我考虑绘制感兴趣的间接效应，以便读者一眼就能看到主要结论。
+我考虑过几种方法，每种方法都有优点和缺点，我无法决定哪种方法最合适：
+
+绘制原始间接效应和总效应。优点：它报告所有原始结果。缺点：在抑制效应的情况下，可能很难理解最重要的间接途径对总效应的贡献有多大。
+绘制给定效应在总效应中的百分比。优点：允许读者了解每个间接效应对总效应的贡献。缺点：由于抑制效应，某些百分比可能大于 100。这已经在这里提到过。
+解决方案二，但使用绝对总效应。在这个解决方案中，我将通过对直接和间接效应的绝对值求和来计算绝对总效应。优点：我可以显示每个中介对绝对总效应的贡献，以及该中介的方向。缺点：我感觉到缺点，但我说不出来。因此才有这个问题。
+
+每个解决方案都回答了一个不同的问题，有优点也有缺点。我自己得出了不同的结论，并且绝对需要一个外部视角来了解你认为在正文中向读者传达的最重要的信息是什么（其他有趣的解决方案可能仍会进入附录）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657492/best-way-to-report-indirect-effects-in-a-complex-structural-equation-model-sem</guid>
+      <pubDate>Tue, 19 Nov 2024 09:59:34 GMT</pubDate>
+    </item>
     <item>
       <title>如何测试校正两个控制变量函数的实验响应是否可以消除对控制变量的依赖</title>
       <link>https://stats.stackexchange.com/questions/657488/how-to-test-whether-correcting-an-experimental-response-for-a-function-of-two-co</link>
@@ -16,7 +144,7 @@ Martin]]></description>
       <pubDate>Tue, 19 Nov 2024 09:04:03 GMT</pubDate>
     </item>
     <item>
-      <title>为什么使用 CNN 进行特征提取、使用 SVM 进行分类时得到的结果最差</title>
+      <title>为什么使用 CNN 进行特征提取并使用 SVM 进行分类时得到的结果最差</title>
       <link>https://stats.stackexchange.com/questions/657485/why-am-i-getting-worst-results-when-using-cnn-for-feature-extraction-and-svm-for</link>
       <description><![CDATA[我正在使用 3d cnn 进行特征提取并使用 svm 进行分类但是我得到的结果比使用 3d cnn 进行特征提取和分类更差，这是正常的吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/657485/why-am-i-getting-worst-results-when-using-cnn-for-feature-extraction-and-svm-for</guid>
@@ -32,62 +160,14 @@ Martin]]></description>
       <pubDate>Tue, 19 Nov 2024 07:40:34 GMT</pubDate>
     </item>
     <item>
-      <title>高斯分布关于其均值和方差的导数</title>
-      <link>https://stats.stackexchange.com/questions/657480/derivative-of-a-gaussian-r-v-w-r-t-its-mean-and-variance</link>
-      <description><![CDATA[我有个问题。我有一个随机变量 $$y \sim \mathcal{N}(\mu,\sigma^2)$$ 我有个问题：
-i. 如何求出 $y$ 相对于 $\mu$ 和 $\sigma$ 的导数，即 $\frac{dy}{d\mu}$ 和 $\frac{dy}{d\sigma}$？
-提前感谢您的帮助。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657480/derivative-of-a-gaussian-r-v-w-r-t-its-mean-and-variance</guid>
-      <pubDate>Tue, 19 Nov 2024 06:05:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>当寻找空间自相关时，如何解释同一站点的重复？</title>
-      <link>https://stats.stackexchange.com/questions/657479/how-do-i-account-for-replicates-at-the-same-sites-when-looking-for-spatial-autoc</link>
-      <description><![CDATA[我试图检查空间模式/自相关对景观中分布不均匀的多个站点的响应变量的影响（可能使用 Moran&#39;s I），但我不确定如何解释这些站点中的每一个都有多个数据收集重复的事实。
-我认为每个站点中的额外样本不能合理地被视为与其他年份同一站点的变量在统计上独立，并且数据集中最长时间序列也可能太短，无法从同步性而不是空间变化的角度分析数据。此外，一些站点不会出现在每年的数据收集中，“平均”值可能无法很好地描述这些站点。我也不认为我可以假设站点之间的关系每年都相同。
-简而言之，我认为我可以对每个年份的站点之间的距离和相似性关系进行有效的统计测试，但我想不出一种方法将这些年份组合成一个更有意义的值。有人对我在这里可以做什么有什么建议吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657479/how-do-i-account-for-replicates-at-the-same-sites-when-looking-for-spatial-autoc</guid>
-      <pubDate>Tue, 19 Nov 2024 02:46:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何处理对象检测数据集中的大量未标记数据</title>
-      <link>https://stats.stackexchange.com/questions/657478/how-to-deal-with-many-unlabeled-data-in-an-object-detection-dataset</link>
-      <description><![CDATA[我有一个大型的多类物体检测图像数据集。目标是使用 Yolo(v11) 模型在上述数据集上进行训练，以解决物体检测任务。
-我的直觉告诉我，未标记的类实例的存在会降低我的 Yolo 模型的模型性能，因为这些未标记的模式可以理解为“训练误报”，因为如果在训练阶段发现未标记的物体，我的模型可能会受到惩罚。
-在我的上下文中，我已经训练了一个视觉模型，它可以高精度地检测我想要检测的物体，但第二个模型只检测目标物体，除了它们的标签。
-以我的问题为例，我的目标是在有猫和狗（没有其他动物）的图像上检测属于$\{Cat, Dog\}$类的物体，而我有一个非常好的模型，能够检测动物。
-问题：
-
-我想知道是否可以将数据集中的对象标记为通用类别，以便在 Yolo 训练阶段将其忽略？
-
-很明显，我可以用模糊或裁剪来掩盖通用标记的对象，但我不确定此过程是否合适，或者在处理此类问题时是否有规范的过程选择。
-提前致谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/657478/how-to-deal-with-many-unlabeled-data-in-an-object-detection-dataset</guid>
-      <pubDate>Tue, 19 Nov 2024 02:00:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>学习进行参数引导</title>
-      <link>https://stats.stackexchange.com/questions/657477/learning-to-do-the-parametric-bootstrap</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/657477/learning-to-do-the-parametric-bootstrap</guid>
-      <pubDate>Tue, 19 Nov 2024 01:11:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>固定效应水平内的观测值具有相同的随机效应水平</title>
-      <link>https://stats.stackexchange.com/questions/657473/observations-within-a-level-of-fixed-effect-have-the-same-level-of-random-effect</link>
-      <description><![CDATA[我的研究旨在比较人类与模型在数学任务上的表现。
-设置如下：
-共有 700 项独特的作业。每项作业招募 6 名随机人类参与者。总共约有 400 人参与。每位参与者完成大约 10 项作业。
-对于每项作业，我还从 2 个模型中获得了绩效结果。
-因此，对于每项作业，我有 6 名人类参与者的绩效分数和 2 个模型的绩效分数。
-我使用混合线性模型来比较人类和模型的表现。这是 R 中的公式：
-data.model &lt;- lmer(score ~ type + (1 | contestant_id) + (1 | assignment_id), data = data_1)
-type：表示观察结果来自人类（human）还是模型（model）。
-participant_id：每个人类参与者的唯一标识。对于模型，我将 contestant_id 设置为“model”。
-assignment_id：标识任务。
-我的问题是，模型的随机效应 contestant_id 只有一个级别，这有问题吗？如果是这样，我该如何调整模型以适当比较人类和模型的表现？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657473/observations-within-a-level-of-fixed-effect-have-the-same-level-of-random-effect</guid>
-      <pubDate>Mon, 18 Nov 2024 22:33:15 GMT</pubDate>
+      <title>重复测试直到达到具有统计意义的结果是否属于 p-hacking ？[重复]</title>
+      <link>https://stats.stackexchange.com/questions/657496/is-repeating-a-test-until-a-statistically-significant-result-is-reached-p-hackin</link>
+      <description><![CDATA[我有一个随机源，我想知道它是否可以通过一组统计测试来检查它是否真正随机。
+为此，我使用 Dieharder 测试套件。
+在这个套件中，有一个标志，用于增加给定测试的重复次数，直到结果可能不显著时达到统计显著的通过或失败。
+使用这个会算作 p-hacking 吗？如果算，在这种情况下这真的是一个问题吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657496/is-repeating-a-test-until-a-statistically-significant-result-is-reached-p-hackin</guid>
+      <pubDate>Mon, 18 Nov 2024 22:58:14 GMT</pubDate>
     </item>
     <item>
       <title>等到学生回答完调查问卷后才给予评分是否会对答案产生影响？</title>
@@ -162,50 +242,126 @@ $$p(y_{\text{train}})=\sum_{l=1}^Kp(y_{\text{train}}|M_l)p(M_l).$$，这将得�
       <pubDate>Mon, 18 Nov 2024 17:18:44 GMT</pubDate>
     </item>
     <item>
-      <title>广义线性模型真的需要假设误差的分布吗？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/657423/do-generalized-linear-models-really-need-to-assume-the-distribution-of-errors</link>
-      <description><![CDATA[GLM 具有以下形式：
-$$
-g(\mathbb E[Y\mathop | X])=X^T\beta
-$$
-其中 $g$ 是链接函数。我们可以将矩条件写为
-$$
-Y=g^{-1}(X^T\beta)+\varepsilon,\\
-\mathbb E[X^T\varepsilon]=0,
-$$
-其样本模拟为我们提供了 GMM 估计量：
-$$
-\frac 1n\sum_{i=1}^nX_i^T[Y_i-g^{-1}(X_i^T\hat\beta_{\text{GMM}})]=0。
-$$
-有一点我不太明白：很多在线资料都说 GLM 需要指定误差项的分布（例如高斯、泊松、二项式等），但这真的是 GLM 有效所需的假设吗？当指定函数 $g$ 时，我们只需要矩条件即可使 GMM 估计量有效（当模型正确指定时，即 $\mathbb E[\varepsilon \mathop |X]=0$，即使模型指定错误，我们仍然会得到一个近似于“真实”$\mathbb E[Y\mathop | X]$ 的“最佳参数预测器”）。那么为什么在 GLM 中经常假设误差分布呢？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657423/do-generalized-linear-models-really-need-to-assume-the-distribution-of-errors</guid>
-      <pubDate>Mon, 18 Nov 2024 03:54:18 GMT</pubDate>
-    </item>
-    <item>
       <title>估计具有未知偏差 $p \in [0,1]$ 的硬币的偏差，近似正态分布</title>
       <link>https://stats.stackexchange.com/questions/657417/estimating-bias-of-a-coin-with-an-unknown-bias-p-in-0-1-approximately-norm</link>
-      <description><![CDATA[我已将此发布在 MSE 上，但有人建议将其发布在此处。假设您得到一枚硬币，其正面朝上的概率为 $p$。您不知道 $p$，但您知道 $p$ 是从 $[0,1]$ 中的某个截断正态分布中得出的，中心为 $1/2$。给定 $N$ 次翻转，您能对 $p$ 做出什么判断，您对此的置信度有多大？
-由于我的问题很模糊，因此我不是在寻找具体答案，而是在寻找解决问题的方法。我对$p$从$[0,1]$均匀抽取的情况比较熟悉，但我不确定如何将推理应用到这种情况。]]></description>
+      <description><![CDATA[我把这个发布在 MSE 上，但有人建议把它发布在这里。假设你得到一枚硬币，它正面朝上的概率为 $p$。你不知道 $p$，但你知道 $p$ 是从 $[0,1]$ 中的某个截断正态分布中得出的，中心为 $1/2$。给定 $N$ 次翻转，你能对 $p$ 做出什么判断，你有多大的信心？
+由于我的问题很模糊，我不是在寻找一个具体的答案，而是在寻找一种解决问题的方法。我对$p$从$[0,1]$均匀抽取的情况比较熟悉，但我不确定如何将推理应用到这种情况。]]></description>
       <guid>https://stats.stackexchange.com/questions/657417/estimating-bias-of-a-coin-with-an-unknown-bias-p-in-0-1-approximately-norm</guid>
       <pubDate>Mon, 18 Nov 2024 00:10:22 GMT</pubDate>
     </item>
     <item>
-      <title>预测模型和机器学习中的信噪比</title>
-      <link>https://stats.stackexchange.com/questions/657395/signal-to-noise-ratio-in-predictive-modeling-and-machine-learning</link>
-      <description><![CDATA[对此问题的有趣评论涉及信噪比如何影响预测能力。更明确地说，信噪比如何影响预测的准确性？例如，信噪比究竟是什么意思？它对预测建模意味着什么？
-编辑
-在看到对链接答案的进一步评论后，我想知道（人口级）相互信息是否是思考这个问题的正确方式。那是信号，结果的熵是噪音吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657395/signal-to-noise-ratio-in-predictive-modeling-and-machine-learning</guid>
-      <pubDate>Sun, 17 Nov 2024 13:42:20 GMT</pubDate>
+      <title>为什么数据引导可以修改来自同一分布的总体的斜率？</title>
+      <link>https://stats.stackexchange.com/questions/657250/why-could-data-bootstraping-modifiy-the-slope-of-a-population-comming-from-the-s</link>
+      <description><![CDATA[我正在引导一些样本来计算斜率（有替换）。一旦完成，应该具有相同分布的斜率就不会具有相同的分布。要清楚，我不是要求调试代码，而是要求理解为什么我会引入偏差。
+这是 R 中可重现的代码：
+library(plotly)
+
+N&lt;- 3000
+x &lt;- runif(N,0,1)*5
+y &lt;- x + rnorm(N, 1, .2)
+y2 &lt;- x + rnorm(N, 1, .2)
+t.test(y,y2)
+dummy &lt;- rep(c(TRUE,FALSE),each = N)
+df &lt;- data.frame(x = c(x,x), y = c(y,y2), dummy = dummy)
+
+fig &lt;- plot_ly() %&gt;%
+add_trace(x = df[df$dummy == TRUE,]$x, y = df[df$dummy == TRUE,]$y) %&gt;%
+add_trace(x = df[df$dummy == FALSE,]$x, y= df[df$dummy == FALSE,]$y)
+图
+
+boot_strap &lt;- function(data, n_bootstraps){
+输出 &lt;- sapply(1:n_bootstraps, function(i){
+tmp &lt;- data[sample(seq_len(nrow(data)), nrow(data), replace = TRUE),]
+模型 &lt;- lm(y ~ x, data = tmp)
+return(coef(model)[2])
+})
+返回（输出）
+}
+
+for (size in c(1e2, 2e2, 5e2, 1e3, 1e4)){
+sample_1 &lt;- boot_strap(df[df$dummy == TRUE,], size)
+sample_2 &lt;- boot_strap(df[df$dummy == FALSE,], size) 
+print(paste0(&#39;Size: &#39;, size,&#39; - Pvalue: &#39;, t.test(sample_1, sample_2)$p.value))
+}
+
+fig &lt;- plot_ly() %&gt;%
+add_histogram(sample_1) %&gt;%
+add_histogram(sample_2)
+fig
+
+数据：
+
+这里我们没有差异，因为来自同一人群（如第一个 T 检验所示）是预期的
+但另一方面，斜率的分布明显不同。
+
+我的偏见在哪里？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657250/why-could-data-bootstraping-modifiy-the-slope-of-a-population-comming-from-the-s</guid>
+      <pubDate>Thu, 14 Nov 2024 13:56:47 GMT</pubDate>
     </item>
     <item>
-      <title>X-帕累托分布</title>
-      <link>https://stats.stackexchange.com/questions/657358/x-pareto-distribution</link>
-      <description><![CDATA[我有一个作业，其中我必须证明威布尔帕累托属于指数族，然后是项$a(x)$的均值和方差。
-$g(x)=\frac{\beta c}{x}\{\beta \log (\frac{x}{\theta})\}^{c-1}\exp \{-(\beta \log (\frac{x}{\theta})^c\}$
-为此，我使用了Dobson，因为$g(y;\tau)=\exp\{a(x)b(\tau)+c(\tau)d(x)\}$并得到$a(x)=\log(x)-\log (\lambda)$，$c(\tau) =-(\alpha \log (\frac{x}{\lambda}))$，$b(\tau) = (c-1)\log (\alpha)$ 和 $d(x)= -\log (x)$。其中 $\lambda=\beta c$。请检查这是否正确。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657358/x-pareto-distribution</guid>
-      <pubDate>Sat, 16 Nov 2024 13:19:44 GMT</pubDate>
+      <title>涉及高斯和 t-学生密度乘积的多元积分</title>
+      <link>https://stats.stackexchange.com/questions/656916/multivariate-integral-involving-a-gaussian-and-a-product-of-t-student-densities</link>
+      <description><![CDATA[设 $N \ge 1$ 为整数，设 $A$ 为正定 $N\times N$ 矩阵，设 $b$ 为 $N\times 1$ 实数向量。设 $\nu &gt; 2$ 并定义 $n:= (\nu+1)/2$。
+我们感兴趣的是推导样本协方差矩阵的分布，其中观测值来自特定的非高斯分布。在这里，我们决定用 t-Student 分布代替高斯分布。这将是 Wishart 分布的类似物，其中总体为 t-Student。
+现在，事实证明，计算此类矩阵的拉普拉斯变换可得出下面的多元积分。
+\begin{eqnarray}
+{\mathfrak f}_\nu^{(A,b)} &amp;:=&amp; \int\limits_{{\mathbb R}^N}
+\frac{e^{-\frac{1}{2} z^{T} \cdot A \cdot z + b^T \cdot z} }{\sqrt{(2\pi)^N \cdot \det(A^{-1})}} \cdot 
+\left(
+\prod\limits_{i=1}^N
+\frac{d z_i}{\left(1 + \frac{z_i^2}{\nu}\right)^n}
+\right) \tag{1}
+\end{eqnarray&gt;
+上述积分是给定在另一篇文章中。
+我们定义一个新矩阵，该矩阵由原始矩阵的对角线元素乘以积分变量的逆而生成，即${\tilde A}(\eta) := \left( A_{i,j}\cdot (1 + \delta_{i,j} (\frac{1}{\eta_i}-1) ) \right)_{i,j=1}^N$。
+现在，通过使用 t-Student 密度的表示作为正态分布的连续混合，其逆方差为 Gamma 分布，然后交换积分顺序，进行多元高斯积分并简化结果，我们得出以下结果。
+\begin{eqnarray}
+&amp;&amp;{\mathfrak f}_\nu^{(A,b)} =
+e^{\frac{\nu}{2} \cdot Tr[A]} \cdot \sqrt{\det[A]} \cdot \left(\prod\limits_{i=1}^N (\frac{\nu}{2} A_{i,i})^n \right) \cdot \frac{1}{((n-1)!)^N} \cdot
+\int\limits_{(0,1)^N}
+\left[\prod\limits_{i=1}^N \frac{1}{\eta_i^2} \left( \frac{1-\eta_i}{\eta_i} \right)^{n-1} \cdot e^{-\frac{\nu}{2} \frac{A_{i,i}}{\eta_i} } \right]
+%
+\frac{\exp\left( \frac{1}{2} b^T \cdot [{\tilde A}(\eta)]^{-1} \cdot b\right)}{\sqrt{\det {\tilde A}(\eta) }}
+%
+\left[\prod\limits_{i=1}^N d \eta_i \right] \tag{2}
+\end{eqnarray&gt;
+下面的 Mathematica 代码片段确认结果是正确的。我们开始吧：
+(*Dimension 等于 NN。*)
+NN = 3; Clear[z, A, b, n, \[Eta]];
+A = RandomReal[{-1, 1}, {NN, NN}]; A = 
+Transpose[A] .对角矩阵[随机实数[{1/2, 1}, NN]] 。 
+A; A += +恒等矩阵[NN];
+正定矩阵Q[A]
+b = 随机实数[{1, 2}, {NN, 1}];
+\[Nu] = 随机实数[{3, 5}];
+n = (\[Nu] + 1)/2;
+
+1/Sqrt[(2 \[Pi])^NN Det[A]^-1]
+NIntegrate[
+Exp[-1/2 Sum[A[[i, j]] z[i] z[j], {i, 1, NN}, {j, 1, NN}] + 
+Sum[b[[i]] z[i], {i, 1, NN}]] Product[1/(1 + z[i]^2/\[Nu])^
+n, {i, 1, NN}], 
+Evaluate[
+Sequence @@ Table[{z[i], -Infinity, +Infinity}, {i, 1, NN}]]]
+
+Exp[\[Nu]/2 Tr[A]] Sqrt[Det[A]] Product[(\[Nu]/2 A[[i, i]])^
+n, {i, 1, NN}] 1/((n - 1)!)^NN NIntegrate[
+Product[1/\[Eta][i]^2 ((1 - \[Eta][i])/\[Eta][i])^(n - 1)
+Exp[-\[Nu]/2 A[[i, i]]/\[Eta][i]], {i, 1, NN}] Exp[
+1/2 Flatten[
+b] . (Inverse[
+Table[If[i == j, 1/\[Eta][i], 1] A[[i, j]], {i, 1, NN}, {j, 
+1, NN}]] . Flatten[b])]/Sqrt[
+Det[Table[
+If[i == j, 1/\[Eta][i], 1] A[[i, j]], {i, 1, NN}, {j, 1, NN}]]], 
+Evaluate[Sequence @@ Table[{\[Eta][i], 0, 1}, {i, 1, NN}]]]
+
+$(2)$。&quot; /&gt;
+
+说了这么多，我的问题是，当$\nu$很大时，我们如何使用稳态相近似来得出我们数量的近似封闭形式？
+另一个问题是，我们如何以不同的方式评估该积分？]]></description>
+      <guid>https://stats.stackexchange.com/questions/656916/multivariate-integral-involving-a-gaussian-and-a-product-of-t-student-densities</guid>
+      <pubDate>Thu, 07 Nov 2024 18:52:41 GMT</pubDate>
     </item>
     </channel>
 </rss>
