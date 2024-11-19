@@ -4,7 +4,152 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 19 Nov 2024 18:23:22 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 19 Nov 2024 21:16:15 GMT</lastBuildDate>
+    <item>
+      <title>如何重新表示概率向量，而不使其值超出 [0, 1] 的界限？</title>
+      <link>https://stats.stackexchange.com/questions/657526/how-to-re-mean-a-vector-of-probabilities-without-having-values-beyond-the-0-1</link>
+      <description><![CDATA[假设我们有一个概率向量 $x$。其平均值为 $\bar{x}$。现在，假设我们想将向量重新平均为 0 到 1 之间的任意值。这是某个给定的比例，$p$。
+我想要做的是从 $x$ 转到 $x&#39;$，其中 $\bar{x&#39;} = p$。但是，这些表示概率，因此 $x&#39; \in [0, 1]$ 也需要满足。
+一种做法是简单地降低变量的平均数并重新添加 $p$：
+$x&#39; = x - \bar{x} + p$
+但是，这会强制值低于 0 或高于 1，因此不再表示概率。
+另一种做法是将 $x$ 和 $p$ 都带入逻辑空间，在那里重新赋予意义，然后将其带回来。为了简便起见，我使用 $logit$ 作为逻辑函数，使用 $invlogit$ 作为其逆函数：
+$x&#39; = invlogit(logit(x) - \overline{logit(x)} + logit(p))$
+但是，概率空间中的平均值将不再是 $p$。
+如何重新表示概率向量，而不使值超出 [0, 1] 的界限？
+以下是 R 中的演示。
+remean &lt;- function(x, p) x - mean(x) + p
+
+remean_logit &lt;- function(x, p) {
+x &lt;- qlogis(x)
+x &lt;- x - mean(x) + qlogis(p)
+return(plogis(x))
+}
+
+set.seed(1839)
+p &lt;- .56
+x &lt;- runif(1000)
+
+summary(x) # 平均值为 .497
+summary(remean(x, p)) # 平均值正确，但最大值 &gt; 1
+summary(remean_logit(x, p)) # 值在 0 和 1 之间，但平均值不正确
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657526/how-to-re-mean-a-vector-of-probabilities-without-having-values-beyond-the-0-1</guid>
+      <pubDate>Tue, 19 Nov 2024 19:56:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>lmerMod 与 lmerModLmerTest - 有什么区别以及哪个是正确的？</title>
+      <link>https://stats.stackexchange.com/questions/657524/lmermod-vs-lmermodlmertest-what-are-the-differences-and-which-is-correct</link>
+      <description><![CDATA[我进行了三次试验，想知道试验顺序是否会影响结果。我正在使用 ChatGPT 检查我的工作，发现他们的结果与我的结果存在差异。这是 ChatGPT 中的虚拟代码：
+# 加载必要的库
+library(lme4)
+library(lmerTest)
+library(emmeans)
+
+# 定义合成数据集，并为每个试验指定明确的分数
+set.seed(123) # 设置可重复性的种子
+
+# 20 个受试者的分数，每个受试者完成 3 次试验
+scores &lt;- c(80, 85, 78, # 受试者 1
+75, 80, 82, # 受试者 2
+84, 79, 81, # 受试者 3
+77, 82, 79, # 受试者 4
+80, 83, 85, # 受试者 5
+79, 78, 76, # 受试者 6
+82, 84, 79, # 受试者 7
+81, 80, 82, # 受试者 8
+78, 80, 84, # 主题 9
+82, 81, 83, # 主题 10
+79, 78, 77, # 主题 11
+84, 87, 89, # 主题 12
+83, 85, 84, # 主题 13
+82, 81, 83, # 主题 14
+80, 79, 82, # 主题 15
+78, 80, 81, # 主题 16
+85, 88, 87, # 主题 17
+79, 82, 80, # 主题 18
+81, 82, 85, # 主题 19
+84, 85, 86) # 主题 20
+
+# 创建数据集
+data &lt;- data.frame(
+Subject = rep(1:20, each = 3), # 20 个受试者
+Trial = rep(1:3, times = 20), # 三次试验
+Score = scores # 定义的分数
+)
+
+# 将 Trial 视为数字变量
+data$Trial &lt;- as.numeric(data$Trial)
+
+# 将 Trial 视为数字，拟合线性混合效应模型
+model_continuous &lt;- lmer(Score ~ Trial + (1 | Subject), data = data)
+
+# 模型摘要
+summary(model_continuous)
+
+我得到了不同的输出。我认为这与 lmerMod 和 lmerTest 有关，我不知道如何复制它们的结果。
+我的：
+REML 拟合的线性混合模型。 t 检验使用 Satterthwaites 方法 [&#39;lmerModLmerTest&#39;]
+公式：分数 ~ 试验 + (1 | 主题)
+数据：数据
+
+收敛时的 REML 标准：282.2
+
+缩放残差：
+最小值 1Q 中位数 3Q 最大值
+-1.93939 -0.48327 0.08381 0.51236 1.94184
+......
+固定效应：
+估计标准差误差 df t 值 Pr(&gt;|t|) 
+(截距) 80.0833 0.8456 54.7267 94.707 &lt;2e-16 ***
+试验 0.7500 0.3157 39.0000 2.376 0.0225 * 
+
+ChatGPT:
+REML [&#39;lmerMod&#39;] 拟合的线性混合模型
+公式：分数 ~ 试验 + (1 | 主题)
+数据：数据
+
+收敛时的 REML 标准：104.7192
+
+缩放残差：
+最小 1Q 中位数 3Q 最大
+-2.1934 -0.5690 -0.0162 0.5091 2.3361
+.....
+已修复效果：
+估计标准误差 t 值 Pr(&gt;|t|) 
+（截距） 80.1000 0.7123 112.48 &lt;2e-16 ***
+试验 2.0000 0.6232 3.21 0.0056 ** 
+
+来自 R 文档：
+如果生成了有效的 lmer 对象 (lmerMod)，但 Satterthwaite df 所需的计算失败，则返回 lmerMod 对象 - 而不是 lmerModLmerTest 对象。
+这是什么意思？哪个是正确的？我怎么知道该使用哪一个？如果需要，如何在 lmerMod 和 lmerModLmerTest 之间切换？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657524/lmermod-vs-lmermodlmertest-what-are-the-differences-and-which-is-correct</guid>
+      <pubDate>Tue, 19 Nov 2024 19:10:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>当b=1时，如何得到第一类广义Beta（GB1）的分位数函数？</title>
+      <link>https://stats.stackexchange.com/questions/657523/how-to-get-quantile-function-of-the-generalized-beta-of-the-first-kind-gb1-whe</link>
+      <description><![CDATA[GB1 分布的 PDF 函数
+dgb1 &lt;- function(y, a, p, q) {
+density &lt;- (a * y^(a * p - 1) * (1 - y^a)^(q - 1)) / beta(p, q)
+return(density)
+
+GB1 分布的 CDF 函数
+pgb1 &lt;- function(y, a, p, q) {
+return(pbeta(y^a, p, q)) # I_{y^a}(p, q)
+
+GB1 分布的分位数函数
+qgb1 &lt;- function(prob, a, p, q) {
+return(qbeta(prob, p, q)^(1 / a)) # I^{-1}(p, q)^(1/a)
+
+GB1 分布的随机样本生成函数
+rgb1 &lt;- function(n, a, p, q) {
+u &lt;- runif(n) # 生成 (0, 1) 中的均匀随机变量
+return(qgb1(u, a, p, q)) # 使用分位数函数进行变换
+} 这是我的代码，它定义了 GB1 分布的 pdf cdf 和分位数函数（当 b=1 时），但我不知道是否可以直接使用它们（pbeta、qbeta）来生成 pgb1、qgb1、rgb1 这些函数。我尝试证明这是正确的，但结果并不好，我该怎么办？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657523/how-to-get-quantile-function-of-the-generalized-beta-of-the-first-kind-gb1-whe</guid>
+      <pubDate>Tue, 19 Nov 2024 18:26:13 GMT</pubDate>
+    </item>
     <item>
       <title>MoM 估计的方差估计</title>
       <link>https://stats.stackexchange.com/questions/657522/estimation-of-variance-for-mom-estimates</link>
@@ -49,7 +194,7 @@
 我需要为包装的拒收率制定一个置信区间。
 PS：给定 viz，长度分布几乎呈正态分布，并且 180 未能拒绝 p 值为 16% 的 wilk-shapiro 检验。
 我使用的方法基本上是使用百分位数法进行引导以获得置信区间。
-首先，我从 180 个样本中抽取 100 个，然后使用这 100 个模拟 500 个包装，计算每个包装的范围并测量被拒比例的比例，重复此过程 10000 次，并使用百分位数法获得置信区间。
+首先，我从 180 个样本中抽取 100 个，然后使用这 100 个模拟 500 个包装，计算每个包装的范围并测量被拒包装的比例，重复此过程 10000 次，并使用百分位数法获得置信区间。
 为了验证这种方法，我假设一个具有随机均值和标准差的正态随机变量，然后我抽取了 500,000 个 5 件包装并获得了被拒包装的比例，我假设这是真实比例。然后我从我的随机变量中抽取了 180 个样本，我运行了上面解释的方法并生成了 1000 个 60% 置信区间，以检查其中约 60% 是否包含真实值。但是，我运行的每次模拟 100% 的区间都包含真实值，即使我使用完全随机的离散随机变量，我也会得到相同的结果。我不明白这是怎么发生的，我认为我的模拟或引导程序出了问题，但我无法弄清楚。]]></description>
       <guid>https://stats.stackexchange.com/questions/657514/confidence-interval-for-the-range-using-bootstrapping</guid>
       <pubDate>Tue, 19 Nov 2024 14:31:08 GMT</pubDate>
@@ -71,15 +216,6 @@ NA=1079.64+9117.71⋅(Ref−μ)+2896.35⋅(Ref−μ)2
 我的问题是，我可以用当前数据集做什么来确定/估计可能的最优值在哪里。我最初的目标是将产量与多个变量进行比较，并最小化六个变量中的两个变量，同时使用其他 4 个变量来保持或增加产量。]]></description>
       <guid>https://stats.stackexchange.com/questions/657512/can-i-use-only-the-block-section-of-a-center-composite-design-for-optimisation</guid>
       <pubDate>Tue, 19 Nov 2024 14:27:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的测试损失和测试评估指标会波动？</title>
-      <link>https://stats.stackexchange.com/questions/657511/why-does-my-test-loss-and-test-evaluation-metrics-fluctuate</link>
-      <description><![CDATA[我正在使用附加分类器对 resnet18 模型进行微调。我在训练过程中观察到，测试损失和其他测试评估指标（AP、AUC）似乎在波动，如您在  中看到的那样。
-在后期，它似乎确实收敛到一个更稳定的范围，但我仍然很好奇为什么损失和指标在初始训练阶段会上下波动？
-我不明白为什么测试损失和评估指标会波动。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657511/why-does-my-test-loss-and-test-evaluation-metrics-fluctuate</guid>
-      <pubDate>Tue, 19 Nov 2024 14:06:32 GMT</pubDate>
     </item>
     <item>
       <title>定义多边形周长的均匀分布</title>
@@ -123,54 +259,6 @@ p_z(z)=\frac{p_\alpha(\alpha)}{\sqrt{\textrm{det} \frac{\partial \psi}{\partial 
       <pubDate>Tue, 19 Nov 2024 13:31:01 GMT</pubDate>
     </item>
     <item>
-      <title>在候选集中选择一个好的估计量</title>
-      <link>https://stats.stackexchange.com/questions/657506/choose-a-good-estimator-in-a-candidate-set</link>
-      <description><![CDATA[最近，我对以下统计问题很感兴趣：
-我有一个集合，其中包含矩阵$A\in \mathbb{R}^{p\times p}$的一些估计量$\hat{A}_i$。然后我有一些可用于测试的数据，我想使用测试集来选择性能最佳的$\hat{A}_i$。这种方法有理论保证吗？
-假设我知道候选集中每个估计量$\hat{A}_i$的收敛速度。我可以获得数据驱动方法选择的最终估计量的收敛速度吗？
-任何帮助都将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657506/choose-a-good-estimator-in-a-candidate-set</guid>
-      <pubDate>Tue, 19 Nov 2024 12:48:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>随机森林中的关联分析和预测模型</title>
-      <link>https://stats.stackexchange.com/questions/657503/analyses-of-associations-and-predictive-models-in-random-forest</link>
-      <description><![CDATA[我正在研究随机森林如何利用这种方法研究与特定血液生物标志物相关的最重要变量。
-我希望得到一些帮助来确定我下面的理解是否正确。
-如果我想创建一个预测模型，那么我明白我应该使用一个训练集（例如 70%）和一个测试集（30%）。另一方面，如果我只想分析与生物标志物相关的主要变量，那么就不需要将数据分成训练集和测试集。
-我的解释正确吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657503/analyses-of-associations-and-predictive-models-in-random-forest</guid>
-      <pubDate>Tue, 19 Nov 2024 12:34:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何评估张量积平滑之间的差异？</title>
-      <link>https://stats.stackexchange.com/questions/657494/how-to-assess-differences-between-tensor-product-smooths</link>
-      <description><![CDATA[给出以下 GAM 示例：
-data(iris)
-
-library(mgcv)
-
-library(gratia)
-
-mod &lt;- gam(Sepal.Length ~ s(Sepal.Width) + te(Petal.Length, Petal.Width, by = Species),
-data = iris)
-
-draw(mod)
-
-
-如何评估 Petal.Length 和 Petal.Width 的张量积平滑度在 Species 之间是否存在显著差异？了解是否存在普遍差异以及是否存在普遍差异，这将会很有趣。如果是，那么对于 Petal.Length 和 Petal.Width 的哪些组合而言，这是正确的。我知道我可以绘制差异平滑图，但我不确定我是否可以从中推断出某种统计意义？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657494/how-to-assess-differences-between-tensor-product-smooths</guid>
-      <pubDate>Tue, 19 Nov 2024 10:44:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>向线性回归添加新变量[重复]</title>
-      <link>https://stats.stackexchange.com/questions/657493/adding-new-variable-to-a-linear-regression</link>
-      <description><![CDATA[假设我有一组 $n$ 个特征，其具有给定目标的 OLS 给出权重 $(\beta_i)_{i=1}^n$ 和截距 $\beta_0$。假设我现在添加一个新特征，并且我知道所有特征（新旧）与目标之间的所有可能的协方差，即我可以访问具有 $n+2$ 行/列的平方协方差矩阵 $C&#39;$，并且假设我还有所有均值的向量 $\mu&#39;$。
-是否有可用的公式来说明如何通过旧权重 $C&#39;$ 和 $\mu&#39;$ 来计算新的 OLS 权重 $(\beta&#39;_i)_{i=0}^{n+1}$？我对通过 $C&#39;$ 表达 $\beta&#39;$ 不感兴趣 - 毫无疑问这可以做到，我想知道从 $C&#39;$ 和 $\beta$ 获得 $\beta&#39;$ 的最简单方法是什么。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657493/adding-new-variable-to-a-linear-regression</guid>
-      <pubDate>Tue, 19 Nov 2024 10:33:06 GMT</pubDate>
-    </item>
-    <item>
       <title>学习进行参数引导</title>
       <link>https://stats.stackexchange.com/questions/657477/learning-to-do-the-parametric-bootstrap</link>
       <description><![CDATA[]]></description>
@@ -178,14 +266,37 @@ draw(mod)
       <pubDate>Tue, 19 Nov 2024 01:11:49 GMT</pubDate>
     </item>
     <item>
-      <title>重复测试直到达到具有统计意义的结果是否属于 p-hacking ？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/657496/is-repeating-a-test-until-a-statistically-significant-result-is-reached-p-hackin</link>
-      <description><![CDATA[我有一个随机源，我想知道它是否可以通过一组统计测试来检查它是否真正随机。
-为此，我使用 Dieharder 测试套件。
-在这个套件中，有一个标志，用于增加给定测试的重复次数，直到结果可能不显著时达到统计显著的通过或失败。
-使用这个会算作 p-hacking 吗？如果算，在这种情况下这真的是一个问题吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657496/is-repeating-a-test-until-a-statistically-significant-result-is-reached-p-hackin</guid>
-      <pubDate>Mon, 18 Nov 2024 22:58:14 GMT</pubDate>
+      <title>功效分析能否计算 n 来检测总体平均值随时间的变化？</title>
+      <link>https://stats.stackexchange.com/questions/657469/can-a-power-analysis-calculate-n-to-detect-changes-in-a-population-mean-over-tim</link>
+      <description><![CDATA[将功效分析解释为：计算检测总体平均值从一个时间点到另一个时间点的变化（%）所需的最小样本量的一种可能方法（？）是否不正确。例如，在未来的调查中，我需要多大的样本量才能检测到总体平均值的 30% 变化？
+以 Cohen 的 D 效应量公式作为功效分析的示例；如果“M”是样本平均值，“σ”是样本标准差（共同估计当前总体平均值），“µ”可以被视为未来总体平均值（当前平均值的 30% 变化，没有样本误差）吗？这是针对“前后”的重复测量设计。
+那么得出这样的结论是错误的吗：
+# 效应大小，Cohen&#39;s D：d=(M-μ)/σ
+# M=1，σ=0.5，µ=0.7
+# 0.6 = (1-0.7)/0.5
+
+&gt; pwr.t.test(d = 0.6, 
++ power = 0.8000, 
++ n = NULL, 
++ type = &quot;paired&quot;,
++ alternative = &quot;two.sided&quot;,
++ sig.level = 0.05)
+
+配对 t 检验功效计算 
+
+n = 23.79452
+d = 0.6
+sig.level = 0.05
+power = 0.8
+alternative = two.sided
+
+注意：n 是 *对* 的数量
+
+结论：样本量为 24 足以在未来调查中检测到当前人口平均值的 +/-30% 变化（双尾检验），概率为 80%，alpha=0.05。
+现在对配对数据定义功效分析是否不正确方式？
+我猜这是不正确的措辞。功效分析不是为了检测从一个时间点到另一个时间点的变化，而是为了通过抽样来测试估计的总体参数的准确性，不是吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657469/can-a-power-analysis-calculate-n-to-detect-changes-in-a-population-mean-over-tim</guid>
+      <pubDate>Mon, 18 Nov 2024 21:16:56 GMT</pubDate>
     </item>
     <item>
       <title>等到学生回答完调查问卷后才给予评分是否会对答案产生影响？</title>
@@ -193,6 +304,105 @@ draw(mod)
       <description><![CDATA[我的大学正在进行一项匿名调查，主要是为了检查我们是否了解评估方式、是否对材料感到满意以及材料是否组织良好。参与人数很少，因此，一位讲师表示，他们将保留我们的评估成绩，直到参与人数达到至少 2/3。这让我想到，这是否会使答案产生偏差，因为动机是获得分数，而不是真正参与提供反馈？]]></description>
       <guid>https://stats.stackexchange.com/questions/657467/would-withholding-marks-until-students-respond-to-a-survey-bias-the-responses</guid>
       <pubDate>Mon, 18 Nov 2024 20:22:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>Logitstic 回归在 statsmodels GLM、statsmodels Logit 和 skylearn LogisticRegression 函数中有所不同 [重复]</title>
+      <link>https://stats.stackexchange.com/questions/657458/logitstic-regression-varies-among-statsmodels-glm-statsmodels-logit-and-skylea</link>
+      <description><![CDATA[大家好，
+我发现，简单二元数据的逻辑回归在以下函数中差异很大。
+
+statsmodels.api.GLM
+statsmodels.api.Logit
+sklearn.linear_model.LogisticRegression
+
+
+statsmodels.api.GLM 完全符合数据，在我看来，sklearn.linear_model.LogisticRegression 比statsmodels.api.Logit。
+上图表明，不同函数的解不同，但对数奇数（odd）的指数可能并非如此，如下所示：
+
+statsmodels.api.GLM 1.2
+sklearn.linear_model.LogisticRegression 1.1
+statsmodels.api.Logit 1.03
+
+知道这些函数为什么会有所不同吗？
+谢谢
+这是代码
+
+从 scipy.special 导入 expit
+导入 matplotlib.pyplot 作为 plt
+导入 numpy 作为 np
+从 sklearn.linear_model 导入 LogisticRegression
+从 sklearn.metrics 导入 classes_report, chaos_matrix
+导入 statsmodels.api 作为 sm
+
+x_glm=np.arange(50)
+x=x_glm.reshape(-1,1)
+
+x_with_ones=np.ones((len(x),2))
+x_with_ones[:,1]=x_glm
+
+y=np.ones(50)
+y[:25]=0
+y[20:24]=1
+y[30:34]=0
+
+############Skylearn Logistic 回归 ######################
+############Skylearn逻辑回归 ######################
+model_logistic = LogisticRegression(solver=&#39;liblinear&#39;, random_state=0).fit(x, y)
+sigmoid_auto=model_logistic.predict_proba(x)[:,1]
+# sigmoid1=model_logistic.predict() # 应用截止值 0.5 后
+print(model_logistic.intercept_)
+print(model_logistic.coef_)
+
+######### GLM 逻辑回归 ###############
+######### GLM 逻辑回归 ###############
+modelC =sm.GLM(y,x_with_ones,family=sm.families.Binomial(link=sm.families.links.Logit())).fit()
+sigmoid_glm=modelC.predict(x_with_ones)
+# 获取可用链接列表与特定家族相关，打印
+打印（sm.families.family.Binomial.links）
+打印（modelC.params）
+######### sm.Logit 回归 ###############
+######### sm.Logit 回归 ###############
+model_logit = sm.Logit(y, x_with_ones).fit()
+sigmoid_logit=model_logit.predict(x_with_ones)
+打印（model_logit.params）
+打印（model_logit.summary）
+
+################ 图 #######################
+################ 图 ######################
+plt.figure()
+plt.scatter(x,y,facecolors=&#39;none&#39;, edgecolors=&#39;b&#39;,label=&#39;observations&#39;)
+plt.scatter(x,sigmoid_auto,facecolors=&#39;none&#39;, edgecolors=&#39;g&#39;,label=&#39;sklearn LogisticRegression&#39;)
+plt.scatter(x,sigmoid_glm,c=&#39;k&#39;,marker=&#39;+&#39;,
+label=&#39;sm.GLM&#39;)
+plt.scatter(x,sigmoid_logit,marker=&#39;^&#39;,label=&#39;sm.Logit&#39;)
+
+plt.legend( fontsize=&quot;20&quot;)
+
+#%% 解释 
+# coef
+# sm.GLM
+print(np.exp(modelC.params[3]))
+# Skylearn LogisticRegression
+# # x 增加一个单位，(y) 的奇数就会增加 .... 
+print(np.exp(model_logistic.coef_))
+#sm.Logit
+print(np.exp(model_logit.params))```
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657458/logitstic-regression-varies-among-statsmodels-glm-statsmodels-logit-and-skylea</guid>
+      <pubDate>Mon, 18 Nov 2024 16:54:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>从两个样本中估计两个集合的Jaccard[重复]</title>
+      <link>https://stats.stackexchange.com/questions/657453/estimate-jaccard-of-two-sets-from-two-samples</link>
+      <description><![CDATA[假设我有两个集合，我开始从每个集合中取样。我如何将样本的重叠部分推断到整个集合？
+具体示例：假设我有来自集合 A 的 1M 元素的 1% 样本（总共 1 亿个元素），以及来自集合 B 的 1M 元素的 0.33% 样本（集合 B 中总共 3 亿个元素）。如果我了解到 A 和 B 这两个样本之间有 350,000 个重叠，我该如何推断以估计非采样集的重叠？
+我遇到了基于样本估计 Jaccard 相似度，但我的问题略有不同，因为每个子集的采样率可能不同，并且集合的大小可能有很大差异。
+使用该帖子中编辑的公式：𝐿=|𝐴∩𝐵|
+我们可以估计 𝐴∪𝐵=|𝐴|+|𝐵|−𝐿≈|𝐴′|𝑃+|𝐵′|𝑃+𝐿 并且 Jaccard 的估计量是：𝑒𝑠𝑡_𝑗𝑎𝑐𝑐𝑎𝑟𝑑(𝐴′,𝐵′)=𝐿/(|𝐴′|/𝑃+|𝐵&#39;|/𝑃+𝐿)
+我会有 L = 350000/(.0033 * .01) 然后 est_jaccard(A,B) = 350000/(.0033 * .01) / (1,000,000 / .01) + (1000000/.0033) + 350000/(.0033 * .01)) = 96%。这显然是错误的，我这里遗漏了什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657453/estimate-jaccard-of-two-sets-from-two-samples</guid>
+      <pubDate>Mon, 18 Nov 2024 16:26:35 GMT</pubDate>
     </item>
     </channel>
 </rss>
