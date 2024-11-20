@@ -4,9 +4,126 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 19 Nov 2024 21:16:20 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 20 Nov 2024 01:18:57 GMT</lastBuildDate>
     <item>
-      <title>小语言模型和传统人工智能模型的主要区别是什么？它们带来了哪些价值？[关闭]</title>
+      <title>独热编码特征不匹配问题</title>
+      <link>https://stackoverflow.com/questions/79205343/one-hot-encoding-feature-mismatch-issue</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79205343/one-hot-encoding-feature-mismatch-issue</guid>
+      <pubDate>Tue, 19 Nov 2024 23:21:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>何时使用深度学习进行机器人和欺诈检测，何时不使用它？[关闭]</title>
+      <link>https://stackoverflow.com/questions/79205257/when-to-use-deep-learning-for-bot-and-fraud-detection-and-when-not-to-use-it</link>
+      <description><![CDATA[我的数据集大约有 10 万行，是表格数据。
+我的问题是：这里有使用深度学习的案例吗？
+我目前的方法如下：1) 对历史数据进行监督训练，然后 2) 运行无监督机器学习模型，如聚类​​或异常检测。
+然后，对于任何新用户，他们都会收到来自监督模型的预测分数，如果他们是异常，就会被标记。这样，我既可以平衡历史模式，又可以解释新的欺诈模式。]]></description>
+      <guid>https://stackoverflow.com/questions/79205257/when-to-use-deep-learning-for-bot-and-fraud-detection-and-when-not-to-use-it</guid>
+      <pubDate>Tue, 19 Nov 2024 22:38:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 GGUF 格式的 Ollama 中微调的 LLaMA 3.2 1B 模型存在问题</title>
+      <link>https://stackoverflow.com/questions/79205128/issue-with-fine-tuned-llama-3-2-1b-model-in-ollama-using-gguf-format</link>
+      <description><![CDATA[我最近使用 Unsloth 在自定义数据集上对 LLaMA 3.21B 基础模型进行了微调。微调后，我将模型导出为 GGUF 格式并尝试将其加载到 Ollama 中。虽然微调后的模型在 Google Colab 中经过训练的数据集上运行良好，但在我将 GGUF 文件上传到 Ollama 后，它开始产生乱码响应。
+随后进行微调
+数据集准备：我使用了 CSV 格式的自定义数据集。以下是我用于将数据集格式化为 Alpaca 样式提示的代码片段：
+import pandas as pd
+from datasets import Dataset
+
+# 使用不同编码加载自定义 CSV 数据集
+df = pd.read_csv(&quot;/content/llama3.2trainedDataset.csv&quot;, encoding=&#39;ISO-8859-1&#39;)
+
+# 将 Pandas DataFrame 转换为 Hugging Face 数据集
+dataset = Dataset.from_pandas(df)
+
+# 定义 Alpaca 提示格式
+alpaca_prompt = &quot;&quot;&quot;以下是描述临床试验的研究目标。根据给定的研究目标编写纳入和排除标准。
+
+### 研究目标：
+{}
+
+### 响应（纳入和排除标准）：
+{}&quot;&quot;&quot;
+
+EOS_TOKEN = tokenizer.eos_token # 确保生成正确停止。
+
+# 定义函数以格式化提示
+def formatting_prompts_func(examples):
+goals = examples[&quot;eligibilityCriteria&quot;] # 从“eligibilityCriteria”列中研究目标
+criteria = examples[&quot;combined_criteria&quot;] # 从“combined_criteria”列中获取标准
+
+texts = []
+for objective, criterion in zip(objectives,criteria):
+# 添加 EOS_TOKEN 以确保生成正确停止。
+text = alpaca_prompt.format(objective, criterion) + EOS_TOKEN
+texts.append(text)
+return {&quot;text&quot;: texts}
+
+# 将格式化函数应用于您的数据集
+dataset = dataset.map(formatting_prompts_func, batched=True)
+
+微调配置：我使用 Unsloth 的以下参数微调了模型：
+from trl import SFTTrainer
+from transformers import TrainingArguments
+from unsloth import is_bfloat16_supported
+import wandb # 导入 WandB
+
+trainer = SFTTrainer(
+model = model,
+tokenizer = tokenizer,
+train_dataset = dataset,
+dataset_text_field = &quot;text&quot;,
+max_seq_length = max_seq_length,
+dataset_num_proc = 2,
+packing = False, # 可以使短序列的训练速度提高 5 倍。
+args = TrainingArguments(
+per_device_train_batch_size = 2,
+gradient_accumulation_steps = 4,
+warmup_steps = 5,
+num_train_epochs = 1, # 将其设置为 1 次完整的训练运行。
+learning_rate = 2e-4,
+fp16 = not is_bfloat16_supported(),
+bf16 = is_bfloat16_supported(),
+logs_steps = 1,
+optim = &quot;adamw_8bit&quot;,
+weight_decay = 0.01,
+lr_scheduler_type = &quot;linear&quot;,
+seed = 3407,
+output_dir = &quot;outputs&quot;,
+report_to = &quot;wandb&quot;, # 用于 WandB 等。
+),
+)
+
+# 训练模型
+trainer_stats = trainer.train()
+
+
+保存模型：训练后，我使用以下代码以 GGUF 格式保存了模型：
+model.save_pretrained(&quot;lora_model&quot;) # 本地保存
+tokenizer.save_pretrained(&quot;lora_model&quot;)
+
+# 保存为 GGUF 格式
+model.save_pretrained_gguf(&quot;model&quot;, tokenizer)
+
+上传到 Ollama：我下载了 unsloth.Q8_0.gguf 文件并将其加载到 Ollama：
+来自 unsloth.Q8_0.gguf
+
+问题
+
+在 Google Colab 中测试微调模型时（在将其导出到 GGUF 之前），它与训练过的数据集完美配合。
+但是，将其导出为 GGUF 格式并上传到 Ollama 后，该模型开始产生与训练数据集完全无关的乱码响应提示。
+
+我的问题
+
+为什么经过微调的 LLaMA 3.21B 模型在 Google Colab 中运行良好，但在使用 GGUF 文件在 Ollama 本地加载时却会产生乱码响应？
+我在 Ollama 中使用的模板是否适合经过微调的模型？这个问题是否与 GGUF 文件的生成方式或 Ollama 如何解释模型有关？
+]]></description>
+      <guid>https://stackoverflow.com/questions/79205128/issue-with-fine-tuned-llama-3-2-1b-model-in-ollama-using-gguf-format</guid>
+      <pubDate>Tue, 19 Nov 2024 21:36:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>小语言模型和传统人工智能模型的主要区别是什么？它们又能带来什么价值？[关闭]</title>
       <link>https://stackoverflow.com/questions/79204699/what-is-the-main-difference-between-small-langiage-model-and-traditional-ai-mode</link>
       <description><![CDATA[SLM 应该处理公司数据
 那么它们与我们迄今为止构建的传统 AI 模型有何不同？
@@ -30,14 +147,6 @@ SML 能为传统 AI 模型带来什么价值？作为基础，了解这一点非
 最近，我一直在探索全栈 Web 开发和 AI/ML，以多样化我的技能。然而，我发现很难决定我是否应该只专注于 AI/ML 或转向其他领域，如 Web 开发、数据工程或网络安全。&quot;]]></description>
       <guid>https://stackoverflow.com/questions/79204113/is-machine-learning-a-promising-career-field-for-the-future-or-should-i-explor</guid>
       <pubDate>Tue, 19 Nov 2024 15:44:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>我下一步该做什么才能完成我的硕士课程？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79203677/what-should-i-do-next-to-complete-my-masters-program</link>
-      <description><![CDATA[我目前是硕士课程的第一年，由于我之前没有深度学习背景，所以决定参加密歇根大学的 EECS 498-007 / 598-005。我错过了两个作业——作业 4 关于对象检测，作业 6 关于 VAE 和 GAN。由于密歇根大学的课程是自定进度的，并且涉及从头开始构建模型，这非常具有挑战性，所以我转向 https://www.learnpytorch.io/ 来学习和完成大部分练习。我已经熟悉了 PyTorch 的一般工作流程。我的导师很少插手，提供的帮助很少。
-我想知道是否有类似的课程可以让我继续学习，或者在这种情况下我应该怎么做。任何建议都将不胜感激！]]></description>
-      <guid>https://stackoverflow.com/questions/79203677/what-should-i-do-next-to-complete-my-masters-program</guid>
-      <pubDate>Tue, 19 Nov 2024 13:48:55 GMT</pubDate>
     </item>
     <item>
       <title>“ValueError：形状不兼容”，但是在哪里呢？</title>
@@ -141,150 +250,6 @@ history=model.fit(train_img_gen, steps_per_epoch=steps_per_epochs, epochs=100, v
 ]]></description>
       <guid>https://stackoverflow.com/questions/79201296/how-to-modify-my-code-to-handle-rgbx-4-channel-images-for-semantic-segmentatio</guid>
       <pubDate>Mon, 18 Nov 2024 20:06:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何防止目标编码泄漏？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79196742/how-can-i-prevent-leaks-in-my-target-encoding</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79196742/how-can-i-prevent-leaks-in-my-target-encoding</guid>
-      <pubDate>Sun, 17 Nov 2024 08:04:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么我的暹罗模型不适用于验证数据？</title>
-      <link>https://stackoverflow.com/questions/79196054/why-does-my-siamese-model-not-work-on-verification-data</link>
-      <description><![CDATA[我的模型之前运行良好，并做出了良好的预测。然而，现在我尝试使用它，它无法识别图像之间的相似性。请帮助解决此问题。
-# 保存权重
-siamese_model.save(&#39;siamesemodel.h5&#39;)
-
-# 加载模型
-model = tf.keras.models.load_model(
-&#39;siamesemodel.h5&#39;, 
-custom_objects={&#39;L1Dist&#39;: L1Dist, &#39;BinaryCrossentropy&#39;: tf.losses.BinaryCrossentropy}
-)
-
-# 验证函数
-def verify(model, detection_threshold, validation_threshold):
-# 构建结果数组
-results = []
-for image in os.listdir(os.path.join(&#39;application_data&#39;, &#39;verification_images&#39;)):
-input_img = preprocess(os.path.join(&#39;application_data&#39;, &#39;input_image&#39;, &#39;input_image.jpg&#39;))
-validation_img = preprocess(os.path.join(&#39;application_data&#39;, &#39;verification_images&#39;, image))
-
-result = model.predict(list(np.expand_dims([input_img, validation_img], axis=1)))
-results.append(result)
-
-# 检测阈值：高于该指标的预测被视为正值
-detection = np.sum(np.array(results) &gt; detection_threshold)
-
- # 验证阈值：正预测的比例/总正样本
-validation = detection / len(os.listdir(os.path.join(&#39;application_data&#39;, &#39;verification_images&#39;)))
-verified = validation &gt; verify_threshold
-
-返回结果，已验证
-
-cap = cv2.VideoCapture(0)
-while cap.isOpened():
-ret, frame = cap.read()
-frame = frame[120:120+250, 200:200+250, :]
-
-cv2.imshow(&#39;Verification&#39;, frame)
-
-# 验证触发器
-if cv2.waitKey(10) &amp; 0xFF == ord(&#39;v&#39;):
-# 将输入图像保存到 input_image 文件夹
-cv2.imwrite(os.path.join(&#39;application_data&#39;, &#39;input_image&#39;, &#39;input_image.jpg&#39;), frame)
-# 运行验证
-results, verified = verify(model, 0.5, 0.5)
-print(verified)
-
-if cv2.waitKey(10) &amp; 0xFF == ord(&#39;q&#39;):
-break
-cap.release()
-cv2.destroyAllWindows()
-
-打印结果如下：
-[array([[9.938484e-09]], dtype=float32),
-array([[0.00011181]], dtype=float32),
-array([[4.0544733e-06]], dtype=float32),
-array([[3.6490118e-07]], dtype=float32),
-array([[1.779369e-07]], dtype=float32),
-array([[0.15224604]], dtype=float32),
-array([[2.0296879e-05]], dtype=float32),
-数组([[7.9831276e-05]], dtype=float32),
-数组([[2.3284203e-05]], dtype=float32),
-数组([[8.0619594e-07]], dtype=float32),
-数组([[1.0691416e-06]], dtype=float32),
-数组([[1.9231505e-08]], dtype=float32),
-数组([[2.243531e-05]], dtype=float32),
-数组([[6.483703e-07]], dtype=float32),
-数组([[6.656185e-07]], dtype=float32),
-array([[4.8954314e-07]], dtype=float32),
-array([[9.550116e-08]], dtype=float32),
-array([[1.305056e-07]], dtype=float32),
-array([[4.187218e-09]], dtype=float32),
-array([[3.8443446e-08]], dtype=float32),
-array([[5.9630083e-09]], dtype=float32),
-array([[1.1699244e-06]], dtype=float32),
-
-我知道保存模型没有问题，因为当我在原始输入上测试重新加载的模型与原始模型时，它们具有相同的输出。
-对于给定的输入（两次都是我的一帧），大多数结果应该远高于 0.5。我不明白到底出了什么问题。顺便说一句，这段代码主要来自 YT 教程：https://www.youtube.com/watch?v=FNHLVRJ1HU4&amp;list=PLgNJO2hghbmhHuhURAGbe6KWpiYZt0AMH&amp;index=8]]></description>
-      <guid>https://stackoverflow.com/questions/79196054/why-does-my-siamese-model-not-work-on-verification-data</guid>
-      <pubDate>Sat, 16 Nov 2024 21:07:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>TensorFlow/Keras 模型的 SHAP force_plot 中出现 InvalidArgumentError：切片索引超出范围</title>
-      <link>https://stackoverflow.com/questions/79195478/invalidargumenterror-in-shap-force-plot-for-tensorflow-keras-model-slice-index</link>
-      <description><![CDATA[我正在使用 TensorFlow/Keras 二元分类模型并使用 SHAP 来解释单个预测。但是，当我尝试生成力图时，我遇到了以下错误：
-# 导入 SHAP
-import shap
-
-# 确保 data_for_prediction 具有正确的形状
-data_for_prediction_reshaped = data_for_prediction.reshape(1, -1)
-
-# 为 DeepExplainer 提供背景数据
-background = X_train[:100] # 使用来自训练数据的 100 个样本作为背景
-
-# 初始化 DeepExplainer
-explainer = shap.DeepExplainer(model, background)
-
-# 计算 SHAP 值
-shap_values = explainer.shap_values(data_for_prediction_reshaped)
-
-# 生成力图
-shap.initjs()
-shap.force_plot(explainer.expected_value[1], shap_values[1], data_for_prediction_reshaped)
-
-错误：
-InvalidArgumentError：{{function_node __wrapped__StridedSlice_device_/job:localhost/replica:0/task:0/device:CPU:0}} 切片索引 1 的维度 0 超出范围。 [Op:StridedSlice] 名称：strided_slice/
-
-其他详细信息：
-
-该模型是具有以下架构的 Keras Sequential 模型：
-• 具有 ReLU 激活的多个密集层。
-• 每个密集层后都有一个 Dropout 层。
-• 用于二元分类的具有 S 形激活的输出层。
-
-背景数据：
-• X_train[:100] 是我预处理的训练数据（NumPy 数组）的一部分。
-
-预测输入：
-
-• data_for_prediction_reshaped 是重塑为 (1, n_features) 的单个样本。
-
-形状：
-
-• shap_values[1].shape：SHAP 值的输出形状（针对第 1 类）。
-• data_for_prediction_reshaped.shape：将输入特征重塑为 (1, n_features)。
-
-
-问题：
-
-在此上下文中，“切片索引 1 的维度 0 超出范围”错误是什么意思？
-我应该如何调整代码以确保 shap.force_plot 能够与 SHAP 和 TensorFlow/Keras 模型正确配合使用？
-对于此用例，我应该注意 SHAP 和 TensorFlow/Keras 之间是否存在特定的兼容性问题？
-]]></description>
-      <guid>https://stackoverflow.com/questions/79195478/invalidargumenterror-in-shap-force-plot-for-tensorflow-keras-model-slice-index</guid>
-      <pubDate>Sat, 16 Nov 2024 15:38:25 GMT</pubDate>
     </item>
     <item>
       <title>coremltools 错误：ValueError：perm 的长度应与 rank(x) 相同：3 != 2</title>
@@ -397,24 +362,47 @@ plt.rcParams[&#39;axes.unicode_minus&#39;] = False
       <link>https://stackoverflow.com/questions/57229775/how-can-i-properly-split-imbalanced-dataset-to-train-and-test-set</link>
       <description><![CDATA[我有一个航班延误数据集，在采样之前尝试将该数据集拆分为训练集和测试集。准时情况约占总数据的 80%，延误情况约占 20%。
 通常，机器学习中训练集和测试集的大小比例为 8:2。但数据太不平衡了。因此，考虑到极端情况，大多数训练数据都是准时情况，而大多数测试数据都是延误情况，准确率会很差。
-所以我的问题是如何正确将不平衡的数据集拆分为训练集和测试集？]]></description>
+所以我的问题是如何正确地将不平衡的数据集拆分为训练集和测试集？]]></description>
       <guid>https://stackoverflow.com/questions/57229775/how-can-i-properly-split-imbalanced-dataset-to-train-and-test-set</guid>
       <pubDate>Sat, 27 Jul 2019 06:34:52 GMT</pubDate>
     </item>
     <item>
-      <title>检测物体异常</title>
-      <link>https://stackoverflow.com/questions/47829065/detecting-anomalies-in-objects</link>
-      <description><![CDATA[假设我有一个 json 对象数组。
-{ firstName: John, Children: [&quot;Maria&quot;,&quot;Alfred&quot;], marriage: false }
-{ firstName: George, Children: [&#39;**zoekerbergen alfonso the second**&#39;,&#39;Harvey&#39;], marriage: false }
+      <title>仅需 2 张图片即可自动进行人脸验证</title>
+      <link>https://stackoverflow.com/questions/45351886/automatic-face-verification-with-only-2-images</link>
+      <description><![CDATA[问题陈述：
+给定两张图片，例如下面两张布拉德·皮特的图片，判断图片中是否包含同一个人。困难在于我们每个人只有一张参考图像，如何确定其他传入图像是否包含同一个人。
 
-{ firstName: Hary, Children: [&quot;Sam&quot;,&quot;Obama&quot;], marriage: false }
+一些研究：
+有几种不同的方法可以解决此任务，这些是
 
-通常情况下，子项都是一个由单词组成的小数组。
-Zoekerbergen alfonso the second 却是一个异常。
-有没有办法学习对象的模式，然后检测出诸如此类的异常，比如一个人有 1000 个孩子？]]></description>
-      <guid>https://stackoverflow.com/questions/47829065/detecting-anomalies-in-objects</guid>
-      <pubDate>Fri, 15 Dec 2017 09:11:55 GMT</pubDate>
+使用颜色直方图
+面向关键点的方法
+使用深度卷积神经网络或其他 ML 技术
+
+直方图方法涉及根据颜色计算直方图并在它们之间定义某种度量，然后确定阈值。我尝试过的一个方法是地球移动距离。但是这种方法缺乏准确性。
+因此，最好的方法应该是第二种和第三种方法的某种混合，以及一些预处理。
+对于预处理，明显的步骤是：
+
+运行人脸检测（例如 Viola-Jones）并分离包含人脸的区域
+将所述人脸转换为灰度
+运行眼睛、嘴巴、鼻子检测算法（可能使用 opencv 的 haar_cascades）
+根据找到的标志对齐人脸图像
+
+所有这些都是使用 opencv 完成的。
+提取诸如 SIFT 和 MSER 之类的特征可产生介于73-76%。经过一些额外的研究，我偶然发现了这篇使用fisherfaces的论文。事实上，opencv 现在有能力创建 fisherface 检测器并对其进行训练，这很棒，而且效果非常好，达到了论文在耶鲁数据集上承诺的准确率。
+问题的复杂之处在于，在我的情况下，我没有一个包含同一个人的多张图像的数据库来训练检测器。我只有一张对应于一个人的图像，而给出另一张图像，我想了解这是否是同一个人。
+所以我感兴趣的是`
+有人尝试过这样的事情吗？我应该研究哪些论文/方法/库？
+您对如何解决问题有什么建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/45351886/automatic-face-verification-with-only-2-images</guid>
+      <pubDate>Thu, 27 Jul 2017 13:14:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>深度学习序列推理</title>
+      <link>https://stackoverflow.com/questions/43880116/deep-learning-for-inferences-in-sequences</link>
+      <description><![CDATA[我想使用深度学习技术来执行比隐马尔可夫模型（浅层模型）更好的推理任务？我想知道什么是最先进的深度学习模型来取代隐马尔可夫模型 (HMM)？该设置是半监督的。训练数据 X(t)、Y(t) 是一个时间序列，具有显著的时间相关性。此外，还有大量未标记的数据，即只有 X(t) 而没有 Y(t)。在阅读了许多论文后，我缩小了以下模型 -&gt; 条件限制玻尔兹曼机（Ilya Sustkever 硕士论文）并使用深度信念网络进行无监督预训练（或使用变分自动编码器进行预训练）。我对这个领域很陌生，想知道这些技术是否已经过时了。]]></description>
+      <guid>https://stackoverflow.com/questions/43880116/deep-learning-for-inferences-in-sequences</guid>
+      <pubDate>Tue, 09 May 2017 21:25:33 GMT</pubDate>
     </item>
     </channel>
 </rss>
