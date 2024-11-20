@@ -4,7 +4,47 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 20 Nov 2024 15:18:13 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 20 Nov 2024 18:23:32 GMT</lastBuildDate>
+    <item>
+      <title>为什么 gamma=0 的二元焦点交叉熵总是会产生 nan 损失？</title>
+      <link>https://stackoverflow.com/questions/79207979/why-does-binary-focal-cross-entropy-with-gamma-0-always-make-nan-loss</link>
+      <description><![CDATA[我正在训练一个 U-Net 来对我们的实验图像进行二值化。但前景通常没有得到很好的体现，换句话说，我有类别不平衡。我一直在使用 BinaryCrossEntropy 作为损失函数。因此，我理解一种简单的方法是定义一个自定义的损失函数，为每个类别赋予权重。但我在这样做时遇到了一些问题，所以放弃了这个尝试（见最后）。我认为使用 BinaryFocalCrossEntropy 更简单，它的表达式为（如果我理解得好的话）
+
+因此，我的计划是将其与 gamma=0 一起使用，这样我就可以通过调整 alpha 值来赋予类别权重。但是，我不断得到 nan 损失。它发生在几个批次之后的第一个时期内：（这里我使用 \alpha = 0.75）
+
+这里我使用了 adam 优化器和 Learning_rate 1e-3。我注意到，如果我改用 1e-4，即使 nan 仍然出现，它也会再完成几个批次后出现。您能帮我找出这是怎么回事吗？我该如何解决这个问题？
+附加问题（自定义函数的问题）
+对于加权交叉熵，我编写了一个函数，如下所示：
+def weighted_binary_crossentropy(y_true, y_pred):
+# 计算标准二元交叉熵
+bce = tf.keras.losses.binary_crossentropy(y_true, y_pred)
+
+# 创建一个权重图，其中 y_true 用于将正确的权重应用于每个像素
+weights = y_true * weight_for_white + (1 - y_true) * weight_for_black
+
+# 将二元交叉熵乘以权重
+weighted_bce = weights * bce
+
+# 取平均值得到最终的加权损失
+return tf.reduce_mean(weighted_bce)
+
+# 编译模型
+model.compile(optimizer=&#39;adam&#39;, loss=weighted_binary_crossentropy, metrics=[&#39;accuracy&#39;]) 
+
+# 进行训练
+results = model.fit(X_train, Y_train, validation_data=(X_validation,Y_validation), batch_size=BATCH_SIZE, epochs=EPOCHS, callbacks=callbacks)
+
+但我在实现它时遇到了问题，所以半途而废了。如果您对此有任何评论，也会很有帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/79207979/why-does-binary-focal-cross-entropy-with-gamma-0-always-make-nan-loss</guid>
+      <pubDate>Wed, 20 Nov 2024 15:49:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>真实情况和预测标签不匹配[关闭]</title>
+      <link>https://stackoverflow.com/questions/79207893/ground-truh-and-prediected-label-not-match</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79207893/ground-truh-and-prediected-label-not-match</guid>
+      <pubDate>Wed, 20 Nov 2024 15:29:38 GMT</pubDate>
+    </item>
     <item>
       <title>使用不同的损失来训练不同阶段的模型</title>
       <link>https://stackoverflow.com/questions/79205991/training-different-stage-of-model-with-different-loss</link>
@@ -67,19 +107,10 @@ optimizer.zero_grad()
 optimizer1.zero_grad() 
 
 loss2.backward() 
-optimizer1.step()
-optimizer.zero_grad() 
-optimizer1.zero_grad() 
-
-print(f&quot;Loss1 (Net): {loss1.item()}&quot;)
-print(f&quot;Loss2 (Net1): {loss2.item()}&quot;)
 
 但是，这将返回
-RuntimeError：梯度计算所需的变量之一已被就地操作修改：[torch.FloatTensor [10, 5]]，即 AsStridedBackward0 的输出 0，处于版本 2；预期为版本 1。提示：启用异常检测以查找无法计算其梯度的操作，使用 torch.autograd.set_detect_anomaly(True)。
-
-完整的错误消息是
 回溯（最近一次调用最后一次）：
-文件&quot;，第 55 行，在&lt;module&gt;
+文件，第 55 行，在 &lt;module&gt;
 loss2.backward() 
 ^^^^^^^^^^^^^^^^^
 文件 &quot;/opt/homebrew/anaconda3/lib/python3.11/site-packages/torch/_tensor.py&quot;, 第 521 行, 在反向传播中
@@ -89,9 +120,9 @@ _engine_run_backward(
 文件 &quot;/opt/homebrew/anaconda3/lib/python3.11/site-packages/torch/autograd/graph.py&quot;, 第 769 行, 在 _engine_run_backward 中
 return Variable._execution_engine.run_backward( # 调用 C++ 引擎运行反向传播
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-RuntimeError：梯度计算所需的变量之一已被就地操作修改：[torch.FloatTensor [10, 5]]，即 AsStridedBackward0 的输出 0，处于版本 2；预期为版本 1。提示：启用异常检测以查找无法计算其梯度的操作，使用 torch.autograd.set_detect_anomaly(True)。
+RuntimeError：梯度计算所需的变量之一已被就地操作修改：[torch.FloatTensor [10, 5]]（AsStridedBackward0 的输出 0）处于版本 2；预期为版本 1。提示：启用异常检测以查找无法计算梯度的操作，使用 torch.autograd.set_detect_anomaly(True)。
 
-我有点明白为什么会发生这种情况，但有办法解决这个问题吗？任何帮助都值得感激]]></description>
+我有点明白为什么会发生这种情况，但有办法解决这个问题吗？]]></description>
       <guid>https://stackoverflow.com/questions/79205991/training-different-stage-of-model-with-different-loss</guid>
       <pubDate>Wed, 20 Nov 2024 06:10:33 GMT</pubDate>
     </item>
@@ -109,7 +140,7 @@ RuntimeError：梯度计算所需的变量之一已被就地操作修改：[torc
       <link>https://stackoverflow.com/questions/79205749/modelling-aggregated-data-from-different-studies-and-determining-variable-import</link>
       <description><![CDATA[我有来自四项独立研究的数据。每项研究都考察了不同药物对治疗反应的影响。所有四项研究都有相同的基线变量和结果变量（治疗成功）。除了使用基线变量对治疗成功进行分类之外，我还想确定哪些基线变量对于对这四种药物的成功进行分类最为重要。我计划使用 tidymodels 来做到这一点。即使用一组由不同算法（xgboost、随机森林、svm）组成的工作流，确定最佳工作流并检查变量重要性。
 我不确定如何最好地比较这四种药物的变量重要性。最好是整理所有数据并运行一个具有每种药物和每个基线变量之间相互作用效应（step_interact）的模型，还是运行四个单独的模型（每种药物一个）并比较四个模型中变量的重要性，还是做其他事情？我不确定第一种方法是否能让我分离出每种药物的特定变量的重要性。
-如果您能提供任何关于如何最好地解决这个问题的想法，我们将不胜感激，谢谢！]]></description>
+如何最好地解决这个问题？]]></description>
       <guid>https://stackoverflow.com/questions/79205749/modelling-aggregated-data-from-different-studies-and-determining-variable-import</guid>
       <pubDate>Wed, 20 Nov 2024 03:53:42 GMT</pubDate>
     </item>
@@ -253,130 +284,62 @@ SML 能为传统 AI 模型带来什么价值？作为基础，了解这一点非
       <pubDate>Tue, 19 Nov 2024 18:47:35 GMT</pubDate>
     </item>
     <item>
-      <title>“机器学习是否是一个有前途的职业领域，还是我应该探索其他选择？” [关闭]</title>
-      <link>https://stackoverflow.com/questions/79204113/is-machine-learning-a-promising-career-field-for-the-future-or-should-i-explor</link>
-      <description><![CDATA[“我目前是一名 B.Tech 一年级学生，主修计算机科学工程，重点是人工智能和机器学习。虽然我发现机器学习领域很吸引人，但就职业前景和个人兴趣而言，我不确定它是否适合我。
-我的一些问题是：
-机器学习在未来 5-10 年内是否仍是一个不断增长且需求旺盛的领域？
-在从事 ML/AI 职业时，我应该注意哪些具体挑战？
-探索全栈 Web 开发、数据工程或网络安全等领域是否会提供更好的机会？
-我已经开始学习 Python、DSA 和一些 Web 开发基础知识（HTML、CSS），并且我喜欢通过技术解决实际问题。我正在寻找专业人士或有过类似情况的学生的建议。
-提前感谢您的见解！&quot;
-&quot;我选择 AI/ML 作为我的专业，因为它似乎是一个趋势和有前途的领域，我的许多同龄人都选择了它。我已经开始学习 Python、数据结构和算法，并且探索了 NumPy 等库。我还喜欢解决问题，并参与了创建聊天机器人和食谱网站等小项目。
-最近，我一直在探索全栈 Web 开发和 AI/ML，以多样化我的技能。然而，我发现很难决定我是否应该只专注于 AI/ML 或转向其他领域，如 Web 开发、数据工程或网络安全。&quot;]]></description>
-      <guid>https://stackoverflow.com/questions/79204113/is-machine-learning-a-promising-career-field-for-the-future-or-should-i-explor</guid>
-      <pubDate>Tue, 19 Nov 2024 15:44:24 GMT</pubDate>
+      <title>Sk-learn GridSearchCV 适用于完整数据</title>
+      <link>https://stackoverflow.com/questions/61882244/sk-learn-gridsearchcv-fits-on-full-data</link>
+      <description><![CDATA[我使用 sklearn GridSearchCV 通过 lda 模型搜索了 # 个主题。拟合模型后，拟合模型保存在 CV_model.best_estimator_ 中。根据 sklearn 文档，GridSearchCV 具有默认选项 refit, default=True，即“使用在整个数据集上找到的最佳参数重新拟合估计器”。 Sklearn GridSearchCV
+由于文档中说它已经适合完整数据，因此我相信 CV_model.best_estimator_.fit_transform(full_train_data) 将带来与 CV_model.best_estimator_.transform(full_train_data) 相同的结果。但是，使用 fit_transform 和 transform 的输出不同。我错过了什么？在 GridsearchCV 之后我应该使用 fit_transform 还是 transform？]]></description>
+      <guid>https://stackoverflow.com/questions/61882244/sk-learn-gridsearchcv-fits-on-full-data</guid>
+      <pubDate>Tue, 19 May 2020 02:29:07 GMT</pubDate>
     </item>
     <item>
-      <title>“ValueError：形状不兼容”，但是在哪里呢？</title>
-      <link>https://stackoverflow.com/questions/79202703/valueerror-shapes-are-incompatible-but-where</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79202703/valueerror-shapes-are-incompatible-but-where</guid>
-      <pubDate>Tue, 19 Nov 2024 08:48:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何修改我的代码来处理 RGBX（4 通道）图像以进行语义分割？</title>
-      <link>https://stackoverflow.com/questions/79201296/how-to-modify-my-code-to-handle-rgbx-4-channel-images-for-semantic-segmentatio</link>
-      <description><![CDATA[我是该领域的新手，一直在关注 U-Net 教程，使用 3 通道 RGB 图像进行语义分割https://www.youtube.com/watch?v=68HR_eyzk00&amp;list=PLZsOBAyNTZwbR08R959iCvYT3qzhxvGOE&amp;index=2&amp;ab_channel=DigitalSreeni，对我来说效果很好。但是，我现在需要扩展管道以支持 4 通道 RGBX 图像（即 RGB + 其他通道），但我不确定如何修改代码以适应其他通道，尤其是预处理和 ImageDataGenerator 部分（我认为 ImageDataGenerator 不支持 4 通道图像）。
-这是代码（将图像修补为（256 * 256 * 4）并将蒙版修补为（256*256）后）：
-import os
-import cv2
-import numpy as np
-import glob
-from matplotlib import pyplot as plt
-import tensorflow as tf
-import splitfolders
-import fragmentation_models as sm
-from tensorflow.keras.metrics import MeanIoU
-from sklearn.preprocessing import MinMaxScaler
-from keras.utils import to_categorical
+      <title>PyTorch 中的 `squeeze()` 与 `unsqueeze()`</title>
+      <link>https://stackoverflow.com/questions/61598771/squeeze-vs-unsqueeze-in-pytorch</link>
+      <description><![CDATA[我不明白 squeeze() 和 unsqueeze() 对张量做了什么，即使查看了文档和相关问题。
+我试图通过在 Python 中自己探索来理解它。我首先用创建了一个随机张量
+x = torch.rand(3,2,dtype=torch.float)
+&gt;&gt;&gt; x
+tensor([[0.3703, 0.9588],
+[0.8064, 0.9716],
+[0.9585, 0.7860]])
 
-input_folder=&#39;我的图像和掩码的文件夹路径&#39;
+但无论我如何挤压它，我都会得到相同的结果：
+torch.equal(x.squeeze(0), x.squeeze(1))
+&gt;&gt;&gt; True
 
-output_folder=&#39;输出文件夹的路径&#39;
-#按比例分割
-splitfolders.ratio(input_folder, output=output_folder, seed=42, ratio=(.75,.25),group_prefix=None) 
+如果我现在尝试解压，我会得到以下结果，
+&gt;&gt;&gt; x.unsqueeze(1)
+张量([[[0.3703, 0.9588]],
+[[0.8064, 0.9716]],
+[[0.9585, 0.7860]]])
+&gt;&gt;&gt; x.unsqueeze(0)
+张量([[[0.3703, 0.9588],
+[0.8064, 0.9716],
+[0.9585, 0.7860]]])
+&gt;&gt;&gt; x.unsqueeze(-1)
+tensor([[[0.3703],
+[0.9588]],
+[[0.8064],
+[0.9716]],
+[[0.9585],
+[0.7860]]])
 
-#重新排列用于 keras 增强的文件夹结构
+但是，如果我现在创建一个张量  x = torch.tensor([1,2,3,4])，然后我尝试解压它，那么看起来 1 和 -1 使它成为一列，而 0 保持不变。
+x.unsqueeze(0)
+tensor([[1, 2, 3, 4]])
+&gt;&gt;&gt; x.unsqueeze(1)
+tensor([[1],
+[2],
+[3],
+[4]])
+&gt;&gt;&gt; x.unsqueeze(-1)
+tensor([[1],
+[2],
+[3],
+[4]])
 
-seed=24
-batch_size=16 
-n_classes=2 
-
-scaler=MinMaxScaler()
-
-BACKBONE=&#39;resnet34&#39; 
-preprocess_input=sm.get_preprocessing(BACKBONE)
-
-def preprocess_data(img, mask, num_class):
-#缩放图像
-img=scaler.fit_transform(img.reshape(-1, img.shape[-1])).reshape(img.shape)
-img=preprocess_input(img) #基于预训练的主干进行预处理
-mask=to_categorical(mask, num_class)
-return (img,mask)
-
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-def trainGenerator(train_img_path, train_mask_path, num_class):
-img_data_gen_args=dict(horizo​​ntal_flip=True, vertical_flip=True, fill_mode=&#39;reflect&#39;) #数据增强
-
-image_datagen=ImageDataGenerator(**img_data_gen_args)
-mask_datagen=ImageDataGenerator(**img_data_gen_args)
-
-image_generator=image_datagen.flow_from_directory(train_img_path, class_mode=None, batch_size=batch_size, seed=seed)
-mask_generator=image_datagen.flow_from_directory(train_mask_path, class_mode=None，color_mode=&#39;grayscale&#39;，batch_size=batch_size，seed=seed)
-
-train_generator=zip(image_generator，mask_generator)
-
-for (img, mask) in train_generator:
-img, mask= preprocess_data(img, mask, num_class)
-Yield (img, mask)
-
-train_img_path=&#39;训练图像路径&#39;
-train_mask_path=&#39;训练掩码路径&#39;
-train_img_gen=trainGenerator(train_img_path, train_mask_path, num_class=2)
-
-val_img_path=&#39;验证图像路径&#39;
-val_mask_path=&#39;验证掩码路径&#39;
-val_img_gen=trainGenerator(val_img_path, val_mask_path, num_class=2)
-
-x, y=train_img_gen.__next__()
-
-for i in range(0,3):
-image=x[i]
-mask=np.argmax(y[i], axis=2)
-plt.subplot(1,2,1)
-plt.imshow(image)
-plt.subplot(1,2,2)
-plt.imshow(mask, cmap=&#39;gray&#39;)
-plt.show()
-
-num_train_imgs=len(os.listdir(&#39;训练图像路径&#39;))
-num_val_images=len(os.listdir(&#39;验证路径图像&#39;))
-steps_per_epochs=num_train_imgs//batch_size
-val_steps_per_epoch=num_val_images//batch_size
-
-IMG_HEIGHT=x.shape[1]
-IMG_WIDTH=x.shape[2]
-IMG_CHANNELS=x.shape[3]
-
-n_classes=2
-
-model=sm.Unet(&#39;resnet34&#39;,coder_weights=&#39;None&#39;,input_shape=(IMG_HEIGHT,IMG_WIDTH,IMG_CHANNELS),classes=n_classes,activation=&#39;softmax&#39;)
-model.compile(&#39;Adam&#39;,loss=sm.losses.binary_crossentropy,metrics=[sm.metrics.iou_score,sm.metrics.FScore()])
-
-history=model.fit(train_img_gen, steps_per_epoch=steps_per_epochs, epochs=100, verbose=1, validation_data=val_img_gen, validation_steps=val_steps_per_epoch)
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79201296/how-to-modify-my-code-to-handle-rgbx-4-channel-images-for-semantic-segmentatio</guid>
-      <pubDate>Mon, 18 Nov 2024 20:06:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何实现 log_softmax() 来以更快的速度和更高的数值稳定性计算其值（和梯度）？</title>
-      <link>https://stackoverflow.com/questions/61567597/how-is-log-softmax-implemented-to-compute-its-value-and-gradient-with-better</link>
-      <description><![CDATA[各种框架和库（例如 PyTorch 和 SciPy）提供了用于计算 log(softmax()) 的特殊实现，该实现速度更快且数值更稳定。但是，我无法在这些包中找到此函数 log_softmax() 的实际 Python 实现。
-有人可以解释这是如何实现的吗？或者，能给我指出相关的源代码吗？]]></description>
-      <guid>https://stackoverflow.com/questions/61567597/how-is-log-softmax-implemented-to-compute-its-value-and-gradient-with-better</guid>
-      <pubDate>Sat, 02 May 2020 23:18:14 GMT</pubDate>
+有人能解释一下 squeeze() 和 unsqueeze() 对张量做了什么吗？提供参数 0、1 和 -1 之间有什么区别？]]></description>
+      <guid>https://stackoverflow.com/questions/61598771/squeeze-vs-unsqueeze-in-pytorch</guid>
+      <pubDate>Mon, 04 May 2020 18:06:38 GMT</pubDate>
     </item>
     <item>
       <title>如何正确地将不平衡的数据集拆分为训练集和测试集？</title>
