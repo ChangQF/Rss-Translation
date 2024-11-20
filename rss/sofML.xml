@@ -4,7 +4,104 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 20 Nov 2024 18:23:32 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 20 Nov 2024 21:16:10 GMT</lastBuildDate>
+    <item>
+      <title>如何构建更高效的 DataLoader 来加载大型图像数据集？</title>
+      <link>https://stackoverflow.com/questions/79208825/how-to-build-a-more-efficient-dataloader-to-load-large-image-datasets</link>
+      <description><![CDATA[亲爱的有经验的朋友，我正在尝试在一个非常大的图像数据集上训练深度学习模型。模型输入需要一对图像（A 和 B）。由于我的图像尺寸很大，我已将它们中的每一个调整为形状为 (3x224x224) 的 torch.Tensor，并将每对作为单独的文件存储在我的磁盘上。相同的对共享相同的索引。
+但是，当使用数据集和 DataLoader 将这些文件加载​​到内存中时，我遇到了以下问题：
+
+CPU 内存问题：将工作器数量设置为 12 时，200GB 内存很快就会耗尽。我尝试设置 prefetch_factor=1，但没有帮助。
+初始化缓慢：在训练开始之前，每个 epoch 之前都需要很长时间进行初始化。我在之前的帖子中看到，这可能是由于初始化的开销造成的。我设置了 persistent_workers=True，但也没有帮助。
+GPU 和批次大小：我使用 4 个 GPU 进行 DDP 训练，当前批次大小为 1024。
+
+请问您对如何提高数据集或 DataLoader 的效率有何建议？如有任何建议，我将不胜感激。非常感谢！
+
+normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+std=[0.229, 0.224, 0.225])
+
+augmentation = transforms.Compose([
+transforms.RandomApply([transforms.ColorJitter(0.2, 0.2, 0.2, 0.05)], p=0.8),
+transforms.RandomApply([transforms.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0))], p=0.5),
+transforms.RandomGrayscale(p=0.1),
+transforms.RandomVerticalFlip(p=0.5),
+normalize,
+])
+
+class ImagePairDataset(Dataset):
+def __init__(self, data_save_folder, dataset_name, num_samples, transform=None):
+&quot;&quot;&quot;
+Args:
+data_save_folder (str)：包含数据文件的文件夹路径。
+dataset_name (str)：表示数据集拆分的“train”、“val”或“test”之一。
+num_samples (int)：数据集拆分中的样本数。（train：3000000，val：10000，test：10000）
+transform (可调用，可选)：应用于图像张量的可选转换。
+&quot;&quot;&quot;
+self.data_save_folder = data_save_folder
+self.dataset_name = dataset_name
+self.num_samples = num_samples
+self.transform = transform
+
+def __len__(self):
+return self.num_samples
+
+def __getitem__(self, idx):
+
+# 根据 idx 构建文件路径
+A_image_path = f&quot;{self.data_save_folder}/{self.dataset_name}_A_images_{idx}.pt&quot;
+B_image_path = f&quot;{self.data_save_folder}/{self.dataset_name}_B_images_{idx}.pt&quot;
+label_path = f&quot;{self.data_save_folder}/{self.dataset_name}_labels_{idx}.pt&quot;
+
+# 从文件路径加载张量
+A_image = torch.load(A_image_path)
+B_image = torch.load(B_image_path)
+label = torch.load(label_path)
+
+# 如果可用，则应用转换
+if self.transform:
+A_image = self.transform(A_image)
+B_image = self.transform(B_image)
+
+return A_image, B_image, label
+
+class ImagePairDataModule(pl.LightningDataModule):
+
+def __init__(self, data_save_folder, train_samples, val_samples, test_samples, batch_size=32, num_workers=4):
+super().__init__()
+self.data_save_folder = data_save_folder
+self.train_samples = train_samples
+self.val_samples = val_samples
+self.test_samples = test_samples
+self.batch_size = batch_size
+self.num_workers = num_workers
+self.train_transform = augmentation
+self.eval_transform = normalize # 仅对验证和测试进行标准化
+
+def setup(self, stage=None):
+
+self.train_dataset = ImagePairDataset(self.data_save_folder, &#39;train&#39;, self.train_samples, transform=self.train_transform)
+self.val_dataset = ImagePairDataset(self.data_save_folder, &#39;val&#39;, self.val_samples, transform=self.eval_transform)
+self.test_dataset = ImagePairDataset(self.data_save_folder, &#39;test&#39;, self.test_samples, transform=self.eval_transform)
+
+def train_dataloader(self): #prefetch_factor=1, , persistent_workers=True
+return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers) 
+
+def val_dataloader(self):
+return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
+
+# 初始化 DataModule
+data_module = ImagePairDataModule(
+data_save_folder=args.data_save_folder,
+train_samples=train_samples,
+val_samples=val_samples,
+test_samples=test_samples,
+batch_size=args.batch_size,
+num_workers=12,
+)
+]]></description>
+      <guid>https://stackoverflow.com/questions/79208825/how-to-build-a-more-efficient-dataloader-to-load-large-image-datasets</guid>
+      <pubDate>Wed, 20 Nov 2024 20:12:35 GMT</pubDate>
+    </item>
     <item>
       <title>为什么 gamma=0 的二元焦点交叉熵总是会产生 nan 损失？</title>
       <link>https://stackoverflow.com/questions/79207979/why-does-binary-focal-cross-entropy-with-gamma-0-always-make-nan-loss</link>
@@ -273,17 +370,6 @@ model.save_pretrained_gguf(&quot;model&quot;, tokenizer)
       <pubDate>Tue, 19 Nov 2024 21:36:18 GMT</pubDate>
     </item>
     <item>
-      <title>小语言模型和传统人工智能模型的主要区别是什么？它们带来了哪些价值？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79204699/what-is-the-main-difference-between-small-langiage-model-and-traditional-ai-mode</link>
-      <description><![CDATA[SLM 应该处理公司数据
-那么它们与我们迄今为止构建的传统 AI 模型有何不同？
-它们与经过微调的 LLM 大型模型有何不同？
-SML 能为传统 AI 模型带来什么价值？作为基础，了解这一点非常重要，我可以决定哪种模型最适合需求
-向所有能在这里提供帮助的志愿者致以崇高的敬意]]></description>
-      <guid>https://stackoverflow.com/questions/79204699/what-is-the-main-difference-between-small-langiage-model-and-traditional-ai-mode</guid>
-      <pubDate>Tue, 19 Nov 2024 18:47:35 GMT</pubDate>
-    </item>
-    <item>
       <title>Sk-learn GridSearchCV 适用于完整数据</title>
       <link>https://stackoverflow.com/questions/61882244/sk-learn-gridsearchcv-fits-on-full-data</link>
       <description><![CDATA[我使用 sklearn GridSearchCV 通过 lda 模型搜索了 # 个主题。拟合模型后，拟合模型保存在 CV_model.best_estimator_ 中。根据 sklearn 文档，GridSearchCV 具有默认选项 refit, default=True，即“使用在整个数据集上找到的最佳参数重新拟合估计器”。 Sklearn GridSearchCV
@@ -351,7 +437,7 @@ tensor([[1],
       <pubDate>Sat, 27 Jul 2019 06:34:52 GMT</pubDate>
     </item>
     <item>
-      <title>仅需 2 张图片即可自动进行人脸验证</title>
+      <title>仅使用 2 张图像即可自动进行人脸验证[关闭]</title>
       <link>https://stackoverflow.com/questions/45351886/automatic-face-verification-with-only-2-images</link>
       <description><![CDATA[问题陈述：
 给定两张图片，例如下面两张布拉德·皮特的图片，判断图片中是否包含同一个人。困难在于我们每个人只有一张参考图像，如何确定其他传入图像是否包含同一个人。
