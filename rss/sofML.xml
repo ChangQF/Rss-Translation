@@ -4,7 +4,123 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 21 Nov 2024 12:34:31 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 21 Nov 2024 15:18:32 GMT</lastBuildDate>
+    <item>
+      <title>使用 pytorch 最小化汉明距离</title>
+      <link>https://stackoverflow.com/questions/79211677/minimization-of-hamming-distance-with-pytorch</link>
+      <description><![CDATA[我有一个 mxn 矩阵，其中 m&gt;n 和一个向量 b。它们仅由 1 和 0 组成。此外，所有地方的和都是以 2 为模的。通过高斯消元法，我可以得到 Ax=b 的解 x_p。这是一个包含 1 和 0 的向量。这不是唯一的解决方案。存在其他包含较少 1 的解。我想找到包含最少 1 的解（汉明距离），即我想最小化汉明距离。
+为了做到这一点，我想到了使用 pytorch 的梯度下降法。这是我的代码：
+def optimal_solution(self, max_iter=100, lr=0.0054, lambda_param=10):
+
+matrix = self.relative_boundary()
+# 在 [0,1] 中初始化 x 并转换为 pytorch 张量
+x = self.solve()
+
+matrix = torch.tensor(matrix, dtype=torch.float32)
+b = torch.tensor(self.boundary_vector, dtype=torch.float32)
+x = torch.tensor(x, dtype=torch.float32, require_grad=True)
+
+# Adam 是梯度下降的高级版本，可在优化过程中调整学习率。
+optimizer = torch.optim.Adam([x], lr=lr)
+
+# 跟踪 x 变化的标准
+prev_x = x.clone()
+
+# 循环执行梯度下降，最多迭代 max_iter 次：
+for _ in range(max_iter):
+optimizer.zero_grad()
+
+# 定义损失函数：稀疏性 + 约束满足
+loss = torch.sum(x) + lambda_param * torch.sum((matrix @ x - b) ** 2)
+
+# 跟踪 x 的变化量
+change_in_x = torch.norm(x - prev_x).item()
+
+# 计算相对于 x 的损失梯度
+loss.backward()
+# 根据梯度更新 x 的值
+optimizer.step()
+
+# 应用软投影（例如 S 型）使 x 保持在 [0, 1] 中
+x.data = torch.clamp(x.data, 0, 1)
+
+# 可选地打印损失以进行调试
+print(f&quot;迭代 {_} 时的损失：{loss.item()}, x 的变化：{change_in_x}&quot;)
+
+# 从计算图中分离 PyTorch 张量并将其转换为 NumPy 数组；
+# 应用 0.5 的阈值将值转换为 0 或 1。
+# 然后函数返回二进制解决方案向量。
+x_binary = (x.detach().numpy() &gt; 0.5).astype(int)
+
+return x_binary
+
+但是，通过尝试不同的 lambda_par 和学习率，我要么得到零向量，要么它只输出一个具有较少 1 的向量，但不满足方程 Ax=b。您对有效的代码有什么建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79211677/minimization-of-hamming-distance-with-pytorch</guid>
+      <pubDate>Thu, 21 Nov 2024 14:43:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>JAX/Flax 中的 VAE 损失减少，但重建效果并未改善</title>
+      <link>https://stackoverflow.com/questions/79211354/vae-loss-decreases-but-reconstruction-doesnt-improve-in-jax-flax</link>
+      <description><![CDATA[我遇到了重建图像根本不起作用的问题。下面是我执行单个更新步骤的方法。我理解常规 VAE 可以实现更简单的实现，但由于其他限制，我需要以这种方式实现它。因此，我想知道此实现中是否存在任何错误，而不是要求更高效的实现。zeros_like_batchstats 函数返回一个与输入具有相同结构但所有值都设置为零的对象。谢谢。
+@jax.jit
+def train_step(
+rng: jax.random.PRNGKey,
+state_enc: TrainState,
+state_dec: TrainState,
+imgs: jax.Array,
+) -&gt; Tuple[TrainState, TrainState, Dict]:
+
+((mean, logvar), enc_mutated_vars), vjp_fn_enc = jax.vjp(
+lambda params: state_enc.apply_fn(
+{&quot;params&quot;: params, &quot;batch_stats&quot;: state_enc.batch_stats},
+imgs, train=True, mutable=[&quot;batch_stats&quot;]
+),
+state_enc.params,
+)
+z, vjp_fn_latents = jax.vjp(
+lambda mean, logvar: sample_z(rng, mean, logvar),
+mean, logvar
+)
+
+def recon_loss_fn(dec_params, latent_features):
+# 从解码器获取重建图像
+recon, mutated_vars = state_dec.apply_fn(
+{&#39;params&#39;: dec_params, &#39;batch_stats&#39;: state_dec.batch_stats},
+latent_features, train=True, mutable=[&#39;batch_stats&#39;]
+)
+recon_loss = jnp.mean(jnp.sum(binary_cross_entropy_fn(recon, imgs), axis=(1, 2, 3), keepdims=True))
+返回 recon_loss, mutated_vars
+
+recon_loss_grads_fn = jax.value_and_grad(recon_loss_fn, argnums=(0, 1), has_aux=True)
+(recon_loss, dec_mutated_vars), (grads_dec, graz_z) = recon_loss_grads_fn(state_dec.params, z)
+    grads_enc_recon=vjp_fn_enc((vjp_fn_latents(graz_z), {“batch_stats”: Zeros_like_batchstats(state_enc.batch_stats)}))[0]
+
+    # 计算kld_loss
+    def kld_loss_fn(平均值, logvar):
+        kld_loss = jnp.mean(jnp.sum(-0.5 * (1 + logvar - 平均值 ** 2 - jnp.exp(logvar)), axis=1))
+        返回 kld_loss
+
+    kld_loss_grads_fn = jax.value_and_grad(kld_loss_fn, argnums=(0, 1))
+    kld_loss, grads_mean_and_logvar = kld_loss_grads_fn(平均值, logvar)
+    grads_enc_kld = vjp_fn_enc((grads_mean_and_logvar, {&quot;batch_stats&quot;: zeros_like_batchstats(state_enc.batch_stats)}))[0]
+
+# 计算编码器的梯度
+grads_enc = jax.tree_util.tree_map(lambda x, y: x + y, grads_enc_recon, grads_enc_kld)
+
+# 存储梯度和批次统计信息\
+state_enc = state_enc.apply_gradients(grads=grads_enc, batch_stats=enc_mutated_vars[&quot;batch_stats&quot;])
+state_dec = state_dec.apply_gradients(grads=grads_dec, batch_stats=dec_mutated_vars[&quot;batch_stats&quot;])
+
+metrics = {
+&quot;train/recon_loss&quot;: recon_loss,
+&quot;train/kld_loss&quot;: kld_loss,
+}
+return state_enc, state_dec, metrics
+
+我已确认形状没有问题，并且损失也在减少。]]></description>
+      <guid>https://stackoverflow.com/questions/79211354/vae-loss-decreases-but-reconstruction-doesnt-improve-in-jax-flax</guid>
+      <pubDate>Thu, 21 Nov 2024 13:23:11 GMT</pubDate>
+    </item>
     <item>
       <title>Unsloth 羊驼提示模板：</title>
       <link>https://stackoverflow.com/questions/79210129/unsloth-alpaca-prompt-template</link>
@@ -259,18 +375,9 @@ RuntimeError：梯度计算所需的变量之一已被就地操作修改：[torc
       <pubDate>Wed, 20 Nov 2024 06:10:33 GMT</pubDate>
     </item>
     <item>
-      <title>识别基于树的方法中的过度拟合特征[关闭]</title>
-      <link>https://stackoverflow.com/questions/79205796/identifying-overfitting-features-in-tree-based-methods</link>
-      <description><![CDATA[我有一份表格数据，我尝试过的所有基于树的方法（随机森林、XGBoost、Catboost、LightGBM 等）都过度拟合了。我尝试过更改 `ccp_alpha` 等参数，这会降低我的训练和验证指标。我将忽略过度拟合的程度，因为它与我的实际问题无关。
-我正在尝试检查我的某些特征是否会导致过度拟合。以下是我对如何进行此操作的想法。
-计算训练和验证数据上的特征重要性，现在如果我看到某些高重要性特征的特征重要性急剧下降，我会得出结论，是该特征导致了我的痛苦。我的方法有什么问题吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79205796/identifying-overfitting-features-in-tree-based-methods</guid>
-      <pubDate>Wed, 20 Nov 2024 04:21:51 GMT</pubDate>
-    </item>
-    <item>
       <title>对来自不同研究的汇总数据进行建模，并确定每项研究的变量重要性</title>
       <link>https://stackoverflow.com/questions/79205749/modelling-aggregated-data-from-different-studies-and-determining-variable-import</link>
-      <description><![CDATA[我有来自四项独立研究的数据。每项研究都考察了不同药物对治疗反应的影响。所有四项研究都有相同的基线变量和结果变量（治疗成功）。除了使用基线变量对治疗成功进行分类之外，我还想确定哪些基线变量对于对这四种药物的成功进行分类最为重要。我计划使用 tidymodels 来做到这一点。即使用一组由不同算法（xgboost、随机森林、svm）组成的工作流，确定最佳工作流并检查变量重要性。
+      <description><![CDATA[我有来自四项独立研究的数据。每项研究都研究了不同药物对治疗反应的影响。所有四项研究都有相同的基线变量和结果变量（治疗成功）。除了使用基线变量对治疗成功进行分类之外，我还想确定哪些基线变量对这四种药物的成功进行分类最重要。我计划使用 tidymodels 来做到这一点。即，使用一组由不同算法（xgboost、随机森林、svm）组成的工作流程，确定最佳表现工作流程并检查变量重要性。
 我不确定如何最好地比较这四种药物的变量重要性。最好是整理所有数据并运行一个具有每种药物和每个基线变量之间相互作用效应（step_interact）的模型，还是运行四个单独的模型（每种药物一个）并比较四个模型中变量的重要性，还是做其他事情？我不确定第一种方法是否能让我分离出每种药物的特定变量的重要性。
 如何最好地解决这个问题？]]></description>
       <guid>https://stackoverflow.com/questions/79205749/modelling-aggregated-data-from-different-studies-and-determining-variable-import</guid>
@@ -307,7 +414,7 @@ return prediction.label
       <pubDate>Fri, 15 Nov 2024 11:13:21 GMT</pubDate>
     </item>
     <item>
-      <title>如何在微调过程中正确设置 pad token（而不是 eos）以避免模型无法预测 EOS？</title>
+      <title>如何在微调期间正确设置 pad token（而不是 eos）以避免模型无法预测 EOS？</title>
       <link>https://stackoverflow.com/questions/76633368/how-does-one-set-the-pad-token-correctly-not-to-eos-during-fine-tuning-to-avoi</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/76633368/how-does-one-set-the-pad-token-correctly-not-to-eos-during-fine-tuning-to-avoi</guid>
@@ -322,61 +429,11 @@ return prediction.label
       <pubDate>Tue, 19 May 2020 02:29:07 GMT</pubDate>
     </item>
     <item>
-      <title>PyTorch 中的 `squeeze()` 与 `unsqueeze()`</title>
-      <link>https://stackoverflow.com/questions/61598771/squeeze-vs-unsqueeze-in-pytorch</link>
-      <description><![CDATA[我不明白 squeeze() 和 unsqueeze() 对张量做了什么，即使查看了文档和相关问题。
-我试图通过在 Python 中自己探索来理解它。我首先用创建了一个随机张量
-x = torch.rand(3,2,dtype=torch.float)
-&gt;&gt;&gt; x
-tensor([[0.3703, 0.9588],
-[0.8064, 0.9716],
-[0.9585, 0.7860]])
-
-但无论我如何挤压它，我都会得到相同的结果：
-torch.equal(x.squeeze(0), x.squeeze(1))
-&gt;&gt;&gt; True
-
-如果我现在尝试解压，我会得到以下结果，
-&gt;&gt;&gt; x.unsqueeze(1)
-张量([[[0.3703, 0.9588]],
-[[0.8064, 0.9716]],
-[[0.9585, 0.7860]]])
-&gt;&gt;&gt; x.unsqueeze(0)
-张量([[[0.3703, 0.9588],
-[0.8064, 0.9716],
-[0.9585, 0.7860]]])
-&gt;&gt;&gt; x.unsqueeze(-1)
-tensor([[[0.3703],
-[0.9588]],
-[[0.8064],
-[0.9716]],
-[[0.9585],
-[0.7860]]])
-
-但是，如果我现在创建一个张量  x = torch.tensor([1,2,3,4])，然后我尝试解压它，那么看起来 1 和 -1 使它成为一列，而 0 保持不变。
-x.unsqueeze(0)
-tensor([[1, 2, 3, 4]])
-&gt;&gt;&gt; x.unsqueeze(1)
-tensor([[1],
-[2],
-[3],
-[4]])
-&gt;&gt;&gt; x.unsqueeze(-1)
-tensor([[1],
-[2],
-[3],
-[4]])
-
-有人能解释一下 squeeze() 和 unsqueeze() 对张量做了什么吗？提供参数 0、1 和 -1 之间有什么区别？]]></description>
-      <guid>https://stackoverflow.com/questions/61598771/squeeze-vs-unsqueeze-in-pytorch</guid>
-      <pubDate>Mon, 04 May 2020 18:06:38 GMT</pubDate>
-    </item>
-    <item>
       <title>如何正确地将不平衡的数据集拆分为训练集和测试集？</title>
       <link>https://stackoverflow.com/questions/57229775/how-can-i-properly-split-imbalanced-dataset-to-train-and-test-set</link>
       <description><![CDATA[我有一个航班延误数据集，在采样之前尝试将该数据集拆分为训练集和测试集。准时情况约占总数据的 80%，延误情况约占 20%。
 通常，机器学习中训练集和测试集的大小比例为 8:2。但数据太不平衡了。因此，考虑到极端情况，大多数训练数据都是准时情况，而大多数测试数据都是延误情况，准确率会很差。
-所以我的问题是如何正确将不平衡的数据集拆分为训练集和测试集？]]></description>
+所以我的问题是如何正确地将不平衡的数据集拆分为训练集和测试集？]]></description>
       <guid>https://stackoverflow.com/questions/57229775/how-can-i-properly-split-imbalanced-dataset-to-train-and-test-set</guid>
       <pubDate>Sat, 27 Jul 2019 06:34:52 GMT</pubDate>
     </item>
