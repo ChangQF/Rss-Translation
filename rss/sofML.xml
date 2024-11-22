@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 22 Nov 2024 18:24:31 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 22 Nov 2024 21:16:42 GMT</lastBuildDate>
     <item>
       <title>InvalidArgumentError：在使用单个图像输入进行预测时，TensorFlow 模型中只有一个输入大小可以为 -1，而不能同时为 0 和 1</title>
       <link>https://stackoverflow.com/questions/79215834/invalidargumenterror-only-one-input-size-may-be-1-not-both-0-and-1-in-tensorf</link>
@@ -191,14 +191,6 @@ return df_balanced
       <pubDate>Thu, 21 Nov 2024 18:16:23 GMT</pubDate>
     </item>
     <item>
-      <title>有没有办法可以使用纯数字信号处理概念提取并分类脑电图数据[关闭]</title>
-      <link>https://stackoverflow.com/questions/79211719/is-there-a-way-that-i-can-extract-and-then-classify-eeg-data-using-pure-digital</link>
-      <description><![CDATA[我正在做一个使用脑电图信号数据检测驾驶员困倦的项目，我们可以将信号从噪音和其他伪影中分离出来，但后来我们如何识别困倦状态
-我尝试研究它，但我发现机器学习几乎无处不在，我正在寻找使用数字图像处理从脑电图信号中识别困倦的方法（也是电子和通信工程课程的主题）]]></description>
-      <guid>https://stackoverflow.com/questions/79211719/is-there-a-way-that-i-can-extract-and-then-classify-eeg-data-using-pure-digital</guid>
-      <pubDate>Thu, 21 Nov 2024 14:53:06 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么 gamma=0 的二元焦点交叉熵总是会产生 nan 损失？[关闭]</title>
       <link>https://stackoverflow.com/questions/79207979/why-does-binary-focal-cross-entropy-with-gamma-0-always-make-nan-loss</link>
       <description><![CDATA[我正在训练一个 U-Net 来对我们的实验图像进行二值化。但前景通常没有得到很好的体现，换句话说，我有类别不平衡，网络学习得不好。我一直在使用 BinaryCrossEntropy 作为损失函数。所以，我明白解决这个问题的一个简单方法是定义一个自定义的损失函数，为每个类别赋予权重。然而，我尝试使用 BinaryFocalCrossEntropy，它的表达式为（如果我理解得好的话）
@@ -248,7 +240,7 @@ app.run(debug=True)
 我在网上看到一个叫做 MuJoKo 或类似的东西有一个 set_state 函数，但我不想创建一个新的环境，我只想设置 openAi gym 已经提供的状态。
 上下文：尝试实现拓扑顺序值迭代，这需要制作一个图表，其中每个状态都有一个指向任何动作可以转换到的任何状态的边。
 我意识到显然在某些游戏中没有提供，但对于那些有它的游戏，有办法吗？
-（除了运行游戏并采取我尚未采取的每一步的蛮力方法之外无论我降落在哪个状态，直到我到达所有状态并看到所有内容，这取决于游戏，可能需要很长时间）
+（除了运行游戏并采取我尚未采取的每一步的蛮力方法之外无论我处于什么状态，直到我到达所有状态并看到所有内容，这取决于游戏，可能需要很长时间）
 这是我第一次使用 OpenAi gym，所以请尽可能详细地解释。例如，我不知道什么是 Wrappers。
 谢谢！]]></description>
       <guid>https://stackoverflow.com/questions/53690171/how-to-list-possible-successor-states-for-each-state-in-openai-gym-strictly-fo</guid>
@@ -337,6 +329,230 @@ plot_tree(model, rankdir=&#39;LR&#39;); plt.show()
 ]]></description>
       <guid>https://stackoverflow.com/questions/52314401/xgboost-plot-tree-binary-feature-interpretation</guid>
       <pubDate>Thu, 13 Sep 2018 13:06:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>神经网络收敛至零输出</title>
+      <link>https://stackoverflow.com/questions/44213659/neural-network-converging-to-zero-output</link>
+      <description><![CDATA[我正在尝试训练这个神经网络来对一些数据进行预测。
+我在一个小的数据集（大约 100 条记录）上尝试了它，它工作得很好。然后我插入了新的数据集，我发现 NN 收敛到 0 输出，误差大约收敛到正例数与总例数之比。
+我的数据集由是/否特征（1.0/0.0）组成，基本事实也是是/否。
+我的假设：
+
+1) 存在输出为 0 的局部最小值（但我尝试了许多学习率和初始权重值，它似乎总是收敛到那里）
+
+2) 我的权重更新是错误的（但在我看来很好）
+
+3) 它只是一个输出缩放问题。我尝试缩放输出（即输出/最大值（输出）和输出/平均值（输出）），但结果并不好，如您在下面提供的代码中看到的那样。我应该以不同的方式缩放它吗？Softmax？ 
+代码如下：
+import pandas as pd
+import numpy as np
+import pickle
+import random
+from collections import defaultdict
+
+alpha = 0.1
+N_LAYERS = 10
+N_ITER = 10
+#N_FEATURES = 8
+INIT_SCALE = 1.0
+
+train = pd.read_csv(&quot;./data/prediction.csv&quot;)
+
+y = train[&#39;y_true&#39;].as_matrix()
+y = np.vstack(y).astype(float)
+ytest = y[18000:]
+y = y[:18000]
+
+X = train.drop([&#39;y_true&#39;], axis = 1).as_matrix()
+Xtest = X[18000:].astype(float)
+X = X[:18000]
+
+def tanh(x,deriv=False):
+if(deriv==True):
+return (1 - np.tanh(x)**2) * alpha
+else:
+return np.tanh(x)
+
+def sigmoid(x,deriv=False):
+if(deriv==True):
+return x*(1-x)
+else:
+return 1/(1+np.exp(-x))
+
+def relu(x,deriv=False):
+if(deriv==True):
+return 0.01 + 0.99*(x&gt;0)
+else:
+return 0.01*x + 0.99*x*(x&gt;0)
+
+np.random.seed()
+
+syn = defaultdict(np.array)
+
+for i in range(N_LAYERS-1):
+syn[i] = INIT_SCALE * np.random.random((len(X[0]),len(X[0]))) - INIT_SCALE/2
+syn[N_LAYERS-1] = INIT_SCALE * np.random.random((len(X[0]),1)) - INIT_SCALE/2
+
+l = defaultdict(np.array)
+
+delta = defaultdict(np.array)
+
+for j in xrange(N_ITER):
+l[0] = X
+for i in range(1,N_LAYERS+1):
+l[i] = relu(np.dot(l[i-1],syn[i-1]))
+
+error = (y - l[N_LAYERS])
+
+e = np.mean(np.abs(error))
+if (j% 1) == 0:
+print &quot;\nIteration &quot; + str(j) + &quot; of &quot; + str(N_ITER)
+print &quot;Error: &quot; + str(e)
+
+delta[N_LAYERS] = error*relu(l[N_LAYERS],deriv=True) * alpha
+for i in range(N_LAYERS-1,0,-1):
+error = delta[i+1].dot(syn[i].T)
+delta[i] = error*relu(l[i],deriv=True) * alpha
+
+for i in range(N_LAYERS):
+syn[i] += l[i].T.dot(delta[i+1])
+
+pickle.dump(syn, open(&#39;neural_weights.pkl&#39;, &#39;wb&#39;))
+
+# 使用 f1-measure 进行测试
+# 召回率 = 真阳性 / (真阳性 + 假阴性)
+# 准确率 = 真阳性 / (真阳性阳性 + 假阳性)
+
+l[0] = Xtest
+for i in range(1,N_LAYERS+1):
+l[i] = relu(np.dot(l[i-1],syn[i-1]))
+
+out = l[N_LAYERS]/max(l[N_LAYERS])
+
+tp = float(0)
+fp = float(0)
+fn = float(0)
+tn = float(0)
+
+for i in l[N_LAYERS][:50]:
+print i
+
+for i in range(len(ytest)):
+if out[i] &gt; 0.5 and ytest[i] == 1:
+tp += 1
+if out[i] &lt;= 0.5 and ytest[i] == 1:
+fn += 1
+if out[i] &gt; 0.5 且 ytest[i] == 0:
+fp += 1
+if out[i] &lt;= 0.5 且 ytest[i] == 0:
+tn += 1
+
+print &quot;tp: &quot; + str(tp)
+print &quot;fp: &quot; + str(fp)
+print &quot;tn: &quot; + str(tn)
+print &quot;fn: &quot; + str(fn)
+
+print &quot;\nprecision: &quot; + str(tp/(tp + fp))
+print &quot;recall: &quot; + str(tp/(tp + fn))
+
+f1 = 2 * tp /(2 * tp + fn + fp)
+print &quot;\nf1-measure:&quot; + str(f1)
+
+输出结果如下：
+第 0 次迭代（共 10 次）
+错误： 0.222500767998
+
+10 次迭代中的第 1 次
+错误：0.222500771157
+
+10 次迭代中的第 2 次
+错误：0.222500774321
+
+10 次迭代中的第 3 次
+错误：0.22250077749
+
+10 次迭代中的第 4 次
+错误：0.222500780663
+
+10 次迭代中的第 5 次
+错误：0.222500783841
+
+10 次迭代中的第 6 次
+错误：0.222500787024
+
+10 次迭代中的第 7 次
+错误：0.222500790212
+
+10 次迭代中的第 8 次
+错误：0.222500793405
+
+10 次迭代中的第 9 次10
+错误：0.222500796602
+
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 4.62182626e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 4.62182626e-06]
+[ 0.]
+[ 0.]
+[ 5.04501079e-10]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.04501079e-10]
+[ 0.]
+[ 0.]
+[ 4.62182626e-06]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 0.]
+[ 0.]
+[ 5.58610895e-06]
+[ 0.]
+[ 1.31432294e-05]
+
+tp：28.0
+fp：119.0
+tn： 5537.0
+fn：1550.0
+
+精度：0.190476190476
+召回率：0.0177439797212
+
+f1-measure：0.0324637681159
+]]></description>
+      <guid>https://stackoverflow.com/questions/44213659/neural-network-converging-to-zero-output</guid>
+      <pubDate>Sat, 27 May 2017 06:21:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
