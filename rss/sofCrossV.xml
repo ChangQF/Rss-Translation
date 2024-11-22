@@ -4,11 +4,165 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 22 Nov 2024 06:25:16 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 22 Nov 2024 09:20:01 GMT</lastBuildDate>
+    <item>
+      <title>测试马尔可夫特性和模拟/验证的代码</title>
+      <link>https://stats.stackexchange.com/questions/657664/code-for-testing-markov-property-simulation-validation</link>
+      <description><![CDATA[我知道这个问题之前已经有人问过了（例如1、2、3），但这些答案都没有提供代码。
+根据以上链接提供的信息（尤其是这篇论文），我已经实现了 R 代码来：
+
+生成随机马尔可夫样本
+运行 Pearson &amp;似然比$\chi^2$检验
+
+代码
+注意：我们不允许零概率转换；这会使测试统计数据的定义更加复杂。
+library(&#39;ggplot2&#39;)
+rbind.lappy = function(...){ # 便利
+do.call(rbind,parallel::mclapply(...,mc.cores=7))
+}
+px.random = function(d=2){ # 生成随机转换矩阵
+px = matrix(runif(d^2,.1,.9),d,d) # 随机数
+px = sweep(px,1,rowSums(px),&#39;/&#39;) # 标准化
+}
+markov.limit = function(px){ # 获取极限分布
+e1 = eigen(t(px))$vectors[,1]
+p0 = e1 / sum(e1)
+}
+markov.sim = function(p0,px,nt,ni){ # 模拟样本
+ns = length(p0)
+state = list(sample(1:ns,ni,p=p0,rep=TRUE)) # 初始时间
+for (i in 2:nt){ # 后续每个时间
+state[[i]] = sapply(state[[i-1]],function(si){ sample(1:ns,1,p=px[si,]) })
+}
+names(state) = paste0(&#39;s&#39;,1:nt)
+ms = data.frame(i=1:ni,state)
+}
+markov.test = function(ms){
+ns = length(unique(ms[,2])) # 状态数
+nt = ncol(ms)-1 # 时间点数
+n_hij = array(1,c(ns,ns,ns)) # 二阶计数
+n_hi = array(1,c(ns,ns)) # 一阶计数
+for (m in seq(nt-2)){ n_hij = n_hij + table(ms[paste0(&#39;s&#39;,m+0:2)]) }
+for (m in seq(nt-1)){ n_hi = n_hi + table(ms[paste0(&#39;s&#39;,m+0:1)]) }
+p_hij = sweep(n_hij,2:3,colSums(n_hij),&#39;/&#39;) # 标准化
+p_hi = sweep(n_hi, 2, colSums(n_hi), &#39;/&#39;) # 标准化
+# 以下：重复 c(*_hi) 以匹配 c(*_hij)，因为 j 是最后一个维度
+Q = c( # 测试统计量：两个 chi^2 相同 d.f.
+皮尔逊 = sum(c(n_hi)/c(p_hi)*(c(p_hij)-c(p_hi))^2),
+    like.ratio = sum(c(n_hij)*log(c(p_hij)/c(p_hi))) )
+  p = pchisq(Q,df=ns*(ns-1)*(nt-1),下=FALSE)
+}
+markov.test.pvs = 函数(nt,ni,ns=2,nk=100,lim=1){
+  pvs = rbind.lappy(1:nk,函数(k){
+    设置种子(k)
+    px = px.随机(ns)
+    if (lim){ p0 = markov.limit(px) }
+    否则 { p0 = 代表(1,ns) / ns }
+    ms = markov.sim(p0,px,nt=nt,ni=ni)
+    光伏= c(nt=nt,ni=ni,ns=ns,nk=nk,lim=lim,markov.test(ms))
+})
+}
+# main
+G = expand.grid( # 要扫描的参数
+ni=c(30,100,300,1000), # 个体数（链）
+nt=3:7, # 时间点数
+ns=2, # 状态数
+nk=1000, # 重复次数
+lim=0:1) # 在稳定状态下初始化
+pvs = rbind.lappy(split(G,1:nrow(G)),do.call,what=markov.test.pvs)
+# 重塑 &amp;图
+pvs.m = reshape2::melt(as.data.frame(pvs),id=colnames(pvs)[1:5])
+pvs.m$init = factor(pvs.m$lim,0:1,c(&#39;uniform&#39;,&#39;limit&#39;))
+pos = position_dodge(width=1)
+g = ggplot(pvs.m,aes(y=value,x=&#39;&#39;,color=variable,lty=init)) +
+facet_grid(&#39;ni~nt&#39;,labeller=label_both) +
+geom_violin(scale=&#39;width&#39;,position=pos,fill=NA) +
+geom_hline(yintercept=.05,lty=&#39;11&#39;) +
+stat_summary(geom=&#39;text&#39;,position=pos,show.legend=FALSE,
+fun.data=function(x){ data.frame(y=-.1,label=mean(x &lt; .05),size=2) }) +
+labs(y=&#39;p value&#39;,x=&#39;&#39;,color=&#39;statistic&#39;) + ylim(-.1,1)
+ggsave(&#39;Rplots.pdf&#39;,w=8,h=6)
+
+
+结果
+
+问题
+
+我的代码是否正确模拟了马尔可夫样本？
+我的代码是否正确实现了两个测试？
+如果1 和 2，为什么 I 类（假阳性）错误率存在差异：
+
+
+Pearson 与 LR 检验（统计量：颜色）
+链是否在平衡/极限下初始化（init：线型）
+观察到的时间点数量（nt：水平面板）
+观察到的链数量（ni：垂直面板）
+
+这些趋势都是预期结果吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657664/code-for-testing-markov-property-simulation-validation</guid>
+      <pubDate>Fri, 22 Nov 2024 09:04:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>检查两组比例是否_无差异_的检验</title>
+      <link>https://stats.stackexchange.com/questions/657663/a-test-to-check-whether-two-sets-of-proportions-are-not-different</link>
+      <description><![CDATA[是否有检验方法可以检查两组小比例是否显著无差异？
+例如，考虑两组比例
+(0.2,0.3,0.25,0.35,0.19)
+(0.31, 0.25, 0.21,0.17, 0.22) 
+我想证明两组显著无差异。这意味着零假设必须是它们不同。
+如果对数据来源​​感兴趣，那就是各种样本的细胞类型比例。我想表明，经过治疗后，各种细胞类型比例的分布没有改变。
+之所以选择零假设和备择假设，是因为我感兴趣的实质性主张是两种情况之间没有发生任何变化。无法拒绝无变化的零假设并不等同于接受无变化的假设，后者才是我感兴趣的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657663/a-test-to-check-whether-two-sets-of-proportions-are-not-different</guid>
+      <pubDate>Fri, 22 Nov 2024 08:15:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>血液碱度与癌症：癌症相关因素、转移效应和血液 pH 相关性：我们可用的工具</title>
+      <link>https://stats.stackexchange.com/questions/657661/blood-alkalinity-and-cancer-cancer-implicants-metastasis-effect-and-blood-ph</link>
+      <description><![CDATA[假设我有
+
+一个可以量化的原因变量
+
+一个可以量化的结果变量
+
+原因数量如何影响结果数量的图表
+
+一些相关因素（这些不是暗示结果的原因，但可以共存）。
+
+
+我们想确定改变相关因素是否会改变蕴涵项和确定结果的图表。
+我可以使用哪些统计工具？
+例如，我们可以有：
+
+存在致癌印迹（蕴涵项）
+
+血液系统中存在转移（效应）
+
+相关因素（血液 pH 值，以及系统中物质的存在（可能与 pH 有关，影响 pH 值）
+
+
+我们想知道改变血液的 pH 值是否会影响转移产生的含义
+也就是说，我们想知道带电的 pH 值是否是含义的影响（副作用），... 或者改变血液 pH 值是否可以改变含义图
+假设，血液 pH 值可以通过营养改变（例如，假设饮食或营养素可以使血液碱化）。
+我可以使用哪些统计工具？
+谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657661/blood-alkalinity-and-cancer-cancer-implicants-metastasis-effect-and-blood-ph</guid>
+      <pubDate>Fri, 22 Nov 2024 07:57:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>多个独立同分布随机变量乘积的方差？</title>
+      <link>https://stats.stackexchange.com/questions/657659/variance-of-product-of-multiple-i-i-d-random-variables</link>
+      <description><![CDATA[定义：如果随机变量 X1、X2、...、Xn 是独立的，并且具有相同的边际分布，则称它们为独立同分布 (i.i.d.)：
+FX1(x)=FX2(x)=...=FXn(x)，对于所有 x∈R。
+它们的乘积的期望值为：
+E[X1*X2*⋯*Xn] = E[X1]*E[X2]*⋯*E[Xn] = E[X1]*E[X1]*⋯*E[X1] = (E[X1])^n
+问题：它们的方差是多少？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657659/variance-of-product-of-multiple-i-i-d-random-variables</guid>
+      <pubDate>Fri, 22 Nov 2024 06:38:50 GMT</pubDate>
+    </item>
     <item>
       <title>发生率受测试频率影响</title>
       <link>https://stats.stackexchange.com/questions/657657/incidence-influenced-by-test-frequency</link>
-      <description><![CDATA[我对研究设计感到困惑。假设我想研究一种疾病的发病率，但这种疾病大多无症状，其检测仅依赖于定期检测。有些人的测试频率比其他人高。我想根据每个人的测试频率为他们分配权重。如果我打算使用逆倾向得分来计算权重（仅举一个例子）：
+      <description><![CDATA[我对研究设计感到困惑。假设我想研究一种疾病的发病率，但这种疾病大多无症状，其检测仅依赖于定期检测。有些人的检测频率比其他人高。我想根据每个人的检测频率为他们分配权重。如果我打算使用逆倾向得分来计算权重（仅举一个例子）：
 PS= glm(test_frequency~age+sex, data=df)
 PS$Wt= 1/predict(PS, df)
 这听起来合理吗？
@@ -131,7 +285,7 @@ $y$ = 1459.0265113713006、1461.3176024628895、1470.7175396409543、1467.800951
       <pubDate>Fri, 22 Nov 2024 00:53:34 GMT</pubDate>
     </item>
     <item>
-      <title>rugarch 包中条件方差的初始值如何计算</title>
+      <title>rugarch 包中条件方差的初始值如何计算？</title>
       <link>https://stats.stackexchange.com/questions/657651/how-are-initial-values-of-conditional-variance-calculated-in-rugarch-package</link>
       <description><![CDATA[我正在尝试使用 rugarch 库验证我的 0 均值 GARCH(1,1) 模型的计算，起初我以为条件方差的初始值与非条件方差（python 中的 arch 包使用）是相同的值，但当我重新检查条件方差的第一个初始值时，它与非条件方差不同。
 我尝试使用计算器手动计算它，它给了我与 uncvariance(garch_fit) 相同的输出，这不是来自模型的条件方差的初始值。]]></description>
@@ -174,101 +328,6 @@ player_id、gameweek、value、home_crowd_effect、opponent_attack_strength、ow
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/657648/should-i-predict-individual-stats-or-points-as-a-whole-for-a-fantasy-premier-lea</guid>
       <pubDate>Thu, 21 Nov 2024 23:49:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>对物理学家来说有效的逻辑分析吗？</title>
-      <link>https://stats.stackexchange.com/questions/657647/valid-logistic-analysis-for-physicists</link>
-      <description><![CDATA[我是一名物理学家，正在撰写一篇论文，论文内容涉及蒙特卡罗引擎计算辐射场中击中目标的辐射量的结果。有趣的是，虽然结果通常是准确的，但在某些情况下，结果会大相径庭。据我们所知，没有确切的参数集会导致错误，但有些参数集会使错误更有可能发生 - 例如，将计算网格大小设置为更粗会导致这些错误更有可能发生，但这种情况并不总是发生，即使计算网格大小很细，也可能发生。
-我现在有大约 20,000 个来自各种计算的数据点。对于每次计算，我都记录了大约 15 个不同输入参数的值。我稍微知道哪些与输出变量相关，即此计算与已知对几何正确的基准情况之间的计算辐射剂量差异，但许多我不确定它们会如何影响输出变量。我知道我的许多变量是相关的。我敢打赌我的一些变量是多重共线性的。
-该项目的最终目标是为在放射治疗领域使用这些计算提供粗略的经验法则 - 也就是说，让计划进行放射治疗的人可以遵循一些规则，例如“当目标这么大，或者离另一个东西这么近时，那么你必须像这样设置参数 Y 以降低计算错误的概率”。为了获得这些，我试图从输入参数创建一个逻辑回归模型，这样我就可以说“当使用参数集 Y、Z、W 时，计算错误的几率小于 X”。
-我不知道最好的解决方法。目前，我正尝试通过迭代计算 VIF 来消除多重共线性，然后删除具有最高 VIF 的解释变量，重复此过程，然后，一旦所有变量的 VIF 都低于 10，就对所有剩余的变量组合运行 BIC 以找到最简约的集合，然后通过使用该集合创建逻辑模型（当然是缩放和居中数据）来创建我的经验法则，然后根据我的逻辑模型检查参数空间的哪些区域具有最低概率。
-但是，这个想法只是我从各种 CrossValidated 帖子和阅读教科书的片段中拼凑起来的。真的，我不知道最好的方法是什么。
-对于不太了解统计学的物理学家来说，什么方法最能防错？获得我想要的最终结果（经验法则）的正确方法是什么？
-我确实读过此处的帖子，该帖子与此相关，但并未明确给出前进的方向。我知道“进行统计分析的最佳方法”这一想法将极具争议，但我主要在寻找对我当前方法的批评、对统计学以外专业的人提出的防错方法的建议以及进一步的阅读。
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/657647/valid-logistic-analysis-for-physicists</guid>
-      <pubDate>Thu, 21 Nov 2024 23:35:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>作业数据挖掘/需要帮助[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/657646/assignment-data-mining-need-help</link>
-      <description><![CDATA[希望你们都很好。
-我迫切需要你们中一个对数据挖掘有所了解的人的帮助，足以帮助我回答作业上的问题……几天后我必须向我的数据挖掘老师提交一份作业，但我真的很难决定我做得对不对。我担心我的所有结果都是错的，我会得到一个很差的分数……
-我附上了作业说明和包含完成作业所需的所有数据的文件。我无法在此处附上我的 Jupyter Notebook，因为格式不起作用，但如果您要求我这样做，我很乐意通过电子邮件或其他方式将其发送给您。
-我真的需要帮助，我本学期的成功真的取决于我这份作业的分数。有人能帮我吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657646/assignment-data-mining-need-help</guid>
-      <pubDate>Thu, 21 Nov 2024 23:18:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 Hausman-McFadden 检验结果解决不相关替代独立性 (IIA) 偏差的有效性</title>
-      <link>https://stats.stackexchange.com/questions/657645/validity-of-using-hausman-mcfadden-test-results-for-addressing-departures-from-t</link>
-      <description><![CDATA[上下文正在运行多项 Logit 模型，主要目的是衡量案例特定变量 A 对多项结果 B 的影响。运行 Hausman-McFadden 检验显示完整模型与 B 的替代方案减少（违反 IIA 的程度）的每个模型有何不同。理想情况下，系数不会改变。我的问题是，使用这些测试和比较来显示违反 IIA 的程度是否足够，同时论证在这些变化中持续存在的影响仍然有效？例如，假设在 5 个系数中，4 个没有变化或变化不大，但 1 个有变化，或者对于所有系数，方向在简化模型中没有变化。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657645/validity-of-using-hausman-mcfadden-test-results-for-addressing-departures-from-t</guid>
-      <pubDate>Thu, 21 Nov 2024 23:01:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>Python 中的代码仅适用于较小的值[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/657643/code-in-python-works-only-with-small-values</link>
-      <description><![CDATA[我有一个 python 代码，它对我的​​主变量（表示为 m）的小整数值很有效，但对于较大的整数值（m&gt;6），它从不给我结果，猜想问题出在库上，有什么建议吗？
-我的代码：
-...
-import sympy as sp
-
-# 使用 m 指定类别数
-m = 6
-
-# 使用 i 变量指定预期副本数的间隔 o) 最小值和最大值
-i_min = 1
-i_max = 10
-
-# 计算预期的文章数量以获得每个类别的至少一个副本。
-E_m = m * sum(1 / i for i in range(1, m + 1))
-
-# 定义辅助变量 t 进行泰勒展开
-t = sp.symbols(&#39;t&#39;)
-
-# 生成公式的定义
-def calculate_probability(m, i_min, i_max):
-# 生成公式成分
-numerator = sp.factorial(m)
-denominator = 1
-# 分母为 (j - t) 的乘积，j=2 到 m
-for j in range(2, m + 1):
-denominator *= (j - t)
-
-# 生成公式的比率
-generative = t - 1 + numerator / denominator
-
-# 生成公式的泰勒展开为幂级数
-expansion = sp.series(generative, t, 0, m) # 使用 t=0，展开为 t^m
-
-# 显示 m 和区间的值，使用 i_min 到i_max
-print(f&quot;对于具有 {m} 个类别且副本数 (i) 从 = {i_min} 到 {i_max} 的集合：&quot;)
-
-# 显示扩展
-#print(f&quot;生成系列的泰勒扩展：&quot;)
-#print(expansion)
-
-# 显示结果
-print(f&quot;预期论文数量：{E_m:.6f}&quot;)
-
-# 在 i 的间隔内进行迭代（从 i_min 到 i_max）
-for i in range(i_min, i_max + 1):
-# 获取 t^i 的系数
-coef_ti = extension.coeff(t, i)
-
-# 显示四舍五入到小数点后 6 位的预期数字
-probability_num = coef_ti.evalf(6)
-
-# 具有恰好 i 个副本的元素的预期数量。
-print(f&quot;具有 {i} 个副本的元素的预期数量：{probability_num}&quot;)
-
-# 调用函数计算参考间隔的概率
-calculate_probability(m, i_min, i_max)
-
-...]]></description>
-      <guid>https://stats.stackexchange.com/questions/657643/code-in-python-works-only-with-small-values</guid>
-      <pubDate>Thu, 21 Nov 2024 22:58:06 GMT</pubDate>
     </item>
     <item>
       <title>为什么我的某个 GAM 响应与数据不太吻合？</title>
