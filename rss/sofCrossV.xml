@@ -4,7 +4,81 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 22 Nov 2024 21:16:35 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 23 Nov 2024 01:16:45 GMT</lastBuildDate>
+    <item>
+      <title>防止最小二乘模型过度拟合</title>
+      <link>https://stats.stackexchange.com/questions/657704/preventing-overfitting-in-a-least-squares-model</link>
+      <description><![CDATA[以下方程使用双指数或“双对数”描述了残余气体分析质谱测量过程中气体强度的变化。模型：
+$$y = a \ln(t + 32) - b \ln(t+30) + c$$
+其中：
+
+$y$ 是测量的强度（因变量）
+$t$ 是气体平衡后的时间（自变量）
+术语 $a \ln(t+32)$ 表示从内存中生长的气体，开始于气体平衡时间 $t=0$ 前 32 秒。
+术语 $-b \ln(t+30)$ 表示电离气体的消耗，开始于气体平衡时间 $t=0$ 前 30 秒。
+$c$ 表示项 $p$ 和 $q$，如原始方程 $y=a\ln(p(t+32)) - b\ln(q(t+30)) = a\ln(t+32) - b\ln(t+30) + \ln(p) - ln(q)$ 中所述，因此 $c = \ln(p) - \ln(q)$
+
+此模型的目标是尽可能准确地测量$t=0$时$y$的“截距”。该值反映了理论上的平衡气体强度。它通常可以产生极好的拟合效果：
+
+然而，在其他情况下，它表现出不切实际的行为：
+
+在上述情况下，4 amu 和 40 amu 在低$t$值下显示这些“俯冲”。虽然这些骤降来自最小二乘拟合程序，但它们并未描绘预期的物理现实，因此产生了不切实际的截距。虽然内生和消耗同时活跃，但通常其中一种占主导地位。在它们相对平衡的情况下，预期是一种嘈杂的趋势，而不是先大幅下降然后上升：
+
+因此，这些“骤降”被认为是过度拟合的产物，并不反映系统的物理现实。我的目标是减轻或消除这种过度拟合以获得更好的截距。
+我可以想到几种方法来解决这个问题：
+
+对$b$强制执行边界，以使消费可能不会太激进。我对此进行了一些实验，并得到了合理的结果，如下所示：
+
+$0 &lt; b &lt; \infty$
+
+$0 &lt; b &lt; 6$
+
+虽然通过强制 $0&lt;b&lt;6$ 消除了这种倾斜，但我牺牲了准确拟合更高 $t$ 值的能力。这导致截距看起来太低。此外，当我向我的一个朋友介绍这种方法时，他反驳道：“那是绘图，不是拟合”。
+
+限制拟合的总曲率。换句话说，让算法远离具有大量曲率的参数空间部分。我不知道如何在 Python 中实现这一点。同样，这感觉更像是绘图而不是拟合。
+
+根据平均强度为消耗项添加阻尼/加权因子。这反映了物理现实，即总压力越高，消耗越强，因此对于较低的信号（低信号=内生长占主导地位，高信号=消耗占主导地位）应该越弱。但是，由于模型将仅通过调整 $b$ 并返回相同的最小二乘拟合来补偿简单的权重，因此我不确定如何在不诉诸边界的情况下实现这一点，这基本上只是方法 #1 的额外步骤。
+
+
+我在这里很迷茫，我已经原地踏步了一段时间。任何建议、指示等都将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657704/preventing-overfitting-in-a-least-squares-model</guid>
+      <pubDate>Fri, 22 Nov 2024 23:52:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>Freeman-Tukey 变换的 Metafor 发生率的反向变换</title>
+      <link>https://stats.stackexchange.com/questions/657703/back-transformation-of-freeman-tukey-transformed-incidence-rates-in-metafor</link>
+      <description><![CDATA[问题描述
+我正在使用 metafor 包对同一疾病的不同治疗方法的术后复发率进行荟萃分析，但我正在努力编写 Freeman-Tukey 变换的发生率的反向变换代码，我们将其用作结果测量。
+代码
+使用以下方法计算效果大小
+ ies = escalc(measure = &quot;IRFT&quot;, add = 0, data = Data, xi = total.recurrences,
+ti = time)
+
+我们指定了以下模型并将其拟合到我们不同的治疗组。
+模型 1：
+ pes.sg = rma.mv(yi, vi, data = ies,
+subset = treatment == &quot;insert subgroup&quot;, 
+random = ~1 | study.id/es.id,
+method = &quot;REML&quot;, test = &quot;t&quot;,dfs = &quot;contain&quot;, 
+cvvc = TRUE) 
+
+我们还对整个数据集使用了多变量参数化，并使用分组变量作为调节器，以获得与单独分析相同的结果。
+模型 2：
+ pes = rma.mv(yi, vi, 
+random = list(~treatment|study.id, ~treatment|es.id), 
+mods = ~0+treatment,
+data = ies, 
+method = &quot;REML&quot;, struct = &quot;DIAG&quot;, test = &quot;t&quot;,dfs = &quot;contain&quot;,
+sparse = TRUE)
+
+现在我想使用 predict() 和 transf.iirft() 函数来获取反向转换的结果，但我不知道如何正确指定 xi 和 ti。我认为 xi 指的是转换后的发病率，而 ti 指的是患者时间。
+ predict(pes.sg, transf = transf.iirft(xi = ?, ti = ?))
+predict(pes, transf = transf.iirft(xi = ?, ti = ?))
+
+如果您能帮助我们对结果进行反向转换，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657703/back-transformation-of-freeman-tukey-transformed-incidence-rates-in-metafor</guid>
+      <pubDate>Fri, 22 Nov 2024 22:28:48 GMT</pubDate>
+    </item>
     <item>
       <title>当所有数量已知时，如何确定样本总体缺陷率代表总体缺陷率</title>
       <link>https://stats.stackexchange.com/questions/657701/how-to-determine-that-sample-population-defect-rate-represents-total-population</link>
@@ -152,103 +226,11 @@ $$\mathbb{E}\left[XX^T\right] = \mathbb{E}\left[(X-\mu)(X-\mu)^T\right] +\mu\mu^
       <pubDate>Fri, 22 Nov 2024 15:57:16 GMT</pubDate>
     </item>
     <item>
-      <title>为什么在进行超参数调整和模型选择时使用嵌套验证？</title>
-      <link>https://stats.stackexchange.com/questions/657688/why-use-nested-validation-when-doing-both-hyper-parameter-tuning-and-model-selec</link>
-      <description><![CDATA[专著交叉验证包含一节有关超参数优化的嵌套交叉验证（第 6 页）。作者引用了这篇论文，解释了为什么最好将 hp-search 与模型选择分离，但我没有找到直观易懂的答案。简而言之，我的问题是：
-
-如果具有不同超参数值的 ML 算法可以看作两种不同的 ML 算法（并且似乎可以使用平面验证方法来选择最佳 ML 算法）？为什么要使用嵌套验证进行 hp-search 和模型选择？
-
-为了使问题精确，下面我将详细描述什么是嵌套验证和平面验证。为简单起见，我将省略交叉部分，并且不将数据分成折叠——问题的核心保持不变，因此我相信原因也应该保持不变。
-使用平面验证进行 HP 调整和模型搜索
-此过程将数据集分为两部分
-
-best_model_family = none
-best_hp = none
-best_model = none
-best_score = none
-对于每个 model_family:
-对于 model_family 的每个 hp 值:
-model = model_family.train(hp, A)
-score = assess(model,V)
-if score &gt; best_score：//越大越好
-best_model_family = model_family
-best_hp = hp
-best_model = model
-best_score = score
-
-完成该过程后，best_hp 包含超参数值，可产生得分最高的模型。值 best_score 是生产模型性能的预测，其中生产模型将在整个数据集上进行训练：model = best_model_family.train(best_hp, A \cup V)。
-作者说这种方法容易过度拟合，因为最佳模型和最佳超参数是使用相同数据挑选的。我不明白为什么仅仅使用相同的数据集进行两次搜索就会导致过度拟合。对我来说，使用不同的超参数值类似于使用不同的模型系列。例如，考虑最近邻 ML 算法，并让其超参数为邻居的数量。对我来说，NN(3) 描述的是与 NN(4) 不同的模型系列。使用平面验证来选择最佳模型系列被认为是可以的。但是，一旦我们将邻居的数量视为超参数，使用平面验证就不再合适了。 我在这里遗漏了什么？作为参考，我现在描述什么是嵌套验证方法，用于 hp 调整和模型选择。
-嵌套循环中的 HP 调整（嵌套验证）
-嵌套验证方法将数据集分为三部分：原始集 A 分为两部分：A = A&#39; \cup B。超参数调整是通过对 A&#39; 进行训练和对 B 进行评估来执行的（这就是该方法被称为“嵌套”的原因），而模型选择与以前一样，通过对 A=A&#39;\cup B 进行训练和对 V 进行评估来执行，使用之前找到的最佳超参数。
-
-对于每个 model_family:
-best_score = none
-对于 model_family 的每个 hp 值:
-model = model_family.train(hp, A&#39;)
-score = assess(model,B)
-if score &gt; best_score: // 越大越好
-best_hp[model_family] = hp
-
-best_model_family = none
-best_score = none
-对于每个 model_family:
-model = model_family.train(best_hp[model_family], A&#39; \cup B)
-score = assess(model,V)
-if score &gt; best_score：//越大越好
-best_model_family = model_family
-best_score = score
-
-执行该过程后，best_model_family 就是我们想要在生产中使用的 ML 算法，我们使用超参数值 best_hp[best_model_family] 在整个数据集上对其进行训练。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657688/why-use-nested-validation-when-doing-both-hyper-parameter-tuning-and-model-selec</guid>
-      <pubDate>Fri, 22 Nov 2024 15:49:41 GMT</pubDate>
-    </item>
-    <item>
       <title>我是否以正确的方式对加权分类调查数据进行统计显着性检验？</title>
       <link>https://stats.stackexchange.com/questions/657687/am-i-going-about-statistical-significance-testing-for-weighted-categorical-surve</link>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/657687/am-i-going-about-statistical-significance-testing-for-weighted-categorical-surve</guid>
       <pubDate>Fri, 22 Nov 2024 15:12:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于神经网络反向传播的问题</title>
-      <link>https://stats.stackexchange.com/questions/657684/questions-on-backpropagation-in-a-neural-net</link>
-      <description><![CDATA[我理解如何以符号方式应用反向传播，用笔和纸计算公式。当真正将这些推导应用于数据时，我有两个问题：
-
-假设某个梯度看起来像 $o_i \times w_{i,j}$，其中 $o_i$ 是第 $i$ 个神经元的输出，而 $w_{i,j}$ 是其权重之一。现在我有一批数据点，$o_i$ 中的每个数据点都有不同的值，那么我该如何用数字计算它？我是否只需对该批次中的所有数据点取平均值？
-换句话说：假设我将误差（最后）定义为平均值，那么该平均值（期望值）是否只是与其余的反向传播一起传播，并且每当我看到输入数据的依赖性时，我只需插入平均运算符？
-有人可以提供一些关于此的直觉吗？我的看法是，因为误差位于所有梯度的“分子”中，所以无论我们对它做什么，无论是平均还是求和，都可以简单地向后传播，您只需对您看到的所有项执行该运算符（例如平均）。如果您有一个常数（例如权重），它不会做任何事情，如果您有一个输出，您会对批次进行平均。这是合理的解释吗？
-
-如果我们有一个较早的神经元 $N$，它在后面的层中作为输入出现两次，在进行反向传播时，我们可以在第二次遇到它时对其导数执行 $+=$，即我们可以天真地将各种梯度​​贡献相加。但是这个神经元可以以不同的方式参与后续神经元，它们可能有不同的数学表达式等。然而，我们可以天真地将其所有梯度相加，这是如何工作的？
-这是一个很好的属性，但我不明白它是如何如此简单地发挥作用而没有任何问题。有人可以提供直观的解释吗？这似乎与“反向传播如何分块、分步骤地工作，因此确切的依赖关系不应该重要”有关，这是我目前的理解水平。
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/657684/questions-on-backpropagation-in-a-neural-net</guid>
-      <pubDate>Fri, 22 Nov 2024 14:20:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>Ian Goodfellow 的深度学习书中介绍 softmax 近似的原因</title>
-      <link>https://stats.stackexchange.com/questions/657683/reason-for-softmax-approximation-in-ian-goodfellows-deep-learning-book</link>
-      <description><![CDATA[在第 6.2.2.2 节（公式 6.31）中，他们指出：
-
-总体而言，非正则化最大似然将驱动模型学习驱动 softmax 预测训练集中观察到的每个结果的计数分数的参数：
-$$
-\text{softmax}(\pmb{z}(\pmb{x},\pmb{\theta}))_i \approx \frac{\sum_{j=1}^{m}\pmb{1}_{y^{(j)}=i,\pmb{x}^{(j)}=\pmb{x}}}{\sum_{j=1}^{m}\pmb{1}_{x^{(j)}=\pmb{x}}}
-$$
-
-其中 $m$ 是训练集中的示例数量。
-1. 如何得出这个近似值？
-（此相关问题仅讨论了一个例子）
-2.这个近似值是否等于以下内容：
-$$
-\begin{align}
-&amp;\stackrel{?}{=}\frac{P_\text{data}(y=i,\pmb{x})}{P_\text{data}(\pmb{x})} \\
-&amp;=P_\text{data}(y=i|x) \\
-&amp;\approx P_\text{true}(y=i|x)
-\end{align}
-$$
-此外，如果是，这是否就是为什么具有 softmax 的神经网络实际上学习所需的概率分布而不是 $[0,1]$ 上其他一些度量的原因？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657683/reason-for-softmax-approximation-in-ian-goodfellows-deep-learning-book</guid>
-      <pubDate>Fri, 22 Nov 2024 14:02:49 GMT</pubDate>
     </item>
     <item>
       <title>两组样本数不同但增长至相同值的相关性</title>
@@ -389,32 +371,24 @@ sample_2]]></description>
       <pubDate>Fri, 22 Nov 2024 09:25:45 GMT</pubDate>
     </item>
     <item>
-      <title>rugarch 包中条件方差的初始值是如何计算的？</title>
-      <link>https://stats.stackexchange.com/questions/657651/how-are-the-initial-value-of-conditional-variance-calculated-in-rugarch-package</link>
-      <description><![CDATA[我正在尝试使用 rugarch 库验证我的零均值 GARCH(1,1) 模型的计算。起初，我认为条件方差的初始第一个值与无条件方差（python 中的 arch 包使用）的值相同，因为没有过去的回报，也没有过去的方差来计算它。
-但是当我使用 garch_fit@fit$var 重新检查条件方差的第一个初始值时，它与无条件方差不同。
-我尝试使用计算器手动计算无条件方差，它给出的输出与 uncvariance(garch_fit) 相同，这不是模型中条件方差的初始第一个值。那么，如果 GARCH 过程不是由无条件方差初始化的，那么第一个值是如何计算的呢？
-以下是我的规范代码：
-garch_spec &lt;- ugarchspec(
-mean.model = list(armaOrder = c(0, 0), include.mean = FALSE), # 无 ARMA 项，零均值
-variance.model = list(model = &quot;sGARCH&quot;, garchOrder = c(1, 1)), # GARCH(1, 1)
-distribution.model = &quot;norm&quot; # 正态分布
-)
-garch_fit &lt;- ugarchfit(
-spec = garch_spec,
-data = data$log_return_pct,
-solver = &quot;hybrid&quot;,
-out.sample = 83
-)
-
-以及两者之间的区别第一个初始方差
-&gt; uncvariance(garch_fit)
-[1] 0.5865156
-&gt; garch_fit@fit$var[1]
-[1] 0.5869211
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/657651/how-are-the-initial-value-of-conditional-variance-calculated-in-rugarch-package</guid>
-      <pubDate>Fri, 22 Nov 2024 00:48:50 GMT</pubDate>
+      <title>检查两组比例是否_无差异_的检验</title>
+      <link>https://stats.stackexchange.com/questions/657663/a-test-to-check-whether-two-sets-of-proportions-are-not-different</link>
+      <description><![CDATA[是否有检验方法可以检查两组小比例是否显著无差异？
+例如，考虑两组比例
+(0.2,0.3,0.25,0.35,0.19)
+(0.31, 0.25, 0.21,0.17, 0.22) 
+我想证明两组显著无差异。这意味着零假设必须是它们不同。
+如果对数据来源​​感兴趣，那就是各种样本的细胞类型比例。我想表明，经过治疗后，各种细胞类型比例的分布没有改变。
+之所以选择零假设和备择假设，是因为我感兴趣的实质性主张是两种情况之间没有发生任何变化。无法拒绝无变化的零假设并不等同于接受无变化的假设，后者才是我感兴趣的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657663/a-test-to-check-whether-two-sets-of-proportions-are-not-different</guid>
+      <pubDate>Fri, 22 Nov 2024 08:15:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么我的某个 GAM 响应与数据不太吻合？</title>
+      <link>https://stats.stackexchange.com/questions/657637/why-does-one-of-my-gam-responses-not-fit-the-data-well</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/657637/why-does-one-of-my-gam-responses-not-fit-the-data-well</guid>
+      <pubDate>Thu, 21 Nov 2024 20:10:18 GMT</pubDate>
     </item>
     </channel>
 </rss>
