@@ -4,7 +4,126 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 23 Nov 2024 21:16:39 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 24 Nov 2024 01:25:01 GMT</lastBuildDate>
+    <item>
+      <title>有人能帮我把这个图弄得更整洁一点吗？</title>
+      <link>https://stackoverflow.com/questions/79218937/can-someone-help-me-make-this-graph-look-a-bit-neater</link>
+      <description><![CDATA[import math
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn import metrics
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+import datetime
+
+# 加载特斯拉数据集
+tesla_stock = pd.read_csv(&#39;C:/Users/Admin/Downloads/AI/Tesla.csv&#39;)
+
+# 动态处理缺失或重命名的“收盘价”列
+possible_target_columns = [&#39;Close&#39;, &#39;Last&#39;, &#39;Price&#39;, &#39;Adjusted Close&#39;, &#39;VWAP&#39;, 
+&#39;Close/Last&#39;]
+target_column = None
+
+# 打印可用列以进行调试
+print(&quot;数据集中可用的列：&quot;, tesla_stock.columns)
+
+for col in possible_target_columns:
+if col in tesla_stock.columns:
+target_column = col
+print(f&quot;使用 &#39;{col}&#39; 作为预测的目标列。&quot;)
+break
+
+# 处理未找到合适列的情况
+if target_column is None:
+print(&quot;未找到合适的预测列。请检查数据集。&quot;)
+raise KeyError(&quot;确保数据集包含带有股票价格的列（例如，&#39;Close&#39;、
+&#39;Close/Last&#39;）。&quot;)
+
+# 清理数字列（删除 &#39;$&#39; 并转换为浮点数）
+for column in [&#39;Open&#39;, &#39;High&#39;, &#39;Low&#39;, &#39;Close/Last&#39;, &#39;Volume&#39;]:
+if column in tesla_stock.columns:
+tesla_stock[column] = tesla_stock[column].replace(&#39;[\$,]&#39;, &#39;&#39;, 
+regex=True).astype(float)
+
+# 将“日期”转换为日期时间并设置为索引
+tesla_stock[&#39;Date&#39;] = pd.to_datetime(tesla_stock[&#39;Date&#39;])
+tesla_stock.set_index(&#39;Date&#39;, inplace=True)
+
+# 定义特征和目标变量
+features = [&#39;Open&#39;, &#39;High&#39;, &#39;Low&#39;, &#39;Volume&#39;]
+X = tesla_stock[features]
+y = tesla_stock[target_column]
+
+# 将数据拆分为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+# 训练线性回归模型
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 进行预测
+predicted = model.predict(X_test)
+
+# 评估模型
+print(&quot;模型得分 (R²)：&quot;, model.score(X_test, y_test))
+print(&quot;平均绝对误差：&quot;, metrics.mean_absolute_error(y_test, predicted))
+print(&quot;均方误差：&quot;, metrics.mean_squared_error(y_test, predicted))
+print(&quot;均方根误差：&quot;, math.sqrt(metrics.mean_squared_error(y_test, 
+predicted)))
+
+# 绘制测试集的实际价格与预测价格
+dfr = pd.DataFrame({&#39;Actual&#39;: y_test, &#39;Predicted&#39;: predicted})
+plt.figure(figsize=(14, 8))
+dfr.head(25).plot(kind=&#39;bar&#39;, figsize=(14, 8))
+plt.title(&quot;实际价格与预测价格&quot;)
+plt.xlabel(&quot;样本&quot;)
+plt.ylabel(&quot;价格 (USD)&quot;)
+plt.xticks(rotation=45, ha=&quot;right&quot;)
+plt.tight_layout()
+plt.show()
+
+# 预测未来 30 天
+last_date = tesla_stock.index[-1] # 历史数据中的最后一个日期
+last_price = tesla_stock[target_column].iloc[-1] # 历史数据中的最后一个价格
+future_dates = [last_date + datetime.timedelta(days=i) for i in range(1, 31)] # 
+生成未来 30 天
+
+# 创建占位符 DataFrame用于未来特征
+future_features = pd.DataFrame(index=future_dates)
+for feature in features:
+if feature in tesla_stock.columns:
+future_features[feature] = tesla_stock[feature].mean() # 使用每个特征的平均值
+
+# 使用训练模型预测未来价格
+future_predictions = model.predict(future_features)
+
+# 结合历史和未来数据，绘制无缝图
+all_dates = list(tesla_stock.index) + list(future_dates) # 结合历史和未来日期
+all_prices = list(tesla_stock[target_column]) + list(future_predictions) # 结合历史和预测价格
+
+# 绘制历史数据和未来预测
+plt.figure(figsize=(14, 8))
+plt.plot(tesla_stock.index, tesla_stock[target_column], label=&#39;历史价格&#39;, 
+color=&#39;blue&#39;)
+plt.plot(future_dates, future_predictions, label=&#39;30 天未来预测&#39;, 
+color=&#39;red&#39;)
+plt.title(&#39;特斯拉未来 30 天股价预测&#39;)
+plt.xlabel(&#39;日期&#39;)
+plt.ylabel(&#39;价格 (美元)&#39;)
+plt.legend()
+plt.xticks(rotation=45)
+plt.show()
+
+# 显示未来预测
+future_features[&#39;Predicted_Close&#39;] = future_predictions
+print(future_features[[&#39;Predicted_Close&#39;]])
+
+输入图片描述在这里
+我试图让红线连接到图表的末端，然后弯曲到它所在的位置。而不是一开始就只是一条随机的短红线，因为它看起来有点混乱。我一直在尝试这样做，但我真的很难做到。如果有人能帮助我，我将不胜感激，谢谢。]]></description>
+      <guid>https://stackoverflow.com/questions/79218937/can-someone-help-me-make-this-graph-look-a-bit-neater</guid>
+      <pubDate>Sat, 23 Nov 2024 22:00:52 GMT</pubDate>
+    </item>
     <item>
       <title>抱抱脸生成方法后内存增加</title>
       <link>https://stackoverflow.com/questions/79218644/memory-increasing-after-hugging-face-generate-method</link>
@@ -13,7 +132,7 @@
       <pubDate>Sat, 23 Nov 2024 19:21:47 GMT</pubDate>
     </item>
     <item>
-      <title>具有动态约束的贷款人和借款人之间的多元化资金分配算法</title>
+      <title>具有动态约束的贷款人和借款人之间的多元化资金分配算法 [关闭]</title>
       <link>https://stackoverflow.com/questions/79218415/algorithm-for-diversified-fund-allocation-between-lenders-and-borrowers-with-dyn</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79218415/algorithm-for-diversified-fund-allocation-between-lenders-and-borrowers-with-dyn</guid>
@@ -49,66 +168,6 @@
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79214060/pointpillars-model-debug-request</guid>
       <pubDate>Fri, 22 Nov 2024 07:44:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么在我的案例中，逻辑回归在二值图像分割的准确度上优于 CNN？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79213671/why-does-logistic-regression-outperform-cnn-in-accuracy-for-binary-image-segment</link>
-      <description><![CDATA[我是机器学习的新手，我正在研究一个二值图像分割任务，我需要根据背景对物体（杯子）进行分类。我创建了一个彩色输入图像数据集（JPEG，在 0 和 1 之间归一化）和相应的二值蒙版（灰度图像，归一化为 0 和 1）。
-我使用 TensorFlow 实现了一个 CNN 模型，并将其性能与逻辑回归模型 (scikit-learn) 进行了比较。令人惊讶的是，逻辑回归模型实现了比 CNN（83%）更高的准确率（97%）并产生了更好的蒙版。我很困惑，因为 CNN 通常更适合与图像相关的任务。
-我已经使用 TensorFlow 构建了我的 CNN 模型，如下所示：
-def create_cnn_model(learning_rate = 0.0001, filters=64, kernel_size=(3, 3),depth=3):
-model = Sequential()
-# 初始 Conv 和 Pool 层
-model.add(Conv2D(filters, kernel_size=kernel_size,activation=&#39;relu&#39;,padding=&#39;same&#39;,input_shape=(Resolution, Resolution, 3)))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-# 根据深度添加 Conv-Pool 层
-for i in range(1,depth):
-model.add(Conv2D(filters * (2 ** i), kernel_size=kernel_size,activation=&#39;relu&#39;, padding=&#39;same&#39;))
-# 仅当尺寸大于 1x1 时才添加 MaxPooling
-model.add(MaxPooling2D(pool_size=(2, 2)))
-# 检查空间维度是否达到 1x1，如果为真则停止
-if (Resolution // (2 ** (i+1))) &lt; 2:
-break
-# UpSampling 和 Conv 层以恢复图像尺寸
-for i in range(depth, 1, -1):
-model.add(Conv2D(filters * (2 ** i), kernel_size=kernel_size,activation=&#39;relu&#39;, padding=&#39;same&#39;))
-model.add(UpSampling2D(size=(2, 2)))
-if (Resolution // (2 ** (i+1))) &lt; 2：
-break 
-model.add(UpSampling2D(size=(2, 2)))
-model.add(Conv2D(1, kernel_size=(1, 1),activation=&#39;sigmoid&#39;,padding=&#39;same&#39;)) # 具有 1 个通道的输出层
-# 编译模型
-model.compile(optimizer=Adam(learning_rate = learning_rate),loss=&#39;binary_crossentropy&#39;,metrics=[&#39;accuracy&#39;])
-return model
-
-使用上述模型，我的准确率约为 83%
-然后我尝试将我的模型与机器学习模型 Logistic 回归进行比较：
-model = LogisticRegression(max_iter=1000, random_state=42).fit(X_train, y_train)
-
-使用此模型，我的准确率达到 97%（并且预测的掩码比 CNN 预测的掩码更好）
-我使用的训练数据是定制的：
--输入图像（马克杯）为 jpeg 彩色，以 RGB 格式导入并进行预处理（在 0&amp;1 之间标准化），然后发送到模型
--掩码图像（马克杯）为黑白灰度（白色为物体，黑色为背景），以 RGB 格式导入并进行预处理（标准化为 0&amp; 1)，然后发送到模型。
--有 240 张图像和相同数量的掩码
--使用的图像是马克杯，几乎没有背景
-预期：由于 CNN 能够捕捉空间特征，其表现优于逻辑回归。
-结果：逻辑回归实现了更好的准确性和掩码质量，这似乎违反直觉。
-我怀疑问题可能与数据集、模型架构或预处理步骤的简单性有关。
-有人可以帮忙解释为什么逻辑回归在这种情况下可能优于 CNN，以及我如何改进我的 CNN 以完成这项任务？]]></description>
-      <guid>https://stackoverflow.com/questions/79213671/why-does-logistic-regression-outperform-cnn-in-accuracy-for-binary-image-segment</guid>
-      <pubDate>Fri, 22 Nov 2024 04:50:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何修复尝试通过 Azure Ai Studio 项目访问 VS 代码时出现的访问问题</title>
-      <link>https://stackoverflow.com/questions/79212964/how-to-fix-access-issues-when-trying-to-access-vs-code-via-azure-ai-studio-proje</link>
-      <description><![CDATA[我们从 Windows 机器访问 Azure AI Studio Compute 时遇到一个问题。当计算准备就绪并尝试通过 VScode Desktop 访问它时，我们会看到以下错误消息：在门户上
-
-这是我从 Vscode 获得的扩展：
-
-此问题仅发生在 Windows 计算机上，从 Mac 计算机访问时不会发生此问题。 Compute 实例已启动并正在运行，但尝试打开 vscode 时出现错误。对此有任何解决方案吗？
-]]></description>
-      <guid>https://stackoverflow.com/questions/79212964/how-to-fix-access-issues-when-trying-to-access-vs-code-via-azure-ai-studio-proje</guid>
-      <pubDate>Thu, 21 Nov 2024 21:17:20 GMT</pubDate>
     </item>
     <item>
       <title>为什么 gamma=0 的二元焦点交叉熵总是会产生 nan 损失？[关闭]</title>
@@ -234,6 +293,30 @@ plot_tree(model, rankdir=&#39;LR&#39;); plt.show()
 ]]></description>
       <guid>https://stackoverflow.com/questions/52314401/xgboost-plot-tree-binary-feature-interpretation</guid>
       <pubDate>Thu, 13 Sep 2018 13:06:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>PySpark 中的 KMeans 聚类</title>
+      <link>https://stackoverflow.com/questions/47585723/kmeans-clustering-in-pyspark</link>
+      <description><![CDATA[我有一个包含许多列的 spark 数据框“mydataframe”。我尝试仅在两列上运行 kmeans：lat 和 long（纬度和经度），使用它们作为简单值。我想仅基于这两列提取 7 个聚类，然后将聚类分配附加到我的原始数据框。我试过了：
+从 numpy 导入数组
+从 math 导入 sqrt
+从 pyspark.mllib.clustering 导入 KMeans、KMeansModel
+
+# 准备一个只有 2 列的数据框：
+data = mydataframe.select(&#39;lat&#39;, &#39;long&#39;)
+data_rdd = data.rdd # 需要是 RDD
+data_rdd.cache()
+
+# 构建模型（对数据进行聚类）
+clusters = KMeans.train(data_rdd, 7, maxIterations=15, initializationMode=&quot;random&quot;)
+
+但过了一会儿我收到错误：
+
+org.apache.spark.SparkException：作业因阶段失败而中止：阶段 5191.0 中的任务 1 失败 4 次，最近一次失败：丢失任务1.3 阶段 5191.0（TID 260738，10.19.211.69，执行器 1）：org.apache.spark.api.python.PythonException：Traceback（最近一次调用最后一次）
+
+我尝试分离并重新连接集群。结果相同。我做错了什么？]]></description>
+      <guid>https://stackoverflow.com/questions/47585723/kmeans-clustering-in-pyspark</guid>
+      <pubDate>Fri, 01 Dec 2017 02:22:01 GMT</pubDate>
     </item>
     <item>
       <title>神经网络收敛至零输出</title>

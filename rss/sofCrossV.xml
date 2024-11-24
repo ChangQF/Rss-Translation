@@ -4,7 +4,143 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 23 Nov 2024 21:16:33 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 24 Nov 2024 01:24:57 GMT</lastBuildDate>
+    <item>
+      <title>理解合并回归模型的误差协方差</title>
+      <link>https://stats.stackexchange.com/questions/657746/understanding-the-error-covariance-of-pooled-regression-model</link>
+      <description><![CDATA[我正在阅读格林的《计量经济学分析》（第 7 版，2011 年）。在第 350 页，他讨论了随机效应回归模型：
+$$
+\begin{aligned}
+y_{it} &amp;= x&#39;_{it} \beta + E[z&#39;_i \alpha] + \left[ z&#39;_i \alpha - E[z&#39;_i \alpha]\right] + \varepsilon_{it} \\
+&amp;= x&#39;_{it} \beta + a + \varepsilon_{it} + (c_i - E[c_i | X_i]) \\
+&amp;= x&#39;_{it} \beta + a + \varepsilon_{it} + u_i \\
+&amp;= x&#39;_{it} \beta + a + w_{it}
+\end{aligned}
+$$
+书中接着说未观察到的异质性（即$z&#39;_i\alpha$）会引起自相关：$t \ne s$时，$E[w_{it}w_{is}] = \sigma^2_u$。
+我不相信我看到了这一点。如果我们取相对于时间的期望值 $t$，并注意到 $E_t[w_{it}] = \omega_i$
+$$
+\begin{aligned}
+Cov_t(w_{it}, w_{is}) &amp;= E_t [(w_{it} - \omega_i)(w_{is} - \omega_i)]\\
+&amp;= E_t(w_{it}w_{is}) + T \omega_i^2 \\
+&amp;= E_t[(\varepsilon_{it} + u_i)(\varepsilon_{is} + u_i)] + T \omega_i^2 \\
+&amp;= E_t[\varepsilon_{it} \varepsilon_{is}] + E_t[u_i^2] + T \omega_i^2 \\
+&amp;= T(u_i^2 + \omega_i^2) \qquad \text{ for } t \ne s
+\end{aligned}
+$$
+显然，从上面可以看出
+$$
+\begin{aligned}
+E_t(w_{it}w_{is}) &amp;= E_t[(\varepsilon_{it} + u_i)(\varepsilon_{is} + u_i)] \\
+&amp;= E_t[\varepsilon_{it} \varepsilon_{is}] + E_t[u_i^2] \\
+&amp;= Tu_i^2 \qquad \text{ for } t \ne s
+\end{aligned}
+$$
+他们是如何得到$\sigma^2_u$的？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657746/understanding-the-error-covariance-of-pooled-regression-model</guid>
+      <pubDate>Sat, 23 Nov 2024 23:22:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>GAM 残差和 ACF 的后验模拟</title>
+      <link>https://stats.stackexchange.com/questions/657744/posterior-simulation-of-residuals-and-acf-for-gams</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/657744/posterior-simulation-of-residuals-and-acf-for-gams</guid>
+      <pubDate>Sat, 23 Nov 2024 22:56:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>对于两个独立的 glmmTMB 模型，sjPlot::tab_model() 中存在相同的随机效应方差值 (sigma^2)，这是 R 的问题</title>
+      <link>https://stats.stackexchange.com/questions/657742/r-issue-with-the-same-random-effect-variance-value-sigma2-in-sjplottab-mode</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/657742/r-issue-with-the-same-random-effect-variance-value-sigma2-in-sjplottab-mode</guid>
+      <pubDate>Sat, 23 Nov 2024 22:13:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>鲁宾规则从小鼠估算数据集和均方根库中预测的值</title>
+      <link>https://stats.stackexchange.com/questions/657741/rubins-rules-predicted-values-from-mice-imputed-datasets-and-rms-library</link>
+      <description><![CDATA[我正在中途开始分析，所以我的起点是使用小鼠创建的多个估算数据集。
+##################################################################################
+# 加载库
+library(rms)
+library(mice)
+library(dplyr)
+
+set.seed(123) # 为了可重复性
+
+# 观察次数
+n &lt;- 100
+
+# 结果
+y &lt;- rbinom(n, size = 1, prob = 0.07)
+
+# bmi
+bmi &lt;- runif(n, min = 16, max = 60)
+bmi[sample(1:n, size = round(0.12 * n))] &lt;- NA # 引入缺失值
+
+# tiktok_ban
+tiktok_ban &lt;- sample(1:90, size = n, replace = TRUE)
+#tiktok_ban[sample(1:n, size = round(0.05 * n))] &lt;- 0 # 强制某些值为 0
+
+# sex
+child_sex &lt;- sample(c(&quot;Male&quot;, &quot;Female&quot;), size = n, replace = TRUE, prob = c(0.49, 0.51))
+child_sex[sample(1:n, size = round(0.05 * n))] &lt;- NA # 引入缺失值
+
+# 合并为数据框
+df &lt;- data.frame(y, bmi, tiktok_ban, child_sex)
+
+# 查看第一行数据集
+head(df)
+
+##################################################################################
+
+imputed_df &lt;- mice(df, print = FALSE, m = 20, seed = 24415, method = &quot;pmm&quot;, printFlag = FALSE)
+
+imputed_df_l &lt;- mice::complete(imputed_df, &quot;long&quot;, include = FALSE)
+
+我能够在 mice 插补数据集上拟合模型并获得汇总估计值和预测值。我正在使用 rms 包中的 Predict 函数。
+#####################################################################################
+
+d &lt;- imputed_df_l
+dd &lt;- datadist(d); options(datadist=&#39;dd&#39;)
+
+Hmisc::describe(imputed_df_l$tiktok_ban)
+
+k &lt;- attr(rcs(imputed_df_l$tiktok_ban, 6), &#39;parms&#39;)
+k
+
+h &lt;- function(x) {
+z &lt;- cbind(rcspline.eval(x, k),
+#sin=sin(2*pi*x/12), cos=cos(2*pi*x/12),
+jump=x &gt;= 20)
+attr(z, &#39;非线性&#39;) &lt;- 2 : ncol(z)
+z
+}
+
+###########################################################################################
+m1 &lt;- lapply(1:20, function(i){
+f &lt;- lrm(y ~ child_sex + bmi +
+gTrans(tiktok_ban, h),
+data= subset(imputed_df_l, .imp == i))
+pred &lt;- Predict(f, tiktok_ban)
+return(pred)
+})
+
+我的目标是检查结果如何随时间变化。20 个估算数据集的预测值存储为列表对象。
+m1[[1]], m1[[2]], .....m1[[20]]
+
+但是，我不确定如何将 Rubin 规则应用于这些预测值，因为 Predict 函数不提供标准错误。
+请就汇集这些预测值的最佳方法提供建议？感谢您的指导。
+感谢您的时间]]></description>
+      <guid>https://stats.stackexchange.com/questions/657741/rubins-rules-predicted-values-from-mice-imputed-datasets-and-rms-library</guid>
+      <pubDate>Sat, 23 Nov 2024 22:10:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 Mann Whitney U 检验中支持零假设后，进行事后功效分析是否合适？样本量不相等</title>
+      <link>https://stats.stackexchange.com/questions/657740/is-it-appropriate-to-do-a-post-hoc-power-analysis-after-the-null-hypothesis-is-f</link>
+      <description><![CDATA[嗨，在 Mann Whitney U 检验中支持零假设后进行事后功效分析是否合适？样本量不相等，我想知道它是否功效不足。对于像链接的帖子，我不确定这是否合适。谢谢
+样本量和功效检测]]></description>
+      <guid>https://stats.stackexchange.com/questions/657740/is-it-appropriate-to-do-a-post-hoc-power-analysis-after-the-null-hypothesis-is-f</guid>
+      <pubDate>Sat, 23 Nov 2024 21:24:17 GMT</pubDate>
+    </item>
     <item>
       <title>是否有更好的回归线适合以下数据</title>
       <link>https://stats.stackexchange.com/questions/657739/is-there-a-better-regression-line-that-fit-the-following-data</link>
@@ -22,15 +158,20 @@ f = open(&#39;../../../data_files/regression/output.txt&#39;)
 
 _col1=[]
 _col2=[]
+_col3=[]
 for ll in f:
 a=ll.split(&#39;,&#39;)[0]
 _col1.append(float(a))
 
-b=ll.split()[1]
+b=ll.split(&#39;,&#39;)[1]
 _col2.append(float(b))
+
+c=ll.split(&#39;,&#39;)[2]
+_col3.append(float(c))
 
 x=np.array(_col1)
 y=np.array(_col2)
+t=np.array(_col3)
 
 x_with_ones=np.array((np.ones(len(x)),x)).T
 
@@ -42,7 +183,7 @@ x_test1=np.array((np.ones(5),_x_test)).T
 out1=model1.predict(x_test1)
 print(model1.summary())
 #%%
-# 多元回归
+#多元回归
 x_poly = np.array((np.ones(len(x)),x,x**2,x**3))
 model2=sm.OLS(y,x_poly.T).fit()
 x_test2=np.array((np.ones(len(_x_test)),_x_test,_x_test**2,_x_test**3)).T
@@ -115,24 +256,6 @@ X2 = [9, 11]
 但是，如果我们将这些概率添加到表中的概率中，它就超出了值 1. 我该如何解决这个问题？]]></description>
       <guid>https://stats.stackexchange.com/questions/657733/probability-distribution-of-portfolio-loss</guid>
       <pubDate>Sat, 23 Nov 2024 17:58:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在这个三张牌游戏中最大限度地获胜？</title>
-      <link>https://stats.stackexchange.com/questions/657729/how-to-maximize-winning-in-this-3-card-game</link>
-      <description><![CDATA[假设您正在玩一个游戏，每轮您需要从三张牌中选择一张：
-[1] [2] [3]
-
-其中一张是输，另外两张是赢。每轮都是独立的，每次都会洗牌。因此，每次输的概率都是 $\frac{1}{3}$，赢的概率都是 $\frac{2}{3}$。
-当您选择一张牌时，游戏管理员不会向您显示所有牌。他们只会向您显示您选择的牌。例如对于上面的例子，如果你选了 [2] 并且它是一张输牌，你会看到：
-[1] [L] [3]
-
-如果你选了 [3] 并且它是一张赢牌，情况也是一样：
-[1] [2] [W]
-
-如何选牌才能最大化你获得赢牌的回合数？你应该随机选牌吗？还是总是选相同的牌就可以了？
-上一轮结果的知识是否决定了下一轮的选择？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657729/how-to-maximize-winning-in-this-3-card-game</guid>
-      <pubDate>Sat, 23 Nov 2024 16:12:03 GMT</pubDate>
     </item>
     <item>
       <title>我对这个多元线性回归的评价正确吗？</title>
@@ -256,83 +379,6 @@ print(f&quot;均方根误差：&quot;, sqmse)
       <pubDate>Sat, 23 Nov 2024 15:43:04 GMT</pubDate>
     </item>
     <item>
-      <title>二项式系列的概率问题</title>
-      <link>https://stats.stackexchange.com/questions/657726/probability-problem-with-binomial-series</link>
-      <description><![CDATA[大家好。我正在学习概率，有一道题：
-&quot;假设 N 是一个离散随机变量，其概率函数为：
-$$P(N = n) = 0,5^{n+1},$$，其中 n $\in$ {0,1,2,...&gt;
-另一个离散随机变量服从条件分布
-$$P(X = x|N = n) = \binom{n}{x}0,5^n$$
-其中 $0 \leq x \leq n$。
-X 的方差等于 7,5。正确还是错误？＆quot;
-我使用了公式 $$P(X=x|N=n) = \frac{P(X=x,N=n)}{P(N=n)}$$
-我发现
-$$P(X=x,N=n) = \binom{n}{x}(0,5)^{2n+1}$$
-我知道我可以在 N 中求和以找到 X 的边际函数，即
-$$P(X = x) = \sum_{n = 0}^{\infty}\binom{n}{x}0,5^{2n+1}$$
-对于 $0 \leq x \leq n$
-但我无法解答这个系列。我是不是做错了什么我没注意到的事情？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657726/probability-problem-with-binomial-series</guid>
-      <pubDate>Sat, 23 Nov 2024 15:24:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>Copulas：通过伪观测还是通过 CDF 获得均匀边际分布？</title>
-      <link>https://stats.stackexchange.com/questions/657725/copulas-obtaining-uniform-marginal-distribution-via-pseudo-observation-or-via-c</link>
-      <description><![CDATA[我正在为时间序列分析考试学习 copula，为了练习，我们的教授给我们布置了一道关于财务数据的练习题。
-练习的要点之一是拟合椭圆 copula 以估计两种资产的超额收益之间的相关性，现在我有一些问题。
-我是否应该使用 vinecopula 包来拟合最佳椭圆 copula（高斯或 t）？否则，我应该如何知道 copula 的参数？
-要拟合 copula，我需要将数据转换为它们的均匀分布，对吗？
-我读到，要做到这一点，有两种方法：
-
-使用 pobs() 函数计算伪观测值
-如果我知道边际分布（在我的例子中，我尝试使用 fitdistrplus 包找到最佳分布），则使用 CDF 获得均匀分布（对这一点并不完全确定）
-
-我尝试了这两种方法，它们返回不同的 copula，这是有道理的。但主要的问题是，当我制作两个边际均匀分布的散点图时，我得到了一个使用 CDF 获得的奇怪的图。
-这是使用 cdf 的图：
-
-这是使用伪观测的图：
-
-提前非常感谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/657725/copulas-obtaining-uniform-marginal-distribution-via-pseudo-observation-or-via-c</guid>
-      <pubDate>Sat, 23 Nov 2024 14:36:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>单位根检验的功效</title>
-      <link>https://stats.stackexchange.com/questions/657723/power-of-unit-root-tests</link>
-      <description><![CDATA[我正在测试基本单位根检验的功效：ADF、PP 和 DFGLS。
-具体来说，我正在生成这个序列：
-$$y_t = \text{drift} + (\text{trend_coeff} \cdot t) + (\phi \cdot y_{t-1}) + e_t$$
-对于 $\phi$ 的范围，介于 0 和 1 之间，包括 0 和 1。
-从数学上讲，这从 [0,1) 得出一个趋势平稳过程：
-
-在 $\phi$ = 1 时，它会产生一个具有随机趋势的过程：
-
-对 $\phi = [0,1)$ 执行任何单位根检验都应拒绝零假设并接受平稳性，在 $\phi = 1$ 时，它应接受单位根的零假设。
-期望：通过从结果中绘制 p 值，应该期望看到 $\phi = [0,1)$ 低 p 值（至少低于显着性水平），因为这将拒绝单位根检验的零值，并且看到 $\phi = 1$ 大 p 值（至少大于显着性水平），因为这意味着接受零值。
-结果：
-ADF 和 ADFGLS 都使用“AIC”，PP 使用 Newey-West 估计量进行滞后选择。
-样本数量：300
-drift=30
-trend_coeff=10
-sigma=20
-模拟次数 = 20
-
-问题：ADF-GLS 返回该钟形曲线的原因可能是什么？它不应该是 ADF 的改进版本吗？
-注意：我在 python 中使用 Arch lib 中的 DFGLS。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657723/power-of-unit-root-tests</guid>
-      <pubDate>Sat, 23 Nov 2024 14:04:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>用两个数字变量解释分类变量 - 哪种方法合适？</title>
-      <link>https://stats.stackexchange.com/questions/657718/categorical-variable-explained-by-two-numeric-variables-which-methods-are-appr</link>
-      <description><![CDATA[我有以下情况：
-我有一份患者名单，这些患者被给予了两种药物，药物 A 和 药物 B，两者都是数字，作为处方数量，以及他们的治愈成功记录，作为分类变量，“治愈”/“未治愈”。有些患者只服用了药物 A，有些只服用了药物 B，而其他患者则服用了两种药物。
-我现在的目标是分析哪种药物对治愈有积极作用，考虑两种药物之间可能存在的相互作用。我正在考虑进行逻辑回归。但我想知道是否还有其他有用的方法可以考虑？
-提前谢谢您]]></description>
-      <guid>https://stats.stackexchange.com/questions/657718/categorical-variable-explained-by-two-numeric-variables-which-methods-are-appr</guid>
-      <pubDate>Sat, 23 Nov 2024 12:01:17 GMT</pubDate>
-    </item>
-    <item>
       <title>逻辑模型中的优势比</title>
       <link>https://stats.stackexchange.com/questions/657716/odds-ratio-in-a-logistic-model</link>
       <description><![CDATA[我在 R 中拟合了一个逻辑回归模型，获得了 95% 的准确率、0.98 的 AUC 得分、0.4 的 Brier 得分，灵敏度和特异性值约为 90%，因此我认为这是一个好的模型，而且我确信我没有过度拟合它，因为样本量足够大，我使用嵌套交叉验证进行训练，之前使用该数据集的工作具有相似的指标得分。但是当我使用来评估优势比时
@@ -366,24 +412,108 @@ plot(residuals(model_forward)) #stats library
       <pubDate>Sat, 23 Nov 2024 10:55:35 GMT</pubDate>
     </item>
     <item>
-      <title>布冯针问题</title>
-      <link>https://stats.stackexchange.com/questions/657708/the-buffon-needle-problem</link>
-      <description><![CDATA[目前，我正在做概率教科书中的以下练习：
-（布冯针问题）：
+      <title>Freeman-Tukey 变换的 metafor 发生率的反向变换 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/657703/back-transformation-of-freeman-tukey-transformed-incidence-rates-in-metafor</link>
+      <description><![CDATA[问题描述
+我正在使用 metafor 包对同一疾病的不同治疗方法的术后复发率进行荟萃分析，但我正在努力对我们用作结果衡量标准的 Freeman-Tukey 变换发生率的反向变换进行编码。
+代码
+使用以下公式将个体效应大小计算为 Freeman-Tukey 变换发生率：
+ ies = escalc(measure = &quot;IRFT&quot;, add = 0, data = Data, xi = total.recurrences,
+ti = time)
 
-一根长度为 L 的针掉落在由宽度为 D 的平行板制成的地板上。对掉落的针的位置和方向做出明显的均匀性和独立性假设。证明如果 L &lt; D，则针穿过两块地板之间的裂缝的概率为 2L/$\pi$D。布丰根据数百次试验中该事件发生的次数比例，对 $\pi$ 进行了经验估计。
+我们指定了一个三级模型来解释研究间和研究内的异质性，并将其拟合到我们不同的治疗组以获得每个治疗组的汇总效应大小。
+模型1：
+ pes.sg = rma.mv(yi, vi, data = ies,
+subset = treatment == &quot;insert subgroup&quot;, 
+random = ~1 | study.id/es.id,
+method = &quot;REML&quot;, test = &quot;t&quot;,dfs = &quot;contain&quot;, 
+cvvc = TRUE) 
 
-以下是我的一些观察（和困惑）；
+我们还对整个数据集使用了另一种多元回归参数化方法，将分组变量作为调节变量，以获得与单独分析相同的结果。
+模型 2：
+ pes = rma.mv(yi, vi, 
+random = list(~treatment|study.id, ~treatment|es.id), 
+mods = ~0+treatment,
+data = ies, 
+method = &quot;REML&quot;, struct = &quot;DIAG&quot;, test = &quot;t&quot;,dfs = &quot;contain&quot;,
+sparse = TRUE)
 
-问题没有具体说明有多少块木板，所以我猜想针头可能落到的裂缝数量是无限的。
-假设一根针头落在一对平行木板上，那么针头可能落到的位置数量是无限的。
-在任何给定的裂缝上，针头可能处于的方向数量是无限的。
+现在我想使用 predict() 和 transf.iirft() 函数来获取模型 1 的反向转换汇总效应大小，或模型 2 的每个调节器treatment级别的反向转换平均结果。每个都有相应的置信区间和预测区间。我们希望报告原始规模上每个治疗组的估计平均发生率（及其 CI 和 PI），以便于解释我们的结果。
+ predict(pes.sg, transf = transf.iirft(xi = ?, ti = ?))
+predict(pes, newmods = c(dummies as required), transf = transf.iirft(xi = ?, ti = ?))
 
-我理解，由于这些“无限”，这个问题应该被视为涉及连续随机变量而不是离散随机变量的问题。但是，我不确定如何继续回答这个问题，特别是有三种情况我必须考虑（如上文列出的要点）。它会像三重积分一样吗？
-此外，问题还指出 $\pi$ 来自经验发现。如果是这样，那么如何从等式中得到 $\pi$？
-附注：我知道这是一个经典的概率问题，因此网上有很多解决方案。但是，我还没有看过它们，我想自己解决这个问题，所以我非常感谢任何指导（而不是解决方案）！]]></description>
-      <guid>https://stats.stackexchange.com/questions/657708/the-buffon-needle-problem</guid>
-      <pubDate>Sat, 23 Nov 2024 04:55:27 GMT</pubDate>
+如果您能帮助我将汇总效应大小或调节器水平的平均结果进行反向转换，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657703/back-transformation-of-freeman-tukey-transformed-incidence-rates-in-metafor</guid>
+      <pubDate>Fri, 22 Nov 2024 22:28:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>探索性因子分析、斜向旋转、方差解释</title>
+      <link>https://stats.stackexchange.com/questions/657692/exploratory-factor-analysis-oblique-rotation-variance-explained</link>
+      <description><![CDATA[如何计算通过探索性因子分析获得的因子模型解释的方差的问题时常出现。这里有一个包含多种可能性的摘要：在 R 中使用斜旋转进行探索性因子分析后计算因子解释的方差
+我使用的是 R，带有 psych 包，如代码片段所示：
+library(psych)
+
+fa_results &lt;- fa(df_sq1sq9, nfactors = 5, rotate = &quot;oblimin&quot;)
+mean(fa_results$communalities)
+print(fa_results)
+
+
+平均共同性金额：0.7418824
+摘要表还将 0.74 报告为斜交旋转的解释方差：
+斜交旋转：
+
+[...]
+MR1 MR3 MR5 MR2 MR4
+SS 载荷 2.45 1.50 1.07 1.05 0.60
+比例方差 0.27 0.17 0.12 0.12 0.07
+累积方差 0.27 0.44 0.56 0.68 0.74
+解释比例 0.37 0.22 0.16 0.16 0.09
+累积比例 0.37 0.59 0.75 0.91 1.00
+
+因子相关性为 
+MR1 MR3 MR5 MR2 MR4
+MR1 1.00 0.59 0.64 -0.01 0.30
+MR3 0.59 1.00 0.33 0.12 0.21
+MR5 0.64 0.33 1.00 0.28 0.11
+MR2 -0.01 0.12 0.28 1.00 -0.17
+MR4 0.30 0.21 0.11 -0.17 1.00
+
+
+如果我使用正交旋转进行相同的分析，例如varimax，那么我得到的解释总方差值相同。
+Varimax 旋转：
+[...]
+
+MR1 MR3 MR2 MR5 MR4
+SS 载荷 2.44 1.45 1.06 0.91 0.81
+比例方差 0.27 0.16 0.12 0.10 0.09
+累积方差 0.27 0.43 0.55 0.65 0.74
+解释比例 0.37 0.22 0.16 0.14 0.12
+累积比例 0.37 0.58 0.74 0.88 1.00
+
+
+据我了解，正交旋转会在因子之间重新分配载荷，但解释总方差仍然是整个系统都一样。但是，我不确定斜向旋转，因为这些因素在它们解释的方差上重叠。在上面的例子中，我在一些因素之间存在显著的相关性，但我得到的总解释方差与方差最大值相同。在这种情况下，总解释方差是否也相同，还是我做错了什么？我需要反馈。谢谢！
+更新：
+我还查看了两种情况下 fa_results$loadings 的输出。它显示的方差最大值的摘要值不与 print(fa_results) 相同，但在斜向旋转的情况下，输出偏差更大。哪些值是正确的？
+Oblimin：与 print(fa_results) 相比的偏差
+Oblimin 旋转：
+&gt;fa_results$loadings
+[...]
+MR1 MR3 MR5 MR2 MR4
+SS 载荷 2.310 1.350 0.975 1.038 0.563
+比例变异 0.257 0.150 0.108 0.115 0.063
+累积变异 0.257 0.407 0.515 0.630 0.693
+
+Varimax：与 print(fa_results) 相比的偏差。
+Varimax旋转：
+&gt;fa_results$loadings
+[...]
+MR1 MR3 MR2 MR5 MR4
+SS 载荷 2.444 1.450 1.064 0.913 0.806
+比例方差 0.272 0.161 0.118 0.101 0.090
+累积方差 0.272 0.433 0.551 0.652 0.742
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657692/exploratory-factor-analysis-oblique-rotation-variance-explained</guid>
+      <pubDate>Fri, 22 Nov 2024 17:10:04 GMT</pubDate>
     </item>
     <item>
       <title>为什么 R 中的二项式家族（link="log"）的 glm 有时需要起始值？</title>
@@ -391,18 +521,6 @@ plot(residuals(model_forward)) #stats library
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/657665/why-does-glm-in-r-with-family-binomiallink-log-sometimes-require-start-value</guid>
       <pubDate>Fri, 22 Nov 2024 09:25:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>发生率受测试频率影响</title>
-      <link>https://stats.stackexchange.com/questions/657657/incidence-influenced-by-test-frequency</link>
-      <description><![CDATA[我对研究设计感到困惑。假设我想研究一种疾病的发病率，但这种疾病大多无症状，其检测仅依赖于定期检测。有些人的检测频率比其他人高。我想根据每个人的检测频率为他们分配权重。如果我打算使用逆倾向得分来计算权重（仅举一个例子）：
-PS= glm(test_frequency~age+sex, data=df)
-PS$Wt= 1/predict(PS, df)
-
-这听起来合理吗？
-非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/657657/incidence-influenced-by-test-frequency</guid>
-      <pubDate>Fri, 22 Nov 2024 05:07:30 GMT</pubDate>
     </item>
     </channel>
 </rss>
