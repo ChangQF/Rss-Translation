@@ -4,17 +4,175 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 25 Nov 2024 18:23:50 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 25 Nov 2024 21:16:09 GMT</lastBuildDate>
     <item>
-      <title>tune::tune_bayes() 中的整数初始参数</title>
-      <link>https://stackoverflow.com/questions/79223677/integer-initial-argument-in-tunetune-bayes</link>
-      <description><![CDATA[在 R 中的 tune::tune_bayes() 中将初始参数指定为整数究竟意味着什么？帮助页面显示：
+      <title>在 Databricks 中使用 MLflow 记录模型时排除私有包依赖项</title>
+      <link>https://stackoverflow.com/questions/79224603/exclude-private-package-dependency-when-logging-model-with-mlflow-in-databricks</link>
+      <description><![CDATA[我正在使用 Databricks Asset Bundles (DAB) 部署 Databricks 工作流。我的集群上安装了一个自定义包 (mypackage)，其中包含用于不同工作流的多个 CLI 命令。此包包含我的工作流所需的所有依赖项。请注意，mypackage 是一个私有 PyPI 存储库，无法从外部访问。
+当我使用 mlflow.pyfunc.log_model() 记录我的模型时，MLflow 会自动检测并将 mypackage.submodule 作为模型的依赖项。这会导致问题，因为：
 
-一组整洁格式的初始结果（如 tune_grid() 的结果）或正整数。建议初始结果的数量大于正在优化的参数数量。
+mypackage 是私有的，无法从外部环境安装。
+该模型实际上不需要 mypackage 或其依赖项进行推理 - 它只需要 PyTorch 和 Pandas 等标准库。
 
-但基于此，我真的不知道针对给定问题应该选择什么整数值。]]></description>
-      <guid>https://stackoverflow.com/questions/79223677/integer-initial-argument-in-tunetune-bayes</guid>
-      <pubDate>Mon, 25 Nov 2024 15:37:54 GMT</pubDate>
+这是我的代码的简化版本：
+import mlflow.pyfunc
+from mypackage.submodule import MyModelClass
+
+model = MyModelClass()
+
+mlflow.pyfunc.log_model(
+python_model=model,
+artifact_path=&quot;my_model&quot;,
+# 其他参数
+)
+
+问题：
+
+*如何使用 mlflow.pyfunc.log_model() 记录我的模型，而无需包括 mypackage 作为依赖项？*
+
+是否有 MLflow 原生方法可以防止某些包被包含在模型环境中？
+
+是否有最佳实践来处理训练环境包含不应成为序列化模型依赖项的包的情况？
+
+
+其他上下文：
+
+我正在使用 Databricks 和 Databricks Asset Bundles 进行部署。
+该模型使用推理所需的标准库（例如 PyTorch、Pandas）。
+mypackage 仅在训练和工作流程编排期间使用，但不需要用于模型推理。
+
+
+有关如何正确排除的任何指导在使用 MLflow 进行日志记录时，如果能够从模型依赖项中删除 mypackage，将不胜感激。
+我尝试过的：
+作为一种解决方法，我尝试了一种破解方法，在 __main__ 模块中重新定义我的模型类，并使用 cloudpickle 对其进行序列化，本质上是删除了对 mypackage 的引用。这是我所做的片段：
+import inspect
+import cloudpickle
+
+# 提取模型类的源代码
+model_source = inspect.getsource(MyModelClass)
+
+# 创建主命名空间并在 __main__ 中重新定义类
+main_namespace = {
+&#39;__name__&#39;: &#39;__main__&#39;,
+# 包含其他必要的导入
+}
+exec(model_source, main_namespace)
+
+# 访问重新定义的类
+MyModelClassMain = main_namespace[&#39;MyModelClass&#39;]
+model = MyModelClassMain()
+
+# 序列化模型
+with open(&quot;model.pkl&quot;, &quot;wb&quot;) as f:
+cloudpickle.dump(model, f)
+
+# 记录模型而不包括“mypackage”
+mlflow.pyfunc.log_model(
+python_model=model,
+articulate_path=&quot;my_model&quot;,
+artifacts={&quot;model.pkl&quot;: &quot;model.pkl&quot;},
+pip_requirements=[&quot;torch&quot;, &quot;pandas&quot;, &quot;cloudpickle&quot;],
+# 其他参数
+)
+
+虽然这种方法有效，但感觉像是一种黑客解决方案。]]></description>
+      <guid>https://stackoverflow.com/questions/79224603/exclude-private-package-dependency-when-logging-model-with-mlflow-in-databricks</guid>
+      <pubDate>Mon, 25 Nov 2024 21:09:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>弹性净惩罚分位数回归模型效果不佳的原因及解决方法</title>
+      <link>https://stackoverflow.com/questions/79224486/reasons-and-potential-solutions-for-poor-performance-of-elastic-net-penalized-qu</link>
+      <description><![CDATA[我正在对我的数据集执行弹性净惩罚分位数回归 (EN-QR)，该数据集有 6,782 行和 227 列（即预测因子）。其中 195 个预测因子是代谢物，我的目标是找出哪些代谢物与接触空气污染物 PM2.5 有关。我选择执行 QR 而不是线性回归，因为 PM2.5 数据存在偏差且不呈正态分布，即使在执行对数转换和标准化之后也是如此。我将数据集按 70:30 的比例分为训练集 (n = 4,747) 和测试集 (n = 2,035)。
+我遇到的问题是，当我将训练集中的 EN-QR 对象应用到测试集以预测 PM2.5 值（下图）时，我得到了一个奇怪的多峰分布，它与测试集中的实际 PM2.5 值不符（上图）。我已将这些分布的屏幕截图附在下面。
+
+我不一定在寻找可以解决这个问题的人，但我想知道是否有人对此有解决问题的建议。模型会分裂成多峰分布而不是（近似）正态分布的一些潜在原因是什么？有没有我没有考虑包含在训练集模型中的东西？是否有其他我应该研究的策略来实现我的变量选择目标？理想情况下，我希望 EN-QR 模型能够发挥作用，因为它为我的研究问题提供了最多的信息。
+我尝试根据数据属于多峰分布的哪个模式将数据分成四个集群。我发现美国人口普查区域与预测的 PM2.5 值的模式之间存在关系。例如，几乎所有 z 得分最低的模式中的人都来自南部，而几乎所有 z 得分最高的模式中的人都来自中西部。我觉得这很奇怪，因为美国人口普查区域被纳入为协变量，因此模型不应该按地区分层。我在下面附上了这张图片和表格。
+
+这是我用来在训练集上执行 EN-QR 的 R 聊天。 Behat 是我用来预测测试集中 PM2.5 值的代码。
+trainingset.ENQR &lt;- rq.pen.cv(
+x = as.matrix(trainingset[, c(4:5, 27, 29:251)]),
+y = trainingset[, 18],
+tau = c(0.1, 0.5, 0.9),
+penalty = &quot;ENet&quot;,
+a = c(0.50, 0.75, 0.90),
+nfolds = 10,
+printProgress = TRUE,
+penalty.factor = c(rep(0, 32), rep(1, 194))
+)
+
+lambda.min.training &lt;- trainingset.ENQR$gtr$lambda1se[2]
+
+testingset.ENQR.50 &lt;- rqPen:::predict.rq.pen.seq.cv(object = trainingset.ENQR,
+newx = as.matrix(testingset[, c(4:5, 27, 29:251)]),
+tau = 0.50,
+a = 0.50,
+lambda = lambda.min.training,
+cvmin = FALSE)
+
+非常感谢您的建议和帮助！]]></description>
+      <guid>https://stackoverflow.com/questions/79224486/reasons-and-potential-solutions-for-poor-performance-of-elastic-net-penalized-qu</guid>
+      <pubDate>Mon, 25 Nov 2024 20:14:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>统计学习混淆表变量</title>
+      <link>https://stackoverflow.com/questions/79224395/statistical-learning-confusion-table-variable</link>
+      <description><![CDATA[我的混淆表中出现了一个额外的变量，不知道它从何而来。
+数据集“默认”具有以下列：默认、学生、收入、余额
+变量“默认”具有两个值：“是”和“否”
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import (ModelSpec as MS,
+summary,
+poly)
+from ISLP import chaos_table
+
+Default = load_data(&#39;Default&#39;)
+vars = Default.columns.drop([&#39;default&#39;])
+y = Default[&#39;default&#39;] == &#39;是&#39;
+design = MS(vars)
+X = design.fit_transform(Default)
+glm = sm.GLM(y,
+X,
+family = sm.families.Binomial())
+results = glm.fit()
+summarize(results)
+probs = results.predict()
+labels = np.array([&#39;No&#39;]*10000)
+labels[probs&gt;0.5] = &#39;Yes&#39;
+confusion_table(labels,Default.default)
+
+在输出中，我得到一个 3x3 表，其中包含变量“No”、“Yes”和“Ye”
+我希望混淆表值仅为“Yes”和“No”。不知何故，numpy.array“labels”设置为“Ye”而不是“Yes”。]]></description>
+      <guid>https://stackoverflow.com/questions/79224395/statistical-learning-confusion-table-variable</guid>
+      <pubDate>Mon, 25 Nov 2024 19:35:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>FileNotFoundError。当我 pickle 我的 ML 模型并将其注释掉时，会出现此错误，这可能是什么问题？</title>
+      <link>https://stackoverflow.com/questions/79224304/filenotfounderror-what-could-be-the-problem-with-why-i-am-getting-this-error-wh</link>
+      <description><![CDATA[我在尝试为数据项目加载 pickle ML 模型时收到一条错误消息。如果有人能给我建议，我将不胜感激。
+我有正确的文件路径，并且已经确认了路径“/home/jovyan/work”，并且之前加载了 pickle。
+我不知道这是否是云问题，但是当我单独注释掉 pickle 的写入时，或者如果我注释掉 pickle 的写入和模型的拟合...出于某种原因，我无法简单地加载 pickle。这就是我每次都要对模型进行 pickle 处理，而不必拟合模型的原因。
+这些是我正在使用的函数....
+def write_pickle(path, model_object, save_as:str): 
+
+with open(path + save_as + &quot;.pickle&quot;, &quot;wb&quot;) as to_write: 
+
+pickle.dump(model_object, to_write)
+
+def read_pickle(path, saved_model_name:str):
+
+with open(path + saved_model_name + &#39;.pickle&#39;, &#39;rb&#39;) as to_read:
+
+model = pickle.load(to_read)
+
+return model
+
+这些函数可以处理文件路径和所有内容，但是当我注释掉 pickle 的写入或注释掉 ML 模型的拟合时.... 我收到了 FileNotFoundError。我不知道问题可能出在哪里。如果我不能弄清楚，那么我甚至连 pickle 这个模型都毫无用处。]]></description>
+      <guid>https://stackoverflow.com/questions/79224304/filenotfounderror-what-could-be-the-problem-with-why-i-am-getting-this-error-wh</guid>
+      <pubDate>Mon, 25 Nov 2024 19:00:17 GMT</pubDate>
     </item>
     <item>
       <title>比较两个图像集分布？[关闭]</title>
@@ -328,105 +486,6 @@ self.gradient_history.append(self.gradient_Q[state, action])
 我预计梯度（TD 误差）会随着 Q 值的收敛而逐渐减小，但相反，它似乎在增长。因此，我的学习率从 0.001 开始，并没有像预期的那样随着时间的推移而增加，而是低于预期甚至下降。这是我正在使用的 Q 学习更新函数：]]></description>
       <guid>https://stackoverflow.com/questions/79177301/q-learning-using-dynamic-learning-rate-with-rmsprop-optimizer</guid>
       <pubDate>Mon, 11 Nov 2024 10:33:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>iOS 视觉框架 - 无法在 VNDetectHumanBodyPoseRequest 中设置请求</title>
-      <link>https://stackoverflow.com/questions/70473725/ios-vision-framework-unable-to-setup-request-in-vndetecthumanbodyposerequest</link>
-      <description><![CDATA[我使用 VNDetectHumanBodyPoseRequest 从 xcode 资源中的图像中检测身体（我从图像网站下载），但出现以下错误：
-
-2021-12-24 21:50:19.945976+0800 Guess My Exercise[91308:4258893] [espresso] [Espresso::handle_ex_plan] exception=Espresso exception: &quot;I/O error&quot;: Missing weights path cnn_human_pose.espresso.weights status=-2
-无法执行请求：错误域=com.apple.vis 代码=9 &quot;无法在 VNDetectHumanBodyPoseRequest 中设置请求&quot; UserInfo={NSLocalizedDescription=无法在 VNDetectHumanBodyPoseRequest 中设置请求}。
-
-以下是我的代码：
- let image = UIImage(named: &quot;image2&quot;)
-guard let cgImage = image?.cgImage else{return}
-
-let requestHandler = VNImageRequestHandler(cgImage: cgImage)
-
-let request = VNDetectHumanBodyPoseRequest(completionHandler: bodyPoseHandler)
-
-do {
-// 执行身体姿势检测请求。
-try requestHandler.perform([request])
-} catch {
-print(&quot;无法执行请求：\(error).&quot;)
-}
-
-func bodyPoseHandler(request: VNRequest, error: Error?) {
-guard let surveillance =
-request.results as? [VNHumanBodyPoseObservation] else {
-return
-}
-
-let poses = Pose.fromObservations(observations)
-
-self.drawPoses(poses, onto: self.simage!)
-// 处理每个观察结果以找到已识别的身体姿势点。
-}
-]]></description>
-      <guid>https://stackoverflow.com/questions/70473725/ios-vision-framework-unable-to-setup-request-in-vndetecthumanbodyposerequest</guid>
-      <pubDate>Fri, 24 Dec 2021 14:08:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 XGBoost 的 GridSearchCV 中评分</title>
-      <link>https://stackoverflow.com/questions/50296817/scoring-in-gridsearchcv-for-xgboost</link>
-      <description><![CDATA[我目前正在尝试首次使用 XGBoost 分析数据。我想使用 GridsearchCV 找到最佳参数。我想最小化均方根误差，为此，我使用“rmse”作为 eval_metric。但是，网格搜索中的评分没有这样的指标。我在这个网站上发现“neg_mean_squared_error”也有同样的效果，但我发现这给出的结果与 RMSE 不同。当我计算“neg_mean_squared_error”绝对值的根时，我得到的值约为 8.9，而另一个函数给出的 RMSE 约为 4.4。
-我不知道哪里出了问题，或者我如何让这两个函数一致/给出相同的值？
-由于这个问题，我得到了错误的值作为“best_params_”，这给了我一个比我最初开始调整的一些值更高的 RMSE。
-有人能解释一下如何在网格搜索中获得 RMSE 的分数，或者为什么我的代码给出了不同的值吗？ 
-提前致谢。
-def modelfit(alg, trainx, trainy, useTrainCV=True, cv_folds=10, early_stopping_rounds=50):
-if useTrainCV:
-xgb_param = alg.get_xgb_params()
-xgtrain = xgb.DMatrix(trainx, label=trainy)
-cvresult = xgb.cv(xgb_param, xgtrain, num_boost_round=alg.get_params()[&#39;n_estimators&#39;], nfold=cv_folds,
-metrics=&#39;rmse&#39;, early_stopping_rounds=early_stopping_rounds)
-alg.set_params(n_estimators=cvresult.shape[0])
-
-# 将算法拟合到数据上
-alg.fit(trainx, trainy, eval_metric=&#39;rmse&#39;)
-
-# 预测训练集：
-dtrain_predictions = alg.predict(trainx)
-# dtrain_predprob = alg.predict_proba(trainy)[:, 1]
-print(dtrain_predictions)
-print(np.sqrt(mean_squared_error(trainy, dtrain_predictions)))
-
-# 打印模型报告：
-print(&quot;\nModel Report&quot;)
-print(&quot;RMSE : %.4g&quot; % np.sqrt(metrics.mean_squared_error(trainy, dtrain_predictions)))
-
-param_test2 = {
-&#39;max_depth&#39;:[6,7,8],
-&#39;min_child_weight&#39;:[2,3,4]
-}
-
-grid2 = GridSearchCV(estimator = xgb.XGBRegressor( learning_rate =0.1, n_estimators=2000, max_depth=5,
-min_child_weight=2, gamma=0, subsample=0.8, colsample_bytree=0.8,
-objective= &#39;reg:linear&#39;, nthread=4, scale_pos_weight=1, random_state=4),
-param_grid = param_test2,scoring=&#39;neg_mean_squared_error&#39;, n_jobs=4,iid=False, cv=10, verbose=20)
-grid2.fit(X_train,y_train)
-# best_estimator 的平均交叉验证分数
-print(grid2.best_params_, np.sqrt(np.abs(grid2.best_score_))), print(np.sqrt(np.abs(grid2.score(X_train, y_train))))
-modelfit(grid2.best_estimator_, X_train, y_train)
-print(np.sqrt(np.abs(grid2.score(X_train, y_train))))
-]]></description>
-      <guid>https://stackoverflow.com/questions/50296817/scoring-in-gridsearchcv-for-xgboost</guid>
-      <pubDate>Fri, 11 May 2018 16:46:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>Q 值无限增加，Q 学习中重复相同动作后重复奖励的结果</title>
-      <link>https://stackoverflow.com/questions/13148934/unbounded-increase-in-q-value-consequence-of-recurrent-reward-after-repeating-t</link>
-      <description><![CDATA[我正在开发一个简单的 Q-Learning 实现，用于一个普通的应用程序，但有些事情一直困扰着我。
-让我们考虑一下 Q-Learning 的标准公式
-Q(S, A) = Q(S, A) + alpha * [R + MaxQ(S&#39;, A&#39;) - Q(S, A)]
-
-让我们假设存在这个状态 K，它有两个可能的操作，都通过 A 和 A&#39; 授予我们的代理奖励 R 和 R&#39;。
-如果我们遵循几乎完全贪婪的方法（假设我们假设 0.1 epsilon），我将首先随机选择其中一个操作，例如 A。下一次，我可能会（90% 的时间）再次选择 A，这将导致 Q(K, A) 不断增长，即使我偶然尝试 A&#39;，因为它的奖励可能与 A 的奖励大小相同，我们也会陷入一种情况，在其余的学习过程中，几乎不可能从我们的第一个猜测中“恢复”。
-我想这一定不是这样，否则代理基本上不会学习——它只是遵循一个简单的配方：像你第一次做的那样做所有事情。
-我遗漏了什么吗？我知道我可以调整 alpha 值（通常是随着时间的推移而减少它），但这绝不会改善我们的情况。]]></description>
-      <guid>https://stackoverflow.com/questions/13148934/unbounded-increase-in-q-value-consequence-of-recurrent-reward-after-repeating-t</guid>
-      <pubDate>Tue, 30 Oct 2012 23:11:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
