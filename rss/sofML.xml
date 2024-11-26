@@ -4,7 +4,73 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 26 Nov 2024 03:30:33 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 26 Nov 2024 06:25:54 GMT</lastBuildDate>
+    <item>
+      <title>如何为 LSTM 模型使用分类和数值数据对数据集进行窗口化？</title>
+      <link>https://stackoverflow.com/questions/79225304/how-to-windowing-a-dataset-with-categorical-and-numerical-data-for-lstm-model</link>
+      <description><![CDATA[我有一个包含 3 列的数据集：时间戳 (字符串)、Inverter_Key (字符串)（我的情况是 21 个逆变器）、能量 (整数)、温度 (整数)。我尝试创建 LSTM 模型来预测每个逆变器的能量和温度。为了提高模型的速度，请改为获取输入形状 (96,66)。我将训练和测试的数据集合并起来，使数据集为 (96,4)。但是，测试时预测与实际数据不匹配。我相信这是由于窗口化造成的，因为我已经检查了轮廓和相关性关系。关系显示能量和温度具有线性关系 0.78，非线性关系为 0.8。我还缩放了我的能量数据以使其变小。因此，这一定是我窗口化数据的方式。
+对于数据，能量和温度将每 15 分钟记录一次。例如
+时间戳、逆变器密钥、能量、温度
+12/12/2022 10:15，KU，2，22
+12/12/2022 10:15，KS，4，22
+12/12/2022 10:30，KU，4，21
+12/12/2022 10:30，KS，5，21
+
+
+我使用标记技术来标记时间，编码热代码以将逆变器密钥也标记为整数。
+这是我的窗口化方式：
+def windowed_dataset(data, window_size=96, batch_size=128, shuffle_buffer=1000):
+
+数据集 = tf.data.Dataset.from_tensor_slices(data) 
+dataset = dataset.window(window_size + 1, shift=1, drop_remainder=True)
+dataset = dataset.flat_map(lambda window: window.batch(window_size + 1))
+dataset = dataset.shuffle(shuffle_buffer)
+dataset = dataset.map(lambda window: (window[:-1], window[-1]))
+dataset = dataset.batch(batch_size,drop_remainder=True).prefetch(tf.data.AUTOTUNE)
+
+返回数据集
+
+
+如何创建模型并拟合模型：
+def create_M_LSTM_model():
+model_m_lstm = tf.keras.models.Sequential([
+
+tf.keras.layers.LSTM(64,return_sequences=True,input_shape = input_data_shape),
+#tf.keras.layers.Dropout(0.2),
+tf.keras.layers.LSTM(32,return_sequences=True),
+tf.keras.layers.LSTM(16,return_sequences=True),
+tf.keras.layers.Flatten(),
+tf.keras.layers.Dense(6),
+])
+return model_m_lstm
+
+def create_model_M_LSTM():
+tf.random.set_seed(51) # 设置可重复性的种子
+
+model_create = create_M_LSTM_model() # 创建模型
+model_create.compile(
+loss=tf.keras.losses.Huber(), # 损失函数
+optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), # 优化器
+metrics=[&quot;mae&quot;] # 度量
+)
+return model_create
+
+# 创建并总结模型
+model_create_m_lstm = create_model_M_LSTM()
+
+# 打印模型总结
+model_create_m_lstm.summary()
+
+is_train = True
+if is_train:
+model_create_m_lstm.fit(train_dataset, epochs=20)
+
+如何对包含分类数据和数值数据的数据集进行窗口训练。预期数据集是，当我从预测中提取 KU 逆变器的数据时，它将与测试数据集的 KU 逆变器数据相匹配。
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79225304/how-to-windowing-a-dataset-with-categorical-and-numerical-data-for-lstm-model</guid>
+      <pubDate>Tue, 26 Nov 2024 04:13:51 GMT</pubDate>
+    </item>
     <item>
       <title>在 Databricks 中使用 MLflow 记录模型时排除私有包依赖项</title>
       <link>https://stackoverflow.com/questions/79224603/exclude-private-package-dependency-when-logging-model-with-mlflow-in-databricks</link>
@@ -173,13 +239,6 @@ return model
       <pubDate>Mon, 25 Nov 2024 19:00:17 GMT</pubDate>
     </item>
     <item>
-      <title>比较两个图像集分布？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79221947/compare-two-images-sets-distirbutions</link>
-      <description><![CDATA[我有两组患有某种疾病的人体皮肤图像。第 1 组的图像肤色较浅，但由于光线不好，许多图像显得较暗。我通过修改第 1 组图像的肤色使它们更暗，制作了另一组，即第 2 组。现在，我想比较这两组的分布。我应该使用哪种测量方法，例如 Wasserstein 距离、Kullback-Leibler 距离等？在测量距离之前我应该​​做什么，例如我应该制作两个大小为 256 个箱的直方图，其中每个像素代表其在两组中出现的概率并进行比较吗？我的图像是 RGB，如果是 RGB 图像，我应该如何测量？]]></description>
-      <guid>https://stackoverflow.com/questions/79221947/compare-two-images-sets-distirbutions</guid>
-      <pubDate>Mon, 25 Nov 2024 06:52:08 GMT</pubDate>
-    </item>
-    <item>
       <title>加载的模型数据与测试数据不同吗？[关闭]</title>
       <link>https://stackoverflow.com/questions/79220707/loaded-model-data-differenct-from-test-data</link>
       <description><![CDATA[我将经过训练的模型加载到 RStudio 4 中，当我使用 xgboost 进行预测时，它总是显示：
@@ -287,7 +346,7 @@ np.save(&#39;card.npy&#39;,card)
 之后我尝试重新加载此模型：
 card=np.load(&#39;card.npy&#39;,allow_pickle=True)
 
-然后我想使用该模型获取分数：
+然后我想使用该模型来获取分数：
 score=sc.scorecard_ply(data_train, card, print_step=0)
 
 但它给出了错误：
@@ -443,11 +502,11 @@ print(future_features[[&#39;Predicted_Close&#39;]])
       <pubDate>Sat, 23 Nov 2024 18:04:55 GMT</pubDate>
     </item>
     <item>
-      <title>具有动态约束的贷款人和借款人之间的多元化资金分配算法[关闭]</title>
-      <link>https://stackoverflow.com/questions/79218415/algorithm-for-diversified-fund-allocation-between-lenders-and-borrowers-with-dyn</link>
+      <title>如何在处理 EOS 代币时计算拥抱人脸模型的教师强制准确度 (TFA)？</title>
+      <link>https://stackoverflow.com/questions/79209319/how-to-compute-teacher-forced-accuracy-tfa-for-hugging-face-models-while-handl</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79218415/algorithm-for-diversified-fund-allocation-between-lenders-and-borrowers-with-dyn</guid>
-      <pubDate>Sat, 23 Nov 2024 17:14:19 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/79209319/how-to-compute-teacher-forced-accuracy-tfa-for-hugging-face-models-while-handl</guid>
+      <pubDate>Thu, 21 Nov 2024 00:25:48 GMT</pubDate>
     </item>
     <item>
       <title>使用 RMSprop 优化器的动态学习率进行 Q 学习</title>
