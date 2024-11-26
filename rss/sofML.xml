@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 26 Nov 2024 06:25:54 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 26 Nov 2024 09:19:16 GMT</lastBuildDate>
     <item>
       <title>如何为 LSTM 模型使用分类和数值数据对数据集进行窗口化？</title>
       <link>https://stackoverflow.com/questions/79225304/how-to-windowing-a-dataset-with-categorical-and-numerical-data-for-lstm-model</link>
@@ -70,6 +70,53 @@ model_create_m_lstm.fit(train_dataset, epochs=20)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79225304/how-to-windowing-a-dataset-with-categorical-and-numerical-data-for-lstm-model</guid>
       <pubDate>Tue, 26 Nov 2024 04:13:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 opencv 和 tensorflow 解决数字验证码</title>
+      <link>https://stackoverflow.com/questions/79225295/solve-a-number-captcha-with-opencv-and-tensorflow</link>
+      <description><![CDATA[我正在开展一个使用 OpenCV 进行图像预处理的项目。下面是我对图像进行预处理的代码：
+def preprocess_with_opencv(img):
+img = img.numpy()
+
+# 调整大小
+img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_AREA)
+
+# 高斯模糊
+img = cv2.GaussianBlur(img, (3, 3), 0)
+
+# 自适应阈值
+img = cv2.adaptiveThreshold(
+img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+)
+
+# 更改
+img = img.astype(&quot;float32&quot;) / 255.0
+img = np.expand_dims(img, axis=-1)
+
+return img
+
+预处理后，我使用以下函数对图像进行编码以便进一步处理：
+def encode_single_sample(img_path, label):
+# 1. 解码
+img = tf.io.read_file(img_path)
+
+# 2. 解码图像（灰度）
+img = tf.io.decode_png(img, channels=1)
+
+# 3. 使用 OpenCV 进行转换
+img = tf.py_function(preprocess_with_opencv, [img], Tout=tf.float32)
+
+# 4. 转置问题解决
+img = tf.transpose(img, perm=[1, 0, 2])
+
+# 5. 转换 dictionary (image, label)
+return {&quot;image&quot;: img, &quot;label&quot;: label}
+
+原始图像如下所示：
+
+但是，使用 encode_single_sample 函数处理图像后，数据似乎不正确，输出图像不清晰。如何解决此问题并确保处理后的图像准确清晰？]]></description>
+      <guid>https://stackoverflow.com/questions/79225295/solve-a-number-captcha-with-opencv-and-tensorflow</guid>
+      <pubDate>Tue, 26 Nov 2024 04:08:47 GMT</pubDate>
     </item>
     <item>
       <title>在 Databricks 中使用 MLflow 记录模型时排除私有包依赖项</title>
@@ -507,42 +554,6 @@ print(future_features[[&#39;Predicted_Close&#39;]])
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79209319/how-to-compute-teacher-forced-accuracy-tfa-for-hugging-face-models-while-handl</guid>
       <pubDate>Thu, 21 Nov 2024 00:25:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 RMSprop 优化器的动态学习率进行 Q 学习</title>
-      <link>https://stackoverflow.com/questions/79177301/q-learning-using-dynamic-learning-rate-with-rmsprop-optimizer</link>
-      <description><![CDATA[我正在实施受 RMSprop 启发的动态学习率 Q 学习，遵循我在一篇文章中找到的方法。目标是让学习率根据时间差 (TD) 误差的大小随时间进行调整。但是，我遇到了一个问题，梯度似乎随着时间的推移而增加，而理想情况下，随着代理对环境的了解越来越多，梯度应该会减小。
-具体来说：
-我预计梯度（TD 误差）会随着 Q 值的收敛而逐渐减小，但相反，它似乎在增长。因此，我的学习率从 0.001 开始，并没有像预期的那样随着时间的推移而增加，而是低于预期甚至下降。以下是我正在使用的 Q-learning 更新函数：
-**
-python 复制代码**
-def update_q_table(self, state, action, reward, next_state):
-&quot;&quot;&quot;使用 Q-learning 更新规则更新 Q-table。&quot;&quot;&quot;
-def update_q_table(self, state, action, reward, next_state):
-best_next_action = np.argmax(self.q_table[next_state, :])
-td_target = reward + self.discount_factor * self.q_table[next_state, best_next_action]
-td_error = td_target - self.q_table[state, action]
-
-# 更新 RMSprop 的平方梯度移动平均值 E[g^2]
-self.gradient_Q[state, action] = (
-self.beta * self.gradient_Q[state, action] + (1 - self.beta) * ((td_error) ** 2)
-)
-
-self.learning_rate = self.initial_learning_rate/ (np.sqrt(self.gradient_Q[state, action]) + self.epsilon)
-self.learning_rate_history.append(self.learning_rate)
-
-# 使用固定学习率和 TD 误差更新 Q 值
-self.q_table[state, action] += self.learning_rate * td_error 
-
-# 存储 E[g^2] 值以进行跟踪
-self.gradient_history.append(self.gradient_Q[state, action])
-
-
-我正在使用受 RMSprop 启发的动态学习率实现 Q 学习，遵循我在一篇文章中找到的方法。目标是让学习率根据时间差 (TD) 误差的大小随时间进行调整。但是，我遇到了一个问题，梯度似乎随着时间的推移而增加，而理想情况下，随着代理对环境的了解越来越多，梯度应该会减小。
-具体来说：
-我预计梯度（TD 误差）会随着 Q 值的收敛而逐渐减小，但相反，它似乎在增长。因此，我的学习率从 0.001 开始，并没有像预期的那样随着时间的推移而增加，而是低于预期甚至下降。这是我正在使用的 Q 学习更新函数：]]></description>
-      <guid>https://stackoverflow.com/questions/79177301/q-learning-using-dynamic-learning-rate-with-rmsprop-optimizer</guid>
-      <pubDate>Mon, 11 Nov 2024 10:33:43 GMT</pubDate>
     </item>
     </channel>
 </rss>
