@@ -4,7 +4,122 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 26 Nov 2024 18:24:45 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 26 Nov 2024 21:16:44 GMT</lastBuildDate>
+    <item>
+      <title>重复测量数据的降维</title>
+      <link>https://stats.stackexchange.com/questions/657901/dimensionality-reduction-for-repeated-measures-data</link>
+      <description><![CDATA[我最近在处理一个重复测量数据集，需要进行降维。在查看了几个在线资源后，我使用了以下博客文章中建议的方法（使用 phyl.pca 计算新数据的主成分分数和计算单个数据的系统发育 PCA 分数）。简而言之，该方法包括以下步骤：
+
+均值聚合：通过计算每个变量在时间点的均值来聚合重复测量，即每个个体一行观察值。
+降维：对聚合数据应用 PCA 以获得旋转矩阵。
+分数计算：使用获得的旋转来计算完整（非聚合）数据集的新分数。
+
+虽然博客文章专门关注系统发育 PCA，但我相信这些概念也适用于标准 PCA。此外，该博客还强调了使用协方差矩阵和相关矩阵执行 PCA 的区别。我选择使用协方差矩阵，据我所知，在进行 PCA 之前对数据进行缩放时，通常首选使用协方差矩阵。
+下面是我的方法的简化演示：
+data(iris) # 出于演示目的，我假设每个类别的“物种”代表一个独特的个体
+
+a &lt;- 聚合（Sepal.Length ~ Species, iris, mean）
+b &lt;- 聚合（Sepal.Width ~ Species, iris, mean）
+c &lt;- 聚合（Petal.Length ~ Species, iris, mean）
+d &lt;- 聚合（Petal.Width ~ Species, iris, mean）
+
+iris_agg &lt;- 合并（merge（merge（a,b,&quot;Species&quot;),c,&quot;Species&quot;),d,&quot;Species&quot;）
+
+iris_agg[-1] &lt;- lapply(iris_agg[-1], function(x) {x &lt;- as.vector(scale(x)); return(x)}) # 在执行 PCA 之前，我缩放了所有变量
+iris_agg_pca &lt;- prcomp(iris_agg[-1], center = FALSE, scale. = FALSE)
+
+iris[-5] &lt;- lapply(iris[-5], function(x) {x &lt;- as.vector(scale(x)); return(x)})
+data &lt;- as.matrix(iris[-5]) # 删除“物种”变量
+ev &lt;- as.matrix(iris_agg_pca$rotation)
+result &lt;- data %*% ev
+
+虽然我相信这种方法是有效的（如果您不这么认为，请纠正我），但我有一些担忧：
+
+时间点不平等：我的数据集包含在不同时间点测量的个体，我不确定这种方法是否能够适当地处理这个问题。
+包含分类变量：在我的数据集中，所有分类变量都只有两个级别。我只是将分类变量编码为零和一，但我不确定这是否合适。
+
+我很感激任何解决这些问题的见解或建议，包括缓解我的担忧的其他替代方法。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657901/dimensionality-reduction-for-repeated-measures-data</guid>
+      <pubDate>Tue, 26 Nov 2024 20:32:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>处理格兰杰因果关系中的非平稳时间序列</title>
+      <link>https://stats.stackexchange.com/questions/657899/dealing-with-non-stationary-time-series-in-granger-causality</link>
+      <description><![CDATA[我正在努力确定两个时间序列的 Granger 因果关系。
+需要注意的一点是，对于我的具体项目，我有大约 100k 个时间序列，涉及两个不同的维度，例如产品名称和销售类型，我正在尝试确定不同的销售类型是否会对一种特定的销售类型造成 Granger 影响。
+到目前为止，在我进行的分析中，我通过采用指数移动平均线来平滑时间序列，然后通过查看指数移动平均线的逐日变化对其进行归一化。我将查看每个产品名称的不同销售类型的指数移动平均线逐日变化的 Granger 因果关系。
+从理论上讲，我相信逐日变化已经是一种差异形式，因此大概这应该会迫使时间序列保持平稳。话虽如此，我已经运行了 ADF 测试，大约 10% 的时间序列是非平稳的，阈值为 0.05。
+我想知道如何继续，因为我不想通过另一轮标准化来过多地改变解释。出现了两个问题：
+
+可以丢弃所有非平稳时间序列吗？
+由于指数移动平均线将自相关引入序列，这可能是我的序列非平稳的原因吗？
+
+请原谅我在这方面的无知，我只是想迈出合理的下一步。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657899/dealing-with-non-stationary-time-series-in-granger-causality</guid>
+      <pubDate>Tue, 26 Nov 2024 20:29:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何制作一个能够抵御数据不平衡变化的分类器？</title>
+      <link>https://stats.stackexchange.com/questions/657898/how-do-i-make-a-classifier-thats-robust-to-variation-in-data-imbalance</link>
+      <description><![CDATA[我正在为通常非常不平衡的数据编写一个二元分类器，例如大多数类别中 99% 的数据（使用梯度提升），但我希望有一个分类器至少对不平衡的严重程度具有一定的鲁棒性。一个数据集与另一个数据集之间的不平衡率差异很大。A 类分数可能 &gt;99% 或低至 75%。理想情况下，我希望在单个训练集上训练我的分类器，然后让它在类别频率差异很大的测试集上表现得相当好。有没有既定的方法可以做到这一点？或者我只需要根据预期的不平衡程度为每个新数据集重新训练模型？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657898/how-do-i-make-a-classifier-thats-robust-to-variation-in-data-imbalance</guid>
+      <pubDate>Tue, 26 Nov 2024 20:26:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>可能性只是达到目的的一种手段吗？（贝叶斯推理）[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/657896/is-likelihood-just-a-means-to-an-end-in-bayesian-inference</link>
+      <description><![CDATA[我知道教科书上的答案是否定的。但无论如何，我提出这个问题有两个原因：
+
+可能性最明显的动机是，没有可能性，后验就没有意义。如果模型产生的是点预测而不是输出分布，您就无法询问某些参数 $\theta$ 生成数据集的概率（即 $P(D|\theta)$）。答案永远是 0 或 1（实际上大多只是 0）。
+无可能性贝叶斯推理 将可能性视为更广泛应用贝叶斯推理的障碍，因此它试图避免它。而是依赖误差/残差。
+
+P.S. 这也只是一个粗略的观察：我已经告诉了很多同事如何在回归的 VI 中正确实现随机不确定性，但他们似乎对认知不确定性不太感兴趣……]]></description>
+      <guid>https://stats.stackexchange.com/questions/657896/is-likelihood-just-a-means-to-an-end-in-bayesian-inference</guid>
+      <pubDate>Tue, 26 Nov 2024 19:18:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>自举法作为基于模拟的功效/样本量计算的替代方案</title>
+      <link>https://stats.stackexchange.com/questions/657895/bootstrapping-as-an-alternative-to-simulation-based-power-sample-size-calculatio</link>
+      <description><![CDATA[通常，当需要进行样本量和/或计算时，他们可能会使用教科书中的简单样本量计算或使用 gpower。但是，只有非常基本的程序才有闭式计算。对于复杂的分析，它将要求用户模拟数据以计算估计的功率/样本量。模拟数据的问题是获取正确的信息以使模拟变得逼真。您将必须获得斜率、截距、标准误差等的估计值。此外，如果您对这些内容的估计有误，则会导致样本量计算错误。这是一项艰巨的任务。
+现在，假设有人有试验数据。在我看来，与其猜测斜率/截距/标准误差，不如从试验数据中进行引导，作为计算功率/样本量的替代方法。以前有人这样做过吗？如果不是，那么这是不是一个好主意的原因是什么？
+当然，如果试点数据不能代表总体，就会出现明显的问题，尽管我认为这可以通过某种 MCMC 程序来克服。
+编辑：我有一个重大疏忽。使用此程序不允许您计算功效，因为您不知道实际的总体值。所以也许我会修改我的问题，询问使用试点数据进行样本量计算的理想方法？]]></description>
+      <guid>https://stats.stackexchange.com/questions/657895/bootstrapping-as-an-alternative-to-simulation-based-power-sample-size-calculatio</guid>
+      <pubDate>Tue, 26 Nov 2024 18:58:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>弹性净惩罚分位数回归模型效果不佳的原因及解决方法</title>
+      <link>https://stats.stackexchange.com/questions/657894/reasons-and-potential-solutions-for-poor-performance-of-elastic-net-penalized-qu</link>
+      <description><![CDATA[我正在使用 rqPen 包对我的数据集执行弹性净惩罚分位数回归 (EN-QR)，该数据集有 6,782 行和 227 列（即预测因子）。其中 195 个预测因子是代谢物，我的目标是找出哪些代谢物与接触空气污染物 PM2.5 有关。我选择执行 QR 而不是线性回归，因为 PM2.5 数据存在偏差且不呈正态分布，即使在执行对数转换和标准化之后也是如此。我将数据集按 70:30 的比例分为训练集 (n = 4,747) 和测试集 (n = 2,035)。
+我遇到的问题是，当我将训练集中的 EN-QR 对象应用于测试集以预测 PM2.5 值（下图）时，我得到了一个奇怪的多峰分布，它与测试集中的实际 PM2.5 值（上图）不符。我已在下面附上这些分布的屏幕截图。
+
+我想知道是否有人对此有解决问题的建议。有哪些潜在原因会导致模型分裂成多峰分布而不是（近似）正态分布？是否有我没有考虑纳入训练集模型的内容？是否有其他策略可以让我实现变量选择的目标？理想情况下，我希望 EN-QR 模型能够发挥作用，因为它为我的研究问题提供了最多的信息。
+我尝试根据数据属于多峰分布的哪个模式将数据分成四个集群。我发现美国人口普查区域与预测的 PM2.5 值的模式之间存在关系。例如，几乎所有 z 得分最低的模式中的人员都来自南部，而几乎所有 z 得分最高的模式中的人员都来自中西部。我发现这很奇怪，因为美国人口普查区域被作为协变量纳入，因此模型不应该按地区分层。我在下面附上了这张图片和表格。
+
+这是我用来在训练集上执行 EN-QR 的 R 代码。下面是我用来预测测试集中 PM2.5 值的代码。
+trainingset.ENQR &lt;- rq.pen.cv(
+x = as.matrix(trainingset[, c(4:5, 27, 29:251)]),
+y = trainingset[, 18],
+tau = c(0.1, 0.5, 0.9),
+penalty = &quot;ENet&quot;,
+a = c(0.50, 0.75, 0.90),
+nfolds = 10,
+printProgress = TRUE,
+penalty.factor = c(rep(0, 32), rep(1, 194))
+)
+
+lambda.min.training &lt;- trainingset.ENQR$gtr$lambda1se[2]
+
+testingset.ENQR.50 &lt;- rqPen:::predict.rq.pen.seq.cv(object = trainingset.ENQR,
+newx = as.matrix(testingset[, c(4:5, 27, 29:251)]),
+tau = 0.50,
+a = 0.50,
+lambda = lambda.min.training,
+cvmin = FALSE)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657894/reasons-and-potential-solutions-for-poor-performance-of-elastic-net-penalized-qu</guid>
+      <pubDate>Tue, 26 Nov 2024 18:49:07 GMT</pubDate>
+    </item>
     <item>
       <title>使用因变量变化为零的测试数据集来解决面板数据的二元分类问题</title>
       <link>https://stats.stackexchange.com/questions/657891/using-a-test-dataset-with-zero-variation-in-the-dependent-variable-for-binary-cl</link>
@@ -42,118 +157,9 @@ H=-\sum_ip_i\log_3p_i,$$
       <pubDate>Tue, 26 Nov 2024 16:45:50 GMT</pubDate>
     </item>
     <item>
-      <title>比较两个方差</title>
-      <link>https://stats.stackexchange.com/questions/657884/compare-two-variances</link>
-      <description><![CDATA[我正在阅读这篇论文
-我很难理解第 6 节：线性时间统计和测试。
-一开始，他们声称 $\text{MMD}^2_l$ 的方差高于 $\text{MMD}^2_u$（我们稍后会明确看到这一点）。&#39;但是，即使在阅读了剩余部分之后，我也不明白原因
-我猜它来自那些行
-
-假设 $0 &lt; \mathbb{E}(​​h^2) &lt; \ infty $。然后$\text{MMD}_l^2$在分布上收敛到高斯分布，根据
-$$m^{\frac{1}{2}} \left( \text{MMD}_l^2 - \text{MMD}^2[\mathcal{F}, p, q] \right) \overset{D}{\to} \mathcal{N}(0, \sigma_l^2)$$
-其中
-$$
-\sigma_l^2 = 2 \left[ \mathbb{E}_{z, z&#39;} h^2(z, z&#39;) - \left( \mathbb{E}_{z, z&#39;} h(z, z&#39;) \right)^2 \right]$$
-其中我们使用简写 $\mathbb{E}_{z, z&#39;} := \mathbb{E}_{z, z&#39; \sim p \times q}$
-2 的因子出现是因为我们仅对 $\lfloor m/2 \rfloor$ 个观测值取平均值。将此渐近分布与 $\mathcal{H}_A$ 下的二次时间统计 $\text{MMD}_u^2$ 进行比较是有益的，此时 $m = n$。在这种情况下，$\text{MMD}_u^2$ 根据以下公式在分布上收敛到高斯分布
-$$m^{\frac{1}{2}} \left( \text{MMD}_u^2 - \text{MMD}^2[\mathcal{F}, p, q] \right) \overset{D}{\to} \mathcal{N}(0, \sigma_u^2)$$
-其中
-$$
-\sigma_u^2 = 4 \left( \mathbb{E}_z \left[ \left( \mathbb{E}_{z&#39;} h(z, z&#39;) \right)^2 \right] - \left( \mathbb{E}_{z, z&#39;} h(z, z&#39;) \right)^2 \right) \quad \text{(Serfling, 1980, 第 5.5 节)}.$$
-因此，对于 $\text{MMD}_u^2$，渐近方差（按比例）为 $\mathbb{E}_z[h(z, z&#39;)]$ 的方差，而对于 $\text{MMD}_l^2$，渐近方差为 $\text{Var}_{z, z&#39;}[h(z, z&#39;)]$
-
-我对他们如何证明他们的陈述感到很困惑。我希望你能明确地向我解释一下，因为我对这个领域还比较陌生。非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657884/compare-two-variances</guid>
-      <pubDate>Tue, 26 Nov 2024 16:30:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否可以使用 Beta 分布和二项分布来模拟 Beta 二项分布的随机数？</title>
-      <link>https://stats.stackexchange.com/questions/657883/is-it-possible-to-simulate-random-numbers-from-beta-binomial-distribution-using</link>
-      <description><![CDATA[在我看来，Beta-二项分布可以被认为是这样的：
-
-我们从 beta$(a,b)$ 中模拟一个随机数... 将此数字称为 $p_1$
-然后我们采用成功概率为 $p_1$ 的二项分布，并查看在 $n$ 次试验中有多少次成功
-
-我尝试在 R 中执行此操作：
-library(tidyverse)
-
-generate_beta_samples &lt;- function(n_samples, alpha, beta) {
-p_values &lt;- rbeta(n_samples, alpha, beta)
-
-data.frame(
-simulation = 1:n_samples,
-p = p_values
-)
-}
-
-generate_binomial_samples &lt;- function(p_df, n_trials) {
-p_df %&gt;%
-mutate(
-successes = map_dbl(p, ~rbinom(1, size = n_trials, prob = .x))
-)
-}
-
-n_simulations &lt;- 10000
-n_trials &lt;- 20
-alpha &lt;- 2
-beta &lt;- 5
-
-set.seed(123)
-
-beta_samples &lt;- generate_beta_samples(n_simulations, alpha, beta)
-
-#二项式样本
-results &lt;- generate_binomial_samples(beta_samples, n_trials)
-
-p1 &lt;- ggplot(results, aes(x = p)) +
-geom_histogram(bins = 50, fill = &quot;blue&quot;, alpha = 0.6) +
-geom_vline(xintercept = alpha/(alpha + beta), 
-color = &quot;red&quot;, linetype = &quot;dashed&quot;) +
-labs(
-title = &quot;步骤 1：Beta 随机变量的分布&quot;,
-subtitle = paste0(&quot;Beta(&quot;, alpha, &quot;,&quot;, beta, &quot;)&quot;),
-x = &quot;p&quot;,
-y = &quot;Count&quot;
-) +
-theme_minimal()
-
-p2 &lt;- ggplot(results, aes(x = successes)) +
-geom_histogram(bins = n_trials + 1, fill = &quot;green&quot;, alpha = 0.6) +
-labs(
-title = &quot;步骤 2：二项式成功分布&quot;,
-subtitle = paste0(n_trials, &quot; 每个 p 值的试验&quot;),
-x = &quot;成功次数&quot;,
-y = &quot;计数&quot;
-) +
-theme_minimal()
-
-
-我还尝试查看联合分布：
-ggplot(results, aes(x = p, y = successes)) +
-geom_bin2d(bins = 30) +
-scale_fill_viridis_c(option = &quot;magma&quot;, name = &quot;Count&quot;) +
-labs(
-title = &quot;Joint Distribution of Beta Values and Binomial Successes&quot;,
-subtitle = paste0(&quot;Beta(&quot;, alpha, &quot;,&quot;, beta, &quot;) and Binomial(n=&quot;, 
-n_trials, &quot;) from &quot;, n_simulations, &quot;模拟”），
-x = “p（Beta 随机变量）”，
-y = “成功次数（二项式结果）”
-) +
-theme_minimal() +
-scale_x_continuous(limits = c(0, 1)) +
-scale_y_continuous(limits = c(0, n_trials)) +
-theme(panel.grid.minor = element_line(color = &quot;gray90&quot;),
-panel.grid.major = element_line(color = &quot;gray85&quot;))
-
-
-这是不使用预建 R 函数来模拟 Beta-Binomial 的正确方法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657883/is-it-possible-to-simulate-random-numbers-from-beta-binomial-distribution-using</guid>
-      <pubDate>Tue, 26 Nov 2024 16:24:45 GMT</pubDate>
-    </item>
-    <item>
       <title>对于 PLS 模型拟合，如何计算 R2VX、R2VY 以及累积 R2VX、R2VY？</title>
       <link>https://stats.stackexchange.com/questions/657880/for-a-pls-model-fit-how-can-i-calculate-r2vx-r2vy-and-the-cumulative-r2vx-r2</link>
-      <description><![CDATA[根据Eriksson等人2013年出版的《多变量和巨变量数据分析基本原理与应用》一书，衡量模型性能的重要指标包括$R2VX$和$R2VY$，其文本定义为“X/Y变量变异的解释分数”数学上为：
+      <description><![CDATA[根据Eriksson等人2013年出版的《多变量和巨变量数据分析基本原理与应用》一书，PLS模型性能的重要指标包括$R2VX$和$R2VY$，其文本定义为“X/Y变量变异的解释分数”数学上为：
 $$ 
 R2VX = 1 - \frac{ \Sigma_i e_{i,k}^2 } { \Sigma_i e_{i,0}^2 }
 $$
@@ -187,9 +193,12 @@ R2(fit)
       <pubDate>Tue, 26 Nov 2024 15:42:27 GMT</pubDate>
     </item>
     <item>
-      <title>正态分布之间的柯西-施瓦茨散度</title>
-      <link>https://stats.stackexchange.com/questions/657879/cauchy-schwarz-divergence-between-normal-distributions</link>
-      <description><![CDATA[我试图使用本文中正态分布混合之间的柯西-施瓦茨散度的推导来推导两个多元正态分布之间的柯西-施瓦茨散度：https://citeseerx.ist.psu.edu/document?repid=rep1&amp;type=pdf&amp;doi=b6201d3fd08e96ccbdba564ab33e9e88853d103e
+      <title>多元正态分布之间的柯西-施瓦茨散度</title>
+      <link>https://stats.stackexchange.com/questions/657879/cauchy-schwarz-divergence-between-multivariate-normal-distributions</link>
+      <description><![CDATA[我试图使用本文中正态分布混合之间的柯西-施瓦茨散度的推导来推导两个多元正态分布之间的柯西-施瓦茨散度：CLOSED-FORM CAUCHY-SCHWARZ PDF DIVERGENCE FOR
+MIXTURE OF GAUSSIANS by CLOSED-FORM CAUCHY-SCHWARZ PDF DIVERGENCE FOR
+MIXTURE OF GAUSSIANS
+Kittipat Kampa、Erion Hasanbelliu 和 Jose C. Principe
 考虑$p(x) = \mathcal{N}(x|\mu,\Lambda^{-1})=\frac{|\Lambda|^{1/2}}{(2\pi)^{D/2}}\exp\Big(-\frac{1}{2}(x-\mu)^{\top}\Lambda(x-\mu)\Big)$ 和 $q(x) = \mathcal{N}(x|\nu,\Omega^{-1})=\frac{|\Omega|^{1/2}}{(2\pi)^{D/2}}\exp\Big(-\frac{1}{2}(x-\nu)^{\top}\Omega(x-\nu)\Big)$。
 使用论文中的公式柯西-施瓦茨散度可以简化为：
 \begin{align}
@@ -202,16 +211,8 @@ D_{CS}(p,q) &amp;=-\log\Big(\mathcal{N}\big(\mu|\nu,(\Lambda^{-1}+\Omega^{-1}\bi
 D_{CS}(p,p)= \frac{1}{2}\log\Big(\big|2\Lambda^{-1}\big|\Big) + \frac{1}{2}\log\big(|\Lambda|\big) = \frac{D}{2}\log(2) \neq0
 \end{align&gt;
 我哪里犯了错误？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657879/cauchy-schwarz-divergence-between-normal-distributions</guid>
+      <guid>https://stats.stackexchange.com/questions/657879/cauchy-schwarz-divergence-between-multivariate-normal-distributions</guid>
       <pubDate>Tue, 26 Nov 2024 15:19:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>聚类方法之前先进行 SVD（无降维）</title>
-      <link>https://stats.stackexchange.com/questions/657878/svd-before-clustering-method-no-dimensionality-reduction</link>
-      <description><![CDATA[在应用聚类方法之前将 SVD 应用于数据集是否在性能方面有意义？我的意思是：这样做是否有统计上的原因？它是否取决于方法，取决于维数？或者也许没有办法概括这一点？
-我指的是仅应用 SVD，而不是完整的 PCA（即：没有降维）]]></description>
-      <guid>https://stats.stackexchange.com/questions/657878/svd-before-clustering-method-no-dimensionality-reduction</guid>
-      <pubDate>Tue, 26 Nov 2024 15:18:27 GMT</pubDate>
     </item>
     <item>
       <title>如何解读多项模型的摘要？</title>
@@ -296,24 +297,6 @@ generationYounger:genderFemale.1 -1.0224 0.6592 -1.551 0.12088
       <pubDate>Tue, 26 Nov 2024 14:48:49 GMT</pubDate>
     </item>
     <item>
-      <title>计算贝叶斯后验与重复对比的最佳实践</title>
-      <link>https://stats.stackexchange.com/questions/657877/best-practice-to-compute-contrasts-from-bayesian-posterior-with-repeats</link>
-      <description><![CDATA[我有来自参数 ($\theta$) 后验分布的样本 ($i$)，针对两个不同条件 $a$ 和 $b$。
-两个条件 $\theta_{\delta i}$ 之间的后验差异的样本只需从条件 a 中减去条件 b 的后验：($\theta_{\delta i} = \theta_{bi} - \theta_{ai}$)。
-但是，我有来自每个条件 $r$ 次重复的后验样本，即$\theta_{ai}^1, \theta_{ai}^2, ... \theta_{ai}^r$，以及 $\theta_{bi}^1, \theta_{bi}^2, ... \theta_{bi}^r$。
-我知道，理想情况下，要计算 $\theta_{\delta}$，我应该有一个分层公式，其中每个条件重复的效果共享一些超先验，然后我只需使用 $\theta_a$ 和 $\theta_b$ 的超先验样本来计算对比度。
-但是，如果我要处理的只是来自重复（例如 $\theta_{ai}^1, \theta_{ai}^2, ... \theta_{ai}^r$），计算 $\theta_{\delta}$ 样本的最佳方法是什么？
-我考虑过的选项：
-
-配对重复。即计算$\theta_{\delta i}^1 = \theta_{bi}^1 - \theta_{ai}^1$, $\theta_{\delta i}^2 = \theta_{bi}^2 - \theta_{ai}^2$等...然后将所有$\theta_{\delta i}^1, \theta_{\delta i}^2$, ...堆叠在一起以创建$\theta_{\delta i}$。这很好，但如果每个条件的重复次数不同，则不会使用所有重复。
-与 1 类似，但不是对每个条件制作 $\theta_i$ 的重复对，而是计算所有成对的重复组合。这样，所有条件的所有重复都会被使用，并且所有重复都会相互比较。但重复次数较少的条件的后验样本被更多地使用，这感觉不对。
-
-还有其他方法可以做到这一点吗？什么是最好的？（或者最不坏的？）
-感谢您的任何建议！]]></description>
-      <guid>https://stats.stackexchange.com/questions/657877/best-practice-to-compute-contrasts-from-bayesian-posterior-with-repeats</guid>
-      <pubDate>Tue, 26 Nov 2024 14:36:27 GMT</pubDate>
-    </item>
-    <item>
       <title>如何验证和报告具有 family = quasibinomal 的 glm 的结果？</title>
       <link>https://stats.stackexchange.com/questions/657876/how-to-verify-and-report-results-from-a-glm-with-family-quasibinominal</link>
       <description><![CDATA[]]></description>
@@ -321,46 +304,15 @@ generationYounger:genderFemale.1 -1.0224 0.6592 -1.551 0.12088
       <pubDate>Tue, 26 Nov 2024 14:29:47 GMT</pubDate>
     </item>
     <item>
-      <title>在 R 中执行比例分层抽样的正确方法？</title>
-      <link>https://stats.stackexchange.com/questions/657875/correct-way-to-perform-proportional-stratified-sampling-in-r</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/657875/correct-way-to-perform-proportional-stratified-sampling-in-r</guid>
-      <pubDate>Tue, 26 Nov 2024 14:20:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>我如何改进我的扩散模型？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/657873/how-can-i-improve-my-diffusion-model</link>
-      <description><![CDATA[我一直在研究一个受 2020 年 DDPM 论文启发的扩散模型。它运行良好，但我不明白为什么它没有表现得更好。
-情况如下：
+      <title>正态性假设 - qqplot 解释</title>
+      <link>https://stats.stackexchange.com/questions/657859/normality-assumption-qqplot-interpretation</link>
+      <description><![CDATA[我目前正在从事一个涉及评估多个变量分布的项目，并且我正在使用 Q-Q 图作为分析的一部分。虽然我已经为这些变量生成了 Q-Q 图。确实，我已经研究这些很长时间了，但我仍然想在这里听取意见。这些变量的样本量接近 70，目的是在纵向分析的几个变量之间进行独立 t 检验。我可以提出，shapiro 和 ks-test 拒绝正态性假设。
+如果您能指导我准确解释它们以评估正态性并识别任何偏离高斯分布的情况，我将不胜感激。这些生物标志物通常在尾部变得更重，但我不会进行转化。欢迎任何评论！
 
-在 MNIST 上，该模型的 FID 达到 15 左右，您可以识别这些数字。
-在 CIFAR-10 上，大多数时候很难分辨出生成了什么。
-在 CelebA 上，有些脸还可以，但大多数最终看起来像扭曲的怪物。
 
-我尝试调整学习率、批量大小和其他超参数，但没有产生显着的变化。我从头开始构建了 UNet 架构和 loss+sample 函数，因此我怀疑那里可能存在问题，但经过几个小时的调试，我仍然找不到任何明显的东西。
-我的模型应该表现得比这更好吗？我应该专注于进一步调整或调试哪些特定领域？有人可以看看我的代码并提供反馈或建议吗？
-这是 github 上项目的链接：https://github.com/juliuseg/Diffusion_plz_help]]></description>
-      <guid>https://stats.stackexchange.com/questions/657873/how-can-i-improve-my-diffusion-model</guid>
-      <pubDate>Tue, 26 Nov 2024 13:39:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>UMP 无偏测试的定义到底是什么？</title>
-      <link>https://stats.stackexchange.com/questions/657870/what-exactly-is-the-definition-of-a-ump-unbiased-test</link>
-      <description><![CDATA[我正在解答 Hogg 和 McKean 的《数理统计学导论》第 8.3 节的练习。&amp;我无法继续，因为作者没有正式定义 UMPU 检验，尽管他们已经给出了 UMP 检验的定义。
-上下文：在练习 $8.3.8,$ 中，作者要求我们证明用于测试 $H_0:\theta = \theta_0$ 对 $H_1:\theta \neq \theta_0$ 的 LRT 原理导致不等式 $\lvert \overline{x}-\theta_0\rvert \geq c,$ 其中 $\overline{x}$ 是来自 $N(\theta,1),$ 的随机样本的实际平均值，其中 $\theta = \theta_0$ class=&quot;math-container&quot;&gt;$\theta_0$ 已指定。然后他们问
-
-(a) 这是 $H_0$ 对 $H_1$ 的一致最强检验吗？
-(b) 这是 $H_0$ 对 $H_1$ 的一致最强无偏检验吗？
-
-事实上，在文中，作者已经表明，对于这种双面假设，没有 UMP 检验。也有 SE 帖子（如 这个）显示了这一点。对我来说，问题是部分 (b)。
-UMP 无偏 测试的定义到底是什么？我在这里卡住了，因为文本中没有对此的正式定义。只有一行说
-
-那里表明，对于这种情况不存在 UMP 测试。如果我们将注意力限制在无偏测试类别上（定义 $8.1.2$），那么就可以构建最佳测试理论；参见 Lehmann ($1986$)。
-
-定义 $8.1.2$ 是在 我之前的一篇文章中给出的，其中基本上说，如果 $\theta \in \omega_1$，即备选参数集，则 $P_\theta(X \in C) \geq \alpha,$ 其中 $C$ 临界区域，级别为 $\alpha$。如果 UMP 测试是大小为 $\alpha$ 的 最佳临界区域，用于针对 $H_1$ 中的每个简单假设测试 $H_0$，则 UMP 测试是由此临界区域定义的测试。
-我的问题：UMPU 测试的精确数学定义到底是什么？我们究竟应该为这道练习题的 (b) 部分展示什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657870/what-exactly-is-the-definition-of-a-ump-unbiased-test</guid>
-      <pubDate>Tue, 26 Nov 2024 12:44:23 GMT</pubDate>
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657859/normality-assumption-qqplot-interpretation</guid>
+      <pubDate>Tue, 26 Nov 2024 10:45:29 GMT</pubDate>
     </item>
     </channel>
 </rss>
