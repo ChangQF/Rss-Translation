@@ -4,7 +4,28 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 29 Nov 2024 09:19:14 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 29 Nov 2024 12:35:08 GMT</lastBuildDate>
+    <item>
+      <title>这些 `[0]` 在创建变量时是否有意义</title>
+      <link>https://stackoverflow.com/questions/79236682/do-those-0-make-sense-in-making-the-variable</link>
+      <description><![CDATA[使用 HuggingFace 工具集微调 Gemma 的指南位于：https://huggingface.co/blog/gemma-peft
+以下行的链接：https://huggingface.co/blog/gemma-peft#:~:text=Quote%3A%20%7Bexample-,%5B%27quote%27%5D%5B0%5D,-%7D%5CnAuthor%3A
+数据输入格式化函数是：
+def formatting_func(example):
+text = f&quot;Quote: {example[&#39;quote&#39;][0]}\nAuthor: {example[&#39;author&#39;][0]}&lt;eos&gt;&quot;
+return [text]
+
+这些 [0] 有意义吗？它们看起来不对，因为当打印出 text 变量时，我可以看到它们只是字符而不是字符串。]]></description>
+      <guid>https://stackoverflow.com/questions/79236682/do-those-0-make-sense-in-making-the-variable</guid>
+      <pubDate>Fri, 29 Nov 2024 10:14:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>运行 BayesSearchCV 查找 ANN 回归的最佳超参数时出错</title>
+      <link>https://stackoverflow.com/questions/79236534/error-while-running-bayessearchcv-for-finding-best-hyperparameter-of-ann-regress</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79236534/error-while-running-bayessearchcv-for-finding-best-hyperparameter-of-ann-regress</guid>
+      <pubDate>Fri, 29 Nov 2024 09:40:18 GMT</pubDate>
+    </item>
     <item>
       <title>发生推理时间延迟</title>
       <link>https://stackoverflow.com/questions/79236337/inference-time-delay-occured</link>
@@ -16,6 +37,100 @@
 我为每个进程实现了加载模型文件 (*.pth) 和推理函数，并同时调用这些进程。我为每个进程创建了时间戳；因此，推理函数的开始时间相同，但结束时间略有不同。]]></description>
       <guid>https://stackoverflow.com/questions/79236337/inference-time-delay-occured</guid>
       <pubDate>Fri, 29 Nov 2024 08:32:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>强化学习中 BayesianFPN 的张量维度不匹配</title>
+      <link>https://stackoverflow.com/questions/79236267/mismatch-in-tensor-dimensions-in-bayesianfpn-with-reinforcement-learning</link>
+      <description><![CDATA[我正在实施一个计算机视觉项目。我在这个项目中使用了 FPN（带有 ResNet50 主干）和 BayesianFPN。该网络位于强化学习代理下。实施后，它抛出一个RuntimeError：张量 a（64）的大小必须与非单例维度 3 上的张量 b（256）的大小匹配。
+
+是什么导致代码抛出此错误？
+是因为训练图像（RGB 图像）和验证图像（二进制掩码）不匹配吗？
+我是否遗漏了一些内部维度更改？
+
+以下是代码。这是我想要实现的 BayesianFPNwithRL 类。
+PS：我尝试重塑权重张量。但没有成功。即使将其解压或扩展也无济于事。
+供参考：RGB 图像尺寸 - 1280x720px；二进制掩码尺寸：1280x720px
+
+# 具有 RL 的贝叶斯 FPN
+class BayesianFPNWithRL(nn.Module):
+def __init__(self, backbone_with_fpn, rl_agent, dropout_p=0.2):
+super(BayesianFPNWithRL, self).__init__()
+self.backbone_with_fpn = backbone_with_fpn
+self.dropout = nn.Dropout(p=dropout_p)
+self.rl_agent = rl_agent
+
+def forward(self, x, mc_samples=10, train_rl=False):
+
+fpn_outputs = self.backbone_with_fpn(x)
+keys = list(fpn_outputs.keys())
+features = [fpn_outputs[key] for key in keys]
+
+common_size = features[0].shape[2:] 
+features = [F.interpolate(f, size=common_size, mode=&quot;nearest&quot;) for f in features]
+
+if not self.training:
+sampled_features = []
+for _ in range(mc_samples):
+sampled_features.append([self.dropout(f) for f in features])
+features = [
+torch.mean(torch.stack([sample[i] for sample in sampled_features]), dim=0)
+for i in range(len(features))
+]
+
+global_features = [f.mean(dim=(2, 3)) for f in features] 
+rl_input = torch.cat(global_features, dim=1) 
+
+action, log_prob = self.rl_agent.select_action(rl_input)
+
+weights = torch.zeros(len(features), device=x.device)
+weights[action] = 1.0 
+
+selected_features = sum(w * f for w, f in zip(weights, features))
+
+if train_rl:
+return selected_features, log_prob
+return selected_features
+
+if __name__ == &quot;__main__&quot;:
+
+resnet = resnet50(weights = ResNet50_Weights.DEFAULT)
+return_layers = {
+&#39;layer1&#39;: &#39;0&#39;,
+&#39;layer2&#39;: &#39;1&#39;,
+&#39;layer3&#39;: &#39;2&#39;,
+&#39;layer4&#39;: &#39;3&#39;
+}
+in_channels_list = [256, 512, 1024, 2048]
+out_channels = 256
+backbone_with_fpn = BackboneWithFPN(resnet、return_layers、in_channels_list、out_channels)
+
+rl_agent = RLAgent(input_dim=1280、hidden_​​dim=512、action_space=4)
+
+bayesian_fpn_rl = BayesianFPNWithRL(backbone_with_fpn、rl_agent).to(&#39;cuda&#39;)
+
+optimizer = torch.optim.Adam(bayesian_fpn_rl.parameters()、lr=1e-4)
+
+for epoch in range(10): 
+for images, ground_truth_masks in dataloader:
+images, ground_truth_masks = images.to(&#39;cuda&#39;), ground_truth_masks.to(&#39;cuda&#39;)
+
+model_output, log_prob = bayesian_fpn_rl(images, train_rl=True)
+
+predicted_mask = (model_output &gt; 0.5).int()
+
+奖励 = compute_reward(predicted_mask, ground_truth_masks)
+
+损失 = rl_loss(log_prob, 奖励)
+
+optimizer.zero_grad()
+损失.backward()
+optimizer.step()
+
+print(f&quot;Epoch [{epoch + 1}], 损失: {loss.item():.4f}, 奖励: {reward:.4f}&quot;)
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79236267/mismatch-in-tensor-dimensions-in-bayesianfpn-with-reinforcement-learning</guid>
+      <pubDate>Fri, 29 Nov 2024 08:06:22 GMT</pubDate>
     </item>
     <item>
       <title>“TypeError：类型为‘numpy.float32’的对象没有 len()” - DeepSORT 与 YOLO 集成</title>
@@ -136,90 +251,11 @@ confidence], ...] 并将其转换为 NumPy 数组，其中 dtype=np.float32。�
       <pubDate>Thu, 28 Nov 2024 13:01:00 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习。如何让神经网络记住上下文和数据？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79233875/ml-how-to-make-a-neural-network-remember-the-context-and-data</link>
-      <description><![CDATA[我希望神经网络能够记忆，但感知器只能在训练期间记住一些东西，但我希望神经网络能够适应新情况而无需重新训练，例如，如果我说我的名字是尼古拉，它就会记住，或者如果绿色蘑菇以前在游戏中有用，但后来变得有毒，它就会停止食用，然后，如果它们恢复正常，它就会再次开始食用。我考虑过 LSTM，但这是一个循环神经网络，人们似乎正在放弃它们而选择 transformer？]]></description>
-      <guid>https://stackoverflow.com/questions/79233875/ml-how-to-make-a-neural-network-remember-the-context-and-data</guid>
-      <pubDate>Thu, 28 Nov 2024 12:20:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Hugging Face Trainer 或 SFT Trainer 中记录第零步的训练损失？</title>
-      <link>https://stackoverflow.com/questions/79232257/how-to-log-training-loss-at-step-zero-in-hugging-face-trainer-or-sft-trainer</link>
-      <description><![CDATA[我正在使用 Hugging Face Trainer（或 SFTTrainer）进行微调，我想在步骤 0（在执行任何训练步骤之前）记录训练损失。我知道有一个用于评估的 eval_on_start 选项，但我找不到在训练开始时记录训练损失的直接等效方法。
-是否有办法使用 Trainer 或 SFTTrainer 在步骤 0（在任何更新之前）记录初始训练损失？理想情况下，我希望使用类似于 eval_on_start 的方法。
-以下是我迄今为止尝试过的方法：
-解决方案 1：自定义回调
-我实现了自定义回调，以在训练开始时记录训练损失：
-from transformers import TrainerCallback
-
-class TrainOnStartCallback(TrainerCallback):
-def on_train_begin(self, args, state, control, logs=None, **kwargs):
-# 在步骤 0 记录训练损失
-logs = logs or {}
-logs[&quot;train/loss&quot;] = None # 如果可用，用初始值替换 None
-logs[&quot;train/global_step&quot;] = 0
-self.log(logs)
-
-def log(self, logs):
-print(f&quot;Logging at start: {logs}&quot;)
-wandb.log(logs)
-
-# 将回调添加到 Trainer
-trainer = SFTTrainer(
-model=model,
-tokenizer=tokenizer,
-train_dataset=train_dataset,
-eval_dataset=eval_dataset,
-args=training_args,
-optimizers=(optimizer, scheduler),
-callbacks=[TrainOnStartCallback()],
-)
-
-这有效，但感觉有点过头了。它会在训练开始时记录任何步骤之前的指标。
-解决方案 2：手动记录
-或者，我在开始训练之前手动记录训练损失：
-wandb.log({&quot;train/loss&quot;: None, &quot;train/global_step&quot;: 0})
-trainer.train()
-
-问题：
-Trainer 或 SFTTrainer 中是否有任何内置功能可以在第 0 步记录训练损失？或者自定义回调或手动记录是这里的最佳解决方案吗？如果是这样，是否有更好的方法来实现此功能？与 eval_on_start 类似，但 train_on_start？
-交叉：https://discuss.huggingface.co/t/how-to-log-training-loss-at-step-zero-in-hugging-face-trainer-or-sft-trainer/128188]]></description>
-      <guid>https://stackoverflow.com/questions/79232257/how-to-log-training-loss-at-step-zero-in-hugging-face-trainer-or-sft-trainer</guid>
-      <pubDate>Thu, 28 Nov 2024 00:23:35 GMT</pubDate>
-    </item>
-    <item>
       <title>我正在尝试创建多尺度 CNN，但遇到此错误：RuntimeError：mat1 和 mat2 形状无法相乘（32x4095 和 4096x4096）</title>
       <link>https://stackoverflow.com/questions/79228528/i-am-trying-to-create-multiscale-cnn-but-facing-this-error-runtimeerror-mat1</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79228528/i-am-trying-to-create-multiscale-cnn-but-facing-this-error-runtimeerror-mat1</guid>
       <pubDate>Tue, 26 Nov 2024 23:06:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何从本地向量数据库中删除特定的问答对？</title>
-      <link>https://stackoverflow.com/questions/79226011/how-to-delete-a-specific-question-response-pair-from-a-local-vector-database</link>
-      <description><![CDATA[我已经实现了一个基于反馈的聊天机器人，它将问题-响应对存储在本地向量数据库中。我使用以下设置来访问向量数据库：
-import os
-
-VECTOR_DB_PATH = os.path.join(os.getcwd(), &quot;vectordb&quot;)
-
-向量数据库用于存储嵌入和响应，以实现高效的相似性搜索。现在，我想从向量数据库中删除特定的问题-响应对。我知道我想删除的对（例如，问题：“你好吗？”，回答：“我很好，谢谢！”），但我不确定如何以编程方式从数据库中删除它。
-以下是有关我的设置的一些详细信息：
-我使用的向量数据库库是 FAISS。
-问题的嵌入存储在数据库中以供检索。
-我可以成功访问和查询向量数据库。
-我正在使用的库是
-import json
-import os
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import boto3
-import botocore
-from langchain.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
-
-从向量数据库中查找和删除特定对的最佳方法是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/79226011/how-to-delete-a-specific-question-response-pair-from-a-local-vector-database</guid>
-      <pubDate>Tue, 26 Nov 2024 09:12:37 GMT</pubDate>
     </item>
     <item>
       <title>使用 RMSprop 优化器的动态学习率进行 Q 学习 [关闭]</title>
@@ -272,7 +308,7 @@ val_loader = DataLoader(validation_dataset, batch_size=1, sampler = sampler_(val
       <pubDate>Thu, 21 Nov 2019 23:11:19 GMT</pubDate>
     </item>
     <item>
-      <title>具有状态-动作-状态奖励结构的 Q 学习，以及以状态为行、以动作为列的 Q 矩阵</title>
+      <title>具有状态-动作-状态奖励结构的 Q 学习和以状态为行、以动作为列的 Q 矩阵[关闭]</title>
       <link>https://stackoverflow.com/questions/45382763/q-learning-with-a-state-action-state-reward-structure-and-a-q-matrix-with-states</link>
       <description><![CDATA[我在 R 中设置了一个 Q 学习问题，希望有人能帮助我确定我的方法在构建问题时的理论正确性。
 问题结构
