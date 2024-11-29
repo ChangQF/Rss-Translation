@@ -4,7 +4,107 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 29 Nov 2024 06:25:34 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 29 Nov 2024 09:19:14 GMT</lastBuildDate>
+    <item>
+      <title>发生推理时间延迟</title>
+      <link>https://stackoverflow.com/questions/79236337/inference-time-delay-occured</link>
+      <description><![CDATA[我目前正在研究 GFPGAN 模型。我想使用 Python 的多处理功能同时实现多帧处理功能。
+当我运行一个进程时，我会遇到大约 0.25 秒的延迟。当我同时运行两个进程时，延迟会增加到大约 0.45 秒。当三个进程同时运行时，延迟会增加到大约 0.65 秒。
+我确信并行处理正在运行，但在同时运行多个进程时，我会遇到额外的延迟。
+您能否告诉我这是什么原因，以及在使用多个进程时如何减少额外的延迟？
+谢谢！
+我为每个进程实现了加载模型文件 (*.pth) 和推理函数，并同时调用这些进程。我为每个进程创建了时间戳；因此，推理函数的开始时间相同，但结束时间略有不同。]]></description>
+      <guid>https://stackoverflow.com/questions/79236337/inference-time-delay-occured</guid>
+      <pubDate>Fri, 29 Nov 2024 08:32:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>“TypeError：类型为‘numpy.float32’的对象没有 len()” - DeepSORT 与 YOLO 集成</title>
+      <link>https://stackoverflow.com/questions/79235328/typeerror-object-of-type-numpy-float32-has-no-len-deepsort-integration</link>
+      <description><![CDATA[我正在将 YOLOv8 与 DeepSORT 集成以进行多对象跟踪，但在将检测数据传递给 DeepSORT update_tracks() 函数时遇到了 TypeError。
+错误消息：
+
+速度：4.5ms 预处理，332.2ms 推理，0.6ms 后处理每个形状为 (1, 3, 480, 640) 的图像 DeepSORT 检测：[[ 107.22
+186.92 639.26 479.49 0.83611]] 回溯（最近一次调用）：文件 &quot;/home/roy/environments/001-opencv/004-opencv.py&quot;，
+第 127 行，在 detect_customers() 文件
+&quot;/home/roy/environments/001-opencv/004-opencv.py&quot;，
+第 84 行，在 detect_customers tracks = tracker.update_tracks(deep_sort_detections,
+frame=frame) ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+文件
+&quot;/home/roy/environments/001-opencv/lib/python3.12/site-packages/deep_sort_realtime/deepsort_tracker.py&quot;，
+第 195 行，在 update_tracks 中断言 len(raw_detections[0][0])==4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^ TypeError：类型为“numpy.float32”的对象
+没有 len()
+
+代码部分（检测和跟踪）：
+def detect_customers():
+# 初始化 YOLO 和 DeepSORT
+model = YOLO(&quot;yolov8s.pt&quot;) # 加载 YOLO 模型
+tracker = DeepSort(max_age=30, n_init=3)
+
+cap = cv2.VideoCapture(0) # 将 0 替换为视频源
+active_customers = {}
+
+while True:
+ret, frame = cap.read()
+if not ret:
+break
+
+results = model(frame) # 执行 YOLO 推理
+detections = []
+
+for result in results:
+for box in result.boxes:
+# 提取边界框和置信度得分
+x1, y1, x2, y2 = box.xyxy[0].tolist() # 将边界框转换为列表
+confidence = float(box.conf[0]) # 置信度得分
+
+# 以所需格式附加检测
+detection = [float(x1), float(y1), float(x2), float(y2), float(confidence)]
+detections.append(detection)
+
+# 处理空检测
+if len(detections) == 0:
+deep_sort_detections = np.empty((0, 5)) # 空数组表示没有检测
+else:
+deep_sort_detections = np.array(detections, dtype=np.float32) # 转换为具有适当结构的 NumPy 数组
+
+# 调试：打印传递给 DeepSORT 的检测
+print(&quot;Detections for DeepSORT:&quot;, deep_sort_detections)
+
+# 更新跟踪器
+tracks = tracker.update_tracks(deep_sort_detections, frame=frame)
+for track in tracks:
+if not track.is_confirmed():
+continue
+
+track_id = track.track_id
+ltrb = track.to_ltrb() # 转换为 (left, top, right, bottom)
+cv2.rectangle(frame, (int(ltrb[0]), int(ltrb[1])), (int(ltrb[2]), int(ltrb[3])), (0, 255, 0), 2)
+cv2.putText(frame, f&quot;ID: {track_id}&quot;, (int(ltrb[0]), int(ltrb[1]) - 10),
+cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+# 显示框架
+cv2.imshow(&quot;客户检测&quot;, frame)
+if cv2.waitKey(1) &amp; 0xFF == 27：# 按 ESC 退出
+break
+
+cap.release()
+cv2.destroyAllWindows()
+
+问题摘要：
+
+错误描述：将 deep_sort_detections 传递给 tracker.update_tracks() 时，我收到 TypeError：类型为 &#39;numpy.float32&#39; 的对象没有 len()。
+检测格式：我将检测格式化为 [[x1, y1, x2, y2,
+confidence], ...] 并将其转换为 NumPy 数组，其中 dtype=np.float32。但是，DeepSORT 似乎需要不同的格式，或者存在某种类型问题。
+
+问题：
+
+如何正确格式化检测数据以与 DeepSORT 的 update_tracks() 方法兼容？
+我是否遗漏了数据的结构或传递给 DeepSORT 的方式？
+]]></description>
+      <guid>https://stackoverflow.com/questions/79235328/typeerror-object-of-type-numpy-float32-has-no-len-deepsort-integration</guid>
+      <pubDate>Thu, 28 Nov 2024 21:25:10 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用 Arm CMSIS-NN Softmax 函数进行嵌入式机器学习</title>
       <link>https://stackoverflow.com/questions/79235253/how-to-use-arm-cmsis-nn-softmax-function-for-embedded-ml</link>
@@ -34,16 +134,6 @@
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79233998/how-can-i-fuse-embeddings-in-a-manner-such-that-it-increase-efficiency-and-score</guid>
       <pubDate>Thu, 28 Nov 2024 13:01:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>利用贝叶斯优化进行黑箱优化</title>
-      <link>https://stackoverflow.com/questions/79233932/blackbox-opimization-with-bayesian-optimization</link>
-      <description><![CDATA[我想使用贝叶斯优化来识别物理实验中新的有趣参数。
-更具体地说，我想用已知的有界实验参数初始化算法，并使用贝叶斯优化进行黑盒优化。我目前正在使用一个名为“bayes_op”的库在 Python 上工作，但是，我发现的所有示例都使用了数学定义的函数。
-我想首先给出函数在某些实验点上的得分，以开始算法，然后获得下一个有趣的实验参数的建议。
-到目前为止，我已经成功地从随机参数开始优化已知函数。但是，我想知道是否有可能在不提供显式函数的情况下使用此算法，同时利用已有的实验数据。我想补充一点，我没有数据集来训练任何东西。]]></description>
-      <guid>https://stackoverflow.com/questions/79233932/blackbox-opimization-with-bayesian-optimization</guid>
-      <pubDate>Thu, 28 Nov 2024 12:40:07 GMT</pubDate>
     </item>
     <item>
       <title>机器学习。如何让神经网络记住上下文和数据？[关闭]</title>
@@ -96,50 +186,6 @@ Trainer 或 SFTTrainer 中是否有任何内置功能可以在第 0 步记录训
 交叉：https://discuss.huggingface.co/t/how-to-log-training-loss-at-step-zero-in-hugging-face-trainer-or-sft-trainer/128188]]></description>
       <guid>https://stackoverflow.com/questions/79232257/how-to-log-training-loss-at-step-zero-in-hugging-face-trainer-or-sft-trainer</guid>
       <pubDate>Thu, 28 Nov 2024 00:23:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何解决矢量化器不匹配问题</title>
-      <link>https://stackoverflow.com/questions/79231510/how-do-i-resolve-vectorizer-mismatch</link>
-      <description><![CDATA[我正在使用 TfidfVectorizer 作为文本矢量化器，但当我尝试获取 cosine_similarity 时，我遇到了维度不匹配的问题。
-我的情况如下：
-首先，
-def clean_text(text):
-return re.sub(r&#39;[^a-zA-Z0-9 ]&#39;, &quot;&quot;, text)
-
-movies[&#39;title&#39;] = movies[&#39;title&#39;].apply(clean_text)
-
-vectorizer = TfidfVectorizer(ngram_range=(1,2), stop_words =&#39;english&#39;)
-
-title_vec = vectorizer.fit_transform(movies[&#39;title&#39;])
-
-title = &quot;Toy Story&quot;
-
-title = clean_text(title)
-
-word_vec = vectorizer.transform([title])
-
-similarity = cosine_similarity(word_vec, title_vec)
-
-这会导致错误消息：
-ValueError: X 和 Y 矩阵的维度不兼容：X.shape[1] == 172412 而 Y.shape[1] == 156967
-
-PS：我检查了 word_vec 和 title_vec 的 len，它们显示的长度不同。
-我在 vectorizer 中设置了 ngram_range=(1,1)，但没有得到肯定的结果。
-我使用了 countvectorizer()，但问题仍然存在
-我没有其他选择，而 chatGPT 提供的解决方案也无法解决问题：
-from scipy.sparse import hstack
-
-用零填充较小的矩阵
-if word_vec.shape[1] &gt; title_vec.shape[1]:
-diff = word_vec.shape[1] - title_vec.shape[1]
-title_vec = hstack([title_vec, np.zeros((title_vec.shape[0], diff))])
-elif title_vec.shape[1] &gt; word_vec.shape[1]:
-diff = title_vec.shape[1] - word_vec.shape[1]
-word_vec = hstack([word_vec, np.zeros((word_vec.shape[0], diff))])
-
-所以我不能使用上面的代码，但我把它放在这里以显示这个问题的严重程度。]]></description>
-      <guid>https://stackoverflow.com/questions/79231510/how-do-i-resolve-vectorizer-mismatch</guid>
-      <pubDate>Wed, 27 Nov 2024 18:38:44 GMT</pubDate>
     </item>
     <item>
       <title>我正在尝试创建多尺度 CNN，但遇到此错误：RuntimeError：mat1 和 mat2 形状无法相乘（32x4095 和 4096x4096）</title>
