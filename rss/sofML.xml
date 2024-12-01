@@ -4,7 +4,103 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 01 Dec 2024 18:22:40 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 01 Dec 2024 21:15:44 GMT</lastBuildDate>
+    <item>
+      <title>如何处理图神经网络训练中不同的特征维度？</title>
+      <link>https://stackoverflow.com/questions/79242479/how-to-handle-varying-feature-dimensions-in-graph-neural-networks-training</link>
+      <description><![CDATA[我有一个问题，关于在训练图神经网络 (GNN) 时如何处理具有不同特征维度的数据集。例如，在一个数据集（数据集 A）中，节点特征的维度为 4，边缘特征的维度为 16。在另一个数据集（数据集 B）中，节点特征为 5 维，边缘特征为 25 维。我可能使用的其他数据集也具有不同的特征大小。
+在训练 GNN 时，您通常如何处理这种特征维度的变化？任何提示或建议都将非常有用。提前致谢！]]></description>
+      <guid>https://stackoverflow.com/questions/79242479/how-to-handle-varying-feature-dimensions-in-graph-neural-networks-training</guid>
+      <pubDate>Sun, 01 Dec 2024 21:06:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>Tensorflow 模型在 Google Colab 中占用大量 RAM</title>
+      <link>https://stackoverflow.com/questions/79242350/tensorflow-model-takes-so-much-ram-in-google-colab</link>
+      <description><![CDATA[当我尝试训练这个模型时，这个模型甚至没有很多可训练的参数，它在 google colab 中崩溃了，因为它使用了所有的内存，我有一个 mp3 文件的数据集，每个 mp3 文件都是 128 kbps 和 3-4 秒长，我尝试制作一个音频分类器，但它不起作用，它需要太多的内存来进行训练，而且训练也很慢。有人能帮帮我吗？我使用 tensorflow 2.10.0 和 tensorflow-io 0.27.0，因为较新的版本存在其他问题
+ import tensorflow as tf
+import tensorflow_io as tfio
+import os
+import random
+import joblib
+
+BATCH_SIZE = 4
+def load_sound(filename):
+res = tfio.audio.AudioIOTensor(filename, dtype=tf.float32)
+tensor = res.to_tensor()
+tensor = tf.math.reduce_sum(tensor,axis = 1) / 2
+
+sample_rate = res.rate
+
+sample_rate = tf.cast(sample_rate, dtype=tf.int64)
+
+wav = tfio.audio.resample(tensor, rate_in=sample_rate, rate_out=16000)
+
+返回 wav
+
+base_dir = &#39;/content/drive/MyDrive/house_sounds/sound_data&#39;
+folders = [&#39;door&#39;, &#39;voice&#39;, &#39;glass&#39;, &#39;footsteps&#39;]
+files = []
+
+对于文件夹中的文件夹：
+folder_path = os.path.join(base_dir, folder)
+file_paths = tf.data.Dataset.list_files(os.path.join(folder_path, &#39;*.mp3&#39;))
+files.append(file_paths)
+
+door = tf.data.Dataset.zip((files[0], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[0])],0))))
+voice = tf.data.Dataset.zip((files[1], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[1])],1))))
+glass = tf.data.Dataset.zip((files[2], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[2])],2))))
+footsteps = tf.data.Dataset.zip((files[3], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[3])],3))))
+
+data = door.concatenate(voice)
+data = data.concatenate(glass)
+data = data.concatenate(footsteps)
+
+def create_spectrogram(file_path, label):
+wav = load_sound(file_path)
+wav = wav[:48000]
+zero_padding = tf.zeros([48000] - tf.shape(wav), dtype=tf.float32)
+wav = tf.concat([zero_padding, wav], 0)
+
+spectrogram = tf.signal.stft(wav, frame_length=320, frame_step=32)
+spectrogram = tf.abs(spectrogram)
+spectrogram = tf.expand_dims(spectrogram, axis=2)
+返回频谱图，标签
+
+data = data.map(create_spectrogram)
+data = data.cache()
+data = data.shuffle(buffer_size = 1000)
+data = data.batch(4)
+data = data.prefetch(8)
+print(&#39;Len: &#39;,len(data))
+train = data.take(1600)
+test = data.skip(1600).take(247)
+
+从 tensorflow.keras.models 导入 Sequential
+从 tensorflow.keras.layers 导入 Conv2D、Dense、Flatten、MaxPooling2D
+
+model = Sequential([
+Conv2D(16, (2,2), 激活=&quot;relu&quot;, input_shape=(1491,257,1)),
+MaxPooling2D(pool_size=(5, 5)),
+Conv2D(32, (2, 2), 激活=&#39;relu&#39;),
+MaxPooling2D(pool_size=(5, 5)),
+Conv2D(64, (3, 3), 激活=&#39;relu&#39;),
+MaxPooling2D(pool_size=(5, 5)),
+Flatten(),
+Dense(32, 激活=&#39;relu&#39;),
+Dense(4, 激活=&quot;softmax&quot;)
+])
+
+model.compile(
+优化器=&#39;Adam&#39;,
+损失=tf.keras.losses.SparseCategoricalCrossentropy(),
+指标=[&#39;准确度&#39;]
+)
+模型.summary()
+历史 = 模型.fit(训练，epochs=5，验证数据=测试)
+]]></description>
+      <guid>https://stackoverflow.com/questions/79242350/tensorflow-model-takes-so-much-ram-in-google-colab</guid>
+      <pubDate>Sun, 01 Dec 2024 19:35:18 GMT</pubDate>
+    </item>
     <item>
       <title>Catboost RAM 在训练结束时崩溃</title>
       <link>https://stackoverflow.com/questions/79241814/catboost-ram-crash-in-the-end-of-training</link>
@@ -12,6 +108,13 @@
 我尝试传递 used_ram_limit 参数，但在拟合最后一棵树后，它似乎对 RAM 消耗没有影响]]></description>
       <guid>https://stackoverflow.com/questions/79241814/catboost-ram-crash-in-the-end-of-training</guid>
       <pubDate>Sun, 01 Dec 2024 14:46:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>set_transform 或 with_transform 之后 transformer 的数据集结构出现意外</title>
+      <link>https://stackoverflow.com/questions/79241735/unexpected-transformers-dataset-structure-after-set-transform-or-with-transform</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79241735/unexpected-transformers-dataset-structure-after-set-transform-or-with-transform</guid>
+      <pubDate>Sun, 01 Dec 2024 14:07:14 GMT</pubDate>
     </item>
     <item>
       <title>TensorFlow 不接受数据集生成器的列表类型</title>
@@ -155,27 +258,6 @@ output = scaled_probs.astype(np.int8)
       <pubDate>Sat, 30 Nov 2024 09:37:57 GMT</pubDate>
     </item>
     <item>
-      <title>使用“TensorFlowLiteSelectTfOps”、“~> 0.0.1-nightly”会导致应用程序体积过大</title>
-      <link>https://stackoverflow.com/questions/79238982/large-app-size-for-using-tensorflowliteselecttfops-0-0-1-nightly</link>
-      <description><![CDATA[我正在使用 -
-&#39;TensorFlowLiteSwift&#39;
-&#39;TensorFlowLiteSelectTfOps&#39;, &#39;~&gt; 0.0.1-nightly&#39;
-使用 pod 在 iOS 应用中运行我的 Tflite 模型。但是，应用大小非常大，几乎有 202 MB。如果我删除 pod - &#39;TensorFlowLiteSelectTfOps&#39;, &#39;~&gt; 0.0.1-nightly&#39;，则应用程序大小减少到 32 MB。
-所以现在我正在尝试构建框架 - TensorFlowLiteSelectTfOps.framework
-使用 Python 脚本，我得到我的模型使用以下操作 -
-{&#39;MUL&#39;, &#39;FlexRealDiv&#39;, &#39;FLOOR_DIV&#39;, &#39;FILL&#39;, &#39;SPLIT_V&#39;, &#39;DIV&#39;, &#39;TRANSPOSE&#39;, &#39;MAXIMUM&#39;, &#39;EXPAND_DIMS&#39;, &#39;FlexIRFFT&#39;, &#39;MIRROR_PAD&#39;, &#39;DEQUANTIZE&#39;, &#39;CONV_2D&#39;, &#39;SUB&#39;, &#39;FlexStridedSlice&#39;, &#39;TRANSPOSE_CONV&#39;, &#39;GATHER&#39;, &#39;PACK&#39;, &#39;ADD&#39;, &#39;SQRT&#39;, &#39;STRIDED_SLICE&#39;, &#39;CONCATENATION&#39;, &#39;IMAG&#39;, &#39;SPLIT&#39;, &#39;RFFT2D&#39;, &#39;RSQRT&#39;, &#39;BATCH_MATMUL&#39;, &#39;SQUARED_DIFFERENCE&#39;, &#39;SUM&#39;, &#39;SHAPE&#39;, &#39;DELEGATE&#39;, &#39;GELU&#39;, &#39;REAL&#39;, &#39;NEG&#39;, &#39;FULLY_CONNECTED&#39;, &#39;BATCH_TO_SPACE_ND&#39;, &#39;RANGE&#39;, &#39;FlexPad&#39;, &#39;FlexComplex&#39;, &#39;SQUEEZE&#39;, &#39;LOGISTIC&#39;, &#39;FlexTranspose&#39;, &#39;MEAN&#39;, &#39;SPACE_TO_BATCH_ND&#39;, &#39;PAD&#39;, &#39;RESHAPE&#39;, &#39;SOFTMAX&#39;}
-
-我确实使用以下命令构建了框架，但大小没有减小-
-bazel build -c opt --config=ios_arm64 \ 
---define=TF_LITE_STATIC_SELECT_TF_OPS=1 \
---define=tflite_with_xnnpack=false \
---copt=-DTF_LITE_STATIC_SELECT_OPS_LIST=&quot;MUL,FlexRealDiv,FLOOR_DIV,FILL,SPLIT_V,DIV,TRANSPOSE,MAXIMUM,EXPAND_DIMS,FlexIRFFT,MIRROR_PAD,DEQUANTIZE,CONV_2D,SUB,FlexStridedSlice,TRANSPOSE_CONV,GATHER,PACK,ADD,SQRT,STRIDED_SLICE,CONCA TENATION、IMAG、SPLIT、RFFT2D、RSQRT、BATCH_MATMUL、SQUARED_DIFFERENCE、SUM、SHAPE、DELEGATE、GELU、REAL、NEG、FULLY_CONNECTED、BATCH_TO_SPACE_ND、RANGE、FlexPad、FlexComplex、SQUEEZE、LOGISTIC、FlexTranspose、MEAN、SPACE_TO_BATCH_ND、PAD、RESHAPE、SOFTMAX&quot; \
-//tensorflow/lite/ios:TensorFlowLiteSelectTfOps_framework
-]]></description>
-      <guid>https://stackoverflow.com/questions/79238982/large-app-size-for-using-tensorflowliteselecttfops-0-0-1-nightly</guid>
-      <pubDate>Sat, 30 Nov 2024 07:07:35 GMT</pubDate>
-    </item>
-    <item>
       <title>回归 - 模型总体看起来不错，但 R2 意外地偏高 [关闭]</title>
       <link>https://stackoverflow.com/questions/79238923/regression-model-looks-good-overall-but-r2-unexpectedly-negatively-high</link>
       <description><![CDATA[我一直在构建一个包含大约 150 行数据的线性回归模型。我检查了参数与目标变量的相关性，并尝试仅保留它们，因为我的数据较少，并且想要一个简单的线性模型。
@@ -219,28 +301,11 @@ train, test = train_test_split(diabetes_df, test_size=0.3, random_state=42)
       <pubDate>Sat, 30 Nov 2024 00:21:23 GMT</pubDate>
     </item>
     <item>
-      <title>在 counterfactual-vulnerability-detection 存储库中运行数据预处理脚本时出错</title>
-      <link>https://stackoverflow.com/questions/79238608/error-while-running-data-preprocessing-script-in-counterfactual-vulnerability-de</link>
-      <description><![CDATA[我想在 CPU 上运行存储库 https://github.com/zahrazarezadeh1999/counterfactual-vulnerability-detection/tree/main 中的代码。
-我正在运行一个名为 data_pre.py 的 Python 脚本作为项目的一部分，在处理数据时遇到了多个问题。最初，该脚本尝试访问位于 /home/user20/Desktop/counterfactual-vulnerability-detection-main/cfexplainer/storage/cache/minimal_datasets/minimal_bigvul.pq 的文件，但失败并出现“没有这样的文件或目录”错误。该文件似乎是该过程的关键部分，它的缺失阻止了脚本按预期继续运行。尽管出现了这个错误，但脚本仍继续运行一些操作，并显示数据处理的进度条，但很明显，丢失的文件导致了下游的重大问题。
-后来，脚本又抛出了另一个错误，这次与 pandas 中的 DataFrame 操作有关。错误消息指出：ValueError：无法将没有列的 DataFrame 设置为列 mod_prop。似乎由于文件丢失或流程早期的其他问题，预计应该有数据的 DataFrame 要么没有正确加载，要么是空的。这个错误完全停止了脚本的执行，让我无法完成任务。
-我使用 GPU 运行代码并遇到了同样的错误。这次，我尝试在 CPU 上运行它，但再次遇到了同样的错误。您建议如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/79238608/error-while-running-data-preprocessing-script-in-counterfactual-vulnerability-de</guid>
-      <pubDate>Fri, 29 Nov 2024 23:57:50 GMT</pubDate>
-    </item>
-    <item>
       <title>如何比较不同年份的集群？</title>
       <link>https://stackoverflow.com/questions/79234461/how-to-compare-clusters-from-different-years</link>
       <description><![CDATA[我有多个数据集，所有数据集的组织方式都类似（相同的变量、值等）。我使用 KModes 独立分析了数据集，但是，我试图寻找多年来可能出现的趋势。我该如何比较不同年份的集群？]]></description>
       <guid>https://stackoverflow.com/questions/79234461/how-to-compare-clusters-from-different-years</guid>
       <pubDate>Thu, 28 Nov 2024 15:14:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>ML。如何让神经网络记住 UE/Unity 中的上下文和数据？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79233875/ml-how-to-make-a-neural-network-remember-the-context-and-data-in-ue-unity</link>
-      <description><![CDATA[我希望神经网络能够记忆，但感知器只能在训练期间记住一些东西，但我希望神经网络能够适应新情况而无需重新训练，例如，如果我说我的名字是尼古拉，它就会记住，或者如果绿色蘑菇以前在游戏中很有用，但后来变得有毒，它就会停止食用，然后，如果它们恢复正常，它就会再次开始食用。我考虑过 LSTM，但这是一个循环神经网络，人们似乎正在放弃它们而选择 transformer？在 UE/Unity 中。]]></description>
-      <guid>https://stackoverflow.com/questions/79233875/ml-how-to-make-a-neural-network-remember-the-context-and-data-in-ue-unity</guid>
-      <pubDate>Thu, 28 Nov 2024 12:20:41 GMT</pubDate>
     </item>
     <item>
       <title>scikit-learn 中的 GaussianProcessRegressor 估计器可以在多核上并行化吗？</title>
