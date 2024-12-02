@@ -4,7 +4,17 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 02 Dec 2024 15:19:15 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 02 Dec 2024 18:24:40 GMT</lastBuildDate>
+    <item>
+      <title>我有一系列小分子结构，想根据结构相似性对它们进行比较和聚类</title>
+      <link>https://stackoverflow.com/questions/79244995/i-have-a-collection-of-structures-of-small-molecules-want-to-compare-and-cluster</link>
+      <description><![CDATA[我是一名计算生物学家，有一组代表数百个小生物分子（代谢物）的化学结构。
+除了这些分子，我还有每个分子的元数据（物种、条件、表型、存在/不存在等）。我的目标是找到将化合物中存在的一些分子多样性与这些元数据联系起来的方法。
+例如，我正在考虑的一件事是不可知地对这些分子进行聚类（PCA 或类似方法），并识别在元数据的光照下看起来分离的模式。
+是否有做类似事情的标准做法？我知道药物发现领域有查看命中之间的共同点的方法，并希望做类似的事情。]]></description>
+      <guid>https://stackoverflow.com/questions/79244995/i-have-a-collection-of-structures-of-small-molecules-want-to-compare-and-cluster</guid>
+      <pubDate>Mon, 02 Dec 2024 17:16:21 GMT</pubDate>
+    </item>
     <item>
       <title>开始一个项目 [关闭]</title>
       <link>https://stackoverflow.com/questions/79244312/getting-started-with-a-project</link>
@@ -277,94 +287,6 @@ ImageAI 中是否有加载自定义训练模型的特定方法？
       <pubDate>Mon, 02 Dec 2024 03:31:17 GMT</pubDate>
     </item>
     <item>
-      <title>Tensorflow 模型在 Google Colab 中占用大量 RAM</title>
-      <link>https://stackoverflow.com/questions/79242350/tensorflow-model-takes-so-much-ram-in-google-colab</link>
-      <description><![CDATA[当我尝试训练这个模型时，这个模型甚至没有很多可训练的参数，它在 google colab 中崩溃了，因为它使用了所有的内存，我有一个 mp3 文件的数据集，每个 mp3 文件都是 128 kbps 和 3-4 秒长，我尝试制作一个音频分类器，但它不起作用，它需要太多的内存来进行训练，而且训练也很慢。有人能帮帮我吗？我使用 tensorflow 2.10.0 和 tensorflow-io 0.27.0，因为较新的版本存在其他问题。
-import tensorflow as tf
-import tensorflow_io as tfio
-import os
-import random
-import joblib
-
-BATCH_SIZE = 4
-def load_sound(filename):
-res = tfio.audio.AudioIOTensor(filename, dtype=tf.float32)
-tensor = res.to_tensor()
-tensor = tf.math.reduce_sum(tensor,axis = 1) / 2
-
-sample_rate = res.rate
-
-sample_rate = tf.cast(sample_rate, dtype=tf.int64)
-
-wav = tfio.audio.resample(tensor, rate_in=sample_rate, rate_out=16000)
-
-返回 wav
-
-base_dir = &#39;/content/drive/MyDrive/house_sounds/sound_data&#39;
-folders = [&#39;door&#39;, &#39;voice&#39;, &#39;glass&#39;, &#39;footsteps&#39;]
-files = []
-
-对于文件夹中的文件夹：
-folder_path = os.path.join(base_dir, folder)
-file_paths = tf.data.Dataset.list_files(os.path.join(folder_path, &#39;*.mp3&#39;))
-files.append(file_paths)
-
-door = tf.data.Dataset.zip((files[0], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[0])],0))))
-voice = tf.data.Dataset.zip((files[1], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[1])],1))))
-glass = tf.data.Dataset.zip((files[2], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[2])],2))))
-footsteps = tf.data.Dataset.zip((files[3], tf.data.Dataset.from_tensor_slices(tf.fill([len(files[3])],3))))
-
-data = door.concatenate(voice)
-data = data.concatenate(glass)
-data = data.concatenate(footsteps)
-
-def create_spectrogram(file_path, label):
-wav = load_sound(file_path)
-wav = wav[:48000]
-zero_padding = tf.zeros([48000] - tf.shape(wav), dtype=tf.float32)
-wav = tf.concat([zero_padding, wav], 0)
-
-频谱图 = tf.signal.stft(wav, frame_length=320, frame_step=32)
-频谱图 = tf.abs(频谱图)
-频谱图 = tf.expand_dims(频谱图, axis=2)
-返回频谱图, 标签
-
-数据 = data.map(create_spectrogram)
-数据 = data.cache()
-数据 = data.shuffle(buffer_size = 1000)
-数据 = data.batch(4)
-数据 = data.prefetch(8)
-print(&#39;Len: &#39;,len(data))
-train = data.take(1600)
-测试 = data.skip(1600).take(247)
-
-从 tensorflow.keras.models 导入 Sequential
-从 tensorflow.keras.layers 导入 Conv2D、Dense、Flatten、MaxPooling2D
-
-model = Sequential([
-Conv2D(16, (2,2), 激活=&quot;relu&quot;, input_shape=(1491,257,1)),
-MaxPooling2D(pool_size=(5, 5)),
-Conv2D(32, (2, 2), 激活=&#39;relu&#39;),
-MaxPooling2D(pool_size=(5, 5)),
-Conv2D(64, (3, 3), 激活=&#39;relu&#39;),
-MaxPooling2D(pool_size=(5, 5)),
-Flatten(),
-Dense(32, 激活=&#39;relu&#39;),
-Dense(4,激活=&quot;softmax&quot;)
-])
-
-model.compile(
-优化器=&#39;Adam&#39;,
-损失=tf.keras.losses.SparseCategoricalCrossentropy(),
-指标=[&#39;准确度&#39;]
-)
-model.summary()
-hist = model.fit(训练，epochs=5，validation_data=测试)
-]]></description>
-      <guid>https://stackoverflow.com/questions/79242350/tensorflow-model-takes-so-much-ram-in-google-colab</guid>
-      <pubDate>Sun, 01 Dec 2024 19:35:18 GMT</pubDate>
-    </item>
-    <item>
       <title>在简单数据集上使用分类器。使用分数时出错</title>
       <link>https://stackoverflow.com/questions/79241877/use-of-classifiers-on-a-simple-dataset-error-using-score</link>
       <description><![CDATA[我是 ML 新手，我正在尝试在一个简单的数据集上使用分类器
@@ -486,13 +408,6 @@ clf.fit(X_train, y_train) 我该如何修复它？我尝试更改数据集，但
       <pubDate>Sun, 01 Dec 2024 15:20:56 GMT</pubDate>
     </item>
     <item>
-      <title>set_transform 或 with_transform 之后 transformer 的数据集结构出现意外</title>
-      <link>https://stackoverflow.com/questions/79241735/unexpected-transformers-dataset-structure-after-set-transform-or-with-transform</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79241735/unexpected-transformers-dataset-structure-after-set-transform-or-with-transform</guid>
-      <pubDate>Sun, 01 Dec 2024 14:07:14 GMT</pubDate>
-    </item>
-    <item>
       <title>TensorFlow 不接受数据集生成器的列表类型</title>
       <link>https://stackoverflow.com/questions/79241634/tensorflow-does-not-accept-list-type-for-dataset-generator</link>
       <description><![CDATA[我正在构建一个神经网络。我无法一次性将所有训练数据加载到内存中，因此我使用 TensorFlow 的 tf.data.Dataset.from_generator 函数逐步加载数据。但是，它会抛出一个错误，指出它不接受张量列表作为类型。
@@ -522,6 +437,45 @@ TypeError：output_signature 必须包含属于 tf.TypeSpec 子类的对象，�
 ]]></description>
       <guid>https://stackoverflow.com/questions/79241634/tensorflow-does-not-accept-list-type-for-dataset-generator</guid>
       <pubDate>Sun, 01 Dec 2024 13:13:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在 Python 中实现 Softmax，其中输入是有符号的 8 个整数</title>
+      <link>https://stackoverflow.com/questions/79239232/how-to-implement-softmax-in-python-whereby-the-input-are-signed-8-integers</link>
+      <description><![CDATA[我正在尝试实现一个softmax 函数，该函数接受有符号的 int8 输入并返回有符号的 int8 输出数组。
+我目前正在进行的实现是这样的，
+ import numpy as np
+
+def softmax_int8(inputs):
+input = np.array(inputs, dtype=np.int8)
+
+x = input.astype(np.int32)
+x_max = np.max(x)
+x_shifted = x - x_max
+scale_factor = 2 ** 14
+exp_limit = 16
+exp_x = np.clip(x_shifted + exp_limit, 0, None)
+exp_x = (1 &lt;&lt; exp_x)
+sum_exp_x = np.sum(exp_x)
+
+如果 sum_exp_x == 0:
+sum_exp_x = 1
+
+softmax_probs = (exp_x * scale_factor) // sum_exp_x
+max_prob = np.max(softmax_probs)
+min_prob = np.min(softmax_probs)
+range_prob = max_prob - min_prob 如果 max_prob != min_prob 否则 1
+
+scaled_probs = ((softmax_probs - min_prob) * 255) // range_prob - 128
+output = scaled_probs.astype(np.int8)
+
+返回输出
+
+我使用此输入进行测试，Input = [101, 49, 6, -34, -75, -79, -38, 120, -55, 115]
+但我得到此输出 array([-128, -128, -128, -128, -128, -128, -128, 127, -128, -121],dtype=int8)。
+我的预期输出是 array([-57, -70, -79, -86, -92, -94, -88, -54, -91, -56], dtype=int8)。
+我在这里做错了什么，我该如何修复？]]></description>
+      <guid>https://stackoverflow.com/questions/79239232/how-to-implement-softmax-in-python-whereby-the-input-are-signed-8-integers</guid>
+      <pubDate>Sat, 30 Nov 2024 09:37:57 GMT</pubDate>
     </item>
     <item>
       <title>计算多标签分类问题的 ROC 曲线、分类报告和混淆矩阵</title>
@@ -624,7 +578,7 @@ last) in ()
 在 _validate_X_predict(self, X, check_input)
 386 “”“每当有人试图预测、应用、predict_proba 时验证 X”””
 387 if self.tree_ is None:
---&gt; 388 raise NotFittedError(“估算器未安装，&quot;
+--&gt; 388 raise NotFittedError(“估算器未安装，”
 389 “在利用模型之前调用 fit。”)
 390 
 NotFittedError：估算器未安装，在利用
