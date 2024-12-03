@@ -4,7 +4,190 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 03 Dec 2024 12:35:04 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Dec 2024 15:19:04 GMT</lastBuildDate>
+    <item>
+      <title>如何手动计算自相关</title>
+      <link>https://stats.stackexchange.com/questions/658213/how-to-calculate-autocorrelation-manually</link>
+      <description><![CDATA[我学过滞后 $k$ 的时间序列中的自相关是所有以此滞后为间隔的值对之间的相关性。
+假设我想尝试一下，并手动计算滞后 1。
+模拟一些白噪声
+set.seed(123)
+TS &lt;- ts(rnorm(1e3))
+
+然后手动计算自相关并使用内置函数。
+&gt; calc_autocorrelation_manually(TS)
+[1] -0.02741628
+&gt; 
+&gt; acf(TS, lag = 1, plot = F)
+
+序列‘TS’的自相关，按滞后
+
+0 1 
+1.000 -0.027
+
+两者给出相同或几乎相同的结果（我知道 acf() 中的计算并不完全相同，因为它不使用偏差调整。不过，我认为这不会产生实质性差异）。
+但是，如果我对模拟 AR(1) 过程执行此操作，结果就不一样了！例如，使用没有噪音的“理想”AR(1)：
+&gt; TS &lt;- ts(99999) # 初始值
+&gt; for (i in 1:350) { TS &lt;- c(TS, TS[i] * 0.3) }
+&gt; 
+&gt; calc_autocorrelation_manually(TS)
+[1] 1
+&gt; 
+&gt; acf(TS, lag = 1, plot = F)
+
+序列‘TS’的自相关，按滞后
+
+0 1 
+1.0 0.3 
+
+我认为手动计算自相关是不正确的，但正确的方法是什么？为什么在第一个例子中它仍然运行良好？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658213/how-to-calculate-autocorrelation-manually</guid>
+      <pubDate>Tue, 03 Dec 2024 15:05:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>统计/概率瓮模型在课堂之外还有其他应用吗？</title>
+      <link>https://stats.stackexchange.com/questions/658212/do-statistical-probability-urn-models-have-any-applications-beyond-the-classroom</link>
+      <description><![CDATA[我正在学习 Polya Urn 问题（例如 https://en.wikipedia.org/wiki/Urn_problem）。在我看来，这类问题对于教授学生概率非常有用。但我只是想知道这些问题在现实世界中是否有任何应用？
+例如，我们学习回归模型，回归模型也用于医学界和经济学。
+但这些类型的 Urn 模型是否出现过？我们是否曾经将任何东西建模为瓮？它们是否在其他一些模型的背景中使用（例如：用于从后验分布中抽取样本）？或者它们只是纯粹的理论教学示例？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658212/do-statistical-probability-urn-models-have-any-applications-beyond-the-classroom</guid>
+      <pubDate>Tue, 03 Dec 2024 14:50:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>修正二项式 GLMM 以反映物种出现的时间趋势</title>
+      <link>https://stats.stackexchange.com/questions/658211/correct-binomial-glmm-for-temporal-trends-in-species-occurrences</link>
+      <description><![CDATA[我有一个包含 80 个物种的数据集，这些物种是在两个时间段（历史/最近）从大约 120 个水体中采样的。仅考虑每个水体中物种的存在/不存在。长格式的数据如下所示：
+water_no_name 物种 成功时间 
+水体 1 物种 A 0 t1 
+水体 2 物种 A 0 t1 
+水体 3 物种 A 1 t1 
+水体 4 物种 A 0 t1 
+水体 5 物种 A 0 t1 
+水体 1 物种 A 1 t2 
+水体 2 物种 A 0 t2 
+水体 3 物种 A 0 t2 
+水体 4 物种 A 0 t2 
+水体 5 物种 A 0 t2 
+水体 1 物种 B 1 t1 
+水体 2 物种 B 0 t1 
+水体 3 物种 B 0 t1 
+水体 4 物种 B 1 t1 
+水体 5 物种 B 1 t1 
+水体 1 物种 B 1 t2 
+水体 2 物种 B 0 t2 
+水体 3 物种 B 1 t2 
+水体 4 物种 B 1 t2 
+水体 5 物种 B 0 t2 
+
+我想检查哪些物种的频率随时间显著增加或减少。
+因此，我决定使用水体（= 地点）作为随机因素来计算二项式 GLMM，以解释重复测量设计。
+我不确定这两种方法中的哪一种更合适：
+
+为每个物种计算单独的 GLMM：
+mod &lt;- glmer(success ~ time + (1 | water_no_name), family = binomial)
+使用这种方法，我将对物种数量进行 p 值校正 (FDR)。
+
+使用时间和物种之间的相互作用计算所有物种的组合 GLMM：
+mod &lt;- glmer(success ~ time * species + (1 | water_no_name), family = binomial)
+为了分析相互作用，我将使用这种方法进行事后分析，以查看对比 t1/t2 对哪些物种有意义：
+emmeans(mod, pairwise ~ time |物种）
+
+
+在计算这两种模型时，结果大致相似，但计数较低的物种会有一些差异。方法 (2) 需要大约一个小时来计算。
+我理解，一个主要区别是，复杂模型 (2) 对所有物种使用相同的随机位点效应，而使用单独的模型 (1) 我会为每个物种获得不同的随机位点效应（参见 几个单物种 GLMM -&gt; 一个多物种 GLMM（随机效应语法？））
+我仍然不确定哪种方法更适合我的情况。我发现更简单的方法 (1) 更直观地解释，也足以回答我的问题。我也不确定是否应该让所有物种都具有随机地点效应。
+有人能给我建议我应该选择哪种方法吗？
+或者你推荐另一种方法？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658211/correct-binomial-glmm-for-temporal-trends-in-species-occurrences</guid>
+      <pubDate>Tue, 03 Dec 2024 14:44:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>强制排名调查</title>
+      <link>https://stats.stackexchange.com/questions/658208/survey-with-forced-ranking</link>
+      <description><![CDATA[我创建了一个调查问卷，其排名等级为 1 = 最不有效，2 = 有点有效，3 = 有效，4 = 最有效。
+回答问题的人被迫每列只能选择一个答案。
+问题例如：请使用 1 到 4 的等级对以下金融工具在促进使用自产天然纤维绝缘产品方面的有效性进行评分。（答案 FI1/FI2/FI3/FI4）
+由于每个响应总和的方差为零，我无法计算 Cronbach&#39;s Alpha，因此我如何计算调查的可靠性。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658208/survey-with-forced-ranking</guid>
+      <pubDate>Tue, 03 Dec 2024 14:15:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 GAM mgcv 中使用 d 关键字时如何正确指定点约束 [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/658207/how-to-correctly-specify-point-constrains-when-using-d-keyword-in-gam-mgcv</link>
+      <description><![CDATA[这个问题已经在以下之前的帖子中提出，但我怀疑那里给出的答案是否令人满意：Constaint on te() tensor product gam mgcv
+那么对于 mgcv 专家来说：使用 d 关键字指定的 gam 模型提供点约束的正确方法是什么？
+这里有一些例子来详细说明这个问题，并展示我到目前为止所尝试过的
+示例 1：
+model &lt;- mgcv::bam(Y ~ s(x, y, k = 500, pc = c(0, 0)) +
+s(z, k = 5, pc = 0) +
+ti(x, y, z, d = c(2,1), k = c(20, 5), pc = c(0, 0, 0)),
+data = data,
+family = tw(link=log),
+method = &quot;fREML&quot;)
+
+示例 2：
+model &lt;- mgcv::bam(Y ~ s(x, y, k = 500, pc = c(0, 0)) +
+s(z, k = 5, pc = 0) +
+ti(x, y, z, d = c(2,1), k = c(20, 5), pc = list(c(0, 0), c(0)),
+data = data,
+family = tw(link=log),
+method = &quot;fREML&quot;)
+
+示例3：
+模型 &lt;- mgcv::bam(Y ~ s(x, y, k = 500, pc = c(0, 0)) +
+s(z, k = 5, pc = 0) +
+ti(x, y, z, d = c(2,1), k = c(20, 5), pc = list(list(0, 0), list(0)),
+data = data,
+family = tw(link=log),
+method = &quot;fREML&quot;)
+
+示例 4：
+模型 &lt;- mgcv::bam(Y ~ s(x, y, k = 500, pc = c(0, 0)) +
+s(z, k = 5, pc = 0) +
+ti(x, y, z, d = c(2,1), k = c(20, 5), pc = list(0,0,0),
+data = data,
+family = tw(link=log),
+method = &quot;fREML&quot;)
+
+.. 但它们都会导致错误
+if (length(pc) &lt; d) stop(&quot;supply a value for each variable for a point constrain&quot;) 中的错误：条件的长度 &gt; 1
+仔细检查表明，这与将 d 指定为 d=c(2,1) 有关。有一种解决方案是切换到 d = 3。事实上，这就是上一篇文章中所建议的。然而，这并不令人满意，因为我想利用前两个坐标中的各向同性。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658207/how-to-correctly-specify-point-constrains-when-using-d-keyword-in-gam-mgcv</guid>
+      <pubDate>Tue, 03 Dec 2024 13:52:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>解释 A/B 测试结果中的 p 值</title>
+      <link>https://stats.stackexchange.com/questions/658204/interpret-p-value-in-a-b-test-results</link>
+      <description><![CDATA[我需要解释 A/B 测试结果。因此，我有一个名为 Baseline 的控制队列，还有另外两个名为 NewFTUE 和 AppReopenFS 的队列。
+此 AB 测试数据的最大问题是 NewFTUE 的 AP 值几乎等于 1，而 AppReopenFS 的 P 值要低得多。
+我无法理解两件事：
+
+据我所知，如果平均差异较大且
+标准差较小，则 p 值应该变得更小，即零假设应该更容易被拒绝。但我们可以
+在这里看到，对于较大的标准差和较小的均值差，p 值要小得多（0.187 vs 0.991）
+第二件我无法理解的事情是 95% CI（正如仪表板上所解释的那样，这是“95% 可能包含均值真实差异的值范围”。）。因此，正如您所看到的，对于 NewFTUE，均值差异的置信区间完全位于 0 的左侧。即我们有 95% 的信心，无论我们采用什么样本（对于相同的样本量），与 Baseline 相比，我们都会得到更差的结果。
+
+那么为什么 NewFTUE 的 p 值为 0.991 并且大于 AppReopenFS 的 0.187 值？
+
+编辑：添加以下 p 值的描述：和 这里是文档页面。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658204/interpret-p-value-in-a-b-test-results</guid>
+      <pubDate>Tue, 03 Dec 2024 13:44:27 GMT</pubDate>
+    </item>
+    <item>
+      <title>Gamma 分布函数中参数的特殊情况？</title>
+      <link>https://stats.stackexchange.com/questions/658203/special-case-of-parameters-in-the-gamma-distribution-function</link>
+      <description><![CDATA[我目前正在使用 Voronoi 镶嵌处理图像并评估相应细胞区域的分布。这些区域被称为伽马分布，源自 1D 情况。
+维基百科上的 Gamma 分布 (pdf) 版本具有形状参数 (alpha) 和速率参数 (beta)。
+请参阅此处 --&gt; 维基百科版本的 Gamma 分布
+我对一篇论文（以及引用这篇论文的其他一些论文）感到困惑。在这里，另一个版本被称为“Gamma 函数”。
+请参阅此处--&gt; 论文中的 Gamma 分布，第 436 页
+我现在的问题是：
+有人能用相对简单的术语向我解释这是否是 Gamma 分布的一个特例，以及/或者两个版本之间的关系吗？
+谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658203/special-case-of-parameters-in-the-gamma-distribution-function</guid>
+      <pubDate>Tue, 03 Dec 2024 13:36:40 GMT</pubDate>
+    </item>
     <item>
       <title>根据相关数据进行方差估计</title>
       <link>https://stats.stackexchange.com/questions/658200/variance-estimation-from-dependent-data</link>
@@ -124,7 +307,7 @@ $$FPR=\frac{\left(1-ACC-prevalence\cdot FNR\right)}{1-prevalence}$$
 对此有几种解释。一种是缺少重要变量，或者模型在形式或结构上存在错误。但也可能是由于数据中的噪声。
 在给定数据置信度的情况下，是否有任何方法可以衡量回归模型的最大可能性能？
 这个问题：估计噪声数据中的最大预测能力与分类任务有关，但我在这里想知道回归。此外，我认为需要了解真实模型，但事实并非如此。
-我突然想到，一个模型很难比真实数据的额外重复做得更好。我想知道，如果我模拟一万个案例中的每一个的新重复（通过从标准差等于真实数据标准误差的正态分布中随机挑选一个新的 lambda），然后测量一万个模拟值和一万个真实值之间的相关性，这可能会给我一个模型预期的上限。这样做会得到一个大约 0.4 的 $R^2$！这听起来合理吗？]]></description>
+我突然想到，一个模型很难比真实数据的额外重复做得更好。我想知道，如果我模拟一万个案例中的每一个的新重复（通过从标准差等于真实数据标准误差的正态分布中随机挑选一个新的 lambda），然后测量一万个模拟值和一万个真实值之间的相关性，这可能会给我一个我可以期望的模型的上限。这样做会得到一个大约 0.4 的 $R^2$！这听起来合理吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/658193/what-is-the-maximum-possible-regression-performance-of-a-model-on-noisy-data</guid>
       <pubDate>Tue, 03 Dec 2024 10:44:04 GMT</pubDate>
     </item>
@@ -158,85 +341,6 @@ $$
 谢谢。]]></description>
       <guid>https://stats.stackexchange.com/questions/658189/what-model-for-my-data</guid>
       <pubDate>Tue, 03 Dec 2024 09:23:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>IG（X，Y）与一般线性模型有何关系？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658187/how-is-ig-x-y-related-to-a-general-linear-model</link>
-      <description><![CDATA[您能否包含公式并且长度为 3 页]]></description>
-      <guid>https://stats.stackexchange.com/questions/658187/how-is-ig-x-y-related-to-a-general-linear-model</guid>
-      <pubDate>Tue, 03 Dec 2024 07:59:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>Matlab 中的“size(A)-n”值[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658186/sizea-n-value-in-matlab</link>
-      <description><![CDATA[我正在研究某人的 Wild Bootstrap Matlab 代码
-其中有一句话：
-
-for i:size(A)-n ...
-
-起初我认为这是一个打字错误，因为 size(A) 返回两个值（行列），所以“循环句子”和“减法”不能一起使用。
-因此我修复了代码并针对所有情况运行了 Matlab：
-(1) size(A)-n（原始）
-(2) size(A,1)-n（A 的行数 - n）
-(3) size(A,2)-n（A 的列数 - n）
-令人惊讶的是它们都起作用了。
-由于我仍然不理解 wild bootstrap 的逻辑，现在我不确定这是否是打字错误。
-是否可以从 size(A) 中减去 n，从而在“循环语句”中返回两个值（行数、列数）？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658186/sizea-n-value-in-matlab</guid>
-      <pubDate>Tue, 03 Dec 2024 07:26:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 Jaynes 的多维 $A_p$ 分布采用这种形式？</title>
-      <link>https://stats.stackexchange.com/questions/658170/why-does-jaynes-multi-dimensional-a-p-distribution-take-this-form</link>
-      <description><![CDATA[在 Jaynes 的《概率论：科学的逻辑》第 18 章中，他引入了 $A_p$ 分布作为概率分配 $P(A|E)$ 的“内部结构”，这样 $P(A|E)$ 只是 $A_p$ 密度的一阶矩。我有点理解为什么 $A_p$ 以这种方式引入 1D 分布。但在第 18.10 节中，他引入了 K 维 $A_p$ 密度：
-
-我不太明白为什么它采用这种形式的 delta 函数。有人能解释一下为什么它采用这种形式吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658170/why-does-jaynes-multi-dimensional-a-p-distribution-take-this-form</guid>
-      <pubDate>Mon, 02 Dec 2024 20:30:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>AUC与交叉熵的关系</title>
-      <link>https://stats.stackexchange.com/questions/658169/relationship-between-auc-and-cross-entropy</link>
-      <description><![CDATA[我理解 AUC 衡量的是模型对受试者进行排名的能力（请参阅为什么 ROC AUC 相当于两个随机选择的样本被正确排名的概率？）。
-相比之下，二元交叉熵（或对数损失）衡量的是预测概率的校准。
-基于这一区别，优化一个指标（例如交叉熵）不一定会导致另一个指标（例如 AUC）的最佳结果。然而，许多模型使用交叉熵作为主要目标函数，并且仍然获得不错/很好的 AUC 分数。此外，当交叉熵损失最小化时（即预测概率为正样本为 1，负样本为 0），AUC 也是最优的。
-因此，我的问题是
-
-交叉熵损失是否可以部分分解为排名组件？
-交叉熵和 AUC 是否表现出一定程度的相关性？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658169/relationship-between-auc-and-cross-entropy</guid>
-      <pubDate>Mon, 02 Dec 2024 20:24:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>IV 估计、直接和间接影响</title>
-      <link>https://stats.stackexchange.com/questions/658165/iv-estimation-direct-and-indirect-effects</link>
-      <description><![CDATA[假设我有一个如下设置，其中 $y_i$ 是感兴趣的结果，而 $x_i$ 是某个内生回归量。目的是估计 $\beta$。现在假设有一个变量 $z_i$ 与 $x_i$ 相关，而与误差 $\varepsilon_i$ 不相关。下面，通常假设 IV 估计仅在 $\gamma=0$ 时才有效。也就是说，该工具对结果没有直接影响。
-$$ y_i = a + \beta x_i + \gamma z_i+ \varepsilon_i $$
-$$ x_i = b + \delta z_i + u_i $$
-$$ E[z_i, \varepsilon] = 0 $$
-$$ E[z_i, x_i] \neq 0 $$
-$$ E[x_i, \varepsilon_i] \neq 0 $$
-我的问题是，无论如何运行 IV 估计并将该工具作为协变量包含在第二阶段回归？系数估计似乎不会有偏差。问题是否在于解释？最后，这是否有助于理解该工具对结果的间接影响？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658165/iv-estimation-direct-and-indirect-effects</guid>
-      <pubDate>Mon, 02 Dec 2024 19:00:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>对PCA的质疑：为什么载荷常常被忽视？</title>
-      <link>https://stats.stackexchange.com/questions/658157/doubts-about-pca-why-are-loadings-often-overlooked</link>
-      <description><![CDATA[我对 PCA 的存在性存有疑虑。我经常看到它用于遗传学，在遗传学中，你研究的基因组可能你并不完全了解它们的功能。在这种情况下，PCA 用于捕获数据集中的潜在变异性并生成新的不相关变量（主成分）。
-但是，当将 PCA 应用于具有已知有形变量的数据集时（尤其是当目标是降低维度或可视化异常值时），我注意到很少对这些变量的负载进行后续分析。在我的特定情况下，我使用有形变量，并且我经常有兴趣了解它们之间的关系以及它们在成分中的权重。然而，在大多数研究中，我只发现解释方差的百分比，仅此而已。
-这让我很疑惑：为什么不更多地强调解释负载？载荷对于理解原始变量的行为方式及其对主成分的贡献是否不重要？对我来说，载荷对于解释变量之间的关系以及确定它们对变异性的影响似乎至关重要。我是否遗漏了什么，或者这只是 PCA 分析中一个未被充分探索的领域？
-我希望我的问题有意义。提前感谢您的见解！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658157/doubts-about-pca-why-are-loadings-often-overlooked</guid>
-      <pubDate>Mon, 02 Dec 2024 17:07:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何分析非正态分布的增长数据差异？</title>
-      <link>https://stats.stackexchange.com/questions/658135/how-to-analyze-differences-in-growth-data-with-non-normal-distributions</link>
-      <description><![CDATA[我有来自不同菌株的真菌生长数据（生长率和潜伏期）。我想检查这些值是否因来源（2 种类型）、生长培养基（2 种类型）和不同温度下的培养而不同，包括因素之间的相互作用。问题是我无法使用方差分析，因为数据不是正态分布的，而且由于我要比较多个因素，所以 Kruskal-Wallis 检验也不是一种选择。此外，PERMANOVA 不适用，因为不满足均匀分散的假设。数据的分布是三峰的，我尝试根据温度将数据分成子集，但这种方法并没有太大区别。我该如何有效地分析这些差异？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658135/how-to-analyze-differences-in-growth-data-with-non-normal-distributions</guid>
-      <pubDate>Mon, 02 Dec 2024 10:31:17 GMT</pubDate>
     </item>
     </channel>
 </rss>
