@@ -4,7 +4,98 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 05 Dec 2024 15:19:32 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 05 Dec 2024 18:23:07 GMT</lastBuildDate>
+    <item>
+      <title>减少模型训练期间的 CTC 损失</title>
+      <link>https://stackoverflow.com/questions/79255724/decreasing-ctc-loss-during-model-training</link>
+      <description><![CDATA[我是手写识别模型，在训练过程中，我遇到了高 ctc 损失，我应该怎么做才能减少损失并使我的模型识别任何文本，因为截至目前它无法识别任何东西。
+链接到 Google-collab 笔记本：https://colab.research.google.com/drive/16VDTTcCGsQrpURZXCxL5695jZ5Xxze4O?usp=sharing[在此处输入图片描述](https://i.sstatic.net/GswZOriQ.jpg)在此处输入图片描述https://colab.research.google.com/drive/16VDTTcCGsQrpURZXCxL5695jZ5Xxze4O?usp=sharing
+def ctc_loss(y_true, y_pred):
+&quot;&quot;&quot;
+计算真实标签和预测输出之间的 CTC 损失。
+
+参数：
+y_true：真实标签 (int32/int64)。
+y_pred：模型预测 (logits)。
+
+返回：
+整个批次的平均 CTC 损失。
+&quot;&quot;&quot;
+# 确保 y_true 是整数类型
+y_true = tf.cast(y_true, dtype=tf.int32)
+
+input_length = tf.fill([tf.shape(y_pred)[0]], tf.shape(y_pred)[1]) # 时间步骤
+label_length = tf.reduce_sum(tf.cast(y_true != -1, tf.int32), axis=1) # 非填充标签长度
+
+# 计算 CTC 损失
+loss = tf.nn.ctc_loss(
+labels=y_true,
+logits=y_pred,
+label_length=label_length,
+logit_length=input_length,
+blank_index=-1, # 指定用于填充的空白索引
+logits_time_major=False # Logits 是批量主序列
+)
+
+return tf.reduce_mean(loss)
+
+# 优化器使用学习率调度程序
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+initial_learning_rate=1e-3,
+decay_steps=10000,
+decay_rate=0.9
+)
+optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule, clipnorm=1.0)
+
+model.compile(optimizer=optimizer, loss=ctc_loss)
+
+# 模型训练
+history = model.fit(x_train, y_train, batch_size=32, epochs=10, validation_data=(x_val, y_val))
+
+# 可视化损失
+import matplotlib.pyplot as plt
+
+plt.plot(history.history[&#39;loss&#39;], label=&#39;Training Loss&#39;)
+plt.plot(history.history[&#39;val_loss&#39;], label=&#39;Validation Loss&#39;)
+plt.legend()
+plt.title(&quot;Training and Validation Loss&quot;)
+plt.xlabel(&quot;Epoch&quot;)
+plt.ylabel(&quot;Loss&quot;)
+plt.show()
+
+我尝试使用学习率调度程序来降低损失率，但没有成功。请更正我的代码并提出改进建议以修复训练过程]]></description>
+      <guid>https://stackoverflow.com/questions/79255724/decreasing-ctc-loss-during-model-training</guid>
+      <pubDate>Thu, 05 Dec 2024 17:39:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>包括 GNN 训练数据中每个类的节点数</title>
+      <link>https://stackoverflow.com/questions/79255547/including-number-of-nodes-per-class-in-gnn-training-data</link>
+      <description><![CDATA[我正在使用 pytorch-geometric 来训练二元节点分类模型，其中我提供了一个带有一些属性的节点的图，模型返回每个节点的类别。我的训练数据集包含 1000 多个图。没有使用掩码。我的数据是这样的，对于每个图，我可以计算每个类的节点数。因此，这可以看作是一个模型，它只是根据图的节点属性将类 1 的节点分布在图中的所有节点之间。
+因为我可以计算出每个图中每个类有多少个节点，所以我想到我可以将该数字用作模型的额外输入。这样，我至少会从每个类的正确节点数开始，训练将专注于分配它们。
+我的模型由两个图卷积层 GCNConv 组成，每个层都有一个 tanh 激活。之后我有一个 Linear 层来进行分类。所以，
+class GCN(torch.nn.Module):
+def __init__(self):
+super(GCN, self).__init__()
+torch.manual_seed(12345)
+self.conv1 = GCNConv(3, 4)
+self.conv2 = GCNConv(4, 4)
+self.classifier = Linear(4, 2)
+
+def forward(self, x, edge_index):
+h = self.conv1(x, edge_index)
+h = h.tanh()
+h = self.conv2(h, edge_index)
+h = h.tanh() # 最终 GNN 嵌入空间。
+h = self.classifier(h)
+
+out = F.log_softmax(h,dim=1)
+
+return out, h
+
+问题是：将有关每个类的节点数的信息纳入模型的最佳方法是什么？]]></description>
+      <guid>https://stackoverflow.com/questions/79255547/including-number-of-nodes-per-class-in-gnn-training-data</guid>
+      <pubDate>Thu, 05 Dec 2024 16:42:22 GMT</pubDate>
+    </item>
     <item>
       <title>根据二元变量制定信用评级（最好使用 R 语言）[关闭]</title>
       <link>https://stackoverflow.com/questions/79254610/develop-credit-rating-based-on-binary-variable-in-r-preferably</link>
@@ -216,12 +307,11 @@ pd.options.mode.chained_assignment = None
       <pubDate>Wed, 04 Dec 2024 09:32:13 GMT</pubDate>
     </item>
     <item>
-      <title>处理不平衡问题后，数据严重倾斜，准确率会下降</title>
-      <link>https://stackoverflow.com/questions/72715345/accuracy-degrade-with-highly-skewed-data-after-handling-imbalance-problem</link>
-      <description><![CDATA[在对数据进行预处理（如缺失值替换和异常值检测）后，我使用 WEKA 随机化和移除百分比过滤器对数据进行分区。我的数据集是一个高度倾斜的数据集，不平衡比率为 6:1，分别对应负类和正类。如果我使用朴素贝叶斯分类器对数据进行分类而不处理类别不平衡问题，我的准确率将达到 83%，召回率为 0.623。但是，如果我使用监督实例 - 重新采样或监督实例 - 扩展子采样过滤器处理类别不平衡（平衡 1:1 后），然后应用朴素贝叶斯分类准确率将下降 77%，召回率为 0.456。
-为什么处理类别不平衡率时准确率会下降？]]></description>
-      <guid>https://stackoverflow.com/questions/72715345/accuracy-degrade-with-highly-skewed-data-after-handling-imbalance-problem</guid>
-      <pubDate>Wed, 22 Jun 2022 12:18:22 GMT</pubDate>
+      <title>出现“TemplateNotFound：index.html”错误 - 面临路线问题</title>
+      <link>https://stackoverflow.com/questions/79164308/getting-templatenotfound-index-html-error-facing-issue-with-routes</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79164308/getting-templatenotfound-index-html-error-facing-issue-with-routes</guid>
+      <pubDate>Wed, 06 Nov 2024 21:07:11 GMT</pubDate>
     </item>
     <item>
       <title>sklearn中RepeatedStratifiedKFold和StratifiedKFold有什么区别？</title>
@@ -255,13 +345,6 @@ pd.options.mode.chained_assignment = None
       <pubDate>Wed, 19 Sep 2018 00:12:58 GMT</pubDate>
     </item>
     <item>
-      <title>Weka：不兼容的训练和测试集</title>
-      <link>https://stackoverflow.com/questions/50246992/weka-incompatible-training-and-test-sets</link>
-      <description><![CDATA[我正在 Weka 上研究一个 分类 问题。我将 arff 文件作为我的训练数据，并从 数据库 中获取我的测试数据。但它们不兼容。在 Weka 工具中，我可以使用 InputMappedClassifier 并解决问题。但我无法在 Java 代码中实现它。请帮忙。]]></description>
-      <guid>https://stackoverflow.com/questions/50246992/weka-incompatible-training-and-test-sets</guid>
-      <pubDate>Wed, 09 May 2018 06:40:00 GMT</pubDate>
-    </item>
-    <item>
       <title>无法通过命令行使用 Weka 进行分类</title>
       <link>https://stackoverflow.com/questions/35697652/unable-to-classify-using-weka-from-command-line</link>
       <description><![CDATA[我正在使用 weka 3.6.13 并尝试使用模型对数据进行分类：
@@ -273,14 +356,6 @@ java.lang.Exception：训练和测试集不兼容
 任何指示请帮忙。]]></description>
       <guid>https://stackoverflow.com/questions/35697652/unable-to-classify-using-weka-from-command-line</guid>
       <pubDate>Mon, 29 Feb 2016 10:50:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>weka 中的数据集不平衡？不起作用</title>
-      <link>https://stackoverflow.com/questions/23426582/imbalanced-dataset-in-weka-does-not-work</link>
-      <description><![CDATA[我有一个 239 个正数据集和一个 32 个负数据集，因为它是与癌症相关的数据，所以我们只有很少的负数据集。现在，当应用分类时，不平衡的数据集肯定会因为数量巨大而过于偏向正数据集。所以我尝试在 weka 中应用 SMOTE。我也尝试了各种百分比和最近邻居。令我惊讶的是，不是负类增加了几个实例，而是正类进一步增加，使得不平衡的数据集过于偏向。可以做些什么来克服这个问题。如果可用，请给我一些其他方法？
-对于初步研究，我们使用了 LIBSVM 和 RBF 作为分类器 ]]></description>
-      <guid>https://stackoverflow.com/questions/23426582/imbalanced-dataset-in-weka-does-not-work</guid>
-      <pubDate>Fri, 02 May 2014 11:03:34 GMT</pubDate>
     </item>
     </channel>
 </rss>
