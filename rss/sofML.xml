@@ -4,23 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 05 Dec 2024 03:34:33 GMT</lastBuildDate>
-    <item>
-      <title>1000 名患者中，预计死于 COVID 的占 40%，死于非 COVID 的占 60%。其中 40% 是实际死于非 COVID，30% 是实际死于 COVID [关闭]</title>
-      <link>https://stackoverflow.com/questions/79252724/1000-patients-predicted-death-due-covid-is-40-due-to-non-covid-60-of-which</link>
-      <description><![CDATA[请有人以这个问题为基础，清楚地解释一下什么是真阳性、真阴性、假阳性和假阴性。
-真阳性 (TP) 预测 COVID 死亡，而实际上这是由于 COVID 造成的。120
-真阴性 (TN) 预测非 COVID 死亡，而实际上这是非 COVID。360
-假阳性 (FP) 预测 COVID 死亡，但不是 COVID 造成的。240
-假阴性 (FN) 预测非 COVID 死亡，但实际上这是由于 COVID 造成的。 180
-真阳性 (TP)：120（预测的 Covid 死亡病例中有 30% 实际上是 Covid）
-假阴性 (FN)：180（预测的 Covid 死亡病例中有 70% 实际上不是 Covid）
-假阳性 (FP)：240（预测的非 Covid 死亡病例中有 40% 实际上是 Covid）
-真阴性 (TN)：360（预测的非 Covid 死亡病例中有 60% 实际上不是 Covid）
-我分别在 chatGPT 和 Gemini 中找到了这两个汇总表。根据条款，这些是否正确。或者应该是 TP = 300（1k 的 30%）和 TN = 400（1k 的 40%），但这样我不确定 FP 和 FN 是否分别为 0 和 300]]></description>
-      <guid>https://stackoverflow.com/questions/79252724/1000-patients-predicted-death-due-covid-is-40-due-to-non-covid-60-of-which</guid>
-      <pubDate>Wed, 04 Dec 2024 21:04:13 GMT</pubDate>
-    </item>
+    <lastBuildDate>Thu, 05 Dec 2024 06:26:36 GMT</lastBuildDate>
     <item>
       <title>如何使用传统机器学习进行特征提取和模型训练？[关闭]</title>
       <link>https://stackoverflow.com/questions/79252368/how-to-proceed-with-feature-extraction-and-model-training-using-traditional-mach</link>
@@ -145,6 +129,92 @@ pd.options.mode.chained_assignment = None
       <pubDate>Wed, 04 Dec 2024 09:32:13 GMT</pubDate>
     </item>
     <item>
+      <title>convLSTM 教程的输入</title>
+      <link>https://stackoverflow.com/questions/79248815/inputs-of-a-convlstm-tutorial</link>
+      <description><![CDATA[我找到了以下教程“https://medium.com/neuronio-br/uma-introdu%C3%A7%C3%A3o-a-convlstm-c14abf9ea84a”讲授 ConvLSTM 模型。
+我创建了一个算法来构建模型输入：
+import os
+import cv2
+import numpy as np
+import pandas as pd
+
+# 设置
+video_folder = &#39;train&#39; # 包含视频的文件夹的路径
+output_folder = &#39;train_npy&#39; # 保存 .npy 文件的文件夹
+csv_file = &#39;train.csv&#39; # CSV 文件的路径
+frames_per_video = 16 # 每个视频的帧数（时间）
+pixels_x, pixels_y = 112, 112 # 帧尺寸
+
+# 使用视频名称和类别加载 CSV
+df = pd.read_csv(csv_file) # 列：&#39;video_name&#39;, &#39;tag&#39;
+
+# 根据“tag”列中的唯一值确定的类数
+unique_tags = df[&#39;tag&#39;].unique()
+num_categories = len(unique_tags) # 根据数据定义类别数量
+
+# 将类别映射到索引的字典
+tag_to_index = {tag: idx for idx, tag in enumerate(unique_tags)}
+
+# 如果不存在则创建输出文件夹
+os.makedirs(output_folder, exist_ok=True)
+
+# 提取和处理帧的函数
+def extract_frames(video_path, num_frames=16, size=(pixels_x, pixels_y)):
+cap = cv2.VideoCapture(video_path)
+total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+frame_interval = max(total_frames // num_frames, 1)
+
+frames = []
+for i in range(num_frames):
+cap.set(cv2.CAP_PROP_POS_FRAMES, i * frame_interval)
+ret, frame = cap.read()
+if not ret:
+break
+frame = cv2.resize(frame, size)
+frames.append(frame)
+
+# 必要时用零帧填充
+while len(frames) &lt; num_frames:
+frames.append(np.zeros((pixels_x, pixels_y, 3), dtype=np.uint8))
+
+cap.release()
+return np.array(frames) # 形状：(frames, pixels_x, pixels_y, 3)
+
+# 循环处理所有视频
+for idx, row in df.iterrows():
+video_name = row[&#39;video_name&#39;]
+class_label = row[&#39;tag&#39;]
+
+# 视频的完整路径
+video_path = os.path.join(video_folder, video_name)
+
+# 检查视频是否存在
+if not os.path.exists(video_path):
+print(f&quot;Video {video_name} not found!&quot;)
+continue
+
+# 处理帧并保存为 .npy
+scene_data = extract_frames(video_path, frames_per_video)
+scene_data = scene_data.transpose(0, 3, 1, 2) # 将顺序改为 (帧、通道、行、列)
+np.save(os.path.join(output_folder, f&#39;scene_{idx}.npy&#39;), scene_data)
+
+# 创建并保存类别（独立输出）
+category_data = np.zeros((num_categories, 1, frames_per_video, 1))
+category_data[tag_to_index[class_label], 0, :, 0] = 1 # 将所有帧的类别标记为 1
+np.save(os.path.join(output_folder, f&#39;category_{idx}.npy&#39;), category_data)
+
+print(&quot;处理完成！&quot;)
+
+然而，在训练模型时，我收到以下错误：
+ValueError: Arguments target 和 output 必须具有相同的形状。收到：target.shape=(None, 1, 16)，output.shape=(None, 16, 1)
+而形状符合教程：
+scene_0.npy.shape = (16, 3, 112, 112)
+category_0.npy.shape = (5, 1, 16, 1)
+为什么目标和输出具有不同的形状？是教程错误还是输入格式有错误？]]></description>
+      <guid>https://stackoverflow.com/questions/79248815/inputs-of-a-convlstm-tutorial</guid>
+      <pubDate>Tue, 03 Dec 2024 18:34:23 GMT</pubDate>
+    </item>
+    <item>
       <title>未能提高 Tiny VGG CNN 模型的准确率</title>
       <link>https://stackoverflow.com/questions/79247334/failing-to-improve-accuracy-in-tiny-vgg-cnn-model</link>
       <description><![CDATA[设置
@@ -190,7 +260,7 @@ Epoch：8 | train_loss：0.9488 | train_acc：0.5708 | test_loss：1.0114 | test
 时期：20 | train_loss：0.7228 | train_acc：0.7167 | test_loss：1.0826 | test_acc：0.4500
 
 
-因此，我想知道我是否遗漏了架构方面的某些内容、超参数设置，或者其他内容，例如此类模型缺乏数据等等。同样，我对这个主题还很陌生，因此非常感谢任何提示。谢谢！]]></description>
+因此，我想知道我是否遗漏了架构方面的某些内容、超参数设置，或者其他内容，例如此类模型缺乏数据等等。再次强调，我对这个主题还很陌生，因此非常感谢任何提示。谢谢！]]></description>
       <guid>https://stackoverflow.com/questions/79247334/failing-to-improve-accuracy-in-tiny-vgg-cnn-model</guid>
       <pubDate>Tue, 03 Dec 2024 11:10:18 GMT</pubDate>
     </item>
@@ -414,7 +484,7 @@ main()
       <pubDate>Wed, 09 May 2018 06:40:00 GMT</pubDate>
     </item>
     <item>
-      <title>无法通过命令行使用 Weka 进行分类</title>
+      <title>无法从命令行使用 Weka 进行分类</title>
       <link>https://stackoverflow.com/questions/35697652/unable-to-classify-using-weka-from-command-line</link>
       <description><![CDATA[我正在使用 weka 3.6.13 并尝试使用模型对数据进行分类：
 java -cp weka-stable-3.6.13.jar weka.classifiers.Evaluation weka.classifiers.trees.RandomForest -l Parking.model -t Data_features_class_ques-2.arff 
