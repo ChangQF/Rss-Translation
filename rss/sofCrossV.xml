@@ -4,9 +4,258 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 05 Dec 2024 21:16:55 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 06 Dec 2024 01:21:31 GMT</lastBuildDate>
     <item>
-      <title>我应该使用什么统计数据？</title>
+      <title>指定纵向分层广义加性模型 (HGAMM)</title>
+      <link>https://stats.stackexchange.com/questions/658355/specify-longitudinal-hierarchical-generalized-additive-model-hgamm</link>
+      <description><![CDATA[数据：两次会话（前、后）的主题测量值。每次测量在位置上都有 50 个相互关联的值。
+示例：
+subj_id | 会话 | 位置 | 值
+1 前 1 0.1
+1 前 2 0.12
+..
+1 前 50 0.08
+2 前 1 0.04
+..
+30 后 50 0.12
+
+兴趣：量化会话对值的影响，保持全局平滑常数。代表性数据的图，其中假设的效应位于位置 25 附近：
+
+问题：我是否正确指定了模型，以便我可以汇总会话中的受试者方差？我能找到的最接近的例子是这个。Pedersen 等人的论文。 （2019）非常（非常）有帮助。
+# 纵向模型，具有全局和会话平滑
+fit_GSL &lt;- bam(
+value ~ s(subj_id, session, bs = &quot;re&quot;) +
+s(location, bs = &quot;tp&quot;, k=50) +
+s(location, session, bs = &quot;fs&quot;, k = 50),
+data = df_long,
+family = betar(link = &quot;logit&quot;),
+method = &quot;fREML&quot;,
+discrete = T
+)
+
+这似乎有效，为我提供了全局和会话平滑，但我是否考虑了主题内发生的会话？
+
+
+用于模拟数据和指定模型的脚本：
+library(&quot;ggplot2&quot;)
+library(&quot;fitdistrplus&quot;)
+library(&quot;mgcv&quot;)
+library(&quot;itsadug&quot;)
+
+gen_norm &lt;- function(y_scale, n = 50, mean = 1, sd = 0.1) {
+# 返回正态分布按 y_scale 缩放的值。
+h_min &lt;- 平均值 - (2.5 * sd)
+h_max &lt;- 平均值 + (2.5 * sd)
+h_seq &lt;- seq(h_min, h_max, length = n)
+set.seed(y_scale)
+dist_out &lt;- y_scale * dnorm(h_seq, 平均值, sd) + rnorm(n, 0, (0.15 * y_scale))
+return(dist_out)
+}
+
+# 计划主题和值的数量，缩放
+# 会话不同
+set.seed(12)
+num_val &lt;- 50
+num_subj &lt;- 60
+subj_id &lt;- 100 + seq(1:num_subj)
+scale_pre &lt;- runif(num_subj, 1, 3)
+scale_post &lt;- runif(num_subj, 2, 5)
+
+# 开始 df
+df_long &lt;- as.data.frame(matrix(NA, nrow = 2 * num_subj * num_val, ncol = 4))
+colnames(df_long) &lt;- c(&quot;subj_id&quot;, &quot;session&quot;, &quot;location&quot;, &quot;value&quot;)
+df_long$subj_id &lt;- rep(rep(subj_id, each = num_val), each = 2)
+df_long$session &lt;- rep(rep(c(&quot;Pre&quot;, &quot;Post&quot;), each = num_val), 2)
+df_long$location &lt;- rep(seq(1, num_val), 2 * num_subj)
+
+# 用生成的值填充 df，将值调整到预期范围
+df_long &lt;- df_long[order(df_long$session, increasing = T), ]
+c_start &lt;- 1
+for (h_seed in c(scale_pre, scale_post)) {
+c_end &lt;- c_start + num_val - 1
+df_long[c_start:c_end, ]$value &lt;- gen_norm(h_seed)
+c_start &lt;- c_end + 1
+}
+df_long$value &lt;- (df_long$value / 100) + 0.3
+
+# 管理列类型
+df_long$subj_id &lt;- factor(df_long$subj_id)
+df_long$session &lt;- factor(df_long$session)
+
+# 绘制数据
+ggplot(data = df_long, aes(x = location, y = value, colour = session)) +
+facet_wrap(~session) +
+geom_point(size = 1, alpha = 0.3) +
+theme(legend.position = &quot;none&quot;) +
+labs(x = &quot;Location&quot;, y = &quot;Value&quot;) +
+ggtitle(&quot;Simulated Group Tracts&quot;) +
+theme(
+text = element_text(family = &quot;Times New Roman&quot;)
+)
+
+# 纵向模型，具有全局和会话平滑
+descdist(df_long$value, discreply = F)
+fit_GSL &lt;- bam(
+值 ~ s(subj_id, session, bs = &quot;re&quot;) +
+s(location, bs = &quot;tp&quot;, k=50) +
+s(location, session, bs = &quot;fs&quot;, k = 50),
+数据 = df_long,
+family = betar(link = &quot;logit&quot;),
+方法 = &quot;fREML&quot;,
+离散 = T
+)
+gam.check(fit_GSL)
+plot(fit_GSL)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658355/specify-longitudinal-hierarchical-generalized-additive-model-hgamm</guid>
+      <pubDate>Fri, 06 Dec 2024 00:47:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>测试预测准确性 - 异常值 [附示例]</title>
+      <link>https://stats.stackexchange.com/questions/658353/testing-forecasting-accuracy-outliers-with-example</link>
+      <description><![CDATA[我有一个简单的模型，可以生成预测值。该模型适用于每小时数据。现在，我只对带有标记的观察结果感兴趣。我想确定预测值与实际值存在显著差异的地方。
+我正在考虑以下两个指标——哪一个效果更好？ （请参阅下面代码中的选项 1 和选项 2）
+或者我应该关注 RMSE、MAE 等？
+# 示例数据：实际值和预测值
+实际 &lt;- c(100, 110, 95, 120, 105, 130, 125)
+预测 &lt;- c(102, 108, 97, 150, 103, 128, 123)
+
+plot(actual, type = &quot;o&quot;, col = &quot;blue&quot;, pch = 16, lwd = 2,
+ylim = range(c(actual, Forecasted)), ylab = &quot;Values&quot;,
+xlab = &quot;Index&quot;, main = &quot;Actual vs Forecasted Values&lt;)
+lines(forecasted, type = &quot;o&quot;, col = &quot;red&quot;, pch = 16, lwd = 2)
+
+# 计算残差（实际值与预测值之间的差异）
+residuals &lt;- actual - Forecasted
+
+# 定义阈值：
+# 选项 1：（例如，2 个标准差）
+dynamic_threshold &lt;- 2 * sd(residuals)
+dynamic_outliers &lt;- abs(residuals) &gt; dynamic_threshold
+
+# 选项 2：（例如，基于实际数据的平均值和标准差的 2 个标准差）
+upper_threshold &lt;- mean(actual)+2 * sd(actual)
+lower_threshold &lt;- mean(actual)-2 * sd(actual)
+
+outliers_forecasted &lt;- (forecasted &gt; upper_threshold) | (forecasted &lt; lower_threshold)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658353/testing-forecasting-accuracy-outliers-with-example</guid>
+      <pubDate>Thu, 05 Dec 2024 23:32:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>寻找适合在 SPSS 上运行的模型，同时考虑同一主题的多个测量值</title>
+      <link>https://stats.stackexchange.com/questions/658351/looking-for-appropriate-model-to-run-on-spss-while-accounting-for-multiple-measu</link>
+      <description><![CDATA[我有两组（A组和B组），它们具有不同的基线特征。所有受试者都经过5种不同的体重测试（每种两次），并测量结果变量。如果我的解释不清楚，下表概述了研究设计。
+
+
+
+样本
+组
+0 磅
+5 磅
+10 磅
+15 磅
+20 磅
+
+
+
+
+#1 试验 1
+A
+
+
+
+
+
+
+
+#1 试验2
+A
+
+
+
+
+
+
+
+#2 试验 1
+A
+
+
+
+
+
+
+
+#2 试验 2
+A
+
+
+
+
+
+
+
+#3 试验1
+B
+
+
+
+
+
+
+
+#3 试验 2
+B
+
+
+
+
+
+
+
+#4 试验 1
+B
+
+
+
+
+
+
+
+#4 试验2
+B
+
+
+
+
+
+
+
+
+我想知道：
+
+5 个权重中结果变量的变化是否因组（A 或 B）而异？换句话说，是否存在交互作用？我还想知道组和权重的主要影响。
+
+如何解释每个样本两次承受相同重量的事实。让每个受试者经历每种条件两次是增加样本量的一种方法，因为很难获得用于此类研究的样本。在输入数据时，我是否应该将它们作为单独的样本输入到 SPSS 中，或者由于它们是同一个样本，我是否需要以任何方式将它们关联起来？
+
+
+我想这将是一个线性混合模型，但我不太清楚如何处理问题 2。
+提前致谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658351/looking-for-appropriate-model-to-run-on-spss-while-accounting-for-multiple-measu</guid>
+      <pubDate>Thu, 05 Dec 2024 22:22:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>卡方独立性检验</title>
+      <link>https://stats.stackexchange.com/questions/658350/chi-squared-test-of-independence</link>
+      <description><![CDATA[考虑一个包含泊松分布的观察计数的列联表。具体来说，$O_{ij}$ 是 $Poi(\lambda_{ij})$。如果我们应用 CLT 假设 $\lambda$ 很大，那么我们得到 $\frac{O_{ij}-\lambda_{ij}}{\sqrt{\lambda_{ij}}}$ 近似于标准正态分布。
+现在，在进行独立性卡方检验时，我们在构建检验统计量时使用 $\lambda_{ij}$ 的近似值，该近似值是在独立性假设下从样本中得出的，即 $E_{ij}$。但是，为什么用估计的平均值替换实际平均值仍然有效呢？此外，当我增加总观测值$(N)$和增加$\lambda_{ij}$的值时，这个检验统计量是否会变得更好？
+请随时纠正我提到的任何内容。我一直在自学这些东西，所以我还没有完全理解。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658350/chi-squared-test-of-independence</guid>
+      <pubDate>Thu, 05 Dec 2024 21:54:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>我应该使用哪些统计数据？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/658347/what-stats-should-i-use</link>
       <description><![CDATA[我有一组受试者，他们都完成了相同的游泳计时赛 (6)。我想使用 2 种不同的测量方法评估每次试验中的 1 个变量，然后查看测量结果之间的关系。]]></description>
       <guid>https://stats.stackexchange.com/questions/658347/what-stats-should-i-use</guid>
@@ -121,8 +370,8 @@ VAE：https://hastebin.skyra.pw/yayecitowa.py
       <link>https://stats.stackexchange.com/questions/658337/statum-sample-size-for-power</link>
       <description><![CDATA[我打算进行多元回归分析，独立变量为少数民族身份（是/否）。使用 G*Power，我计算出所需的总体样本量为 543 名参与者。为了确保有足够的少数民族和非少数民族参与者，我需要使用分层随机抽样。但是，我现在不确定多少才算“足够”，或者换句话说，如何计算每个阶层的样本量才能有足够的统计能力。
 我应该为每个阶层（少数民族和非少数民族）招募 543 名参与者吗？
-多少过采样才算足够的过采样？
-少数民族比例为 15%。总样本量为 543 只会产生约 81 名少数民族参与者。这对于具有 10 个预测因子的良好回归来说是不够的。
+多少过采样才算足够过采样？
+少数民族比例为 15%。总样本量为 543 只会产生约 81 名少数民族参与者。这对于具有 10 个预测因子的强大回归来说是不够的。
 感谢您的指导。]]></description>
       <guid>https://stats.stackexchange.com/questions/658337/statum-sample-size-for-power</guid>
       <pubDate>Thu, 05 Dec 2024 18:14:11 GMT</pubDate>
@@ -282,125 +531,6 @@ psych::alpha(data[,2:12])
 尽管问题 2 和 6 是反向编码的，但似乎 Q1、Q2、Q3 和 Q6 与第一个 PC 相关，建议进行反向编码。]]></description>
       <guid>https://stats.stackexchange.com/questions/658328/reverse-coding-likert-data-for-cronbachs-alpha</guid>
       <pubDate>Thu, 05 Dec 2024 14:45:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>为何我的 GMM 实施会失败？</title>
-      <link>https://stats.stackexchange.com/questions/658327/why-does-my-gmm-implementation-fail</link>
-      <description><![CDATA[在使用包含许多参数和矩条件的模型时我遇到一个问题，具体来说是 13 个参数和 18 个条件。当我在 R 中运行 GMM 包时，我收到如下错误消息：
-
-ar.ols(x, aic = aic, order.max = order.max, na.action = na.action, 中的错误：&#39;order.max&#39; 必须小于 &#39;n.used&#39;
-AllArg$bw(obj, order.by = AllArg$order.by, kernel = AllArg$kernel, 中的错误：VAR(1) 估计函数的预白化失败
-
-为什么？是因为对象函数太复杂吗？
-代码如下：
-data &lt;- read_excel(&quot;data.xls&quot;)
-
-# 定义矩条件函数
-
-moment_conditions &lt;- function(par, data) {
-
-Y_1 &lt;- 数据$Y_1
-  Y_2 &lt;- 数据$Y_2
-  Y_3 &lt;- 数据$Y_3
-  X_1 &lt;- 数据$X_1
-  X_2 &lt;- 数据$X_2
-  X_3 &lt;- 数据$X_3
-
-  # 矩条件
-  m_1 &lt;- var(Y_1) - (par[1]^2 * par[4]^2 * par[7] + par[1]^2 * par[5]^2 * par[8] +
-                             参数[1]^2 * 参数[6]^2 * 参数[9] + 参数[1]^2 * 参数[10] + 参数[11])
-  
-  m_2 &lt;- var(Y_2) - (par[2]^2 * par[4]^2 * 参数[7] + 参数[2]^2 * 参数[5]^2 * 参数[8] +
-                             par[2]^2 * par[6]^2 * par[9] + par[2]^2 * par[10] + par[12])
-  
-  m_3 &lt;- var(Y_3) - (par[3]^2 * par[4]^2 * par[7] + par[3]^2 * par[5]^2 * par[8] +
-                             par[3]^2 * par[6]^2 * par[9] + par[3]^2 * par[10] + par[13])
-  
-  m_4 &lt;- cov(Y_1, Y_2) - (par[1]^2 * par[4]^2 * par[7] * par[2] + 
-                                   par[1]^2 * par[5]^2 * par[8] * par[2] + 
-                                   参数[1]^2 * 参数[6]^2 * 参数[9] * 参数[2] + 参数[1]^2 * 参数[10] * 参数[2])
-  
-  m_5 &lt;- cov(Y_1, Y_3) - (par[1]^2 * par[4]^2 * par[7] * par[3] + 
-                                   par[1]^2 * par[5]^2 * par[8] * par[3] + 
-                                   参数[1]^2 * 参数[6]^2 * 参数[9] * 参数[3] + 参数[1]^2 * 参数[10] * 参数[3])
-  
-  m_6 &lt;- cov(Y_2, Y_3) - (par[2]^2 * par[4]^2 * par[7] * par[3] + 
-                                   par[2]^2 * par[5]^2 * par[8] * par[3] + 
-                                   par[2]^2 * par[6]^2 * par[9] * par[3] +参数[2]^2 * 参数[10] * 参数[3])
-  
-  m_7 &lt;- cov(Y_1, X_1) - par[1] * par[4] * par[7]
-  m_8 &lt;- cov(Y_1, X_2) - par[1] * par[5] * par[8]
-  m_9 &lt;- cov(Y_1, X_3) - par[1] * par[6] * par[9]
-  
-  m_10 &lt;- cov(Y_2, X_1) - par[2] * par[4] * par[7]
-  m_11 &lt;- cov(Y_2, X_2) - par[2] * par[5] * par[8]
-  m_12 &lt;- cov(Y_2, X_3) - par[2] * par[6] * par[9]
-  
-  m_13 &lt;- cov(Y_3, X_1) - par[3] * par[4] * par[7]
-  m_14 &lt;- cov(Y_3, X_2) - par[3] * par[5] * par[8]
-  m_15 &lt;- cov(Y_3, X_3) - par[3] * par[6] * par[9]
-  
-  m_16 &lt;- var(X_1) - par[7]
-  m_17 &lt;- var(X_2) - par[8]
-  m_18 &lt;- var(X_3) - par[9]
-
-    f &lt;- cbind(
-    m_1、m_2、m_3、m_4、m_5、m_6、m_7、m_8、m_9、m_10、
-    m_11、m_12、m_13、m_14、m_15、m_16、m_17、 m_18
-)
-
-return(f) 
-}
-
-gmm(moment_conditions, x = data, t0 = rep(0, 13))
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658327/why-does-my-gmm-implementation-fail</guid>
-      <pubDate>Thu, 05 Dec 2024 14:24:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>零膨胀模型，值较低但没有零？</title>
-      <link>https://stats.stackexchange.com/questions/658326/zero-inflated-model-with-low-values-but-no-zeros</link>
-      <description><![CDATA[我是建模新手，这个问题可能很荒谬，但我正尝试仅使用阳性个体来模拟具有物种*生命阶段相互作用效应的病原体负荷计数数据。
-即，那些具有零负荷（感染为阴性）的个体被从分析中删除，并且仅对负荷&gt; 0的阳性个体进行分析）
-我已经在使用负二项式 GLM 模型（glmmTMB 包），因为有很多低计数，但是当我使用 DHarma 时，我发现仍然有零膨胀（尽管子集数据中没有零）
-
-是否有可能对没有零的数据使用零膨胀模型？
-我还能如何解决这个问题？
-任何帮助都值得赞赏！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658326/zero-inflated-model-with-low-values-but-no-zeros</guid>
-      <pubDate>Thu, 05 Dec 2024 14:15:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>数据通过了除正态性之外的所有线性检验。我的下一步应该怎么做？</title>
-      <link>https://stats.stackexchange.com/questions/658300/data-passing-all-linearity-checks-except-normality-what-should-my-next-steps-be</link>
-      <description><![CDATA[我需要为一系列具有相同问题的数据集构建模型。
-
-&quot;目测&quot; 让我相信数据最适合线性回归。我的数据似乎通过了同质性假设 (leveneTest pval &gt; 0.05) 和线性假设 (需要对独立性进行更多研究)。没有点的 Cook 距离 &gt; 0.5，这表明没有高度有影响力的异常值。但是，我的线性图表未通过正态性检验。
-P-val 为 &lt; 0.05 用于 shapiro.test(residuals(model)) 检查。
-qq 图的尾部下降：
-
-我试过平方根 &amp; y 的 Box-Cox 变换，以及更稳健的建模，如 rlm 和 glm（针对转换和未转换的数据），但这些都产生了类似的结果。
-我承认，通常没有办法转换数据以使其正常化。
-我所有的问题都围绕着同一个主题：我接下来该怎么做才能对这些数据进行建模？
-我还能合理地使用线性回归来对这些数据进行建模吗？
-由于我的大多数数据集都超过 500 分，我可以合理地声称 C.L.T 吗？
-我可以使用其他建模方法吗？或者我完全错过了什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658300/data-passing-all-linearity-checks-except-normality-what-should-my-next-steps-be</guid>
-      <pubDate>Thu, 05 Dec 2024 06:29:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否有技术可以分析具有包含数字范围而不是单个值的预测变量的数据？</title>
-      <link>https://stats.stackexchange.com/questions/658293/are-there-techniques-for-analyzing-data-that-have-predictor-variables-that-conta</link>
-      <description><![CDATA[是否有分析数据的技术，其中预测变量包含数字范围而不是单个值？例如，可以从 0 至 5 厘米深度、5 至 10 厘米深度和 10 至 20 厘米深度获取土壤样本（请注意这些范围的宽度不一致）。我可以将这些组视为类别，但这样我就会丢失有关它们位置的信息；我可以对它们进行排名，但在我的示例中，排名不会考虑范围宽度的差异。
-非常感谢您的回答。以下是我对它们的回复。
-中点想法有些道理，因为在我给出的土壤采样示例中，提取的土壤圆柱体在其整个长度上都是一个恒定的面积，但如果响应变量是（例如）氮浓度，并且深度范围内最浅深度的氮浓度远高于该深度范围内其他地方的氮浓度，结果可能会非常偏差。如果面积随深度而变化，我可以计算形状的质心（如果可以进行该计算的话），并将其用作值而不是中点。
-我喜欢随机噪声的一些想法。也许更准确的方法是将每个类别细分为小区间，并对该类别中的每个单个点（即类别中的值）使用该类别的响应变量。在我的土壤示例中，我可以使用 0 到 5 厘米深度的测量值来测量 1、2、3 和 4 厘米深度，我可以使用 5 到 10 厘米深度的测量值来测量 6、7、8 和 9 厘米深度，我可以使用 10 到 20 厘米深度的测量值来测量 11、12、13、14、15、16、17、18 和 19 厘米深度。
-由于上述原因（如果由于较高值主要出现在范围的一端，每个类别内都存在差异），我对在每个类别中建模噪声有点怀疑。
-在我的示例中，每个类别在两侧都有界，但我可以想象其他示例中至少有一个类别是无限制。
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658293/are-there-techniques-for-analyzing-data-that-have-predictor-variables-that-conta</guid>
-      <pubDate>Thu, 05 Dec 2024 01:15:37 GMT</pubDate>
     </item>
     </channel>
 </rss>
