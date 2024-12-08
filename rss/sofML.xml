@@ -4,7 +4,150 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 08 Dec 2024 15:17:37 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 08 Dec 2024 18:22:13 GMT</lastBuildDate>
+    <item>
+      <title>我无法在我的 GPU 上训练模型，并收到 CUDA-Assertion-Error</title>
+      <link>https://stackoverflow.com/questions/79263006/i-cant-train-a-model-on-my-gpu-getting-cuda-assertion-error</link>
+      <description><![CDATA[这是我的神经网络代码，使用 pytorch：
+ class BLSTM(nn.Module): 
+def __init__(self,vocab_size): 
+super(BLSTM,self).__init__() 
+self.Embeddings = nn.Embedding(vocab_size,100) 
+self.LSTM = nn.LSTM(100,128,bidirectional=True) 
+self.fc = nn.Linear(128*2,3) 
+self.dropout = nn.Dropout(0.5) 
+self.tanh = nn.Tanh() 
+
+def forward(self,X): 
+embed = self.Embeddings(X) 
+print(embed) 
+output , (hidden , cell) = self.LSTM(embed) 
+last_hidden = output[:, -1,:] 
+logits = self.fc(self.dropout(last_hidden)) 
+self.tanh(logits) 
+return logits
+
+我在 model.to(&quot;device&quot;) 处收到 cuda 断言错误。指定的尺寸或网络是否存在问题。我已检查内存分配，没有问题，我将在下面发布错误
+Cell In[52]，第 10 行
+7 device = torch.device(&#39;cuda&#39; if torch.cuda.is_available() else &#39;cpu&#39;)
+8 print(device)
+---&gt; 10 model.to(device)
+11 X_train = np.squeeze(torch.tensor(X_train,dtype=torch.long))
+12 X_val = np.squeeze(torch.tensor(X_val,dtype=torch.long))
+
+文件 C:\Python312\Lib\site-packages\torch\nn\modules\module.py:1340，位于 Module.to(self, *args, **kwargs)
+...
+RuntimeError: CUDA 错误：设备端断言已触发
+CUDA 内核错误可能会在其他 API 调用中异步报告，因此下面的堆栈跟踪可能不正确。
+对于调试，请考虑传递 CUDA_LAUNCH_BLOCKING=1
+使用 `TORCH_USE_CUDA_DSA` 进行编译以启用设备端断言。
+
+有人能解释一下这个问题的真正原因吗？
+我必须用给定的网络训练模型，但在将模型分配给 gpu 时，我遇到了这个错误。我搞不清楚。否则他们会向我显示张量错误。张量的维度是 1。]]></description>
+      <guid>https://stackoverflow.com/questions/79263006/i-cant-train-a-model-on-my-gpu-getting-cuda-assertion-error</guid>
+      <pubDate>Sun, 08 Dec 2024 17:29:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么两个不同的逻辑回归模型对同一源数据产生截然不同的结果？[关闭]</title>
+      <link>https://stackoverflow.com/questions/79262779/why-are-two-different-logistic-regression-models-producing-vastly-different-resu</link>
+      <description><![CDATA[我正在处理 NFL 数据，预测比赛结果。我的源数据（用于以下两个过程）包含约 3,800 行，每行 20 个单独的特征（每支球队 10 个，外加日期、比赛 ID、主队和客队以及主场胜利/客场胜利列）。
+模型“A”循环通过特定日期范围进行训练/测试分割。也就是说，我使用硬截止值，因此每组在日期方面都是连续的。我使用的日期反映了 50%、55% 等最高 85% 的分割。使用此模型，8 个准确度结果中的每一个都是 ~ 61%，这对于 NFL 预测来说是典型的（可能有点偏高）。
+模型“B”使用 sklearn 中的 train_test_split 模块以与上述相同的百分比分割数据。我意识到这种方法会打乱数据，所以我知道每个分割都使用与模型 A 不同的数据。但使用这种方法，每个周期的百分比准确率约为 82%，远高于模型 A，而且似乎不合理。因此，我想了解我是否正确地实现了其中一种（或两种）方法。
+（如果有人可以向我展示如何附加我的源 csv，我很乐意这样做）
+模型 A 的相关部分
+train_test_date_range = [&#39;2017-11-02&#39;, &#39;2018-10-04&#39;, &#39;2019-09-05&#39;, &#39;2019-12-01&#39;, &#39;2020-11-05&#39;, &#39;2021-10-03&#39;, &#39;2022-01-02&#39;, &#39;2022-11-24&#39;]
+
+features = [
+&#39;team_1_average_ptsScored_last_five&#39;,
+&#39;team_1_average_feature_1_last_five&#39;,
+
+为清晰起见，功能列表缩写
+
+&#39;team_2_average_feature_9_allowed_last_three_away&#39;,
+&#39;team_2_average_feature_10_allowed_last_three_away&#39;
+]
+
+for tt_line_date in train_test_date_range :
+
+train_data = match_stats[match_stats[&#39;date&#39;] &lt; tt_line_date]
+test_data = match_stats[match_stats[&#39;date&#39;] &gt;= tt_line_date]
+
+X_train = train_data[features]
+X_test = test_data[features]
+Y_train = train_data[&#39;team_1_result&#39;]
+Y_test = test_data[&#39;team_1_result&#39;]
+
+names = [&quot;Log Reg&quot;]
+
+classifiers = [
+LogisticRegression()
+]
+
+for name, clf in zip(names, classifiers):
+# 将分类器拟合到训练数据上并进行预测
+clf.fit(X_train, Y_train)
+test_data[name + &#39;_team_1_result&#39;] = clf.predict(X_test)
+accuracy = clf.score(X_test, Y_test)
+
+print(name + &#39; T/T_Line 处的准确率 &#39; + tt_line_date + &#39; =&#39;, format(accuracy, &quot;.2%&quot;))
+
+模型“A”的输出
+T/T_Line 2017-11-02 的对数回归准确度 = 62.11%
+T/T_Line 2018-10-04 的对数回归准确度 = 61.83%
+等等。
+
+模型“B”的相关部分
+train_test_split_range = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85]
+
+for tt_line in train_test_split_range: 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=tt_line, random_state=42)
+
+model = LogisticRegression()
+
+scaler = StandardScaler()
+
+scaled_train = scaler.fit_transform(X_train)
+scaled_test = scaler.fit_transform(X_test)
+
+model.fit(X_train, y_train)
+y_pred_proba = model.predict_proba(X_train)[:, 1]
+
+y_pred = model.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
+roc_auc = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
+
+# 计算伪 r 平方
+# 修改自：https://github.com/scikit-learn/scikit-learn/issues/25982
+ll_null = log_loss(y_train, [y_train.mean()] * len(y_train))
+ll_model = log_loss(y_train, y_pred_proba)
+pseudo_r2 = 1 - ll_model / ll_null
+
+# 打印指标
+print(f&quot;\033[1m\033[4mResults at &quot; + str(tt_line) + &quot;训练/测试分割\033[0m&quot;)
+print(f&quot;准确率：{accuracy:.3f}&quot;)
+print(f&quot;精确率：{precision:.3f}&quot;)
+print(f&quot;召回率：{recall:.3f}&quot;)
+print(f&quot;F1 得分：{f1:.3f}&quot;)
+print(f&quot;ROC AUC：{roc_auc:.3f}&quot;)
+print(f&quot;伪 R 平方：{pseudo_r2:.3f}&quot;)
+print()
+
+模型“B”的输出（8 个中的 1 个，但很典型）
+0.5 训练/测试分割的结果
+准确率：0.820
+精确率：0.828
+召回率：0.854
+F1 分数：0.841
+ROC AUC：0.896
+伪 R 平方：0.490
+]]></description>
+      <guid>https://stackoverflow.com/questions/79262779/why-are-two-different-logistic-regression-models-producing-vastly-different-resu</guid>
+      <pubDate>Sun, 08 Dec 2024 15:41:51 GMT</pubDate>
+    </item>
     <item>
       <title>机器学习如何计算微小动物的数量？[关闭]</title>
       <link>https://stackoverflow.com/questions/79261944/machine-learning-to-count-microscopic-animals</link>
@@ -46,7 +189,7 @@ PDF 文件的路径被输入到一个使用 DocTR 提取文本的函数中。数
 });
 
 Coord_Key 用作文本块的 ID。x1、x2、y1、y2 是文档上边界框的坐标，因此位置是已知的。文本当然就是所讨论的文本。
-我的想法是获取这些数据并将其传递到 Label Studio 中，然后我将使用 Open AI 来帮助我应用我想要使用的特定标签。例如：address、phoneNumber、remarks 等。我当然会查看它得出的结果，并在筛选信息时进行更正。这样，我要训练的模型就有了最好的学习信息。
+我的想法是获取这些数据并将其传递到 Label Studio，然后我将使用 Open AI 来帮助我应用我想要使用的特定标签。例如：address、phoneNumber、remarks 等。我当然会查看它得出的结果，并在筛选信息时进行更正。这样，我要训练的模型就有了最好的学习信息。
 此时的目标是生成训练数据，以便我可以使用 Tensorflow 编写一些内容，学习如何自行进行标记。
 这种方法正确吗？在我开始大量从我必须测试的文档中创建更多此类数据之前，我是否应该考虑为我的模型创建训练数据的其他事项？]]></description>
       <guid>https://stackoverflow.com/questions/79261744/text-labeling-approach-to-train-a-model-in-the-future</guid>
@@ -119,7 +262,7 @@ pred = model.predict(img)
 prediction = np.argmax(pred,axis=1)
 print(&quot;predicted sign: &quot;+ str(prediction))
 
-&#39;model.fit()&#39; 函数是最耗 CPU 的工作。在功能较弱的平台上，训练需要花费大量时间。是否可以保存训练好的模型并将其用于预测？
+&#39;model.fit()&#39; 函数是最耗 CPU 的工作。在功能较弱的平台上，训练需要大量时间。是否可以保存训练好的模型并将其用于预测？
 我知道有办法加载保存的模型：
 from tensorflow.keras.models import load_model 
 model = load_model(&#39;my_model.h5&#39;) 
@@ -127,20 +270,6 @@ model = load_model(&#39;my_model.h5&#39;)
 但是我仍然必须运行耗费 CPU 的 &#39;model.fit()&#39;。有没有办法避免使用 model.fit() 并加载模型并用于预测？]]></description>
       <guid>https://stackoverflow.com/questions/79261060/do-i-need-to-call-model-fit-function-every-time-after-loading-the-model-using</guid>
       <pubDate>Sat, 07 Dec 2024 17:33:44 GMT</pubDate>
-    </item>
-    <item>
-      <title>机器学习试图将现实世界的数据融入数学方程式[关闭]</title>
-      <link>https://stackoverflow.com/questions/79260639/machine-learning-trying-to-fit-real-world-data-into-mathematical-equations</link>
-      <description><![CDATA[例如，在监督学习中，我们根据现实生活中的数据训练模型，并尝试找到最合适的数学表示。我的问题是，为什么现实生活中的数据（似乎是随机的）会符合数学方程式 y=mx+c、y=c1x1+c2x2 或任何复杂形式？这是因为现实世界中的大多数事物都可以用数学来概括吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79260639/machine-learning-trying-to-fit-real-world-data-into-mathematical-equations</guid>
-      <pubDate>Sat, 07 Dec 2024 12:50:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>Llama3 8B 在 Tesla Core GPU 上生成文本非常慢</title>
-      <link>https://stackoverflow.com/questions/79260246/llama3-8b-generating-text-very-slow-on-tesla-core-gpu</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79260246/llama3-8b-generating-text-very-slow-on-tesla-core-gpu</guid>
-      <pubDate>Sat, 07 Dec 2024 08:25:29 GMT</pubDate>
     </item>
     <item>
       <title>机器学习预测项目：在 Localhost 上的 Flask 应用程序中提交预测表单后出现“ValueError”</title>
@@ -188,25 +317,6 @@ document = nlp(&#39;搅拌均匀，再煮一分钟。&#39;)
       <pubDate>Tue, 26 Nov 2024 15:46:48 GMT</pubDate>
     </item>
     <item>
-      <title>ModuleNotFoundError：没有名为“anomalib.engine”的模块</title>
-      <link>https://stackoverflow.com/questions/77930973/modulenotfounderror-no-module-named-anomalib-engine</link>
-      <description><![CDATA[# 导入所需模块
-
-从 anomalib.data 导入 MVTec
-从 anomalib.models 导入 Patchcore
-从 anomalib.engine 导入 Engine
-
-错误：
-ModuleNotFoundError：没有名为“anomalib.engine”的模块
-
-我正在尝试运行它......已按照库安装并看到
-https://anomalib.readthedocs.io/en/latest/markdown/get_started/anomalib.html
-我认为这要么是因为引擎已被修改，要么已被库删除......
-如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/77930973/modulenotfounderror-no-module-named-anomalib-engine</guid>
-      <pubDate>Sat, 03 Feb 2024 05:25:02 GMT</pubDate>
-    </item>
-    <item>
       <title>如何为项目确定正确的 NLP 方法</title>
       <link>https://stackoverflow.com/questions/77410116/how-to-decide-correct-nlp-approach-for-a-project</link>
       <description><![CDATA[我正在从事一个 NLP 项目。我的任务是从对话本身确定土耳其呼叫中心对话的类别和情感分数。我们使用 Python 作为编程语言。但是，我在项目的初始阶段陷入了数百种备选解决方案的困境。我有 300,000 行客户代表和客户文本数据，我已经通过预处理阶段很好地清理了它们。所有数据目前都以句子标记形式呈现，并已通过其他标准预处理阶段。客户代表和客户对话已准备好放在 ~600 MB csv 的不同列中。在决定建模算法之前，我的经理希望我准备好训练数据集。数据集应该包含以下信息，我们稍后会决定哪些是必要的，哪些是不必要的，然后我们才会最终确定数据集：
@@ -247,6 +357,13 @@ NLP 项目应该如何正确开展？]]></description>
 “头”和“尾”是什么意思？]]></description>
       <guid>https://stackoverflow.com/questions/76495143/what-does-surface-form-mean-in-relation-extraction</guid>
       <pubDate>Sat, 17 Jun 2023 07:15:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>Gan 制作出不饱和、褪色的图像</title>
+      <link>https://stackoverflow.com/questions/66292084/gan-produces-desaturated-faded-images</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/66292084/gan-produces-desaturated-faded-images</guid>
+      <pubDate>Sat, 20 Feb 2021 13:26:47 GMT</pubDate>
     </item>
     <item>
       <title>用于大数据集分类的 NLP 软件</title>
