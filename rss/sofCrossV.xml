@@ -4,7 +4,159 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 08 Dec 2024 03:36:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 08 Dec 2024 06:23:33 GMT</lastBuildDate>
+    <item>
+      <title>我可以在 Cox PH 中使用年龄作为随时间变化的协变量吗？</title>
+      <link>https://stats.stackexchange.com/questions/658439/can-i-use-age-as-a-time-varying-covariate-in-a-cox-ph</link>
+      <description><![CDATA[我正在研究叛乱团体领导人在被迫下台之前会掌管叛乱团体多长时间。我有领导人年份数据，其中包含以下变量：
+
+groupid = 每个团体的唯一 ID 号
+leaderid = 每个领导人的唯一 ID 号
+tenure = 领导人首次掌权以来的时间（从 0 开始计数）
+forcedexit = 领导人被迫下台时取值为 1，其他年份取值为 0
+groupage = 团体成立以来的时间（从 0 开始计数）
+
+我的数据集中，叛乱团体活跃的每一年都有一行。数据通常如下所示：
+ groupid leaderid forcedexit tenure groupage
+&lt;dbl&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 411 1 0 0 0
+2 411 1 0 1 1
+3 411 1 0 2 2
+4 411 2 1 0 3
+5 411 2 0 1 4
+6 411 2 0 2 5
+7 411 2 0 3 6
+8 411 3 0 0 7
+9 411 3 0 1 8
+10 411 3 0 2 9
+
+请注意，新领导人可以通过强制退出以外的方式上台，因此即使 forcedexit = 0，领导人也可能离职（例如，参见上述数据中的 leaderid = 3）。
+我想测试一下在较老的群体中，领导人是否更难被罢免。我的直觉是运行 Cox PH 模型（我使用的是 R）：
+mod &lt;- coxph(Surv(tenure, forcedexit) ~ groupage, data = df)
+如果我运行这个，我会得到 groupage 系数的负且显著的估计值，这与我的直觉一致。但是，出于两个原因，我对这个结果持谨慎态度。
+首先，我可以在 Cox PH 中使用 groupage 作为随时间变化的变量吗？我读过的大多数使用 Cox PH 的医学研究都使用不会随时间变化的年龄变量（例如，试验开始时的年龄）。我的 groupage 变量确实会随时间而变化。
+其次，我担心 groupage 和 tenure 变量之间的关系会出现一些问题。某些 tenure 值在 groupage 的某些值下不可能存在。例如，tenure = 5 和 groupage = 0 永远不可能存在，因为组必须存在，领导者才能负责该组。因此，较高的 groupage 值可能与较高的 tenure 值一起机械地出现。如果领导者拥有较大的 tenure，则 groupage 也必须较大。
+对这两个问题的任何想法都将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658439/can-i-use-age-as-a-time-varying-covariate-in-a-cox-ph</guid>
+      <pubDate>Sun, 08 Dec 2024 05:02:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>标准化回归模型的变量与回归模型中的权重？</title>
+      <link>https://stats.stackexchange.com/questions/658437/standardizing-variables-for-a-regression-model-vs-weights-in-a-regression-model</link>
+      <description><![CDATA[我在 R 中有一个纵向 GAM（一般加性模型）回归。
+以下是模型和数据的一般形式（响应介于 0 和 1 之间）：
+gam_model &lt;- gam(
+response ~ 
+te(time_var, var1) +
+te(time_var, var2) +
+s(time_var, by = state) +
+s(state, bs = &quot;re&quot;),
+data = sample_data,
+method = &quot;REML&quot;,
+family = betar(link = &quot;logit&quot;)
+)
+
+state time_varpopulation var1 var2 response
+state_1 2005-01-01 1000000 500000 10000 0.45
+state_1 2005-02-01 1001000 520000 12000 0.47
+state_1 2005-03-01 1002001 540000 11000 0.46
+state_1 2005-04-01 1003002 560000 13000 0.48
+state_2 2005-01-01 200000 100000 2000 0.42
+state_2 2005-02-01 200200 105000 2400 0.44
+state_2 2005-03-01 200400 110000 2200 0.43
+state_2 2005-04-01 200600 115000 2600 0.45
+
+我遇到的问题如下：
+
+数据按州提供（多个州，1 个国家），但每个州的人口不同
+这让我认为需要对模型进行一些处理，以防止人口较多的州对响应的影响比人口较少的州更大
+我有每个州的人口
+
+我正在考虑使用以下权重公式（我从这里得到这个想法https://www.nature.com/articles/s41598-024-54441-x）：
+$$avg\_weight_s = \frac{1}{T}\sum_{t=1}^{T} \frac{\ln(population_{s,t})}{\frac{1}{N}\sum_{i=1}^{N} \ln(population_{i,t})}$$
+其中：
+
+$T$ 是时间段的总数
+$N$ 是州的总数
+$population_{s,t}$ 是 $t$ 时刻 $s$ 州的人口数
+$population_{i,t}$ 表示每个州 $i$ 在时间 $t$ 的人口。
+
+这让我考虑不同的模型选项：
+# 选项 1：非标准化，无权重
+
+gam_model &lt;- gam(
+response ~ 
+te(time_var, var1) +
+te(time_var, var2) +
+s(time_var, by = state) +
+s(state, bs = &quot;re&quot;),
+data = sample_data,
+method = &quot;REML&quot;,
+family = betar(link = &quot;logit&quot;)
+)
+
+# 选项 2：标准化，无权重
+
+gam_model &lt;- gam(
+响应 ~ 
+te(time_var, var1/population) +
+te(time_var, var2/population) +
+s(time_var, by = state) +
+s(state, bs = &quot;re&quot;),
+data = sample_data,
+method = &quot;REML&quot;,
+family = betar(link = &quot;logit&quot;)
+)
+
+# 选项 3：未标准化，权重
+
+gam_model &lt;- gam(
+响应 ~ 
+te(time_var, var1) +
+te(time_var, var2) +
+s(time_var, by = state) +
+s(state, bs = &quot;re&quot;),
+data = sample_data,
+weights = avg_weight,
+method = &quot;REML&quot;,
+family = betar(link = &quot;logit&quot;)
+)
+
+# 选项 4：标准化，权重
+
+gam_model &lt;- gam(
+response ~ 
+te(time_var, var1/population) +
+te(time_var, var2/population) +
+s(time_var, by = state) +
+s(state, bs = &quot;re&quot;),
+data = sample_data,
+weights = avg_weight,
+method = &quot;REML&quot;,
+family = betar(link = &quot;logit&quot;)
+)
+
+我有点困惑，不知道这些选项中哪一个在逻辑上是正确的。我认为其中一些可能有点过度，而另一些则完全不正确。有办法解决这个问题吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658437/standardizing-variables-for-a-regression-model-vs-weights-in-a-regression-model</guid>
+      <pubDate>Sun, 08 Dec 2024 04:38:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>带有 Adam 优化器网络的单层/单单元如何工作？</title>
+      <link>https://stats.stackexchange.com/questions/658436/how-does-a-single-layer-single-unit-with-adam-optimizer-network-work</link>
+      <description><![CDATA[我对 ML 还很陌生，正在尝试使用线性回归。我测试了 sklearn 的 LinearRegression 模型，然后想将结果与一个非常简单的神经网络进行比较。
+我创建了一个具有 1 层和 1 个单元的 tensorflow Dense 网络，并带有“线性”激活函数。
+我使用了“sgd”和“adam”优化器，并使用 MinMaxScaler 缩放了 x 数据
+我得到了与 LinearRegression 模型截然不同的结果（预测和损失）。
+我有两个问题：
+
+具有线性激活的 1 层/1 个单元网络是否与 LinearRegression 相同？
+
+SGD 预测非常接近，我正在用房价进行测试，所以我会得到相对接近的结果。目标值在 1000 左右，因此 y_train 数组中的 120,000 美元价格被设置为 120。但是，当我使用 Adam 优化器时，我得到的预测值非常低（不到 20）。我从 100 个 epoch 开始，然后增加到 1000 个，但仍然得到了类似的结果。我是不是在某个地方做错了什么，或者 Adam 优化器是否有限制或某些要求才能正常工作。
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658436/how-does-a-single-layer-single-unit-with-adam-optimizer-network-work</guid>
+      <pubDate>Sun, 08 Dec 2024 03:47:10 GMT</pubDate>
+    </item>
     <item>
       <title>当网络的接近中心性较低时会发生什么 - 外围节点会发生什么</title>
       <link>https://stats.stackexchange.com/questions/658435/what-happens-when-a-network-has-low-closeness-centrality-what-happens-to-nodes</link>
@@ -42,35 +194,6 @@ ICC 是可行的方法吗？
 感谢您的帮助！]]></description>
       <guid>https://stats.stackexchange.com/questions/658426/how-to-compare-two-likert-scale-surveys-by-independent-respondents</guid>
       <pubDate>Sat, 07 Dec 2024 21:13:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>高斯独立同分布均值的固定长度置信区间</title>
-      <link>https://stats.stackexchange.com/questions/658424/fixed-length-confidence-interval-for-gaussian-iid-mean</link>
-      <description><![CDATA[我对一项练习有疑问，该练习的目标是找到高斯随机变量均值的有限长度置信区间。更准确地说，我的问题是关于所附练习的 a) 部分。我想知道如何继续。非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658424/fixed-length-confidence-interval-for-gaussian-iid-mean</guid>
-      <pubDate>Sat, 07 Dec 2024 20:14:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较两个模型的概率</title>
-      <link>https://stats.stackexchange.com/questions/658423/comparing-probabilities-of-two-models</link>
-      <description><![CDATA[考虑一个数据集和两个二进制类 CLASS_A 和 CLASS_B，它们的比率分别为 0 和 1。假设我们为这两个类（分别）训练一个模型（例如 XGBClassifier）并获得两个模型：MODEL_A 用于预测 CLASS_A，MODEL_B 用于预测 CLASS_B。使用方法 predict_proba，根据文档，我们可以获得
-
-每个 X 示例属于给定类的概率。
-
-我的第一个问题是：我可以将两个模型的 predict_proba 输出与相应的类进行比较，并且说如果对于观察 x_i，我使用 MODEL_A 和 CLASS_A 得到 0.4，使用 MODEL_B 和 CLASS_B 得到 0.2，那么观察 x_i 更有可能属于 CLASS_A 而不是 CLASS_B？ （可能性增加一倍？）
-我的第二个问题是，如果训练集不同，上述情况是否也成立？这意味着训练和评分是在不同的观察结果上使用不同的变量进行的，然后我从 MODEL_A 和 CLASS_A 中得到观察结果 x_i 的 0.4，从 MODEL_B 和 CLASS_B 中得到观察结果 x_j 的 0.2。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658423/comparing-probabilities-of-two-models</guid>
-      <pubDate>Sat, 07 Dec 2024 20:08:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>计算具有两个交叉随机效应的随机效应模型的边际效应</title>
-      <link>https://stats.stackexchange.com/questions/658421/calculate-marginal-effects-for-random-effects-model-with-two-crossed-random-effe</link>
-      <description><![CDATA[我试图获取两个交叉随机效应的边际效应（使用 STAN 或 brms）。我了解如何按照 McElreath 的书和 Kurtz 的同一本书的 brms 版本对单个随机效应进行此操作。我不确定如何对多个随机效应执行此操作。例如，获取“向左拉”的概率Kurtz 翻译的《统计再思考》模型 12.5 中的区块或参与者的边际。对我来说，做类似下面的事情并将这些随机效应添加到固定效应中是有意义的。
-random_effect = rnorm(n = 1000, mean = 0, sd = (post$sd_actor_Intercept + post$sd_block_Intercept)
-
-这合理吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658421/calculate-marginal-effects-for-random-effects-model-with-two-crossed-random-effe</guid>
-      <pubDate>Sat, 07 Dec 2024 19:01:59 GMT</pubDate>
     </item>
     <item>
       <title>适合的统计检验</title>
@@ -118,20 +241,10 @@ A
       <pubDate>Sat, 07 Dec 2024 18:45:42 GMT</pubDate>
     </item>
     <item>
-      <title>关于使用多元回归来验证使用多种变量变化的假设的文献</title>
-      <link>https://stats.stackexchange.com/questions/658419/literature-on-the-usage-of-multiple-regressions-to-validate-an-hypothesis-using</link>
-      <description><![CDATA[我试图表明，在形式为 var1 ~ var2 + var3 + ... + varX 的方程中，var2 具有统计上显著的影响。但是，定义 var1、var3...varX（var 2 是逻辑变量）的方法有很多，比如说我得到了 var1_v1、var1_v2 等。我对 var1_1、var3_1、...、varX_1、var1_2、var3_1、... 的所有排列进行了回归分析。我对 var1 ~ var2 + var3 + ... + varX 的回归系数感兴趣，而不是 var1_1 ~ var2 + var3_1 + ... + varX_1 的回归系数，因为我觉得总体结果比单个变量更有意义。我正在寻找有关类似过程的文献。
-我提出变量集合具有集体显著性的主要方法似乎是使用 p 值 &lt; 0.1（对于 var2），这发生在约 40% 的回归中。我可以使用伯努利分布来表示它是预期 I 型错误的几个标准差，因此可能存在显著性吗？是否有一种纯粹的贝叶斯方法可以不依赖 p 值来做到这一点？
-否则，最低的 BIC 会显示 var2 的 p 值 &lt; 0.1。我可以在 p&lt;0.1 与 p&gt;0.1 上取 BIC 的平均值吗？
-运行多重回归有什么特别之处可以显示无论您如何定义变量，都存在联系吗？或者我必须将分析分解为哪些变量看起来最相关？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658419/literature-on-the-usage-of-multiple-regressions-to-validate-an-hypothesis-using</guid>
-      <pubDate>Sat, 07 Dec 2024 18:24:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>数据分析中的异常值</title>
-      <link>https://stats.stackexchange.com/questions/658405/outliers-in-data-analysis</link>
-      <description><![CDATA[我目前正在上我的第一堂数据分析课，我们做了一些简单的测试假设，如 t 检验等。我们的老师告诉我们，只要异常值不超过样本量 n 的 10%，我们就可以删除它们。这准确吗？因为在我看来，这似乎太过方法论化，我不明白为什么我们要处理这种情况。一般方法是什么？我在这方面没有任何经验，所以任何东西都会有帮助。谢谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/658405/outliers-in-data-analysis</guid>
+      <title>如果异常值少于数据点的 10％，您可以删除它们吗？</title>
+      <link>https://stats.stackexchange.com/questions/658405/can-you-remove-outliers-if-they-are-less-than-10-of-the-datapoints</link>
+      <description><![CDATA[我目前正在上我的第一堂数据分析课，我们会做一些简单的假设检验，比如 t 检验等。我们的老师告诉我们，只要异常值不超过样本量 n 的 10%，我们就可以删除它们。这准确吗？在我看来，这太过方法论化了，我不明白为什么我们要这样处理每种情况。一般方法是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658405/can-you-remove-outliers-if-they-are-less-than-10-of-the-datapoints</guid>
       <pubDate>Sat, 07 Dec 2024 10:22:05 GMT</pubDate>
     </item>
     <item>
@@ -260,15 +373,58 @@ round( logit2p( rma.mv2[[&quot;beta&quot;]] + 1.96*rma.mv2[[&quot;se&quot;]] ), 
       <pubDate>Fri, 06 Dec 2024 16:27:10 GMT</pubDate>
     </item>
     <item>
-      <title>具有局部二次估计的函数导数的交叉验证带宽</title>
-      <link>https://stats.stackexchange.com/questions/658285/cross-validated-bandwidth-for-the-derivative-of-the-function-with-local-quadrati</link>
-      <description><![CDATA[我正在尝试非参数化地估计函数 g(x) 的一阶导数。我正在使用局部多项式（二次）程序估计 $g(x)$。我知道如何计算 $g(x)$ 的留一交叉验证带宽，但是，我想要做的是直接估计 $g’(x)$ 的交叉验证带宽。我的猜测是，导数的最佳带宽不一定与 $g(x)$ 的最佳带宽相同，因此 $g(x)$ 的交叉验证实际上不是我应该做的。但是，我还没有找到任何关于如何对 $g’(x)$ 进行交叉验证带宽的资料，这要困难得多，因为我没有与 $Y_i$ 等效的导数。
-有关于如何做到这一点的资源吗？任何 R、Python 或 Stata 中的实现也将不胜感激！
-到目前为止，我正在实施 Fan 和 Gijbels (1995) RSC 标准，但感觉它不如适当的交叉验证那么充分（特别是因为从原始带宽到导数带宽的路径仅由预定的调整常数驱动）。也许我可以在交叉验证中使用相同的调整常数？但这感觉“太简单了”。
-当我对函数（而不是导数）使用交叉验证或 RSC 或经验法则（来自 Fan 和 Gijbels，1996）时，我得到的带宽通常“太小”，因为导数太不稳定。我尝试了模拟数据，结果总是比建议的带宽大得多。但我想用“科学”标准来证明我的选择，而不是挥手......
-PS：我也尝试了 R 中的 locfit 包，默认情况下它实现了自适应带宽（使用最近邻算法，我猜是取 70% 的最近邻居并据此确定自适应带宽，但我不太确定）。如果我也能找到“最佳”的最近邻居数量，我会没问题的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658285/cross-validated-bandwidth-for-the-derivative-of-the-function-with-local-quadrati</guid>
-      <pubDate>Wed, 04 Dec 2024 22:47:00 GMT</pubDate>
+      <title>查找随机过程的方差</title>
+      <link>https://stats.stackexchange.com/questions/658243/finding-the-variance-of-a-stochastic-process</link>
+      <description><![CDATA[这是该问题的第二部分计算随机过程的均值和方差？
+对于 Polya Urn 问题，我试图理解为什么方差的比率是：
+$$\operatorname{Var}(X_n) = E[X_n](1-E[X_n]) \left(\frac{d}{w+b+d} - \frac{w+b}{w+b+d}\frac{1}{n}\right).$$
+我知道一般方差公式是$E[X_n^2] - (E[X_n])^2$ 并且 $E[X_n] = \frac{w}{w+b}$。我只需要找到 $E[X_n^2]$。
+当我们有 $n$ 个球时，如果我们抽出一个白球（概率 $X_{n-1}$），我们会添加 $d$ 个白球。如果我们抽到黑球（概率为$1-X_{n-1}$），我们添加$d$个黑球（$k$是前面步骤中添加的白球数量）。
+$$ X_n = \begin{cases}
+\frac{w + (k+1)d}{w+b+nd} &amp; \text{如果抽到白球} \\
+\frac{w + kd}{w+b+nd} &amp; \text{如果抽出黑球}
+\end{cases} $$
+使用二阶总期望定律：
+$$ E[X_n^2|X_{n-1}] = X_{n-1}\left(\frac{w + (k+1)d}{w+b+nd}\right)^2 + (1-X_{n-1})\left(\frac{w + kd}{w+b+nd}\right)^2 $$
+通过扩展和替换：
+$$ \left(\frac{w + (k+1)d}{w+b+nd}\right)^2 = \frac{w^2 + 2w(k+1)d + ((k+1)d)^2}{(w+b+nd)^2} $$
+$$ \left(\frac{w + kd}{w+b+nd}\right)^2 = \frac{w^2 + 2wkd + (kd)^2}{(w+b+nd)^2} $$
+$$ E[X_n^2|X_{n-1}] = X_{n-1}\frac{w^2 + 2w(k+1)d + ((k+1)d)^2}{(w+b+nd)^2} + (1-X_{n-1})\frac{w^2 + 2wkd + (kd)^2}{(w+b+nd)^2} $$
+我尝试扩展再次：
+$$ \begin{align*}
+E[X_n^2|X_{n-1}] &amp;= \frac{X_{n-1}(w^2 + 2w(k+1)d + ((k+1)d)^2)}{(w+b+nd)^2} + \frac{(1-X_{n-1})(w^2 + 2wkd + (kd)^2)}{(w+b+nd)^2} \\
+&amp;= \frac{w^2 + 2wkd + (kd)^2}{(w+b+nd)^2} + X_{n-1}\frac{2wd + 2d^2(k+1)}{(w+b+nd)^2}
+\end{align*} $$
+我知道我需要再次计算期望，这样 $E(E[X_n^2|X_{n-1}]) = E[X_n^2]$
+但这就是我陷入困境的地方，不知道如何继续。我感觉自己在兜圈子。有什么想法可以继续吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658243/finding-the-variance-of-a-stochastic-process</guid>
+      <pubDate>Wed, 04 Dec 2024 02:04:46 GMT</pubDate>
+    </item>
+    <item>
+      <title>对PCA的质疑：为什么载荷常常被忽视？</title>
+      <link>https://stats.stackexchange.com/questions/658157/doubts-about-pca-why-are-loadings-often-overlooked</link>
+      <description><![CDATA[我对 PCA 的存在性存有疑虑。我经常看到它用于遗传学，在遗传学中，你研究的基因组可能你并不完全了解它们的功能。在这种情况下，PCA 用于捕获数据集中的潜在变异性并生成新的不相关变量（主成分）。
+但是，当将 PCA 应用于具有已知有形变量的数据集时（尤其是当目标是降低维度或可视化异常值时），我注意到很少对这些变量的负载进行后续分析。在我的特定情况下，我使用有形变量，并且我经常有兴趣了解它们之间的关系以及它们在成分中的权重。然而，在大多数研究中，我只发现解释方差的百分比，仅此而已。
+这让我很疑惑：为什么不更多地强调解释负载？载荷对于理解原始变量的行为方式和对主成分的贡献是否不重要？对我来说，载荷对于解释变量之间的关系以及确定它们对变异性的影响似乎至关重要。我是否遗漏了什么，或者这只是 PCA 中尚未充分探索的领域？
+编辑（07/12）：
+感谢 Peter Flom 和 Nick Cox 对本主题的宝贵贡献。我将重点回答您的问题
+在我的具体案例中，@Nick Cox，我研究了一组 12 个基因，旨在识别潜在的簇并了解哪些基因占最大变异性。我的项目重点关注三种不同的营养组合及其对基因表达的影响（图 1）。虽然降维有助于简化数据，但我也在探索成分是否与生物功能相关。例如，胆固醇流出相关基因似乎主要对 PC1 有贡献，而葡萄糖代谢可能与 PC2 有关。请注意，这只是推测，并不旨在得出严格的结论——我的目标是探索负荷是否可以提供对这些关联的见解并有助于假设的产生。
+鉴于这个目标，我对负荷特别感兴趣，因为它们反映了每个基因对主要成分的贡献。通过分析负荷，我希望确定哪些基因对成分捕获的变异性贡献最大。这些见解可以支持或改进我研究的一些假设。
+
+在这种情况下，一些基因强烈影响 Dim1，对胆固醇相关过程捕获的方差产生积极贡献（如图 2 所示）。这是因为沿 Dim1 聚集的某些基因与这些功能相关。虽然这一观察有助于我更好地理解基因行为，但我承认这是一种过于简单的方法，具有一些局限性。因此，这只是一个探索性工具，而不是得出明确结论的基础。
+
+与这些结果相关的负载如下：
+
+关于参考书目，我支持：
+主成分分析，第二版。I.T. Jolliffe
+使用 R 进行探索性多元分析示例
+@Peter Flom，您说得完全正确，如果主要关注点只是识别异常值或解释方差，则不一定需要加载。但是，此线程的目的就是专门深入探讨加载主题。由于有人问我的意图，所以我分享了我的疑虑。
+就我而言，我的目标不仅仅是可视化异常值——我还对识别模式或聚类感兴趣。在这种情况下，我认为加载可以发挥有用的作用。但是，在探索 StatsExchange 上的其他示例后，我注意到加载通常不是 PCA 讨论的中心焦点。尽管如此，我仍然觉得加载对我的分析可能特别重要。
+我在这里忽略了什么吗？
+可能是我的不确定性源于对加载的几何解释缺乏理解？也许更清晰的几何视角可以帮助我更好地概念化和利用这些结果。你的想法是什么？
+提前感谢您的无价贡献]]></description>
+      <guid>https://stats.stackexchange.com/questions/658157/doubts-about-pca-why-are-loadings-often-overlooked</guid>
+      <pubDate>Mon, 02 Dec 2024 17:07:52 GMT</pubDate>
     </item>
     </channel>
 </rss>
