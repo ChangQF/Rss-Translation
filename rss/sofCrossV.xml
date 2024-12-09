@@ -4,27 +4,134 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 09 Dec 2024 15:19:09 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Dec 2024 18:25:40 GMT</lastBuildDate>
     <item>
-      <title>就业状况类别包括退休人员、学习者、学生和非在校人员</title>
+      <title>如何对具有混合效应的频率数据进行建模？</title>
+      <link>https://stats.stackexchange.com/questions/658496/how-to-model-frequency-data-with-mixed-effects</link>
+      <description><![CDATA[我有一些频率数据，但不确定如何建模
+我有两个独立实验（重复：A、B），我用相同的药物治疗神经元（每次治疗 10 个），但治疗时间不同（0、5、15 和 45 分钟）。这些是我的治疗方法（预处理是我的对照）。然后，我计算不同大小（面积）的颗粒，尝试查看治疗是否会改变颗粒大小的分布。我的数据组织如下：
+Data1
+复制神经元处理区域
+A 1 pre 0.10 
+A 1 pre 0.07 
+A 1 pre 0.07 
+A 2 pre 0.22 
+A 2 pre 0.19
+
+然后，我添加了另一列区域箱，因此我的响应变量（区域）是一个计数变量
+Data2
+复制神经元处理区域_箱区域
+A 1 pre [0.03,0.08] 2
+A 1 pre (0.08,0.13] 1
+A 2 pre [0.03,0.08] 6
+A 2 pre (0.08,0.13] 4
+
+然后，我像这样编写模型：
+m.poisson &lt;- glmmTMB(area ~ treatment * area_bin + (1|replicate) + (1|neuron), 
+family = poisson, 
+data = Data2)
+
+¿模型是否正确？treatment * area_bin 让我怀疑
+我尝试使用泊松、负二项分布、Conway-Maxwell 泊松族分布和每次类似的结果通过 glmmTMB 进行建模：过度分散和显著的 KS 检验。
+DHARMa 检验为我提出了另一个问题：残差 QQplot 在我看来像是欠分散，但检验给出的分散参数为 1.711（这是泊松分布）。¿我的解释正确吗？
+
+我也尝试了观察水平随机效应 (OLRE) 方法，结果出现了过度分散（我知道这不是问题）和显著的 KS 检验（使用 DHARMa）
+提前致谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/658496/how-to-model-frequency-data-with-mixed-effects</guid>
+      <pubDate>Mon, 09 Dec 2024 17:51:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么 AIC 可用于比较 GAM？仅用于预测？</title>
+      <link>https://stats.stackexchange.com/questions/658495/why-is-aic-useful-for-comparing-gams-only-for-prediction</link>
+      <description><![CDATA[我对这个 OP 有一个后续问题。我希望了解比较两个带有 AIC 的模型与解释完整模型的摘要输出之间的区别 - 特别是对于 GAM。Gavin 比较了下面的两个模型，我知道变量是根据他对该领域和主题的先验知识选择的。此外，所有协变量都出现在两个模型中（因此，这里没有模型/变量选择）。
+从摘要输出中，他指出...
+平滑项的近似显着性：
+edf Ref.df F p 值
+
+ti(ToD,LONGITUDE,LATITUDE) 42.805 171.000 0.880 &lt; 2e-16 ***
+ti(DoY,经度,纬度) 83.277 240.000 1.225 &lt; 2e-16 ***
+ti(YEAR,经度,纬度) 84.862 329.000 1.101 &lt; 2e-16 ***
+
+
+一些空间 ti() 项仅解释数据中的少量变化，如 F 统计量所示；这里有很多数据，因此即使很小的效应量也可能具有统计意义，但并不有趣。
+
+我的问题是，如果我的目标是从完整模型中对这 3 个交互项做出推理陈述，F 统计量和 p 值是否会告诉我我需要的一切，或者使用 AIC 在这里也有用吗？由于相同的协变量出现在两个模型中，我是否可以做出推论陈述，或者这仍然是选择后推断？
+比较的模型：
+# 使用 BAM 进行拟合
+m &lt;- bam(MEASUREMENT ~
+s(ToD, k = 10) +
+s(DoY, k = 12, bs = &quot;cc&quot;) +
+s(YEAR, k = 30) +
+s(LONGITUDE, LATITUDE, k = 100, bs = &quot;ds&quot;, m = c(1, 0.5)) +
+ti(DoY, YEAR, bs = c(&quot;cc&quot;, &quot;tp&quot;), k = c(12, 15)) +
+ti(LONGITUDE, LATITUDE, ToD, d = c(2,1), bs = c(&quot;ds&quot;,&quot;tp&quot;),
+m = list(c(1, 0.5), NA), k = c(20, 10)) +
+ti(经度, 纬度, DoY, d = c(2,1), bs = c(&quot;ds&quot;,&quot;cc&quot;),
+m = list(c(1, 0.5), NA), k = c(25, 12)) +
+ti(经度, 纬度, 年份, d = c(2,1), bs = c(&quot;ds&quot;,&quot;tp&quot;),
+m = list(c(1, 0.5), NA), k = c(25, 15)),
+data = galveston,
+method = &quot;fREML&quot;,
+knots = knots,
+nthreads = c(4, 4),
+discrete = TRUE)
+
+## 拟合更简单的模型
+m_sub &lt;- bam(MEASUREMENT ~
+s(ToD, k = 10) +
+s(DoY, k = 12, bs = &quot;cc&quot;) +
+s(YEAR, k = 30) +
+s(LONGITUDE, LATITUDE, k = 100, bs = &quot;ds&quot;, m = c(1, 0.5)) +
+ti(DoY, YEAR, bs = c(&quot;cc&quot;, &quot;tp&quot;), k = c(12, 15)),
+data = galveston,
+method = &quot;fREML&quot;,
+knots = knots,
+nthreads = c(4, 4),
+discrete = TRUE)
+
+# 比较拟合
+AIC(m, m_sub)
+
+AIC 在我的领域中被广泛使用，我希望了解在实施协变量/模型后我能得出什么结论。我明白在使用 AIC 后我们无法对模型做出任何推理陈述，但当涉及到 GAM 时我可能错了。从 Gavin 的回答中我无法判断他的目的是预测还是推理（看起来像推理）。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658495/why-is-aic-useful-for-comparing-gams-only-for-prediction</guid>
+      <pubDate>Mon, 09 Dec 2024 17:46:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>将累计（周）利率转换为非累计（月）利率</title>
+      <link>https://stats.stackexchange.com/questions/658494/converting-cumulative-weekly-rates-into-non-cumulative-monthly-rates</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/658494/converting-cumulative-weekly-rates-into-non-cumulative-monthly-rates</guid>
+      <pubDate>Mon, 09 Dec 2024 16:31:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>古典概率中的认知不确定性</title>
+      <link>https://stats.stackexchange.com/questions/658493/epistemic-uncertainty-in-classical-probability</link>
+      <description><![CDATA[我做统计学家已经很久了，最近转向了更多的信息理论研究。正因为如此，我一直在思考经典概率中的认知不确定性问题，特别是如何正确解释简单概率模型中认知不确定性和偶然不确定性的分离。
+例如，如果我们考虑与抛硬币相关的随机变量$X$，根据频率论的解释，存在一些与结果的长期频率相关的客观$P(X=1) = p_f$。如果抛硬币（或任何其他实验）真的可以以完全相同的方式重复，那么这是有道理的，但大多数物理过程并不是以这种方式具有时不变性的（或者根本无法重复，比如一场特定的体育比赛）。从贝叶斯的角度来看，$P(X=1) = p_b$ 根本不是一个客观量，而是一个信念度，它会随着实验信息的增多或减少而改变。
+我的问题是：
+对于不能以相同方式无限重复的事件，有没有办法解释同时事件具有一些真正客观的概率 $p$ 和在信息不完全的情况下具有一些过渡信念度 $i$？严重滥用符号，类似于 $\lim_{i \to \inf} P(X=1 | i) = p$]]></description>
+      <guid>https://stats.stackexchange.com/questions/658493/epistemic-uncertainty-in-classical-probability</guid>
+      <pubDate>Mon, 09 Dec 2024 16:19:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>就业状况类别包括退休人员、学习者、学生和非在校学生</title>
       <link>https://stats.stackexchange.com/questions/658491/employment-status-categories-that-include-pensioners-learners-students-and-non</link>
-      <description><![CDATA[我收集了有关就业状况的数据集。我创建了以下类别：退休人员、正式就业人员、非正式就业人员、自雇人员和失业人员。我还有学习者或学生以及那些未在校学生的类别，我的问题是，我是否可以将退休人员、学习者或未在校学生归入就业状态，还是应该将他们都归入失业类别？]]></description>
+      <description><![CDATA[我收集了有关就业状况的数据集。我创建了以下类别：退休人员、正式就业人员、非正式就业人员、自雇人员和失业人员。我还有学习者或学生以及那些未在校学生的类别，我的问题是，我是否可以将退休人员、学习者或未在校学生归入就业状态，还是应该将他们都归入失业类别？目的是找出就业状况是否会影响各种变量的土著知识实践。]]></description>
       <guid>https://stats.stackexchange.com/questions/658491/employment-status-categories-that-include-pensioners-learners-students-and-non</guid>
       <pubDate>Mon, 09 Dec 2024 15:03:35 GMT</pubDate>
     </item>
     <item>
       <title>R：如何用自定义协方差结构拟合两个随机截距的线性混合模型</title>
       <link>https://stats.stackexchange.com/questions/658490/r-how-to-fit-a-linear-mixed-model-with-a-custom-covariance-structure-for-two-ra</link>
-      <description><![CDATA[假设我有一个在 q 个簇上有重复测量值的数据集。我想在同一个簇上拟合一个具有两个随机截距的 LMM，在随机效应上具有非对角线协方差结构（如果它是对角线，我假设模型将无法识别）。
+      <description><![CDATA[假设我有一个对 q 个簇进行重复测量的数据集。我想在同一个簇上拟合一个具有两个随机截距的 LMM，随机效应具有非对角线协方差结构（如果是对角线，我认为模型将无法识别）。
 即：
-y_{ij} = x_{ij}^T\beta + b_{1j} + b_{2j} + \varepsilon_{ij}，
-其中 y_{ij} 是第 j 个簇中的第 i 个观测值（j = 1, ..., q; i = 1, ... n_j）。同样，如果 b_{1j} 和 b_{2j} 是独立的，我假设模型无法识别，但我希望它们是相关的。假设 b 为长度为 2q 的随机效应向量，则 b 服从均值为 0 且协方差为 2q X 2q 的高斯分布：
+$$y_{ij} = x_{ij}^\top\beta + b_{1j} + b_{2j} + \varepsilon_{ij},$$
+其中 $y_{ij}$ 是 $j$ 个簇中的 $i$ 个观测值（$j = 1, ..., q; ~i = 1, ... n_j$）。同样，如果 $b_{1j}$ 和 $b_{2j}$ 是独立的，我假设模型是不可识别的，但我希望它们是相关的。令 $b$ 为长度为 $2q,$ 的随机效应向量，则 $b$ 服从高斯分布，均值为 $0 $，协方差为 $2q \times 2q$：
 q &lt;- 3
 rho &lt;- 0.5
 sig2b1 &lt;- 1
 sig2b2 &lt;- 1
-D &lt;- matrix(c(sig2b1 ,rho, rho, sig2b2),nrow = 2) %x% diag(q)
-D
+D &lt;- matrix(c(sig2b1 ,rho, rho, sig2b2),nrow = 2) %x% diag(q); D
 
 [1,] 1.0 0.0 0.0 0.5 0.0 0.0
 [2,] 0.0 1.0 0.0 0.0 0.5 0.0
@@ -33,14 +140,14 @@ D
 [5,] 0.0 0.5 0.0 0.0 1.0 0.0
 [6,] 0.0 0.0 0.5 0.0 0.0 1.0
 
-（此处 q = 3，对角线上 \sigma^2_{b1} = \sigma^2_{b2} = 1，我们有三个方差分量需要估计，不包括残差方差 \sigma^2_e）
+（此处 $q = 3$，在对角线上 $\sigma^2_{b_1} = \sigma^2_{b_2} = 1 $ 并且我们有三个方差分量需要估计，不包括残差方差 $\sigma^2_e$)
 现在该模型是矢量形式的标准 LMM：
-y = X\beta + Zb + \varepsilon,
+$$y = X\beta + Zb + \varepsilon,$$
 让我们获取一些数据：
 library(mvtnorm)
 
 b &lt;- t(rmvnorm(n = 1, mean = rep(0, 2 * q), sigma = D))
-# 可以执行：plot(b[1:q], b[(q+1):(2*q)]) 来查看相关性
+# 可以执行：plot(b[1:q], b[(q+1):(2*q)]) 查看相关性
 z &lt;- rep(letters[1:q], times = c(3,3,2) * 10)
 n &lt;- length(z)
 Z &lt;- model.matrix(~0 + z)
@@ -48,7 +155,7 @@ Z &lt;- cbind(Z, Z) # 注意 Z 与自身连接，Z 的阶数为 n X 2q
 x &lt;- rnorm(n)
 y &lt;- 1 + 2 * x + Z %*% b + rnorm(n)
 
-使用lme4 具有两个随机截距，令人惊讶的是（有时）还不错：
+使用 lme4 和两个随机截距，令人惊讶的是（有时）效果不错：
 library(lme4)
 
 mod &lt;- lmer(y ~ x + (1|z) + (1|z))
@@ -57,7 +164,7 @@ mod &lt;- lmer(y ~ x + (1|z) + (1|z))
 # 和：plot(b[(q + 1):(2 * q)], ranef(mod)$z[,2])
 # 和：VarCorr(mod)
 
-但我想用 D 协方差结构拟合模型，其中每个聚类 j 的随机截距之间存在一定的相关性。]]></description>
+但我想用 D 协方差结构拟合模型，其中每个簇的随机截距之间存在一定的相关性 $j.$]]></description>
       <guid>https://stats.stackexchange.com/questions/658490/r-how-to-fit-a-linear-mixed-model-with-a-custom-covariance-structure-for-two-ra</guid>
       <pubDate>Mon, 09 Dec 2024 13:41:57 GMT</pubDate>
     </item>
@@ -105,7 +212,7 @@ $\lambda_{0,i}(t) = \rho \sum_j \phi_{ij} P_j(t)$
       <description><![CDATA[在 Nickl 的一篇 论文 中，我发现了一个具有中心极限定理形式的定理（定理 4）
 $$\sqrt{n}(P_n-P)\rightarrow G$$
 在 $l^\infty(F)$ 中，其中 $P$ 是 $\mathbb{R}$ 上的一条定律，$F$ 是一类函数，$G$ 是高斯过程由 $f\in F$ 索引。但我熟悉的中心极限定理的形式为：
-$$f_n-f\rightarrow G$$
+$$\sqrt{n}(f_n-f)\rightarrow G$$
 其中 $G$ 由 $x\in\mathbb{R}$ 索引。
 我正在寻求帮助以理解第一个版本，也想知道是否可以将其转换为第二个版本？在第二个版本中要求 $f\in F$ 是否正确？非常感谢任何提示！]]></description>
       <guid>https://stats.stackexchange.com/questions/658487/how-to-understand-the-uniform-central-limit-theorem</guid>
@@ -124,111 +231,6 @@ $$f_n-f\rightarrow G$$
 现在，我想知道我们应该如何将荟萃分析方法应用于这些类型的研究？我们是否也应该对每个比较应用单独的荟萃分析？任何关于潜在和正确的统计技术或参考资料的建议都将不胜感激。]]></description>
       <guid>https://stats.stackexchange.com/questions/658486/pre-post-design-no-control-at-baseline-and-multiple-follow-up-times-meta-anal</guid>
       <pubDate>Mon, 09 Dec 2024 13:30:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>识别策略足球比赛</title>
-      <link>https://stats.stackexchange.com/questions/658484/identification-strategy-soccer-match</link>
-      <description><![CDATA[我有关于足球比赛中球员在什么时候被出示黄牌的数据。我还知道某位球员在球场上待了多长时间（即他是否从一开始就在球场上，还是被替换下场）。我还知道比赛时的气温是多少。我想调查一下较高的气温是否会影响球员的攻击性行为。
-当然，我可以检查一场比赛中的黄牌数量与气温之间的关系：$yellow\_cards \sim beta_{0} + beta_{1} \cdottemperature$
-但我想看看这种关系是否在比赛后期更强，那时球员应该更热、更烦躁。同时看看刚被替换下的球员是否不受这种关系的影响。
-我应该使用什么回归规范来检查这一点？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658484/identification-strategy-soccer-match</guid>
-      <pubDate>Mon, 09 Dec 2024 12:33:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果我没有用于进行第 1 步：形成性测量模型的冗余分析的全局单个项目该怎么办？</title>
-      <link>https://stats.stackexchange.com/questions/658482/what-if-i-dont-have-a-global-single-item-for-conducting-step-1-redundancy-anal</link>
-      <description><![CDATA[我后来才意识到，CSR 和客户满意度在理论上被视为形成性构造。
-这是我的概念框架
-我的理论框架及其相应的解释变量包括 Caroll 的 CSR 金字塔 (CSR)、社会认同理论 (客户忠诚度)、信号理论 (企业声誉) 和利益相关者理论 (客户满意度)。
-这是我从 Zhang (2022) 中采用的调查工具
-
-希望您能帮忙。非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658482/what-if-i-dont-have-a-global-single-item-for-conducting-step-1-redundancy-anal</guid>
-      <pubDate>Mon, 09 Dec 2024 11:07:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>二项分布 - IID 假设可以放宽吗？</title>
-      <link>https://stats.stackexchange.com/questions/658481/the-binomial-distribution-can-the-iid-assumption-be-relaxed</link>
-      <description><![CDATA[上下文：
-新手问题：在应用二项分布时
-X ~ 二项式 ( n, Theta )
-，一个关键假设是每个个体“成功”的概率是相同且独立分布的。经常使用的示例基于同一枚公平硬币被翻转 n 次。X 是成功次数。
-问题：
-如果我使用 Theta 为 0.25 的硬币进行 n/2 次翻转，并使用 Theta = 0.75 的另一枚硬币进行 n/2 次翻转，该公式是否可靠地给出相同的答案？
-我知道在这种情况下通过重新加权 Theta 会给出相同的答案，但它在理论上合理且实际适用吗？
-从表面上看，这似乎至少混淆了相同假设。但是，从整个样本来看，预期的 Theta 可以被认为是相同的。我不清楚 IID 假设的确切含义。
-理由：
-我相信至少在遗传学中，存在 IID 假设可能自然适用的情况，就像单个硬币一样。然而，在社会科学和商业领域，我们经常会有一群“不同 Theta”的人。一项随机调查可能会有 50 人来自低收入地区，50 人来自高收入地区。如果我天真地将二项分布应用于如此复杂的样本，是否需要考虑额外的抽样误差或类似因素？
-这是一个初学者问题，我希望得到一个基本的答案，也许可以给出任何值得研究的进一步主题的指示。提前谢谢您。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658481/the-binomial-distribution-can-the-iid-assumption-be-relaxed</guid>
-      <pubDate>Mon, 09 Dec 2024 11:06:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>筛选财富 1000 强企业 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658477/filtering-on-fortune-1000-companies</link>
-      <description><![CDATA[我正在寻找财富 1000 强公司的股票价格数据。有人知道在 Compustat（或其他数据库）中是否有一种简单的方法可以专门针对财富 1000 强公司进行筛选吗？也就是说，财富 1000 强公司是否有特定的类别或标识符，还是我需要单独查找每家公司？谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658477/filtering-on-fortune-1000-companies</guid>
-      <pubDate>Mon, 09 Dec 2024 10:08:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>未能提高 Tiny VGG CNN 模型的准确率</title>
-      <link>https://stats.stackexchange.com/questions/658476/failing-to-improve-accuracy-in-tiny-vgg-cnn-model</link>
-      <description><![CDATA[设置
-
-我试图学习如何在 PyTorch 中编写 CNN 的基础知识。
-我几乎是一丝不苟地遵循 05. PyTorch Going Modular 来学习如何以脚本方式建模，写下 CNN Explainer 中描述的 CNN 模型 Tiny VGG。
-
-我正在练习的数据，如 05. PyTorch Going Modular 是 pizza-steak-sushi 数据集；加载和转换方式与 此处 相同。
-
-再次，该模型是这里中的模型。
-问题
-
-经过多次尝试设置以下超参数：
-NUM_EPOCHS = 20
-BATCH_SIZE = 20
-HIDDEN_UNITS = 10
-LEARNING_RATE = 0.0005
-
-并使用一对损失函数和优化器：
-loss_fn = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(tiny_vgg.parameters(), lr=LEARNING_RATE)
-
-我无法提高模型在训练和（大部分）测试数据集中的准确率，目前如下所示：
-Epoch：1 | train_loss：1.1018 | train_acc：0.2875 | test_loss：1.0947 | test_acc：0.4500
-Epoch：2 | train_loss：1.0974 | train_acc：0.3833 | test_loss：1.0970 | test_acc：0.3125
-Epoch：3 | train_loss：1.0960 | train_acc：0.3375 | test_loss：1.0995 | test_acc：0.3125
-Epoch：4 | train_loss：1.0895 | train_loss：0.3500 | test_loss：1.1013 | test_acc：0.3125
-Epoch：5 | train_loss：1.0626 | train_acc：0.3917 | test_loss：1.0755 | test_acc：0.3250
-Epoch：6 | train_loss：1.0566 | train_acc：0.3750 | test_loss：1.0666 | test_acc：0.3375
-Epoch：7 | train_loss：1.0105 | train_loss：0.5542 | test_loss：1.0133 | test_acc：0.4208
-Epoch：8 | train_loss：0.9488 | train_acc：0.5708 | test_loss：1.0114 | test_acc：0.4792
-时期：9 | train_loss：0.8834 | train_acc：0.5625 | test_loss：0.9973 | test_acc：0.4208
-时期：10 | train_loss：0.8751 | train_acc：0.5667 | test_loss：1.0350 | test_acc：0.4542
-时期：11 | train_loss：0.8098 | train_acc：0.6375 | test_loss：0.9834 | test_acc：0.4458
-时期：12 | train_loss：0.8136 | train_acc：0.6333 | test_loss：1.0400 | test_acc：0.3792
-时期：13 |训练损失：0.8042 | 训练误差：0.6833 | 测试损失：0.9929 | 测试损失：0.4458
-时期：14 | 训练损失：0.7932 | 训练误差：0.6292 | 测试损失：1.0383 | 测试损失：0.4333
-时期：15 | 训练损失：0.7796 | 训练损失：0.6458 | 测试损失：1.0025 | 测试损失：0.4833
-时期：16 | 训练损失：0.7654 | 训练损失：0.6708 | 测试损失：1.0344 | 测试损失：0.4375
-时期：17 | 训练损失：0.7412 | 训练损失：0.6833 | test_loss：1.0358 | test_acc：0.4625
-时期：18 | train_loss：0.7168 | train_acc：0.6667 | test_loss：1.0759 | test_acc：0.4125
-时期：19 | train_loss：0.7364 | train_acc：0.6500 | test_loss：1.0393 | test_acc：0.4583
-时期：20 | train_loss：0.7228 | train_acc：0.7167 | test_loss：1.0826 | test_acc：0.4500
-
-
-因此，我想知道我是否缺少了架构方面的某些东西、超参数设置，或者其他一些东西，例如此类模型缺乏数据等等。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658476/failing-to-improve-accuracy-in-tiny-vgg-cnn-model</guid>
-      <pubDate>Mon, 09 Dec 2024 10:00:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 R 中使用 momentFit 显示不同 GMM 模型的结果 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658475/show-results-for-different-gmm-models-with-momentfit-in-r</link>
-      <description><![CDATA[我想知道是否有办法显示不同 GMM 模型估计的结果，就像 stargazer 所做的那样，但对于 momentFit 包来说却并非如此。此外，是否可以使用 stargazer 显示 momentFit 的估计结果？
-任何评论都将不胜感激。
-祝好，]]></description>
-      <guid>https://stats.stackexchange.com/questions/658475/show-results-for-different-gmm-models-with-momentfit-in-r</guid>
-      <pubDate>Mon, 09 Dec 2024 09:19:50 GMT</pubDate>
     </item>
     <item>
       <title>从多元正态分布中抽样以对 BM 进行抽样</title>
@@ -257,26 +259,85 @@ https://www.columbia.edu/~ks20/4404-Sigman/4404-Notes-sim-BM.pdf
       <description><![CDATA[考虑以下计量经济模型（IV）：$Y_1 = X&#39;\beta + e$，其中$Y_1 \in \mathbb{R}$是一些感兴趣的结果变量，我们有一组回归量$X = \begin{bmatrix} Z_1 \\ Y_2 \end{bmatrix} \in \mathbb{R}^k$。 ($Z_1 \in \mathbb{R}^{k_1}, Y_2 \in \mathbb{R}^{k_2}, k_1 + k_2 = k \:$) 假设我们可能有一些混杂因素，因此$\mathbb{E}[Xe] \neq 0$。但是假设我们也有一些工具变量$Z=\begin{bmatrix}Z_1\\Z_2 \end{bmatrix} \in \mathbb{R}^{\mathcal{l}}$，使得$\mathbb{E}[Ze] =0, \mathbb{E}[ZZ&#39;]$为psd，并且$\mathbb{E}[ZX&#39;]$的秩为$k$（相关性）。
 我对相关性条件很好奇：$\mathbb{E}[ZX&#39;]$的秩必须为$k$。我可以理解这里与 $Cov(X, Z)$ 的联系，但我只是不太清楚为什么秩条件意味着这一点（与 $Z$ 变换对 $X$ 列的作用有关），以及这在某种意义上必须“保留”至少 $X$ 维度才能相关。
 此外，在我看来，这似乎与原始 OLS 案例中的秩条件有些相关：$\hat{\beta} = (X&#39;X)^{-1}X&#39;Y_1$，其中秩也必须是 $k$（这次我们希望我们的回归量是线性独立，每个“提供新的东西”）。这再次将 $\beta$ 的最简单形式概括为 $\frac{Cov}{Var}$。
-总结一下，我缺少一些几何直觉，无法理解这些变换如何告诉我们空间中不同变量的方差/协方差。即，形式 $ZX&#39;$ 与解释这些变量之间的协变有什么直观的几何联系？以 $X&#39;X$ 为例，我可以看到当 $X$ 被贬低（或包含一个常数）时，$Var(X) = Cov(X, X) = \mathbb{E}[XX&#39;]$ 如何，因此对于一个样本，它变为 $\frac{1}{n} \mathbf{X&#39;X}$。对于上面的 $\mathbb{E}[ZX&#39;]$，为什么我们需要 rank = $k$ 才能使 $Cov$“不为 0”？]]></description>
+总结一下，我缺少一些几何直觉，无法理解这些变换如何告诉我们空间中不同变量的方差/协方差。即，形式 $ZX&#39;$ 与解释这些变量之间的协变有什么直观的几何联系？以 $X&#39;X$ 为例，我可以看到当 $X$ 被贬低（或包含常数）时，$Var(X) = Cov(X, X) = \mathbb{E}[XX&#39;]$ 如何，因此变为 $\frac{1}{n} \mathbf{X&#39;X}$ 并带有样本。对于上面的 $\mathbb{E}[ZX&#39;]$，为什么我们需要 rank = $k$ 才能使 $Cov$ &#39;不为 0&#39;？]]></description>
       <guid>https://stats.stackexchange.com/questions/658451/iv-rank-relevance-condition-linear-algebra-intuition</guid>
       <pubDate>Sun, 08 Dec 2024 11:34:47 GMT</pubDate>
     </item>
     <item>
-      <title>带有 Adam 优化器网络的单层/单单元如何工作？</title>
-      <link>https://stats.stackexchange.com/questions/658436/how-does-a-single-layer-single-unit-with-adam-optimizer-network-work</link>
-      <description><![CDATA[我对 ML 还很陌生，正在尝试使用线性回归。我测试了 sklearn 的 LinearRegression 模型，然后想将结果与一个非常简单的神经网络进行比较。
-我创建了一个具有 1 层和 1 个单元的 tensorflow Dense 网络，并带有“线性”激活函数。
-我使用了“sgd”和“adam”优化器，并使用 MinMaxScaler 缩放了 x 数据
-我得到了与 LinearRegression 模型截然不同的结果（预测和损失）。
-我有两个问题：
+      <title>如何根据连续性校正的卡方检验计算样本量？</title>
+      <link>https://stats.stackexchange.com/questions/658456/how-to-calculate-sample-size-based-on-chi-square-test-with-continuity-correction</link>
+      <description><![CDATA[
+library(stats)
+power.prop.test(p1 = .45, p2 = .25, power = .80, sig.level = 0.05, 
+alternative = c(&quot;two.sided&quot;), strict = FALSE)
 
-具有线性激活的 1 层/1 个单元网络是否与 LinearRegression 相同？
+双样本比例比较功效计算 
 
-SGD 预测非常接近，我正在用房价进行测试，所以我会得到相对接近的结果。目标值在 1000 左右，因此 y_train 数组中的 120,000 美元价格被设置为 120。但是，当我使用 Adam 优化器时，我得到的预测值非常低（不到 20）。我从 100 个 epoch 开始，然后增加到 1000 个，但仍然得到了类似的结果。我是不是在某个地方做错了什么，或者 Adam 优化器是否有限制或某些要求才能正常工作。
+n = 88.0928
+p1 = 0.45
+p2 = 0.25
+sig.level = 0.05
+power = 0.8
+alternative = two.sided
 
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658436/how-does-a-single-layer-single-unit-with-adam-optimizer-network-work</guid>
-      <pubDate>Sun, 08 Dec 2024 03:47:10 GMT</pubDate>
+为什么我的样本量计算与这篇 NEJM 发表的论文不同？
+为什么 prop.power.test 函数计算功效时没有 Yates 连续性校正？但 prop.test 实现了此校正？
+
+我可以使用这个在线计算器获得与本文相同的结果。可能是什么原因？我可以在 R 中实现这个结果吗？
+在线计算器：https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=proptest]]></description>
+      <guid>https://stats.stackexchange.com/questions/658456/how-to-calculate-sample-size-based-on-chi-square-test-with-continuity-correction</guid>
+      <pubDate>Sun, 08 Dec 2024 09:39:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>plm 和时间效应</title>
+      <link>https://stats.stackexchange.com/questions/658464/plm-and-time-effects</link>
+      <description><![CDATA[要使用内部模型估计面板数据，我们使用 plm 包
+例如，如果我有两个变量，y、x，我们有
+m1 &lt;- plm(y ~ x, data = df, index = c(&quot;Country&quot;, &quot;year&quot;), 
+model=&quot;within&quot;)
+
+在此链接 https://cran.r-project.org/web/packages/plm/vignettes/A_plmPackage.html
+它读取
+
+plm 的默认行为是引入单独的效应。使用效果参数，还可以引入：
+时间效应（effect = &quot;time&quot;），
+个体和时间效应（effect = &quot;twoways&quot;）。
+
+我的问题如下。如果
+m1 &lt;- plm(y ~ x, data = df, index = c(&quot;Country&quot;, &quot;year&quot;), 
+effect = &quot;time&quot;, model=&quot;within&quot;)
+
+这是否意味着上述回归仅包含时间固定效应而不包含国家固定效应？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658464/plm-and-time-effects</guid>
+      <pubDate>Sat, 07 Dec 2024 23:18:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>查找随机过程的方差</title>
+      <link>https://stats.stackexchange.com/questions/658243/finding-the-variance-of-a-stochastic-process</link>
+      <description><![CDATA[这是该问题的第二部分计算随机过程的均值和方差？
+对于 Polya Urn 问题，我试图理解为什么方差的比率是：
+$$\operatorname{Var}(X_n) = E[X_n](1-E[X_n]) \left(\frac{d}{w+b+d} - \frac{w+b}{w+b+d}\frac{1}{n}\right).$$
+我知道一般方差公式是$E[X_n^2] - (E[X_n])^2$ 并且 $E[X_n] = \frac{w}{w+b}$。我只需要找到 $E[X_n^2]$。
+当我们有 $n$ 个球时，如果我们抽出一个白球（概率 $X_{n-1}$），我们会添加 $d$ 个白球。如果我们抽到黑球（概率为$1-X_{n-1}$），我们添加$d$个黑球（$k$是前面步骤中添加的白球数量）。
+$$ X_n = \begin{cases}
+\frac{w + (k+1)d}{w+b+nd} &amp; \text{如果抽到白球} \\
+\frac{w + kd}{w+b+nd} &amp; \text{如果抽出黑球}
+\end{cases} $$
+使用二阶总期望定律：
+$$ E[X_n^2|X_{n-1}] = X_{n-1}\left(\frac{w + (k+1)d}{w+b+nd}\right)^2 + (1-X_{n-1})\left(\frac{w + kd}{w+b+nd}\right)^2 $$
+通过扩展和替换：
+$$ \left(\frac{w + (k+1)d}{w+b+nd}\right)^2 = \frac{w^2 + 2w(k+1)d + ((k+1)d)^2}{(w+b+nd)^2} $$
+$$ \left(\frac{w + kd}{w+b+nd}\right)^2 = \frac{w^2 + 2wkd + (kd)^2}{(w+b+nd)^2} $$
+$$ E[X_n^2|X_{n-1}] = X_{n-1}\frac{w^2 + 2w(k+1)d + ((k+1)d)^2}{(w+b+nd)^2} + (1-X_{n-1})\frac{w^2 + 2wkd + (kd)^2}{(w+b+nd)^2} $$
+我尝试扩展再次：
+$$ \begin{align*}
+E[X_n^2|X_{n-1}] &amp;= \frac{X_{n-1}(w^2 + 2w(k+1)d + ((k+1)d)^2)}{(w+b+nd)^2} + \frac{(1-X_{n-1})(w^2 + 2wkd + (kd)^2)}{(w+b+nd)^2} \\
+&amp;= \frac{w^2 + 2wkd + (kd)^2}{(w+b+nd)^2} + X_{n-1}\frac{2wd + 2d^2(k+1)}{(w+b+nd)^2}
+\end{align*} $$
+我知道我需要再次计算期望，这样 $E(E[X_n^2|X_{n-1}]) = E[X_n^2]$
+但这就是我陷入困境的地方，不知道如何继续。我感觉自己在兜圈子。有什么想法可以继续吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658243/finding-the-variance-of-a-stochastic-process</guid>
+      <pubDate>Wed, 04 Dec 2024 02:04:46 GMT</pubDate>
     </item>
     </channel>
 </rss>
