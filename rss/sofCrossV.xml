@@ -4,7 +4,87 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 10 Dec 2024 01:23:12 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 10 Dec 2024 03:35:46 GMT</lastBuildDate>
+    <item>
+      <title>如何使用 tt() 项绘制 coxph 模型中的风险比</title>
+      <link>https://stats.stackexchange.com/questions/658513/how-to-plot-hazard-ratio-from-coxph-model-with-tt-term</link>
+      <description><![CDATA[这个问题与我在此处发布的另一个问题相关：
+如何直观地评估 coxph 中的 tt() 适用性
+如果我们有一个随时间变化的 HR，它来自时间相关的系数，因为我们已经使用 tt() 指定了时间变换，我们如何绘制它？
+使用生存小插图中的示例，如果我们指定一个包含 karno 上的样条项的模型，因为存在非比例风险：
+library(survival)
+fit.tt3 &lt;- coxph(Surv(time, status) ~ trt + Prior + karno + tt(karno), data =资深人士，
+tt = function(x, t, ...) x * nsk(t, knots = c(5, 20, 50, 150, 300),
+Boundary.knots = FALSE))
+
+有没有一种直接的方法（嗯，任何方法都可以）绘制 karno 的 HR 作为时间函数？如果能够通过向研究团队的其他成员展示一个简单的图形来告诉他们时间依赖性意味着什么，那就太好了？
+谢谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/658513/how-to-plot-hazard-ratio-from-coxph-model-with-tt-term</guid>
+      <pubDate>Tue, 10 Dec 2024 02:41:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何直观地评估 coxph 中的 tt() 适用性？</title>
+      <link>https://stats.stackexchange.com/questions/658512/how-to-visually-assess-tt-suitability-in-coxph</link>
+      <description><![CDATA[对于此示例，我从时间相关的生存小插图中获取线索。
+我有兴趣了解如何使用 R 中的 coxph() 评估协变量-时间交互的适用性，因为据我了解 cox.zph() 不接受包含 tt() 项的模型。这个出色的答案表明，目视检查也是一种很好的方法：
+时间相关效应：使用 coxph() 中的 nsk () 的 tt 函数
+因此，作为诊断的一部分，假设我们绘制模型中的 Schoenfeld 残差：
+library(survival)
+# 拟合不依赖时间的 cox 模型
+fit &lt;- coxph(Surv(time, status) ~ trt + Prior + karno, data = veteran)
+# 检查 Schoenfeld 残差
+(zph &lt;- cox.zph(fit))
+# 绘制残差和平均 beta (log HR)
+plot(zph[3])
+abline(a = coef(fit)[3], b = 0, col = 2)
+
+
+这让我们意识到我们在卡诺的非比例风险方面存在问题，因此作为第一步，我们指定最简单的时间变换 - 对数风险和卡诺之间的线性相互作用。 Schoenfeld 残差现在是（假设我正确地绘制了它们）：
+# 拟合线性时间相互作用
+fit.tt &lt;- coxph(Surv(time, status) ~ trt + Prior + karno + tt(karno), data = veteran,
+tt = function(x, t, ...) x * t)
+# 对残差应用线性时间变换
+zph.tt &lt;- cox.zph(fit, transform = function(t) t)
+# 使用时间变换重新绘制残差
+plot(zph.tt[3])
+abline(coef(fit.tt)[3:4], col = 2)
+
+
+这看起来不太好，所以我们进行实验并最终得出了在小插图中指定的时间变换：
+# 拟合小插图时间交互
+fit.tt2 &lt;- coxph(Surv(time, status) ~ trt + Prior + karno + tt(karno), data = veteran,
+tt = function(x, t, ...) x * log(t + 20))
+# 将小插图时间变换应用于残差
+zph.tt2 &lt;- cox.zph(fit, transform = function(t) log(t + 20))
+# 使用时间变换重新绘制残差
+plot(zph.tt2[3])
+abline(coef(fit.tt2)[3:4], col = 2)
+
+
+看起来好多了。但是，我们希望使其尽可能灵活，因此我们改为指定样条项（如插图所示） - 我将结点位置更改为我认为可以捕捉曲率最大变化的位置：
+# 拟合样条时间相互作用
+fit.tt3 &lt;- coxph(Surv(time, status) ~ trt + Prior + karno + tt(karno), data = veteran,
+tt = function(x, t, ...) x * nsk(t, knots = c(5, 20, 50, 150, 300),
+Boundary.knots = FALSE))
+# 将样条时间变换应用于残差
+zph.tt3 &lt;- cox.zph(fit, transform = function(t) nsk(t, knots = c(5, 20, 50, 150, 300),
+Boundary.knots = FALSE))
+# 使用时间变换重新绘制残差
+plot(zph.tt3[3])
+
+
+我被困在了这一点上。我该如何解释这个图，因为残差相当倾斜。那么，我该如何绘制实际的样条函数（显然 abline 不再适用）？
+除非我误解了什么，否则在时间变换中指定样条函数似乎是提供最大可能随时间变化的协变量风险形状覆盖范围的最灵活的方法。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658512/how-to-visually-assess-tt-suitability-in-coxph</guid>
+      <pubDate>Tue, 10 Dec 2024 02:32:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>矩阵 t 分布的矢量化是多元 t 分布吗？</title>
+      <link>https://stats.stackexchange.com/questions/658511/is-the-vectorization-of-a-matrix-t-distribution-a-multivariate-t-distribution</link>
+      <description><![CDATA[正如我在标题中提到的，我想知道矩阵变量 t 分布的矢量化版本是否是多变量 t 分布。如果是的话，我们如何用前一个分布的参数来表达后一个分布的参数？如能提供有关该主题的参考资料，我将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658511/is-the-vectorization-of-a-matrix-t-distribution-a-multivariate-t-distribution</guid>
+      <pubDate>Tue, 10 Dec 2024 02:14:21 GMT</pubDate>
+    </item>
     <item>
       <title>box/cox 中的负 Lambda：注意事项和解释</title>
       <link>https://stats.stackexchange.com/questions/658509/negative-lambda-in-box-cox-caveats-and-interpretation</link>
@@ -22,9 +102,9 @@ lambda = -.99999, -1.40/-3.5 x 10^-5）
     <item>
       <title>设计矩阵的病态性是否会影响深度学习环境下 Hessian 的病态性？</title>
       <link>https://stats.stackexchange.com/questions/658508/does-the-ill-conditioning-of-the-design-matrix-affect-the-ill-conditioning-of-th</link>
-      <description><![CDATA[我知道，当我们在深度学习中使用平方损失作为成本函数时，Hessian 的病态性与设计矩阵的病态性直接相关，这是否适用于其他成本函数？
-如果是这样，这是否可以（即使是松散地）与为什么规范化在处理神经网络的病态优化景观时有效相关？
-如果可能的话，我正在寻找直观而严谨的答案，或者阅读更多的参考资料，谢谢。]]></description>
+      <description><![CDATA[我知道，当我们在 DL 中使用平方损失作为成本函数时，Hessian 的病态与设计矩阵的病态直接相关。这是否适用于其他成本函数？
+如果是这样，这是否可以（即使是松散地）与为什么规范化在处理神经网络的病态优化景观方面有效相关？
+如果可能的话，我正在寻找直观而严谨的答案，或者我可以阅读的参考资料。]]></description>
       <guid>https://stats.stackexchange.com/questions/658508/does-the-ill-conditioning-of-the-design-matrix-affect-the-ill-conditioning-of-th</guid>
       <pubDate>Mon, 09 Dec 2024 22:28:15 GMT</pubDate>
     </item>
@@ -136,41 +216,6 @@ $$
       <pubDate>Mon, 09 Dec 2024 19:11:48 GMT</pubDate>
     </item>
     <item>
-      <title>如何对具有混合效应的频率数据进行建模？</title>
-      <link>https://stats.stackexchange.com/questions/658496/how-to-model-frequency-data-with-mixed-effects</link>
-      <description><![CDATA[我有一些频率数据，但不确定如何建模
-我有两个独立实验（重复：A、B），我用相同的药物治疗神经元（每次治疗 10 个），但治疗时间不同（0、5、15 和 45 分钟）。这些是我的治疗方法（预处理是我的对照）。然后，我计算不同大小（面积）的颗粒，尝试查看治疗是否会改变颗粒大小的分布。我的数据组织如下：
-Data1
-复制神经元处理区域
-A 1 pre 0.10 
-A 1 pre 0.07 
-A 1 pre 0.07 
-A 2 pre 0.22 
-A 2 pre 0.19
-
-然后，我添加了另一列区域箱，因此我的响应变量（区域）是一个计数变量
-Data2
-复制神经元处理区域_箱区域
-A 1 pre [0.03,0.08] 2
-A 1 pre (0.08,0.13] 1
-A 2 pre [0.03,0.08] 6
-A 2 pre (0.08,0.13] 4
-
-然后，我像这样编写模型：
-m.poisson &lt;- glmmTMB(area ~ treatment * area_bin + (1|replicate) + (1|neuron), 
-family = poisson, 
-data = Data2)
-
-¿模型是否正确？treatment * area_bin 让我怀疑
-我尝试使用泊松、负二项分布、Conway-Maxwell 泊松族分布和每次类似的结果通过 glmmTMB 进行建模：过度分散和显著的 KS 检验。
-DHARMa 检验为我提出了另一个问题：残差 QQplot 在我看来像是欠分散，但检验给出的分散参数为 1.711（这是泊松分布）。¿我的解释正确吗？
-
-我也尝试了观察水平随机效应 (OLRE) 方法，结果出现了过度分散（我知道这不是问题）和显著的 KS 检验（使用 DHARMa）
-提前致谢]]></description>
-      <guid>https://stats.stackexchange.com/questions/658496/how-to-model-frequency-data-with-mixed-effects</guid>
-      <pubDate>Mon, 09 Dec 2024 17:51:02 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么 AIC 可用于比较 GAM？仅用于预测？</title>
       <link>https://stats.stackexchange.com/questions/658495/why-is-aic-useful-for-comparing-gams-only-for-prediction</link>
       <description><![CDATA[我对这个 OP 有一个后续问题。我希望了解比较两个带有 AIC 的模型与解释完整模型的摘要输出之间的区别 - 特别是对于 GAM。Gavin 比较了下面的两个模型，我知道变量是根据他对该领域和主题的先验知识选择的。此外，所有协变量都出现在两个模型中（因此，这里没有模型/变量选择）。
@@ -275,32 +320,6 @@ mod &lt;- lmer(y ~ x + (1|z) + (1|z))
       <pubDate>Mon, 09 Dec 2024 13:41:57 GMT</pubDate>
     </item>
     <item>
-      <title>如何理解一致中心极限定理</title>
-      <link>https://stats.stackexchange.com/questions/658487/how-to-understand-the-uniform-central-limit-theorem</link>
-      <description><![CDATA[在 Nickl 的一篇 论文 中，我发现了一个具有中心极限定理形式的定理（定理 4）
-$$\sqrt{n}(P_n-P)\rightarrow G$$
-在 $l^\infty(F)$ 中，其中 $P$ 是 $\mathbb{R}$ 上的一条定律，$F$ 是一类函数，$G$ 是高斯过程由 $f\in F$ 索引。但我熟悉的中心极限定理的形式为：
-$$\sqrt{n}(f_n-f)\rightarrow G$$
-其中 $G$ 由 $x\in\mathbb{R}$ 索引。
-我正在寻求帮助以理解第一个版本，也想知道是否可以将其转换为第二个版本？在第二个版本中要求 $f\in F$ 是否正确？非常感谢任何提示！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658487/how-to-understand-the-uniform-central-limit-theorem</guid>
-      <pubDate>Mon, 09 Dec 2024 13:32:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>从多元正态分布中抽样以对 BM 进行抽样</title>
-      <link>https://stats.stackexchange.com/questions/658469/sampling-from-the-multivariate-normal-in-order-to-sample-bm</link>
-      <description><![CDATA[上周，有人发了一个问题，问是否可以生成多元正态分布并用它来采样布朗运动。我试图解释说这行不通，因为独立增量和 cov(s,t) = min(s,t) 的性质不成立。我并没有特别成功地说服这个人，但我能够找到下面的文档。我再也找不到原始线程，但下面的文档显示，可以通过以下方式生成 BM 样本：
-A) 生成多元正态 RV。
-B) 乘以时间因子（当前 $Z_{i+1}$ 和 $Z_{i}$ 之间的时间差的平方根），然后将 $Z_{i}$ 相加，直到时间 ${i+1}$。
-因此，对于步骤 A)，可以生成多元正态，但步骤 B) 对于模拟 BM 至关重要。没有第二步，就无法实现 BM 的其他关键属性。
-我只是想添加“结尾”参与讨论，希望提问的人
-会看到这篇文章，并澄清我想对他说的话。如果有人知道原始帖子在哪里并想添加此链接，请随意添加。
-https://www.columbia.edu/~ks20/4404-Sigman/4404-Notes-sim-BM.pdf
-该算法可能也出现在优秀的布朗运动教科书中，例如 Schilling 和 Wiersema，但我才刚刚开始阅读它们，所以我不确定。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658469/sampling-from-the-multivariate-normal-in-order-to-sample-bm</guid>
-      <pubDate>Mon, 09 Dec 2024 03:17:48 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在没有基本事实的情况下计算模型的整体置信度？</title>
       <link>https://stats.stackexchange.com/questions/658468/how-to-compute-overall-confidence-of-model-without-ground-truth</link>
       <description><![CDATA[]]></description>
@@ -308,13 +327,11 @@ https://www.columbia.edu/~ks20/4404-Sigman/4404-Notes-sim-BM.pdf
       <pubDate>Mon, 09 Dec 2024 02:06:41 GMT</pubDate>
     </item>
     <item>
-      <title>重测信度估计的受试者人数</title>
-      <link>https://stats.stackexchange.com/questions/658368/number-of-subjects-for-test-retest-reliability-estimates</link>
-      <description><![CDATA[我正在设计一项研究，旨在评估某项运动耐力测试的重测信度，我将按照 Weir (2005) 使用 ICC(3,1) 进行计算。
-我想大致了解一下我应该在我的研究中招募多少个受试者，以便在估计我的测试的 ICC 时获得合理的间隔。
-有没有办法可以提前计算出这样的结果？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658368/number-of-subjects-for-test-retest-reliability-estimates</guid>
-      <pubDate>Fri, 06 Dec 2024 10:14:57 GMT</pubDate>
+      <title>使用调查平均值从单个预测中得出估计值的难度</title>
+      <link>https://stats.stackexchange.com/questions/658440/difficulty-in-deriving-a-estimator-using-survey-means-from-individual-forecasts</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/658440/difficulty-in-deriving-a-estimator-using-survey-means-from-individual-forecasts</guid>
+      <pubDate>Sun, 08 Dec 2024 07:58:33 GMT</pubDate>
     </item>
     </channel>
 </rss>
