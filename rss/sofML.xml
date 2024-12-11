@@ -4,7 +4,246 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 11 Dec 2024 09:20:05 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 11 Dec 2024 12:36:02 GMT</lastBuildDate>
+    <item>
+      <title>未找到 CUDA nvcc 命令，但 cuda 正在运行</title>
+      <link>https://stackoverflow.com/questions/79271710/cuda-nvcc-command-not-found-but-cuda-working</link>
+      <description><![CDATA[我已使用以下命令安装了 CUDA：
+1- Nvidia GPU
+安装 NVIDIA Container Toolkit。
+使用 Apt 安装
+a) - 配置存储库
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+| sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+| sed &#39;s#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g&#39; \
+| sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+sudo apt-get update
+
+b) 安装 NVIDIA Container Toolkit 软件包
+sudo apt-get install -y nvidia-container-toolkit
+
+2- 配置 Docker 以使用 Nvidia 驱动程序
+sudo nvidia-ctk Runtime configure --runtime=docker
+sudo systemctl restart docker
+
+我的模型运行正常，但我收到错误 nvcc 命令未找到。
+请帮忙。我在 /usr/local 中找不到 cuda 目录
+nvidia-smi 命令输出是这样的
+
+请帮忙。]]></description>
+      <guid>https://stackoverflow.com/questions/79271710/cuda-nvcc-command-not-found-but-cuda-working</guid>
+      <pubDate>Wed, 11 Dec 2024 12:25:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>图像分类的核心 ML 预测创建 ml 模型对不同的图像预测相同的结果</title>
+      <link>https://stackoverflow.com/questions/79271499/core-ml-prediction-for-image-classification-create-ml-model-predict-same-result</link>
+      <description><![CDATA[我正在探索 Apple Core ML 框架。
+
+我使用 Create ML 应用创建了一个训练模型。图像分类用于识别图像是猫还是狗。我使用的数据集来自
+https://www.kaggle.com/datasets/samuelcortinhas/cats-and-dogs-image-classification?resource=download
+
+我通过提供训练数据从 create ml 创建了我的 .mlmodel 文件。
+现在我在应用程序中进行预测，它给出了相同的目标和概率结果以及不同的图像（猫或狗，给出相同的结果 - [&quot;cats&quot;: 0.6281524444894766, &quot;dogs&quot;: 0.3718475555105234]
+应用程序代码：
+override func viewDidLoad() {
+if let img = UIImage(named: &quot;dog_29.jpg&quot;) {
+predictImage(image: img)
+} else {
+print(&quot;image not caught&quot;)
+}
+}
+
+private func predictImage(image: UIImage) {
+
+let inputImageSize: CGFloat = 299.0
+let minLen = min(image.size.width, image.size.height)
+let resizedImage = image.resize(to: CGSize(width: inputImageSize * image.size.width / minLen, height: inputImageSize * image.size.height / minLen))
+
+guard let pixelBuffer = resizedImage.pixelBuffer() else {
+fatalError()
+}
+
+do {
+let config = MLModelConfiguration()
+let model = try CatsAndDogs(configuration:config)
+let result = try model.prediction(image: pixelBuffer)
+print(result.target)
+print(result.targetProbability)
+
+print(result)
+} catch {
+print(&quot;image category error&quot;)
+}
+
+}
+
+resize 和 getcvbuffer 的代码：
+ func resize(to newSize: CGSize) -&gt; UIImage {
+UIGraphicsBeginImageContextWithOptions(CGSize(width: newSize.width, height: newSize.height), true, 1.0)
+self.draw(in: CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height))
+let resizedImage = UIGraphicsGetImageFromCurrentImageContext()!
+UIGraphicsEndImageContext()
+
+return resizedImage
+}
+
+func pixelBuffer() -&gt; CVPixelBuffer? {
+let width = self.size.width
+let height = self.size.height
+let attrs = [kCVPixelBufferCGImageCompatibilityKey: kCFBooleanTrue,
+kCVPixelBufferCGBitmapContextCompatibilityKey: kCFBooleanTrue] as CFDictionary
+var pixelBuffer: CVPixelBuffer?
+让 status = CVPixelBufferCreate(kCFAllocatorDefault,
+Int(width),
+Int(height),
+kCVPixelFormatType_32ARGB,
+attrs,
+&amp;pixelBuffer)
+
+保护让 resultPixelBuffer = pixelBuffer, status == kCVReturnSuccess else {
+return nil
+}
+
+CVPixelBufferLockBaseAddress(resultPixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
+让 pixelData = CVPixelBufferGetBaseAddress(resultPixelBuffer)
+
+让 rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+保护让 context = CGContext(data: pixelData,
+width: Int(width),
+height: Int(height),
+bitsPerComponent: 8,
+bytesPerRow: CVPixelBufferGetBytesPerRow(resultPixelBuffer),
+space: rgbColorSpace,
+bitmapInfo: CGImageAlphaInfo.no​​neSkipFirst.rawValue) else {
+return nil
+}
+
+context.translateBy(x: 0, y: height)
+context.scaleBy(x: 1.0, y: -1.0)
+
+UIGraphicsPushContext(context)
+self.draw(in: CGRect(x: 0, y: 0, width: width, height: height))
+UIGraphicsPopContext()
+CVPixelBufferUnlockBaseAddress(resultPixelBuffer, CVPixelBufferLockFlags(rawValue: 0))
+
+return resultPixelBuffer
+}
+
+我也尝试了网络上可用的各种调整大小和 getcvbuffer 的方法，但结果都一样。
+我尝试了来自数据集链接的测试文件夹中的猫和狗的不同图像。结果仍然相同。
+任何帮助都可以解释为什么预测不正确。
+提前谢谢！！]]></description>
+      <guid>https://stackoverflow.com/questions/79271499/core-ml-prediction-for-image-classification-create-ml-model-predict-same-result</guid>
+      <pubDate>Wed, 11 Dec 2024 11:16:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用人工智能填补训练数据空白</title>
+      <link>https://stackoverflow.com/questions/79271440/using-ai-to-fill-training-data-gaps</link>
+      <description><![CDATA[最近，他们在工作中推出了一款机器学习应用，该应用需要对机器零件进行冗长的描述（通常是因为有人可以用 1000 种不同的方式描述特定组件），并将其提炼为核心描述。一切都很好。
+我的问题是，是否有可能有一些机器学习代码可以查看迄今为止用于训练的内容，并基于一些人工指导，生成合理的缺失单词排列以填补空白，从而使用新的合成训练数据产生 90-95% 或更高的准确率？然后你​​可以把它放在一个自调节循环中，以保持紧密。
+这是一个一般性问题，但我试图从高层次上了解可能需要做的事情。你必须从某个地方开始。
+欢迎提出任何想法]]></description>
+      <guid>https://stackoverflow.com/questions/79271440/using-ai-to-fill-training-data-gaps</guid>
+      <pubDate>Wed, 11 Dec 2024 11:00:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>我实现的 KMeans 的结果并不一致</title>
+      <link>https://stackoverflow.com/questions/79271387/the-result-of-my-implementation-of-kmeans-is-not-consistent</link>
+      <description><![CDATA[我正在尝试实现一个简化版的 KMeans 聚类，但不知何故，结果有时不一致
+import numpy as np
+import random
+
+import matplotlib.pyplot as plt
+
+class KMeans:
+def __init__(
+self,
+n_clusters,
+max_iter
+):
+self.n_clusters = n_clusters
+self.max_iter = max_iter
+
+def _get_distance(self, x, cluster_location):
+&quot;&quot;&quot;计算每个点到聚类中心的欧几里得距离
+&quot;&quot;&quot;
+return np.linalg.norm(x[:,np.newaxis,:]-cluster_location, axis = 2)
+
+def fit(self, x:np.ndarray) -&gt;无：
+“”k 均值聚类步骤
+1. 启动聚类位置
+2. 计算每个点到聚类点的距离
+3. 将每个点分配给一个聚类
+4. 使用相关点的平均值更新聚类位置
+5. 重复 2-4 直到收敛或达到 max_iter
+
+参数：
+x (_type_)：_description_
+
+返回：
+_type_：_description_
+“”
+self.x = x
+data_dim = x.shape[1]
+
+# 1. 初始化簇位置
+cluster_locations = np.random.uniform(x.min(), x.max(), size=(self.n_clusters,data_dim))
+# print(&quot;initial:\n&quot;,cluster_locations)
+
+for _ in range(self.max_iter):
+# 2. 计算每个点到簇点的距离
+distances = self._get_distance(x, cluster_locations)
+
+# 3. 将每个点分配给一个簇
+clusters = np.argmin(distances, axis=1)
+
+# 4. 使用关联点的平均值更新簇位置
+for cluster in range(self.n_clusters):
+# 检查簇中是否有任何点
+cluster_mask = clusters == cluster
+if np.any(cluster_mask):
+cluster_locations[cluster] = np.mean(x[cluster_mask], axis=0)
+else:
+# 如果簇为空，则用随机点重新初始化
+cluster_locations[cluster] = x[np.random.randint(x.shape[0])] 
+
+self.cluster_locations = cluster_locations
+self.clusters = clusters
+return None
+
+def visualize(self, data, clusters):
+_, ax = plt.subplots(1,1,figsize=(5,5))
+
+cluster_color = [(random.random(),random.random(),random.random()) for _ in range(self.n_clusters)]
+
+for cluster in range(self.n_clusters):
+to_plot = data[np.where(clusters == cluster)[0]]
+ax.scatter(to_plot[:,0], to_plot[:,1], color=cluster_color[cluster])
+ax.scatter(self.cluster_locations[:,0], self.cluster_locations[:,1], marker=&quot;x&quot;, color=&#39;r&#39;, s=30)
+
+plt.show()
+
+这是我使用它的方式
+from sklearn.datasets import make_blobs
+
+random_state = 42
+n_samples = 100
+
+x, _ = make_blobs(n_samples=n_samples, random_state=random_state)
+my_kmeans = KMeans(3, 50)
+my_kmeans.fit(x)
+my_kmeans.visualize(x, my_kmeans.clusters)
+
+大多数时候，它都会给我一个合理的输出，像这样
+
+但每运行几次，它就会给我这样的结果
+
+我很好奇我是否遗漏了什么？
+谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/79271387/the-result-of-my-implementation-of-kmeans-is-not-consistent</guid>
+      <pubDate>Wed, 11 Dec 2024 10:41:28 GMT</pubDate>
+    </item>
     <item>
       <title>激活函数：二元分类中的 tanh(z)</title>
       <link>https://stackoverflow.com/questions/79270936/activation-function-tanhz-in-binary-classification</link>
@@ -123,136 +362,6 @@ XGBoostError: basic_string::resize
       <pubDate>Tue, 10 Dec 2024 20:57:42 GMT</pubDate>
     </item>
     <item>
-      <title>奇怪的是损失法学硕士的跳高</title>
-      <link>https://stackoverflow.com/questions/79269535/strangely-high-jump-in-loss-llm</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79269535/strangely-high-jump-in-loss-llm</guid>
-      <pubDate>Tue, 10 Dec 2024 19:31:33 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：无法将字符串转换为浮点数：'N/'</title>
-      <link>https://stackoverflow.com/questions/79268711/valueerror-could-not-convert-string-to-float-n</link>
-      <description><![CDATA[我正在 Jupyter Notebook 上开展一个机器学习项目，该项目用于预测电动汽车的价格。
-我在 Jupyter Notebook 上运行此单元：
-p = regressor.predict(df2)
-
-我收到此错误：
-ValueError Traceback（最近一次调用最后一次）
-~\AppData\Local\Temp\ipykernel_16424\818753220.py in &lt;module&gt;
-----&gt; 1 p = regressor.predict(df2)
-
-~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\sklearn\tree\_classes.py in predict(self, X, check_input)
-465 &quot;&quot;&quot;
-466 check_is_fitted(self)
---&gt; 467 X = self._validate_X_predict(X, check_input)
-468 proba = self.tree_.predict(X)
-469 n_samples = X.shape[0]
-
-~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\sklearn\tree\_classes.py in _validate_X_predict(self, X, check_input)
-431 &quot;&quot;&quot;验证预测（概率）上的训练数据。&quot;&quot;&quot;
-432 if check_input:
---&gt; 433 X = self._validate_data(X, dtype=DTYPE, accept_sparse=&quot;csr&quot;, reset=False)
-434 if issparse(X) and (
-435 X.indices.dtype != np.intc 或 X.indptr.dtype != np.intc
-
-~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\sklearn\base.py in _validate_data(self, X, y, reset, validate_separately, **check_params)
-564 raise ValueError(&quot;应在 X、y 或两者上进行验证。&quot;)
-565 elif not no_val_X and no_val_y:
---&gt; 566 X = check_array(X, **check_params)
-567 out = X
-568 elif no_val_X 且 not no_val_y:
-
-~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\sklearn\utils\validation.py in check_array(array, accept_sparse, accept_large_sparse, dtype, order, copy, force_all_finite, Ensure_2d, allow_nd, Ensure_min_samples, Ensure_min_features, estimator)
-744 array = array.astype(dtype, casting=&quot;unsafe&quot;, copy=False)
-745 else:
---&gt; 746 array = np.asarray(array, order=order, dtype=dtype)
-747 except ComplexWarning as complex_warning:
-748 raise ValueError(
-
-~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\pandas\core\generic.py in __array__(self, dtype)
-1991 
-1992 def __array__(self, dtype: NpDtype | None = None) -&gt; np.ndarray:
--&gt; 1993 return np.asarray(self._values, dtype=dtype)
-1994 
-1995 def __array_wrap__(
-
-ValueError: 无法将字符串转换为浮点数：&#39;N/&#39;
-
-我做了什么试试？
-我尝试使用以下代码：
-uv = np.nanpercentile(df2[&#39;Base MSRP&#39;], [99])[0]*2
-df2[&#39;Base MSRP&#39;][(df2[&#39;Base MSRP&#39;]&gt;uv)] = uv
-le = preprocessing.LabelEncoder()
-cols = [&#39;County&#39;, &#39;City&#39;, &#39;State&#39;, &#39;ZIP Code&#39;, &#39;Model Year&#39;, &#39;Make&#39;, &#39;Model&#39;, &#39;Electric Vehicle Type&#39;, &#39;Clean Alternative Fuel Vehicle (CAFV) Eligibility&#39;]
-for col in cols:
-le.fit(t[col])
-df2[col] = le.transform(df2[col]) 
-print(le.classes_)
-regressor.fit(x, y)
-p = regressor.predict(df2)
-
-这是我的笔记本的链接：https://github.com/SteveAustin583/electric-vehicle-price-prediction-revengers/blob/main/revengers.ipynb
-如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/79268711/valueerror-could-not-convert-string-to-float-n</guid>
-      <pubDate>Tue, 10 Dec 2024 15:00:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>GFPGAN CoreML 模型无法正常工作</title>
-      <link>https://stackoverflow.com/questions/79266909/gfpgan-coreml-model-isnt-working-correctly</link>
-      <description><![CDATA[我尝试从 hoseins77/gfpgan 和 TheMurusTeam/coreml-upscaler-gfpgan 下载 GFPGAN CoreML 模型，但是当我在我的项目中使用它时，输出的图像不正确。 GFPGAN 似乎总体上工作正常，因为它可以在此处在线运行，但 CoreML 模型似乎不起作用。
-以下是几个示例：
-
-
-下面是运行该模型的代码。我是否需要进行一些其他配置才能使 GFPGAN CoreML 模型正常工作？
-func getPhotoSharpened(_ photo: CGImage) async -&gt; CGImage? {
-guard let vnModel = await getVNModelFromStorage() else { return nil }
-
-let coreMLRequest = VNCoreMLRequest(model: vnModel)
-coreMLRequest.imageCropAndScaleOption = .scaleFit
-
-do {
-let handler = VNImageRequestHandler(cgImage: photo, options: [:])
-try handler.perform([coreMLRequest])
-} catch {
-print(&quot;Error sharpening photo: \(error)&quot;)
-}
-
-guard
-let results = coreMLRequest.results as? [VNPixelBufferObservation],
-let outputPixelBuffer = results.first?.pixelBuffer
-else {
-print(&quot;无法从模型获取输出&quot;); return nil
-}
-
-let ciImage = CIImage(cvPixelBuffer: outputPixelBuffer)
-let desireAspectRatio = CGFloat(photo.width) / CGFloat(photo.height)
-// cropped 函数在其他地方定义。
-let croppedImage = cropped(ciImage, toAspectRatio: desireAspectRatio)
-
-let context = CIContext()
-guard let sharpenedImage = context.createCGImage(croppedImage, from: croppedImage.extent) else {
-print(&quot;无法从 CIImage 创建锐化 CGImage&quot;)
-return nil
-}
-
-return sharpenedImage
-}
-
-private func getVNModelFromStorage() async -&gt; VNCoreMLModel? {
-do {
-// gpfganFileUrl 在其他地方定义。
-let mlModel = try await MLModel.load(contentsOf: gpfganFileUrl, configuration: .init())
-return try VNCoreMLModel(for: mlModel)
-} catch {
-print(&quot;无法从文件加载 GFPGAN 模型，错误为：\(error)&quot;); return nil
-}
-}
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79266909/gfpgan-coreml-model-isnt-working-correctly</guid>
-      <pubDate>Tue, 10 Dec 2024 02:53:43 GMT</pubDate>
-    </item>
-    <item>
       <title>时间序列运动捕捉数据的 PCA 图聚类问题</title>
       <link>https://stackoverflow.com/questions/79263104/pca-plot-clustering-issue-with-time-series-motion-capture-data</link>
       <description><![CDATA[我正在使用 PCA 对手部动作捕捉数据的时间序列数据集进行降维，并遇到了意外的聚类行为。以下是我的过程和我面临的问题的详细信息。
@@ -329,49 +438,6 @@ plt.show()
 您是否知道 xgboost/lgbm 模型是否保存了可以删除以进行推理的任何东西，例如梯度？我遗漏了什么？]]></description>
       <guid>https://stackoverflow.com/questions/79261222/xgboost-and-lgbm-models-size-depends-on-training-data-size-for-a-given-set-of-pa</guid>
       <pubDate>Sat, 07 Dec 2024 19:09:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>保留验证集-超参数调整</title>
-      <link>https://stackoverflow.com/questions/79247785/holdout-validation-set-hyperparameter-tuning</link>
-      <description><![CDATA[我有一个大型数据集，我将其拆分为：
-
-训练集 (80%)
-验证集 (10%)
-测试集 (10%)
-
-在每个集合上，我执行了缺失值插补和特征选择（在训练集上训练，并复制到验证和测试集中）以避免数据泄露。
-现在，我想用 Python 训练 XGBoost 模型，并希望使用训练集执行超参数调整，并使用验证集评估每个参数集。我如何使用 RandomizedSearchCV 等随机方法执行此操作，以便不运行所有参数集？
-如果我是正确的，GridSearch 和 RandomizedSearchCV 仅允许交叉验证，这不是我想要的，因为将预处理的训练集拆分成几层会导致数据泄露。
-我知道我可以构建一个 sklearn 管道，在其中对每个折叠进行预处理，但我想避免后一种选择。
-我只能考虑像在 GridSearch 中一样运行每个参数集的代码：
-from sklearn.model_selection import ParameterGrid
-import xgboost as xgb
-
-# 定义你的超参数网格
-param_grid = {
-&#39;max_depth&#39;: [3, 5, 7],
-&#39;learning_rate&#39;: [0.01, 0.1, 0.2],
-&#39;n_estimators&#39;: [100, 200, 300]
-}
-
-best_score = -1
-best_params = {}
-
-for params in ParameterGrid(param_grid):
-model = xgb.XGBClassifier(**params)
-model.fit(X_train, y_train)
-val_score = model.score(X_val, y_val) # 或者使用更具体的指标
-
-if val_score &gt; best_score:
-best_score = val_score
-best_params = params
-
-# 使用最佳超参数训练最终模型
-best_model = xgb.XGBClassifier(**best_params)
-best_model.fit(X_train, y_train)
-]]></description>
-      <guid>https://stackoverflow.com/questions/79247785/holdout-validation-set-hyperparameter-tuning</guid>
-      <pubDate>Tue, 03 Dec 2024 13:26:56 GMT</pubDate>
     </item>
     <item>
       <title>使用 XGBoost 对未来 24 小时进行多时间步长预测</title>
