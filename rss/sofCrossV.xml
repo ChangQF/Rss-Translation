@@ -4,7 +4,128 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 11 Dec 2024 18:25:32 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 11 Dec 2024 21:16:58 GMT</lastBuildDate>
+    <item>
+      <title>是否存在计算边际效应的标准方法？</title>
+      <link>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</link>
+      <description><![CDATA[我的问题是关于在计算回归模型的边际效应时如何设置其他预测变量的值。
+我有一个 GAM 回归模型（响应在 0 和 1 之间连续）：
+$$ g(\mathbb{E}[Y_i]) = \beta_0 + f_1(t_i, x1_i) + f_2(t_i, x2_i) $$
+
+$g(\cdot)$ 是 logit 链接函数 $g(p) = \log(\frac{p}{1-p})$
+$Y_i$ 是 Beta 分布：$Y_i \sim \text{Beta}(\alpha, \beta) $
+$\beta_0$ 是截距
+$f_1$ 和 $f_2$ 是以下相互作用的平滑函数：($t$ 和 $x_1$)
+和 ($t$ 和 $x_2$)
+
+以下是该模型的 R 代码：
+# 请注意，te() 函数应该包含主效应和相互作用效果：https://stats.stackexchange.com/questions/658558/gam-regression-interactions-vs-main-effects
+
+library(mgcv)
+
+set.seed(123)
+
+n &lt;- 500
+t &lt;- seq(0, 365, length.out = n) 
+x1 &lt;- rnorm(n, mean = 100, sd = 10) 
+x2 &lt;- rpois(n, lambda = 2) 
+
+true_mean &lt;- function(t, x1, x2) {
+base &lt;- 0.4 
+x1_effect &lt;- 0.003 * x1 * exp(-t/200) 
+x2_effect &lt;- 0.05 * x2 * (1 - exp(-t/200)) 
+time_effect &lt;- 0.1 * sin(2 * pi * t/365) 
+return(base + x1_effect + x2_effect + time_effect)
+}
+
+y_mean &lt;- true_mean(t, x1, x2)
+y &lt;- 100 * plogis(qlogis(y_mean) + rnorm(n, 0, 0.3)) 
+
+sim_data &lt;- data.frame(
+y = y,
+t = t,
+x1 = x1,
+x2 = x2
+)
+
+epsilon &lt;- 0.001 
+sim_data$y_scaled &lt;- (sim_data$y * (1 - 2 * epsilon) + epsilon) / 100
+
+gam_model &lt;- gam(
+y_scaled ~ te(t, x1) + te(t, x2),
+data = sim_data,
+family = betar(link = &quot;logit&quot;),
+method = &quot;REML&quot;
+)
+
+我的主要兴趣是研究$X_1$对$Y$的影响以及$X_2$对不同时间段的$Y$的影响。例如在时间 = 5 时，$X_1$ 中 1 个单位的变化是否对响应 $Y$ 产生了更大的变化 - 或者 $X_2$ 中 1 个单位的变化是否对响应 $Y$ 产生了更大的变化？
+我目前对边际效应 (ME) 的理解如下：
+
+从模型开始：
+$$ g(\mathbb{E}[Y_i]) = \beta_0 + f_1(t_i, x1_i) + f_2(t_i, x2_i) $$
+我在时间点观察我的数据 $t* = (t_1, t_2, ... t_n)$.我感兴趣的是计算这些 $n$ 个观察时间点的边际效应。
+在保持其他变量的均值不变（即 $\bar{X_1}, \bar{X_2}$）的情况下，$t^*$ 特定值的边际效应为：
+$$ \text{ME of } x_1: \quad \left.\frac{\partial \mathbb{E}[Y_i]}{\partial x1}\right|_{x1=x1^*, t=t^*, x2=\bar{x2}} = \left.\frac{\partial g^{-1}(\beta_0 + f_1(t,x1) + f_2(t,\bar{x2}))}{\partial x1}\right|_{x_1=\bar{x_1}, x_2=\bar{x_2} , t=t^*} $$
+$$ \text{ME of } x_2: \quad \left.\frac{\partial \mathbb{E}[Y_i]}{\partial x2}\right|_{x2=x2^*, t=t^*, x1=\bar{x1}} = \left.\frac{\partial g^{-1}(\beta_0 + f_1(t,\bar{x1}) + f_2(t,x2))}{\partial x2}\right|_{x_1=\bar{x_1}, x_2=\bar{x_2} , t=t^*}$$
+
+我只是想知道以下问题。计算 $X_1$ 的边际效应：
+
+在每个时间点，为什么我们不使用当时 $X_2$ 的实际观测值，而是使用 $X_2$ 的平均值？
+此外，为什么我们要取当时 $X_1$ 的平均值，而不是当时 $X_1$ 的实际观测值？
+
+对于 $X_1$ 的边际效应，我认为在每个时间点 $t_i$ 计算$(t_i, x_{1i}, x_{2i})$ 处的边际效应。但我们显然不会这样做。
+这有什么原因吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</guid>
+      <pubDate>Wed, 11 Dec 2024 21:11:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何对两组潜在变量进行 t 检验并比较它们的均值？</title>
+      <link>https://stats.stackexchange.com/questions/658587/how-do-i-perform-a-t-test-for-latent-variables-in-two-groups-and-compare-their-m</link>
+      <description><![CDATA[我正在尝试对两组潜在变量进行 t 检验。但是，我不确定这是否是合适的方法。
+# 加载必要的包（如果尚未加载）
+library(readxl)
+library(lavaan)
+library(semTools)
+library(psych)
+
+# 读取数据（根据需要调整文件名和路径）
+data &lt;- read_excel(&quot;newpost.xlsx&quot;)
+
+names(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, names(data))
+
+data$intelligence_score &lt;- rowMeans(data[, c(&quot;intelligent_1&quot;, 
+&quot;intelligent_2&quot;, 
+&quot;intelligent_3&quot;, 
+&quot;intelligent_5&quot;,
+&quot;intelligent_6&quot;)],
+na.rm = TRUE)
+
+数据$translationgroup &lt;- factor(data$translationgroup, levels = c(0,1), labels = c(&quot;Low_tranlation&quot;, &quot;High_tranlation&quot;))
+
+# 对翻译组的 intelligence_score 执行双样本 t 检验
+t_test_result &lt;- t.test(intelligence_score ~ Translationgroup, data = data)
+
+# 打印结果
+print(t_test_result)
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658587/how-do-i-perform-a-t-test-for-latent-variables-in-two-groups-and-compare-their-m</guid>
+      <pubDate>Wed, 11 Dec 2024 19:21:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>岭回归的闭式解可以用于训练神经网络吗？</title>
+      <link>https://stats.stackexchange.com/questions/658585/can-the-closed-form-solution-for-ridge-regression-be-used-in-training-neural-net</link>
+      <description><![CDATA[是否确定岭回归的闭式解可用于神经网络训练？如果可以：
+
+使用它的潜在好处是什么？
+
+在什么情况下这种方法特别有用？
+
+
+我想了解这种技术在神经网络训练中是否有实际应用，或者它是否主要具有理论意义。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658585/can-the-closed-form-solution-for-ridge-regression-be-used-in-training-neural-net</guid>
+      <pubDate>Wed, 11 Dec 2024 19:18:34 GMT</pubDate>
+    </item>
     <item>
       <title>关于 $X^TX$ 的协方差矩阵</title>
       <link>https://stats.stackexchange.com/questions/658584/covariance-matrix-in-terms-of-xtx</link>
@@ -23,11 +144,11 @@ $$\text{Cov}(X) = \mathbb{E}[(X-\mu_X)(X-\mu_X)^T]$$
     </item>
     <item>
       <title>如何在我的受污染数据问题中找到具有 ML 组件的去偏估计量？</title>
-      <link>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimtor-with-a-ml-componenet-in-my-contaminated-data-pr</link>
+      <link>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</link>
       <description><![CDATA[我试图使用机器学习模型的输出来估计（使用最大似然法）分布中的参数。我得到的估计量的偏差比参数值大得多。我想使用 Neyman 正交性/双机器学习方法（Chernozhukov et al., 2018）、影响函数或任何相关（或不相关）方法找到一个去偏估计量。但我不清楚如何在我的情况下构建去偏估计量。
 我的估计问题
 我已经“污染”了数据：大多数数据来自概率分布$P_0(x)$，但部分数据来自不同的分布$P_1(x)$（“污染”）。因此，我假设我的数据点是从分布$$P(x) = (1-\theta) P_0(x) + \theta P_1(x).$$中独立同分布抽取的。我的目标是找出受污染数据的比例$\theta$。 $\theta$ 的最大似然估计量是 $$0 = \frac{1}{n}\sum_i\frac{r(x_i)-1}{1+\hat{\theta}\bigl(r(x_i)-1\bigr)},$$ 的解，其中 $x_1,\ldots,x_n$ 是数据点，$r(x) = \frac{P_1(x)}{P_0(x)}$。
-我不知道概率分布 $P_0(x)、P_1(x)$ 或它们的比率 $r(x)$直接，但我确实有另一个标记为数据集 $(\tilde{x}_i, y_i)$ 的数据点，其生成分布已知：对于从 $P_0$ 中抽取的点，$y_i=0$ ；对于从 $P_1$ 中抽取的点，$y_i=1$ ：$$Prob(\tilde{x}_i | y_i) = P_{y_i} (\tilde{x}_i)$$ （为简单起见，假设我有相同数量的 $\tilde{x}_i$，其中 $\tilde{x}_i$ class=&quot;math-container&quot;&gt;$y=0$ 和 $y=1$)。因此，我尝试通过两个步骤估计 $\theta$：
+我不知道概率分布 $P_0(x)、P_1(x)$ 或它们的比率 $r(x)$直接，但我确实有另一个标记为数据集 $(\tilde{x}_i, y_i)$ 的数据点，其生成分布是已知的：对于从 $P_0$ 中抽取的点，$y_i=0$ ；对于从 $P_1$ 中抽取的点，$y_i=1$ ：$$Prob(\tilde{x}_i | y_i) = P_{y_i} (\tilde{x}_i)$$ （为简单起见，假设我有相同数量的 $\tilde{x}_i$，其中 $\tilde{x}_i$ class=&quot;math-container&quot;&gt;$y=0$ 和 $y=1$)。因此，我尝试通过两个步骤估计 $\theta$：
 
 在标记数据集上训练 ML 分类器 $f(x)$ 以估计 $Prob(y=1|x)$，从而获得概率比的估计值为：$\hat{r}(x) = \frac{f(x)}{1-f(x)}$。
 
@@ -38,42 +159,8 @@ $$\text{Cov}(X) = \mathbb{E}[(X-\mu_X)(X-\mu_X)^T]$$
 我的问题
 $\hat{r}$ 是一个有偏估计量，例如在双重机器学习文献中讨论过（参见上面的链接）。因此，我得到了 $\theta$ 的有偏估计量。在我的案例中，我感兴趣的是 $\theta$ 的值远小于此偏差。因此，我想找到 $\theta$ 的去偏估计量。但我对如何将双重机器学习方法或影响函数应用于我的案例感到困惑。
 在我的案例中，Neyman 正交 MLE 方程是什么？我如何使用我拥有的信息来找到污染分数 $\theta$ 的去偏估计量？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimtor-with-a-ml-componenet-in-my-contaminated-data-pr</guid>
+      <guid>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</guid>
       <pubDate>Wed, 11 Dec 2024 15:48:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何从具有分类变量的混合模型中估计总体方差？</title>
-      <link>https://stats.stackexchange.com/questions/658575/how-to-estimate-population-variance-from-a-mixed-model-with-a-categorical-variab</link>
-      <description><![CDATA[我以为这是一个基本问题，但我被它难住了，找不到解决方案。
-我有一个数据库，其中包含不同养猪生产阶段（类别）的粪浆干物质含量，并且由不同的操作员（OP）在不同时刻（季节）采集样本。我只是对估计每个类别的平均值和方差总体感兴趣。
-为了解决这个问题，我建立了一个线性混合模型，其中对因变量进行了平方变换。在测试了它们的重要性（AIC，BIC）之后，我将 OP 作为随机效应，将 CATEGORY 和 SEASON 作为固定效应。
- fit &lt;- nlme::lme(sqrt(MS) ~ CATEGORY + SEASON, random=~1|OP, data=dat
-据我所知，每个 CATEGORY 中的估计平均值是每个固定效应值的对应 LSM。但是我不太清楚如何估计每个类别的方差。简化一下，我读到在一般线性回归中，模型的均方误差用于估计总体的方差，但在混合模型中，对于一些分组变量，我找不到任何关于如何计算它的解释。
-也许每个固定效应的标准误差相当于MSE?
-summary(fit)
-固定效应：sqrt(MS) ~ CATEGORY + SEASON 
-值 标准误差 DF t 值 p 值
-(截距) 2.0142552 0.1127073 197 17.871557 0.0000
-CATEGORYpiglets -0.2367893 0.1400533 197 -1.690708 0.0925
-CATEGORYsows -0.8191891 0.1195440 197 -6.852615 0.0000
-SEASONspring -0.0280369 0.02811633 194 -0.997177 0.3199
-SEASONsummer -0.0126275 0.03969934 194 -0.318078 0.7508
-SEASONoutom -0.0884407 0.02879816 194 -3.071054 0.0024
-
-我的最终目标是估算覆盖 75% 人口的干物质含量值。你能帮我解决这个疑问吗？如果有用的话，我正在使用 R 中的 nlme 包。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658575/how-to-estimate-population-variance-from-a-mixed-model-with-a-categorical-variab</guid>
-      <pubDate>Wed, 11 Dec 2024 13:37:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>我应该针对此分析或其他分析进行多级分析吗？需要帮助</title>
-      <link>https://stats.stackexchange.com/questions/658569/should-i-conduct-a-multilevel-for-this-or-another-analysis-need-help</link>
-      <description><![CDATA[我有三个数据源（教师、家长和学生），分三波对学生进行评估。我想评估所有数据，看看各个时刻之间的差异，但同时我也想使用每个来源的变量来确定可能的解释和差异（例如，对于家长使用学业水平和工作，对于学生使用性别和年龄，对于教师使用每个学生的已识别风险水平）。
-我正在考虑进行重复测量分析，然后进行多元回归。每个来源都是如此。但是我现在认为我可以进行多级分析，但我不确定，因为我不是这方面的专家。
-你能帮我吗？你有什么建议？
-可能我没有给你足够的信息，但如果我可以澄清，请告诉我。
-非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658569/should-i-conduct-a-multilevel-for-this-or-another-analysis-need-help</guid>
-      <pubDate>Wed, 11 Dec 2024 11:24:58 GMT</pubDate>
     </item>
     <item>
       <title>如何用不准确的评估器计算置信区间？</title>
@@ -92,36 +179,12 @@ sqrt 函数在哪个模块中？
 此数据集包含 5421 个问题。我已将此数据集提供给我的 LLM，并得到了 5421 个答案。我已审查了其中的 43 个，并使用 PASS/FAIL 评估对每个答案进行了评估。如果答案正确回答了用户的问题，则该答案被视为 PASS。在这 43 个答案中，我发现了 24 个 PASS 答案。
 我现在希望另一个 LLM 评估这个系统提示。为此，我创建了一个 LLM-as-a-judge 作为评估者。这个 LLM-as-a-judge 的角色是执行我对 43 个答案所做的相同任务：使用 PASS/FAIL 评估来评估每个答案。
 我向 LLM-as-a-judge 提供了我已经评估过的 43 个问题/答案。我发现这位评委 79% 的时间都同意我的观点。
-然后，我向 LLM-as-a-judge 提供了我的数据集中的所有 5421 个问题/答案。 LLM-as-a-judge 对系统提示的评分为 87.12%（意味着系统提示的 87.12% 的答案被评估为通过）。
+然后，我向 LLM-as-a-judge 提供了我的数据集中的所有 5421 个问题/答案。 LLM-as-a-judge 对系统提示的评分为 87.12%（意味着系统提示的 87.12% 的答案被评估为 PASS）。
 现在，由于 LLM-as-a-judge 的准确率为 79%（意味着它并不总是像我一样评估），我想知道我会给整个数据集打多少分（知道评委给出了 87.12% 的分数）。
 我如何计算这个分数？是否有可能确定 87.12% 左右的置信区间？
 注意：我是统计学新手，如果这个问题之前已经回答过，我很抱歉。我发现很难理解一些现有的问题和答案。请保持您的答案简单明了。]]></description>
       <guid>https://stats.stackexchange.com/questions/658562/how-to-compute-a-confidence-interval-with-an-inaccurate-evaluator</guid>
       <pubDate>Wed, 11 Dec 2024 08:23:24 GMT</pubDate>
-    </item>
-    <item>
-      <title>我可以使用多元线性回归来隔离每个独立变量的影响吗？[重复]</title>
-      <link>https://stats.stackexchange.com/questions/658560/can-i-isolate-the-effect-of-each-independent-variable-by-using-multiple-linear-r</link>
-      <description><![CDATA[我用python对因变量Y和自变量（预测变量）X1和X2进行了多元线性回归。
-它们都是时间序列数据，我用MLR的结果重建了Y时间序列。
-重建的Y = b1 * X1 + b2 * X2 +残差
-那么，我可以通过排除另一个变量来隔离每个独立变量的影响吗？例如，Y&#39; = b1 * X1。（系数值来自使用X1和X2的MLR。）
-这合理吗？我想逐一查看X1或X2的影响。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658560/can-i-isolate-the-effect-of-each-independent-variable-by-using-multiple-linear-r</guid>
-      <pubDate>Wed, 11 Dec 2024 07:36:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>这是否意味着在正态线性回归中使用夹心估计量我们不需要正态假设？</title>
-      <link>https://stats.stackexchange.com/questions/658539/does-it-mean-that-we-dont-need-a-normal-assumption-for-using-sandwich-estimator</link>
-      <description><![CDATA[根据这篇文章，
-
-博主使用估计方程理论构建了稳健夹层方差估计量。
-在这篇文章中，它说：
-
-现在我们可以开始应用估计方程理论了。首先，在某些规律性条件下，理论表明，当样本大小 n 趋向于无穷大时，估计量 $\hat{\beta}$ 的分布会收敛到 (多元) 正态分布。重要的是，无论误差 $\epsilon=Y-X^{T}\beta$ 是否呈正态分布，也无论它们是否具有恒定方差，这都是成立的。
-这是否意味着我们在正态线性回归中使用夹层估计量不需要正态假设？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658539/does-it-mean-that-we-dont-need-a-normal-assumption-for-using-sandwich-estimator</guid>
-      <pubDate>Tue, 10 Dec 2024 18:27:17 GMT</pubDate>
     </item>
     <item>
       <title>多项式协方差矩阵是奇异的吗？</title>
@@ -205,23 +268,21 @@ summary(dets) # 全部在 10^-15 或 10^-16 的量级上，因此基本上是奇
       <pubDate>Mon, 09 Dec 2024 09:22:40 GMT</pubDate>
     </item>
     <item>
-      <title>如何从 softmax 输出计算没有基本事实的模型的置信度和不确定性？</title>
-      <link>https://stats.stackexchange.com/questions/658468/how-to-compute-confidence-and-uncertainity-of-model-without-ground-truth-from-so</link>
-      <description><![CDATA[假设我有 3 个类 A、B、C。
-执行：
-y_pred = model.predict(X) # 假设 X 只有两个样本
+      <title>带有 Adam 优化器网络的单层/单单元如何工作？</title>
+      <link>https://stats.stackexchange.com/questions/658436/how-does-a-single-layer-single-unit-with-adam-optimizer-network-work</link>
+      <description><![CDATA[我对 ML 还很陌生，正在尝试使用线性回归。我测试了 sklearn 的 LinearRegression 模型，然后想将结果与一个非常简单的神经网络进行比较。
+我创建了一个具有 1 层和 1 个单元的 tensorflow Dense 网络，并带有“线性”激活函数。
+我使用了“sgd”和“adam”优化器，并使用 MinMaxScaler 缩放了 x 数据
+我得到了与 LinearRegression 模型截然不同的结果（预测和损失）。
+我有两个问题：
 
-返回长度为 2 的向量，即形状 (2,3)，仍为概率格式（无 argmax）。
-y_pred -&gt; [
-{A:0.2, B:0.3, C:0.5}, 
-{A:0.7, B:0.2, C:0.1}
-]
+具有线性激活的 1 层/1 个单元网络是否与 LinearRegression 相同？
 
-我将定义模型，而不是置信度，即模型预测的类返回置信度值更接近 1/N，其中 N 是类的数量（因为它既不是真也不是假，它不是断言假即零，也不是断言真即一）。但也许，还有另一个比我的更好的定义。我仍然希望它返回不确定性和置信度的标量值。
-如果我的定义是最好的，那么我想使用我的定义将模型预测的总体置信度摘要转换为标量值。
-那么，有什么操作或聚合技术可以获取预测的置信度和不确定性，其幅度范围为$[0,1]$？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658468/how-to-compute-confidence-and-uncertainity-of-model-without-ground-truth-from-so</guid>
-      <pubDate>Mon, 09 Dec 2024 02:06:41 GMT</pubDate>
+SGD 预测非常接近，我正在用房价进行测试，所以我会得到相对接近的结果。目标值在 1000 左右，因此 y_train 数组中的 120,000 美元价格被设置为 120。但是，当我使用 Adam 优化器时，我得到的预测值非常低（不到 20）。我从 100 个 epoch 开始，然后增加到 1000 个，但仍然得到了类似的结果。我是不是在某个地方做错了什么，或者 Adam 优化器是否有限制或某些要求才能正常工作。
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658436/how-does-a-single-layer-single-unit-with-adam-optimizer-network-work</guid>
+      <pubDate>Sun, 08 Dec 2024 03:47:10 GMT</pubDate>
     </item>
     <item>
       <title>帮助我将多元线性回归模型中的两个假设结合起来进行方差分析比较！</title>
@@ -279,6 +340,19 @@ Gold_Price:Performing_Sector_Dummy + Copper_Price:Performing_Sector_Dummy)
 我的问题是，使用这些测试和比较来显示违反 IIA 的程度是否足够，同时论证在这些变化中持续存在的影响仍然有效？例如，在 5 个系数中，4 个没有变化或变化不大，但 1 个有变化，或者对于所有系数，方向在简化模型中没有变化。]]></description>
       <guid>https://stats.stackexchange.com/questions/657645/validity-of-using-hausman-mcfadden-test-results-for-addressing-departures-from-t</guid>
       <pubDate>Thu, 21 Nov 2024 23:01:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>两个独立变量之差的方差是方差之和</title>
+      <link>https://stats.stackexchange.com/questions/574806/variance-of-the-difference-of-two-independent-variables-is-the-sum-of-variances</link>
+      <description><![CDATA[据说两个独立变量之差的方差是方差之和（主题 - 置信区间。两个均值。独立样本）
+我尝试用两个变量的小数据集进行实验。我发现两个独立变量的方差之和不等于差异的方差。实验如下：-
+纽约苹果价格 [$3.80, $3.76, $3.87, $3.99, $4.02, $4.25,$4.13, $3.98] 其方差 = 0.027
+洛杉矶苹果价格 - [$3.02, $3.22, $3.24, $3.02, $3.06, $3.15, $3.81, $3.44]，方差 = 0.071
+它们的价格差异 = [0.78, 0.54, 0.63, 0.97, 0.96, 1.10, 0.32, 0.54] - 方差 = 0.0715
+LA 苹果价格方差与 NY 苹果价格方差之和 = 0.098，不等于差异方差 = 0.0715
+有人能解释一下为什么会这样吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/574806/variance-of-the-difference-of-two-independent-variables-is-the-sum-of-variances</guid>
+      <pubDate>Tue, 10 May 2022 22:23:01 GMT</pubDate>
     </item>
     </channel>
 </rss>
