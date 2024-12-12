@@ -4,7 +4,7 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 12 Dec 2024 03:34:40 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Dec 2024 06:27:09 GMT</lastBuildDate>
     <item>
       <title>对回归模型求偏导数</title>
       <link>https://stats.stackexchange.com/questions/658606/taking-partial-derivatives-of-regression-models</link>
@@ -64,8 +64,8 @@ $$ Y_t = \epsilon_t + \phi\epsilon_{t-1} + \phi^2\epsilon_{t-2} + \phi^3\epsilon
 $$X_t = X_0 + \sum_{i =1}^t \epsilon_i$$
 其中$\epsilon_i \sim \mathcal{N}(0, \sigma^2)$且独立。
 那么在窗口$N$的指数移动平均中，哪个平滑因子$\alpha$可以给出$X_{T+1}$的最佳估计？
-我觉得它应该取决于$\sigma$。例如，如果 $\sigma$ 很高，我会直观地减少最近值的权重，如果 $\sigma$ 很低，我会增加最近值的权重。
-但是，对于 $\alpha$，是否存在可以给出最佳估计的接近形式？]]></description>
+我觉得它应该取决于$\sigma$。例如，如果 $\sigma$ 很大，我会直观地减少最近值的权重，而如果 $\sigma$ 很小，我会增加最近值的权重。
+但是，$\alpha$ 是否存在可以给出最佳估计的封闭形式？]]></description>
       <guid>https://stats.stackexchange.com/questions/658598/ma-best-estimate-depending-on-sigma</guid>
       <pubDate>Wed, 11 Dec 2024 22:35:53 GMT</pubDate>
     </item>
@@ -156,20 +156,6 @@ print(t_test_result)
       <pubDate>Wed, 11 Dec 2024 19:21:07 GMT</pubDate>
     </item>
     <item>
-      <title>岭回归的闭式解可以用于训练神经网络吗？</title>
-      <link>https://stats.stackexchange.com/questions/658585/can-the-closed-form-solution-for-ridge-regression-be-used-in-training-neural-net</link>
-      <description><![CDATA[是否确定岭回归的闭式解可用于神经网络训练？如果可以：
-
-使用它的潜在好处是什么？
-
-在什么情况下这种方法特别有用？
-
-
-我想了解这种技术在神经网络训练中是否有实际应用，或者它是否主要具有理论意义。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658585/can-the-closed-form-solution-for-ridge-regression-be-used-in-training-neural-net</guid>
-      <pubDate>Wed, 11 Dec 2024 19:18:34 GMT</pubDate>
-    </item>
-    <item>
       <title>关于 $X^TX$ 的协方差矩阵</title>
       <link>https://stats.stackexchange.com/questions/658584/covariance-matrix-in-terms-of-xtx</link>
       <description><![CDATA[如果我有一个矩阵 $X\in \mathbb{R}^{n\times p}$，那么我可以将协方差写为
@@ -257,6 +243,64 @@ SGD 预测非常接近，我正在用房价进行测试，所以我会得到相�
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658436/how-does-a-single-layer-single-unit-with-adam-optimizer-network-work</guid>
       <pubDate>Sun, 08 Dec 2024 03:47:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>实验设计的结构和生成方法</title>
+      <link>https://stats.stackexchange.com/questions/658149/structure-of-the-experimental-design-and-generating-approach</link>
+      <description><![CDATA[我对田间试验有以下具体需求，并希望在了解其处理和单元结构后生成设计。有，
+
+有 40 个基因型/品种。 10 种基因型各组成一个预先分配的组，因此有 4 组基因型
+组可以是两个级别/类别中的任一个 - 两系和三系
+基因型在 3 个完整的重复中重复
+每个重复由 2 个块组成
+每个块由 2 个完整的（包含所有 10 种基因型）子块组组成，其中一个来自两个级别/类别
+子块的组分配是随机的。
+每个子块内的基因型都是随机的
+
+有了上述详细信息，我已经能够使用 tidyverse 函数和分组结构在 R 中生成所需的设计。
+v_df &lt;- tibble(`品种名称` = paste0(&quot;V&quot;, 1:40), 
+`空间分配` = rep(c(&quot;三行&quot;, &quot;两行&quot;, &quot;两行&quot;, 
+&quot;三行&quot;), each = 10)) %&gt;%
+mutate(`Group` = rep(1:4, each = 10)) %&gt;% 
+group_by(`Group`) %&gt;% 
+nest() %&gt;%
+expand_grid(replication = 1:3) %&gt;% 
+range(replication) %&gt;% 
+mutate(block = rep(1:6, each = 2)) %&gt;% 
+group_by(block) %&gt;% 
+mutate(`data` = sample(data, 2, replace = FALSE)) %&gt;%
+ungroup() %&gt;% 
+mutate(genotype = purrr::map(data, ~sample_n(.x, size = 10, 
+replace = FALSE))) %&gt;% 
+select(-data) %&gt;% 
+unnest_longer(genotype) %&gt;% 
+unpack(cols = genotype) %&gt;% 
+group_by(replication, block) %&gt;% 
+mutate(x = row_number()) %&gt;% 
+ungroup() %&gt;% 
+mutate(y = as.numeric(interaction(replication, block))) %&gt;% 
+mutate(Group = as.factor(Group))
+
+这将生成以下布局图（绘图代码包含在本文底部）：
+
+我可以推断出重复是完整的并且局限于块中。因此说它是 RCBD 是没有问题的。但是，子块呢？将它们分配在块内并使用特定的分组结构进行复制超出了我对设计和理论的理解。
+首先，让我感到困惑的是，这是否是一个有效的设计。如果是，那么它属于哪一类设计？我希望更好地了解这种和类似设计的用法。
+由于设计在阻塞方面施加了限制，我猜测某些 r 包/函数已经比我的详细代码更有效地实现了该功能。在答案中提供代码指针会很有帮助。
+# 图形代码
+ggplot() +
+geom_tile(data = v_df, aes(x, y, fill = `Space assignment`),
+color = NA, linewidth=1.2, alpha = 0.6) +
+scale_fill_discrete() +
+geom_tile(data = v_df, aes(x = x, y = y),
+color = &quot;black&quot;, fill = NA) +
+geom_text(data = v_df, aes(x = x, y = y,
+label = stringr::str_wrap(`Variety name`, width = 8)), 
+size = 1.85) +
+guides(fill = &quot;none&quot;) +
+theme_void()
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658149/structure-of-the-experimental-design-and-generating-approach</guid>
+      <pubDate>Mon, 02 Dec 2024 15:31:08 GMT</pubDate>
     </item>
     </channel>
 </rss>
