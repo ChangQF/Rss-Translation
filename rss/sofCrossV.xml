@@ -4,57 +4,477 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 12 Dec 2024 15:19:22 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Dec 2024 18:25:17 GMT</lastBuildDate>
+    <item>
+      <title>多项分布的广义方差</title>
+      <link>https://stats.stackexchange.com/questions/658639/generalized-variance-of-a-multinomial-distribution</link>
+      <description><![CDATA[标量方差是一个单变量概念，因此广义方差通过取多元分布的协方差矩阵的行列式，对多变量设置进行了概括。
+但是，多项分布具有奇异协方差矩阵，因此行列式提供的有关多项分布中变异性的信息最少；每个多项分布都给出相同的广义方差零。
+但是，我们可以从多项分布中删除一个类别，并暗示另一个类别会发生什么（在对分类变量进行回归时很常见）。当我们这样做然后计算广义方差时，该值并不总是零。
+在进行此实验时，我们放弃哪些类别似乎并不重要。此外，如果我们只是从完整多项分布的协方差矩阵中删除行 $k$ 和列 $k$，行列式似乎并不依赖于 $k$。
+set.seed(2024)
+
+# 计算多项分布协方差矩阵的函数 
+#
+multinomial_cov &lt;- function(n, p){
+
+k &lt;- length(p)
+
+cov_np &lt;- matrix(NA, k, k)
+for (i in 1:k){
+for (j in 1:k){
+
+if (i == j){
+cov_np[i, j] &lt;- n * p[i] * (1 - p[j])
+}
+if (i != j) {
+cov_np[i, j] &lt;- -n * p[i] * p[j]
+}
+}
+}
+return(cov_np)
+}
+#
+# 函数结束
+
+R1 &lt;- 25 # 不同多项式参数组合的数量
+R2 &lt;- 100 # 确定要删除的索引的次数
+dets &lt;- matrix(NA, R1, R2)
+for (i in 1:R1){
+
+# 确定分布参数
+#
+n &lt;- sample(seq(1, 10, 1), 1, replace = F) # 掷骰子次数
+k &lt;- sample(seq(3, 25, 1), 1, replace = F) # 有多少个类别，3-25
+p &lt;- runif(k, 0, 1); p &lt;- p/sum(p) # 概率参数
+
+for (j in 1:R2){
+
+# 从协方差矩阵中删除一行/列（相同索引）
+​​
+在计算 n-1 x n-1 矩阵的行列式之前
+#
+idx &lt;- sort(sample(seq(1, k, 1), k - 1, replace = F))
+cov_mat &lt;- multinomial_cov(n, p)
+dets[i, j] &lt;- det(cov_mat[idx, idx])
+}
+}
+apply(dets, 1, unique) # 无论删除哪一行/列，行列式都是
+# 对于给定的一组多项式参数来说都是相同的
+
+我似乎已经在足够多的设置中这样做了，我可能不是运气好，所以我认为我偶然发现了关于多项式的一个一般事实分布。证明是什么，这种行列式是否是多项分布中变异性的有用描述？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658639/generalized-variance-of-a-multinomial-distribution</guid>
+      <pubDate>Thu, 12 Dec 2024 18:21:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>4x4 空心矩阵的特征值</title>
+      <link>https://stats.stackexchange.com/questions/658638/eigenvalues-of-4x4-hollow-matrix</link>
+      <description><![CDATA[
+我正在解决这道练习题，我怀疑这是个插入和吐出问题。矩阵是对称的，而且看起来可能与上下三角有关？维基百科称它为空心矩阵，而 Wolfram alpha 给出了一个奇怪的答案，没有给出任何步骤。我被困在寻找特征值的行列式步骤上，其中 4x4 矩阵看起来太大而无法有效计算行列式。
+关于如何继续进行，有什么想法吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658638/eigenvalues-of-4x4-hollow-matrix</guid>
+      <pubDate>Thu, 12 Dec 2024 18:20:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>预处理和模型选择策略</title>
+      <link>https://stats.stackexchange.com/questions/658637/preprocessing-and-model-selection-strategies</link>
+      <description><![CDATA[我正在研究一个故障检测问题，其中每个样本都是标有特定类型故障的时间序列。我正在使用 CNN 模型和验证集进行超参数调整。目前，我想研究不同预处理技术的影响，例如使用原始信号与应用 DFT。
+为了分析这一点，我有以下验证准确度矩阵：
+$$
+A=\begin{bmatrix}
+&amp; \text{hprams}_1 &amp; \text{hprams}_2 &amp; \text{hprams}_3 \cdots &amp; \text{hprams}_n\\
+\text{Raw} &amp; \text{acc}_{11} &amp; \text{acc}_{12} &amp; \text{acc}_{13} \ \ \ \ \ \cdots &amp;\text{acc}_{1n}\\
+\text{FFT} &amp; \text{acc}_{21} &amp; \text{acc}_{22} &amp; \text{acc}_{23} \ \ \ \ \ \cdots &amp;\text{acc}_{2n} \\
+\end{bmatrix}, 
+$$
+其中每个$\text{hprams}_i$代表特定的超参数配置，每个$\text{acc}_{ij}$表示特定预处理方法和超参数设置的验证准确率。例如，$\text{hprams}_1 = (\text{number of layer}: 4, \text{learning rate}: 0.001)$ 和 $\text{acc}_{11} = 0.87$。
+我有两个问题：
+
+我目前的模型选择方法是在所有预处理方法和超参数组合中选择验证准确率最高的配置，$\max(A)$，然后在测试集上评估该模型。这是正确的方法吗？
+
+为了比较预处理技术（例如 Raw 与 FFT），我建议为每种预处理方法单独选择最佳超参数配置（即在 $A$ 的每一行中取最大准确率）。然后，我将报告与这些最佳配置相对应的两个模型的测试性能。这是合理的方法吗？
+
+
+在我审阅过的许多论文中，方法各不相同。通常，数据被分成训练集和测试集，学习率和网络架构是固定的。然后使用不同的预处理方法在训练集上训练模型，并记录各个时期的测试准确率。通常会报告最大测试准确率和最终时期准确率。但是，我认为这种方法存在缺陷，因为它缺乏适当的模型选择，可能会导致有偏差的结果。研究人员可能会尝试各种配置，并在事后隐式地选择表现最佳的设置，这可能会使结果无效。
+注意：我明白准确度不是一个合适的评分规则，而且交叉验证会更好。但是，为了回答这个问题，我想在当前设置下工作。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658637/preprocessing-and-model-selection-strategies</guid>
+      <pubDate>Thu, 12 Dec 2024 18:02:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>高斯对数似然值究竟如何计算？</title>
+      <link>https://stats.stackexchange.com/questions/658636/how-is-gaussian-log-likelihood-value-calculated-exactly</link>
+      <description><![CDATA[我检查了这些 R 函数 glm.fit() gaussian()$aic stats:::logLik.glm() 和 stats:::logLik.lm()，发现 stats:::logLik.glm() 报告的对数似然值是根据 gaussian()$aic 计算的，其定义为
+function (y, n, mu, wt, dev) 
+{
+nobs &lt;- length(y)
+nobs * (log(dev/nobs * 2 * pi) + 1) + 2 - sum(log(wt))
+}
+
+stats:::logLik.lm() 报告的对数似然值使用以下公式计算。
+0.5 * (sum(log(w)) - N * (log(2 * pi) + 1 - log(N) + 
+log(sum(w * res^2))))
+
+这两个公式在高斯家族中得出相同的 logLik 和 AIC。我理解 $AIC = -2 \ln{L} + 2df$ 并且可以重现与基本函数 logLik() 相同的结果，但我不知道为什么要以上述方式计算它们。使用基于经典公式的对数密度值总和，如“正态分布 - 最大似然估计”中所示https://www.statlect.com/fundamentals-of-statistics/normal-distribution-maximum-likelihood，我得到了不同的对数似然值，无法识别我的计算和默认输出之间的关系。请参阅以下最小示例。
+Data &lt;- data.frame(
+y = c(0.2, 0.2, 0.3), 
+n = c(10, 20, 30)
+)
+
+# GLS 模型
+with(Data, sum(y * n)/sum(n)) # 0.25
+summary(Model &lt;- glm(y ~ 1, weights = n, data = Data))
+&quot;估计标准误差 t 值 Pr(&gt;|t|) 
+(截距) 0.25000 0.03536 7.071 0.0194 *
+(高斯族的分散参数取为 0.075)
+零偏差：2 个自由度上的 0.15
+残差偏差：2 个自由度上的 0.15
+AIC：-5.1731&quot;
+with(Model, Prior.weights)
+&quot; 1 2 3 
+10 20 30 &quot;
+with(Model, weights)
+&quot; 1 2 3 
+10 20 30 相同，无迭代重新加权&quot;
+
+# 默认函数
+logLik(Model)
+&quot;4.58654 (df=2)&quot;
+AIC(模型)
+&quot;-5.17308 因为 -2 * 4.58654 + 2 * 2 == -5.17308&quot;
+with( # 基于 gaussian()$aic 和 glm.fit()
+模型，nobs(模型) * (log(deviance/nobs(模型) * 2 * pi) + 1) + 
+2 - sum(log(weights)))
+&quot;-7.17308
+-7.17308 + 2*1 == -5.17308 是报告的 AIC
+logLik 源自 AIC 测量&quot;
+
+# OLS 模型
+summary(模型 &lt;- lm(y ~ 1, weights = n, data = Data))
+logLik(模型)
+&quot;4.58654 (df=2) 与上文相同&quot;
+AIC(Model)
+&quot;-5.17308 与上文相同&quot;
+with(Model, 0.5 * (
+sum(log(weights)) - nobs(Model) * (
+log(2 * pi) + 1 - log(nobs(Model)) + log(sum(weights * residuals^2)))))
+&quot;4.58654 为报告的 logLik&quot;
+
+# 手动计算
+with(Model, sum(prior.weights * log(
+dnorm(y, mean = coef(Model), sd = sigma(Model)))))
+&quot;21.5717&quot;
+with(Model, sum(weights) * (-1/2 * log(2 * pi)))
+&quot;-55.13631&quot;
+带有（模型，总和（权重）*（-1/2 * log（sigma（模型）^2）））
+“77.70801”
+带有（模型，（-1/（2 * sigma（模型）^2））* 总和（权重*（y - coef（模型））^2））
+“-1
+-55.13631 + 77.70801 - 1 == 21.5717”
+带有（模型，总和（权重*（y - coef（模型））^2））
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658636/how-is-gaussian-log-likelihood-value-calculated-exactly</guid>
+      <pubDate>Thu, 12 Dec 2024 17:03:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>在拟合模型之前通过统计抽样删除数据？</title>
+      <link>https://stats.stackexchange.com/questions/658635/statistical-sampling-to-remove-data-before-fitting-a-model</link>
+      <description><![CDATA[在正常情况下，其他条件相同，数据越多越好。
+我对以下情况感到疑惑：我有一个非常大的数据集，我想拟合一个统计模型。但是，我的计算机不够强大，无法在整个数据集上拟合模型。
+假设每个数据点都同样可靠且具有相同的数据质量，我是否可以考虑使用统计抽样来删除某些数据点，以便模型可以在我的计算机上运行？
+我认为这可能相当复杂。正如我们在构建数据集时使用调查权重来确保没有一组观察结果被低估或被高估一样，是否可以使用类似的技术来确保减少数据量不会导致任何组被高估/低估？
+我认为需要进行一些逻辑检查，以确保与原始数据相比，缩小后的数据集中不存在高估/低估？例如如果原始数据为（60%-40% 男女），我们希望缩减后的数据集中男女比例也大致有 20% 的差异。但是，这只是一种比较方法（例如，缩减后，男女比例保持不变，但就业与失业比例不保持不变）。也许存在一些通用技术来比较两个数据集（即原始数据集与缩减数据集）联合分布之间的差异？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658635/statistical-sampling-to-remove-data-before-fitting-a-model</guid>
+      <pubDate>Thu, 12 Dec 2024 16:25:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将多元线性回归结果解释为因变量的百分比变化</title>
+      <link>https://stats.stackexchange.com/questions/658632/how-do-i-interpret-multiple-linear-regression-results-as-change-in-dependent-v</link>
+      <description><![CDATA[假设我正在解释我的 MLR 并写下我的一个独立变量，它是一个指数 (0-1)，系数为 4.169*。我的因变量以摄氏度为单位。我该如何解释这一点，以便我可以说“这个独立变量的百分比增加对应于因变量的 x% 增加/减少”
+我的因变量和独立变量都是线性尺度（即：没有对数）
+关于对数尺度执行此操作有很多信息，但我猜它被认为是线性的直观假设？无论如何，帮助将不胜感激！]]></description>
+      <guid>https://stats.stackexchange.com/questions/658632/how-do-i-interpret-multiple-linear-regression-results-as-change-in-dependent-v</guid>
+      <pubDate>Thu, 12 Dec 2024 16:02:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>当我想比较矩阵问题（每行一个答案，5pt 李克特量表，相关样本）的均值时，进行重复测量方差分析是否有效？</title>
+      <link>https://stats.stackexchange.com/questions/658631/is-it-valid-to-do-a-repeated-mesure-anova-when-i-want-to-compare-means-of-a-matr</link>
+      <description><![CDATA[我们要求参与者对不同的项目进行评分（矩阵问题，12 个项目（行）和 5 分李克特量表（每行一个答案））。调查中的行是随机的。
+问题：如何比较项目的平均值？我想知道它们是否比其他项目高/低。
+这听起来很简单。如果只有两个平均值，我只需进行 t 检验。但不知何故，我不知道我可以使用什么测试来检查 12 个组织（=我的因变量）之间的平均值是如何不同的。请记住，样本是因变量（我没有 UV/组）。
+我想到的是重复测量方差分析......你怎么看？我知道，通常 RM Anova 的示例是“在不同时间点测量相同的因变量”。我有“不同的因变量，在略有不同的时间点进行测量”。
+或者你还有其他要检查的吗？
+谢谢你的想法！
+Manu]]></description>
+      <guid>https://stats.stackexchange.com/questions/658631/is-it-valid-to-do-a-repeated-mesure-anova-when-i-want-to-compare-means-of-a-matr</guid>
+      <pubDate>Thu, 12 Dec 2024 15:29:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>方差的序贯概率比检验</title>
+      <link>https://stats.stackexchange.com/questions/658630/sequential-probability-ratio-test-for-variance</link>
+      <description><![CDATA[Hogg 和 McKean 的书《数理统计学导论》中的一道练习题如下
+练习 8.4.1. 设 $X$ 为 $N(0,\theta)$，按照本节的符号表示，设 $\theta&#39; = 4,$ $\theta&#39;&#39; = 9,$ $\alpha_a = 0.05,$ 和 $\beta_a = 0.10.$ 证明序贯概率比检验可以基于统计数据 $\sum_{i=1}^n X_i^2.$ 确定 $c_0(n)$ 和 $c_1(n).$
+请注意，零假设和备择假设都是简单假设（即 $H_0: \theta = \theta&#39;$ 和 $H_1: \theta = \theta&#39;&#39;$）。
+解决方案很简单，我们得到的答案是 $$5.8387n - 32.4186 \leq \sum_{i=1}^n X_i^2 \leq 5.8387n+41.6214$$，因为只要 $\sum_{i=1}^n X_i^2$ 就是这样被限制的。一旦它“逃离”了其中一个界限，我们就会做出决定并停止采集更多样本。
+我的问题：下限（所谓的 $c_0(n)$）在 $n=6$ 之前为负！！在采集到第六个样本之前，我们永远无法接受零假设。我对此的第一反应是“这难道不会增加我们拒绝零假设的机会，即使零假设为真？”但随后我还发现上限相当高，并且每增加一个样本，上限就会增加 $5.8387$。
+尽管如此，在这种情况下，直到达到一定数量的样本，顺序测试才能确定零假设为真（当零假设实际上为真时）。事实上，我们不妨从 $n=6$ 开始。我的想法正确吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658630/sequential-probability-ratio-test-for-variance</guid>
+      <pubDate>Thu, 12 Dec 2024 15:25:23 GMT</pubDate>
+    </item>
     <item>
       <title>不确定要对我的数据使用什么统计检验：方差分析还是卡方</title>
       <link>https://stats.stackexchange.com/questions/658627/unsure-what-stats-test-to-use-for-my-data-anova-or-chi-square</link>
-      <description><![CDATA[我有一个由 20 个特征和 14 个组组成的矩阵，其值是该组中出现的每个特征的计数，例如：
+      <description><![CDATA[我有一个由 17 个特征和 9 个组组成的矩阵，其值是该组中出现的每个特征的计数，例如：
 
 
 
-特征
-组 1
-组 2
-组3
-等等...
+
+Grp1
+Grp2
+Grp3
+Grp4
+Grp5
+Grp6
+Grp7
+Grp8
+Grp9
 
 
 
 
 F1
-10
-15
-5
-...
+2
+9
+0
+1
+0
+0
+1
+2&lt; /td&gt;
+0
 
 
 F2
-5
+3
+4
+0
+0
+0
+0
+0
+3
 1
-8
-...
-&lt; /tr&gt;
+
 
 F3
+4
+3
+0
+0
+0
+0
+0
+8
+1
+
+
+F4
+1&lt; /td&gt;
+1
+8
+0
+0
+0
+0
+0
+0
+0
+
+
+F5
+0
+1
+0&lt; /td&gt;
+0
+0
+0
+3
+9
+1
+
+
+F6
+4
+7
 1
 0
-18
-...
+0
+0
+0
+5
+0
 
 
-等...
-...
-...
-...
-...
-...
-...
-...
+F7
+1
+7
+0
+1
+0
+0
+0
+8
+2
+
+
+F8
+5
+10
+1
+0
+0
+0
+8
+1
+
+
+F9
+1
+2
+0
+0
+0
+0
+0
+4
+2
+
+
+F10 
+9
+5
+0
+0
+1
+0
+0
+6
+5
+
+
+F11
+3
+6 
+0
+0
+1
+0
+0
+8
+3
+
+
+F12
+10
+16
+0
+1
+1
+0
+1
+13
+3
+
+
+F13
+10
+25
+1
+1
+3
+0
+0
+11
+10
+
+
+F14
+1
+14
+0
+1
+2
+0
+2&lt; /td&gt;
+8
+3
+
+
+F15
+11
+13
+0
+0
+1
+1
+0
+12
+1
+
+
+F16
+8
+3
+0
+0
+1
+0
+0
+6
+3
+
+
+F17
+5
+10
+0
+0
+0
+0
+0
+5
+4
 
 
 
-我想测试每个特征是否与一个或多个组有显著关联。例如，F1 可能与 Grp1 和 Grp2 关联，而 F3 可能与 Grp3 关联。
-如能提供关于使用什么测试以及如何正确格式化分析的任何建议，我们将不胜感激。]]></description>
+我想测试每个特征是否与一个或多个组有显著关联。例如，F1 可能与 Grp1 和 Grp2 关联，而 F4 可能与 Grp3 关联。
+如能提供关于使用什么测试以及如何正确格式化分析的任何建议，我将不胜感激。如果您能够提供示例 R 代码，那将非常棒，我们将不胜感激。
+编辑：
+我写这个是为了开始分析数据。
+fisher.groups &lt;- function(mat){
+res.mat &lt;- matrix(data = NA, 
+nrow = nrow(mat),
+ncol = ncol(mat),
+dimnames = list(rownames(mat),
+colnames(mat)))
+
+for (i in rownames(mat)) {
+for (j in colnames(mat)) {
+idx &lt;- which(rownames(mat) == i)
+jdx &lt;- which(colnames(mat) == j)
+
+tmp.mat &lt;- matrix(c(mat[idx,jdx],
+sum(mat[ idx,-jdx]),
+sum(mat[-idx, jdx]),
+sum(mat[-idx,-jdx])), 
+nrow = 2, ncol = 2)
+
+res.mat[i,j] &lt;- fisher.test(tmp.mat, alternative = &quot;greater&quot;)$p.value
+}
+}
+return(res.mat)
+}
+
+这有意义吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/658627/unsure-what-stats-test-to-use-for-my-data-anova-or-chi-square</guid>
       <pubDate>Thu, 12 Dec 2024 15:06:59 GMT</pubDate>
     </item>
@@ -69,15 +489,6 @@ F3
 我考虑过对非辍学用户使用截断版本的数据，即使用用户在某个课程周之前的数据，以模拟辍学用户的不完整数据。然后，模型针对每个序列长度都有辍学用户和非辍学用户的示例。但这是必要的吗？或者我可以使用非辍学用户的完整序列长度，而无需模型将较短的序列长度与辍学联系起来？]]></description>
       <guid>https://stats.stackexchange.com/questions/658623/varying-sequence-lengths-between-classes-in-lstm</guid>
       <pubDate>Thu, 12 Dec 2024 13:38:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>Scikit-learn，NearestNeighbors：“return_distance”测量什么度量距离？</title>
-      <link>https://stats.stackexchange.com/questions/658622/scikit-learn-nearestneighbors-what-metric-distance-does-return-distance-meas</link>
-      <description><![CDATA[文档通常将 return_distance 度量描述为简单的“距离”，但没有指定它测量的距离。此外，它没有指定当“度量”更改时，此距离度量是否会更改。
-例如，如果我定义 metric=&quot;cosine&quot; 和 return_distance=True，我得到的距离为 0，但我只能猜测它是欧几里得、余弦、曼哈顿还是其他。显然，这些结果之间的解释会有很大不同。
-也许我想得太多了，该参数返回的是 metric= 中指定的度量的距离。如果不是这样，有人知道这个参数返回的是什么距离度量吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658622/scikit-learn-nearestneighbors-what-metric-distance-does-return-distance-meas</guid>
-      <pubDate>Thu, 12 Dec 2024 13:37:59 GMT</pubDate>
     </item>
     <item>
       <title>使用 tsfeatures 识别难以预测的时间序列</title>
@@ -158,39 +569,6 @@ MAAPE 差异（真实值与预测值）：
 提前感谢您的见解！]]></description>
       <guid>https://stats.stackexchange.com/questions/658621/identifying-poorly-forecastable-time-series-using-tsfeatures</guid>
       <pubDate>Thu, 12 Dec 2024 12:00:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>线性回归和岭回归得出相似的系数</title>
-      <link>https://stats.stackexchange.com/questions/658617/linear-regression-and-ridge-regression-resulting-in-similar-coefficients</link>
-      <description><![CDATA[我从线性回归中获得的系数与岭回归相似。我试图了解我错在哪里，但我无法弄清楚。如果有人能指出我错在哪里，那将非常有帮助。
-from sklearn.preprocessing import StandardScaler
-
-ss = StandardScaler()
-
-X_scl = ss.fit_transform(X)
-y_scl = ss.fit_transform(y)
-
-sk_lr = LinearRegression()
-sk_lr.fit(X_scl,y_scl)
-
-alpha=0.01
-sk_ridge = Ridge(alpha=alpha)
-sk_ridge.fit(X_scl,y_scl)
-
-x = np.arange(len(X.columns))
-
-plt.figure(figsize=(15,10))
-
-plt.bar(x=x-.2,height=sk_lr.coef_[0],width=0.4)
-plt.bar(x=x+.2,height=sk_ridge.coef_[0],width=0.4)
-
-plt.xticks(ticks=x,rotation=90,labels = X.columns)
-
-plt.show()
-
-我使用的数据kc_house_train_data.csv]]></description>
-      <guid>https://stats.stackexchange.com/questions/658617/linear-regression-and-ridge-regression-resulting-in-similar-coefficients</guid>
-      <pubDate>Thu, 12 Dec 2024 10:54:40 GMT</pubDate>
     </item>
     <item>
       <title>R 中估算和加权数据的汇总患病率（95%CI）估计</title>
@@ -276,35 +654,13 @@ Q(df = 3) = 0.4697, p-val = 0.9255
       <pubDate>Thu, 12 Dec 2024 09:44:00 GMT</pubDate>
     </item>
     <item>
-      <title>理解平均相对差异（用于 R 中的 all.equal 函数）[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658609/understanding-of-mean-relative-difference-used-in-all-equal-function-in-r</link>
-      <description><![CDATA[有人能解释一下这个 R 代码的结果吗：
-x &lt;- c(1, 0, 1, 0, 0)
-y &lt;- c(0, 1, 0, 1, 1)
-all.equal(x, y)
-[1] &quot;平均相对差异：2.5&quot;
-
-据我理解，平均相对差异定义如下：
-$$D = \frac{1}{n} \sum d[i]$$
-with
-$$d[i] = \frac{|x[i] - y[i]|}{\max\left(|x[i]|, |y[i]|, \text{tolerance}\right)}$$
-因此，我期望分母始终为 1：
-$$|x[1] - y[1]| = |1-0| = 1$$
-$$|x[2] - y[2]| = |0-1| = 1$$
-$$|x[3] - y[3]| = |1-0| = 1$$
-$$|x[4] - y[4]| = |0-1| = 1$$
-$$|x[5] - y[5]| = |0-1| = 1$$
-分子也始终为 1：
-$$\max\left(|x[1]|, |y[1]|, 0.1e-58\right) = max(1,0,0.1e-58) = 1$$
-$$\max\left(|x[2]|, |y[2]|, 0.1e-58\right) = max(0,1,0.1e-58) = 1$$
-$$\max\left(|x[3]|, |y[3]|, 0.1e-58\right) = max(1,0,0.1e-58) = 1$$
-$$\max\left(|x[4]|, |y[4]|, 0.1e-58\right) = max(0,1,0.1e-58) = 1$$
-$$\max\left(|x[5]|, |y[5]|, 0.1e-58\right) = max(0,1,0.1e-58) = 1$$
-因此平均相对差异将是：
-$$\frac{1}{5}\sum_{i=1}^{5} d[i] = \frac{1}{5} * (\frac{1}{1}+\frac{1}{1}+\frac{1}{1}+\frac{1}{1}+\frac{1}{1}) = 1$$
-然而 R 打印的结果却是 2.5。我对平均相对差异的理解哪里错了？还是函数有 bug？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658609/understanding-of-mean-relative-difference-used-in-all-equal-function-in-r</guid>
-      <pubDate>Thu, 12 Dec 2024 08:11:43 GMT</pubDate>
+      <title>为什么非平稳 AR 过程不能表示为无限 MA 过程？[重复]</title>
+      <link>https://stats.stackexchange.com/questions/658605/why-cant-a-non-stationary-ar-process-be-represented-as-an-infinite-ma-process</link>
+      <description><![CDATA[考虑 AR(1) 过程。如果 $|\phi|&lt;1$，则该过程为平稳过程，我们可以将该级数表示为
+$$ Y_t = \epsilon_t + \phi\epsilon_{t-1} + \phi^2\epsilon_{t-2} + \phi^3\epsilon_{t-3} + \cdots $$
+我听说只有平稳 AR 过程才能表示为无限 MA 过程，因此以 AR(1) 为例，如果 $|\phi| \geq 1$，为什么这不成立？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658605/why-cant-a-non-stationary-ar-process-be-represented-as-an-infinite-ma-process</guid>
+      <pubDate>Thu, 12 Dec 2024 00:41:34 GMT</pubDate>
     </item>
     <item>
       <title>对数逻辑分布中的“对数平均值”参数是什么？</title>
@@ -317,129 +673,6 @@ $$\frac{1}{5}\sum_{i=1}^{5} d[i] = \frac{1}{5} * (\frac{1}{1}+\frac{1}{1}+\frac{
 但是，对数逻辑分布的维基百科页面 表示该分布有两个参数，即尺度和形状。我有点困惑，我想知道“对数值的平均值”是否有一个简称，或者是否可以将其转换为形状参数。我之所以问这个问题，是因为我需要在工作中表达这个参数，但我不知道如何引用它，并将这个值转换为已知的形状参数。]]></description>
       <guid>https://stats.stackexchange.com/questions/658602/what-is-the-mean-of-logarithmic-values-parameter-in-log-logistic-distribution</guid>
       <pubDate>Wed, 11 Dec 2024 23:16:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>指数平滑应用于随机游走时的最佳参数</title>
-      <link>https://stats.stackexchange.com/questions/658598/best-parameter-of-exponential-smoothing-when-applied-on-a-random-walk</link>
-      <description><![CDATA[假设我有一个随机游走：
-$$X_t = X_0 + \sum_{i =1}^t \epsilon_i$$
-其中$\epsilon_i \sim \mathcal{N}(0, \sigma^2)$且独立。
-那么在窗口$N$的指数移动平均中，哪个平滑因子$\alpha$可以给出$X_{T+1}$的最佳估计？
-我觉得它应该取决于$\sigma$。例如，如果 $\sigma$ 很大，我会直观地减少最近值的权重，而如果 $\sigma$ 很小，我会增加最近值的权重。
-但是，$\alpha$ 是否存在可以给出最佳估计的封闭形式？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658598/best-parameter-of-exponential-smoothing-when-applied-on-a-random-walk</guid>
-      <pubDate>Wed, 11 Dec 2024 22:35:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否存在一种标准方法，通过纳入第二个协变量来量化和测试一个协变量的好处？</title>
-      <link>https://stats.stackexchange.com/questions/658596/is-there-a-standard-way-to-quantify-test-the-benefit-to-one-covariate-by-inclu</link>
-      <description><![CDATA[对于线性模型（或 glm），是否有标准统计数据（和相关测试）来量化包含协变量是否会增加另一个协变量与因变量之间的关联强度？
-例如，我有两个模型：
-
-Y ~ X1
-Y ~ X1 + X2
-
-我知道我可以使用似然比检验来评估模型 2 是否更能解释 Y，但这可能完全由 X2 的独立贡献驱动。是否有“测试”（甚至只是一个可解释的统计数据）来衡量在给定 X2 的情况下 X1 是否能显著（或有意义地）更好地解释 Y？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658596/is-there-a-standard-way-to-quantify-test-the-benefit-to-one-covariate-by-inclu</guid>
-      <pubDate>Wed, 11 Dec 2024 22:05:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>如果我从数据框中删除一些变量或将因子载荷限制为 0，保留所有变量，为什么两个 CFA 模型不等效？lavaan</title>
-      <link>https://stats.stackexchange.com/questions/658595/why-are-two-cfa-models-not-equivalent-if-i-drop-some-variables-from-my-dataframe</link>
-      <description><![CDATA[探索嵌套与非嵌套模型时，我对一个奇怪的结果感到惊讶。第一个模型使用我的数据框中的 21 个变量并运行 CFA。第二个模型使用我的数据框中的 28 个变量，但将 7 个变量的因子载荷限制为 0。
-mod1 &lt;- &quot;F1 =~ fig_1 + fig_2 + fig_3 + fig_4 + fig_6 + fig_7 + fig_10 + fig_11 + 
-fig_12 + fig_13 + fig_14 + fig_15 + fig_17 + fig_18 + fig_19 + fig_20 +
-fig_21 + fig_22 + fig_24 + fig_25 + fig_28&quot;
-
-mod2 &lt;- &quot;F1 =~ fig_1 + fig_2 + fig_3 + fig_4 + fig_6 + fig_7 + fig_10 + fig_11 + 
-fig_12 + fig_13 + fig_14 + fig_15 + fig_17 + fig_18 + fig_19 + fig_20 +
-fig_21 + fig_22 + fig_24 + fig_25 + fig_28 +
-0*fig_26 + 0*fig_23 + 0*fig_8 + 0*fig_9 + 0*fig_5 + 0*fig_16 + 0*fig_27&quot;
-
-这两个 CFA 模型是
-cfa1 &lt;- cfa(mod1 ,
-data = df_mig %&gt;%
-select(fig_1:fig_28) %&gt;%
-select(-c(fig_26, fig_23, fig_8, fig_9,
-fig_5, fig_16, fig_27)),
-estimator = &#39;WLSM&#39;,
-ordered=TRUE)
-cfa2 &lt;- cfa(mod2 ,
-data = df_mig %&gt;%
-select(fig_1:fig_28), #使用所有列
-estimator = &#39;WLSM&#39;,
-ordered=TRUE)
-因子载荷都相同，但模型拟合度却大不相同。
-
-有什么想法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658595/why-are-two-cfa-models-not-equivalent-if-i-drop-some-variables-from-my-dataframe</guid>
-      <pubDate>Wed, 11 Dec 2024 21:52:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何对两组潜在变量进行 t 检验并比较它们的均值？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658587/how-do-i-perform-a-t-test-for-latent-variables-in-two-groups-and-compare-their-m</link>
-      <description><![CDATA[我正在尝试对两组潜在变量进行 t 检验。但是，我不确定这是否是合适的方法。
-# 加载必要的包（如果尚未加载）
-library(readxl)
-library(lavaan)
-library(semTools)
-library(psych)
-
-# 读取数据（根据需要调整文件名和路径）
-data &lt;- read_excel(&quot;newpost.xlsx&quot;)
-
-names(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, names(data))
-
-data$intelligence_score &lt;- rowMeans(data[, c(&quot;intelligent_1&quot;, 
-&quot;intelligent_2&quot;, 
-&quot;intelligent_3&quot;, 
-&quot;intelligent_5&quot;,
-&quot;intelligent_6&quot;)],
-na.rm = TRUE)
-
-数据$translationgroup &lt;- factor(data$translationgroup, levels = c(0,1), labels = c(&quot;Low_tranlation&quot;, &quot;High_tranlation&quot;))
-
-# 对翻译组的 intelligence_score 执行双样本 t 检验
-t_test_result &lt;- t.test(intelligence_score ~ Translationgroup, data = data)
-
-# 打印结果
-print(t_test_result)
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658587/how-do-i-perform-a-t-test-for-latent-variables-in-two-groups-and-compare-their-m</guid>
-      <pubDate>Wed, 11 Dec 2024 19:21:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于 $X^TX$ 的协方差矩阵</title>
-      <link>https://stats.stackexchange.com/questions/658584/covariance-matrix-in-terms-of-xtx</link>
-      <description><![CDATA[如果我有一个矩阵 $X\in \mathbb{R}^{n\times p}$，那么我可以将协方差写为
-$$\text{Cov}(X) = \mathbb{E}[(X-\mu_X)(X-\mu_X)^T]$$
-现在，假设数据已居中，则变为 $\text{Cov}(X) = \mathbb{E}[XX^T]$。我见过帖子说协方差是$XX^T$，而其他人提到$X^TX$是协方差。我不太明白这两个是如何得出的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658584/covariance-matrix-in-terms-of-xtx</guid>
-      <pubDate>Wed, 11 Dec 2024 18:10:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何从具有分类变量的混合模型中估计总体方差？</title>
-      <link>https://stats.stackexchange.com/questions/658575/how-to-estimate-population-variance-from-a-mixed-model-with-a-categorical-variab</link>
-      <description><![CDATA[我以为这是一个基本问题，但我被它难住了，找不到解决方案。
-我有一个数据库，其中包含不同养猪生产阶段（类别）的粪浆干物质含量，并且由不同的操作员（OP）在不同时刻（季节）采集样本。我只是对估计每个类别的平均值和方差总体感兴趣。
-为了解决这个问题，我建立了一个线性混合模型，其中对因变量进行了平方变换。在测试了它们的重要性（AIC，BIC）之后，我将 OP 作为随机效应，将 CATEGORY 和 SEASON 作为固定效应。
- fit &lt;- nlme::lme(sqrt(MS) ~ CATEGORY + SEASON, random=~1|OP, data=dat
-据我所知，每个 CATEGORY 中的估计平均值是每个固定效应值的对应 LSM。但是我不太清楚如何估计每个类别的方差。简化一下，我读到在一般线性回归中，模型的均方误差用于估计总体的方差，但在混合模型中，对于一些分组变量，我找不到任何关于如何计算它的解释。
-也许每个固定效应的标准误差相当于MSE?
-summary(fit)
-固定效应：sqrt(MS) ~ CATEGORY + SEASON 
-值 标准误差 DF t 值 p 值
-(截距) 2.0142552 0.1127073 197 17.871557 0.0000
-CATEGORYpiglets -0.2367893 0.1400533 197 -1.690708 0.0925
-CATEGORYsows -0.8191891 0.1195440 197 -6.852615 0.0000
-SEASONspring -0.0280369 0.02811633 194 -0.997177 0.3199
-SEASONsummer -0.0126275 0.03969934 194 -0.318078 0.7508
-SEASONoutom -0.0884407 0.02879816 194 -3.071054 0.0024
-
-我的最终目标是估算覆盖 75% 人口的干物质含量值。你能帮我解决这个疑问吗？如果有用的话，我正在使用 R 中的 nlme 包。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658575/how-to-estimate-population-variance-from-a-mixed-model-with-a-categorical-variab</guid>
-      <pubDate>Wed, 11 Dec 2024 13:37:53 GMT</pubDate>
     </item>
     </channel>
 </rss>
