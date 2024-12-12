@@ -4,9 +4,218 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 12 Dec 2024 09:19:09 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Dec 2024 12:36:38 GMT</lastBuildDate>
     <item>
-      <title>理解平均相对差异（用于 R 中的 all.equal 函数）</title>
+      <title>使用 tsfeatures 识别难以预测的时间序列</title>
+      <link>https://stats.stackexchange.com/questions/658621/identifying-poorly-forecastable-time-series-using-tsfeatures</link>
+      <description><![CDATA[我正在研究一个问题，该问题涉及使用 Rob J. Hyndman 使用 tsfeatures 库提取的特征来识别预测性较差的时间序列。以下是有关我的数据集和方法的关键细节：
+数据集：
+
+超过 140,000 个单独的时间序列。
+
+每个时间序列跨越 29 个月，每月一个值。
+
+预测范围：7 个月。
+
+
+目标：
+通过利用提取的特征和评估预测误差来确定哪些时间序列预测性较差。
+当前方法
+步骤 1：特征提取
+使用 tsfeatures 库，我为 140,000 个时间序列中的每一个计算各种统计和时间序列特征。然后将这些特征存储在 DataFrame 中以供进一步分析。
+第 2 步：预测
+每个时间序列都使用多个模型进行预测：TimesNet、NBEATS、NHITS。
+这些模型都经过了优化，我为每个模型计算了预测误差指标：
+
+MSE（事先缩放数据时）。
+MAAPE（未缩放数据时）。
+
+我在 DataFrame 中记录了每个时间序列的最低预测误差值（例如 min_maape）。
+步骤 3：准备回归数据
+DataFrame 现在包含每个时间序列的提取特征和误差指标。
+我通过删除不相关或有问题的列来创建特征矩阵 (X_features)，例如：
+
+[&#39;unique_id&#39;, &#39;ds&#39;, &#39;y&#39;, &#39;hurst&#39;, &#39;arch_acf&#39;, &#39;garch_acf&#39;, &#39;arch_r2&#39;, &#39;garch_r2&#39;, &#39;min_maape&#39;, &#39;max_maape&#39;, &#39;TimesNet&#39;, &#39;NHITS&#39;, &#39;NBEATSx&#39;]
+
+目标变量 (y_maape) 包含最小 MAAPE 值：
+
+y_maape = feature_evaluation_merged[&#39;min_maape&#39;]
+
+我执行 80/20 训练-测试分割：
+X_train, X_test, y_train, y_test, unique_ids_train, unique_ids_test = train_test_split(
+X_features, y_maape, unique_ids, test_size=0.2, random_state=42)
+
+
+步骤 4：训练回归器
+我训练各种回归器，根据提取的特征预测 min_maape。到目前为止，我已经测试过：
+
+随机森林
+决策树
+梯度提升
+结合随机森林、梯度提升和 AdaBoost 的集成模型
+
+训练随机森林回归器的示例：
+rf = RandomForestRegressor(
+max_depth=9,
+min_samples_leaf=10,
+min_samples_split=9,
+n_estimators=743,
+random_state=42
+)
+rf.fit(X_train_numeric, y_train)
+第 5 步：超参数优化
+我使用以下方法优化了回归器：
+
+Optuna 框架
+GridSearchCV 来自scikit-learn
+
+第 6 步：评估
+无论使用何种回归器或优化程度如何，预测值（例如 rf.predict(X_test)）都保持在 0.6 和 1.0 之间。以下是两个示例：
+预测值分布：
+
+MAAPE 差异（真实值与预测值）：
+
+问题：
+
+我的方法有意义吗？
+尽管进行了超参数优化，但预测值仍然在一个较窄的范围内（0.6–1.0）。我该如何改进？
+是否存在方法缺陷、遗漏的步骤或我可以纳入的潜在改进？
+
+提前感谢您的见解！]]></description>
+      <guid>https://stats.stackexchange.com/questions/658621/identifying-poorly-forecastable-time-series-using-tsfeatures</guid>
+      <pubDate>Thu, 12 Dec 2024 12:00:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>线性回归和岭回归得出相似的系数</title>
+      <link>https://stats.stackexchange.com/questions/658617/linear-regression-and-ridge-regression-resulting-in-similar-coefficients</link>
+      <description><![CDATA[我从线性回归中获得的系数与岭回归相似。我试图了解我错在哪里，但我无法弄清楚。如果有人能指出我错在哪里，那将非常有帮助。
+from sklearn.preprocessing import StandardScaler
+
+ss = StandardScaler()
+
+X_scl = ss.fit_transform(X)
+y_scl = ss.fit_transform(y)
+
+sk_lr = LinearRegression()
+sk_lr.fit(X_scl,y_scl)
+
+alpha=0.01
+sk_ridge = Ridge(alpha=alpha)
+sk_ridge.fit(X_scl,y_scl)
+
+x = np.arange(len(X.columns))
+
+plt.figure(figsize=(15,10))
+
+plt.bar(x=x-.2,height=sk_lr.coef_[0],width=0.4)
+plt.bar(x=x+.2,height=sk_ridge.coef_[0],width=0.4)
+
+plt.xticks(ticks=x,rotation=90,labels = X.columns)
+
+plt.show()
+
+我使用的数据kc_house_train_data.csv]]></description>
+      <guid>https://stats.stackexchange.com/questions/658617/linear-regression-and-ridge-regression-resulting-in-similar-coefficients</guid>
+      <pubDate>Thu, 12 Dec 2024 10:54:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中估算和加权数据的汇总患病率（95%CI）估计</title>
+      <link>https://stats.stackexchange.com/questions/658616/estimation-of-pooled-prevalence-with-95ci-in-imputed-and-weighted-data-in-r</link>
+      <description><![CDATA[我正在尝试估计二元变量“x”的流行程度以及在 R 中多次插补（使用 mice）并应用权重后的置信区间。我使用 Rubin 规则进行估计，但我不确定我是否正确实施了它们。
+#### 插补和加权后的流行率 ####
+# 通过插补计算加权比例
+
+estimate_prop_x &lt;- imp_long %&gt;%
+group_by(.imp) %&gt;%
+summary(
+prop = sum((x == 1) * weight) / sum(weight), # 加权比例
+.groups = &quot;drop&quot;
+)
+
+# 使用 Rubin 规则计算整体组合统计数据
+estimate_mean_prop_x &lt;-estimate_prop_x %&gt;%
+filter(.imp &gt; 0) %&gt;% # 排除具有缺失值的观测数据
+summary(
+mean_prop =mean(prop),
+var_intra =var(prop),
+U_bar = mean(var_intra),
+m = 15, # 插补次数 
+B = sum((prop - mean(prop))^2)/(m-1),
+var_comb = U_bar + (1 + 1/m) * B, # 合并方差
+) %&gt;%
+mutate(
+# 计算调整后的自由度
+df_adj = (m - 1) * (1 + (var_intra / ((1 + 1/m) * B)))^2,
+# 95% 置信区间的临界 t 值
+t_value = qt(0.975, df = df_adj),
+# 计算置信区间限值
+conf_low = mean_prop - t_value * sqrt(var_comb),
+conf_high = mean_prop + t_value * sqrt(var_comb)
+)
+
+# 显示结果
+print(estimate_mean_prop_x)
+
+感谢您的帮助！]]></description>
+      <guid>https://stats.stackexchange.com/questions/658616/estimation-of-pooled-prevalence-with-95ci-in-imputed-and-weighted-data-in-r</guid>
+      <pubDate>Thu, 12 Dec 2024 10:36:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>因变量值超过 50 个</title>
+      <link>https://stats.stackexchange.com/questions/658614/more-than-50-values-for-dependent-variable</link>
+      <description><![CDATA[转帖：大家好，非常感谢大家对我之前帖子的回复，我可以在下面找到。这里我提供了一些信息。
+a. 这是临床数据，样本量约为 859。
+b. 它有 11 列作为输入特征，例如基因组的唯一读取，它是细菌还是病毒类型以及测序报告的病原体。它是分类值和数值的混合。
+c. 依赖列有 53 个唯一值（医院检测到的病原体），我的模型将尝试预测这些值。
+再次，任何关于如何处理这个问题的建议。
+上一篇文章：我正在尝试构建机器学习模型，其中因变量是分类的，并且有超过 60 个值。它们不是序数或遵循任何等级。
+任何关于如何处理这个问题的建议。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658614/more-than-50-values-for-dependent-variable</guid>
+      <pubDate>Thu, 12 Dec 2024 10:12:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何从多个研究内效应中获取一个研究效应</title>
+      <link>https://stats.stackexchange.com/questions/658613/how-to-obtain-one-study-effect-from-several-within-study-effects</link>
+      <description><![CDATA[我想进行叙述性回顾（因为无法进行荟萃分析），并且我想根据研究得出预测因子是否显著的结论。但是，研究对每个预测因子都有几种效应大小。例如，我想研究父母的精神病理学作为预测因子，一项研究调查了父母的抑郁症和父母的药物滥用。从这两个指标中，我想要一个结论（针对这项研究）。我如何才能对每个研究得出一个效应大小或结论？
+如果两者都不显著，我可以假设父母的精神病理学预测因子也不显著吗？在这种情况下，如果 2 个中有 1 个显著，会怎么样？或者 4 个中有 3 个显著？
+我也尝试在一项具有几种效应大小的研究中进行荟萃分析，但我发现这些结果值得怀疑。例如，一项具有 4 个不显著效应大小的研究变得显著：
+data &lt;- data.frame(logOR = c(1.41098697371026, 1.14740245283754, 1.61938824328727, 0.470003629245736), #对数转换的优势比
+CI.low_log = c(-0.127833371509885, -0.941608539858445, -0.462035459596559, -2.30258509299405), #对数转换的下限
+CI.high_log = c(2.95386806945529, 3.23867845216438, 3.69907727909038, 3.27374272630904), # 对数转换的上限
+vi = c(0.618029191694011, 1.1372084115782, 1.12679998074128, 2.02359901787885), # 平方标准误差，((data$CI.high_log - data$CI.low_log)/3.92)^2
+effect_id = 1:4
+)
+
+rma.mv(
+yi = logOR, # 对数转换的 OR
+V = vi, # 方差
+random = list(~ 1 | effect_id), # 随机效应结构
+data = data
+)
+
+多变量荟萃分析模型 (k = 4; 方法：REML)
+
+方差分量：
+
+估计 sqrt nlvls 固定因子 
+sigma^2 0.0000 0.0000 4 无 effect_id 
+
+异质性检验：
+Q(df = 3) = 0.4697, p-val = 0.9255
+
+模型结果：
+
+估计 se zval pval ci.lb ci.ub 
+1.2790 0.5077 2.5191 0.0118 0.2839 2.2742 * 
+
+---
+符号代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658613/how-to-obtain-one-study-effect-from-several-within-study-effects</guid>
+      <pubDate>Thu, 12 Dec 2024 09:44:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>理解平均相对差异（用于 R 中的 all.equal 函数）[关闭]</title>
       <link>https://stats.stackexchange.com/questions/658609/understanding-of-mean-relative-difference-used-in-all-equal-function-in-r</link>
       <description><![CDATA[有人能解释一下这个 R 代码的结果吗：
 x &lt;- c(1, 0, 1, 0, 0)
@@ -37,26 +246,6 @@ $$\frac{1}{5}\sum_{i=1}^{5} d[i] = \frac{1}{5} * (\frac{1}{1}+\frac{1}{1}+\frac{
       <pubDate>Thu, 12 Dec 2024 08:11:43 GMT</pubDate>
     </item>
     <item>
-      <title>对回归模型求偏导数</title>
-      <link>https://stats.stackexchange.com/questions/658606/taking-partial-derivatives-of-regression-models</link>
-      <description><![CDATA[对于具有函数 $f(x_1, x_2, x_3)$ 的一般统计模型，$x_1$ 的偏效应是我们在将 $x_2$ 和 $x_3$ 固定在特定值（例如 $c_1, c_2$）的同时取偏导数时得到的结果：
-$$ \text{} x_1 = \frac{\partial f(x_1, x_2, x_3)}{\partial x_1}\bigg|_{x_2=c_2, x_3=c_3} 的偏效应 $$
-另一方面，边际效应涉及对其他变量的分布取期望（其中我们有 $n$ 个数据点，$x_{2i}$ 和 $x_{3i}$ 是我们数据集中的观测值）：
-$$ \text{} x_1 = E_{x_2,x_3}\left[\frac{\partial f(x_1, x_2, x_3)}{\partial x_1}\right] 的边际效应 $$
-$$ \text{} x_1 = \frac{1}{n}\sum_{i=1}^n \frac{\partial 的估计边际效应f(x_1, x_{2i}, x_{3i})}{\partial x_1} $$
-我对以下一点有疑问：对于非线性统计模型，在考虑较大差异的影响时，我们是否必须调整微积分？
-例如，对于点 $x$ 周围的小变化 $\Delta x$，使用导数的局部近似为（对于变量 $X_1$，保持其他变量不变）：
-$$ \text{Effect}_{\text{}}(\Delta x) \approx \frac{\partial f(x_1, x_2, x_3)}{\partial x_1}\Delta x $$
-我认为同样的逻辑并不完全适用于 $\Delta x$ 的较大值，因为这个范围的每个点的斜率现在都会不同：
-$$ \text{Effect}_{\text{}}(\Delta x) = \int_{x}^{x + \Delta x} \frac{\partial f(x_1, x_2, x_3)}{\partial x_1} dx_1 $$
-这是正确的吗？对于非线性模型，效应量计算所需的导数是否需要相应修改以反映近似相关问题？
-
-关于微积分的注释：https://math.stackexchange.com/questions/5010389/derivatives-of-linear-functions-vs-derivatives-of-non-linear-functions
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658606/taking-partial-derivatives-of-regression-models</guid>
-      <pubDate>Thu, 12 Dec 2024 01:13:58 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么非平稳 AR 过程不能表示为无限 MA 过程？</title>
       <link>https://stats.stackexchange.com/questions/658605/why-cant-a-non-stationary-ar-process-be-represented-as-an-infinite-ma-process</link>
       <description><![CDATA[考虑 AR(1) 过程。如果 $|\phi|&lt;1$，则该过程为平稳过程，我们可以将该级数表示为
@@ -64,29 +253,6 @@ $$ Y_t = \epsilon_t + \phi\epsilon_{t-1} + \phi^2\epsilon_{t-2} + \phi^3\epsilon
 我听说只有平稳 AR 过程才能表示为无限 MA 过程，因此以 AR(1) 为例，如果 $|\phi| \geq 1$，为什么这不成立？]]></description>
       <guid>https://stats.stackexchange.com/questions/658605/why-cant-a-non-stationary-ar-process-be-represented-as-an-infinite-ma-process</guid>
       <pubDate>Thu, 12 Dec 2024 00:41:34 GMT</pubDate>
-    </item>
-    <item>
-      <title>对数逻辑分布中的“对数平均值”参数是什么？</title>
-      <link>https://stats.stackexchange.com/questions/658602/what-is-the-mean-of-logarithmic-values-parameter-in-log-logistic-distribution</link>
-      <description><![CDATA[我从 mathworks 网站 上读到：
-
-对数逻辑分布使用以下参数。
-
-
-但是，对数逻辑分布的维基百科页面 表示该分布有两个参数，即尺度和形状。我有点困惑，我想知道“对数值的平均值”是否有一个简称，或者是否可以将其转换为形状参数。我之所以问这个问题，是因为我需要在工作中表达这个参数，但我不知道如何引用它，并将这个值转换为已知的形状参数。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658602/what-is-the-mean-of-logarithmic-values-parameter-in-log-logistic-distribution</guid>
-      <pubDate>Wed, 11 Dec 2024 23:16:57 GMT</pubDate>
-    </item>
-    <item>
-      <title>在比较 3 个以上变量的均值之后，我可以使用一系列线性回归对 R 中的调查数据进行事后检验吗？</title>
-      <link>https://stats.stackexchange.com/questions/658600/can-i-use-a-series-of-linear-regressions-to-perform-post-hoc-tests-on-survey-dat</link>
-      <description><![CDATA[Thomas Lumley 在这篇 StackOverflow 文章中解释说，survey 包的 regTermTest() 函数可用于比较 3 个以上组的平均值。但是，我想澄清的是，如果此测试显示平均值之间存在统计上的显着差异，则应使用哪种事后检验。一系列线性回归在这里是否有意义，如果有意义，我是否需要应用校正来解释我正在执行的多个测试？
-例如，假设我正在分析加权调查数据集中共和党人、民主党人和独立人士之间的家庭收入差异。我的 regTermTest() 结果表明这些群体之间存在显着差异；但是，我接下来想确定 (1) 共和党人和民主党人、(2) 共和党人和独立人士以及 (3) 民主党人和独立人士之间的收入差异是否具有统计显著性。
-我相信我可以通过执行两个回归来回答这些后续问题，一个以共和党人为截距，另一个以民主党人为截距，然后分析我检索到的系数的统计显著性。 （此方法的灵感来自探索 R 中的复杂调查数据分析第 7 章）但是，鉴于我在这里执行两个不同的测试，我是否需要使用 Holm 或 Bonferroni 校正来降低发生 I 类错误的可能性？
-（仔细想想：我是否可以跳过初始 regTermTest 并直接转到这些线性回归，或者首先确保这三个组的平均值实际上不同很重要？
-此外，成对 T 检验是否是这些事后回归的更好替代方案，或者该测试输出的结果是否相同？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658600/can-i-use-a-series-of-linear-regressions-to-perform-post-hoc-tests-on-survey-dat</guid>
-      <pubDate>Wed, 11 Dec 2024 22:55:07 GMT</pubDate>
     </item>
     <item>
       <title>指数平滑应用于随机游走时的最佳参数</title>
@@ -146,11 +312,38 @@ ordered=TRUE)
       <pubDate>Wed, 11 Dec 2024 21:52:41 GMT</pubDate>
     </item>
     <item>
-      <title>是否存在计算边际效应的标准方法？</title>
-      <link>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</guid>
-      <pubDate>Wed, 11 Dec 2024 21:11:19 GMT</pubDate>
+      <title>如何对两组潜在变量进行 t 检验并比较它们的均值？</title>
+      <link>https://stats.stackexchange.com/questions/658587/how-do-i-perform-a-t-test-for-latent-variables-in-two-groups-and-compare-their-m</link>
+      <description><![CDATA[我正在尝试对两组潜在变量进行 t 检验。但是，我不确定这是否是合适的方法。
+# 加载必要的包（如果尚未加载）
+library(readxl)
+library(lavaan)
+library(semTools)
+library(psych)
+
+# 读取数据（根据需要调整文件名和路径）
+data &lt;- read_excel(&quot;newpost.xlsx&quot;)
+
+names(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, names(data))
+
+data$intelligence_score &lt;- rowMeans(data[, c(&quot;intelligent_1&quot;, 
+&quot;intelligent_2&quot;, 
+&quot;intelligent_3&quot;, 
+&quot;intelligent_5&quot;,
+&quot;intelligent_6&quot;)],
+na.rm = TRUE)
+
+数据$translationgroup &lt;- factor(data$translationgroup, levels = c(0,1), labels = c(&quot;Low_tranlation&quot;, &quot;High_tranlation&quot;))
+
+# 对翻译组的 intelligence_score 执行双样本 t 检验
+t_test_result &lt;- t.test(intelligence_score ~ Translationgroup, data = data)
+
+# 打印结果
+print(t_test_result)
+```
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658587/how-do-i-perform-a-t-test-for-latent-variables-in-two-groups-and-compare-their-m</guid>
+      <pubDate>Wed, 11 Dec 2024 19:21:07 GMT</pubDate>
     </item>
     <item>
       <title>关于 $X^TX$ 的协方差矩阵</title>
@@ -160,26 +353,6 @@ $$\text{Cov}(X) = \mathbb{E}[(X-\mu_X)(X-\mu_X)^T]$$
 现在，假设数据已居中，则变为 $\text{Cov}(X) = \mathbb{E}[XX^T]$。我见过帖子说协方差是$XX^T$，而其他人提到$X^TX$是协方差。我不太明白这两个是如何得出的。]]></description>
       <guid>https://stats.stackexchange.com/questions/658584/covariance-matrix-in-terms-of-xtx</guid>
       <pubDate>Wed, 11 Dec 2024 18:10:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在我的受污染数据问题中找到具有 ML 组件的去偏估计量？</title>
-      <link>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</link>
-      <description><![CDATA[我试图使用机器学习模型的输出来估计（使用最大似然法）分布中的参数。我得到的估计量的偏差比参数值大得多。我想使用 Neyman 正交性/双机器学习方法（Chernozhukov et al., 2018）、影响函数或任何相关（或不相关）方法找到一个去偏估计量。但我不清楚如何在我的情况下构建去偏估计量。
-我的估计问题
-我已经“污染”了数据：大多数数据来自概率分布$P_0(x)$，但部分数据来自不同的分布$P_1(x)$（“污染”）。因此，我假设我的数据点是从分布$$P(x) = (1-\theta) P_0(x) + \theta P_1(x).$$中独立同分布抽取的。我的目标是找出受污染数据的比例$\theta$。 $\theta$ 的最大似然估计量是 $$0 = \frac{1}{n}\sum_i\frac{r(x_i)-1}{1+\hat{\theta}\bigl(r(x_i)-1\bigr)},$$ 的解，其中 $x_1,\ldots,x_n$ 是数据点，$r(x) = \frac{P_1(x)}{P_0(x)}$。
-我不知道概率分布 $P_0(x)、P_1(x)$ 或它们的比率 $r(x)$直接，但我确实有另一个标记为数据集 $(\tilde{x}_i, y_i)$ 的数据点，其生成分布是已知的：对于从 $P_0$ 中抽取的点，$y_i=0$ ；对于从 $P_1$ 中抽取的点，$y_i=1$ ：$$Prob(\tilde{x}_i | y_i) = P_{y_i} (\tilde{x}_i)$$ （为简单起见，假设我有相同数量的 $\tilde{x}_i$，其中 $\tilde{x}_i$ class=&quot;math-container&quot;&gt;$y=0$ 和 $y=1$)。因此，我尝试通过两个步骤估计 $\theta$：
-
-在标记数据集上训练 ML 分类器 $f(x)$ 以估计 $Prob(y=1|x)$，从而获得概率比的估计值为：$\hat{r}(x) = \frac{f(x)}{1-f(x)}$。
-
-将此 $\hat{r}$ 代入 MLE 方程，得出 $$0 = \frac{1}{n}\sum_i\frac{\hat{r}(x_i)-1}{1+\hat{\theta}\bigl(\hat{r}(x_i)-1\bigr)},$$ 并求解 $\hat{\theta}$。
-
-
-请注意，用于 MLE 估计（步骤 2）的数据集与用于训练 ML 模型（步骤 1）的数据不同且独立。
-我的问题
-$\hat{r}$ 是一个有偏估计量，例如在双重机器学习文献中讨论过（参见上面的链接）。因此，我得到了 $\theta$ 的有偏估计量。在我的案例中，我感兴趣的是 $\theta$ 的值远小于此偏差。因此，我想找到 $\theta$ 的去偏估计量。但我对如何将双重机器学习方法或影响函数应用于我的案例感到困惑。
-在我的案例中，Neyman 正交 MLE 方程是什么？我如何使用我拥有的信息来找到污染分数 $\theta$ 的去偏估计量？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</guid>
-      <pubDate>Wed, 11 Dec 2024 15:48:04 GMT</pubDate>
     </item>
     <item>
       <title>如何从具有分类变量的混合模型中估计总体方差？</title>
@@ -205,28 +378,44 @@ SEASONoutom -0.0884407 0.02879816 194 -3.071054 0.0024
       <pubDate>Wed, 11 Dec 2024 13:37:53 GMT</pubDate>
     </item>
     <item>
-      <title>如何用不准确的评估器计算置信区间？</title>
-      <link>https://stats.stackexchange.com/questions/658562/how-to-compute-a-confidence-interval-with-an-inaccurate-evaluator</link>
-      <description><![CDATA[让我们考虑以下针对 LLM 的提示：
-
-系统提示：您是 Python 语言专家。您的角色是回答任何与 Python 相关的问题。
-用户提示：&lt;用户查询&gt;
-
-我想测试此系统提示以检查它是否正确回答了用户的问题。为此，我创建了一个问题数据集：
-
-sqrt 函数在哪个模块中？
-我可以使用哪个函数来降低字符串的字符数？
-...
-
-此数据集包含 5421 个问题。我已将此数据集提供给我的 LLM，并得到了 5421 个答案。我已审查了其中的 43 个，并使用 PASS/FAIL 评估对每个答案进行了评估。如果答案正确回答了用户的问题，则该答案被视为 PASS。在这 43 个答案中，我发现了 24 个 PASS 答案。
-我现在希望另一个 LLM 评估这个系统提示。为此，我创建了一个 LLM-as-a-judge 作为评估者。这个 LLM-as-a-judge 的角色是执行我对 43 个答案所做的相同任务：使用 PASS/FAIL 评估来评估每个答案。
-我向 LLM-as-a-judge 提供了我已经评估过的 43 个问题/答案。我发现这位评委 79% 的时间都同意我的观点。
-然后，我向 LLM-as-a-judge 提供了我的数据集中的所有 5421 个问题/答案。 LLM-as-a-judge 对系统提示的评分为 87.12%（意味着系统提示的 87.12% 的答案被评估为 PASS）。
-现在，由于 LLM-as-a-judge 的准确率为 79%（意味着它并不总是像我一样评估），我想知道我会给整个数据集打多少分（知道评委给出了 87.12% 的分数）。
-我如何计算这个分数？是否有可能确定 87.12% 左右的置信区间？
-注意：我是统计学新手，如果这个问题之前已经回答过，我很抱歉。我发现很难理解一些现有的问题和答案。请保持您的答案简单明了。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658562/how-to-compute-a-confidence-interval-with-an-inaccurate-evaluator</guid>
-      <pubDate>Wed, 11 Dec 2024 08:23:24 GMT</pubDate>
+      <title>MSVAR模型中协方差的标签切换问题</title>
+      <link>https://stats.stackexchange.com/questions/658532/label-switching-issue-about-the-covariance-in-msvar-model</link>
+      <description><![CDATA[假设我有一个简单的 MSVAR 模型，该模型具有 1 个滞后、2 个变量和 2 个状态，其中 VAR 项与状态无关：
+状态 1：
+$$y^{1}_t = y^1_{t-1} \cdot \gamma_{0,1} + y^{2}_{t-1} \cdot \gamma_{0,2} + \gamma_{1,1}$$
+$$y^{2}_t = y^{1}_{t-1} \cdot \gamma_{0,1} + y^{2}_{t-1} \cdot \gamma_{0,2} + \gamma_{1,2}$$
+协方差 1：$\Sigma^1=
+\begin{pmatrix}
+\Sigma^1_{11} &amp; \Sigma^1_{12} \\
+\Sigma^1_{21} &amp; \Sigma^1_{22} 
+\end{pmatrix} $
+方案 2：
+$$y^1_t = y^1_{t-1} \cdot \gamma_{0,1} + y^{2}_{t-1} \cdot \gamma_{0,2} + \gamma_{2,1}$$
+$$y^2_t = y^1_{t-1} \cdot \gamma_{0,1} + y^{2}_{t-1} \cdot \gamma_{0,2} + \gamma_{2,2}$$
+协方差 2：$\Sigma^2=
+\begin{pmatrix}
+\Sigma^2_{11} &amp; \Sigma^2_{12} \\
+\Sigma^2_{21} &amp; \Sigma^2_{22} 
+\end{pmatrix} $
+由于我假设制度 1 是衰退，而制度 2 是扩张，根据它们的定义，限制应该是 $\gamma_{1,1} &lt; \gamma_{2,1}$ 和 $\gamma_{1,2} &lt; \gamma_{2,2}$，我认为这应该叫做全序？
+有可能，当标签切换时，$\gamma_{1,1}$、$\gamma_{2,1}$和$\gamma_{1,2}$、$\gamma_{2,2}$可能在一次迭代内切换。
+我的问题是，如果$\gamma_{1,1}$、$\gamma_{2,1}$和$\gamma_{1,2}$都可能在一次迭代内切换。
+我的问题是，如果$\gamma_{1,1}$、$\gamma_{2,1}$和$\gamma_{1,2}$、$\gamma_{2,2}$对调了，我应该把$\Sigma^1$和$\Sigma^2$完全对调，这很容易。
+不过我发现，只对调一对也是可以的，比如：
+方案1：
+\begin{align}
+y^1_t &amp; = \text{lag_term} + “\boldsymbol{\gamma_{2,1}}” \\
+y^2_t &amp; = \text{lag_term} + \gamma_{1,2}
+\end{align&gt;
+方案 2：
+\begin{align}
+y^1_t &amp; = \text{lag_term} + “\boldsymbol{\gamma_{1,1}}” \\
+y^2_t &amp; = \text{lag_term} + \gamma_{2,2}
+\end{align&gt;
+例如，$\gamma_{1,1} &gt; \gamma_{2,1}$ 和 $\gamma_{1,2} &lt; \gamma_{2,2}$，在这种情况下，我认为我应该交换元素 $\Sigma^1_{11}$ 和 $\Sigma^2_{11}$，但我不确定协方差矩阵中的非对角线元素，我应该如何处理 $\Sigma^1_{12}, \Sigma^1_{21}, \Sigma^2_{12}, \Sigma^2_{21}$？
+顺便说一句，在实践中，我想也许我可以简单地删除任何违反我的全序的链中的所有迭代？或者，我可以丢弃变量间有冲突的迭代。通过这样做，我可以更容易地实现依赖于后验均值的 DIC？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658532/label-switching-issue-about-the-covariance-in-msvar-model</guid>
+      <pubDate>Tue, 10 Dec 2024 16:09:35 GMT</pubDate>
     </item>
     <item>
       <title>如何排列 p 值？</title>
@@ -246,21 +435,6 @@ sqrt 函数在哪个模块中？
 我不知道这在数学上是否成立以及如何证明它。]]></description>
       <guid>https://stats.stackexchange.com/questions/658523/how-to-permute-p-values</guid>
       <pubDate>Tue, 10 Dec 2024 14:31:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>分类因变量 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658365/categorical-dependent-variable</link>
-      <description><![CDATA[转发：
-大家好，非常感谢您的回复。我在这里提供了一些信息。
-a. 这是临床数据，样本量约为 859。
-b. 它有 11 列作为输入特征，例如基因组的唯一读取，它是细菌还是病毒类型以及测序报告的病原体。它是分类值和数值的混合。
-c. 依赖列有 53 个唯一值（医院检测到的病原体），我的模型将尝试预测这些值。
-再次，任何关于如何处理这个问题的建议。
-上一篇文章：
-我正在尝试构建机器学习模型，其中因变量是分类的，并且有超过 60 个值。它们不是序数或遵循任何等级。
-任何关于如何处理这个问题的建议。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658365/categorical-dependent-variable</guid>
-      <pubDate>Fri, 06 Dec 2024 07:45:40 GMT</pubDate>
     </item>
     </channel>
 </rss>
