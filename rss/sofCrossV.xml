@@ -4,7 +4,121 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 13 Dec 2024 06:26:42 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 13 Dec 2024 09:19:01 GMT</lastBuildDate>
+    <item>
+      <title>模拟多级数据以获得特定的边际 R 平方值</title>
+      <link>https://stats.stackexchange.com/questions/658662/simulating-multilevel-data-to-achieve-a-specific-marginal-r-squared-value</link>
+      <description><![CDATA[我正在致力于模拟多级数据，目标是通过模拟实现特定的边际 R 平方值。鉴于多级建模中的方差分解在调整不同级别的参数时会变得相当复杂，我一直在尝试通过模拟来近似边际 R 平方值。
+以下是 R 代码片段，用于具有两个 1 级预测因子（X1ij、X2ij）和两个 2 级预测因子（Z1j、Z2j）的两级模型的基本数据生成过程：
+# 加载必要的库
+library(lme4) # 用于拟合混合模型
+
+# # 设置种子以实现可重复性
+# set.seed(12654)
+
+# 模拟参数
+n_groups &lt;- 30 # 2 级组数
+n_per_group &lt;- 30 # 每组的 1 级单元数
+n &lt;- n_groups * n_per_group # 总数观察
+
+# 固定效应
+gamma_00 &lt;- 0 # 截距
+gamma_10 &lt;- 1 # 1 级预测器的初始斜率（X1ij - 待调整）
+gamma_01 &lt;- 1 # 2 级预测器的初始斜率（Z1j - 待调整）
+gamma_20 &lt;- 0 # 附加 1 级预测器的斜率（X2ij）
+gamma_02 &lt;- 0 # 附加 2 级预测器的效应（Z2j）
+
+# 方差分量
+sigma2_e &lt;- 1 # 残差方差（epsilon）
+sigma2_U0j &lt;- 0.5 # 随机截距方差
+
+# 数据生成过程函数
+dgp_function &lt;- function(n_groups, n_per_group, sigma2_e, sigma2_U0j,
+gamma_00, gamma_10, gamma_01, gamma_20, gamma_02) {
+
+# 模拟 2 级预测因子 (Z1j 和 Z2j)
+Z1j &lt;- rnorm(n_groups, mean = 0, sd = 1)
+Z2j &lt;- rnorm(n_groups, mean = 0, sd = 1)
+
+# 初始化数据存储
+data &lt;- data.frame()
+
+# 为每个组生成数据
+for (j in 1:n_groups) {
+# 组 j 的随机截距
+b_j &lt;- rnorm(1, mean = 0, sd = sqrt(sigma2_U0j))
+
+# 1 级预测因子 (X1ij 和 X2ij)
+X1ij &lt;- rnorm(n_per_group, mean = 0, sd = 1)
+X2ij &lt;- rnorm(n_per_group, mean = 0, sd = 1)
+
+# 1 级残差
+epsilon &lt;- rnorm(n_per_group, mean = 0, sd = sqrt(sigma2_e))
+
+# 生成结果变量 Y
+Y &lt;- (gamma_00 + b_j) + gamma_10 * X1ij + gamma_01 * Z1j[j] + gamma_20 * X2ij + gamma_02 * Z2j[j] + epsilon
+
+# 为该组创建数据框
+group_data &lt;- data.frame(
+group = j,
+X1ij = X1ij,
+X2ij = X2ij,
+Z1j = Z1j[j],
+Z2j = Z2j[j],
+Y = Y
+)
+
+# 与主数据框合并
+data &lt;- rbind(data, group_data)
+}
+
+return(data)
+}
+
+我的目标是通过使用缩放因子更新模型参数 gamma_10 和 gamma_01，以迭代调整它们，以近似所需的边际 R 平方值。但是，我使用的方法产生了一些奇怪的结果，我不确定是否有更可靠的方法。
+这是我的代码的一部分，我调整了 gamma_10 和 gamma_01 以尝试达到所需的 R 平方：
+不幸的是，我没有这种模拟的经验，因此任何想法或文献参考都值得赞赏。
+# 期望的边际 R 平方
+desired_marginal_R2 &lt;- 0.25
+
+# 实现的 R2 和迭代容差和计数器的占位符
+achieved_R2 &lt;- 0
+容差 &lt;- 0.01
+迭代 &lt;- 1
+max_iterations &lt;- 100
+
+# 迭代调整 gamma_10 和 gamma_01 以实现所需的边际R2
+while (abs(achieved_R2 - desire_marginal_R2) &gt; tolerance &amp;&amp; iteration &lt;= max_iterations) {
+# 生成数据
+data &lt;- dgp_function(n_groups, n_per_group, sigma2_e, sigma2_U0j,
+gamma_00, gamma_10, gamma_01, gamma_20, gamma_02) 
+
+# 拟合混合模型
+model &lt;- lmer(Y ~ X1ij + Z1j + (1 | group), data = data)
+
+# 使用 performance 包计算边际 R2
+reached_R2 &lt;- performance::r2(model, details = TRUE)$R2_marginal
+
+# 根据实现的 R2 调整 gamma_10 和 gamma_01（启发式）
+scaling_factor &lt;- sqrt(desired_marginal_R2 / reached_R2)
+gamma_10 &lt;- gamma_10 * scaling_factor
+gamma_01 &lt;- gamma_01 * scaling_factor
+
+# 增加迭代计数器
+iteration &lt;- iteration + 1
+}
+
+# 输出结果
+cat(&quot;Achieved Marginal R2:&quot;, reached_R2, &quot;\n&quot;)
+cat(&quot;Desired Marginal R2:&quot;, desire_marginal_R2, &quot;\n&quot;)
+cat(&quot;迭代次数：&quot;, 迭代次数 - 1, &quot;\n&quot;)
+cat(&quot;调整后的 gamma_10：&quot;, gamma_10, &quot;\n&quot;)
+cat(&quot;调整后的 gamma_01：&quot;, gamma_01, &quot;\n&quot;)
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658662/simulating-multilevel-data-to-achieve-a-specific-marginal-r-squared-value</guid>
+      <pubDate>Fri, 13 Dec 2024 08:24:27 GMT</pubDate>
+    </item>
     <item>
       <title>检查异常值随时间增加的情况</title>
       <link>https://stats.stackexchange.com/questions/658661/checking-for-an-increase-in-outliers-over-time</link>
@@ -26,7 +140,7 @@
       <title>哪些统计数据最适合用于评估基于常模的能力评估的有效性和可靠性？</title>
       <link>https://stats.stackexchange.com/questions/658660/which-statistics-are-best-practice-for-assessing-the-validity-and-reliability-of</link>
       <description><![CDATA[我计划评估常模参照能力评估的有效性和可靠性。该工具有 5 个与能力相关的子量表。有现成的常模，但我想对我拥有的样本进行一些额外的研究，以增加对该工具的研究内容。
-对于标准参照评估，我会考虑的两个统计数据是每项的 cronbachs alpha 和因子分析。一般来说，这些是否也构成能力评估的最佳实践？]]></description>
+对于标准参照评估，我会考虑的两个统计数据是每个项目的 Cronbach&#39;s alpha 和因子分析。一般来说，这些是否也构成能力评估的最佳实践？]]></description>
       <guid>https://stats.stackexchange.com/questions/658660/which-statistics-are-best-practice-for-assessing-the-validity-and-reliability-of</guid>
       <pubDate>Fri, 13 Dec 2024 05:44:33 GMT</pubDate>
     </item>
@@ -141,41 +255,6 @@ $X_1$ 和 $X_2$ 的联合概率分布是什么？]]></description>
 或者研究设计最终不是什么大问题？]]></description>
       <guid>https://stats.stackexchange.com/questions/658648/inter-rater-reliability-coefficients-that-support-fully-crossed-study-designs</guid>
       <pubDate>Thu, 12 Dec 2024 22:10:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>“群体间协议”的适当指标</title>
-      <link>https://stats.stackexchange.com/questions/658647/appropriate-metrics-for-inter-group-agreement</link>
-      <description><![CDATA[我需要比较发给两组不同评分员的问卷结果，并以某种方式量化两组之间的一致性。
-问卷中有 12 个问题涉及对某些要求句子的解释，第一组约有 100 名独立评分员回答了这些问题，第二组约有 40 名独立评分员回答了这些问题。
-收集的结果数据是无序或无排名的名义数据。
-以下是数据摘录：
- V1 V2 V3 V4 V5 
-&lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;
-1 2 2 3 2 1 
-2 2 2 3 2 1 
-3 1 4 4 4 1 
-4 2 3 3 3 2 
-5 1 1 4 2 4 
-6 2 2 3 2 2 
-7 1 1 3 1 1 
-8 2 3 3 2 2 
-9 2 2 3 3 3 
-10 2 3 3 2 2 
-
-列代表不同的评估者，而每行代表问卷的一个研究对象，可以从 1-3 或 1-4 进行评分（再次，名义数据）。
-对于单个评估者组，我可以使用常见的评估者间信度指标（如 Lights&#39; Kappa）轻松计算“组内”一致性水平。
-事实上，我已经这样做了，发现第一组 Kappa 为 0.218，第二组 Kappa 为 0.758（使用 R 包 irr 中的 kappam.light 计算）之间存在显著差异。
-因此，看起来第二项研究中的组内一致性大幅提高。
-但如果评级与第一组中最常见的评级相差很大，这对我没有帮助。
-在这种情况下，我将如何计算“组间一致性”的水平。
-我能做的就是将第一组的结果与第二组的结果相结合（即合并/连接表格）并计算联合 IRR。这将向我展示整体一致性，同时将两个组视为一个大组。
-但这真的能量化第一组与第二组的响应有多接近吗？
-如果是，我需要有相等的组大小吗？
-或者是否有专门设计用于比较两组之间一致性水平的指标？
-我在这里找到了一个类似的问题，但在这种情况下，作者处理的是序数数据。
-这里建议计算和比较两组的平均值，然后进行统计显着性检验，这对于名义数据来说可能没有多大意义。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658647/appropriate-metrics-for-inter-group-agreement</guid>
-      <pubDate>Thu, 12 Dec 2024 21:10:21 GMT</pubDate>
     </item>
     <item>
       <title>重复测量二元变量的 Cohen Kappa</title>
