@@ -4,7 +4,145 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 12 Dec 2024 21:17:16 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 13 Dec 2024 01:23:25 GMT</lastBuildDate>
+    <item>
+      <title>尝试使用workflow_map()时，tidymodels工作流出现错误</title>
+      <link>https://stackoverflow.com/questions/79276804/tidymodels-workflow-errors-when-trying-to-use-workflow-map</link>
+      <description><![CDATA[提前感谢您的帮助！我是 tidymodels（以及一般的建模）的新手，很难确定哪里出了问题，从而无法解决我的工作流程设置问题。
+我正在运行四种不同的模型，根据历史数据集预测棒球胜率。它们是线性模型、弹性网络模型、随机森林模型和 XGBoost 模型。我知道所有模型都有效（我已经单独测试过它们），但我正在尝试使用工作流程来测试、交叉验证和选择最佳模型。
+我有两种不同类型的配方，一种基本配方包括一些超参数化调整步骤（选择变量、step_zv、step_nzv、step_interact、step_corr 和 step_impute_bag）用于随机森林和 XGBoost 模型。线性和弹性网络模型使用添加规范化步骤的配方。
+设置工作流和网格后，当我尝试运行workflow_map()时，出现两个错误：
+
+&quot;summary.connection(connection) 中的错误：无效连接&quot;
+&quot;这些组件中已标记 2 个参数进行调整：model_spec。请使用其中一个调整函数（例如“tune_grid()”）对其进行优化&quot;
+
+我的问题：
+
+第一个错误表示什么？
+至于第二个，我应该在哪里将 tune_grid() 添加/合并到工作流程中？
+
+--
+作为参考，以下是一些相关代码：
+一些初始设置
+# 拆分数据
+team_split &lt;- initial_split(mlb_final)
+
+# 提取训练和测试数据
+team_train &lt;- training(team_split)
+team_test &lt;- testing(team_split)
+
+# 重采样策略
+team_rs &lt;- vfold_cv(team_train)
+
+模型规范
+# 随机森林模型 
+mlb_forest &lt;- rand_forest(min_n = tune()) %&gt;% 
+set_engine(&quot;ranger&quot;,
+significance = &quot;permutation&quot;) %&gt;% 
+set_mode(&quot;regression&quot;)
+
+# 线性模型
+mlb_linear &lt;- linear_reg() %&gt;%
+set_engine(&quot;lm&quot;) %&gt;%
+set_mode(&quot;regression&quot;)
+
+# XGBoost
+mlb_xgb &lt;- boost_tree(
+trees = tune(),
+min_n = tune(),
+tree_depth = tune(),
+learn_rate = tune()
+) %&gt;%
+set_engine(&quot;xgboost&quot;) %&gt;%
+set_mode(&quot;regression&quot;)
+
+# Elastic Net
+mlb_elastic &lt;- linear_reg(
+penalty = tune(), 
+mix = tune() 
+) %&gt;%
+set_engine(&quot;glmnet&quot;) %&gt;%
+set_mode(&quot;regression&quot;)
+
+我已像这样设置了我的工作流程：
+linear_workflow &lt;- working() |&gt; 
+add_model(mlb_linear) |&gt; 
+add_recipe(normalized_recipe)
+
+elastic_workflow &lt;- working() |&gt; 
+add_model(mlb_elastic) |&gt; 
+add_recipe(normalized_recipe)
+
+rf_workflow &lt;- working() |&gt; 
+add_model(mlb_forest) |&gt; 
+add_recipe(basic_recipe)
+
+xgb_workflow &lt;- Workflow() |&gt; 
+add_model(mlb_xgb) |&gt; 
+add_recipe(basic_recipe)
+
+我的网格是这样的：
+grid_ctrl &lt;- control_grid(
+save_pred = TRUE,
+parallel_over = NULL,
+save_workflow = TRUE,
+verbose = TRUE
+)
+
+rf_grid &lt;- grid_regular(
+min_n(range = c(5, 50)), # 每个叶子的最小观察数（调整参数）
+mtry(range = c(2, 10)), # 每次分割时随机采样的变量数
+levels = 5 # 网格搜索级别
+)
+
+xgb_grid &lt;- grid_regular(
+trees(range = c(100, 500)), 
+min_n(range = c(5, 15)), 
+tree_depth(range = c(3, 6)), 
+learn_rate(range = c(0.05, 0.1)), 
+levels = 5
+)
+
+elastic_grid &lt;- grid_regular(
+penalty(range = c(-2, 1), trans = log10_trans()), 
+mix(range = c(0, 1)), 
+levels = 5
+)
+
+linear_grid &lt;- 5
+
+然后我将其合并为规范化和基本工作流集。
+normalized_mlb &lt;- working_set(
+preproc = list(normalized = normalized_recipe), 
+models = list(linear = mlb_linear, 
+elastic = mlb_elastic)
+)
+
+basic_mlb &lt;- working_set(
+preproc = list(basic = basic_recipe),
+models = list(rf = mlb_forest, 
+xgb = mlb_xgb)
+)
+
+并且然后尝试将workflow_map()用于规范化和基本工作流
+lm_models &lt;- normalized_mlb |&gt; 
+workflow_map(&quot;fit_resamples&quot;,
+seed = 100,
+verbose = TRUE,
+resamples = team_rs, 
+control = grid_ctrl)
+
+basic_models &lt;- basic_mlb |&gt; 
+workflow_map(&quot;fit_resamples&quot;,
+seed = 100,
+verbose = TRUE,
+resamples = team_rs, 
+control = grid_ctrl)
+
+工作流分为规范化和基本工作流，因为最初我试图将它们一起运行并遇到问题。但是，我仍然不确定如何解决这些错误。]]></description>
+      <guid>https://stackoverflow.com/questions/79276804/tidymodels-workflow-errors-when-trying-to-use-workflow-map</guid>
+      <pubDate>Thu, 12 Dec 2024 22:50:59 GMT</pubDate>
+    </item>
     <item>
       <title>在 Jupyter Notebook 上获取“TypeError：ufunc‘isnan’不支持输入类型”</title>
       <link>https://stackoverflow.com/questions/79276186/getting-typeerror-ufunc-isnan-not-supported-for-the-input-types-on-jupyter</link>
@@ -81,24 +219,6 @@ print(le.classes_)
 我搜索过 Kaggle、NIH 和 SEER 等平台，但没有找到符合我需求的东西。]]></description>
       <guid>https://stackoverflow.com/questions/79276072/where-can-i-find-datasets-for-medical-document-analysis-and-disease-diagnosis-us</guid>
       <pubDate>Thu, 12 Dec 2024 17:39:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>本地 CUDA 集群的 dask_cuda 问题</title>
-      <link>https://stackoverflow.com/questions/79275934/dask-cuda-problem-with-local-cuda-cluster</link>
-      <description><![CDATA[我试图让此代码运行，然后使用它在两个 gpu 上训练各种模型：
-from dask_cuda import LocalCUDACluster
-from dask.distributed import Client
-
-if __name__ == &quot;__main__&quot;:
-with LocalCUDACluster(n_workers=2) as cluster:
-with Client(cluster) as client:
-...
-
-错误以以下开头：
--distributed.worker - ERROR - Worker plugin CPUAffinity-bd2c98dd-df91-4dc5-8dd9-cca207e4c3fc 无法设置
-我在大学提供的服务器上，它一直给我一个关于 cpu 亲和性设置的错误。如果我只设置一个工作器，它就可以正常工作。即使我使用 LocalCluster，但使用它也会遇到一个问题，即一个 gpu 上有两个工作器。]]></description>
-      <guid>https://stackoverflow.com/questions/79275934/dask-cuda-problem-with-local-cuda-cluster</guid>
-      <pubDate>Thu, 12 Dec 2024 16:50:28 GMT</pubDate>
     </item>
     <item>
       <title>鸢尾花数据集上的规范化与最小最大缩放[关闭]</title>
@@ -204,6 +324,83 @@ GPU 利用率：如预期一样翻倍，但未超过 GPU 的容量。
 我还没有尝试任何东西，因为 google colab 很贵，而且我还在读学士学位]]></description>
       <guid>https://stackoverflow.com/questions/79273773/using-pre-trained-cnn-for-crab-gender-classification</guid>
       <pubDate>Thu, 12 Dec 2024 03:46:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>为 GPR 创建自定义内核</title>
+      <link>https://stackoverflow.com/questions/79271439/create-custom-kernel-for-gpr</link>
+      <description><![CDATA[我想编写一个仅在 X 轴特定范围内工作的 RBF 内核。我尝试编写一个包含 RBF 核的类来测试代码
+class RangeLimitedRBFTest(Kernel):
+def __init__(self, length_scale=1.0, length_scale_bounds=(1e-5, 1e5), x_min = 0., x_max = 1.):
+self.length_scale = length_scale
+self.length_scale_bounds = length_scale_bounds
+self.rbf_kernel = RBF(length_scale, length_scale_bounds)
+self.x_min = x_min
+self.x_max = x_max
+
+def __call__(self, X, Y=None, eval_gradient=False):
+if eval_gradient and Y is not None:
+raise ValueError(&quot;Gradient can only be evaluating when Y is None.&quot;)
+
+X = np.atleast_2d(X)
+if Y is not None:
+Y = np.atleast_2d(Y)
+
+print(f&quot;X 形状：{X.shape}&quot;)
+如果 Y 不为 None:
+print(f&quot;Y 形状：{Y.shape}&quot;)
+else:
+print(&quot;Y 形状：None&quot;)
+
+K_rbf = self.rbf_kernel(X, Y, eval_gradient=eval_gradient)
+
+如果 eval_gradient:
+K, K_grad = K_rbf
+print(f&quot;核矩阵形状 (K): {K.shape}&quot;)
+print(f&quot;核梯度矩阵形状 (K_grad): {K_grad.shape}&quot;)
+return K, K_grad
+else:
+K = K_rbf
+return K
+
+def diag(self, X):
+return self.rbf_kernel.diag(X)
+
+def is_stationary(self):
+return self.rbf_kernel.is_stationary()
+
+实现和拟合如下
+kernel = 1.0 * RangeLimitedRBFTest(length_scale=0.1, length_scale_bounds=(8e-2, 8e-1), x_min=0., x_max=2.5) + WhiteKernel(noise_level=0.5, noise_level_bounds=(1e-2, 1e1))
+gaussian_process = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=1, alpha=1e-5, optimizer=&#39;fmin_l_bfgs_b&#39;)
+gaussian_process.optimizer_kwargs = {&quot;max_iter&quot;: 10000} 
+gaussian_process.fit(X, T_PMT)
+
+如果我运行代码，我会得到以下输出
+X 形状：(6248, 1)
+Y 形状：无
+核矩阵形状 (K)：(6248, 6248)
+核梯度矩阵形状 (K_grad)：(6248, 6248, 1)
+ValueError：第 0 维必须固定为 2，但得到 3
+
+上述异常是导致以下异常的直接原因：
+
+回溯（最近一次调用）：
+文件 &quot;/home/tdaq/cremonini/pt100_probe/read_temperatures.py&quot;，第 97 行，位于 &lt;module&gt;
+gaussian_process.fit(X, T_PMT)
+文件 &quot;/home/tdaq/.local/lib/python3.10/site-packages/sklearn/base.py&quot;，第 1389 行，在包装器中
+return fit_method(estimator, *args, **kwargs)
+文件 &quot;/home/tdaq/.local/lib/python3.10/site-packages/sklearn/gaussian_process/_gpr.py&quot;，第 308 行，在 fit 中
+self._constrained_optimization(
+文件 &quot;/home/tdaq/.local/lib/python3.10/site-packages/sklearn/gaussian_process/_gpr.py&quot;，第 653 行，在 _constrained_optimization 中
+opt_res = scipy.optimize.minimize(
+文件&quot;/cvmfs/atlas.cern.ch/repo/sw/software/0.3/StatAnalysis/0.3.1/InstallArea/x86_64-el9-gcc13-opt/lib/python3.10/site-packages/scipy/optimize/_minimize.py&quot;，第 713 行，在 minimal
+res = _minimize_lbfgsb(fun, x0, args, jac, bounds,
+文件 &quot;/cvmfs/atlas.cern.ch/repo/sw/software/0.3/StatAnalysis/0.3.1/InstallArea/x86_64-el9-gcc13-opt/lib/python3.10/site-packages/scipy/optimize/_lbfgsb_py.py&quot;，第 360 行，在_minimize_lbfgsb
+_lbfgsb.setulb(m, x, low_bnd, upper_bnd, nbd, f, g, factr,
+ValueError: 无法将 _lbfgsb.setulb 的第 7 个参数“g”转换为 C/Fortran 数组
+
+如果我尝试使用通常的 RBF 内核，代码可以正常工作。我还尝试禁用优化器 optimizer=None，代码可以正常工作，但会出现非常大的错误。]]></description>
+      <guid>https://stackoverflow.com/questions/79271439/create-custom-kernel-for-gpr</guid>
+      <pubDate>Wed, 11 Dec 2024 11:00:16 GMT</pubDate>
     </item>
     <item>
       <title>为什么预先训练的 Swin Transformer 编码器在 TPU 上失败但在 Colab 中的 CPU 上可以运行？</title>
@@ -356,39 +553,6 @@ confidence], ...] 并将其转换为 NumPy 数组，其中 dtype=np.float32。�
 ]]></description>
       <guid>https://stackoverflow.com/questions/79235328/typeerror-object-of-type-numpy-float32-has-no-len-deepsort-integration</guid>
       <pubDate>Thu, 28 Nov 2024 21:25:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>pytorch torchvision.datasets.ImageFolder FileNotFoundError：未找到类 .ipynb_checkpoints 的有效文件</title>
-      <link>https://stackoverflow.com/questions/68229246/pytorch-torchvision-datasets-imagefolder-filenotfounderror-found-no-valid-file</link>
-      <description><![CDATA[尝试在 Colab 中使用 pytorch torch.datasets.ImageFolder 加载训练数据。
-transform = transforms.Compose([transforms.Resize(400),
-transforms.ToTensor()])
-dataset_path = &#39;ss/&#39;
-dataset = datasets.ImageFolder(root=dataset_path, transform=transform)
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=20)
-
-我遇到了以下错误：
--------------------------------------------------------------------------------
-FileNotFoundError Traceback (most recent call last)
-&lt;ipython-input-27-7abcc1f434b1&gt; in &lt;module&gt;()
-2 transforms.ToTensor()])
-3 dataset_path = &#39;ss/&#39;
-----&gt; 4 dataset = datasets.ImageFolder(root=dataset_path, transform=transform)
-5 dataloader = torch.utils.data.DataLoader(dataset, batch_size=20)
-
-3 帧
-/usr/local/lib/python3.7/dist-packages/torchvision/datasets/folder.py in make_dataset(directory, class_to_idx, extensions, is_valid_file)
-100 if extensions 不为 None:
-101 msg += f&quot;支持的扩展名是：{&#39;, &#39;.join(extensions)}&quot;
---&gt; 102 raise FileNotFoundError(msg)
-103 
-104 return entities
-
-FileNotFoundError: 未找到类 .ipynb_checkpoints 的有效文件。支持的扩展名为：.jpg、.jpeg、.png、.ppm、.bmp、.pgm、.tif、.tiff、.webp
-
-我的数据集文件夹包含一个子文件夹，其中包含许多 png 格式的训练图像，但 ImageFolder 仍然无法访问它们。]]></description>
-      <guid>https://stackoverflow.com/questions/68229246/pytorch-torchvision-datasets-imagefolder-filenotfounderror-found-no-valid-file</guid>
-      <pubDate>Fri, 02 Jul 2021 17:31:32 GMT</pubDate>
     </item>
     <item>
       <title>在 Keras 中为 TF 数据集中的独热编码标签指定类别或样本权重</title>
