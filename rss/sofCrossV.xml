@@ -4,16 +4,78 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 13 Dec 2024 21:16:09 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 14 Dec 2024 01:19:41 GMT</lastBuildDate>
+    <item>
+      <title>在计算评估样本权重时使用训练集还是测试集？</title>
+      <link>https://stats.stackexchange.com/questions/658698/use-training-or-testing-set-when-calculating-sample-weights-for-evaluation</link>
+      <description><![CDATA[我有一个机器学习模型，它是根据不代表总体类别频率的数据构建的。多数类别实际上是欠采样的，因此它在总体中比数据更常见。在评估时，我想将样本权重传递给 sklearns 指标，如 precision_score。我想弥补我对某些类别欠采样的事实，并了解如果将模型应用于总体和在那里观察到的频率类别，它将如何表现。幸运的是，我有一个估计的总体频率，可以从中计算我的样本权重。
+ # 示例频率，但它们的总和为 1
+population_frequencies = {
+0: 0.8
+1: 0.2
+}
+# 获取数据中的频率
+data_frequencies = df_train[&#39;target&#39;].value_counts(normalize=True).to_dict()
+# 数据频率显示 0 仍然是多数类别，但未达到总体中观察到的程度。
+# 假设为 {0 : 0.6, 1 : 0.4}。
+
+# 计算类别权重
+eval_weights = {cls:population_frequencies[cls] / data_frequencies[cls]
+for cls in data_frequencies}
+
+# 获取样本权重
+sample_weights = [evel_weights[label] for label in df_test[&#39;target&#39;]]
+
+# 计算精度
+precision_score(y_pred, y_test, sample_weights=sample_weights)
+
+
+因此，样本权重的目的是解释我们的数据中 0 类采样不足的事实。当出现假阳性时，即当真实类别为 0 时预测为 1，当模型应用于总体时，这种情况发生的频率可能会更高。 eval_weights 描述了使数据频率反映其人口等价物所需的调整。
+我的问题是，我认为所使用的 data_frequencies 应该仅从训练数据的 value_counts 中得出，因为使用测试数据中的任何部分信息都代表数据泄漏。评估指标应反映模型在看不见的数据上的表现，并且测试集信息必须保持完全隔离，直到最终评估。这是正确的吗？我找不到可靠的来源来支持仅使用训练集频率，但直观上对我来说这是有意义的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658698/use-training-or-testing-set-when-calculating-sample-weights-for-evaluation</guid>
+      <pubDate>Sat, 14 Dec 2024 00:19:13 GMT</pubDate>
+    </item>
     <item>
       <title>解释负二项残差图</title>
       <link>https://stats.stackexchange.com/questions/658692/interpreting-negative-binomial-residual-plot</link>
-      <description><![CDATA[我对圣巴巴拉 125 个街区组的自行车事故数据进行了负二项回归。方程式如下：
-事故 ~ 自行车网络连接 + 偏移量（log（自行车出行次数））
-我得到了一个带有曲线的残差图，如下图所示。这是否意味着这种关系是非线性的？我不知道该如何处理：我应该添加非线性项还是应该尝试其他模型，还是其他？如果有人能对此有所启发，那就太好了。谢谢。
+      <description><![CDATA[我对圣巴巴拉 125 个街区的自行车事故数据进行了负二项回归。该方程如下所示：
+MASS::glm.nb(Crashes ~ network coverage + network density + 
+交叉口密度 + 复杂度 + offset(log(number of bike trips))
+
+我得到了一个带有曲线的残差图，如下图所示。这是否意味着关系是非线性的？我不知道该如何处理：我应该添加非线性项还是应该尝试其他模型，还是其他？如果有人可以对此有所启发，那就太好了。谢谢。
+
+编辑：我尝试了 DHARMa 的残差图这是我得到的图：
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658692/interpreting-negative-binomial-residual-plot</guid>
       <pubDate>Fri, 13 Dec 2024 20:44:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>拟合非线性混合模型</title>
+      <link>https://stats.stackexchange.com/questions/658694/fitting-a-nonlinear-mixed-model</link>
+      <description><![CDATA[我试图拟合一个非线性混合模型 (nLMM)，以测试某些生物的丰度是否受到导致丰度显著增加的事件后的采样期的影响。
+数据显示了一条重要的曲线，这些生物的丰度在事件发生后激增（事件发生在采样期：-1 和 1 之间），但随后下降。
+我试图构建一个非线性混合模型，但我发现理解如何构建模型非常具有挑战性（例如，model &lt;- lmer(abundance ~ samples_period + (1 | rep), data = data）。我非常感谢任何帮助来确定丰度是否受到采样期的影响。
+data &lt;- data.frame(
+abundant = c(79, 72, 58, 61, 88, 123, 119, 96, 67, 78, 143, 75, 105, 46, 58, 
+127, 173, 181, 67, 120, 64, 30, 49, 47, 104, 83, 146, 118, 53, 
+98, 223, 257, 255, 292, 354, 133, 129, 140, 27, 55, 68, 148, 
+122, 132, 77, 121, 108, 109),
+rep = c(&quot;T1&quot;, &quot;T2&quot;, &quot;T3&quot;, &quot;T1&quot;, &quot;T2&quot;, &quot;T3&quot;, “T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T3”、“T1”、“T2”、“T3”、“
+“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“ “T3”, “T1”, “T2”, “T3”, 
+“T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”),
+sampling_period_consecutive = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 
+6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 
+10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 
+14, 14, 15, 15, 15, 16, 16, 16),
+采样周期 = c(-5, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -2, -1, -1, 
+-1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 
+6, 11, 11, 11, 22, 22, 22, 34, 34, 34, 46, 46, 58, 
+58, 58)
+)
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658694/fitting-a-nonlinear-mixed-model</guid>
+      <pubDate>Fri, 13 Dec 2024 19:32:50 GMT</pubDate>
     </item>
     <item>
       <title>XGBoost/XGBRanker 用于乘积概率而不是排名分数</title>
@@ -81,7 +143,8 @@ predictions = (X_test.groupby(&#39;Class_ID&#39;)
     <item>
       <title>对偏斜响应变量进行建模</title>
       <link>https://stats.stackexchange.com/questions/658686/modelling-a-skewed-response-variable</link>
-      <description><![CDATA[我有一个生物标志物比率（淀粉样蛋白 42/40），我在建模方面遇到了问题。我将其用作暴露和结果，但显然，当我将变量视为结果时，变量的这种分布更成问题。如果您能就您对此类数据使用了哪些建模方法提出建议，我将不胜感激
+      <description><![CDATA[我有一个生物标志物比率（淀粉样蛋白 42/40），我在建模方面遇到了问题。这是一个生物标志物与另一个生物标志物的比例，它在诊断痴呆症方面很重要。我将其用作暴露和结果，但显然，当我将变量视为结果时，这种变量的分布更成问题。如果您能就您对此类数据使用了哪些建模方法提出建议，我将不胜感激。这些是 Gamma 对数链接模型的残差图。
+
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658686/modelling-a-skewed-response-variable</guid>
       <pubDate>Fri, 13 Dec 2024 19:02:18 GMT</pubDate>
@@ -129,100 +192,7 @@ $$ \Delta \epsilon_{it} \sim N(0, 2\sigma^2) $$
       <pubDate>Fri, 13 Dec 2024 16:58:01 GMT</pubDate>
     </item>
     <item>
-      <title>如何处理间歇性的 NUTS Sampler 卡在简单的逆问题中？</title>
-      <link>https://stats.stackexchange.com/questions/658681/how-to-deal-with-intermittent-nuts-sampler-stuck-in-simple-inverse-problem</link>
-      <description><![CDATA[给定一个模型，我尝试使用 blackjax python 包中的 NUTS 推断参数并量化估计的不确定性。我有多个输入数据集并尝试估计后验。对于使用 blackjax 提供的自动调整的一些人来说，这很有效。然而对于其他人，即使使用手动调整，NUTS 采样器也会遇到非最大似然的点，采样器会卡住。后验和迹线如下所示
-
-
-问题似乎是先验的下限 &gt;=0，因为压力先验应该是正的。
-不，NUTS 采样器似乎卡住了，导致边缘伪影。问题点代表了底层 ODE 的模型简化。除了模型中的硬先验和潜在附加条件（if 语句确定简化）之外，是否有自然的方法来挽救这些后验？我可以从数学上合理地排除事后条件，同时仍然获得有效的不确定性量化吗？
-提前谢谢您。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658681/how-to-deal-with-intermittent-nuts-sampler-stuck-in-simple-inverse-problem</guid>
-      <pubDate>Fri, 13 Dec 2024 16:40:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>截断正态分布方差的选择修正方法</title>
-      <link>https://stats.stackexchange.com/questions/658680/selection-correction-method-with-the-variance-of-the-truncated-normal-distributi</link>
-      <description><![CDATA[考虑以下数据生成过程：
-$$Y=\beta_0+\beta_1X_1+\beta_2X_2+\beta_3u+\varepsilon,$$
-$$D=1\left[\gamma_0+\gamma_1Z+\gamma_2X_1+\gamma_3X_2+u&gt;0\right],$$
-其中，如果单位被观察到，则$D=1$，否则$0$，并且$u$呈正态分布，均值为零。
-众所周知，$Y$对$X_1$ 和 $X_2$ 仅使用观察到的单位（即 $D=1$）会导致有偏差的估计，而经典的解决方案是包括额外的回归量 $$\lambda(\widehat{\gamma})=\frac{\phi\left(-\left(\widehat{\gamma_0}+\widehat{\gamma_1}Z+\widehat{\gamma_2}X_1+\widehat{\gamma_3}X_2\right)\right)}{1-\Phi\left(-\left(\widehat{\gamma_0}+\widehat{\gamma_1}Z+\widehat{\gamma_2}X_1+\widehat{\gamma_3}X_2\right)\right)},$$
-其中 $\widehat{\gamma}=\left[\widehat{\gamma_0},\widehat{\gamma_1},\widehat{\gamma_2},\widehat{\gamma_3}\right]&#39;$ 来自 $D$ 在 $Z$、$X_1$ 和 $X_2$ 上的概率单位。
-附加回归量解决问题的原因是 $\sigma_u\mathbb{E}\left[u/\sigma_u\middle|D=1\right]=\sigma_u\lambda(\widehat{\gamma})$，可以使用截断正态分布的矩轻松得出。
-因此，我认为，如果结果 $Y$ 生成如下（注意 $u$ 的平方），
-$$Y=\beta_0+\beta_1X_1+\beta_2X_2+\beta_3u+\beta_4u^2+\varepsilon,$$
-额外的回归量 $\lambda(\widehat{\gamma})$ 和 $\lambda_2(\widehat{\gamma})=1-\lambda(\widehat{\gamma})^2-W&#39;\widehat{\gamma}\cdot\lambda(\widehat{\gamma})$，其中 $W=[1, Z, X_1, X_2]&#39;$，可以产生无偏估计结果，这是由于截断正态分布的方差公式为：
-$$\sigma_u^2\mathbb{E}\left((u/\sigma_u)^2\middle|D=1\right)=\sigma_u^2\lambda_2(\widehat{\gamma})$$
-因此，我检查了这是否属实：
-#################################
-### 数据生成过程 1 ###
-#################################
-set.seed(1)
-N &lt;- 100000
-x1 &lt;- rnorm(N)
-x2 &lt;- rnorm(N)
-z &lt;- rnorm(N)
-u &lt;- rnorm(N)
-e &lt;- rnorm(N)
-
-y &lt;- 1 + 2 * x1 + 2 * x2 + 2 * u + e # 结果方程
-d &lt;- (1 + 2 * z + x1 + 2 * x2 + u &gt; 0) # 选择方程
-
-# 使用观察单位的回归
-lm(y ~ x1 + x2, subset = (d == 1))
-# 真值 = 1, 2, 2, 估计值 = 1.536, 1.844, 1.681
-
-# Heckman 的两步估计
-prb &lt;- glm(d ~ z + x1 + x2, family = binomial(link = &quot;probit&quot;)) # probit
-zgam &lt;- cbind(1, z, x1, x2) %*% c(1, 2, 1, 2)
-phi &lt;- dnorm(-zgam)
-PHI &lt;- pnorm(-zgam)
-lam &lt;- phi / (1 - PHI) # 逆米尔斯比率
-lm(y ~ x1 + x2 + lam, subset = (d == 1))
-# 真值 = 1, 2, 2，2 估计值 = 1.003，2.001，1.994，1.986
-
-#################################
-### 数据生成过程 2 ###
-#################################
-y &lt;- 1 + 2 * x1 + 2 * x2 + 2 * u + 2 * u^2 + e # 结果方程
-d &lt;- (1 + 2 * z + x1 + 2 * x2 + u &gt; 0) # 选择方程
-
-# 使用观察单位的回归
-lm(y ~ x1 + x2, subset = (d == 1))
-# 真实值 = 1, 2, 2, 估计值 = 3.537, 1.805, 1.582
-
-# 截断正态方差
-lam2 &lt;- 1 - lam^2 - zgam * lam
-lm(y ~ x1 + x2 + lam + lam2，子集 = (d == 1))
-# 真实值 = 1, 2, 2, 2, 2 估计值 = -3.393, 1.974, 1.927, 7.331, 6.565
-
-但是，正如您所见（尤其是最后一行），只有 $\beta_1$ 和 $\beta_2$ 的结果看起来合理。
-我是否遗漏了什么要点？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658680/selection-correction-method-with-the-variance-of-the-truncated-normal-distributi</guid>
-      <pubDate>Fri, 13 Dec 2024 16:23:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>Jeffreys 离散参数空间的先验</title>
-      <link>https://stats.stackexchange.com/questions/658678/jeffreys-prior-for-a-discrete-parameter-space</link>
-      <description><![CDATA[以下问题涉及二项分布，其概率已知$p$，但试验次数未知$n$。
-试验次数的二项置信区间
-尝试思考如何为这种情况构建贝叶斯区间，我首先进入了思考 Jeffreys 先验的阶段。但是，对于离散参数空间，这没有定义，因为导数不存在。
-是否有根据相同想法找到先验的方法？当然，坐标变换下分布的不变性已经过时，因为概率质量函数不会像概率密度函数那样变换。这是 Jeffreys 先验的唯一属性/动机吗，或者还有其他属性可以应用于概率质量函数？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658678/jeffreys-prior-for-a-discrete-parameter-space</guid>
-      <pubDate>Fri, 13 Dec 2024 16:07:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Heckman 模型中，我可以使用选择方程中的因变量作为选择方程中的自变量吗？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658677/in-heckman-model-can-i-use-dependent-variable-in-selection-equation-as-independe</link>
-      <description><![CDATA[我已经将上述变量作为选择中的从属变量和结果方程中的独立变量。但在结果中，所选的和最重要的变量被省略了。由于共线性，它显示省略了。如何解决这个问题。请有人给我建议。我的研究是关于 FPOs 的，我想知道 fpos 对 FPO 农民收入的影响。样本量是来自一个地区的 60 名 FPO 农民和 60 名非 fpo 农民，我已经从 3 个不同的地区和作物收集了数据。所以我想知道是什么因素促使农民加入 fpo，加入 fpo 后他们的收入是否增加了。为此，我想要 Heckman 两步模型。
-
-提前谢谢您]]></description>
-      <guid>https://stats.stackexchange.com/questions/658677/in-heckman-model-can-i-use-dependent-variable-in-selection-equation-as-independe</guid>
-      <pubDate>Fri, 13 Dec 2024 15:47:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么机器学习课程中的回归分析大多侧重于梯度下降，尽管我们有闭式估计量$(X'X)^{-1}X'Y$？[重复]</title>
+      <title>为什么机器学习课程中的回归主要关注梯度下降，尽管我们有闭式估计量$(X'X)^{-1}X'Y$？[重复]</title>
       <link>https://stats.stackexchange.com/questions/658672/why-do-machine-learning-courses-on-regression-mostly-focus-on-gradient-descient</link>
       <description><![CDATA[在许多在线机器学习课程和视频（例如 Andrew Ng 的 Coursera 课程）中，当谈到回归（例如对特征 $X$ 进行 $Y$ 回归）时，虽然我们有回归系数 $\widehat{\beta}=(X&#39;X)^{-1}X&#39;Y$ 的闭式估计量，并且基于此我们可以得出 $X_i=x$ 的预测为 $x&#39;\widehat{\beta}$。这很简单，不需要数值优化。我的问题是：
 
@@ -242,6 +212,32 @@ lm(y ~ x1 + x2 + lam + lam2，子集 = (d == 1))
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/658666/distribution-of-y-logx-when-x-sim-operatornamebeta-alpha-beta</guid>
       <pubDate>Fri, 13 Dec 2024 11:02:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>多参数最大似然估计的渐近正态性证明</title>
+      <link>https://stats.stackexchange.com/questions/658664/proof-for-asymptotic-normality-for-mle-with-multiple-parameters</link>
+      <description><![CDATA[我有一个问题，关于如何证明多个 MLE 估计量的渐近性质。您在网上找到的大多数资源都提供了仅估计一个参数的情况的证明（例如此处：https://gregorygundersen.com/blog/2019/11/28/asymptotic-normality-mle/）。在这个证明中，将参数方面的均值定理应用于似然的一阶导数，得到类似$(\hat{\theta} - \theta_0) = - \frac{L_n&#39;(\theta_0)}{L_n&#39;&#39;(\tilde{\theta})}$的表达式，然后将渐近结果应用于似然。我将这种证明扩展到多参数情况的问题是均值定理仅适用于标量函数。对于矢量值函数，只有不等式成立，参见例如。 https://en.wikipedia.org/wiki/Mean_value_theorem#Mean_value_theorem_for_vector-valued_functions。
+有人能告诉我如何证明多个参数的渐近正态性吗？当然，如果能提供参考，我也非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658664/proof-for-asymptotic-normality-for-mle-with-multiple-parameters</guid>
+      <pubDate>Fri, 13 Dec 2024 10:29:14 GMT</pubDate>
+    </item>
+    <item>
+      <title>与回归分析相比，生存分析在预测方面有哪些优势？</title>
+      <link>https://stats.stackexchange.com/questions/658656/are-there-any-advantages-of-survival-analysis-over-regression-for-prediction</link>
+      <description><![CDATA[我最近遇到了生存分析，它似乎对于模拟事件发生时间和/或处理审查非常有用。文献中激励性的例子很有意义，例如在临床试验中，我们可能会有参与者退出，或者那些可能经历了不良影响但研究提前结束的人。
+在我的应用程序中，我使用机器学习对事件发生时间进行建模并将其视为回归问题。然而，审查在这里并不是一个真正的问题，我想知道生存分析是否会比标准回归方法提供任何优势。
+为了简化设置，假设我们有来自小部件工厂的数据。小部件发生故障的平均时间为$\bar{Y} = 40$天（最多 100 天），而数据集可以追溯到几年前，并且有几百万个观察值。因此，确实存在一些右删失，但考虑到数据的大小，这相对微不足道。我们还观察到小部件级协变量 $X$，它们会影响故障时间。
+目前，我只是将其建模为非参数回归问题，即学习函数 $f : X \to Y$，该函数可最小化 $L^2$ 经验风险/MSE。如果这里的目标只是预测故障时间 $Y$，而不考虑推理，那么生存分析是否会比回归方法有任何优势？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658656/are-there-any-advantages-of-survival-analysis-over-regression-for-prediction</guid>
+      <pubDate>Fri, 13 Dec 2024 01:17:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>适合我的数据进行因果关系检验的算法/测试</title>
+      <link>https://stats.stackexchange.com/questions/658654/algorithms-tests-that-suit-my-data-for-causal-relationship-examination</link>
+      <description><![CDATA[我有来自两个环境变量的观测数据，这些数据是在 18 个采样点和 20 个不同日期收集的。我想测试我的数据中两个变量之间是否存在因果关系。请注意，由于我的数据是观测数据，因此无法对其进行操纵，并且没有假定的有向无环图 (DAG)。基于这些条件，我想知道哪种算法或测试最适合我的数据？
+我相信 Peter-Clark (PC) 算法可能适合我的数据，因为它可以用于表格数据，但我正在寻找更多算法/测试来检查因果关系。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658654/algorithms-tests-that-suit-my-data-for-causal-relationship-examination</guid>
+      <pubDate>Fri, 13 Dec 2024 00:05:20 GMT</pubDate>
     </item>
     <item>
       <title>我可以使用函数 HSD.test 作为 R 中双向方差分析的事后检验吗？</title>
@@ -334,38 +330,11 @@ $f_b = \frac{1}{\sqrt{2\pi\sigma^2/w_i}}\exp{-\frac{(y_i − \hat{y}^2_i)}{2\sig
       <pubDate>Thu, 12 Dec 2024 17:03:36 GMT</pubDate>
     </item>
     <item>
-      <title>如何在我的受污染数据问题中找到具有 ML 组件的去偏估计量？</title>
-      <link>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</link>
-      <description><![CDATA[我试图使用机器学习模型的输出来估计（使用最大似然法）分布中的参数。我得到的估计量的偏差比参数值大得多。我想使用 Neyman 正交性/双机器学习方法（Chernozhukov et al., 2018）、影响函数或任何相关（或不相关）方法找到一个去偏估计量。但我不清楚如何在我的情况下构建去偏估计量。
-我的估计问题
-我已经“污染”了数据：大多数数据来自概率分布$P_0(x)$，但部分数据来自不同的分布$P_1(x)$（“污染”）。因此，我假设我的数据点是从分布$$P(x) = (1-\theta) P_0(x) + \theta P_1(x).$$中独立同分布抽取的。我的目标是找出受污染数据的比例$\theta$。 $\theta$ 的最大似然估计量是 $$0 = \frac{1}{n}\sum_i\frac{r(x_i)-1}{1+\hat{\theta}\bigl(r(x_i)-1\bigr)},$$ 的解，其中 $x_1,\ldots,x_n$ 是数据点，$r(x) = \frac{P_1(x)}{P_0(x)}$。
-我不知道概率分布 $P_0(x)、P_1(x)$ 或它们的比率 $r(x)$直接，但我确实有另一个标记为数据集 $(\tilde{x}_i, y_i)$ 的数据点，其生成分布是已知的：对于从 $P_0$ 中抽取的点，$y_i=0$ ；对于从 $P_1$ 中抽取的点，$y_i=1$ ：$$Prob(\tilde{x}_i | y_i) = P_{y_i} (\tilde{x}_i)$$ （为简单起见，假设我有相同数量的 $\tilde{x}_i$，其中 $\tilde{x}_i$ class=&quot;math-container&quot;&gt;$y=0$ 和 $y=1$)。因此，我尝试通过两个步骤估计 $\theta$：
-
-在标记数据集上训练 ML 分类器 $f(x)$ 以估计 $Prob(y=1|x)$，从而获得概率比的估计值为：$\hat{r}(x) = \frac{f(x)}{1-f(x)}$。
-
-将此 $\hat{r}$ 代入 MLE 方程，得出 $$0 = \frac{1}{n}\sum_i\frac{\hat{r}(x_i)-1}{1+\hat{\theta}\bigl(\hat{r}(x_i)-1\bigr)},$$ 并求解 $\hat{\theta}$。
-
-
-请注意，用于 MLE 估计（步骤 2）的数据集与用于训练 ML 模型（步骤 1）的数据不同且独立。
-我的问题
-$\hat{r}$ 是一个有偏估计量，例如在双重机器学习文献中讨论过（参见上面的链接）。因此，我得到了 $\theta$ 的有偏估计量。在我的案例中，我感兴趣的是 $\theta$ 的值远小于此偏差。因此，我想找到 $\theta$ 的去偏估计量。但我对如何将双重机器学习方法或影响函数应用于我的案例感到困惑。
-在我的案例中，Neyman 正交 MLE 方程是什么？我如何使用我拥有的信息来找到污染分数 $\theta$ 的去偏估计量？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</guid>
-      <pubDate>Wed, 11 Dec 2024 15:48:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>当预测变量在抽样单位内不变时，对其估计效应的解释</title>
-      <link>https://stats.stackexchange.com/questions/658505/interpretation-of-estimated-effect-of-a-predictor-variable-when-it-does-not-vary</link>
-      <description><![CDATA[让我们考虑以下场景。John 很快就要对他的学生进行测验，他想知道测验格式的字体类型是否与学生在测验中的表现有关。John 假设在前两次测验中得分较高的学生在即将到来的测验中也会获得高分。John 计算了前两次测验的平均分数并将其命名为 last_score。即将到来的测验在各个方面与前两次测验相似：每个即将到来的测验也将有 10 个问题，每个正确答案都会为测验总分贡献 1 分。John 使用有序变量 new_score 来记录每个即将到来的测验的总分。John 在测验中将使用的两种字体类型是 Arial 和 Times New Roman； John 使用因子变量 type 对它们进行编码。
-他设置了两个随机截距模型，以将 new_score 的条件多项分布建模为具有比例几率结构的 last_score 和 type 的函数：
-formula.mod1 &lt;- new_score ~ last_score + type + (1 | student)
-
-formula.mod2 &lt;- new_score ~ last_score*type + (1 | student)
-
-在格式化 John 将要进行的六个测验之一以测试字体类型对测验表现的影响时，John 问自己，“我应该如何解释具有公式 formula.mod1 的随机截距模型的 last_score 系数”？ John 认为测验的难度差异不大。他使用两个序列“ATATAT”和“TATATA”，其中 T 代表字体“Times New Roman”，A 代表“Arial”，以确保每个学生都能解决这两种类型的测验，使用 last_score 对学生进行排名，并将每个序列交替分配给排名的学生列表。
-假设 last_score 在对学生进行的六次测验中没有变化，那么使用随机截距模型对 new_score 进行建模是否可行，其中随机截距遵循 MVN 分布（例如装有 ordinal::clmm 的模型）？如果可以，如何解释 last_score 对给定参与者的 new_score 的估计影响？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658505/interpretation-of-estimated-effect-of-a-predictor-variable-when-it-does-not-vary</guid>
-      <pubDate>Mon, 09 Dec 2024 21:51:33 GMT</pubDate>
+      <title>是否存在计算边际效应的标准方法？</title>
+      <link>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</guid>
+      <pubDate>Wed, 11 Dec 2024 21:11:19 GMT</pubDate>
     </item>
     </channel>
 </rss>
