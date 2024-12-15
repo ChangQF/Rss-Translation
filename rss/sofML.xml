@@ -4,7 +4,175 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 15 Dec 2024 18:22:27 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 15 Dec 2024 21:15:57 GMT</lastBuildDate>
+    <item>
+      <title>LSTM 停留在图像生成上</title>
+      <link>https://stackoverflow.com/questions/79283140/lstm-stuck-on-image-generation</link>
+      <description><![CDATA[我创建了一个 LSTM 来生成序列中的下一张图像（我知道 CNN 是用于图像生成的，但我需要整个图像，而不仅仅是提供给序列下一次迭代的过滤器）。所以我有一个数据集，它包含图像（电影中的帧），我创建了它的序列，就像 1 个场景包含例如。 n 个图像，我有 s 个序列长度，那么输入将是 image_1 到 image_s，输出是 image_s+1，下一个输入是 image_2 到 image_s+1，输出是 image_s+2，依此类推。
+模型如下：
+class LSTM(nn.Module):
+def __init__(self, input_len, hidden_​​size, num_layers):
+super(LSTM, self).__init__()
+self.hidden_​​size = hidden_​​size
+self.num_layers = num_layers
+self.lstm = nn.LSTM(input_len, hidden_​​size, num_layers, batch_first=True)
+self.output_layer = nn.Linear(hidden_​​size, input_len)
+self.dropout = nn.Dropout(.2)
+
+def forward(self, X):
+hidden_​​states = torch.zeros(self.num_layers, X.size(0), self.hidden_​​size, device=device)
+cell_states = torch.zeros(self.num_layers, X.size(0), self.hidden_​​size, device=device)
+out, _ = self.lstm(X, (hidden_​​states, cell_states))
+out = self.dropout(out)
+out = self.output_layer(out[:, -1, :])
+return out
+
+训练是：
+def train(num_epochs, model, loss_func, optimizer):
+total_steps = loader.getSizeWithBatch()
+
+for epoch in range(num_epochs):
+loader.reset()
+for item in range(total_steps-1):
+element = loader.next()[0]
+x_images,y_image = element
+x_images = x_images.reshape(-1,sequence_len,input_len)
+output = model(x_images)
+y_image = y_image.reshape(-1,input_len)
+loss = loss_func(output, y_image)
+
+optimizer.zero_grad()
+loss.backward()
+optimizer.step()
+
+if (item + 1) % 1 == 0:
+print(f&#39;Epoch: {epoch + 1};批次：{item + 1} / {total_steps};损失：{loss.item():&gt;4f}&#39;)
+
+if (epoch + 1) % int(config[&#39;SAVE&#39;][&#39;model_save_interval&#39;]) == 0:
+if (epoch + 1) % int(config[&#39;SAVE&#39;][&#39;clean_save_interval&#39;]) == 0:
+torch.save(model.state_dict(), os.path.join(config[&#39;PATH&#39;][&#39;model_path&#39;], config[&#39;PATH&#39;][&#39;model_name&#39;] + str(epoch+1)))
+else:
+torch.save(model.state_dict(), os.path.join(config[&#39;PATH&#39;][&#39;model_path&#39;], config[&#39;PATH&#39;][&#39;model_name&#39;]))
+
+Loader 以张量的形式引导图像由于内存使用，从文件中预先排序。
+我使用 MSE 损失和 Adam 作为优化器。
+问题是，当我训练它时，错误达到 0.003，这是目标，因为我通过将它们除以 255 来规范化值，但当我预测它时，它会产生一种模糊的场景图像，并且无论输入如何，预测图像始终相同，即使输入来自其他场景，它也会创建相同的图像，当我减去不同输出图像的颜色值时，该值为 0，因此每个输出图像都完全相同
+我尝试添加 Droput，增加隐藏大小的神经元（现在是 128），尝试增加层数，不同的时期会创建相同的图像，只是模糊程度略低，但是一样的，我将学习率从 .001 降低到 .0001，一切都一样]]></description>
+      <guid>https://stackoverflow.com/questions/79283140/lstm-stuck-on-image-generation</guid>
+      <pubDate>Sun, 15 Dec 2024 20:28:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>针对 Lllama 3.2 1B 的分层学生-教师优化</title>
+      <link>https://stackoverflow.com/questions/79283119/layer-wise-student-teacher-optimization-for-lllama-3-2-1b</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79283119/layer-wise-student-teacher-optimization-for-lllama-3-2-1b</guid>
+      <pubDate>Sun, 15 Dec 2024 20:21:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么当我扫描模型参数时，我的 GPU 内存不断增加？</title>
+      <link>https://stackoverflow.com/questions/79283083/why-does-my-gpu-memory-keep-increasing-when-i-sweep-over-model-parameters</link>
+      <description><![CDATA[我正在尝试评估特定架构下具有不同丢弃率的模型分类错误率。当我这样做时，内存使用量会增加，而且我无法阻止这种情况发生（有关详细信息，请参阅下面的代码）：
+N=2048 split 0 内存使用量
+{&#39;current&#39;: 170630912, &#39;peak&#39;: 315827456}
+{&#39;current&#39;: 345847552, &#39;peak&#39;: 430210560}
+{&#39;current&#39;: 530811136, &#39;peak&#39;: 610477568}
+...
+{&#39;current&#39;: 1795582208, &#39;peak&#39;: 1873805056}
+N=2048 split 1 内存使用量
+{&#39;current&#39;: 1978317568, &#39;peak&#39;: 2056609280}
+{&#39;current&#39;: 2157136640，&#39;峰值&#39;：2235356160}
+...
+2024-12-15 18:55:04.141690：W external/local_xla/xla/tsl/framework/bfc_allocator.cc:497] 分配器 (GPU_0_bfc) 在尝试分配 op 请求的 52.00MiB（四舍五入为 54531328）时内存不足
+...
+2024-12-15 18:55:04.144298：I tensorflow/core/framework/local_rendezvous.cc:405] 本地会合正在中止，状态为：RESOURCE_EXHAUSTED：尝试分配 54531208 字节时内存不足。
+...
+
+这是我正在运行的代码的相关部分，包括每次迭代后清除内存的一些不成功的尝试。
+import tensorflow as tf
+import tensorflow_datasets as tfds
+import gc
+
+batch_size = 128
+sizes = [2048 + n * batch_size * 5 for n in range(10)]
+dropout_points = 10
+
+vals_ds = tfds.load(
+&#39;mnist&#39;,
+split=[f&#39;train[{k}%:{k+10}%]&#39; for k in range(0, 100, 10)],
+as_supervised=True,
+)
+trains_ds = tfds.load(
+&#39;mnist&#39;,
+split=[f&#39;train[:{k}%]+train[{k+10}%:]&#39; for k in range(0, 100, 10)],
+as_supervised=True,
+)
+_, ds_info = tfds.load(&#39;mnist&#39;, with_info=True)
+
+def normalize_img(image, label):
+return tf.cast(image, tf.float32) / 255., label
+
+for N in sizes:
+for i, (ds_train, ds_test) in enumerate(zip(trains_ds, vals_ds)):
+ds_train = ds_train.map(normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+ds_train = ds_train.shuffle(ds_info.splits[&#39;train&#39;].num_examples)
+ds_train = ds_train.batch(128)
+
+ds_test = ds_test.map(normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+ds_test = ds_test.batch(128)
+
+print(f&quot;N={N} split {i} 内存使用情况&quot;)
+with open(f&quot;out_{N}_{i}.csv&quot;, &quot;w&quot;) as f:
+f.write((&quot;retention_rate,&quot;
+&quot;train_loss,&quot;
+&quot;train_err,&quot;
+&quot;test_loss,&quot;
+&quot;test_err,&quot;
+&quot;epochs\n&quot;))
+for p in range(dropout_points):
+dropout_rate = p / dropout_points
+
+layers = [tf.keras.layers.Flatten(input_shape=(28, 28))]
+for i in range(4):
+layers.append(tf.keras.layers.Dense(N,activation=&#39;relu&#39;))
+layers.append(tf.keras.layers.Dropout(dropout_rate))
+layers.append(tf.keras.layers.Dense(10))
+
+with tf.device(&#39;/GPU:0&#39;):
+model = tf.keras.models.Sequential(layers)
+model.compile(
+optimizer=tf.keras.optimizers.Adam(0.001),
+loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
+)
+
+callback = tf.keras.callbacks.EarlyStopping(monitor=&#39;loss&#39;, waiting=3)
+history = model.fit(
+ds_train,
+epochs=100,
+validation_data=ds_test,
+verbose=0,
+callbacks=[callback]
+)
+
+train_loss, train_acc = model.evaluate(ds_train, verbose=0)
+test_loss, test_acc = model.evaluate(ds_test, verbose=0)
+epochs = len(history.history[&#39;loss&#39;])
+f.write((
+f&quot;{1 - dropout_rate},&quot;
+f&quot;{train_loss},&quot;
+f&quot;{1 - train_acc},&quot;
+f&quot;{test_loss},&quot;
+f&quot;{1 - test_acc},&quot;
+f&quot;{epochs}\n&quot;))
+del model
+tf.keras.backend.clear_session()
+gc.collect()
+print(tf.config.experimental.get_memory_info(&#39;GPU:0&#39;))
+
+如何才能在不增加内存使用量的情况下有效地执行此循环？]]></description>
+      <guid>https://stackoverflow.com/questions/79283083/why-does-my-gpu-memory-keep-increasing-when-i-sweep-over-model-parameters</guid>
+      <pubDate>Sun, 15 Dec 2024 19:58:11 GMT</pubDate>
+    </item>
     <item>
       <title>如何为任何数据集创建强大的预处理函数？[关闭]</title>
       <link>https://stackoverflow.com/questions/79282246/how-to-create-a-robust-preprocessing-function-for-any-dataset</link>
@@ -29,7 +197,7 @@
       <title>URL 中损坏的访问控制的数据集[关闭]</title>
       <link>https://stackoverflow.com/questions/79282134/dataset-for-broken-access-control-in-url</link>
       <description><![CDATA[我是一名学生，正在接受一个项目任务，该项目涉及使用机器学习检测 URL 中损坏的访问控制（如 IDOR）。我一直在寻找可用于训练机器学习的数据集，但找不到与我的主题最相关的数据集。你们知道我可以在哪里找到数据集吗？
-我尝试使用每个相关关键字搜索有关损坏的访问控制。]]></description>
+我尝试使用每个与损坏的访问控制相关的关键字进行搜索。]]></description>
       <guid>https://stackoverflow.com/questions/79282134/dataset-for-broken-access-control-in-url</guid>
       <pubDate>Sun, 15 Dec 2024 10:22:25 GMT</pubDate>
     </item>
@@ -199,14 +367,14 @@ https://www.kaggle.com/datasets/rithurajnambiar/electric-vehicle-data
     <item>
       <title>如何将 Flatten 层与具有动态尺寸的输入一起使用？</title>
       <link>https://stackoverflow.com/questions/79280552/how-to-use-the-flatten-layer-with-an-input-that-has-a-dynamically-sized-dimensio</link>
-      <description><![CDATA[我有一个模型，其输入（具有形状（高度、宽度、时间）的图像批次）具有动态大小的维度（时间），该维度仅在运行时确定。但是，Flatten 层需要完全定义的空间维度。代码片段示例：
+      <description><![CDATA[我有一个模型，其输入（一批具有形状（高度、宽度、时间）的图像）具有动态大小的维度（时间），该维度仅在运行时确定。但是，Flatten 层需要完全定义的空间维度。代码片段示例：
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten, Input
 
-# 定义具有未定义维度 (None) 的输入
+# 定义具有未定义维度的输入（无）
 input_tensor = Input(shape=(None, 256, 256, None, 13))
 
-# 应用 Dense 层（需要完全定义的形状）
+# 应用密集层（需要完全定义的形状）
 x = Flatten()(input_tensor)
 x = Dense(10)(x)
 
@@ -216,33 +384,11 @@ model = tf.keras.models.Model(inputs=input_tensor, output=x)
 model.summary()
 
 这会引发错误：
-ValueError：应定义 Dense 层输入的最后一个维度。未找到。
+ValueError：密集层输入的最后一个维度应已定义。未找到。
 
 如何使用 Flatten 而不是 GlobalAveragePooling3D 等替代方案使其工作？我需要保留所有像素级信息。]]></description>
       <guid>https://stackoverflow.com/questions/79280552/how-to-use-the-flatten-layer-with-an-input-that-has-a-dynamically-sized-dimensio</guid>
       <pubDate>Sat, 14 Dec 2024 11:31:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用随机森林预测 FPL 球员总得分 [已迁移]</title>
-      <link>https://stackoverflow.com/questions/79280539/predicting-fpl-player-total-points-using-random-forest</link>
-      <description><![CDATA[我有一个数据集，其中包含英超联赛（2016-2023 年）大约 100k 个比赛周统计数据。我的目标是预测一名球员在某个比赛周/比赛中将获得多少总分。
-我将数据分为训练/测试集，其中训练集包含赛季 &lt; 2022 的统计数据，测试集包含赛季 &gt; 的统计数据2022.
-为了说明某位球员的当前状态，我计算了过去 3 个比赛周以下变量的滚动平均值：
-进球数、助攻数、零封数、失球数、分钟数、自进球数、扑救数、错失点球数、黄牌数、红牌数、扑救数、影响力、创造力、威胁和 ict_index
-然后，我使用这些变量和一些其他变量运行随机森林：
-was_home、player_team、opponent_team、opponent_strength、element_type（后卫/中场等）
-模型如下所示：
-rf &lt;- randomForest(
-as.formula(paste(target, &quot;~&quot;, paste(predictors, collapse = &quot; + &quot;))),
-data = train,
-ntree = 500,
-mtry = 7,
-nodesize = 10,
-significance = TRUE)
-
-这样做我只得到 R^2 约为 57%。所以我的问题是这是否正常，或者我的方法是否出错？我想知道我可以在哪里改进模型，机器学习是否是预测总分的好方法？]]></description>
-      <guid>https://stackoverflow.com/questions/79280539/predicting-fpl-player-total-points-using-random-forest</guid>
-      <pubDate>Sat, 14 Dec 2024 11:25:11 GMT</pubDate>
     </item>
     <item>
       <title>XGBoost 警告未找到可见的 GPU，正在将设备设置为 CPU</title>
@@ -266,116 +412,17 @@ XGBoost 警告：/workspace/src/context.cc:43：未找到可见的 GPU，将设�
       <pubDate>Sat, 14 Dec 2024 09:12:14 GMT</pubDate>
     </item>
     <item>
-      <title>结合 RNN 和 FFN [关闭]</title>
-      <link>https://stackoverflow.com/questions/79280265/combine-rnn-and-ffn</link>
-      <description><![CDATA[在 FFN 中，我们有一些输入和一些输出，并以此为基础训练模型。在 RNN 中，输入是序列的一段，输出是同一序列的下一个时间步。但是，在我的场景中，我将关节旋转作为输入，将顶点位置作为随时间变化的输出。我不知道如何在 RNN 中处理两个不同的序列（关节旋转和顶点位置）。
-我有时间依赖性，并且这两个序列也是相互依赖的。我应该结合使用 FFN 和 RNN 来解决这个问题吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79280265/combine-rnn-and-ffn</guid>
-      <pubDate>Sat, 14 Dec 2024 07:42:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>拟合非线性混合模型 [迁移]</title>
-      <link>https://stackoverflow.com/questions/79279411/fitting-a-nonlinear-mixed-model</link>
-      <description><![CDATA[我试图拟合一个非线性混合模型 (nLMM)，以测试某些生物的丰度是否受到导致丰度显著增加的事件后的采样期的影响。
-数据显示了一条重要的曲线，这些生物的丰度在事件发生后激增（事件发生在采样期：-1 和 1 之间），但随后下降。
-我试图构建一个非线性混合模型，但我发现理解如何构建模型非常具有挑战性（例如，model &lt;- lmer(abundance ~ samples_period + (1 | rep), data = data）。我非常感谢任何帮助来确定丰度是否受到采样期的影响。
-data &lt;- data.frame(
-abundant = c(79, 72, 58, 61, 88, 123, 119, 96, 67, 78, 143, 75, 105, 46, 58, 
-127, 173, 181, 67, 120, 64, 30, 49, 47, 104, 83, 146, 118, 53, 
-98, 223, 257, 255, 292, 354, 133, 129, 140, 27, 55, 68, 148, 
-122, 132, 77, 121, 108, 109),
-rep = c(&quot;T1&quot;, &quot;T2&quot;, &quot;T3&quot;, &quot;T1&quot;, &quot;T2&quot;, &quot;T3&quot;, “T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T3”、“T1”、“T2”、“T3”、“
-“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“ “T3”, “T1”, “T2”, “T3”, 
-“T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”),
-sampling_period_consecutive = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 
-6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 
-10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 
-14, 14, 15, 15, 15, 16, 16, 16),
-采样周期 = c(-5, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -2, -1, -1, 
--1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 
-6, 11, 11, 11, 22, 22, 22, 34, 34, 34, 46, 46, 58, 
-58, 58)
-)
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79279411/fitting-a-nonlinear-mixed-model</guid>
-      <pubDate>Fri, 13 Dec 2024 19:32:50 GMT</pubDate>
-    </item>
-    <item>
-      <title>XGBoost/XGBRanker 生成概率而不是排名分数</title>
-      <link>https://stackoverflow.com/questions/79278625/xgboost-xgbranker-to-produce-probabilities-instead-of-ranking-scores</link>
-      <description><![CDATA[我有一个学生考试成绩的数据集，如下所示：
-班级 ID 班级规模 学生编号 智商 学习时间 分数
-1 3 3 101 10 98
-1 3 4 99 19 80
-1 3 6 130 3 95
-2 4 4 93 5 50
-2 4 5 103 9 88
-2 4 8 112 12 99
-2 4 1 200 10 100 
-
-我想建立一个机器学习模型，尝试使用 IQ 和 Hours_Studied 预测谁将成为班级第一名（即最高 Score），对于任何给定的 Class_ID特征。
-由于这是一个排名问题，因此自然的一类学习模型是使用 XGBoost 中的 XGBRanker 或 lightgbm 中的 LGBMRanker。
-这是我使用 xgboost 的代码：
-from sklearn.model_selection import GroupShuffleSplit
-import xgboost as xgb
-
-gss = GroupShuffleSplit(test_size=.40, n_splits=1, random_state = 7).split(df, groups=df[&#39;Class_ID&#39;])
-
-X_train_inds, X_test_inds = next(gss)
-
-train_data = df.iloc[X_train_inds]
-X_train = train_data.loc[:, ~train_data.columns.isin([&#39;Class_ID&#39;,&#39;Student_Number&#39;,&#39;Score&#39;])]
-y_train = train_data.loc[:, train_data.columns.isin([&#39;Score&#39;])]
-
-groups = train_data.groupby(&#39;Class_ID&#39;).size().to_frame(&#39;Class_size&#39;)[&#39;Class_size&#39;].to_numpy()
-
-test_data = df.iloc[X_test_inds]
-
-X_test = test_data.loc[:, ~test_data.columns.isin([&#39;Student_Number&#39;,&#39;Score&#39;])]
-y_test = test_data.loc[:, test_data.columns.isin([&#39;Score&#39;])]
-
-model = xgb.XGBRanker( 
-tree_method=&#39;hist&#39;,
-device=&#39;cuda&#39;,
-booster=&#39;gbtree&#39;,
-objective=&#39;rank:pairwise&#39;,
-enable_categorical=True,
-random_state=42, 
-learning_rate=0.1,
-colsample_bytree=0.9, 
-eta=0.05, 
-max_depth=6, 
-n_estimators=175, 
-subsample=0.75 
-)
-
-model.fit(X_train, y_train, group=groups, verbose=True)
-
-def predict(model, df):
-return model.predict(df.loc[:, ~df.columns.isin([&#39;Class_ID&#39;,&#39;Student_Number&#39;])])
-
-predictions = (X_test.groupby(&#39;Class_ID&#39;)
-.apply(lambda x: predict(model, x)))
-
-代码运行良好，具有合理的预测能力。但是，输出是“相关性得分”列表，而不是概率列表。但似乎 XGBRanker 和 LGBMRanker 都没有属性 predict_proba，该属性返回获得班级最高分的概率。
-所以我的问题是，有没有办法将 相关性得分 转换为概率，或者是否有其他自然类别的排名模型可以处理此类问题？
-编辑在这个问题中，我只关心最终名列前茅的人（或者可能是前三名），所以排名并不是那么重要（例如，知道学生 4 排名第 11 位，学生 8 排名第 12 位并不那么重要），所以我想一种方法是在 xgboost 中使用分类而不是排名。但我想知道还有其他方法吗。]]></description>
-      <guid>https://stackoverflow.com/questions/79278625/xgboost-xgbranker-to-produce-probabilities-instead-of-ranking-scores</guid>
-      <pubDate>Fri, 13 Dec 2024 14:20:37 GMT</pubDate>
-    </item>
-    <item>
       <title>模型部署：交叉验证和超参数调整</title>
       <link>https://stackoverflow.com/questions/79275593/model-deployment-cross-validation-and-hyperparameter-tuning</link>
       <description><![CDATA[我正在使用 Prophet（时间序列的元模型），我有一个与模型部署相关的问题，该问题也扩展到其他机器学习算法。因此，我使用了元文档中提供的代码进行超参数调整。它的工作原理类似于网格搜索，并基于交叉验证输出模型中使用的最佳超参数组合。该最佳组合的 RMSE 约为 11.15。因此，考虑到我想部署模型并发送到生产，我应该使用网格搜索提供的超参数组合在整个数据集上重新训练模型，还是应该将使用交叉验证训练的模型发送到生产？
 
-我问这个问题是因为当我使用网格搜索中的超参数在整个数据集上训练模型时，RMSE 比交叉验证的更高（更差）。
+我之所以问这个问题，是因为当我使用网格搜索中的超参数在整个数据集上训练模型时，RMSE 比交叉验证的更高（更差）。
 ]]></description>
       <guid>https://stackoverflow.com/questions/79275593/model-deployment-cross-validation-and-hyperparameter-tuning</guid>
       <pubDate>Thu, 12 Dec 2024 15:01:43 GMT</pubDate>
     </item>
     <item>
-      <title>Pyannote：离线加载和应用说话人区分</title>
+      <title>Pyannote：离线加载并应用说话人区分</title>
       <link>https://stackoverflow.com/questions/78820971/pyannote-load-and-apply-speaker-diarization-offline</link>
       <description><![CDATA[我尝试离线使用 Pyannotes 模型。
 我是这样加载和应用模型的：
@@ -514,6 +561,32 @@ print(&quot;测试准确率 {:.2%}&quot;.format(accTest))
 模型损失]]></description>
       <guid>https://stackoverflow.com/questions/72930709/keras-xception-trained-from-scratch-give-100-accuracy-in-the-history-but-only</guid>
       <pubDate>Sun, 10 Jul 2022 17:58:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>数据解析和特征工程管道的设计模式</title>
+      <link>https://stackoverflow.com/questions/63788496/design-pattern-for-a-data-parsingfeature-engineering-pipeline</link>
+      <description><![CDATA[我知道这个问题过去在这些论坛上被问过几次，但我有一个更通用的版本，将来可能也适用于其他人的项目。
+简而言之 - 我正在构建一个 ML 系统（使用 Python，但在这种情况下语言选择并不十分关键），其 ML 模型位于正在发生的操作管道的末尾：
+
+数据上传
+数据解析
+特征工程
+特征工程（与上一步的逻辑括号不同）
+特征工程（与上一步的逻辑括号不同）
+
+...（更多步骤，如最后 3 个）
+
+数据传递给 ML 模型
+
+上述每个步骤都有其必须采取的一系列操作，以便构建正确的输出，然后将其用作下一个步骤的输入，等等。这些子步骤反过来可以完全彼此分离，或者其中一些可能需要先完成大步骤中的某些步骤，以生成后续步骤使用的数据。
+现在的问题是，我需要构建一个自定义管道，这样就可以非常轻松地将新步骤（无论大小）添加到组合中，而不会破坏现有的步骤。
+到目前为止，从架构的角度来看，我对它的外观有这样一个概念，如下所示：
+
+在查看此架构时，我立即想到了一个责任链设计模式，它管理大步骤（1、2、...、n），并且每个大步骤都有自己的小版本的责任链，这些责任链在它们的内部发生，对于 NO_REQ 步骤独立发生，然后对于 REQ 步骤独立发生（REQ 步骤循环进行，直到它们全部完成）。如果有一个共享接口用于在大步骤和小步骤内运行逻辑，那么它可能会运行得相当整齐。
+但是，我想知道，是否有更好的方法？此外，我不喜欢责任链，因为它需要一个人添加新的大/小步骤，总是编辑逻辑设置步骤包的“核心”，以手动包含新添加的步骤。我很想构建一些东西，它只会扫描每个大步骤下特定于步骤的文件夹，并自行构建 NO_REQ 和 REQ 步骤列表（以坚持开放/封闭 SOLID 原则）。
+我将不胜感激任何想法。]]></description>
+      <guid>https://stackoverflow.com/questions/63788496/design-pattern-for-a-data-parsingfeature-engineering-pipeline</guid>
+      <pubDate>Tue, 08 Sep 2020 06:49:39 GMT</pubDate>
     </item>
     </channel>
 </rss>
