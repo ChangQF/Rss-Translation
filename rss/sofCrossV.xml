@@ -4,7 +4,239 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 15 Dec 2024 09:17:05 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 15 Dec 2024 12:32:49 GMT</lastBuildDate>
+    <item>
+      <title>箱线图是否假设区间数据？</title>
+      <link>https://stats.stackexchange.com/questions/658750/does-a-boxplot-assume-interval-data</link>
+      <description><![CDATA[箱线图是否假设区间数据？如果不是，那么使用箱线图来表示李克特量表（序数）数据可以吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658750/does-a-boxplot-assume-interval-data</guid>
+      <pubDate>Sun, 15 Dec 2024 11:48:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何计算文本 2 中文本 1 的单词出现的次数？</title>
+      <link>https://stats.stackexchange.com/questions/658749/how-do-i-count-the-occurrences-of-words-of-text-1-in-text-2</link>
+      <description><![CDATA[我是新来的，英语不是我的母语，所以如果造成任何混淆，我提前道歉。
+长话短说，我正在做一项关于学校如何传递知识的博士研究，在这个阶段，我试图弄清楚学习教科书如何有助于考试，然后了解为什么有些学生即使花了几个小时学习教科书，成绩仍然很差，以及这种复习方法在哪个年级失效了。
+因此，我试图将试卷中的文本与教科书中的文本进行比较。我想知道试卷中有多少单词直接来自教科书，即文本 1 中有多少单词与文本 2 中的单词相同。理想情况下，结果将如下所示：
+文本 1 中的单词出现在文本 2 中：
+生日——2 次
+姐妹——4 次
+... 等等。
+我以为已经有某种 AI 助手可以完成这样的任务，但到目前为止我的搜索都是徒劳的。所以我想知道是否有任何方法可以进行这样的比较？非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658749/how-do-i-count-the-occurrences-of-words-of-text-1-in-text-2</guid>
+      <pubDate>Sun, 15 Dec 2024 11:25:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有低 R 平方和负对数似然的 EGARCH 模型</title>
+      <link>https://stats.stackexchange.com/questions/658746/egarch-model-with-low-r-squared-and-negative-log-likelihood</link>
+      <description><![CDATA[我对编码不是很有经验，一直在研究我在 GitHub 上找到的一个模型，以估计标准普尔 500 指数的波动性。该代码实现了 EGARCH(1,1) 模型，但我注意到 R 平方相当低，对数似然为高度负值，这表明该模型表现不佳。
+我想知道是否有人可以帮助改进模型或提供建议以使其更具功能性。具体来说，如果有人能分享更强大的实现或修改来改善模型的性能指标，我将不胜感激。
+以下是问题的简要概述：
+数据集：标准普尔 500 指数每日回报和 VIX 数据。
+问题：R 平方低且对数似然非常负。
+目标：增强模型的解释能力和预测准确性。
+import pandas as pd
+import numpy as np
+import yfinance as yf
+from arch import arch_model
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+
+# 从 Yahoo Finance 下载标准普尔 500 指数和 VIX 数据
+sp500 = yf.download(&#39;^GSPC&#39;, start=&#39;2000-01-01&#39;, end=&#39;2021-09-01&#39;, progress=False)
+vix = yf.download(&#39;^VIX&#39;, start=&#39;2000-01-01&#39;, end=&#39;2021-09-01&#39;, progress=False)
+
+# 计算标准普尔 500 指数的每日收益
+sp500[&#39;SP500_Returns&#39;] = 100 * sp500[&#39;Adj Close&#39;].pct_change().dropna()
+
+# 计算已实现方差（平方收益）
+sp500[&#39;Realized_Variance&#39;] = sp500[&#39;SP500_Returns&#39;]**2
+
+# 合并标准普尔 500 收益和 VIX 数据
+# 更改为合并 vix 的日期列，而不是索引。重置 vix 的索引以获取日期列。
+data = pd.merge(sp500, vix.reset_index()[[&#39;Date&#39;, &#39;Adj Close&#39;]], on=&#39;Date&#39;, how=&#39;inner&#39;)
+data.columns = [&#39;Date&#39;, &#39;Open&#39;, &#39;High&#39;, &#39;Low&#39;, &#39;Close&#39;, &#39;Adj Close&#39;, &#39;Volume&#39;, &#39;SP500_Returns&#39;, &#39;Realized_Variance&#39;, &#39;VIX&#39;]
+
+# 将“日期”输入到指数中
+data = data.set_index(&#39;Date&#39;)
+
+# data[&#39;VIX&#39;] = data[&#39;VIX&#39;].shift(1) # 使用滞后 VIX
+data = data.dropna()
+data[&#39;VIX&#39;] = data[&quot;VIX&quot;]**2
+
+# 拟合 EGARCH(1,1) 模型
+egarch_model = arch_model(data[&#39;SP500_Returns&#39;], vol=&#39;EGARCH&#39;, p=1, q=1)
+egarch_results = egarch_model.fit()
+
+# 获取 EGARCH 方差估计值
+data[&#39;EGARCH_Variance&#39;] = egarch_results.conditional_volatility**2
+
+# 将数据拆分为训练集和测试集
+train_data = data.iloc[:-150] # 使用除过去 252 天（大约一年）以外的所有数据进行训练
+test_data = data.iloc[-150:] # 使用过去 252 天进行测试
+
+# 模型 1：实际方差与 EGARCH 方差
+X1_train = train_data[[&#39;EGARCH_Variance&#39;]]
+X1_train = sm.add_constant(X1_train)
+y_train = train_data[&#39;Realized_Variance&#39;]
+
+model1 = sm.OLS(y_train, X1_train)
+results1 = model1.fit()
+
+# 模型 2：实际方差与 EGARCH 方差和 VIX 水平
+X2_train = train_data[[&#39;EGARCH_Variance&#39;, &#39;VIX&#39;]]
+X2_train = sm.add_constant(X2_train)
+
+model2 = sm.OLS(y_train, X2_train)
+results2 = model2.fit()
+
+# 样本外预测
+X1_test = test_data[[&#39;EGARCH_Variance&#39;]]
+X1_test = sm.add_constant(X1_test)
+y_test = test_data[&#39;Realized_Variance&#39;]
+
+X2_test = test_data[[&#39;EGARCH_Variance&#39;, &#39;VIX&#39;]]
+X2_test = sm.add_constant(X2_test)
+
+y_pred_model1 = results1.predict(X1_test)
+y_pred_model2 = results2.predict(X2_test)
+
+# 绘制样本外预测值与实际实现方差的关系
+plt.figure(figsize=(12, 6))
+plt.plot(test_data.index, y_test, label=&quot;Realized Variance&quot;, linewidth=2, color=&quot;black&quot;, alpha=0.7)
+plt.plot(test_data.index, y_pred_model1, label=&quot;Model 1 (EGARCH Variance)&quot;, linestyle=&quot;--&quot;, linewidth=2, color=&quot;red&quot;)
+plt.plot(test_data.index, y_pred_model2, label=&quot;Model 2 (EGARCH Variance + VIX)&quot;, linestyle=&quot;:&quot;, linewidth=2, color=&quot;blue&quot;)
+
+plt.ylabel(&quot;方差&quot;)
+plt.legend()
+plt.title(&quot;样本外预测与实际实现方差&quot;)
+plt.show()
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658746/egarch-model-with-low-r-squared-and-negative-log-likelihood</guid>
+      <pubDate>Sun, 15 Dec 2024 09:28:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>表 2 谬误与变量选择</title>
+      <link>https://stats.stackexchange.com/questions/658745/table-2-fallacy-and-choice-of-variables</link>
+      <description><![CDATA[我有几个棘手的问题要问您。
+我正在开展一项观察性研究，在使用 weighthem 加权我的数据集后，我使用 g 计算估计了平均治疗效果 (ATE)。下面是我使用的代码：
+使用的公式：
+Treatment_type_tumor_near_gallbladder ~ age_binary + bmi_binary + 
+comorbidities + Segments_treated_per_session_binned + Metastasis_size_at_treatment_mm + 
+min_distance_gallblad_mm + stage_binary + Metastasis_location_superficial
+
+混杂因素选择比率：(1) 我从数据集中的所有变量中仅选择了具有临床意义的变量，(2) 我仅使用与结果和暴露高度相关的变量（单变量分析中的 alpha&lt;0.2）来计算 PS。
+
+# 在每个估算数据集中执行 IPW
+w.out_model1_ATE &lt;- weightthem(formula, 
+data = new_amcore_imputed, 
+method = &quot;cbps&quot;, # ebal, cbps, glm, gbm, energy, OptWeight, IPT
+estimand = &quot;ATE&quot;,
+criterion = &quot;smd.mean&quot;, 
+) 
+
+在数字 (bal.tab) 和图形 (love.plot) 上检查平衡后，我使用 g 计算方法估计了 ATE：
+# 使用逻辑回归 PS 对 ATE 进行 PS 加权
+results_all &lt;- with(model_to_use, 
+WeightIt::glm_weightit(log_regression_formula, family = quasibinomial, weightit = model_to_use), cluster = FALSE)
+
+# 计算风险比量表上的 ATE
+ATE_all &lt;- lapply(results_all$analyses, function(fit) {
+marginaleffects::avg_comparisons(fit, variable = predictors_log_regression,
+Comparison = &quot;lnratioavg&quot;) # lnratioavg 这将返回风险比量表上的 ATE。要获取比值比量表上的 ATE，请将比较更改为 &quot;lnoravg&quot;。要获取风险差异量表上的 ATE，请删除比较并取指数。
+})
+
+# 汇总结果并总结
+ATE_results &lt;- ATE_all |&gt; mice::pool() |&gt; summary(exponentiate = TRUE, conf.int = TRUE) |&gt; mutate(across(where(is.numeric), \(x) round(x, digits = 3)))
+
+# 打印结果
+ATE_results
+
+在上面的代码中，我还调整了那些在 PS 估计中未使用的临床显著混杂因素，因为它们与暴露或结果 (alpha&gt;0.2) 没有很强的关联，即性别、ASA 状态和之前的化疗治疗 (log_regression_formula: 并发症 ~ 治疗 + 性别 + ASA + 化疗)。“
+这些是结果：
+
+
+
+term
+contrast
+estimate
+std.error
+statistic
+df
+p.value
+2.5 %
+97.5 %
+
+
+
+
+ASA_binary
+ln(mean(3) /平均值(&lt;=2))
+1.609
+0.215
+2.210
+85514.88
+0.027
+1.055
+2.454
+
+
+Systemic_treatment_prior_local_treatment
+ln(平均值(是) /平均值（无））
+1.027
+0.240
+0.113
+69958.72
+0.910
+0.642
+1.644
+
+
+治疗类型_胆囊附近肿瘤
+ln(平均值（MWA）/平均值（切除））
+0.537
+0.233
+-2.668
+28006.78
+0.008
+0.340
+0.848
+
+
+性别
+ln(平均值（男性）/平均值（女性））
+0.788
+0.257
+-0.929
+49753.64
+0.353
+0.476
+1.303
+
+
+
+我有两个问题：
+
+使用 glm_weightit 时，在单变量分析中包含未达到 0.2 alpha 阈值的临床显著变量是否合适，还是最好忽略它们？
+阅读 WeightIt 文档中的博客文章后（https://ngreifer.github.io/WeightIt/articles/estimating-effects.html#ref-westreichTableFallacyPresenting2013) 和文章 Westreich et al., 2013 (https://doi.org/10.1093/aje/kws412)，我理解，为了避免表 2 谬误，只有治疗的估计值才应被解释和报告为效果。例如，ASA 状态的相对风险 (RR) 不应以与治疗效果相同的方式解释。我的解释正确吗？
+
+提前谢谢您。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658745/table-2-fallacy-and-choice-of-variables</guid>
+      <pubDate>Sun, 15 Dec 2024 09:23:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>scikit-learn QuantileRegressor 中 L1 正则化的 alpha 参数是什么</title>
+      <link>https://stats.stackexchange.com/questions/658748/what-is-the-alpha-parameter-for-l1-normalization-in-scikit-learn-quantileregress</link>
+      <description><![CDATA[scikit-learn Quantile Regression 文档中的 示例 展示了一个将参数 alpha 设置为零的示例。默认值为 1。
+文档 QuantileRegressor 显示默认值设置为 1.0。它指出这是一个乘以 L1 惩罚项的正则化常数。
+我对 Lasso 是什么或 L1 回归的确切含义没有直观的理解。
+参数 alpha 与这些事物的关系是否有直观的解释？
+有一篇与分位数回归相关的 维基百科文章，非常详细。浏览此文，在正则化参数的选择部分中，alpha 似乎就是 lambda。它在其他地方也可能被称为t。
+我的直觉可能是错的。
+到目前为止，我的结论是 alpha 可能只在多维（&gt; 1）回归问题中起作用，它可能用于选择维度的子集，即具有最强统计预测能力的最重要维度？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658748/what-is-the-alpha-parameter-for-l1-normalization-in-scikit-learn-quantileregress</guid>
+      <pubDate>Sun, 15 Dec 2024 08:40:50 GMT</pubDate>
+    </item>
     <item>
       <title>小离散值的分布可视化</title>
       <link>https://stats.stackexchange.com/questions/658744/distributional-visualization-of-small-discrete-values</link>
@@ -94,23 +326,6 @@ return(data)
       <pubDate>Sun, 15 Dec 2024 03:48:25 GMT</pubDate>
     </item>
     <item>
-      <title>深度强化学习中改进概率指标所需的运行次数</title>
-      <link>https://stats.stackexchange.com/questions/658731/number-of-runs-needed-for-probability-of-improvement-metric-in-deep-rl</link>
-      <description><![CDATA[我正在使用 [1] 第 4.3 节中描述的改进概率 (POI) 指标。
-本文在第 4.3 节中介绍了各种综合指标，对于大多数这些指标（IQM、平均值、中位数、最优性差距），它们指定每场游戏使用 3-11 次运行，大多数算法的标准运行次数为 5 次（M-IQN 除外，M-IQN 运行 3 次，DreamerV2 运行 11 次）。
-但是，在讨论 POI 时，具体定义为：
-$P(X &gt; Y) = \frac{1}{M} \sum_{m=1}^M P(X_m &gt; Y_m)$
-其中 $P(X_m &gt; Y_m)$ 是算法 X 在任务 m 上优于算法 Y 的概率，本文没有明确说明所需的运行次数。
-鉴于 POI 将算法 X 的每次运行与算法 Y 的每次运行进行比较，我试图确定：
-对于具有统计意义的 POI 计算，每个算法所需的最少运行次数是多少？
-运行次数如何影响 POI 估计的置信度？
-超过一定次数的运行后，收益是否会递减？
-如果有助于解答这个问题，本文中提到了与此计算相关的 Mann-Whitney U 检验。
-[1]。Agarwal，Rishabh 等人。“统计悬崖边缘的深度强化学习。”神经信息处理系统进展 34 (2021)：29304-29320。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658731/number-of-runs-needed-for-probability-of-improvement-metric-in-deep-rl</guid>
-      <pubDate>Sun, 15 Dec 2024 00:09:26 GMT</pubDate>
-    </item>
-    <item>
       <title>估计者的期望</title>
       <link>https://stats.stackexchange.com/questions/658727/expectations-of-estimators</link>
       <description><![CDATA[我正在研究一些面板数据计量经济学主题，我遇到了以下渐近性质：$N \to \infty$:
@@ -131,70 +346,30 @@ $P(X &gt; Y) = \frac{1}{M} \sum_{m=1}^M P(X_m &gt; Y_m)$
       <pubDate>Sat, 14 Dec 2024 16:41:27 GMT</pubDate>
     </item>
     <item>
-      <title>使用随机森林预测 FPL 球员总得分</title>
-      <link>https://stats.stackexchange.com/questions/658730/predicting-fpl-player-total-points-using-random-forest</link>
-      <description><![CDATA[我有一个数据集，其中包含英超联赛（2016-2023 年）大约 100k 个比赛周统计数据。我的目标是预测一名球员在某个比赛周/比赛中将获得多少总分。
-我将数据分为训练/测试集，其中训练集包含赛季 &lt; 2022 的统计数据，测试集包含赛季 &gt; 的统计数据2022.
-为了说明某位球员的当前状态，我计算了过去 3 个比赛周以下变量的滚动平均值：
-进球数、助攻数、零封数、失球数、分钟数、自进球数、扑救数、错失点球数、黄牌数、红牌数、扑救数、影响力、创造力、威胁和 ict_index
-然后，我使用这些变量和一些其他变量运行随机森林：
-was_home、player_team、opponent_team、opponent_strength、element_type（后卫/中场等）
-模型如下所示：
-rf &lt;- randomForest(
-as.formula(paste(target, &quot;~&quot;, paste(predictors, collapse = &quot; + &quot;))),
-data = train,
-ntree = 500,
-mtry = 7,
-nodesize = 10,
-significance = TRUE)
+      <title>包含 4 个变量的等高线图</title>
+      <link>https://stats.stackexchange.com/questions/658747/contour-plot-with-4-variables</link>
+      <description><![CDATA[我使用 ggplot 包绘制了以下轮廓图
+library(ggplot2)
+library(reshape2)
 
-这样做我只得到 R^2 约为 57%。所以我的问题是这是否正常，或者我的方法是否出错？我想知道我可以在哪里改进模型，机器学习是否是预测总分的好方法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658730/predicting-fpl-player-total-points-using-random-forest</guid>
-      <pubDate>Sat, 14 Dec 2024 11:25:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>纳入因变量的下限是否可以改善估计？</title>
-      <link>https://stats.stackexchange.com/questions/658703/does-incorporating-lower-bound-on-dependent-variable-improve-estimation</link>
-      <description><![CDATA[假设 $T : \Omega \to \mathbb{R}^+$ 是一个非负离散随机变量 - 例如四舍五入到最接近分钟的公交车等待时间，并且我们有一些特征 $X : \Omega \to \mathbb{R}^d$。目标是在给定 $X$ 的情况下预测 $T$。
-给定数据集 $\{(X_i, T_i):i=1,\dots,n\}$，假设我们知道概率分布 $P_{T|X}(t|x)$。这意味着对于给定的一组特征 $x$，一个“朴素”估计量是
-$$ \hat{\theta}_n(x) = \mathbb{E}_n[T|X=x] = \int T \ dP_{T|X} = \sum_{t\in\text{supp}(T)} t P_{T|X}(t|x) $$
-现在假设我们有一些关于 $T_i$ 下限的额外数据，所以我们知道 $T_i \geq t^*_i$。有没有办法正式证明“增强”将此信息纳入因变量的估计量
-$$ \tilde{\theta}_n(x) = \mathbb{E}_n[T|X=x, T \geq t^*] = \frac{\sum_{t \geq t^*} t P_{T|X}(t|x)}{\sum_{t \geq t^*} P_{T|X}(t|x)} $$
-“更好​​”在某种意义上比条件均值估计量$\hat{\theta}_n$更准确？
+f &lt;- function(x, y) { r &lt;- sqrt(x^2+y^2+8^2+8^2); 10 * sin(r)/r }
 
-为了使这个例子具体化，假设$X_i \in \{red, blue\}$是公交车的颜色，我们知道下一班公交车是什么。为简单起见，等待时间为 5 或 15 分钟，其中：
-X | P(T=t|X) | 等待时间 T
----------------------------------
-红色 | 0.3 | 5
-红色 | 0.7 | 15
-蓝色 | 0.7 | 5
-蓝色 | 0.3 | 15
+x = y = seq(-10, 10, length.out = 30)
+z = cbind(data.frame(x), as.data.frame(outer(x, y, f))
+names(z) = c(&#39;x&#39;, as.character(y))
 
-条件均值的简单估计量为：
-$$
-\hat{\theta}_n(X_i) = \begin{cases} 12 &amp; if X_i=red \\ 8 &amp; if X_i=blue \end{cases} 
-$$
-我们可以认为这是统计学家在$L^2$意义上的最佳预测，该统计学家收集了公交车到达车站所需时间的历史数据。
-现在假设我们希望预测下一班公交车的时间，但现在我们有一个观察员在车站坐了$t^*$分钟。每过 $t^*$ 分钟，我们就能观察到，这一特定实现必须满足 $T_i \geq t^*$。如果超过 5 分钟没有公交车，那么我们知道公交车时间一定是 $T_i = 15$ 分钟。然后，增强估计器给出 $t^* &gt; 5$
-$$
-\tilde{\theta}_n(X_i; t^*) = 15 = T_i
-$$]]></description>
-      <guid>https://stats.stackexchange.com/questions/658703/does-incorporating-lower-bound-on-dependent-variable-improve-estimation</guid>
-      <pubDate>Sat, 14 Dec 2024 05:37:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>解释负二项残差图</title>
-      <link>https://stats.stackexchange.com/questions/658692/interpreting-negative-binomial-residual-plot</link>
-      <description><![CDATA[我对圣巴巴拉 125 个街区的自行车事故数据进行了负二项回归。该方程如下所示：
-MASS::glm.nb(Crashes ~ network coverage + network density + 
-交叉口密度 + 复杂度 + offset(log(number of bike trips))
+z1 = melt(z, id.vars = &#39;x&#39;)
+names(z1) = c(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;)
+z1$y = as.numeric(as.character(z1$y))
 
-我得到了一个带有曲线的残差图，如下图所示。这是否意味着关系是非线性的？我不知道该如何处理：我应该添加非线性项还是应该尝试其他模型，还是其他？如果有人可以对此有所启发，那就太好了。谢谢。
+ggplot(z1, aes(x, y, z = z)) + geom_contour() + geom_contour_filled()
 
-我尝试了残差图DHARMa 这是我得到的图：
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658692/interpreting-negative-binomial-residual-plot</guid>
-      <pubDate>Fri, 13 Dec 2024 20:44:28 GMT</pubDate>
+虽然只有 2 个独立变量（即 x 和 y）就可以了，但我实际上有一个包含 4 个变量的函数，例如以下
+f &lt;- function(x, y, p, q) { r &lt;- sqrt(x^2+y^2+p^2+q^2); 10 * sin(r)/r }
+
+您能指导我是否有办法绘制上述函数的轮廓图吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658747/contour-plot-with-4-variables</guid>
+      <pubDate>Fri, 13 Dec 2024 21:55:39 GMT</pubDate>
     </item>
     <item>
       <title>Jeffreys 离散参数空间的先验</title>
@@ -214,15 +389,7 @@ MASS::glm.nb(Crashes ~ network coverage + network density +
       <pubDate>Fri, 13 Dec 2024 11:02:03 GMT</pubDate>
     </item>
     <item>
-      <title>多参数最大似然估计的渐近正态性证明</title>
-      <link>https://stats.stackexchange.com/questions/658664/proof-for-asymptotic-normality-for-mle-with-multiple-parameters</link>
-      <description><![CDATA[我有一个问题，关于如何证明多个 MLE 估计量的渐近性质。您在网上找到的大多数资源都提供了仅估计一个参数的情况的证明（例如此处：https://gregorygundersen.com/blog/2019/11/28/asymptotic-normality-mle/）。在这个证明中，将参数方面的均值定理应用于似然的一阶导数，得到类似$(\hat{\theta} - \theta_0) = - \frac{L_n&#39;(\theta_0)}{L_n&#39;&#39;(\tilde{\theta})}$的表达式，然后将渐近结果应用于似然。我将这种证明扩展到多参数情况的问题是均值定理仅适用于标量函数。对于矢量值函数，只有不等式成立，参见例如。 https://en.wikipedia.org/wiki/Mean_value_theorem#Mean_value_theorem_for_vector-valued_functions。
-有人能告诉我如何证明多个参数的渐近正态性吗？当然，如果能提供参考，我也非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658664/proof-for-asymptotic-normality-for-mle-with-multiple-parameters</guid>
-      <pubDate>Fri, 13 Dec 2024 10:29:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么不使用这种“矩量法”来估计矩阵正态分布？</title>
+      <title>为什么不采用这种“矩量法”来估计矩阵正态分布？</title>
       <link>https://stats.stackexchange.com/questions/658659/why-the-matrix-normal-distribution-is-not-estimated-with-this-method-of-moments</link>
       <description><![CDATA[根据维基百科页面，随机矩阵$\bf{X}\in \mathbb{R}^{p\times q}$服从矩阵正态分布$\cal{MN}(\bf M, \bf U, \bf V)$，这意味着
 $$ \text{vec}(\bf X) \sim \cal N ( \mathrm{vec} (\bf M), \bf V \otimes \bf U),$$
@@ -249,53 +416,17 @@ $$\begin{aligned}
       <pubDate>Fri, 13 Dec 2024 03:43:57 GMT</pubDate>
     </item>
     <item>
-      <title>是否存在计算边际效应的标准方法？</title>
-      <link>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</guid>
-      <pubDate>Wed, 11 Dec 2024 21:11:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>基线和多次随访的前后设计（无控制）（元分析）</title>
-      <link>https://stats.stackexchange.com/questions/658486/pre-post-design-no-control-at-baseline-and-multiple-follow-up-times-meta-anal</link>
-      <description><![CDATA[我正在从事一个荟萃分析项目，需要有关选择正确统计方法的建议。我们可以查阅大约 18 篇出版物。该设计类似于治疗前后设计（无对照组）。但我们有两个以上的时间点。
-在这些出版物中，受试者在治疗前后的不同时间点（T0、T1、T3、T6）来到诊所检查胆固醇值。在接受治疗之前的 T0 测量他们的胆固醇值，然后对他们进行治疗。要求他们在一个月后（T1）回来接受治疗并再次测量。这个过程在三个月和六个月时重复。
-研究问题是将每个时间点的治疗效果与基线进行比较，以确定治疗需要多长时间才能见效。如果患者在 3 个月后没有出现改善，他们可能会考虑换一种治疗方法。但是，如果 3 个月时没有改善，但 6 个月时有明显改善，他们可能会考虑继续注射更多相同的药物。
-出版物包括单独的配对样本检验（配对 t 检验或 Wilcoxon 符号秩检验）的结果，以比较 T1 与 T0、T3 与 T0 和 T6 与 T0（设计前后的配对样本）。因此，我们可以访问平均值和标准差（治疗前后）以及 p 值*
-我们的数据是这样的（假设我们只有前、后（T1）和后（T3）：
- dat &lt;- data.frame(study=c(1,2,3,4,5,6), 
-n=c( 40, 40, 10,150,150,150),
-Mean_pre=c(4,2.3,3.1,6.1,2.2,3.4),
-sd_pre=c(1,1.3,0.1,1.1,0.9,1.2), 
-Mean_post_T1=c(2,1.3,4.1,5.1,4.2,1.4),
-sd_post_T1=c(2,3.3,1.1,2.1,0.9,2.2),
-r_T0_T1=c(0.4,0.5,0.3,0.3,1.5,0.7),
-pvalue_T0_T1=c(0.001,0.03,0.006,0.05,0.004,0.01),
-Mean_post_T3=c(1,2.3,6.1,6.1,5.2,4.4),
-sd_post_T3=c(1,2.3,3.1,1.1,1.9,3.2),
-r_T0_T3=c(1.4,2.5,3.3,4.3,2,1.7),
-pvalue_T0_T3=c(0.003,0.01,0.004,0.05,0.004,0.04)
-)
+      <title>试验次数的二项置信区间</title>
+      <link>https://stats.stackexchange.com/questions/658657/binomial-confidence-interval-over-the-number-of-trials</link>
+      <description><![CDATA[我有一个过程，其成功概率为已知$p$，失败概率为$q = 1-p$。该过程重复有限但未知的次数$n$。
+给定成功次数$r$（失败次数$n-r$，未知），我们应该如何确定导致$r$次成功的试验次数的置信区间？
+举一个简单的例子，一枚公平的硬币总共被抛了$n$次，其中150次正面朝上落地。 $n$ 是如何分布的，其平均值的 95% 置信区间是多少，涵盖 $n$ 最可能的值。最可能的$n$ 为 300，最小的$n$ 为 150，最大的$n$ 为无穷大，但我们如何考虑介于两者之间的一切？
+注意：如果分布不对称，间隔不必以平均值为中心。
 
-研究 n Mean_pre sd_pre Mean_post_T1 sd_post_T1 r_T0_T1 pvalue_T0_T1
-1 1 40 4.0 1.0 2.0 2.0 0.4 0.001
-2 2 40 2.3 1.3 1.3 3.3 0.5 0.030
-3 3 10 3.1 0.1 4.1 1.1 0.3 0.006
-4 4 150 6.1 1.1 5.1 2.1 0.3 0.050
-5 5 150 2.2 0.9 4.2 0.9 1.5 0.004
-6 6 150 3.4 1.2 1.4 2.2 0.7 0.010
-Mean_post_T3 sd_post_T3 r_T0_T3 pvalue_T0_T3
-1 1.0 1.0 1.4 0.003
-2 2.3 2.3 2.5 0.010
-3 6.1 3.1 3.3 0.004
-4 6.1 1.1 4.3 0.050
-5 5.2 1.9 2.0 0.004
-6 4.4 3.2 1.7 0.040
-
-
-现在，我想知道我们应该如何将元分析方法应用于这些类型的研究？我们是否也应该对每个比较应用单独的元分析？任何关于潜在和正确的统计技术或参考的建议都将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658486/pre-post-design-no-control-at-baseline-and-multiple-follow-up-times-meta-anal</guid>
-      <pubDate>Mon, 09 Dec 2024 13:30:12 GMT</pubDate>
+我一直在研究威尔逊分数和其他二项比例置信区间，它们是相关的，但它们估计的是$p$，而不是$n$。我想知道是否存在类似的方法可以实现我所寻找的目标。
+由于缺乏一个封闭的估计​​公式，我只能尝试通过拟合两个高斯分布来找到我的置信区间$(n_{low}, n_{high})$的端点，这两个高斯分布的均值为$n_{low}p$和$n_{high}p$，其中$\hat{n}p$（其中$\hat{n} = r/p$是我估计的$n$）落在其 2.5% 面积尾部边界上，使用表格。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658657/binomial-confidence-interval-over-the-number-of-trials</guid>
+      <pubDate>Thu, 12 Dec 2024 17:08:40 GMT</pubDate>
     </item>
     </channel>
 </rss>
