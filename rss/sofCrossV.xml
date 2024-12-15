@@ -4,7 +4,86 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 15 Dec 2024 03:36:45 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 15 Dec 2024 06:23:50 GMT</lastBuildDate>
+    <item>
+      <title>带条件的多元随机正态分布</title>
+      <link>https://stats.stackexchange.com/questions/658734/multivariate-random-normal-distribution-with-conditions</link>
+      <description><![CDATA[我正在开发一个模拟模型，该模型将作为对实证考古数据进行分类的基础。我正在使用 R 语言，并使用有界版本的 mvrnorm() 来模拟 8 个抛射点（即箭头/矛头）尺寸（最大长度、轴向长度、最大宽度等），并使用从实证数据集得出的相关矩阵。然后，模拟数据将遵循文化传播规则，并投射到 n 代，以模拟不同社会学习场景的影响。大多数文物尺寸都具有显著相关性，并且有几个必须具有特定的关系，才能使我的模拟文物逼真。例如，轴向长度不能大于最大长度，因为它们是相同的。我尝试通过添加需要满足​​的条件（包括上限和下限）来调整 mvrnorm 函数。我尝试在模拟期间进行拒绝抽样，并在模拟后进行调整。然而，在这两种情况下，Gen 1 的结果协方差矩阵与我试图在 Gen 1 中复制的原始协方差矩阵相差甚远。我希望找到一个解决方案：1）导致 Gen 1 相关矩阵非常接近我在经验数据中看到的矩阵；2）导致模拟测量值落入经验数据集设定的范围内（最小和最大观测值）；并且 3) 满足实际工件测量的条件。
+下面是我尝试在模拟后调整记录的一个例子，这似乎是所有方法中问题最少的，但仍然导致 Gen 1 中的协方差矩阵明显不同：
+adjust_simulated_data &lt;- function(data,traits,mu,Sigma,bounds,max_iterations = 10) {
+n&lt;-nrow(data)
+p&lt;-length(traits)
+
+# 定义要检查的条件
+check_conditions&lt;-function(row) {
+c(
+row[&quot;LengthAxial&quot;]&lt;=row[&quot;LengthMax&quot;],
+row[&quot;WidthBasal&quot;]&lt;=row[&quot;WidthMax&quot;],
+row[&quot;WidthNeck&quot;]&lt;= row[&quot;WidthMax&quot;],
+row[&quot;PSA&quot;] &lt;= row[&quot;DSA&quot;]
+)
+}
+
+# 对违反条件的单个行进行重新采样
+for (iteration in 1:max_iterations) {
+licences &lt;- logical(n)
+
+# 检查违规情况
+for (i in 1:n) {
+row &lt;- data[i, ]
+conditions &lt;- check_conditions(row)
+if (any(!conditions)) {
+licences[i] &lt;- TRUE
+}
+}
+
+# 如果不存在违规情况，则退出循环
+if (!any(violations)) {
+message(&quot;All conditions satisfaction after &quot;, iteration, &quot; iterations.&quot;)
+break
+}
+
+# 对违规行进行重新采样
+for (i in which(violations)) {
+# 保留非特征列
+non_trait_columns &lt;- data[i, !(names(data) %in% characters), drop = FALSE]
+
+# 使用 mvrnorm_bounded 和原始 param_list 值对特征进行重新采样
+resampled_traits &lt;- mvrnorm_bounded(
+n = 1,
+mu = mu,
+Sigma = Sigma,
+bounds = bounds
+)
+
+# 使用重新采样的特征更新数据行
+data[i, characters] &lt;- resampled_traits
+data[i, !(names(data) %in% characters)] &lt;- non_trait_columns
+}
+}
+
+# 如果达到最大迭代次数，则发出警告
+if (any(!violations) &amp;&amp; iteration == max_iterations) {
+warning(&quot;已达到最大迭代次数；可能仍违反某些约束。&quot;)
+}
+
+return(data)
+}
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658734/multivariate-random-normal-distribution-with-conditions</guid>
+      <pubDate>Sun, 15 Dec 2024 04:27:32 GMT</pubDate>
+    </item>
+    <item>
+      <title>通过微分矩阵形式推导正规方程</title>
+      <link>https://stats.stackexchange.com/questions/658732/deriving-the-normal-equations-by-differentiating-the-matrix-form</link>
+      <description><![CDATA[因此，如果我们有 $RSS(\beta) = (\mathbf{y}-\mathbf{X}\beta)^T(\mathbf{y}-\mathbf{X}\beta)$ 并根据 $\beta$ 进行区分，并将其设置为零以最小化它，我们如何得到 $\mathbf{X}^T(\mathbf{y}-\mathbf{X}\beta)=0$？
+我得到的是 $\mathbf{X}^T(\mathbf{y}-\mathbf{X}\beta)+(\mathbf{X}^T(\mathbf{y}-\mathbf{X}\beta))^T=0$
+并且，只有当 $\mathbf{X}^T(\mathbf{y}-\mathbf{X}\beta)$ 的转置与其自身相同时，这才是相同的……这意味着 $\mathbf{X}^T(\mathbf{y}-\mathbf{X}\beta)$ 必须是对称的。
+但是，为什么会这样呢？我知道这是一个经常出现的基本问题，但我认为基于微积分的统计学和使用线性代数之间存在某种飞跃。我学过一些线性代数，但我仍然无法解决这个问题……它更侧重于空间、投影和正交性，而不是区分矩阵……
+但是，它怎么会是对称的呢？因为它是一个 p x 1 向量，甚至不是正方形……我的结果没有任何意义。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658732/deriving-the-normal-equations-by-differentiating-the-matrix-form</guid>
+      <pubDate>Sun, 15 Dec 2024 03:48:25 GMT</pubDate>
+    </item>
     <item>
       <title>深度强化学习中改进概率指标所需的运行次数</title>
       <link>https://stats.stackexchange.com/questions/658731/number-of-runs-needed-for-probability-of-improvement-metric-in-deep-rl</link>
@@ -232,7 +311,7 @@ X4
 
 
 ID列定义从中收集配对样本的每个受试者。共有四个时间点； 0、2、5 和 16。
-正如上面所举例说明的部分数据，我在每个时间点从每个配对站点获取了 200 个不同的对数转换测量值，但并非所有受试者都有完整的样本集。假设测量值不遵循线性趋势，您能否建议（对 GAM/GAMM 新手）我如何通过使用 R 中的 GAM 或 GAMM 处理配对采样策略来测试健康组和疾病组之间的测量值是否具有显着不同的纵向趋势？
+正如上面所举例说明的部分数据，我在每个时间点从每个配对站点获取了 200 个不同的对数转换测量值，但并非所有受试者都有完整的样本集。假设测量值不遵循线性趋势，您能否建议（对 GAM/GAMM 新手）我如何通过使用 R 中的 GAM 或 GAMM 处理配对采样策略来测试测量值在健康和疾病组之间是否有显着不同的纵向趋势？
 PS：我尝试了一些模型，例如
 gam(Measurement1 ~ Group + Week +
 s(ID, bs = &#39;re&#39;),
@@ -248,48 +327,6 @@ data = data, method = &#39;REML&#39;)
       <description><![CDATA[我有一项练习，需要从迭代加权最小二乘更新方程 $b^{(m)} = \left( X^\top W^{(m-1)} X \right)^{-1} X^\top W^{(m-1)} z^{(m-1)}$ 中推导出 $w_i^{(m-1)}$ 和 $z_i^{(m-1)}$，其中 BeetleMortality 数据具有概率单位链接 $\phi$。然后我必须在 R 中实现它。据我所知，$w_i^{(m-1)}=\frac{1}{\text{Var}(Y)} (\frac{\partial \mu_i}{\partial \eta_i}) ^2 = \frac{\phi&#39;(\eta_i)^{(m-1)}}{n\mu_i^{(m-1)}(1 - \mu_i^{(m-1)})}$ 和 $z_i^{(m-1)} = \eta_i^{(m-1)} (y_i -\mu_i) \frac{\partial \eta_i}{\partial \mu_i}= \eta_i^{(m-1)} + \frac{y_i + \mu_i^{(m-1)}}{\phi&#39;(\eta_i)^{(m-1)}}$ 其中 $\phi&#39;$ 是正态分布 PDF。我已经在 R 中实现了这一点，我非常确定实现中的所有内容都是正确的。因此，我相信问题在于我如何得出这些值。我犯了什么错误吗？我对这一切还比较陌生，所以很可能是我犯了一些我无法发现的明显错误。任何反馈都值得赞赏！]]></description>
       <guid>https://stats.stackexchange.com/questions/658722/have-i-correctly-derived-the-iterative-updates-for-weighted-least-squares</guid>
       <pubDate>Sat, 14 Dec 2024 16:41:27 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 R 对具有连续数据（干预前后）的单臂研究进行汇总荟萃分析？</title>
-      <link>https://stats.stackexchange.com/questions/658721/how-to-do-pooled-meta-analysis-of-single-arm-studies-with-continous-data-pre-po</link>
-      <description><![CDATA[我尝试使用 R studio 对单组研究（无对照）进行荟萃分析，但我仍然不知道如何进行汇总分析。我只有治疗前的平均值和 SD 以及治疗数周后的平均值和 SD。我可以在 R studio 中使用干预前后的连续数据对单组研究进行汇总荟萃分析吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658721/how-to-do-pooled-meta-analysis-of-single-arm-studies-with-continous-data-pre-po</guid>
-      <pubDate>Sat, 14 Dec 2024 15:24:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>PCR/PLSR 每日股票收益预测结果的合理性</title>
-      <link>https://stats.stackexchange.com/questions/658720/plausibility-of-results-for-pcr-plsr-daily-stock-return-forecasting</link>
-      <description><![CDATA[我正在为我的硕士学位做一个项目，但我不确定我得到的结果是否合理。
-我基本上是想创建一个模型来预测标准普尔 500 指数的每日回报。
-我的项目基于以下文章：https://www.sciencedirect.com/science/article/abs/pii/S0957417416305115
-使用与文章中相同的方法，我创建了一个 PCR 和 PLSR 模型，将 y_t 回归到 x_t。
-
-
-到目前为止一切顺利，结果是合理的。我在测试数据集上运行了模型，结果很好。
-但后来我意识到，我真正想要的是回归 yt 在 x_t-1 上，以使用今天可用的数据预测第二天的回报。
-我通过删除目标变量的第一行和独立变量的最后一行对数据进行了调整，然后再次运行模型。
-然而，这次我得到的结果非常糟糕，我不确定这是否是我的代码问题，或者我应该做哪些更改来改进我的模型。
-
-
-以下是我使用的数据的列表：
-
-这是我在这个论坛上的第一篇帖子。如果我遗漏了什么，请告诉我，我很乐意纠正它。
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658720/plausibility-of-results-for-pcr-plsr-daily-stock-return-forecasting</guid>
-      <pubDate>Sat, 14 Dec 2024 14:25:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>PS-match 和调整后的 Cox 回归之间有何区别？</title>
-      <link>https://stats.stackexchange.com/questions/658713/what-are-the-differences-between-ps-match-and-adjusted-cox-regression</link>
-      <description><![CDATA[这更像是以下问题的延伸：倾向评分匹配与 Cox 回归
-我想知道它们之间有什么区别：
-
-将患者与 PS 匹配并运行仅以暴露作为预测因子的 Cox 回归
-运行包含所有协变量的 Cox 回归（我会在 PS 匹配中使用）
-
-这些方法会得出不同的结论吗？我什么时候应该使用哪种方法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658713/what-are-the-differences-between-ps-match-and-adjusted-cox-regression</guid>
-      <pubDate>Sat, 14 Dec 2024 11:54:21 GMT</pubDate>
     </item>
     <item>
       <title>使用随机森林预测 FPL 球员总得分</title>
@@ -358,42 +395,22 @@ MASS::glm.nb(Crashes ~ network coverage + network density +
       <pubDate>Fri, 13 Dec 2024 20:44:28 GMT</pubDate>
     </item>
     <item>
-      <title>拟合非线性混合模型</title>
-      <link>https://stats.stackexchange.com/questions/658694/fitting-a-nonlinear-mixed-model</link>
-      <description><![CDATA[我试图拟合一个非线性混合模型 (nLMM)，以测试某些生物的丰度是否受到导致丰度显著增加的事件后的采样期的影响。
-数据显示了一条重要的曲线，这些生物的丰度在事件发生后激增（事件发生在采样期：-1 和 1 之间），但随后下降。
-我试图构建一个非线性混合模型，但我发现理解如何构建模型非常具有挑战性（例如，model &lt;- lmer(abundance ~ samples_period + (1 | rep), data = data）。我非常感谢任何帮助来确定丰度是否受到采样期的影响。
-data &lt;- data.frame(
-abundant = c(79, 72, 58, 61, 88, 123, 119, 96, 67, 78, 143, 75, 105, 46, 58, 
-127, 173, 181, 67, 120, 64, 30, 49, 47, 104, 83, 146, 118, 53, 
-98, 223, 257, 255, 292, 354, 133, 129, 140, 27, 55, 68, 148, 
-122, 132, 77, 121, 108, 109),
-rep = c(&quot;T1&quot;, &quot;T2&quot;, &quot;T3&quot;, &quot;T1&quot;, &quot;T2&quot;, &quot;T3&quot;, “T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T3”、“T1”、“T2”、“T3”、“
-“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“T3”、“T1”、“T2”、“ “T3”, “T1”, “T2”, “T3”, 
-“T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”, “T1”, “T2”, “T3”),
-sampling_period_consecutive = c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 
-6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 
-10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 
-14, 14, 15, 15, 15, 16, 16, 16),
-采样周期 = c(-5, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -2, -1, -1, 
--1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 
-6, 11, 11, 11, 22, 22, 22, 34, 34, 34, 46, 46, 58, 
-58, 58)
-)
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658694/fitting-a-nonlinear-mixed-model</guid>
-      <pubDate>Fri, 13 Dec 2024 19:32:50 GMT</pubDate>
-    </item>
-    <item>
       <title>Jeffreys 离散参数空间的先验</title>
       <link>https://stats.stackexchange.com/questions/658678/jeffreys-prior-for-a-discrete-parameter-space</link>
       <description><![CDATA[以下问题涉及二项分布，其概率已知$p$，但试验次数未知$n$。
 试验次数的二项置信区间
 尝试思考如何为这种情况构建贝叶斯区间，我首先进入了思考 Jeffreys 先验的阶段。但是，对于离散参数空间，这没有定义，因为导数不存在。
-是否有根据相同想法找到先验的方法？当然，坐标变换下分布的不变性已经过时，因为概率质量函数不会像概率密度函数那样变换。这是 Jeffreys 先验的唯一属性/动机吗，或者还有其他属性可以应用于概率质量函数？]]></description>
+有没有根据相同想法找到先验的方法？当然，坐标变换下分布的不变性已经过时，因为概率质量函数不会像概率密度函数那样变换。这是 Jeffreys 先验的唯一属性/动机吗，或者还有其他属性可以应用于概率质量函数？]]></description>
       <guid>https://stats.stackexchange.com/questions/658678/jeffreys-prior-for-a-discrete-parameter-space</guid>
       <pubDate>Fri, 13 Dec 2024 16:07:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>多参数最大似然估计的渐近正态性证明</title>
+      <link>https://stats.stackexchange.com/questions/658664/proof-for-asymptotic-normality-for-mle-with-multiple-parameters</link>
+      <description><![CDATA[我有一个问题，关于如何证明多个 MLE 估计量的渐近性质。您在网上找到的大多数资源都提供了仅估计一个参数的情况的证明（例如此处：https://gregorygundersen.com/blog/2019/11/28/asymptotic-normality-mle/）。在这个证明中，将参数方面的均值定理应用于似然的一阶导数，得到类似$(\hat{\theta} - \theta_0) = - \frac{L_n&#39;(\theta_0)}{L_n&#39;&#39;(\tilde{\theta})}$的表达式，然后将渐近结果应用于似然。我将这种证明扩展到多参数情况的问题是均值定理仅适用于标量函数。对于矢量值函数，只有不等式成立，参见例如。 https://en.wikipedia.org/wiki/Mean_value_theorem#Mean_value_theorem_for_vector-valued_functions。
+有人能告诉我如何证明多个参数的渐近正态性吗？当然，如果能提供参考，我也非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658664/proof-for-asymptotic-normality-for-mle-with-multiple-parameters</guid>
+      <pubDate>Fri, 13 Dec 2024 10:29:14 GMT</pubDate>
     </item>
     <item>
       <title>为什么不使用这种“矩量法”来估计矩阵正态分布？</title>
@@ -423,179 +440,77 @@ $$\begin{aligned}
       <pubDate>Fri, 13 Dec 2024 03:43:57 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Kahneman 等人（2021 年）的方法计算评分者间噪声</title>
-      <link>https://stats.stackexchange.com/questions/649163/calculate-inter-rater-noise-using-kahneman-et-al-2021-approach</link>
-      <description><![CDATA[我需要帮助根据 Kahneman 等人 (2021) 在其著作《噪音》中描述的方法计算信号和噪音。他们提供了一种量化评估相同案例的评估者之间噪音的技术。想象一下五位心理学家（评估者）评估 10 位患者（案例）的抑郁程度。设置如下：
-假设您有行作为评估者，案例作为列。在零噪音的情况下，每个评估者都完全同意，因此所有差异都在案例之间（信号）。Kahneman 等人进一步将噪音分为（稍微简化）：
-
-评估者噪音：评估者之间的稳定差异，例如不同的人有不同的方法
-
-残余噪声：无法用任何东西解释的特殊噪声。
-
-为了计算噪声，他们建议：
-
-计算每列 SD 的平均值（每个案例的 SD）（总噪声）
-计算每行平均值的 SD（每个评估者的平均值）（评估者噪声）
-
-然后，您可以通过 1 - 2 = 残余噪声来计算残余噪声。
-我的挑战是从数据集中计算噪声和信号。此外，我想将噪声报告为类内相关系数 (ICC)，但我正在努力使用其他分解方法复制 Kahneman 等人的方法。例如，使用带有 lme4::lmer() 的随机效应模型会给我不同的结果。
-我模拟了一些数据来说明我的失败尝试。我还质疑 Kahneman 等人分析噪声的方法是否可取，因为我找不到任何其他使用此方法的研究。
-最后，我需要一种合理的方法来衡量和报告不确定性。有没有办法在这里引导我找到置信区间？
-# 加载必要的包
-library(lme4)
-library(tidyverse)
-library(performance)
-
-# 设置可重复性的种子
-set.seed(1234)
-
-# 模拟参数
-n_raters &lt;- 600
-n_cases &lt;- 30
-n_obs &lt;- n_raters * n_cases
-
-# 模拟随机效应
-rater_effects &lt;- rnorm(n_raters, mean = 0, sd = 1) # 评估者随机效应
-case_effects &lt;- rnorm(n_cases, mean = 0, sd = 2) # 案例随机效应
-
-# 模拟 dat
-dat &lt;- expand_grid(rater = factor(1:n_raters), case = factor(1:n_cases))
-dat$ratereffect &lt;- rater_effects[as.numeric(dat$rater)]
-dat$caseeffect &lt;- case_effects[as.numeric(dat$case)]
-dat$residual &lt;- rnorm(n_obs, mean = 0, sd = 3) # 残差噪声
-dat$y &lt;- dat$ratereffect + dat$caseeffect + dat$residual
-
-dat
-
-# 拟合混合效应模型（# 这大致从模拟中检索参数）
-model &lt;- lmer(y ~ 1 + (1|rater) + (1|case), dat = dat)
-
-# 显示模型摘要
-summary(model)
-
-performance::icc(model,by_group = TRUE)
-# 噪声分解
-
-# 评分者噪声 = 7.9 %
-# 案例方差（信号） = 25 %
-# 残余噪声 = 100-(7.9+25) = 67.1 %
-
-# 仅噪声分解
-# 评分者 = 7.9/(7.9+67.1) = 10.5 %
-# 残余噪声 = 100 - 10.5 = 89.5 %
-
-# Kahneman、Sibony、Cass (2021) 计算
-dat &lt;- dat |&gt; 
-mutate(case = paste0(&quot;case&quot;,case)) |&gt; 
-select(rater,case,y) |&gt; 
-pivot_wider(values_from = y,names_from = case)
-
-# 计算每行的平均值 (rater)
-dat &lt;- dat |&gt;
-select(-rater) |&gt; 
-rowwise() |&gt;
-mutate(row_mean = mean(c_across(everything())))
-
-# 取行平均值的标准差
-sd_ratermean &lt;- sd(dat$row_mean)
-
-# 取每个案例的标准差
-sd_case &lt;- dat |&gt;
-pivot_longer(everything()) |&gt;
-summarise(sd_case = sd(value),.by = name) |&gt;
-pull(sd_case)
-
-# 取 case sd 的平均值
-mean_case &lt;- mean(sd_case)
-
-total_noise &lt;- mean_case
-level_noise &lt;- sd_ratermean
-pattern_noise &lt;- total_noise-level_noise
-
-level_noise_percent &lt;- level_noise/total_noise
-pattern_noise_percent &lt;- pattern_noise/total_noise
-
-cat(&quot;level noise =&quot;,round(level_noise_percent,2),
-&quot;\npattern noise =&quot;,round(pattern_noise_percent,2))
-
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/649163/calculate-inter-rater-noise-using-kahneman-et-al-2021-approach</guid>
-      <pubDate>Thu, 13 Jun 2024 09:22:58 GMT</pubDate>
+      <title>是否存在计算边际效应的标准方法？</title>
+      <link>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/658594/is-there-a-standard-way-to-calculate-marginal-effects</guid>
+      <pubDate>Wed, 11 Dec 2024 21:11:19 GMT</pubDate>
     </item>
     <item>
-      <title>为什么 SEM 中的 lavaan 对 beta 进行 z 检验而不是 t 检验？</title>
-      <link>https://stats.stackexchange.com/questions/639695/why-does-lavaan-in-sem-do-a-z-test-instead-of-t-test-for-beta</link>
-      <description><![CDATA[我一直在学习 SEM，我很好奇为什么 lavaan 使用 z 检验来测试 beta？我在这里读到 https://tdjorgensen.github.io/SEM-in-Ed-compendium/ch2.html，这是因为 SEM 中的估计量假设渐近正态性，自由度很难计算？为什么我们不能只使用常规线性回归中的相同自由度。
-下面我有两个相同模型的例子，一个在 lavaan 中，另一个在基础 R 中。
-基础简单回归：
-lm(Petal.Length ~ Petal.Width, data = iris) |&gt; 
-summary()
+      <title>基线和多次随访的前后设计（无控制）（元分析）</title>
+      <link>https://stats.stackexchange.com/questions/658486/pre-post-design-no-control-at-baseline-and-multiple-follow-up-times-meta-anal</link>
+      <description><![CDATA[我正在从事一个荟萃分析项目，需要有关选择正确统计方法的建议。我们可以查阅大约 18 篇出版物。该设计类似于治疗前后设计（无对照组）。但我们有两个以上的时间点。
+在这些出版物中，受试者在治疗前后的不同时间点（T0、T1、T3、T6）来到诊所检查胆固醇值。在接受治疗之前的 T0 测量他们的胆固醇值，然后对他们进行治疗。要求他们在一个月后（T1）回来接受治疗并再次测量。这个过程在三个月和六个月时重复。
+研究问题是将每个时间点的治疗效果与基线进行比较，以确定治疗需要多长时间才能见效。如果患者在 3 个月后没有出现改善，他们可能会考虑换一种治疗方法。但是，如果 3 个月时没有改善，但 6 个月时有明显改善，他们可能会考虑继续注射更多相同的药物。
+出版物包括单独的配对样本检验（配对 t 检验或 Wilcoxon 符号秩检验）的结果，以比较 T1 与 T0、T3 与 T0 和 T6 与 T0（设计前后的配对样本）。因此，我们可以访问平均值和标准差（治疗前后）以及 p 值*
+我们的数据是这样的（假设我们只有前、后（T1）和后（T3）：
+ dat &lt;- data.frame(study=c(1,2,3,4,5,6), 
+n=c( 40, 40, 10,150,150,150),
+Mean_pre=c(4,2.3,3.1,6.1,2.2,3.4),
+sd_pre=c(1,1.3,0.1,1.1,0.9,1.2), 
+Mean_post_T1=c(2,1.3,4.1,5.1,4.2,1.4),
+sd_post_T1=c(2,3.3,1.1,2.1,0.9,2.2),
+r_T0_T1=c(0.4,0.5,0.3,0.3,1.5,0.7),
+pvalue_T0_T1=c(0.001,0.03,0.006,0.05,0.004,0.01),
+Mean_post_T3=c(1,2.3,6.1,6.1,5.2,4.4),
+sd_post_T3=c(1,2.3,3.1,1.1,1.9,3.2),
+r_T0_T3=c(1.4,2.5,3.3,4.3,2,1.7),
+pvalue_T0_T3=c(0.003,0.01,0.004,0.05,0.004,0.04)
+)
 
-#&gt; 
-#&gt; 调用：
-#&gt; lm(formula = Petal.Length ~ Petal.Width, data = iris)
-#&gt; 
-#&gt; 残差：
-#&gt; 最小值 1Q 中位数 3Q 最大值 
-#&gt; -1.33542 -0.30347 -0.02955 0.25776 1.39453 
-#&gt; 
-#&gt; 系数：
-#&gt; 估计标准误差 t 值 Pr(&gt;|t|) 
-#&gt; (截距) 1.08356 0.07297 14.85 &lt;2e-16 ***
-#&gt; Petal.Width 2.22994 0.05140 43.39 &lt;2e-16 ***
-#&gt; ---
-#&gt;有效代码：0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-#&gt; 
-#&gt; 残差标准误差：148 个自由度上的 0.4782
-#&gt; 多重 R 平方：0.9271，调整后的 R 平方：0.9266 
-#&gt; F 统计量：1 和 148 DF 上的 1882，p 值：&lt; 2.2e-16
+研究 n Mean_pre sd_pre Mean_post_T1 sd_post_T1 r_T0_T1 pvalue_T0_T1
+1 1 40 4.0 1.0 2.0 2.0 0.4 0.001
+2 2 40 2.3 1.3 1.3 3.3 0.5 0.030
+3 3 10 3.1 0.1 4.1 1.1 0.3 0.006
+4 4 150 6.1 1.1 5.1 2.1 0.3 0.050
+5 5 150 2.2 0.9 4.2 0.9 1.5 0.004
+6 6 150 3.4 1.2 1.4 2.2 0.7 0.010
+Mean_post_T3 sd_post_T3 r_T0_T3 pvalue_T0_T3
+1 1.0 1.0 1.4 0.003
+2 2.3 2.3 2.5 0.010
+3 6.1 3.1 3.3 0.004
+4 6.1 1.1 4.3 0.050
+5 5.2 1.9 2.0 0.004
+6 4.4 3.2 1.7 0.040
 
-SEM 回归：
-library(lavaan)
-#&gt; 警告：软件包“lavaan”是在 R 版本 4.3.2 下构建的
-#&gt; 这是 lavaan 0.6-17
-#&gt; lavaan 是免费软件！请报告任何错误。
-数据（iris）
-sem（“Petal.Length ~ 1 + Petal.Width”，data = iris，）|&gt; 
-summary（）
 
-#&gt; lavaan 0.6.17 在 1 次迭代后正常结束
-#&gt; 
-#&gt; 估计器 ML
-#&gt; 优化方法 NLMINB
-#&gt; 模型参数数量 3
-#&gt; 
-#&gt; 观测数 150
-#&gt; 
-#&gt; 模型测试用户模型：
-#&gt; 
-#&gt; 测试统计量 0.000
-#&gt; 自由度 0
-#&gt; 
-#&gt; 参数估计：
-#&gt; 
-#&gt; 标准误差标准
-#&gt; 预期信息
-#&gt;信息饱和 (h1) 模型结构化
-#&gt; 
-#&gt; 回归:
-#&gt; 估计 Std.Err z 值 P(&gt;|z|)
-#&gt; Petal.Length ~ 
-#&gt; Petal.Width 2.230 0.051 43.679 0.000
-#&gt; 
-#&gt; 截距:
-#&gt; 估计 Std.Err z 值 P(&gt;|z|)
-#&gt; .Petal.Length 1.084 0.072 14.950 0.000
-#&gt; 
-#&gt; 方差:
-#&gt; 估计 Std.Err z 值 P(&gt;|z|)
-#&gt; .Petal.Length 0.226 0.026 8.660 0.000
+现在，我想知道我们应该如何将元分析方法应用于这些类型的研究？我们是否也应该对每个比较应用单独的元分析？任何关于潜在和正确的统计技术或参考的建议都将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658486/pre-post-design-no-control-at-baseline-and-multiple-follow-up-times-meta-anal</guid>
+      <pubDate>Mon, 09 Dec 2024 13:30:12 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么我们通常不担心具有固定效应的面板数据模型中的平稳性？</title>
+      <link>https://stats.stackexchange.com/questions/657907/why-dont-we-typically-worry-about-stationarity-in-panel-data-models-with-fixed</link>
+      <description><![CDATA[为什么我们通常不担心具有固定效应的面板数据模型中的平稳性？
+在时间序列分析中，平稳性通常是一个关键假设。然而，我注意到，在面板数据的应用微观计量经济学中，研究人员似乎不太关心变量$y_{it}$和$x_{it}$是否是平稳的。
+考虑一个典型的固定效应模型：
+$$y_{it} = \alpha_i + \alpha_t + \sum_{l=1}^L \beta_l x_{i,t-l} + \epsilon_{it}$$
+在这种情况下，我们似乎常常不关心：
 
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/639695/why-does-lavaan-in-sem-do-a-z-test-instead-of-t-test-for-beta</guid>
-      <pubDate>Tue, 20 Feb 2024 02:42:47 GMT</pubDate>
+$y_{it}$是否满足传统的平稳性假设
+
+协方差结构$Cov(y_{it}, y_{i,t+k})$是时不变的
+
+条件期望$E[y_{it}|\alpha_i,\alpha_t]$
+与 $t$ 无关
+
+
+这与 VAR 文献形成鲜明对比，在 VAR 文献中平稳性起着核心作用。
+为什么我们经常可以在面板数据环境中忽略平稳性？
+拥有较大的 $N$（横截面单位）是否会使平稳性变得不那么重要？
+有人可以提供直观的解释，如果可能的话，提供一些数学推理？我熟悉基本的面板数据方法和时间序列概念，但我试图理解这两个领域对平稳性的处理之间的具体区别。]]></description>
+      <guid>https://stats.stackexchange.com/questions/657907/why-dont-we-typically-worry-about-stationarity-in-panel-data-models-with-fixed</guid>
+      <pubDate>Wed, 27 Nov 2024 00:13:54 GMT</pubDate>
     </item>
     </channel>
 </rss>
