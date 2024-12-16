@@ -4,7 +4,124 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 15 Dec 2024 21:15:57 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Dec 2024 01:25:09 GMT</lastBuildDate>
+    <item>
+      <title>利用贝叶斯优化进行多类分类</title>
+      <link>https://stackoverflow.com/questions/79283333/multiclass-classification-with-bayesian-optimisation</link>
+      <description><![CDATA[无法让这部分代码运行，而且速度真的很慢。
+我只想创建一个模型，将叶子图像分为 4 种类型（无，然后是 3 种疾病类型）
+我想使用 F1 作为损失函数，然后使用贝叶斯优化来获取叶子类模型的最佳参数，但它没有运行。或者它运行得非常慢然后失败了...
+我在 CPU 上运行，因为我没有 GPU
+# Optuna 的目标函数
+def objective(trial, train_dataloader, val_dataloader, device):
+# 使用 Optuna 的建议函数定义超参数搜索空间
+conv1_filters = trial.suggest_categorical(&quot;conv1_filters&quot;, [16, 32, 64])
+conv2_filters = trial.suggest_categorical(&quot;conv2_filters&quot;, [64, 128, 256])
+kernel_size = trial.suggest_categorical(&quot;kernel_size&quot;, [3, 5, 7])
+hidden_​​units = trial.suggest_categorical(&quot;hidden_​​units&quot;, [256, 512, 1024])
+dropout_rate = trial.suggest_float(&quot;dropout_rate&quot;, 0.1, 0.5)
+learning_rate = trial.suggest_float(&quot;learning_rate&quot;, 1e-5, 1e-2, log=True)
+num_epochs = trial.suggest_int(&quot;num_epochs&quot;, 10, 50)
+
+# 使用给定的参数初始化模型
+model = LeafCNN(
+conv1_filters=conv1_filters,
+conv2_filters=conv2_filters,
+kernel_size=kernel_size,
+hidden_​​units=hidden_​​units,
+dropout_rate=dropout_rate
+).to(device)
+
+# 设置优化器和损失函数
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+loss_fn = nn.CrossEntropyLoss(weight=class_weights_tensor)
+
+# 提前停止参数
+patient = 10 # 允许 10 个 epoch 不进行改进
+delta = 0.001 # 算作改进的最小变化
+best_val_loss = float(&quot;inf&quot;)
+patience_counter = 0 # 从 0 开始计数器
+
+# 训练循环
+for epoch in range(num_epochs):
+model.train()
+for X_batch, y_batch in train_dataloader:
+X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+optimizer.zero_grad()
+outputs = model(X_batch)
+loss = loss_fn(outputs, y_batch)
+loss.backward()
+optimizer.step()
+
+# 验证损失
+model.eval()
+val_loss = 0.0
+使用 torch.no_grad():
+对于 val_dataloader 中的 X_batch、y_batch：
+X_batch、y_batch = X_batch.to(device)、y_batch.to(device)
+输出 = 模型 (X_batch)
+损失 = loss_fn(outputs、y_batch)
+val_loss += loss.item()
+
+val_loss /= len(val_dataloader)
+打印 (f&quot;Epoch {epoch + 1}/{num_epochs}, Val Loss: {val_loss}&quot;)
+
+如果 val_loss &lt; best_val_loss - delta:
+best_val_loss = val_loss
+waiting_counter = 0
+else:
+waiting_counter += 1
+
+if waiting_counter &gt;= waiting:
+print(f&quot;在 epoch {epoch + 1} 触发提前停止&quot;)
+break
+
+# 使用 F1 分数进行评估
+model.eval()
+all_preds, all_labels = [], []
+with torch.no_grad():
+for X_batch, y_batch in val_dataloader:
+X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+output = model(X_batch)
+_, predict = torch.max(outputs, 1)
+all_preds.extend(predicted.cpu().numpy())
+all_labels.extend(y_batch.cpu().numpy())
+
+f1 = f1_score(all_labels, all_preds, average=&quot;weighted&quot;)
+return f1 # 我们的目标是最大化 F1 分数
+
+# 运行 Optuna 优化的主要函数
+def optuna_search(train_dataloader, val_dataloader, device, num_trials):
+# 创建 Optuna 研究
+study = optuna.create_study(direction=&quot;maximize&quot;) # 最大化 F1 分数
+study.optimize(lambda trial: objective(trial, train_dataloader, val_dataloader, device), n_trials=num_trials)
+
+# 打印最佳超参数
+print(&quot;找到最佳超参数：&quot;, study.best_params)
+print(&quot;最佳 F1 分数：&quot;, study.best_value)
+
+return study.best_params, study.best_value
+
+# 主程序
+if __name__ == &quot;__main__&quot;:
+
+# 创建 DataLoaders
+train_dataset = TensorDataset(X_train_split, y_train_split)
+train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+
+val_dataset = TensorDataset(X_val, y_val)
+val_dataloader = DataLoader(val_dataset, batch_size=4, shuffle=False)
+
+device = torch.device(&quot;cuda&quot; if torch.cuda.is_available() else &quot;cpu&quot;)
+
+# 运行 Optuna 优化
+best_params, best_f1 = optuna_search(train_dataloader, val_dataloader, device, num_trials=10)
+print(&quot;最佳参数：&quot;, best_params)
+print(&quot;最佳 F1 分数：&quot;, best_f1)
+]]></description>
+      <guid>https://stackoverflow.com/questions/79283333/multiclass-classification-with-bayesian-optimisation</guid>
+      <pubDate>Sun, 15 Dec 2024 23:07:57 GMT</pubDate>
+    </item>
     <item>
       <title>LSTM 停留在图像生成上</title>
       <link>https://stackoverflow.com/questions/79283140/lstm-stuck-on-image-generation</link>
@@ -363,32 +480,6 @@ https://www.kaggle.com/datasets/rithurajnambiar/electric-vehicle-data
 我尝试过一些资源，例如这个“https://github.com/ancasag/ensembleObjectDetection”。但我认为我需要一些更简单的解释。特别是关于加权组合技术。]]></description>
       <guid>https://stackoverflow.com/questions/79280938/is-there-way-to-learn-and-implement-ensemble-compatible-object-detection-models</guid>
       <pubDate>Sat, 14 Dec 2024 15:53:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何将 Flatten 层与具有动态尺寸的输入一起使用？</title>
-      <link>https://stackoverflow.com/questions/79280552/how-to-use-the-flatten-layer-with-an-input-that-has-a-dynamically-sized-dimensio</link>
-      <description><![CDATA[我有一个模型，其输入（一批具有形状（高度、宽度、时间）的图像）具有动态大小的维度（时间），该维度仅在运行时确定。但是，Flatten 层需要完全定义的空间维度。代码片段示例：
-import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, Input
-
-# 定义具有未定义维度的输入（无）
-input_tensor = Input(shape=(None, 256, 256, None, 13))
-
-# 应用密集层（需要完全定义的形状）
-x = Flatten()(input_tensor)
-x = Dense(10)(x)
-
-# 构建模型
-model = tf.keras.models.Model(inputs=input_tensor, output=x)
-
-model.summary()
-
-这会引发错误：
-ValueError：密集层输入的最后一个维度应已定义。未找到。
-
-如何使用 Flatten 而不是 GlobalAveragePooling3D 等替代方案使其工作？我需要保留所有像素级信息。]]></description>
-      <guid>https://stackoverflow.com/questions/79280552/how-to-use-the-flatten-layer-with-an-input-that-has-a-dynamically-sized-dimensio</guid>
-      <pubDate>Sat, 14 Dec 2024 11:31:35 GMT</pubDate>
     </item>
     <item>
       <title>XGBoost 警告未找到可见的 GPU，正在将设备设置为 CPU</title>
