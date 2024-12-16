@@ -4,22 +4,53 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 16 Dec 2024 15:19:12 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Dec 2024 18:25:16 GMT</lastBuildDate>
     <item>
-      <title>二维的 VC 维</title>
+      <title>我怎样才能修复破损的轮廓？</title>
+      <link>https://stackoverflow.com/questions/79285496/how-can-i-fix-broken-contours</link>
+      <description><![CDATA[我正在做一个涉及图像分割的研究项目，但轮廓不太正确，这是我经过一些图像清理和轮廓检测后得到的结果，但正如你所见，轮廓在某些地方被破坏了。有没有什么方法可以解决这个问题？我偶然发现了这篇论文，DiSTNet2D，其中你应该训练神经网络进行分割。我不太确定这是否有点过头了。有人有更好的建议吗？非常感谢！我已附上我的代码和结果
+def gaussian_filter_multiscale_retinex(image: np.ndarray, sigmas: list, weights: list) -&gt; np.ndarray:
+img32 = image.astype(&#39;float32&#39;) / 255
+img32_log = np.log1p(img32)
+
+msr = np.zeros(image.shape, np.float32)
+for sigma, weight in zip(sigmas, weights):
+blur = cv.GaussianBlur(img32, ksize=(0, 0), sigmaX=sigma)
+blur_log = np.log1p(blur)
+msr += (img32_log - blur_log) * weight
+
+msr /= sum(weights)
+return cv.normalize(msr, None, 0, 255, cv.NORM_MINMAX, cv.CV_8U)
+
+def process_image(img_path):
+img = cv.imread(img_path, cv.IMREAD_GRAYSCALE)
+rtnx = gaussian_filter_multiscale_retinex(img, sigmas=[15, 55, 185], weights=[10, 5, 1])
+阈值 = cv.adaptiveThreshold(rtnx, 255, adaptableMethod=cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+阈值类型=cv.THRESH_BINARY, blockSize=7, C=-7)
+
+nb_components, output, stats, _ = cv.connectedComponentsWithStats(thresholded, connections=8)
+大小 = stats[1:, -1]
+new_img = np.zeros_like(thresholded)
+new_img[np.isin(output, np.where(sizes &gt;= 12)[0] + 1)] = 255
+
+numLabels、labels、stats、centroids = cv.connectedComponentsWithStats(new_img)
+
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79285496/how-can-i-fix-broken-contours</guid>
+      <pubDate>Mon, 16 Dec 2024 17:08:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>二维的 VC 维 [关闭]</title>
       <link>https://stackoverflow.com/questions/79284939/vc-dimension-of-2-dimensional</link>
-      <description><![CDATA[如能得到帮助和证明，我将不胜感激
-问题是：
-给出二维（轴平行）矩形的 VC 维的上限，其中我们可以选择内部或外部是 +。
-我得到了 4 个解决方案，但寻求鼓励的朋友说答案应该是 5
-谢谢
-我得到了 4 个解决方案，但寻求鼓励的朋友说答案应该是 5
-谢谢]]></description>
+      <description><![CDATA[问题是：
+给出二维（轴平行）矩形的 VC 维数的上限，其中我们可以选择内部或外部是 +。
+我得到了 4 个解决方案，但寻求鼓励的朋友说答案应该是 5]]></description>
       <guid>https://stackoverflow.com/questions/79284939/vc-dimension-of-2-dimensional</guid>
       <pubDate>Mon, 16 Dec 2024 14:09:59 GMT</pubDate>
     </item>
     <item>
-      <title>针对群体数据/种族数据的最自然的机器学习模型类</title>
+      <title>针对群体数据/种族数据的最自然类别的机器学习模型[关闭]</title>
       <link>https://stackoverflow.com/questions/79284779/most-natural-class-of-machine-learning-models-for-group-data-race-data</link>
       <description><![CDATA[我有一个学生考试成绩的数据集，如下所示：
 班级 ID 班级规模 学生编号 智商 小时数 分数
@@ -49,25 +80,12 @@ Class_ID Class_size IQ_1 IQ_2 IQ_3 IQ_4 IQ_5 小时_1 小时_2 小时_3 小时_4
 2 5 93 103 112 200 90 5 9 12 10 19 50 88 99 100 78
 3 2 100 102 南 南 南 12 13 南 南 南 84 88 南 南 南
 
-使得 1 行代表 1 个训练示例。但是这样一来，特征矩阵就会变得非常稀疏（因为不同班级的学生人数可能有很大差异）
+使得 1 行代表 1 个训练示例。但随后特征矩阵变得非常稀疏（因为不同班级的学生人数可能有很大差异）
 因此，逻辑模型/普通前馈神经网络/基于树的模型似乎也不适用于这类群体数据。
 所以我的问题是，是否有任何自然的机器学习模型可以处理这些“群体数据”，就像我上面的数据集一样？
-此外，在这个问题中，我只关心最终名列前茅的人（或者可能是前三名），所以排名并不是那么重要（例如，知道学生 4 排名第 11 位，学生 8 排名第 12 位并不重要）
-提前谢谢您。]]></description>
+此外，在这个问题中，我只关心最终名列前茅的人（或者可能是前三名），所以排名并不是那么重要（例如，知道学生 4 排名第 11 位，学生 8 排名第 12 位并不重要）。]]></description>
       <guid>https://stackoverflow.com/questions/79284779/most-natural-class-of-machine-learning-models-for-group-data-race-data</guid>
       <pubDate>Mon, 16 Dec 2024 13:03:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有小区域估计的机器学习[关闭]</title>
-      <link>https://stackoverflow.com/questions/79284337/machine-learning-with-small-area-estimation</link>
-      <description><![CDATA[
-我能否使用调查数据结果和辅助变量（不包括调查协变量）、训练集和测试集构建合适的机器学习模型？
-个人和家庭层面的样本总数为 5000 个，聚合数据有 300 个聚类区域。是否可以将随机森林用于此类数据结构？
-在聚类级别聚合这些数据后，我只得到了 300 个样本和区域。我的分析重点是区域级别。训练集和随机森林的测试集使用哪个样本量？
-
-我尝试使用调查样本数据来构建模型，但我遇到了一些挑战，对这个过程感到困惑。具体来说，我不确定我是否应用了适当的方法。我需要更多关于如何使用这些数据有效地构建模型的说明或指导。]]></description>
-      <guid>https://stackoverflow.com/questions/79284337/machine-learning-with-small-area-estimation</guid>
-      <pubDate>Mon, 16 Dec 2024 10:25:16 GMT</pubDate>
     </item>
     <item>
       <title>如何使用 aiplatform.BatchPredictionJob.create() 在 Vertex AI 中配置模型监控？</title>
@@ -420,14 +438,106 @@ print(tf.config.experimental.get_memory_info(&#39;GPU:0&#39;))
       <pubDate>Sun, 15 Dec 2024 08:39:26 GMT</pubDate>
     </item>
     <item>
-      <title>模型部署：交叉验证和超参数调整</title>
-      <link>https://stackoverflow.com/questions/79275593/model-deployment-cross-validation-and-hyperparameter-tuning</link>
-      <description><![CDATA[我正在使用 Prophet（时间序列的元模型），我有一个与模型部署相关的问题，该问题也扩展到其他机器学习算法。因此，我使用了元文档中提供的代码进行超参数调整。它的工作原理类似于网格搜索，并基于交叉验证输出模型中使用的最佳超参数组合。该最佳组合的 RMSE 约为 11.15。因此，考虑到我想部署模型并发送到生产，我应该使用网格搜索提供的超参数组合在整个数据集上重新训练模型，还是应该将使用交叉验证训练的模型发送到生产？
+      <title>获取“TypeError：ufunc‘isnan’不支持输入类型”</title>
+      <link>https://stackoverflow.com/questions/79281350/getting-typeerror-ufunc-isnan-not-supported-for-the-input-types</link>
+      <description><![CDATA[我正在做一个机器学习项目，在 Jupyter Notebook 上预测电动汽车的价格。
+我运行这些单元：
+from sklearn import preprocessing
+le = preprocessing.LabelEncoder()
+cols = [&#39;County&#39;, &#39;City&#39;, &#39;State&#39;, &#39;ZIP Code&#39;, &#39;Model Year&#39;, &#39;Make&#39;, &#39;Model&#39;, &#39;Electric Vehicle Type&#39;, &#39;Clean Alternative Fuel Vehicle (CAFV) Eligibility&#39;]
+for col in cols:
+le.fit(t[col])
+x[col] = le.transform(x[col]) 
+print(le.classes_)
 
-我问这个问题是因为当我使用网格搜索中的超参数在整个数据集上训练模型时，RMSE 比交叉验证的更高（更差）。
-]]></description>
-      <guid>https://stackoverflow.com/questions/79275593/model-deployment-cross-validation-and-hyperparameter-tuning</guid>
-      <pubDate>Thu, 12 Dec 2024 15:01:43 GMT</pubDate>
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.5，random_state = 0)
+
+r2_score(y_test，lm.predict(x_test))
+
+从 sklearn.tree 导入 DecisionTreeRegressor 
+regressor = DecisionTreeRegressor(random_state = 0) 
+regressor.fit(x_train，y_train)
+r2_score(y_test，regressor.predict(x_test))
+
+r2_score(y_train，regressor.predict(x_train))
+
+uv = np.nanpercentile(df2[&#39;Base MSRP&#39;]，[99])[0]*2
+
+df2[&#39;Base MSRP&#39;][(df2[&#39;Base MSRP&#39;]&gt;uv)] = uv
+
+df2 = df2[df2[&#39;Model Year&#39;] != &#39;N/&#39;] # 过滤掉包含 &#39;Model Year&#39; 的行&#39;N/&#39;
+
+for col in cols:
+df2[col] = df2[col].replace(&#39;N/&#39;, -1)
+le.fit(df2[col])
+df2[col] = le.transform(df2[col]) 
+print(le.classes_)
+
+le = preprocessing.LabelEncoder()
+
+cols = [&#39;County&#39;, &#39;City&#39;, &#39;State&#39;, &#39;ZIP Code&#39;, &#39;Model Year&#39;, &#39;Make&#39;, &#39;Model&#39;, &#39;Electric Vehicle Type&#39;, &#39;Clean Alternative Fuel Vehicle (CAFV) Eligibility&#39;]
+
+for col in cols:
+le.fit(t[col])
+df2[col] = le.transform(df2[col]) 
+print(le.classes_)
+
+我收到此错误：
+TypeError回溯（最近一次调用最后一次）
+~\AppData\Local\Temp\ipykernel_16424\1094749331.py in &lt;module&gt;
+1 for col in cols:
+2 le.fit(t[col])
+----&gt; 3 df2[col] = le.transform(df2[col])
+4 print(le.classes_)
+
+~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\sklearn\preprocessing\_label.py in transform(self, y)
+136 return np.array([])
+137 
+--&gt; 138 返回 _encode(y, uniques=self.classes_)
+139 
+140 def inverse_transform(self, y):
+
+~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\sklearn\utils\_encode.py in _encode(values, uniques, check_unknown)
+185 else:
+186 if check_unknown:
+--&gt; 187 diff = _check_unknown(values, uniques)
+188 if diff:
+189 raise ValueError(f&quot;y 包含之前未见过的标签：{str(diff)}&quot;)
+
+~\.conda\envs\electricvehiclepriceprediction\lib\site-packages\sklearn\utils\_encode.py in _check_unknown(values, known_values, return_mask)
+259 
+260 # 检查 known_values 中的 nans
+--&gt; 261 if np.isnan(known_values).any():
+262 diff_is_nan = np.isnan(diff)
+263 if diff_is_nan.any():
+
+TypeError: ufunc &#39;isnan&#39; 不支持输入类型，并且根据转换规则 &#39;&#39;safe&#39;&#39;，无法将输入安全地强制转换为任何受支持的类型
+
+我尝试了什么？
+我尝试使用以下代码：
+le = preprocessing.LabelEncoder()
+cols = [&#39;County&#39;, &#39;City&#39;, &#39;State&#39;, &#39;ZIP Code&#39;, &#39;Model Year&#39;, &#39;Make&#39;, &#39;Model&#39;, &#39;Electric Vehicle Type&#39;, &#39;Clean Alternative Fuel Vehicle (CAFV) Eligibility&#39;]
+for col in cols:
+le.fit(t[col])
+df2[col] = le.transform(df2[col]) 
+print(le.classes_)
+
+代码给出了具体的错误。
+为了解决这个问题，我尝试使用以下代码来插入缺失值（“N/”）而不是删除它：
+for col in cols:
+le.fit(t[col].fillna(&#39;Missing&#39;)) # 使用“Missing”插入缺失值
+df2[col] = le.transform(df2[col].fillna(&#39;Missing&#39;))
+print(le.classes_)
+
+但我仍然收到相同的错误。
+这是我的笔记本的链接：https://github.com/SteveAustin583/electric-vehicle-price-prediction-revengers/blob/main/revengers.ipynb
+以下是数据集的链接：
+https://www.kaggle.com/datasets/rithurajnambiar/electric-vehicle-data
+如何解决此问题？]]></description>
+      <guid>https://stackoverflow.com/questions/79281350/getting-typeerror-ufunc-isnan-not-supported-for-the-input-types</guid>
+      <pubDate>Sat, 14 Dec 2024 20:23:19 GMT</pubDate>
     </item>
     <item>
       <title>使用 Conda + Poetry 有意义吗？</title>
