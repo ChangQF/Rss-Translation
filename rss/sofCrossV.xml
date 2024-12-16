@@ -4,7 +4,179 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 16 Dec 2024 09:20:30 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Dec 2024 12:36:40 GMT</lastBuildDate>
+    <item>
+      <title>套索和交叉验证：模型选择</title>
+      <link>https://stats.stackexchange.com/questions/658807/lasso-and-cross-validation-model-selection</link>
+      <description><![CDATA[对交叉发布表示歉意
+我开始使用 Lasso 和交叉验证进行模型选择，以使用线性模型解释因变量，但我不明白为什么所选模型中的所有 p 值系数都不低于 0.05：
+我使用以下步骤将此示例发布在：
+https://www.stata.com/features/overv...on-prediction/
+代码：
+
+sysuse auto, clear
+splitsample, generate(sample) nsplit(2) rseed(1234)
+
+lasso linear mpg i.foreign i.rep78 headroom weight turn gear_ratio price trunk length Displacement if sample == 1, Selection(bic)
+estimates store bic
+
+lasso linear mpg i.foreign i.rep78 净空重量转动齿轮比价格后备箱长度位移如果样本 == 1
+估计存储 cv
+
+lasso linear mpg i.foreign i.rep78 净空重量转动齿轮比价格后备箱长度位移如果样本 == 1，选择（自适应）
+估计存储自适应
+
+lassocoef cv bic 自适应，排序（系数，标准化）
+
+-------------------------------------------------------------
+| cv bic 自适应
+-------------+--------------------------------
+重量 | x x 
+5.rep78 | x x x 
+长度 | x x x 
+齿轮比 | x x 
+价格 | x x 
+_cons | x x x 
+----------------------------------------------
+图例：
+b - 基准水平
+e - 空单元格
+o - 省略
+x - 估计
+
+lassogof cv bic 自适应，过（样本）后选择
+
+后选择系数
+-------------------------------------------------------------------------
+名称样本 | MSE R 平方 Obs
+------------------------+------------------------------------
+cv |
+1 | 10.92984 0.7046 35
+2 | 10.77016 0.6496 34
+------------------------+------------------------------------
+bic |
+1 | 11.82234 0.6805 35
+2 | 11.0608 0.6401 34
+------------------------+------------------------------------
+自适应 |
+1 | 10.98369 0.7032 35
+2 | 10.56047 0.6564 34
+--------------------------------------------------------------
+
+*adaptive 在样本 2 中具有较低的 MSE 和较高的 R^2
+
+*我选择 Adaptive 作为最佳模型：
+
+. reg mpg length 5.rep78 gear_ratio price
+
+来源 | SS df MS 观测数 = 69
+-------------+---------------------------------- F(4, 64) = 38.57
+模型 | 1654.03213 4 413.508033 Prob &gt; F = 0.0000
+残差 | 686.170766 64 10.7214182 R 平方 = 0.7068
+-------------+----------------------------------- Adj R 平方 = 0.6885
+总计 | 2340.2029 68 34.4147485 根 MSE = 3.2744
+
+--------------------------------------------------------------------------------------------
+mpg | 系数标准误差 t P&gt;|t| [95% 置信区间]
+-------------+----------------------------------------------------------------
+长度 | -.1484211 .0270004 -5.50 0.000 -.2023607 -.0944816
+5.rep78 | 3.380391 1.163954 2.90 0.005 1.055125 5.705657
+gear_ratio | 1.558014 1.251733 1.24 0.218 -.9426098 4.058637
+价格 | -.0002964 .0001545 -1.92 0.060 -.0006049 .0000122
+_缺点 | 45.84562 7.960131 5.76 0.000 29.94343 61.74781
+--------------------------------------------------------------------------------------------
+
+这里选择了 gear_ratio，但其 p 值为 0.218，太高了，无法解释 mpg？
+在使用 Lasso 和交叉验证进行模型选择时，我错过了一些步骤或概念？
+我现在知道 Lasso 不使用 p 值来选择模型，但我应该在最终模型中删除 gear_ratio？
+任何评论我都会感激不尽
+提前致谢]]></description>
+      <guid>https://stats.stackexchange.com/questions/658807/lasso-and-cross-validation-model-selection</guid>
+      <pubDate>Mon, 16 Dec 2024 11:55:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>针对种族数据/群体数据的最自然的机器学习模型类</title>
+      <link>https://stats.stackexchange.com/questions/658803/most-natural-class-of-machine-learning-models-for-race-data-group-data</link>
+      <description><![CDATA[我有一个学生考试成绩的数据集，如下所示：
+班级 ID 班级规模 学生编号 智商 小时数 分数
+1 3 3 101 10 98
+1 3 4 99 19 80
+1 3 6 130 3 95
+2 5 4 93 5 50
+2 5 5 103 9 88
+2 5 8 112 12 99
+2 5 1 200 10 100
+2 5 2 90 19 78
+3 2 5 100 12 84
+3 2 7 102 13 88
+
+我想建立一个机器学习模型，尝试预测谁将成为班级第一名（即最高分数）给定 Class_ID，使用 IQ 和 Hours（学习小时数）作为特征。
+换句话说，输入是班级中每个学生（例如 1 到 n）的 IQ 和 Hours，输出是概率向量 (p_1, ..., p_n)，其中每个 p_i 是学生 i 在班级中获得最高分数的概率。
+这是我尝试过的：
+
+由于这是一个排名问题，因此自然的一类学习模型是使用 XGBoost 中的 XGBRanker 或 lightgbm 中的 LGBMRanker。不幸的是，输出是 相关性得分 列表，而不是概率列表，概率列表在概率方面没有自然解释。
+
+解决这个问题的一种方法是在 xgboost 中对相关性得分应用 softmax，但没有直接有意义的概率解释，如基于能量的模型，如 RBM 的能量函数。事实上，我试过这样做，概率变得非常极端（大多数概率质量集中在每个班级的一名学生身上，导致测试结果不佳且方差较大）
+
+另一类学习模型是分类模型，如逻辑回归/决策树。然而，我遇到的问题是每个班级的学生人数不同，因此要训练这样的模型，我们必须首先“扁平化”特征矩阵：
+
+Class_ID Class_size IQ_1 IQ_2 IQ_3 IQ_4 IQ_5 小时_1 小时_2 小时_3 小时_4 小时_5 Score_1 Score_2 Score_3 Score_4 Score_5
+1 1 101 99 130 南 南 10 19 3 南 南 98 80 95 南 南
+2 5 93 103 112 200 90 5 9 12 10 19 50 88 99 100 78
+3 2 100 102 南 南 南 12 13 南 南 南 84 88 南 南 南
+
+使得 1 行代表 1 个训练示例。但是这样一来，特征矩阵就会变得非常稀疏（因为不同班级的学生人数可能有很大差异）
+因此，逻辑模型/普通前馈神经网络/基于树的模型似乎也不适用于这类群体数据。
+所以我的问题是，是否有任何自然的机器学习模型可以处理这些“群体数据”，就像我上面的数据集一样？
+此外，在这个问题中，我只关心最终名列前茅的人（或者可能是前三名），所以排名并不是那么重要（例如，知道学生 4 排名第 11 位，学生 8 排名第 12 位并不重要）
+提前谢谢您。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658803/most-natural-class-of-machine-learning-models-for-race-data-group-data</guid>
+      <pubDate>Mon, 16 Dec 2024 09:50:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>Cox 回归假设</title>
+      <link>https://stats.stackexchange.com/questions/658802/cox-regression-assumptions</link>
+      <description><![CDATA[我正在分析血浆生物标志物与疾病发病率之间的关联，这些关联是通过年度问卷自我报告的。总样本量为 824，其中 65 人报告了至少一个事件（我不考虑多个事件）。除了事件发生之外，所有其他变量都是在基线测量的。我会使用 Cox 比例风险回归模型，但我不熟悉这个模型，并且对我获得的假设图感到很困惑。
+我的完全调整模型如下所示：
+assumpt.cox &lt;- coxph(Surv(time, event) ~ contvar1 + 
+contvar2 + catvar1 + catvar2 + 
+catvar3 + contvar3 + catvar4 + contvar4 + contvar5, data = data_assumpt.cox)
+
+其中 contvar 是连续变量，catvar 是分类变量。我主要关注的是 contvar1。
+我检查了 PH 假设，它没有表明违反（所有变量和全局变量的 p&gt;0.05）。
+对于有影响的点，我检查了偏差并注意到所有报告事件的参与者都聚集在图表的顶部，而没有报告事件的参与者则聚集在底部。此外，平均偏差不为 0。但我不清楚我应该怎么做。
+ggcoxdiagnostics(assumpt.cox, type = &quot;deviance&quot;,
+linear.predictions = FALSE, ggtheme = theme_bw()) 
+
+
+对于线性，我发现了两种主要方法来检查这个假设。
+
+使用空模型：
+
+ ggcox functional(Surv(time, event) ~ contvar1 + I(contvar1)^2 + log(contvar1) + 
+sqrt(contvar1), data = data_assumpt.cox)
+
+
+
+使用完全调整的模型：
+
+data_assumpt.cox %&gt;% 
+ggplot(aes(x=contvar1, y=residuals(assumpt.cox, type=&quot;martingale&quot;))) + 
+geom_point() + 
+geom_hline(yintercept = 0, color=&quot;blue&quot;) +
+geom_smooth(color=&quot;red&quot;) +
+theme_bw()
+
+
+
+我明白，在第一组图中，我应该看到数据点和残差线之间有很好的相关性，而在第二组图中，红线应该（大部分）在 0 处笔直。但总的来说，它们应该告诉我同样的事情。这是正确的吗，还是应该优先考虑其中一个？
+从这些图中，我得出结论，线性假设被违反了。
+但如果是这样，我该怎么办，因为转换似乎没有帮助？我也试图排除 contvar1 中的两个极端值（一个有事件，一个没有事件），但效果只略有改善。
+抱歉发了这么长的帖子，我希望至少能说清楚。
+非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/658802/cox-regression-assumptions</guid>
+      <pubDate>Mon, 16 Dec 2024 09:44:18 GMT</pubDate>
+    </item>
     <item>
       <title>多个非独立同分布 beta 素数变量之和</title>
       <link>https://stats.stackexchange.com/questions/658799/the-sum-of-multiple-non-i-i-d-beta-prime-variables</link>
@@ -79,48 +251,6 @@ $$ \underbrace{\sum_{p=1}^P \hat{\alpha}_{ip}h_p(time_{ij})}_{\text{city-specifi
       <pubDate>Mon, 16 Dec 2024 00:17:21 GMT</pubDate>
     </item>
     <item>
-      <title>关于配对样本的一个问题</title>
-      <link>https://stats.stackexchange.com/questions/658780/a-question-about-the-paired-samples</link>
-      <description><![CDATA[我正在审查几篇医学文章，其中由于缺乏正态性，Wilcoxon 符号秩检验 用于配对样本。但是，结果是基于平均值和标准差以及计算出的 p 值呈现的。考虑到使用了 Wilcoxon 符号秩检验（而不是配对 t 检验），我想知道这种呈现结果的方式是否正确。此外，Wilcoxon 符号秩检验似乎不用于比较中位数。您能解释一下与此测试相对应的假设吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658780/a-question-about-the-paired-samples</guid>
-      <pubDate>Sun, 15 Dec 2024 22:07:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在面板数据分析中测试和实施行业和年份固定效应与 POLS？</title>
-      <link>https://stats.stackexchange.com/questions/658777/how-to-test-and-implement-industry-and-year-fixed-effects-vs-pols-in-panel-data</link>
-      <description><![CDATA[我是计量经济学建模的新手。
-我正在处理跨越 8 年的面板数据，包括分布在 8 个不同行业的 155 个单位（REIT）。我的目标是应用行业固定效应和年份固定效应，但不应用实体固定效应。如何在 R 中正确实现这一点？
-在测试是否使用固定效应或合并最小二乘法时，我应该如何设置我的 POLS 模型？我是否应该在 POLS 模型中包含因子（年份）和因子（行业）来测试 POLS 是否优于 FE，或者是否应该为此目的不包括这些？
-下面，我概述了我目前正在使用的模型。但是，我不确定我是否在正确测试并以正确的方式进行。我如何确定是否应该使用行业固定效应而不是实体固定效应？
-FE_model_H1TSR &lt;- plm(TSR ~ LOG_ESG + LOG_TA + GTA + LOG_AGE, data = pdata, model = &quot;within&quot;, index= c(&quot;INDUSTRY&quot;,&quot;YEAR&quot;), effects = &quot;twoway&quot;)
-Pols_model_H1TSR &lt;- plm(TSR ~ LOG_ESG + GTA + LOG_AGE + LOG_TA + factor(YEAR) + factor(INDUSTRY) , data = pdata, model = &quot;pooling&quot;)]]></description>
-      <guid>https://stats.stackexchange.com/questions/658777/how-to-test-and-implement-industry-and-year-fixed-effects-vs-pols-in-panel-data</guid>
-      <pubDate>Sun, 15 Dec 2024 21:12:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>重新采样进行 AB 测试，以实现 CLT 下的正态分布 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/658765/resampling-for-ab-test-to-achieve-normal-distribution-under-the-clt</link>
-      <description><![CDATA[是否应在 AB 测试中应用重采样？
-在此示例中，假设我想执行 t 检验来确定两组用户之间的差异，其中一组用户看到的是登录页面 A，另一组用户看到的是登录页面 B。我跟踪指标“网站停留时间”。数据看起来不错，但我意识到它不是正态分布。
-在将数据输入单向独立样本 t 检验之前，我是否应该使用重采样来规范化这些数据？原因如下：
-
-它实现了正态性，这（至少在视觉上）与我的最终决策标准一致
-得到的标准化曲线使假设检验的结果易于理解。即，我的结果是 _ 与我所测试样本的平均值的标准差；这个的 p 值为 p，所以我们接受/拒绝零假设
-它只是与我们对问题的解决方案更加一致
-
-反对的理由：
-
-它改变了数据的分布，我不确定这会对我的 AB 测试的“正确性”产生什么影响。
-它可能是“过度工程”问题
-t 检验可以接受非正态数据，无论 t 检验中仍然使用的正态曲线的视觉效果如何（见下图）。
-
-
-请注意，我描述的是重新采样，即创建许多平均值的采样分布，而不是简单地采样，即选择随机指标并使用该组作为分布。简而言之，在每个分布上调用 mean() 并将一组均值输入到我的 AB 测试中。
-我应该为 AB 测试重新采样吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658765/resampling-for-ab-test-to-achieve-normal-distribution-under-the-clt</guid>
-      <pubDate>Sun, 15 Dec 2024 16:53:45 GMT</pubDate>
-    </item>
-    <item>
       <title>向量的期望 $L^2$ 范数是否大于向量元素期望的 $L^2$ 范数？</title>
       <link>https://stats.stackexchange.com/questions/658756/is-the-expected-l2-norm-of-a-vector-larger-than-the-l2-norm-of-the-vector</link>
       <description><![CDATA[假设随机变量 $X_1, X_2$ 是独立的。以下不等式是否成立？
@@ -178,6 +308,19 @@ $$
       <pubDate>Sun, 15 Dec 2024 08:40:50 GMT</pubDate>
     </item>
     <item>
+      <title>涉及比率的估计量的期望</title>
+      <link>https://stats.stackexchange.com/questions/658727/expectations-of-estimators-involving-ratios</link>
+      <description><![CDATA[我正在研究一些面板数据计量经济学主题，我遇到了以下渐近性质：$N \to \infty$:
+\begin{equation}
+\theta^{\ast} \to \frac{\mathbb{E}(​​\beta_i)}{1 - \mathbb{E}(​​\gamma_i)} 
+\quad \text{and} \quad 
+\bar{\theta} \to \mathbb{E}\left(\frac{\beta_i}{1 - \gamma_i}\right) = \mathbb{E}(​​\theta_i),
+\end{equation&gt;
+幻灯片指出，除非$\beta_i$ 和 $\gamma_i$ 是独立分布的。为什么会这样？具体来说，为什么比率的期望值不等于期望值的比率？随机参数分布的独立性在这种差异中起什么作用？原因很简单，因为如果 $\beta_i$ 和 $\gamma_i$ 是独立的随机系数，则联合期望为：$\mathbb{E} (\beta_i) \times \mathbb{E}\left(\frac{1}{1-\gamma_i}\right)$?]]></description>
+      <guid>https://stats.stackexchange.com/questions/658727/expectations-of-estimators-involving-ratios</guid>
+      <pubDate>Sat, 14 Dec 2024 22:35:57 GMT</pubDate>
+    </item>
+    <item>
       <title>纳入因变量的下限是否可以改善估计？</title>
       <link>https://stats.stackexchange.com/questions/658703/does-incorporating-lower-bound-on-dependent-variable-improve-estimation</link>
       <description><![CDATA[假设我们抛硬币 $n$ 次，其中 如果正面，则 $Z_k = 1$，否则为 0，$Y = \sum_{k=1}^{n} Z_k$ 是正面的总数。硬币有两种类型：银币和金币，我们可以观察到用 $X$ 表示。此外，给定硬币的类型，我们知道正面的概率：
@@ -203,15 +346,6 @@ $$ Y = \mathbb{E}[Y|X] + \epsilon $$
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658703/does-incorporating-lower-bound-on-dependent-variable-improve-estimation</guid>
       <pubDate>Sat, 14 Dec 2024 05:37:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>对数秩和 Cox 模型的假设类似。请求文章参考</title>
-      <link>https://stats.stackexchange.com/questions/657830/similar-assumptions-for-log-rank-and-cox-model-request-for-article-reference</link>
-      <description><![CDATA[我理解，具有单个二元预测因子且回归常数等于零的 Cox 模型的得分函数等于对数秩检验的统计数据（数学的简单重写）。因此，这就是对数秩检验和 Cox 模型都假设比例风险的主要论点。
-例如，请参阅对数秩检验统计量相当于 Cox 回归的得分。使用对数秩检验比 Cox 回归有什么优势吗？
-但是，我找不到任何好的参考资料来添加到肿瘤学中的一篇论文中，我需要在其中证明使用 Cox 而不是对数秩的合理性。实际上，问题在于比例风险检验的 p 值低于 5%（因此实际上我们不能使用其中任何一个）。有些人可能会认为应该使用对数秩检验，因为它“不依赖于任何假设”，这是非统计学家的普遍理解。如上所述，我不同意使用对数秩检验（和 Cox）。不过，我需要一个参考资料（也可以放在我们正在撰写的论文中），我可以将其用作我的论证的一部分，即 Cox 和对数秩的假设实际上是相同的——并不是每个人都能看到数学偏差的美。您能否提供任何与上述问题相关的有用的论文参考资料？我可以在网上找到很多陈述，但我需要一篇文章参考资料。]]></description>
-      <guid>https://stats.stackexchange.com/questions/657830/similar-assumptions-for-log-rank-and-cox-model-request-for-article-reference</guid>
-      <pubDate>Mon, 25 Nov 2024 21:42:54 GMT</pubDate>
     </item>
     </channel>
 </rss>
