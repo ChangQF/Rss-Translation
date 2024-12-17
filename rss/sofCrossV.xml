@@ -4,7 +4,145 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 17 Dec 2024 09:19:31 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 17 Dec 2024 12:36:19 GMT</lastBuildDate>
+    <item>
+      <title>针对群体数据/种族数据的最自然机器学习模型类</title>
+      <link>https://stats.stackexchange.com/questions/658871/most-natural-class-of-machine-learning-models-for-group-data-race-data</link>
+      <description><![CDATA[我有一个学生考试成绩的数据集，如下所示：
+班级 ID 班级大小 学生编号 智商 小时数 分数 前几名
+1 3 3 101 10 98 1
+1 3 4 99 19 80 0
+1 3 6 130 3 95 0
+2 5 4 93 5 50 0
+2 5 5 103 9 88 0
+2 5 8 112 12 99 0
+2 5 1 200 10 100 1
+2 5 2 90 19 78 0
+3 2 5 100 12 84 0
+3 2 7 102 13 88 1
+
+我想建立一个机器学习模型，试图预测谁将成为前几名对于任何给定的 Class_ID，使用 IQ 和 Hours（学习小时数）作为特征，计算班级（即具有最高 Score 的学生）的得分。
+换句话说，输入是班级中每个学生（例如 1 到 n）的 IQ 和 Hours，输出是概率向量 (p_1, ..., p_n)，其中每个 p_i 是学生 i 在班级中得分最高的概率。
+这是我尝试过的：
+
+最简单的方法是对 Score 使用回归，然后确定谁将在班级中取得最高分数。这种方法的问题在于，它不会产生谁最有可能在任何给定类别中获得最高分数的概率。
+
+由于这是一个排名问题，因此自然的学习模型类别是使用 XGBoost 中的 XGBRanker 或 lightgbm 中的 LGBMRanker。不幸的是，输出是 相关性分数 列表，而不是概率列表，概率列表在概率方面没有自然解释。
+
+
+解决这个问题的一个明显方法是在 xgboost 中的相关性分数上应用 softmax，但没有直接有意义的概率解释，如基于能量的模型（如 RBM 的能量函数）。事实上，我曾尝试过这样做，但概率变得非常极端（大多数概率集中在每个班级的一名学生身上，导致测试结果不佳且方差较大）
+
+另一类学习模型是Top上的分类模型，如逻辑回归/决策树。但是，这种方法有两个主要问题。
+
+首先，将每个学生视为训练样本不是一个好方法，因为例如，同一个班级可能有两个非常聪明（高智商）和勤奋（高小时数）的学生，如果很多班级都有很多这样的学生，那么传统的模型（如基于逻辑/树的模型）可能会难以进行训练。
+为了解决上述将单个学生视为训练样本的问题，我们可以将每个班级视为一个训练样本。为此，我们“扁平化”我们的数据集并对 Top 进行多类分类：
+Class_ID Class_size IQ_1 IQ_2 IQ_3 IQ_4 IQ_5 Hours_1 Hours_2 Hours_3 Hours_4 Hours_5 Score_1 Score_2 Score_3 Score_4 Score_5 Top
+1 3 101 99 130 NaN NaN 10 19 3 NaN NaN 98 80 95 NaN NaN 3 
+2 5 93 103 112 200 90 5 9 12 10 19 50 88 99 100 78 1
+3 2 100 102 NaN NaN NaN 12 13 NaN NaN NaN 84 88 NaN NaN NaN 7
+
+这种方法的问题在于，数字每个班级的学生人数不同，因此特征矩阵变得非常稀疏（因为不同班级的学生人数可能非常不同）
+因此，逻辑模型/普通前馈神经网络/基于树的模型似乎也不适用于这类群体数据。
+所以我的问题是，是否有任何自然的机器学习模型可以处理这些“群体数据”，就像我上面的数据集一样？
+此外，在这个问题中，我只关心最终名列前茅的人（或者可能是前三名），所以排名并不是那么重要（例如，知道学生 4 排名第 11 位，学生 8 排名第 12 位并不重要）
+提前非常感谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658871/most-natural-class-of-machine-learning-models-for-group-data-race-data</guid>
+      <pubDate>Tue, 17 Dec 2024 11:40:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>参数复发事件分析中的马丁格尔和偏差残差？</title>
+      <link>https://stats.stackexchange.com/questions/658870/martingale-and-deviance-residuals-in-parametric-recurrent-event-analysis</link>
+      <description><![CDATA[我正在开发一个描述重复事件过程的参数化事件发生时间模型。我不确定我对如何计算这种情况下 Martingale 和 Deviance 残差的理解是否正确，并希望有人能就此事提供指导。来自 Therneau 等人。 (1990)，在我的例子中，马丁格尔残差如下：
+$$
+\hat{M}_i(t) = N_i(t) - \int_{0}^{t} Y_i(s)d\hat{\Lambda_i}(s),
+$$
+由于对于每个时间 t，$E[\hat{M}_i(t)] = E[\hat{M}_i(t-1)] = 0$，计算每个事件/审查时间的 $\hat{M}_i(t)$ 是否合适，以便可以根据所有记录的事件时间来评估模型准确性？如果是，那么“最佳”方法是什么？计算 $\hat{M}_i(t)$ 的方法如下：
+
+基于从 $[t-1, t]$ 开始的区间？
+或者基于从 $[0,t]$ 开始的区间？
+
+其中 t-1 和 t 分别是上一个事件时间以及当前事件时间。或者这取决于我们试图用模型回答的问题（即，如果准确预测事件 n-1 和 n 之间的时间很重要，则选择 $[t-1,t]$）？
+那么对于偏差残差，Therneau 等人（1990） 将这些结果呈现为 Cox 模型，如下所示：
+$$
+d_i = \operatorname{sgn}(\hat{M}_i) \left[ -2\{ \hat{M}_i + \delta_i \log (\delta_i - \hat{M}_i)\} \right]^{\​​frac{1}{2}}
+$$
+有没有办法将这些结果转换为“纵向”设置（即针对每个记录时间，而不是基于 $\hat{M}_i$，后者是针对每个个体 i 在整个随访期间计算得出的）？并且，与此相关的是，在重复事件的情况下，计算$d_i$以及$\hat{M}_i$能带来很多好处吗？鉴于$d_i$的开发是为了实现更正态的残差分布，这对于重复事件来说似乎不是什么大问题，因为$\hat{M}_i$可能取值的范围（在我的案例中理论上为$[-\infty,\infty]$）。
+为我的问题提供一些背景信息：本文介绍了我研究领域的偏差残差，建议使用$\hat{M}_i(t)$基于从$[t-1, t]$，并且仅适用于观察到的事件时间。我不确定这是否合适，因为我们使用这种方法丢弃了数据的审查部分。这也是我能找到的唯一一个在每个个体中多次得出$\hat{M}_i$的例子，因为其他研究，如这个和这个，只基于$[0, t_{max}]$区间计算$\hat{M}_i$和$d_i$。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658870/martingale-and-deviance-residuals-in-parametric-recurrent-event-analysis</guid>
+      <pubDate>Tue, 17 Dec 2024 11:24:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>双变量经验估计</title>
+      <link>https://stats.stackexchange.com/questions/658868/bivariate-empirical-estimation</link>
+      <description><![CDATA[我想使用经验估计来估计 $\int_0^{sup A}\int_0^{\sup B} F^2(x,y)dydx,$，其中 $F$ 是 CDF，$A$ 是随机变量 $X$ 的支持集，$B$ 是随机变量 $Y$ 的支持集。对于 i.i.d，$F(x,y)$ 的经验估计。随机样本 $\{X_i,Y_i\},i=1,2,...,n$ 由 $\frac{1}{n}\sum_{I=1}^n I(X_i\leq x,Y_i\leq y)$ 给出，其中 $I$ 是指示函数。如何使用 R 编程或 Python 估计此函数。如果代码无法提供，请简要说明方法。提前致谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/658868/bivariate-empirical-estimation</guid>
+      <pubDate>Tue, 17 Dec 2024 11:10:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>XGBoost - 具有 `colsamle_bytree` <1 的树所见列的顺序</title>
+      <link>https://stats.stackexchange.com/questions/658867/xgboost-order-of-columns-seen-by-a-tree-with-colsamle-bytree1</link>
+      <description><![CDATA[我的理解是，如果两个或更多列在拆分时提供相同的增益，XGBoost 会选择第一列。
+为了确保 XGBoost 有机会查看并包含所有相关列，我认为我可以简单地传递 colsample_bytree=0.99。但是，为了使其工作，采样返回的列必须按随机顺序排列。这种方法是否正确，还是我应该在某种交叉验证方案中对列进行打乱？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658867/xgboost-order-of-columns-seen-by-a-tree-with-colsamle-bytree1</guid>
+      <pubDate>Tue, 17 Dec 2024 11:02:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>（在线）多重测试，预期 H1 比例非常低（发现很少）</title>
+      <link>https://stats.stackexchange.com/questions/658866/online-multiple-testing-with-very-low-expected-h1-proportion-very-few-discove</link>
+      <description><![CDATA[似乎大多数（在线）FDR 测试几乎完全丧失了其效力，因为非零假设比例趋于 0。在这些情况下，控制 FDR 是否有意义？有什么解决办法吗？我熟悉权重衰减，但在某种程度上，它只是一种变通方法，允许该方法为了获得更高的统计效力而提高 FDR。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658866/online-multiple-testing-with-very-low-expected-h1-proportion-very-few-discove</guid>
+      <pubDate>Tue, 17 Dec 2024 11:02:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>具有交互作用的泊松回归的边际效应</title>
+      <link>https://stats.stackexchange.com/questions/658861/marginal-effect-of-poisson-regression-with-interaction</link>
+      <description><![CDATA[我很难理解 R 中带有泊松回归的 {marginaleffects} 包的结果。
+如果我这样做：
+library(marginaleffects)
+mod &lt;- lm(mpg ~ hp * as.factor(gear), data = mtcars)
+summary(mod)
+
+我得到：
+系数：估计标准差。误差 t 值 Pr(&gt;|t|) 
+(截距) 25.307903 2.650811 9.547 5.51e-10 ***
+hp -0.052240 0.014560 -3.588 0.001356 ** 
+as.factor(gear)4 15.262616 3.862728 3.951 0.000531 ***
+as.factor(gear)5 7.469550 3.805534 1.963 0.060451 . 
+hp:as.factor(gear)4 -0.126946 0.033574 -3.781 0.000825 ***
+hp:as.factor(gear)5 -0.006029 0.019276 -0.313 0.756952 
+
+and avg_comparisons(mod, variable = &quot;hp&quot;, by = c(&quot;gear&quot;)) 返回
+ 术语 gear 估计 Std.误差 z Pr(&gt;|z|) S 2.5 % 97.5 %
+hp 3 -0.0522 0.0146 -3.59 &lt;0.001 11.6 -0.0808 -0.0237
+hp 4 -0.1792 0.0303 -5.92 &lt;0.001 28.2 -0.2385 -0.1199
+hp 5 -0.0583 0.0126 -4.61 &lt;0.001 17.9 -0.0830 -0.0335
+
+其中第一行返回在模型摘要中找到的估计值 -0.0522，因为我有相同的参考。这对我来说很有意义。
+我不明白的是泊松分布会发生什么：
+mod &lt;- glm(cyl ~ hp * as.factor(gear), data = tmp, family =toxic())
+summary(mod)
+
+系数：
+估计标准差。误差 z 值 Pr(&gt;|z|) 
+(截距) 1.5599308 0.3891456 4.009 6.11e-05 ***
+hp 0.0025199 0.0020809 1.211 0.226 
+as.factor(gear)4 -0.6005544 0.6561946 -0.915 0.360 
+as.factor(gear)5 -0.4006457 0.6104003 -0.656 0.512 
+hp:as.factor(gear)4 0.0038348 0.0058576 0.655 0.513 
+hp:as.factor(gear)5 0.0005107 0.0028537 0.179 0.858 
+
+我原本希望 avg_comparisons 返回 0.0025199，然后计算不同齿轮值的不同值，但是：
+avg_comparisons(mod, variable = &quot;hp&quot;, by = c(&quot;gear&quot;))
+
+术语 gear 估计 Std.误差 z Pr(&gt;|z|) S 2.5 % 97.5 %
+hp 3 0.0188 0.0157 1.20 0.230 2.1 -0.01189 0.0496
+hp 4 0.0297 0.0260 1.14 0.253 2.0 -0.02125 0.0807
+hp 5 0.0182 0.0122 1.49 0.136 2.9 -0.00573 0.0421
+
+这里，第一行估计是 0.0188，而不是 0.0025199，我不明白为什么。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658861/marginal-effect-of-poisson-regression-with-interaction</guid>
+      <pubDate>Tue, 17 Dec 2024 09:37:39 GMT</pubDate>
+    </item>
     <item>
       <title>控制多重比较</title>
       <link>https://stats.stackexchange.com/questions/658859/control-for-multiple-comparisons</link>
@@ -13,6 +151,108 @@
 最好！]]></description>
       <guid>https://stats.stackexchange.com/questions/658859/control-for-multiple-comparisons</guid>
       <pubDate>Tue, 17 Dec 2024 08:39:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Shiny 在 R 中实现不准确的 KNN</title>
+      <link>https://stats.stackexchange.com/questions/658862/innacurate-knn-implementation-in-r-using-shiny</link>
+      <description><![CDATA[这个简单而又炫酷的应用程序让您上传一张图片，然后通过 knn 算法（使用 mnist 数据集训练）进行分析并评估图片包含的数字。假设您上传的图片为 .jpg 格式且尺寸为 28x28，则该网站可以正常运行。没有出现任何错误。
+if(!require(class)) {
+install.packages(&quot;class&quot;)
+}
+if(!require(dslabs)) {
+install.packages(&quot;dslabs&quot;)
+}
+if(!require(shiny)) {
+install.packages(&quot;shiny&quot;)
+}
+
+library(class)
+library(dslabs)
+library(shiny)
+
+m &lt;- read_mnist()
+
+ui &lt;- fluidPage(
+titlePanel(
+&quot;第一个 AI 实现：猜测图像上的数字&quot;
+),
+sidebarLayout(
+sidebarPanel = sidebarPanel(
+wellPanel(
+fileInput(
+inputId = &quot;file&quot;,
+label = &quot;选择一个类似数字的图像：&quot;,
+accept = c(&quot;image/jpg&quot;, &quot;image/jpeg&quot;)
+),
+actionButton(
+inputId = &quot;预测&quot;,
+label = &quot;猜猜看！&quot;
+)
+)
+),
+mainPanel = mainPanel(
+tags$h3(&quot;已加载图像：&quot;),
+uiOutput(&quot;image_ui&quot;),
+tags$h3(&quot;预测：&quot;),
+textOutput(
+outputId = &quot;预测&quot;
+)
+)
+)
+)
+
+服务器 &lt;- 函数（输入、输出、会话）{
+观察事件（输入$预测，{
+图像数据 &lt;- 反应式（{
+请求（输入$文件）
+图片 &lt;- jpeg::readJPEG（输入$文件$数据路径）
+图片 &lt;- as.vector（t（trunc（img[, , 1] * 255)))
+打印（m$train$images[1, ])
+打印（img）
+返回（img）
+})
+
+预测 &lt;- 事件反应式（输入$预测，{
+请求（图像数据（）
+用户图像 &lt;- 图像数据（）
+预处理 &lt;- knn（训练 = m$train$images, 用户图像, m$train$labels, k = 3)
+返回（as.numeric（pred））
+})
+
+输出$image_ui &lt;- renderUI({
+req(input$file)
+tags$img(
+src = base64enc::dataURI(
+file = input$file$datapath, 
+mime = input$file$type
+),
+width = &quot;280px&quot;,
+height = &quot;280px&quot;
+)
+})
+
+output$prediction &lt;- renderText({
+req(prediction())
+paste(&quot;图像代表以下数字：&quot;, prediction())
+})
+})
+}
+
+shinyApp(ui, server)
+
+
+但是输出一点都不准确。我应该改变k的值吗？图像格式化数据的处理是否正确？knn​​算法是否不适合这项任务？还有其他可能存在冲突的问题吗？
+我尝试上传一些使用 Paint 生成的 28x28 的黑色背景和白色前景图像。预测几乎混淆了每个数字。以下是执行示例（图片在应用程序中调整大小，原始大小正确）：
+
+这是我尝试过的一些图片。
+第 1 个：
+
+第 6 个：
+
+第 7 条：
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658862/innacurate-knn-implementation-in-r-using-shiny</guid>
+      <pubDate>Tue, 17 Dec 2024 08:02:28 GMT</pubDate>
     </item>
     <item>
       <title>如何从混合模型中获取总体方差？</title>
@@ -82,61 +322,11 @@ SEASONoutom -0.0884407 0.02879816 194 -3.071054 0.0024
     <item>
       <title>卡方检验残差与 Fisher 精确检验</title>
       <link>https://stats.stackexchange.com/questions/658850/chi-square-test-residuals-vs-fishers-exact-test</link>
-      <description><![CDATA[我正在对具有两个分类变量的数据运行卡方检验，并且对获取 Fisher 精确检验与卡方检验的标准化残差有一个疑问，以便能够确定表中哪些单元格驱动（或不驱动）两个变量之间的关联。
+      <description><![CDATA[我正在对具有两个分类变量的数据运行卡方检验，并且对获取 Fisher 精确检验与卡方检验的标准化残差有一个疑问，以便能够确定表中哪些单元格驱动两个变量之间的关联（或不驱动关联）。
 Fisher 精确检验中如何获得标准化残差，这与卡方检验有何不同？
-您可以运行哪些类型的 Fisher 精确检验的事后测试来获取标准化残差和 p 值？]]></description>
+您可以运行哪些类型的 Fisher 精确检验的事后检验来获取标准化残差和 p 值？]]></description>
       <guid>https://stats.stackexchange.com/questions/658850/chi-square-test-residuals-vs-fishers-exact-test</guid>
       <pubDate>Tue, 17 Dec 2024 02:42:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>结构方程模型：semPaths 图表、布局</title>
-      <link>https://stats.stackexchange.com/questions/658846/structural-equation-modeling-sempaths-charts-layout</link>
-      <description><![CDATA[我有一个 SEM 模型，其中包含指示变量，其中一些指示变量与两个潜在变量相连。由于变量、潜在构造和高阶因子众多，内置布局：tree、tree2、circle、circle2、spring 无法产生可接受且可读的结果。
-semptools 包提供了一个函数 (set_sem_layout()) 来设置布局 (https://cran.r-project.org/web/packages/semptools/vignettes/quick_start_sem.html)，但 indicator_factor 矩阵（必需参数）似乎要求每个指示变量只有一个因子。
-如果指示变量与更多因子相连，如何定义自定义布局？我用一个简单的例子来说明下面的问题：
-fit_struct &lt;- sem(&#39;f1 =~ NA*x1 + x2 + x3
-f2 =~ NA*x3 + x4 + x5
-
-#variance standardization
-f1~~ 1*f1
-f2~~ 1*f2
-
-#regression 
-y ~ f1 + f2&#39;, data=df_struct_reg)
-sem_o &lt;- summary(fit_struct, unified=TRUE, fit.measures=TRUE)
-
-p &lt;- semPaths(fit_struct, whatLabels=&quot;est&quot;,
-sizeMan = 5.25,
-node.width = 1,
-edge.label.cex = .75,
-style = &quot;LISREL&quot;,
-mar = c(5, 4, 4, 4),
-layout = &quot;tree&quot;,
-width = 12，高度 = 15)
-
-# 查看节点标签、顺序
-semPaths(fit_struct, 截距 = F，nodeLabels = 1:6)
-
-我想要一个布局，其中 x3 连接到 f1 和 f2。我可以指定指标顺序，因子布局也是如此。如何定义将 x3 分配给 f1 和 f2 的 indicator_factor 矩阵？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658846/structural-equation-modeling-sempaths-charts-layout</guid>
-      <pubDate>Mon, 16 Dec 2024 22:20:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么推荐系统的 UV 矩阵分解有效？</title>
-      <link>https://stats.stackexchange.com/questions/658839/why-does-uv-matrix-factorization-for-recommender-systems-work</link>
-      <description><![CDATA[在推荐系统研究中，一种方法是进行 UV 矩阵分解。
-$M&#39; = U\cdot V$
-其中 $U$ 的列数等于 $V$ 的行数，而“$\cdot$”是矩阵乘积。
-$M$ 有很多缺失值，我们最小化 $||M-M&#39;||$。
-这里，我们使用 Frobenius 距离对 $M$ 的非缺失值进行计算。
-我的理解是，这个想法是我们有效地将所有用户和项目投射到一个相对低维的空间中，例如二维空间。
-然后我们使用点积作为相似度度量。
-对我来说，它在这里分解：如果有人喜欢特征 A 而不喜欢特征 B，那么他们的偏好向量（在二维空间中）为 (5,1)。如果一个项目具有这些特征（或没有这些特征），那么我们的相似度为 $5^2+1^2=26$。但是，如果偏好向量为 (1,1)，且项目具有相同的特征 (1,1)，则相似度为 2。而如果两个向量为 (5,5) 和 (5,5)，则相似度为 50。但是，这意味着在成本函数 $||M-M&#39;||$ 中对这些因素考虑不足或过度。也就是说，(1,1) 对考虑不足，而 (5,5) 对考虑过多。
-（顺便说一句：我看不出使用余弦相似度在这里会有什么太大的改善：使用它意味着 (1,1) 与 (1,1) 和 (5,5) 具有相同的相似性，这没有意义。）
-我也读到它们是降维的，但我看不出这里降维到什么程度。
-我的问题是：考虑到我写的问题，为什么推荐系统的 UV 矩阵分解有效。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658839/why-does-uv-matrix-factorization-for-recommender-systems-work</guid>
-      <pubDate>Mon, 16 Dec 2024 21:43:08 GMT</pubDate>
     </item>
     <item>
       <title>在深度学习图像分割中：为 N 个类别训练 N 个模型是否比为 N 个类别训练一个模型更好</title>
@@ -146,31 +336,6 @@ $M$ 有很多缺失值，我们最小化 $||M-M&#39;||$。
 非常感谢]]></description>
       <guid>https://stats.stackexchange.com/questions/658814/in-deep-learning-image-segmentation-is-it-better-to-train-n-models-for-n-class</guid>
       <pubDate>Mon, 16 Dec 2024 15:42:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>在回归模型中意外地两次包含同一个变量？</title>
-      <link>https://stats.stackexchange.com/questions/658798/accidentally-including-the-same-variable-twice-in-a-regression-model</link>
-      <description><![CDATA[我在 R (mgcv) 中有这种混合效应 GAM 回归：
-library(mgcv)
-gam_beta &lt;- gam( 
-y ~ te(time, x1) + te(time, x2) + s(time, by = city) + s(city, bs = &quot;re&quot;), 
-data = my_data,
-method = &quot;REML&quot;, 
-family = betar(link = &quot;logit&quot;)
-)
-
-我尝试为该模型编写方程（基于我对 `mgcv te 的理解） noreferrer&quot;&gt;https://www.rdocumentation.org/packages/mgcv/versions/1.9-1/topics/te):
-$$ y_{ij} \sim \text{Beta}(\mu_{ij}\phi, (1-\mu_{ij})\phi) $$
-$$\mu_{ij} = \frac{1}{1+e^{-\eta_{ij}}}$$
-$$ \text{logit}(\mu_{ij}) = \eta_{ij}= \beta_0 + f_{12}(time_{ij}, x1_{ij}) + f_{34}(time_{ij}, x2_{ij}) + h_i(time_{ij}) + b_i $$
-我尝试将其进一步扩展：
-$$ \eta_{ij} = \underbrace{\sum_{k=1}^{K_1} \hat{\gamma}_{1k}f_{1k}(time_{ij}) + \sum_{l=1}^{L_1} \hat{\gamma}_{2l}g_{1l}(x1_{ij}) + \sum_{k=1}^{K_1}\sum_{l=1}^{L_1} \hat{\gamma}_{3kl}f_{1k}(time_{ij})g_{1l}(x1_{ij})}_{\text{first te(): time and x1 term}} + $$
-$$ \underbrace{\sum_{m=1}^{M_1} \hat{\gamma}_{4m}f_{2m}(time_{ij}) + \sum_{n=1}^{N_1} \hat{\gamma}_{5n}g_{2n}(x2_{ij}) + \sum_{m=1}^{M_2}\sum_{n=1}^{N_2} \hat{\gamma}_{6mn}f_{2m}(time_{ij})g_{2n}(x2_{ij})}_{\text{second te(): time and x2 term}} + $$
-$$ \underbrace{\sum_{p=1}^P \hat{\alpha}_{ip}h_p(time_{ij})}_{\text{city-specific smooth}} + \underbrace{\hat{b}_i}_{\text{random effect}} $$
-我的问题如下：我知道 mgcv 中的 te 函数既包含主效应，又包含交互效应（GAM 回归：交互作用与主效应？）。但这是否意味着某个术语存在被重复计算并在 GAM 方程中出现两次的风险？
-例如，我有 te(time,x1) 和 te(time,x2)。这是因为我想在模型中包含时间与协变量 x1 和 x2 的相互作用。但这会导致时间的主效应被包含两次吗？或者 mgcv 会识别这一点并且只包含一次吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658798/accidentally-including-the-same-variable-twice-in-a-regression-model</guid>
-      <pubDate>Mon, 16 Dec 2024 08:18:40 GMT</pubDate>
     </item>
     <item>
       <title>数据分类</title>
@@ -184,61 +349,6 @@ $$ \underbrace{\sum_{p=1}^P \hat{\alpha}_{ip}h_p(time_{ij})}_{\text{city-specifi
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658795/data-categorization</guid>
       <pubDate>Mon, 16 Dec 2024 06:47:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>需要有共同原因的因果调整公式</title>
-      <link>https://stats.stackexchange.com/questions/658794/need-for-causal-adjustment-formula-with-shared-cause</link>
-      <description><![CDATA[
-在上述因果模型中，计算$P(X=x \mid \text{do}(Y=y))$时，是否需要使用因果调整公式$\sum_c P(X=x \mid Y=y, C=c) P(C=c)$？一旦我们$\text{do}(Y=y)$，$Y$的生成过程是否就独立于$X$的生成过程，因此$P(X=x \mid \text{do}(Y=y)) = P(X=x)$？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658794/need-for-causal-adjustment-formula-with-shared-cause</guid>
-      <pubDate>Mon, 16 Dec 2024 06:30:13 GMT</pubDate>
-    </item>
-    <item>
-      <title>纳入因变量的下限是否可以改善估计？</title>
-      <link>https://stats.stackexchange.com/questions/658703/does-incorporating-lower-bound-on-dependent-variable-improve-estimation</link>
-      <description><![CDATA[假设我们抛硬币 $K$ 次，其中 如果正面，则为 $Z_k = 1$，否则为 0，并且 $Y = \sum_{k=1}^{K} Z_k$ 是正面的总数。假设这些是 i.i.d. 公平硬币，并且 $P(Z_k=1) = 0.5$。
-然后我们重复此游戏 $n$ 次，每次抛 $K$ 枚硬币并观察实现 $Y_i$。目标是预测每场游戏中正面朝上的次数$\{Y_i : i=1,\dots, n\}$。
-
-由于我们知道分布$Y \sim Binom(K, 0.5)$，标准/“朴素”方法就是简单的均值估计量：
-$$ \hat{Y}_i = \mathbb{E}[Y] = 0.5K$$
-这为$n$场游戏中的每一场提供恒定的预测。
-现在问题如下。假设我们处于$i$场游戏。在 $K$ 次抛硬币之前，我们可以随时暂停游戏，优化模型，然后继续进行其余的抛硬币。我们能改进朴素估计器吗？
-Oracle 估计器会设置 $\hat{Y}_i = Y_i$ 和 $MSE(Y_i, \hat{Y}_i) = 0$，但这在实践中显然是不可能的，因为我们实际上并不知道结果是什么。然而，每次抛硬币，我们都会收集更多关于 $Y_i$ 下限的信息。更准确地说，如果我们暂停翻转并观察到有$c_i$次正面，那么我们就知道
-$$ Y_i \geq c_i $$
-这就会激发&quot;增强&quot;估计量：
-$$ \hat{Y}_i^{aug}(c_i) = \mathbb{E}[Y|Y\geq c_i] = \frac{ \int_{c_i}^{K} y \ dP_Y}{\int_{c_i}^{K} dP_Y} = \frac{\sum_{y=c_i}^{K} y P(Y=y)}{P(Y \geq c_i)}$$
-其中，朴素估计量是$c_i = 0$的一个特例。将条件$\sigma$-代数的解释作为信息，我们获得了关于每个$Y_i$的一些额外信息，这应该可以让我们获得更好的预测。例如，假设$K=10$，我们在$c=6$次翻转后暂停游戏。朴素估计器将预测$\hat{Y}_i = 5$。但是我们已经知道 $Y_i \geq 6$，因此任何高于 6 的预测都会比朴素估计更接近真实的 $Y_i$。
-有没有办法正式证明增强估计在某种意义上比朴素估计“更好”？
-
-我用 $K=10$ 进行了数值模拟，得到了一些有趣的结果。这里的 x 轴是让 $c = pY$ 和 $p \in [0,1]$。随着 $c$ 的增加，我们获得更多的“部分知识”关于$Y$。直观上讲，我们拥有的信息越多，MSE 就越低，我们的预测就越好，但 U 形现象很有趣。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658703/does-incorporating-lower-bound-on-dependent-variable-improve-estimation</guid>
-      <pubDate>Sat, 14 Dec 2024 05:37:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>检查异常值随时间增加的情况</title>
-      <link>https://stats.stackexchange.com/questions/658661/checking-for-an-increase-in-outliers-over-time</link>
-      <description><![CDATA[有人要求我测试多年来高异常值的数量和大小是否有所增加。目的是表明随着时间的推移（基数保持不变），极端情况越来越多，越来越高。
-我有很多例子和年份、年龄组和性别之间的比较，但下面我只会展示一个。有两组数据，恰当地命名为 group1 (2022)，包含 207 个样本，group2 (2023)，包含 250 个样本。y 轴变量以整数测量。
-首先，进行 t 检验，表明平均值有所下降。
-
-绘制了箱线图来可视化这一点
-应该注意的是，group2 有 9 个点高于 10（大约为 group 1 的上限），group2 有 10 个点约为 10（总共 12 个高异常值），其中第 2 组中的顶级异常值高于第 1 组中的异常值。所有异常值都经过严格检查，以确认它们是有效的数据点。
-
-并且为了合理性，绘制了 var 随日期变化的散点图。红线表示箱线图的上限，其中任何高于该上限的点都被视为异常值。
-
-这些表明平均值/中位数有所下降，但是有人要求我统计地确认 2023 年是否存在更多和更高的异常值，无论平均值的行为如何。我被要求在不同的性别、年龄和性别群体中展示这一点，在某些群体中比其他群体更明显。
-我该如何进行统计测试？
-[编辑：&#39;样本量&#39;，箱线图中没有平均值]]]></description>
-      <guid>https://stats.stackexchange.com/questions/658661/checking-for-an-increase-in-outliers-over-time</guid>
-      <pubDate>Fri, 13 Dec 2024 06:09:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在我的受污染数据问题中找到具有 ML 组件的去偏估计量？</title>
-      <link>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/658578/how-to-find-a-de-biased-estimator-with-a-ml-component-in-my-contaminated-data-pr</guid>
-      <pubDate>Wed, 11 Dec 2024 15:48:04 GMT</pubDate>
     </item>
     </channel>
 </rss>
