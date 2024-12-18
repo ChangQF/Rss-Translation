@@ -4,7 +4,75 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 18 Dec 2024 09:19:05 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 18 Dec 2024 12:34:22 GMT</lastBuildDate>
+    <item>
+      <title>为 iv+survival ipdma 创建合成数据</title>
+      <link>https://stats.stackexchange.com/questions/658920/creating-synthetic-data-for-ivsurvival-ipdma</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/658920/creating-synthetic-data-for-ivsurvival-ipdma</guid>
+      <pubDate>Wed, 18 Dec 2024 11:59:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>高斯过程中未知点协方差矩阵导数的近似值</title>
+      <link>https://stats.stackexchange.com/questions/658911/approximation-for-the-derivative-of-the-covariance-matrix-for-unknown-points-in</link>
+      <description><![CDATA[我希望标题足够具有描述性，我现在感觉有点愚蠢。在我进行有关导数的推导时，出现了以下术语
+$$
+K_{x*,x}K^{-1}_{xx} \frac{\partial K_{xx}}{\partial q} K^{-1}_{xx} K_{x,x*}
+$$
+其中 $x$ 为训练点，$x*$ 为未知点，$q$ 为该点所依赖的坐标。我的直觉告诉我，这个表达式至少在最小二乘拟合意义上近似于
+$$
+\frac{\partial K_{x*x*}}{\partial q}
+$$
+但目前我无法证明这一点。也许我只是希望它是真的，因为它会简化我推导中的最终表达式。
+欢迎提出任何想法。也许我走错了路。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658911/approximation-for-the-derivative-of-the-covariance-matrix-for-unknown-points-in</guid>
+      <pubDate>Wed, 18 Dec 2024 10:30:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>调整超参数以尽量减少过度拟合时的目标应该是什么？</title>
+      <link>https://stats.stackexchange.com/questions/658909/what-should-the-objective-be-when-tuning-hyperparameters-to-minimize-overfitting</link>
+      <description><![CDATA[我正在研究一个包含约 90k 行数据和 12 个特征的分类问题。我正在尝试调整 XGBoost 模型的超参数以尽量减少过度拟合。我使用 ROC_AUC 作为评估模型性能的指标。使用默认的 XGBoost 参数，5 倍 CV 结果分别显示训练 auc 为 0.782 和测试 auc 为 0.739。这表明过度拟合，因为训练集的表现优于测试集。
+我开始调整超参数，因为 a) 应该调整，b) 已知超参数可用于减少过度拟合。但是，像许多其他人一样，我将验证 auc 设置为目标并在目标函数中实现交叉验证。使用的库是 Optuna 和 Hyperopt。有趣的是，对于这两种情况，我发现当算法试图将验证 auc 推向 0.745 时，训练测试 auc 差距（过度拟合指标）会扩大。如果我按验证 auc 降序绘制训练和验证 auc，验证 auc 会从 0.745 降至 0.729，而训练 auc 会从 0.868 降至 0.742。
+我对结果感到很困惑。我将验证 auc 设置为 Optuna 优化的目标是否正确？我是否应该选择（训练 auc - 验证 auc），但我在网上没有找到类似的例子。我是否应该查看结果并选择最低的验证 auc 和相关的超参数值作为“最佳参数”，因为训练验证指标差距最小？
+请在这里分享您的想法，因为在我输入时，我不确定我对过度拟合的理解是否正确。
+我的代码：
+X，y = df[features]，df[target]
+X_train，X_test，y_train，y_test = train_test_split(X，y，test_size = 0.2，
+random_state = 42，stratify = y)
+dtrain = xgb.DMatrix(X_train，label = y_train，enable_categorical = True)
+dtest = xgb.DMatrix(X_test，label = y_test，enable_categorical = True)
+
+def objective(trial):
+
+params = {&#39;max_depth&#39;: trial.suggest_int(&#39;max_depth&#39;, 3, 10),
+&#39;min_child_weight&#39;: trial.suggest_int(&#39;min_child_weight&#39;, 1, 100),
+&#39;gamma&#39;: trial.suggest_float(&#39;gamma&#39;, 0, 2),
+&#39;subsample&#39;: trial.suggest_float(&#39;subsample&#39;, 0.5, 1),
+&#39;colsample_bytree&#39;: trial.suggest_float(&#39;colsample_bytree&#39;, 0.5, 1),
+&#39;reg_alpha&#39;: trial.suggest_float(&#39;reg_alpha&#39;, 1e-8, 10, log = True),
+&#39;reg_lambda&#39;: trial.suggest_float(&#39;reg_lambda&#39;, 1e-8, 10, log = True),
+&#39;learning_rate&#39;: trial.suggest_float(&#39;learning_rate&#39;, 0.001, 0.3),
+&#39;objective&#39;: &#39;binary:logistic&#39;}
+
+cv_results = xgb.cv(
+params, dtrain, num_boost_round = 10000, early_stopping_rounds = 50, 
+metrics = &#39;auc&#39;, nfold = 5, stratified = True, shuffle = False
+)
+
+trial.set_user_attr(&#39;n_estimators&#39;, len(cv_results))
+trial.set_user_attr(&#39;train-auc&#39;, cv_results[&#39;train-auc-mean&#39;].iloc[-1])
+
+return cv_results[&#39;test-auc-mean&#39;].iloc[-1]
+
+study = optuna.create_study(
+direction =&#39;maximize&#39;,采样器 = optuna.samplers.TPESampler（种子 = 42））
+
+study.optimize（目标，n_trials = 500，n_jobs = -1）
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658909/what-should-the-objective-be-when-tuning-hyperparameters-to-minimize-overfitting</guid>
+      <pubDate>Wed, 18 Dec 2024 09:28:26 GMT</pubDate>
+    </item>
     <item>
       <title>这个方程对于安全地估计下限值有何意义？</title>
       <link>https://stats.stackexchange.com/questions/658908/what-is-the-significance-of-this-equation-for-safely-estimating-a-lower-bound-va</link>
@@ -27,7 +95,7 @@ $X = X_{m} \cdot \left(1 - k \cdot CoV \right)$
 没有截距。
 所有系数（β）的总和等于 1。
 输出与因变量的尺度一致（1 到 6）。
-但是，当所有独立变量都达到最大值 10 时，模型输出将扩大到 10，这超出了目标范围。我无法缩放独立变量。我可以缩放因变量。所以，它是 1 到 10。但还有其他方法吗？我如何调整我的 OLS 设置？
+但是，当所有独立变量都达到其最大值 10 时，模型输出将扩大到 10，这超出了目标范围。我无法缩放独立变量。我可以缩放因变量。所以，它是 1 到 10。但还有其他方法吗？我该如何调整我的 OLS 设置？
 我很感激任何关于如何实现这一点的指导或建议。]]></description>
       <guid>https://stats.stackexchange.com/questions/658907/how-to-apply-ols-with-constraints-on-coefficients-and-align-the-output-scale-wit</guid>
       <pubDate>Wed, 18 Dec 2024 07:41:36 GMT</pubDate>
@@ -99,19 +167,6 @@ X
       <pubDate>Wed, 18 Dec 2024 02:24:37 GMT</pubDate>
     </item>
     <item>
-      <title>顺序（一维）数据：如何检测模式</title>
-      <link>https://stats.stackexchange.com/questions/658902/sequential-1d-data-how-to-detect-patterns</link>
-      <description><![CDATA[我有一些输入数据，这些数据是序列（传感器随时间变化的数据）。我想识别一些重复出现的模式。
-例如，假设数据是传感器随时间测量的温度。通常情况下，温度会下降一段时间，然后恢复正常。但是，这个下降的长度、形状和幅度有一些变化（这代表有人打开了房间的门）。
-我可以标记数据（下降很容易识别），如果有帮助的话，我们可以认为两个模式不能重叠（只有一扇门，所以你不能让温度同时下降两次）
-不过，我不知道如何分析序列以输出模式的所有出现。
-它看起来像是 1-D 版本的图像检测（想想 YOLO 输出的框，除了 1-D）。
-我正在寻找：这个问题的名称，以便我可以阅读文献和/或一些算法来解决问题。
-重要提示：我被允许在数据收集后很长时间进行推理（即：我不限于过去的数据，我可以访问整个序列）]]></description>
-      <guid>https://stats.stackexchange.com/questions/658902/sequential-1d-data-how-to-detect-patterns</guid>
-      <pubDate>Tue, 17 Dec 2024 23:57:25 GMT</pubDate>
-    </item>
-    <item>
       <title>比例均值的置信区间（可能不对称）</title>
       <link>https://stats.stackexchange.com/questions/658901/confidence-intervals-on-means-of-proportions-with-possibly-asymmetry</link>
       <description><![CDATA[我正在研究一份调查报告，并试图弄清楚如何正确计算误差幅度。（我正在提供反馈，这些不是我的计算，所以我无法重新计算任何东西）。
@@ -120,35 +175,6 @@ X
 在这种情况下，您将如何处理误差幅度？如果所有参与者都回答了所有问题，这种方法会改变吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/658901/confidence-intervals-on-means-of-proportions-with-possibly-asymmetry</guid>
       <pubDate>Tue, 17 Dec 2024 23:37:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>生存曲线在生存分析中与时间依赖性预测变量相交叉</title>
-      <link>https://stats.stackexchange.com/questions/658899/survival-curves-cross-on-survival-analysis-with-time-dependent-predictor-variabl</link>
-      <description><![CDATA[我正在为时间依赖性预测变量运行扩展的 Cox 比例风险模型。基本上，我感兴趣的是了解法律改革 X 和法律改革 Y 之前和之后病假持续时间是否有任何变化。
-因此，我的时间依赖变量是“时代”，时代 = 0 表示法律改革 X 和法律改革 Y 之前，时代 = 1 表示法律改革 X 之后但法律改革 Y 之前，时代 = 2 表示法律改革 X 和 Y 之后的时间段。我的因变量是病假持续时间（以天为单位）。
-我已经运行了包含所有控制变量的多变量模型（所有变量在双变量模型中都具有统计意义，数据库很大，有数百万个观察值）。一切看起来都很好。
-但是，生存曲线看起来好像在某个点相交（具体来说，是时代 1 和时代 2 的曲线）。这是否违反了比例假设，从而使我对扩展 Cox 模型的所有结果无效？
-
-您也可以在此处查看生存曲线：https://imgur.com/a/XNa2U8G
-非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/658899/survival-curves-cross-on-survival-analysis-with-time-dependent-predictor-variabl</guid>
-      <pubDate>Tue, 17 Dec 2024 23:01:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>T 检验以检查胜/平/负结果（主场结果）是否与举办足球比赛的国家/联赛无关</title>
-      <link>https://stats.stackexchange.com/questions/658897/t-test-to-check-if-win-draw-loss-results-home-results-are-independent-from-cou</link>
-      <description><![CDATA[我需要验证胜/平/负结果（主场结果）是否与足球比赛举办的国家/联赛无关。
-我有以下数据表：
-联赛 胜 平 负
-英超联赛 193 96 91
-西甲联赛 194 95 91
-德甲联赛 125 86 95
-意甲联赛 108 65 67
-
-我需要分配 0.05 显著性的 alpha 来验证假设。
-我是否需要对每个向量（胜/平/负）执行 Shapiro 检验、Kolmogorov-Smirnov 检验或 R 中的一些嵌入式 t.检验？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658897/t-test-to-check-if-win-draw-loss-results-home-results-are-independent-from-cou</guid>
-      <pubDate>Tue, 17 Dec 2024 21:15:20 GMT</pubDate>
     </item>
     <item>
       <title>单向随机效应方差分析中的方差分量检验</title>
@@ -202,6 +228,27 @@ $$
       <pubDate>Tue, 17 Dec 2024 16:12:39 GMT</pubDate>
     </item>
     <item>
+      <title>如何计算 R 中一个变量的 McFadden r 平方？</title>
+      <link>https://stats.stackexchange.com/questions/658874/how-to-calculate-mcfaddens-r-squared-for-just-one-variable-in-r</link>
+      <description><![CDATA[对于我的逻辑回归，我使用 McFadden 的 R 平方（类似于 R 平方，但用于逻辑模型）。但是，McFadden 的 R 平方计算的是整体模型的效果，而我想知道模型中单个变量的效果。我已经设法计算了线性回归模型中单个变量的偏 R 平方（使用包：sensemakr），但我不知道如何使用 McFadden 的 R 平方进行逻辑回归。有人有什么想法吗？我在 RStudio 工作。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658874/how-to-calculate-mcfaddens-r-squared-for-just-one-variable-in-r</guid>
+      <pubDate>Tue, 17 Dec 2024 12:40:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>参数复发事件分析中的马丁格尔和偏差残差？</title>
+      <link>https://stats.stackexchange.com/questions/658870/martingale-and-deviance-residuals-in-parametric-recurrent-event-analysis</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/658870/martingale-and-deviance-residuals-in-parametric-recurrent-event-analysis</guid>
+      <pubDate>Tue, 17 Dec 2024 11:24:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>减少线性指数衰减混合函数中的极端行为</title>
+      <link>https://stats.stackexchange.com/questions/658227/reducing-extreme-behavior-in-linear-exponential-decay-hybrid-function</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/658227/reducing-extreme-behavior-in-linear-exponential-decay-hybrid-function</guid>
+      <pubDate>Tue, 03 Dec 2024 19:48:05 GMT</pubDate>
+    </item>
+    <item>
       <title>F1 曲线下面积</title>
       <link>https://stats.stackexchange.com/questions/657405/area-under-f1-curve</link>
       <description><![CDATA[由于 F1 分数依赖于阈值，所有阈值下的 F1 面积是否是一个有用的指标？]]></description>
@@ -224,94 +271,6 @@ $$ \int_{\mathcal{X}}\int_\mathcal{Y}f(x,y)\mathbb{P}_{Y|X=x}(dy)\mathbb{P}_X(dx
 这可以吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/635050/questions-about-the-conditional-radon-nikodym-derivative</guid>
       <pubDate>Sat, 16 Dec 2023 11:52:29 GMT</pubDate>
-    </item>
-    <item>
-      <title>过度拟合（非嵌套）交叉验证集</title>
-      <link>https://stats.stackexchange.com/questions/571562/overfitting-the-non-nested-cross-validation-set</link>
-      <description><![CDATA[这是对此查询的后续查询
-一行：如果我们继续增加模型复杂性，我希望了解为什么我们会严重过度拟合交叉验证集（因此需要嵌套交叉验证才能正确解释非嵌套交叉验证程序中的乐观情绪）。
-这是一篇讨论非嵌套（平面）交叉验证和嵌套交叉验证的论文：
-Jacques Wainer，Gavin Cawley，“在选择分类器时嵌套交叉验证对于大多数实际应用来说过于热心”，Expert Systems with Applications，第 182 卷，2021 年。(www)
-背景：
-
-训练乐观的原因：这个简单。如果我们通过使模型越来越复杂来训练一个集合，我们将完美地学习数据集中的噪声，学习曲线将单调下降到 0。
-验证集乐观的原因：这个更难理解，我在本查询开头指出的查询中对此进行了解释。基本上，验证集可能具有与其中一个候选模型学习到的相同类型的噪声。这可能会导致对原始数据集的过度拟合或欠拟合。
-对交叉验证集持乐观态度的原因：这是我的主要查询。我们进行 k 倍交叉验证。我们将数据分成 k 倍 - 我们在 k-1 倍上进行训练，并在第 k 倍上进行测试。这具有类似于训练乐观的特征（请参阅下面的模拟）。我的意思是什么？训练交叉验证折数（k 为一个折数）的训练误差的学习曲线与案例 1 一样单调递减为零。有人能告诉我如何说服自己 CV 程序将过度拟合 k 折的训练集吗？
-
-这里有一个模拟：
-图 2：
-Gavin C. Cawley、Nicola L. C. Talbot，“论模型选择的过度拟合和绩效评估中的后续选择偏差”，机器学习研究杂志，11(70)：2079-2107，2010 年。(www)
-我的尝试：我们在 k-1 折上进行训练，随着模型复杂度的增加，我们将完全学习 k-1 折中的噪声，但随着复杂度的增加，我怎么能说我们将完全学习第 k 折中的噪声呢？也许我们在第 k 折中拥有与模型在 k-1 折中学习到的相同类型的样本，但这只会发生在某些折中。我如何将 1 和 2 中的推理混合起来以创建第 3 项的原因？
-此外，Cawley 和 Talbot 的上述论文的第 2.1 节中有一个相关查询：
-在所有 k 倍中观察到的泛化性能的平均值提供了对整个样本进行训练的模型的泛化性能的估计（略带悲观偏见）。
-我如何证明上述内容？
-编辑：
-我试图理解为什么我们需要嵌套交叉验证以及平面交叉验证中乐观的原因。我确实看到超参数在某个集合上进行了调整，并且平面交叉验证报告了相同集合的准确性。我希望通过一个小例子来解决这个问题。假设我决定将多项式拟合到数据集。我有一个超参数，即多项式的次数。我们进行 6 次随机分割 - 每次训练/测试占 50%。我们训练模型从 n=1 到 n=10。假设真实 n=5。我们可能偶然在模型的所有测试分割中都有数据，这些分割来自 n=3（样本太简单）/n=7（样本太复杂）（不太可能，但概率不为零）。因此，平面交叉验证选择的模型将欠拟合/过拟合（它将学习相同类型的噪音）。这可能通过像嵌套交叉验证那样抽取额外样本并测量其误差来发现。查询：由于模型选择而产生的乐观情绪与由于超参数调整而产生的乐观情绪之间有什么区别吗？在我看来，它们相同。]]></description>
-      <guid>https://stats.stackexchange.com/questions/571562/overfitting-the-non-nested-cross-validation-set</guid>
-      <pubDate>Thu, 14 Apr 2022 09:57:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>假设检验：应该对变换后的参数还是未变换的参数进行？</title>
-      <link>https://stats.stackexchange.com/questions/564506/hypothesis-testing-should-it-be-done-on-the-transformed-parameter-or-the-non-tr</link>
-      <description><![CDATA[我想比较两个比例，例如：
-succN &lt;- 2
-d &lt;- data.frame(pledge = c(&quot;yes&quot;, &quot;no&quot;),
-s = c(succN, succN),n = c(100, 100))
-
-我正在使用“brms”，并且我已经以两种方式完成了它，没有逻辑转换：
- m1 &lt;- bf( s | trials(n) ~ 0 + pledge,
-family = binomial(link = &quot;identity&quot;))
-
-get_prior( m1,data = d)
-
-Prior &lt;- set_prior(&quot;beta(1, 1)&quot;, class = &quot;b&quot;, lb = 0, ub = 1)
-
-m1 &lt;- brm(m1, Prior = Prior,
-sample_prior = TRUE,
-iter = 2e4,data = d,cores = 4)
-
-并进行逻辑转换：
- p_sim &lt;- rbeta(10000, 1, 1)
-theta_sim &lt;- log(p_sim / (1 - p_sim))
-hist(p_sim)
-hist(theta_sim)
-c(mean(theta_sim), sd(theta_sim))
-
-m1_log &lt;- bf( s | trials(n) ~ 0 + pledge,
-family = binomial(link = &quot;logit&quot;))
-
-get_prior( m1_log,data = d)
-
-Prior &lt;- set_prior(&quot;normal(0.0028, 1.837)&quot;, class = &quot;b&quot;)
-
-m1_log &lt;- brm(m1_log, Prior = Prior,
-sample_prior = TRUE,
-iter = 2e4,data = d,cores = 4)
-
-我使用“假设”函数查看贝叶斯因子。对于第一个模型（无逻辑转换），有一个选项：
-h1 &lt;- 假设（m1, &quot;pledgeyes = pledgeno&quot;)
-h1$hypothesis$Evid.Ratio
-
-结果为 20，支持 null。
-对于具有逻辑变换的模型，我有两个选项：
-h1 &lt;- 假设(m1_log, &quot;pledgeyes = pledgeno&quot;)
-h1$hypothesis$Evid.Ratio
-h1 &lt;- 假设(m1_log, &quot;exp(pledgeyes)/(1+exp(pledgeyes)) = exp(pledgeno)/(1+exp(pledgeno))&quot;)
-h1$hypothesis$Evid.Ratio
-
-第一个比较变换后的参数，第二个直接比较比例。第二个产生的贝叶斯因子与没有变换的模型相似，我个人认为“比例相等”的零假设比比较对数几率更有意义。但我在其他地方看到了不同的看法，特别是在一篇讨论两种模型的贝叶斯因子差异的论文中（https://arxiv.org/abs/2108.04909）。
-哪一个是正确的？为什么它们不同？一般来说，零值应该放在模型中转换和使用的参数上吗？
-（我使用了这篇博文）
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/564506/hypothesis-testing-should-it-be-done-on-the-transformed-parameter-or-the-non-tr</guid>
-      <pubDate>Tue, 15 Feb 2022 21:47:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 Caret 中报告内部验证的结果？</title>
-      <link>https://stats.stackexchange.com/questions/554379/how-do-i-report-results-of-an-internal-validation-in-caret</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/554379/how-do-i-report-results-of-an-internal-validation-in-caret</guid>
-      <pubDate>Wed, 01 Dec 2021 13:01:48 GMT</pubDate>
     </item>
     </channel>
 </rss>
