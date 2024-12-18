@@ -4,9 +4,141 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 18 Dec 2024 12:34:22 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 18 Dec 2024 15:18:59 GMT</lastBuildDate>
     <item>
-      <title>为 iv+survival ipdma 创建合成数据</title>
+      <title>Copula 实证估计</title>
+      <link>https://stats.stackexchange.com/questions/658925/copula-empirical-estimation</link>
+      <description><![CDATA[我正在研究这篇论文。
+考虑以下数据：
+$X : 0.29, 0.36, 0.39, 0.41, 0.50, 0.53, 0.54, 0.55, 0.56, 0.56, 0.56, 0.58, 0.60, 0.60, 0.62, 0.64, 0.64, 0.67, 0.80, 0.87
+$
+$Y : 0.17, 0.24, 0.26, 0.26, 0.27, 0.29, 0.30, 0.32, 0.33, 0.34, 0.38, 0.47, 0.47, 0.50, 0.56, 0.58, 0.59, 0.62, 0.63
+$
+分析的第一步是估算${I}_{\overline{C}}$。我们考虑随机样本 $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$ 的经验生存 copula，该样本来自连续双变量分布：
+$$
+\overline{C}\left(\frac{i}{n}, \frac{j}{n}\right) = \frac{\text{(样本中 x &gt; x_{(i)}, y \geq y_{(j)} 的对数)}{n},
+$$
+其中 $ x_{(i)} ( y_{(j)}) $ 是第 $i$ 个 ($j$ ) 顺序统计量，用于对 $X$ 和 $Y$ 进行观测。使用$\overline{C} \left( \frac{i}{n}, \frac{j}{n} \right) $作为$\overline{C}(u, v) $的估计量，$I_{\overline{C}}$的再代入估计量为：
+$$
+\widehat{I}_{\overline{C}} = \frac{2}{n^2} \sum_{i=1}^n \sum_{j=1}^n \overline{C} \left( \frac{i}{n}, \frac{j}{n} \right) \log \overline{C} \left( \frac{i}{n}, \frac{j}{n} \right),
+$$
+在那些点上，$ \frac{i}{n} + \frac{j}{n} - 1 &gt; 0 $。给定样本的估计值为 $\widehat{I}_{\overline{C}} = 0.3049$。
+有人可以纠正我试过的这段代码吗：
+X &lt;- c(0.29, 0.36, 0.39, 0.41, 0.50, 0.53, 0.54, 0.55, 0.56, 0.56, 
+0.56, 0.58, 0.60, 0.60, 0.62, 0.64, 0.64, 0.67, 0.80, 0.87)
+Y &lt;- c(0.17, 0.24, 0.26, 0.26, 0.27, 0.29, 0.30, 0.32, 0.33, 0.34, 
+0.38, 0.47, 0.47, 0.50, 0.56, 0.58, 0.59, 0.62, 0.63)
+n &lt;- length(X)
+X_sorted &lt;- sort(X)
+Y_sorted &lt;- sort(Y)
+C_bar &lt;- function(i, j, X_sorted, Y_sorted) {
+count &lt;- sum((X_sorted &gt; X_sorted[i]) &amp; (Y_sorted &gt; Y_sorted[j]))
+return(count / n)
+}
+I_C_hat &lt;- 0
+for (i in 1:n) {
+for (j in 1:n) {
+u &lt;- i / n
+v &lt;- j / n
+C_val &lt;- C_bar(i, j, X_sorted, Y_sorted)
+if (!is.na(C_val) &amp;&amp; C_val &gt; 0 &amp;&amp; (u + v - 1) &gt; 0) {
+I_C_hat &lt;- I_C_hat + C_val * log(C_val)
+}
+}
+}
+
+I_C_hat &lt;- 2 / (n^2) * I_C_hat
+cat(&quot;I_C_hat 的估计值：&quot;, I_C_hat, &quot;\n&quot;)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658925/copula-empirical-estimation</guid>
+      <pubDate>Wed, 18 Dec 2024 15:12:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 simr 了解功率曲线和非单调功率随样本量增加的情况</title>
+      <link>https://stats.stackexchange.com/questions/658923/understanding-power-curves-and-non-monotonic-power-increase-with-sample-size-usi</link>
+      <description><![CDATA[我正在研究一个混合效应模型来分析
+反应时间 ~ 种族 * 身份 + (1 | id)
+
+使用 R。种族 和 身份 是效应编码分类变量 (+1/-1)，因变量遵循逆高斯分布。
+我做了什么：
+
+模拟数据：将数据集扩展到 250 名参与者。添加随机截距以模拟随机效应中的实际变化。
+功效分析：使用 simr 模拟几种效应大小（例如 -0.1、-0.5、-1、-1.67）的功效。值得注意的是，原始模型中的交互项并不显著。
+问题：在功效曲线中，功效不会随着样本量的增加而持续增加。例如，随着样本量的增大，功效有时会稳定下来，甚至会略有下降。
+
+set.seed(111)
+n_participants &lt;- 150 
+
+extended_data &lt;- data_clean %&gt;%
+slice(rep(1:n(), length.out = n() * n_participants / 
+length(unique(data_clean$id)))) %&gt;%
+mutate(id = rep(1:n_participants, length.out = n()))
+
+set.seed(111) 
+extended_data &lt;- extended_data %&gt;%
+group_by(id) %&gt;%
+mutate(
+random_intercept = rnorm(1,mean = 0,sd = sqrt(16.5^2)), 
+# 根据需要调整方差
+反应时间 = 反应时间 + 随机截距
+) %&gt;%
+ungroup()
+
+model_updated &lt;- glmer(
+反应时间 ~ 种族 * 身份 + (1 | id),
+data = extended_data,
+family = inverse.gaussian(link = &quot;identity&quot;),
+control = glmerControl(optimizer = &quot;bobyqa&quot;, 
+optCtrl = list(maxfun = 1e5))
+) 
+
+生成负面效应大小的功效曲线：-0.5 
+计算沿 id 的 6 个样本大小的功效
+预测因子“种族 1：身份 1”的功效，(95% 置信区间)，=========================================|
+按 id 的最大值排序：
+100：82.00% (73.05, 88.97) - 2814 行
+110：84.00% (75.32, 90.57) - 3094 行
+120：91.00% (83.60, 95.80) - 3374 行
+130：80.00% (70.82, 87.33) - 3654 行
+140：78.00% (68.61, 85.67) - 3934 行
+150：82.00% (73.05, 88.97) - 4214 行
+
+已用时间：0 小时 8 分 47 秒
+
+负面效应大小的生成功率曲线： -1.67 
+计算沿 id 的 6 个样本大小的功效
+预测因子“种族 1：身份 1”的功效，
+(95% 置信区间)，
+=======================================|
+按 id 的最大值排序：
+100：85.00% (76.47, 91.35) - 2814 行
+110：85.00% (76.47, 91.35) - 3094 行
+120：83.00% (74.18, 89.77) - 3374 行
+130：79.00% (69.71, 86.51) - 3654 行
+140：84.00% (75.32, 90.57) - 3934 行
+150：78.00% (68.61, 85.67) - 4214 行
+
+已用时间：0 小时 10 分 12 秒
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658923/understanding-power-curves-and-non-monotonic-power-increase-with-sample-size-usi</guid>
+      <pubDate>Wed, 18 Dec 2024 13:31:01 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何计算每种混合物成分的 BIC</title>
+      <link>https://stats.stackexchange.com/questions/658922/how-to-calculate-the-bic-for-each-mixture-component</link>
+      <description><![CDATA[我想将高斯混合拟合到模拟数据。然后，我需要计算每个混合成分的贝叶斯信息标准。我的观点是，在模型收敛后，我根据给定的估计值计算每个混合成分的可能性。这在理论上正确吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658922/how-to-calculate-the-bic-for-each-mixture-component</guid>
+      <pubDate>Wed, 18 Dec 2024 13:02:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>我有两个实验针对两个不同的用户群进行。我的目标是了解实验是否效果更好。如何进行？[关闭]</title>
+      <link>https://stats.stackexchange.com/questions/658921/i-have-two-experiments-going-on-two-different-user-bases-my-aim-is-to-access-wh</link>
+      <description><![CDATA[我有两个实验，针对两个不同的用户群。我的目标是了解哪个实验效果更好。我每天跟踪两个指标。一个是关于留存率 - 基本上是今天使用我们应用的 100 名用户中，第二天有多少人使用。另一个是用户在两个实验中完成的活动数量。我希望活动数量更高。这里要注意的一点是，两个实验的组大小可能不同。考虑到我每天都会测量这些指标，并且这些测量结果可能不独立于时间，因此应该使用哪种统计测试。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658921/i-have-two-experiments-going-on-two-different-user-bases-my-aim-is-to-access-wh</guid>
+      <pubDate>Wed, 18 Dec 2024 12:40:44 GMT</pubDate>
+    </item>
+    <item>
+      <title>为 iv+survival ipdma 创建合成数据 [关闭]</title>
       <link>https://stats.stackexchange.com/questions/658920/creating-synthetic-data-for-ivsurvival-ipdma</link>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/658920/creating-synthetic-data-for-ivsurvival-ipdma</guid>
@@ -19,7 +151,7 @@
 $$
 K_{x*,x}K^{-1}_{xx} \frac{\partial K_{xx}}{\partial q} K^{-1}_{xx} K_{x,x*}
 $$
-其中 $x$ 为训练点，$x*$ 为未知点，$q$ 为该点所依赖的坐标。我的直觉告诉我，这个表达式至少在最小二乘拟合意义上近似于
+其中 $x$ 为训练点，$x*$ 为未知点，$q$ 为该点所依赖的坐标。$K$ 为协方差矩阵。我的直觉告诉我，这个表达式至少在最小二乘拟合意义上近似于
 $$
 \frac{\partial K_{x*x*}}{\partial q}
 $$
@@ -33,14 +165,14 @@ $$
       <link>https://stats.stackexchange.com/questions/658909/what-should-the-objective-be-when-tuning-hyperparameters-to-minimize-overfitting</link>
       <description><![CDATA[我正在研究一个包含约 90k 行数据和 12 个特征的分类问题。我正在尝试调整 XGBoost 模型的超参数以尽量减少过度拟合。我使用 ROC_AUC 作为评估模型性能的指标。使用默认的 XGBoost 参数，5 倍 CV 结果分别显示训练 auc 为 0.782 和测试 auc 为 0.739。这表明过度拟合，因为训练集的表现优于测试集。
 我开始调整超参数，因为 a) 应该调整，b) 已知超参数可用于减少过度拟合。但是，像许多其他人一样，我将验证 auc 设置为目标并在目标函数中实现交叉验证。使用的库是 Optuna 和 Hyperopt。有趣的是，对于这两种情况，我发现当算法试图将验证 auc 推向 0.745 时，训练测试 auc 差距（过度拟合指标）会扩大。如果我按验证 auc 降序绘制训练和验证 auc，验证 auc 会从 0.745 降至 0.729，而训练 auc 会从 0.868 降至 0.742。
-我对结果感到很困惑。我将验证 auc 设置为 Optuna 优化的目标是否正确？我是否应该选择（训练 auc - 验证 auc），但我在网上没有找到类似的例子。我是否应该查看结果并选择最低的验证 auc 和相关的超参数值作为“最佳参数”，因为训练验证指标差距最小？
+我对结果感到很困惑。我将验证 auc 设置为 Optuna 优化的目标是否正确？我是否应该选择（训练 auc - 验证 auc），但我在网上没有找到类似的例子。而且我是否应该查看结果并选择最低的验证 auc 和相关的超参数值作为“最佳参数”，因为训练验证指标差距最小？
 请在这里分享您的想法，因为在我输入时，我不确定我对过度拟合的理解是否正确。
 我的代码：
-X，y = df[features]，df[target]
-X_train，X_test，y_train，y_test = train_test_split(X，y，test_size = 0.2，
-random_state = 42，stratify = y)
-dtrain = xgb.DMatrix(X_train，label = y_train，enable_categorical = True)
-dtest = xgb.DMatrix(X_test，label = y_test，enable_categorical = True)
+X, y = df[features], df[target]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2,
+random_state = 42, stratify = y)
+dtrain = xgb.DMatrix(X_train, label = y_train, enable_categorical = True)
+dtest = xgb.DMatrix(X_test, label = y_test, enable_categorical = True)
 
 def objective(trial):
 
@@ -65,149 +197,13 @@ trial.set_user_attr(&#39;train-auc&#39;, cv_results[&#39;train-auc-mean&#39;].il
 return cv_results[&#39;test-auc-mean&#39;].iloc[-1]
 
 study = optuna.create_study(
-direction =&#39;maximize&#39;,采样器 = optuna.samplers.TPESampler（种子 = 42））
+direction =&#39;maximize&#39;, sampler = optuna.samplers.TPESampler(seed = 42))
 
-study.optimize（目标，n_trials = 500，n_jobs = -1）
+study.optimize(objective, n_trials = 500, n_jobs = -1)
 
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658909/what-should-the-objective-be-when-tuning-hyperparameters-to-minimize-overfitting</guid>
       <pubDate>Wed, 18 Dec 2024 09:28:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>这个方程对于安全地估计下限值有何意义？</title>
-      <link>https://stats.stackexchange.com/questions/658908/what-is-the-significance-of-this-equation-for-safely-estimating-a-lower-bound-va</link>
-      <description><![CDATA[我遇到了一个可以安全地估计某些属性下限值的公式。
-$k = N \cdot \sqrt{1+\dfrac{1}{n}}$
-$X = X_{m} \cdot \left(1 - k \cdot CoV \right)$
-其中 N 是所需分位数的标准差数，例如 0.05（即 z 分数），n 是用于估计的样本点数，Xm 是平均值，CoV 是变异系数。
-现在，请注意，在第一个等式中，如果平方根下只有 1/n，那么整个表达式将给出由平均值和标准误差定义的分布的 0.05 分位数 - 这将是平均值的安全估计值。但是，加上 + 1，它应该给出下限值的安全估计值，但我无法弄清楚结果实际上代表什么。
-我知道对于 n -&gt; inf。结果是整个样本或总体分布的 0.05 分位数，并且对于较少的观察值，z 分数会增加 - 但为什么它会增加这么多，这是规则吗？这可能是真正的问题。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658908/what-is-the-significance-of-this-equation-for-safely-estimating-a-lower-bound-va</guid>
-      <pubDate>Wed, 18 Dec 2024 08:43:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何应用对系数有约束的 OLS 并使输出规模与目标变量对齐？</title>
-      <link>https://stats.stackexchange.com/questions/658907/how-to-apply-ols-with-constraints-on-coefficients-and-align-the-output-scale-wit</link>
-      <description><![CDATA[我正在研究一个 OLS 回归问题，其中：
-因变量（目标）的范围从 1 到 6（步长为 1）。
-独立变量的范围从 1 到 10（步长为 0.5）。
-我想要设置模型，使得：
-没有截距。
-所有系数（β）的总和等于 1。
-输出与因变量的尺度一致（1 到 6）。
-但是，当所有独立变量都达到其最大值 10 时，模型输出将扩大到 10，这超出了目标范围。我无法缩放独立变量。我可以缩放因变量。所以，它是 1 到 10。但还有其他方法吗？我该如何调整我的 OLS 设置？
-我很感激任何关于如何实现这一点的指导或建议。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658907/how-to-apply-ols-with-constraints-on-coefficients-and-align-the-output-scale-wit</guid>
-      <pubDate>Wed, 18 Dec 2024 07:41:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>Scipy 与 Minitab 中的正交回归</title>
-      <link>https://stats.stackexchange.com/questions/658906/orthogonal-regression-in-scipy-vs-minitab</link>
-      <description><![CDATA[使用正交回归，我使用 Scipy 的 ODR 获得了预期的良好结果。使用 Minitab 时，我得到了相同的拟合线系数，但系数的标准误差不同。当我编写 minitab 网站上提供的公式时，我重现了 Minitab 结果。当我编写 ODR 方程时，我也会重现它们。方程式不同。哪一个是正确的？
-关于数据
-Xdata = [ 10.34784558, 10.94064173, 10.23649055, 10.45157219, 10.55453868, 10.53247146, 10.58184674, 10.45940627, 10.75889274,
-10.53971948, 10.45765687, 10.28922268, 10.44399545, 10.94139690, 10.14964179, 10.74251581, 10.90342996, 10.13820873]
-Y数据 = [ 10.78148621, 10.69600752, 10.37776633, 10.68787806, 10.60877923, 10.48270002, 10.14713767, 10.82750713, 10.90330951, 
-          10.09866607、10.72730271、10.05368559、10.21014499、10.96834561、10.66875493、10.56152613、 10.94521825, 10.33797555 ]
-
-ODR 产生
-Beta：[1.39804004 -4.15565265]
-Beta 标准误差：[0.43293193 4.5578139 ]
-Beta 协方差：[[4.58407532 -48.25235891]
-[-48.25235891 508.07249152]]
-残差方差：0.04088721168566028
-逆条件 #：0.00883261489134492
-停止原因：
-平方和收敛
-
-而 minitab 产生
-
-
-
-预测器
-系数
-SE 系数
-Z
-P
-大约 95% CI
-
-
-
-
-常数
--4.15702
-7.07917
--0.5872
-0.557
-(-18.0319, 9.71790)
-
-
-X
-1.39817
-0.67249
-2.0791
-0.038
-(0.0801, 2.71623)
-
-
-
-请注意，标准错误不同，X 为 0.432 vs 0.672，常数为 4.58 vs 7.08。我可以使用 Mandel 中的公式重现 ODR 系数。这些公式与 Minitab 参考中的公式不同。
-您对为什么存在差异以及哪些“更好”有什么想法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658906/orthogonal-regression-in-scipy-vs-minitab</guid>
-      <pubDate>Wed, 18 Dec 2024 05:21:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>不同规格间统计系数不稳定</title>
-      <link>https://stats.stackexchange.com/questions/658903/unstable-statistical-coefficient-among-different-specifications</link>
-      <description><![CDATA[我运行了模糊回归不连续性，并测试了不同的多项式度和带宽，以评估结果的稳健性。具体来说，我使用了四个多项式度（1-4）和七个带宽（范围从±1到±6.9，后者在方差偏差权衡方面是最佳的）。这产生了28个估计值，其中27个为正值，且效果大小相对较大（其余一个为负值，但非常接近0）。其中，13个在90％置信水平或更高水平上具有统计学意义。
-统计意义不稳定的一个可能解释可能是统计功效相对较低，在0.2 SD最小可检测效果大小下约为30％-40％ - 这是文献中对类似性质的结果进行相同干预的常见阈值。出现这种情况的原因是，我的第一阶段不是很好，但也不差（治疗概率相差 33 个百分点），尽管不同带宽的观测数从 2500 到 16000 不等。
-此外，只有当我使用 Cataneo 的稳健标准误差时，才会出现不稳定性。当我仅使用偏差校正的标准误差时，每个系数都是正的且具有统计意义。
-你会从中得出什么结论？鉴于功效低，无法说出任何关于真实效果的信息？或者至少可以说有证据表明存在积极影响，但缺乏一致性需要谨慎？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658903/unstable-statistical-coefficient-among-different-specifications</guid>
-      <pubDate>Wed, 18 Dec 2024 02:24:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>比例均值的置信区间（可能不对称）</title>
-      <link>https://stats.stackexchange.com/questions/658901/confidence-intervals-on-means-of-proportions-with-possibly-asymmetry</link>
-      <description><![CDATA[我正在研究一份调查报告，并试图弄清楚如何正确计算误差幅度。（我正在提供反馈，这些不是我的计算，所以我无法重新计算任何东西）。
-有 9 个李克特项目（5 分量表），每个项目都已转换为二进制（真/假）。对于回答了 9 个项目中至少 5 个的参与者，计算出真比例。计算这些比例的平均值以获得“总体真比例”。
-误差幅度使用基本公式：1.96*sqrt(p(1-p)/n)，其中 p 是总体真比例。对我来说，这似乎不对，因为它没有考虑到不同的人可能回答不同数量的项目这一事实。此外，我不确定是否也需要考虑比例平均值（相对于直接比例）。
-在这种情况下，您将如何处理误差幅度？如果所有参与者都回答了所有问题，这种方法会改变吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658901/confidence-intervals-on-means-of-proportions-with-possibly-asymmetry</guid>
-      <pubDate>Tue, 17 Dec 2024 23:37:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>单向随机效应方差分析中的方差分量检验</title>
-      <link>https://stats.stackexchange.com/questions/658891/test-of-variance-component-in-one-way-random-effects-anova</link>
-      <description><![CDATA[我对以下内容对 Raudenbush 和 Bryk（2002 年，第 63-64 页）中列出的单方差分量检验的适应性有疑问。假设是关于随机效应方差和协方差矩阵的单个分量 $\textbf{T}$
-$$
-H_0:\tau_{qq} =0,
-$$
-其中 $\tau_{qq} = \text{Var}(\beta_{qj})$，系数 $p$ 跨越 $j$ 个组或簇。
-定义 $\hat{V}_{qqj} = \hat{\sigma}^{2}(\textbf{X}_{j}^{T} \textbf{X}_{j})^{-1}$，并且在特定$\beta_{q}$中没有方差的零假设下：
-$$
-\beta_{qj} = \gamma_{q0} + \sum_{s = 1}^{S_{q}} \gamma_{qs} W_{sj}
-$$
-（即，没有添加随机效应$u_{qj}$），所得比率的分布大致为$\chi^{2}$，其中$df = J-S_{q}-1$：
-$$
-\frac{\sum_{j}(\hat{\beta_{qj}} - \hat{\gamma_{q0}} - \sum_{s=1}^{S_{q}}\hat{\gamma_{qs}}W_{sj})^{2}}{\hat{V}_{qqj}} 
-$$
-较小的值与零值一致（即，用较大的$\chi^{2}$ / 较小的$p$值拒绝）。
-在具有随机效应的简单单向方差分析的情况下，上述内容简化为 (p. 71):
-$$
-\frac{\sum_{j} n_j(\bar{Y}_{.j} - \hat{\gamma_{00}})}{\hat{\sigma}^2}
-$$
-由于模型在零假设（即无随机效应）下仅为 $Y_{ij} = \gamma_{00} + r_{ij}$。
-现在我的问题来了！
-在多参数情况下以及一般情况下，人们可以使用基于偏差的似然比检验来检验有关 $\textbf{T}$ 结构的假设（如第 64 页以及本网站的许多地方所述）。出于教学原因（即向我的学生展示），我尝试直接实施 $\chi^{2}$ 测试，使用 lme4 或 nlme 的输出。用于示例的高中及以上数据集包含在 nlme 中，除了这个有点做作的例子外，这本书的结果很容易复制。他们的软件 (HLM7) 显然会吐出测试。
-为了检查，我拟合了一个仅具有截距的 gls 模型（预测数学成绩），并使用 lme（基于模型偏差）计算了该模型与具有随机截距的模型的似然比检验。结果有些接近，但没有直接 $\chi^{2}$ 方法那么大：
-$$
-\text{LR-test}：986.12\\
-\chi^{2}\text{ 来自 R&amp;B (p. 70)} 的结果：1660.2
-$$
-我很想了解一下这两个测试之间的差异，以及使用“lme”或“merMod”对象中的信息计算单向方差分析情况的方法。我不知道如何获得分子而不直接计算它。]]></description>
-      <guid>https://stats.stackexchange.com/questions/658891/test-of-variance-component-in-one-way-random-effects-anova</guid>
-      <pubDate>Tue, 17 Dec 2024 17:47:19 GMT</pubDate>
     </item>
     <item>
       <title>如何计算最小化平均绝对误差的最佳拟合线的斜率？</title>
@@ -228,6 +224,51 @@ $$
       <pubDate>Tue, 17 Dec 2024 16:12:39 GMT</pubDate>
     </item>
     <item>
+      <title>有目的地将纵向数据建模为 iid？</title>
+      <link>https://stats.stackexchange.com/questions/658882/purposefully-modelling-longitudinal-data-as-iid</link>
+      <description><![CDATA[我正在考虑开展一个项目，其中有重复测量的个体（即多个个体，每个个体都有多个测量值）。响应是二进制（0,1），我正在考虑使用逻辑回归。我正在考虑考虑相关性的不同建模策略，但我也担心错误地将响应包含在模型中会违反统计假设。
+
+1) 非标准方法：将每个人的每次测量视为具有先前响应变量和偏移变量比率的 iid。
+这是我自己的想法。
+这是基本模型：
+$$ P(y_i = 1) = \frac{1}{1 + e^{-(\beta_0 + \beta_1x_1)}} $$
+现在，进行以下修改以考虑相关性：
+
+让 $x_2$ 表示人员 $i$
+让 $x_3$ 表示 $i$ 个人之前测量结果中 1 与 0 的比率
+
+这些就像个人层面的累积运行变量。例如对于个体 i，response_4 ~ f（来自时间点 1、2、3 的个体 i 的信息）。
+$x_2$ 用于解释观察次数较多的个体与观察次数较少的个体（例如，一个有 3 次测量结果且所有 3 次都是 1 的个体，与同一个体有 10 次测量结果且所有测量结果仍为 1 的个体相比）：
+$$ P(y_i = 1) = \frac{1}{1 + e^{-(\beta_0 + \beta_1x_1 + \beta_2x_2 + \beta_3x_3)}} $$
+$$ \text{logit}[P(y_i = 1)] = \ln\left(\frac{P(y_i = 1)}{1 - P(y_i = 1)}\right) = \beta_0 + \beta_1x_1 + \beta_2x_2 + \beta_3x_3 $$
+为了处理 0 除法问题，此模型要求每个个体至少有 2 个观察值。
+2) 标准策略：使用纵向模型。
+针对个体 $i$ 和时间点 $t$ 进行重复测量的标准逻辑回归：
+$$ P(y_{it} = 1) = \frac{1}{1 + e^{-(\beta_0 + \beta_1x_{it})}} $$
+$$ \text{logit}[P(y_{it} = 1)] = \ln\left(\frac{P(y_{it} = 1)}{1 - P(y_{it} = 1)}\right) = \beta_0 + \beta_1x_{it} $$
+现在通过使用每个个体的随机效应项$u_i$来解释同一个体测量值之间的相关性：
+$$ \text{logit}(P(y_{it} = 1)) = \beta_0 + \beta_1x_{it} + u_i $$
+$$ u_i \sim N(0, \sigma^2_u) $$
+可以添加额外的时间效应：
+$$ \text{logit}(P(y_{it} = 1)) = \beta_0 + \beta_1x_{it} + \beta_2t + u_i $$
+3) 自回归误差结构
+对于 AR(1) 误差结构，将误差项 $\epsilon_{it}$ 定义为：
+$$ \epsilon_{it} = \rho\epsilon_{i,t-1} + \eta_{it} $$
+其中：
+
+$\rho$ 是自相关参数（其中 $|\rho| &lt; 1$)
+$\epsilon_{i,t-1}$ 是来自前一个时间点的误差项
+$\eta_{it}$ 是一个新的随机误差项：$\eta_{it} \sim N(0, \sigma^2_\eta)$
+
+把所有东西放在一起：
+$$ \text{logit}(P(y_{it} = 1)) = \beta_0 + \beta_1x_{it} + \rho\epsilon_{i,t-1} + \eta_{it} $$
+$$ \text{Cov}(\epsilon_{is}, \epsilon_{it}) = \sigma^2_\epsilon\rho^{|t-s|} $$
+
+我想知道第一种建模方法是否有意义？我认为使用方法 1 在计算上更简单，因为它将所有内容视为 iid。它也可能更容易解释模型，并且不需要对相关结构做出相同类型的假设。但总的来说，有人遇到过方法 1 吗？它在统计上有效吗？还是它违反了一些统计假设？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658882/purposefully-modelling-longitudinal-data-as-iid</guid>
+      <pubDate>Tue, 17 Dec 2024 15:38:22 GMT</pubDate>
+    </item>
+    <item>
       <title>如何计算 R 中一个变量的 McFadden r 平方？</title>
       <link>https://stats.stackexchange.com/questions/658874/how-to-calculate-mcfaddens-r-squared-for-just-one-variable-in-r</link>
       <description><![CDATA[对于我的逻辑回归，我使用 McFadden 的 R 平方（类似于 R 平方，但用于逻辑模型）。但是，McFadden 的 R 平方计算的是整体模型的效果，而我想知道模型中单个变量的效果。我已经设法计算了线性回归模型中单个变量的偏 R 平方（使用包：sensemakr），但我不知道如何使用 McFadden 的 R 平方进行逻辑回归。有人有什么想法吗？我在 RStudio 工作。]]></description>
@@ -242,6 +283,56 @@ $$
       <pubDate>Tue, 17 Dec 2024 11:24:19 GMT</pubDate>
     </item>
     <item>
+      <title>R 中的 mediate() 是否适用于多分类预测因子？</title>
+      <link>https://stats.stackexchange.com/questions/658844/does-mediate-in-r-work-with-a-multicategorical-predictor</link>
+      <description><![CDATA[我的数据是多级的（每个条件内的每个参与者有多个测量值），有 3 个条件。
+DV = 连续；中介 = 连续；IV = 分类（有 3 个条件：控制、条件 A、条件 B；ss 内）。
+对于 IV，我为分析创建了虚拟变量（A = 0, 1；B = 0, 1；控制 = 0, 1）。
+mediate() 是否适用于多分类预测因子？假设我的模型在理论上是合理的，运行以下分析来计算变量的间接影响、总影响、直接影响等中介路径是否合适？
+分析：
+fit.mediator=lmer(Mediator ~ IV.A + IV.B + 
+(1 | id), data=data1)
+
+summary(fit.mediator)
+
+fit.dv=lmer(DV ~ IV.A + IV.B + Mediator + 
+(1 | id), data=data1)
+
+summary(fit.dv)
+
+summary(mediate(fit.mediator, fit.dv, 
+treat=&#39;IV.A&#39;, mediator=&#39;Mediator&#39;))
+
+summary(mediate(fit.mediator, fit.dv, 
+treat=&#39;IV.B&#39;, mediator=&#39;Mediator&#39;))
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/658844/does-mediate-in-r-work-with-a-multicategorical-predictor</guid>
+      <pubDate>Mon, 16 Dec 2024 22:09:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用随机森林预测 FPL 球员总得分</title>
+      <link>https://stats.stackexchange.com/questions/658730/predicting-fpl-player-total-points-using-random-forest</link>
+      <description><![CDATA[我有一个数据集，其中包含英超联赛（2016-2023 年）大约 100k 个比赛周统计数据。我的目标是预测一名球员在某个比赛周/比赛中将获得多少总分。
+我将数据分为训练/测试集，其中训练集包含赛季 &lt; 2022 的统计数据，测试集包含赛季 &gt; 的统计数据2022.
+为了说明某位球员的当前状态，我计算了过去 3 个比赛周以下变量的滚动平均值：
+进球数、助攻数、零封数、失球数、分钟数、自进球数、罚球数、罚失球数、黄牌、红牌、扑救数、影响力、创造力、威胁和 ict_index
+然后，我使用这些变量和一些其他变量运行随机森林：
+was_home、player_team、opponent_team、opponent_strength、element_type（后卫/中场等）
+模型如下所示：
+rf &lt;- randomForest(
+as.formula(paste(target, &quot;~&quot;, 
+paste(predictors, collapse = &quot; + &quot;))),
+data = train,
+ntree = 500,
+mtry = 7,
+nodesize = 10,
+significance = TRUE)
+
+这样做我只得到 R^2 约为 57%。所以我的问题是这是否正常，或者我的方法是否出错？我想知道我可以在哪里改进模型，机器学习是否是预测总分的好方法？]]></description>
+      <guid>https://stats.stackexchange.com/questions/658730/predicting-fpl-player-total-points-using-random-forest</guid>
+      <pubDate>Sat, 14 Dec 2024 11:25:11 GMT</pubDate>
+    </item>
+    <item>
       <title>减少线性指数衰减混合函数中的极端行为</title>
       <link>https://stats.stackexchange.com/questions/658227/reducing-extreme-behavior-in-linear-exponential-decay-hybrid-function</link>
       <description><![CDATA[]]></description>
@@ -249,28 +340,35 @@ $$
       <pubDate>Tue, 03 Dec 2024 19:48:05 GMT</pubDate>
     </item>
     <item>
-      <title>F1 曲线下面积</title>
-      <link>https://stats.stackexchange.com/questions/657405/area-under-f1-curve</link>
-      <description><![CDATA[由于 F1 分数依赖于阈值，所有阈值下的 F1 面积是否是一个有用的指标？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657405/area-under-f1-curve</guid>
-      <pubDate>Sun, 17 Nov 2024 18:47:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>关于条件 Radon-Nikodym 导数的问题</title>
-      <link>https://stats.stackexchange.com/questions/635050/questions-about-the-conditional-radon-nikodym-derivative</link>
-      <description><![CDATA[设 $(\Omega, \mathcal{A}, \mathbb{P})$ 为概率空间，$X:(\Omega, \mathcal{A})\rightarrow (\mathcal{X}, \mathcal{F})$ 和 $Y:(\Omega, \mathcal{A})\rightarrow (\mathcal{Y}, \mathcal{G})$ 为随机变量。假设存在一个正则条件分布 $\mathbb{P}_{Y|X}$
-我的第一个问题围绕正则条件分布 $\mathbb{P}_{Y|X}$ 的 Radon Nikodym 导数，相对于 $\mathcal{Y}$ 上的某个主导测度 $\lambda$。
-因此，据我理解，对于每个固定的 $x$，$\frac{d\mathbb{P}_{Y|X=x}}{d\lambda}$ 都是 $y$ 中的函数。即，对于每个 $x$，我们得到一个不同的函数。这些函数中的每一个都是在 $y$ 中可测的。到目前为止，这是正确的吗？
-1.) 如果我们固定 $y$，那么它是 $x$ 中的函数吗？如果是，它在 $x$ 中可测吗？（如果它不可测，那么它可测的条件是什么？）我该如何用符号来写这个？我对符号感到疑惑，因为那样我就不会以 $X=x$ 为条件，对吗？因式分解引理是否发挥作用，给出$\mathbb{P}_{Y|X=x}$和$\mathbb{P}_{Y|X}$之间的关系？另外，$\frac{d\mathbb{P}_{Y|X=x}}{d\lambda}$ 是否仅取决于 $y$，但例如 $\frac{d\mathbb{P}_{Y|X}}{d\lambda}$ 将是 $x$ 和 $y$ 的函数？
-2.) 当主导测度是其他条件分布 $Y|X$ 时，形成 Radon-Nikodym 导数是否也有意义。即，假设在 $\Omega$ 上有另一个概率测度 $R$。然后让 $R_{Y|X}$ 成为常规条件分布，使得对于每个 $x$，$R_{Y|X=x}$ 优于 $\mathbb{P}_{Y|X=x}$。那么构建这两个条件分布的 Radon nikodym 导数是否有意义/定义明确？解释会是什么？它是否仅取决于 $y$，还是同时取决于 $x$ 和 $y$？我们是否也可以形成 $\mathbb{P}_{Y|X}$ 和 $R_{Y|X}$ 的 Radon Nikodym 导数？如果主导测度是在乘积空间 $\mathcal{X}\times\mathcal{Y}$ 上定义的分布，这是否也有意义？那么，这会改变 radon nikodym 导数所依赖的参数吗？
-3.) 我最终感兴趣的是以下内容：
-据我所知，在过渡核的 Fubinis 定理中
-$$\int_{\mathcal{X}\times{\mathcal{Y}}}f(x, y)\mathbb{P}_{X, Y}(d(x,y))=\int_{\mathcal{X}}\int_\mathcal{Y}f(x,y)\mathbb{P}_{Y|X=x}(dy)\mathbb{P}_X(dx),$$
-我们不能交换积分。但是，我的问题是，如果我使用上面提到的 Radon-Nikodym 导数，这是否可能：
-$$ \int_{\mathcal{X}}\int_\mathcal{Y}f(x,y)\mathbb{P}_{Y|X=x}(dy)\mathbb{P}_X(dx)=\int_{\mathcal{X}}\int_\mathcal{Y}f(x,y)\frac{d\mathbb{P}_{Y|X=x}}{d\lambda}\lambda(dy)\mathbb{P}_X(dx)=\int_{\mathcal{Y}}\int_\mathcal{X}f(x,y)\frac{d\mathbb{P}_{Y|X=x}}{d\lambda}\mathbb{P}_X(dx)\lambda(dy)$$
-这可以吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/635050/questions-about-the-conditional-radon-nikodym-derivative</guid>
-      <pubDate>Sat, 16 Dec 2023 11:52:29 GMT</pubDate>
+      <title>提取 gam 中的 hessian/协方差矩阵（R 包 mgcv），包括与分布离散度相关的参数</title>
+      <link>https://stats.stackexchange.com/questions/657934/extracting-the-hessian-covariance-matrix-in-gam-r-package-mgcv-including-the-p</link>
+      <description><![CDATA[在包 mgcv 中拟合 gams 时（带或不带平滑器），我想提取 hessian 矩阵（或方差-协方差矩阵），包括与分布分散相关的参数（正态分布中的 sigma、负二项分布中的 k、beta 分布中的 phi 等）。我怎样才能得到这些？函数 vcov 似乎只提取与分布均值相关的参数。
+任何指示都将不胜感激。
+下面显示了一个带有 beta 分布的最小示例：
+# 生成数据
+set.seed(30);
+n &lt;- 200
+x &lt;- runif(n, 0, 5)
+mu &lt;- exp(-4+1*x)/(1 + exp(-4+1*x))
+phi &lt;- 4
+a &lt;- mu*phi; b &lt;- (1-mu)*phi;
+y &lt;- rbeta(n, shape1=a, shape2=b) 
+dat &lt;- data.frame(x, y)
+# 使用 betareg 包拟合模型
+library(betareg)
+br1 &lt;- betareg(y ~ x, data=dat)
+logLik(br1)
+vcov(br1)
+# 使用 mgcv 包拟合模型
+library(mgcv)
+bm &lt;- gam(y ~ x, family=betar(link=&quot;logit&quot;), 
+data=dat)
+summary(bm)
+logLik(bm)
+vcov(bm)
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/657934/extracting-the-hessian-covariance-matrix-in-gam-r-package-mgcv-including-the-p</guid>
+      <pubDate>Wed, 27 Nov 2024 14:42:15 GMT</pubDate>
     </item>
     </channel>
 </rss>
