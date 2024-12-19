@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 19 Dec 2024 01:20:07 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 19 Dec 2024 03:29:16 GMT</lastBuildDate>
     <item>
       <title>如何使用神经网络为二元分类器绘制平滑的决策边界？</title>
       <link>https://stackoverflow.com/questions/79292743/how-to-plot-a-smooth-decision-boundary-for-a-binary-classifier-using-a-neural-ne</link>
@@ -409,13 +409,6 @@ CGD 的结果与 OLS 的结果相差甚远，我不确定原因。我怀疑这�
       <pubDate>Wed, 18 Dec 2024 16:20:26 GMT</pubDate>
     </item>
     <item>
-      <title>训练期间更高的验证准确率</title>
-      <link>https://stackoverflow.com/questions/79291675/greater-validation-accuracy-during-training</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79291675/greater-validation-accuracy-during-training</guid>
-      <pubDate>Wed, 18 Dec 2024 15:37:11 GMT</pubDate>
-    </item>
-    <item>
       <title>Yolov5 模型捕获除预期或期望对象之外的其他对象</title>
       <link>https://stackoverflow.com/questions/79291357/yolov5-model-capturing-other-objects-other-than-the-intended-or-desired-object</link>
       <description><![CDATA[我有一个用于数据集的 YOLO V5 m 模型，用于检测特定产品，但在对不同情况和场景以及各种光照条件下的产品图片数据集进行训练后，在 50 个 epoch 和 Yolo v5 中等架构以及批处理大小为 16 的情况下，情况没有重复。
@@ -523,6 +516,84 @@ epochs = 30
 但模型训练时间太长了]]></description>
       <guid>https://stackoverflow.com/questions/79289981/how-to-use-tokenization-in-lm</guid>
       <pubDate>Wed, 18 Dec 2024 04:30:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>Keras ValueError：从未调用过层顺序，因此没有定义的输出</title>
+      <link>https://stackoverflow.com/questions/78722413/keras-valueerror-the-layer-sequential-has-never-been-called-and-thus-has-no-def</link>
+      <description><![CDATA[我想将 Keras 的 Grad-CAM 与我自己的 CNN 模型一起使用。我已遵循此 https://keras.io/examples/vision/grad_cam/，其中的 make_gradcam_heatmap 函数也来自此。我对 CNN 还不熟悉，所以我可能忽略了一些显而易见的东西，但为什么它在我运行模型时无法识别呢？
+这是我的代码：
+import numpy as np
+import os
+import tensorflow as tf
+import keras
+from tensorflow.keras.models import load_model
+import cv2
+from tensorflow.keras.models import Model
+
+os.environ[&quot;KERAS_BACKEND&quot;] = &quot;tensorflow&quot;
+
+从 IPython.display 导入图像，显示
+导入 matplotlib 作为 mpl
+导入 matplotlib.pyplot 作为 plt
+
+img_path = &#39;/Users/.../image_1.npy&#39;
+
+model = load_model(&#39;/Users/.../particle_classifier_model.h5&#39;)
+
+model_builder = keras.applications.xception.Xception
+preprocess_input = keras.applications.xception.preprocess_input
+decode_predictions = keras.applications.xception.decode_predictions
+
+image = np.load(img_path)
+img_size = image.shape # 应为形状为 (240, 146) 的数组
+
+def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None):
+# 首先，我们创建一个将输入图像映射到最后一个 conv 的激活的模型层以及输出预测
+grad_model = keras.models.Model(
+model.inputs, [model.get_layer(last_conv_layer_name).output, model.output]
+)
+
+# 然后，我们计算输入图像的顶部预测类的梯度
+# 相对于最后一个卷积层的激活
+with tf.GradientTape() as tape:
+last_conv_layer_output, preds = grad_model(img_array)
+if pred_index is None:
+pred_index = tf.argmax(preds[0])
+class_channel = preds[:, pred_index]
+
+# 这是输出神经元的梯度（顶部预测或选择）
+# 相对于最后一个卷积层的输出特征图
+grads = tape.gradient(class_channel, last_conv_layer_output)
+
+# 这是一个向量，其中每个条目都是梯度的平均强度
+# 在特定特征图通道上
+pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+
+# 我们将特征图数组中的每个通道乘以
+# 相对于顶部预测类的“此通道的重要性”
+# 然后将所有通道相加以获得热图类激活
+last_conv_layer_output = last_conv_layer_output[0]
+heatmap = last_conv_layer_output @pooled_grads[..., tf.newaxis]
+heatmap = tf.squeeze(heatmap)
+
+# 为了可视化目的，我们还将在 0 和 1 之间对热图进行标准化
+heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
+return heatmap.numpy()
+
+last_conv_layer_name = “max_pooling2d_4”
+
+image = image.reshape(1, 240, 146, 1)
+preds = model.predict(image)
+
+model.layers[-1].activation = None
+
+heatmap = make_gradcam_heatmap(image, model, last_conv_layer_name)
+plt.matshow(heatmap)
+plt.show()
+
+我的数据是维度 (240, 146) 的 numpy 数组，CNN 将其作为输入。]]></description>
+      <guid>https://stackoverflow.com/questions/78722413/keras-valueerror-the-layer-sequential-has-never-been-called-and-thus-has-no-def</guid>
+      <pubDate>Mon, 08 Jul 2024 18:32:19 GMT</pubDate>
     </item>
     <item>
       <title>深度学习 Nan 损失的原因</title>
