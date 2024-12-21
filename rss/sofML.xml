@@ -4,7 +4,112 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 21 Dec 2024 15:15:10 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 21 Dec 2024 18:20:51 GMT</lastBuildDate>
+    <item>
+      <title>在 Swin transformer 中出现此运行时错误：mat1 和 mat2 形状无法相乘（32x7 和 1024x5）</title>
+      <link>https://stackoverflow.com/questions/79299672/in-swin-transformer-getting-this-runtime-error-mat1-and-mat2-shapes-cannot-be-m</link>
+      <description><![CDATA[如标题所述。我得到了那里显示的错误。错误发生在显示 outputs = model(images) 的行上。我正在尝试使用 swin transformer 对 5 个类别进行图像分类，并且只对最后几层进行微调。以下是代码：
+# 加载预训练的 Swin Transformer 模型
+base_model = timm.create_model(&#39;swin_base_patch4_window7_224&#39;, pretrained=True)
+
+# 修改模型，在分类头之前包含全局平均池化
+class SwinClassifier(nn.Module):
+def __init__(self, base_model, num_classes):
+super(SwinClassifier, self).__init__()
+self.base_model = base_model
+self.global_pool = nn.AdaptiveAvgPool2d(1) # 全局平均池化，将空间维度降低到 1x1
+self.fc = nn.Linear(base_model.num_features, num_classes) # 全连接层
+
+def forward(self, x):
+x = self.base_model.forward_features(x) # 提取特征
+print(f&quot;shape after forward_features: {x.shape}&quot;) # 调试行
+x = self.global_pool(x) # 应用全局平均池化 (输出形状：[batch_size, num_features, 1, 1])
+print(f&quot;shape after global pooling: {x.shape}&quot;) # 调试行
+x = x.view(x.size(0), -1) # 将张量展平为形状 [batch_size, num_features]
+print(f&quot;shape after flattening: {x.shape}&quot;) # 调试行
+x = self.fc(x) # 分类头以获取最终输出
+return x
+
+# 创建修改后的模型的实例
+model = SwinClassifier(base_model, num_classes=5)
+
+# 解冻最后 4 层 (blocks 9 到 12)
+for name, param in model.base_model.named_pa​​rameters():
+如果名称中包含“layers.3.blocks.9”或“layers.3.blocks.10”或“layers.3.blocks.11”或“layers.3.blocks.12” in name:
+param.requires_grad = True # 取消冻结最后 4 层
+else:
+param.requires_grad = False # 冻结其余部分
+
+# 确保新的头部参数可训练
+for param in model.fc.parameters():
+param.requires_grad = True
+
+# 将模型移动到设备
+model.to(device)
+
+# 定义损失函数和优化器
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
+
+# 提前停止参数
+patience = 5 # 停止前没有改进的 epoch 数量
+best_val_loss = float(&#39;inf&#39;) # 将最佳验证损失初始化为无穷大
+epochs_without_improvement = 0 # 用于跟踪没有改进的 epoch 的计数器改进
+best_model_wts = None # 存储最佳模型的权重
+
+# 日志设置
+logging.basicConfig(filename=&#39;train_log_MessiSwinFineTune3LyrAUCF1Kappa.txt&#39;, level=logging.INFO, format=&#39;%(asctime)s - %(message)s&#39;)
+
+# a
+
+epochs = 30 # 设置最大 epoch 数
+
+for epoch in range(epochs):
+model.train()
+running_loss = 0.0
+correct = 0
+total = 0
+all_preds = [] # 用于存储混淆矩阵的所有预测的列表
+all_labels = [] # 用于存储混淆矩阵的所有真实标签的列表
+
+# 训练循环
+for images, labels in train_loader:
+
+images, labels = images.to(device), labels.to(device)
+
+# 将参数梯度归零
+optimizer.zero_grad()
+
+# 正向传递修改后的 Swin 模型
+输出 = 模型 (图像)
+
+# 计算损失
+损失 = 标准 (输出、标签)
+
+# 反向传播和优化
+损失.backward()
+优化器.step()
+
+# 统计
+运行损失 +=损失.item()
+_, 预测 = torch.max(输出, 1)
+总 += 标签.size(0)
+正确 += (预测 == 标签).sum().item()
+
+all_preds.extend(预测.cpu().numpy())
+all_labels.extend(标签.cpu().numpy())
+
+train_acc = 100 * 正确 / 总
+avg_train_loss = 运行损失 / len(train_loader)
+
+
+forward_features 之后的形状：torch.Size([32, 7, 7, 1024])
+全局之后的形状池化：torch.Size([32, 7, 1, 1])
+打印扁平化后的形状：torch.Size([32, 7])，并显示运行时错误，提示 mat1 和 mat2 形状无法相乘（32x7 和 1024x5）
+以上内容与错误一起打印。有人能告诉我到底哪里出了问题吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79299672/in-swin-transformer-getting-this-runtime-error-mat1-and-mat2-shapes-cannot-be-m</guid>
+      <pubDate>Sat, 21 Dec 2024 15:44:53 GMT</pubDate>
+    </item>
     <item>
       <title>岭回归的 Scratch 实现</title>
       <link>https://stackoverflow.com/questions/79299410/scratch-implementation-of-ridge-regression</link>
@@ -179,29 +284,6 @@ plt.show()
       <pubDate>Fri, 20 Dec 2024 11:42:14 GMT</pubDate>
     </item>
     <item>
-      <title>在 FastAPI 中提供多种机器学习模型的最佳实践：Docker 与 Celery 与 Redis 或其他方法 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79296580/best-practice-for-serving-multiple-machine-learning-models-in-fastapi-docker-vs</link>
-      <description><![CDATA[我正在开发一个 FastAPI 应用程序，该应用程序处理来自 Web 应用程序的请求，以使用多个机器学习模型（例如，糖尿病预测模型、面部分析模型等）进行预测。我正在尝试确定部署和管理这些模型的最佳架构。
-以下是我正在考虑的方法：
-选项 1：Docker + Flask 服务器
-将每个模型打包在其自己的 Docker 映像中。
-在各自的 Docker 容器内为每个模型运行一个 Flask 服务器。
-FastAPI 通过维护每个模型的连接字符串与这些服务器通信（例如，一个用于糖尿病模型，另一个用于面部分析模型等）。
-
-但是，这种方法意味着 FastAPI 必须管理多个连接字符串，随着模型数量的增加，这可能会变得混乱。
-选项 2：Celery + Redis
-使用 Celery 工作程序处理预测，每个工作程序负责一个特定模型。
-使用 Redis 作为任务队列。
-FastAPI 只会在 Redis 队列中注册任务，而无需知道各个工作程序的连接详细信息。
-
-这种方法集中了任务管理，并消除了从 FastAPI 管理多个连接字符串的负担。
-选项 3：其他方法
-在这样的设置中，是否有用于管理和提供多个机器学习模型的替代架构或最佳实践？
-我希望系统具有可扩展性、可维护性和高效性。如果您曾经使用过类似的设置，我将不胜感激您的见解！]]></description>
-      <guid>https://stackoverflow.com/questions/79296580/best-practice-for-serving-multiple-machine-learning-models-in-fastapi-docker-vs</guid>
-      <pubDate>Fri, 20 Dec 2024 08:19:43 GMT</pubDate>
-    </item>
-    <item>
       <title>在 Google Cloud Functions 中部署 Keras 模型进行预测</title>
       <link>https://stackoverflow.com/questions/79288128/deploying-keras-model-for-prediction-in-google-cloud-functions</link>
       <description><![CDATA[我一直在尝试将一个非常简单的 Keras 玩具模型部署到 Cloud Functions，该模型可以预测图像的类别，但由于未知原因，当执行到 predict 方法时，它会卡住，不会抛出任何错误，最终会超时。
@@ -239,6 +321,32 @@ return f&quot;Predicted class: {predicted_class}&quot;
 我错过了什么？]]></description>
       <guid>https://stackoverflow.com/questions/79288128/deploying-keras-model-for-prediction-in-google-cloud-functions</guid>
       <pubDate>Tue, 17 Dec 2024 13:51:16 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用具有动态尺寸输入的 Dense 层？</title>
+      <link>https://stackoverflow.com/questions/79280552/how-to-use-a-dense-layer-with-an-input-that-has-a-dynamically-sized-dimension</link>
+      <description><![CDATA[我有一个模型，其输入（具有形状（高度、宽度、时间）的图像批次）具有动态大小的维度（时间），该维度仅在运行时确定。但是，Dense 层需要完全定义的空间维度。代码片段示例：
+import tensorflow as tf
+from tensorflow.keras.layers import Dense, Flatten, Input
+
+# 定义具有未定义维度 (None) 的输入
+input_tensor = Input(shape=(None, 256, 256, None, 13))
+
+# 应用 Dense 层（需要完全定义的形状）
+x = Flatten()(input_tensor)
+x = Dense(10)(x)
+
+# 构建模型
+model = tf.keras.models.Model(inputs=input_tensor, output=x)
+
+model.summary()
+
+这会引发错误：
+ValueError：应定义 Dense 层输入的最后一个维度。未找到。
+
+如何使用 Flatten 而不是 GlobalAveragePooling3D 等替代方案使其工作？本质上，我正在寻找一种方法来创建一个具有原始像素值的 1D 数组，但与 Dense 层兼容。]]></description>
+      <guid>https://stackoverflow.com/questions/79280552/how-to-use-a-dense-layer-with-an-input-that-has-a-dynamically-sized-dimension</guid>
+      <pubDate>Sat, 14 Dec 2024 11:31:35 GMT</pubDate>
     </item>
     <item>
       <title>如何加载使用（version ='latest'）框架训练的 Sagemaker XGBoost 模型？</title>
@@ -384,7 +492,7 @@ study.optimize(objective)
     <item>
       <title>如何处理缺失值超过 80% 的特征</title>
       <link>https://stackoverflow.com/questions/72611870/how-to-deal-with-features-with-more-than-80-missingness</link>
-      <description><![CDATA[我正在处理一个非常糟糕的临床数据集，它有 300 个样本、400 个特征，将用于机器学习。我的导师告诉我这个数据集中有一些具有生物学意义的特征，并要求我保留它们，但其中许多特征缺失了 50% 以上，甚至 80% 以上。我该怎么办？用模式填充会影响它们的性能吗？]]></description>
+      <description><![CDATA[我正在处理一个非常糟糕的临床数据集，它有 300 个样本、400 个特征，将用于机器学习。我的导师告诉我这个数据集中有一些具有生物学意义的特征，并要求我保留它们，但其中许多特征缺失了 50% 以上，甚至 80% 以上。我该怎么办？使用模式填充是否会影响它们的性能。]]></description>
       <guid>https://stackoverflow.com/questions/72611870/how-to-deal-with-features-with-more-than-80-missingness</guid>
       <pubDate>Tue, 14 Jun 2022 05:23:12 GMT</pubDate>
     </item>
@@ -393,8 +501,8 @@ study.optimize(objective)
       <link>https://stackoverflow.com/questions/52799472/how-to-make-an-ai-bot-of-natural-language-processing</link>
       <description><![CDATA[我想制作一个只能理解四个单词“上”、“下”、“左”、“右”的人工智能机器人。
 我的朋友制作了一个python脚本，可以通过语音执行一些任务，比如打开youtube，只需说“Youtube”，Chrome浏览器就会打开youtube.com URL。但是系统很慢，因为他们使用谷歌助手/人工智能来处理语音，这让我感到不耐烦。
-然后我想到，如果一个离线的人工智能系统只理解几个单词，我们就可以得到一些想要的结果，而且速度会非常快。
-例如：- 我有一辆遥控车，我想让它通过语音激活，当我说“上”时，车应该向前行驶，同样，“下”-&gt;“后退”、“左”-&gt;“左”和“右”也是如此-&gt; 正确 &amp; &quot;{任何其他声音}&quot; -&gt; 指示灯闪烁，表示系统无法理解
+然后我想到了一个想法，如果一个离线的人工智能系统只理解几个单词，我们可以得到一些想要的结果，而且速度会非常快。
+例如：- 我有一辆遥控车，我想让它通过语音激活，当我说“上”时，车应该向前行驶，同样，“下”-&gt;“后退”，“左”-&gt;“左”和“右”也是如此-&gt; 正确 &amp; &quot;{任何其他声音}&quot; -&gt; 指示灯闪烁，表示系统无法理解
 所以：
 我应该如何开始？
 我应该如何训练 AI Bot？
@@ -402,15 +510,6 @@ study.optimize(objective)
 以及我应该知道的其他事情。]]></description>
       <guid>https://stackoverflow.com/questions/52799472/how-to-make-an-ai-bot-of-natural-language-processing</guid>
       <pubDate>Sun, 14 Oct 2018 04:30:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>Google Cloud Vision API 和 Mobile Vision 有什么区别？</title>
-      <link>https://stackoverflow.com/questions/44091577/what-is-the-difference-between-google-cloud-vision-api-and-mobile-vision</link>
-      <description><![CDATA[我一直在使用 cloud vision API。我做了一些标签和面部检测。在这次 Google I/O 期间，有一个会议讨论了 mobile vision。我知道这两个 API 都与 Google Cloud 中的机器学习有关。
-有人能解释（用例）何时使用其中一个而不是另一个吗？
-我们可以同时使用这两个 API 来构建什么样的应用程序？]]></description>
-      <guid>https://stackoverflow.com/questions/44091577/what-is-the-difference-between-google-cloud-vision-api-and-mobile-vision</guid>
-      <pubDate>Sat, 20 May 2017 22:59:56 GMT</pubDate>
     </item>
     </channel>
 </rss>
