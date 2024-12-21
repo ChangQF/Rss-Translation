@@ -4,12 +4,78 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 21 Dec 2024 18:20:51 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 21 Dec 2024 21:14:06 GMT</lastBuildDate>
+    <item>
+      <title>（Pytorch）使用 MaxViT 进行迁移学习</title>
+      <link>https://stackoverflow.com/questions/79300055/pytorch-transfer-learning-using-maxvit</link>
+      <description><![CDATA[我正在尝试使用自定义数据集在 Pytorch 预训练模型上进行迁移学习。我已经能够使用 SqueezeNet 成功执行迁移学习。
+对于 Squeezenet，我的分类器是，layers source
+model.classifier = nn.Sequential(
+nn.Dropout(p=0.2),
+nn.Conv2d(512, len(class_names), kernel_size=1),
+nn.ReLU(inplace=True),
+nn.AdaptiveAvgPool2d((1, 1)))
+
+对于 Efficientnet，我的分类器是，layers source
+model.classifier = torch.nn.Sequential(
+torch.nn.Dropout(p=0.2, inplace=True),
+torch.nn.Linear(in_features=1280,
+out_features=output_shape,
+bias=True))
+
+我也一直在尝试为 MaxViT 做类似的事情，我查看了源代码，发现参数中有 block_channels[-1]。我最近开始用这个，不知道它们是什么，layers source
+self.classifier = nn.Sequential(
+nn.AdaptiveAvgPool2d(1),
+nn.Flatten(),
+nn.LayerNorm(block_channels[-1]),
+nn.Linear(block_channels[-1], block_channels[-1]),
+nn.Tanh(),
+nn.Linear(block_channels[-1], num_classes, bias=False),
+)
+
+如果需要，以下是我使用 squeezenet 执行迁移学习的完整代码，仅供参考。
+weights = torchvision.models.SqueezeNet1_0_Weights.DEFAULT
+model = torchvision.models.squeezenet1_0(weights=weights).to(device)
+auto_transforms = weights.transforms()
+train_dataloader, test_dataloader, class_names = data_setup.create_dataloaders(train_dir=d1,
+test_dir=d2,
+transform=auto_transforms,
+batch_size=32)
+for param in model.features.parameters():
+param.requires_grad = False
+
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
+output_shape = len(class_names)
+
+model.classifier = nn.Sequential(
+nn.Dropout(p=0.2),
+nn.Conv2d(512, len(class_names), kernel_size=1),
+nn.ReLU(inplace=True),
+nn.AdaptiveAvgPool2d((1, 1))).to(device)
+
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
+results = engine.train(model=model,
+train_dataloader=train_dataloader,
+test_dataloader=test_dataloader,
+optimizer=optimizer,
+loss_fn=loss_fn,
+epochs=15,
+device=device)
+
+如果您能告诉我我的 MaxViT 分类器应该是什么，那将会很有帮助。
+谢谢]]></description>
+      <guid>https://stackoverflow.com/questions/79300055/pytorch-transfer-learning-using-maxvit</guid>
+      <pubDate>Sat, 21 Dec 2024 20:24:49 GMT</pubDate>
+    </item>
     <item>
       <title>在 Swin transformer 中出现此运行时错误：mat1 和 mat2 形状无法相乘（32x7 和 1024x5）</title>
       <link>https://stackoverflow.com/questions/79299672/in-swin-transformer-getting-this-runtime-error-mat1-and-mat2-shapes-cannot-be-m</link>
       <description><![CDATA[如标题所述。我得到了那里显示的错误。错误发生在显示 outputs = model(images) 的行上。我正在尝试使用 swin transformer 对 5 个类别进行图像分类，并且只对最后几层进行微调。以下是代码：
-# 加载预训练的 Swin Transformer 模型
+# 加载预先训练的 Swin Transformer 模型
 base_model = timm.create_model(&#39;swin_base_patch4_window7_224&#39;, pretrained=True)
 
 # 修改模型，在分类头之前包含全局平均池化
@@ -329,10 +395,10 @@ return f&quot;Predicted class: {predicted_class}&quot;
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten, Input
 
-# 定义具有未定义维度 (None) 的输入
+# 定义具有未定义维度的输入（无）
 input_tensor = Input(shape=(None, 256, 256, None, 13))
 
-# 应用 Dense 层（需要完全定义的形状）
+# 应用密集层（需要完全定义的形状）
 x = Flatten()(input_tensor)
 x = Dense(10)(x)
 
@@ -342,7 +408,7 @@ model = tf.keras.models.Model(inputs=input_tensor, output=x)
 model.summary()
 
 这会引发错误：
-ValueError：应定义 Dense 层输入的最后一个维度。未找到。
+ValueError：密集层输入的最后一个维度应已定义。未找到。
 
 如何使用 Flatten 而不是 GlobalAveragePooling3D 等替代方案使其工作？本质上，我正在寻找一种方法来创建一个具有原始像素值的 1D 数组，但与 Dense 层兼容。]]></description>
       <guid>https://stackoverflow.com/questions/79280552/how-to-use-a-dense-layer-with-an-input-that-has-a-dynamically-sized-dimension</guid>
@@ -365,23 +431,6 @@ XGBoostError: basic_string::resize
 我只想使用 model.get_score 检查特征重要性。]]></description>
       <guid>https://stackoverflow.com/questions/79269787/how-to-load-sagemaker-xgboost-model-which-was-trained-using-version-latest</guid>
       <pubDate>Tue, 10 Dec 2024 20:57:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>SAM 2.1 是什么导致 hydra.errors.MissingConfigException：未找到主配置模块“sam2”？</title>
-      <link>https://stackoverflow.com/questions/79199682/sam-2-1-what-is-causing-hydra-errors-missingconfigexception-primary-config-modu</link>
-      <description><![CDATA[我正在尝试使用此处给出的 roboflow 指南微调新的 SAM 2.1 分割模型：Sam 2.1 roboflow 指南
-使用 google collab 时，此代码运行正常，没有遇到任何错误。当我在本地机器上运行完全相同的代码时，运行训练代码命令时会出现以下错误：
-!python training/train.py -c &#39;configs/train.yaml&#39; --use-cluster 0 --num-gpus 1
-在 Windows 10 上使用 vscode 运行时出现以下错误：
-hydra.errors.MissingConfigException：未找到主配置模块“sam2”。
-检查它是否正确并包含 __init__.py 文件
-
-我的工作目录：
-C:\..\SAM_2_1\sam2
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79199682/sam-2-1-what-is-causing-hydra-errors-missingconfigexception-primary-config-modu</guid>
-      <pubDate>Mon, 18 Nov 2024 11:00:31 GMT</pubDate>
     </item>
     <item>
       <title>无法使用 nltk 函数</title>
@@ -492,7 +541,7 @@ study.optimize(objective)
     <item>
       <title>如何处理缺失值超过 80% 的特征</title>
       <link>https://stackoverflow.com/questions/72611870/how-to-deal-with-features-with-more-than-80-missingness</link>
-      <description><![CDATA[我正在处理一个非常糟糕的临床数据集，它有 300 个样本、400 个特征，将用于机器学习。我的导师告诉我这个数据集中有一些具有生物学意义的特征，并要求我保留它们，但其中许多特征缺失了 50% 以上，甚至 80% 以上。我该怎么办？使用模式填充是否会影响它们的性能。]]></description>
+      <description><![CDATA[我正在处理一个非常糟糕的临床数据集，它有 300 个样本、400 个特征，将用于机器学习。我的导师告诉我这个数据集中有一些具有生物学意义的特征，并要求我保留它们，但其中许多特征缺失了 50% 以上，甚至 80% 以上。我该怎么办？用模式填充会影响它们的性能吗？]]></description>
       <guid>https://stackoverflow.com/questions/72611870/how-to-deal-with-features-with-more-than-80-missingness</guid>
       <pubDate>Tue, 14 Jun 2022 05:23:12 GMT</pubDate>
     </item>
