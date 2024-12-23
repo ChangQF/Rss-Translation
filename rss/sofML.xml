@@ -4,7 +4,99 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 23 Dec 2024 03:23:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 23 Dec 2024 06:25:41 GMT</lastBuildDate>
+    <item>
+      <title>二进制交叉熵的实现给出不正常的结果</title>
+      <link>https://stackoverflow.com/questions/79302179/implementation-of-binary-cross-entropy-gives-not-normal-result</link>
+      <description><![CDATA[我正在尝试构建一个 NN，但在训练阶段，我得到的损失函数值异常。这是为什么？
+哦，我只能使用 NumPy。
+这就是数据看起来相似的方式：
+ print(X_train.shape) #(784,800)
+print(X_test.shape) #(784,200)
+print(Y_train.shape) #(800,1)
+print(Y_test.shape) #(200,1)
+
+损失函数 - BCE
+ def log_loss(y_hat, y):
+m = y.shape[0]
+epsilon = 1e-15 
+y_hat = np.clip(y_hat, epsilon, 1 - epsilon) 
+
+# loss = -1/m * (y * np.log(y_hat) + (1 - y) * np.log(1 - y_hat))
+损失 = -1/m * (np.dot(y.T,np.log(y_hat)) + np.dot((1-y).T, np.log(1-y_hat)))
+回报损失
+
+训练阶段 - 前向传播 + 反向传播
+ input_layer = X_train.shape[0]
+hidden_​​layer = 128
+learning_rate = 0.01
+epochs = 10
+
+W1 = np.random.randn(hidden_​​layer, input_layer)
+b1 = np.zeros((hidden_​​layer, 1))
+W2 = np.random.randn(1, hidden_​​layer)
+b2 = np.zeros((1, 1))
+
+X = X_train
+Y = Y_train
+loss_list = []
+epoch_list = []
+num_of_examples = X.shape[1]
+
+for i in range(epochs):
+avg_epoch_loss = 0
+for j in range(num_of_examples):
+
+Z1 = np.matmul(W1,X[:,j].reshape(-1,1)) + b1 # 不要忘记添加偏差
+A1 = sigmoid(Z1)
+Z2 = np.matmul(W2,A1) + b2
+A2 = sigmoid(Z2)
+Yout = Y[j]
+
+loss = log_loss( A2, Yout)
+avg_epoch_loss = avg_epoch_loss + loss
+
+dZ2 = (A2-Yout)
+dW2 = np.matmul(dZ2,A1.T)
+db2 = dZ2
+
+dA1 = np.matmul(W2.T,dZ2)
+dZ1 = dA1 * A1 * (1 - A1)
+dW1 = np.matmul(dZ1,X[:,j].reshape(-1,1).T)
+db1 = dZ1
+
+W2 = W2 - 学习率 * dW2
+b2 = b2 - 学习率 * db2
+W1 = W1 - 学习率 * dW1
+b1 = b1 - 学习率 * db1
+
+avg_epoch_loss = avg_epoch_loss/num_of_examples
+loss_list.append(avg_epoch_loss)
+epoch_list.append(i)
+print(&quot;Epoch&quot;, i,&quot;损失：&quot;，avg_epoch_loss)
+
+这些是不正常的值 - 当然是寻找 0-1 之间的值：
+Epoch 0 损失：[-18.37821485]
+Epoch 1 损失：[-18.82406892]
+Epoch 2 损失：[-18.82406892]
+Epoch 3 损失：[-19.99316345]
+Epoch 4 损失：[-29.91647793]
+Epoch 5 损失：[-32.32075724]
+Epoch 6 损失：[-32.89639034]
+Epoch 7 损失：[-32.34691639]
+Epoch 8 损失： [-32.749394]
+第 9 阶段损失：[-33.61631871]
+]]></description>
+      <guid>https://stackoverflow.com/questions/79302179/implementation-of-binary-cross-entropy-gives-not-normal-result</guid>
+      <pubDate>Mon, 23 Dec 2024 05:00:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 ONNXRuntime C++ 优化 Florence-2 模型推理 - 生成循环的性能优化</title>
+      <link>https://stackoverflow.com/questions/79302122/optimizing-florence-2-model-inference-with-onnxruntime-c-performance-optimiz</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79302122/optimizing-florence-2-model-inference-with-onnxruntime-c-performance-optimiz</guid>
+      <pubDate>Mon, 23 Dec 2024 04:15:57 GMT</pubDate>
+    </item>
     <item>
       <title>模型无法正常学习[关闭]</title>
       <link>https://stackoverflow.com/questions/79301299/model-cant-learn-normally</link>
@@ -154,45 +246,6 @@ device=device)
       <pubDate>Wed, 18 Dec 2024 11:45:52 GMT</pubDate>
     </item>
     <item>
-      <title>在 Google Cloud Functions 中部署 Keras 模型进行预测</title>
-      <link>https://stackoverflow.com/questions/79288128/deploying-keras-model-for-prediction-in-google-cloud-functions</link>
-      <description><![CDATA[我一直在尝试将一个非常简单的 Keras 玩具模型部署到 Cloud Functions，该模型可以预测图像的类别，但由于未知原因，当执行到 predict 方法时，它会卡住，不会抛出任何错误，最终会超时。
-import functions_framework
-import io
-import numpy as np
-import tensorflow as tf
-
-from tensorflow.keras.models import load_model
-from PIL import Image
-
-model = load_model(&quot;gs://&lt;my-bucket&gt;/cifar10_model.keras&quot;)
-
-class_names = [&#39;airplane&#39;, &#39;automobile&#39;, &#39;bird&#39;, &#39;cat&#39;, &#39;deer&#39;, &#39;dog&#39;, &#39;frog&#39;, &#39;horse&#39;, &#39;ship&#39;, &#39;truck&#39;]
-
-def preprocess_image(image_file):
-img = Image.open(io.BytesIO(image_file.read()))
-img = img.resize((32, 32))
-img = np.array(img)
-img = img / 255.0
-img = img.reshape(1, 32, 32, 3)
-return img
-
-@functions_framework.http
-def predict(request):
-image = preprocess_image(request.files[&#39;image_file&#39;])
-print(image.shape) # 这会打印 OK
-prediction = model.predict(image)
-print(prediction) # 永远不会打印
-predict_class = class_names[np.argmax(prediction)]
-return f&quot;Predicted class: {predicted_class}&quot;
-
-本地调试运行良好，预测速度如预期一样快（模型权重文件为 2MB）。我还在此过程中添加了几个打印（从上面的代码片段中删除），执行工作正常，直到 predict 方法。
-即使最小计算配置应该可以工作，我还是尝试保留更多内存和 CPU，但没有任何效果。该模型托管在存储中，我尝试先下载它，但也没有用。我也尝试在 tf.device(&#39;/cpu:0&#39;) 上下文中进行预测，传递 step=1 参数并首先将图像数组转换为 Keras 数据集，如 ChatGPT 所建议的那样，结果相同。实际上，调用 predict 根本没有打印任何内容。调用 call 而不是 predict 没有任何效果。
-我错过了什么？]]></description>
-      <guid>https://stackoverflow.com/questions/79288128/deploying-keras-model-for-prediction-in-google-cloud-functions</guid>
-      <pubDate>Tue, 17 Dec 2024 13:51:16 GMT</pubDate>
-    </item>
-    <item>
       <title>Pytorch GRU 错误 RuntimeError：大小不匹配，m1：[1600 x 3]，m2：[50 x 20]</title>
       <link>https://stackoverflow.com/questions/66131870/pytorch-gru-error-runtimeerror-size-mismatch-m1-1600-x-3-m2-50-x-20</link>
       <description><![CDATA[]]></description>
@@ -216,14 +269,6 @@ return f&quot;Predicted class: {predicted_class}&quot;
 谢谢]]></description>
       <guid>https://stackoverflow.com/questions/58224649/what-is-lightgbms-support-for-missing-labels</guid>
       <pubDate>Thu, 03 Oct 2019 18:07:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>glove 和 word2vec 的主要区别是什么？</title>
-      <link>https://stackoverflow.com/questions/56071689/whats-the-major-difference-between-glove-and-word2vec</link>
-      <description><![CDATA[word2vec 和 glove 有什么区别？
-这两种方法都是训练词向量的方法吗？如果是，那么我们该如何使用这两种方法？]]></description>
-      <guid>https://stackoverflow.com/questions/56071689/whats-the-major-difference-between-glove-and-word2vec</guid>
-      <pubDate>Fri, 10 May 2019 06:10:19 GMT</pubDate>
     </item>
     <item>
       <title>如何在 PyTorch 中初始化权重？</title>
