@@ -4,9 +4,59 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 23 Dec 2024 09:17:59 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 23 Dec 2024 12:33:09 GMT</lastBuildDate>
     <item>
-      <title>并集和交集的 VC 维数的上界</title>
+      <title>训练 transformer 模型时出现 OOM 错误</title>
+      <link>https://stackoverflow.com/questions/79302713/oom-error-when-training-transformer-model</link>
+      <description><![CDATA[我正在研究 HMER（手写数学表达式识别）问题，并尝试使用 CNN-Transformer 架构。但是，当我尝试训练我的模型时，我遇到了此错误：
+DefaultCPUAllocator：内存不足：您尝试分配 69271363584 字节。
+我认为我的位置编码存在一些问题，但我真的不知道如何调试它或这里真正的问题是什么（我在这方面还只是初学者）
+我当前的模型如下所示
+class PositionalEncoding(nn.Module):
+def __init__(self, d_model, max_len=5000):
+super(PositionalEncoding, self).__init__()
+self.encoding = torch.zeros(max_len, d_model)
+position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+self.encoding[:, 0::2] = torch.sin(position * div_term)
+self.encoding[:, 1::2] = torch.cos(position * div_term)
+self.encoding = self.encoding.unsqueeze(0) # 添加批次维度
+
+def forward(self, x):
+seq_len = x.size(1)
+return x + self.encoding[:, :seq_len, :].to(x.device)
+
+class TransformerDecoder(nn.Module):
+def __init__(self, vocab_size, d_model, num_heads, num_layers, max_seq_length):
+super(TransformerDecoder, self).__init__()
+self.embedding = nn.Embedding(vocab_size, d_model)
+self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
+decrypt_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=num_heads)
+self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+self.fc_out = nn.Linear(d_model, vocab_size)
+
+def forward(self, target_seqs, memory, target_mask):
+# 嵌入目标序列
+embedded = self.embedding(target_seqs) # (batch, seq_len, d_model)
+embedded = checkpoint(self.positional_encoding, embedded) # 添加位置编码
+# 转置以兼容 nn.TransformerDecoder (seq_len, batch, d_model)
+embedded = embedded.permute(1, 0, 2)
+memory = memory.permute(1, 0, 2)
+# 解码
+coded = checkpoint(self.transformer_decoder, embedded, memory, target_mask) # (seq_len, batch, d_model)
+# 转置回 (batch, seq_len, d_model)
+coded = decrypted.permute(1, 0, 2)
+# 最终输出层
+logits = checkpoint(self.fc_out,coded) # (batch, seq_len, vocab_size)
+return logits
+
+
+我的代码有什么问题吗？如果没有，是什么原因导致我遇到这个问题的]]></description>
+      <guid>https://stackoverflow.com/questions/79302713/oom-error-when-training-transformer-model</guid>
+      <pubDate>Mon, 23 Dec 2024 09:44:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>并集和交集的 VC 维数的上限[关闭]</title>
       <link>https://stackoverflow.com/questions/79302585/upper-bound-on-vc-dimension-of-union-and-intersection</link>
       <description><![CDATA[问题：类 C 的 VC 维度为 d。类 C’ 包括由 C 中 s 个对象的交集和并集（以任何顺序）形成的所有对象。给出 C’ 的 VC 维度的上限。
 尝试
@@ -22,49 +72,18 @@
       <pubDate>Mon, 23 Dec 2024 08:40:39 GMT</pubDate>
     </item>
     <item>
-      <title>无法在 colab 中获取蜡烛图图案</title>
-      <link>https://stackoverflow.com/questions/79302512/unable-to-get-candlestick-patterns-in-colab</link>
-      <description><![CDATA[import pandas as pd
-import numpy as np
-import yfinance as yf
-import plotly.graph_objects as go # 用于烛台图
-df=yf.download(&quot;TATAPOWER.NS&quot;,start = &#39;2012-11-01&#39;, end = &#39;2023-12-22&#39;, interval = &#39;1wk&#39;)
-fig = go.Figure(data=[go.Candlestick(
-x=df.index,
-open=df[&#39;Open&#39;],
-high=df[&#39;High&#39;],
-low=df[&#39;Low&#39;],
-close=df[&#39;Close&#39;]
-)])
-
-fig.update_layout(
-title=&#39;TATAPOWER Weekly (1990 - 2023)&#39;,
-xaxis_title=&#39;Date&#39;,
-yaxis_title=&#39;Price&#39;,
-xaxis_rangeslider_visible=False
-)
-
-fig.show()
-
-我正在尝试获取一个项目的烛台图案，而每次我尝试使用 colab 时，它都只提供一个空图表。
-请提出改进​​和更正建议。
-没有获取烛台图案，而是打开了一个空白图表]]></description>
-      <guid>https://stackoverflow.com/questions/79302512/unable-to-get-candlestick-patterns-in-colab</guid>
-      <pubDate>Mon, 23 Dec 2024 08:06:51 GMT</pubDate>
-    </item>
-    <item>
       <title>二进制交叉熵的实现给出不正常的结果</title>
       <link>https://stackoverflow.com/questions/79302179/implementation-of-binary-cross-entropy-gives-not-normal-result</link>
-      <description><![CDATA[我正在尝试构建一个 NN，但在训练阶段，我得到的损失函数值异常。这是为什么？
+      <description><![CDATA[我正在尝试构建一个 NN，但在训练阶段，我得到的损失函数值就异常了。这是为什么呢？
 哦，我只能使用 NumPy。
 这就是数据看起来相似的方式：
- print(X_train.shape) #(784,800)
+print(X_train.shape) #(784,800)
 print(X_test.shape) #(784,200)
 print(Y_train.shape) #(800,1)
 print(Y_test.shape) #(200,1)
 
 损失函数 - BCE
- def log_loss(y_hat, y):
+def log_loss(y_hat, y):
 m = y.shape[0]
 epsilon = 1e-15 
 y_hat = np.clip(y_hat, epsilon, 1 - epsilon) 
@@ -74,7 +93,7 @@ y_hat = np.clip(y_hat, epsilon, 1 - epsilon)
 回报损失
 
 训练阶段 - 前向传播 + 反向传播
- input_layer = X_train.shape[0]
+input_layer = X_train.shape[0]
 hidden_​​layer = 128
 learning_rate = 0.01
 epochs = 10
@@ -138,7 +157,7 @@ Epoch 8 损失： [-32.749394]
       <pubDate>Mon, 23 Dec 2024 05:00:53 GMT</pubDate>
     </item>
     <item>
-      <title>使用 ONNXRuntime C++ 优化 Florence-2 模型推理 - 生成循环的性能优化</title>
+      <title>使用 ONNXRuntime C++ 优化 Florence-2 模型推理 - 生成循环的性能优化 [关闭]</title>
       <link>https://stackoverflow.com/questions/79302122/optimizing-florence-2-model-inference-with-onnxruntime-c-performance-optimiz</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79302122/optimizing-florence-2-model-inference-with-onnxruntime-c-performance-optimiz</guid>
@@ -288,7 +307,7 @@ device=device)
       <pubDate>Wed, 10 Feb 2021 06:23:22 GMT</pubDate>
     </item>
     <item>
-      <title>Python 中的神经网络</title>
+      <title>Python 中的神经网络[关闭]</title>
       <link>https://stackoverflow.com/questions/61845701/neural-network-in-python</link>
       <description><![CDATA[我最近开始尝试在不使用任何 NW 模块（如 Tensor Flow）的情况下创建自己的神经网络，但我无法将已定义的变量放入函数中，因此我将数据放入文本文件中，然后对其进行读写。虽然它不允许我将权重重新转换为 int，以便我可以将它们乘以它们的学习率。我收到一条错误消息，提示 int 不适用于基数。
 
