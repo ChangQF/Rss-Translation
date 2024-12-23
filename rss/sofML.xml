@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 22 Dec 2024 21:14:32 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 23 Dec 2024 01:17:21 GMT</lastBuildDate>
     <item>
       <title>模型无法正常学习[关闭]</title>
       <link>https://stackoverflow.com/questions/79301299/model-cant-learn-normally</link>
@@ -133,238 +133,13 @@ device=device)
       <pubDate>Sat, 21 Dec 2024 20:24:49 GMT</pubDate>
     </item>
     <item>
-      <title>在 Swin transformer 中出现此运行时错误：mat1 和 mat2 形状无法相乘（32x7 和 1024x5）</title>
-      <link>https://stackoverflow.com/questions/79299672/in-swin-transformer-getting-this-runtime-error-mat1-and-mat2-shapes-cannot-be-m</link>
-      <description><![CDATA[如标题所述。我得到了那里显示的错误。错误发生在显示 outputs = model(images) 的行上。我正在尝试使用 swin transformer 对 5 个类别进行图像分类，并且只对最后几层进行微调。以下是代码：
-# 加载预先训练的 Swin Transformer 模型
-base_model = timm.create_model(&#39;swin_base_patch4_window7_224&#39;, pretrained=True)
-
-# 修改模型，在分类头之前包含全局平均池化
-class SwinClassifier(nn.Module):
-def __init__(self, base_model, num_classes):
-super(SwinClassifier, self).__init__()
-self.base_model = base_model
-self.global_pool = nn.AdaptiveAvgPool2d(1) # 全局平均池化，将空间维度降低到 1x1
-self.fc = nn.Linear(base_model.num_features, num_classes) # 全连接层
-
-def forward(self, x):
-x = self.base_model.forward_features(x) # 提取特征
-print(f&quot;shape after forward_features: {x.shape}&quot;) # 调试行
-x = self.global_pool(x) # 应用全局平均池化 (输出形状：[batch_size, num_features, 1, 1])
-print(f&quot;shape after global pooling: {x.shape}&quot;) # 调试行
-x = x.view(x.size(0), -1) # 将张量展平为形状 [batch_size, num_features]
-print(f&quot;shape after flattening: {x.shape}&quot;) # 调试行
-x = self.fc(x) # 分类头以获取最终输出
-return x
-
-# 创建修改后的模型的实例
-model = SwinClassifier(base_model, num_classes=5)
-
-# 解冻最后 4 层 (blocks 9 到 12)
-for name, param in model.base_model.named_pa​​rameters():
-如果名称中包含“layers.3.blocks.9”或“layers.3.blocks.10”或“layers.3.blocks.11”或“layers.3.blocks.12” in name:
-param.requires_grad = True # 取消冻结最后 4 层
-else:
-param.requires_grad = False # 冻结其余部分
-
-# 确保新的头部参数可训练
-for param in model.fc.parameters():
-param.requires_grad = True
-
-# 将模型移动到设备
-model.to(device)
-
-# 定义损失函数和优化器
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
-
-# 提前停止参数
-patience = 5 # 停止前没有改进的 epoch 数量
-best_val_loss = float(&#39;inf&#39;) # 将最佳验证损失初始化为无穷大
-epochs_without_improvement = 0 # 用于跟踪没有改进的 epoch 的计数器改进
-best_model_wts = None # 存储最佳模型的权重
-
-# 日志设置
-logging.basicConfig(filename=&#39;train_log_MessiSwinFineTune3LyrAUCF1Kappa.txt&#39;, level=logging.INFO, format=&#39;%(asctime)s - %(message)s&#39;)
-
-# a
-
-epochs = 30 # 设置最大 epoch 数
-
-for epoch in range(epochs):
-model.train()
-running_loss = 0.0
-correct = 0
-total = 0
-all_preds = [] # 用于存储混淆矩阵的所有预测的列表
-all_labels = [] # 用于存储混淆矩阵的所有真实标签的列表
-
-# 训练循环
-for images, labels in train_loader:
-
-images, labels = images.to(device), labels.to(device)
-
-# 将参数梯度归零
-optimizer.zero_grad()
-
-# 正向传递修改后的 Swin 模型
-输出 = 模型 (图像)
-
-# 计算损失
-损失 = 标准 (输出、标签)
-
-# 反向传播和优化
-损失.backward()
-优化器.step()
-
-# 统计
-运行损失 +=损失.item()
-_, 预测 = torch.max(输出, 1)
-总 += 标签.size(0)
-正确 += (预测 == 标签).sum().item()
-
-all_preds.extend(预测.cpu().numpy())
-all_labels.extend(标签.cpu().numpy())
-
-train_acc = 100 * 正确 / 总
-avg_train_loss = 运行损失 / len(train_loader)
-
-
-forward_features 之后的形状：torch.Size([32, 7, 7, 1024])
-全局之后的形状池化：torch.Size([32, 7, 1, 1])
-打印扁平化后的形状：torch.Size([32, 7])，并显示运行时错误，提示 mat1 和 mat2 形状无法相乘（32x7 和 1024x5）
-以上内容与错误一起打印。有人能告诉我到底哪里出了问题吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79299672/in-swin-transformer-getting-this-runtime-error-mat1-and-mat2-shapes-cannot-be-m</guid>
-      <pubDate>Sat, 21 Dec 2024 15:44:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>岭回归的 Scratch 实现</title>
-      <link>https://stackoverflow.com/questions/79299410/scratch-implementation-of-ridge-regression</link>
-      <description><![CDATA[我正在尝试实现 Ridge 回归，但我觉得 Python 运算符缺少了一些东西。这是我的代码：
-import numpy as np
-
-x = np.random.rand(10, 2) 
-y = np.random.rand(10, 1) 
-lambda_reg = 0.1 
-alpha = 0.1 
-num_iterations = 100000 
-
-X_train = np.hstack((np.ones((x.shape[0], 1)), x))
-
-def ridge_regression_gradient_descent(X, y, lambda_reg, alpha, num_iterations):
-n, p = X.shape 
-B = np.zeros(p) 
-# 梯度下降循环
-for _ in range(num_iterations):
-y_pred = X.dot(B).reshape(-1, 1) 
-gradient_B0 = - (1/n) * np.sum(y - y_pred) 
-gradient_B = - (1/n) * (X[:, 1:].T @ (y - y_pred)) + 
-lambda_reg * B[1:].reshape(-1, 1) # B1 到 Bp 的梯度 
-
-B[0] -= alpha * gradient_B0 
-B[1:] -= alpha * gradient_B.reshape(-1) 
-return B
-
-B = ridge_regression_gradient_descent(X_train, y, lambda_reg, alpha, num_iterations)
-print(B)
-
-有人能看出我做错了什么吗？
-我尝试对矩阵乘法的代码进行多次更改 + 还将所有内容重塑为正确的格式。我实际上得到了 3 个 Beta，所以这没问题，但我没有得到任何接近使用公式得到的结果：B = (X.T X + lambda * I)^-1 * X.T Y]]></description>
-      <guid>https://stackoverflow.com/questions/79299410/scratch-implementation-of-ridge-regression</guid>
-      <pubDate>Sat, 21 Dec 2024 12:31:54 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何显示自动编码器生成的图像？</title>
-      <link>https://stackoverflow.com/questions/79297188/how-do-i-display-the-images-generated-by-an-autoencoder</link>
-      <description><![CDATA[我使用 python 创建了一个自动编码器，没有任何错误。但是，我不知道如何显示自动编码器生成的图像的代码。自动编码器的代码如下所示：
-import numpy as np
-import matplotlib.pyplot as plt
-
-from tensorflow.keras import layer, models, datasets, callbacks
-import tensorflow.keras.backend as K
-
-#由于某些奇怪的原因，文本中没有包含
-from keras.models import Model
-
-#将数据导入训练集和测试集
-from tensorflow.keras import datasets
-(x_train,y_train), (x_test,y_test) = datasets.fashion_mnist.load_data()
-
-#缩放图像
-def preprocess(imgs):
-imgs = imgs.astype(&quot;float32&quot;) / 255.0
-imgs = np.pad(imgs, ((0, 0), (2, 2), (2, 2)), constant_values=0.0)
-imgs = np.expand_dims(imgs, -1)
-return imgs
-x_train = preprocess(x_train)
-x_test = preprocess(x_test)
-
-#编码器
-encoder_input = layer.Input(
-shape=(32, 32, 1), name = &quot;encoder_input&quot;
-)
-x = layer.Conv2D(32, (3, 3), strides = 2,activation = &#39;relu&#39;, padding=&quot;same&quot;)(
-encoder_input
-)
-x = layer.Conv2D(64, (3, 3), strides = 2,activation = &#39;relu&#39;, padding=&quot;same&quot;)(x)
-x = layer.Conv2D(128, (3, 3), strides = 2,activation = &#39;relu&#39;, padding=&quot;same&quot;)(x)
-shape_before_flattening = K.int_shape(x)[1:]
-x = layer.Flatten()(x)
-encoder_output = layer.Dense(2, name=&quot;encoder_output&quot;)(x)
-encoder = models.Model(encoder_input,coder_output)
-
-#解码器
-decoder_input = layer.Input(shape=(2,), name=&quot;decoder_input&quot;)
-x = layer.Dense(np.prod(shape_before_flattening))(decoder_input)
-x = layer.Reshape(shape_before_flattening)(x)
-x = layer.Conv2DTranspose(
-128, (3, 3), strides=2, 激活 = &#39;relu&#39;, padding=&quot;same&quot;
-)(x)
-x = layer.Conv2DTranspose(
-64, (3, 3), strides=2,activation = &#39;relu&#39;, padding=&quot;same&quot;
-)(x)
-x = layer.Conv2DTranspose(
-32, (3, 3), strides=2,activation = &#39;relu&#39;, padding=&quot;same&quot;
-)(x)
-decoder_output = layer.Conv2D(
-1,
-(3, 3),
-strides = 1,
-activation=&quot;sigmoid&quot;,
-padding=&quot;same&quot;,
-name=&quot;decoder_output&quot;
-)(x)
-decoder = models.Model(decoder_input,coder_output)
-
-# 将编码器与解码器连接起来
-autoencoder = Model(encoder_input,coder(encoder_output))
-
-# 编译自动编码器
-autoencoder.compile(optimizer=&quot;adam&quot;, loss=&quot;binary_crossentropy&quot;)
-# 通过将输入图像作为输入和输出传入来训练自动编码器
-# 使用一个 epoch
-
-autoencoder.fit(
-x_train,
-x_train,
-epochs=1,
-batch_size=100,
-shuffle=True,
-validation_data=(x_test, x_test),
-)
-
-# 重建图像
-example_images = x_test[:50]
-predictions = autoencoder.predict(example_images)
-
-我尝试使用 plt.imshow，如下所示。我期望看到自动编码器生成的 10 张图像。但是它不起作用。我真的不知道如何使用它：
-for i in range(10):
-plt.figure(figsize=(20,3))
-plt.imshow(predictions[i].astype(&quot;float32&quot;), cmap=&quot;gray_r&quot;)
-plt.show()
-]]></description>
-      <guid>https://stackoverflow.com/questions/79297188/how-do-i-display-the-images-generated-by-an-autoencoder</guid>
-      <pubDate>Fri, 20 Dec 2024 12:10:50 GMT</pubDate>
+      <title>ST-GCN 是否过时了？[关闭]</title>
+      <link>https://stackoverflow.com/questions/79297114/is-st-gcn-outdated</link>
+      <description><![CDATA[我正在尝试构建一个管道来跟踪视频监控录像中的异常情况。
+为了对检测到的人的行为进行分类，我想使用 ST-GCN，但是我能找到的唯一文档是 5 年前更新的，但阅读最新研究 ST-GCN 仍在使用中。
+有谁知道更新的文档或能给我一些提示，告诉我如何找到一些关于如何将其实现到我的管道中的信息？]]></description>
+      <guid>https://stackoverflow.com/questions/79297114/is-st-gcn-outdated</guid>
+      <pubDate>Fri, 20 Dec 2024 11:42:14 GMT</pubDate>
     </item>
     <item>
       <title>‘super’ 对象没有属性‘__sklearn_tags__’</title>
@@ -418,37 +193,20 @@ return f&quot;Predicted class: {predicted_class}&quot;
       <pubDate>Tue, 17 Dec 2024 13:51:16 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用具有动态尺寸输入的 Dense 层？</title>
-      <link>https://stackoverflow.com/questions/79280552/how-to-use-a-dense-layer-with-an-input-that-has-a-dynamically-sized-dimension</link>
-      <description><![CDATA[我有一个模型，其输入（具有形状（高度、宽度、时间）的图像批次）具有动态大小的维度（时间），该维度仅在运行时确定。但是，Dense 层需要完全定义的空间维度。代码片段示例：
-import tensorflow as tf
-from tensorflow.keras.layers import Dense, Flatten, Input
-
-# 定义具有未定义维度的输入（无）
-input_tensor = Input(shape=(None, 256, 256, None, 13))
-
-# 应用密集层（需要完全定义的形状）
-x = Flatten()(input_tensor)
-x = Dense(10)(x)
-
-# 构建模型
-model = tf.keras.models.Model(inputs=input_tensor, output=x)
-
-model.summary()
-
-这会引发错误：
-ValueError：密集层输入的最后一个维度应已定义。未找到。
-
-如何使用 Flatten 而不是 GlobalAveragePooling3D 等替代方案使其工作？本质上，我正在寻找一种方法来创建一个具有原始像素值的 1D 数组，但与 Dense 层兼容。]]></description>
-      <guid>https://stackoverflow.com/questions/79280552/how-to-use-a-dense-layer-with-an-input-that-has-a-dynamically-sized-dimension</guid>
-      <pubDate>Sat, 14 Dec 2024 11:31:35 GMT</pubDate>
-    </item>
-    <item>
       <title>Pytorch GRU 错误 RuntimeError：大小不匹配，m1：[1600 x 3]，m2：[50 x 20]</title>
       <link>https://stackoverflow.com/questions/66131870/pytorch-gru-error-runtimeerror-size-mismatch-m1-1600-x-3-m2-50-x-20</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/66131870/pytorch-gru-error-runtimeerror-size-mismatch-m1-1600-x-3-m2-50-x-20</guid>
       <pubDate>Wed, 10 Feb 2021 06:23:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>Python 中的神经网络</title>
+      <link>https://stackoverflow.com/questions/61845701/neural-network-in-python</link>
+      <description><![CDATA[我最近开始尝试在不使用任何 NW 模块（如 Tensor Flow）的情况下创建自己的神经网络，但我无法将已定义的变量放入函数中，因此我将数据放入文本文件中，然后对其进行读写。虽然它不允许我将权重重新转换为 int，以便我可以将它们乘以它们的学习率。我收到一条错误消息，提示 int 不适用于基数。
+
+你对此有什么建议吗？]]></description>
+      <guid>https://stackoverflow.com/questions/61845701/neural-network-in-python</guid>
+      <pubDate>Sun, 17 May 2020 01:07:59 GMT</pubDate>
     </item>
     <item>
       <title>LightGBM 对缺失标签的支持是什么</title>
@@ -468,6 +226,76 @@ ValueError：密集层输入的最后一个维度应已定义。未找到。
       <pubDate>Fri, 10 May 2019 06:10:19 GMT</pubDate>
     </item>
     <item>
+      <title>神经网络（简单）</title>
+      <link>https://stackoverflow.com/questions/46079541/neural-network-simple</link>
+      <description><![CDATA[我很好奇为什么我没有打印任何输出，因为代码没有错误。
+import numpy as np
+
+class NN():
+def _init_(self):
+# 种子随机数生成器，因此每次程序运行时都会生成相同的数字
+# np.random.seed(1)
+
+# 模型单个神经元，具有 3 个输入连接和 1 个输出连接
+# 将随机权重分配给 3x1 矩阵，值范围为 -1 到 1
+# 平均值为 0
+self.synaptic_weights = 2 * np.random.random((3, 1)) - 1
+
+# 描述 s 形曲线我们传递输入的加权和
+# 通过此函数将它们标准化为 0 和 1 之间
+def __sigmoid(self, x):
+return 1 / (1 + np.exp(-x))
+
+# 梯度sigmoid 曲线
+def __sigmoid_derivative(self, x):
+return x * (1 - x)
+
+def train(self, training_set_input, training_set_output, number_of_training_iterations):
+for iteration in np.xrange(number_of_training_iterations):
+# 将训练集通过神经网络
+output = self.predict(training_set_input)
+
+error = training_set_output - output
+
+# 将误差乘以输入，再乘以 sigmoid 曲线的梯度
+adjustment = np.dot(training_set_input.T, error * self.__sigmoid_derivative(output))
+
+# 调整权重
+self.synaptic_weights += adjustment
+
+def predict(self, input):
+# 将输入通过神经网络（单个神经元）
+return self.__sigmoid(np.dot(inputs, self.synaptic_weights))
+
+if __name__ == &quot;__NN__&quot;:
+# 初始化单神经元神经网络
+nn = NN()
+weightz = nn.synaptic_weights
+new_predict = nn.predict(np.array[1, 0, 0])
+
+print(&quot;随机起始突触权重&quot;)
+print(weightz)
+
+# T 垂直翻转矩阵
+training_set_input = np.array([0, 0, 1], [1, 1, 1], [1, 0, 1], [0, 1, 1])
+training_set_output = np.array([0, 1, 0, 0]).T
+
+# 使用训练集训练网络
+# 执行 10,000 次，每次进行小幅调整
+nn.train(training_set_input, training_set_output, 10000)
+
+print(&quot;新的起始突触权重&quot;)
+print(weightz)
+
+# 测试
+print(&quot;预测&quot;)
+print(new_predict)
+
+将文件保存为 NN.py]]></description>
+      <guid>https://stackoverflow.com/questions/46079541/neural-network-simple</guid>
+      <pubDate>Wed, 06 Sep 2017 15:51:06 GMT</pubDate>
+    </item>
+    <item>
       <title>AttributeError：模块“tensorflow.python.pywrap_tensorflow”没有属性“TFE_Py_RegisterExceptionClass”</title>
       <link>https://stackoverflow.com/questions/46010571/attributeerror-module-tensorflow-python-pywrap-tensorflow-has-no-attribute-t</link>
       <description><![CDATA[我正在尝试使用最新的可用资源开发一些时间序列序列预测。为此，我确实检查了 TensorFlow 时间序列的示例代码，但我收到了此错误：
@@ -477,6 +305,48 @@ AttributeError：模块“tensorflow.python.pywrap_tensorflow”没有属性“T
 这是我尝试运行的代码。我在 Google 上没有找到与该问题相关的任何有用信息。关于如何解决这个问题您有什么想法吗？]]></description>
       <guid>https://stackoverflow.com/questions/46010571/attributeerror-module-tensorflow-python-pywrap-tensorflow-has-no-attribute-t</guid>
       <pubDate>Sat, 02 Sep 2017 04:48:51 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 MLP 的神经网络分类器</title>
+      <link>https://stackoverflow.com/questions/43238285/neural-network-classifier-using-mlp</link>
+      <description><![CDATA[我正在开发一个 Python 应用程序，它使用一个数据集对扑克牌进行分类，我将发布一些片段。它似乎效果不佳。它无法正确地对牌进行分类。我得到了以下错误
+第 298 行，在 fit 中
+raise ValueError(&quot;Multioutput target data is not supports with &quot;
+ValueError: Multioutput target data is not supports with label binarization
+
+以下是我的代码：
+import pandas as pnd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import classes_report
+training = pnd.read_csv(&quot;.idea/train.csv&quot;)
+training.keys()
+training.shape
+X = np.array(training)
+y = np.array(training)
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+scaler = StandardScaler()
+# 仅适合训练数据
+scaler.fit(X_train)
+X_train = scaler.transform(X_train)
+X_test = scaler.transform(X_test)
+mlp = MLPClassifier(hidden_​​layer_sizes=(30, 30, 30, 30, 30, 30, 30, 30, 30))
+mlp.fit(X_train, y_train)
+predictions = mlp.predict(X_test)
+print(classification_report(y_test, predictions))
+len(mlp.coefs_)
+len(mlp.coefs_[0])
+len(mlp.intercepts_[0])
+
+以下是我使用的数据集示例：
+图片在这里
+这里是数据集的描述：
+https://archive.ics.uci.edu/ml/datasets/Poker+Hand
+有什么问题吗？]]></description>
+      <guid>https://stackoverflow.com/questions/43238285/neural-network-classifier-using-mlp</guid>
+      <pubDate>Wed, 05 Apr 2017 17:50:50 GMT</pubDate>
     </item>
     </channel>
 </rss>
