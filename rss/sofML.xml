@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 24 Dec 2024 15:16:46 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 24 Dec 2024 18:21:52 GMT</lastBuildDate>
     <item>
       <title>使用 YOLO 将无界输入导出到 mlpackage/mlmodel 文件</title>
       <link>https://stackoverflow.com/questions/79305588/use-yolo-with-unbounded-input-exported-to-an-mlpackage-mlmodel-file</link>
@@ -21,7 +21,7 @@ model.export(format=&quot;coreml&quot;)
       <pubDate>Tue, 24 Dec 2024 12:23:06 GMT</pubDate>
     </item>
     <item>
-      <title>比较图像并返回相似度百分比（针对徽标）</title>
+      <title>比较图像并返回相似度百分比（针对徽标）[关闭]</title>
       <link>https://stackoverflow.com/questions/79305487/compare-images-and-return-similarity-percentage-for-logos</link>
       <description><![CDATA[假设我有 2 张图片
 
@@ -270,7 +270,56 @@ Epoch 8 损失： [-32.749394]
       <pubDate>Wed, 18 Dec 2024 11:45:52 GMT</pubDate>
     </item>
     <item>
-      <title>节点特征对节点分类 GNN 的影响</title>
+      <title>如何在 Hugging Face Trainer 或 SFT Trainer 中记录第零步的训练损失？</title>
+      <link>https://stackoverflow.com/questions/79232257/how-to-log-training-loss-at-step-zero-in-hugging-face-trainer-or-sft-trainer</link>
+      <description><![CDATA[我正在使用 Hugging Face Trainer（或 SFTTrainer）进行微调，我想在步骤 0（在执行任何训练步骤之前）记录训练损失。我知道有一个用于评估的 eval_on_start 选项，但我找不到在训练开始时记录训练损失的直接等效方法。
+是否有办法使用 Trainer 或 SFTTrainer 在步骤 0（在任何更新之前）记录初始训练损失？理想情况下，我希望使用类似于 eval_on_start 的方法。
+以下是我迄今为止尝试过的方法：
+解决方案 1：自定义回调
+我实现了自定义回调，以在训练开始时记录训练损失：
+from transformers import TrainerCallback
+
+class TrainOnStartCallback(TrainerCallback):
+def on_train_begin(self, args, state, control, logs=None, **kwargs):
+# 在第 0 步记录训练损失
+logs = logs or {}
+logs[&quot;train/loss&quot;] = None # 如果可用，用初始值替换 None
+logs[&quot;train/global_step&quot;] = 0
+self.log(logs)
+
+def log(self, logs):
+print(f&quot;Logging at start: {logs}&quot;)
+wandb.log(logs)
+
+# 将回调添加到 Trainer
+trainer = SFTTrainer(
+model=model,
+tokenizer=tokenizer,
+train_dataset=train_dataset,
+eval_dataset=eval_dataset,
+args=training_args,
+optimizers=(optimizer, scheduler),
+callbacks=[TrainOnStartCallback()],
+)
+
+这有效，但感觉有点过头了。它会在训练开始时记录任何步骤之前的指标。
+解决方案 2：手动记录
+或者，我在开始训练之前手动记录训练损失：
+wandb.log({&quot;train/loss&quot;: None, &quot;train/global_step&quot;: 0})
+trainer.train()
+
+问题：
+Trainer 或 SFTTrainer 中是否有任何内置功能可以在第 0 步记录训练损失？或者自定义回调或手动记录是这里的最佳解决方案吗？如果是这样，是否有更好的方法来实现此功能？类似于 eval_on_start 但 train_on_start？
+交叉：
+
+discuss.huggingface
+github/huggingface
+]]></description>
+      <guid>https://stackoverflow.com/questions/79232257/how-to-log-training-loss-at-step-zero-in-hugging-face-trainer-or-sft-trainer</guid>
+      <pubDate>Thu, 28 Nov 2024 00:23:35 GMT</pubDate>
+    </item>
+    <item>
+      <title>节点特征对节点分类的 GNN 的影响</title>
       <link>https://stackoverflow.com/questions/79094576/impact-of-node-features-on-gnns-for-node-classification</link>
       <description><![CDATA[我正在探索各种节点特征对图神经网络 (GNN) 节点分类任务性能的影响。我遇到过 PageRank、HITS 和 基于社区的属性 等特征，它们似乎通过提供额外的上下文信息来提高分类准确性。
 我很想听听您对以下问题的看法：
@@ -496,48 +545,6 @@ print(new_predict)
 将文件保存为 NN.py]]></description>
       <guid>https://stackoverflow.com/questions/46079541/neural-network-simple</guid>
       <pubDate>Wed, 06 Sep 2017 15:51:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 MLP 的神经网络分类器</title>
-      <link>https://stackoverflow.com/questions/43238285/neural-network-classifier-using-mlp</link>
-      <description><![CDATA[我正在开发一个 Python 应用程序，它使用一个数据集对扑克牌进行分类，我将发布一些片段。它似乎效果不佳。它无法正确地对牌进行分类。我得到了以下错误
-第 298 行，在 fit 中
-raise ValueError(&quot;Multioutput target data is not supports with &quot;
-ValueError: Multioutput target data is not supports with label binarization
-
-以下是我的代码：
-import pandas as pnd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import classes_report
-training = pnd.read_csv(&quot;.idea/train.csv&quot;)
-training.keys()
-training.shape
-X = np.array(training)
-y = np.array(training)
-X_train, X_test, y_train, y_test = train_test_split(X, y)
-scaler = StandardScaler()
-# 仅适合训练数据
-scaler.fit(X_train)
-X_train = scaler.transform(X_train)
-X_test = scaler.transform(X_test)
-mlp = MLPClassifier(hidden_​​layer_sizes=(30, 30, 30, 30, 30, 30, 30, 30, 30))
-mlp.fit(X_train, y_train)
-predictions = mlp.predict(X_test)
-print(classification_report(y_test, predictions))
-len(mlp.coefs_)
-len(mlp.coefs_[0])
-len(mlp.intercepts_[0])
-
-以下是我使用的数据集示例：
-图片在这里
-这里是数据集的描述：
-https://archive.ics.uci.edu/ml/datasets/Poker+Hand
-有什么问题吗？]]></description>
-      <guid>https://stackoverflow.com/questions/43238285/neural-network-classifier-using-mlp</guid>
-      <pubDate>Wed, 05 Apr 2017 17:50:50 GMT</pubDate>
     </item>
     </channel>
 </rss>
