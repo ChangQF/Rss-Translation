@@ -4,16 +4,134 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 25 Dec 2024 03:20:27 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Dec 2024 06:24:00 GMT</lastBuildDate>
+    <item>
+      <title>在 Friedman 检验中拒绝 H0，但在任何成对 wilcoxin 检验中均无法拒绝</title>
+      <link>https://stats.stackexchange.com/questions/659188/reject-h0-on-friedman-test-but-fail-to-reject-in-any-pairwise-wilcoxin-test</link>
+      <description><![CDATA[我目前正在比较不同模型的 auroc，我首先进行了 Friedman 检验，然后进行了成对 Wilcoxon 检验以查看差异。
+测试数据：数据链接
+这是我的 r 代码：
+variables &lt;- c(&quot;model_name&quot;, &quot;n_pcs&quot;, &quot;n_snps&quot;,&quot;treatment&quot;)
+
+# 如果尚未完成，则创建“treatment”变量
+auc$treatment &lt;- with(auc, paste(model_name, n_pcs, n_snps, sep = &quot;_&quot;))
+
+# 加载所需库
+library(RColorBrewer)
+
+# 加载所需库
+library(ggplot2)
+library(multcompView)
+
+# 循环遍历变量，执行 Friedman 检验，计算组标签并绘图
+结果 &lt;- lapply(variables, function(var) {
+# 创建矩阵：行 = 观察值，列 = 组（变量的级别）
+组 &lt;- unique(auc[[var]])
+样本 &lt;- sapply(groups, function(g) auc$roc_auc[auc[[var]] == g])
+y &lt;- auc$roc_auc
+
+# 执行 Friedman 检验
+friedman_result &lt;- friedman.test(Sample)
+
+# 打印 Friedman 检验结果
+cat(&quot;Friedman test for&quot;, var, &quot;\n&quot;)
+print(friedman_result)
+cat(&quot;\n&quot;)
+
+# 带 Bonferroni 调整的成对 Wilcoxon 符号秩检验
+p_values &lt;- pairwise.wilcox.test(y, auc[[var]], p.adjust.method = &quot;bonferroni&quot;, exact = FALSE)$p.value
+print(p_values)
+
+# 创建重要性矩阵
+sig_matrix &lt;- matrix(1, nrow = length(groups), ncol = length(groups))
+rownames(sig_matrix) &lt;- colnames(sig_matrix) &lt;- groups
+
+# 用调整后的 p 值填充矩阵
+for (i in 1:nrow(p_values)) {
+for (j in 1:ncol(p_values)) {
+if (!is.na(p_values[i, j])) {
+sig_matrix[i+1, j] &lt;- p_values[i, j]
+sig_matrix[j, i+1] &lt;- p_values[i, j]
+}
+}
+}
+
+print(sig_matrix)
+
+# 分配组标签
+group_labels &lt;- multcompLetters(sig_matrix, Threshold = 0.05)$Letters
+
+# 计算每个组的中位数
+medians &lt;- tapply(auc$roc_auc, auc[[var]], median, na.rm = TRUE)
+
+# 为 ggplot 准备数据
+plot_data &lt;- data.frame(
+roc_auc = y,
+group = factor(auc[[var]], levels = groups)
+)
+label_data &lt;- data.frame(
+group = names(group_labels),
+labels = group_labels,
+y = 1.1 # 图上方组标签的位置
+)
+median_data &lt;- data.frame(
+group = names(medians),
+medians = medians
+)
+
+# 创建 ggplot 箱线图
+p &lt;- ggplot(plot_data, aes(x = group, y = roc_auc)) +
+geom_boxplot(fill = &quot;#EBEBEB&quot;, color = &quot;black&quot;, width = 0.6, position = position_dodge(0.9)) + # 灰色框，带黑色边框
+theme_bw(base_size = 14) +
+geom_text(data = median_data, aes(x = group, y = medians + 0.05, label = round(medians, 2)),
+color = &quot;red&quot;, size = 3) + # 添加中值
+geom_text(data = label_data, aes(x = group, y = y, label = labels),
+color = &quot;blue&quot;, size = 4) + # 添加组标签
+labs(title = paste(&quot;Friedman Test with Pairwise Wilcoxon:&quot;, var),
+x = ifelse(var == &quot;treatment&quot;, &quot;&quot;, var), # 删除 &#39;treatment&#39; 的 x 标签
+y = &quot;AUROC&quot;) +
+ylim(0, 1.2) # 设置 y 轴限值
+
+if (var == &quot;treatment&quot;) {
+p &lt;- p + theme(
+plot.margin = margin(10, 10, 10, 10), # 在图周围添加边距
+axis.text.x = element_text(angle = 45, hjust = 1, size = 8), # 旋转 x 轴标签
+axis.title.x = element_text(size = 10), # 调整 x 轴标题大小
+axis.title.y = element_text(size = 10) # 调整 y 轴标题大小
+)
+} else {
+p &lt;- p + theme(
+plot.margin = margin(10, 10, 10, 10), # 在图表周围添加边距
+axis.title.x = element_text(size = 10), # 调整 x 轴标题大小
+axis.title.y = element_text(size = 10) # 调整 y 轴标题大小
+)
+}
+
+# 打印图表
+print(p)
+
+# 返回测试结果和组标签
+list(test_result = friedman_result, p_values = p_values, group_labels = group_labels)
+})
+
+奇怪的结果：
+Friedman chi-squared = 23.952, df = 3, p-value = 2.556e-05
+ MLP RandomForest SVM
+RandomForest 0.6986949 NA NA
+SVM 0.4126711 1.0000000 NA
+XGBoost 1.0000000 0.4126711 0.1787532
+
+我写错了代码，还是这种情况比较少见，但确实存在？
+谢谢~]]></description>
+      <guid>https://stats.stackexchange.com/questions/659188/reject-h0-on-friedman-test-but-fail-to-reject-in-any-pairwise-wilcoxin-test</guid>
+      <pubDate>Wed, 25 Dec 2024 06:16:32 GMT</pubDate>
+    </item>
     <item>
       <title>我可以使用小样本引导法来满足功效分析要求吗？</title>
       <link>https://stats.stackexchange.com/questions/659185/can-i-use-bootstrapping-for-small-sample-sizes-to-satisfy-the-power-analysis-req</link>
-      <description><![CDATA[各位统计学大师们好，
-我希望你们中的一些人能帮我解决以下情况：
-场景：我有 15 名参与者在条件 A 下执行任务，还有 15 名参与者在条件 B 下执行任务。为了提高数据的有效性，每个参与者重复了 20 次任务。据我了解，在方差分析中，这些数据仍然只被视为每个条件 15 个数据点，因为对于每个参与者，20 次重复减少为一个平均值。所以我的理解是，方差分析没有考虑到我总共进行了 2*300 次测量，但我可能只对每个参与者进行了一次测量。
-问题：虽然条件 A 下的数据似乎始终比条件 B 下的数据小，但功效分析表明，我需要的样本量是条件 A 下的十倍。我没有可能再重复这项研究，而且绝对不可能达到所需的样本量。
-问题：参与者的重复测量表明，重复是相互独立的（例如，没有学习效果等）。对我来说，这意味着事实上我在每个条件下有 300 个数据点，而不仅仅是 15 个平均数据点。如果我将两种条件下的 300 个数据点相互比较，而不对测量值进行平均，统计数据就会奏效。但样本量为 15 时则不行。是否有可能使用重复测量来引导数据，最终目标是满足所需的样本量？您会推荐哪种引导程序？还有其他不需要我重新进行整个实验的建议吗？
-非常感谢您的帮助！]]></description>
+      <description><![CDATA[我有 15 名参与者在条件 A 下执行任务，还有 15 名参与者在条件 B 下执行任务。为了提高数据的有效性，每个参与者重复了 20 次任务。据我了解，在方差分析中，这些数据仍然只被视为每个条件的 15 个数据点，因为对于每个参与者，20 次重复减少为一个平均值。所以我的理解是，方差分析没有考虑到我总共进行了 2*300 次测量，但我可能只对每个参与者进行了一次测量。
+问题：虽然条件 A 下的数据似乎始终比条件 B 下的数据小，但功效分析表明，我需要的样本量是条件 A 下的十倍。我不可能再重复这项研究，而且绝对不可能有所需的样本量。
+问题：参与者的重复测量表明重复是相互独立的（例如，没有学习效果等）。对我来说，这意味着实际上我在每种情况下都有 300 个数据点，而不仅仅是 15 个平均数据点。如果我将两种条件下的 300 个数据点相互比较，而不对测量值进行平均，则统计数据会起作用。但样本量为 15 时则不行。是否有可能使用重复测量来引导数据，最终目标是满足所需的样本量？您会推荐哪种引导程序？还有其他不需要我重新进行整个实验的建议吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/659185/can-i-use-bootstrapping-for-small-sample-sizes-to-satisfy-the-power-analysis-req</guid>
       <pubDate>Wed, 25 Dec 2024 02:16:43 GMT</pubDate>
     </item>
@@ -232,20 +350,6 @@ fixest::fenegbin(count ~ 1 | id | height ~ weight, df) 中的错误：
 相关：带诊断的固定效应模型中的 IV 回归]]></description>
       <guid>https://stats.stackexchange.com/questions/659184/fit-negative-binomial-mixed-effects-model-with-instrumental-variables-with-r</guid>
       <pubDate>Tue, 24 Dec 2024 13:01:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何为由另外两个类组成的类设计网络和损失函数？</title>
-      <link>https://stats.stackexchange.com/questions/659148/how-to-design-a-network-and-loss-function-for-classes-composed-of-two-other-cla</link>
-      <description><![CDATA[给定一个包含三个类别的图像数据集，A、B 和 C，其中 C 是 A 和 B 的组合，我们希望训练一个分类器来预测：
-
-如果只有 A，则为 A
-如果只有 B，则为 B
-如果 A 和 B 都存在，则为 C。
-
-我们如何设计最终的分类层以及损失函数？
-我考虑过对 C 类进行阈值处理，即使使用可学习的阈值，但这会受到数据集中类别分布的严重影响。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659148/how-to-design-a-network-and-loss-function-for-classes-composed-of-two-other-cla</guid>
-      <pubDate>Tue, 24 Dec 2024 11:28:42 GMT</pubDate>
     </item>
     <item>
       <title>比较两个具有相同预测变量但不同数据集的广义线性模型</title>

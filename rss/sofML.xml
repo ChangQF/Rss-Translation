@@ -4,7 +4,130 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 25 Dec 2024 03:20:31 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Dec 2024 06:24:03 GMT</lastBuildDate>
+    <item>
+      <title>分离图像内的盲文字符</title>
+      <link>https://stackoverflow.com/questions/79306951/separation-of-braille-characters-inside-of-an-image</link>
+      <description><![CDATA[我正在做一个将盲文转换为文本的项目。我已经编写了从图像中识别盲文点的代码，但我不知道如何将盲文分割成单元格。
+这部分是识别图像中的斑点（较小的低质量图像目前不起作用）
+import cv2
+import numpy as np
+from sklearn.cluster import KMeans
+
+# 加载图像
+image_path = &quot;braille.jpg&quot;
+image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+# 设置 SimpleBlobDetector
+params = cv2.SimpleBlobDetector_Params()
+
+# 按区域过滤（斑点大小）
+params.filterByArea = True
+params.minArea = 100 # 根据点大小进行调整
+params.maxArea = 1000
+
+# 按圆度过滤
+params.filterByCircularity = True
+params.minCircularity = 0.9 # 调整点的形状
+
+# 按凸度过滤
+params.filterByConvexity = False
+params.minConvexity = 0.7
+
+# 按惯性过滤（圆度）
+params.filterByInertia = True
+params.minInertiaRatio = 0.95
+
+# 使用参数创建检测器
+detector = cv2.SimpleBlobDetector_create(params)
+
+# 检测斑点
+keypoints = detector.detect(image)
+
+# 将检测到的斑点绘制为红色圆圈
+output_image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+output_image = cv2.drawKeypoints(output_image, keypoints, np.array([]),
+(0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+print(&quot;输出图像&quot;)
+cv2.imshow(&quot;输出图像&quot;,output_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+print(f&quot;检测到的斑点数量：{len(keypoints)}&quot;)
+
+以下代码将 blob 的坐标放在图形上（认为这种方式可能更容易操作）
+#将图像转换为图形
+
+import matplotlib.pyplot as plt
+import numpy
+
+blob_coords = np.array([kp.pt for kp in keypoints]) #blob 的坐标
+rounded_coords = np.round(blob_coords).astype(int) #四舍五入的坐标
+
+x_coords = rounded_coords[:, 0]
+y_coords = rounded_coords[:, 1]
+
+# 基于邻近度的分组
+# 如果 X 距离小于最小距离
+# 如果 Y 距离小于最小距离
+# 存储 X 和 Y 坐标
+
+# 计算最小 x 和 y差异（尝试基于接近度）
+minx = 10000
+miny = 10000
+for i in x_coords:
+for j in x_coords:
+if abs(i - j) &lt;= minx and (15 &lt; abs(i - j)): # 单元格宽度阈值
+minx = abs(i - j)
+
+for i in y_coords:
+for j in y_coords:
+if abs(i - j) &lt;= miny and (15 &lt; abs(i - j)): # 单元格高度阈值
+miny = abs(i - j)
+
+print(f&quot;Smallest x difference: {minx}, Smallest y difference: {miny}&quot;,)
+
+# 绘图
+fig, ax = plt.subplots()
+ax.scatter(x_coords, y_coords, color=&quot;blue&quot;) # 绘制斑点
+ax.invert_yaxis()
+plt.title(&quot;Braille Cell Detection&quot;)
+plt.show()
+
+尝试通过接近度将它们分开（位于我尝试将距离很近的物体分组到一起（我将距离很近的物体分组到一起），但我无法理解其中的逻辑。我也尝试了组聚类 (Kmeans)，但它不是很准确，并且不适用于具有不同字符数的图像，因为它需要不断知道要形成多少个簇。
+# 尝试 kmeans 聚类方法
+# kmeans 不起作用（无法从图像中找出簇的数量）
+# 如果可以找出 nclusters，则可以工作
+
+导入数学
+从 sklearn.cluster 导入 KMeans
+
+blob_coords = np.array([kp.pt for kp in keypoints]) # 提取 blob 的 (x, y) 位置
+rounded_coords = np.round(blob_coords).astype(int) # 为简单起见，对坐标进行四舍五入
+
+x_coords = rounded_coords[:, 0]
+y_coords = rounded_coords[:, 1]
+
+fig, ax = plt.subplots()
+ax.scatter(x_coords, y_coords, color=&quot;blue&quot;) # 绘制斑点
+
+ax.invert_yaxis() # 反转 Y 轴以获得类似图像的坐标
+plt.title(&quot;盲文单元检测&quot;)
+plt.show()
+
+inertias = []
+
+# 2
+kmeans = KMeans(n_clusters=26)
+kmeans.fit(rounded_coords)
+
+plt.scatter(x_coords,y_coords, c=kmeans.labels_)
+plt.show()
+]]></description>
+      <guid>https://stackoverflow.com/questions/79306951/separation-of-braille-characters-inside-of-an-image</guid>
+      <pubDate>Wed, 25 Dec 2024 05:54:00 GMT</pubDate>
+    </item>
     <item>
       <title>使用 YOLO 将无界输入导出到 mlpackage/mlmodel 文件</title>
       <link>https://stackoverflow.com/questions/79305588/use-yolo-with-unbounded-input-exported-to-an-mlpackage-mlmodel-file</link>
@@ -475,76 +598,6 @@ Epoch：199，训练精度：0.3333，损失：1.0965
       <description><![CDATA[如何初始化网络的权重和偏差（例如通过 He 或 Xavier 初始化）？]]></description>
       <guid>https://stackoverflow.com/questions/49433936/how-do-i-initialize-weights-in-pytorch</guid>
       <pubDate>Thu, 22 Mar 2018 16:34:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络（简单）</title>
-      <link>https://stackoverflow.com/questions/46079541/neural-network-simple</link>
-      <description><![CDATA[我很好奇为什么我没有打印任何输出，因为代码没有错误。
-import numpy as np
-
-class NN():
-def _init_(self):
-# 种子随机数生成器，因此每次程序运行时都会生成相同的数字
-# np.random.seed(1)
-
-# 模型单个神经元，具有 3 个输入连接和 1 个输出连接
-# 将随机权重分配给 3x1 矩阵，值范围为 -1 到 1
-# 平均值为 0
-self.synaptic_weights = 2 * np.random.random((3, 1)) - 1
-
-# 描述 s 形曲线我们传递输入的加权和
-# 通过此函数将它们标准化为 0 和 1 之间
-def __sigmoid(self, x):
-return 1 / (1 + np.exp(-x))
-
-# 梯度sigmoid 曲线
-def __sigmoid_derivative(self, x):
-return x * (1 - x)
-
-def train(self, training_set_input, training_set_output, number_of_training_iterations):
-for iteration in np.xrange(number_of_training_iterations):
-# 将训练集通过神经网络
-output = self.predict(training_set_input)
-
-error = training_set_output - output
-
-# 将误差乘以输入，再乘以 sigmoid 曲线的梯度
-adjustment = np.dot(training_set_input.T, error * self.__sigmoid_derivative(output))
-
-# 调整权重
-self.synaptic_weights += adjustment
-
-def predict(self, input):
-# 将输入通过神经网络（单个神经元）
-return self.__sigmoid(np.dot(inputs, self.synaptic_weights))
-
-if __name__ == &quot;__NN__&quot;:
-# 初始化单神经元神经网络
-nn = NN()
-weightz = nn.synaptic_weights
-new_predict = nn.predict(np.array[1, 0, 0])
-
-print(&quot;随机起始突触权重&quot;)
-print(weightz)
-
-# T 垂直翻转矩阵
-training_set_input = np.array([0, 0, 1], [1, 1, 1], [1, 0, 1], [0, 1, 1])
-training_set_output = np.array([0, 1, 0, 0]).T
-
-# 使用训练集训练网络
-# 执行 10,000 次，每次进行小幅调整
-nn.train(training_set_input, training_set_output, 10000)
-
-print(&quot;新的起始突触权重&quot;)
-print(weightz)
-
-# 测试
-print(&quot;预测&quot;)
-print(new_predict)
-
-将文件保存为 NN.py]]></description>
-      <guid>https://stackoverflow.com/questions/46079541/neural-network-simple</guid>
-      <pubDate>Wed, 06 Sep 2017 15:51:06 GMT</pubDate>
     </item>
     </channel>
 </rss>
