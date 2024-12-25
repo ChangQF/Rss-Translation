@@ -4,7 +4,7 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 25 Dec 2024 12:31:45 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Dec 2024 15:16:17 GMT</lastBuildDate>
     <item>
       <title>当我不能使用精确检验（fisher）时，我可以使用蒙特卡洛吗？</title>
       <link>https://stats.stackexchange.com/questions/659191/can-i-use-monte-carlo-when-i-cant-use-the-exact-testfisher</link>
@@ -168,113 +168,6 @@ $$\propto k^{-b}$$
       <pubDate>Tue, 24 Dec 2024 23:53:30 GMT</pubDate>
     </item>
     <item>
-      <title>Stata biprobit - 解释</title>
-      <link>https://stats.stackexchange.com/questions/659181/stata-biprobit-interpretation</link>
-      <description><![CDATA[生产力和培训都是二元变量。假设我正在研究培训对不同性别的个人生产力的影响。我使用到培训中心的距离作为我的工具变量 (IV)。
-biprobit (productive = i.training i.training##i.male age i.gender wealth region) (training = distance age i.male wealth region) 
-
-margins, at(training=(0 1) gender=(0 1)) predict(pmarg1) post
-
-lincom _b[4._at] - _b[3._at]
-
-结果为 0.02
-categories:
-
-3._at: training = 1, male = 0 (female with training)
-4._at: training = 1, male = 1 (male with training)
-
-我想确认我对 lincom 结果的解释是否正确：
-对于接受过培训的人来说，男性比女性更有可能提高生产力 2%女性，并且这种差异具有统计学意义。
-问题 2：
-我不确定如何导出我的结果。有人能帮我吗？我应该只提供 lincom 结果，还是还应该包括主系数表？我找不到任何显示 lincom 结果的论文。
-假设这是我的主表结果（假设）：
- | 系数 P&gt;|z| 
-------------------------+----------------------------------------------------------------
-productive |
-1.training | .1265 0.000 
-1.male | .188 0.000 
-|
-training#male |
-1 1 | -.03049 0.315 
-|
-
-
-培训总体上对生产力有积极影响。
-男性比女性更有生产力。
-培训对男性和女性的生产力的影响并没有显著差异。
-
-我应该坚持使用 lincom，对吧？不应该解释这些？
-非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/659181/stata-biprobit-interpretation</guid>
-      <pubDate>Tue, 24 Dec 2024 23:48:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络不学习正弦函数参数</title>
-      <link>https://stats.stackexchange.com/questions/659180/neural-network-not-learning-sinusoidal-function-parameters</link>
-      <description><![CDATA[我有一个如下所示的正弦函数，带有预定义的a、b 和 c参数
-def fun_sin(a, b, c, apply_noise=False):
-&quot;&quot;&quot;
-返回表示带噪声的正弦曲线的函数。
-
-参数：
-a：正弦波的振幅。
-b：正弦波的频率。
-c：正弦波的相移。
-&quot;&quot;&quot;
-def ann(x):
-x = torch.tensor(x, dtype=torch.float32).to(device) if not isinstance(x, torch.Tensor) else x.to(device)
-return (a * torch.sin(b * x + c)) + torch.tensor(random_gen.random(x.shape) * 0.2 if apply_noise else 0).to(device)
-return ann
-
-fun, a, b, c, learning_rate = fun_sin, 4, 0.1, 2, 0.0001
-
-以下是该函数的曲线示例：
-
-我创建了一个神经网络，给定 X（x 轴上的点）和 Y 值（fun_sin(a, b, c)(X) 的结果），我希望我的网络能够确定生成该曲线的 a, b, c 的位置。为了做到这一点，我让输出层输出 3 个值，并创建一个具有这些参数的函数，如下所示
-def loss_fun(label, pred):
-return torch.mean((label - pred) ** 2)
-
-...
-
-my_model = nn.Sequential(
-nn.Linear(X_length, 32),
-nn.ReLU(),
-nn.Linear(32, 32),
-nn.ReLU(),
-nn.Linear(32, 3) # 具有 3 个参数 (a, b, c) 的输出层
-)
-...
-
-my_model.train()
-for i in epochs:
-optimizer.zero_grad()
-pred_a, pred_b, pred_c = my_model(X)
-Y_pred = fun_sin(pred_a, pred_b, pred_c)(X)
-loss = loss_fun(Y_label, Y_pred)
-loss.backward()
-optimizer.step()
-
-所以事情是这样的：如果我给网络提供大约 100 个 X 和 Y 数据条目，我的网络就会相当合理地学习；我能够找到 a、b 和 c 的良好预测，这些预测能够呈现与原始曲线非常相似的正弦曲线。但是，如果我传递更多数据，通过增加 X &amp; Y 长度（分批或不分批），网络将停止给出良好的损失结果。
-我尝试了多种方法来改善这种情况：
-
-规范化数据
-使用各种学习率和不同的调度程序（LambdaLR、OneCycleLR）
-创建不太复杂的网络（更少的神经元、更少的层）
-创建更复杂和更深的网络
-更改优化器（Adam、SGD 等）
-进行随机重启
-进行梯度裁剪
-进行梯度的批量传播与每个时期进行单次传播
-消除我在 fun_sin 中的噪音
-检查我传递的额外数据是否都很好（绘制图表并检查平均值/标准差）
-尝试了各种不同的损失函数，这些函数会对网络的错误进行更多的惩罚
-
-当我有更多数据时，我就是无法获得合理的损失。我读过这篇文章https://arxiv.org/abs/1906.00425，它讨论了为什么神经网络在频率较高时会出现收敛循环曲线的问题，但在我的例子中，驱动频率的参数b非常低（0.1），所以不要认为这适用于这里（此外，如果我的数据较少，网络学习得很好）。
-有人知道我在这里可能遇到什么问题吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659180/neural-network-not-learning-sinusoidal-function-parameters</guid>
-      <pubDate>Tue, 24 Dec 2024 22:52:19 GMT</pubDate>
-    </item>
-    <item>
       <title>有争议的观点是，PDF 的卷积可能不是 PDF</title>
       <link>https://stats.stackexchange.com/questions/659168/controversial-view-that-convolutions-of-a-pdf-might-not-be-a-pdf</link>
       <description><![CDATA[有一条帖子说，对 $f(x) \cdot f(s-x)\,dx,$ 进行积分的 卷积公式 再次返回 PDF。我有点同意这一点。但后来，我偶然发现了这个 youtube 视频。我在下面提供了它们的链接。
@@ -313,13 +206,6 @@ fixest::fenegbin(count ~ 1 | id | height ~ weight, df) 中的错误：
 相关：带诊断的固定效应模型中的 IV 回归]]></description>
       <guid>https://stats.stackexchange.com/questions/659184/fit-negative-binomial-mixed-effects-model-with-instrumental-variables-with-r</guid>
       <pubDate>Tue, 24 Dec 2024 13:01:47 GMT</pubDate>
-    </item>
-    <item>
-      <title>比较两个具有相同预测变量但不同数据集的广义线性模型</title>
-      <link>https://stats.stackexchange.com/questions/659137/comparing-two-generalized-linear-models-with-same-predictors-but-different-datas</link>
-      <description><![CDATA[我想知道两个或多个组之间的系数是否不同（例如老年人与年轻人、白天与夜间事故）。我听说过 Chow 检验，但它只适用于线性回归。我想将其应用于泊松或逻辑回归。我读过一些论文（如这篇），其中使用似然比检验来处理这个问题，但我不确定它是如何工作的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659137/comparing-two-generalized-linear-models-with-same-predictors-but-different-datas</guid>
-      <pubDate>Mon, 23 Dec 2024 22:44:10 GMT</pubDate>
     </item>
     <item>
       <title>在回归中独立性是否意味着条件独立性？</title>
@@ -365,6 +251,32 @@ $$
       <pubDate>Fri, 20 Dec 2024 13:04:15 GMT</pubDate>
     </item>
     <item>
+      <title>模拟面板数据时解释间接滞后治疗效应</title>
+      <link>https://stats.stackexchange.com/questions/658969/interpreting-indirect-lagged-treatment-effects-when-simulating-panel-data</link>
+      <description><![CDATA[考虑以下 DAG，我感兴趣的是估计当前 (X2) 和滞后 (X1) 治疗对 Y2 的影响：
+
+接下来，考虑 DAG 隐含的以下数据生成过程：
+library(dplyr)
+
+set.seed(12345)
+n &lt;- 2000
+
+dgp2_wide &lt;- tibble(id = 1:n) %&gt;% 
+# 创建滞后和当前治疗和结果值
+mutate(Z1 = rnorm(n, 0, 1),
+X1 = (0.1 * Z1) + rnorm(n, 0, sqrt(0.99)),
+Y1 = (0.1 * Z1) + (0.4 * X1) + rnorm(n, 0, sqrt(0.822)),
+Z2 = (0.2 * Z1) + (0.4 * X1) + rnorm(n, 0, 1),
+X2 = (0.1 * Z2) + (0.4 * X1) + rnorm(n, 0, sqrt(0.5196)),
+# X1 对 Y2 的间接影响是什么？
+Y2 = (0.2 * Z2) + (0.4 * X2) + (0.4 * Y1) + rnorm(n, 0, sqrt(0.4582)))
+
+我如何确定 X1 的间接影响 -&gt; Y2？X1 导致 Z2 发生一些变化，进而导致 Y2 发生一些变化。我如何确定 X1 对 Y2 的影响，经过 Z2 过滤后如何？
+请注意，我并不是在寻求一种估算方法（我现在正在学习边际结构模型）。我想知道如何根据我模拟的信息确定滞后间接效应是什么。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658969/interpreting-indirect-lagged-treatment-effects-when-simulating-panel-data</guid>
+      <pubDate>Thu, 19 Dec 2024 14:40:12 GMT</pubDate>
+    </item>
+    <item>
       <title>防止时间序列数据拆分中的数据泄露</title>
       <link>https://stats.stackexchange.com/questions/658883/preventing-data-leakage-in-time-series-data-splitting</link>
       <description><![CDATA[我正在研究机械系统的故障检测问题，目标是确定故障类型。我使用的数据集对于每种类型的故障（目标标签）都有三种大小，每种故障大小都有四种不同的工作条件，如下图所示。请注意，数据集中的每个样本都是时间序列，由于样本数量太少而且太长，因此需要将每个样本分成固定长度的块。现在的问题是如何将每个块分配给训练集或测试集，以确保公平和无偏见的评估。
@@ -405,6 +317,16 @@ $$
       <pubDate>Sat, 22 Oct 2022 02:30:15 GMT</pubDate>
     </item>
     <item>
+      <title>如何将变量与来自多个实验的数据进行比较？</title>
+      <link>https://stats.stackexchange.com/questions/575444/how-to-compare-variables-with-data-from-multiple-experiments</link>
+      <description><![CDATA[我有一个实验，比较三种不同条件下附着细菌的数量。我重复了这个实验三次，所以现在我有三个数据集，数据相同（风格相同，但数字不完全相同）。现在我想进行统计以确认条件的影响，我可以简单地进行 t 检验来获得该结果。然后我可以这样做三次，得到三个 p 值，但我宁愿进行一次测试，一次分析所有数据，以某种方式纠正某些数据点（在实验中）比其他数据点（在实验之间）更相关的事实。
+任何帮助都将不胜感激！
+我考虑过重复测量方差分析，但那行不通，因为我不是对同一个样本进行三次实验，而是每次都有不同的样本。
+如果需要更多信息，我很乐意提供。]]></description>
+      <guid>https://stats.stackexchange.com/questions/575444/how-to-compare-variables-with-data-from-multiple-experiments</guid>
+      <pubDate>Mon, 16 May 2022 08:30:16 GMT</pubDate>
+    </item>
+    <item>
       <title>Keras LSTM：如何在单个批次内进行陈述和维护？</title>
       <link>https://stats.stackexchange.com/questions/570957/keras-lstm-how-is-stated-maintained-within-a-single-batch</link>
       <description><![CDATA[假设 Keras LSTM 会在每个批次之后重置内部状态，我想了解如何在单个批次内维护内部状态。假设 batch_size=4、timesteps=3 和 num_features=1。问题是预测单变量时间序列 $x_1,x_2, ... ,x_n$ 的下一个元素。
@@ -419,6 +341,33 @@ $$
 此外，如果网络已经在输入 A 中被输入了 $x_3$，那么如何才能在输入 B 和输入 C 中再被输入两次 $x_3$，而不会弄乱内部状态？]]></description>
       <guid>https://stats.stackexchange.com/questions/570957/keras-lstm-how-is-stated-maintained-within-a-single-batch</guid>
       <pubDate>Sat, 09 Apr 2022 13:58:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>对 MA(q) 模型残差进行 Breusch-Godfrey 检验</title>
+      <link>https://stats.stackexchange.com/questions/500783/breusch-godfrey-test-on-residuals-from-an-maq-model</link>
+      <description><![CDATA[考虑测试回归模型残差中是否存在高达 $h$ 的滞后阶数自相关
+$$
+y_t = \mathbf x_t^\top \beta + u_t
+$$
+其中 $\mathbf x_t$ 可能包含或不包含 $y_t$ 的滞后阶数。 Breusch-Godfrey 检验将采用辅助回归
+$$
+\hat u_t = \mathbf x_t^\top \gamma + \varphi_1\hat u_{t-1} + \dots + \varphi_h\hat u_{t-h} + \varepsilon_t
+$$
+并从中得出其检验统计量。
+
+与通常的回归模型不同，考虑 MA(q) 模型
+$$
+y_t = \theta_0+\theta_1 u_{t-1} + \dots + \theta_q u_{t-q} + u_t。
+$$
+我如何对该模型的残差进行 Breusch-Godfrey 检验？（零假设是残差不自相关，而备选假设是残差中存在高达 $h$ 的滞后阶数的自相关。）具体来说：
+
+我如何构建辅助回归？
+它会是 $\hat u_t=\varphi_1\hat u_{t-1}+\dots+\varphi_s\hat u_{t-s}+\varepsilon_t$，其中 $s$ 以某种方式依赖于 $h$ 和 $q$？
+如何我该如何构造检验统计量？
+在零自相关的零假设下，其渐近分布是什么？
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/500783/breusch-godfrey-test-on-residuals-from-an-maq-model</guid>
+      <pubDate>Mon, 14 Dec 2020 09:12:32 GMT</pubDate>
     </item>
     </channel>
 </rss>
