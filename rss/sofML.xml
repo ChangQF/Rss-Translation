@@ -4,7 +4,118 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 25 Dec 2024 15:16:21 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 25 Dec 2024 18:21:39 GMT</lastBuildDate>
+    <item>
+      <title>在 MNIST 数据集上使用 Gumbel softmax 进行 VAE</title>
+      <link>https://stackoverflow.com/questions/79307976/vae-with-gumbel-softmax-on-mnist-dataset</link>
+      <description><![CDATA[我很难看出 kl 损失趋近于 0 的问题，重建损失很小，但每幅图像都一样，不代表任何数字。
+这是我使用的编码器/解码器架构，我认为该架构足够复杂，可以有效地捕获和创建新的数字。
+import tensorflow as tf
+from keras import layer
+import gumbel_softmax
+
+class VariationalAutoEncoder(tf.keras.Model):
+def __init__(self, latent_dim, categorical_dim):
+super(VariationalAutoEncoder, self).__init__()
+self.latent_dim = latent_dim
+self.categorical_dim = categorical_dim
+self.z_dim = latent_dim * categorical_dim
+
+self.encoder = tf.keras.Sequential([
+图层。输入层（输入形状=（28，28，1）），
+图层。Conv2D（16，（3，3），激活=&#39;relu&#39;，步幅=2，填充=&#39;相同&#39;），
+图层。Conv2D（32，（3，3），激活=&#39;relu&#39;，步幅=2，填充=&#39;相同&#39;），
+图层。Conv2D（64，（3，3），激活=&#39;relu&#39;，步幅=2，填充=&#39;相同&#39;），
+图层。BatchNormalization（），
+图层。Flatten（），
+图层。Dense（128，激活=&#39;relu&#39;），
+图层。Dense（self.z_dim），
+图层。Reshape（（latent_dim，categorical_dim）），
+]）
+
+self.decoder = tf.keras.Sequential（[
+图层。输入层（输入形状=（latent_dim，categorical_dim）），
+图层。Flatten（），
+图层。Dense（7 * 7 * 64，activation=&#39;relu&#39;），
+图层。Reshape（（7，7，64）），
+图层。Conv2DTranspose（64，（3，3），activation=&#39;relu&#39;，strides= 2，padding=&#39;same&#39;），
+图层。Conv2DTranspose（32，（3，3），activation=&#39;relu&#39;，strides = 2，padding=&#39;same&#39;），
+图层。Conv2DTranspose（1，（3，3），activation=&#39;sigmoid&#39;，padding=&#39;same&#39;），
+]）
+
+def call（self，x，temperature，hard）：
+logits = self.encoder（x）
+z = gumbel_softmax.gumbel_softmax（logits，temperature，hard=hard）
+重建= self.decoder(z)
+return tf.reshape(reconstructed,(reconstructed.shape[0],28,28)), tf.nn.softmax(logits, axis=-1)
+
+
+import tensorflow as tf
+
+def sample_gumbel(shape, eps=1e-15): 
+&quot;&quot;&quot;从 Gumbel(0, 1) 分布中采样。&quot;&quot;&quot;
+U = tf.random.uniform(shape, minval=0, maxval=1)
+return -tf.math.log(-tf.math.log(U + eps) + eps)
+
+def gumbel_softmax_sample(logits,temperature): 
+&quot;&quot;&quot;从 Gumbel-Softmax 分布中采样。&quot;&quot;&quot;
+y = logits + sample_gumbel(tf.shape(logits))
+return tf.nn.softmax(y /temperature)
+
+def gumbel_softmax(logits,temperature,hard=False):
+&quot;&quot;&quot;从 Gumbel-Softmax 分布中采样并可选择离散化。
+
+参数：
+logits：[batch_size, n_class] 未归一化的对数概率
+temperature：非负标量
+hard：如果为 True，则取 argmax，但对软样本 y 进行区分
+
+返回：
+[batch_size, n_class] 来自 Gumbel-Softmax 分布的样本。
+如果 hard=True，则返回的样本将是独热样本，否则它将是跨类别总和为 1 的概率分布。
+&quot;&quot;&quot;
+y = gumbel_softmax_sample(logits,temperature) 
+if hard: 
+y_hard = tf.one_hot(tf.argmax(y, axis=-1), tf.shape(logits)[-1])
+y = tf.stop_gradient(y_hard - y) + y 
+
+return y
+
+
+以下是我使用的参数，我尝试了很多次，但没有成功。
+LR_RATE = 5e-3
+
+BATCH_SIZE=64
+NUM_ITERS=900
+tau0 = 1
+ANNEAL_RATE=5e-5
+MIN_TEMP=0.1
+EPOCHS = 30
+
+CATEGORICAL_DIM = 10
+LATENT_DIM = 32
+
+我计算了 kl 损失和重建损失的总和batch_size
+def compute_loss(model, x,temperature,hard,beta):
+reconstructed, logits = model(x,temperature =temperature,hard = hard)
+
+mse = keras.losses.BinaryCrossentropy(reduction=&quot;sum_over_batch_size&quot;)
+
+rebuilding_loss = mse(x,reconstructed)
+kl_loss = tf.reduce_mean(
+tf.reduce_sum(
+logits * (tf.math.log(logits + 1e-8) - tf.math.log(1.0 / config.CATEGORICAL_DIM)),
+axis=[1, 2]
+)
+)
+total_loss = rebuilding_loss + beta * kl_loss
+return total_loss, rebuilding_loss, beta * kl_loss, reconstructed
+
+
+任何帮助都欢迎非常感谢，因为我在这个问题上已经呆了很长时间了。]]></description>
+      <guid>https://stackoverflow.com/questions/79307976/vae-with-gumbel-softmax-on-mnist-dataset</guid>
+      <pubDate>Wed, 25 Dec 2024 16:28:11 GMT</pubDate>
+    </item>
     <item>
       <title>我可以使用哪些“领域特定”功能来预测糖尿病？ [关闭]</title>
       <link>https://stackoverflow.com/questions/79307392/what-are-some-domain-specific-features-i-can-use-for-diabetes-prediction</link>
@@ -14,7 +125,7 @@
 我的特征工程实践想法是对性别进行分类、根据出生日期计算年龄（我已将日期添加到原始数据集）并根据 年龄 * BMI 计算风险百分比，但这些想法更侧重于从现有特征和特征交互中得出新变量。我真的需要一个想法/代码来实际演示“创建特定于域的功能”：
 我拥有的代码需要基于特定于域的示例进行构建：
 import pandas as pd
-#数据以 CSV 形式导入，学生对此进行了一些基本的争论
+#数据以 CSV 格式导入，学生对此进行了一些基本的处理
 data_frame = pd.read_csv(&quot;2.2.1.wrangled_data.csv&quot;)
 data_frame[&#39;SEX&#39;] = data_frame[&#39;SEX&#39;].apply(lambda gender: -1 if gender.lower() == &#39;male&#39; else 1 if gender.lower() == &#39;female&#39; else None)
 data_frame[&#39;Age&#39;] = ((data_frame[&#39;DoTest&#39;] - data_frame[&#39;DoB&#39;]).dt.days / 365.25).round().astype(int)
@@ -187,7 +298,7 @@ model.export(format=&quot;coreml&quot;)
       <pubDate>Mon, 23 Dec 2024 16:37:41 GMT</pubDate>
     </item>
     <item>
-      <title>SHAP 值在二元分类中被反转或解释不正确 [关闭]</title>
+      <title>SHAP 值在二元分类中被反转或解释不佳 [关闭]</title>
       <link>https://stackoverflow.com/questions/79302806/shap-values-inverted-or-not-well-interpreted-in-binary-classification</link>
       <description><![CDATA[我正在做一个项目研究，预测自行车骑行者和比赛数据集的 top_20 标签，当自行车骑行者进入前 20 名时为 1，否则为 0。数据集严重不平衡（92000 个 1 类实例和大约 400000 个 0 类实例）。我运行一个具有简单架构的基本神经网络。我也在使用类权重。我的 NN 表现不佳，但这不是重点，因为我从项目目的上知道数据不是很好。f1 分数对于 0 类（多数）来说很好，约为 0.87。对于 1 类（少数），约为 0.55。这很好，但是当尝试使用 SHAP 解释结果时会出现问题。
 使用 SHAP，我为所有实例设置了基值 1（有时为 0.98）。摘要图似乎合理，但力和瀑布图不合理。如果模型过于自信地预测类 0，基值如何导致 1？ 我还认为标签在 shap 值中是反转的，实际上预期值 1 反映了类 0。但我对我的 shap 值对象的结构感到困惑，因为我无法选择一个类来分析，但它被实例划分。例如 shap_value[1] 指的是实例编号 1，而不是类 1。等等。代码如下：
@@ -248,56 +359,6 @@ array([1.20000000e+02, 1.57000000e+05, 1.55100000e+03, 3.28000000e+02,
 ]]></description>
       <guid>https://stackoverflow.com/questions/79302806/shap-values-inverted-or-not-well-interpreted-in-binary-classification</guid>
       <pubDate>Mon, 23 Dec 2024 10:29:12 GMT</pubDate>
-    </item>
-    <item>
-      <title>训练 transformer 模型时出现 OOM 错误</title>
-      <link>https://stackoverflow.com/questions/79302713/oom-error-when-training-transformer-model</link>
-      <description><![CDATA[我正在研究 HMER（手写数学表达式识别）问题，并尝试使用 CNN-Transformer 架构。但是，当我尝试训练我的模型时，我遇到了此错误：
-DefaultCPUAllocator：内存不足：您尝试分配 69271363584 字节。
-我认为我的位置编码存在一些问题，但我真的不知道如何调试它或这里真正的问题是什么（我在这方面还只是初学者）
-我当前的模型如下所示
-class PositionalEncoding(nn.Module):
-def __init__(self, d_model, max_len=5000):
-super(PositionalEncoding, self).__init__()
-self.encoding = torch.zeros(max_len, d_model)
-position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-self.encoding[:, 0::2] = torch.sin(position * div_term)
-self.encoding[:, 1::2] = torch.cos(position * div_term)
-self.encoding = self.encoding.unsqueeze(0) # 添加批次维度
-
-def forward(self, x):
-seq_len = x.size(1)
-return x + self.encoding[:, :seq_len, :].to(x.device)
-
-class TransformerDecoder(nn.Module):
-def __init__(self, vocab_size, d_model, num_heads, num_layers, max_seq_length):
-super(TransformerDecoder, self).__init__()
-self.embedding = nn.Embedding(vocab_size, d_model)
-self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
-decrypt_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=num_heads)
-self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
-self.fc_out = nn.Linear(d_model, vocab_size)
-
-def forward(self, target_seqs, memory, target_mask):
-# 嵌入目标序列
-embedded = self.embedding(target_seqs) # (batch, seq_len, d_model)
-embedded = checkpoint(self.positional_encoding, embedded) # 添加位置编码
-# 转置以兼容 nn.TransformerDecoder (seq_len, batch, d_model)
-embedded = embedded.permute(1, 0, 2)
-memory = memory.permute(1, 0, 2)
-# 解码
-coded = checkpoint(self.transformer_decoder, embedded, memory, target_mask) # (seq_len, batch, d_model)
-# 转置回 (batch, seq_len, d_model)
-coded = decrypted.permute(1, 0, 2)
-# 最终输出层
-logits = checkpoint(self.fc_out,coded) # (batch, seq_len, vocab_size)
-return logits
-
-
-我的代码有什么问题吗？如果没有，是什么原因导致我遇到这个问题的]]></description>
-      <guid>https://stackoverflow.com/questions/79302713/oom-error-when-training-transformer-model</guid>
-      <pubDate>Mon, 23 Dec 2024 09:44:33 GMT</pubDate>
     </item>
     <item>
       <title>二进制交叉熵的实现给出不正常的结果</title>
@@ -559,7 +620,7 @@ print(&quot;输入特征&quot;, node_features_tensor)
 print(&quot;输出特征&quot;, out_feats)
 
 但无论我怎么尝试，乘法过程中总是出现维度错误：“RuntimeError：mat1 和 mat2 形状无法相乘（210x6 和 2x2）”。
-我知道我们正在尝试将 node_Features_tensor (210,6) 乘以 adjacency_matrix_tensor (210,210)，但我已经卡在这个问题上好几天了！
+我知道我们正在尝试将 node_Features_tensor (210,6) 乘以 adjacency_matrix_tensor (210,210)，但我已经为此困扰了好几天！
 我尝试了 GNN/GCN 的多种实现。我希望能够训练我的模型。]]></description>
       <guid>https://stackoverflow.com/questions/78145824/classification-using-graph-neural-network</guid>
       <pubDate>Tue, 12 Mar 2024 09:08:05 GMT</pubDate>
