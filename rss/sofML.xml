@@ -4,9 +4,62 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 26 Dec 2024 15:16:55 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 26 Dec 2024 18:21:57 GMT</lastBuildDate>
     <item>
-      <title>对 ML 输入数据进行标准化和规范化都可以得到最佳结果，为什么？</title>
+      <title>更改 YOLO 片段预测图像中的片段颜色</title>
+      <link>https://stackoverflow.com/questions/79309903/changing-color-of-segments-from-yolo-segment-predicted-images</link>
+      <description><![CDATA[我目前正在进行一个对象检测项目，在一组图像中检测三种类型的对象。此图像显示了 yolo 段模型预测模型示例 图像。
+我遇到的问题是检测到的符号是白色的。这种颜色对某些人来说可能是可见的，但对其他人来说可能不是。有没有办法改变这种颜色？我对 Python 很陌生。我已经预测了整个集合的图像（总计超过 100,000 张图像）。
+我使用 LabelStudio 标记感兴趣的符号的图像训练了 YOLOv8 模型。在标记过程中，我使用了红色、蓝色和绿色等颜色。但不知何故，在获得最终的 YOLOv8 模型 (best.pt) 并运行预测后，检测到的符号的颜色与最初使用的颜色不同。
+问题 1) 如何更改检测到的对象的白色？
+问题 2) 有没有办法确保在 labelstudio 上标记时使用的颜色保留在预测的图像中？
+import cv2
+import numpy as np
+
+# 定义一个函数来替换完整的矩形白色边界框的颜色
+def replace_white_rectangles_with_green(image_path, output_path):
+# 读取图像
+image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+
+# 将图像转换为灰度以进行轮廓检测
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# 对灰度图像进行阈值处理以创建白色区域的二元掩码
+_, thresh = cv2.threshold(gray, 240, 255, cv2.THRESH_BINARY)
+
+# 查找轮廓以检测形状
+contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+for contour in contours:
+# 近似轮廓以检查其是否形成矩形
+epsilon = 0.02 * cv2.arcLength(contour, True)
+approx = cv2.approxPolyDP(contour, epsilon, True)
+
+# 检查轮廓是否有四个边（矩形或正方形）
+if len(approx) == 4:
+# 验证形状是否凸（以确认它是矩形/正方形）
+if cv2.isContourConvex(approx):
+# 替换带有亮绿色的边界框
+cv2.drawContours(image, [contour], -1, (0, 255, 0), thicken=cv2.FILLED)
+
+# 保存修改后的图像
+cv2.imwrite(output_path, image)
+
+# 输入和输出图像的路径
+input_image_path = &quot;path_to_your_image.jpg&quot; # 替换为输入图像路径
+output_image_path = &quot;path_to_save_modified_image.jpg&quot; # 替换为所需的输出路径
+
+# 将函数应用于图像
+replace_white_rectangles_with_green(input_image_path, output_image_path)
+
+print(&quot;图像已处理，白色矩形边界框被绿色替换。&quot;)
+
+我尝试了上述代码，但不知何故它只会随机产生绿色框或在原本为白色的原始背景上产生绿色框。]]></description>
+      <guid>https://stackoverflow.com/questions/79309903/changing-color-of-segments-from-yolo-segment-predicted-images</guid>
+      <pubDate>Thu, 26 Dec 2024 16:15:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>对 ML 输入数据进行标准化和规范化都可以得到最佳结果，为什么？[关闭]</title>
       <link>https://stackoverflow.com/questions/79309671/both-standardizing-and-normalizing-my-input-data-for-ml-gives-the-best-results</link>
       <description><![CDATA[当我将输入数据的标准化和规范化结合用于混合 ANN 模型时，它会产生最佳结果。
 但我找不到任何地方，为什么。我基于一篇论文的方法，但他们也没有证明他们的做法是合理的。
@@ -31,15 +84,72 @@
       <pubDate>Thu, 26 Dec 2024 11:03:46 GMT</pubDate>
     </item>
     <item>
-      <title>将多个模型指标运行记录到 MLFlow 中的同一个图中</title>
-      <link>https://stackoverflow.com/questions/79308237/logging-multiple-model-metrics-runs-to-the-same-plot-in-mlflow</link>
-      <description><![CDATA[我正在对模型参数进行网格搜索优化，并使用将损失记录到 MLFlow
-Mlflow.log_metric(f“{run_number}_Loss”, returns, iteration)
+      <title>为什么我在验证数据上获得相同的准确度？</title>
+      <link>https://stackoverflow.com/questions/79308661/why-am-i-getting-the-same-accuracy-on-validation-data</link>
+      <description><![CDATA[我在验证数据上获得了相同的准确率，而训练数据的准确率在每个时期变化不大。
+训练数据包含 19670 张图像（14445：0 类，5225：1 类）。验证数据包含 4918 张图像（3612：0 类，1306：1 类）。
+由于类别不平衡，我应用了计算类别权重，因此少数类别的惩罚更高
+但是，验证数据的准确率相同，并且每个时期的损失变化不大。
+我对所有训练数据应用了数据增强。此外，我使用的是 VGG16，解冻了最后 5 层，并在网络中添加了一些密集层。我改变了 learning_rate 值，但没有得到任何显着的改进，结果仍然相同。它在训练和验证数据的准确率上遵循相同的模式，没有任何改进，值重复。
+这是代码：
+类权重：
+来自 sklearn.utils.class_weight import compute_class_weight
+pesos=compute_class_weight(&quot;balanced&quot;,classes=np.unique(labels),y=labels) #这些比索与每个类相对应
 
-但对于每次新运行，我在 MLFlow UI 中都会得到不同的图。
-有没有办法多次记录到同一个图，也许是不同的颜色，并添加图例以便能够轻松比较不同的运行？]]></description>
-      <guid>https://stackoverflow.com/questions/79308237/logging-multiple-model-metrics-runs-to-the-same-plot-in-mlflow</guid>
-      <pubDate>Wed, 25 Dec 2024 19:50:23 GMT</pubDate>
+#创建了一个字典，在进入时刻将参数作为 class_weight 传递给它
+pesos_clases={i: pesos[i] for i in range(len(pesos))}
+
+神经网络：
+来自tensorflow.keras.applications import vgg16
+VGG16=vgg16.VGG16(
+weights=&quot;imagenet&quot;, 
+include_top=False, 
+input_shape=(224,224,3)
+)
+
+VGG16.trainable=True #Entrenable
+
+#解冻最后 5 层
+for layer in VGG16.layers[:-5]:
+layer.trainable=False 
+
+from tensorflow.keras import layer
+from tensorflow import keras
+x=VGG16.output
+x=layers.GlobalAveragePooling2D()(x)
+
+x=layers.Dense(1000,activation=&quot;relu&quot;)(x) #1000 个神经元
+x=layers.Dropout(0.3)(x) #30% 的神经元‘去活性’
+
+输出=layers.Dense(1,activation=“sigmoid”)(x) #la capa de salida：1个神经元
+modelo=keras.Model(VGG16.inputs,output) #Creo el modelo
+
+#Elijo el optimizador
+从tensorflow.keras.optimizers导入Adam
+optimizador=Adam(learning_rate=0.001) #Esto cambiardependiendo del 训练表现 --&gt; AJUSTAR (0.001 初始)
+
+#编译步骤
+模型.编译(
+    优化器=优化器，#Optimizador
+    损失=“binary_crossentropy”，#clasificación binaria
+    指标=[“准确度”]
+）
+
+#模特表演
+历史=模型.fit(
+    火车发电机，
+    纪元=20，
+    回调=[ES],
+    验证数据=val_generator，
+    class_weight=pesos_clases #指定比索对应的处罚类别，主要是针对少数派的惩罚模型
+）
+
+但我得到了这些结果：
+结果
+我想知道为什么会发生这种情况。
+我改变了超参数，例如学习率、神经元数量，并且对少数类应用了 class_weight，但没有得到任何显著的改善]]></description>
+      <guid>https://stackoverflow.com/questions/79308661/why-am-i-getting-the-same-accuracy-on-validation-data</guid>
+      <pubDate>Thu, 26 Dec 2024 04:26:53 GMT</pubDate>
     </item>
     <item>
       <title>在 MNIST 数据集上使用 Gumbel softmax 进行 VAE</title>
@@ -118,7 +228,7 @@ y = tf.stop_gradient(y_hard - y) + y
 return y
 
 
-这是我使用的参数，我尝试了很多次，但没有成功。
+以下是我使用的参数，我尝试了很多次，但没有成功。
 LR_RATE = 5e-3
 
 BATCH_SIZE=64
@@ -159,7 +269,7 @@ return total_loss, rebuilding_loss, beta * kl_loss, reconstructed
 我的特征工程实践想法是对性别进行分类、根据出生日期计算年龄（我已将日期添加到原始数据集）并根据 年龄 * BMI 计算风险百分比，但这些想法更侧重于从现有特征和特征交互中得出新变量。我真的需要一个想法/代码来实际演示“创建特定于域的功能”：
 我拥有的代码需要基于特定于域的示例进行构建：
 import pandas as pd
-#数据以 CSV 形式导入，学生对此进行了一些基本的争论
+#数据以 CSV 格式导入，学生对此进行了一些基本的处理
 data_frame = pd.read_csv(&quot;2.2.1.wrangled_data.csv&quot;)
 data_frame[&#39;SEX&#39;] = data_frame[&#39;SEX&#39;].apply(lambda gender: -1 if gender.lower() == &#39;male&#39; else 1 if gender.lower() == &#39;female&#39; else None)
 data_frame[&#39;Age&#39;] = ((data_frame[&#39;DoTest&#39;] - data_frame[&#39;DoB&#39;]).dt.days / 365.25).round().astype(int)
@@ -356,65 +466,67 @@ return logits
       <pubDate>Wed, 18 Dec 2024 11:45:52 GMT</pubDate>
     </item>
     <item>
-      <title>无法将标准 torchvision ResNet50 模型导出到 ONNX 文件</title>
-      <link>https://stackoverflow.com/questions/78853571/cant-export-standard-torchvision-resnet50-model-into-onnx-file</link>
-      <description><![CDATA[我制作了一个非常简单的 Python 脚本，它加载 torchvision ResNet50 模型并尝试以两种方式导出到 onnx 文件（torch.onnx.export 和 torch.onnx.dynamo_export）
-import torch
-import torch.onnx
+      <title>XGBoost/XGBRanker 生成概率而不是排名分数</title>
+      <link>https://stackoverflow.com/questions/79278625/xgboost-xgbranker-to-produce-probabilities-instead-of-ranking-scores</link>
+      <description><![CDATA[我有一个学生考试成绩的数据集，如下所示：
+班级 ID 班级规模 学生编号 智商 学习时间 分数
+1 3 3 101 10 98
+1 3 4 99 19 80
+1 3 6 130 3 95
+2 4 4 93 5 50
+2 4 5 103 9 88
+2 4 8 112 12 99
+2 4 1 200 10 100 
 
-import torchvision
+我想建立一个机器学习模型，尝试使用 IQ 和 Hours_Studied 预测谁将成为班级第一名（即最高 Score），对于任何给定的 Class_ID特征。
+由于这是一个排名问题，因此自然的一类学习模型是使用 XGBoost 中的 XGBRanker 或 lightgbm 中的 LGBMRanker。
+这是我使用 xgboost 的代码：
+from sklearn.model_selection import GroupShuffleSplit
+import xgboost as xgb
 
-torch_model = torchvision.models.detection.fasterrcnn_resnet50_fpn_v2( weights=&#39;DEFAULT&#39;)
-torch_model.eval()
-torch_input = torch.randn(1, 3, 32, 32)
+gss = GroupShuffleSplit(test_size=.40, n_splits=1, random_state = 7).split(df, groups=df[&#39;Class_ID&#39;])
 
-is_dynamo_export = False
+X_train_inds, X_test_inds = next(gss)
 
-if (is_dynamo_export):
-onnx_program = torch.onnx.dynamo_export(torch_model, torch_input)
-onnx_program.save(&quot;onnx_dynamo_export_ResNET50.onnx&quot;) 
-else:
-torch.onnx.export(torch_model, # 正在运行的模型
-torch_input, # 模型输入（或多个输入的元组）
-&quot;onnx_export_ResNET50.onnx&quot;, # 模型的保存位置（可以是文件或类似文件的对象）
-export_params=True, # 将训练后的参数权重存储在模型文件中
-opset_version=10, # 将模型导出到的 ONNX 版本
-do_constant_folding=True, # 是否执行常量折叠以进行优化
-input_names = [&#39;input&#39;], # 模型的输入名称
-output_names = [&#39;output&#39;], # 模型的输出名称
-dynamic_axes={&#39;input&#39; : {0 : &#39;batch_size&#39;}, # 可变长度轴
-&#39;output&#39; : {0 : &#39;batch_size&#39;}}) 
+train_data = df.iloc[X_train_inds]
+X_train = train_data.loc[:, ~train_data.columns.isin([&#39;Class_ID&#39;,&#39;Student_Number&#39;,&#39;Score&#39;])]
+y_train = train_data.loc[:, train_data.columns.isin([&#39;Score&#39;])]
 
-出现错误：
-文件“C:\tools\Python311\Lib\site-packages\torch\onnx\_internal\exporter.py”，第 1439 行，位于 dynamo_export
-raise OnnxExporterError(
+groups = train_data.groupby(&#39;Class_ID&#39;).size().to_frame(&#39;Class_size&#39;)[&#39;Class_size&#39;].to_numpy()
 
-torch.onnx.OnnxExporterError：无法将模型导出到 ONNX。在“report_dynamo_export.sarif”处生成 SARIF 报告。SARIF 是静态分析工具输出的标准格式。SARIF 日志可以在 VS Code SARIF 查看器扩展或 SARIF Web 查看器（https://microsoft.github.io/sarif-web-component/）中加载。请在 PyTorch Github 上报告错误：https://github.com/pytorch/pytorch/issues
+test_data = df.iloc[X_test_inds]
 
-torch.onnx.errors.SymbolicValueError：不支持：ONNX 导出 opset 9 中的 Pad。填充的大小必须是恒定的。请尝试 opset 版本 11。[由 (%535 : int[] = prim::ListConstruct(%405, %534, %405, %533, %405, %532) 中定义的值 &#39;535 引起，范围：torchvision.models.detection.faster_rcnn.FasterRCNN::
+X_test = test_data.loc[:, ~test_data.columns.isin([&#39;Student_Number&#39;,&#39;Score&#39;])]
+y_test = test_data.loc[:, test_data.columns.isin([&#39;Score&#39;])]
 
-这两种方法都适用于极其简单的模型，例如
-class MyModel(nn.Module):
+model = xgb.XGBRanker( 
+tree_method=&#39;hist&#39;,
+device=&#39;cuda&#39;,
+booster=&#39;gbtree&#39;,
+objective=&#39;rank:pairwise&#39;,
+enable_categorical=True,
+random_state=42, 
+learning_rate=0.1,
+colsample_bytree=0.9, 
+eta=0.05, 
+max_depth=6, 
+n_estimators=175, 
+subsample=0.75 
+)
 
-def __init__(self):
-super(MyModel, self).__init__()
-self.conv1 = nn.Conv2d(1, 6, 5)
-self.conv2 = nn.Conv2d(6, 16, 5)
-self.fc1 = nn.Linear(16 * 5 * 5, 120)
-self.fc2 = nn.Linear(120, 84)
-self.fc3 = nn.Linear(84, 10)
+model.fit(X_train, y_train, group=groups, verbose=True)
 
-def forward(self, x):
-x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-x = F.max_pool2d(F.relu(self.conv2(x)), 2)
-x = torch.flatten(x, 1)
-x = F.relu(self.fc1(x))
-x = F.relu(self.fc2(x))
-x = self.fc3(x)
-return x
-]]></description>
-      <guid>https://stackoverflow.com/questions/78853571/cant-export-standard-torchvision-resnet50-model-into-onnx-file</guid>
-      <pubDate>Fri, 09 Aug 2024 15:25:36 GMT</pubDate>
+def predict(model, df):
+return model.predict(df.loc[:, ~df.columns.isin([&#39;Class_ID&#39;,&#39;Student_Number&#39;])])
+
+predictions = (X_test.groupby(&#39;Class_ID&#39;)
+.apply(lambda x: predict(model, x)))
+
+代码运行良好，具有合理的预测能力。但是，输出是“相关性得分”列表，而不是概率列表。但似乎 XGBRanker 和 LGBMRanker 都没有属性 predict_proba，该属性返回获得班级最高分的概率。
+所以我的问题是，有没有办法将 相关性得分 转换为概率，或者是否有其他自然类别的排名模型可以处理此类问题？
+编辑在这个问题中，我只关心最终名列前茅的人（或者可能是前三名），所以排名并不是那么重要（例如，知道学生 4 排名第 11 位，学生 8 排名第 12 位并不那么重要），所以我想一种方法是在 xgboost 中使用分类而不是排名。但我想知道还有其他方法吗。]]></description>
+      <guid>https://stackoverflow.com/questions/79278625/xgboost-xgbranker-to-produce-probabilities-instead-of-ranking-scores</guid>
+      <pubDate>Fri, 13 Dec 2024 14:20:37 GMT</pubDate>
     </item>
     <item>
       <title>使用图神经网络进行分类</title>
@@ -543,7 +655,7 @@ cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0] #torch.
             #.item()으로 접근하는 유는 张量(5)에서 해당 숫자에 접근하기 위한 방식다.
             score.append(round(cos_scores[idx].item(),3))
 
-# 生成 json 数组并返回结果
+# 生成 json 数组并返回结果集
 for i,e in zip(ask_result,score):
 result_value.append({&quot;pred_id&quot;:i,&quot;pred_weight&quot;:e})
 endd = time.time()
@@ -578,15 +690,6 @@ uvicorn.run(app, host=&quot;0.0.0.0&quot;, port=args.port,workers=4)
 ]]></description>
       <guid>https://stackoverflow.com/questions/71613305/how-to-process-requests-from-multiiple-users-using-ml-model-and-fastapi</guid>
       <pubDate>Fri, 25 Mar 2022 07:13:32 GMT</pubDate>
-    </item>
-    <item>
-      <title>模型的敏感性和特异性</title>
-      <link>https://stackoverflow.com/questions/65421010/sensitivity-and-specificity-of-model</link>
-      <description><![CDATA[如果我有一个包含两个类别的图像数据集：正常和异常，除了准确度指标之外，我还想添加敏感度和特异性标准。
-那么，我该如何引入这两个指标来计算我的模型的性能呢？
-谢谢]]></description>
-      <guid>https://stackoverflow.com/questions/65421010/sensitivity-and-specificity-of-model</guid>
-      <pubDate>Wed, 23 Dec 2020 08:15:24 GMT</pubDate>
     </item>
     <item>
       <title>选择 CNN 中的步幅和过滤器数量（Keras）</title>
