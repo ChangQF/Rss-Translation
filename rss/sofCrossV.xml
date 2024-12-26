@@ -4,7 +4,124 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 26 Dec 2024 18:21:51 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 26 Dec 2024 21:15:02 GMT</lastBuildDate>
+    <item>
+      <title>尾部概率期望公式</title>
+      <link>https://stats.stackexchange.com/questions/659242/tail-probability-expectation-formula</link>
+      <description><![CDATA[在以下论文的第一页：https://arxiv.org/pdf/2301.10985
+进行了以下计算：
+$K \in R^+$ 是阈值
+随机变量 $X \in R^+$ 的 f(.) 密度函数
+$P_K = P(X&gt;K) \in [0,1]$ 超过该值的概率
+$g(x): R^+ \rightarrow R$ 影响函数
+$G_K = \int_K^{\infty} g(x)f(x)dx (1)$
+K 处的互补 CDF 函数：
+$P_K = \int_K^{\infty} f(x) dx(2)$
+错误来自于将 GK 的属性与 PK 的属性混为一谈，通常将 PK 与某个常数相关联，该常数表示与阈值 K 相关的假定影响
+差异的直觉可以显示如下：
+假设 g(x) = x，对于 X 具有有限首阶矩的随机变量，我们专注于正域，推广尾部概率期望公式，
+$G_K = KP_K + \int_K^{\infty} P_x dx$
+第一项是方程 1 的直接应用，在积分开始时使用 $g(x)=x$，这样对吗？
+我很困惑为什么 x 没有出现在第二项中，有人能解释一下吗？
+$G_K = \int_K^{\infty} xf(x)dx$ $\neq$ $\int_K^{\infty} f(x) dx$ $=$ $\int_K^{\infty} P_x dx$]]></description>
+      <guid>https://stats.stackexchange.com/questions/659242/tail-probability-expectation-formula</guid>
+      <pubDate>Thu, 26 Dec 2024 20:53:03 GMT</pubDate>
+    </item>
+    <item>
+      <title>根据给定的累积分布 (CDF) 生成概率密度函数 (PDF)</title>
+      <link>https://stats.stackexchange.com/questions/659241/make-a-probability-density-function-pdf-from-a-given-cumulative-distribution</link>
+      <description><![CDATA[我有一个逆向工程问题：一台机器导出纯文本、具有 7 个百分位数 (CDF_7) 的 CDF 和一个标准差。
+我使用 CDF_7 百分位数来计算 PDF。
+我计算的 PDF（左，绿色）（使用导出数据 CDF_7，蓝色）与机器中的 PDF（右，红色）不同。理想情况下，PDF 应该相等。
+
+我做错了什么？在下面的函数中，我在百分位数之间插入值。在解决这个问题时，使用标准差有用吗？有没有想过标准差在这里有什么用？
+我的 Python 代码：
+ import numpy as np
+import matplotlib.pyplot as plt
+
+def epdf_hist(cdf_7pct, pct, bins_std):
+&quot;&quot;&quot;基于累积分布函数 (CDF) 的 7 个百分位值制作直方图 - 经验概率密度函数 (PDF)
+
+将 7 个百分位值插值到 100 个值，然后分箱
+:parameter
+cdf_7pct：包含 7 个值的 1 维数组，按从高到低排序
+pct：7 个百分位数，通常为 [1,5,10,50,90,95,99]
+bins_std：包含箱体的 1 维数组，宽度 = 0.2
+:returns
+100 个插值、分箱值的 pdf，
+bins
+100 个插值
+&quot;&quot;&quot;
+d_pct = np.diff(pct)
+cdf_100pct = [] # 生成 100 个值
+# 在给定的百分位数值之间进行插值
+for i in range(0, len(d_pct)):
+arr = np.linspace(cdf_7pct[i], cdf_7pct[i + 1], num=d_pct[i], end=False) # 最后进行插值
+cdf_100pct.extend(arr)
+cdf_100pct.extend([cdf_7pct[-1]]) # 添加最后一个
+cdf_100pct.extend([min(cdf_7pct)+(min(cdf_7pct) - min(arr))]) # 添加一个额外的
+count, bins_count = np.histogram(cdf_100pct, bins=bins_std)
+返回 count, bins_count, cdf_100pct
+
+# 累积分布函数 (CDF_7) 导出数据
+data = np.array([42.38, 42.31, 42.23, 42.03, 41.83,41.81,41.66])
+perc = [1,5,10,50,90,95,99]
+stdev = 0.15
+
+# 来自机器的 CDF 值
+targetbins = np.array([41.6,41.8, 42.0, 42.2,42.4])
+c_targetperc = np.array([100,97,58,12,0])
+# 来自机器的 PDF 值
+p_targetperc = np.array([3,39,46,12,0])
+
+# 计算
+epdf_hist_count, epdf_hist_binscount, cdf_100pct = epdf_hist(data, perc, targetbins)
+# 图
+fig = plt.figure(figsize=(9, 4), layout=&quot;constrained&quot;)
+axs = fig.subplots(1, 2, sharex=True, sharey=True)
+axs[0].hist(cdf_100pct,bins=targetbins, density=False, color = &#39;green&#39;, alpha = 0.5, label=&quot;PDF i 计算自 CDF_7&quot;)
+axs[1].bar(targetbins,p_targetperc, color=&#39;red&#39;, edgecolor=&#39;black&#39;, width=0.2, align=&#39;edge&#39;, alpha = 0.5，label=&quot;机器中的 PDF&quot;)
+axs[1].plot(data,perc, &#39;bo--&#39;, label=&quot;从机器导出：CDF_7&quot;)
+fig.suptitle(&quot;分布比较&quot;)
+for ax in axs:
+ax.grid(True)
+ax.legend()
+ax.set_xlabel(&quot;dB&quot;)
+ax.set_ylabel(&quot;发生概率&quot;)
+ax.label_outer()
+plt.show()
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/659241/make-a-probability-density-function-pdf-from-a-given-cumulative-distribution</guid>
+      <pubDate>Thu, 26 Dec 2024 19:50:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>数据中的季节性问题</title>
+      <link>https://stats.stackexchange.com/questions/659240/seasonality-problem-in-a-data</link>
+      <description><![CDATA[我有一个系列。我在 J-demetra 做季节性测试。数据是每月的，从 2003:01 到 2024:07。
+
+我该如何处理这个季节性？请建议方法或程序？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659240/seasonality-problem-in-a-data</guid>
+      <pubDate>Thu, 26 Dec 2024 19:23:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>Efron 和 Tibshirani 在教科书《引导程序简介》中所说的‘经验指数族’是什么意思？</title>
+      <link>https://stats.stackexchange.com/questions/659239/what-do-efron-tibshirani-mean-by-the-empirical-exponential-family-in-the-tex</link>
+      <description><![CDATA[我想了解教科书《引导法简介》（例如公式 21.84）中 Efron &amp; Tibshirani 所说的“经验指数族”是什么意思？
+那里的解释对我来说太简略和/或太模糊了，而且关于这个主题的更深入的研究文章看起来很难理解。
+如果能了解基础知识，我将不胜感激：分布族由分布组成。这些分布是空间上的概率测度。分布所在的空间是什么（定义在哪个空间上）？它似乎是来自经验分布的高维点乘积，但我不确定。
+他们如何计算 \eta 的 Fisher 信息？ （公式 21.86）
+他们是否使用经验指数族作为数据分布（x_i），从数据计算出的充分统计数据分布（q），还是两者兼而有之？
+如果您能给出一个简单易懂的答案，包括或补充我误解或遗漏的任何内容，我将不胜感激。我理解答案可以深入到经验可能性、熵和散度测量等。如果您想将其作为额外内容，那就太好了，但请不要将其作为理解基本要点的先决条件。]]></description>
+      <guid>https://stats.stackexchange.com/questions/659239/what-do-efron-tibshirani-mean-by-the-empirical-exponential-family-in-the-tex</guid>
+      <pubDate>Thu, 26 Dec 2024 18:42:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>在重复测量的纵向数据随机截距模型中，基线是否必要？</title>
+      <link>https://stats.stackexchange.com/questions/659238/is-baselining-necessary-in-a-random-intercepts-model-of-longitudinal-data-with-r</link>
+      <description><![CDATA[我有 m 个样本，每个样本有 n 次重复测量。样本被平均分为治疗组和对照组。我使用随机效应建模策略，对每个个体进行随机截距。鉴于我控制了随机截距，我是否仍然需要通过他们在时间 0 即应用第一次治疗之前的测量来对每个个体的测量进行标准化？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659238/is-baselining-necessary-in-a-random-intercepts-model-of-longitudinal-data-with-r</guid>
+      <pubDate>Thu, 26 Dec 2024 18:38:05 GMT</pubDate>
+    </item>
     <item>
       <title>大尺寸 Metropolis 抽样</title>
       <link>https://stats.stackexchange.com/questions/659237/metropolis-sampling-for-large-dimension</link>
@@ -66,13 +183,6 @@ y_{it}=a+x_{1it}+x_{2it}+error_{it}
       <pubDate>Thu, 26 Dec 2024 14:41:46 GMT</pubDate>
     </item>
     <item>
-      <title>给定 $Z=z$，$X+Y$ 的条件中位数</title>
-      <link>https://stats.stackexchange.com/questions/659229/conditional-median-of-xy-given-z-z</link>
-      <description><![CDATA[我有两个独立随机变量 $X$ 和 $Y$，其中 $Y$ 也独立于 $Z$，并且对于任何 $z$，$E(X\mid Z=z)=0$。我们还知道，给定 $Z=z$，$X+Y$ 的条件分布关于某个 $\delta(z)$ 对称，对于任何 $z$。现在我很好奇我们是否可以得出结论：$\delta(z)$ 是一个与 $z$ 无关的常数。当 $E(|Y|)&lt;+\infty$ 时，我发现 $E(X+Y\mid Z=z)=E(X\mid Z=z)+E(Y\mid Z=z)=E(Y)$ 因为 $Y$ 与 $Z$ 无关。然后 $\mathrm{Med}(X+Y\mid Z=z)=E(Y)$，因为 $Z=z$ 下 $X+Y$ 的条件分布是对称的。因此，在这种情况下，我们可以得出结论，对于任何 $z$，$Z=z$ 下 $X+Y$ 的条件分布关于同一常数对称。但是当 $E(|Y|)=+\infty$ 时，我不知道如何证明这个陈述（或者这个陈述是否正确），因为在这种情况下我们不能取期望并使用其线性。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659229/conditional-median-of-xy-given-z-z</guid>
-      <pubDate>Thu, 26 Dec 2024 14:25:33 GMT</pubDate>
-    </item>
-    <item>
       <title>我如何评估 R 中形成构造的指标（权重和负荷）的相对重要性和绝对重要性？</title>
       <link>https://stats.stackexchange.com/questions/659232/how-do-i-evaluate-the-relative-and-the-absolute-importance-of-the-indicators-of</link>
       <description><![CDATA[我有一个名为identity_motives的形成性结构，我将其创建为我的数据集field_data中七个身份动机（innovatorlong_1到innovatorlong_7）的综合平均分数。
@@ -83,44 +193,6 @@ y_{it}=a+x_{1it}+x_{2it}+error_{it}
 我尝试使用 ChatGPT 生成代码，但不确定是否以及如何指定内部模型。我是 R 和统计学的初学者。]]></description>
       <guid>https://stats.stackexchange.com/questions/659232/how-do-i-evaluate-the-relative-and-the-absolute-importance-of-the-indicators-of</guid>
       <pubDate>Thu, 26 Dec 2024 12:52:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>应用多元数据分析的问题[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/659223/question-from-applied-multivariate-data-analysis</link>
-      <description><![CDATA[R 中的 airquality 数据集提供了纽约市空气质量测量的信息。每行代表一天，每列代表与空气质量相关的不同测量值。
-airquality 中的列：
-臭氧：臭氧浓度 (ppb)
-Solar.R：太阳辐射（兰利）
-风：风速 (mph)
-温度：温度（华氏度）
-月：月份（1-12）
-日：月份中的日（1-31）
-问题：
-
-加载内置 R 数据集 airquality。检查数据集的汇总统计数据以及协方差和相关矩阵。（8 分）
-
-可视化数据以了解空气质量测量值的分布和关系。（4 分）
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/659223/question-from-applied-multivariate-data-analysis</guid>
-      <pubDate>Thu, 26 Dec 2024 12:36:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>离策略 TD(0) 推导</title>
-      <link>https://stats.stackexchange.com/questions/659222/off-policy-td0-derivation</link>
-      <description><![CDATA[在 Sutton 和 Barto 的 RL 书中，它说
-
-比率 $\rho_{t:T-1}$ 将回报转换为正确的预期值：
-$$\mathbf{E}[\rho_{t:T-1} G_t | S_t = s] = v_\pi (s).\tag{5.4}$$
-
-书中只提到了这么多，但我想要一个不太复杂的证明，维基百科关于重要性抽样的文章对我来说太抽象了。
-在此之后，书中还要求我们
-
-$\textit{练习 6.7 }$ 设计一个 TD(0) 更新的离策略版本，可以与任意目标策略 $\pi$ 和覆盖行为策略 $b$ 一起使用，在每个步骤 $t$ 使用重要性抽样率 $\rho_{t:t}$ $(5.3)$。
-
-我在网上找到了一个解决方案，这也让我感到困惑。特别是有人能否使用总结和基本定义来详细说明练习和方程 5.4 是如何得出的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659222/off-policy-td0-derivation</guid>
-      <pubDate>Thu, 26 Dec 2024 12:08:20 GMT</pubDate>
     </item>
     <item>
       <title>我应该如何解释行业驱动数据集中的高 Pearson 相关性但低 Spearman 相关性？[重复]</title>
@@ -214,52 +286,12 @@ AIC：20.41846
       <pubDate>Wed, 25 Dec 2024 18:57:50 GMT</pubDate>
     </item>
     <item>
-      <title>如何为由另外两个类组成的类设计网络和损失函数？</title>
-      <link>https://stats.stackexchange.com/questions/659148/how-to-design-a-network-and-loss-function-for-classes-composed-of-two-other-cla</link>
-      <description><![CDATA[给定一个包含三个类别的图像数据集，A、B 和 C，其中 C 是 A 和 B 的组合，我们希望训练一个分类器来预测：
-
-如果只有 A，则为 A
-如果只有 B，则为 B
-如果 A 和 B 都存在，则为 C。
-
-我们如何设计最终的分类层以及损失函数？
-我考虑过对 C 类进行阈值处理，即使使用可学习的阈值，但这会受到数据集中类别分布的严重影响。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659148/how-to-design-a-network-and-loss-function-for-classes-composed-of-two-other-cla</guid>
-      <pubDate>Tue, 24 Dec 2024 11:28:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>轻松理解混合模型中聚类变量和随机变量之间的区别</title>
-      <link>https://stats.stackexchange.com/questions/658926/easy-way-to-understand-the-difference-between-a-cluster-variable-and-a-random-va</link>
-      <description><![CDATA[假设我们有一个数据集，其中我们根据社会经济地位对一系列不同学校的数学成绩分数进行建模。使用 lme4 的适当模型将是：
-lmer(math~ses + (ses | school), data=d)
-我的学生经常混淆 ses 和 school 的位置。为了解决这个问题，我制作了一个 YouTube 视频，帮助学生识别他们的“聚类变量”。该视频为他们提供了三条规则来帮助识别他们的聚类变量：
-
-这个变量在您的数据集中是否经常重复出现？（聚类变量将重复出现）
-这个变量是否识别一个人？ （如果是，那就是您的聚类变量，跳过 #3）
-此变量是否表示特定组？（如果是，那就是您的聚类变量）
-
-对于此示例，学校将被重复（该学校的每个学生一行），它不会识别特定的人，但会识别特定的组。
-我对我的解释一直不太满意，因为它留下了一些歧义。让我们修改示例以使我的规则失败。假设我们正在预测数学成绩，但这次，我们想添加种族作为预测因素。合适的模型可以是：
-lmer(math~ses + ethnicity + (ses + ethnicity | school), data=d)
-（假设 ses 和 ethnicity 的斜率实际上因学校而异）。
-这个例子的问题是学生会感到困惑，特别是如果数据集尚未按学校排序。ethnicity 和 school 都符合标准：两者都重复，都不能识别一个人，并且都表示一个“群体”。当他们问为什么 ethnicity 不是时，我有点不知道如何解释为什么 ethnicity 不是一个群体。
-关于如何使差异更具体，有什么想法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/658926/easy-way-to-understand-the-difference-between-a-cluster-variable-and-a-random-va</guid>
-      <pubDate>Wed, 18 Dec 2024 15:33:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>向量的期望 $L^2$ 范数是否大于向量元素期望的 $L^2$ 范数？</title>
-      <link>https://stats.stackexchange.com/questions/658756/is-the-expected-l2-norm-of-a-vector-larger-than-the-l2-norm-of-the-vector</link>
-      <description><![CDATA[假设随机变量 $X_1, X_2$ 是独立的。以下不等式是否成立？
-$$
-\mathbb{E}(​​\sqrt{X_1^2+X_2^2}) \ge \sqrt{\mathbb{E}^2(X_1)+\mathbb{E}^2(X_2)}
-$$
-如果成立，有简单的证明吗？
-
-请注意，这不是 Jensen 不等式！
-（$\sqrt{\mathbb{E}(​​X_1^2+X_2^2)} \ge \mathbb{E}(​​\sqrt{X_1^2+X_2^2})$）]]></description>
-      <guid>https://stats.stackexchange.com/questions/658756/is-the-expected-l2-norm-of-a-vector-larger-than-the-l2-norm-of-the-vector</guid>
-      <pubDate>Sun, 15 Dec 2024 15:14:16 GMT</pubDate>
+      <title>为什么我们使用梯度*输入来生成 CNN 的显著图？</title>
+      <link>https://stats.stackexchange.com/questions/659175/why-we-use-gradientinput-for-producing-the-saliency-map-of-a-cnn</link>
+      <description><![CDATA[为 CNN 生成显著性图的最简单方法是计算特定输入的 梯度，如此处所述。
+还有另一种方法，其中显著性图等于 梯度*输入。我读到它使显著性图更清晰，但我想解释一下为什么会这样，或者只是与输入相乘背后的动机。]]></description>
+      <guid>https://stats.stackexchange.com/questions/659175/why-we-use-gradientinput-for-producing-the-saliency-map-of-a-cnn</guid>
+      <pubDate>Tue, 24 Dec 2024 20:29:14 GMT</pubDate>
     </item>
     </channel>
 </rss>
