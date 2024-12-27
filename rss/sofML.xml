@@ -4,7 +4,16 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 27 Dec 2024 12:31:27 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 27 Dec 2024 15:16:36 GMT</lastBuildDate>
+    <item>
+      <title>pytorch中如何在单节点单GPU系统中开发多GPU模块？</title>
+      <link>https://stackoverflow.com/questions/79311997/how-to-develop-multi-gpu-modules-in-single-node-single-gpu-system-in-pytorch</link>
+      <description><![CDATA[我正在开发一个多 GPU PyTorch 应用程序。torch.distributed 中的现有方法（如 scatter/gather）不能满足我的要求，因此我需要开发前向/反向传播步骤，在 GPU 之间发送和接收梯度，同时使用内置方法 scatter/gather。我可以自己做。我的最终应用程序将在多 GPU 服务器上执行。
+对于开发，预算限制将我限制在单节点单 GPU 服务器上，因为我们的组织共享大型集群服务器。我遇到的一个问题是在这个单 GPU 系统中模拟多 GPU 设置。
+如何在单 GPU 系统中模拟多 GPU 设置以测试这些模块？]]></description>
+      <guid>https://stackoverflow.com/questions/79311997/how-to-develop-multi-gpu-modules-in-single-node-single-gpu-system-in-pytorch</guid>
+      <pubDate>Fri, 27 Dec 2024 14:10:33 GMT</pubDate>
+    </item>
     <item>
       <title>交叉验证结果与混淆矩阵指标之间的差异</title>
       <link>https://stackoverflow.com/questions/79311670/discrepancy-between-cross-validation-results-and-confusion-matrix-metrics</link>
@@ -164,115 +173,6 @@ optimizador=Adam(learning_rate=0.001) #Esto cambiardependiendo del 训练表现 
       <pubDate>Thu, 26 Dec 2024 04:26:53 GMT</pubDate>
     </item>
     <item>
-      <title>在 MNIST 数据集上使用 Gumbel softmax 进行 VAE</title>
-      <link>https://stackoverflow.com/questions/79307976/vae-with-gumbel-softmax-on-mnist-dataset</link>
-      <description><![CDATA[kl 损失变为 0 可能是什么问题？重建损失很小，但每幅图像都相同，并且不代表任何数字。
-这是我使用的编码器/解码器架构，我认为该架构足够复杂，可以有效地捕获和创建新的数字。
-import tensorflow as tf
-from keras import layer
-import gumbel_softmax
-
-class VariationalAutoEncoder(tf.keras.Model):
-def __init__(self, latent_dim, categorical_dim):
-super(VariationalAutoEncoder, self).__init__()
-self.latent_dim = latent_dim
-self.categorical_dim = categorical_dim
-self.z_dim = latent_dim * categorical_dim
-
-self.encoder = tf.keras.Sequential([
-layer.InputLayer(input_shape=(28, 28, 1)),
-层。Conv2D（16，（3，3），激活=&#39;relu&#39;，步幅=2，填充=&#39;相同&#39;），
-层。Conv2D（32，（3，3），激活=&#39;relu&#39;，步幅=2，填充=&#39;相同&#39;），
-层。Conv2D（64，（3，3），激活=&#39;relu&#39;，步幅=2，填充=&#39;相同&#39;），
-层。BatchNormalization（），
-层。Flatten（），
-层。Dense（128，激活=&#39;relu&#39;），
-层。Dense（self.z_dim），
-层。Reshape（（latent_dim，categorical_dim）），
-]）
-
-self.decoder = tf.keras.Sequential（[
-层。InputLayer（input_shape=（latent_dim，categorical_dim）），
-层。Flatten（），
-层。Dense（7 * 7 * 64，激活=&#39;relu&#39;），
-layers.Reshape（（7，7，64）），
-layers.Conv2DTranspose（64，（3，3），激活=&#39;relu&#39;，strides= 2，padding=&#39;same&#39;），
-layers.Conv2DTranspose（32，（3，3），激活=&#39;relu&#39;，strides = 2，padding=&#39;same&#39;），
-layers.Conv2DTranspose（1，（3，3），激活=&#39;sigmoid&#39;，padding=&#39;same&#39;），
-]）
-
-def call（self，x，temperature，hard）：
-logits = self.encoder（x）
-z = gumbel_softmax.gumbel_softmax（logits，temperature，hard=hard）
-reconstructed = self.decoder（z）
-return tf.reshape（reconstructed，（reconstructed.shape[0]，28，28））， tf.nn.softmax(logits, axis=-1)
-
-
-import tensorflow as tf
-
-def sample_gumbel(shape, eps=1e-15): 
-&quot;&quot;&quot;从 Gumbel(0, 1) 分布中采样。&quot;&quot;&quot;
-U = tf.random.uniform(shape, minval=0, maxval=1)
-return -tf.math.log(-tf.math.log(U + eps) + eps)
-
-def gumbel_softmax_sample(logits,temperature): 
-&quot;&quot;&quot;从 Gumbel-Softmax 分布中采样。&quot;&quot;&quot;
-y = logits + sample_gumbel(tf.shape(logits))
-return tf.nn.softmax(y /temperature)
-
-def gumbel_softmax(logits,temperature,hard=False):
-&quot;&quot;&quot;从 Gumbel-Softmax 分布中采样并可选择离散化。
-
-参数：
-logits：[batch_size, n_class] 未归一化的对数概率
-temperature：非负标量
-hard：如果为 True，则取 argmax，但对软样本 y 进行区分
-
-返回：
-[batch_size, n_class] 来自 Gumbel-Softmax 分布的样本。
-如果 hard=True，则返回的样本将是独热样本，否则它将是跨类别总和为 1 的概率分布。
-&quot;&quot;&quot;
-y = gumbel_softmax_sample(logits,temperature) 
-if hard: 
-y_hard = tf.one_hot(tf.argmax(y, axis=-1), tf.shape(logits)[-1])
-y = tf.stop_gradient(y_hard - y) + y 
-
-return y
-
-
-以下是我使用的参数，我尝试了很多次，但没有成功。
-LR_RATE = 5e-3
-
-BATCH_SIZE=64
-NUM_ITERS=900
-tau0 = 1
-ANNEAL_RATE=5e-5
-MIN_TEMP=0.1
-EPOCHS = 30
-
-CATEGORICAL_DIM = 10
-LATENT_DIM = 32
-
-我计算了 kl 损失和重建损失的总和batch_size
-def compute_loss(model, x,temperature,hard,beta):
-重建，logits = model(x,temperature =temperature,hard =hard)
-
-mse = keras.losses.BinaryCrossentropy(reduction=&quot;sum_over_batch_size&quot;)
-
-rebuilding_loss = mse(x,reconstructed)
-kl_loss = tf.reduce_mean(
-tf.reduce_sum(
-logits * (tf.math.log(logits + 1e-8) - tf.math.log(1.0 / config.CATEGORICAL_DIM)),
-axis=[1, 2]
-)
-)
-total_loss = rebuilding_loss + beta * kl_loss
-return total_loss, rebuilding_loss, beta * kl_loss, reconstructed
-]]></description>
-      <guid>https://stackoverflow.com/questions/79307976/vae-with-gumbel-softmax-on-mnist-dataset</guid>
-      <pubDate>Wed, 25 Dec 2024 16:28:11 GMT</pubDate>
-    </item>
-    <item>
       <title>分离图像内的盲文字符</title>
       <link>https://stackoverflow.com/questions/79306951/separation-of-braille-characters-inside-of-an-image</link>
       <description><![CDATA[我正在做一个将盲文转换为文本的项目。我已经编写了从图像中识别盲文点的代码，但我不知道如何将盲文分割成单元格。
@@ -409,6 +309,38 @@ model.export(format=&quot;coreml&quot;)
 我想在这里进行一些更改，可能使用 coremltools，以处理无界范围（我想处理任意大小的图像）。这里有一些描述：https://apple.github.io/coremltools/docs-guides/source/flexible-inputs.html#enable-unbounded-ranges，但我不明白如何用我的脚本实现它。]]></description>
       <guid>https://stackoverflow.com/questions/79305588/use-yolo-with-unbounded-input-exported-to-an-mlpackage-mlmodel-file</guid>
       <pubDate>Tue, 24 Dec 2024 12:23:06 GMT</pubDate>
+    </item>
+    <item>
+      <title>iOS Swift 根据用户数据进行动态机器学习</title>
+      <link>https://stackoverflow.com/questions/79295972/ios-swift-dynamic-machine-learning-from-user-data</link>
+      <description><![CDATA[是否可以使用 Apple ML 框架动态学习应用中的用户行为？我已经使用 Create ML 应用程序训练了一个模型，然后我可以从 iOS 设备更新并重新训练吗？这就是我目前使用该模型的方式。
+public func calculateMuscleRecoveryTime(_ workout: Workout) {
+do {
+
+let config = MLModelConfiguration()
+let model = try MuscleRecoveryModel(configuration: config)
+
+let allMuscleGroups = workout.exercises
+.compactMap { $0.muscles } // 展平每个锻炼的肌肉数组
+.reduce(Set&lt;MuscleGroup&gt;()) { $0.union($1) } // 联合以删除重复项
+
+let uniqueMuscleGroups = Array(allMuscleGroups)
+
+for muscleGroup in uniqueMuscleGroups {
+let trainingIntensity = Int64(workout.intensity.intValue)
+let lastTrainedTimestamp = workout.date
+let timeAgo = timeAgoInSeconds(from: lastTrainedTimestamp)
+let muscleName = muscleGroup.rawValue.lowercased()
+
+let prediction = try model.prediction(muscle: muscleName, intense: trainingIntensity, lastTrained: timeAgo)
+}
+} catch let error {
+print(&quot;Error: &quot;, error)
+}
+}
+]]></description>
+      <guid>https://stackoverflow.com/questions/79295972/ios-swift-dynamic-machine-learning-from-user-data</guid>
+      <pubDate>Fri, 20 Dec 2024 01:10:59 GMT</pubDate>
     </item>
     <item>
       <title>在 Google Cloud Functions 中部署 Keras 模型进行预测</title>
@@ -561,71 +493,6 @@ RuntimeError：mat1 和 mat2 形状无法相乘（210x6 和 2x2）。
       <pubDate>Tue, 12 Mar 2024 09:08:05 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 ML 模型和 FastAPI 处理来自多个用户的请求？</title>
-      <link>https://stackoverflow.com/questions/71613305/how-to-process-requests-from-multiiple-users-using-ml-model-and-fastapi</link>
-      <description><![CDATA[我正在研究通过FastAPI分发人工智能模块的过程。
-我创建了一个FastAPI应用，使用预先学习的机器学习模型来回答问题。
-这种情况下，一个用户使用是没有问题的，但是多个用户同时使用的时候，响应可能会太慢。
-那么，当多个用户输入一个问题的时候，有没有办法一次性复制模型并加载进去？
-class sentencebert_ai():
-def __init__(self) -&gt;无：
-super().__init__()
-
-def ask_query(self,query, topN):
-startt = time.time()
-
-ask_result = []
-score = []
-result_value = [] 
-embedder = torch.load(model_path)
-corpus_embeddings = embedder.encode(corpus, convert_to_tensor=True)
-query_embedding = embedder.encode(query, convert_to_tensor=True)
-cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0] #torch.Size([121])121 表示该数据集为 10 ... cos_scores = cos_scores.cpu()
-
-        top_results = np.argpartition(-cos_scores, range(topN))[0:topN]
-
-        对于 top_results[0:topN] 中的 idx：        
-            Ask_result.append(corpusid[idx].item())
-            #.item()으로 접근하는 유는 张量(5)에서 해당 숫자에 접근하기 위한 방식다.
-            score.append(round(cos_scores[idx].item(),3))
-
-# 生成 json 数组并返回结果集
-for i,e in zip(ask_result,score):
-result_value.append({&quot;pred_id&quot;:i,&quot;pred_weight&quot;:e})
-endd = time.time()
-print(&#39;结果集&#39;,endd-startt)
-return result_value
-# return &#39;,&#39;.join(str(e) for e in ask_result),&#39;,&#39;.join(str(e) for e in score)
-
-class Item_inference(BaseModel):
-text : str
-topN : Optional[int] = 1
-
-@app.post(&quot;/retrieval&quot;, tags=[&quot;knowledge referral&quot;])
-async def Knowledge_recommendation(item: Item_inference):
-
-# db.append(item.dict())
-item.dict()
-results = _ai.ask_query(item.text, item.topN)
-
-return results
-
-if __name__ == &quot;__main__&quot;:
-parser = argparse.ArgumentParser()
-parser.add_argument(&quot;--port&quot;, default=&#39;9003&#39;, type=int)
-# parser.add_argument(&quot;--mode&quot;, default=&#39;cpu&#39;, type=str, help=&#39;cpu for CPU mode, gpu for GPU mode&#39;)
-args = parser.parse_args()
-
-_ai = sentencebert_ai()
-uvicorn.run(app, host=&quot;0.0.0.0&quot;, port=args.port,workers=4)
-
-更正版本
-@app.post(&quot;/aaa&quot;) def your_endpoint(request: Request, item:Item_inference): start = time.time() model = request.app.state.model item.dict() # 测试结果 _ai = sentencebert_ai() results = _ai.ask_query(item.text, item.topN,model) end = time.time() print(end-start) return results ``` 
-]]></description>
-      <guid>https://stackoverflow.com/questions/71613305/how-to-process-requests-from-multiiple-users-using-ml-model-and-fastapi</guid>
-      <pubDate>Fri, 25 Mar 2022 07:13:32 GMT</pubDate>
-    </item>
-    <item>
       <title>选择 CNN 中的步幅和过滤器数量（Keras）</title>
       <link>https://stackoverflow.com/questions/46065445/selecting-number-of-strides-and-filters-in-cnn-keras</link>
       <description><![CDATA[我正在使用 keras 构建一个用于信号分类的 cnn 模型。在 keras 中，调整超参数和选择步长数以及滤波器数量的最佳方法是什么？]]></description>
@@ -633,7 +500,7 @@ uvicorn.run(app, host=&quot;0.0.0.0&quot;, port=args.port,workers=4)
       <pubDate>Wed, 06 Sep 2017 01:26:02 GMT</pubDate>
     </item>
     <item>
-      <title>scikit-learn 交叉验证过度拟合或欠拟合</title>
+      <title>scikit-learn交叉验证过度拟合或欠拟合[关闭]</title>
       <link>https://stackoverflow.com/questions/20357705/scikit-learn-cross-validation-over-fitting-or-under-fitting</link>
       <description><![CDATA[我正在使用 scikit-learn cross_validation 并获得例如 0.82 平均分数 (r2_scorer)。
 我如何知道使用 scikit-learn 函数时是否存在过度拟合或欠拟合？]]></description>
