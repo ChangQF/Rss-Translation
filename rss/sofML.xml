@@ -4,15 +4,19 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 26 Dec 2024 21:15:06 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 27 Dec 2024 01:15:47 GMT</lastBuildDate>
     <item>
       <title>更改 YOLO 片段预测图像中的片段颜色</title>
       <link>https://stackoverflow.com/questions/79309903/changing-color-of-segments-from-yolo-segment-predicted-images</link>
-      <description><![CDATA[我目前正在进行一个对象检测项目，在一组图像中检测三种类型的对象。此图像显示了 yolo 段模型预测模型示例 图像。
-我遇到的问题是检测到的符号是白色的。这种颜色对某些人来说可能是可见的，但对其他人来说可能不是。有没有办法改变这种颜色？我对 Python 很陌生。我已经预测了整个集合的图像（总计超过 100,000 张图像）。
-我使用 LabelStudio 标记感兴趣的符号的图像训练了 YOLOv8 模型。在标记过程中，我使用了红色、蓝色和绿色等颜色。但不知何故，在获得最终的 YOLOv8 模型 (best.pt) 并运行预测后，检测到的符号的颜色与最初使用的颜色不同。
-问题 1) 如何更改检测到的对象的白色？
-问题 2) 有没有办法确保在 labelstudio 上标记时使用的颜色保留在预测的图像中？
+      <description><![CDATA[我正在开展一个对象检测项目，在一组图像中检测三种类型的对象。此图像显示了 yolo 片段模型预测模型示例 图像。
+我遇到的问题是检测到的符号是白色的。这种颜色对某些人来说可能可见，但对其他人来说可能不可见。有没有办法改变这种颜色？我对 Python 很陌生。我已经预测了整个集合的图像（总计超过 100,000 张图像）。
+我使用使用 LabelStudio 标记感兴趣的符号的图像训练了 YOLOv8 模型。在标记过程中，我使用了红色、蓝色和绿色等颜色。但不知何故，在获得最终的 YOLOv8 模型 (best.pt) 并运行预测后，检测到的符号的颜色与最初使用的颜色不同。我有以下问题：
+
+如何更改检测到的物体的白色？
+
+有没有办法确保在 labelstudio 上标记时使用的颜色保留在预测图像中？
+
+
 import cv2
 import numpy as np
 
@@ -39,7 +43,7 @@ approx = cv2.approxPolyDP(contour, epsilon, True)
 if len(approx) == 4:
 # 验证形状是否凸（以确认它是矩形/正方形）
 if cv2.isContourConvex(approx):
-# 替换带有亮绿色的边界框
+# 将边界框的白色替换为亮绿色
 cv2.drawContours(image, [contour], -1, (0, 255, 0), thicken=cv2.FILLED)
 
 # 保存修改后的图像
@@ -404,56 +408,6 @@ plt.show()
       <pubDate>Wed, 25 Dec 2024 05:54:00 GMT</pubDate>
     </item>
     <item>
-      <title>训练 transformer 模型时出现 OOM 错误</title>
-      <link>https://stackoverflow.com/questions/79302713/oom-error-when-training-transformer-model</link>
-      <description><![CDATA[我正在研究 HMER（手写数学表达式识别）问题，并尝试使用 CNN-Transformer 架构。但是，当我尝试训练我的模型时，我遇到了此错误：
-DefaultCPUAllocator：内存不足：您尝试分配 69271363584 字节。
-我认为我的位置编码存在一些问题，但我真的不知道如何调试它或这里真正的问题是什么（我在这方面还只是初学者）
-我当前的模型如下所示
-class PositionalEncoding(nn.Module):
-def __init__(self, d_model, max_len=5000):
-super(PositionalEncoding, self).__init__()
-self.encoding = torch.zeros(max_len, d_model)
-position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-self.encoding[:, 0::2] = torch.sin(position * div_term)
-self.encoding[:, 1::2] = torch.cos(position * div_term)
-self.encoding = self.encoding.unsqueeze(0) # 添加批次维度
-
-def forward(self, x):
-seq_len = x.size(1)
-return x + self.encoding[:, :seq_len, :].to(x.device)
-
-class TransformerDecoder(nn.Module):
-def __init__(self, vocab_size, d_model, num_heads, num_layers, max_seq_length):
-super(TransformerDecoder, self).__init__()
-self.embedding = nn.Embedding(vocab_size, d_model)
-self.positional_encoding = PositionalEncoding(d_model, max_seq_length)
-decrypt_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=num_heads)
-self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
-self.fc_out = nn.Linear(d_model, vocab_size)
-
-def forward(self, target_seqs, memory, target_mask):
-# 嵌入目标序列
-embedded = self.embedding(target_seqs) # (batch, seq_len, d_model)
-embedded = checkpoint(self.positional_encoding, embedded) # 添加位置编码
-# 转置以兼容 nn.TransformerDecoder (seq_len, batch, d_model)
-embedded = embedded.permute(1, 0, 2)
-memory = memory.permute(1, 0, 2)
-# 解码
-coded = checkpoint(self.transformer_decoder, embedded, memory, target_mask) # (seq_len, batch, d_model)
-# 转置回 (batch, seq_len, d_model)
-coded = decrypted.permute(1, 0, 2)
-# 最终输出层
-logits = checkpoint(self.fc_out,coded) # (batch, seq_len, vocab_size)
-return logits
-
-
-我的代码有什么问题吗？如果没有，是什么原因导致我遇到这个问题的]]></description>
-      <guid>https://stackoverflow.com/questions/79302713/oom-error-when-training-transformer-model</guid>
-      <pubDate>Mon, 23 Dec 2024 09:44:33 GMT</pubDate>
-    </item>
-    <item>
       <title>‘super’ 对象没有属性‘__sklearn_tags__’</title>
       <link>https://stackoverflow.com/questions/79290968/super-object-has-no-attribute-sklearn-tags</link>
       <description><![CDATA[我在使用 Scikit-learn 中的 RandomizedSearchCV 拟合 XGBRegressor 时遇到了 AttributeError。错误消息指出：
@@ -697,6 +651,14 @@ uvicorn.run(app, host=&quot;0.0.0.0&quot;, port=args.port,workers=4)
       <description><![CDATA[我正在使用 keras 构建一个用于信号分类的 cnn 模型。在 keras 中，调整超参数和选择步长数以及滤波器数量的最佳方法是什么？]]></description>
       <guid>https://stackoverflow.com/questions/46065445/selecting-number-of-strides-and-filters-in-cnn-keras</guid>
       <pubDate>Wed, 06 Sep 2017 01:26:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>scikit-learn 交叉验证过度拟合或欠拟合</title>
+      <link>https://stackoverflow.com/questions/20357705/scikit-learn-cross-validation-over-fitting-or-under-fitting</link>
+      <description><![CDATA[我正在使用 scikit-learn cross_validation 并获得例如 0.82 平均分数 (r2_scorer)。
+我如何知道使用 scikit-learn 函数时是否存在过度拟合或欠拟合？]]></description>
+      <guid>https://stackoverflow.com/questions/20357705/scikit-learn-cross-validation-over-fitting-or-under-fitting</guid>
+      <pubDate>Tue, 03 Dec 2013 17:25:03 GMT</pubDate>
     </item>
     </channel>
 </rss>
