@@ -4,12 +4,143 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 28 Dec 2024 18:20:55 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 28 Dec 2024 21:14:29 GMT</lastBuildDate>
+    <item>
+      <title>ARIMA(12,0,0) - 缺少第 14 个参数？拟合值 <> 已计算</title>
+      <link>https://stats.stackexchange.com/questions/659310/arima12-0-0-missing-14th-param-fitted-values-calculated</link>
+      <description><![CDATA[我在 R 中创建了一个 ARIMA(12, 0, 0) 模型。我计算出的拟合值为
+$$\hat{y}(t) = \phi_1 y(t-1) + \phi_2 y(t-2) + \ldots + \phi_{12} y(t-12) + \text{intercept}$$
+将我的计算结果与模型的最后 10 个拟合值进行比较，结果存在恒定的差异（这 10 个差异是相同的）。为什么会有差异？为了弄清楚这一点，我遇到了这个等式
+$$ \text{AIC} = 2k - 2\ln(L) $$
+其中 k 是参数的数量，L 是最大似然。当我求解 k 时，我得到的结果是 14，而预期结果是 13（12 个滞后和一个截距）。第 14 个参数是什么？我在 R 中哪里可以找到它？它能解释错误吗？重现该问题的代码如下：
+library(readxl)
+library(curl)
+library(dplyr)
+url &lt;- &quot;https://img1.wsimg.com/blobby/go/e5e77e0b-59d1-44d9-ab25-4763ac982e53/downloads/e1fcc664-eaa1-48ed-b682-88e0c33db496/ie_data.xls?ver=1733242673788&quot;
+temp_file &lt;- tempfile(fileext = &quot;.zip&quot;)
+curl_download(url, temp_file)
+shiller_data &lt;- suppressWarnings(suppressMessages({
+read_excel(
+temp_file,
+sheet = &quot;Data&quot;,
+range = &quot;A8:V1856&quot;,
+col_types = c(
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;skip&quot;,
+&quot;numeric&quot;,
+&quot;skip&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;,
+&quot;numeric&quot;
+)
+)
+}))
+colnames(shiller_data) &lt;- c(
+&quot;Date&quot;,
+&quot;SPCompP&quot;,
+&quot;D&quot;,
+&quot;E&quot;,
+&quot;CPI&quot;,
+&quot;DateFraction&quot;,
+&quot;LongRateGS10&quot;,
+&quot;RealP&quot;,
+&quot;RealD&quot;,
+&quot;RealTRP&quot;,
+&quot;RealE&quot;,
+&quot;RealTRScaledE&quot;,
+&quot;CAPE&quot;,
+&quot;TRCAPE&quot;,
+&quot;ExcessCAPEYld&quot;,
+&quot;BondReturns&quot;,
+&quot;RealBondReturns&quot;,
+&quot;StockRealRet10Y&quot;,
+&quot;BondRealRet10Y&quot;,
+&quot;ExcessRealRet10Y&quot;
+)
+
+DateFraction2Date &lt;- function(dateFraction) {
+y = floor(dateFraction)
+m = ceiling((dateFraction - y)*12) + 1
+idx &lt;- m &gt; 12
+y[idx] &lt;- y[idx] + 1
+m[idx] &lt;- 1
+out &lt;- as.Date(paste0(y, &quot;-&quot;,m,&quot;-1&quot;), format = &quot;%Y-%m-%d&quot;) - 1
+return(out) 
+}
+
+shiller_data &lt;- shiller_data %&gt;% mutate(Date1 = DateFraction2Date(DateFraction))
+通货膨胀 &lt;- shiller_data$CPI[2:nrow(shiller_data)]/shiller_data$CPI[1:(nrow(shiller_data) -1)] - 1 
+inflation_ts &lt;- ts(inflation, start = c(lubridate::year(shiller_data$Date1[2]), lubridate::month(shiller_data$Date1[2])), 频率 = 12)
+
+window_data &lt;- indication_ts[1:360]
+ar_model &lt;- Arima(window_data, order = c(12, 0, 0))
+fitted10 &lt;- ar_model$fitted[351:360]
+calcFitted10 &lt;- numeric(10)
+for (i in 351:360) {
+calcFitted10[i-350] &lt;- sum(window_data[(i-12):(i-1)] * ar_model$coef[12:1]) + ar_model$coef[13]
+}
+fitted10 - calcFitted10
+implied_pa​​rams &lt;- (ar_model$aic - ar_model$loglik*-2)/2
+
+本例中的数据来自 Shiller 的 CAPE 数据。
+摘要：为什么不是
+
+fitted10 - calcFitted10
+
+全为零？是因为
+
+implied_pa​​rams
+
+等于 14，而我只使用了 13 个系数？
+我读过类似问题和这个问题，但还没搞清楚。]]></description>
+      <guid>https://stats.stackexchange.com/questions/659310/arima12-0-0-missing-14th-param-fitted-values-calculated</guid>
+      <pubDate>Sat, 28 Dec 2024 20:40:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>低拉姆齐重置检验 p 值 (LinReg)</title>
+      <link>https://stats.stackexchange.com/questions/659306/low-ramsey-reset-test-p-value-linreg</link>
+      <description><![CDATA[我正在为入门计量经济学课程做我的期末项目。我正在使用 Python 中的简单线性回归对二手保时捷 911 价格进行建模。令人困扰的是 RESET 测试的低 p 值，尽管我尝试使用交互项（里程 x 年数）、二次幂（里程^2）等。如果我使用 Y 变量（价格）对数的对数线性模型，则会出现最低的 RESET p 值和最高的 R^2，因此这似乎是目前最合适的。有什么改进的想法吗？ RESET 测试真的那么重要吗？
+以下是代码以防万一：
+Y = df[&quot;log_price&quot;]
+X = df[[&quot;IS911&quot;, &quot;IS964&quot;, &quot;IS993&quot;, &quot;IS996&quot;, &quot;IS997&quot;, &quot;IS991&quot;, &quot;Special&quot;, &quot;S&quot;, &quot;RS&quot;, &quot;Turbo&quot;, &quot;GT&quot;, &quot;Targa&quot;, &quot;Cabriolet&quot;, &quot;Automat&quot;, &quot;Power&quot;, &quot;Mileage&quot;, &quot;CylCap&quot;]]
+X = sm.add_constant(X)
+model5= sm.OLS(Y, X).fit()
+print(model5.summary())
+
+from statsmodels.stats.diagnostic import linear_reset
+reset_test = linear_reset(model5, power=3)
+print(&quot;P-hodnota:&quot;, reset_test.pvalue)
+
+返回： 
+R^2 = 0.857 (Adj. R^2 = 0.856) 
+所有变量均具有统计学意义 
+RESET p 值：0.00022819301719425838 
+使用的变量： 
+虚拟变量：IS911、IS964、IS993、IS996、 IS997、IS991、Special、S、RS、Turbo、GT、Targa、Cabriolet、Automat（如果为真则为 1，否则为 0）
+连续变量：功率、里程、CylCap]]></description>
+      <guid>https://stats.stackexchange.com/questions/659306/low-ramsey-reset-test-p-value-linreg</guid>
+      <pubDate>Sat, 28 Dec 2024 18:52:34 GMT</pubDate>
+    </item>
     <item>
       <title>如何针对我的纬度和经度数据运行卷积神经网络？</title>
       <link>https://stats.stackexchange.com/questions/659302/how-can-i-run-a-convolutional-neural-network-for-my-latitude-and-longitude-data</link>
       <description><![CDATA[我的数据与我在互联网上看到的数据不同。我有一个物体随时间变化的经纬度，因此是一个 num_time-by-2 数据框。我想使用 CNN 来模拟物体的空间密度。我能够创建一个矩阵，以纬度为行、以经度为列，以给定坐标处的观测次数为值，但我不确定 Keras 是否会接受数据。我看到的示例使用图像作为数据。
-此外，我有许多示例数据集。在这个例子中，我有许多不同的物体，每个物体都有一条路径。我使用的运动模型有三个不同的参数：速度、摩擦力和速度极限分布的方差。我的目标是训练我的数据集，以便找到物体路径和参数值之间的关系。谢谢！]]></description>
+此外，我有许多示例数据集。在这个例子中，我有许多不同的物体，每个物体都有一条路径。我使用的运动模型有三个不同的参数：速度、摩擦力和速度极限分布的方差。我的目标是训练我的数据集，以便找到物体路径与参数值之间的关系。谢谢！]]></description>
       <guid>https://stats.stackexchange.com/questions/659302/how-can-i-run-a-convolutional-neural-network-for-my-latitude-and-longitude-data</guid>
       <pubDate>Sat, 28 Dec 2024 18:10:28 GMT</pubDate>
     </item>
@@ -24,7 +155,7 @@
       <title>以分类变量作为预测因子的判别分析的等价性</title>
       <link>https://stats.stackexchange.com/questions/659297/equivalent-of-discriminant-analysis-with-categorical-variables-as-predictors</link>
       <description><![CDATA[我有一个数据集，其中学生投票选出班级发言人。该数据集包括学生的 ID、他/她投票选出的班级发言人以及他/她的社会人口统计特征（性别、年龄、原籍国）。
-我想知道哪些变量可以帮助我更好地区分投票给班级发言人 A 的学生和其他班级发言人的学生。在典型判别分析中，使用数值预测变量很容易做到这一点。我该如何使用分类预测变量做到这一点？
+我想知道哪些变量可以帮助我更好地区分投票给班级发言人 A 的学生和其他班级发言人的学生。在典型判别分析中，使用数值预测变量很容易做到这一点。如何使用分类预测变量做到这一点？
 如果我使用多元逻辑回归，我只能解释成对比较……]]></description>
       <guid>https://stats.stackexchange.com/questions/659297/equivalent-of-discriminant-analysis-with-categorical-variables-as-predictors</guid>
       <pubDate>Sat, 28 Dec 2024 15:50:51 GMT</pubDate>
@@ -38,24 +169,6 @@
       <pubDate>Sat, 28 Dec 2024 15:19:07 GMT</pubDate>
     </item>
     <item>
-      <title>airbnb评分分布及参数估计</title>
-      <link>https://stats.stackexchange.com/questions/659293/distribution-and-parameter-estimation-for-airbnb-rating</link>
-      <description><![CDATA[问题： 
-考虑 X，一个随机变量。
-X 是客户给出的 airbnb 评分（值，1 到 5 之间的自然数）。
-X 将遵循什么分布？
-假设您获得一个数据点，N 个人已经对其进行了评论，并且您有平均评分。给定样本平均值，您将如何获得真实平均值的 95% 置信区间？
-请注意，您只有两个数字 - N 和平均评分。
-我的方法： 
-假设 X 遵循截断正态分布，平均值为 $\mu$。
-假设截断正态分布的方差为 $\sigma \approx 0.8$，这在评级系统中很常见。 
-标准误差，$SE = \dfrac{\sigma}{\sqrt{N}}$ 
-置信区间，$CI=\mu_0±1.96⋅SE$，其中$\mu_0$是样本均值。
-不知道我的方法是否正确。如何解决这个问题？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659293/distribution-and-parameter-estimation-for-airbnb-rating</guid>
-      <pubDate>Sat, 28 Dec 2024 07:26:37 GMT</pubDate>
-    </item>
-    <item>
       <title>无意识统计学家的条件密度定律</title>
       <link>https://stats.stackexchange.com/questions/659281/law-of-the-unconscious-statistician-for-conditional-density</link>
       <description><![CDATA[根据这个答案，无意识统计学家的定律意味着
@@ -64,31 +177,22 @@ $$E[h(X) \mid Z=z]=\int h(x) g(x\mid z) ~\mathrm{d}x.$$
 $$E[h(X \mid Y) \mid Z=z]呢？$$
 这是真的吗
 $$E[h(X \mid Y) \mid Z=z] = \int h(x \mid y) g(x\mid z) ~\mathrm{d}x?$$
-我之所以问这个问题，是因为我目前正在研究条件得分函数 $\frac{\partial}{\partial \beta}\log h_{Y \mid X, \mathrm{B}}(y \mid x, \beta)$，当对相关参数 $\beta^*$ 的真实值进行评估时，该函数的均值应为零。]]></description>
+我之所以问这个问题，是因为我目前正在研究条件得分函数 $\frac{\partial}{\partial \beta}\log h_{Y \mid X, \mathrm{B}}(y \mid x, \beta)$，当对相关参数 $\beta^*$ 的真实值进行评估时，该函数的均值应为零。
+编辑：以下是有关 $y$ 和 $z$ 的作用的更多信息。在某些规律性条件下，无意识统计学家的定律意味着
+\begin{equation*}
+\begin{split}
+E\left[ \frac{\partial}{\partial \theta} \log f_{X \mid \Theta}(x \mid \theta) \mid \Theta = \theta^* \right] 
+&amp;= \int \left(\frac{\partial}{\partial \theta} \log f_{X \mid \Theta} (x \mid \theta)\right) f_{X \mid \Theta}(x \mid \theta^*) \, \mathrm{d}x \\
+&amp;= \int \frac{\partial f_{X \mid \Theta}(x \mid \theta)}{\partial \theta}\frac{1}{f_{X \mid \Theta}(x \mid \theta)}f_{X \mid \Theta}(x \mid \theta^*) \, \mathrm{d}x。
+\end{split}
+\end{equation*&gt;
+因此，
+$$ E\left[\frac{\partial}{\partial \theta} \log f_{X \mid \Theta}(x \mid \theta^*) \mid \Theta = \theta^*\right] = \int \frac{\partial f_{X \mid \Theta}(x \mid \theta^*)}{\partial \theta} \, \mathrm{d}x = \frac{\partial}{\partial \theta} \int f_{X \mid \Theta}(x \mid \theta^*) \, \mathrm{d}x = \frac{\partial}{\partial \theta} [1] =0。 $$
+现在我试图证明
+$$E\left[\frac{\partial}{\partial \theta} \log g_{Y \mid \mathbf{X}, \Theta}(y \mid \mathbf{x}, \theta^*) \mid \Theta = \theta^*\right] = 0,$$
+其中 $g_{Y \mid \mathbf{X}, \Theta}(y \mid \mathbf{x}, \theta^*)$ 是与 $y$ 对 $\mathbf{x}$.]]></description>
       <guid>https://stats.stackexchange.com/questions/659281/law-of-the-unconscious-statistician-for-conditional-density</guid>
       <pubDate>Fri, 27 Dec 2024 23:25:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>“两阶段抽样”：合适的名称？</title>
-      <link>https://stats.stackexchange.com/questions/659277/two-stage-sampling-appropriate-name</link>
-      <description><![CDATA[假设需要基于二元观测估计给定人群中某些特征发生的概率 $p$。例如，通过选择人群样本，对每个人进行测试以检测该条件的存在与否，可以估计出某人患有某种遗传疾病的概率。
-众所周知，获得 $p$ 可靠估计所需的样本量精确取决于 $p$（较小的 $p$ 需要较大的样本量）。考虑以下采样方案 (A)：
-
-采集初始样本（使用预定义的大小或使用顺序停止规则），从中获得 $p$ 的粗略估计值。该估计值用于选择第二采样阶段的适当大小，由此获得$p$的最终估计值。
-
-在我正在撰写的论文中，我想将（A）称为两阶段采样方案（它有两个阶段，我认为这个名字很清晰且具有描述性）。然而，“两阶段抽样”或“两阶段集群抽样”这一名称应用到一种集群抽样形式 (B):
-
-给定一个集群群体，每个集群包含一定数量的个体，第一阶段选择集群的一个子集，第二阶段选择每个集群中的某些个体。
-
-另一方面，我看到了限定词“两阶段”在其他情况下使用，而不仅仅是集群抽样，例如：&quot;自回归两阶段模型&quot;、&quot;两阶段最小二乘法&quot;、&quot;两阶段 PCA&quot;。
-我的问题：
-
-将 (A) 称为两阶段抽样是否可以接受？ （具体方法当然会在论文中描述）。或者，考虑到该名称适用于/可能适用于 (B)，这会引起混淆吗？
-使用名称“两阶段抽样”来表示 (B) 有多普遍？(B) 最常被称为“两阶段集群抽样”吗？（这将为我打算使用该名称扫清障碍）
-(A) 还有其他成熟的名称吗？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/659277/two-stage-sampling-appropriate-name</guid>
-      <pubDate>Fri, 27 Dec 2024 21:49:27 GMT</pubDate>
     </item>
     <item>
       <title>$\text{U}(0, \theta)$ 中 ${θ}/{2}$ 的置信区间</title>
@@ -123,16 +227,25 @@ $$
 $$
 f_{\mu|X=x}(\mu_0) = \frac{f_{X|\mu=\mu_0}(x)f_{\mu}(\mu_0)}{f_X(x)}
 $$
-并且假设 $\mu$ 的先验是某个常数，并且 $f_X$ 具有伽马密度，则后验应该看起来像
+并且假设 $\mu$ 的先验是某个常数，并且 $f_X$ 具有伽马密度，则后验应该类似于
 $$
 \log(\frac{f_{X|\mu=\mu_0}(x)}{f_X(x)}) + C = \log(f_{X|\mu=\mu_0}(x)) - \log(f_X(x)) + C
 $$
-其中 C 是基于 $\mu$ 先验的某个加法常数。
+其中 C 是基于 $\mu$ 先验的某个加性常数。
 另一方面另一方面，我想说 $\mu$ 和 $X$ 是独立的，这使得整个表达式只是一个常数，但我不确定它是否正确。
 我有点卡在这里，想了解我遗漏了什么。
 谢谢。]]></description>
       <guid>https://stats.stackexchange.com/questions/659271/problem-in-understanding-how-to-find-posterior-logistic-regression</guid>
       <pubDate>Fri, 27 Dec 2024 15:55:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>多元方差分析，其中一些因变量是序数，一些是区间数</title>
+      <link>https://stats.stackexchange.com/questions/659269/manova-with-some-dependent-variables-being-ordinal-and-some-being-interval</link>
+      <description><![CDATA[MANOVA 测试似乎非常适合以下研究，只是因变量不是所需的间隔，我想研究传统和非传统学习者在两种写作类型上的差异，反映在 1) 总体印象、2) 内容、3) 组织、4) 词汇准确性和 5) 语法准确性上。学习者（传统和非传统）和类型（叙述和论证）是两个独立变量。总体而言，内容和组织按 1 到 5 的等级进行评分，因此这三个因变量是序数，而词汇和语法按百分比计算，因此这两个因变量是间隔。
+我的问题是 1) 我还可以使用 MANOVA 吗？2) 如果不能，我可以使用什么其他测试？3) 如果可以，我可以使用哪些修改来使 MANOVA 发挥作用？
+我对统计学的了解有限，大多数时候使用 SPSS，但如果其他软件可以更有效地处理这个问题，我愿意尝试它们。非常感谢！！]]></description>
+      <guid>https://stats.stackexchange.com/questions/659269/manova-with-some-dependent-variables-being-ordinal-and-some-being-interval</guid>
+      <pubDate>Fri, 27 Dec 2024 13:37:14 GMT</pubDate>
     </item>
     <item>
       <title>如何修复 Lasso 回归的系数爆炸问题</title>
@@ -241,6 +354,25 @@ $$\propto k^{-b}$$
       <pubDate>Tue, 24 Dec 2024 23:53:30 GMT</pubDate>
     </item>
     <item>
+      <title>使用麦当劳 Omega 作为非加权总和评分的可靠性度量是合理的</title>
+      <link>https://stats.stackexchange.com/questions/659010/rational-to-use-mcdonalds-omega-as-a-reliability-measure-for-an-unweighted-sum</link>
+      <description><![CDATA[在最近的文献中，报告麦当劳欧米茄作为可靠性估计值显然比报告系数 alpha 更受欢迎（例如 McNeish，2017）。一个经常给出的论点是，系数 alpha（或 Cronbach&#39;s alpha）假设（本质上）tau-euqivalent 测量模型，即因子载荷必须相等，而麦当劳欧米茄允许不同的载荷。由于对 omega 有多种看法，为了简单起见，我们只关注单维尺度上的总 omega，如 McNeish (2017) 所指定的那样：
+
+（其中 $\lambda_i$ 是因子载荷，$\theta_{ii}$ 是第 i 项的误差/残差方差）
+在文章中，McNeish 写道：
+
+Omega (McDonald, 1970, 1999）是常用的复合信度测量方法，可用于多种软件程序。Omega 专为同类量表而设计，其中项目与被测构造的相关程度各不相同（即，在因子分析设置中，不会假设负载相等）。换句话说，不假设 tau 等价。当量表中的项目按单位加权以形成总量表分数但量表本身为同类时，复合信度是合适的（Bentler，2007；Geldhof 等人，2014）。单位加权量表意味着量表的总分是通过将各个项目的原始分数（或反向编码的原始分数，如果适用）相加来计算的：每个项目的权重相等。
+
+我觉得这违反直觉：例如，假设 CFA 表明同类模型（自由载荷）比更严格的 tau 等效模型更适合样本数据，因此我们决定使用 omega 而不是系数 alpha。然而，后续分析将使用基于同等权重项目计算得出的总和/平均分数，尽管我们刚刚在 CFA 中表明这种类型的测量模型无法很好地拟合我们的数据。
+我的问题：
+有人能否提供一些合理的解释，为什么对于由同等权重项目组成的分数，报告麦当劳的 omega 是有意义的？
+
+来源：
+McNeish，D. (2017)。感谢系数 alpha，我们将从这里开始。心理方法，23(3)，412–433。https://doi.org/10.1037/met0000144]]></description>
+      <guid>https://stats.stackexchange.com/questions/659010/rational-to-use-mcdonalds-omega-as-a-reliability-measure-for-an-unweighted-sum</guid>
+      <pubDate>Fri, 20 Dec 2024 12:24:36 GMT</pubDate>
+    </item>
+    <item>
       <title>在预测方面，我可以用与简单回归相同的方式处理高斯过程回归吗？</title>
       <link>https://stats.stackexchange.com/questions/658972/can-i-treat-gaussian-process-regression-in-the-same-way-as-simple-regression-in</link>
       <description><![CDATA[我正在学习高斯过程回归。我有两个设置：
@@ -266,61 +398,6 @@ $$
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658528/appropriateness-of-treating-study-site-as-a-random-effect-in-mixed-effects-model</guid>
       <pubDate>Tue, 10 Dec 2024 15:35:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>分层测试集引导法用于度量 UQ 的缺点</title>
-      <link>https://stats.stackexchange.com/questions/657292/drawbacks-of-stratified-test-set-bootstrapping-for-metric-uq</link>
-      <description><![CDATA[我正在使用测试集（百分位数）引导来量化各种模型性能指标（例如 AUROC、AUPR 等）的不确定性。
-为避免混淆，方法很简单：
-
-引导测试集
-计算每个引导测试集上的目标指标，为我提供指标值的分布
-计算指标分布的百分位数，为我提供 CI。
-
-（是的，我知道对于各种特定指标，有更有效的方法来获取 CI；我在工具箱中使用它作为一种万能的 UQ 方法，适用于我可以向其抛出的任何/所有指标。）
-现在回答我的问题：特别是在较小的测试集或类别不平衡性很强的情况下，在自举样本中，经常出现没有正值或负值的现象，从而导致各种指标除以零。
-解决这个问题的一种方法是简单地使用分层自举法，即在整个自举样本中保持正值的数量（或指标分母中的相关数字）不变，这种方法有什么重要的缺点吗？为什么这不是默认方法？或者它是？]]></description>
-      <guid>https://stats.stackexchange.com/questions/657292/drawbacks-of-stratified-test-set-bootstrapping-for-metric-uq</guid>
-      <pubDate>Fri, 15 Nov 2024 00:06:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用逆高斯解释广义线性模型的 beta 系数</title>
-      <link>https://stats.stackexchange.com/questions/611157/how-to-interpret-beta-coefficients-of-a-generalized-linear-model-using-inverse-g</link>
-      <description><![CDATA[我制作了一个具有逆高斯链接的广义线性模型。
-glm(lone_total ~ class + age + basic_needs_covered_id,
-data = mod_data_lone,
-family = gaussian(link = &quot;inverse&quot;)
-)
-
-我选择这个家族和链接是因为诊断图对于 inverse.gaussian(link=&quot;1/mu^2&quot;) 或 Gamma(link=&quot;log&quot;) 来说很糟糕（参见下图中结果变量的分布）
-具有以下系数的结果：
- 系数：
-估计标准差。误差 t 值 Pr(&gt;|t|) 
-(截距) 0.784873 0.066836 11.743 &lt; 2e-16 ***
-class2 -0.070565 0.067936 -1.039 0.300 
-class3 0.171242 0.203703 0.841 0.401 
-age 0.003912 0.003444 1.136 0.257 
-basic_needs_covered_id -0.110093 0.026307 -4.185 4.1e-05 ***
-
-如何解释估算值？我尝试将它们解释为来自伽马或泊松模型的 beta 值，或者对它们运行 log() 和 exp()，但对我来说没有任何意义。
-数据描述
-&gt; str(mod_data_lone)
-&#39;data.frame&#39;: 229 obs. 5 个变量：
-$ lone_total : num 0.01 3 3 1 1 1 0.01 3 0.01 0.01 ...
-$ class : 具有 3 个级别“1”、“2”、“3”的因子：3 2 1 3 1 1 1 1 1 2 ...
-$ age : num -14.44 -8.27 7.38 NA 13.99 ...
-$ basic_needs_covered_id: num 0 4 0 2 1 2 0 1 0 1 ...
-$ education_id : num 6 8 6 6 6 2 6 6 6 6 ...
-
-下图显示了条形图和密度分布以及按观测类别划分的均值：
-
--
-我得到的另一个表格如下，其中显示了不同类型的 B（对我来说这些都没有什么意义……）
-
--
-感谢您的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/611157/how-to-interpret-beta-coefficients-of-a-generalized-linear-model-using-inverse-g</guid>
-      <pubDate>Wed, 29 Mar 2023 17:07:20 GMT</pubDate>
     </item>
     </channel>
 </rss>
