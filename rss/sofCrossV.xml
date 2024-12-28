@@ -4,7 +4,143 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 28 Dec 2024 03:19:18 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 28 Dec 2024 06:21:42 GMT</lastBuildDate>
+    <item>
+      <title>应用多元统计方法</title>
+      <link>https://stats.stackexchange.com/questions/659289/applied-multivariate-statistical-methods</link>
+      <description><![CDATA[我想在即将到来的考试中参考和练习应用多元统计方法的练习。请分享任何我可以参考并练习的好参考资料。我有理查德·约翰逊的书。
+目前，我正在寻找一些东西来练习和数值，并尝试为该主题概述的所有方法。
+主题包括：总体最小二乘法、主成分回归、偏最小二乘法、非负矩阵分解、方差分析、多元方差分析、函数式 PCA]]></description>
+      <guid>https://stats.stackexchange.com/questions/659289/applied-multivariate-statistical-methods</guid>
+      <pubDate>Sat, 28 Dec 2024 05:38:52 GMT</pubDate>
+    </item>
+    <item>
+      <title>在对与输入数据集长度不同的序列进行测试时的位置编码</title>
+      <link>https://stats.stackexchange.com/questions/659286/positional-encodings-when-testing-on-sequences-with-different-lengths-than-the-i</link>
+      <description><![CDATA[我正在开发一个用于物理模拟的神经网络，它基本上可以归结为接收 3x3 矩阵序列（代表一些物理量）并输出另一个序列。目前，我正在使用正弦位置编码，然后是交替注意/MLP 层序列。
+但是，我还需要我的模型能够对不同长度的序列（最多 324 个矩阵）进行推理，但我的数据集仅包含长度为 9 的输入/输出序列。
+出于这个原因，我想知道正弦位置编码是否能够很好地推广到不同长度的序列，或者是否有更好的选择。我听说过各种其他方案（RoPE、学习嵌入等），但我对机器学习还不熟悉，所以我不确定哪种方案最适合我的具体用例，如果能就此事提出一些建议，我将不胜感激。
+谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/659286/positional-encodings-when-testing-on-sequences-with-different-lengths-than-the-i</guid>
+      <pubDate>Sat, 28 Dec 2024 05:02:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于原始样本矩的无偏性问题、奇怪的模拟结果</title>
+      <link>https://stats.stackexchange.com/questions/659284/question-about-unbiasedness-of-raw-sample-moments-odd-simulation-results</link>
+      <description><![CDATA[我正在执行蒙特卡洛模拟以确认$$m_k&#39;=\frac{1}{n}\sum_{i=1}^n X_i^k$$是$\text{E}[X^k]$的无偏估计量。如果$X\overset{iid}{\sim} \chi_1^2$，则我们有$\text{E}[X^k] = \prod_{j=0}^{k-1}(1+2j)$（来源）。为了验证 $m_k&#39;$ 的无偏性，我执行了以下模拟：
+library(tidyverse)
+
+kth_sample_raw_moment &lt;- function(x, k){
+return(mean(x^k))
+}
+
+kth_raw_moment &lt;- function(k, df){
+return(prod(df + 0:(k-1)*2))
+}
+
+draw_sample_moment &lt;- function(df, n, k, i){
+set.seed(i)
+x &lt;- rchisq(n, df = df)
+output &lt;- tibble(
+assess = kth_sample_raw_moment(x, k),
+kth_moment = k,
+df = df,
+sample_size = n,
+true_value = kth_raw_moment(k, df),
+iter_num = i,
+)
+return(输出)
+}
+
+draw_N_sample_moments &lt;- function(N, df, n, k){
+output &lt;- 1:N %&gt;% 
+map_df(\(i) draw_sample_moment(df, n, k, i))
+return(输出)
+}
+
+bias_of_estimator &lt;- function(N, df, n, k){
+output &lt;- draw_N_sample_moments(N, df, n, k) %&gt;% 
+summary(
+bias = mean(estimate - true_value),
+var_est = var(estimate)
+) %&gt;% 
+mutate(
+df = df,
+kth_moment = k, 
+sample_size = n,
+iterations = N
+)
+return(output)
+}
+
+结果 &lt;- map_df(1:10, \(k) bias_of_estimator(N = 1e4, 1, n = 1e3, k))
+
+随着 $k$ 的增加，经验偏差的幅度开始膨胀。
+
+
+
+第 K 阶矩
+经验偏差
+经验方差
+
+
+
+
+1
+0.0004955682
+2.047726e-03
+
+
+2
+-0.0002376841
+9.775483e-02
+
+
+3
+-0 .0208033800
+1.005684e+01
+
+
+4
+-0.3669142243
+1.902190e+03
+
+
+5
+-6.8067172462
+5.670055e+05
+
+
+6
+-145.6305751734
+2.343917e+08
+
+
+7
+-3520.6126356374
+1.214408e+11
+
+
+8
+-93062.0716106473
+7.307064e+13
+
+
+9
+-2627288.7106844918
+4.840854e+16
+
+
+10
+-78133410.5134635270
+3.410351e+19
+
+
+
+什么是发生了什么？ 我的直觉是，随着 $m_k&#39;$ 方差的增加，经验偏差成为真实偏差的足够好估计所需的样本大小（迭代 N）也会增加（即与 LLN 相关的收敛速度取决于底层随机变量的方差）。但这不应该导致经验偏差在 $k$ 中单调，所以我不确定为什么会发生这种情况（如果不是偶然的话）。非常感谢您的任何建议！]]></description>
+      <guid>https://stats.stackexchange.com/questions/659284/question-about-unbiasedness-of-raw-sample-moments-odd-simulation-results</guid>
+      <pubDate>Sat, 28 Dec 2024 04:43:58 GMT</pubDate>
+    </item>
     <item>
       <title>无意识统计学家的条件密度定律</title>
       <link>https://stats.stackexchange.com/questions/659281/law-of-the-unconscious-statistician-for-conditional-density</link>
@@ -41,7 +177,7 @@ $$E[h(X \mid Y) \mid Z=z] = \int h(x \mid y) g(x\mid z) ~\mathrm{d}x?$$
       <pubDate>Fri, 27 Dec 2024 21:49:27 GMT</pubDate>
     </item>
     <item>
-      <title>U(0, θ) 中 $\dfrac{θ}{2}$ 的置信区间</title>
+      <title>U(0, θ) 中 $\dfrac{θ}{2}$ 的置信区间 [closed]</title>
       <link>https://stats.stackexchange.com/questions/659276/confidence-interval-for-dfrac%ce%b82-in-u0-%ce%b8</link>
       <description><![CDATA[我试图找到 $\dfrac{\theta}{ 2}$ 的置信区间，置信度为 $1-\alpha$，使用 $p_1 = \alpha$, $p_2 = 1$
 因此，我采用 $\dfrac{\hat{\theta}}{2} = \dfrac{X_{(n)}}{2}$ 的无偏估计量
@@ -49,102 +185,6 @@ $$E[h(X \mid Y) \mid Z=z] = \int h(x \mid y) g(x\mid z) ~\mathrm{d}x?$$
 这看起来正确吗？还是我遗漏了什么？]]></description>
       <guid>https://stats.stackexchange.com/questions/659276/confidence-interval-for-dfrac%ce%b82-in-u0-%ce%b8</guid>
       <pubDate>Fri, 27 Dec 2024 21:45:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>命名和分组嵌套随机效应变量</title>
-      <link>https://stats.stackexchange.com/questions/659272/naming-and-grouping-nested-random-effect-variables</link>
-      <description><![CDATA[我有一个关于如何为混合效应模型命名和分组嵌套随机效应的问题。
-我进行了一个实验室实验，其中有 3 个处理方法，A、B、C。每个处理方法都有一个主水箱，将水送入两个处理水箱 - 一个左水箱和一个右水箱。每个处理水箱中混合了两种物种的 10 个生物。当我在 R 中指定&quot;tank&quot;随机效应变量时，它们的 tankID 应该编码为 left 与 right，还是应该为所有水箱赋予一个唯一标识符，例如：
-A_left A_right B_left B_right C_left C_right?
-我认为应该是第二个，因为重要的不是左/右指定 - 我真的不希望所有的&quot;left&quot;坦克彼此相似 - 这是 10 个生物被分组在一个单独的坦克中，经历相似的环境，并以独特的方式相互作用的效果。但我只是想确认一下，因为我见过它以另一种方式运行。
-此外，如果我对它进行编码，以便所有坦克都有一个唯一的 ID，我是否必须指定坦克在模型中嵌套在治疗下？例如 lme(response ~ treatment * species, random = ~1 | treatment / tankID, data = data)？或者在没有嵌套的情况下运行它可以吗，lme(response ~ treatment * species, random = ~1 | tankID, data = data)？
-谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/659272/naming-and-grouping-nested-random-effect-variables</guid>
-      <pubDate>Fri, 27 Dec 2024 17:29:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>理解如何找到后验（逻辑回归）的问题</title>
-      <link>https://stats.stackexchange.com/questions/659271/problem-in-understanding-how-to-find-posterior-logistic-regression</link>
-      <description><![CDATA[我有一个问题，我不知道该如何回答，我想得到一些澄清，或者指出我的理解中的问题所在。
-我们有一个逻辑回归问题，我们需要根据测量数据找到一个最佳阈值（高于阈值的产品将得到支持，低于阈值的产品将被放弃）：
-随机变量 Z 代表“成功”(1) 和“失败”(0)，数据 ($X$) 被认为来自具有某些给定参数的 Gamma 分布。给定 $X=x$，成功的概率是
-$$
-\Pr(Z=1 | X=x) = \frac{\exp((x-\mu)e^{-\gamma})}{1+\exp((x-\mu)e^{-\gamma})}
-$$
-其中 $\mu,\gamma$ 是具有平坦先验的未知参数。
-我现在应该找到 $\mu,\gamma$ 后验密度对数的表达式，但我不知道如何做。
-我考虑过：
-$$
-f_{\mu|X=x}(\mu_0) = \frac{f_{X|\mu=\mu_0}(x)f_{\mu}(\mu_0)}{f_X(x)}
-$$
-并且假设 $\mu$ 的先验是某个常数，并且 $f_X$ 具有伽马密度，则后验应该类似于
-$$
-\log(\frac{f_{X|\mu=\mu_0}(x)}{f_X(x)}) + C = \log(f_{X|\mu=\mu_0}(x)) - \log(f_X(x)) + C
-$$
-其中 C 是基于 $\mu$ 先验的某个加法常数。
-另一方面，我想说的是 $\mu$ 和 $X$ 是独立的，这使得整个表达式只是一个常数，但我不确定它是否正确。
-我有点卡在这里，想了解我遗漏了什么。
-谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659271/problem-in-understanding-how-to-find-posterior-logistic-regression</guid>
-      <pubDate>Fri, 27 Dec 2024 15:55:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>多元方差分析，其中一些独立变量是分类变量，一些是区间变量</title>
-      <link>https://stats.stackexchange.com/questions/659269/manova-with-some-independent-variables-being-categorial-and-some-being-interval</link>
-      <description><![CDATA[MANOVA 测试似乎非常适合以下研究，只是因变量不是所需的间隔，我想研究传统和非传统学习者在两种写作类型上的差异，反映在 1) 总体印象、2) 内容、3) 组织、4) 词汇准确性和 5) 语法准确性上。学习者（传统和非传统）和类型（叙述和论证）是两个独立变量。总体而言，内容和组织按 1 到 5 的等级进行评分，因此这三个因变量是序数，而词汇和语法按百分比计算，因此这两个因变量是间隔。
-我的问题是 1) 我还可以使用 MANOVA 吗？2) 如果不能，我可以使用什么其他测试？3) 如果可以，我可以使用哪些修改来使 MANOVA 发挥作用？
-我对统计学的了解有限，大多数时候使用 SPSS，但如果其他软件可以更有效地处理这个问题，我愿意尝试它们。非常感谢！！]]></description>
-      <guid>https://stats.stackexchange.com/questions/659269/manova-with-some-independent-variables-being-categorial-and-some-being-interval</guid>
-      <pubDate>Fri, 27 Dec 2024 13:37:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何描述大多数观测值接近右边界的数据集？</title>
-      <link>https://stats.stackexchange.com/questions/659263/how-to-describe-a-dataset-that-most-observations-are-close-to-right-boundary</link>
-      <description><![CDATA[我有一个数据集$(x, y)$，其中$x\geq 0$是以分钟为单位的时间，$y\geq 0$是以点为单位的分数。大多数$x$值都接近右边界（图）。
-问题。如何描述关系$y=f(x)$？只能通过散点图？
-很明显，我尝试使用线性回归（红线）没有奏效。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/659263/how-to-describe-a-dataset-that-most-observations-are-close-to-right-boundary</guid>
-      <pubDate>Fri, 27 Dec 2024 08:39:05 GMT</pubDate>
-    </item>
-    <item>
-      <title>塔克 (Tucker) 整体因子载荷一致性系数</title>
-      <link>https://stats.stackexchange.com/questions/659260/tuckers-congruence-coefficient-on-entire-factor-loadings</link>
-      <description><![CDATA[据我所知，Tucker 一致性系数用于评估样本间因子的一致性。例如，在 R 中对双因子模型执行 EFA 后，使用 fa.congruence() 会得到如下矩阵：
-Sample1_Factor1 Sample1_Factor2
-S​​ample2_Factor1 a c
-Sample2_Factor2 b d
-
-但是，计算样本之间的一致性，而不是因子之间的一致性是否也合理？例如：
-样本 1：
- Factor_1 Factor_2
-Item1 0.8 0.1 
-Item2 0.9 0.1
-Item3 0.7 0.2
-Item4 0.1 0.8
-Item5 0.2 0.7
-Item6 0.1 0.8
-
-样本 2：
- Factor_1 Factor_2
-Item1 0.6 0.2 
-Item2 0.8 0.1
-Item3 0.8 0.1
-Item4 0.1 0.7
-Item5 0.2 0.8
-Item6 0.2 0.7
-
-在这种情况下，我们是否可以将每个样本的因子载荷连接成一列，如下所示，然后计算一致性？
-样本 1：（0.8、0.9、0.7、0.1、0.2、0.1、0.1、0.1、0.2、0.8、0.7、0.8）
-样本 2：（0.6、0.8、0.8、0.1、0.2、0.2、0.2、0.1、0.1、0.7、0.8、0.7）
-
-以这种方式计算一致性以评估样本之间的因子相似性是否有效？
-从我在 EFA 论文中看到的内容来看，一些研究似乎以这种方式计算样本之间的因子相似性，但我对确切的方法很好奇（因为这些研究没有显示公式或代码，例如）。
-另外，是否可以用类似的方式计算每个项目的一致性？例如：
-对于项目 1：使用两个向量 (0.8, 0.1; 样本 1) 和 (0.6, 0.2; 样本 2)，可以计算一致性吗？
-如果您知道这方面的任何参考资料，请告诉我？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659260/tuckers-congruence-coefficient-on-entire-factor-loadings</guid>
-      <pubDate>Fri, 27 Dec 2024 07:21:31 GMT</pubDate>
     </item>
     <item>
       <title>韦斯伯格的平方和性质</title>
@@ -156,6 +196,16 @@ $$
 有人能解释一下为什么这个等式成立吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/659255/property-of-sums-of-squares-in-weisberg</guid>
       <pubDate>Fri, 27 Dec 2024 05:08:30 GMT</pubDate>
+    </item>
+    <item>
+      <title>在解释结果时，我应该按原样报告回归中二次项的系数还是报告平方根？</title>
+      <link>https://stats.stackexchange.com/questions/659248/when-interpreting-results-should-i-report-the-coefficient-for-the-quadratic-ter</link>
+      <description><![CDATA[关于 CV 相关主题的问题有很多（例如这里），但我似乎找不到我的确切问题的答案。我以为我知道这一点，但最近我对我的知识产生了怀疑，想核实一下。
+假设我对预测变量 X 进行标准高斯回归，其中线性和二次项。我们将结果称为 Y。线性系数为 4，二次系数为 -2。为简单起见，我省略了截距、方差等。我想用一个句子来解释结果。
+这样说是否正确：“X 每增加 1 个单位，Y 估计就会增加 4 个单位，但 X 每增加 1 个单位，Y 的增长率就会降低 2 个单位。”
+...或者我在解释二次方程时应该取二次系数的平方根（即“X 每增加 1 个单位，Y 的增长率就会降低 1.41 个单位”）？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659248/when-interpreting-results-should-i-report-the-coefficient-for-the-quadratic-ter</guid>
+      <pubDate>Fri, 27 Dec 2024 00:19:47 GMT</pubDate>
     </item>
     <item>
       <title>根据一组百分位数和标准差估计概率密度函数 (PDF)</title>
@@ -260,6 +310,99 @@ y_{it}=a+x_{1it}+x_{2it}+error_{it}
       <pubDate>Thu, 26 Dec 2024 16:31:23 GMT</pubDate>
     </item>
     <item>
+      <title>如何修复 Lasso 回归的系数爆炸问题</title>
+      <link>https://stats.stackexchange.com/questions/659287/how-to-fix-exploding-coefficients-for-lasso-regression</link>
+      <description><![CDATA[我尝试按照这篇文章实现套索回归的坐标下降算法（在 R 中）。唯一的区别是根据我的教科书此处将成本函数缩放 1/n，但该教科书不是免费提供的。但我也尝试了非缩放版本，没有出现任何差异。
+如果我有 N&gt;p，一切都会正常工作，但只要我的预测变量中有协方差（即 p&gt;N 或只是用协方差模拟多元正态数据），我的估计系数就会在几次迭代后爆炸，除非我取的 lambda 足够大，可以将所有系数推到 0。
+我已经检查了我的代码几次，找不到我的错误。但由于 Lasso 是为这种情况而设计的，所以必须有一些错误。我尝试过不同的 lambda（书中给出了一系列合适的 lambda），beta 的结果相同 - 要么全部为 0，要么爆炸。
+任何帮助我找出错误的方法都值得赞赏。
+一个带有图表的最小示例来展示我的问题：
+# 一些库可能有点过头了
+library(dplyr)
+library(glue)
+library(tidyverse)
+library(MASS)
+library(rlist)
+
+RSS &lt;- function(Y, X, beta){
+n &lt;- length(Y)
+return(sapply( 1:length(beta[,1]), function(x){1/n*sum((Y - beta[x,]%*%t(X))^2)} ))
+}
+
+set.seed(1234)
+n &lt;- 5
+p &lt;- 10
+lam &lt;- 1
+#获取协方差矩阵
+Sigma &lt;- matrix(0.5, nrow = p, ncol = p)
+diag(Sigma) &lt;- 1 
+mu &lt;- rep(0, p)
+X &lt;- mvrnorm(n, mu, Sigma)
+# 缩放 X 以忽略 beta0
+X &lt;- scale(X)
+# 模拟数据 
+beta_true &lt;- rep(c(1,-1,0), each = ceiling(p/3))[1:p]
+Y &lt;- beta_true%*%t(X)
+beta_est &lt;- Lasso(Y, X, rep(1, length(X[1,])))
+rss &lt;- RSS(Y, X, beta_est)
+penalty &lt;- lam * rowSums(abs(beta_est))
+
+ggplot(mapping = aes(x = 1:length(rss))) +
+geom_point(aes(y = rss + penalty, color = &quot;Penalty + RSS&quot;)) +
+geom_point(aes(y = rss, color = &quot;RSS&quot;)) +
+geom_point(aes(y = penalty, color = &quot;Penalty&quot;)) +
+scale_color_manual(values = c(&quot;Penalty + RSS&quot; = &quot;black&quot;, &quot;RSS&quot; = &quot;red&quot;, &quot;Penalty&quot; = &quot;blue&quot;), 
+name = &quot;Legend&quot;) + 
+labs(y = NULL, x = &quot;Iteration&quot;)
+
+我的 Lasso 回归函数如下。
+soft_threshold &lt;- function(theta, lambda) {
+return(sign(theta) * max(abs(theta) - lambda, 0))
+}
+
+Lasso &lt;- function(y, X, lam, Starting_coef){
+
+p &lt;- length(starting_coef)
+n &lt;- length(y)
+coef &lt;- matrix(starting_coef, nrow = 1)
+z_j &lt;- 1/n*colSums(X^2) # 可以在循环外计算
+
+t &lt;- 1 # 设置时间步长
+# 最大迭代次数
+while(t&lt;=50){
+
+new_coef &lt;- c() # 初始化新的 coefs
+
+# 对所有 coefs 循环执行此操作 
+for(j in 1:p){
+
+roh_j &lt;- 1/n * ( y - coef[t,-j] %*% t(X[, -j])) %*% X[,j]
+# roh_j 的计算拆分
+#r_ij &lt;- y - coef[t, -j]%*%t(X[,-j])
+#roh_j &lt;- 1/n * sum( r_ij * X[,j] )
+
+new_beta &lt;- 1/z_j[j] * soft_threshold(roh_j, lam)
+new_coef &lt;- c(new_coef, new_beta)
+
+}
+
+coef &lt;- rbind(coef, new_coef)
+# 检查是否有显著变化
+if(max(abs(coef[t+1,] - coef[t,])) &lt; 10^-4){
+break
+}
+t &lt;- t+1
+
+}
+
+return(coef)
+
+}
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/659287/how-to-fix-exploding-coefficients-for-lasso-regression</guid>
+      <pubDate>Wed, 25 Dec 2024 18:18:15 GMT</pubDate>
+    </item>
+    <item>
       <title>从指数函数分布获得幂律的必要充分条件？</title>
       <link>https://stats.stackexchange.com/questions/659182/necessary-and-sufficient-conditions-to-obtain-power-law-from-distribution-over-e</link>
       <description><![CDATA[分布 $p(x)$ 的哪些属性 (1) 是充分的且 (2) 是必要的，以使
@@ -271,72 +414,6 @@ $$\propto k^{-b}$$
 我已经得出 Beta 分布和 Kumaraswamy 分布就足够了。从数值上讲，连续伯努利分布也同样有效。我正在寻找这些分布背后的一般“结构”。]]></description>
       <guid>https://stats.stackexchange.com/questions/659182/necessary-and-sufficient-conditions-to-obtain-power-law-from-distribution-over-e</guid>
       <pubDate>Tue, 24 Dec 2024 23:53:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络不学习正弦函数参数</title>
-      <link>https://stats.stackexchange.com/questions/659180/neural-network-not-learning-sinusoidal-function-parameters</link>
-      <description><![CDATA[我有一个如下所示的正弦函数，带有预定义的a、b 和 c参数
-def fun_sin(a, b, c, apply_noise=False):
-&quot;&quot;&quot;
-返回表示带噪声的正弦曲线的函数。
-
-参数：
-a：正弦波的振幅。
-b：正弦波的频率。
-c：正弦波的相移。
-&quot;&quot;&quot;
-def ann(x):
-x = torch.tensor(x, dtype=torch.float32).to(device) if not isinstance(x, torch.Tensor) else x.to(device)
-return (a * torch.sin(b * x + c)) + torch.tensor(random_gen.random(x.shape) * 0.2 if apply_noise else 0).to(device)
-return ann
-
-fun, a, b, c, learning_rate = fun_sin, 4, 0.1, 2, 0.0001
-
-以下是该函数的曲线示例：
-
-我创建了一个神经网络，给定 X（x 轴上的点）和 Y 值（fun_sin(a, b, c)(X) 的结果），我希望我的网络能够确定生成该曲线的 a, b, c 的位置。为了做到这一点，我让输出层输出 3 个值，并创建一个具有这些参数的函数，如下所示
-def loss_fun(label, pred):
-return torch.mean((label - pred) ** 2)
-
-...
-
-my_model = nn.Sequential(
-nn.Linear(X_length, 32),
-nn.ReLU(),
-nn.Linear(32, 32),
-nn.ReLU(),
-nn.Linear(32, 3) # 具有 3 个参数 (a, b, c) 的输出层
-)
-...
-
-my_model.train()
-for i in epochs:
-optimizer.zero_grad()
-pred_a, pred_b, pred_c = my_model(X)
-Y_pred = fun_sin(pred_a, pred_b, pred_c)(X)
-loss = loss_fun(Y_label, Y_pred)
-loss.backward()
-optimizer.step()
-
-所以事情是这样的：如果我给网络提供大约 100 个 X 和 Y 数据条目，我的网络就会相当合理地学习；我能够找到 a、b 和 c 的良好预测，这些预测能够呈现与原始曲线非常相似的正弦曲线。但是，如果我传递更多数据，通过增加 X &amp; Y 长度（分批或不分批），网络将停止给出良好的损失结果。
-我尝试了多种方法来改善这种情况：
-
-规范化数据
-使用各种学习率和不同的调度程序（LambdaLR、OneCycleLR）
-创建不太复杂的网络（更少的神经元、更少的层）
-创建更复杂和更深的网络
-更改优化器（Adam、SGD 等）
-进行随机重启
-进行梯度裁剪
-进行梯度的批量传播与每个时期进行单次传播
-消除我在 fun_sin 中的噪音
-检查我传递的额外数据是否都很好（绘制图表并检查平均值/标准差）
-尝试了各种不同的损失函数，这些函数会对网络的错误进行更多的惩罚
-
-当我有更多数据时，我就是无法获得合理的损失。我读过这篇文章https://arxiv.org/abs/1906.00425，它讨论了为什么神经网络在频率较高时会出现收敛循环曲线的问题，但在我的例子中，驱动频率的参数b非常低（0.1），所以不要认为这适用于这里（此外，如果我的数据较少，网络学习得很好）。
-有人知道我在这里可能遇到什么问题吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659180/neural-network-not-learning-sinusoidal-function-parameters</guid>
-      <pubDate>Tue, 24 Dec 2024 22:52:19 GMT</pubDate>
     </item>
     <item>
       <title>在回归中独立性是否意味着条件独立性？</title>
@@ -385,6 +462,22 @@ $$
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/659012/does-independence-imply-conditional-independence-in-regression</guid>
       <pubDate>Fri, 20 Dec 2024 13:04:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>高斯过程中未知点协方差矩阵导数的近似值</title>
+      <link>https://stats.stackexchange.com/questions/658911/approximation-for-the-derivative-of-the-covariance-matrix-for-unknown-points-in</link>
+      <description><![CDATA[我希望标题足够具有描述性，我现在感觉有点愚蠢。在我进行有关导数的推导时，出现了以下术语
+$$
+K_{x*,x}K^{-1}_{xx} \frac{\partial K_{xx}}{\partial q} K^{-1}_{xx} K_{x,x*}
+$$
+其中 $x$ 为训练点，$x*$ 为未知点，$q$ 为该点所依赖的坐标。$K$ 为协方差矩阵。我的直觉告诉我，这个表达式至少在最小二乘拟合意义上近似于
+$$
+\frac{\partial K_{x*x*}}{\partial q}
+$$
+但目前我无法证明这一点。也许我只是希望它是真的，因为它会简化我推导中的最终表达式。
+欢迎提出任何想法。也许我走错了路。]]></description>
+      <guid>https://stats.stackexchange.com/questions/658911/approximation-for-the-derivative-of-the-covariance-matrix-for-unknown-points-in</guid>
+      <pubDate>Wed, 18 Dec 2024 10:30:09 GMT</pubDate>
     </item>
     <item>
       <title>有目的地将纵向数据建模为 iid？</title>
