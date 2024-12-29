@@ -4,11 +4,25 @@
     <title>强化学习</title>
     <link>https://www.reddit.com/r/reinforcementlearning/?format=xml.rss</link>
     <description>强化学习是人工智能/统计学的一个子领域，专注于探索/理解复杂环境并学习如何以最佳方式获得奖励。例如 AlphaGo、临床试验和 A/B 测试以及 Atari 游戏。</description>
-    <lastBuildDate>Sun, 29 Dec 2024 12:29:57 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 29 Dec 2024 18:20:46 GMT</lastBuildDate>
+    <item>
+      <title>小型 RL 项目</title>
+      <link>https://www.reddit.com/r/reinforcementlearning/comments/1howtr2/small_rl_project/</link>
+      <description><![CDATA[您好，我有一个故障单元传感器数据样本，还有一个健康单元的样本。我想尝试下面的代码，但代理没有学习任何东西。我的代码有什么问题或如何改进？ import numpy as np import matplotlib.pyplot as plt from stable_baselines3 import SAC import gym from gym import space 定义 FaultyToHealthyEnv（使用您之前的实现） class FaultyToHealthyEnv(gym.Env): def init(self, healthywindows,aulty_windows, max_steps=5000): super(FaultyToHealthyEnv, self).init_()  self.healthy_windows = healthy_windows self.faulty_windows =aulty_windows self.current_index = 0 self.current_faulty = None self.steps_taken = 0 self.max_steps = max_steps self.previous_mse = 0 # 观察：当前故障信号 self.observation_space = space.Box( low=-np.inf, high=np.inf, shape=(faulty_windows.shape[1],), dtype=np.float32 ) # 动作：与故障信号大小匹配的校正向量 self.action_space = space.Box( low=-0.1, high=0.1, shape=(faulty_windows.shape[1],), dtype=np.float32 ) def reset(self): self.current_index = 0 # 始终选择第一个样本 self.current_faulty = self.faulty_windows[self.current_index].copy() self.steps_taken = 0 return self.current_faulty def step(self, action): self.current_faulty += action healthy_signal = self.healthy_windows[self.current_index] # 计算奖励 mse = np.mean((self.current_faulty - healthy_signal) ** 2) Improvement = self.previous_mse - mse smoothness_penalty = 0.1 * np.sum(np.abs(action)) target_bonus = 100.0 if mse &lt; 0 else 0.0 reward = Improvement - smoothness_penalty - 0.01 * self.steps_taken + target_bonus self.previous_mse = mse # 更新下一步 # 检查情节是否完成 self.steps_taken += 1 done = mse &lt; 0.01 或 self.steps_taken &gt;= self.max_steps return self.current_faulty, reward, done, {} def render(self, mode=&quot;human&quot;): pass  加载健康和故障信号数据（用实际数据替换） healthy_windows = np.array(dataset[dataset[&#39;label&#39;] == 1][&#39;signal&#39;].tolist())aulty_windows = np.array(dataset[dataset[&#39;label&#39;] == 0][&#39;signal&#39;].tolist()) 使用 FaultyToHealthyEnv 进行 SAC 的训练函数 def train_sac_faulty_to_healthy(healthy_windows,aulty_windows, episodes=100, timesteps_per_episode=200): env = FaultyToHealthyEnv(healthy_windows，faulty_windows) model = SAC( &quot;MlpPolicy&quot;, env, verbose=1, learning_rate=1e-4, buffer_size=500000, batch_size=128, ent_coef=0.1 ) episode_rewards = [] for episode in range(episodes): state = env.reset() total_reward = 0 done = False step_count = 0 transitions = [] while not done and step_count &lt; timesteps_per_episode：action，_ = model.predict（state，deterministic=False）next_state，reward，done，_ = env.step（action）transitions.append（（state，action，reward，next_state，done））state = next_statetotal_reward + = reward step_count + = 1 episode_rewards.append（total_reward）print（f＆quot;Episode {episode + 1}，Total Reward：{total_reward}＆quot;）# 在积累经验后训练模型model.learn（total_timesteps = episodes * timesteps_per_episode）env.close（）return episode_rewards，model，transitions，state 在 FaultyToHealthyEnv 上训练 SAC 代理 rewards，trained_model，transitions，corrected = train_sac_faulty_to_healthy（ healthy_windows=healthy_windows,aulty_windows=faulty_windows,episodes=100,timesteps_per_episode=50) 绘制情节奖励 plt.figure(figsize=(10, 6)) plt.plot(rewards,label=&quot;情节奖励&quot;) plt.xlabel(&quot;情节&quot;) plt.ylabel(&quot;总奖励&quot;) plt.title(&quot;SAC 在错误信号校正上的训练表现&quot;) plt.legend() plt.show() plt.figure(figsize=(12, 6)) plt.plot(corrected,label=&quot;校正信号&quot;,alpha=0.7) plt.plot(healthy_windows[0], label=&quot;健康信号&quot;, linestyle=&quot;--&quot;) plt.plot(faulty_windows[0], label=&quot;故障信号&quot;, linestyle=&quot;:&quot;) plt.legend() plt.title(&quot;已校正与健康信号&quot;)    提交人    /u/ezgiorhan   [link] [评论]]]></description>
+      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1howtr2/small_rl_project/</guid>
+      <pubDate>Sun, 29 Dec 2024 14:14:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>我的 DQN 代理怎么会这么弱智？</title>
+      <link>https://www.reddit.com/r/reinforcementlearning/comments/1hova0i/how_my_dqn_agent_can_be_so_rtarded/</link>
+      <description><![CDATA[很抱歉出现这个标题，但我真的很沮丧。我真的请求一些帮助，并弄清楚我遗漏了什么...... 我正在尝试教我的 DQN 代理学习最简单的控制器问题，遵循所需的值。 我正在模拟一个只有 1 个状态和 3 个动作的淋浴环境。  目标 = 达到所需的温度范围。 状态 = 当前温度 动作 = 增加（+1），Noop（0），减少（-1） 如果温度为 [36, 38]，则奖励 = +1，否则 -1 重置 = 20 + random.randint(-5, 5)  我的 DQN 代理实际上无法学习世界上最简单的问题。 这怎么可能？ Q-Learning 可以学习这个。DQN 算法有什么不同？ DQN 不是试图近似最佳 Q 函数吗？换句话说，试图模仿正确的 Q 表，但使用函数而不是查找表？ 我的干净代码在这里。我想了解到底发生了什么，以及为什么我的代理无法学到任何东西！ 谢谢！ 代码： from stable_baselines3.common.callbacks import BaseCallback from stable_baselines3 import DQN import numpy as np import gym import random from gym import space from gym.spaces import Box class ShowerEnv(gym.Env): def __init__(self): super(ShowerEnv, self).__init__() # 动作空间：减少、保持、增加 self.action_space = space.Discrete(3) # 观察空间：温度 self.observation_space = Box(low=np.array([0], dtype=np.float32), high=np.array([100.0], dtype=np.float32)) # 设置起始温度 self.state = 20 + random.randint(-5, 5) # 设置淋浴长度 self.shower_length = 100 def step(self, action): # 应用操作 ---&gt; [-1, 0, 1] self.state += action - 1 # 将淋浴长度减少 1 秒 self.shower_length -= 1 # 保护边界状态条件 if self.state &lt; 0: self.state = 0 reward = -1 # 保护边界状态条件 elif self.state &gt; 100：self.state = 100 reward = -1 # 如果状态在边界状态条件内 else：# 温度条件的期望范围 if 36 &lt;= self.state &lt;= 38：reward = 1 # 温度条件的非期望范围 else：reward = -1 # 检查情节是否结束 if self.shower_length &lt;= 0：done = True else：done = False info = {} return np.array([self.state]), reward, done, {} def render(self, action=None): pass def reset(self): self.state = 20 + random.randint(-50, 50) self.shower_length = 100 return np.array([self.state]) class SaveOnEpisodeEndCallback(BaseCallback): def __init__(self, save_freq_episodes, save_path, verbose=1):超级（SaveOnEpisodeEndCallback，self）。__init__（verbose）self.save_freq_episodes = save_freq_episodes self.save_path = save_path self.episode_count = 0 def _on_step（self）-&gt; bool：如果self.locals [&#39;dones&#39;] [0]：self.episode_count + = 1如果self.episode_count％self.save_freq_episodes == 0：save_path_full = f＆quot; {self.save_path} _ep_ {self.episode_count}＆quot; self.model.save（save_path_full）如果self.verbose＆gt; 0：print（f&quot;模型在剧集 {self.episode_count}&quot;）如果 __name__ ==&quot;__main__&quot;则返回 True：env = ShowerEnv() save_callback = SaveOnEpisodeEndCallback(save_freq_episodes=25，save_path=&#39;./models_00/dqn_model&#39;) logdir =&quot;logs&quot;模型 = DQN(policy=&#39;MlpPolicy&#39;, env=env, batch_size=32, buffer_size=10000, exploration_final_eps=0.005, exploration_fraction=0.01, gamma=0.99, gradient_steps=32, learning_rate=0.001, learning_starts=200, policy_kwargs=dict(net_arch=[16, 16]), target_update_interval=20, train_freq=64, verbose=1, tensorboard_log=logdir) 模型.学习(total_timesteps=int(1000000.0), reset_num_timesteps=False, callback=save_callback, tb_log_name=&quot;DQN&quot;)     提交人    /u/OpenToAdvices96   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1hova0i/how_my_dqn_agent_can_be_so_rtarded/</guid>
+      <pubDate>Sun, 29 Dec 2024 12:42:39 GMT</pubDate>
+    </item>
     <item>
       <title>Kaggle 和 Colab 上可用的 GPU 是否足以学习 Deep RL？</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1houfkt/will_gpu_available_on_kaggle_and_colab_be_enough/</link>
-      <description><![CDATA[大家好， 我正在考虑深入研究深度强化学习。我无法在本地使用强大的 GPU。 所以我有这个问题，Kaggle 和 Colab 上可用的 GPU 是否有助于学习和探索所有不同的算法。深度强化学习的样本效率还不够高。 我见过人们训练 2M+ 或更多步骤才能获得结果。 谢谢。    提交人    /u/mono1110   [链接] [评论]]]></description>
+      <description><![CDATA[大家好， 我正在考虑深入研究深度强化学习。我无法在本地使用强大的 GPU。 所以我有这个问题，Kaggle 和 Colab 上可用的 GPU 是否有助于学习和探索所有不同的算法。深度强化学习尚未实现样本效率。 我见过人们训练 2M+ 或更多步骤才能获得结果。 谢谢。    提交人    /u/mono1110   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1houfkt/will_gpu_available_on_kaggle_and_colab_be_enough/</guid>
       <pubDate>Sun, 29 Dec 2024 11:45:56 GMT</pubDate>
     </item>
@@ -22,7 +36,7 @@
     <item>
       <title>遗憾值为 O( \sqrt(log K T ) ) 的 K 臂随机赌博机算法？</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1hoplm5/karmed_stochastic_bandit_algorithms_with_o/</link>
-      <description><![CDATA[我想知道是否有任何 K 臂随机老虎机算法可以实现 $O(\sqrt(T))$ 遗憾，且因子为常数 $\sqrt{ log K }$。  我知道 exp3 可以实现 O(\sqrt(T)) 遗憾，因子为 sqrt(k log K )，而 UCB 可以实现 \tilde{O}( sqrt(T) ) 遗憾，因子为 sqrt(k)？  是否有一种算法在臂数方面具有像 sqrt( log K ) 这样的因子？或者是否有更严格的 exp3 或 UCB 分析，可以在臂数方面实现更好的因子？  我正在研究一个问题，其中臂的数量为 K^{a}，其中 a 是某个参数，并且我想将我的因子归结为类似 a * poly(K) - （poly(K) 表示关于 K 的多项式）的东西。    提交人    /u/Anxious_Positive3998   [link] [评论]]]></description>
+      <description><![CDATA[我想知道是否有任何 K 臂随机老虎机算法可以实现 $O(\sqrt(T))$ 遗憾，且因子为常数 $\sqrt{ log K }$。  我知道 exp3 可以实现 O(\sqrt(T)) 遗憾，因子为 sqrt(k log K )，而 UCB 可以实现 \tilde{O}( sqrt(T) ) 遗憾，因子为 sqrt(k)？  是否有一种算法，其臂数与 sqrt( log K ) 类似？或者，是否有更严格的 exp3 或 UCB 分析，可以在臂数方面实现更好的因子？  我正在研究一个问题，其中臂的数量为 K^{a}，其中 a 是某个参数，并且我想将我的因子归结为类似 a * poly(K) - （poly(K) 表示关于 K 的多项式）的东西。    提交人    /u/Anxious_Positive3998   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1hoplm5/karmed_stochastic_bandit_algorithms_with_o/</guid>
       <pubDate>Sun, 29 Dec 2024 05:59:36 GMT</pubDate>
     </item>
@@ -64,7 +78,7 @@
     <item>
       <title>强化学习的第一步</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1hnqx9l/first_step_in_rl/</link>
-      <description><![CDATA[如何开始学习/做 RL？ - 用什么方法学习？ - 了解哪些 hello world 项目？ - 学习 RL 的步骤是什么？ - 如果我想从零开始成为 RL 的英雄，我该怎么做？    提交人    /u/Soft_Awareness6826   [link] [评论]]]></description>
+      <description><![CDATA[如何开始学习/做 RL？ - 什么方法可以学习？ - 了解哪些 hello world 项目？ - 学习 RL 的步骤是什么？ - 如果我想从零开始成为 RL 的英雄，我该怎么做？    提交人    /u/Soft_Awareness6826   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1hnqx9l/first_step_in_rl/</guid>
       <pubDate>Fri, 27 Dec 2024 22:34:09 GMT</pubDate>
     </item>
@@ -90,25 +104,11 @@
       <pubDate>Fri, 27 Dec 2024 00:41:34 GMT</pubDate>
     </item>
     <item>
-      <title>在哪里可以学习价值函数近似，包括例子？</title>
-      <link>https://www.reddit.com/r/reinforcementlearning/comments/1hmzjhm/where_can_i_learn_value_function_approximation/</link>
-      <description><![CDATA[我正在学习 David Silver 的强化学习课程，我学到了第 6 讲，内容是关于价值函数近似的。我理解了这堂课之前的所有内容，但这堂课的内容对我来说毫无意义，我认为这是因为原来的班级的学生似乎有机器学习的背景，所以他跳过了很多基础知识。有没有什么地方可以让我正确地从头开始学习，最好是有很多例子的地方？    提交人    /u/Hekkowow   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1hmzjhm/where_can_i_learn_value_function_approximation/</guid>
-      <pubDate>Thu, 26 Dec 2024 22:14:13 GMT</pubDate>
-    </item>
-    <item>
       <title>DQN 中的训练图</title>
       <link>https://www.reddit.com/r/reinforcementlearning/comments/1hmxh3f/training_plot_in_dqn/</link>
-      <description><![CDATA[      大家好， 圣诞快乐，节日快乐！ 我在阅读 DQN 代理的训练图时遇到了麻烦，因为它似乎没有太大的改进，但如果我将它与随机代理进行比较，它的结果会更好。 此外，它还有很多噪音，我认为这不是一个好的事情。 我见过一些人在验证集上监控奖励图 对于集数 = 2000: （在 4096 步上进行训练，然后在一集上进行验证并使用其奖励进行绘图） 集数++ 另外，我已经阅读了有关奖励标准化的内容，我应该尝试一下吗？ returns = (returns - returns.mean()) / (returns.std() + eps) 期待任何见解和训练图的附上。 提前致谢 https://preview.redd.it/wu6j4o9h9n9e1.png?width=884&amp;format=png&amp;auto=webp&amp;s=435c1d881b29412020c355308543eb911b35db94    提交人    /u/Dry-Image8120   [链接] [评论] ]]></description>
+      <description><![CDATA[      大家好， 圣诞快乐，节日快乐！ 我在阅读 DQN 代理的训练图时遇到了麻烦，因为它似乎没有太大的改进，但如果我将它与随机代理进行比较，它的结果会更好。 此外，它还有很多噪音，我认为这不是一个好的事情。 我见过一些人在验证剧集中监控奖励图 对于剧集 = 2000： （在 4096 步上进行训练，然后在其中一集上进行验证并使用其奖励进行绘图） 剧集++ 另外，我已经阅读了有关奖励标准化的内容，我应该尝试一下吗？ returns =（returns - returns.mean()）/（returns.std() + eps） 期待任何见解和训练情节已附上。 提前致谢 https://preview.redd.it/wu6j4o9h9n9e1.png?width=884&amp;format=png&amp;auto=webp&amp;s=435c1d881b29412020c355308543eb911b35db94    提交人    /u/Dry-Image8120   [链接] [评论] ]]></description>
       <guid>https://www.reddit.com/r/reinforcementlearning/comments/1hmxh3f/training_plot_in_dqn/</guid>
       <pubDate>Thu, 26 Dec 2024 20:40:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>强化问题</title>
-      <link>https://www.reddit.com/r/reinforcementlearning/comments/1hmk9pm/reinforcement_problem/</link>
-      <description><![CDATA[我忍不住将我 8 个月大的宝宝当作强化学习问题来对待。设计适当的环境和奖励。只需要研究一种算法……    由    /u/tedthemouse  提交  [link] [comments]]]></description>
-      <guid>https://www.reddit.com/r/reinforcementlearning/comments/1hmk9pm/reinforcement_problem/</guid>
-      <pubDate>Thu, 26 Dec 2024 08:33:09 GMT</pubDate>
     </item>
     </channel>
 </rss>
