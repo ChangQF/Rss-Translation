@@ -4,7 +4,133 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 30 Dec 2024 15:17:15 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 30 Dec 2024 18:22:28 GMT</lastBuildDate>
+    <item>
+      <title>Rstudio 中的核密度估计器。为什么我的带宽为 NA [关闭]</title>
+      <link>https://stats.stackexchange.com/questions/659372/kernel-density-estimator-in-rstudio-why-do-i-have-na-for-bandwidth</link>
+      <description><![CDATA[我正在使用核密度分析一些动物的活动范围，但在确定我的数据集的 h（或带宽）值时遇到了问题。我的代码使用 loess 模型来预测 h 值。我的大多数个体都运行正常，并且每个个体都给出了 h 值，但有三个个体的 h 值为 NA。这可能是什么原因造成的？
+我将提供我的代码示例。这是我现在正在使用的一位前员工创建的代码，所以我并不完全理解它的全部内容（它基于 James Patterson jhttps://jamesepaterson.github.io/jamespatersonblog/06_trackingworkshop_reptilekernels 的代码）。
+为所有动物创建带有 MCP 区域对象的数据框
+tracking.mcp &lt;- mcp(trackingdatasp, percent = 50)@data
+将参考带宽 &amp;放入向量中
+href &lt;- c()
+hpred &lt;- c()
+对每个个体进行循环
+ for(i in 1:length(unique(trackingdatasp$ID))){
+
+定义空间点
+ID &lt;- sort(unique(trackingdatasp@data$ID))[i]
+ID.datasp &lt;- trackingdatasp[trackingdatasp$ID == ID,]
+
+# 为个体定义 href
+kernel.ref &lt;- kernelUD(ID.datasp, h = &quot;href&quot;)
+href[i] &lt;- kernel.ref[[1]]@h$h
+
+# 定义 h 的尝试限制
+htry &lt;- seq(1, href[i] + 20, by = 2.5) 
+
+# 制作一个数据框来保存区域
+areatoh.df &lt;- data.frame()
+
+# 现在对每个 htry 执行内核主范围
+# tryCatch 确保如果出现错误，循环不会停止
+for(k in 1:length(htry)){
+kernel.try &lt;- tryCatch(kernelUD(ID.datasp, h = htry[k]), error=function(err) NA)
+areatoh.df[k, 1] &lt;- htry[k]
+areatoh.df[k, 2] &lt;- tryCatch(getverticeshr(kernel.try, percent = 50)$area, error=function(err) NA)
+
+}
+
+names(areatoh.df) &lt;- c(&quot;h&quot;, &quot;area&quot;)
+
+# 首先摆脱低平滑度下的任何不稳定值（曲线）因子
+if(sum(is.na(areatoh.df$area)) &gt; 0){
+last.h &lt;- max(areatoh.df$h[is.na(areatoh.df$area)])
+areatoh.df$area[areatoh.df$h &lt; last.h + 20] &lt;- NA
+}
+
+# 尝试通过扩展网格来修复 NA 值
+for(l in 1:length(htry)){
+if(is.na(areatoh.df[l, 2])){
+# 定义网格
+# 这避免了“网格太小，无法估计家域大小”的问题（R 中最常见的内核问题）
+x &lt;- seq(min(ID.datasp@coords[,1]) - 2000,
+max(ID.datasp@coords[,1]) + 2000,
+by = 10.) # 分辨率是您想要的像素大小
+y &lt;- seq(min(ID.datasp@coords[,2]) - 2000,
+max(ID.datasp@coords[,2]) + 2000,
+by = 10.)
+xy &lt;- expand.grid(x = x, y = y)
+coordinates(xy) &lt;- ~ x + y
+gridded(xy) &lt;- TRUE
+
+kernel.try &lt;- tryCatch(kernelUD(ID.datasp, h = htry[l], grid = xy), error = function(err) NA) 
+areatoh.df[l, 2] &lt;- tryCatch(getverticeshr(kernel.try, percent = 50)$area, error = function(err) NA)
+}
+}
+# 构建一个 loess 模型，根据 h 预测面积
+x &lt;- areatoh.df$area[!is.na(areatoh.df$h) &amp; !is.na(areatoh.df$area)]
+y &lt;- areatoh.df$h[!is.na(areatoh.df$h) &amp; !is.na(areatoh.df$area)]
+area.h.loess &lt;- loess(y~x)
+
+# 预测正确的 h
+hpred[i] &lt;- predict(area.h.loess, newdata = tracking.mcp[i,]$area)
+print(hpred[i])
+}
+return(hpred)
+}
+
+reptile50.kd.homerange.fn 50% 的 Homerange 轮廓
+ reptile50.kd.homerange.fn &lt;- function(trackingdatasp, hvector){
+newkernel.poly &lt;- list()
+for(i in 1:length(unique(trackingdatasp@data$ID))){
+# 为单个 ID 定义空间点层 &lt;- sort(unique(trackingdatasp@data$ID))[i]
+ID.datasp &lt;- trackingdatasp[trackingdatasp$ID == ID, &quot;ID&quot;]
+
+#创建新内核
+newkernel &lt;- tryCatch(kernelUD(ID.datasp, h = hvector[i]), error = function(err) NA)
+# 从多边形列表中提取顶点
+newkernel.poly[[i]] &lt;- tryCatch(getverticeshr(newkernel, percent = 50), error = function(err) NA)
+if(is.na(newkernel.poly[i])){
+# 定义网格
+# 这样可以避免&quot;网格太小，无法估计家域大小&quot; 的问题（R 中最常见的内核问题）
+x &lt;- seq(min(ID.datasp@coords[,1]) - 2000,
+max(ID.datasp@coords[,1]) + 2000,
+by = 10.) # 分辨率是您想要的像素大小
+y &lt;- seq(min(ID.datasp@coords[,2]) - 2000,
+max(ID.datasp@coords[,2]) + 2000,
+by = 10.)
+xy &lt;- expand.grid(x = x, y = y)
+coordinates(xy) &lt;- ~ x + y
+gridded(xy) &lt;- TRUE
+#创建新内核
+newkernel &lt;- tryCatch(kernelUD(ID.datasp, h = hvector[i], grid = xy), error = function(err) NA)
+# 提取多边形列表内的顶点
+newkernel.poly[[i]] &lt;- tryCatch(getverticeshr(newkernel, percent = 50), error = function(err) NA)
+}
+}
+return(newkernel.poly)
+}
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/659372/kernel-density-estimator-in-rstudio-why-do-i-have-na-for-bandwidth</guid>
+      <pubDate>Mon, 30 Dec 2024 16:30:31 GMT</pubDate>
+    </item>
+    <item>
+      <title>“AUROC 曲线”这个术语实际上是否正确且有意义？</title>
+      <link>https://stats.stackexchange.com/questions/659370/is-the-term-auroc-curve-actually-correct-or-meaningful</link>
+      <description><![CDATA[15 年前，当我进入机器学习领域时，我了解到 AUC 代表“曲线下面积”，即“ROC 曲线下面积”，而 ROC 是“接收者操作特性”。
+现在我自己在指导学生，（当然）他们有时会根据他们首先阅读的文献和资料使用不同的术语。我听说过 AUROC，根据这里的一些观点，它比 AUC 更好，因为后者没有指定指的是哪条曲线，而且除了 ROC 之外还有其他可能。
+但后来我读到 AUROC 曲线，它在很多层面上听起来都是错误的。 （我不是以英语为母语的人。）
+您指的是曲线下的面积，即 AUC 或 AUROC，或曲线本身，即ROC 曲线，因此 AUROC 曲线对我来说真的没有意义。但是，通过 CV 搜索我发现它被使用了几次，但从未被更正或解决，例如
+
+为什么 ROC 曲线和 AUC 值并不总是相关的？
+如何解释抵押贷款拒绝/批准的 AUROC 曲线？
+如何解释 AUROC分数？
+
+所以，我的问题是：我在这里是对的还是过于迂腐？还是忽略了一些显而易见的东西？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659370/is-the-term-auroc-curve-actually-correct-or-meaningful</guid>
+      <pubDate>Mon, 30 Dec 2024 15:26:49 GMT</pubDate>
+    </item>
     <item>
       <title>使用信息标准（如 AIC）来比较适合具有不同 Box-Cox lambda 的转换数据的 ARIMA 模型是否合理？</title>
       <link>https://stats.stackexchange.com/questions/659367/is-it-reasonable-to-use-information-criteria-like-aic-to-compare-arima-models</link>
@@ -44,9 +170,9 @@ AIC=3675.21 AICc=3675.29 BIC=3698.14
     <item>
       <title>如何计算两个多元复杂高斯分布之间的 KL 散度？</title>
       <link>https://stats.stackexchange.com/questions/659366/how-to-calculate-the-kl-divergence-between-two-multivariate-complex-gaussian-dis</link>
-      <description><![CDATA[我正在阅读一篇论文&quot;复值变分自编码器：一种用于直接表示复杂光谱的新型深度生成模型&quot;
-在这篇论文中，作者计算了两个多元复高斯分布之间的KL散度
-$q(h|z)$的协方差矩阵和伪cov矩阵是对角的。 $p(h)$ 是 $N(0,I,0)$&quot; /&gt;
+      <description><![CDATA[我正在阅读一篇论文&quot;复值变分自动编码器：一种用于直接表示复杂光谱的新型深度生成模型&quot;
+在这篇论文中，作者计算了两个多元复高斯分布之间的 KL 散度
+$q(h|z)$ 的协方差矩阵和伪 cov 矩阵是对角的。 $p(h)$ 是 $N(0,I,0)$&quot; /&gt;
 
 复高斯分布比较特殊，q(h|z) 的协方差矩阵和伪 cov 矩阵都是对角的，p(h) 是 N(0,I,0)
 
@@ -68,7 +194,7 @@ $q(h|z)$的协方差矩阵和伪cov矩阵是对角的。 $p(h)$ 是 $N(0,I,0)$&q
       <pubDate>Mon, 30 Dec 2024 09:41:21 GMT</pubDate>
     </item>
     <item>
-      <title>分类准确率 - 图像数据集</title>
+      <title>分类准确率 - 图像数据集[关闭]</title>
       <link>https://stats.stackexchange.com/questions/659361/classification-accuracy-image-dataset</link>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/659361/classification-accuracy-image-dataset</guid>
@@ -90,52 +216,11 @@ $$ \beta_1 Y_{t-k+1} + \beta_2 Y_{t-k+2} + \cdots + \beta_{k-1}Y_{t-1}。$$
       <pubDate>Mon, 30 Dec 2024 07:07:32 GMT</pubDate>
     </item>
     <item>
-      <title>如果 VECM 模型中的误差不正常，会有什么后果？这会对估计的参数值产生什么影响？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/659359/what-are-the-consequences-of-errors-not-being-normal-in-a-vecm-model-how-does-t</link>
-      <description><![CDATA[在这种情况下，最大似然估计量（MLE）能保持其效率和一致性吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659359/what-are-the-consequences-of-errors-not-being-normal-in-a-vecm-model-how-does-t</guid>
-      <pubDate>Mon, 30 Dec 2024 06:43:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>Stata动态空间面板数据模型的稳定性</title>
-      <link>https://stats.stackexchange.com/questions/659358/stability-of-dynamic-spatial-panel-data-model-in-stata</link>
-      <description><![CDATA[我试图将时间滞后的因变量的系数 + 空间和时间滞后的因变量 + 空间滞后的因变量 (p+n+t) 相加，如下所示，以测试此总和是否小于 1，这意味着模型是稳定的。我尝试在 Stata 中使用 lincom 和 testnl 命令，但在这种情况下不起作用。
-如何使用 Stata 测试这个总和？
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/659358/stability-of-dynamic-spatial-panel-data-model-in-stata</guid>
-      <pubDate>Mon, 30 Dec 2024 05:39:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>相关参数的 Cramer Rao 界限</title>
-      <link>https://stats.stackexchange.com/questions/659357/cramer-rao-bound-for-correlated-parameters</link>
-      <description><![CDATA[考虑到角度相关的 rcs，我正在努力解决 Cramer Rao 边界的目标定位问题。
-考虑多静态感知，例如目标定位，（参考 H. Godrich、A. M. Haimovich 和 R. S. Blum，“MIMO 雷达系统中的目标定位精度增益”，IEEE 信息理论汇刊，第 56 卷，第 6 期，第 2783-2803 页，2010 年 6 月。）定位过程不仅通过估计目标的 xy 坐标（表示为 $(x,y)$）来操作，还包括估计细微差别参数 $\alpha_{mn}$，表示每个反射路径的幅度（包括目标 rcs 的影响）。
-我想知道为什么估计幅度和目标位置是一种常用的技术。
-此外，虽然通常假设从不同角度是独立的，我想知道如何推导出考虑从不同角度观察到的 rcs 的角度相关性的 CRB。也就是说，振幅$\alpha$是角度相关的。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659357/cramer-rao-bound-for-correlated-parameters</guid>
-      <pubDate>Mon, 30 Dec 2024 03:33:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>PLS-LDA 上的最优组件选择如何？</title>
-      <link>https://stats.stackexchange.com/questions/659355/how-is-the-optimal-component-selection-on-pls-lda</link>
-      <description><![CDATA[我目前有一个项目，将使用 PLS 的降维应用于 LDA 分类方法。LDA 中使用的组件的确定是使用 LDA 模型还是使用 PLS-DA 模型进行测试？如果您愿意，有人可以告诉我这个分析的 kore r 吗？哪里有可靠的来源可以作为 PLS-LDA 组合应用的参考？我看过很多关于 PLS-DA 的参考资料，但使用的公式不同。因此，我真的需要一个有效的参考资料供我在写作中应用。谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659355/how-is-the-optimal-component-selection-on-pls-lda</guid>
-      <pubDate>Mon, 30 Dec 2024 01:52:59 GMT</pubDate>
-    </item>
-    <item>
       <title>DLNM 多元随机效应荟萃分析中低 $I^2$ 问题</title>
       <link>https://stats.stackexchange.com/questions/659341/issues-with-low-i2-in-multivariate-random-effects-meta-analysis-of-dlnms</link>
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/659341/issues-with-low-i2-in-multivariate-random-effects-meta-analysis-of-dlnms</guid>
       <pubDate>Sun, 29 Dec 2024 16:43:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>平方和与叉积 (SSCP) 矩阵的逆</title>
-      <link>https://stats.stackexchange.com/questions/659323/inverse-of-sums-of-squares-and-cross-products-sscp-matrix</link>
-      <description><![CDATA[在《应用线性回归》一书的第 3 章中，Weisberg 提出，已校正 SSCP 矩阵的逆$(\chi^T\chi)^{-1}$是未校正 SSCP 矩阵的逆$(X^TX)^{-1}$的第一行和第一列以外的所有元素。这是为什么呢？
-$\chi$ 就是 $X$，但没有截距，并且从每列中减去了相应的平均值，仅供参考。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659323/inverse-of-sums-of-squares-and-cross-products-sscp-matrix</guid>
-      <pubDate>Sun, 29 Dec 2024 02:08:49 GMT</pubDate>
     </item>
     <item>
       <title>区间变量与名义变量之间的相关性</title>
@@ -177,6 +262,48 @@ $\chi$ 就是 $X$，但没有截距，并且从每列中减去了相应的平均
 ]]></description>
       <guid>https://stats.stackexchange.com/questions/658200/variance-estimation-from-dependent-data</guid>
       <pubDate>Tue, 03 Dec 2024 12:19:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>$p(1-p)$ 的伯努利工厂</title>
+      <link>https://stats.stackexchange.com/questions/655820/bernoulli-factory-for-p1-p</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stats.stackexchange.com/questions/655820/bernoulli-factory-for-p1-p</guid>
+      <pubDate>Tue, 15 Oct 2024 17:55:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>因果推理中两种潜在结构的等价性</title>
+      <link>https://stats.stackexchange.com/questions/655478/equivalence-of-two-latent-structures-in-causal-inference</link>
+      <description><![CDATA[这是 Judea Pearl 教授在其经典专著因果关系：模型、推理和推论（第 2.3 节脚注 5）中提出的主张。对于下面的两个因果结构（其中“$(*)$”表示具有任意数量状态的隐藏变量），作者指出
+
+为了验证 (a) 和 (b) 是否等价，我们注意到，如果我们让链接 $a \leftarrow *$ 在两个变量之间施加相等性，则 (b) 可以模仿 (a)。相反，(a) 可以模仿 (b)，因为它能够生成具有 (b) 所包含的独立性的每个分布。
+
+
+我很难验证这个论点的“相反”方向。它似乎意味着以下等式对任何 r.v 都成立。 $u$（假设图中的所有 r.v. 都是离散的）：
+\begin{align*}
+p(a)p(b)p(c|a, b)p(d|c) = \sum_u p(u)p(b)p(a|u)p(c|u, b)p(d|c),
+\end{align*&gt;
+或
+\begin{align*}
+p(c|a, b) = \sum_u p(u|a)p(c|u, b) \tag{1}\label{1}
+\end{align*&gt;
+但是，$\eqref{1}$ 确实很难证明（如果我的理解正确的话），或者我误解了以下结构的定义偏好？？
+
+定义 2.3.3（结构偏好） 一个潜在结构 $L = \langle D, O \rangle$ 优于另一个 $L&#39; = \langle D&#39;, O\rangle$（写为 $L \preceq L&#39;）$，当且仅当 $D&#39;$ 能够模仿 $D$ 超过 $O$——也就是说，当且仅当对于每个 $\Theta_D$ 都存在一个 $\Theta_{D&#39;}&#39;$ 使得 $P_{[O]}(\langle D&#39;, \Theta_{D&#39;}&#39;\rangle) = P_{[O]}(\langle D, \Theta_{D}\rangle)$。两个潜在结构等价，写为 $L \equiv L&#39;$，当且仅当 $L \preceq L&#39;$ 和 $L \succeq L&#39;$。
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/655478/equivalence-of-two-latent-structures-in-causal-inference</guid>
+      <pubDate>Tue, 08 Oct 2024 15:58:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>当结果是二进制时，我们是否可以在双重机器学习的第一阶段使用分类器来估计结果？</title>
+      <link>https://stats.stackexchange.com/questions/623586/are-we-allowed-to-use-classifiers-to-estimate-the-outcome-in-the-first-stage-of</link>
+      <description><![CDATA[当结果是连续时，我很清楚该如何进行，因为 EconML 和我查阅的所有其他参考资料都适用于这种类型的例子（连续结果情况）。我们只需应用回归量来估计它。但是当结果是二进制时，我们应该/可以使用分类器吗？
+当处理是离散的时，似乎，是的，我们是允许的，因为这正是 EconML 文档中 LinearDML 类的默认选项。
+
+model_t（估计器或“自动”，默认“自动”）- 用于将处理拟合到特征的估计器。如果是估计器，它必须实现拟合和预测方法；如果是‘auto’，LogisticRegressionCV 将用于离散处理，而 WeightedLassoCV/WeightedMultiTaskLassoCV 将用于连续处理。
+
+然而，第一阶段的结果模型却并非如此。如果我们不允许使用分类器，那么根本原因是什么？我将非常感激有关这个主题的参考资料。]]></description>
+      <guid>https://stats.stackexchange.com/questions/623586/are-we-allowed-to-use-classifiers-to-estimate-the-outcome-in-the-first-stage-of</guid>
+      <pubDate>Wed, 09 Aug 2023 13:03:22 GMT</pubDate>
     </item>
     </channel>
 </rss>
