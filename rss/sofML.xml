@@ -4,12 +4,121 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 30 Dec 2024 21:15:25 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 31 Dec 2024 01:15:27 GMT</lastBuildDate>
+    <item>
+      <title>加载的 Keras 模型在预测时出现错误（可能与掩蔽有关）</title>
+      <link>https://stackoverflow.com/questions/79318939/loaded-keras-model-throws-error-while-predicting-likely-issues-with-masking</link>
+      <description><![CDATA[我目前正在开发和测试一个依赖大量数据进行训练的 RNN，因此尝试将训练文件和测试文件分开。我有一个文件，用于创建、训练和保存 tensorflow.keras 模型到文件 &#39;model.keras&#39;。然后，我将这个模型加载到另一个文件中并预测一些值，但出现以下错误：
+无法将元素 {&#39;class_name&#39;: &#39;__tensor__&#39;, &#39;config&#39;: {&#39;dtype&#39;: &#39;float64&#39;, &#39;value&#39;: [0.0, 0.0, 0.0, 0.0]}} 转换为 Tensor。请考虑将元素转换为受支持的类型。请参阅 https://www.tensorflow.org/api_docs/python/tf/dtypes 了解受支持的 TF dtypes
+顺便说一句，我曾尝试使用训练模型的文件中完全相同的数据运行 model.predict，并且运行顺利。模型加载肯定是问题所在，而不是用于预测的数据。
+这个神秘的 float64 张量是我传递到掩码层的值。我不明白为什么 keras 无法将这个 JSON 对象识别为张量并以此方式应用掩码操作。我在下面附上了我的代码片段，为清晰和简洁起见进行了编辑：
+model_generation.py：
+# 创建模型
+
+model = tf.keras.Sequential([
+tf.keras.layers.Input((352, 4)),
+tf.keras.layers.Masking(mask_value=tf.convert_to_tensor(np.array([0.0, 0.0, 0.0, 0.0]))),
+tf.keras.layers.GRU(50, return_sequences=True,activation=&#39;tanh&#39;),
+tf.keras.layers.Dropout(0.2),
+tf.keras.layers.GRU(50,activation=&#39;tanh&#39;),
+tf.keras.layers.Dropout(0.2),
+tf.keras.layers.Dense(units=1,activation=&#39;sigmoid&#39;)])
+
+# 编译模型...
+# 训练模型...
+model.save(&#39;model.keras&#39;)
+
+model.predict(data) # 此行在此起作用
+
+model_testing.py
+model = tf.keras.models.load_model(&#39;model.keras&#39;)
+
+model.predict(data) # 此行生成错误
+
+提前谢谢您，如果您还有什么想让我发布的，请告诉我！]]></description>
+      <guid>https://stackoverflow.com/questions/79318939/loaded-keras-model-throws-error-while-predicting-likely-issues-with-masking</guid>
+      <pubDate>Tue, 31 Dec 2024 00:53:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>Sklearn StackingClassifier：Stacking 模型的手动 Python 实现与 sklearn.ensemble.StackingClassifier 之间的区别</title>
+      <link>https://stackoverflow.com/questions/79318736/sklearn-stackingclassifier-differences-between-manual-python-implementation-of</link>
+      <description><![CDATA[我尝试构建一个 Python 类 CustomStackingClassifier()，以实现集成机器学习中的 Stacking 方法。在此实现中，基础分类器的输出设置为预测概率，并使用 StratifiedKFold 进行模型训练。元分类器的输入矩阵具有维度 (样本、模型 * 类)。
+此代码本质上手动复制了 sklearn.ensemble.StackingClassifier() 的功能。但是，在使用葡萄酒数据集进行测试并比较两种方法的结果后，我发现了差异。尽管花了很多时间，但我还是无法确定问题所在。我将非常感谢社区的任何帮助或见解。非常感谢！代码如下：
+class CustomStackingClassifier(BaseEstimator, ClassifierMixin):
+
+def init(self, base_classifiers, meta_classifier, n_splits=5):&quot;&quot;&quot;:param base_classifiers: list of estimators:param meta_classifier: final_estimator:param n_splits: cv&quot;&quot;&quot;self.base_classifiers = base_classifiersself.meta_classifier = meta_classifierself.n_splits = n_splits
+
+def fit(self, X, y):
+&quot;&quot;&quot;
+:param X: 训练数据
+:param y: 训练标签
+&quot;&quot;&quot;
+
+n_samples = X.shape[0]
+n_classifiers = len(self.base_classifiers)
+n_classes = len(np.unique(y)) # 获取类别数量
+
+base_probabilities_1 = np.zeros((n_samples, n_classifiers * n_classes)) # 用于存储基分类器的预测概率
+
+# 通过 StratifiedKFold 设置交叉验证，与 StackingClassifier 一致
+kf = StratifiedKFold(n_splits=self.n_splits, shuffle=False, random_state=None)
+
+# 重置数据的索引
+X_re_index = X.reset_index(drop=True)
+y_re_index = y.reset_index(drop=True)
+
+# 训练每个基分类器并生成预测概率
+for i, clf in enumerate(self.base_classifiers):
+fold_probabilities = np.zeros((n_samples, n_classes)) 
+
+# 训练并预测每个折叠
+for train_index, val_index in kf.split(X_re_index,y_re_index):
+X_train, X_val = X_re_index.iloc[train_index], X_re_index.iloc[val_index]
+y_train, y_val = y_re_index.iloc[train_index], y_re_index.iloc[val_index]
+
+# 训练基础分类器
+clf.fit(X_train, y_train)
+
+# 预测验证集上的概率
+fold_probabilities[val_index] = clf.predict_proba(X_val)
+
+# 将每个基础分类器的预测概率保存到 base_probabilities 中
+base_probabilities_1[:, i * n_classes: (i + 1) * n_classes] = fold_probabilities
+
+# 使用基础分类器的预测概率训练元分类器
+self.meta_classifier.fit(base_probabilities_1, y_re_index)
+
+return self
+
+def predict(self, X):
+&quot;&quot;&quot;
+:param X: 测试数据
+&quot;&quot;&quot;
+# 获取每个基础分类器的预测概率
+base_probabilities = np.column_stack([clf.predict_proba(X) for clf in self.base_classifiers])
+
+# 使用元分类器预测最终标签
+return self.meta_classifier.predict(base_probabilities)
+
+def predict_proba(self, X):
+&quot;&quot;&quot;
+:param X: 测试数据
+&quot;&quot;&quot;
+# 获取每个基分类器的预测概率
+base_probabilities = np.column_stack([clf.predict_proba(X) for clf in self.base_classifiers])
+
+# 使用元分类器获取预测概率
+return self.meta_classifier.predict_proba(base_probabilities)
+
+希望澄清一下CustomStackingClassifier()是否存在逻辑问题，如果有问题，希望得到指导和修改建议。如果实现正确，为什么与sklearn.ensemble.StackingClassifier()相比结果有差异？
+需要注意的是，基分类器和元分类器的hyperparameters和random_state都已修复，因此可以排除这些因素是原因。]]></description>
+      <guid>https://stackoverflow.com/questions/79318736/sklearn-stackingclassifier-differences-between-manual-python-implementation-of</guid>
+      <pubDate>Mon, 30 Dec 2024 22:14:19 GMT</pubDate>
+    </item>
     <item>
       <title>SVM 调优过程：由 `vectbl_recycle_rhs_rows()` 中的错误引起：</title>
       <link>https://stackoverflow.com/questions/79318610/svm-tuning-process-caused-by-error-in-vectbl-recycle-rhs-rows</link>
-      <description><![CDATA[我是 tidymodels 的新用户。
-我来这里是因为我不理解 SVM 模型调优过程的输出。
+      <description><![CDATA[我不明白SVM模型调优过程的输出。
 这是我的代码。
 basic_recipe &lt;-
 recipe(target ~ 
@@ -20,11 +129,11 @@ Amount_Funded_By_Lender + Lender_portion_Funded + Lender_portion_to_be_repaid,
 data = train) |&gt;
 step_string2factor(loan_type, levels = all_loan_type) |&gt;
 step_string2factor(New_versus_Repeat, levels = all_new_versus_repeat) |&gt;
-step_other(贷款类型，阈值 = 0.1 / 100) |&gt;
+step_other(loan_type, Threshold = 0.1 / 100) |&gt;
 step_date(all_date()) |&gt;
-step_log(持续时间，总金额，总还款金额，贷款人资助金额，贷款人待偿还部分，基数 = 10，偏移量 = 0.001) |&gt;
-step_normalize(总金额，总还款金额，贷款人资助金额，贷款人待偿还部分，贷款人待偿还部分，na_rm = TRUE) |&gt;
-step_cut(持续时间，中断 = ggplot_build(p)$data[[1]]$x) |&gt;
+step_log(duration, Total_Amount, Total_Amount_to_repay, Amount_Funded_By_Lender, Lender_portion_to_be_repaid, base = 10, offset = 0.001) |&gt;
+step_normalize(Total_Amount, Total_Amount_to_repay, Amount_Funded_By_Lender, Lender_portion_to_be_repaid, Lender_portion_to_be_repaid, na_rm = TRUE) |&gt;
+step_cut(duration, breaks = ggplot_build(p)$data[[1]]$x) |&gt;
 step_dummy(loan_type, New_versus_Repeat, duration, one_hot = TRUE)
 
 svm_model &lt;-
@@ -172,40 +281,6 @@ List&lt;ProductsEmbedding&gt; findByEmbedding(List&lt;Float&gt; embedding, int l
       <pubDate>Mon, 30 Dec 2024 12:28:47 GMT</pubDate>
     </item>
     <item>
-      <title>PGVectorscale：无法创建索引 SQL 错误 [XX000]：错误：断言失败：meta_page.get_num_dimensions_to_index() > 0 && <= 2000</title>
-      <link>https://stackoverflow.com/questions/79317581/pgvectorscale-failure-to-create-index-sql-error-xx000-error-assertion-faile</link>
-      <description><![CDATA[我正在使用基于 Postgres 的扩展 vectorscale 构建原型 ML 系统。操作如下：
-我使用 docker 镜像 timescale/timescaledb-ha:pg17
-
-我创建了一个用于嵌入的表：
-CREATE TABLE IF NOT EXISTS products.products_embedding (
-embedding_id int8 NOT NULL PRIMARY KEY,
-&quot;text&quot; varchar(255),
-embedding vector(3072),
-metadata json
-);
-
-我安装了 vectorscale 扩展：
-CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;
-
-
-一切运行正常，我可以看到创建的扩展：
-SELECT * 
-FROM pg_extension; - 列出了我的 `vectorscale` 扩展
-
-现在，根据文档，当我尝试创建索引时，如下所示：
-CREATE INDEX argos_products_embedding_idx ON products.products_embedding 
-USING diskann (embedding) WITH(num_neighbors=20);
-
-，以下错误让我大吃一惊：
-SQL 错误 [XX000]：错误：断言失败：meta_page.get_num_dimensions_to_index() &gt; 0 &amp;&amp; meta_page.get_num_dimensions_to_index() &lt;= 2000
-我尝试了 10 到 100 之间的所有 num_neighbours 值，但仍然出现相同的错误。
-有什么帮助吗？
-更大的问题是：PgVector 上的向量搜索速度很慢，因此我尝试使用索引来加快速度。除了使用我正在做的方法之外，还有什么更好的方法可以实现这一目标吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79317581/pgvectorscale-failure-to-create-index-sql-error-xx000-error-assertion-faile</guid>
-      <pubDate>Mon, 30 Dec 2024 12:26:56 GMT</pubDate>
-    </item>
-    <item>
       <title>SGDRegressor 图与 LinearRegressor 有很大不同</title>
       <link>https://stackoverflow.com/questions/79317350/sgdregressor-graph-looking-so-different-from-linearregression</link>
       <description><![CDATA[使用 ggplot2 的“经济学”数据集研究线性回归。
@@ -228,38 +303,6 @@ SGD 图表
 尝试调整 eta0 或 max_iter，但不起作用。]]></description>
       <guid>https://stackoverflow.com/questions/79317350/sgdregressor-graph-looking-so-different-from-linearregression</guid>
       <pubDate>Mon, 30 Dec 2024 10:35:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>mlagents-learn --help 出现错误（python=3.11、3.10、3.9、3.8）</title>
-      <link>https://stackoverflow.com/questions/79316958/mlagents-learn-help-is-giving-errors-python-3-11-3-10-3-9-3-8</link>
-      <description><![CDATA[我正在尝试安装 mlagents。我进入了 python 部分，但在使用 pyenv 创建虚拟环境并将本地版本设置为 3.10、3.9 和 3.8 后，它们都不起作用。我升级了 pip，安装了 mlagents，然后安装了 torch、torchvision 和 torchaudio。然后我测试了 mlagents-learn --help，然后因为错误安装了 protobuf 3.20.3。然后我再次测试，得到以下错误
-(venv) D:\Unity\AI Ecosystem&gt;mlagents-learn --help
-回溯（最近一次调用）：
-文件“&lt;frozen runpy&gt;”，第 198 行，在 _run_module_as_main
-文件“&lt;frozen runpy&gt;”，第 88 行，在 _run_code
-文件“D:\Unity\AI Ecosystem\venv\Scripts\mlagents-learn.exe\__main__.py”，第 4 行，在 &lt;module&gt;
-文件“D:\Unity\AI Ecosystem\venv\Lib\site-packages\mlagents\trainers\learn.py”，第 2 行，在 &lt;module&gt;
-从 mlagents 导入 torch_utils
-文件“D:\Unity\AI Ecosystem\venv\Lib\site-packages\mlagents\torch_utils\__init__.py”，第 1 行，位于 &lt;module&gt;
-从 mlagents.torch_utils.torch 导入 torch 作为 torch # noqa
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-文件“D:\Unity\AI Ecosystem\venv\Lib\site-packages\mlagents\torch_utils\torch.py​​”，第 6 行，位于 &lt;module&gt;
-从 mlagents.trainers.settings 导入 TorchSettings
-文件“D:\Unity\AI Ecosystem\venv\Lib\site-packages\mlagents\trainers\settings.py”，第 644 行，位于 &lt;module&gt;
-class TrainerSettings(ExportableSettings):
-文件“D:\Unity\AI Ecosystem\venv\Lib\site-packages\mlagents\trainers\settings.py”，第 667 行，位于 TrainerSettings
-cattr.register_structure_hook(
-文件“D:\Unity\AI Ecosystem\venv\Lib\site-packages\cattr\converters.py”，第 207 行，位于 register_structure_hook
-self._structure_func.register_cls_list([(cl, func)])
-文件“D:\Unity\AI Ecosystem\venv\Lib\site-packages\cattr\dispatch.py​​”，第 55 行，位于 register_cls_list
-self._single_dispatch.register(cls, handler)
-文件&quot;C:\Users\Ebrah\AppData\Local\Programs\Python\Python311\Lib\functools.py&quot;，第 864 行，在寄存器中
-raise TypeError(
-TypeError: `register()` 的第一个参数无效。 typing.Dict[mlagents.trainers.settings.RewardSignalType, mlagents.trainers.settings.RewardSignalSettings] 不是类或联合类型。
-
-我尝试安装 cattrs 1.5.0，但错误仍然存​​在。正如我之前所说，我也尝试了 3.11、3.10、3.9 和 3.8，但在所有这些版本中都出现了相同的错误。我的 unity 版本是 2022.3.5f1，但我看不出这会有什么不同。我的 pyenv 版本是 3.1.1。我在 Windows 11 上并且正在使用 pyenv-win。]]></description>
-      <guid>https://stackoverflow.com/questions/79316958/mlagents-learn-help-is-giving-errors-python-3-11-3-10-3-9-3-8</guid>
-      <pubDate>Mon, 30 Dec 2024 06:36:09 GMT</pubDate>
     </item>
     <item>
       <title>由于模拟程度高，蒙特卡洛树搜索在 1 步内失误</title>
