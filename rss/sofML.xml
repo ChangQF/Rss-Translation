@@ -4,7 +4,166 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 31 Dec 2024 15:16:24 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 31 Dec 2024 18:21:38 GMT</lastBuildDate>
+    <item>
+      <title>自定义神经网络中的回归为所有输入提供相同的输出</title>
+      <link>https://stackoverflow.com/questions/79320551/regression-in-custom-neural-network-giving-same-output-for-all-inputs</link>
+      <description><![CDATA[我最近开始研究神经网络，在使用 tensorflow 或 pytorch 等库之前，我考虑编写自己的神经网络，以便深入了解网络内部发生的事情。我根据神经网络的数学知识开发了代码。现在网络出现了一些奇怪的行为。首先，网络有时表现非常好，例如使用 scikit learn 的 iris 数据集和一个小配置，我能够将网络的准确率提高到 99.3%。但有时它的表现太差了。此外，在一个问题中，我注意到使用 ReLU 激活函数作为第一层，然后所有其余的 sigmoid 给出了近 63% 的准确率，但是当我将第一层设为 sigmoid 和第二层设为 ReLU 并其余所有 sigmoid 时，准确率上升到 93%。现在的主要问题是回归，它似乎根本不起作用。该模型似乎对所有输入都输出相同的东西。
+以下是网络的工作原理，它是单层的简单代码。当我们声明一个层时，它需要 4 个参数 —— 输入数量、神经元数量、激活函数、激活函数的微分。现在我们可以使用 .forward(inputs) 方法转发该层。对于反向传播，我们有 Backward() 方法，它采用 d（损失函数）/d（激活输出）和学习率。它还会自动返回 d（损失函数）/d（前一层的激活输出），可以将其放在前一层进行反向传播。此外，由于对于 softmax 激活，微分有点复杂，我作弊了一点，假设 softmax 激活函数只会在最后一层使用，因此对于具有 softmax 函数的神经层，我们不需要传递任何东西，只需学习率，其余的它会计算（因此你可以忽略 softmax_diff 函数，它没用）。有了所有这些上下文，下面是代码
+import numpy as np
+
+def ReLU(z):
+return np.maximum(0,z)
+def ReLU_diff(a):
+return (a&gt;0).astype(int)
+def sigmoid(z):
+z = np.clip(z, -500, 500)
+return 1 / (1 + np.exp(-z))
+def sigmoid_diff(a):
+return a * (1 - a)
+def tanh(z):
+return np.tanh(z)
+def tanh_diff(a):
+return 1 - a ** 2
+def softmax(z):
+z = z - np.max(z, axis=1, keepdims=True)
+return np.exp(z) / np.sum(np.exp(z), axis=1, keepdims=True)
+def softmax_diff(a):
+return a * (1 - a)
+def linear(z):
+return z
+def linear_diff(a):
+return np.ones(a.shape)
+
+class Layer():
+def __init__(self, numberOfInputs,numberOfNeurons,activationFunction,activationFunctionDiff):
+self.numberOfInputs = numberOfInputs
+self.numberOfNeurons = numberOfNeurons
+self.activationFunction =activationFunction
+self.activationFunctionDiff =activationFunctionDiff
+self.weights = np.random.randn(numberOfNeurons, numberOfInputs) * np.sqrt(2.0/numberOfInputs) # He 初始化
+self.biases = np.zeros((numberOfNeurons,1)) # 将偏差初始化为零
+def forward(self,inputs):
+self.inputs = 输入
+self.z = np.dot(输入，self.weights.T) + self.biases.T
+self.outputs = self.activationFunction(self.z)
+返回 self.outputs
+def behind(self, dl_da, learning_rate,outPuts=None):
+
+如果 self.activationFunction == softmax:
+dz = dz = self.outputs - outPuts
+否则：
+da_dz = self.activationFunctionDiff(self.outputs)
+dz = dl_da * da_dz
+dl_da_prev = np.dot(dz,self.weights)
+self.backParam = dl_da_prev
+dw = np.zeros((self.numberOfNeurons, self.numberOfInputs))
+for i in range(dz.shape[0]):
+dws = np.dot(dz[i].reshape(self.numberOfNeurons,1), self.inputs[i].reshape(1,self.numberOfInputs))
+dw += dws
+dw = dw / dz.shape[0]
+db = np.sum(dz, axis=0, keepdims=True).T / dz.shape[0]
+self.weights = self.weights - learning_rate * dw
+self.biases = self.biases - learning_rate * db
+return dl_da_prev
+
+
+现在我来介绍一下我如何使用这段代码
+from sklearn.datasets import fetch_california_housing
+data = fetch_california_housing()
+X, y = data.data, data.target
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+layer1 = Layer(8,8,ReLU,ReLU_diff)
+layer2 = Layer(8,1,linear,linear_diff)
+y_t = np.array(y_train).reshape(len(y_train),1)
+for i in range(1000):
+outputs = layer1.forward(X_train)
+outputs = layer2.forward(outputs)
+dl = -2*(y_t-outputs)
+backParam = layer2.backward(dl,0.001)
+backParam = layer1.backward(backParam,0.001)
+
+因此，最终输出位于 layer2.outputs 中，与输出相同。但首先输出是完全错误的，其次所有输入都一样。为什么会发生这种情况？
+我已经考虑了很久，并尝试了 ChatGPT 和其他模型的帮助。我不明白错误在哪里？
+谢谢帮助！]]></description>
+      <guid>https://stackoverflow.com/questions/79320551/regression-in-custom-neural-network-giving-same-output-for-all-inputs</guid>
+      <pubDate>Tue, 31 Dec 2024 17:57:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>Frechet Inception Distance (FID) 是否适合评估 GAN 在 Iris 等表格数据集上的表现</title>
+      <link>https://stackoverflow.com/questions/79320482/is-frechet-inception-distance-fid-suitable-for-evaluating-gan-performance-on-t</link>
+      <description><![CDATA[我是生成式 AI 的新手，正在使用表格数据集（例如 Iris 数据集）评估联合学习设置中 GAN 模型的性能。我正在探索不同的指标来评估生成器的性能。
+我遇到了 Frechet Inception Distance (FID)，它广泛用于基于图像的 GAN，以衡量生成样本的质量和多样性。但是，我的数据集是表格的，而不是基于图像的，我不确定 FID 是否适用于这种情况。
+FID 是否适合评估在 Iris 等表格数据集上训练的 GAN？
+注意：我不是在寻找基于可视化的比较（例如 PCA、t-SNE）。我的目标是使用单一的定量指标来衡量生成器的性能。]]></description>
+      <guid>https://stackoverflow.com/questions/79320482/is-frechet-inception-distance-fid-suitable-for-evaluating-gan-performance-on-t</guid>
+      <pubDate>Tue, 31 Dec 2024 17:16:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>为何我无法包裹 LGBM？</title>
+      <link>https://stackoverflow.com/questions/79320289/why-cant-i-wrap-lgbm</link>
+      <description><![CDATA[我使用 LGBM 预测数值量的相对变化。我使用 MSLE（均方对数误差）损失函数来优化我的模型并获得正确的误差缩放比例。由于 MSLE 不是 LGBM 的原生功能，因此我必须自己实现它。但幸运的是，数学可以大大简化。这是我的实现；
+class MSLELGBM(LGBMRegressor):
+def __init__(self, **kwargs): 
+super().__init__(**kwargs)
+
+def predict(self, X):
+return np.exp(super().predict(X))
+
+def fit(self, X, y, eval_set=None, callbacks=None):
+y_log = np.log(y.copy())
+print(super().get_params()) # 这不会打印任何 kwargs
+if eval_set:
+eval_set = [(X_eval, np.log(y_eval.copy())) for X_eval, y_eval in eval_set]
+super().fit(X, y_log, eval_set=eval_set, callbacks=callbacks)
+
+如您所见，它非常简单。我基本上只需要对模型目标应用对数变换，并对预测取指数以返回我们自己的非对数世界。
+但是，我的包装器不起作用。我使用以下命令调用该类；
+model = MSLELGBM(**lgbm_params)
+model.fit(data[X_cols_all], data[y_col_train]) 
+
+我收到以下异常；
+
+-----------------------------------------------------------------------------------------
+KeyError Traceback (most recent call last)
+Cell In[31], line 38
+32 callbacks = [
+33 lgbm.early_stopping(10, verbose=0), 
+34 lgbm.log_evaluation(period=0),
+35 ]
+37 model = MSLELGBM(**lgbm_params)
+---&gt; 38 model.fit(data[X_cols_all], data[y_col_train]) 
+40 feature_importances_df = pd.DataFrame([model.booster_.feature_importance(importance_type=&#39;gain&#39;)], columns=X_cols_all).T.sort_values(by=0, accending=False)
+41 feature_importances_df.iloc[:30]
+
+单元格 In[31]，第 17 行
+15 if eval_set:
+16 eval_set = [(X_eval, np.log(y_eval.copy())) for X_eval, y_eval in eval_set]
+---&gt; 17 super().fit(X, y_log, eval_set=eval_set, callbacks=callbacks)
+
+文件 c:\X\.venv\lib\site-packages\lightgbm\sklearn.py:1189，在 LGBMRegressor.fit(self, X, y, sample_weight, init_score, eval_set, eval_names, eval_sample_weight, eval_init_score, eval_metric, feature_name, categorical_feature, callbacks, init_model)
+1172 def fit( # type: ignore[override]
+1173 self,
+1174 X: _LGBM_ScikitMatrixLike,
+(...)
+1186 init_model: Optional[Union[str, Path, Booster, LGBMModel]] = None,
+1187 ) -&gt; &quot;LGBMRegressor&quot;:
+1188 &quot;&quot;&quot;Docstring 继承自 LGBMModel。&quot;&quot;&quot;
+...
+--&gt; 765 if isinstance(params[&quot;random_state&quot;], np.random.RandomState):
+766 params[&quot;random_state&quot;] = params[&quot;random_state&quot;].randint(np.iinfo(np.int32).max)
+767 elif isinstance(params[&quot;random_state&quot;], np.random.Generator):
+
+KeyError: &#39;random_state&#39;
+
+我不知道 random_state 为何从 fit 方法中缺失，因为该函数甚至不需要它。我感觉这是一个复杂的软件工程问题，超出了我的理解范围。有人知道发生了什么吗？
+如果有帮助的话，我尝试使用更简单的非 lgbm 结构来说明我想要的内容；
+
+我只想将我提供给 MSLELGBM 的任何参数传递给原始 LGBM，但这样做时我遇到了很多问题。]]></description>
+      <guid>https://stackoverflow.com/questions/79320289/why-cant-i-wrap-lgbm</guid>
+      <pubDate>Tue, 31 Dec 2024 15:25:17 GMT</pubDate>
+    </item>
     <item>
       <title>我想使用现有的 mongodb 数据库创建一个 rag 应用程序，这是一个大型数据库，将来可以扩展并拥有许多集合[关闭]</title>
       <link>https://stackoverflow.com/questions/79319727/i-want-to-create-a-rag-application-using-existing-mongodb-database-which-is-a-bi</link>
@@ -280,45 +439,6 @@ x Resample01：预处理器 1/1，模型 2/9（预测）：
       <pubDate>Mon, 30 Dec 2024 18:46:42 GMT</pubDate>
     </item>
     <item>
-      <title>SGDRegressor 图与 LinearRegressor 有很大不同</title>
-      <link>https://stackoverflow.com/questions/79317350/sgdregressor-graph-looking-so-different-from-linearregression</link>
-      <description><![CDATA[使用 ggplot2 的“经济学”数据集研究线性回归。
-为什么我的 SGDRegression 图表看起来像这样？
-x = df.loc[:,&#39;pce&#39;].values.reshape(-1,1)
-y = df.loc[:,&#39;psavert&#39;].values.reshape(-1,1)
-来自 sklearn.model_selection 导入 train_test_split
-x_train, x_test, y_train, y_test = train_test_split(x,y, test_size = 0.2)
-来自 sklearn.linear_model 导入 SGDRegressor
-sr = SGDRegressor(eta0 = 0.001, verbose = 1)
-sr.fit(x_train,y_train.flatten())
-plt.scatter(x_train,y_train, s = 5, alpha = 0.3, c = &#39;blue&#39;)
-plt.plot(x_train,sr.predict(x_train), c = &#39;green&#39;)
-plt.xlabel(&#39;pce(billions)&#39;)
-plt.ylabel(&#39;saving rate&#39;)
-plt.show()
-
-SGD 图表
-线性回归图表
-尝试调整 eta0 或 max_iter，但不起作用。]]></description>
-      <guid>https://stackoverflow.com/questions/79317350/sgdregressor-graph-looking-so-different-from-linearregression</guid>
-      <pubDate>Mon, 30 Dec 2024 10:35:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>由于模拟程度高，蒙特卡洛树搜索在 1 步内失误</title>
-      <link>https://stackoverflow.com/questions/79316664/monte-carlo-tree-search-blundering-mate-in-1-due-to-high-simulations</link>
-      <description><![CDATA[我很难理解在 MCTS 中选择终端节点时会发生什么。我看到这里、这里和这里有几篇标题类似的帖子，但它们似乎没有解释我的难点。
-假设是白棋先走，W 步虽然在下一步 B 步时失误失利，但仍被扩展，并恰好在出局时获胜。经过反向传播后，W 得分较高，因此选择一个子节点进行扩展，即 B。B 是终端节点，因此我们反向传播黑棋获胜。现在 B 得分较高。现在我看到两种可能性：
-
-允许再次选择 B（尽管它没有子节点），在这种情况下，B 会不断积累越来越多的得分，因为它每次都赢得黑棋并继续被选中。然后 W 将成为根节点模拟程度最高的子节点，因此尽管犯了错误，但仍被选中进行游戏（我根据维基百科文章选择模拟程度最高的节点）。
-
-我不允许再次选择 B。但我认为这会带来另一个问题。如果当前状态是在 W 步之后，并且是黑棋先行，那么黑棋只会选择 B 一次，尽管 B 赢得了比赛，但黑棋不会获胜，因为 B 的模拟次数会比其他步少。
-
-
-这似乎是算法的一个非常基本的部分，所以我确信我只是错过了一些关于它如何工作的显而易见的东西。]]></description>
-      <guid>https://stackoverflow.com/questions/79316664/monte-carlo-tree-search-blundering-mate-in-1-due-to-high-simulations</guid>
-      <pubDate>Mon, 30 Dec 2024 02:07:30 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在 PyTorch 中为 Nvidia GeForce RTX 3050 Ti 启用 CUDA？</title>
       <link>https://stackoverflow.com/questions/79165030/how-can-i-enable-cuda-in-pytorch-for-nvidia-geforce-rtx-3050-ti</link>
       <description><![CDATA[我想在我的显卡（Nvidia GeForce RTX 3050 Ti）上运行 PyTorch 库（我在 PyCharm 的虚拟环境中运行该库）。但是，它在 CPU 上运行，每当我使用命令 import torch 和 print(&quot;cuda is available:&quot;, torch.cuda.is_available()) 时，它总是返回 False。
@@ -332,21 +452,6 @@ SGD 图表
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/53719504/need-some-help-debugging-this-java</guid>
       <pubDate>Tue, 11 Dec 2018 07:44:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>随机森林多分类不会提高准确性</title>
-      <link>https://stackoverflow.com/questions/52703577/random-forest-multi-class-does-not-improve-accuracy</link>
-      <description><![CDATA[我正在制作一个随机森林多分类器模型。基本上有数百个家庭具有 200 多个特征，并且基于这些特征我必须将它们归类到其中一个类别 {1,2,3,4,5,6}。
-我面临的问题是无论我怎么努力都无法提高模型的准确性。我使用过 RandomSearchCV 和 GridSearchCV，但我只能达到 68% 左右的准确率。
-一些注意事项
-
-样本点不平衡。这是按降序排列的类别顺序 {1,4,2,7,6,3}。我使用了 class_weight = &quot;balanced&quot;但它确实提高了准确度。
-我尝试了 50-450 个估算器
-我还计算了 f1 分数，而不仅仅是通过准确度来比较模型
-
-你们还建议如何提高准确度/f1 分数？]]></description>
-      <guid>https://stackoverflow.com/questions/52703577/random-forest-multi-class-does-not-improve-accuracy</guid>
-      <pubDate>Mon, 08 Oct 2018 13:37:56 GMT</pubDate>
     </item>
     <item>
       <title>线性回归的梯度下降不收敛</title>
