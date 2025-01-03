@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 03 Jan 2025 06:24:29 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 03 Jan 2025 09:17:11 GMT</lastBuildDate>
     <item>
       <title>虚拟变量为布尔值而非整数</title>
       <link>https://stackoverflow.com/questions/79325633/dummy-variable-as-boolean-rather-than-integer</link>
@@ -65,89 +65,7 @@ https://github.com/Orivex/Cluster-Penguin-Species/blob/master/KMeansClustering.i
     <item>
       <title>LSTM模型预测不会随着输入的不同而改变</title>
       <link>https://stackoverflow.com/questions/79323808/lstm-model-prediction-does-not-change-with-different-inputs</link>
-      <description><![CDATA[我正在 PyTorch 中实现一个 LSTM 模型，以预测股票的收盘价在接下来的 5 分钟和 10 分钟内是上涨还是下跌。
-具体来说，我使用了 24 年的 5 分钟数据，包含 19 个特征，每个预测分为一周的时间段（使用 7 种不同的股票）
-
-我面临的问题是，无论如何，LSTM 模型似乎都会预测一个特定值附近的值，以始终将损失降至最低，但损失不会下降太多。
-我预先在 torch.tensors 中准备了输入和目标，其中包含 [batch_size、sequence_len、features]（在我的情况下为 [32、2016、19]），将它们标准化为 0 到 1 之间，然后将它们输入到我的 LSTM 模型中，该模型的结构如下：
-class MultiInputOutputLSTM(nn.Module):
-def __init__(self, input_size, hidden_​​size, num_layers, output_size, dropout, lr, batch_size):
-super(MultiInputOutputLSTM, self).__init__()
-self.input_size = input_size
-self.hidden_​​size = hidden_​​size
-self.num_layers = num_layers
-self.dropout = dropout
-self.batch_size = batch_size
-self.loss_list = []
-self.accuracy = 0
-self.predictions_list = [0]
-
-self.lstm = nn.LSTM(input_size = self.input_size, hidden_​​size = self.hidden_​​size, num_layers = self.num_layers, dropout = self.dropout, batch_first=True)
-self.fc = nn.Linear(hidden_​​size, output_size, bias=True)
-self.sigmoid = nn.Sigmoid()
-self.criterion = nn.BCEWithLogitsLoss()
-self.optimizer = torch.optim.RMSprop(self.parameters(), lr = lr, alpha=0.9, weight_decay=1e-4, influence=0.5)
-self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, &#39;min&#39;)
-
-def forward(self, x):
-
-h0 = torch.zeros(self.num_layers, self.batch_size, self.hidden_​​size)
-c0 = torch.zeros(self.num_layers, self.batch_size, self.hidden_​​size)
-lstm_out, _ = self.lstm(x, (h0, c0))
-output = self.fc(lstm_out[:, -1, :])
-
-return output
-
-def train_step(self ,x, y):
-self.train()
-predictions = self.forward(x)
-
-if abs(predictions.detach().cpu().numpy()[0][0] - y.detach().cpu().numpy()[0][0]) &lt; 1e-4 和 abs(predictions.detach().cpu().numpy()[0][1] - y.detach().cpu().numpy()[0][1]) &lt; 1e-4:
-self.accuracy += 1
-self.predictions_list.append(predictions.detach().cpu().numpy()[0][0])
-penalty = torch.mean((predictions-0.5)**2)
-loss = self.criterion(predictions, y) + penalty
-self.scheduler.step(loss)
-self.optimizer.zero_grad()
-self.loss_list.append(loss.item())
-mean_loss = sum(self.loss_list)/len(self.loss_list)
-loss.backward()
-torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=6)
-self.optimizer.step()
-return loss.item(), mean_loss, self.accuracy, predictions.detach().cpu().numpy()[0], y.detach().cpu().numpy()[0]
-
-def test_step(self, input, target):
-self.eval()
-with torch.no_grad():
-output = torch.round(self.forward(inputs))
-output = output.detach().cpu().numpy()[0]
-target = target.detach().cpu().numpy()[0]
-if (outputs == target).all():
-accuracy = 1
-else:
-accuracy = 0
-return accuracy, output, target
-
-如果价格上涨，则目标为 1，否则为 0。
-超参数为：
-input_size = 19
-hidden_​​size = 3
-num_layers = 5
-output_size = 2
-lr = 0.001
-num_epochs = 5
-batch_size = 32
-dropout = 0.3
-
-模型在开始时创建预测，然后它们会改变 +- 1e-3、1e-4，因此在训练过程中基本保持不变。
-训练测试分割为 85-15%。
-以下是我尝试过的列表：
-降低或增加学习率（从 0.00001 到 0.1）、输出大小（使用更多和更少的预测）、batch_size（从 1 到 256）、num_layers（1-5）、input_size（使用 1、2、3... 19 个特征）、dropout（0 到 0.5）和 num_epochs（从 1 到 100）。
-我尝试过 Adam 优化器，然后是 SDG，然后是 RMSProp 优化器，更改 alpha、动量和 weight_decay。
-还尝试过 BCELoss（在 self.forward() 中使用 sigmoid 激活层）、L1Loss、MSELoss、CrossEntropyLoss，最后决定使用惩罚值太接近 0.5 的损失（这没有帮助）非常多，但此时我愿意尝试任何方法。
-平均损失从 0.924 下降到 0.889。
-正如您所想象的，准确度非常低（从 5.56% 下降到 11.67%）：准确度不为零的唯一原因是纯粹的运气。
-我也试图预测数据框收盘列的最后一项与未来的下两个值之间的差异，但......有同样的问题。]]></description>
+      <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79323808/lstm-model-prediction-does-not-change-with-different-inputs</guid>
       <pubDate>Thu, 02 Jan 2025 13:06:55 GMT</pubDate>
     </item>
@@ -296,7 +214,7 @@ lin_reg_model.fit(X_train, y_train, 1, 10)
       <pubDate>Wed, 11 Dec 2024 06:39:00 GMT</pubDate>
     </item>
     <item>
-      <title>时间序列预测的最佳算法？</title>
+      <title>时间序列预测的最佳算法？[关闭]</title>
       <link>https://stackoverflow.com/questions/64544725/best-algorithm-for-time-series-prediction</link>
       <description><![CDATA[我必须每天预测某个区域的总需水量，并根据包含以下内容的 4 个 CVS 文件创建一个模型：
 
