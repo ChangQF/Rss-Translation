@@ -4,7 +4,99 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 04 Jan 2025 12:30:59 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 04 Jan 2025 15:15:37 GMT</lastBuildDate>
+    <item>
+      <title>LS 均值和最小二乘法</title>
+      <link>https://stats.stackexchange.com/questions/659528/ls-means-and-least-squares</link>
+      <description><![CDATA[我正在寻找 LS-means 的解释，但我找不到任何与优化或常规数据科学中的最小二乘法 (https://en.wikipedia.org/wiki/Least_squares) 共同的东西。
+它们有关联吗？或者 LS-means 中的“最小二乘法”具有不同的意义并且不使用常规 LS？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659528/ls-means-and-least-squares</guid>
+      <pubDate>Sat, 04 Jan 2025 14:01:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>R 中空间滞后模型中手动计算和内置对数似然之间的差异</title>
+      <link>https://stats.stackexchange.com/questions/659527/discrepancy-between-manually-calculated-and-built-in-log-likelihood-in-spatial-l</link>
+      <description><![CDATA[我正在使用空间滞后模型，并将手动计算的对数似然与 spatialreg R 包中的 lagsarlm 函数提供的对数似然进行比较。但是，我发现两者之间存在显着差异，我不确定问题出在哪里。
+模型
+空间滞后模型表示为：
+$$
+\mathbf{y}=\rho \mathbf{W} \mathbf{y}+\mathbf{X} \boldsymbol{\beta}+\boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}\left(\mathbf{0}, \sigma^2 \mathbf{I}\right)
+$$
+此处：
+
+$\mathbf{y}$：因变量$(n \times 1)$
+$\mathbf{W}$：行标准化空间权重矩阵 $(n \times n)$
+$\rho$：空间自回归系数
+$\mathbf{X}$：独立变量矩阵 $(n \times k)$
+$\boldsymbol{\beta}$：系数向量 $(k \times 1)$
+$\sigma^2$ ：误差项的方差
+
+对数似然表达式
+此模型的对数似然函数由以下公式给出：
+$$
+\ln L=\ln |\mathbf{I}-\rho \mathbf{W}|-\frac{n}{2} \ln (2 \pi)-\frac{n}{2} \ln \sigma^2-\frac{1}{2 \sigma^2}(\mathbf{y}-\rho \mathbf{W} \mathbf{y}-\mathbf{X} \boldsymbol{\beta})^{\top}(\mathbf{y}-\rho \mathbf{W} \mathbf{y}-\mathbf{X} \boldsymbol{\beta})
+$$
+实验设置
+为了进行调查，我在 R 中进行了以下实验：
+library(spdep)
+library(spatialreg)
+library(MASS)
+
+# 手动计算对数似然的函数
+compute_log_likelihood &lt;- function(y, X, W, rho, beta_hat, sigma2_hat) {
+n &lt;- length(y)
+A &lt;- diag(n) - rho * W
+log_det_A &lt;- determinant(A, logarithm = TRUE)$modulus[1]
+residuals &lt;- y - resolve(A) %*% (X %*% beta_hat)
+sigma2_hat &lt;- mean(residuals^2)
+logL &lt;- -n / 2 * log(2 * pi) - n / 2 * log(sigma2_hat) + log_det_A - n / 2
+return(logL)
+}
+
+# 模拟设置
+n &lt;- 100
+sqrt_n &lt;- sqrt(n)
+k &lt;- 3
+rho_true &lt;- 0.7
+coords &lt;- expand.grid(x = 1:sqrt_n, y = 1:sqrt_n)
+listw &lt;- nb2listw(knn2nb(knearneigh(as.matrix(coords), k = 2)), style = &quot;W&quot;)
+W &lt;- as.matrix(listw2mat(listw))
+
+# 生成数据
+set.seed(123)
+X &lt;- cbind(1, matrix(rnorm(n * (k - 1)), nrow = n)) # 包括截距
+beta &lt;- c(1, 0.5, -0.3) # 真实系数
+A &lt;- diag(n) - rho_true * W
+epsilon &lt;- mvrnorm(1, mu = rep(0, n), Sigma = diag(n))
+y &lt;- resolve(A) %*% (X %*% beta + epsilon)
+
+# 使用 lagsarlm 拟合空间滞后模型
+lagsarlm_model &lt;- lagsarlm(y ~ X[, -1], data = data.frame(y, X = X[, -1]), listw = listw)
+
+# 从 lagsarlm 中提取 rho 和对数似然
+rho_builtin &lt;- lagsarlm_model$rho
+logL_builtin &lt;- logLik(lagsarlm_model)[1]
+
+# 手动计算相同 rho 的对数似然
+beta_hat &lt;- resolve(t(X) %*% resolve(diag(n) - rho_builtin * W) %*% X) %*%
+(t(X) %*% resolve(diag(n) - rho_builtin * W) %*% y)
+残差 &lt;- y - resolve(diag(n) - rho_builtin * W) %*% (X %*% beta_hat)
+sigma2_hat &lt;- mean(residuals^2)
+logL_manual &lt;- compute_log_likelihood(y, X, W, rho_builtin, beta_hat, sigma2_hat)
+
+结果
+这是我观察到的差异：
+
+内置对数似然：-135.8559
+手动对数似然：-407.7809
+
+问题
+什么可能导致手动和内置对数似然之间的这种差异？
+lagsarlm 函数是否可以使用替代方法（例如近似值、截断）来计算对数行列式或似然值？
+如能提供关于对齐这些计算的任何见解，我们将不胜感激！]]></description>
+      <guid>https://stats.stackexchange.com/questions/659527/discrepancy-between-manually-calculated-and-built-in-log-likelihood-in-spatial-l</guid>
+      <pubDate>Sat, 04 Jan 2025 13:45:29 GMT</pubDate>
+    </item>
     <item>
       <title>识别与平方根过程相关的随机过程的分布</title>
       <link>https://stats.stackexchange.com/questions/659526/identifying-the-distribution-of-a-random-process-associated-to-the-square-root-p</link>
@@ -183,20 +275,6 @@ $b_i$ 是主题 $i$ 的随机效应，例如 $b_i \sim N(0, \sigma_b^2)$
       <pubDate>Sat, 04 Jan 2025 03:52:05 GMT</pubDate>
     </item>
     <item>
-      <title>样本量问题 [关闭]</title>
-      <link>https://stats.stackexchange.com/questions/659509/sample-size-question</link>
-      <description><![CDATA[寻求统计帮助：如果我对 22,000 个样本中的 108 个样本进行了调查，并且从这 108 个样本中，我得到的失败率为 31，那么我需要从剩下的 22,000 个样本中抽取多少个样本才能达到 95% 的置信水平和 7.5% 的误差幅度，以达到整个人群的实际失败率？谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/659509/sample-size-question</guid>
-      <pubDate>Fri, 03 Jan 2025 21:55:37 GMT</pubDate>
-    </item>
-    <item>
-      <title>具有一元发射字母表的隐马尔可夫模型有意义吗？</title>
-      <link>https://stats.stackexchange.com/questions/659508/do-hidden-markov-models-with-unary-emisson-alphabet-make-sense</link>
-      <description><![CDATA[我正在研究一个可以建模为隐马尔可夫模型的系统，其非静默状态都发出相同的符号。因此，该模型只是在一元字母表（或等效地，整数）上生成单词。有没有更简单的替代方法来表示这样的模型？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659508/do-hidden-markov-models-with-unary-emisson-alphabet-make-sense</guid>
-      <pubDate>Fri, 03 Jan 2025 21:54:33 GMT</pubDate>
-    </item>
-    <item>
       <title>处理一次膨胀计数数据而不是零膨胀计数数据</title>
       <link>https://stats.stackexchange.com/questions/659503/handling-one-inflated-count-data-instead-of-zero-inflated</link>
       <description><![CDATA[处理零膨胀数据时需要零膨胀模型和 Hurdle 模型，或者考虑到研究使用截断泊松或 NB 模型似乎合适。但是，如果数据中不存在 0 计数，而是存在 1 的潜在膨胀，该如何处理？这是否与零膨胀类似，还是事件未在大量观察中发生（零膨胀）的情况是进行调整的具体原因？（也就是说，在建模计数方面，没有零的数据集中的一次膨胀与零膨胀数据集有何不同？）]]></description>
@@ -204,18 +282,31 @@ $b_i$ 是主题 $i$ 的随机效应，例如 $b_i \sim N(0, \sigma_b^2)$
       <pubDate>Fri, 03 Jan 2025 18:39:46 GMT</pubDate>
     </item>
     <item>
-      <title>泊松回归是不存在过度分散的计数数据的默认模型吗？</title>
+      <title>泊松回归是没有过度分散的计数数据的默认模型吗？[重复]</title>
       <link>https://stats.stackexchange.com/questions/659502/is-poisson-regression-the-default-model-for-count-data-without-overdispersion</link>
       <description><![CDATA[泊松模型在研究中被广泛用于对计数数据进行建模，但是当存在过度分散时，就会使用其他模型（例如 NB、拟泊松）。如果不存在过度分散且变化与预期相等，您是否默认使用泊松回归模型，还是仍可以根据 gof 进行选择？]]></description>
       <guid>https://stats.stackexchange.com/questions/659502/is-poisson-regression-the-default-model-for-count-data-without-overdispersion</guid>
       <pubDate>Fri, 03 Jan 2025 18:38:33 GMT</pubDate>
     </item>
     <item>
+      <title>以家庭为分析单位的二元逻辑数据准备</title>
+      <link>https://stats.stackexchange.com/questions/659482/data-preparation-for-binary-logistic-with-households-as-a-unit-of-analysis</link>
+      <description><![CDATA[我试图对不同的因素进行二元逻辑分析，以确定哪些因素影响了研究现象。这些数据针对的是特定年龄以上的人群。这意味着不同家庭的人数各不相同。我被告知分析单位应该是家庭，这意味着 Excel 电子表格中的每一行都应该代表一个家庭，最初它代表一个人，如下所示：
+实践区域年龄性别教育就业
+否城市 31-50 女性中学就业
+否城市 31-50 女性高等教育就业
+是城市 31-50 女性高等教育就业
+
+假设上述数据（3 人）都在一个家庭中，我如何在 Excel 电子表格中准备以家庭为分析单位的相同数据？因变量是实践。]]></description>
+      <guid>https://stats.stackexchange.com/questions/659482/data-preparation-for-binary-logistic-with-households-as-a-unit-of-analysis</guid>
+      <pubDate>Fri, 03 Jan 2025 09:49:13 GMT</pubDate>
+    </item>
+    <item>
       <title>类别平衡损失中的有效样本数？</title>
       <link>https://stats.stackexchange.com/questions/659479/effective-number-of-samples-in-class-balance-loss</link>
       <description><![CDATA[我偶然看到了这篇论文：基于有效样本数的类平衡损失，但我有些观点不太明白：
 
-(1) 图 1 的含义：这条线是否显示了两个类之间的分类边界？红线是在加权损失中应用 1/n 时，黑线表示无权重，蓝线表示建议的方法。然后我可以看到 1/n 可能会对损失进行过度惩罚，正如论文中的意思：n 个样本集中的数据点之间可能存在一些重叠 -&gt; 真正有意义的数据点小于 n，那么用 1/n 惩罚太难了 -&gt;从图中可以看出，少数类主导多数类，因为它们对梯度的贡献不大，虽然它们有很多样本，但梯度几乎减少了
+(1) 图 1 的含义：这条线是否显示了两个类之间的分类边界？红线是在加权损失中应用 1/n 时，黑线表示无权重，蓝线表示提出的方法。然后我可以看到 1/n 可能会对损失进行过度惩罚，正如论文中的意思：n 个样本集中的数据点之间可能存在一些重叠 -&gt; 真正有意义的数据点小于 n，那么用 1/n 惩罚太难了 -&gt;从图中可以看出，少数类主导多数类，因为它们对梯度的贡献不大，虽然它们有很多样本，但梯度几乎减少了
 
 (2) 方程 (3) 出自哪里？我对这个方程有一点了解，但不知道他们是如何得到这个公式的，他们还提到了 N 中的原型。我只是不明白它们是如何相互关联的。
 
@@ -322,73 +413,27 @@ alpha: 0.971802, beta: 1.886494, gamma: 3.266041
       <pubDate>Wed, 01 Jan 2025 22:27:53 GMT</pubDate>
     </item>
     <item>
-      <title>VAE 高斯分布的加权融合</title>
-      <link>https://stats.stackexchange.com/questions/659124/weighted-fusion-of-vae-gaussian-distributions</link>
-      <description><![CDATA[假设您有 4 个不同 VAE 的 4 个堆叠输出向量：$B \times 512 \times 4$
-这些 $512$ 个元素对应于四个相互依赖的多元正态分布的 $256 \ \mu$ &amp; $256 \ \ln\sigma^2$（对数方差）。
-我的目标是将这四个组合成一个多元正态分布，定义为 $\mu^*$ &amp; $\ln\sigma^{2*}$ 大小为 $B \times 512$，采用加权融合方法。我正在考虑两个想法...
+      <title>使用 R 拟合带有工具变量的负二项混合效应模型</title>
+      <link>https://stats.stackexchange.com/questions/659184/fit-negative-binomial-mixed-effects-model-with-instrumental-variables-with-r</link>
+      <description><![CDATA[如何使用 R 拟合带有工具变量的固定效应负二项式模型？
+我尝试过 fixest 包，但它仅支持 OLS 的工具变量，而不支持负二项式：
+id &lt;- rep(seq(1, 10), each=5)
+year &lt;- rep(seq(2021, 2025), times=10)
+df &lt;- data.frame(id=id, year=year)
+df[[&quot;weight&quot;]] &lt;- rnorm(nrow(df), 100, 10)
+df[[&quot;height&quot;]] &lt;- 2*df$weight + rnorm(nrow(df), 0, 5)
+df[[&quot;count&quot;]] &lt;- rpois(nrow(df), df$id + df$height + 
+rnorm(nrow(df), 0, 5))
+mod &lt;- fixest::fenegbin(count ~ 1 | id | height ~ weight, df)
 
-1.简单求和高斯函数
-均值总和：$\mu^*=\sum w_i * \mu_i$
-对数变量的对数和指数技巧：$\ln\sigma^{2*}=a + \ln ( \sum w_i * e^{\text{logvar}_i - a})$
-其中
+fixest::fenegbin(count ~ 1 | id | height ~ weight, df) 中的错误： 
+参数 &#39;fml&#39; 不能包含由竖线 (&#39;|&#39;) 分隔的两个以上部分。IV 仅适用于 &#39;feols&#39;。
+语法为：DEP VAR ~ EXPL VARS | FIXED EFFECTS。
+（不允许 IV。）
 
-$w_i$ 是基于 VAE 输出的学习到的注意力权重，其中 $\sum w_i = 1$
-$a = \max (\text{logvars})$
-
-在 PyTorch 中实现：
-# 加权均值融合
-fused_mean = torch.sum(weights * means, dim=-1)
-
-# 对 logvars 进行加权对数和指数融合
-max_logvar = torch.max(logvars, dim=-1, keepdim=True)[0] # 元组输出（丢弃索引）
-weighted_var = weights * torch.exp(logvars - max_logvar)
-sum_weighted_var = torch.sum(weighted_var, dim=-1, keepdim=True)
-fused_logvar = max_logvar + torch.log(sum_weighted_var + eps)
-
-返回 fused_mean, fused_logvar.squeeze(dim=-1)
-
-2.混合模型方法
-这个有点类似但更复杂，我收集了它考虑了依赖关系 - 但我不是统计学家！
-均值总和（与以前的方法相同）：$\mu^*=\sum w_i * \mu_i$
-方差：$\sigma^{2*} = [\sum w_i * (\sigma_i^2 * \mu_i^2)] - [\sum w_i * \mu_i]^2$
-或使用对数和指数技巧：
-$$\ln\sigma^{2*}=a + \ln ([\sum w_i * (e^{\text{logvar}_i - a} + \mu_i^2)] - \mu^{*^{2}})$$
-在 PyTorch 中实现：
-# 加权均值融合
-fused_mean = torch.sum(weights * means, dim=-1, keepdim=True) # (batch_size, latent_dim, 1)
-
-# 带交叉项的加权混合方差
-max_logvar = torch.max(logvars, dim=-1, keepdim=True)[0] # (batch_size, latent_dim, 1)
-_vars = torch.exp(logvars - max_logvar) # (batch_size, latent_dim, n_views)
-fused_var = torch.sum(weights * (_vars + means**2), dim=-1, keepdim=True) - fused_mean**2
-fused_logvar = max_logvar + torch.log(fused_var + eps)
-
-return fused_mean.squeeze(dim=-1), fused_logvar.squeeze(dim=-1)
-
-
-我的问题是：
-
-这两种方法的统计意义是什么，什么时候应该优先选择一种方法？
-我的公式/操作是否正确实现？
-
-有关更多上下文，您可以访问这个 repo，我将在这里整理这些内容。简而言之，$x$ 是一个分子，它表示为字符串、图像、图形和指纹，每个都使用单独的 VAE 进行编码，并组合成用于采样和计算 KL 散度的单个多变量正态分布。最终目标实际上是通过减少 (KL) 损失项的数量来简化和稳定训练。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659124/weighted-fusion-of-vae-gaussian-distributions</guid>
-      <pubDate>Mon, 23 Dec 2024 13:14:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>根据相关数据进行方差估计</title>
-      <link>https://stats.stackexchange.com/questions/658200/variance-estimation-from-dependent-data</link>
-      <description><![CDATA[我想从形式为 $y_n = u_n x_n$ 的数据中估计零均值正态分布 $x_n \sim \mathcal{N}(0, \sigma^2)$ 的方差，其中输入 $u_n \in [u_{\min}, u_{\max}]$ 可以在每次迭代 $n$ 中主动选择，即 $u_n$ 不是先验固定的，而是高度依赖于先前的选择。
-如何估计方差 $\sigma^2$场景？
-编辑：更多细节/额外假设
-
-我们可以假设 $0 &lt; u_{\min} &lt; u_{\max}$。
-对先前选择的依赖：我感兴趣的是估计 $\sigma^2$，时间序列 $(u_0, y_0)$、$(u_1, y_1)$、... 但是 $u_n$ 的值并不是独立的，而是根据某些决策标准选择的，这些决策标准可能取决于 $\sigma^2$ 的先前估计值
-我正在寻找 $\sigma^2$ 的无偏估计量
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/658200/variance-estimation-from-dependent-data</guid>
-      <pubDate>Tue, 03 Dec 2024 12:19:22 GMT</pubDate>
+相关：https://stackoverflow.com/questions/73982152/iv-regression-in-fixed-effect-models-with-diagnostics/75144897#75144897]]></description>
+      <guid>https://stats.stackexchange.com/questions/659184/fit-negative-binomial-mixed-effects-model-with-instrumental-variables-with-r</guid>
+      <pubDate>Tue, 24 Dec 2024 13:01:47 GMT</pubDate>
     </item>
     </channel>
 </rss>
