@@ -4,7 +4,133 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 06 Jan 2025 15:17:41 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 06 Jan 2025 18:23:06 GMT</lastBuildDate>
+    <item>
+      <title>如何改进我的线性回归模型？</title>
+      <link>https://stackoverflow.com/questions/79333949/how-to-improve-my-linear-regression-model</link>
+      <description><![CDATA[今天终于完成了线性回归的 Scratch 实现
+filepath = f&quot;{path}/Food_Delivery_Times.csv&quot;
+df = pd.read_csv(filepath)
+df.head()
+
+print(df.columns)
+df.isnull().sum()
+
+df.dropna(inplace = True , thresh=4)
+df.drop_duplicates(inplace= True)
+df[&#39;Courier_Experience_yrs&#39;] = df[&#39;Courier_Experience_yrs&#39;].interpolate()
+columns_to_fill = [&#39;Weather&#39;, &#39;Traffic_Level&#39;, &#39;Time_of_Day&#39;]
+for col in columns_to_fill:
+mode_value = df[col].mode()[0]
+df[col]= df[col].fillna(mode_value)
+df.info()
+
+print(df[&#39;Weather&#39;].unique())
+print(df[&#39;Traffic_Level&#39;].unique())
+print(df[&#39;Time_of_Day&#39;].unique())
+print(df[&#39;Vehicle_Type&#39;].unique())
+
+def onehot(df,column):
+values = df[column].unique()
+for val in values:
+df[val] = (df[column] == val).astype(int)
+return df
+
+df = onehot(df,&#39;Weather&#39;)
+df = onehot(df,&#39;Vehicle_Type&#39;)
+df = onehot(df,&#39;Time_of_Day&#39;)
+traffic_mapping = {&#39;低&#39;:0,&#39;中&#39;:1,&#39;高&#39;:2}
+df[&#39;Traffic_encoded&#39;] = df[&#39;Traffic_Level&#39;].map(traffic_mapping)
+df
+
+categorical_col = [&#39;天气&#39;, &#39;Traffic_Level&#39;, &#39;时间&#39;,&#39;车辆类型&#39;]
+col_new_df = [col for col in df.columns if col not in categorical_col ]
+col_new_df
+
+new_df = df[col_new_df]
+new_df.info()
+
+# 特征缩放
+for col in new_df.columns:
+if col not in [&#39;订单ID&#39;,&#39;交货时间分钟&#39;]:
+new_df[col] = new_df[col].astype(&#39;float64&#39;)
+mean = new_df[col].mean()
+std = new_df[col].std()
+new_df.loc[:,col] = (new_df[col]-mean)/std #转换为浮点数，因为在缩放浮点数值后将其分配给 int 数据类型，这会引发警告
+
+new_df.describe()
+
+train_df = new_df.sample(frac = 0.8,random_state =200)
+test_df = new_df.drop(train_df.index)
+
+train_df.reset_index(inplace=True)
+test_df.reset_index(inplace=True)
+
+train_df.drop(columns = [&#39;index&#39;],inplace=True)
+test_df.drop(columns = [&#39;index&#39;],inplace=True)
+
+columns_needed =列表（new_df.columns）
+columns_needed.remove（&#39;订单 ID&#39;）
+columns_needed.remove（&#39;送货时间分钟&#39;）
+X = train_df[columns_needed].to_numpy()
+Y = train_df[&#39;送货时间分钟&#39;].to_numpy()
+Y_mean = train_df[&#39;送货时间分钟&#39;].mean()
+Y_std = train_df[&#39;送货时间分钟&#39;].std()
+Y = (Y-Y_mean)/Y_std
+
+m = len(X)
+np.random.seed(42)
+W = np.random.randn(len(X[0]))
+b = 0
+alpha = 0.5
+Lambda = 0.5
+迭代 = 0
+dW = np.zeros(len(X[0]))
+当迭代 &lt; 100000：
+f = np.dot(X,W) + b
+损失 = (np.sum((f - Y)**2) + Lambda*np.sum(W*W))/(2*m)
+dW = (np.dot(X.T,(f-Y)) + Lambda*W)/m
+db = np.sum(f-Y)/m
+W -= alpha*dW
+b -= alpha*db
+迭代 += 1
+如果迭代 % 10000 == 0：
+打印（迭代，“，“，“，损失）
+如果（损失 &lt; 10**(-3)）：
+中断
+
+打印（“完成”）
+
+#测试
+sum = 0
+sum2 =0
+ymean = test_df[&#39;Delivery_Time_min&#39;].mean()
+Y_original = test_df[&#39;Delivery_Time_min&#39;].to_numpy()
+X_test = test_df[columns_needed].to_numpy()
+Y_predicted = np.dot(X_test,W) + b
+Y_predicted_ori = Y_predicted*Y_std + Y_mean
+print(&quot;原始 ---- 预测 ---- 错误&quot;)
+for i in range(len(Y_original)):
+print(Y_original[i],&quot;---&quot;,Y_predicted_ori[i],&quot;---&quot;,Y_original[i]-Y_predicted_ori[i])
+sum += (Y_original[i]-Y_predicted_ori[i])**2
+sum2 += (Y_original[i] - ymean)**2
+
+rscore = 1 - (sum/sum2)
+msme = sum/len(Y_original)
+print(rscore)
+print(msme)
+
+以上是它的实现
+
+数据集 - 食品配送时间预测（Kaggle）
+R2_score 为 0.754
+MSME 为 133.17
+
+那么它对初学者来说好吗？
+可以做些什么来改进它？]]></description>
+      <guid>https://stackoverflow.com/questions/79333949/how-to-improve-my-linear-regression-model</guid>
+      <pubDate>Mon, 06 Jan 2025 18:12:55 GMT</pubDate>
+    </item>
     <item>
       <title>通过 streamlit 执行时出现“短信垃圾邮件分类器”错误“实例不适合”</title>
       <link>https://stackoverflow.com/questions/79333200/sms-spam-classifier-error-while-executing-it-via-streamlit-instance-not-fitte</link>
@@ -56,48 +182,6 @@ called `Result::unwrap()` on an `Err` value: TypeMismatch(&quot;Invalid target e
 是否可以将 f64 存储在 Burn 张量中？]]></description>
       <guid>https://stackoverflow.com/questions/79333072/using-f64-in-burn-tensor-in-rust</guid>
       <pubDate>Mon, 06 Jan 2025 12:43:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>寻找合作者为 Elixir 构建 ML 库：专注于线性回归和神经网络 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79332774/looking-for-collaborators-to-build-an-ml-library-for-elixir-focus-on-linear-reg</link>
-      <description><![CDATA[我正在深入研究 Elixir 的并发模型，并探索如何将其应用于分布式机器学习。作为一个示例应用程序，我正在研究分布式神经网络的简单实现，以学习 XNOR 函数。
-概念：
-这个项目不仅仅是关于 XNOR，它还展示了 Elixir 中的独立进程如何模拟神经网络中的神经元。每个神经元都作为自己的进程运行（使用 GenServer），并通过消息传递与其他神经元通信，展示了 Elixir 独特的并发功能。
-示例架构：
-3 个神经元 (n₁、n₂、n₃) 作为独立进程运行。
-输入 (x₁、x₂) 传递到神经元 n₁ 和 n₂。
-神经元计算加权总和和激活，然后将输出发送到 n₃。
-最终神经元 (n₃) 结合输出以产生预测 (Y)。
-以下是供参考的简单图表：
-（如果您在线托管图像，请用实际链接替换此链接）
-为什么选择 Elixir？
-Elixir 的参与者模型和轻量级流程非常适合分布式系统。该项目是一个值得探索的概念证明：
-使用 Elixir 进行机器学习的可行性。
-消息传递和函数式编程原理如何支持神经网络架构。
-合作目标：
-我希望与以下开发人员合作：
-想要探索 Elixir 中的机器学习概念。
-可以帮助改进神经网络流程的设计。
-对为 ML 构建可扩展的分布式系统感兴趣。
-对使用 Elixir 训练算法（例如反向传播）有想法。
-可以为进程通信的实时可视化做出贡献。
-到目前为止所做的工作：
-作为 GenServer 进程的神经元的基本框架。
-在神经元之间传递输入和输出的初始设置。
-XNOR 函数是系统可以解决的问题的一个简单示例。
-后续步骤：
-实现用于优化权重的训练循环。
-探索大型网络的性能优化。
-设计分布式部署（例如，跨多个节点）。
-该项目是将 Elixir 应用于更复杂的 ML 问题（例如分布式深度学习系统）的垫脚石。
-开源：
-我计划将这个项目开源，以便它能够随着社区的贡献而发展。
-如果这听起来令人兴奋或符合您的兴趣，我很乐意听取您的意见！让我们突破 Elixir 在机器学习中的作用的界限。
-感谢您的阅读！
-我成功地实现了一个小型神经网络，使用 3 个神经元来学习 XNOR 函数，每个神经元都作为独立的 Elixir 进程运行。经过 10,000 次迭代训练后，网络表现非常出色。此外，我还开发了一个基础线性回归模型来根据输入数据预测输出。为了支持这些实现，我利用 Elixir 的函数式编程范式，为关键的机器学习操作（例如权重更新和激活函数）编写了 Elixir 函数。结果令人鼓舞，展示了 Elixir 在机器学习应用中的潜力。您可以在 GitHub 上找到该项目 https://github.com/ouerghi01/ElixirLinearRegressor.git：
-Elixir Linear Regressor。]]></description>
-      <guid>https://stackoverflow.com/questions/79332774/looking-for-collaborators-to-build-an-ml-library-for-elixir-focus-on-linear-reg</guid>
-      <pubDate>Mon, 06 Jan 2025 10:39:21 GMT</pubDate>
     </item>
     <item>
       <title>如何获取在线视频游戏的类型？我的数据集包含大约 3500 个用户 ID、大约 5000 个游戏及其由这些用户给出的评分 [关闭]</title>
@@ -188,9 +272,9 @@ extractor = tf.keras.Model(inputs=model.layers[0].input,
 我正在研究驾驶员得分预测问题。我的数据集包括 RPM、角度、速度和油门等特征。然而，挑战在于我没有基本事实标签。为了解决这个问题，我进行了彻底的分析，并咨询了业内专业人士。基于这些见解，我创建了一个方程，其中驾驶员得分计算为特征的加权总和（权重 * 特征）。
 具体来说，对于刹车痕迹特征，我单独包含了它的权重，因为它是一个二元变量。数据集显示大多数特征之间具有高度相关性，但角度除外，它与其他特征的相关性似乎最小。此外，数据不平衡，应用缩放后，RPM 和速度都呈正态分布。然而，角度表现得更像一个多维特征。
 我读到几篇研究论文，它们表明特征相关性对于分类任务来说并不是一个关键问题，尤其是在使用随机森林等模型时。为了进一步增强数据集，我引入了加速度，使用公式 (Δv / Δt) 来确定制动事件是突然的还是正常的，如上式所示。
-尽管付出了这些努力，但模型的准确性仍然很低。我最初避免平衡数据，因为应用 SMOTE（合成少数过采样技术）会导致严重的数据失真。 SMOTE 生成的合成数据严重依赖于特征空间的边缘，这使得分布偏离了正态性，从而使结果更糟。
+尽管付出了这些努力，但模型的准确性仍然很低。我最初避免平衡数据，因为应用 SMOTE（合成少数过采样技术）会导致严重的数据失真。 SMOTE 生成的合成数据严重依赖于特征空间的边缘，这使得分布偏离了正态性，使结果变得更糟。
 关于如何提高模型性能，有什么建议吗？
-我尝试了 pca 分析，结果表明角度贡献不大，但根据专家的说法，角度非常重要，在这种情况下使用 iforest 是否比 xgboost 或 randomforest 分类器更好？我自己计算了驾驶员得分，然后将其分为 [0,30,50,70,100]，差，平均，好，优秀，不平衡在于我们的道路类型，高速公路比另一种道路少得多，优秀的道路也比平均水平低得多]]></description>
+我尝试了 pca 分析，结果表明角度贡献不大，但根据专家的说法，角度非常重要，在这种情况下使用 iforest 是否比 xgboost 或 randomforest 分类器更好？我自己计算了驾驶员得分，然后将其分为 [0,30,50,70,100]，差，平均，好，优秀，不平衡在于我们的道路类型，高速公路比另一条道路少得多，优秀的道路也比平均水平低得多]]></description>
       <guid>https://stackoverflow.com/questions/79331544/how-to-increase-the-accuracy-of-my-multiclass-classification-model</guid>
       <pubDate>Sun, 05 Jan 2025 20:53:17 GMT</pubDate>
     </item>
