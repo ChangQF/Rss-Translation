@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 05 Jan 2025 21:14:50 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 06 Jan 2025 01:19:04 GMT</lastBuildDate>
     <item>
       <title>如何提高多类分类模型的准确性</title>
       <link>https://stackoverflow.com/questions/79331544/how-to-increase-the-accuracy-of-my-multiclass-classification-model</link>
@@ -164,28 +164,116 @@ ImportError：无法从“transformers”（/Users/mac/PycharmProjects/pythonPro
       <pubDate>Sun, 05 Jan 2025 01:01:10 GMT</pubDate>
     </item>
     <item>
-      <title>ModuleNotFoundError：没有名为“llama_index.text_splitter”的模块</title>
-      <link>https://stackoverflow.com/questions/79329352/modulenotfounderror-no-module-named-llama-index-text-splitter</link>
-      <description><![CDATA[我用这个来导入
-从 llama_index.text_splitter 导入 SentenceSplitter
+      <title>验证损失增加，准确率停滞</title>
+      <link>https://stackoverflow.com/questions/79326823/validation-loss-increasing-and-accuracy-is-stuck</link>
+      <description><![CDATA[在此处输入图片说明
+在此处输入图片说明
 
-我的 python 版本 - 3.11.5 和 llama_index 版本 - 0.12.8 但出现此错误
-ModuleNotFoundError：没有名为“llama_index.text_splitter”的模块
+# 导入必要的库
 
-如何解决这个问题？
-我询问 chatgpt，谷歌其他 AI 但找不到解决方案。]]></description>
-      <guid>https://stackoverflow.com/questions/79329352/modulenotfounderror-no-module-named-llama-index-text-splitter</guid>
-      <pubDate>Sat, 04 Jan 2025 18:08:25 GMT</pubDate>
+导入 numpy 作为 np
+导入 pandas 作为 pd
+导入 matplotlib.pyplot 作为 plt
+导入 os
+导入 keras
+导入 seaborn 作为 sns
+导入 tensorflow 作为 tf
+从 sklearn.model_selection 导入 train_test_split
+从 tensorflow.keras.preprocessing.image 导入 ImageDataGenerator
+从 tensorflow.keras 导入 Input
+从 tensorflow.keras.models 导入 Sequential
+从 tensorflow.keras.layers 导入 Conv2D， MaxPooling2D、Flatten、Dense、Dropout
+来自 sklearn.metrics 导入分类报告、confusion_matrix
+来自 tensorflow.keras.utils 导入 load_img、img_to_array
+来自 tensorflow.keras.applications 导入 VGG16
+来自 tensorflow.keras.models 导入模型
+来自 tensorflow.keras.preprocessing 导入图像
+来自 tensorflow.keras.layers 导入 BatchNormalization
+来自 tensorflow.keras.callbacks 导入 ReduceLROnPlateau
+来自 tensorflow.keras.callbacks 导入 EarlyStopping
+来自 tensorflow.keras.optimizers 导入 Adam
+来自 google.colab 导入 drive
+
+# 数据集加载
+
+drive.mount(&#39;/content/drive&#39;)
+train_dir = &#39;/content/drive/MyDrive/CSE427/Project/Dataset/New Train&#39;
+test_dir = &#39;/content/drive/MyDrive/CSE427/Project/Dataset/New Test&#39;
+
+# 预处理数据 &amp;数据增强
+
+train_datagen = ImageDataGenerator(
+rescale=1./255,
+sher_range=0.2,
+zoom_range=0.2,
+Horizo​​ntal_flip=True,
+rotation_range=30,
+bright_range=(0.8, 1.2),
+width_shift_range=0.2,
+height_shift_range=0.2,
+channel_shift_range=30)
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(
+train_dir,
+target_size=(128, 128),
+batch_size=32,
+class_mode=&#39;binary&#39;)
+
+validation_generator = test_datagen.flow_from_directory(
+test_dir,
+target_size=(128, 128),
+batch_size=32,
+class_mode=&#39;binary&#39;)
+
+print(&#39;\n&#39;,train_generator.class_indices)
+
+# 构建自定义 CNN 模型
+from tensorflow.keras.regularizers import l2
+model = Sequential([
+Input(shape=(128, 128, 3)), 
+Conv2D(32, (3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+MaxPooling2D(pool_size=(2, 2)),
+Dropout(0.3),
+Conv2D(64, (3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+MaxPooling2D(pool_size=(2, 2)),
+Dropout(0.3),
+Conv2D(128, (3, 3),activation=&#39;relu&#39;),
+BatchNormalization(),
+MaxPooling2D(pool_size=(2, 2)),
+Flatten(),
+Dense(128, 激活=&#39;relu&#39;, kernel_regularizer=l2(0.01)),
+Dropout(0.5),
+Dense(1, 激活=&#39;sigmoid&#39;)
+])
+
+model.compile(optimizer=&#39;adam&#39;, loss=&#39;binary_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+
+# 训练模型
+lr_scheduler = ReduceLROnPlateau(monitor=&#39;val_loss&#39;, factor=0.5, waiting=5, min_lr=1e-6, verbose=1)
+early_stopping = EarlyStopping(monitor=&#39;val_loss&#39;, waiting=5, restore_best_weights=True, verbose=1)
+
+history = model.fit(
+train_generator,
+steps_per_epoch=len(train_generator),
+epochs=30,
+validation_data=validation_generator,
+validation_steps=len(validation_generator),
+callbacks=[early_stopping, lr_scheduler])
+
+# 在测试数据上评估模型
+test_loss, test_acc = model.evaluate(validation_generator)
+print(f&quot;测试准确率：{test_acc*100}%&quot;)
+
+请有人帮我确定模型实现是否正确。我是这个领域的新手。我尝试了很多次，但无法解决这个问题。但在一次迭代中，它给出了 91.3% 的准确率。我正在根据图像对适合公交车和不适合公交车进行分类。训练图像为 482 张，验证图像为 46 张]]></description>
+      <guid>https://stackoverflow.com/questions/79326823/validation-loss-increasing-and-accuracy-is-stuck</guid>
+      <pubDate>Fri, 03 Jan 2025 14:46:02 GMT</pubDate>
     </item>
     <item>
-      <title>训练最小 U-Net 时的方法错误</title>
-      <link>https://stackoverflow.com/questions/79316648/methoderror-in-training-minimal-u-net</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79316648/methoderror-in-training-minimal-u-net</guid>
-      <pubDate>Mon, 30 Dec 2024 01:52:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>对随机森林进行修改，每次分割时都会评估某些特征</title>
+      <title>对随机森林进行修改，使其在每次分割时始终评估某些特征</title>
       <link>https://stackoverflow.com/questions/79290974/modification-of-random-forest-to-always-evaluate-some-features-at-every-split</link>
       <description><![CDATA[我正在尝试更改随机森林分类器的功能。虽然通常每次分割都会随机选择特征，但我希望每次分割时都评估一个特定特征。我知道这会影响性能，但我想尝试一下这在非常具体的用例中是否是个好主意。因此，调整的结果应为：用于分割的特征是随机选择的（像往常一样），但始终会考虑一个特定特征（例如索引 15）（不一定使用）。
 我不知道有哪些软件包允许开箱即用。有没有一个，或者也许有一个简单的解决方法来实现相同的效果？]]></description>
@@ -305,6 +393,25 @@ binary_crossentropy
 我不想使用 TensorFlow 或类似的工具，我正在学习主要概念并使用纯 Python。]]></description>
       <guid>https://stackoverflow.com/questions/50313152/back-propagation-in-convolutional-neural-networks-and-how-to-update-filters</guid>
       <pubDate>Sun, 13 May 2018 05:49:41 GMT</pubDate>
+    </item>
+    <item>
+      <title>CNN 中的反向传播（通过卷积层）和梯度</title>
+      <link>https://stackoverflow.com/questions/42588047/backpropagation-through-convolutional-layer-and-gradients-in-cnn</link>
+      <description><![CDATA[我正在学习使用卷积神经网络，并继续为这些神经网络编写自己的框架。
+我被困在必须通过网络反向传播误差（增量）并计算梯度的部分。我知道 CNN 中的过滤器是 3D 的，所以我们有一些过滤器的宽度、高度和深度。
+前馈很好。让我们看一下前馈步骤中某些层的输出计算公式：
+
+为了进行卷积，l 层中过滤器的深度应与前一层 l-1 的输出 z 的输出通道数（深度）相同。因此，在这里，在这个公式中，我们将前一层的输出与当前层的权重进行卷积，这是有效的，因为这两个中的第三个坐标（深度）是相等的。现在，让我们检查一下误差反向传播的公式：
+
+在这个公式中，我们有来自 l+1 层的 delta 和权重数组 w 的卷积。现在这就是让我困惑的地方，因为一般来说它们的第三个坐标（深度）并不总是相等的。考虑一下 VGGNet 架构，让我们看一下过滤器数量变化的三个连续层：
+...
+CONV3-128：[112x112x128] 内存：112*112*128=1.6M 权重：(3*3*128)*128 = 147,456
+POOL2：[56x56x128] 内存：56*56*128=400K 权重：0
+CONV3-256：[56x56x256] 内存：56*56*256=800K 权重：(3*3*128)*256 = 294,912
+...
+在过滤器数量从128 到 256（在 CONV3-256 层中），它具有上述激活（和误差增量）和权重的维度。但是，由于过滤器的深度（在本例中为 128）与其增量的第 3 维（在本例中为 256）不同，我该如何对这两个数组进行卷积？非常感谢任何能提供帮助的人。我觉得这很令人困惑，我在网上找不到太多这方面的帮助。它大多解释得不太清楚或被认为是“已知的”。]]></description>
+      <guid>https://stackoverflow.com/questions/42588047/backpropagation-through-convolutional-layer-and-gradients-in-cnn</guid>
+      <pubDate>Fri, 03 Mar 2017 20:38:26 GMT</pubDate>
     </item>
     </channel>
 </rss>
