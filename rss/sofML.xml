@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 07 Jan 2025 12:33:37 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 07 Jan 2025 15:59:54 GMT</lastBuildDate>
     <item>
       <title>对呼叫中心呼叫的原始音频文件（而非记录）进行情感分析[关闭]</title>
       <link>https://stackoverflow.com/questions/79335686/performing-sentiment-analysis-on-raw-audio-files-not-transcripts-for-call-cent</link>
@@ -37,174 +37,6 @@
 如果是这样，为什么不一开始就用非线性函数来拟合数据，这样会更直接呢？]]></description>
       <guid>https://stackoverflow.com/questions/79334736/in-a-neural-network-why-not-use-a-nonlinear-function-to-fit-the-data-from-the-b</guid>
       <pubDate>Tue, 07 Jan 2025 01:43:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何改进我的线性回归模型？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79333949/how-to-improve-my-linear-regression-model</link>
-      <description><![CDATA[今天终于完成了线性回归的 Scratch 实现
-filepath = f&quot;{path}/Food_Delivery_Times.csv&quot;
-df = pd.read_csv(filepath)
-df.head()
-
-print(df.columns)
-df.isnull().sum()
-
-df.dropna(inplace = True , thresh=4)
-df.drop_duplicates(inplace= True)
-df[&#39;Courier_Experience_yrs&#39;] = df[&#39;Courier_Experience_yrs&#39;].interpolate()
-columns_to_fill = [&#39;Weather&#39;, &#39;Traffic_Level&#39;, &#39;Time_of_Day&#39;]
-for col in columns_to_fill:
-mode_value = df[col].mode()[0]
-df[col]= df[col].fillna(mode_value)
-df.info()
-
-print(df[&#39;Weather&#39;].unique())
-print(df[&#39;Traffic_Level&#39;].unique())
-print(df[&#39;Time_of_Day&#39;].unique())
-print(df[&#39;Vehicle_Type&#39;].unique())
-
-def onehot(df,column):
-values = df[column].unique()
-for val in values:
-df[val] = (df[column] == val).astype(int)
-return df
-
-df = onehot(df,&#39;Weather&#39;)
-df = onehot(df,&#39;Vehicle_Type&#39;)
-df = onehot(df,&#39;Time_of_Day&#39;)
-traffic_mapping = {&#39;低&#39;:0,&#39;中&#39;:1,&#39;高&#39;:2}
-df[&#39;Traffic_encoded&#39;] = df[&#39;Traffic_Level&#39;].map(traffic_mapping)
-df
-
-categorical_col = [&#39;天气&#39;, &#39;Traffic_Level&#39;, &#39;时间&#39;,&#39;车辆类型&#39;]
-col_new_df = [col for col in df.columns if col not in categorical_col ]
-col_new_df
-
-new_df = df[col_new_df]
-new_df.info()
-
-# 特征缩放
-for col in new_df.columns:
-if col not in [&#39;订单ID&#39;,&#39;交货时间分钟&#39;]:
-new_df[col] = new_df[col].astype(&#39;float64&#39;)
-mean = new_df[col].mean()
-std = new_df[col].std()
-new_df.loc[:,col] = (new_df[col]-mean)/std #转换为浮点数，因为在缩放浮点数值后将其分配给 int 数据类型，这会引发警告
-
-new_df.describe()
-
-train_df = new_df.sample(frac = 0.8,random_state =200)
-test_df = new_df.drop(train_df.index)
-
-train_df.reset_index(inplace=True)
-test_df.reset_index(inplace=True)
-
-train_df.drop(columns = [&#39;index&#39;],inplace=True)
-test_df.drop(columns = [&#39;index&#39;],inplace=True)
-
-columns_needed =列表（new_df.columns）
-columns_needed.remove（&#39;订单 ID&#39;）
-columns_needed.remove（&#39;送货时间分钟&#39;）
-X = train_df[columns_needed].to_numpy()
-Y = train_df[&#39;送货时间分钟&#39;].to_numpy()
-Y_mean = train_df[&#39;送货时间分钟&#39;].mean()
-Y_std = train_df[&#39;送货时间分钟&#39;].std()
-Y = (Y-Y_mean)/Y_std
-
-m = len(X)
-np.random.seed(42)
-W = np.random.randn(len(X[0]))
-b = 0
-alpha = 0.5
-Lambda = 0.5
-迭代 = 0
-dW = np.zeros(len(X[0]))
-当迭代 &lt; 100000：
-f = np.dot(X,W) + b
-损失 = (np.sum((f - Y)**2) + Lambda*np.sum(W*W))/(2*m)
-dW = (np.dot(X.T,(f-Y)) + Lambda*W)/m
-db = np.sum(f-Y)/m
-W -= alpha*dW
-b -= alpha*db
-迭代 += 1
-如果迭代 % 10000 == 0：
-打印（迭代，“，“，“，损失）
-如果（损失 &lt; 10**(-3)）：
-中断
-
-打印（“完成”）
-
-#测试
-sum = 0
-sum2 =0
-ymean = test_df[&#39;Delivery_Time_min&#39;].mean()
-Y_original = test_df[&#39;Delivery_Time_min&#39;].to_numpy()
-X_test = test_df[columns_needed].to_numpy()
-Y_predicted = np.dot(X_test,W) + b
-Y_predicted_ori = Y_predicted*Y_std + Y_mean
-print(&quot;原始 ---- 预测 ---- 错误&quot;)
-for i in range(len(Y_original)):
-print(Y_original[i],&quot;---&quot;,Y_predicted_ori[i],&quot;---&quot;,Y_original[i]-Y_predicted_ori[i])
-sum += (Y_original[i]-Y_predicted_ori[i])**2
-sum2 += (Y_original[i] - ymean)**2
-
-rscore = 1 - (sum/sum2)
-msme = sum/len(Y_original)
-print(rscore)
-print(msme)
-
-以上是它的实现
-
-数据集 - 食品配送时间预测（Kaggle）
-R2_score 为 0.754
-MSME 为 133.17
-
-那么它对初学者来说好吗？
-可以做些什么来改进它？]]></description>
-      <guid>https://stackoverflow.com/questions/79333949/how-to-improve-my-linear-regression-model</guid>
-      <pubDate>Mon, 06 Jan 2025 18:12:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Rust 中的 Burn 张量中使用 f64</title>
-      <link>https://stackoverflow.com/questions/79333072/using-f64-in-burn-tensor-in-rust</link>
-      <description><![CDATA[我是 Rust 新手，我正在研究使用 Burn 移植一些 Python/Torch 代码，用于新的统计参数方法。
-第一步：我想生成一个 (10, 1) 张量，其中包含从具有已知参数的柯西分布生成的随机值。Burn 中的分布非常有限，因此我使用 statrs。通过使用 statrs，我可以获得一个 Vec&lt;f64&gt;，然后我可以将其包装到 Burn 中的 TensorData 中，从而生成一个 Tensor。
-我添加了一些类型签名，但 Burn 有 Float 而不是特定的 f64，我对此有点困惑。事实上，只是为了调试目的，我想从 Burn 张量中提取数据作为 Vec&lt;f64&gt; 来查看它（我应该从 vec: Vec&lt;f64&gt; 中看到相同的值）但我得到了运行时类型不兼容。
-使用 rand::prelude::Distribution;
-使用 statrs::distribution::Cauchy;
-使用 rand_chacha::ChaCha8Rng;
-使用 rand_core::SeedableRng;
-使用 burn::tensor::{Tensor, TensorData, Float};
-使用 burn::backend::Wgpu;
-
-类型 Backend = Wgpu;
-
-fn main() {
-// 一些全局引用
-let device = Default::default();
-let mut rng: ChaCha8Rng = ChaCha8Rng::seed_from_u64(2);
-
-// 使用 statrs 创建随机 vec，存储在 Vec&lt;f64&gt; 中
-let dist: Cauchy = Cauchy::new(5.0, 2.0).unwrap();
-let vec: Vec&lt;f64&gt; = dist.sample_iter(&amp;mut rng).take(10).collect();
-
-// 将其包装到 Burn 张量中
-let td: TensorData = TensorData::new(vec, [10, 1]);
-let tensor: Tensor&lt;Backend, 2, Float&gt; = Tensor::&lt;Backend, 2, Float&gt;::from_data(td, &amp;device);
-
-print!(&quot;{:?}\n&quot;, tensor.to_data().to_vec::&lt;f64&gt;().unwrap());
-}
-
-
-在上面运行时，我得到
-thread &#39;main&#39; panicked at src/main.rs:23:55:
-called `Result::unwrap()` on an `Err` value: TypeMismatch(&quot;Invalid target element type 
-(expected F32, got F64)&quot;)
-
-使用 to_vec::&lt;f32&gt; 有效，但我希望 Burn 张量具有 f64 值（torch 有这个），因为错误似乎意味着我在某个时候丢失了精度 - 不太好。
-是否可以将 f64 存储在 Burn 张量中？]]></description>
-      <guid>https://stackoverflow.com/questions/79333072/using-f64-in-burn-tensor-in-rust</guid>
-      <pubDate>Mon, 06 Jan 2025 12:43:18 GMT</pubDate>
     </item>
     <item>
       <title>有没有办法将手势识别集成到 .NET MAUI 中？[关闭]</title>
@@ -276,7 +108,7 @@ plt.show()
       <pubDate>Fri, 03 Jan 2025 20:45:09 GMT</pubDate>
     </item>
     <item>
-      <title>对随机森林进行修改，使其在每次分割时始终评估某些特征</title>
+      <title>对随机森林进行修改，每次分割时都会评估某些特征</title>
       <link>https://stackoverflow.com/questions/79290974/modification-of-random-forest-to-always-evaluate-some-features-at-every-split</link>
       <description><![CDATA[我正在尝试更改随机森林分类器的功能。虽然通常每次分割都会随机选择特征，但我希望每次分割时都评估一个特定特征。我知道这会影响性能，但我想尝试一下这在非常具体的用例中是否是个好主意。因此，调整的结果应为：用于分割的特征是随机选择的（像往常一样），但始终会考虑一个特定特征（例如索引 15）（不一定使用）。
 我不知道有哪些软件包允许开箱即用。有没有一个，或者也许有一个简单的解决方法来实现相同的效果？]]></description>
@@ -384,9 +216,110 @@ tf.keras.backend.clear_session()
 gc.collect()
 print(tf.config.experimental.get_memory_info(&#39;GPU:0&#39;))
 
-如何才能在不增加内存使用量的情况下有效地执行此循环？]]></description>
+如何才能有效地执行此循环而不增加内存使用量？]]></description>
       <guid>https://stackoverflow.com/questions/79283083/why-does-my-gpu-memory-keep-increasing-when-i-sweep-over-model-parameters</guid>
       <pubDate>Sun, 15 Dec 2024 19:58:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何清除 doctr 模型使用的 gpu 内存</title>
+      <link>https://stackoverflow.com/questions/78768994/how-to-clear-gpu-memory-used-by-doctr-model</link>
+      <description><![CDATA[我正在使用 doctr 进行 ocr 操作。doctr 模型在 gpu 中运行，因此在我完成 ocr 工作后，它仍然加载在 gpu 内存中。
+我正在尝试使用
+with torch.no_grad(): torch.cuda.empty_cache()
+清除 gpu 内存，但没有任何效果。
+有没有其他方法可以在不使用 PID 终止进程的情况下清除 gpu 内存？
+我想使用 doctr 对图像执行 ocr]]></description>
+      <guid>https://stackoverflow.com/questions/78768994/how-to-clear-gpu-memory-used-by-doctr-model</guid>
+      <pubDate>Fri, 19 Jul 2024 10:59:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 docker 中运行 doctr ml 模型永远挂起</title>
+      <link>https://stackoverflow.com/questions/77552150/running-doctr-ml-model-in-docker-hangs-forever</link>
+      <description><![CDATA[我有一个 fastapi 应用程序，它在代码中加载 doctr 模型，它只需要一个图像路径并将其转换为文本
+这是代码
+从 doctr.io 导入 DocumentFile
+从 doctr.models 导入 o​​cr_predictor
+__version__ = &quot;0.1.1&quot;
+model = ocr_predictor(pretrained=True)
+
+def process_image(image_path):
+document = DocumentFile.from_images(image_path)
+result = model(document)
+json_response = result.export()
+return json_response
+
+我只想通过 API 公开模型。
+main.py 文件，其中设置了我的 api 代码
+
+
+from app.model.model import __version__ as model_version
+from app.model.model import process_image
+from fastapi import FastAPI, HTTPException, UploadFile
+
+app = FastAPI()
+
+@app.get(&quot;/&quot;)
+def home():
+return {&quot;health_check&quot;: &quot;OK&quot;, &quot;model_version&quot;: &#39;model_version&#39;}
+
+当我使用此代码运行 main.py 时代码
+uvicorn app.main:app --reload
+一切正常
+但当我尝试将其 dockerize 时，它​​就永远挂起了，这是我的 Dockerfile
+来自 tiangolo/uvicorn-gunicorn-fastapi:python3.9
+
+运行 apt-get update
+
+运行 apt install -y libgl1-mesa-glx
+
+复制 ./requirements.txt /app/requirements.txt
+
+运行 pip install --no-cache-dir --upgrade -r /app/requirements.txt
+
+复制 ./app /app/app
+
+注意：我有一台 m1 mac
+我尝试了一切方法使其正常工作，包括将导入移动到函数内部
+__version__ = &quot;0.1.1&quot;
+
+def process_image(image_path):
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
+model = ocr_predictor(pretrained=True)
+document = DocumentFile.from_images(image_path)
+result = model(document)
+json_response = result.export()
+return json_response
+
+但是，当 api 到达导入时，什么都不起作用，它只是永远挂起，而且只有在使用 docker 时才会出现这种情况]]></description>
+      <guid>https://stackoverflow.com/questions/77552150/running-doctr-ml-model-in-docker-hangs-forever</guid>
+      <pubDate>Sun, 26 Nov 2023 14:46:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在图像的特定区域运行 mindee doctr？</title>
+      <link>https://stackoverflow.com/questions/75916342/how-to-run-mindee-doctr-on-specific-area-of-image</link>
+      <description><![CDATA[我使用下面的代码通过 mindee/doctr 包从图像中提取文本。
+from doctr.models import  ocr_predictor
+from doctr.io import DocumentFile
+
+import json
+model = ocr_predictor( reco_arch=&#39;crnn_vgg16_bn&#39;, pretrained=True,export_as_straight_boxes=True)
+image = DocumentFile.from_images(&quot;docs/temp.jpg&quot;)
+result = model(image)
+result_json = result.export()
+json_object =  json.dumps(result_json, indent=4)
+
+with open(&quot;temp.json&quot;, &quot;w&quot;) as outfile:
+   outfile.write(json_object)
+result.show(image)
+
+通过使用 mindee/doctr，我从 temp.json 文件中的图像中获取了整个文本。
+OCR 后的输出：
+
+我想从图像中获取特定区域的文本。
+有什么好方法可以实现这一点？]]></description>
+      <guid>https://stackoverflow.com/questions/75916342/how-to-run-mindee-doctr-on-specific-area-of-image</guid>
+      <pubDate>Mon, 03 Apr 2023 05:47:13 GMT</pubDate>
     </item>
     <item>
       <title>批量数据在线方差更新的有效算法</title>
@@ -456,21 +389,6 @@ build-backend = &quot;poetry.core.masonry.api&quot;
 这个项目设计对你来说合理吗？]]></description>
       <guid>https://stackoverflow.com/questions/70851048/does-it-make-sense-to-use-conda-poetry</guid>
       <pubDate>Tue, 25 Jan 2022 15:09:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>我们可以在同一层使用多个损失函数吗？</title>
-      <link>https://stackoverflow.com/questions/62861773/can-we-use-multiple-loss-functions-in-same-layer</link>
-      <description><![CDATA[我们可以在这个架构中使用多个损失函数吗：
-我有两种不同类型的损失函数，并希望在最后一层使用它 [输出]
-损失函数：
-
-binary_crossentropy
-自定义损失函数
-
-我们可以这样做吗？
-]]></description>
-      <guid>https://stackoverflow.com/questions/62861773/can-we-use-multiple-loss-functions-in-same-layer</guid>
-      <pubDate>Sun, 12 Jul 2020 13:37:51 GMT</pubDate>
     </item>
     <item>
       <title>ValueError：Tensor 转换请求 dtype 为 float64，而 dtype 为 float32</title>
