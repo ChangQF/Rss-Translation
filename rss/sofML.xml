@@ -4,7 +4,85 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 07 Jan 2025 21:15:40 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 08 Jan 2025 01:16:29 GMT</lastBuildDate>
+    <item>
+      <title>在网格搜索中使用 sklearn 特征选择器来评估所有特征的有用性的最佳方法是什么？</title>
+      <link>https://stackoverflow.com/questions/79337434/what-the-best-way-to-use-a-sklearn-feature-selector-in-a-grid-search-to-evaluat</link>
+      <description><![CDATA[我正在训练一个 sklearn 分类器，并在管道中插入一个特征选择步骤。通过网格搜索，我想确定允许我最大化性能的特征数量。不过，我想在网格搜索中探索没有特征选择，只有&quot;passthrough&quot; 的可能性步骤是最大化性能的最佳选择。
+这是一个可重现的示例：
+import seaborn as sns
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import SequentialFeatureSelector
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+
+# 加载泰坦尼克号数据集
+titanic = sns.load_dataset(&#39;titanic&#39;)
+
+# 选择特征和目标
+features = [&#39;age&#39;, &#39;fare&#39;, &#39;sex&#39;]
+X = titanic[features]
+y = titanic[&#39;survived&#39;]
+
+# 数字预处理管道和分类特征
+numeric_features = [&#39;age&#39;, &#39;fare&#39;]
+numeric_transformer = Pipeline(steps=[
+(&#39;imputer&#39;, SimpleImputer(strategy=&#39;constant&#39;)),
+(&#39;scaler&#39;, StandardScaler())
+])
+
+categorical_features = [&#39;sex&#39;]
+categorical_transformer = Pipeline(steps=[
+(&#39;imputer&#39;, SimpleImputer(strategy=&#39;constant&#39;)),
+(&#39;onehot&#39;, OneHotEncoder(drop=&#39;first&#39;))
+])
+
+# 合并预处理步骤
+preprocessor = ColumnTransformer(transformers=[
+(&#39;num&#39;, numeric_transformer, numeric_features),
+(&#39;cat&#39;, categorical_transformer, categorical_features)
+])
+
+# 初始化分类器和特征选择器
+clf = LogisticRegression(max_iter=1000,solver=&#39;liblinear&#39;)
+sfs = SequentialFeatureSelector(clf, direction=&#39;forward&#39;)
+
+# 创建一个包含预处理、特征选择和分类的管道
+pipeline = Pipeline(steps=[
+(&#39;preprocessor&#39;, preprocessor),
+(&#39;feature_selection&#39;, sfs),
+(&#39;classifier&#39;, clf)
+])
+
+# 定义要搜索的参数网格
+param_grid = {
+&#39;feature_selection__n_features_to_select&#39;: [2],
+&#39;classifier__C&#39;: [0.1, 1.0, 10.0], # 正则化强度
+}
+
+# 创建并运行网格搜索
+grid_search = GridSearchCV(pipeline, param_grid, cv=5)
+grid_search.fit(X, y)
+
+# 输出最佳参数和分数
+print(&quot;找到最佳参数：&quot;, grid_search.best_params_)
+print(&quot;最佳交叉验证分数：&quot;, grid_search.best_score_)
+
+X 此处有三个特征（即使在 预处理器 步骤之后），但上面的网格搜索代码不允许探索使用所有 3 个特征的模型，因为设置
+feature_selection__n_features_to_select: [2,3]
+
+将给出 ValueError: n_features_to_select 必须是 &lt; n_features。
+这里的障碍是 SequentialFeatureSelector 不将所有特征的选择（又名直通选择器）视为有效的特征选择。
+我想在探索的模型中的 pipeline 中运行考虑设置
+(&#39;feature_selection&#39;, &#39;passthrough&#39;)
+
+的网格搜索。有没有一种惯用的/好的方法可以做到这一点？]]></description>
+      <guid>https://stackoverflow.com/questions/79337434/what-the-best-way-to-use-a-sklearn-feature-selector-in-a-grid-search-to-evaluat</guid>
+      <pubDate>Tue, 07 Jan 2025 21:39:17 GMT</pubDate>
+    </item>
     <item>
       <title>AdaBoostClassifier：test_size=0.25 的指标完美，但其他值的样本误差不一致</title>
       <link>https://stackoverflow.com/questions/79337075/adaboostclassifier-perfect-metrics-with-test-size-0-25-but-inconsistent-sample</link>
@@ -111,14 +189,6 @@ ValueError：发现输入变量的样本数不一致
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79331211/correct-loss-function-for-bboxes-in-a-detector-model</guid>
       <pubDate>Sun, 05 Jan 2025 17:31:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>对随机森林进行修改，每次分割时都会评估某些特征</title>
-      <link>https://stackoverflow.com/questions/79290974/modification-of-random-forest-to-always-evaluate-some-features-at-every-split</link>
-      <description><![CDATA[我正在尝试更改随机森林分类器的功能。虽然通常每次分割都会随机选择特征，但我希望每次分割时都评估一个特定特征。我知道这会影响性能，但我想尝试一下这在非常具体的用例中是否是个好主意。因此，调整的结果应为：用于分割的特征是随机选择的（像往常一样），但始终会考虑一个特定特征（例如索引 15）（不一定使用）。
-我不知道有哪些软件包允许开箱即用。有没有一个，或者也许有一个简单的解决方法来实现相同的效果？]]></description>
-      <guid>https://stackoverflow.com/questions/79290974/modification-of-random-forest-to-always-evaluate-some-features-at-every-split</guid>
-      <pubDate>Wed, 18 Dec 2024 11:48:27 GMT</pubDate>
     </item>
     <item>
       <title>为什么当我扫描模型参数时，我的 GPU 内存不断增加？</title>
@@ -236,6 +306,20 @@ with torch.no_grad(): torch.cuda.empty_cache()
 我想使用 doctr 对图像执行 ocr]]></description>
       <guid>https://stackoverflow.com/questions/78768994/how-to-clear-gpu-memory-used-by-doctr-model</guid>
       <pubDate>Fri, 19 Jul 2024 10:59:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>安装 pycoral 会导致“未满足的依赖项”错误，尽管依赖项已得到满足</title>
+      <link>https://stackoverflow.com/questions/78593719/installing-pycoral-results-in-unmet-dependencies-error-despite-dependencies-be</link>
+      <description><![CDATA[我在 Chromebook 上通过 sudo apt-get install python-pycoral 安装 pycoral 时出现以下错误
+以下软件包具有未满足的依赖项：
+python3-pycoral：依赖项：python3-tflite-runtime（= 2.5.0.post1），但不会安装
+依赖项：python3（&lt; 3.10），但要安装 3.11.2-1+b1
+E：无法更正问题，您持有损坏的软件包。
+
+我确认我的设置符合列出的要求，但 pycoral 安装程序似乎忽略了 tflite（出现在 pip list 中）以及当前的 python 版本。
+如果您有这方面的经验，我将不胜感激任何解决此问题的帮助。从“未满足的依赖项”错误的怪异性来看，我感觉 tflite 运行时和 python 版本之外的某些东西存在问题]]></description>
+      <guid>https://stackoverflow.com/questions/78593719/installing-pycoral-results-in-unmet-dependencies-error-despite-dependencies-be</guid>
+      <pubDate>Fri, 07 Jun 2024 19:28:31 GMT</pubDate>
     </item>
     <item>
       <title>在 docker 中运行 doctr ml 模型永远挂起</title>
@@ -429,105 +513,6 @@ validationSplit: 0.2,
 我的模型有可能“理解”存在周期性吗？]]></description>
       <guid>https://stackoverflow.com/questions/60620596/enhance-a-machin-learning-model-for-periodic-data</guid>
       <pubDate>Tue, 10 Mar 2020 15:17:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：Tensor 转换请求 dtype 为 float64，而 dtype 为 float32</title>
-      <link>https://stackoverflow.com/questions/45111136/valueerror-tensor-conversion-requested-dtype-float64-for-tensor-with-dtype-floa</link>
-      <description><![CDATA[我有一个 NN，它有两个相同的 CNN（类似于 Siamese 网络），然后合并输出，并打算在合并的输出上应用自定义损失函数，如下所示：
- ----------------- -----------------
-| input_a | | input_b |
------------------ -----------------
-| base_network | | base_network |
-------------------------------------------------------
-|processed_a_b |
-------------------------------------------------------
-
-在我的自定义损失函数中，我需要将 y 垂直分成两部分，然后在每部分上应用分类交叉熵损失。但是，我不断从损失函数中获取 dtype 错误，例如：
-ValueError Traceback（最近一次调用最后一次）&lt;ipython-input-12-b01f2c4c71e3&gt; in &lt;module&gt;()
-----&gt; 1 model.compile(loss=categorical_crossentropy_loss, optimizer=RMSprop())
-
-/usr/local/lib/python3.5/dist-packages/keras/engine/training.py in compile(self, optimizer, loss, metrics, loss_weights, sample_weight_mode, **kwargs)
-909 loss_weight = loss_weights_list[i]
-910 output_loss = weighted_loss(y_true, y_pred,
---&gt; 911 sample_weight, mask)
-912 if len(self.outputs) &gt; 1:
-913 self.metrics_tensors.append(output_loss)
-
-/usr/local/lib/python3.5/dist-packages/keras/engine/training.py in weighted(y_true, y_pred, weights, mask)
-451 # 应用样本权重
-452 如果权重不为 None:
---&gt; 453 score_array *= weights
-454 score_array /= K.mean(K.cast(K.not_equal(weights, 0), K.floatx()))
-455 返回 K.mean(score_array)
-
-/usr/local/lib/python3.5/dist-packages/tensorflow/python/ops/math_ops.py in binary_op_wrapper(x, y)
-827 if not isinstance(y, sparse_tensor.SparseTensor):
-828 try:
---&gt; 829 y = ops.convert_to_tensor(y, dtype=x.dtype.base_dtype, name=&quot;y&quot;)
-830 except TypeError:
-831 # 如果 RHS 不是张量，则可能是张量感知对象
-
-/usr/local/lib/python3.5/dist-packages/tensorflow/python/framework/ops.py in convert_to_tensor(value, dtype, name, preferred_dtype)
-674 name=name,
-675 preferred_dtype=preferred_dtype,
--&gt; 676 as_ref=False)
-677 
-678 
-
-/usr/local/lib/python3.5/dist-packages/tensorflow/python/framework/ops.py 在 internal_convert_to_tensor(value, dtype, name, as_ref, preferred_dtype)
-739 
-740 如果 ret 为 None:
---&gt; 741 ret = conversion_func(value, dtype=dtype, name=name, as_ref=as_ref)
-742 
-743 如果 ret 未实现：
-
-/usr/local/lib/python3.5/dist-packages/tensorflow/python/framework/ops.py in _TensorTensorConversionFunction(t, dtype, name, as_ref)
-612 引发 ValueError(
-613 &quot;Tensor 转换请求 dtype %s 的 Tensor 具有 dtype %s：%r&quot;
---&gt; 614 % (dtype.name, t.dtype.name, str(t)))
-615 返回 t
-616 
-
-ValueError：Tensor 转换请求 dtype float64 的 Tensor 具有 dtype float32： &#39;Tensor(&quot;processed_a_b_sample_weights_1:0&quot;, shape=(?,), dtype=float32)&#39;
-
-以下是重现错误的 MWE：
-import tensorflow as tf
-from keras import backend as K
-from keras.layers import Input, Dense, merge, Dropout
-from keras.models import Model, Sequential
-from keras.optimizers import RMSprop
-import numpy as np
-
-# 定义输入
-input_dim = 10
-input_a = Input(shape=(input_dim,), name=&#39;input_a&#39;)
-input_b = Input(shape=(input_dim,), name=&#39;input_b&#39;)
-# 定义 base_network
-n_class = 4
-base_network = Sequential(name=&#39;base_network&#39;)
-base_network.add(Dense(8, input_shape=(input_dim,),activation=&#39;relu&#39;))
-base_network.add(Dropout(0.1))
-base_network.add(Dense(n_class,activation=&#39;relu&#39;))
-processed_a = base_network(input_a)
-processed_b = base_network(input_b)
-# 合并左右部分
-processed_a_b = merge([processed_a,processed_b],mode=&#39;concat&#39;,concat_axis=1,name=&#39;processed_a_b&#39;)
-# 创建模型
-model = Model(inputs=[input_a,input_b],outputs=processed_a_b)
-
-# 自定义损失函数
-def categorical_crossentropy_loss(y_true,y_pred):
-# 拆分（取消合并）y_true 和 y_pred分成两部分
-y_true_a, y_true_b = tf.split(value=y_true, num_or_size_splits=2, axis=1)
-y_pred_a, y_pred_b = tf.split(value=y_pred, num_or_size_splits=2, axis=1)
-loss = K.categorical_crossentropy(output=y_pred_a, target=y_true_a) + K.categorical_crossentropy(output=y_pred_b, target=y_true_b) 
-return K.mean(loss)
-
-# 编译模型
-model.compile(loss=categorical_crossentropy_loss, optimizer=RMSprop())
-]]></description>
-      <guid>https://stackoverflow.com/questions/45111136/valueerror-tensor-conversion-requested-dtype-float64-for-tensor-with-dtype-floa</guid>
-      <pubDate>Fri, 14 Jul 2017 20:28:09 GMT</pubDate>
     </item>
     </channel>
 </rss>
