@@ -4,7 +4,35 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>初学者 -> /r/mlquestions，AGI -> /r/singularity，职业建议 -> /r/cscareerquestions，数据集 -> r/datasets</description>
-    <lastBuildDate>Thu, 09 Jan 2025 06:23:21 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 09 Jan 2025 12:33:19 GMT</lastBuildDate>
+    <item>
+      <title>[P] 我使用 pydantic 构建了一个从可重复使用的蓝图构建张量的库</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1hxbldq/p_i_built_a_library_that_builds_tensors_from/</link>
+      <description><![CDATA[Cyantic 允许您在 pydantic 构建过程中从简单的蓝图构建复杂的对象，并内置类型安全和验证。  Cyantic Github Repo  定义带有验证的自定义、类型安全的蓝图（因为它们是 pydantic 模型）。 使用 @value:x.y.z 引用其他值。 使用 @import:x.y.z 导入对象。 使用 @env:VAR 从环境变量加载数据。 定义自定义 @hook 处理程序（参见测试）  示例 例如，向 pydantic 模型添加 data: Tensor 字段，然后调用 thing.validate_model({..., &quot;mean&quot;: 0.0, &quot;std&quot;: 0.1, ...}) 并接收构建的张量。 from cyantic import Blueprint, blueprint, CyanticModel, hook ... # 1. 创建并注册一些有用的参数化 #（或者很快从 PyPi 安装，即`rye add cyantic-torch`） @blueprint(Tensor) class NormalTensor(Blueprint[Tensor]): mean: float std: float size: tuple[int, ...] def build(self) -&gt; Tensor：return torch.normal（self.mean，self.std，size = self.size）#2. 使用`CyanticModel`基类编写 pydantic 模型 class MyModel（CyanticModel）：normal_tensor：Tensor uniform_tensor：Tensor#3. 从指定参数化的 YAML 文件进行验证some_yaml =“”common：size：[3, 5] normal_tensor：mean：0.0 std：0.1 size：@value：common.size“”#4. 接收构建的对象。my_model = MyModel.model_validate（yaml.safe_load（some_yaml））assert isinstance（my_model.normal_tensor，Tensor） 我为什么要这样做 我做理论神经科学研究，所以我必须实例化很多张量。我想要一种从 YAML（我如何指定模型）中执行此操作的方法，因此我构建了一种中间件，它使用中间 pydantic 模型作为在 pydantic 的构建过程中构建完整对象的蓝图。现在我可以传入参数（例如平均值和标准差），并在 pydantic 模型中获得完全构建的张量。 这现在是一个库，Cyantic - 以蓝晒摄影命名（即“蓝图”）。    提交人    /u/General_Example   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1hxbldq/p_i_built_a_library_that_builds_tensors_from/</guid>
+      <pubDate>Thu, 09 Jan 2025 12:21:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>[R] ObliqueTree: 高级决策树实现</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1hxa6u6/r_obliquetree_advanced_decision_tree/</link>
+      <description><![CDATA[]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1hxa6u6/r_obliquetree_advanced_decision_tree/</guid>
+      <pubDate>Thu, 09 Jan 2025 10:47:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>[R] 动物发声的动态时间扭曲</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1hx88ip/r_dynamic_time_warping_on_animal_vocalizations/</link>
+      <description><![CDATA[      希望在这里问这个问题没问题。我知道 DTW 不是 ML，但我想我可能会在这个子版块找到一些见解。我对时间序列分析和音频信号处理还是个新手，在 DTW 实现方面遇到了一些困难。在此先感谢您的帮助/见解。 我的问题：我正在研究大鼠超声波发声 (USV)。这些发声是从一个相当嘈杂的自然群体环境中录制的。我的数据由 USV 子集组成，我认为它们可能构成 3-4 个“新”的（以前未报告过的）USV 类别。我想使用 DTW 来评估我的呼叫分类方案的准确性：与不同类型的呼叫相比，相同类型的呼叫是否更相似（扭曲更少、DTW 成本更低）？ 我的方法概述：我获取原始波形并使用 stft 将它们转换为频域表示。我将幅度频谱图转换为 dB 缩放的频谱图，然后绘制频谱图。这是我遇到的第一个问题 - 我得到了一些嘈杂的频谱图。我的数据包含大量非平稳噪声，使得降噪变得困难。我尝试了不同的非平稳降噪算法（例如，noisereduce.py，每个通道能量归一化），但结果并不理想。将来我可能会尝试一些更多的自定义实现，但我有一个最后期限要满足，所以现在不可行。  我当前的 stft 参数是 nfft = 2048、hop_length = nfft // 8、window = &#39;hamming&#39;。从我目前的测试来看，这些参数可以生成最清晰的频谱图。  我也尝试过插入数据以使其具有相同的长度，但由于某种我尚未理解的原因，这不会导致任何扭曲 - 所有时间序列都完全对齐，即使显然不应该如此。但是，据我所知，DTW 可以处理不同长度的时间序列，因此无需将我的时间序列重新采样为相同的长度。 我使用 tslearn 库计算 DTW。我当前的 dtw 参数：metric = &#39;cosine&#39;、global_constraint=&quot;sakoe_chiba&quot;、sakoe_chiba_radius=15。我还没有实施进一步的约束。 这里有一些示例结果，第一个图中的扭曲似乎合理吗？ https://preview.redd.it/lwtl42laexbe1.png?width=695&amp;format=png&amp;auto=webp&amp;s=582d4fcd8d76ab16e6581d2b56a61118f17ddf31 然而在这个例子中，查询和比较频谱图的平坦区域被扭曲以“适应”一个另一个。 https://preview.redd.it/e3t3akoeexbe1.png?width=695&amp;format=png&amp;auto=webp&amp;s=3225798404078812d0c8ba864e4bb3cd249911a6 为什么这里的前边缘会出现扭曲？这些呼叫非常相似。可以通过边界条件来缓解吗？ https://preview.redd.it/adfbujqiexbe1.png?width=695&amp;format=png&amp;auto=webp&amp;s=cea88d69e0111df0f79144a72d136cd26d298832 这里的扭曲最小，但查询和比较频谱图的频率调制方向相反： https://preview.redd.it/ftk5yp2lexbe1.png?width=695&amp;format=png&amp;auto=webp&amp;s=36f6c92a72e4bd76ddd581ec65322b97802eb65f 我非常感谢任何帮助，如果这里不适合问这个问题，我很抱歉（在这种情况下请删除）。谢谢。    提交人    /u/hadal-   [链接] [评论] ]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1hx88ip/r_dynamic_time_warping_on_animal_vocalizations/</guid>
+      <pubDate>Thu, 09 Jan 2025 08:18:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>[D] 为什么攻读法学硕士学位这么糟糕？</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1hx6q8r/d_why_does_training_llms_suck_so_much/</link>
+      <description><![CDATA[我从事硬件加速工作，一直在尝试将我的注意力转移到 LLM/GenAI 加速上，但训练 LLM 实在是太糟糕了……即使是 100M 参数的训练，在 4 A6000 Adas 上也需要很长时间，虽然我没有花时间看这些，但当我意识到 LR 太高或其他一些小问题阻碍了收敛或一般因果语言理解时，不得不重新训练真是太令人沮丧了…… 我知道你做的越多，你就会做得越好，但作为一个 GRA，我有一个想实现的想法，我真的觉得训练即使是一个小型 LM 的开销也远远不值得你投入的时间和精力 这很糟糕，因为截止日期总是会到来，一旦你完成了预训练，你仍然需要进行微调，并可能进行某种异常值感知量化，甚至训练 LoRA 适配器以获得更高的准确性 我真的希望永远不要再进行预训练，但是需要一个符合您的特定大小限制的模型以适合（例如）您的 NPU 的暂存器 RAM，这意味着我总是陷入预训练 希望在未来，我可以让本科生为我进行预训练，但是就目前而言，有什么技巧可以使预训练 LLM 不那么像奴隶工作吗？谢谢！    提交人    /u/nini2352   [link] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1hx6q8r/d_why_does_training_llms_suck_so_much/</guid>
+      <pubDate>Thu, 09 Jan 2025 06:28:54 GMT</pubDate>
+    </item>
     <item>
       <title>[R] [P] WPMixer：用于长期时间序列预测的高效多分辨率混合</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1hx5166/r_p_wpmixer_efficient_multiresolution_mixing_for/</link>
@@ -18,13 +46,6 @@
       <description><![CDATA[我是一名二年级博士生。在收到低于接受门槛的评分后，我从 ICLR 撤回了我的第一篇论文，此后做了一些改进。现在，我需要决定提交哪个会议。这两个会议的接受率相同，我的工作领域与这两个会议都很吻合。我不确定哪一个更有机会成功。    提交人    /u/learnergirl_   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1hx4o3z/d_r_first_phd_paper_decision_ijcai_or_icml/</guid>
       <pubDate>Thu, 09 Jan 2025 04:24:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>[D] 内部法学硕士开发进展如何？</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1hwxgqj/d_how_is_developing_internal_llms_going/</link>
-      <description><![CDATA[你们很多人都有这个任务。我以前也有这个任务。我想创建这个线程来分享见解和挫折。希望共享的解决方案可以帮助同一条船上的人们。 请分享：  大致说明一下你正在做什么（“{use case} 的内部 LLM”） 你在获取所需训练数据时遇到的障碍 你对事情进展有多大信心/任何抱怨材料     提交人    /u/Classic_Eggplant8827   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1hwxgqj/d_how_is_developing_internal_llms_going/</guid>
-      <pubDate>Wed, 08 Jan 2025 22:52:22 GMT</pubDate>
     </item>
     <item>
       <title>[R][N] TabPFN v2：使用表格基础模型对小数据进行准确预测</title>
@@ -48,13 +69,6 @@
       <pubDate>Wed, 08 Jan 2025 17:14:09 GMT</pubDate>
     </item>
     <item>
-      <title>实时 TTS 模型如何工作？[讨论]</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1hwmmze/how_do_the_real_time_tts_models_work_discussion/</link>
-      <description><![CDATA[我想知道实时文本转语音程序使用什么模型，或者它只是一个非常快速的输入模型和输出模型组合在一起。     提交人    /u/codeblockzz   [link] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1hwmmze/how_do_the_real_time_tts_models_work_discussion/</guid>
-      <pubDate>Wed, 08 Jan 2025 15:23:28 GMT</pubDate>
-    </item>
-    <item>
       <title>[R][D] 哪些论文对于您的研究领域具有最重要的意义？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1hwkmwm/rd_what_are_the_most_important_papers_that/</link>
       <description><![CDATA[请提及您在研究机器学习的哪个领域（细分市场）工作？ 您为什么选择该特定领域？ 如果对机器学习和深度学习有基本了解的人想要参与您的领域，他们应该考虑阅读/实施哪些论文/博客/工具？    提交人    /u/HopeIsGold   [link] [评论]]]></description>
@@ -76,25 +90,11 @@
       <pubDate>Wed, 08 Jan 2025 09:01:22 GMT</pubDate>
     </item>
     <item>
-      <title>[D] 有人尝试过 predibase/lorax 吗？</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1hwdw40/d_anyone_tried_predibaselorax/</link>
-      <description><![CDATA[https://github.com/predibase/lorax Predibase/Lorax 确实是一个有趣的 repo。它解决了使用适配器的主要问题，即动态分配适配器。有人试过吗？    提交人    /u/YogurtclosetAway7913   [link] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1hwdw40/d_anyone_tried_predibaselorax/</guid>
-      <pubDate>Wed, 08 Jan 2025 06:56:02 GMT</pubDate>
-    </item>
-    <item>
       <title>[D] 机器学习工程师，你的工作中最烦人的部分是什么？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1hwbhuj/d_ml_engineers_whats_the_most_annoying_part_of/</link>
       <description><![CDATA[我只知道一个博士只是检查数据集，这听起来很可悲    提交人    /u/Classic_Eggplant8827   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1hwbhuj/d_ml_engineers_whats_the_most_annoying_part_of/</guid>
       <pubDate>Wed, 08 Jan 2025 04:33:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>[研发] 白盒变压器</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1hvy385/rd_white_box_transformers/</link>
-      <description><![CDATA[在此研究线上开启一个主题：https://ma-lab-berkeley.github.io/CRATE/ 据我了解，作者基本上将学习有效数据表示的过程定义为寻找多元高斯字典的问题，该字典以简约方式覆盖数据分布。特别是，在特征/高斯方面使用稀疏编码。 构建一个架构，该架构采用多个交替步骤“聚类”相似向量并分别正交化来自不同聚类的向量，最终得到类似于 Vision Transformer 的结构。类似 MultiHead Attention 的模块将向量聚类，使它们更接近局部主方向或流形，类似 MLP 的模块将这些向量沿着相互更正交的轴移动。从数学上讲，它们近似于明确定义的稀疏编码率，因此是白盒算法，但是我不能说数学比 Transformers 更直观。 事实上，最后一层的 CLS 注意力头在图像分类监督训练下具有可解释的偏好，如在 DINO（自我监督）或 SimPool 中。这与过程的解释直接相关，并为 DINO 的可解释性和动态性提供了解释。它也被称为 George Hinton 的视觉智能架构蓝图，即 GLOM Transformer。 我认为注意力的聚类效应在文献中在某种程度上没有得到充分重视，就像 Transformers 中 FFN 的作用没有得到充分研究一样。我想知道是否有第三种方法在数学上像 MLP 一样简单，像高斯特征词典一样直观。    提交人    /u/Sad-Razzmatazz-5188   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1hvy385/rd_white_box_transformers/</guid>
-      <pubDate>Tue, 07 Jan 2025 18:23:53 GMT</pubDate>
     </item>
     <item>
       <title>[D] 自我推销帖</title>
@@ -106,7 +106,7 @@
     <item>
       <title>[D] 每月谁在招聘以及谁想被招聘？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1hq5o1z/d_monthly_whos_hiring_and_who_wants_to_be_hired/</link>
-      <description><![CDATA[对于职位发布，请使用此模板  招聘：[地点]，薪资：[]，[远程 | 搬迁]，[全职 | 合同 | 兼职]和[简要概述，您在寻找什么]  对于那些正在找工作的人，请使用此模板  希望被雇用：[地点]，薪资期望：[]，[远程 | 搬迁]，[全职 | 合同 |兼职] 简历：[简历链接] 和 [简要概述，您在寻找什么]  ​ 请记住，这个社区面向有经验的人。    提交人    /u/AutoModerator   [link] [评论]]]></description>
+      <description><![CDATA[对于职位发布，请使用此模板  招聘：[地点]，薪资：[]，[远程 | 搬迁]，[全职 | 合同 | 兼职]和[简要概述，您在寻找什么]  对于那些正在找工作的人，请使用此模板  希望被雇用：[地点]，薪资期望：[]，[远程 | 搬迁]，[全职 | 合同 |兼职] 简历：[简历链接] 和 [简要概述，您在寻找什么]  ​ 请记住，这个社区面向有经验的人。    提交人    /u/AutoModerator   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1hq5o1z/d_monthly_whos_hiring_and_who_wants_to_be_hired/</guid>
       <pubDate>Tue, 31 Dec 2024 03:30:14 GMT</pubDate>
     </item>
