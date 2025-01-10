@@ -4,24 +4,125 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 10 Jan 2025 09:18:42 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 10 Jan 2025 12:33:04 GMT</lastBuildDate>
+    <item>
+      <title>1000- torchrl：使用 SyncDataCollector 和自定义 pytorch dqn</title>
+      <link>https://stackoverflow.com/questions/79345260/torchrl-using-syncdatacollector-with-a-custom-pytorch-dqn</link>
+      <description><![CDATA[我尝试将 torchrl 的 SyncDataCollector 与我自己在 torch 中实现的 DQN 一起使用。由于 DQN 使用 Conv2d 和线性层，我必须计算第一个线性层的输入的正确大小，即以下网络中的 size 参数
+class PixelDQN(nn.Module):
+def __init__(self, input_shape, n_actions) -&gt;无：
+super().__init__()
+self.conv = nn.Sequential(
+nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),
+nn.ReLU(),
+nn.Conv2d(32, 64, kernel_size=4, stride=2),
+nn.ReLU(),
+nn.Conv2d(64, 64, kernel_size=3, stride=1),
+nn.ReLU(),
+nn.Flatten(),
+)
+size = self.conv(torch.zeros(1, *input_shape)).size()[-1]
+self.fc_adv = nn.Sequential(
+NoisyLinear(size, 256),
+nn.ReLU(),
+NoisyLinear(256, n_actions),
+)
+self.fc_val = nn.Sequential(
+NoisyLinear(size, 256),
+nn.ReLU(),
+NoisyLinear(256, 1)
+)
+
+def forward(self, x: torch.Tensor):
+print(x.shape)
+conv = self.conv(x)
+print(conv.shape)
+adv = self.fc_adv(conv)
+val = self.fc_val(conv)
+outp = val + (adv - adv.mean(dim=1, keepdim=True))
+return outp
+
+负责这个。如您所见，我期望批量输入，因为我将使用重放缓冲区并从中抽样一批。
+我以以下方式包装该 DQN，然后使用 SyncDataCollector：
+n_obs = [4,84,84]
+n_act = 6
+
+agent = QValueActor(
+module=PixelDQN(n_obs, n_act), in_keys=[&quot;pixels&quot;], spec=env.action_spec
+)
+policy_explore = EGreedyModule(
+env.action_spec, eps_end=EPS_END, annealing_num_steps=ANNEALING_STEPS
+)
+agent_explore = TensorDictSequential(
+agent, policy_explore
+)
+
+collector = SyncDataCollector(
+env,
+agent_explore,
+frames_per_batch=FRAMES_PER_BATCH,
+init_random_frames=INIT_RND_STEPS,
+postproc=MultiStep(gamma=GAMMA, n_steps=N_STEPS)
+)
+
+但是，这失败了，因为 SyncDataCollector 在将 obs 提供给 DQN 之前没有对来自环境的 obs 进行批处理，因此 size 计算出错，并且线性层获得错误的输入维度。
+RuntimeError：mat1 和 mat2 形状无法相乘（64x49 和 3136x256）
+我已经尝试在 SyncDataCollector 中设置 buffer=True。我也尝试使用
+agent_explore = TensorDictSequential(
+UnsqueezeTransform(0, allow_positive_dim=True), agent, policy_explore
+)
+
+因为这是 ChatGPT 建议的，但似乎没有任何效果。
+我也在我的 env 创建中尝试了 UnsqueezeTransform，但这也没有用，我的 env 如下所示：
+def make_env(env_name: str):
+return TransformedEnv(
+GymEnv(env_name, from_pixels=True),
+Compose(
+RewardSum(),
+EndOfLifeTransform(),
+NoopResetEnv(noops=30),
+ToTensorImage(),
+Resize(84, 84),
+GrayScale(),
+FrameSkipTransform(frame_skip=4),
+CatFrames(N=4, dim=-3),
+)
+)
+
+我可以将 size 计算拉入 PixelDQN 的前向传递中，并检查输入张量的大小以调整计算，但这似乎是一件很奇怪的事情，因为这意味着我需要在每次前向传递时运行大小计算。]]></description>
+      <guid>https://stackoverflow.com/questions/79345260/torchrl-using-syncdatacollector-with-a-custom-pytorch-dqn</guid>
+      <pubDate>Fri, 10 Jan 2025 09:49:05 GMT</pubDate>
+    </item>
     <item>
       <title>在 ubuntu 22.04 中安装 x13as arima seat 时出错</title>
       <link>https://stackoverflow.com/questions/79345160/error-while-installing-x13as-arima-seat-in-ubuntu-22-04</link>
-      <description><![CDATA[我正在做时间序列项目，为了找到 p、d 和 q 值，我试图安装 x13as arima 座位，但我无法正确安装它，然后我使用“sudo apt install x13as”进行安装，然后我设置了一个路径，但它仍然给我一个错误路径设置不正确，我该怎么办？
+      <description><![CDATA[我正在做时间序列项目，为了找到 p、d 和 q 值，我试图安装 x13as arima 座位，但我无法正确安装它，然后我使用“sudo apt install x13as”进行安装。然后我设置了一个路径，但它仍然给我一个错误路径设置不正确，我该怎么办？
 sudo apt install x13as
 
-我试过从文档中手动下载，或者有任何其他东西可以让我找到 p、d 和 q 值，我试过 pmdarima，自动 arima pdq 顺序选择。]]></description>
+我试过从文档中手动下载，还是有其他我可以找到的东西？]]></description>
       <guid>https://stackoverflow.com/questions/79345160/error-while-installing-x13as-arima-seat-in-ubuntu-22-04</guid>
       <pubDate>Fri, 10 Jan 2025 09:13:45 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习中的批量大小和时期？</title>
+      <title>机器学习中的批次大小和时期？[关闭]</title>
       <link>https://stackoverflow.com/questions/79345103/batch-size-and-epochs-in-machine-learning</link>
       <description><![CDATA[我正在使用 TensorFlow 从股票图表中进行图像/模式识别，我创建了一个包含约 20,000 张图像的目录，其中包含价格大幅上涨或下跌之前的模式示例。我应该使用什么批次大小和多少个时期，以 80/20 的训练/验证比例进行分割？
 我还打算将目录大小增加到约 100,000 张图像，那么我应该使用什么？]]></description>
       <guid>https://stackoverflow.com/questions/79345103/batch-size-and-epochs-in-machine-learning</guid>
       <pubDate>Fri, 10 Jan 2025 08:55:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 Anthropic Vision API 获取精确的图标坐标</title>
+      <link>https://stackoverflow.com/questions/79345033/getting-accurate-icon-coordinates-using-anthropic-vision-api</link>
+      <description><![CDATA[我正在使用 Anthropic Vision API 从桌面图像中提取特定图标、文件夹或元素的坐标，但遇到了障碍。以下是我正在做的事情：
+我有一个桌面图像（原始尺寸：1920x1080），其中包含多个图标和文件夹。
+我正在要求 Vision 模型（通过 Sonnet 3.5 模型）查找特定图标（如“Chrome”）的坐标。
+根据 Anthropic Vision 文档，我按照指示将图像的大小调整为 1366x768，然后将其发送到 API。
+尽管遵循了指南，但 API 返回的坐标与原始图像中图标的实际位置不匹配。
+有趣的是，计算机使用模型在其环境中工作正常，但在这种情况下，我只想将图像发送到 Vision 模型并获取特定元素的精确坐标。
+如何解决这个问题？]]></description>
+      <guid>https://stackoverflow.com/questions/79345033/getting-accurate-icon-coordinates-using-anthropic-vision-api</guid>
+      <pubDate>Fri, 10 Jan 2025 08:28:24 GMT</pubDate>
     </item>
     <item>
       <title>使用“bitsandbytes”4 位量化需要最新版本的 bitsandbytes：“pip install -U bitsandbytes”</title>
@@ -97,7 +198,7 @@ print(f&quot;logloss best_iteration: {model[&#39;valid binary_logloss-mean&#39;]
       <pubDate>Fri, 10 Jan 2025 03:40:32 GMT</pubDate>
     </item>
     <item>
-      <title>LightGBM 使用高度右偏的数据</title>
+      <title>LightGBM 使用高度右偏数据[关闭]</title>
       <link>https://stackoverflow.com/questions/79344322/lightgbm-using-highly-right-skewed-data</link>
       <description><![CDATA[序言：我正在处理一个倾斜的数据集，在约 7000 个数据点中，只有约 2500 个是非零值，最有趣的数据点是最右边的异常值。
 我希望使用 LightGBM 根据多个特征预测此目标数据，但由于数据的倾斜性而遇到问题。我考虑过使用转换（例如 log、sqrt、box-cox），但它们并没有提高 ML 模型的性能。
@@ -124,18 +225,41 @@ upsampled_targets = pd.DataFrame({
 
 
 问题：
-虽然我很想使用这种方法，但我对使用此方法的最佳实践有疑问，但这些疑问并不明确在 imblearn 的文档中找到，例如：如何确定将数据划分为多少个 bin？如何确定要添加多少个合成样本？如何确保此方法不会导致过度拟合？最后，即使按照上述方式进行上采样，这个精炼数据集仍然无法捕获 LightGBM 在测试/训练中预测结果的第 99 个百分位数的异常值（使用 GridSearchCV 选择超参数），因此如果有人有进一步的建议尝试途径，我洗耳恭听。 
- 提前感谢大家的时间和见解！-V ]]></description>
+虽然我很想使用这种方法，但我对使用此方法的最佳实践有疑问，但这些疑问并不明确在 imblearn 的文档中找到，例如：
+
+如何确定将数据划分为多少个 bin？
+如何确定要添加多少个合成样本？
+如何确保此方法不会导致过度拟合？
+
+最后，即使进行了上述上采样，这个精炼数据集仍然无法捕获 LightGBM 在测试/训练中预测结果的第 99 个百分位异常值（使用 GridSearchCV 选择超参数），因此如果有人有进一步的尝试途径建议，我洗耳恭听。]]></description>
       <guid>https://stackoverflow.com/questions/79344322/lightgbm-using-highly-right-skewed-data</guid>
       <pubDate>Thu, 09 Jan 2025 23:51:44 GMT</pubDate>
     </item>
     <item>
       <title>CycleGAN 的鉴别器损失停留在 0.0</title>
       <link>https://stackoverflow.com/questions/79344264/discriminator-loss-for-cyclegan-stuck-at-0-0</link>
-      <description><![CDATA[我目前正在训练 BD-Cycle GAN，这是 Mol-Cycle GAN 的修改版本。我没有修改任何代码，但需要从 [Mol-Cycle GAN] (https://github.com/ardigen/mol-cycle-gan) 存储库下载 utils 文件夹和 environment.yml。使用默认参数运行 train.py 文件时，判别器 A 和 B 的损失都停留在 0.0，但生成器损失似乎正常。
-我不明白问题的原因是什么，因为我使用的是作者提供的模型官方 repo，没有修改任何代码或超参数，但得到了这个结果。判别器的损失在每个时期都保持在 0.0，破坏了整个训练过程。]]></description>
+      <description><![CDATA[我目前正在训练 BD-Cycle GAN，这是 Mol-Cycle GAN 的修改版本。我没有修改任何代码，但需要从 Mol-Cycle GAN 存储库下载 utils 文件夹和 environment.yml。当使用默认参数运行 train.py 文件时，鉴别器 A 和 B 的损失都停留在 0.0，但生成器损失似乎正常。
+我不知道问题的原因是什么，因为我使用的是作者提供的模型官方存储库，没有修改任何代码或超参数，但得到了这个结果。鉴别器的损失在每个时期都保持在 0.0，从而扰乱整个训练过程。]]></description>
       <guid>https://stackoverflow.com/questions/79344264/discriminator-loss-for-cyclegan-stuck-at-0-0</guid>
       <pubDate>Thu, 09 Jan 2025 23:15:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>阿曼车牌的 OCR 预处理 - 字母识别问题 [关闭]</title>
+      <link>https://stackoverflow.com/questions/79343645/ocr-preprocessing-for-oman-license-plates-issues-with-alphabet-recognition</link>
+      <description><![CDATA[我正在开发一个用于阿曼车牌的 OCR 系统，并努力提高字母识别的准确性。车牌上通常包含小而粗的字符，而我目前的预处理流程无法产生令人满意的结果。
+到目前为止，我所做的是：
+尝试过的 OCR 工具：
+尽管进行了预处理和配置（--oem 3、--psm 6），但 PaddleOCR 和 Tesseract 仍然难以识别字母。
+预处理步骤：
+尝试使用 Sauvola 和 Wolf-Jolion 二值化、缩放图像（1.5 倍）并应用膨胀来增强文本。
+问题：
+字母仍然难以识别。
+如何改进预处理以更好地对小而粗的字母进行 OCR 识别？
+是否有任何 OCR 模型或自定义训练方法更适合像阿曼这样设计复杂的车牌？
+样本车牌：
+]]></description>
+      <guid>https://stackoverflow.com/questions/79343645/ocr-preprocessing-for-oman-license-plates-issues-with-alphabet-recognition</guid>
+      <pubDate>Thu, 09 Jan 2025 18:15:26 GMT</pubDate>
     </item>
     <item>
       <title>使用什么样的规范化[关闭]</title>
@@ -173,91 +297,6 @@ yelp_feature_2
 yelp_features_1 被标准化为yelp_feature_2。无法弄清楚使用了什么规范化。看起来像是对数。]]></description>
       <guid>https://stackoverflow.com/questions/79343281/what-kind-of-normalization-is-used</guid>
       <pubDate>Thu, 09 Jan 2025 15:56:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>请帮我找到 KAN 模型的正确代码[关闭]</title>
-      <link>https://stackoverflow.com/questions/79342506/please-help-me-with-the-correct-code-for-the-kan-model</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79342506/please-help-me-with-the-correct-code-for-the-kan-model</guid>
-      <pubDate>Thu, 09 Jan 2025 11:59:08 GMT</pubDate>
-    </item>
-    <item>
-      <title>Azure AutoML 图像分类作业</title>
-      <link>https://stackoverflow.com/questions/79341200/azure-automl-image-classification-job</link>
-      <description><![CDATA[我在尝试为 Azure ML 中的数据集创建 MLTable YAML 文件时遇到问题。
-我的工作区中有一个默认数据存储，其中包含两个带有图像的文件夹（OK 和 NOK）。我的目标是读取所有图像并使用文件夹名称作为每幅图像的标签。
-以下是我到目前为止尝试过的方法：
-mltable_yaml = &quot;&quot;&quot;
-type: mltable
-paths:
-- file: ./OK 
-- file: ./NOK 
-transformations:
-- read_from_directory:
-image_column: image_url 
-folder_column: label 
-recursive: true 
-&quot;&quot;&quot;
-
-# 创建目录并保存 MLTable
-mltable_dir = &quot;image_data&quot;
-os.makedirs(mltable_dir, exist_ok=True)
-with open(os.path.join(mltable_dir, &quot;MLTable&quot;), &quot;w&quot;) as f:
-f.write(mltable_yaml)
-
-training_data = Input(
-type=&quot;mltable&quot;,
-path=mltable_dir
-)
-
-但是，当我运行实验时，我遇到了以下错误：
-MLTable 输入无效。UserErrorException：
-消息：从数据集获取数据时遇到用户错误。错误：UserErrorException：
-消息：MLTable yaml 架构无效：
-错误代码：ScriptExecution.Validation
-验证错误代码：无效
-验证目标：脚本
-本机错误：数据流脚本错误：InvalidScriptElement(&quot;read_from_directory&quot;)
-ScriptError(InvalidScriptElement(&quot;read_from_directory&quot;))
-=&gt; 脚本元素&quot;read_from_directory&quot;无效
-InvalidScriptElement(&quot;read_from_directory&quot;)
-错误消息：Yaml 脚本无效：InvalidScriptElement(&quot;read_from_directory&quot;)。| session_id=1a30b15a-7e85-498b-b735-2348bfe0625b
-InnerException None
-ErrorResponse 
-{
-&quot;error&quot;: {
-&quot;code&quot;: &quot;UserError&quot;,
-&quot;message&quot;: &quot;MLTable yaml 模式无效:\n错误代码：ScriptExecution.Validation\n验证错误代码：无效\n验证目标：脚本\n本机错误：数据流脚本错误：InvalidScriptElement(\&quot;read_from_directory\&quot;)\n\tScriptError(InvalidScriptElement(\&quot;read_from_directory\&quot;))\n=&gt;无效的脚本元素 \&quot;read_from_directory\&quot;\n\tInvalidScriptElement(\&quot;read_from_directory\&quot;)\n错误消息：Yaml 脚本无效：InvalidScriptElement(\&quot;read_from_directory\&quot;)。| session_id=1a30b15a-7e85-498b-b735-2348bfe0625b&quot;
-}
-}
-InnerException UserErrorException:
-消息：MLTable yaml 架构无效：
-错误代码：ScriptExecution.Validation
-验证错误代码：无效
-验证目标：脚本
-本机错误：数据流脚本错误：InvalidScriptElement(&quot;read_from_directory&quot;)
-ScriptError(InvalidScriptElement(&quot;read_from_directory&quot;))
-=&gt; 无效的脚本元素 &quot;read_from_directory&quot;
-InvalidScriptElement(&quot;read_from_directory&quot;)
-错误消息：Yaml 脚本无效：InvalidScriptElement(&quot;read_from_directory&quot;)。| session_id=1a30b15a-7e85-498b-b735-2348bfe0625b
-InnerException None
-ErrorResponse 
-{
-&quot;error&quot;: {
-&quot;code&quot;: &quot;UserError&quot;,
-&quot;message&quot;: &quot;MLTable yaml 架构无效：\n错误代码：ScriptExecution.Validation\n验证错误代码：无效\n验证目标：脚本\n本机错误：数据流脚本错误：InvalidScriptElement(\&quot;read_from_directory\&quot;)\n\tScriptError(InvalidScriptElement(\&quot;read_from_directory\&quot;))\n=&gt;无效的脚本元素 \&quot;read_from_directory\&quot;\n\tInvalidScriptElement(\&quot;read_from_directory\&quot;)\n错误消息：Yaml 脚本无效：InvalidScriptElement(\&quot;read_from_directory\&quot;)。| session_id=1a30b15a-7e85-498b-b735-2348bfe0625b&quot;
-}
-}
-ErrorResponse 
-{
-&quot;error&quot;: {
-&quot;code&quot;: &quot;UserError&quot;,
-&quot;message&quot;: &quot;从数据集获取数据时遇到用户错误。错误：UserErrorException:\n\t消息：MLTable yaml 架构无效:\n错误代码：ScriptExecution.Validation\n验证错误代码：无效\n验证目标：脚本\n本机错误：数据流脚本错误：InvalidScriptElement(\&quot;read_from_directory\&quot;)\n\tScriptError(InvalidScriptElement(\&quot;read_from_directory\&quot;))\n=&gt; 无效脚本元素 \&quot;read_from_directory\&quot;\n\tInvalidScriptElement(\&quot;read_from_directory\&quot;)\n错误 M
-
-从错误详细信息来看，似乎无法识别 read_from_directory 元素，但我不确定如何构造 YAML 以正确将文件夹名称映射到标签。
-如何解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/79341200/azure-automl-image-classification-job</guid>
-      <pubDate>Thu, 09 Jan 2025 02:14:54 GMT</pubDate>
     </item>
     <item>
       <title>为何我无法包裹 LGBM？</title>
@@ -324,44 +363,70 @@ KeyError: &#39;random_state&#39;
       <pubDate>Tue, 31 Dec 2024 15:25:17 GMT</pubDate>
     </item>
     <item>
-      <title>为什么 RAG 比 LLM 慢？</title>
-      <link>https://stackoverflow.com/questions/78432197/why-rag-is-slower-than-llm</link>
-      <description><![CDATA[我使用 RAG 和 LLAMA3 来做 AI 机器人。我发现 RAG 和 chromadb 比调用 LLM 本身慢得多。
-根据测试结果，仅一个约 1000 个单词的简单网页，检索就需要 2 秒以上：
-检索所用时间：2.245511054992676
-LLM 所用时间：2.1182022094726562
+      <title>LightGBM API与Sklearn API之间的训练区别</title>
+      <link>https://stackoverflow.com/questions/75649038/training-difference-between-lightgbm-api-and-sklearn-api</link>
+      <description><![CDATA[我正在尝试训练 LGBClassifier 以完成多类任务。我首先尝试直接使用 LightGBM API，并按如下方式设置模型和训练：
+LightGBM API
+train_data = lgb.Dataset(X_train, (y_train-1))
+test_data = lgb.Dataset(X_test, (y_test-1))
+params = {}
+params[&#39;learning_rate&#39;] = 0.3
+params[&#39;boosting_type&#39;] = &#39;gbdt&#39;
+params[&#39;objective&#39;] = &#39;multiclass&#39;
+params[&#39;metric&#39;] = &#39;softmax&#39;
+params[&#39;max_depth&#39;] = 10
+params[&#39;num_class&#39;] = 8
+params[&#39;num_leaves&#39;] = 500
 
-这是我的简单代码：
-embeddings = OllamaEmbeddings(model=&quot;llama3&quot;)
-vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-retriever = vectorstore.as_retriever()
-question = &quot;什么是 COCONut？&quot;
-start = time.time()
-retrieved_docs = withdrawer.invoke(question)
-formatted_context = Combine_docs(retrieved_docs)
-end = time.time()
-print(f&quot;检索所用时间：{end - start}&quot;)
+lgb_train = lgb.train(params, train_data, 200)
 
-start = time.time()
-answer = ollama_llm(question, formatted_context)
-end = time.time()
-print(f&quot;LLM 所用时间：{end - start}&quot;)
+# 训练后模型
 
-我发现当我的 chromaDB 大小只有 1.4M 左右时，检索需要 20 多秒，而 LLM 仍然只需要 3 或 4 秒。我遗漏了什么吗？还是 RAG 技术本身就很慢？]]></description>
-      <guid>https://stackoverflow.com/questions/78432197/why-rag-is-slower-than-llm</guid>
-      <pubDate>Sun, 05 May 2024 12:28:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>predict_proba 如何与交叉验证一起工作？</title>
-      <link>https://stackoverflow.com/questions/72638981/how-does-predict-proba-work-with-cross-validation</link>
-      <description><![CDATA[使用 5 倍交叉验证创建模型时，会创建 5 个不同的模型。最终模型的选择可能会有所不同：
+y_pred = lgb_train.predict(X_test)
+y_pred_class = [np.argmax(line) for line in y_pred]
+y_pred_class = np.asarray(y_pred_class) + 1
 
-5 倍创建的模型中估计最佳（或其他标准）的模型或
-在所有数据集上训练后创建的模型。
+混淆矩阵如下所示：
 
-我理解交叉验证用于模型检查，而不是用于模型构建。因此，当在模型上使用 predict_proba 时，这个概率是如何定义的？您能否分享一些论文或文章，讨论如何使用交叉验证在 R 中的插入符号和 Python 中的 sklearn 中进行预测？]]></description>
-      <guid>https://stackoverflow.com/questions/72638981/how-does-predict-proba-work-with-cross-validation</guid>
-      <pubDate>Wed, 15 Jun 2022 23:47:57 GMT</pubDate>
+Sklearn API
+然后我尝试转到 Sklearn API 以便能够使用其他工具。这是我使用的代码：
+lgb_clf = LGBMClassifier(objective=&#39;multiclass&#39;,
+boosting_type=&#39;gbdt&#39;,
+max_depth=10,
+num_leaves=500,
+learning_rate=0.3,
+eval_metric=[&#39;accuracy&#39;,&#39;softmax&#39;],
+num_class=8,
+n_jobs=-1,
+early_stopping_rounds=100,
+num_iterations=500)
+
+clf_train = lgb_clf(X_train, (y_train-1), verbose=1, eval_set=[(X_train, (y_train-1)), (X_test, (y_test-1)))])
+
+# 训练：我可以看到过度拟合正在发生
+
+y_pred = clf_train.predict(X_test)
+y_pred = [np.argmax(line) for line in y_pred]
+y_pred = np.asarray(y_pred) + 1
+
+这是本例中的混淆矩阵：
+
+备注
+
+我需要从 y_train 中减去 1，因为我的类从 1 开始，LightGBM 对此有抱怨。
+当我尝试 RandomSearch 或 GridSearch 时，我总是得到与上一个混淆​​矩阵相同的结果。
+我在这里检查了不同的问题，但没有一个能解决这个问题问题。
+
+问题
+
+在 Sklearn API 中实现模型时，我遗漏了什么吗？
+为什么我使用 LightGBM API 获得了良好的结果（可能过度拟合）？
+如何使用这两个 API 获得相同的结果？
+
+提前致谢。
+更新这是我的错误。我以为两个 API 中的输出会相同，但似乎并非如此。我刚刚在使用 Sklearn API 进行预测时删除了 np.argmax() 行。看来这个 API 已经直接预测了类。不要删除问题，以防其他人遇到类似问题。]]></description>
+      <guid>https://stackoverflow.com/questions/75649038/training-difference-between-lightgbm-api-and-sklearn-api</guid>
+      <pubDate>Mon, 06 Mar 2023 09:24:30 GMT</pubDate>
     </item>
     <item>
       <title>交叉验证的实现</title>
