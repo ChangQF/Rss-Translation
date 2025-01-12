@@ -4,7 +4,112 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 12 Jan 2025 09:15:31 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 12 Jan 2025 12:30:29 GMT</lastBuildDate>
+    <item>
+      <title>时间序列回归的滚动 PCA：信息泄露</title>
+      <link>https://stats.stackexchange.com/questions/659913/rolling-pca-for-time-series-regression-information-leakage</link>
+      <description><![CDATA[假设一个随机变量$y_{i,t}$由一些线性因子$x_{t,j}$和一个随机噪声项$\epsilon_{i,t+1}$控制：
+$$
+y_{i,t} = \sum_{j}^{M+1}\beta_{j,i}x_{t,j} + \epsilon_{i,t+1}
+$$
+写得更紧凑：
+$$
+\mathbf{Y} = \mathbf{X}\mathbf{\beta} + \mathbf{E}
+$$
+其中，
+
+$\mathbf{Y}$ 是一个 $(T,N)$ 矩阵
+$\mathbf{X}$ 是一个 $(T,M)$ 矩阵
+$\beta$ 是一个 $(M,N)$ 时不变参数矩阵，用于解释 $M$ 个因素对 $N$ 个随机变量的影响。
+$\mathbf{E}$ 是一个 $(T,N)$ 矩阵，包含 $T$ 个误差项，维度为 $N$，即 $E \sim N(0,\Sigma_{\epsilon})$
+
+使用这种因子模型，我们可以更稳健地分解和估计均值和方差，因为 $
+\mathbb{X}$ 的维度要小得多，即 $M&lt;&lt;N$。
+$$
+\mathbb{E}_{t|t-1}[\mathbf{Y}] = \mathbf{\mu}_{t} = \mathbf{x}_{t}\mathbf{\beta} \\
+\mathbb{V}_{t|t-1}[\mathbf{Y}] = \mathbf{\Sigma}_{t} = \mathbf{x}_{t}\Sigma_{x}\mathbf{x}_{t}^{T} + \Sigma_{\epsilon}
+$$
+我选择 PCA 作为统计潜在因子，而我的估计选择是时间序列回归方式。我是否对贬低的$\mathbf{Y}$进行 SVD 或对经验协方差进行 PCA 并不重要，假设我进行前者。回归现在将是：
+$$
+y_{i,t} = \sum_{j}^{M+1}\beta_{j,i}PC_{t,j} + \epsilon_{i,t+1}
+$$
+这里出现的问题是 $PC_{t,j}$ 已使用 整个 $
+\mathbf{Y}$ 矩阵进行估计，即它依赖于 $y_{i,t+1}, y_{i,t+2}, ... y_{i,T}$，因此存在信息泄露。
+我可以选择进行滚动 PCA。使用移动窗口 $t$ 来 $t+w$ 估计 PCA，并得出 $PC_{t+w}$。但是，我需要 $PC_{t+w}$ 为标量，而不是向量，否则在上述问题中 $\mathbf{X}$ 变为三维（PC 数量、次数、窗口数量）。在这种情况下如何执行滚动 PCA？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659913/rolling-pca-for-time-series-regression-information-leakage</guid>
+      <pubDate>Sun, 12 Jan 2025 12:28:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用引导程序处理大规模文本匹配和不确定性？</title>
+      <link>https://stats.stackexchange.com/questions/659912/how-to-handle-large-scale-text-matching-and-uncertainty-with-bootstrap</link>
+      <description><![CDATA[我有一个大型数据库，其中有一个字符列，其中包含数百万个产品描述。我有一个参考表，其中有一个字符列，其中包含我试图匹配的描述。我将使用 EXACT 匹配、IN 匹配和最终的 Levenshtein 距离进行匹配。然后我想计算匹配次数。有时会出现错误匹配，例如参考词包含在一个不匹配的大词中，这更像是参考数据的异常。所以我还想在组合中添加不确定性。我不会在完成后检查所有匹配，因为匹配实在太多了。
+我对此有两个疑问：
+
+我知道如何进行匹配。这不是问题。我想计算匹配次数，并说我们怀疑 3 月份有 200 次匹配。我们不知道误报率，但它很小（我们怀疑）。参考列表由另一个部门保存。假阳性可能由包含单词的产品引起，例如 shoe 可能包含在 Shoehorn 中。引导捆绑是一种我可以使用的方法吗？逐月从数据库中提取数据，然后应用匹配。这将为我提供该月的总匹配数，然后从每月样本中进行引导（10k 个案例 5000 次，并将这些案例相加并计算置信区间。
+
+假设 A 是正确的。在理想情况下，我会这样做，其中一行包含一个产品实例。但是数据库很大。是否可以先在数据库中聚合 Shoehorn - 100 个匹配项。然后进行引导。这不会给我一个完全不同的答案吗，因为抽样不再在 100 个匹配项中随机抽样，它会将 Shoehorn - 100 个匹配项作为单个记录进行抽样。
+
+
+所以我的问题是第一点是否是解决这个问题的有用方法，第二点是关于如何聚合数据对置信区间的有效性的影响。
+下面是一些 R 代码，它生成数据的两种方法出现
+# 加载必要的库
+library(dplyr)
+
+# 生成逐行数据 ----------------------------------------------------------
+# 生成具有随机卷的虚假产品描述数据
+set.seed(123)
+descriptions &lt;- c(
+&#39;红色鞋子&#39;, &#39;蓝色衬衫&#39;, &#39;绿色鞋带&#39;, &#39;黄色鞋拔&#39;, 
+&#39;黑色帽子&#39;, &#39;白色鞋子&#39;, &#39;粉色衬衫&#39;, &#39;灰色帽子&#39;, 
+&#39;紫色鞋拔&#39;, &#39;橙色鞋带&#39;
+)
+volumes &lt;- c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+product_descriptions &lt;- data.frame(
+ProductID = unlist(lapply(1:10, function(i) rep(i, volumes[i]))),
+Description = unlist(lapply(1:10, function(i) rep(descriptions[i], volumes[i]))),
+Volume = unlist(lapply(1:10, function(i) rep(volumes[i], volumes[i])))
+)
+
+# 随机抽取 5000 行并替换以生成逐行产品
+set.seed(456) # 设置种子以实现可重复性
+line_by_line_df &lt;- product_descriptions %&gt;%
+sample_n(5000, replace = TRUE) |&gt; 
+mutate(ProductID = row_number()) %&gt;% 
+mutate(match = sample(0:1, n(), replace = TRUE))
+
+# 生成聚合数据 -------------------------------------------------
+# 在这里我们从&quot;database&quot; 中提取并汇总数据库中的计数
+aggregated_df &lt;- line_by_line_df |&gt; 
+group_by(Description) |&gt; 
+summarise(total_products = sum(Volume),
+matches = sum(match))
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/659912/how-to-handle-large-scale-text-matching-and-uncertainty-with-bootstrap</guid>
+      <pubDate>Sun, 12 Jan 2025 12:03:38 GMT</pubDate>
+    </item>
+    <item>
+      <title>如果水平为 $\alpha$ 的假设检验对我的实际样本拒绝，那么所有水平 > $\alpha$ 的检验是否也会拒绝同一个样本？</title>
+      <link>https://stats.stackexchange.com/questions/659910/if-a-hypothesis-test-with-level-alpha-rejects-for-my-realized-sample-will-al</link>
+      <description><![CDATA[问题：如果水平为 $\alpha$ 的假设检验拒绝了一个已实现样本，那么水平 &gt; $\alpha$ 的所有检验是否也会拒绝同一个样本？
+正式地：让 $\hat{\psi}_{\alpha} \in \{0, 1\}$ 成为我的水平为 $\alpha$ 的检验。我获得一个已实现样本 $x_{obs} = \left( x_1, ..., x_n \right)^{T}$，并获得了拒绝的决定，即 $\hat{\psi}_{\alpha}(x_{obs}) = 1$。这是否意味着同一家族（即相同的零模型和备选模型，以及相同的检验统计量）但水平为 $&gt; \alpha$ 的任何检验也将拒绝 $H_0$？我们将这样的检验称为 $\hat{\psi}_{&gt; \alpha}$。
+更直观地，如果我们考虑单调递增的级别序列$\{\alpha\}_{0 \le \alpha \le 1}$，我们有相应的测试$\{\hat{\psi}_{\alpha}\}_{0 \le \alpha \le 1}$和决策$\{\hat{\psi}_{\alpha}(x_{obs})\}_{0 \le \alpha \le 1}$，是否可以保证我的决策序列看起来像 00000000111111...，或者可能是像 00001010001111... 这样的序列？
+我看到一些幻灯片中有人断言了这一说法（幻灯片 3 和 4 上的橙色框，“请注意...”位于 https://pages.stat.wisc.edu/~shao/stat610/stat610-13.pdf）：
+
+请注意，inf({t ∈ (0, 1) : $T_t(x_{obs})$ 拒绝 $H_0$}) ≤ α 意味着 $T_α(x_{obs})$ 拒绝 $H_0$。
+
+但我觉得它唯一正确的方法是，如果拒绝域序列 $\{RR_{\alpha}\}_{0 \le \alpha \le 1}$ 随着级别的增加而成为彼此的超集。我认为这一般不能保证吗？对于某些特定类别的测试，例如 UMP 测试，它有保证吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659910/if-a-hypothesis-test-with-level-alpha-rejects-for-my-realized-sample-will-al</guid>
+      <pubDate>Sun, 12 Jan 2025 11:35:17 GMT</pubDate>
+    </item>
+    <item>
+      <title>不存在负负数据时的评分者间信度</title>
+      <link>https://stats.stackexchange.com/questions/659908/inter-rater-reliability-when-negative-negative-data-does-not-exist</link>
+      <description><![CDATA[我想分析口语表达以确定隐喻的使用。两位评分员将独立分析全文，并识别、计数和列出他们发现的隐喻。然后将他们的列表进行比较以确定一致性。可能的结果是两位评分员都同意某个语言实例是隐喻，或者一位评分员发现/识别出某个语言实例是隐喻，但另一位评分员不同意（他们实际上不同意）。Cohen Kappa 通常用于两人评分者间信度。问题是，在我描述的研究中，不会有任何负负一致性的机会，即两位评分员都将一段语言识别为非隐喻（大多数文本都不是隐喻，这是一个寻找语言的问题）。这可能会导致数据偏差，因为观察到的一致性可能看起来很低，因为没有负负一致性。是否有替代的 Cohen Kappa 来解决这个问题？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659908/inter-rater-reliability-when-negative-negative-data-does-not-exist</guid>
+      <pubDate>Sun, 12 Jan 2025 10:38:46 GMT</pubDate>
+    </item>
     <item>
       <title>估计混合效应模型后，如何使用附加数据更新新组的 BLUP？</title>
       <link>https://stats.stackexchange.com/questions/659906/how-to-update-blup-for-a-new-group-with-additional-data-after-estimating-a-mixed</link>
@@ -23,7 +128,7 @@
     <item>
       <title>DDPM 中的 $p_{\theta}(x_{t-1} | x_t)$ 仍然是条件 pdf 吗？</title>
       <link>https://stats.stackexchange.com/questions/659905/is-p-thetax-t-1-x-t-in-ddpm-still-a-conditional-pdf</link>
-      <description><![CDATA[我正在阅读这篇关于去噪扩散模式的论文。在逆向过程中，它指出我们无法直接计算$q(x_{t-1} | x_t)$，因此我们改为使用$p_{\theta}(x_{t-1} | x_t)$来近似它。如果我错了请纠正我，但我相信$q(x_{t-1} | x_t)$是给定$\mathbf{X}_{t}$的随机变量$\mathbf{X}_{t-1}$的条件pdf。这是否意味着近似值$p_{\theta}$也是条件pdf？谢谢。]]></description>
+      <description><![CDATA[我正在阅读这篇论文（第 5 页中间），内容是关于去噪扩散模式。在逆向过程中，它指出我们无法直接计算$q(x_{t-1} | x_t)$，因此我们改为使用$p_{\theta}(x_{t-1} | x_t)$来近似它。如果我错了请纠正我，但我相信$q(x_{t-1} | x_t)$是给定$\mathbf{X}_{t}$的随机变量$\mathbf{X}_{t-1}$的条件pdf。这是否意味着近似值$p_{\theta}$也是条件pdf？谢谢。]]></description>
       <guid>https://stats.stackexchange.com/questions/659905/is-p-thetax-t-1-x-t-in-ddpm-still-a-conditional-pdf</guid>
       <pubDate>Sun, 12 Jan 2025 08:12:11 GMT</pubDate>
     </item>
@@ -82,13 +187,6 @@ p\times 1 &amp; &amp; p\times k &amp; k\times k &amp; &amp;
       <pubDate>Sun, 12 Jan 2025 03:11:46 GMT</pubDate>
     </item>
     <item>
-      <title>分层抽样和可变大小聚类的置信区间</title>
-      <link>https://stats.stackexchange.com/questions/659897/confidence-intervals-for-stratified-sampling-and-variable-sized-clusters</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/659897/confidence-intervals-for-stratified-sampling-and-variable-sized-clusters</guid>
-      <pubDate>Sun, 12 Jan 2025 00:25:49 GMT</pubDate>
-    </item>
-    <item>
       <title>并行化蒙特卡罗模拟最简单的方法是什么？</title>
       <link>https://stats.stackexchange.com/questions/659889/what-is-the-easist-way-to-parallelize-a-monte-carlo-simulation</link>
       <description><![CDATA[据我所知，并行化蒙特卡罗模拟归结为将问题分解为子问题，并行运行它们以产生多个马尔可夫链，最后将马尔可夫链连接在一起。
@@ -96,37 +194,6 @@ p\times 1 &amp; &amp; p\times k &amp; k\times k &amp; &amp;
 并行化蒙特卡罗模拟最简单的方法是什么？]]></description>
       <guid>https://stats.stackexchange.com/questions/659889/what-is-the-easist-way-to-parallelize-a-monte-carlo-simulation</guid>
       <pubDate>Sat, 11 Jan 2025 18:02:09 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么在 SARIMA 模型中，时间序列的差分无助于使其平稳？</title>
-      <link>https://stats.stackexchange.com/questions/659898/why-does-differencing-of-time-series-not-help-to-make-it-stationary-in-the-sarim</link>
-      <description><![CDATA[我在 SARIMA 模型中差分后无法获得平稳时间序列。
-我是时间序列分析的初学者，但我读到时间序列 Y_t = \nabla^d (1-L^s)^D X_t 应该是平稳时间序列。然而，在用值 s=12 和不同的 d 和 D 值进行差分后，我的时间序列似乎不是平稳分析 ACF 函数。我也尝试过一开始 lambda=0 的 Box–Cox 变换，但同样没用。
-这是我的原始数据
-原始数据 (data_ts)
-它是非平稳的。
-经过 lambda = 0 的 Box-Cox 变换之后
-data_bc &lt;- BoxCox(data_ts, lambda=0)
-
-Box-Cox 变换之后
-这是 ACF 函数：
-ACF 函数
-然后我尝试对我的时间序列进行差分，结果如下：
-ts_plot(diff(data_bc))
-Acf(diff(data_bc))
-
-差分后的时间序列图。
-我的时间的 ACF系列。
-在我看来，它可以是静止的，但从 ACF 来看，它不是。可能是因为季节性？因此，我尝试对滞后 s=12 的时间序列进行差分，然后再次进行差分（s=12、d=1、D=1）。
-ts_plot(diff(diff(data_bc, lag=12)))
-Acf(diff(diff(data_bc, lag=12)))
-
-新时间序列
-ACF
-再次分析 ACF 函数，它似乎不是平稳的。我错了吗？那我该怎么办？
-Box-Cox 变换、差分、消除季节性。我希望获得平稳的时间序列。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659898/why-does-differencing-of-time-series-not-help-to-make-it-stationary-in-the-sarim</guid>
-      <pubDate>Sat, 11 Jan 2025 14:36:19 GMT</pubDate>
     </item>
     <item>
       <title>无法拟合高斯混合模型，估计错误参数</title>
@@ -179,7 +246,7 @@ $$I(\theta):=E\left[\frac{\partial\log f(X;\theta)}{\partial \theta} \mid\theta\
       <pubDate>Fri, 10 Jan 2025 14:33:43 GMT</pubDate>
     </item>
     <item>
-      <title>混合模型中部分合并聚类估计消失或超出总体估计</title>
+      <title>在混合模型中，部分合并聚类估计值消失或超出总体估计值</title>
       <link>https://stats.stackexchange.com/questions/658964/partial-pooled-cluster-estimates-going-away-or-beyond-grand-estimates-in-mixed-m</link>
       <description><![CDATA[我认为我对混合模型中部分池化的主要目标和特征有相当好的理解。然而，部分池化的实际执行中有一些细节与我期望从各个集群得到的行为相冲突。例如，在下面我将链接的所有三个演示中，使用了各种表达式来表明特定于集群的截距和斜率估计应该向样本中相应的总体估计移动（也允许保持静止）。但是，如果您仔细跟踪集群估计从无池化到部分池化版本的一些可视化运动，您就会看到集群估计实际上如何沿着各个轴远离总体估计。在某些情况下，集群估计值也可能超出总体估计值。
 https://www.tjmahr.com/plotting-partial-pooling-in-mixed-effects-models/
@@ -235,21 +302,6 @@ adf.test(globtemp) #ADF 默认为 &quot;k&quot;
       <pubDate>Fri, 22 Nov 2024 04:44:14 GMT</pubDate>
     </item>
     <item>
-      <title>拟合优度是检验相关预测因子有用性的合理方法吗？</title>
-      <link>https://stats.stackexchange.com/questions/620586/is-goodness-of-fit-a-reasonable-way-to-test-the-usefulness-of-correlated-predict</link>
-      <description><![CDATA[在假设检验框架下，我想对 $Y \sim X_1 + X_2 + Z$ 进行建模，其中 X_1 和 X_2 是同一构造的两个相关且可能相关的度量。
-使用 ANOVA 来测试模型拟合度是否合理，以此来测试此构造是否与 Y 有关系？
-以下是一些 R 伪代码，概述了我所提出的建议：
-fit_1 = lm(y ~ z, data = df)
-fit_2 = lm(y ~ x1 + y1 + z, 
-data = df)
-
-anova(fit_1, fit_2)
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/620586/is-goodness-of-fit-a-reasonable-way-to-test-the-usefulness-of-correlated-predict</guid>
-      <pubDate>Wed, 05 Jul 2023 13:39:54 GMT</pubDate>
-    </item>
-    <item>
       <title>MA(1)-GARCH(1,1) 过程的无条件方差</title>
       <link>https://stats.stackexchange.com/questions/616494/unconditional-variance-of-ma1-garch1-1-process</link>
       <description><![CDATA[令 $y_t = \Delta{p_t}$ 表示资产对数收益的时间序列，其中 $p_t$ 是对数价格； $y_t$ 由条件异方差 MA(1) 过程生成
@@ -265,15 +317,6 @@ $h_t = \omega+\alpha \epsilon_t^2+\beta h_{t-1},\quad \omega&gt;0, \alpha&gt;0 ,
 任何帮助都将不胜感激。]]></description>
       <guid>https://stats.stackexchange.com/questions/616494/unconditional-variance-of-ma1-garch1-1-process</guid>
       <pubDate>Sun, 21 May 2023 16:21:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>多日时间序列预测的贝叶斯方法</title>
-      <link>https://stats.stackexchange.com/questions/490623/bayesian-methods-for-multi-day-time-series-prediction</link>
-      <description><![CDATA[我一直在研究时间序列的循环神经网络和 LSTM 模型，有趣的是它们可以预测未来几天的情况。例如，我可以输入 100 天的情况并预测未来 7 天或 10 天的情况。
-我想知道是否有办法使用贝叶斯时间序列模型进行这种多步时间序列预测？现在让我更精确地说明一下我的意思。贝叶斯模型显然可以根据前 1、2 或 3 天的情况预测未来一天的情况。这是一个简单的贝叶斯自回归过程。但是，给定前几天、几周或几个月的训练数据，是否可以同时预测未来 2、3、4 天或更多天的情况？
-现在，如果通常的模型和方法一次只能输出一天的情况，因此无法预测未来几天的情况，那就没问题了。在这些情况下，我会提前一天预测，将预测附加到数据集并再次迭代预测。这样就可以了。如果是这样，那么有人可以简单地指出这一点。但我不确定这种多输出想法是否适用于贝叶斯模型？]]></description>
-      <guid>https://stats.stackexchange.com/questions/490623/bayesian-methods-for-multi-day-time-series-prediction</guid>
-      <pubDate>Tue, 06 Oct 2020 01:55:52 GMT</pubDate>
     </item>
     </channel>
 </rss>
