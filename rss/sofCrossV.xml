@@ -4,7 +4,72 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 14 Jan 2025 01:12:49 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 14 Jan 2025 03:16:53 GMT</lastBuildDate>
+    <item>
+      <title>使用 multcomp::glht() 和 mice::pool() 时出现新错误</title>
+      <link>https://stats.stackexchange.com/questions/659995/new-error-using-multcompglht-and-and-micepool</link>
+      <description><![CDATA[我正在重新审视涉及使用 missRanger::missRanger()、multcomp::glht()（导出效果的线性组合）、mice::pool() 和 broom.mixed::tidy() 进行多重插补的旧代码。虽然它以前可以工作，但现在当我尝试创建整洁表或以其他方式提取结果时，它会失败。我使用下面的 mtcars 重现了错误。
+# 0. PACKAGES
+
+library(tidyverse)
+library(mice)
+library(broom.mixed)
+library(missRanger)
+
+# 1. DATA
+# 设置 mtcars 数据集的 20% 缺失
+mtcars_miss &lt;-
+generateNA(mtcars, 
+p = 0.2, 
+seed = 2024)
+
+# 生成 5 个插补
+mtcars_i &lt;- 
+replicate(9, 
+missRanger(mtcars_miss, 
+num.tree = 500, 
+pmm.k = 3, 
+verbose = 0, 
+seed = 2024), 
+simplify = FALSE)
+
+# 2.不使用线性组合的分析
+mtcars_mod &lt;- 
+lapply(mtcars_i, 
+function(x)
+glm(mpg ~ hp * wt + am, 
+data = x))
+
+pool(mtcars_mod)
+
+pool(mtcars_mod) |&gt; 
+tidy(conf.int = TRUE)
+
+# 3. 线性组合分析
+mtcars_lin &lt;- 
+lapply(mtcars_i, 
+function(x)
+multcomp::glht(glm(mpg ~ hp * wt + am, 
+data = x), 
+linfct = c(&quot;hp = 0&quot;, 
+&quot;`hp:wt` = 0&quot;, 
+&quot;hp + `hp:wt` = 0&quot;)) |&gt; 
+summary())
+
+pool(mtcars_lin)
+
+pool(mtcars_lin) |&gt; 
+tidy(conf.int = TRUE)
+
+最后一块生成以下错误消息。正如我上面提到的，这是一个新的错误，当我在 2024 年 10 月运行代码时没有出现。我不知道原因是什么，因为pool（）参数的输出为标准模型和具有线性效果组合的模型创建了 mipo。
+
+data.frame(..., check.names = FALSE) 中的错误：
+参数意味着不同的行数：0, 3
+
+关于哪个包导致了这个问题，有什么想法吗？或者我该如何解决这个问题？它同时发生在 glm() 和 glmmTMB() 模型函数中。]]></description>
+      <guid>https://stats.stackexchange.com/questions/659995/new-error-using-multcompglht-and-and-micepool</guid>
+      <pubDate>Tue, 14 Jan 2025 02:55:08 GMT</pubDate>
+    </item>
     <item>
       <title>如何正确考虑集群随机试验中的聚类</title>
       <link>https://stats.stackexchange.com/questions/659991/how-to-properly-account-for-clustering-in-cluster-randomized-trial</link>
@@ -117,45 +182,6 @@ T = U / u + R / r。
       <pubDate>Mon, 13 Jan 2025 20:01:25 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Blackbox 方式查找依赖链</title>
-      <link>https://stats.stackexchange.com/questions/659978/find-dependency-chain-in-blackbox-way</link>
-      <description><![CDATA[假设我有 $5$ 个向量：${a,b,c,d,e}$。
-我不知道它们之间的关系或它们的依赖链。例如，假设有一个函数接受这五个向量并返回这四个见解：
-
-$a$ 的值取决于 $b$ 的值，反之亦然。
-
-$c$ 的值取决于 $b$ 的值，因此也取决于 $a$ 的值，但 $a$ 和 $b$ 本身与 $c$ 的值相对独立，不会影响 $a$ 和 $b$。
-
-$d$ 的值依赖于 $c$ 和 $b$，但不直接依赖于 $a$。
-
-最后，$e$ 的值完全独立，与 $a$、$b$、$c$ 或 $a$、$b$、$c$ 或 $a$ 没有任何关系（双向或单向）。 class=&quot;math-container&quot;&gt;$d$.
-
-
-我如何以黑盒方式（例如使用神经网络）了解这四个信息/见解（相关性）？我只输入五个向量。
-此外，我希望它还支持非线性关系相关性。
-
-我的解决方案是为所有向量训练五个独立的神经网络，其中每个神经网络对所有样本都有一个输入和四个输出。
-
-输入形状：(n_samples, vector_dims, 1)
-输出形状：(n_samples, vector_dims, 4)
-
-问题是，vector_dims可能会有所不同。
-那么，我不知道下一个？
-
-或者也许我可以使用变压器编码器？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659978/find-dependency-chain-in-blackbox-way</guid>
-      <pubDate>Mon, 13 Jan 2025 19:28:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>独立同分布高斯函数的 softmax 变换的集中</title>
-      <link>https://stats.stackexchange.com/questions/659977/concentration-of-softmax-transform-of-i-i-d-gaussians</link>
-      <description><![CDATA[考虑$n$ 个 i.i.d. 标准高斯随机变量，记为$X_1, \ldots, X_n$。我正在寻找表征函数的集中度的方法，例如 $\sum_{i=1}^n X_i e^{-X_i/\tau}$ 和 $\sum_{i=1}^n e^{-X_i/\tau}$，这些函数可以导致 
-$$T_n = \dfrac{\sum_{i=1}^n X_i e^{-X_i/\tau}}{\sum_{i=1}^n e^{-X_i/\tau}}.$$
-有人可能会认为 $T_n$ 以概率收敛到 $\frac{\mathbb{E}(​​Ze^{-Z/\tau})}{\mathbb{E}(​​e^{-Z/\tau})}$ 其中 $Z\sim N(0,1)$，但我正在寻找收敛速度，即尾部概率界限。查看 Talagrand 浓度不等式的陈述表明，指数函数增长太快，因此该不等式不适用。我们还能证明我上面提到的统计数据的亚高斯或亚指数类型的尾部界限吗？任何建议都非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659977/concentration-of-softmax-transform-of-i-i-d-gaussians</guid>
-      <pubDate>Mon, 13 Jan 2025 19:12:54 GMT</pubDate>
-    </item>
-    <item>
       <title>如何比较多层模型中固定效应和随机效应之间的贡献？</title>
       <link>https://stats.stackexchange.com/questions/659976/how-to-compare-the-contribution-between-a-fixed-effect-and-a-random-effect-in-a</link>
       <description><![CDATA[假设我有一个包含三个变量的数据集：$y$，我想要了解的结果；$x$，与$x$共变的变量，但我们可以假设它是完美测量的；$g$，分组变量，用于标识测量所属的多个群集（例如，主题）之一。我用多级（分层）回归模型拟合数据，形式为
@@ -256,24 +282,6 @@ apply2 * scale_multiplier[2]
       <pubDate>Mon, 13 Jan 2025 18:52:43 GMT</pubDate>
     </item>
     <item>
-      <title>偏距离相关的解释</title>
-      <link>https://stats.stackexchange.com/questions/659974/interpretation-of-partial-distance-correlation</link>
-      <description><![CDATA[我想知道这里是否有人可以帮助理解部分距离相关的解释（https://projecteuclid.org/journals/annals-of-statistics/volume-42/issue-6/Partial-distance-correlation-with-methods-for-dissimilarities/10.1214/14-AOS1255.full）？我不是统计学家，所以原文对我来说有点难理解。
-在第 4.2 节中，似乎暗示偏距离相关性和条件（不）依赖性并不总是相同的。但我不清楚与标准偏相关相比，偏距离相关性应该如何解释？
-相关地，偏距离相关性似乎能够通过控制 Z 作为多维变量来“控制”超过 1 个变量，因为偏距离相关性（和其他能量统计数据）是针对任意不一定相等维度的随机向量定义的。同样在这种情况下，我很难理解当 z 是一个多维控制变量时，与偏相关或偏回归系数相比，对偏距离相关性的准确实质性解释应该是什么？或者，例如，假设我们有一组随机变量，它们呈正态分布，平均值为 0，标准差为 1，如果构建一个图，其中边表示“显著”的偏距离相关性，那么与边是“显著”偏相关的高斯图模型相比，这种解释会如何？（除了 pdcor 可以捕获非线性依赖关系这一事实之外，对于这个例子，假设所有依赖关系都是真正线性的）。
-希望这有点道理！任何帮助都会得到赞赏，在此先致谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659974/interpretation-of-partial-distance-correlation</guid>
-      <pubDate>Mon, 13 Jan 2025 18:38:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>语料库中作者确定的统计检验</title>
-      <link>https://stats.stackexchange.com/questions/659967/statistical-test-for-author-determination-in-corpus</link>
-      <description><![CDATA[如何确定匿名作者撰写的语料库中的作者？
-编辑：确定书信语料库中不同作者的数量以及它是否具有统计学显著性。]]></description>
-      <guid>https://stats.stackexchange.com/questions/659967/statistical-test-for-author-determination-in-corpus</guid>
-      <pubDate>Mon, 13 Jan 2025 16:37:17 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么皮尔逊残差和离差残差比正态残差变化更小？</title>
       <link>https://stats.stackexchange.com/questions/659966/why-are-pearson-and-deviance-residuals-less-variable-than-normal-residuals</link>
       <description><![CDATA[我正在阅读 Agresti 的分类数据分析（第 3 版），第 141 页写道：“当模型成立时，皮尔逊和偏差残差的变化小于标准正态分布，因为它们将 $y_i$ 与拟合均值 $\hat \mu_i$ 进行比较，而不是与真实均值 $\mu_i$ 进行比较...&quot;。我不太明白这句话。对于正态线性回归，残差是 $y_i - \hat y_i$，我们不是也使用预测均值作为 $\hat y_i$ 吗？有人可以解释一下 Agresti 是什么意思吗？
@@ -287,6 +295,86 @@ apply2 * scale_multiplier[2]
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/659942/can-this-problem-only-be-solved-using-bayesian</guid>
       <pubDate>Mon, 13 Jan 2025 04:46:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>以下最大似然均值和方差结果对所有分布都成立吗？</title>
+      <link>https://stats.stackexchange.com/questions/659933/does-the-following-maximum-likelihood-mean-and-variance-result-hold-for-all-dist</link>
+      <description><![CDATA[给定一个概率分布$p(x \,|\, \mu, \sigma^{2})$，以及从分布$p(x \,|\, \mu, \sigma^{2})$中抽取$n$个独立同分布样本$x_{1}, \ldots, x_{n}$，我们可以得到一个似然函数$P(\vec{x} \,|\, \mu, \sigma^{2}) = \prod_{j} p(x_{j} \,|\, \mu, \sigma^{2})$。
+假设 $p$ 为高斯分布。根据我对 Bishop 的模式识别和机器学习的阅读，给定$\vec{x}$和$p$为高斯分布的知识，最大化$P(\vec{x} | \mu, \sigma^{2})$的$\mu, \sigma^{2}$的值是
+\begin{align}\tag{$*$}
+\mu_{\text{ML}} = \frac{1}{n}\sum_{j=1}^{n} x_{j} \quad\text{ 和 }\quad \sigma^{2}_{\text{ML}} = \frac{1}{n}\sum_{j=1}^{n} (x_{j} - \mu_{\text{ML}})^{2}。
+\end{align&gt;
+也就是说，$\mu, \sigma^{2}$ 的最大似然值分别是样本的算术平均值和（有偏、未校正的）方差。
+现在的问题是，在我看来，这个结果 $(*)$ 仅适用于 $p$ 为高斯的情况。我的问题是，这个结果$(*)$是否适用于所有概率分布$p(x \,|\, \mu, \sigma^{2})$，还是只适用于高斯分布？如果它适用于所有分布，那么证明（或参考证明）是什么？如果它不适用于所有分布，那么反例是什么？
+一般来说，$(*)$适用于哪一类分布？当$(*)$成立时，是否有一个优雅的表征？]]></description>
+      <guid>https://stats.stackexchange.com/questions/659933/does-the-following-maximum-likelihood-mean-and-variance-result-hold-for-all-dist</guid>
+      <pubDate>Sun, 12 Jan 2025 21:57:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>逻辑回归假设和 Box-Tidwell 检验</title>
+      <link>https://stats.stackexchange.com/questions/659774/logistic-regression-assumptions-and-box-tidwell-test</link>
+      <description><![CDATA[我正在做一个逻辑回归，它只包括两个数字独立变量（年龄和受影响器官的总和）和其他分类变量。当我对这些数字变量执行 Box-Tidwell 检验时，它告诉我结果的对数和变量“器官总和 (p &lt;0.05)”之间没有线性关系。
+我的问题是，我是否绝对需要从回归中删除这个变量，或者我是否可以使用另一种技术。我刚刚读到样条应该是一个选项，我已经执行了。然而，我没有在科学工作中解释和报告这一点的经验。我甚至读过一篇关于诊所样条的《自然》文章，但我发现很难理解。你能帮我吗？
+esplenicos$Angiogenic &lt;- relevel(esplenicos$Angiogenic, ref = &quot;Yes&quot;)
+levels(esplenicos$Angiogenic)
+
+regressão_logistica &lt;- glm(Angiogenic ~ Breed2 + Age + Sex + 
+Number_cavities + SumAffected_organs, data = esplenicos,
+family = binomial())
+
+esplenicos$logAgeInt &lt;- log(esplenicos$Age) * esplenicos$Age
+esplenicos$logSumaffectedorganInt &lt;- 
+log(esplenicos$SumAffected_organs) * esplenicos$SumAffected_organs
+
+regressão_logistica2 &lt;- glm(血管生成 ~ Breed2 + 年龄 + 
+    受影响器官总数 + 性别 + 腔数 + 
+    logSumaffectedorganInt + logAgeInt，数据 = esplenicos， 
+    家庭=二项式())
+摘要（regressão_logistica2）
+
+logito &lt;- regressão_logistica$linear.predictors
+esplenicos$logito &lt;-logito
+一瞥(esplenicos)
+
+ggplot(esplenicos, aes(logito, SumAffected_organs)) +
+geom_point（大小= 0.5，阿尔法= 0.5） +
+geom_smooth(method = &quot;loess&quot;) +
+theme_classic()
+
+
+我包括了 Box-Tidwell 检验的输出，该输出对于器官总和具有显著性，以及结果与器官总和变量的对数图。
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/659774/logistic-regression-assumptions-and-box-tidwell-test</guid>
+      <pubDate>Thu, 09 Jan 2025 14:53:13 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用加权逻辑回归对重复数据进行误差估计的校正因子</title>
+      <link>https://stats.stackexchange.com/questions/659641/correcting-factor-for-error-estimation-with-weighted-logistic-regression-on-dupl</link>
+      <description><![CDATA[假设一个数据集被复制，但第一份副本被分配了一组概率权重$w_1$（与抽样无关），而第二份副本具有另一组权重$w_2$，其中权重独立于抽样得出，并且$\sum_j w_j=1$其中$1,\dots,j,\dots,J$和$J&gt;2$和$w_j&lt;1 \text{ } \forall j$。 主要问题：
+
+我是否应该将每个权重乘以 1/2 以纠正数据重复？
+
+上下文
+假设对于每个观察值 1 到 N，您有概率估计 $p_a=P(race=a)$、$p_b=P(race=b)$、$p_c=P(race=c)$，其中 $\sum_{r=\{a,b,c\}}p_r=1$ 和一些二元结果变量 $y$，并且我们希望估计逻辑回归 $\text{logit }y\sim \beta_0 + \beta_1 D^{r}+X\beta$ 其中 X 是一组控制因素，$D^r$ 是治疗组的虚拟变量（假设 &#39;b&#39; 为治疗组，&#39;a&#39; 为对照组）。
+为此，我上面的一些高阶专家估计了一个加权逻辑回归，其中
+\begin{align}
+\text{logit }\begin{pmatrix}
+y \\
+y \\
+\end{pmatrix} &amp;= \beta_0+\beta_1\begin{pmatrix}
+D^{b} \\
+D^{b} \\
+\end{pmatrix}
++ \begin{pmatrix} X \\ X\\ \end{pmatrix} \beta
+\end{align&gt;
+其中 $$\text{weights} =\begin{pmatrix} p_b \\ p_a \\ \end{pmatrix}$$ 且 $D^b_{1\dots N}$=1 且 $D^b_{(N+1)\dots 2N}=0$（基本上，第一个 1...N 堆栈具有虚拟 $D^b=1$ 且第二个 (N+1)...2N 具有虚拟 $D^b=0$。
+问题：通常情况下，每个观测值的权重为 1/2 应该可以解决因重复数据集而产生的误差估计问题。这是否仍然适用于权重的使用？例如，我可以这样做 $\text{weights} =\frac{1}{2}\begin{pmatrix} p_b \\ p_a \\ \end{pmatrix}$ 吗？或者这些权重是否没有意义？
+推理尝试
+似乎如果，例如，$p_a=.5$ 和 $p_b=.5$，无论这有多不可能，那么我们本质上是在应用考虑数据重复的权重，因此额外的 $\frac{1}{2}$ 权重乘法将是错误的。
+请原谅我草率的符号，希望它足以传达这一点。]]></description>
+      <guid>https://stats.stackexchange.com/questions/659641/correcting-factor-for-error-estimation-with-weighted-logistic-regression-on-dupl</guid>
+      <pubDate>Tue, 07 Jan 2025 04:28:49 GMT</pubDate>
     </item>
     </channel>
 </rss>
