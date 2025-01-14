@@ -4,13 +4,155 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 14 Jan 2025 15:17:09 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 14 Jan 2025 18:21:50 GMT</lastBuildDate>
+    <item>
+      <title>我需要训练一个多类模型，但我的数据集很小</title>
+      <link>https://stackoverflow.com/questions/79355992/i-need-to-train-a-multiclass-model-but-i-have-a-small-dataset</link>
+      <description><![CDATA[所以...我有一个包含两列的 excel 文件，一列包含短语之类的文本，另一列告诉我从“CS1”到“CS8”的分类。文本类似于“NE PAGTO PROVENTOS APOSENTADORIA ESPECIAL SERVIDORES SAÚDE, NOV/2024. REF. FATURA 033/2024. INCLUI REFORMA DE ESCOLAS。”。我已经对其他文件进行了清理，总共该文件有 72 个文本，df.shape = (72, 2)
+我是机器学习的新手，准确率一直低于 50%。有人能帮我吗？
+文件 clean_text.py：
+导入 re
+
+def clean_text(text)：
+text = re.sub(r&#39;\d{1,4}/\d{4}&#39;, &#39;&#39;, text)
+text = re.sub(r&#39;\d+&#39;, &#39;&#39;, text)
+text = re.sub(r&#39;[^\w\s]&#39;, &#39;&#39;, text)
+text = text.lower()
+返回文本
+
+文件 main.py：
+导入 numpy 作为 np
+导入 tensorflow 作为 tf
+从 tensorflow.keras.models 导入 Sequential
+从 tensorflow.keras.layers 导入 Dense、Dropout、Input
+从 tensorflow.keras.optimizers 导入 Adam
+从 sklearn.feature_extraction.text 导入 TfidfVectorizer
+从sklearn.model_selection 导入 train_test_split
+从 sklearn.preprocessing 导入 LabelEncoder
+从 sklearn.metrics 导入 classification_report、accuracy_score
+从 transformers 导入 TFAutoModel、AutoTokenizer
+导入 joblib
+导入 pandas 作为 pd
+从 nltk.corpus 导入 stopwords
+导入 re
+从 clean_text 导入 clean_text
+
+df = pd.read_excel(&quot;DADOS PARA CLASSIFICAÇÃO MULTICLASSE.xlsx&quot;, sheet_name=&quot;TREINAMENTO&quot;)
+df[&#39;EMPENHO&#39;] = df[&#39;EMPENHO&#39;].apply(clean_text)
+descriptions = df[&#39;EMPENHO&#39;].tolist()
+labels = df[&#39;CLASSE SINTETICA&#39;].tolist()
+
+print(f&quot;Amostras: {df.shape}&quot;)
+
+label_encoder = LabelEncoder()
+labels_encoded = label_encoder.fit_transform(labels)
+
+vect = TfidfVectorizer()
+X = vect.fit_transform(descriptions).toarray()
+
+X_train, X_test, y_train, y_test = train_test_split(X, labels_encoded, test_size=0.2, random_state=42)
+
+model = Sequential([
+Input(shape=(X_train.shape[1],)),
+Dense(128,activation=&#39;relu&#39;),
+Dropout(0.3),
+Dense(64,activation=&#39;relu&#39;),
+Dropout(0.3),
+Dense(len(label_encoder.classes_),activation=&#39;softmax&#39;)
+])
+
+model.compile(optimizer=Adam(learning_rate=1e-4), loss=&#39;sparse_categorical_crossentropy&#39;, metrics=[&#39;accuracy&#39;])
+
+accuracy = 0
+而accuracy &lt; 0.90:
+print(&quot;训练模型...&quot;)
+emp_train = model.fit(X_train, y_train, epochs=100, batch_size=16, validation_split=0.2, verbose=0)
+
+y_pred = np.argmax(model.predict(X_test), axis=-1)
+accuracy = accuracy_score(y_test, y_pred)
+print(f&quot;准确率：{accuracy * 100:.2f}%&quot;)
+
+joblib.dump(vect, &quot;vectorizer.pkl&quot;)
+joblib.dump(label_encoder, &quot;label_encoder.pkl&quot;)
+model.save(&quot;empenho_model.keras&quot;)
+
+print(&quot;训练模型并计算结果成功了！”）
+
+
+我试过使用 bert 和 pytorch，但这种方式对我来说更好。]]></description>
+      <guid>https://stackoverflow.com/questions/79355992/i-need-to-train-a-multiclass-model-but-i-have-a-small-dataset</guid>
+      <pubDate>Tue, 14 Jan 2025 18:16:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>理解经验风险与真实风险中的泛化误差</title>
+      <link>https://stackoverflow.com/questions/79355658/understanding-generalization-error-in-empirical-vs-true-risk-illustration</link>
+      <description><![CDATA[我试图根据附图来理解泛化误差的概念，该图对比了经验风险 (𝑅_hat) 和真实风险 (𝑅)
+在图中标记了两个区域：
+
+红色阴影区域：经验风险 (𝑅_hat) 高于真实风险 (R) 的区域；
+紫色阴影区域：经验风险 (R_hat) 低于真实风险 (R) 的区域；
+
+根据我的理解，泛化误差随着 𝑤_hat_D（经验风险的最小化器）接近 𝑤_star（真实风险的最小化器）而减小风险）。
+考虑到这一点：
+
+将红色阴影区域解释为表示模型过度拟合的趋势（因为 R_hat &gt; R）是否正确？
+
+
+同样，紫色阴影区域是否反映了模型欠拟合的趋势（因为 𝑅_hat &lt; 𝑅）？
+
+对于此解释的任何见解或更正，我将不胜感激。谢谢！]]></description>
+      <guid>https://stackoverflow.com/questions/79355658/understanding-generalization-error-in-empirical-vs-true-risk-illustration</guid>
+      <pubDate>Tue, 14 Jan 2025 16:20:00 GMT</pubDate>
+    </item>
     <item>
       <title>加载 MIT-BIH 心律失常数据库（无需 wfdb 包）</title>
       <link>https://stackoverflow.com/questions/79355429/load-mit-bih-arrhythmia-database-without-wfdb-package</link>
       <description><![CDATA[我打算使用这个数据集，但无论我如何努力搜索，我都找不到文件中数据的格式或结构。我发现的最重要的事情是每隔两个字节就有一个 h33。我在哪里可以找到有关此内容的文档？我找不到注释与这些数据文件的关系。]]></description>
       <guid>https://stackoverflow.com/questions/79355429/load-mit-bih-arrhythmia-database-without-wfdb-package</guid>
       <pubDate>Tue, 14 Jan 2025 15:00:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么在 PyTorch 中保存 ViT 模型时不会生成 constants.pkl，在边缘设备上部署时是否需要它？</title>
+      <link>https://stackoverflow.com/questions/79355096/why-is-constants-pkl-not-generated-when-saving-a-vit-model-in-pytorch-and-is-it</link>
+      <description><![CDATA[我训练了一个 Vision Transformer (ViT) 模型进行分类，并使用以下 PyTorch 代码保存了该模型：
+torch.save(model, &quot;vit_model.pth&quot;)
+当我尝试将保存的模型集成到 Android 应用程序中时，我在运行时遇到了以下错误：
+无法启动活动 ComponentInfo{com.test.package/com.test.package.MainActivity}：java.lang.RuntimeException：com.facebook.jni.CppException：PytorchStreamReader 无法定位文件 constants.pkl：找不到文件
+我所做的：
+
+我将 .pth 模型文件转换为 zip 文件以检查其内容，我注意到文件中不存在 constants.pkl。
+我搜索了有关constants.pkl，但我找不到关于为什么它没有生成或它在这种情况下的作用的明确解释。
+
+我的问题：
+
+为什么使用 torch.save() 保存 PyTorch 模型时没有生成 constants.pkl？
+在边缘设备（例如 Android）上部署模型是否需要 constants.pkl？
+如果不需要 constants.pkl，我该如何将我的模型集成到 Android 应用程序中而不会遇到此错误？
+如果需要 constants.pkl，我该如何生成它或修改我的模型保存过程以包含它？
+
+其他信息：
+
+模型：在 PyTorch 中训练的 Vision Transformer (ViT)。
+Android 集成：使用PyTorch Android 库。
+应用程序尝试加载模型文件时似乎出现错误。
+
+我需要什么：
+
+明确解释 constants.pkl 的作用以及它是否是 Android 上 PyTorch 模型部署的必需文件。
+
+正确保存模型并将其集成到 Android 应用程序中以避免此问题的步骤或代码示例。
+
+
+提前感谢您的任何指导或建议！]]></description>
+      <guid>https://stackoverflow.com/questions/79355096/why-is-constants-pkl-not-generated-when-saving-a-vit-model-in-pytorch-and-is-it</guid>
+      <pubDate>Tue, 14 Jan 2025 13:07:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用视觉变换器进行图像分类的准确率较低</title>
+      <link>https://stackoverflow.com/questions/79354623/low-accuracy-using-vision-transformers-for-image-classification</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79354623/low-accuracy-using-vision-transformers-for-image-classification</guid>
+      <pubDate>Tue, 14 Jan 2025 10:07:15 GMT</pubDate>
     </item>
     <item>
       <title>是否有任何工具可以将任何其他数据集格式转换为 sam2 格式以进行微调？[关闭]</title>
@@ -70,15 +212,6 @@ total_reward 196.0
       <pubDate>Mon, 13 Jan 2025 18:12:30 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 Python 为 UNO 纸牌游戏创建 AI 玩家？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79352641/how-do-i-create-an-ai-player-for-uno-card-game-in-python</link>
-      <description><![CDATA[我熟悉 Python 的基础知识，我想创建一个 UNO 纸牌游戏，让 AI 与用户竞争。我唯一的经验是使用 Python 中的极小极大算法制作井字游戏机器人。
-我读过，极小极大算法是不可行的，因为 UNO 有更大的移动范围。我读过一些关于蒙特卡洛树搜索、深度强化学习、神经网络等的文章。对于 1v1（AI 与玩家）的 UNO 游戏，哪种方法更容易实现？
-我读过的一点资料建议在纸牌游戏中使用蒙特卡洛算法。我想知道这里的情况是否如此，这是否确实是最佳方法。]]></description>
-      <guid>https://stackoverflow.com/questions/79352641/how-do-i-create-an-ai-player-for-uno-card-game-in-python</guid>
-      <pubDate>Mon, 13 Jan 2025 15:15:46 GMT</pubDate>
-    </item>
-    <item>
       <title>如何在 pytorch 中并行计算不同权重和输入的神经网络？</title>
       <link>https://stackoverflow.com/questions/79350425/how-to-calculate-neural-net-for-different-weights-and-inputs-in-parallel-in-pyto</link>
       <description><![CDATA[我正在使用 pytorch 进行机器学习。
@@ -133,75 +266,17 @@ result[m][n]
       <pubDate>Sun, 12 Jan 2025 18:00:35 GMT</pubDate>
     </item>
     <item>
-      <title>使用矩阵在 PyTorch 上计算公式</title>
-      <link>https://stackoverflow.com/questions/79350403/calculate-formulas-on-pytorch-using-matrix</link>
-      <description><![CDATA[我有方程式：
-$e_{ij} = \frac{X_i W^Q (X_j W^K + A^K_{ij}) }{\sqrt{D_z}}$
-$\alpha_{ij} = softmax(e_{ij})$
-$z_{i} = \sum_j \alpha_{ij} (X_j W^V + A^V_{ij})$
-
-其中大小：
-X：[B，S，H，D]
-每个 W：[H，D，D]
-每个 A：[S，S，H，D]
-
-我如何通过矩阵运算计算它？
-我有一个部分解决方案
-import torch
-import torch.nn. functional as F
-
-B, S, H, D = X.shape
-d_z = D # 为简单起见，假设 d_z 等于 D
-
-W_Q = torch.randn(H, D, D)
-W_K = torch.randn(H, D, D)
-W_V = torch.randn(H, D, D)
-
-a_K = torch.randn(S, S, H, D)
-a_V = torch.randn(S, S, H, D)
-}
-XW_Q = torch.einsum(&#39;bshd,hde-&gt;bshe&#39;, X, W_Q) # [B, S, H, D] @ [H, D, D] -&gt; [B，S，H，D]
-XW_K = torch.einsum(&#39;bshd,hde-&gt;bshe&#39;, X, W_K) # [B，S，H，D] @ [H，D，D] -&gt; [B，S，H，D]
-
-e_ij_numerator = XW_Q.unsqueeze(2) @ (XW_K.unsqueeze(1) + a_K).transpose(-1, -2) # [B，S，1，H，D] @ [B，1，S，H，D] -&gt; [B，S，S，H，D]
-e_ij = e_ij_numerator / torch.sqrt(torch.tensor(d_z, dtype=torch.float32)) # [B，S，S，H，D]
-
-XW_V = torch.einsum(&#39;bshd,hde-&gt;bshe&#39;, X, W_V) # [B，S，H，D] @ [H，D，D] -&gt; [B，S，H，D]
-alpha = F.softmax(e_ij, dim=2) # [B，S，S，H，D]
-
-z_i = torch.einsum(&#39;bshij,bshjd-&gt;bshid&#39;, alpha, XW_V.unsqueeze(1) + a_V) # [B，S，S，H，D] @ [B，1，S，H，D] -&gt; [B, S, S, H, D]
-
-但 z 应该是 [B, S, H,D]]]></description>
-      <guid>https://stackoverflow.com/questions/79350403/calculate-formulas-on-pytorch-using-matrix</guid>
-      <pubDate>Sun, 12 Jan 2025 17:48:23 GMT</pubDate>
+      <title>如何检查随机森林模型是否过度拟合？</title>
+      <link>https://stackoverflow.com/questions/79327542/how-to-check-if-the-model-is-overfitting-for-random-forest</link>
+      <description><![CDATA[我已经为数据集实现了随机森林，并且平衡了数据，我使用了 80-10-10、70-15-15、60-20-20 和 80-20 方法。我还使用了特征重要性，并在 41 个独立特征中使用了 10 个 imp 特征、15 个 imp 特征、24 个 imp 特征和 34 个 imp 特征。所有上述方法的平均召回率为 95.8%，平均准确率为 96.6%，精确率为 97%。交叉验证召回率（我主要关注召回率）为 95.5%。
+我使用训练数据对训练数据本身进行预测，得到了 99.8%
+我还使用了热图并删除了 3 个高度相关的特征，但我得到了 80-10-10 的相同分数（热图之后）。
+我的模型是否过度拟合？如何检查是否过度拟合？]]></description>
+      <guid>https://stackoverflow.com/questions/79327542/how-to-check-if-the-model-is-overfitting-for-random-forest</guid>
+      <pubDate>Fri, 03 Jan 2025 19:56:33 GMT</pubDate>
     </item>
     <item>
-      <title>如何在 GPU 中实现 KNNImputer？</title>
-      <link>https://stackoverflow.com/questions/79350213/how-to-implement-knnimputer-in-gpu</link>
-      <description><![CDATA[我正在处理 Kaggle 上的一个大型数据集，并希望通过使用 GPU 加速进行 KNN 插补来加快插补过程。我目前的方法使用 sklearn 的基于 CPU 的 KNNImputer，但它的速度太慢了，无法满足我的需求。
-我听说 RAPIDS cuML 提供 GPU 加速的 KNN 插补。这是我到目前为止尝试的代码
-import pandas as pd
-import cudf
-from cuml.experimental.preprocessing import KNNImputer
-
-# 将 Pandas DataFrame 转换为 cuDF DataFrame
-df_bad_cleaned_gpu = cudf.DataFrame.from_pandas(df_bad_cleaned)
-
-# 使用邻居初始化 KNN imputer
-knn_imputer_gpu = KNNImputer(n_neighbors=36)
-
-# 拟合和转换
-df_bad_knn_filled_gpu = knn_imputer_gpu.fit_transform(df_bad_cleaned_gpu)
-
-# 转换回 Pandas DataFrame（如果需要）
-df_bad_knn_filled = df_bad_knn_filled_gpu.to_pandas()
-
-这是使用 RAPIDS 在 GPU 上实现 KNN 插补的正确方法吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79350213/how-to-implement-knnimputer-in-gpu</guid>
-      <pubDate>Sun, 12 Jan 2025 16:00:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>DMIR 的 XMorpher 模型 - 数据集问题 [关闭]</title>
+      <title>DMIR 的 XMorpher 模型 - 数据集问题[关闭]</title>
       <link>https://stackoverflow.com/questions/79180321/xmorpher-model-for-dmir-dataset-problem</link>
       <description><![CDATA[我正在尝试运行 GitHub 项目 XMorpher (https://github.com/Solemoon/XMorpher/tree/main)，但作者没有提供正确的数据集？他在代码中使用了：
  train_labeled_unlabeled_dir = &#39;data/train_labeled_unlabeled&#39;
@@ -235,30 +310,6 @@ mov_img # 大小：144x144x128 (int16)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79177501/vertex-ai-automl-tabular-template-keeps-giving-me-an-error</guid>
       <pubDate>Mon, 11 Nov 2024 11:41:07 GMT</pubDate>
-    </item>
-    <item>
-      <title>删除边界框detectron2之外的所有内容</title>
-      <link>https://stackoverflow.com/questions/78626157/delete-everything-outside-of-bounding-boxes-detectron2</link>
-      <description><![CDATA[我已经训练了一个包含一个类的 detectron2 模型。现在我想将不在 bbox 内的所有内容设置为白色，其余部分保持原样。一张图片上可以有多个 bbox，它们可以叠加。
-我阅读了 detectron2 的文档以及 cv2，但我找不到解决问题的方法。
-这是我的预测代码：
-from detectron2 import model_zoo
-from detectron2.config import get_cfg
-from detectron2.engine import DefaultPredictor
-import cv2
-
-cfg = get_cfg()
-cfg.merge_from_file(model_zoo.get_config_file(&#39;COCO-Detection/tmp&#39;))
-cfg.MODEL.WEIGHTS = &#39;tmp&#39;
-
-预测器 = DefaultPredictor(cfg)
-
-img = cv2.imread(&#39;tmp&#39;)
-
-out = 预测器(img)
-]]></description>
-      <guid>https://stackoverflow.com/questions/78626157/delete-everything-outside-of-bounding-boxes-detectron2</guid>
-      <pubDate>Sat, 15 Jun 2024 09:09:50 GMT</pubDate>
     </item>
     <item>
       <title>使用带有 max_new_tokens 的 LLM 进行不完整输出</title>
@@ -296,71 +347,6 @@ return DataType.Value;
 ]]></description>
       <guid>https://stackoverflow.com/questions/77061898/incomplete-output-with-llm-with-max-new-tokens</guid>
       <pubDate>Thu, 07 Sep 2023 18:02:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何实现巴特沃斯滤波器</title>
-      <link>https://stackoverflow.com/questions/74003337/how-to-implement-a-butterworth-filter</link>
-      <description><![CDATA[我正在尝试使用 python 实现 butterworthfilter
-数据来自 CSV 文件，名为 Samples.csv，如下所示
-998,4778415
-1009,209592
-1006,619094
-1001,785406
-993,9426543
-990,1408991
-992,736118
-995,8127334
-...
-
-该列调用欧几里得范数。数据范围从 0 到 1679.286158，共有 1838 行。
-这是我使用的代码：
-from scipy.signal import filtfilt
-from scipy import stats
-
-import csv
-import pandas as pd
-import numpy as np
-
-import matplotlib.pyplot as plt
-import scipy
-def plot():
-data=pd.read_csv(&#39;Samples.csv&#39;,sep=&quot;;&quot;, decimal=&quot;,&quot;)
-sensor_data=data[[&#39;Euclidian Norm&#39;]]
-sensor_data=np.array(sensor_data)
-
-time=np.linspace(0,1679.286158,1838)
-plt.plot(time,sensor_data)
-plt.show()
-
-filtered_signal=bandPassFilter(sensor_data)
-plt.plot(time,sensor_data)
-plt.show()
-
-def bandPassFilter(signal):
-fs = 4000.0
-lowcut=20.0
-highcut=50.0
-
-nyq=0.5*fs
-low=lowcut/nyq
-high=highcut/nyq
-
-order =2
-
-b,a=scipy.signal.butter(order,[low,high],&#39;bandpass&#39;,analog=False)
-
-y=scipy.signal.filtfilt(b,a,signal,axis=0)
-
-return(y)
-
-plot()
-
-
-我的问题是我的数据没有任何变化。它没有过滤我的数据。过滤数据的图表与源数据相同。有人知道哪里出了问题吗？
-第一个图表是源数据，第二个图表是过滤后的图表，在我看来，它们看起来像是同一张图表。
-]]></description>
-      <guid>https://stackoverflow.com/questions/74003337/how-to-implement-a-butterworth-filter</guid>
-      <pubDate>Sun, 09 Oct 2022 08:49:34 GMT</pubDate>
     </item>
     <item>
       <title>为什么我们不应该在同一层使用多个激活函数？[关闭]</title>
