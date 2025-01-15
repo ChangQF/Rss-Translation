@@ -4,15 +4,88 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 15 Jan 2025 09:17:12 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 15 Jan 2025 12:32:28 GMT</lastBuildDate>
     <item>
-      <title>使用什么 GCP 服务进行图像分类</title>
-      <link>https://stackoverflow.com/questions/79356912/what-gcp-service-to-use-of-image-classification</link>
-      <description><![CDATA[我已经将图像作为来自物联网设备的输入，发送到云端，进行图像分类，并将结果发送回某个网址。
-我尝试使用本地模型为 Tf 提供 docker 镜像，并在我的设备上进行分类。
-在 GCP 上，使用什么来做相同的 GKE、GCE、vertex AI 或其他不知道的东西
-（云中机器学习部署的新手）]]></description>
-      <guid>https://stackoverflow.com/questions/79356912/what-gcp-service-to-use-of-image-classification</guid>
+      <title>使用历史数据训练模型后预测日前每小时电价</title>
+      <link>https://stackoverflow.com/questions/79357740/predict-day-ahead-hourly-electricity-prices-after-having-trained-a-model-using-h</link>
+      <description><![CDATA[我使用 2015 年至 2024 年的历史数据训练了一个 XGboost 模型。我添加了一些功能，例如天气数据、电力消耗、来自不同来源（如核能和其他可再生能源）的发电量。我已将电价设定为目标。所有数据均为每小时格式。我已经成功训练了模型，但现在我很难预测第二天的电费每小时价格。
+我不知道如何使用训练好的模型，使用包含截至 2024 年 12 月 7 日的数据的数据集来预测价格。例如：在模型训练到 2024 年 12 月 7 日后，我如何预测 2025 年 1 月 15 日的每小时价格？
+现在，预测代码只取所有特征的最后一个值，并将相同的值放在它试图预测和运行模型的所有行中。
+到目前为止，我已经使用了数据集中最近 24 小时的数据（所有特征的最后 24 行），并使用模型来预测价格，但它甚至离实际价格还很远。
+# 现在添加预测代码
+from datetime import datetime, timedelta
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 获取最后已知数据
+last_known_data = X_test.copy()
+# print(last_known_data.columns)
+
+# 设置明天的目标日期
+target_date = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) + timedelta(days=1)
+
+# 创建 24 小时的 DataFrame
+prediction_hours = pd.date_range(target_date, target_date + timedelta(hours=23), freq=&#39;H&#39;)
+future_df = pd.DataFrame(index=prediction_hours)
+future_df[&#39;Start_date&#39;] = future_df.index
+
+# 将日期时间转换为 unix 时间戳（用于训练）
+future_df[&#39;Start_date&#39;] = future_df[&#39;Start_date&#39;].astype(np.int64) // 10**9
+
+# 获取所有特征的最后已知值
+last_values = last_known_data.iloc[-1].copy()
+
+# 创建用于预测的特征矩阵
+for col in X_train.columns:
+if col in [&#39;Start_date&#39;, &#39;End_date_x&#39;, &#39;End_date_y&#39;, &#39;End_date&#39;, &#39;dt_iso&#39;]:
+future_df[col] = future_df[&#39;Start_date&#39;]
+else:
+future_df[col] = last_values[col]
+
+# 添加基于时间的特征
+future_df[&#39;hour&#39;] = future_df.index.hour
+future_df[&#39;day_of_week&#39;] = future_df.index.dayofweek
+future_df[&#39;month&#39;] = future_df.index.month
+
+# 使用最后已知价格处理价格滞后特征
+last_known_prices = merged_data[&#39;德国/卢森堡 [€/MWh]&#39;].iloc[-72:]
+
+future_df[&#39;price_lag_24&#39;] = last_known_prices.iloc[-24:].values
+future_df[&#39;price_lag_48&#39;] = last_known_prices.iloc[-48:-24].values
+future_df[&#39;price_lag_72&#39;] = last_known_prices.iloc[-72:-48].values
+
+# 计算滚动温度特征
+for window in [24, 48, 72]:
+future_df[f&#39;temp_roll_{window}&#39;] = future_df[&#39;temp&#39;].rolling(window=window, min_periods=1).mean()
+
+# 确保列与训练数据匹配
+prediction_features = future_df[X_train.columns]
+
+#进行预测
+predictions = xgb_model.predict(prediction_features)
+
+# 创建结果 DataFrame
+results_df = pd.DataFrame({
+&#39;Datetime&#39;: prediction_hours,
+&#39;Hour&#39;: prediction_hours.hour,
+&#39;Predicted_Price_EUR_MWh&#39;: np.round(predictions, 2)
+})
+
+# 打印预测
+print(&quot;\n未来 24 小时的预测价格：&quot;)
+print(results_df.to_string(index=False))
+]]></description>
+      <guid>https://stackoverflow.com/questions/79357740/predict-day-ahead-hourly-electricity-prices-after-having-trained-a-model-using-h</guid>
+      <pubDate>Wed, 15 Jan 2025 09:50:48 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用 GCP 服务进行图像分类[关闭]</title>
+      <link>https://stackoverflow.com/questions/79356912/how-to-use-gcp-service-for-image-classification</link>
+      <description><![CDATA[我从物联网设备获取图像作为输入，发送到云端，进行图像分类，并将结果发送回某个 URL。
+我尝试使用本地模型为 TF 提供 docker 镜像，并在我的设备上进行分类。
+（云端 Ml 部署新手）]]></description>
+      <guid>https://stackoverflow.com/questions/79356912/how-to-use-gcp-service-for-image-classification</guid>
       <pubDate>Wed, 15 Jan 2025 02:26:56 GMT</pubDate>
     </item>
     <item>
@@ -226,22 +299,6 @@ total_reward 196.0
       <pubDate>Fri, 03 Jan 2025 19:56:33 GMT</pubDate>
     </item>
     <item>
-      <title>DMIR 的 XMorpher 模型 - 数据集问题[关闭]</title>
-      <link>https://stackoverflow.com/questions/79180321/xmorpher-model-for-dmir-dataset-problem</link>
-      <description><![CDATA[我正在尝试运行 GitHub 项目 XMorpher (https://github.com/Solemoon/XMorpher/tree/main)，但作者没有提供正确的数据集？他在代码中使用了：
- train_labeled_unlabeled_dir = &#39;data/train_labeled_unlabeled&#39;
-train_unlabeled_unlabeled_dir = &#39;data/train_unlabeled_unlabeled&#39;
-test_labeled_labeled_dir = &#39;data/test&#39;
-
-但实际上数据文件夹仅包含 0_1.mat 文件，在 Matlab 中打开时，该文件包含 2 个变量：
-fix_img # 大小：144x144x128 (int16)
-mov_img # 大小：144x144x128 (int16)
-
-由于一张图片包含 5308416 个字节，我无法看到变量的值... 还有其他方法可以运行此模型或我可以使用其他数据集吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79180321/xmorpher-model-for-dmir-dataset-problem</guid>
-      <pubDate>Tue, 12 Nov 2024 08:25:50 GMT</pubDate>
-    </item>
-    <item>
       <title>Vertex AI：Automl-tabular 模板不断给我一个错误</title>
       <link>https://stackoverflow.com/questions/79177501/vertex-ai-automl-tabular-template-keeps-giving-me-an-error</link>
       <description><![CDATA[我正在尝试使用 Google 的 AutoML 产品 (VertexAI) 构建机器学习模型。
@@ -264,7 +321,7 @@ mov_img # 大小：144x144x128 (int16)
     <item>
       <title>如何计算 detector2 中语义分割的每个类的像素总数</title>
       <link>https://stackoverflow.com/questions/78583802/how-to-count-total-number-of-pixels-of-each-class-for-semantic-segmentation-in-d</link>
-      <description><![CDATA[我想计算每个分割类的总像素数，我只需要每个一般对象的计数，例如每辆车一个类，每个人一个类等等。出于这个原因，我使用语义分割而不是实例分割（实例分割会分别考虑每个车辆或人员实例）。但detectron2中语义分割的输出没有二进制掩码。
+      <description><![CDATA[我想计算每个分割类的像素总数，我只需要每个一般对象的计数，例如每辆车一个类，每个人一个类等等。出于这个原因，我使用语义分割而不是实例分割（实例分割会分别考虑每个车辆或人员实例）。但detectron2中语义分割的输出没有二进制掩码。
 我知道实例分割的输出是二进制掩码，可以使用以下代码获取像素数：
 masks = output[&#39;instances&#39;].pred_masks 
 results = torch.sum(torch.flatten(masks, start_dim=1),dim=1)
@@ -277,7 +334,7 @@ results = torch.sum(torch.flatten(masks, start_dim=1),dim=1)
     <item>
       <title>机器学习还是决策树用于工作匹配？</title>
       <link>https://stackoverflow.com/questions/43319120/machinelearning-or-decisiontree-for-job-matching</link>
-      <description><![CDATA[我正在开发一个工作匹配应用程序，我想知道在它们之间匹配元素以获得最佳结果的最佳方法是什么？
+      <description><![CDATA[我正在开发一个工作匹配应用程序，我想知道在元素之间进行匹配以获得最佳结果的最佳方法是什么？
 在我看来，这是通过决策树，因为我们已经知道元素的结构和预期结果。
 但是，机器学习会是一种替代解决方案吗？或者这样做毫无价值？
 我可能错了，但对我来说，机器学习对于对乍一看没有明显共同点的数据进行排序是有效的，对吗？
