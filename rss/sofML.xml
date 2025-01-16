@@ -4,7 +4,49 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 16 Jan 2025 15:17:02 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 16 Jan 2025 18:21:19 GMT</lastBuildDate>
+    <item>
+      <title>如何处理中间阶段的 NaN 损失</title>
+      <link>https://stackoverflow.com/questions/79362342/how-to-handle-nan-losses-at-intermediate-epochs</link>
+      <description><![CDATA[import torch
+import torch.nn as nn
+
+class PINN(nn.Module):
+def __init__(self, input_dim, output_dim, hidden_​​layers, neurons_per_layer):
+super(PINN, self).__init__()
+layer = []
+layer.append(nn.Linear(input_dim, neurons_per_layer))
+for _ in range(hidden_​​layers):
+layer.append(nn.Linear(neurons_per_layer, neurons_per_layer))
+layer.append(nn.Linear(neurons_per_layer, output_dim))
+self.network = nn.Sequential(*layers)
+
+def forward(self, x):
+return self.network(x)
+
+# 示例：生成随机输入数据
+inputs = torch.rand((1000, 3)) # 3D 输入坐标
+
+model = PINN(input_dim=3, output_dim=3, hidden_​​layers=4, neurons_per_layer=64)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+epochs = 10000
+for epoch in range(epochs):
+optimizer.zero_grad() 
+
+nn_output = model(inputs) # 计算 NN 预测
+# 根据 nn_output 计算损失
+loss = loss_func(nn_output) # --&gt; loss = NaN，如何继续？
+
+loss.backward() 
+optimizer.step()
+
+将输入传递到网络后，基于物理的损失函数（NN 输出函数）可能会产生 NaN，因为 NN 输出不合适。
+在中间阶段，我可以接受违反物理定律，但优化器（例如 Adam）是否能够从返回的 NaN 损失中恢复？
+（MATLAB 中的许多优化器可以正确处理 NaN，并希望目标函数在无法进行前向评估的点返回 NaN。这是一个尝试不同点的指标。）]]></description>
+      <guid>https://stackoverflow.com/questions/79362342/how-to-handle-nan-losses-at-intermediate-epochs</guid>
+      <pubDate>Thu, 16 Jan 2025 16:17:08 GMT</pubDate>
+    </item>
     <item>
       <title>pytorch：所有样本的前向传递</title>
       <link>https://stackoverflow.com/questions/79361940/pytorch-forward-pass-with-all-samples</link>
@@ -199,7 +241,7 @@ return image, label
       <pubDate>Thu, 16 Jan 2025 00:27:41 GMT</pubDate>
     </item>
     <item>
-      <title>Scikit-learn 中 .fit() 方法的用例？</title>
+      <title>Scikit-learn 中 .fit() 方法的用例？[重复]</title>
       <link>https://stackoverflow.com/questions/79360038/use-cases-for-the-fit-method-in-scikit-learn</link>
       <description><![CDATA[是否存在 .fit() 比使用 .fit_transform() 更实用的情况/用例？例如，当标签编码时：
 encoder = LabelEncoder()
@@ -214,52 +256,6 @@ title_encoded =coder.fit_transform(title)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79360038/use-cases-for-the-fit-method-in-scikit-learn</guid>
       <pubDate>Thu, 16 Jan 2025 00:04:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 OpenCV 库训练 ML 模型时出现问题</title>
-      <link>https://stackoverflow.com/questions/79359797/problems-training-the-ml-model-using-the-opencv-library</link>
-      <description><![CDATA[我想创建一个 ML 模型，用于识别 MNIST 数据集中的手写数字。ML 模型是使用 OpenCV 库用 C++ 编写的。在构建模型并训练数据后，我在输出层中得到的数据总是 Nan 或 Inf。
-我尝试更改训练参数，但没有任何效果。我尝试处理一个较小的 100 个单位的数据集，在该数据集中，我设法在输出层中获取一些值，但其中大多数仍然是 Nan。我就是找不到原因。以下是 ML 模型的代码：
-cv::Ptr&lt;cv::ml::ANN_MLP&gt; mlp = cv::ml::ANN_MLP::create();
-mlp-&gt;setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);
-
-int inputLayerSize = imagesData[0].total();
-if (inputLayerSize &gt; std::numeric_limits&lt;int&gt;::max()) {
-throw std::overflow_error(&quot;inputLayerSize 超出 int 的最大值&quot;);
-}
-size_t hiddenLayerSize = 100;
-size_t outputLayerSize = 10;
-
-cv::Mat layer = (cv::Mat_&lt;int&gt;(3, 1)&lt;&lt;inputLayerSize, hiddenLayerSize, outputLayerSize);
-
-mlp-&gt;setLayerSizes(layers);
-
-int numSamples = imagesData.size();
-
-cv::Mat trainingData(numSamples, inputLayerSize, CV_32F);
-cv::Mat labelData(numSamples, outputLayerSize, CV_32F);
-
-for (int i = 0; i &lt; numSamples; i++) {
-
-cv::Mat image = imagesData[i].reshape(1, 1);
-image.convertTo(trainingData.row(i), CV_32F);
-
-cv::Mat label = cv::Mat::zeros(1, outputLayerSize, CV_32F);
-la​​bel.at&lt;float&gt;(0, labelsData[i]) = 1.0;
-label.copyTo(labelData.row(i));
-
-}
-
-cv::TermCriteria termCrit(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 10, 0.001);
-mlp-&gt;setTermCriteria(termCrit);
-
-mlp-&gt;setTrainMethod(cv::ml::ANN_MLP::BACKPROP, 0.001, 0.1);
-
-mlp-&gt;train(trainingData, cv::ml::ROW_SAMPLE, labelData);
-
-我还对像素数据进行了标准化。]]></description>
-      <guid>https://stackoverflow.com/questions/79359797/problems-training-the-ml-model-using-the-opencv-library</guid>
-      <pubDate>Wed, 15 Jan 2025 21:50:41 GMT</pubDate>
     </item>
     <item>
       <title>F1-score、IOU 和 Dice Score 的实现</title>
@@ -278,38 +274,42 @@ mlp-&gt;train(trainingData, cv::ml::ROW_SAMPLE, labelData);
       <pubDate>Wed, 15 Jan 2025 02:26:56 GMT</pubDate>
     </item>
     <item>
-      <title>损失函数是否返回正确的值？</title>
-      <link>https://stackoverflow.com/questions/79336024/is-the-loss-function-returns-the-correct-value</link>
-      <description><![CDATA[我正在研究医学数据集的语义分割问题。我使用专注于正类像素的软骰子损失，具体实现如下：https://arxiv.org/abs/2209.06078 。这是我的代码：
-def soft_dice_loss(y_true, y_pred):
-epsilon = 1e-8 # 添加小 epsilon 以避免除以零
-
-# 计算分子和分母 
-numerator_dice_coef= 2 * tf.reduce_sum(y_true * y_pred, axis=(2, 3)) + epsilon
-
-den_dice_coef = (tf.reduce_sum(y_true * y_true, axis=(2, 3))) + (tf.reduce_sum(y_pred * y_pred, axis=(2, 3))) + epsilon
-
-# 批次中每幅图像的骰子系数
-dice_coef = numerator_dice_coef / den_dice_coef
-
-# 批次中的平均骰子系数
-#mean_dice_coef = tf.reduce_mean(dice_coef)
-
-# 每个样本所有通道的平均 Dice 系数
-mean_dice_coef_per_sample = tf.reduce_mean(dice_coef, axis=1) # 形状：[B]
-
-return 1 - mean_dice_coef_per_sample
-
-我的问题是，我返回的值是否正确？我之所以问这个问题，是因为我很困惑，我是否应该将整个批次的平均损失值返回给 Keras，还是只返回一个大小为 batch_size 的数组，其中每个元素都是每个样本的损失值？我很困惑，因为我看到一些实现只返回一个值，而另一些实现则返回一个数组。]]></description>
-      <guid>https://stackoverflow.com/questions/79336024/is-the-loss-function-returns-the-correct-value</guid>
-      <pubDate>Tue, 07 Jan 2025 12:37:35 GMT</pubDate>
-    </item>
-    <item>
       <title>无法使用 nltk 函数</title>
       <link>https://stackoverflow.com/questions/78862426/unable-to-use-nltk-functions</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/78862426/unable-to-use-nltk-functions</guid>
       <pubDate>Mon, 12 Aug 2024 15:17:29 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何为 Transformer 实现位置方向前馈神经网络？</title>
+      <link>https://stackoverflow.com/questions/74979359/how-is-position-wise-feed-forward-neural-network-implemented-for-transformers</link>
+      <description><![CDATA[我很难理解 transformer 架构中的位置式前馈神经网络。
+
+让我们以机器翻译任务为例，其中输入是句子。从图中我了解到，对于每个单词，不同的前馈神经网络用于自注意子层的输出。前馈层应用了类似的线性变换，但每个变换的实际权重和偏差是不同的，因为它们是两个不同的前馈神经网络。
+参考链接，这是PositionWiseFeedForward神经网络的类
+class PositionwiseFeedForward(nn.Module):
+“实现 FFN 方程。”
+def __init__(self, d_model, d_ff, dropout=0.1):
+super(PositionwiseFeedForward, self).__init__()
+self.w_1 = nn.Linear(d_model, d_ff)
+self.w_2 = nn.Linear(d_ff, d_model)
+self.dropout = nn.Dropout(dropout)
+
+def forward(self, x):
+return self.w_2(self.dropout(F.relu(self.w_1(x))))
+
+我的问题是：
+我没有看到任何与位置相关的信息。这是一个具有两层的简单全连接神经网络。假设 x 是句子中每个单词的嵌入列表，句子中的每个单词都由上面的层使用相同的权重和偏差进行转换。（如果我错了，请纠正我）
+我期望找到类似将每个单词嵌入传递到单独的 Linear 层的方法，该层将具有不同的权重和偏差，以实现与图片中所示的类似效果。]]></description>
+      <guid>https://stackoverflow.com/questions/74979359/how-is-position-wise-feed-forward-neural-network-implemented-for-transformers</guid>
+      <pubDate>Mon, 02 Jan 2023 05:59:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>(使用 cpu)Pytorch：IndexError：索引超出自身范围。 (使用 cuda)断言“srcIndex < srcSelectDimSize”失败。 如何解决？</title>
+      <link>https://stackoverflow.com/questions/69596496/with-cpupytorch-indexerror-index-out-of-range-in-self-with-cudaassertion</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/69596496/with-cpupytorch-indexerror-index-out-of-range-in-self-with-cudaassertion</guid>
+      <pubDate>Sat, 16 Oct 2021 14:28:36 GMT</pubDate>
     </item>
     <item>
       <title>在 lightgbm 或 XGBoost 中校准概率</title>
@@ -338,63 +338,6 @@ ypred = lgb_clf.predict(test, num_iteration=lgb_clf.best_iteration)
 ]]></description>
       <guid>https://stackoverflow.com/questions/60772387/calibrating-probabilities-in-lightgbm-or-xgboost</guid>
       <pubDate>Fri, 20 Mar 2020 10:29:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>ValueError：分类指标无法处理多类别和多标签指标目标的混合</title>
-      <link>https://stackoverflow.com/questions/56496708/valueerror-classification-metrics-cant-handle-a-mix-of-multiclass-and-multilab</link>
-      <description><![CDATA[我有一个多类标记文本分类问题，有 2000 个不同的标签。使用带有 Glove Embedding 的 LSTM 进行分类。
-
-目标变量的标签编码器
-带有 Embedd 层的 LSTM 层
-错误度量是 F2 分数
-
-LabelEncoded 目标变量：
-le = LabelEncoder() 
-le.fit(y)
-train_y = le.transform(y_train)
-test_y = le.transform(y_test)
-
-带有 Glove Embeddings 的 LSTM 网络如下所示
-np.random.seed(seed)
-K.clear_session()
-model = Sequential()
-model.add(Embedding(max_features, embed_dim, input_length = X_train.shape[1],
-weights=[embedding_matrix]))#,trainable=False
-model.add(LSTM(100, dropout=0.2, recurrent_dropout=0.2))
-model.add(Dense(num_classes,activation=&#39;softmax&#39;))
-model.compile(optimizer=&#39;rmsprop&#39;,loss=&#39;sparse_categorical_crossentropy&#39;)
-print(model.summary())
-
-我的错误指标是 F1 分数。我为错误度量构建了以下函数
-class Metrics(Callback):
-def on_train_begin(self, logs={}):
-self.val_f1s = []
-self.val_recalls = []
-self.val_precisions = []
-
-def on_epoch_end(self, epoch, logs={}):
-val_predict = (np.asarray(self.model.predict(self.validation_data[0]))).round()
-val_targ = self.validation_data[1]
-_val_f1 = f1_score(val_targ, val_predict)
-_val_recall = recall_score(val_targ, val_predict)
-_val_precision = precision_score(val_targ, val_predict)
-self.val_f1s.append(_val_f1)
-self.val_recalls.append(_val_recall)
-self.val_precisions.append(_val_precision)
-print(&quot;— val_f1: %f — val_precision: %f — val_recall %f&quot; % (_val_f1, _val_precision, _val_recall))
-return
-
-metrics = Metrics()
-
-##模型拟合是
-model.fit(X_train, train_y, validation_data=(X_test, test_y),epochs=10, batch_size=64, callbacks=[metrics])
-
-第一个 epoch 后出现以下错误：
-ValueError：分类指标无法处理多类和连续多输出目标的混合
-
-在哪里我的代码有错误吗？]]></description>
-      <guid>https://stackoverflow.com/questions/56496708/valueerror-classification-metrics-cant-handle-a-mix-of-multiclass-and-multilab</guid>
-      <pubDate>Fri, 07 Jun 2019 14:55:37 GMT</pubDate>
     </item>
     <item>
       <title>sklearn 中的 fit 方法</title>
