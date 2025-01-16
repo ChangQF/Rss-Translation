@@ -4,7 +4,62 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 16 Jan 2025 01:13:52 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 16 Jan 2025 03:18:45 GMT</lastBuildDate>
+    <item>
+      <title>有效覆盖 pytorch 数据集</title>
+      <link>https://stackoverflow.com/questions/79360229/override-pytorch-dataset-efficiently</link>
+      <description><![CDATA[我想继承 torch.utils.data.Dataset 类来加载我的自定义图像数据集，比如说用于分类任务。这是官方 pytorch 网站的示例，位于此 链接:
+import os
+import pandas as pd
+from torchvision.io import read_image
+
+class CustomImageDataset(Dataset):
+def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
+self.img_labels = pd.read_csv(annotations_file)
+self.img_dir = img_dir
+self.transform = transform
+self.target_transform = target_transform
+
+def __len__(self):
+return len(self.img_labels)
+
+def __getitem__(self, idx):
+img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
+image = read_image(img_path)
+label = self.img_labels.iloc[idx, 1]
+if self.transform:
+image = self.transform(image)
+if self.target_transform:
+label = self.target_transform(label)
+return image, label
+
+我注意到：
+
+在 __getitem__ 中，我们将图像从磁盘读取到内存中。这意味着如果我们训练模型几个时期，我们会多次将同一幅图像重新读入内存。据我所知，这是一个代价高昂的操作
+每次从磁盘读取图像时都会应用一次变换，在我看来，这几乎是一个多余的操作。
+
+我理解，在非常大的数据集中，我们无法将数据完全放入内存中，因此我们别无选择，只能以这种方式读取数据（因为我们必须在一个时期内迭代所有数据），我想知道，如果我的所有数据都可以放入内存中，那么在 __init__ 函数中从磁盘读取所有数据不是更好的方法吗？
+通过我在计算机视觉方面的一点经验，我注意到在 变换 中将图像裁剪成固定大小的图像非常常见。那么为什么我们不应该裁剪图像一次并将其存储在磁盘上的其他地方，而在整个训练过程中只读取裁剪后的图像呢？在我看来，这似乎是一种更有效的方法。
+我理解，一些用于增强而不是规范化的转换最好应用于 __getitem__ 中，以便获得随机生成的数据而不是固定的数据。
+你能为我澄清一下这个主题吗？
+如果我缺少的是常识，请用正确的方法指导我找到代码库。]]></description>
+      <guid>https://stackoverflow.com/questions/79360229/override-pytorch-dataset-efficiently</guid>
+      <pubDate>Thu, 16 Jan 2025 02:38:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>创建算法的算法[关闭]</title>
+      <link>https://stackoverflow.com/questions/79360176/algorithm-that-creates-algorithms</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79360176/algorithm-that-creates-algorithms</guid>
+      <pubDate>Thu, 16 Jan 2025 01:58:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 yolov5 创建的模型执行脚本时出现图像大小调整问题</title>
+      <link>https://stackoverflow.com/questions/79360063/image-resizing-issue-while-executing-script-with-a-model-created-using-yolov5</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79360063/image-resizing-issue-while-executing-script-with-a-model-created-using-yolov5</guid>
+      <pubDate>Thu, 16 Jan 2025 00:27:41 GMT</pubDate>
+    </item>
     <item>
       <title>Scikit-learn 中 .fit() 方法的用例？</title>
       <link>https://stackoverflow.com/questions/79360038/use-cases-for-the-fit-method-in-scikit-learn</link>
@@ -23,11 +78,137 @@ title_encoded =coder.fit_transform(title)
       <pubDate>Thu, 16 Jan 2025 00:04:04 GMT</pubDate>
     </item>
     <item>
+      <title>使用 OpenCV 库训练 ML 模型时出现问题</title>
+      <link>https://stackoverflow.com/questions/79359797/problems-training-the-ml-model-using-the-opencv-library</link>
+      <description><![CDATA[我想创建一个 ML 模型，用于识别 MNIST 数据集中的手写数字。ML 模型是使用 OpenCV 库用 C++ 编写的。在构建模型并训练数据后，我在输出层中得到的数据总是 Nan 或 Inf。
+我尝试更改训练参数，但没有任何效果。我尝试处理一个较小的 100 个单位的数据集，在该数据集中，我设法在输出层中获取一些值，但其中大多数仍然是 Nan。我就是找不到原因。以下是 ML 模型的代码：
+cv::Ptr&lt;cv::ml::ANN_MLP&gt; mlp = cv::ml::ANN_MLP::create();
+mlp-&gt;setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);
+
+int inputLayerSize = imagesData[0].total();
+if (inputLayerSize &gt; std::numeric_limits&lt;int&gt;::max()) {
+throw std::overflow_error(&quot;inputLayerSize 超出 int 的最大值&quot;);
+}
+size_t hiddenLayerSize = 100;
+size_t outputLayerSize = 10;
+
+cv::Mat layer = (cv::Mat_&lt;int&gt;(3, 1)&lt;&lt;inputLayerSize, hiddenLayerSize, outputLayerSize);
+
+mlp-&gt;setLayerSizes(layers);
+
+int numSamples = imagesData.size();
+
+cv::Mat trainingData(numSamples, inputLayerSize, CV_32F);
+cv::Mat labelData(numSamples, outputLayerSize, CV_32F);
+
+for (int i = 0; i &lt; numSamples; i++) {
+
+cv::Mat image = imagesData[i].reshape(1, 1);
+image.convertTo(trainingData.row(i), CV_32F);
+
+cv::Mat label = cv::Mat::zeros(1, outputLayerSize, CV_32F);
+la​​bel.at&lt;float&gt;(0, labelsData[i]) = 1.0;
+label.copyTo(labelData.row(i));
+
+}
+
+cv::TermCriteria termCrit(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 10, 0.001);
+mlp-&gt;setTermCriteria(termCrit);
+
+mlp-&gt;setTrainMethod(cv::ml::ANN_MLP::BACKPROP, 0.001, 0.1);
+
+mlp-&gt;train(trainingData, cv::ml::ROW_SAMPLE, labelData);
+
+我还对像素数据进行了标准化。]]></description>
+      <guid>https://stackoverflow.com/questions/79359797/problems-training-the-ml-model-using-the-opencv-library</guid>
+      <pubDate>Wed, 15 Jan 2025 21:50:41 GMT</pubDate>
+    </item>
+    <item>
       <title>贝叶斯分类器代码错误。需要修复问题 7 和问题 8 中的运行时错误 [关闭]</title>
       <link>https://stackoverflow.com/questions/79359212/bayes-classifier-code-error-need-fix-for-a-runtime-error-in-problem-7-and-prob</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79359212/bayes-classifier-code-error-need-fix-for-a-runtime-error-in-problem-7-and-prob</guid>
       <pubDate>Wed, 15 Jan 2025 17:38:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>YOLOv1 模型对每幅图像产生相同的结果</title>
+      <link>https://stackoverflow.com/questions/79358877/the-yolov1-model-produces-the-same-results-for-each-image</link>
+      <description><![CDATA[该模型 (Yolov1) 是用 PyTorch 编写的。训练了 30 个 epoch，使用 AdamOptimazer 进行训练，学习率 = 1e-6，batch_size = 64。DeepScoresV2 密集数据集：训练样本中有 1362 张照片，我从数据集中只选取了 3 个类别。但模型对所有照片都返回相同的结果。可能是什么问题？
+任务是识别乐谱上的乐谱，以及搜索特殊符号（accolade 和 keys）。
+示例（&#39;Brace&#39; 出现在空单元格中，这是输出图像的函数的错误，数据集本身一切正常）：
+示例
+训练样本中的类别分布（我只从中取 &#39;brace&#39;、&#39;staff&#39; 和 &#39;ottavaBracket&#39;）：
+类别
+模型架构：
+class ConvCombo(nn.Module):
+def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding=1):
+super().__init__()
+self._stack = nn.Sequential(
+nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=False),
+# nn.BatchNorm2d(out_channels),
+nn.LeakyReLU(0.1),
+)
+def forward(self, x):
+return self._stack(x)
+
+class YOLOv1(nn.Module):
+def __init__(self, S: int=7, C: int=20, B: int=2): # 与原文相同
+super().__init__()
+self._conv_stack = nn.Sequential(
+ConvCombo(in_channels=3, out_channels=64, kernel_size=S, stride=2, padding=3),
+nn.MaxPool2d(kernel_size=2,步幅=2),
+ConvCombo(输入通道=64，输出通道=192，内核大小=3),
+nn.MaxPool2d(内核大小=2，步幅=2),
+ConvCombo(输入通道=192，输出通道=128，内核大小=1，填充=0),
+ConvCombo(输入通道=128，输出通道=256，内核大小=3),
+ConvCombo(输入通道=256，输出通道=256，内核大小=1，填充=0),
+ConvCombo(输入通道=256，输出通道=512，内核大小=3),
+nn.MaxPool2d(内核大小=2，步幅=2),
+# x4 -&gt;
+ConvCombo（输入通道=512，输出通道=256，内核大小=1，填充=0），
+ConvCombo（输入通道=256，输出通道=512，内核大小=3），
+ConvCombo（输入通道=512，输出通道=256，内核大小=1，填充=0），
+ConvCombo（输入通道=256，输出通道=512，内核大小=3），
+ConvCombo（输入通道=512，输出通道=256，内核大小=1，填充=0），
+ConvCombo（输入通道=256，输出通道=512，内核大小=3），
+ConvCombo（输入通道=512，输出通道=256，内核大小=1，填充=0），
+ConvCombo（输入通道=256， out_channels=512, kernel_size=3),
+# &lt;-
+ConvCombo(in_channels=512, out_channels=512, kernel_size=1, padding=0),
+ConvCombo(in_channels=512, out_channels=1024, kernel_size=3),
+nn.MaxPool2d(kernel_size=2, stride=2),
+# x2 -&gt;
+ConvCombo（输入通道=1024，输出通道=512，内核大小=1，填充=0），
+ConvCombo（输入通道=512，输出通道=1024，内核大小=3），
+ConvCombo（输入通道=1024，输出通道=512，内核大小=1，填充=0），
+ConvCombo（输入通道=512，输出通道=1024，内核大小=3），
+# &lt;-
+ConvCombo（输入通道=1024，输出通道=1024，内核大小=3），
+ConvCombo（输入通道=1024，输出通道=1024，内核大小=3，步幅=2，填充=1），
+ConvCombo（输入通道=1024，输出通道=1024，内核大小=3， padding=1),
+ConvCombo(in_channels=1024, out_channels=1024, kernel_size=3),
+)
+self._conn_stack = nn.Sequential(
+nn.Flatten(), # 将连续范围的 dims 展平为张量
+nn.Linear(in_features=(1024 * S * S), out_features=4096),
+nn.Dropout(0.0),
+nn.LeakyReLU(0.1),
+nn.Linear(in_features=4096, out_features=(S * S * (B * 5 + C))),
+)
+
+def forward(self, x):
+out = self._conv_stack(x)
+out = self._conn_stack(out)
+return out
+
+def process(self, x):
+return self(x)
+
+模型训练后输出的结果：
+结果
+我正在尝试训练模型识别乐谱和其他一些符号，但输出对每张图片的预测都相同。我已经尝试过改变学习率，但没有产生任何结果。]]></description>
+      <guid>https://stackoverflow.com/questions/79358877/the-yolov1-model-produces-the-same-results-for-each-image</guid>
+      <pubDate>Wed, 15 Jan 2025 15:47:38 GMT</pubDate>
     </item>
     <item>
       <title>该模型无法提前几步预测数据</title>
@@ -142,80 +323,6 @@ y_pred = scaler_y.inverse_transform(y_pred_scaled).flatten()
       <pubDate>Wed, 15 Jan 2025 12:44:48 GMT</pubDate>
     </item>
     <item>
-      <title>使用历史数据训练模型后预测日前每小时电价</title>
-      <link>https://stackoverflow.com/questions/79357740/predict-day-ahead-hourly-electricity-prices-after-having-trained-a-model-using-h</link>
-      <description><![CDATA[我使用 2015 年至 2024 年的历史数据训练了一个 XGboost 模型。我添加了一些功能，例如天气数据、电力消耗、来自不同来源（如核能和其他可再生能源）的发电量。我已将电价设定为目标。所有数据均为每小时格式。我已经成功训练了模型，但现在我很难预测第二天的电费每小时价格。
-我不知道如何使用训练好的模型，使用包含截至 2024 年 12 月 7 日的数据的数据集来预测价格。例如：在模型训练到 2024 年 12 月 7 日后，我如何预测 2025 年 1 月 15 日的每小时价格？
-现在，预测代码只取所有特征的最后一个值，并将相同的值放在它试图预测和运行模型的所有行中。
-到目前为止，我已经使用了数据集中最近 24 小时的数据（所有特征的最后 24 行），并使用模型来预测价格，但它甚至离实际价格还很远。
-# 现在添加预测代码
-from datetime import datetime, timedelta
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-# 获取最后已知数据
-last_known_data = X_test.copy()
-# print(last_known_data.columns)
-
-# 设置明天的目标日期
-target_date = datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) + timedelta(days=1)
-
-# 创建 24 小时的 DataFrame
-prediction_hours = pd.date_range(target_date, target_date + timedelta(hours=23), freq=&#39;H&#39;)
-future_df = pd.DataFrame(index=prediction_hours)
-future_df[&#39;Start_date&#39;] = future_df.index
-
-# 将日期时间转换为 unix 时间戳（用于训练）
-future_df[&#39;Start_date&#39;] = future_df[&#39;Start_date&#39;].astype(np.int64) // 10**9
-
-# 获取所有特征的最后已知值
-last_values = last_known_data.iloc[-1].copy()
-
-# 创建用于预测的特征矩阵
-for col in X_train.columns:
-if col in [&#39;Start_date&#39;, &#39;End_date_x&#39;, &#39;End_date_y&#39;, &#39;End_date&#39;, &#39;dt_iso&#39;]:
-future_df[col] = future_df[&#39;Start_date&#39;]
-else:
-future_df[col] = last_values[col]
-
-# 添加基于时间的特征
-future_df[&#39;hour&#39;] = future_df.index.hour
-future_df[&#39;day_of_week&#39;] = future_df.index.dayofweek
-future_df[&#39;month&#39;] = future_df.index.month
-
-# 使用最后已知价格处理价格滞后特征
-last_known_prices = merged_data[&#39;德国/卢森堡 [€/MWh]&#39;].iloc[-72:]
-
-future_df[&#39;price_lag_24&#39;] = last_known_prices.iloc[-24:].values
-future_df[&#39;price_lag_48&#39;] = last_known_prices.iloc[-48:-24].values
-future_df[&#39;price_lag_72&#39;] = last_known_prices.iloc[-72:-48].values
-
-# 计算滚动温度特征
-for window in [24, 48, 72]:
-future_df[f&#39;temp_roll_{window}&#39;] = future_df[&#39;temp&#39;].rolling(window=window, min_periods=1).mean()
-
-# 确保列与训练数据匹配
-prediction_features = future_df[X_train.columns]
-
-#进行预测
-predictions = xgb_model.predict(prediction_features)
-
-# 创建结果 DataFrame
-results_df = pd.DataFrame({
-&#39;Datetime&#39;: prediction_hours,
-&#39;Hour&#39;: prediction_hours.hour,
-&#39;Predicted_Price_EUR_MWh&#39;: np.round(predictions, 2)
-})
-
-# 打印预测
-print(&quot;\n未来 24 小时的预测价格：&quot;)
-print(results_df.to_string(index=False))
-]]></description>
-      <guid>https://stackoverflow.com/questions/79357740/predict-day-ahead-hourly-electricity-prices-after-having-trained-a-model-using-h</guid>
-      <pubDate>Wed, 15 Jan 2025 09:50:48 GMT</pubDate>
-    </item>
-    <item>
       <title>如何使用 GCP 服务进行图像分类[关闭]</title>
       <link>https://stackoverflow.com/questions/79356912/how-to-use-gcp-service-for-image-classification</link>
       <description><![CDATA[我从物联网设备获取图像作为输入，发送到云端，进行图像分类，并将结果发送回某个 URL。
@@ -225,68 +332,12 @@ print(results_df.to_string(index=False))
       <pubDate>Wed, 15 Jan 2025 02:26:56 GMT</pubDate>
     </item>
     <item>
-      <title>LSTM 自动编码器效果很差</title>
-      <link>https://stackoverflow.com/questions/79356691/lstm-autoencoder-very-poor-results</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79356691/lstm-autoencoder-very-poor-results</guid>
-      <pubDate>Tue, 14 Jan 2025 23:45:14 GMT</pubDate>
-    </item>
-    <item>
       <title>我应该将目标变量编码为二进制还是仅将其用作逻辑回归的随机梯度上升中的实际值[关闭]</title>
       <link>https://stackoverflow.com/questions/79356129/should-i-encode-my-target-variable-into-binary-or-just-use-it-as-real-value-in-s</link>
       <description><![CDATA[逻辑回归中有 Yi，其公式为公式。
 Yi 是目标的实际值还是 Yi 应该是二进制的。如果我的目标变量 / Yi 在问题集中编码为 y 元素 {1 和 -1}，会怎么样？请记住，我使用的是随机梯度上升。所以我的问题集包括来自不同特征 (x) 的数据以及目标变量 (y)。问题还指出，y 已被编码为 1 作为正值，-1 作为负值。但是，当我使用逻辑回归时，我通常将目标变量设置为 0 或 1。因此，在继续使用上图的公式之前，我应该先将其编码为 0/1 吗？还是应该按原样使用 {1,-1}。]]></description>
       <guid>https://stackoverflow.com/questions/79356129/should-i-encode-my-target-variable-into-binary-or-just-use-it-as-real-value-in-s</guid>
       <pubDate>Tue, 14 Jan 2025 19:10:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用机器学习算法的逐步方法[关闭]</title>
-      <link>https://stackoverflow.com/questions/79356061/stepwise-way-of-using-machine-learning-algorithms</link>
-      <description><![CDATA[
-如何使用数据集
-如何找到它们，即使网站已经使用过。
--设计测验算法
-将数据集映射到测验算法以预测职业。
-快速学习的有效方法。
-
-我和我的朋友决定使用霍兰德代码进行技术职业预测。为此，我们需要使用像 knn 这样的机器学习算法，但我们需要合并数据集？但我们不知道如何做到这一点。您能提供指导吗？您是否有其他方法可以解决这个问题？]]></description>
-      <guid>https://stackoverflow.com/questions/79356061/stepwise-way-of-using-machine-learning-algorithms</guid>
-      <pubDate>Tue, 14 Jan 2025 18:42:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么在 PyTorch 中保存 ViT 模型时不会生成 constants.pkl，在边缘设备上部署时是否需要它？</title>
-      <link>https://stackoverflow.com/questions/79355096/why-is-constants-pkl-not-generated-when-saving-a-vit-model-in-pytorch-and-is-it</link>
-      <description><![CDATA[我训练了一个 Vision Transformer (ViT) 模型进行分类，并使用以下 PyTorch 代码保存了该模型：
-torch.save(model, &quot;vit_model.pth&quot;)
-当我尝试将保存的模型集成到 Android 应用程序中时，我在运行时遇到了以下错误：
-无法启动活动 ComponentInfo{com.test.package/com.test.package.MainActivity}：java.lang.RuntimeException：com.facebook.jni.CppException：PytorchStreamReader 无法定位文件 constants.pkl：找不到文件
-我所做的：
-
-我将 .pth 模型文件转换为 zip 文件以检查其内容，我注意到文件中不存在 constants.pkl。
-我搜索了有关constants.pkl，但我找不到关于为什么它没有生成或它在这种情况下的作用的明确解释。
-
-我的问题：
-
-为什么使用 torch.save() 保存 PyTorch 模型时没有生成 constants.pkl？
-在边缘设备（例如 Android）上部署模型是否需要 constants.pkl？
-如果不需要 constants.pkl，我该如何将我的模型集成到 Android 应用程序中而不会遇到此错误？
-如果需要 constants.pkl，我该如何生成它或修改我的模型保存过程以包含它？
-
-其他信息：
-
-模型：在 PyTorch 中训练的 Vision Transformer (ViT)。
-Android 集成：使用PyTorch Android 库。
-应用程序尝试加载模型文件时似乎出现错误。
-
-我需要什么：
-
-明确解释 constants.pkl 的作用以及它是否是 Android 上 PyTorch 模型部署的必需文件。
-
-正确保存模型并将其集成到 Android 应用程序中以避免此问题的步骤或代码示例。
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/79355096/why-is-constants-pkl-not-generated-when-saving-a-vit-model-in-pytorch-and-is-it</guid>
-      <pubDate>Tue, 14 Jan 2025 13:07:19 GMT</pubDate>
     </item>
     <item>
       <title>如何计算 detector2 中语义分割的每个类的像素总数</title>
@@ -510,19 +561,6 @@ cost = errorSum / (-1 .* dataSize(1)); % 乘以 -(1/m) 以获得成本
 这是我的训练数据，其中第一列是类（1 或 0），接下来的七列是我要回归的特征。]]></description>
       <guid>https://stackoverflow.com/questions/26418178/stochastic-gradient-descent-for-logistic-regression-always-returns-a-cost-of-inf</guid>
       <pubDate>Fri, 17 Oct 2014 05:00:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>Matlab 中 Libsvm SVR 训练的数据格式</title>
-      <link>https://stackoverflow.com/questions/19163090/data-format-for-libsvm-svr-training-in-matlab</link>
-      <description><![CDATA[我有两个与 LIBSVM 中的数据输入相关的问题。
-
-我是否需要将数据格式化为稀疏格式才能在 matlab 中输入 svr libsvm？
-在将数据输入训练器之前，我是否需要对数据进行规范化？
-
-我正在训练 svr，但没有做任何这些，即使格式化，我也得到了相同的结果。正如 libsvm 文档中提到的，当我们为 OCTAVE 执行数据格式化时，会使用数据格式化，因为只需运行 train.py 和 test.py 即可自动运行所有内容。但在 matlab 中我不确定。
-有人可以澄清一下吗？]]></description>
-      <guid>https://stackoverflow.com/questions/19163090/data-format-for-libsvm-svr-training-in-matlab</guid>
-      <pubDate>Thu, 03 Oct 2013 15:25:13 GMT</pubDate>
     </item>
     </channel>
 </rss>
