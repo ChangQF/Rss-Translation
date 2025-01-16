@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 16 Jan 2025 03:18:45 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 16 Jan 2025 06:23:36 GMT</lastBuildDate>
     <item>
       <title>有效覆盖 pytorch 数据集</title>
       <link>https://stackoverflow.com/questions/79360229/override-pytorch-dataset-efficiently</link>
@@ -124,6 +124,26 @@ mlp-&gt;train(trainingData, cv::ml::ROW_SAMPLE, labelData);
       <pubDate>Wed, 15 Jan 2025 21:50:41 GMT</pubDate>
     </item>
     <item>
+      <title>F1-score、IOU 和 Dice Score 的实现</title>
+      <link>https://stackoverflow.com/questions/79359767/implementation-of-f1-score-iou-and-dice-score</link>
+      <description><![CDATA[这篇论文提出了一种医学图像分割混合 CNN - Transformer 模型，用于同时分割医学图像中的器官和病变。他们的模型有两个输出分支，一个输出器官蒙版，另一个输出病变蒙版。现在他们这样描述测试过程：
+
+为了将我们的方法与最先进的方法的性能进行比较，使用了以下评估指标：F1 分数 (F1-S)、Dice 分数 (D-S)、交并比 (IoU) 和
+HD95，定义如下：
+
+
+
+
+其中 T P 为真阳性，T N 为真阴性，F P 为假阳性，F N 为假阴性，均与测试图像的分割类别相关。Dice 分数是一个宏观指标，针对 N 个测试图像计算如下：
+
+其中 TPi、FPi 和 FNi 分别为真阳性、真阴性和假阴性。分别是第 i 张图像的正样本和假阴性样本。
+
+我对如何像本文中那样实现这些指标（不包括 HD95）感到困惑，我的理解是，要计算 f1 分数和 IoU 的 TP、FP 和 FN，我需要汇总测试集中所有样本的这 3 个数量（TP、FP 和 FN）以获得两个输出（病变和器官），并且汇总是一个求和运算。因此，例如要计算 TP，我需要为每个样本的每个输出计算它并对该 TP 求和。然后以类似的方式重复此操作以计算每个样本的 TP，然后将所有这些 TP 相加以获得总体 TP。然后我对 FP 和 FN 执行相同操作，然后将它们代入公式中。
+我不确定我的理解是否正确。对于 Dice 分数，我需要为每个输出分别计算它然后对它们取平均值？我对此不太确定，所以我访问了这篇论文的 GitHub。模型定义在此处，测试过程的代码定义在此处。使用的框架是 PyTorch。我对 PyTorch 一无所知，所以我仍然无法理解这些指标是如何实现的，因此，我无法确认我的理解是否正确。所以请有人解释一下实现这些指标的逻辑。]]></description>
+      <guid>https://stackoverflow.com/questions/79359767/implementation-of-f1-score-iou-and-dice-score</guid>
+      <pubDate>Wed, 15 Jan 2025 21:33:49 GMT</pubDate>
+    </item>
+    <item>
       <title>贝叶斯分类器代码错误。需要修复问题 7 和问题 8 中的运行时错误 [关闭]</title>
       <link>https://stackoverflow.com/questions/79359212/bayes-classifier-code-error-need-fix-for-a-runtime-error-in-problem-7-and-prob</link>
       <description><![CDATA[]]></description>
@@ -211,125 +231,45 @@ return self(x)
       <pubDate>Wed, 15 Jan 2025 15:47:38 GMT</pubDate>
     </item>
     <item>
-      <title>该模型无法提前几步预测数据</title>
-      <link>https://stackoverflow.com/questions/79358267/the-model-does-not-predict-the-data-several-steps-ahead</link>
-      <description><![CDATA[我正在尝试训练一个模型来提前 2 步预测关闭列。准备好数据集：
+      <title>正确实施骰子得分的方法</title>
+      <link>https://stackoverflow.com/questions/79358544/correct-way-of-implementing-dice-score</link>
+      <description><![CDATA[我想实现以下骰子得分：
 
+其中 N 是测试图像的数量。
+输出 y_pred 的形状为 (batch_size,channel,height,width，其中 y_pred 表示语义分割问题（​​前景与背景）的二进制掩码输出，因此 channel = 1。我对实现感到困惑。这是我当前的实现：
+def dice_score(y_true, y_pred):
+&quot;&quot;&quot;
+计算单通道二分类任务的 Dice 分数。
 
+参数：
+y_true (Tensor)：形状为 (batch_size, 1, height, width) 的 Ground Truth 张量。
+y_pred (Tensor)：形状为 (batch_size, 1, height, width) 的预测张量。
 
-datetime
-close
-close_forward
-close_shift_1
-close_shift_2
-close_shift_3
-close_shift_4
-close_shift_5
+返回：
+dice (float)：整个批次的 Dice 分数。
+&quot;&quot;&quot;
+阈值 = 0.5
+epsilon = 1e-8 # 避免除以零的小常数
 
+# 二值化预测
+y_pred = tf.cast(y_pred &gt; 阈值, tf.float32)
 
+# 计算 TP、FP、FN
+TP = tf.reduce_sum(y_pred * y_true, axis=[2, 3]) # 空间维度 (高度、宽度) 的总和
+FP = tf.reduce_sum(y_pred * (1 - y_true), axis=[2, 3]) # 假阳性
+FN = tf.reduce_sum((1 - y_pred) * y_true, axis=[2, 3]) # 假阴性
 
+# 计算每个批次元素的 Dice 分数
+dice_per_batch = (2 * TP + epsilon) / (2 * TP + FP + FN + epsilon)
 
-2024-10-01 10:05:00
-4009.0
-4020.0
-4002.5
-3994.5
-3993.0
-3991.0
-4007.5
+# 批次的平均骰子得分
+dice_score = tf.reduce_mean(dice_per_batch)
 
+return dice_score
 
-2024-10-01 10:06:00
-4020.5
-4018.0
-4009.0
-4002.5
-3994.5
-3993.0
-3991.0
-
-
-2024-10-01 10:07:00
-4020.0
-4018.5
-4020.5
-4009.0
-4002.5
-3994.5
-3993.0
-
-
-2024-10-01 10:08:00
-4018.0
-4010.5
-4020.0
-4020.5
-4009.0
-4002.5
-3994.5
-
-
-2024-10-01 10:09:00
-4018.5
-4017.0
-4018.0
-4020.0
-4020.5
-4009.0
-4002.5
-
-
-2024-10-01 10:10:00
-4010.5
-4010.0
-4018.5
-4018.0
-4020.0
-4020.5
-4009.0
-
-
-
-其中 close_forward 是 2 步后关闭的值，close_shift 是后退几步的值。
-训练后的线性回归
-column_names = column_names =[&#39;close&#39;, &#39;close_shift_1&#39;, &#39;close_shift_2&#39;&#39;close_shift_3&#39;&#39;close_shift_4&#39;, &#39;close_shift_5&#39;]
-X_train = df[column_names].values
-y_train = df[&#39;сlose_forward&#39;].values
-
-scaler_X = StandardScaler()
-scaler_y = StandardScaler()
-
-X_train_scaled = scaler_X.fit_transform(X_train)
-y_train_scaled = scaler_y.fit_transform(y_train.reshape(-1, 1))
-
-model = Ridge(alpha=0.0001)
-# model.fit(X_train, y_train)
-model.fit(X_train_scaled, y_train_scaled)
-
-X_test_scaled = scaler_X.transform(X_test)
-
-# y_pred = model.predict(X_test)
-y_pred_scaled = model.predict(X_test_scaled)
-
-y_pred = scaler_y.inverse_transform(y_pred_scaled).flatten()
-
-构建了一个图表
-在此处输入图片说明
-如果放大其中一个部分
-在此处输入图片说明
-我们可以看到，模型按要求预测了 close 而不是 test 的值。错误可能是什么，如何修复？
-需要训练模型，以便它能够提前 2 步进行预测。我尝试使用其他步骤、其他模型（梯度提升和 lstm）进行训练，但效果是一样的]]></description>
-      <guid>https://stackoverflow.com/questions/79358267/the-model-does-not-predict-the-data-several-steps-ahead</guid>
-      <pubDate>Wed, 15 Jan 2025 12:44:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何使用 GCP 服务进行图像分类[关闭]</title>
-      <link>https://stackoverflow.com/questions/79356912/how-to-use-gcp-service-for-image-classification</link>
-      <description><![CDATA[我从物联网设备获取图像作为输入，发送到云端，进行图像分类，并将结果发送回某个 URL。
-我尝试使用本地模型为 TF 提供 docker 镜像，并在我的设备上进行分类。
-（云端 Ml 部署新手）]]></description>
-      <guid>https://stackoverflow.com/questions/79356912/how-to-use-gcp-service-for-image-classification</guid>
-      <pubDate>Wed, 15 Jan 2025 02:26:56 GMT</pubDate>
+我的困惑是，我不知道是否只对轴 2 和 3 求和以计算 TP、FP 和 FN 并计算骰子得分（如当前实现中一样），或者我需要对轴 1、2 和 3 求和，然后对批次（测试图像）进行均值减少以获得骰子得分？]]></description>
+      <guid>https://stackoverflow.com/questions/79358544/correct-way-of-implementing-dice-score</guid>
+      <pubDate>Wed, 15 Jan 2025 14:16:39 GMT</pubDate>
     </item>
     <item>
       <title>我应该将目标变量编码为二进制还是仅将其用作逻辑回归的随机梯度上升中的实际值[关闭]</title>
@@ -340,17 +280,31 @@ Yi 是目标的实际值还是 Yi 应该是二进制的。如果我的目标变�
       <pubDate>Tue, 14 Jan 2025 19:10:31 GMT</pubDate>
     </item>
     <item>
-      <title>如何计算 detector2 中语义分割的每个类的像素总数</title>
-      <link>https://stackoverflow.com/questions/78583802/how-to-count-total-number-of-pixels-of-each-class-for-semantic-segmentation-in-d</link>
-      <description><![CDATA[我想计算每个分割类的总像素数，我只需要每个一般对象的计数，例如每辆车一个类，每个人一个类等等。出于这个原因，我使用语义分割而不是实例分割（实例分割会分别考虑每个车辆或人员实例）。但detectron2中语义分割的输出没有二进制掩码。
-我知道实例分割的输出是二进制掩码，可以使用以下代码获取像素数：
-masks = output[&#39;instances&#39;].pred_masks 
-results = torch.sum(torch.flatten(masks, start_dim=1),dim=1)
+      <title>损失函数是否返回正确的值？</title>
+      <link>https://stackoverflow.com/questions/79336024/is-the-loss-function-returns-the-correct-value</link>
+      <description><![CDATA[我正在研究医学数据集的语义分割问题。我正在使用专注于正类像素的软骰子损失，具体实现如下：https://arxiv.org/abs/2209.06078 。这是我的代码：
+def soft_dice_loss(y_true, y_pred):
+epsilon = 1e-8 # 添加小 epsilon 以避免除以零
 
-这给出了像素数，但分别考虑了每个车辆实例，这是我不想要的。
-但是语义分割的输出是字段“sem_seg”，其中包含每个一般类的预测类概率而不是二元掩码，我怎样才能继续获取语义分割中每个类的像素数？]]></description>
-      <guid>https://stackoverflow.com/questions/78583802/how-to-count-total-number-of-pixels-of-each-class-for-semantic-segmentation-in-d</guid>
-      <pubDate>Wed, 05 Jun 2024 22:40:27 GMT</pubDate>
+# 计算分子和分母 
+numerator_dice_coef= 2 * tf.reduce_sum(y_true * y_pred, axis=(2, 3)) + epsilon
+
+den_dice_coef = (tf.reduce_sum(y_true * y_true, axis=(2, 3))) + (tf.reduce_sum(y_pred * y_pred, axis=(2, 3))) + epsilon
+
+# 批次中每幅图像的骰子系数
+dice_coef = numerator_dice_coef / den_dice_coef
+
+# 批次中的平均骰子系数
+#mean_dice_coef = tf.reduce_mean(dice_coef)
+
+# 每个样本所有通道的平均 Dice 系数
+mean_dice_coef_per_sample = tf.reduce_mean(dice_coef, axis=1) # 形状：[B]
+
+return 1 - mean_dice_coef_per_sample
+
+我的问题是，我返回的值是否正确？我之所以问这个问题，是因为我很困惑，我是否应该将整个批次的平均损失值返回给 Keras，还是只返回一个大小为 batch_size 的数组，其中每个元素都是每个样本的损失值？我很困惑，因为我看到一些实现只返回一个值，而另一些实现则返回一个数组。]]></description>
+      <guid>https://stackoverflow.com/questions/79336024/is-the-loss-function-returns-the-correct-value</guid>
+      <pubDate>Tue, 07 Jan 2025 12:37:35 GMT</pubDate>
     </item>
     <item>
       <title>如何理解二元分类问题的Shapley值？</title>
@@ -442,29 +396,61 @@ X_train, X_test, Y_train, Y_test = train_test_split(X_train, Y_train, test_size=
       <pubDate>Fri, 08 Jan 2021 11:23:50 GMT</pubDate>
     </item>
     <item>
-      <title>SHAP值能解释一下吗？</title>
-      <link>https://stackoverflow.com/questions/59035008/shap-value-can-explain-right</link>
-      <description><![CDATA[我在使用 SHAP 值解释基于树的模型时遇到问题（https://github.com/slundberg/shap）。
-首先，我输入了大约 30 个特征，其中 2 个特征之间存在高度正相关性。
-之后，我训练 XGBoost 模型（python）并查看 2 个特征的 SHAP 值，发现 SHAP 值具有负相关性。
-您能向我解释一下，为什么 2 个特征之间的输出 SHAP 值的相关性与输入相关性不一样吗？我可以相信 SHAP 的输出吗？
-===========================
-输入之间的相关性：0.91788
-SHAP 值之间的相关性：-0.661088
-2 个特征是
+      <title>ValueError：分类指标无法处理多类别和多标签指标目标的混合</title>
+      <link>https://stackoverflow.com/questions/56496708/valueerror-classification-metrics-cant-handle-a-mix-of-multiclass-and-multilab</link>
+      <description><![CDATA[我有一个多类标记文本分类问题，有 2000 个不同的标签。使用带有 Glove Embedding 的 LSTM 进行分类。
 
-省份的人口
-省份的家庭数量
+目标变量的标签编码器
+带有 Embedd 层的 LSTM 层
+错误度量是 F2 分数
 
-模型性能
-训练 AUC：0.73
-测试 AUC：0.71
-输入散点图（x：省份的家庭数量，y：省份的人口）：
+LabelEncoded 目标变量：
+le = LabelEncoder() 
+le.fit(y)
+train_y = le.transform(y_train)
+test_y = le.transform(y_test)
 
-SHAP 值输出散点图（x：省内家庭数量，y：省内人口）：
-]]></description>
-      <guid>https://stackoverflow.com/questions/59035008/shap-value-can-explain-right</guid>
-      <pubDate>Mon, 25 Nov 2019 15:21:26 GMT</pubDate>
+带有 Glove Embeddings 的 LSTM 网络如下所示
+np.random.seed(seed)
+K.clear_session()
+model = Sequential()
+model.add(Embedding(max_features, embed_dim, input_length = X_train.shape[1],
+weights=[embedding_matrix]))#,trainable=False
+model.add(LSTM(100, dropout=0.2, recurrent_dropout=0.2))
+model.add(Dense(num_classes,activation=&#39;softmax&#39;))
+model.compile(optimizer=&#39;rmsprop&#39;,loss=&#39;sparse_categorical_crossentropy&#39;)
+print(model.summary())
+
+我的错误指标是 F1 分数。我为错误度量构建了以下函数
+class Metrics(Callback):
+def on_train_begin(self, logs={}):
+self.val_f1s = []
+self.val_recalls = []
+self.val_precisions = []
+
+def on_epoch_end(self, epoch, logs={}):
+val_predict = (np.asarray(self.model.predict(self.validation_data[0]))).round()
+val_targ = self.validation_data[1]
+_val_f1 = f1_score(val_targ, val_predict)
+_val_recall = recall_score(val_targ, val_predict)
+_val_precision = precision_score(val_targ, val_predict)
+self.val_f1s.append(_val_f1)
+self.val_recalls.append(_val_recall)
+self.val_precisions.append(_val_precision)
+print(&quot;— val_f1: %f — val_precision: %f — val_recall %f&quot; % (_val_f1, _val_precision, _val_recall))
+return
+
+metrics = Metrics()
+
+##模型拟合是
+model.fit(X_train, train_y, validation_data=(X_test, test_y),epochs=10, batch_size=64, callbacks=[metrics])
+
+第一个 epoch 后出现以下错误：
+ValueError：分类指标无法处理多类和连续多输出目标的混合
+
+在哪里我的代码有错误吗？]]></description>
+      <guid>https://stackoverflow.com/questions/56496708/valueerror-classification-metrics-cant-handle-a-mix-of-multiclass-and-multilab</guid>
+      <pubDate>Fri, 07 Jun 2019 14:55:37 GMT</pubDate>
     </item>
     <item>
       <title>逻辑回归的随机梯度下降总是返回 Inf 的成本，并且权重向量永远不会接近</title>
