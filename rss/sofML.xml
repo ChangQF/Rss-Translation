@@ -4,7 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 17 Jan 2025 06:23:23 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 17 Jan 2025 09:16:38 GMT</lastBuildDate>
     <item>
       <title>将 Tensorflow 模型工件部署到 Sagemaker</title>
       <link>https://stackoverflow.com/questions/79363695/deploying-a-tensorflow-model-artifact-to-sagemaker</link>
@@ -138,6 +138,75 @@ optimizer.step()
       <pubDate>Thu, 16 Jan 2025 16:17:08 GMT</pubDate>
     </item>
     <item>
+      <title>为什么我的 AI 在 GPU 上的训练比 CPU 慢很多</title>
+      <link>https://stackoverflow.com/questions/79362113/why-is-my-ai-training-on-gpu-is-a-lot-slower-than-cpu</link>
+      <description><![CDATA[我目前正在训练我的简单预测 AI，但我的 GPU 训练速度为每 epoch 40S，而我的 CPU 训练速度为每 epoch 9S
+我的 CPU 是 i7-4720HQ，我的 GPU 是 Nvidia 950m
+这是我的代码
+`import tensorflow as tf
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+df = pd.read_csv(&#39;Updated_Train.csv&#39;)
+df = df.drop(columns=&#39;date&#39;)
+df = df.drop(columns=&#39;id&#39;)
+label_encoder = LabelEncoder()
+
+df[&#39;Country&#39;] = label_encoder.fit_transform(df[&#39;Country&#39;])
+df[&#39;Store&#39;] = label_encoder.fit_transform(df[&#39;Store&#39;])
+df[&#39;Product&#39;] = label_encoder.fit_transform(df[&#39;Product&#39;])
+
+x = df.iloc[:, :-1]
+y = df.iloc[:, -1]
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+train_dataset = (
+train_dataset
+.shuffle(buffer_size=1000) # 打乱数据
+.batch(32) # 批次大小为 32
+.prefetch(tf.data.AUTOTUNE) # 预取以提高管道性能
+)
+
+test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+test_dataset = test_dataset.batch(32).prefetch(tf.data.AUTOTUNE)
+with tf.device(&#39;/CPU:0&#39;):
+输入 = tf.keras.layers.Input(shape=(3,))
+m = tf.keras.layers.Dense(32,activation=&#39;relu&#39;)(输入)
+m = tf.keras.layers.Dense(16,activation=&#39;relu&#39;)(m)
+m = tf.keras.layers.Dense(8,activation=&#39;relu&#39;)(m)
+m = tf.keras.layers.Dense(8,activation=&#39;relu&#39;)(m)
+输出 = tf.keras.layers.Dense(1)(m)
+
+model = tf.keras.models.Model(inputs=Input, output=output)
+
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+loss=&#39;mse&#39;)
+
+history = model.fit(train_dataset,
+epochs=100,
+validation_data=test_dataset)
+
+model.save(&#39;Sticker.keras&#39;)
+
+plt.plot(history.history[&#39;loss&#39;], label=&#39;Training Loss&#39;)
+plt.plot(history.history[&#39;val_loss&#39;], label=&#39;Validation Loss&#39;)
+plt.xlabel(&#39;Epochs&#39;)
+plt.ylabel(&#39;Loss&#39;)
+plt.title(&#39;Loss Over时间&#39;)
+plt.legend()
+plt.show()
+
+`
+
+我的数据有 3 个输入列和 1 个输出列，共 230129 行
+我询问了 gpt，他们让我改进数据管道，我照做了，但我的 GPU 每个时期仍然需要 40 秒]]></description>
+      <guid>https://stackoverflow.com/questions/79362113/why-is-my-ai-training-on-gpu-is-a-lot-slower-than-cpu</guid>
+      <pubDate>Thu, 16 Jan 2025 15:11:47 GMT</pubDate>
+    </item>
+    <item>
       <title>所有样本的前向传递</title>
       <link>https://stackoverflow.com/questions/79361940/forward-pass-with-all-samples</link>
       <description><![CDATA[import torch
@@ -176,65 +245,6 @@ optimizer.step()
 pytorch 是否像那样工作，还是我必须重新考虑这种方法？]]></description>
       <guid>https://stackoverflow.com/questions/79361940/forward-pass-with-all-samples</guid>
       <pubDate>Thu, 16 Jan 2025 14:23:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>通过手动汇总值来重现 LGBMRegressor 预测</title>
-      <link>https://stackoverflow.com/questions/79361226/reproduce-lgbmregressor-predictions-by-manually-aggregate-the-values</link>
-      <description><![CDATA[我正在尝试自己重现 LGBMRegressor 预测，因此当我成功时，我会将平均值转换为中位数。但目前看来我做不到。
-这是我为检查是否可以重现结果而创建的简单脚本。
-我需要 reg_y_hat 与 self_y_hat 相同。
-我遗漏了什么？如果我知道训练中的哪些样本落到每个叶子上，我就可以自己汇总预测...
- import numpy as np
-import lightgbm as lgb
-from sklearn.model_selection import train_test_split
-
-# 生成一些随机回归数据
-np.random.seed(42)
-X = np.random.rand(100, 5)
-y = 4 * X[:, 0] - 2 * X[:, 1] + np.random.rand(100) * 0.1
-
-# 分割数据
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# 训练 LGBMRegressor
-model = lgb.LGBMRegressor(objective=&#39;regression&#39;, n_estimators=2, learning_rate=0.1, random_state=42)
-model.fit(X_train, y_train)
-
-# 常规预测：
-reg_y_hat = model.predict(X_test)
-
-# 获取初始预测（y_train 的平均值）
-init_pred = np.mean(y_train)
-
-# 获取训练叶子值
-train_leaf_indices = model.predict(X_train, pred_leaf=True)
-leaf_samples = {(i, leaf_id): [] for i in range(model.n_estimators) for leaf_id in np.unique(train_leaf_indices[:, i])}
-
-# 存储每个叶子的相应目标值
-for i, row in enumerate(train_leaf_indices):
-for j, leaf_id in enumerate(row):
-leaf_samples[(j, leaf_id)].append(y_train[i])
-
-#计算每个叶子的平均值：
-leaf_agg = {}
-for key, values in leaf_samples.items():
-leaf_agg[key] = np.mean(values)
-
-# 通过聚合平均值并添加初始预测进行预测：
-preds = []
-test_leaf_indices = model.predict(X_test, pred_leaf=True)
-for row_indices in test_leaf_indices:
-row_pred = init_pred
-for i, leaf_index in enumerate(row_indices):
-row_pred += model.learning_rate * (leaf_agg[(i, leaf_index)] - init_pred) # 仅初始预测后叶子的残差贡献
-preds.append(row_pred)
-self_y_hat = np.array(preds)
-
-# 验证结果
-print(&#39;reg_y_hat 之间的差异和 self_y_hat:&#39;, np.abs(reg_y_hat - self_y_hat).sum())
-]]></description>
-      <guid>https://stackoverflow.com/questions/79361226/reproduce-lgbmregressor-predictions-by-manually-aggregate-the-values</guid>
-      <pubDate>Thu, 16 Jan 2025 10:39:14 GMT</pubDate>
     </item>
     <item>
       <title>代码无法在 AWS sagemaker 上成功运行</title>
