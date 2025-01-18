@@ -4,7 +4,25 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 17 Jan 2025 21:14:25 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jan 2025 01:12:11 GMT</lastBuildDate>
+    <item>
+      <title>为什么我们不屏蔽 Transformer 中除了多头注意力之外的其他层？</title>
+      <link>https://stackoverflow.com/questions/79366294/why-we-dont-mask-other-layers-besides-the-multihead-attention-in-transformers</link>
+      <description><![CDATA[通常在训练 NLP 任务时，我们需要将序列填充到 max_len，以便可以以批处理方式高效处理它们。但是，这些填充的标记不应影响训练（模型参数的更新），因为它们是“虚构的”。
+每个人都在谈论掩盖注意力操作的必要性。这是有道理的，因为有效标记不应该关注虚拟标记。但是，我们仍然需要考虑所有其他层（例如 FF 中的线性层、规范化层等）不受填充的影响。
+为了简单起见，考虑单个 Transformer-Encoder 层：
+
+从图中可以清楚地看出，FF 和最后的规范化层将填充的标记处理为其他每个标记。为了正确屏蔽所有层，我们应该屏蔽损失吗？如果这听起来微不足道，请原谅，但我没有找到任何相关信息。
+例如，假设我们想使用 Transformer 编码器对序列进行分类。我们传递一个形状为 (B, N, E) 的输入 x，其中 B 是批量大小，N 是最大序列长度，E 是嵌入维度。输出具有相同的形状，我们将使用它进行分类。我们可以通过为每个序列提取一个“全局”向量来实现，然后将其传递给特定于任务的头部，如下所示：
+x =coder_layer(x)
+x = x.mask_fill(mask, -torch.inf) # 在最大操作期间屏蔽填充。
+x = torch.max(x, dim=1)[0] # 忽略索引，简化为形状 (B, E)。
+loss = loss_fn(cls_head(x), y)
+
+由于 max 操作对任何未选定元素返回 0 梯度，因此所有参数都不会受到填充的影响。我的理解正确吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79366294/why-we-dont-mask-other-layers-besides-the-multihead-attention-in-transformers</guid>
+      <pubDate>Fri, 17 Jan 2025 23:05:49 GMT</pubDate>
+    </item>
     <item>
       <title>如何在 Python 3.11.11 中安装 tfx</title>
       <link>https://stackoverflow.com/questions/79365624/how-to-install-tfx-in-python-3-11-11</link>
@@ -30,6 +48,15 @@ from tfx.types.standard_artifacts import Model, ModelBlessing
 请帮忙，我应该修复哪些错误？]]></description>
       <guid>https://stackoverflow.com/questions/79365624/how-to-install-tfx-in-python-3-11-11</guid>
       <pubDate>Fri, 17 Jan 2025 17:28:55 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何利用多个 CPU 进行 YOLO 训练？</title>
+      <link>https://stackoverflow.com/questions/79365374/how-to-utilize-multiple-cpus-for-training-of-yolo</link>
+      <description><![CDATA[我可以访问一个没有 GPU 的大型 CPU 集群。通过在多个 CPU 节点之间并行化，是否可以加快 YOLO 训练速度？
+文档说 device 参数指定用于训练的计算设备：单个 GPU（device=0）、多个 GPU（device=0,1）、CPU（device=cpu）或 Apple 芯片的 MPS（device=mps）。
+那么多个 CPU 呢？]]></description>
+      <guid>https://stackoverflow.com/questions/79365374/how-to-utilize-multiple-cpus-for-training-of-yolo</guid>
+      <pubDate>Fri, 17 Jan 2025 16:05:46 GMT</pubDate>
     </item>
     <item>
       <title>将 Tensorflow 模型工件部署到 Sagemaker</title>
@@ -60,48 +87,6 @@ ValueError: 未找到 SavedModel 包！
 不确定还能尝试什么。]]></description>
       <guid>https://stackoverflow.com/questions/79363695/deploying-a-tensorflow-model-artifact-to-sagemaker</guid>
       <pubDate>Fri, 17 Jan 2025 05:19:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何处理中间阶段的 NaN 损失</title>
-      <link>https://stackoverflow.com/questions/79362342/how-to-handle-nan-losses-at-intermediate-epochs</link>
-      <description><![CDATA[import torch
-import torch.nn as nn
-
-class PINN(nn.Module):
-def __init__(self, input_dim, output_dim, hidden_​​layers, neurons_per_layer):
-super(PINN, self).__init__()
-layer = []
-layer.append(nn.Linear(input_dim, neurons_per_layer))
-for _ in range(hidden_​​layers):
-layer.append(nn.Linear(neurons_per_layer, neurons_per_layer))
-layer.append(nn.Linear(neurons_per_layer, output_dim))
-self.network = nn.Sequential(*layers)
-
-def forward(self, x):
-return self.network(x)
-
-# 示例：生成随机输入数据
-inputs = torch.rand((1000, 3)) # 3D 输入坐标
-
-model = PINN(input_dim=3, output_dim=3, hidden_​​layers=4, neurons_per_layer=64)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-epochs = 10000
-for epoch in range(epochs):
-optimizer.zero_grad() 
-
-nn_output = model(inputs) # 计算 NN 预测
-# 根据 nn_output 计算损失
-loss = loss_func(nn_output) # --&gt; loss = NaN，如何继续？
-
-loss.backward() 
-optimizer.step()
-
-将输入传递到网络后，基于物理的损失函数（NN 输出函数）可能会产生 NaN，因为 NN 输出不合适。
-在中间阶段，我可以接受违反物理定律，但优化器（例如 Adam）是否能够从返回的 NaN 损失中恢复？
-（MATLAB 中的许多优化器可以正确处理 NaN，并希望目标函数在无法进行前向评估的点返回 NaN。这是一个尝试不同点的指标。）]]></description>
-      <guid>https://stackoverflow.com/questions/79362342/how-to-handle-nan-losses-at-intermediate-epochs</guid>
-      <pubDate>Thu, 16 Jan 2025 16:17:08 GMT</pubDate>
     </item>
     <item>
       <title>为什么我的 AI 在 GPU 上的训练比 CPU 慢很多</title>
@@ -213,54 +198,63 @@ pytorch 是否像那样工作，还是我必须重新考虑这种方法？]]></d
       <pubDate>Thu, 16 Jan 2025 14:23:21 GMT</pubDate>
     </item>
     <item>
-      <title>代码无法在 AWS sagemaker 上成功运行</title>
-      <link>https://stackoverflow.com/questions/79361126/code-not-running-sucessfully-on-aws-sagemaker</link>
-      <description><![CDATA[当我运行应该创建训练作业的单元时，我没有在 sagemaker 笔记本上收到任何更新？我在 AWS Sagemaker 上运行以下代码，当我运行此代码时，它显示训练作业已创建并且没有进一步的更新。当我检查训练作业时，我可以看到状态已完成，但代码仍在笔记本上运行并且没有显示任何更新。有人可以帮我为什么会这样吗？
-kmeans.fit(kmeans.record_set(scaled_data)) 
+      <title>通过手动汇总值来重现 LGBMRegressor 预测</title>
+      <link>https://stackoverflow.com/questions/79361226/reproduce-lgbmregressor-predictions-by-manually-aggregate-the-values</link>
+      <description><![CDATA[我正在尝试自己重现 LGBMRegressor 预测，因此当我成功时，我会将平均值转换为中位数。但目前看来我做不到。
+这是我为检查是否可以重现结果而创建的简单脚本。
+我需要 reg_y_hat 与 self_y_hat 相同。
+我遗漏了什么？如果我知道训练中的哪些样本落到每个叶子上，我就可以自己汇总预测...
+ import numpy as np
+import lightgbm as lgb
+from sklearn.model_selection import train_test_split
+
+# 生成一些随机回归数据
+np.random.seed(42)
+X = np.random.rand(100, 5)
+y = 4 * X[:, 0] - 2 * X[:, 1] + np.random.rand(100) * 0.1
+
+# 分割数据
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 训练 LGBMRegressor
+model = lgb.LGBMRegressor(objective=&#39;regression&#39;, n_estimators=2, learning_rate=0.1, random_state=42)
+model.fit(X_train, y_train)
+
+# 常规预测：
+reg_y_hat = model.predict(X_test)
+
+# 获取初始预测（y_train 的平均值）
+init_pred = np.mean(y_train)
+
+# 获取训练叶子值
+train_leaf_indices = model.predict(X_train, pred_leaf=True)
+leaf_samples = {(i, leaf_id): [] for i in range(model.n_estimators) for leaf_id in np.unique(train_leaf_indices[:, i])}
+
+# 存储每个叶子的相应目标值
+for i, row in enumerate(train_leaf_indices):
+for j, leaf_id in enumerate(row):
+leaf_samples[(j, leaf_id)].append(y_train[i])
+
+#计算每个叶子的平均值：
+leaf_agg = {}
+for key, values in leaf_samples.items():
+leaf_agg[key] = np.mean(values)
+
+# 通过聚合平均值并添加初始预测进行预测：
+preds = []
+test_leaf_indices = model.predict(X_test, pred_leaf=True)
+for row_indices in test_leaf_indices:
+row_pred = init_pred
+for i, leaf_index in enumerate(row_indices):
+row_pred += model.learning_rate * (leaf_agg[(i, leaf_index)] - init_pred) # 仅初始预测后叶子的残差贡献
+preds.append(row_pred)
+self_y_hat = np.array(preds)
+
+# 验证结果
+print(&#39;reg_y_hat 之间的差异和 self_y_hat:&#39;, np.abs(reg_y_hat - self_y_hat).sum())
 ]]></description>
-      <guid>https://stackoverflow.com/questions/79361126/code-not-running-sucessfully-on-aws-sagemaker</guid>
-      <pubDate>Thu, 16 Jan 2025 10:15:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>有效覆盖 pytorch 数据集</title>
-      <link>https://stackoverflow.com/questions/79360229/override-pytorch-dataset-efficiently</link>
-      <description><![CDATA[我想继承 torch.utils.data.Dataset 类来加载我的自定义图像数据集，比如说用于分类任务。这是官方 pytorch 网站的示例，位于此 链接:
-import os
-import pandas as pd
-from torchvision.io import read_image
-
-class CustomImageDataset(Dataset):
-def __init__(self, annotations_file, img_dir, transform=None, target_transform=None):
-self.img_labels = pd.read_csv(annotations_file)
-self.img_dir = img_dir
-self.transform = transform
-self.target_transform = target_transform
-
-def __len__(self):
-return len(self.img_labels)
-
-def __getitem__(self, idx):
-img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-image = read_image(img_path)
-label = self.img_labels.iloc[idx, 1]
-if self.transform:
-image = self.transform(image)
-if self.target_transform:
-label = self.target_transform(label)
-return image, label
-
-我注意到：
-
-在 __getitem__ 中，我们将图像从磁盘读取到内存中。这意味着如果我们训练模型几个时期，我们会多次将同一幅图像重新读入内存。据我所知，这是一个代价高昂的操作
-每次从磁盘读取图像时都会应用一次变换，在我看来，这几乎是一个多余的操作。
-
-我理解，在非常大的数据集中，我们无法将数据完全放入内存中，因此我们别无选择，只能以这种方式读取数据（因为我们必须在一个时期内迭代所有数据），我想知道，如果我的所有数据都可以放入内存中，那么在 __init__ 函数中从磁盘读取所有数据不是更好的方法吗？
-通过我在计算机视觉方面的一点经验，我注意到在 变换 中将图像裁剪成固定大小的图像非常常见。那么为什么我们不应该裁剪图像一次并将其存储在磁盘上的其他地方，而在整个训练过程中只读取裁剪后的图像呢？在我看来，这似乎是一种更有效的方法。
-我理解，一些用于增强而不是规范化的转换最好应用于 __getitem__ 中，以便获得随机生成的数据而不是固定的数据。
-你能为我澄清一下这个主题吗？
-如果我缺少的是常识，请用正确的方法指导我找到代码库。]]></description>
-      <guid>https://stackoverflow.com/questions/79360229/override-pytorch-dataset-efficiently</guid>
-      <pubDate>Thu, 16 Jan 2025 02:38:21 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/79361226/reproduce-lgbmregressor-predictions-by-manually-aggregate-the-values</guid>
+      <pubDate>Thu, 16 Jan 2025 10:39:14 GMT</pubDate>
     </item>
     <item>
       <title>stable_baselines3：为什么比较 ep_info_buffer 与评估时奖励不匹配？</title>
@@ -389,13 +383,6 @@ print(&quot;Experiment:&quot;, run.info.experiment_id)
       <pubDate>Thu, 22 Sep 2022 13:46:21 GMT</pubDate>
     </item>
     <item>
-      <title>(使用 cpu)Pytorch：IndexError：索引超出自身范围。 (使用 cuda)断言“srcIndex < srcSelectDimSize”失败。 如何解决？</title>
-      <link>https://stackoverflow.com/questions/69596496/with-cpupytorch-indexerror-index-out-of-range-in-self-with-cudaassertion</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/69596496/with-cpupytorch-indexerror-index-out-of-range-in-self-with-cudaassertion</guid>
-      <pubDate>Sat, 16 Oct 2021 14:28:36 GMT</pubDate>
-    </item>
-    <item>
       <title>使用机器学习进行形状检测[关闭]</title>
       <link>https://stackoverflow.com/questions/44649290/shape-detection-using-machine-learning</link>
       <description><![CDATA[我想使用机器学习技术检测形状，即圆形、正方形、矩形、三角形等。
@@ -429,6 +416,13 @@ print(&quot;Experiment:&quot;, run.info.experiment_id)
 我应该采取什么方法来应对这一挑战？具体来说，这样的系统在高水平上将如何工作？]]></description>
       <guid>https://stackoverflow.com/questions/15127461/creating-a-voice-identification-system-using-machine-learning</guid>
       <pubDate>Thu, 28 Feb 2013 04:22:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>C++ 决策树实现问题：用代码思考</title>
+      <link>https://stackoverflow.com/questions/5646120/c-decision-tree-implementation-question-think-in-code</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/5646120/c-decision-tree-implementation-question-think-in-code</guid>
+      <pubDate>Wed, 13 Apr 2011 08:01:29 GMT</pubDate>
     </item>
     </channel>
 </rss>
