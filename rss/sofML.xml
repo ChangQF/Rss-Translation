@@ -4,7 +4,25 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 19 Jan 2025 18:20:10 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 19 Jan 2025 21:14:06 GMT</lastBuildDate>
+    <item>
+      <title>所以我根据天气进行销售预测，我已经预处理了我的数据，但我的评估指标仍然不达标？ [关闭]</title>
+      <link>https://stackoverflow.com/questions/79369584/so-i-am-doing-sales-prediction-on-the-basis-of-weather-i-have-preprocessed-my-da</link>
+      <description><![CDATA[我使用过线性回归、梯度提升和随机森林，这些是线性的评估指标 -&gt;
+RMSE：2554.683896947907，
+MAE：2554.5158902910825，
+R 平方：-70047877.42724504，
+梯度提升 -&gt;RMSE：2563.634331688429，
+MAE：2563.5459430743717，
+R 平方：-70539568.20192483，
+随机森林 -&gt;RMSE：2595.942451884807，
+MAE： 2584.329211451298，
+R 平方：-72328716.81030051
+
+我哪里做错了或者数据有问题，请链接到代码 https://github.com/nabihafaisal/Dynamic-Weather-Impact-on-Retail-Sales-Machine-Learning.git]]></description>
+      <guid>https://stackoverflow.com/questions/79369584/so-i-am-doing-sales-prediction-on-the-basis-of-weather-i-have-preprocessed-my-da</guid>
+      <pubDate>Sun, 19 Jan 2025 19:04:52 GMT</pubDate>
+    </item>
     <item>
       <title>有关于训练集和测试集的问题</title>
       <link>https://stackoverflow.com/questions/79369405/have-a-problem-about-training-set-and-testing-set</link>
@@ -168,7 +186,7 @@ PyTorch 版本：2.5.1
 每个人都在谈论掩盖注意力操作的必要性。这是有道理的，因为有效标记不应该关注虚拟标记。但是，我们仍然需要考虑所有其他层（例如 FF 中的线性层、规范化层等）不受填充的影响。
 为了简单起见，考虑单个 Transformer-Encoder 层：
 
-从图中可以清楚地看出，FF 和最后的规范化层将填充的标记视为其他每个标记。为了正确屏蔽所有层，我们应该屏蔽损失吗？
+从图中可以清楚地看出，FF 和最后的规范化层将填充的标记处理为其他每个标记。为了正确屏蔽所有层，我们应该屏蔽损失吗？
 例如，假设我们想使用 Transformer 编码器对序列进行分类。我们传递一个形状为 (B, N, E) 的输入 x，其中 B 是批量大小，N 是最大序列长度，E 是嵌入维度。输出具有相同的形状，我们将使用它进行分类。我们可以通过为每个序列提取一个“全局”向量来实现，然后将其传递给特定于任务的头部，如下所示：
 x =coder_layer(x)
 x = x.mask_fill(mask, -torch.inf) # 在最大操作期间屏蔽填充。
@@ -215,65 +233,6 @@ from tfx.types.standard_artifacts import Model, ModelBlessing
       <pubDate>Fri, 17 Jan 2025 16:05:46 GMT</pubDate>
     </item>
     <item>
-      <title>通过手动汇总值来重现 LGBMRegressor 预测</title>
-      <link>https://stackoverflow.com/questions/79361226/reproduce-lgbmregressor-predictions-by-manually-aggregate-the-values</link>
-      <description><![CDATA[我正在尝试自己重现 LGBMRegressor 预测，因此当我成功时，我会将平均值转换为中位数。但目前看来我做不到。
-这是我为检查是否可以重现结果而创建的简单脚本。
-我需要 reg_y_hat 与 self_y_hat 相同。
-我遗漏了什么？如果我知道训练中的哪些样本落到每个叶子上，我就可以自己汇总预测...
- import numpy as np
-import lightgbm as lgb
-from sklearn.model_selection import train_test_split
-
-# 生成一些随机回归数据
-np.random.seed(42)
-X = np.random.rand(100, 5)
-y = 4 * X[:, 0] - 2 * X[:, 1] + np.random.rand(100) * 0.1
-
-# 分割数据
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# 训练 LGBMRegressor
-model = lgb.LGBMRegressor(objective=&#39;regression&#39;, n_estimators=2, learning_rate=0.1, random_state=42)
-model.fit(X_train, y_train)
-
-# 常规预测：
-reg_y_hat = model.predict(X_test)
-
-# 获取初始预测（y_train 的平均值）
-init_pred = np.mean(y_train)
-
-# 获取训练叶子值
-train_leaf_indices = model.predict(X_train, pred_leaf=True)
-leaf_samples = {(i, leaf_id): [] for i in range(model.n_estimators) for leaf_id in np.unique(train_leaf_indices[:, i])}
-
-# 存储每个叶子的相应目标值
-for i, row in enumerate(train_leaf_indices):
-for j, leaf_id in enumerate(row):
-leaf_samples[(j, leaf_id)].append(y_train[i])
-
-#计算每个叶子的平均值：
-leaf_agg = {}
-for key, values in leaf_samples.items():
-leaf_agg[key] = np.mean(values)
-
-# 通过聚合平均值并添加初始预测进行预测：
-preds = []
-test_leaf_indices = model.predict(X_test, pred_leaf=True)
-for row_indices in test_leaf_indices:
-row_pred = init_pred
-for i, leaf_index in enumerate(row_indices):
-row_pred += model.learning_rate * (leaf_agg[(i, leaf_index)] - init_pred) # 仅初始预测后叶子的残差贡献
-preds.append(row_pred)
-self_y_hat = np.array(preds)
-
-# 验证结果
-print(&#39;reg_y_hat 之间的差异和 self_y_hat:&#39;, np.abs(reg_y_hat - self_y_hat).sum())
-]]></description>
-      <guid>https://stackoverflow.com/questions/79361226/reproduce-lgbmregressor-predictions-by-manually-aggregate-the-values</guid>
-      <pubDate>Thu, 16 Jan 2025 10:39:14 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么我的神经网络在训练数据上具有很高的准确率，但在测试数据上只有 10％ 的准确率？[关闭]</title>
       <link>https://stackoverflow.com/questions/79350490/why-does-my-neural-network-have-high-accuracy-on-training-data-but-only-10-accu</link>
       <description><![CDATA[]]></description>
@@ -315,6 +274,19 @@ x_axis_kl_div_values
       <pubDate>Fri, 16 Feb 2024 14:58:47 GMT</pubDate>
     </item>
     <item>
+      <title>如何在 Google 云中设置 TensorFlow？</title>
+      <link>https://stackoverflow.com/questions/37231866/how-do-i-set-up-tensorflow-in-the-google-cloud</link>
+      <description><![CDATA[如何在 Google 云中设置 TensorFlow？我了解如何创建 Google Compute Engine 实例，以及如何在本地运行 TensorFlow；最近的 Google 博客文章建议应该有一种方法可以在云中创建 Google Compute Engine 实例并运行 TensorFlow 应用程序：
+
+机器学习项目可以有多种规模，正如我们在开源产品 TensorFlow 中看到的那样，项目通常需要扩大规模。一些小任务最好使用在桌面上运行的本地解决方案来处理，而大型应用程序则需要托管解决方案的规模和可靠性。 Google Cloud Machine Learning 旨在支持全方位，并提供从本地到云环境的无缝过渡。
+
+即使我对此有一点了解，但考虑到微软 Azure 等竞争平台所提供的功能，肯定有一种方法可以在 Google Cloud 中设置 TensorFlow 应用程序（本地开发并“无缝”扩展到云中，大概使用 GPU）。
+例如，我想在 IDE 中本地工作，调整项目的功能和代码，在那里运行有限的训练和验证，并定期将代码推送到云中，在那里使用（任意）更多的资源运行训练，然后保存和下载训练好的模型。或者更好的是，只需使用可调资源在云中运行图表（或图表的一部分）。
+有没有办法做到这一点；有计划吗？如何在 Google Cloud 中设置 TensorFlow？]]></description>
+      <guid>https://stackoverflow.com/questions/37231866/how-do-i-set-up-tensorflow-in-the-google-cloud</guid>
+      <pubDate>Sat, 14 May 2016 21:05:28 GMT</pubDate>
+    </item>
+    <item>
       <title>机器学习中，批量越大计算时间越短吗？</title>
       <link>https://stackoverflow.com/questions/35158365/will-larger-batch-size-make-computation-time-less-in-machine-learning</link>
       <description><![CDATA[我正在尝试调整超参数，即 CNN 中的批量大小。我有一台 i7 核的电脑，RAM 为 12GB，我正在使用 CIFAR-10 数据集训练 CNN 网络，该数据集可在此博客中找到。现在，首先我阅读并了解了机器学习中的批量大小：
@@ -324,7 +296,7 @@ x_axis_kl_div_values
 基于这个论点，听起来我们应该使用在线学习。事实上，情况比这更复杂。我们知道，我们可以使用矩阵技术同时计算小批量中所有示例的梯度更新，而不是循环遍历它们。根据我们的硬件和线性代数库的细节，这可以使计算（例如）大小为 100 的小批量的梯度估计的速度快得多，而不是通过分别循环 100 个训练示例来计算小批量梯度估计。它可能只需要（比如说）50 倍的时间，而不是 100 倍的时间。现在，乍一看，这似乎对我们没有太大帮助。
 对于大小为 100 的小批量，权重的学习规则如下所示：
 其中总和是小批量中的训练示例。这与在线学习相比。
-即使进行小批量更新只需要 50 倍的时间，进行在线学习似乎仍然更好，因为我们会更频繁地进行更新。但是，假设在
+即使进行小批量更新只需要 50 倍的时间，进行在线学习似乎仍然更好，因为我们会更频繁地更新。但是，假设在
 小批量情况下，我们将学习率提高 100 倍，那么
 更新规则将变为
 这很像以
@@ -336,13 +308,6 @@ x_axis_kl_div_values
 但是，如果使用此代码和github 链接进行训练，更改批量大小不会减少训练时间。如果我使用 30 或 128 或 64，它保持不变。他们说他们获得了 92% 的准确率。经过两三个时期后，他们的准确率已经超过 40%。但是，当我在计算机上运行代码时，除了批量大小之外没有做任何改变，我在 10 个时期后得到了更糟糕的结果，只有 28%，并且测试准确率在接下来的时期内一直停留在那里。然后我想，因为他们使用了 128 的批量大小，需要使用那个。然后我用了同样的方法，但它变得更糟，在 10 个时期后只给出 11% 并且卡在那里。为什么会这样？]]></description>
       <guid>https://stackoverflow.com/questions/35158365/will-larger-batch-size-make-computation-time-less-in-machine-learning</guid>
       <pubDate>Tue, 02 Feb 2016 16:12:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否有任何分类器能够非常快速地做出决策？</title>
-      <link>https://stackoverflow.com/questions/34311785/is-there-any-classifier-which-is-able-to-make-decisions-very-fast</link>
-      <description><![CDATA[大多数分类算法都是为了提高训练速度而开发的。然而，有没有一个分类器或算法专注于决策速度（计算复杂度低，可实现结构简单）？我可以得到足够的训练数据，并忍受较长的训练时间。]]></description>
-      <guid>https://stackoverflow.com/questions/34311785/is-there-any-classifier-which-is-able-to-make-decisions-very-fast</guid>
-      <pubDate>Wed, 16 Dec 2015 12:15:26 GMT</pubDate>
     </item>
     <item>
       <title>C++ 决策树实现问题：用代码思考</title>
