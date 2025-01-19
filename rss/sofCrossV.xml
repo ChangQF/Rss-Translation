@@ -4,60 +4,139 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 18 Jan 2025 21:14:44 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 19 Jan 2025 01:19:03 GMT</lastBuildDate>
     <item>
-      <title>如何使用 SAS 在 MMRM 中获取预测值？</title>
-      <link>https://stats.stackexchange.com/questions/660206/how-to-get-predicted-values-in-mmrm-using-sas</link>
-      <description><![CDATA[这是我的问题：
-在我的研究中，主要终点是“在过去六周的访问中进行的四次测量中有三次达到固定阈值血红蛋白 (Hb) &gt;= 12g/dL 的患者百分比”，Hb 是在治疗后的几次访问中测量的。
-为了处理在过去四次预定测量中出现的缺失值，我决定使用重复测量的混合模型，并使用基于模型的预测来估算缺失值。由于我对这种模型了解不多，我尝试了一些方法：
-我的数据如下所示：
+      <title>重建 CNN 架构</title>
+      <link>https://stats.stackexchange.com/questions/660218/recreating-a-cnn-architecture</link>
+      <description><![CDATA[我正尝试重新创建一个 CNN 架构，该架构可根据历史路径预测未来轨迹。该实现在本文的第 2.3 和 2.4 节中定义。我的数据是 (纬度,经度) 序列。根据论文，我已将架构设置如下：
+def create_trajectory_cnn(
+input_sequence_length=8, # len 输入轨迹 def by paper
+input_features=2, # 纬度/经度坐标
+embedding_dim=32, # 嵌入维度
+n_future_steps=12, # 未来位置编号
+n_conv_layers=4, # 卷积层编号
+kernel_size=3, # 内核大小
+dropout_rate=0.1 # 正则化
+):
+输入 = 输入(shape=(input_sequence_length, input_features))
+# 嵌入层将坐标转换为固定大小表示
+x = Dense(embedding_dim)(inputs)
+for i in range(n_conv_layers):
+x = Conv1D(
+过滤器=embedding_dim，
+kernel_size=kernel_size，
+padding=&#39;same&#39;，
+激活=&#39;relu&#39;，
+名称=f&#39;conv_{i+1}&#39;
+)(x)
+x = BatchNormalization(名称=f&#39;batch_norm_{i+1}&#39;)(x) 
+x = Dropout(dropout_rate，名称=f&#39;dropout_{i+1}&#39;)(x)
 
-方法 1：
-proc combined data=indata covtest;
-where visitn ne 1;
-class age(ref=&quot;&lt;45&quot;) visitn subjid gender(ref=&quot;Female&quot;);
-model hb=age gender visitn base/ solution;
-repeat visitn/subject=subjid type=UN;
-lsmeans visitn/cl;
-store work.modeldata;
-run;
+x = Flatten()(x)
 
-data shooting;
-set indata;
-where visitn&gt;1;
-run;
+output_dim = n_future_steps * input_features
+输出 = Dense(output_dim)(x)
+输出 = Reshape((n_future_steps，input_features))(输出)
 
-proc plm restore=modeldata;
-score data=scoring out=preddata2 predict=pred;
-run;
+模型 = 模型(输入=输入，输出=输出)
+模型.编译(
+优化器=tf.keras.optimizers.Adam(learning_rate=0.001)，
+损失=&#39;mse&#39; # l2
+)
 
-我在Proc Mixed中使用Store语句来存储模型拟合，然后使用Proc Plm获取名为“Pred”的预测值。以下是参考：https://support.sas.com/kb/69/066.html
-方法 2
-proc combined data=indata covtest;
-where visitn&gt;1;
-class age(ref=&quot;&lt;45&quot;) visitn subjid gender(ref=&quot;Female&quot;);
-model hb=age gender visitn base/ solution outp=Predata3;
-duplicate visitn/subject=subjid type=UN;
-lsmeans visitn/cl;
-run;
+返回模型
 
-如您所见，相同的模型，相同的代码，但我在 model 语句中使用了 outp= 选项，并在“Predata3”数据集中获得了基于模型的预测，名为“Pred”。
-现在结果显示：如果观测值（HB）存在，则两种方法给出相同的预测，但是当 HB 缺失时，预测完全不同。
-我做错了什么？我想知道它们为什么不同，哪种方法才是我真正需要的。如果您对此有任何想法，非常感谢。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/660206/how-to-get-predicted-values-in-mmrm-using-sas</guid>
-      <pubDate>Sat, 18 Jan 2025 16:10:28 GMT</pubDate>
+到目前为止，我试图获得稍微不错的结果的尝试都失败了，这让我相信我的架构存在缺陷。基于这些部分，我的实现有什么问题吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660218/recreating-a-cnn-architecture</guid>
+      <pubDate>Sat, 18 Jan 2025 23:25:53 GMT</pubDate>
     </item>
     <item>
-      <title>随机森林中的迭代与 set.seed</title>
-      <link>https://stats.stackexchange.com/questions/660203/iterations-vs-set-seed-in-a-random-forest</link>
-      <description><![CDATA[众所周知，种子参数会影响模型性能，例如，在本线程中讨论过
-另一种方法可能是迭代运行模型，如同一研究人员在此处和此处中演示的那样（“简而言之，我们使用了随机森林分类和回归算法，训练集和测试集分割为 80/20，重复 100 次&quot;)。然而，目前尚不清楚他们是否使用迭代来替代 set.seed 或与之结合，因为他们在工作中没有明确说明这一点。
-不依赖种子的模型拟合迭代方法似乎是理想的，因为它会在多次运行中平均模型选择。然而，我在网上找不到足够的信息来确认或反驳这种方法的有效性。
-你对这种方法有什么看法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660203/iterations-vs-set-seed-in-a-random-forest</guid>
-      <pubDate>Sat, 18 Jan 2025 14:58:28 GMT</pubDate>
+      <title>RJAGS 中的条件截断未按预期工作</title>
+      <link>https://stats.stackexchange.com/questions/660217/conditional-truncation-in-rjags-not-working-as-expected</link>
+      <description><![CDATA[我正在使用 RJAGS 开发贝叶斯模型，我需要根据二进制指标有条件地截断正态分布变量。我的目标是：
+如果 V[i] == 1，则 Y[i] ~ dnorm(μ, τ₂) 截断为 [μ, ∞)。
+如果 V[i] == 0，则 Y[i] ~ dnorm(μ, τ₁) 截断为 (−∞, μ]。
+我尝试使用具有明确界限的 ifelse()，但没有成功。这可能吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660217/conditional-truncation-in-rjags-not-working-as-expected</guid>
+      <pubDate>Sat, 18 Jan 2025 22:57:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>交叉验证：多层次模型的研究问题是：影响实践的因素有哪些？</title>
+      <link>https://stats.stackexchange.com/questions/660216/cross-validation-multilevel-model-with-the-research-question-what-are-the-fact</link>
+      <description><![CDATA[有人建议我在这个平台上使用多级建模进行数据分析。该模型说明了数据结构和我的研究的理论框架。因此，我认为它很合适。
+这是一个研究变量的模型：
+model &lt;- glmer(
+Practice ~ Zone + Age + Gender + Education + Employenment + (1 | HouseID),
+data = OshingaliMLM,family = binomial(link = &quot;logit&quot;),nAGQ = 0
+
+)
+
+以下是该模型的结果：
+&gt; summary(model)
+通过最大似然拟合的广义线性混合模型（自适应高斯-埃尔米特求积法，nAGQ =
+0）[glmerMod]
+家庭：二项式（logit）
+公式：实践 ~ 区域 + 年龄 + 性别 + 教育 + 就业 + (1 | HouseID)
+数据：OshingaliMLM
+
+AIC BIC logLik 偏差 df.resid 
+269.8 322.0 -121.9 243.8 396 
+
+缩放残差：
+最小 1Q 中位数 3Q 最大 
+-3.07372 -0.10274 0.03619 0.18277 2.23432 
+
+随机效应：
+组名称方差标准差。
+HouseID（截距）19.88 4.459
+
+观察数：409，组：HouseID，120
+
+固定效应：
+估计标准差。误差 z 值 Pr(&gt;|z|) 
+(截距) 0.99931 3.02924 0.330 0.74149 
+ZoneRemote 农村 1.55626 1.85192 0.840 0.40071 
+ZoneRural 0.01747 1.79316 0.010 0.99223 
+ZoneUrban -6.14909 2.14979 -2.860 0.00423 ** 
+年龄 0.01961 0.03028 0.648 0.51726 
+性别男性 -6.52123 0.83623 -7.798 6.27e-15 ***
+教育小学1.78766 1.27288 1.404 0.16019 
+教育 中学 2.79713 1.32090 2.118 0.03421 * 
+教育 高等教育 3.60507 1.91254 1.885 0.05943 . 
+就业 学习者 1.68585 2.14170 0.787 0.43119 
+就业 养老金领取者 -0.42052 2.11747 -0.199 0.84258 
+就业 失业者 1.95405 1.84108 1.061 0.28853 
+---
+显著性代码：0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+固定效应的相关性：
+（内部）ZnRmtr ZonRrl ZnUrbn Age GndrMl EdctnP EdctnS EdctnT EmplyL EmplyP
+ZoneRemtrrl -0.423 
+ZoneRural -0.439 0.761 
+ZoneUrban -0.468 0.593 0.634 
+Age -0.531 0.028 0.065 -0.006 
+GenderMale -0.015 -0.053 -0.017 0.284 -0.056 
+EductnPrmry -0.408 0.069 0.027 -0.001 0.089 -0.210 
+EdctnScndry -0.455 0.056 -0.018 -0.058 0.157 -0.222 0.860 
+EductnTrtry -0.493 0.034 -0.020 -0.128 0.141 -0.249 0.573 0.636 
+EmplynmntLn -0.693 -0.076 -0.061 0.075 0.447 -0.107 0.008 0.129 0.404 
+EmplynmntPn -0.327 -0.085 -0.110 0.140 -0.397 0.064 0.128 0.164 0.331 0.540 
+EmplynmntUn -0.611 -0.077 -0.073 0.062 0.188 -0.169 0.065 0.108 0.396 0.899 0.700
+&gt; 
+
+研究问题是，哪些因素影响了实践？
+从结果来看，城市区域和性别是影响实践的关键因素。
+模型中使用的分析单位是家庭和个人。对吗？
+我还想确认该模型是否正确和完整，因为它与我的研究问题有关，因为我将使用此示例作为评估其余 23 个变量的基础。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660216/cross-validation-multilevel-model-with-the-research-question-what-are-the-fact</guid>
+      <pubDate>Sat, 18 Jan 2025 22:20:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>INLA 中的贝叶斯套索</title>
+      <link>https://stats.stackexchange.com/questions/660214/bayesian-lasso-in-inla</link>
+      <description><![CDATA[我正在寻找一种方法来实现贝叶斯套索，以便在 INLA 的空间模型 (BYM2) 中进行变量选择。我找不到任何讨论在 INLA 中实现贝叶斯套索的文章，更不用说空间模型了。有什么线索吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660214/bayesian-lasso-in-inla</guid>
+      <pubDate>Sat, 18 Jan 2025 21:19:07 GMT</pubDate>
     </item>
     <item>
       <title>当响应变量是“一年中的某一天”时，应使用哪种回归模型</title>
@@ -287,46 +366,12 @@ $$
       <pubDate>Sun, 05 Jan 2025 06:07:41 GMT</pubDate>
     </item>
     <item>
-      <title>对称单峰分布系列，其中峰度与峰值成反比？</title>
-      <link>https://stats.stackexchange.com/questions/659400/family-of-symmetric-unimodal-distributions-where-kurtosis-is-inversely-related</link>
-      <description><![CDATA[DeCarlo 于 1997 年在著名期刊《心理学方法》上发表了论文《论峰度的意义和用途》。该论文被广泛引用（引用次数超过 1500 次，其中 129 次“极具影响力”），人们仍然在文献和网络内容中频繁引用该论文。然而，摘要的第一句话指出：
-
-对于对称单峰分布，正 [过量] 峰度表示
-相对于正态分布，尾部较重且呈尖峰状，而负 [过量] 峰度表示尾部较轻且呈平坦状。
-
-这种说法在尖峰状和平坦状方面是不正确的，并且无疑导致了“尖峰状/平坦状”现象的持续存在尽管最近的研究彻底推翻了峰度可以衡量分布的峰值或平坦度（无论是对称分布还是单峰分布）的观点，但这种误解仍然难以消除。
-如果给出一组对称单峰分布，其中峰度降低时分布变得更加尖锐，峰度增加时分布变得更加平顶，这将有助于消除这种误解。
-（编辑：由于“峰值”定义不明确，因此出于本练习的目的，可以将其操作为标准化变量分布的高度。）
-这种对称单峰族的一个简单示例是$\{F_1, F_2\}$，其中$F_1$ 和 $F_2$ 在 维基百科页面 中给出：$F_1$ 是参数为 $0.5$ 和 $1$ 的 beta 分布与其关于 $0.0$ 的反射的均等混合，而 $F_2$ 是 $−1$ 和 $1$ 具有 $T(4.0000001)$ 学生 t 分布，混合概率为 $0.999$ 和 $0.001$。这些分布对应的标准化变量的密度函数如下所示：
-
-
-在这个家族中，较低峰度（和“platykurtic”）分布是“无限峰值”，而较高峰度分布较低，且呈现完美的平顶。
-然而，描述一个更传统的无限族$F_{\theta}$将会很有趣，其中$\theta$连续变化，峰度范围从&quot;platykurtic&quot; ($&lt;3$) 到无穷大，并且分布（所有对称和单峰）范围从无限峰值到几乎平顶，因为峰度范围从最小值到无穷大。
-有什么建议吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/659400/family-of-symmetric-unimodal-distributions-where-kurtosis-is-inversely-related</guid>
-      <pubDate>Tue, 31 Dec 2024 17:07:42 GMT</pubDate>
-    </item>
-    <item>
       <title>具有相关随机变量的 $E[X\mid U,V]$</title>
       <link>https://stats.stackexchange.com/questions/649158/ex-mid-u-v-with-dependent-random-variables</link>
       <description><![CDATA[设 $(X,Y,Z)$ 为三维随机变量，其密度函数为 $f(x,y,z)=\frac{2}{3}(x+y+z)$ 在 $0&lt;x,y,z&lt;1$ 上，$U=\min(X,Y,Z)$，$V=\max(X,Y,Z)$。计算$E[X\mid U,V]$。
 我认为答案是$\frac{14U^2+26UV+14V^2}{27(U+V)}$，但我不确定。]]></description>
       <guid>https://stats.stackexchange.com/questions/649158/ex-mid-u-v-with-dependent-random-variables</guid>
       <pubDate>Thu, 13 Jun 2024 05:43:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>工具变量和“排他性”</title>
-      <link>https://stats.stackexchange.com/questions/523471/instrumental-variable-and-exclusivity</link>
-      <description><![CDATA[在以下 DAG 中：
-
-我可以使用 IV1 作为曝光工具吗？
-在这个视频的 4:26 处，老师解释了工具变量的“排他性”原则。
-
-截止仅通过程序导致结果
-
-我想知道我是否正确理解了这个概念]]></description>
-      <guid>https://stats.stackexchange.com/questions/523471/instrumental-variable-and-exclusivity</guid>
-      <pubDate>Sun, 09 May 2021 23:00:51 GMT</pubDate>
     </item>
     </channel>
 </rss>
