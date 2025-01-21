@@ -4,7 +4,96 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 21 Jan 2025 15:17:29 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 21 Jan 2025 18:22:58 GMT</lastBuildDate>
+    <item>
+      <title>训练 Hugging Face Transformer 期间 GPU 利用率几乎始终为 0</title>
+      <link>https://stackoverflow.com/questions/79375287/gpu-utilization-almost-always-0-during-training-hugging-face-transformer</link>
+      <description><![CDATA[我正在使用我的发票数据对 Donut Cord-v2 模型进行微调，该发票数据在预处理并作为数据集保存在磁盘上时大小约为 360 GB。我几乎完全按照这个笔记本进行操作，只是我有 6 个训练周期而不是 3 个。
+我在单个 Nvidia H100 SXM GPU / Intel Xeon® Gold 6448Y / 128 GB RAM 上进行训练。
+每当我开始训练并使用 htop 和 nvidia-smi 检查 CPU 和 GPU 利用率时，我都会看到 CPU 始终处于 100%，由 python 使用，GPU 内存几乎始终被填充 90%，但 GPU 利用率几乎始终为 0。如果我不断刷新 nvidia-smi 的输出，则每 10-12 秒一次，利用率将跳至 100%，然后立即返回到 0。我不禁感觉到我的 CPU 和 GPU 之间存在瓶颈，CPU 尝试不断处理数据并将其发送到 GPU，GPU 处理速度非常快，并且只是闲置，等待来自 CPU 的下一批数据。我的数据集已完全加载到内存中，并且在训练时没有进行任何预处理：
+from datasets import load_from_disk
+processed_dataset = load_from_disk(r&quot;/dataset/dataset_final&quot;)
+
+我的处理器配置如下：
+from transformers import DonutProcessor
+
+new_special_tokens = [] # 将添加到 tokenizer 的新 token
+task_start_token = &quot;&lt;s&gt;&quot; # 任务 token 的启动
+eos_token = &quot;&lt;/s&gt;&quot; # tokenizer 的 eos token
+
+processor = DonutProcessor.from_pretrained(&quot;naver-clova-ix/donut-base-finetuned-cord-v2&quot;)
+
+# 向 tokenizer 添加新的特殊 token
+processor.tokenizer.add_special_tokens({&quot;additional_special_tokens&quot;: new_special_tokens + [task_start_token] + [eos_token]})
+
+# 我们更新了一些与预训练不同的设置；即图像的大小 + 无需旋转
+processor.feature_extractor.size = [1200,1553] # 应为 (宽度, 高度)
+processor.feature_extractor.do_align_long_axis = False
+
+我的模型配置是：
+import torch
+from transformers import VisionEncoderDecoderModel, VisionEncoderDecoderConfig
+
+#print(torch.cuda.is_available())
+
+# 从 huggingface.co 加载模型
+model = VisionEncoderDecoderModel.from_pretrained(&quot;naver-clova-ix/donut-base-finetuned-cord-v2&quot;)
+
+# 调整嵌入层的大小以匹配词汇表大小
+new_emb = model.decoder.resize_token_embeddings(len(processor.tokenizer))
+print(f&quot;新嵌入大小： {new_emb}&quot;)
+# 调整我们的图像大小和输出序列长度
+model.config.encoder.image_size = process.feature_extractor.size[::-1] # (height, width)
+model.config.decoder.max_length = len(max(processed_dataset[&quot;train&quot;][&quot;labels&quot;], key=len))
+
+# 添加解码器启动的任务令牌
+model.config.pad_token_id = process.tokenizer.pad_token_id
+model.config.decoder_start_token_id = process.tokenizer.convert_tokens_to_ids([&#39;&lt;s&gt;&#39;])[0]
+
+我的训练代码是：
+import gc
+gc.collect()
+
+torch.cuda.empty_cache()
+
+from transformers import Seq2SeqTrainingArguments，Seq2SeqTrainer
+
+导入日志记录
+logging.basicConfig(level=logging.INFO)
+
+# 训练参数
+training_args = Seq2SeqTrainingArguments(
+output_dir=r&quot;/trained&quot;, # 指定本地目录保存模型
+num_train_epochs=6,
+learning_rate=2e-5,
+per_device_train_batch_size=8,
+weight_decay=0.01,
+fp16=True,
+logs_steps=50,
+save_total_limit=2,
+evaluation_strategy=&quot;no&quot;,
+save_strategy=&quot;epoch&quot;,
+predict_with_generate=True,
+report_to=&quot;none&quot;,
+# 禁用推送到集线器
+push_to_hub=False
+
+)
+
+# 创建训练器
+trainer = Seq2SeqTrainer(
+model=model,
+args=training_args,
+train_dataset=processed_dataset[&quot;train&quot;],
+)
+
+# 开始训练
+trainer.train()
+
+使用 360 GB 数据集完成 6 个 epoch 的训练预计需要 54 小时。当我在装有 Intel i9 11900KF / RTX 3050 的 PC 上运行完全相同的代码时，我发现 GPU 利用率一直保持在 100%。我的代码中是否存在瓶颈？为什么 CPU 会在已经预处理的数据集上继续处理这么多内容？Cuda 12.6]]></description>
+      <guid>https://stackoverflow.com/questions/79375287/gpu-utilization-almost-always-0-during-training-hugging-face-transformer</guid>
+      <pubDate>Tue, 21 Jan 2025 17:09:03 GMT</pubDate>
+    </item>
     <item>
       <title>我们可以通过编程找出 Android 设备使用的 NPU 吗？[关闭]</title>
       <link>https://stackoverflow.com/questions/79374045/can-we-find-out-the-npu-used-by-the-android-device-programatically</link>
@@ -93,14 +182,6 @@ python 后端，react 前端。容器单独打包
 如果您正在开发这样的系统，您的管道会是什么样子，您会关注哪些主要活动？]]></description>
       <guid>https://stackoverflow.com/questions/79372212/ideas-for-developing-a-machine-learning-pipeline</guid>
       <pubDate>Mon, 20 Jan 2025 17:38:23 GMT</pubDate>
-    </item>
-    <item>
-      <title>个性化通知 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79371791/personalized-notification</link>
-      <description><![CDATA[您能否为我提供为我的新闻应用制作个性化通知模型的路线图？
-我尝试发出通知，但没有成功。如何使用人工智能和机器学习制作这种类型的系统？制作最佳通知以发送给用户设备的最佳流程是什么？]]></description>
-      <guid>https://stackoverflow.com/questions/79371791/personalized-notification</guid>
-      <pubDate>Mon, 20 Jan 2025 15:19:38 GMT</pubDate>
     </item>
     <item>
       <title>ImportError：无法从“torch”（未知位置）导入名称“Tensor”</title>
@@ -220,7 +301,7 @@ OVR: 0.9833333333333334, OVO: 0.9833333333333334
     <item>
       <title>KD树最近邻搜索如何工作？</title>
       <link>https://stackoverflow.com/questions/4418450/how-does-the-kd-tree-nearest-neighbor-search-work</link>
-      <description><![CDATA[我正在查看 KD 树的 Wikipedia 页面。例如，我用 Python 实现了列出的构建 kd 树的算法。
+      <description><![CDATA[我正在查看 KD 树的 Wikipedia 页面。例如，我在 Python 中实现了列出的构建 KD 树的算法。
 但是，使用 KD 树进行 KNN 搜索的算法会切换语言，并且并不完全清楚。英语解释开始有意义，但其中的部分（例如他们“展开递归”以检查其他叶节点的区域）对我来说真的没有任何意义。
 这是如何工作的，以及如何在 Python 中使用 KD 树进行 KNN 搜索？这并不是一个“给我发代码！”类型的问题，我也不指望这样。请简单解释一下 :)]]></description>
       <guid>https://stackoverflow.com/questions/4418450/how-does-the-kd-tree-nearest-neighbor-search-work</guid>
