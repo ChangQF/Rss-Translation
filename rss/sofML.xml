@@ -4,7 +4,49 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 23 Jan 2025 06:23:16 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 23 Jan 2025 09:17:49 GMT</lastBuildDate>
+    <item>
+      <title>TensorFlow Lite：Android Studio 中的 java.lang.AssertionError：“不支持数据类型 INT32”</title>
+      <link>https://stackoverflow.com/questions/79380176/tensorflow-lite-java-lang-assertionerror-does-not-support-data-type-int32-in</link>
+      <description><![CDATA[我正在 Android Studio 中开发 Android 应用程序并使用 TensorFlow Lite 模型。运行应用程序时，我遇到以下错误：
+java.lang.AssertionError：TensorFlow Lite 不支持数据类型 INT32
+以下是我的代码的相关部分：
+// 准备输入张量
+val inputFeature0 = TensorBuffer.createFixedSize(inputShape, DataType.FLOAT32)
+inputFeature0.loadArray(flatArray)
+
+// 运行推理
+val output = model?.process(inputFeature0)
+val rawOutputBuffer = output?.outputFeature0AsTensorBuffer
+
+// 根据数据类型将原始数据提取为 IntArray 或 FloatArray
+val outputArray = when (rawOutputBuffer?.dataType) {
+DataType.INT32 -&gt; rawOutputBuffer.intArray // 直接访问 INT32 数据
+DataType.FLOAT32 -&gt; rawOutputBuffer.floatArray.map { it.toInt() }.toIntArray() // 将 FloatArray 转换为 IntArray
+else -&gt;抛出 IllegalArgumentException(&quot;不支持的输出张量数据类型：${rawOutputBuffer?.dataType}&quot;)
+}
+
+
+输入张量的类型为 FLOAT32，并且使用 TensorBuffer.createFixedSize() 和 loadArray() 正确加载输入数据。
+
+在处理模型的输出张量 (outputFeature0AsTensorBuffer) 时，我添加了检查以处理 FLOAT32 和 INT32 输出。
+
+尽管如此，应用程序崩溃并显示错误，表明 TensorFlow Lite 不支持 INT32。
+
+
+我有什么尝试：
+确保输入张量使用 FLOAT32。
+验证 TensorFlow Lite 模型是否与 FLOAT32 数据类型兼容。
+检查输出张量数据类型并添加对 FLOAT32 和 INT32 的处理。
+我的预期：
+我预计模型推理可以顺利运行，因为我已经处理了 FLOAT32 和 INT32 输出情况。
+问题：
+为什么即使输入张量使用 FLOAT32，TensorFlow Lite 也会抛出此错误？
+该错误是否与 TensorFlow Lite 内部管理张量维度或元数据等数据类型的方式有关？
+如何解决此错误并确保 TensorFlow Lite 成功运行推理？]]></description>
+      <guid>https://stackoverflow.com/questions/79380176/tensorflow-lite-java-lang-assertionerror-does-not-support-data-type-int32-in</guid>
+      <pubDate>Thu, 23 Jan 2025 07:30:52 GMT</pubDate>
+    </item>
     <item>
       <title>如何在固定的BBOX中将YOLOv8model与Deepsort连接起来？</title>
       <link>https://stackoverflow.com/questions/79378146/how-can-i-connect-yolov8model-with-deepsort-in-a-fixed-bbox</link>
@@ -248,67 +290,6 @@ trainer.train()
       <pubDate>Tue, 21 Jan 2025 17:09:03 GMT</pubDate>
     </item>
     <item>
-      <title>微调后的IP-Adapter模型未能取得有效效果</title>
-      <link>https://stackoverflow.com/questions/79373102/the-finetuned-ip-adapter-model-fails-to-achieve-effective-results</link>
-      <description><![CDATA[微调环境基于开源及其说明：
-https://github.com/tencent-ailab/IP-Adapter
-我使用图像+提示对作为训练数据，训练了一个用于微调的IP-Adapter模型。但是，经过微调的模型并没有反映出根据提示得出的预期结果。
-训练图像和 .json 提示文件的 2 个失败案例：
-
-白天图像的相同提示（17 张图像）：
-例如，&quot;image_file&quot;: &quot;day_1.jpg&quot;, &quot;text&quot;: &quot;白天有阳光的城市。&quot;
-夜间图像的相同提示（17 张图像）：
-例如，&quot;image_file&quot;: &quot;night_1.jpg&quot;, &quot;text&quot;: &quot;夜晚有光的城市。没有阳光。&quot;
-推理结果：训练后，输入白天图像，提示如 &quot;白天有阳光的城市。&quot;为了进行推理，生成的输出图像仍然是白天图像，而不是夜间图像。
-
-针对数千张图像（1500 张中性面部图像和 2500 张悲伤面部图像）进行训练：
-4 种不同的提示，用于表示中性面部表情的中性图像。
-例如，&quot;image_file&quot;: &quot;neu_1.jpg&quot;, &quot;text&quot;: &quot;此人的面部表情为中性。&quot;
-4 种不同的提示，用于表示悲伤面部表情的悲伤图像。
-例如，&quot;image_file&quot;: &quot;sad_1.jpg&quot;, &quot;text&quot;: &quot;这个人正露出悲伤的表情。&quot;
-
-
-推理结果：训练后，应用带有提示的中性图像，例如 &quot;一个人很伤心。&quot;，或 &quot;这个人正露出悲伤的表情。&quot; ，生成的输出人脸图像仍然很中性，一点也不悲伤。
-微调步骤：
-
-修改tutorial_train_plus.py中的代码：
-将accelerator.save_state(save_path)
-替换为accelerator.save_state(save_path, safe_serialization=False)
-
-运行以下脚本进行微调：
-accelerate launch --num_processes 2 --multi_gpu --mixed_precision &quot;fp16&quot; 
-tutorial_train_plus.py 
---pretrained_model_name_or_path=&quot;stable-diffusion-v1-5/&quot; 
---pretrained_ip_adapter_path=“models/ip-adapter-plus_sd15.bin”
---image_encoder_path=“models/image_encoder/”
---data_json_file=“assets/prompt_image.json”
---data_root_path=“assets/images/train/”
---mixed_precision=“fp16”
---resolution=512
---train_batch_size=8
---dataloader_num_workers=4
---learning_rate=1e-04
---weight_decay=0.01
---output_dir=“out_model” 
---num_train_epochs=300
---save_steps=200
-
-参考readme中的说明，将pytorch.bin转换为ip-adapter.bin。
-在推理文件
-ip_adapter-plus_demo.py中，
-修改原始模型：ip_ckpt = &quot;models/ip-adapter-plus_sd15.bin&quot;
-
-
-对训练好的模型ip_ckpt = &quot;models/ip-adapter.bin&quot;
-
-运行python3 ip_adapter-plus_demo.py进行推理
-
-上面的过程有什么问题吗，或者问题出在输入图像或提示上？
-在我的例子中，通常至少需要多少个数据集对（一个图像和一个提示）才能获得有效的结果？]]></description>
-      <guid>https://stackoverflow.com/questions/79373102/the-finetuned-ip-adapter-model-fails-to-achieve-effective-results</guid>
-      <pubDate>Tue, 21 Jan 2025 03:08:09 GMT</pubDate>
-    </item>
-    <item>
       <title>React Native CLI 项目中的 YOLO 对象检测模型</title>
       <link>https://stackoverflow.com/questions/79372324/yolo-object-detection-model-in-react-native-cli-project</link>
       <description><![CDATA[]]></description>
@@ -323,11 +304,11 @@ ip_adapter-plus_demo.py中，
       <pubDate>Thu, 21 Nov 2024 00:25:48 GMT</pubDate>
     </item>
     <item>
-      <title>我正在进行 Yolov8 模型训练，但准确率只有 70%</title>
+      <title>我正在进行 Yolov8 模型训练，但准确率只有 70% [关闭]</title>
       <link>https://stackoverflow.com/questions/78919106/im-doing-yolov8-model-training-but-the-accuracy-rate-is-70</link>
       <description><![CDATA[我目前正在为我的项目训练 YOLOv8 模型。目标是训练该模型从发送给聊天机器人的照片中识别产品的股票代码。
 我有 1,522 个股票代码，每个股票代码大约有 10-15 张照片。虽然照片数量有点少，但我们的客户通常会向我们发送训练中使用的相同照片。例如，他们可能会从我们的 Instagram 个人资料中截取屏幕截图并将其发送给我们。
-我正在训练模型，但它的准确率只有 70% 左右。我相信问题可能与超参数有关，但我对它们不太熟悉。我非常感谢您提供的任何建议或意见。
+我正在训练模型，但它的准确率只有 70% 左右。我相信问题可能与超参数有关，但我对它们不太熟悉。我非常感谢您提供的任何建议或建议。
 hyp.yaml
 # 学习率和动量 Ayarları
 lr0: 0.01 # 关闭状态
@@ -385,41 +366,123 @@ copy_paste: 0.0 # 复制粘贴艺术 (olasılık) - Bu durumda kapalı
       <pubDate>Tue, 27 Aug 2024 13:16:26 GMT</pubDate>
     </item>
     <item>
-      <title>为什么 OvO 和 OvR 返回相同的结果？</title>
-      <link>https://stackoverflow.com/questions/70981876/why-does-ovo-and-ovr-return-the-same-result</link>
-      <description><![CDATA[我正在使用 scikit-learn 的 roc_auc_score() 函数来解决多类分类问题。对于具有三个标签（和另一个数据集）的鸢尾花，当我使用一对一和一对其余时，我得到完全相同的输出。有人知道为什么会这样吗？这是我的代码：
-从 sklearn 导入数据集
-从 sklearn.tree 导入 DecisionTreeClassifier
-从 sklearn.metrics 导入 roc_auc_score
-从 sklearn.model_selection 导入 train_test_split
-从 sklearn.tree 导入 DecisionTreeClassifier
-
-iris = datasets.load_iris()
-X = iris.data
-y = iris.target
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=0)
-clf = DecisionTreeClassifier(random_state=0)
-clf = clf.fit(X_train, y_train)
-y_pred = clf.predict_proba(X_test)
-auc_ovr = roc_auc_score(y_test, y_pred, average=&#39;macro&#39;, multi_class=&#39;ovr&#39;)
-auc_ovo = roc_auc_score(y_test, y_pred, average=&#39;macro&#39;, multi_class=&#39;ovo&#39;)
-print(f&#39;OVR: {auc_ovr}, OVO: {auc_ovo}&#39;)
-
-
-最后一行的输出是：
-OVR: 0.9833333333333334, OVO: 0.9833333333333334
-]]></description>
-      <guid>https://stackoverflow.com/questions/70981876/why-does-ovo-and-ovr-return-the-same-result</guid>
-      <pubDate>Fri, 04 Feb 2022 05:35:38 GMT</pubDate>
-    </item>
-    <item>
       <title>如何暂时禁用 MLFlow？</title>
       <link>https://stackoverflow.com/questions/61088651/how-to-disable-mlflow-temporarily</link>
       <description><![CDATA[是否可以暂时禁用 MLFlow 以调试代码或添加新功能？如果不禁用，它会保存大量实际上无用或未完成的执行。
 或者最好的策略是使用不调用 mlflow.start_run() 的类似代码？]]></description>
       <guid>https://stackoverflow.com/questions/61088651/how-to-disable-mlflow-temporarily</guid>
       <pubDate>Tue, 07 Apr 2020 20:14:15 GMT</pubDate>
+    </item>
+    <item>
+      <title>加载 pickle NotFittedError：TfidfVectorizer - 词汇表不适合</title>
+      <link>https://stackoverflow.com/questions/57213165/loading-pickle-notfittederror-tfidfvectorizer-vocabulary-wasnt-fitted</link>
+      <description><![CDATA[多标签分类
+我正在尝试使用 scikit-learn/pandas/OneVsRestClassifier/logistic 回归预测多标签分类。构建和评估模型有效，但尝试对新样本文本进行分类无效。
+场景 1：
+一旦我构建了一个模型，就使用名称 (sample.pkl) 保存该模型并重新启动我的内核，但是当我在对样本文本进行预测期间加载已保存的模型 (sample.pkl) 时，它给出了错误：
+ NotFittedError：TfidfVectorizer - 词汇表不适合。
+
+我构建了模型并评估了模型，然后我使用名称 sample.pkl 保存了该模型。我重启了内核，然后加载模型对样本文本进行预测 NotFittedError: TfidfVectorizer - 词汇表不适合
+推理
+import pickle,os
+import collections
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+from collections import Counter
+from nltk.corpus import stopwords
+import json, nltk, re, csv, pickle
+from sklearn.metrics import f1_score # 性能矩阵
+from sklearn.multiclass import OneVsRestClassifier # 二元相关性
+from sklearn.linear_model import LogisticRegression 
+from sklearn.model_selection import train_test_split 
+from sklearn.feature_extraction.text import TfidfVectorizer 
+来自 sklearn.feature_extraction.text 导入 CountVectorizer
+来自 sklearn.preprocessing 导入 MultiLabelBinarizer
+来自 sklearn.model_selection 导入 train_test_split
+来自 sklearn.linear_model 导入 LogisticRegression
+stop_words = set(stopwords.words(&#39;english&#39;))
+
+def cleanHtml(sentence):
+&#39;&#39;&#39;&#39; 删除标签 &#39;&#39;&#39;
+cleanr = re.compile(&#39;&lt;.*?&gt;&#39;)
+cleantext = re.sub(cleanr, &#39; &#39;, str(sentence))
+return cleantext
+
+def cleanPunc(sentence): 
+&#39;&#39;&#39; 函数用于清除单词中的任何标点符号或特殊字符 &#39;&#39;&#39;
+cleaned = re.sub(r&#39;[?|!|\&#39;|&quot;|#]&#39;,r&#39;&#39;,sentence)
+cleaned = re.sub(r&#39;[.|,|)|(|\|/]&#39;,r&#39; &#39;,cleaned)
+cleaned = cleaned.strip()
+cleaned = cleaned.replace(&quot;\n&quot;,&quot; &quot;)
+return cleaned
+
+def keepAlpha(sentence):
+&quot;&quot;&quot; 保留 alpha 句子 &quot;&quot;&quot;
+alpha_sent = &quot;&quot;
+for word in sentence.split():
+alpha_word = re.sub(&#39;[^a-z A-Z]+&#39;, &#39; &#39;, word)
+alpha_sent += alpha_word
+alpha_sent += &quot; &quot;
+alpha_sent = alpha_sent.strip()
+return alpha_sent
+
+def remove_stopwords(text):
+&quot;&quot;&quot; 删除停用词 &quot;&quot;&quot;
+no_stopword_text = [w for w in text.split() if not w in stop_words]
+return &#39; &#39;.join(no_stopword_text)
+
+test1 = pd.read_csv(&quot;C:\\Users\\abc\\Downloads\\test1.csv&quot;)
+test1.columns
+
+test1.head()
+siNo plot movie_name gender_new
+1 故事以 Hannah 开始... 唱歌 [戏剧,青少年]
+2 Debbie 最喜欢的乐队是 Dream... 最忠实的粉丝 [戏剧]
+3 这个祖鲁家庭的故事是... 回来，非洲 [戏剧,纪录片]
+
+出现错误
+当我对示例文本进行推理时，我在这里出现错误
+def infer_tags(q):
+q = cleanHtml(q)
+q = cleanPunc(q)
+q = keepAlpha(q)
+q = remove_stopwords(q)
+multilabel_binarizer = MultiLabelBinarizer()
+tfidf_vectorizer = TfidfVectorizer()
+q_vec = tfidf_vectorizer.transform([q])
+q_pred = clf.predict(q_vec)
+return multilabel_binarizer.inverse_transform(q_pred)
+
+for i in range(5):
+print(i)
+k = test1.sample(1).index[0] 
+print(&quot;电影：&quot;, test1[&#39;movie_name&#39;][k], &quot;\n预测类型：&quot;, infer_tags(test1[&#39;plot&#39;][k])), print(&quot;实际类型：&quot;,test1[&#39;genre_new&#39;][k], &quot;\n&quot;)
+
+
+已解决
+我解决了将 tfidf 和 multibiniraze 保存到 pickle 模型中的问题
+从 sklearn.externals 导入 joblib
+pickle.dump(tfidf_vectorizer, open(&quot;tfidf_vectorizer.pickle&quot;, &quot;wb&quot;))
+pickle.dump(multilabel_binarizer, open(&quot;multibinirizer_vectorizer.pickle&quot;, &quot;wb&quot;))
+vectorizer = joblib.load(&#39;/abc/downloads/tfidf_vectorizer.pickle&#39;)
+multilabel_binarizer = joblib.load(&#39;/abc/downloads/multibinirizer_vectorizer.pickle&#39;)
+
+def infer_tags(q):
+q = cleanHtml(q)
+q = cleanPunc(q)
+q = keepAlpha(q) 
+q = remove_stopwords(q)
+q_vec = vectorizer .transform([q])
+q_pred = rf_model.predict(q_vec)
+return multilabel_binarizer.inverse_transform(q_pred)
+
+我通过以下链接找到了解决方案
+,https://stackoverflow.com/questions/32764991/how-do-i-store-a-tfidfvectorizer-for-future-use-in-scikit-learn&gt;]]></description>
+      <guid>https://stackoverflow.com/questions/57213165/loading-pickle-notfittederror-tfidfvectorizer-vocabulary-wasnt-fitted</guid>
+      <pubDate>Fri, 26 Jul 2019 04:21:05 GMT</pubDate>
     </item>
     <item>
       <title>tensorflow keras 序列模型 - 如何仅预测最后一步的输出</title>
