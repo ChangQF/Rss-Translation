@@ -4,17 +4,7 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 23 Jan 2025 12:32:36 GMT</lastBuildDate>
-    <item>
-      <title>机器学习任务[关闭]</title>
-      <link>https://stackoverflow.com/questions/79381014/machine-learning-task</link>
-      <description><![CDATA[假设您正在分析一个由 360 个不同的“数据网格”组成的数据集。每个数据网格由 7 组测量值组成。将这些测量值视为代表 7 个不同传感器的输出。每个数据网格有 700 个单独的数据点（7 个传感器 x 每个传感器 100 个数据点）。所有数据网格的集体数据总计 252,000 个数字。数据点本身源自一组核心的 49 个唯一“源组件”。
-在这 49 个源组件中，存在 7 个“签名组件”的子集，它们随机分布在 360 个数据网格中。但是，有一个明显的异常：某些数据网格（平均大约 40 到 42 个，但有时在某些数据集中会更多（高达 90-93 个））没有显示这 7 个签名组件的踪迹。
-主要目标是开发一种可靠的方法来区分包含签名组件的数据网格和没有签名组件的数据网格。您将获得完整的 360 个数据网格集，但不会被告知哪些是“签名组件”。您的方法依赖于以下假设：如果您可以理解和量化完全没有签名组件的数据网格的特征，则可以更轻松地通过它们与这些特征的偏离来识别签名组件的存在。
-我尝试使用隔离森林，但它没有给出正确的结果，在 41 个元素中，它只预测了 4 个元素，我的问题是如何提高它的预测率，以便它能够很好地预测，或者我可以使用任何其他方法。]]></description>
-      <guid>https://stackoverflow.com/questions/79381014/machine-learning-task</guid>
-      <pubDate>Thu, 23 Jan 2025 12:24:15 GMT</pubDate>
-    </item>
+    <lastBuildDate>Thu, 23 Jan 2025 15:17:28 GMT</lastBuildDate>
     <item>
       <title>TensorFlow Lite：Android Studio 中的 java.lang.AssertionError：“不支持数据类型 INT32”</title>
       <link>https://stackoverflow.com/questions/79380176/tensorflow-lite-java-lang-assertionerror-does-not-support-data-type-int32-in</link>
@@ -151,7 +141,79 @@ Deepsort 的输入和输出
     <item>
       <title>我正在尝试使用 GNN-LSTM 预测尼日利亚某州未来确诊的脑膜炎病例数</title>
       <link>https://stackoverflow.com/questions/79377500/i-am-trying-to-predict-the-future-number-of-confirmed-cases-of-meningitis-for-a</link>
-      <description><![CDATA[]]></description>
+      <description><![CDATA[以下是代码：
+ # 初始化模型
+# 初始化模型
+model = GNN_LSTM(input_dim=window_size, gcn_hidden_​​dim=16, lstm_hidden_​​dim=32, predict_steps=20)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+criterion = torch.nn.MSELoss()
+print(f&quot;Shape of time_series_features: {time_series_features.shape}&quot;)
+
+# 训练循环
+for epoch in range(200):
+model.train()
+optimizer.zero_grad()
+
+# 前向传递
+out = model(data, time_series_features) # 无需解压，应符合模型输入预期
+zamfara_predictions = out[target_idx] # 提取Zamfara 的预测
+
+# 使用 train_mask 计算损失
+adapted_train_mask = train_mask[-predict_steps:]
+
+# 打印形状以供调试
+print(f&quot;Shape of zamfara_predictions: {zamfara_predictions.shape}&quot;)
+print(f&quot;Shape of zamfara_features[-predict_steps:]: {zamfara_features[-predict_steps:].shape}&quot;)
+print(f&quot;Shape of adapted_train_mask: {adjusted_train_mask.shape}&quot;)
+
+# 使用调整后的掩码计算损失
+loss = criterion(
+zamfara_predictions.squeeze()[adjusted_train_mask],
+zamfara_features[-predict_steps:][adjusted_train_mask]
+)
+
+loss.backward()
+optimizer.step()
+
+# 验证
+if (epoch + 1) % 20 == 0:
+model.eval()
+with torch.no_grad():
+print(f&quot;zamfara_predictions (squeezed) 的形状：{zamfara_predictions.squeeze().shape}&quot;)
+print(f&quot;zamfara_features 的形状：{zamfara_features.shape}&quot;)
+print(f&quot;val_mask 的形状：{val_mask.shape}，类型：{val_mask.dtype}&quot;)
+print(f&quot;test_mask 的形状：{test_mask.shape}，类型：{test_mask.dtype}&quot;)
+
+# 验证损失计算
+val_loss = criterion(
+zamfara_predictions.squeeze()[val_mask],
+zamfara_features[val_mask]
+)
+print(f&quot;Epoch {epoch+1}, Train Loss: {loss.item()}, Validation Loss: {val_loss.item()}&quot;)
+
+# 测试
+model.eval()
+with torch.no_grad():
+test_loss = criterion(zamfara_predictions.squeeze()[test_mask], zamfara_features[test_mask])
+print(f&quot;Test Loss: {test_loss.item()}&quot;)
+
+# 指标计算
+true_values = zamfara_features[test_mask].numpy()
+predictions = zamfara_predictions.squeeze()[test_mask].numpy()
+
+mse = mean_squared_error(true_values, predictions)
+rmse = np.sqrt(mse)
+mae = mean_absolute_error(true_values, predictions)
+print(f&quot;Test MSE: {mse:.4f}&quot;)
+print(f&quot;Test RMSE: {rmse:.4f}&quot;)
+print(f&quot;Test MAE: {mae:.4f}&quot;)
+
+# Zamfara 的预测案例
+
+我正在使用 Google Colab 编译该程序。编译后，代码中突出显示了此行：loss = criterion( zamfara_predict，并出现以下错误：
+TypeError：&#39;int&#39; 对象不可调用。
+
+代码由 meningitis_​​cases_graph.graphml 组成，它是尼日利亚 37 个州确诊脑膜炎病例的图表表示，edges.csv 是尼日利亚这些州的形状文件。我们想要预测尼日利亚某个州“赞法拉”未来 20 天的确诊病例数。如何解决此错误？]]></description>
       <guid>https://stackoverflow.com/questions/79377500/i-am-trying-to-predict-the-future-number-of-confirmed-cases-of-meningitis-for-a</guid>
       <pubDate>Wed, 22 Jan 2025 11:15:34 GMT</pubDate>
     </item>
@@ -554,6 +616,37 @@ return multilabel_binarizer.inverse_transform(q_pred)
 ,https://stackoverflow.com/questions/32764991/how-do-i-store-a-tfidfvectorizer-for-future-use-in-scikit-learn&gt;]]></description>
       <guid>https://stackoverflow.com/questions/57213165/loading-pickle-notfittederror-tfidfvectorizer-vocabulary-wasnt-fitted</guid>
       <pubDate>Fri, 26 Jul 2019 04:21:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>tensorflow keras 序列模型 - 如何仅预测最后一步的输出</title>
+      <link>https://stackoverflow.com/questions/53825156/tensorflow-keras-sequence-models-how-to-only-predict-output-of-last-step</link>
+      <description><![CDATA[我正在使用 tf.keras 库开发一个序列模型。
+假设我有 5 个时间步骤，每个时间步骤本质上都有一个输出。
+每个时间步骤中的特征数量为 - 比如 - 4。我正在研究分类问题，输出可以是 0、1 或 2 之一。
+例如，以下是一个训练示例。
+步骤 1 输入：`[0, 5, 4, 5]` 和输出 = `0`
+步骤 2 输入：`[1, 2, 2, 7]` 和输出 = `1`
+步骤 3 输入：`[7, 5, 3, 4]` 和输出 = `0`
+步骤 4 输入：`[4, 5, 1, 2]` 和输出 = `1`
+步骤 5 输入：`[8, 5, 4, 5]` 和输出 = `2`
+
+在训练我的模型时，我希望以这样的方式训练它：
+在步骤 1 中，如果您的输入是 [0, 5, 4, 5]，则此时间步的输出为 0。
+
+在步骤 2 中，如果您的输入是 [1, 2, 2, 7]，则此时间步的输出为 1。
+以此类推....
+但在后期制作中，我只希望我的模型能够估计最后一个时间步的输出。例如：
+步骤 1 输入：`[0, 5, 4, 5]` 且输出 = `0`
+步骤 2 输入：`[1, 2, 2, 7]` 且输出 = `1`
+步骤 3 输入：`[7, 5, 3, 4]` 且输出 = `0`
+步骤 4 输入：`[4, 5, 1, 2]` 且输出 = `1`
+步骤 5 输入：`[8, 5, 4, 5]` 且输出 = **`?`**
+
+基于此，在训练我的模型时，我对应该如何构建和训练我的模型有点困惑？由于我只对最后一步的输出感兴趣，但仍希望在训练阶段通过提供最后一步之前的先前步骤的输出来帮助我的模型，我想知道我应该如何构建模型？
+如果我提供所有时间步的输出作为预期输入，据我所知，损失/成本是基于此计算的。例如，如果第 3 个时间步的输出计算错误，成本将增加。这可能是预料之中的，但对我来说重要的是最后一步的输出，我主要感兴趣的是在最后一步做出正确的预测。在这种情况下，如何使用 tf.keras 构建我的模型？
+（或者，如果我仍然需要以某种方式训练我的模型，以便它尝试分别估计每个时间步的输出。最后，我仍然希望仅基于最后一步的输出来计算准确度。）]]></description>
+      <guid>https://stackoverflow.com/questions/53825156/tensorflow-keras-sequence-models-how-to-only-predict-output-of-last-step</guid>
+      <pubDate>Tue, 18 Dec 2018 01:24:53 GMT</pubDate>
     </item>
     <item>
       <title>KD树最近邻搜索如何工作？</title>
