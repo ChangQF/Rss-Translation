@@ -4,7 +4,180 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 24 Jan 2025 06:23:32 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 24 Jan 2025 09:17:25 GMT</lastBuildDate>
+    <item>
+      <title>Bert 模型未使用 JAX 进行学习。结果没有改变</title>
+      <link>https://stackoverflow.com/questions/79383687/bert-model-not-learning-using-jax-results-dont-change</link>
+      <description><![CDATA[我正在使用 TPU 上的 JAX 训练垃圾邮件分类的 BERT 模型。我的模型没有学习，其结果也没有改变。
+Epoch 0：训练损失 = 2.7961559295654297：训练准确度：0.30608975887298584 评估损失 = 3.6600053310394287：评估准确度 = 0.0
+Epoch 1：训练损失 = 2.7961559295654297：训练准确度：0.30608975887298584 评估损失 = 3.6600053310394287：评估准确度 = 0.0
+Epoch 2：训练损失 = 2.7961559295654297：训练准确度： 0.30608975887298584 Eval Loss = 3.6600053310394287: Eval Accuracy = 0.0
+
+训练代码：
+@jax.pmap
+def train_step(state, batch, labels):
+def loss_fn(params):
+
+# 将批次中的所有内容放入模型并传递模型参数
+logits = model(**batch, params = state.params).logits
+loss = compute_loss(logits, labels) # 计算损失
+
+return loss, logits
+
+# 将损失函数转换为梯度微分函数
+grad_fn = jax.value_and_grad(loss_fn, has_aux = True) # has_aux 允许返回 logits
+# 从批次中获取损失和梯度grad_fn
+(loss, logits), grads = grad_fn(state.params)
+# 使用产生的梯度更新模型状态
+new_state = state.apply_gradients(grads = grads)
+
+return loss, logits, new_state
+
+for epoch in range(epochs):
+epoch_losses, epoch_accuracies = [], []
+for batch in train_dataset:
+
+batch[&quot;input_ids&quot;] = jnp.array(batch[&quot;input_ids&quot;])
+batch[&quot;attention_mask&quot;] = jnp.array(batch[&quot;attention_mask&quot;])
+batch[&quot;token_type_ids&quot;] = jnp.array(batch[&quot;token_type_ids&quot;])
+
+# 我们将在多个数据集上复制该值设备 (tpus)
+batch_inputs = {k: jax.device_put_replicated(v, jax.devices()) for k, v in batch.items() if k != &quot;Category&quot;}
+batch_labels = jax.device_put_replicated(batch[&quot;Category&quot;], jax.devices()) # 在设备之间复制标签
+
+# 从数据中删除 none
+batch_labels = safe_convert_to_jax_array(jnp.array(batch_labels))
+batch_labels = batch_labels.transpose(1, 0)
+
+loss, logits, state = train_step(state, batch_inputs, batch_labels)
+
+cls_logits = logits[:, :, 0, :] 
+分类_logits = cls_logits[:, :, :2]
+
+prediction_labels = jnp.argmax(classification_logits, axis = -1)
+accuracy = compute_accuracy(predicted_labels, batch_labels)
+
+初始化状态的代码：
+class TrainState(train_state.TrainState):
+pass
+
+# 我们的模型参数
+params = model.params
+# 为我们的训练创建初始状态
+state = TrainState.create(apply_fn = model.__call__, params = params, tx = optimizer)
+
+def safe_convert_to_jax_array(input_data, default_value = 0):
+# 用 default_value 替换 None 值
+return jnp.array([default_value if x is None else x for x in input_data])
+
+# 在 tpu 上复制状态
+state = jax.device_put_replicated(state, jax.devices())
+
+要查看完整代码：https://www.kaggle.com/code/yousefr/bert-spam-classification-using-jax-and-tpus
+此外，我尝试调整学习率，但没有帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/79383687/bert-model-not-learning-using-jax-results-dont-change</guid>
+      <pubDate>Fri, 24 Jan 2025 08:33:23 GMT</pubDate>
+    </item>
+    <item>
+      <title>社区连接器管道的 Apps 脚本中未检测到 BigQuery ML 模型训练完成</title>
+      <link>https://stackoverflow.com/questions/79382851/bigquery-ml-model-training-completion-not-detected-in-apps-script-for-community</link>
+      <description><![CDATA[我正在 lookerstudio 社区连接器中构建 Google Apps Script 管道，该管道创建 BigQuery ML 模型，然后将其用于异常检测。尽管实现了模型存在性检查和等待函数，但我仍然收到此错误：
+
+错误：异常检测失败：{ 
+&quot;error&quot;：{ 
+&quot;code&quot;：400，
+&quot;message&quot;：&quot;无效的表值函数 ML.DETECT_ANOMALIES\n该模型尚不可用...&quot;，
+&quot;status&quot;：&quot;INVALID_ARGUMENT&quot; 
+}
+}
+
+
+这是我的工作流程：
+
+创建每日汇总表
+创建 ARIMA 模型
+等待模型训练
+创建异常结果表
+
+相关代码片段：
+function modelExists(projectId, datasetId, modelId, accessToken) {
+var url = &#39;https://bigquery.googleapis.com/bigquery/v2/projects/&#39; + 
+projectId + &#39;/datasets/&#39; + datasetId + &#39;/models/&#39; + modelId;
+var options = {
+method: &#39;get&#39;,
+headers: { Authorization: &#39;Bearer &#39; + accessToken },
+muteHttpExceptions: true
+};
+
+尝试 {
+var response = UrlFetchApp.fetch(url, options);
+if (response.getResponseCode() === 200) {
+var modelInfo = JSON.parse(response.getContentText());
+// 检查 ACTIVE 状态或 creationTime 是否存在
+return (modelInfo.state === &#39;ACTIVE&#39; || !!modelInfo.creationTime);
+}
+return false;
+} catch (e) {
+return false;
+}
+}
+
+function waitForModel(projectId, datasetId, modelId, accessToken, timeout, interval) {
+timeout = timeout || 480000; // 8 分钟
+interval = interval || 5000; // 5 秒
+
+var startTime = Date.now();
+while (Date.now() - startTime &lt; timeout) {
+var exist = modelExists(projectId, datasetId, modelId, accessToken);
+if (存在) {
+Logger.log(&#39;模型 &#39; + modelId + &#39; 已准备就绪&#39;);
+return true;
+}
+Logger.log(&#39;正在等待模型 &#39; + modelId + &#39;... 当前状态： &#39; + getModelState(projectId, datasetId, modelId, accessToken));
+Utilities.sleep(interval);
+}
+throw new Error(&#39;等待模型超时 &#39; + modelId);
+}
+
+function getModelState(projectId, datasetId, modelId, accessToken) {
+var url = &#39;https://bigquery.googleapis.com/bigquery/v2/projects/&#39; + 
+projectId + &#39;/datasets/&#39; + datasetId + &#39;/models/&#39; + modelId;
+var options = {
+method: &#39;get&#39;,
+headers: { Authorization: &#39;Bearer &#39; + accessToken },
+muteHttpExceptions: true
+};
+
+try {
+var response = UrlFetchApp.fetch(url, options);
+if (response.getResponseCode() === 200) {
+var modelInfo = JSON.parse(response.getContentText());
+return modelInfo.state || &#39;UNKNOWN&#39;;
+}
+return &#39;NOT_FOUND&#39;;
+} catch (e) {
+return &#39;ERROR&#39;;
+}
+}
+
+管道执行：
+const createModelQuery = `CREATE MODEL ...`;
+fetchBigQuery(createModelQuery); 
+
+// 2. 等待模型
+waitForModel(projectId, datasetId, modelName, accessToken);
+
+// 3. 创建结果表 &lt;- 此处失败
+const detectQuery = `SELECT * FROM ML.DETECT_ANOMALIES(...)`;
+fetchBigQuery(detectQuery);
+
+问题：
+即使 waitForModel 成功完成，后续的 ML.DETECT_ANOMALIES 调用仍会失败，并显示“模型不可用”。当我在 BigQuery 控制台中手动检查时，模型最终会在几分钟后可用。
+问题：
+为什么我的 waitForModel 函数无法正确检测模型训练完成情况，我如何确保管道等到模型真正准备就绪？]]></description>
+      <guid>https://stackoverflow.com/questions/79382851/bigquery-ml-model-training-completion-not-detected-in-apps-script-for-community</guid>
+      <pubDate>Thu, 23 Jan 2025 23:17:36 GMT</pubDate>
+    </item>
     <item>
       <title>有人有使用 kluster.ai 进行 DeepSeek-R1 托管的经验吗？[关闭]</title>
       <link>https://stackoverflow.com/questions/79382626/does-anyone-have-experience-using-kluster-ai-for-deepseek-r1-hosting</link>
@@ -202,97 +375,6 @@ train_labels = data[&#39;train_labels&#39;]
       <pubDate>Tue, 21 Jan 2025 17:12:30 GMT</pubDate>
     </item>
     <item>
-      <title>训练 Hugging Face Transformer 期间 GPU 利用率几乎始终为 0</title>
-      <link>https://stackoverflow.com/questions/79375287/gpu-utilization-almost-always-0-during-training-hugging-face-transformer</link>
-      <description><![CDATA[我正在使用我的发票数据对 Donut Cord-v2 模型进行微调，该发票数据在预处理并作为数据集保存在磁盘上时大小约为 360 GB。我几乎完全按照这个笔记本进行操作，只是我有 6 个训练周期而不是 3 个。
-我在单个 Nvidia H100 SXM GPU / Intel Xeon® Gold 6448Y / 128 GB RAM 上进行训练。
-每当我开始训练并使用 htop 和 nvidia-smi 检查 CPU 和 GPU 利用率时，我都会看到 CPU 的利用率为 10-12%，由 python 使用，GPU 内存几乎一直被占用 90%，但 GPU 利用率几乎始终为 0。如果我不断刷新 nvidia-smi 的输出，则每 10-12 秒一次，利用率将跳转到100% 然后立即回到 0。我不禁感觉到我的 CPU 和 GPU 之间存在瓶颈，CPU 尝试不断处理数据并将其发送到 GPU，GPU 处理速度非常快，并且只是闲置，等待来自 CPU 的下一批。我从磁盘加载已经预处理的数据集，如下所示：
-from datasets import load_from_disk
-processed_dataset = load_from_disk(r&quot;/dataset/dataset_final&quot;)
-
-我的处理器配置如下：
-from transformers import DonutProcessor
-
-new_special_tokens = [] # 将添加到 tokenizer 的新 token
-task_start_token = &quot;&lt;s&gt;&quot; # 任务 token 的启动
-eos_token = &quot;&lt;/s&gt;&quot; # tokenizer 的 eos token
-
-processor = DonutProcessor.from_pretrained(&quot;naver-clova-ix/donut-base-finetuned-cord-v2&quot;)
-
-# 向 tokenizer 添加新的特殊 token
-processor.tokenizer.add_special_tokens({&quot;additional_special_tokens&quot;: new_special_tokens + [task_start_token] + [eos_token]})
-
-# 我们更新了一些与预训练不同的设置；即图像的大小 + 无需旋转
-processor.feature_extractor.size = [1200,1553] # 应为 (宽度, 高度)
-processor.feature_extractor.do_align_long_axis = False
-
-我的模型配置是：
-import torch
-from transformers import VisionEncoderDecoderModel, VisionEncoderDecoderConfig
-
-#print(torch.cuda.is_available())
-
-# 从 huggingface.co 加载模型
-model = VisionEncoderDecoderModel.from_pretrained(&quot;naver-clova-ix/donut-base-finetuned-cord-v2&quot;)
-
-# 调整嵌入层的大小以匹配词汇表大小
-new_emb = model.decoder.resize_token_embeddings(len(processor.tokenizer))
-print(f&quot;新嵌入大小： {new_emb}&quot;)
-# 调整我们的图像大小和输出序列长度
-model.config.encoder.image_size = process.feature_extractor.size[::-1] # (height, width)
-model.config.decoder.max_length = len(max(processed_dataset[&quot;train&quot;][&quot;labels&quot;], key=len))
-
-# 添加解码器启动的任务令牌
-model.config.pad_token_id = process.tokenizer.pad_token_id
-model.config.decoder_start_token_id = process.tokenizer.convert_tokens_to_ids([&#39;&lt;s&gt;&#39;])[0]
-
-我的训练代码是：
-import gc
-gc.collect()
-
-torch.cuda.empty_cache()
-
-from transformers import Seq2SeqTrainingArguments，Seq2SeqTrainer
-
-导入日志记录
-logging.basicConfig(level=logging.INFO)
-
-# 训练参数
-training_args = Seq2SeqTrainingArguments(
-output_dir=r&quot;/trained&quot;, # 指定本地目录保存模型
-num_train_epochs=6,
-learning_rate=2e-5,
-per_device_train_batch_size=8,
-weight_decay=0.01,
-fp16=True,
-logs_steps=50,
-save_total_limit=2,
-evaluation_strategy=&quot;no&quot;,
-save_strategy=&quot;epoch&quot;,
-predict_with_generate=True,
-report_to=&quot;none&quot;,
-# 禁用推送到集线器
-push_to_hub=False
-
-)
-
-# 创建训练器
-trainer = Seq2SeqTrainer(
-model=model,
-args=training_args,
-train_dataset=processed_dataset[&quot;train&quot;],
-)
-
-# 开始训练
-trainer.train()
-
-使用 360 GB 数据集完成 6 个 epoch 的训练预计需要 54 小时。当我在装有 Intel i9 11900KF / RTX 3050 的 PC 上运行完全相同的代码时，我发现 GPU 利用率一直保持在 100%。我的代码中是否存在瓶颈？为什么 CPU 会继续处理已经预处理的数据集？ Cuda 12.6
-编辑：
-由于我的 RAM 和 CPU 核心数量允许，将 Seq2SeqTrainer 的 dataloader_num_workers 参数更改为 &gt;0 值是否有意义？（并且 CPU 利用率最高为 10-12%）]]></description>
-      <guid>https://stackoverflow.com/questions/79375287/gpu-utilization-almost-always-0-during-training-hugging-face-transformer</guid>
-      <pubDate>Tue, 21 Jan 2025 17:09:03 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 nb 方法进行交叉验证</title>
       <link>https://stackoverflow.com/questions/79338629/cross-validation-with-nb-method</link>
       <description><![CDATA[我尝试在 WESBROOK 数据集上使用 k 倍交叉验证。它使用 caret 包中的 train 函数来执行此操作。到目前为止，此函数已与 svm、knn 和 rpart 等方法配合使用，但使用 nb（朴素贝叶斯）方法时，我收到以下错误：
@@ -321,69 +403,7 @@ trControl = train_control
       <pubDate>Thu, 21 Nov 2024 00:25:48 GMT</pubDate>
     </item>
     <item>
-      <title>我正在进行 Yolov8 模型训练，但准确率只有 70% [关闭]</title>
-      <link>https://stackoverflow.com/questions/78919106/im-doing-yolov8-model-training-but-the-accuracy-rate-is-70</link>
-      <description><![CDATA[我目前正在为我的项目训练 YOLOv8 模型。目标是训练该模型从发送给聊天机器人的照片中识别产品的股票代码。
-我有 1,522 个股票代码，每个股票代码大约有 10-15 张照片。虽然照片数量有点少，但我们的客户通常会向我们发送训练中使用的相同照片。例如，他们可能会从我们的 Instagram 个人资料中截取屏幕截图并将其发送给我们。
-我正在训练模型，但它的准确率只有 70% 左右。我相信问题可能与超参数有关，但我对它们不太熟悉。我非常感谢您提供的任何建议或意见。
-hyp.yaml
-# 学习率和动量 Ayarları
-lr0: 0.01 # 关闭状态
-lrf: 0.01 # Final öğrenme oranı (lr0 ile çarpılır)
-动量：0.9#SGD动量
-Weight_decay: 0.0005 # L2 正则化（权重衰减）
-Warmup_epochs: 2.0 # Isınma epoch sayısı
-Warmup_momentum: 0.8 # Isınma süresince başlangıç Momentumu
-Warmup_bias_lr: 0.1 # 是否存在偏差
-#Kayip Fonksiyonu （损失函数）Ayarları
-box: 0.05 # Box kaybı kazancı (GIoU/DIoU/CIoU)
-cls: 0.5 # Sınıf kaybı kzancı
-iou: 0.2 # IoU eşiği (标签 için)
-kobj: 1.0 # 不可以
-# 增强 Ayarları (Veri artırma)
-hsv_h: 0.005 # Görüntü HSV-Hue artırma（分数）- Çok küçük değişiklikler
-hsv_s: 0.1 # Görüntü HSV-Saturation artırma（分数） - Çok küçük değişiklikler
-hsv_v: 0.1 # Görüntü HSV-Value artırma（分数） - Çok küçük değişiklikler
-度数：0.0 # Görüntü döndürme (+/- derece)
-翻译：0.1 # Görüntü kaydırma (+/- 分数)a
-比例：0.5 # Görüntü ölçekleme (+/- kazanç)
-剪切力：0.0 # Görüntü kaydırma (+/- derece)
-透视图：0.0 # Görüntü perspektifi（+/- 分数），0-0.001 arası
-Flipud: 0.0 # Görüntüyü yukarıdan aşağıya çevirme (olasılık)
-Fliplr: 0.5 # Görüntüyü sağdan sola çevirme （奥拉斯利克）
-马赛克: 0.0 # 马赛克艺术 (olasılık) - Bu durumda kapalı
-mixup: 0.0 # Mixup artırma (olasılık) - Bu durumda kapalı
-copy_paste: 0.0 # 复制粘贴艺术 (olasılık) - Bu durumda kapalı
-
-火车.py =
-从 ultralytics 导入 YOLO
-导入万数据库
-从 wandb.integration.ultralytics 导入 add_wandb_callback
-# WandB oturumunu başlatın
-如果 __name__ == “__main__”：
-    万db.login()
-    wandb.init(project=&quot;ultralytics&quot;, job_type=&quot;training&quot;)
-    # 模型尤克莱因
-    模型 = YOLO(&#39;yolov8n.pt&#39;)
-    # WandB 回调&#39;ini ekleyin
-    add_wandb_callback（模型，enable_model_checkpointing = True）
-    # 模型 eğitin
-    模型.火车(
-        data=&#39;y.yaml&#39;, # Veri kümesi yapılandırma dosyası
-        epochs=100, # Eğitim epoch sayısı
-        batch=16, # 批量博语图
-        project=&#39;my_project&#39;, # Proje adı (varsayılan: 运行/训练)
-        name=&#39;exp&#39;, # 名称 (varsayılan: exp)
-        cfg=&#39;hyp.yaml&#39; # 超参数 ayarları
-    ）
-    #WandB oturumunu sonlandırın
-    wandb.finish()
-]]></description>
-      <guid>https://stackoverflow.com/questions/78919106/im-doing-yolov8-model-training-but-the-accuracy-rate-is-70</guid>
-      <pubDate>Tue, 27 Aug 2024 13:16:26 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在微调期间正确设置 pad token（而不是 eos）以避免模型无法预测 EOS？</title>
+      <title>如何在微调过程中正确设置 pad token（而不是 eos）以避免模型无法预测 EOS？</title>
       <link>https://stackoverflow.com/questions/76633368/how-does-one-set-the-pad-token-correctly-not-to-eos-during-fine-tuning-to-avoi</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/76633368/how-does-one-set-the-pad-token-correctly-not-to-eos-during-fine-tuning-to-avoi</guid>
@@ -592,12 +612,12 @@ test1.columns
 
 test1.head()
 siNo plot movie_name gender_new
-1 故事以 Hannah 开始... 唱歌 [戏剧,teen]
+1 故事以 Hannah 开始... 唱歌 [戏剧,青少年]
 2 Debbie 最喜欢的乐队是 Dream... 最忠实的粉丝 [戏剧]
 3 这个祖鲁家庭的故事是... 回来，非洲 [戏剧,纪录片]
 
-获取错误
-当我对示例文本进行推断时，我在这里获取错误
+出现错误
+当我对示例文本进行推理时，我在这里出现错误
 def infer_tags(q):
 q = cleanHtml(q)
 q = cleanPunc(q)
