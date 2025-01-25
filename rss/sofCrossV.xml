@@ -4,7 +4,149 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 25 Jan 2025 03:16:38 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 25 Jan 2025 06:20:31 GMT</lastBuildDate>
+    <item>
+      <title>解释不相关但具有统计意义的 ODD 比率</title>
+      <link>https://stats.stackexchange.com/questions/660515/interpreting-odds-ratios-that-are-irrelevant-yet-statistically-significant</link>
+      <description><![CDATA[我有一个有点独特的数据集。
+结果是一个二进制是/否变量。然而，结果非常不平衡。95% 是，5% 不是。
+协变量 1：时间变量，从第 -200 天开始，到第 200 天结束，第 0 天是事件发生的那一天。-200、-199、-113、-14、0、11、25、89、135、200
+协变量 2：事件，二进制变量，0（无事件）或 1（事件是）
+如您所见，协变量 1（时间）和协变量 2（事件）高度相关。当时间为 -ve 时，事件为 0，当时间为 +ve 时，事件为 1。
+当我拟合像这样的简单逻辑回归模型时
+ glm(y ~ time + event + time*event, data= df, family=&quot;binomial&quot;)
+
+这些是该模型的估计值
+ 项 优势比 S.E pvalue。
+截距 0.02 0.04 0.051
+时间 0.94 0.4 0.47
+事件 1.01 0.3 0.9
+时间*事件 1.001 0.0004 0.02
+
+我不确定如何截取这些结果。从高层次来看，主要影响是直接的，时间的 OR 为 0.94 且不显著，事件的 OR 为 1.01 且不显著。
+然而，时间和事件相互作用的 OR 是显著的，但 OR 实际上毫无意义。不确定如何理解这个总结结果。需要帮助把这些点连接起来。谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660515/interpreting-odds-ratios-that-are-irrelevant-yet-statistically-significant</guid>
+      <pubDate>Sat, 25 Jan 2025 05:51:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何从时间序列模型进行模拟？</title>
+      <link>https://stats.stackexchange.com/questions/660513/how-to-simulate-from-time-series-models</link>
+      <description><![CDATA[我想我知道如何模拟拟合的 ARIMA 时间序列模型的预测：
+library(tidyverse)
+library(forecast)
+library(patchwork)
+
+set.seed(123)
+
+y_arima &lt;- rnorm(50, mean = 0, sd = 1)
+ts_y_arima &lt;- ts(y_arima, frequency = 12)
+arima_model &lt;- auto.arima(ts_y_arima)
+
+n_ahead &lt;- 20
+n_sims &lt;- 50
+
+arima_sims &lt;- matrix(NA, nrow = n_sims, ncol = n_ahead)
+for(i in 1:n_sims) {
+arima_sims[i,] &lt;- mock(arima_model, nsim = n_ahead)
+}
+
+historical_data_arima &lt;- tibble(
+time = 1:50,
+value = y_arima,
+type = &quot;Historical&quot;
+)
+
+arima_future &lt;- tibble(
+time = rep(51:70, n_sims),
+value = as.vector(t(arima_sims)),
+simulation = rep(1:n_sims, each = n_ahead)
+)
+
+p1 &lt;- ggplot() +
+geom_line(data = historical_data_arima, aes(x = time, y = value), 
+color = &quot;black&quot;, size = 1) +
+geom_line(data = arima_future, aes(x = time, y = value, group = simulation), 
+alpha = 0.2, color = &quot;blue&quot;) +
+geom_vline(xintercept = 50, linetype = &quot;dashed&quot;, color = &quot;red&quot;) +
+labs(title = &quot;ARIMA Simulations&quot;,
+x = &quot;Time&quot;, y = &quot;Y value&quot;) +
+theme_minimal()
+
+
+但我想知道，如何模拟 ARIMAX 模型的预测？我认为应该类似？例如假设我在整个预测过程中将协变量固定为一个常数值（例如 2）：
+n_obs &lt;- 50
+n_ahead &lt;- 20
+n_sims &lt;- 50
+future_x_value &lt;- 2
+future_x &lt;- rep(future_x_value, n_ahead)
+
+y &lt;- rnorm(n_obs, mean = 0, sd = 1)
+x &lt;- rnorm(n_obs, mean = 1, sd = 0.5)
+
+ts_y &lt;- ts(y, frequency = 12)
+ts_x &lt;- ts(x, frequency = 12)
+
+arimax_model &lt;- auto.arima(ts_y, xreg = ts_x)
+
+arimax_sims &lt;- 矩阵（NA，nrow = n_sims，ncol = n_ahead）
+
+for(i in 1:n_sims) {
+arimax_sims[i,] &lt;- 模拟（arimax_model，nsim = n_ahead，xreg = future_x）
+}
+
+historical_data_arimax &lt;- tibble（
+时间 = 1:n_obs，
+值 = y
+)
+
+arimax_future &lt;- tibble（
+时间 = rep((n_obs + 1):(n_obs + n_ahead), n_sims),
+值 = as.vector(t(arimax_sims)),
+模拟 = rep(1:n_sims, each = n_ahead)
+)
+
+p2 &lt;- ggplot() +
+geom_line(数据 = historical_data_arimax, aes(x = 时间, y =值), 
+color = &quot;black&quot;, size = 1) +
+geom_line(data = arimax_future, aes(x = 时间, y = 值, group = 模拟), 
+alpha = 0.2, color = &quot;green&quot;) +
+geom_vline(xintercept = n_obs, linetype = &quot;dashed&quot;, color = &quot;red&quot;) +
+labs(title = &quot;ARIMAX 模拟&quot;,
+subtitle = paste(&quot;所有未来 X 值设置为&quot;, future_x_value),
+x = &quot;时间&quot;, y = &quot;Y 值&quot;) +
+theme_minimal()
+
+
+这是正确的吗？（我想知道是否有办法让彩色模拟与黑色历史数据完全对齐，即消除间隙）]]></description>
+      <guid>https://stats.stackexchange.com/questions/660513/how-to-simulate-from-time-series-models</guid>
+      <pubDate>Sat, 25 Jan 2025 04:31:45 GMT</pubDate>
+    </item>
+    <item>
+      <title>数据分割之前计算聚合特征算作数据泄漏吗？</title>
+      <link>https://stats.stackexchange.com/questions/660511/is-computing-aggregated-features-before-data-splitting-count-as-data-leakage</link>
+      <description><![CDATA[上下文：
+我有一个对象的映射 3D 扫描数据集。每个数据点都按 (x, y, z) 坐标进行索引，并具有与之关联的多个特征。在将数据集拆分为训练集和测试集之前，我汇总了相邻数据点的特征值。例如我取数据点 x,y,z 的特征 f，并计算 3D 空间中相邻数据点的特征加权平均值 f_3d_avg。
+用于计算一个数据点的特征加权平均值的虚拟 Python 代码：
+x,y,z = data.index[0]
+f = &#39;feature&#39;
+f_sum = 0.0
+weight_sum = 0.0
+
+for i in range(z-1, z+2, 1):
+for j in range(y-1, y+2, 1):
+for k in range(x-1, x+2, 1):
+weight = 1/(pow(x-k,2) + pow(y-j,2) + pow(z-i,2))
+weight_sum += weight
+f_sum += data.loc[(k,j,i), [f]] * 权重
+
+f_3d_avg = f_sum/weight_sum
+
+现在，数据集应该对每个特征 f 都有一个对应的特征 f_3d_avg。最后，我将数据拆分为训练集和测试集。
+我的问题：
+如果我在拆分数据后计算了 f_3D_avg，比如使用标准的 80-20 拆分，平均而言，5 个数据点中会有 1 个缺失，这会改变 f_3d_avg 的值。由于 f_3d_avg 值会根据拆分前或拆分后计算而有所不同，那么对拆分前计算的 f_3d_avg 进行训练是否算作数据泄漏？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660511/is-computing-aggregated-features-before-data-splitting-count-as-data-leakage</guid>
+      <pubDate>Sat, 25 Jan 2025 03:47:59 GMT</pubDate>
+    </item>
     <item>
       <title>较弱的“完整”统计定义</title>
       <link>https://stats.stackexchange.com/questions/660508/weaker-complete-statistic-definition</link>
@@ -160,68 +302,48 @@ $$ [\theta_{(\alpha/2)}, \theta_{(1-\alpha/2)}] $$
       <pubDate>Fri, 24 Jan 2025 20:52:48 GMT</pubDate>
     </item>
     <item>
-      <title>如何用贝叶斯公式更新概率来计算证据权重？</title>
-      <link>https://stats.stackexchange.com/questions/660497/how-to-update-probabilities-with-bayesian-formula-to-calculate-weight-of-evidenc</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/660497/how-to-update-probabilities-with-bayesian-formula-to-calculate-weight-of-evidenc</guid>
-      <pubDate>Fri, 24 Jan 2025 19:37:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在 GLM 二项分布中制作一个 tukey？[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/660496/how-can-i-make-a-tukey-in-glm-binomial-distribution</link>
-      <description><![CDATA[我想查看我处理方法之间字母的差异，以了解杀虫剂对昆虫死亡率的影响。当我尝试进行 Tukey 检验时，Rstudio 给出了错误。我的数据是二项式的，表示存活（1）和死亡（0）。
-数据为：
-Trat|Product1|Product2|Alive/dead|
-1 | 0,5 | 1 |0 |
-1 | 0,5 | 1 |0 |
-1 | 0,5 | 1 |0 |
-1 | 0,5 | 1 |0 |
-2 | 0,5 | 2 |1 |
-2 | 0,5 | 2 |1 |
-2 | 0,5 | 2 |0 |
-2 | 0,5 | 2 |0 |
-3 | 1 | 1 |
-3 | 1 | 1 |0 |
-3 | 1 | 1 |1 |
-3 | 1 | 1 |1 |
-4 | 0,5 | 2 |0 |
-4 | 0,5 | 2 |0 |
-4 | 0,5 | 2 |1 |
-4 | 0,5 | 2 |1 |
-目前我唯一能做的就是 glm:
-alive &lt;- glm(alive/dead)~Product1*product2, family = binomial(logit
-))
-你能帮帮我吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660496/how-can-i-make-a-tukey-in-glm-binomial-distribution</guid>
-      <pubDate>Fri, 24 Jan 2025 19:28:43 GMT</pubDate>
-    </item>
-    <item>
-      <title>T 检验重要性查询[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/660494/t-test-significance-query</link>
-      <description><![CDATA[在前测后测实验研究中，当实验组和对照组的得分具有统计学意义时，是否意味着治疗无效？治疗效果是通过 Cohen&#39;s d 计算的，实验组的得分略高于对照组。这种差异是否表明治疗效果较小，还是因为对照组的得分不应该具有统计学意义，所以这只是偶然现象？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660494/t-test-significance-query</guid>
-      <pubDate>Fri, 24 Jan 2025 19:00:53 GMT</pubDate>
-    </item>
-    <item>
-      <title>MLE 的正式定义是否是最大化样本数据的联合似然？</title>
-      <link>https://stats.stackexchange.com/questions/660489/is-the-mle-formally-defined-as-maximizing-the-joint-likelihood-of-the-sample-dat</link>
-      <description><![CDATA[我正在尝试了解随机向量序列实现的最大似然估计量 (MLE) 的计算。我目前的理解是，MLE 应该通过最大化从样本数据的联合分布得出的对数似然函数来计算。
-这种理解基于 John Stachurski 的书中的一句话（链接在此处：QuantEcon Notes），其中指出：
-
-“最大似然原理告诉我们要最大化由样本联合密度形成的对数似然函数。”
-
-这是否意味着 MLE 始终基于观测值的联合密度（或离散数据的联合概率质量函数）计算？这个原则有什么例外或细微差别吗？
-感谢您的帮助！]]></description>
-      <guid>https://stats.stackexchange.com/questions/660489/is-the-mle-formally-defined-as-maximizing-the-joint-likelihood-of-the-sample-dat</guid>
-      <pubDate>Fri, 24 Jan 2025 16:38:45 GMT</pubDate>
-    </item>
-    <item>
       <title>定义“辅助信息”，但不引用辅助统计数据</title>
       <link>https://stats.stackexchange.com/questions/660486/define-ancillary-information-without-referencing-ancillary-statistics</link>
       <description><![CDATA[我正在寻找辅助信息的定义，但该定义本质上不是“辅助统计数据中的信息”。有趣的是，辅助信息的定义似乎很难找到。至少有一篇被广泛引用的辅助统计数据评论甚至没有包含该短语。我不喜欢上述定义，因为它不仅是循环的，而且还让我陷入矛盾。
-即：完整统计数据没有辅助信息。因此，不完整统计数据必须具有一些辅助信息。然后，不完整的充分统计数据具有一些辅助信息，但该信息不能用辅助统计数据来定义。如果可以的话，您可以根据辅助统计量来获得方差小于充分统计量的估计量。但充分统计量是最具参考价值的指标……您看到了问题所在。]]></description>
+即：完整统计数据没有辅助信息。因此，不完整统计数据必须具有一些辅助信息。然后，不完整的充分统计数据具有一些辅助信息，但该信息无法根据辅助统计数据来定义。如果可以的话，您可以根据辅助统计量来获得方差小于充分统计量的估计量。但充分统计量是最具信息量的度量……您看到了问题所在。]]></description>
       <guid>https://stats.stackexchange.com/questions/660486/define-ancillary-information-without-referencing-ancillary-statistics</guid>
       <pubDate>Fri, 24 Jan 2025 16:03:59 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何提取和比较两个混合效应模型的预测值分布？</title>
+      <link>https://stats.stackexchange.com/questions/660480/how-to-extract-and-compare-the-distribution-of-predicted-values-of-two-mixed-eff</link>
+      <description><![CDATA[我有 6 天的 100 个样本（每天 100 个观测值，总共 600 个观测值）。我尝试将混合模型拟合到数据中。还有一次，我尝试将混合模型仅用于从相同数据中获取的两天观测值（例如：第 1 天和第 2 天的观测值 - 总共 200 个观测值）。我知道数据中存在人与人之间的差异会导致错误。我尝试使用混合效应模型将其消除。现在，我的问题是如何提取响应变量的分布？如何比较两个混合模型的分布？一般来说，是否有任何建议可以消除数据中的人与人之间的差异？
+以下代码适用于 lme4 包中的 6 天数据。
+library(lmer)
+long_nutt1 &lt;- nutt1 %&gt;%
+pivot_longer(
+cols = c(BCP1, BCP2, BCP3, BCP4, BCP5, BCP6),
+names_to = &quot;Day&quot;,
+values_to = &quot;BCP&quot;
+)
+long_nutt1 &lt;- long_nutt1 %&gt;%
+mutate(ID = rep(1:(nrow(nutt1)), each = length(grep(&quot;^BCP&quot;, names(nutt1)))))
+data_6days &lt;- long_nutt1
+################### 6 天
+model_6days &lt;- lmer(log(BCP) ~ 1 + (1 | ID), data = long_nutt1)
+summary(model_6days)
+REML [&#39;lmerMod&#39;] 拟合的线性混合模型
+公式：log(BCP) ~ 1 + (1 | ID)
+数据：long_nutt1
+收敛时的 REML 标准：1494.1
+缩放残差：
+最小 1Q 中位数 3Q 最大
+-3.0346 -0.5696 0.0553 0.6336 3.1517
+随机效应：
+组名称方差标准差。
+ID（截距）0.1747 0.4180
+残差 0.4940 0.7028
+观察数：600，组：ID，107
+固定效应：
+估计标准误差 t 值
+（截距）4.29281 0.04901 87.58]]></description>
+      <guid>https://stats.stackexchange.com/questions/660480/how-to-extract-and-compare-the-distribution-of-predicted-values-of-two-mixed-eff</guid>
+      <pubDate>Fri, 24 Jan 2025 14:45:03 GMT</pubDate>
     </item>
     <item>
       <title>尝试计算偏差校正的方差折刀估计</title>
@@ -230,7 +352,7 @@ alive &lt;- glm(alive/dead)~Product1*product2, family = binomial(logit
 
 我的尝试 
 2. 找到$T^*_{\text{jack},\sigma^2}$，即$\hat{\sigma}^2$的折刀偏差校正估计量。偏差减少了吗？减少了多少？
-我们将估计的方差称为$\theta \triangleq \hat \sigma^2$，$\frac{1}{n-1}\sum_{i\neq j} x_i \triangleq \bar X_{(-j)} = \frac{n}{n-1} \bar X - \frac{1}{n-1} X_j$
+我们将估计的方差称为 $\theta \triangleq \hat \sigma^2$，并且 $\frac{1}{n-1}\sum_{i\neq j} x_i \triangleq \bar X_{(-j)} = \frac{n}{n-1} \bar X - \frac{1}{n-1} X_j$
 $$T_{(-j)} =\frac{1}{n-1} \sum _{\substack{i=1 \\ i \neq j}}^n (X_i -\frac{1}{n-1}\sum_{s\neq j} X_s )^2 = \frac{1}{n-1} \sum _{\substack{i=1 \\ i \neq j}}^n (X_i - \bar{X}_{(-j)})^2 $$
 $$T_{(-j)}(n-1) = \sum_{\substack{i = 1 \\ i \neq j}}^n \left(X_i - \frac{n\bar X - X_j}{n-1}\right)^2 $$$$= \left(\sum_{\substack{i = 1 \\ i \neq j}}X_i^2\right) - 2 \\\frac{(n\bar{X}-X_j)^2}{n-1} + \sum_{\substack{i = 1 \\ i \neq j}}^n\left(\frac{(n\bar{X}-X_j)}{n-1}\right)^2$$
 $$T_{(-j)}(n-1) = \left(\sum_{\substack{i = 1 \\ i \neq j}}X_i^2\right) - 2 \cdot \frac{(n\bar{X}-X_j)^2}{n-1} + (n-1) \frac{(n\bar{X}-X_j)^2}{(n-1)^{2}}$$
