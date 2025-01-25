@@ -4,7 +4,116 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Sat, 25 Jan 2025 09:16:19 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 25 Jan 2025 12:29:01 GMT</lastBuildDate>
+    <item>
+      <title>y 只有 4 个或更少的值，而我的预处理 DataFrame 有超过 4,000 行。回归可能吗？</title>
+      <link>https://stackoverflow.com/questions/79386587/y-has-only-four-values-or-less-while-my-preprocessed-dataframe-has-more-than-4</link>
+      <description><![CDATA[这是我第一次使用 Stackoverflow。我和同学一起做了一个 ML 团队项目。但是，我的数据集是根据首尔某个特定地区的单人家庭数量来预测那里的美食数量。
+问题：原始数据的行数超过 100,000。但是，我必须分析 2 个限制区域，每个区域有 2 个真实值。
+我使用了无监督学习（KMeans Clustering）、引导程序，并故意给出噪音以适应模型。但 3 周后似乎没有效果。有人能告诉我如何解决这个问题吗？
+谢谢你的帮助。我的导师希望我做一个回归模型。
+但看起来这是不可能的，就像 chatGPT 说了 20 次一样。
+代码（y 带有任意噪声，每 2 个群集的 r2_score 为 97.8%，但被拒绝）：
+import pandas as pd
+import numpy as np
+import warnings
+warnings.filterwarnings(&quot;ignore&quot;)
+\# 加载数据 rest_data_path = &#39;서울시 휴게음식점 인허가 정보.csv&#39;
+one_person_data_path = &#39;1인가구(연령별).csv&#39;
+rest_data = pd.read_csv(rest_data_path, encoding=&#39;utf-8&#39;)
+one_person_data = pd.read_csv(one_person_data_path, encoding=&#39;utf-8&#39;)
+
+# 预处理数据
+one_person_data = one_person_data.rename(columns={&#39;자치구별(2)&#39;: &#39;자치구&#39;})
+one_person_data_cleaned = one_person_data[one_person_data[&#39;자치구&#39;] != &#39;자치구별(2)&#39;]
+one_person_data_cleaned[&#39;2023_합계&#39;] = one_person_data_cleaned.loc[:, &#39;2023&#39;:&#39;2023.15&#39;].apply(
+pd.to_numeric, errors=&#39;coerce&#39;).sum(axis=1)
+one_person_summary = one_person_data_cleaned[[&#39;자치구&#39;, &#39;2023_합계&#39;]]
+
+rest_data_cleaned = rest_data.rename(columns={&#39;지번주소&#39;: &#39;주소&#39;})
+rest_data_cleaned[&#39;자치구&#39;] = rest_data_cleaned[&#39;주소&#39;].str.split(&#39; &#39;).str[1]
+
+merged_data = pd.merge(rest_data_cleaned, one_person_summary, on=&#39;자치구&#39;, how=&#39;left&#39;)
+
+# 添加噪音
+np.随机.种子(42) 
+噪声 = np.random.normal(0, 0.05 * merged_data[&#39;2023_합계&#39;].std(),大小=merged_data.shape[0])
+merged_data[&#39;y&#39;] = merged_data[&#39;2023_합계&#39;] + 噪声
+
+# 保存数据
+result_continuous = merged_data[[&#39;자치구&#39;, &#39;주소&#39;, &#39;2023_합계&#39;, &#39;y&#39;]].dropna()
+
+＃ 输出
+结果_连续&#39;
+
+输出
+&lt;块引用&gt;
+ 자치구 주소 2023_합계 y
+
+
+&lt;块引用&gt;
+\5 관악구 서울특별시 관악구 봉천동 1562-17 159036.0 158422.996610
+\6 관악구 서울특별시 관악구 봉천동 1562-17 142454.0 146588.600626
+\18 관악구 서울특별시 관악구 신림동 1538-14 159036.0 156658.665625
+\19 관악구 서울특별시 관악구 신림동 1538-14 142454.0 138756.390843
+\46 관악구 서울특별시 관악구 신림동 1519-22 159036.0 157829.983096
+\... ... ... ... 
+\142131 도봉구 서울특별시 도봉구 창동 808 동아청솔아파트 상і동 209호 46250.0 43593.821116
+\142138 관악구 서울특별시 관악구 신림동 1458-4 센트레빌 13차 159036.0 157758.991278
+\142139 관악구 서울특별시 관악구 신림동 1458-4 센트레빌 13차 142454.0 140637.617424
+\142142  관악구 서울특별시 관악구 봉천동 928-1 우형빌딩 159036.0 158889.888720
+\142143 관악구 서울특별시 관악구 봉천동 928-1 우형빌딩 142454.0 142926.767535
+\14162行×4列\
+
+from sklearn.preprocessing import OneHotEncoder
+从 sklearn.preprocessing 导入StandardScaler
+
+columns_to_encode = [&#39;자치구&#39;]
+
+columns_to_exclude = [&#39;2023_합계&#39;]
+
+encoder = OneHotEncoder(sparse_output=False) # drop=&#39;first&#39; 取消排序
+encoded_columns =coder.fit_transform(result_continuous[columns_to_encode])
+encoded_column_names =coder.get_feature_names_out(columns_to_encode)
+
+encoded_df = pd.DataFrame(encoded_columns, columns=encoded_column_names, index=result_continuous.index)
+
+processed_data = result_continuous.drop(columns=columns_to_encode + columns_to_exclude)
+final_data = pd.concat（[processed_data，encoded_df]，轴= 1）
+Final_data[&#39;주소_hash&#39;] = result_continuous[&#39;주소&#39;].apply(hash)
+Final_data = Final_data.drop(columns=[&#39;주소&#39;]) # 원래 주소 열 제거
+y = np.log1p(final_data[[&#39;y&#39;]])
+Final_data.drop([&#39;y&#39;], axis=1, inplace=True)
+定标器=标准定标器()
+Final_data_scaled = 缩放器.fit_transform(final_data)
+最终数据缩放，y
+
+输出
+&lt;块引用&gt;
+（数组（[[ 0.72281968,-0.72281968,1.14388039],
+[0.72281968，-0.72281968，1.14388039]，
+[0.72281968，-0.72281968，-0.74799056]，
+...,
+[0.72281968，-0.72281968，0.60622321]，
+[0.72281968，-0.72281968，0.14385426]，
+[0.72281968，-0.72281968，0.14385426]]），`
+y
+5 11.973030
+6 11.895392
+18 11.961831
+19 11.840482
+46 11.969280
+... ...
+142131 10.682694
+142138 11.968830
+142139 11.853949
+142142 11.975973
+142143 11.870095
+
+[14162 行 x 1 列]]]></description>
+      <guid>https://stackoverflow.com/questions/79386587/y-has-only-four-values-or-less-while-my-preprocessed-dataframe-has-more-than-4</guid>
+      <pubDate>Sat, 25 Jan 2025 11:08:40 GMT</pubDate>
+    </item>
     <item>
       <title>二元分类不平衡——修复我对此解决方案的实现</title>
       <link>https://stackoverflow.com/questions/79385651/imbalanced-binary-classification-fix-my-implementation-of-this-solution</link>
@@ -354,85 +463,6 @@ Deepsort 是一种跟踪检测到的对象的跟踪算法。
 https://drive.google.com/file/d/1-03M2L42RtP6hauVP7fKSSqETEm8LtR6/view?usp=sharing]]></description>
       <guid>https://stackoverflow.com/questions/79378146/how-can-i-connect-yolov8model-with-deepsort-in-a-fixed-bbox</guid>
       <pubDate>Wed, 22 Jan 2025 14:30:52 GMT</pubDate>
-    </item>
-    <item>
-      <title>我正在尝试使用 GNN-LSTM 预测尼日利亚某州未来确诊的脑膜炎病例数</title>
-      <link>https://stackoverflow.com/questions/79377500/i-am-trying-to-predict-the-future-number-of-confirmed-cases-of-meningitis-for-a</link>
-      <description><![CDATA[以下是代码：
- # 初始化模型
-# 初始化模型
-model = GNN_LSTM(input_dim=window_size, gcn_hidden_​​dim=16, lstm_hidden_​​dim=32, predict_steps=20)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-criterion = torch.nn.MSELoss()
-print(f&quot;Shape of time_series_features: {time_series_features.shape}&quot;)
-
-# 训练循环
-for epoch in range(200):
-model.train()
-optimizer.zero_grad()
-
-# 前向传递
-out = model(data, time_series_features) # 无需解压，应符合模型输入预期
-zamfara_predictions = out[target_idx] # 提取Zamfara 的预测
-
-# 使用 train_mask 计算损失
-adapted_train_mask = train_mask[-predict_steps:]
-
-# 打印形状以供调试
-print(f&quot;Shape of zamfara_predictions: {zamfara_predictions.shape}&quot;)
-print(f&quot;Shape of zamfara_features[-predict_steps:]: {zamfara_features[-predict_steps:].shape}&quot;)
-print(f&quot;Shape of adapted_train_mask: {adjusted_train_mask.shape}&quot;)
-
-# 使用调整后的掩码计算损失
-loss = criterion(
-zamfara_predictions.squeeze()[adjusted_train_mask],
-zamfara_features[-predict_steps:][adjusted_train_mask]
-)
-
-loss.backward()
-optimizer.step()
-
-# 验证
-if (epoch + 1) % 20 == 0:
-model.eval()
-with torch.no_grad():
-print(f&quot;zamfara_predictions (squeezed) 的形状：{zamfara_predictions.squeeze().shape}&quot;)
-print(f&quot;zamfara_features 的形状：{zamfara_features.shape}&quot;)
-print(f&quot;val_mask 的形状：{val_mask.shape}，类型：{val_mask.dtype}&quot;)
-print(f&quot;test_mask 的形状：{test_mask.shape}，类型：{test_mask.dtype}&quot;)
-
-# 验证损失计算
-val_loss = criterion(
-zamfara_predictions.squeeze()[val_mask],
-zamfara_features[val_mask]
-)
-print(f&quot;Epoch {epoch+1}, Train Loss: {loss.item()}, Validation Loss: {val_loss.item()}&quot;)
-
-# 测试
-model.eval()
-with torch.no_grad():
-test_loss = criterion(zamfara_predictions.squeeze()[test_mask], zamfara_features[test_mask])
-print(f&quot;Test Loss: {test_loss.item()}&quot;)
-
-# 指标计算
-true_values = zamfara_features[test_mask].numpy()
-predictions = zamfara_predictions.squeeze()[test_mask].numpy()
-
-mse = mean_squared_error(true_values, predictions)
-rmse = np.sqrt(mse)
-mae = mean_absolute_error(true_values, predictions)
-print(f&quot;Test MSE: {mse:.4f}&quot;)
-print(f&quot;Test RMSE: {rmse:.4f}&quot;)
-print(f&quot;Test MAE: {mae:.4f}&quot;)
-
-# Zamfara 的预测案例
-
-我正在使用 Google Colab 编译该程序。编译后，代码中突出显示了此行：loss = criterion( zamfara_predict，并出现以下错误：
-TypeError：&#39;int&#39; 对象不可调用。
-
-代码由 meningitis_​​cases_graph.graphml 组成，它是尼日利亚 37 个州确诊脑膜炎病例的图表表示，edges.csv 是尼日利亚这些州的形状文件。我们想要预测尼日利亚某个州“赞法拉”未来 20 天的确诊病例数。如何解决此错误？]]></description>
-      <guid>https://stackoverflow.com/questions/79377500/i-am-trying-to-predict-the-future-number-of-confirmed-cases-of-meningitis-for-a</guid>
-      <pubDate>Wed, 22 Jan 2025 11:15:34 GMT</pubDate>
     </item>
     <item>
       <title>如何在微调期间正确设置 pad token（而不是 eos）以避免模型无法预测 EOS？</title>
