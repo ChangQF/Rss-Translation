@@ -4,7 +4,107 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Sun, 26 Jan 2025 18:20:37 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 26 Jan 2025 21:13:58 GMT</lastBuildDate>
+    <item>
+      <title>Metafor 中多层次荟萃分析中的建模效应和配对异质性</title>
+      <link>https://stats.stackexchange.com/questions/660572/modeling-effects-and-pairing-heterogeneity-in-a-multi-level-meta-analysis-in-met</link>
+      <description><![CDATA[问题：在多层次荟萃分析中对交叉效应和配对异质性进行建模
+我正在对随机对照试验 (RCT) 进行多层次荟萃分析，以检查治疗 X 对特定情况 (A) 的影响。我的目标是适当地对研究内部和研究之间的差异进行建模，以考虑治疗配对之间的影响和异质性。
+当前方法
+我正在使用一个简单的协方差矩阵和一个具有嵌套随机效应的多层次模型来捕获研究内部和研究之间的差异。我还应用了 clubSandwich CR-2 型校正来解释集群稳健标准误差。我当前的代码如下：
+# 步骤 1：假设单相关性的协方差矩阵 (r = 0.8)
+V &lt;- impute_covariance_matrix(vi =filtered_data$var, cluster =filtered_data$study, r = 0.8)
+
+# 步骤 2：具有嵌套随机效应的多层元分析模型
+res &lt;- rma.mv(
+yi =filtered_data$es,
+V = V,
+random = ~ 1 | study/es.id,
+data =filtered_data,
+sparse = TRUE,
+method = &quot;REML&quot;
+)
+
+# 步骤 3：集群稳健标准误差
+robust_res &lt;- robust(res, cluster =filtered_data$study, clubSandwich = TRUE)
+
+问题：交叉效应和治疗配对
+我的数据集中的一些研究包括使用治疗 X 的相同平均值和标准差 (m(SD)) 来估计与两种不同治疗 Y 和 Z 的比较效应的效应。例如：
+• 效应大小 1：治疗 X 与治疗 Y
+• 效应大小 2：治疗 X 与治疗 Z
+鉴于治疗 Y 和 Z 的特征有时非常不同，我想估计这些治疗配对之间的异质性。我修改了模型，使其包含治疗配对变量（例如配对）的随机效应，如下所示：
+# 步骤 1：协方差矩阵（不变）
+V &lt;- impute_covariance_matrix(vi =filtered_data$var, cluster =filtered_data$study, r = 0.8)
+
+# 步骤 2：修改后的模型，包括治疗配对的随机效应
+res &lt;- rma.mv(
+yi =filtered_data$es,
+V = V,
+random = ~ 1 | study/pairing/es.id,
+data =filtered_data,
+sparse = TRUE,
+method = &quot;REML&quot;
+)
+
+# 步骤 3：集群稳健标准误差
+robust_res &lt;- robust(res, cluster =filtered_data$study, clubSandwich = TRUE)
+
+问题
+1. 这种方法是否充分说明？
+通过假设研究中的单一相关性（r = 0.8），这是否适当地模拟了治疗配对之间的方差（例如，X vs. Y 和 X vs. Z）？还是这过于简化了结构？
+
+2. 我是否需要更复杂的方差-协方差矩阵？
+我是否应该生成一个自定义方差-协方差矩阵，除了研究级相关性（r）之外，还包含治疗配对的额外相关参数（例如，rho_pairing）？如果是这样，如何在 metafor 中有效地实现这一点？
+我想确保我的模型能够捕捉到效应之间的共享方差，同时准确估计治疗配对导致的异质性。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660572/modeling-effects-and-pairing-heterogeneity-in-a-multi-level-meta-analysis-in-met</guid>
+      <pubDate>Sun, 26 Jan 2025 19:47:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>非随机 NP 引理变体，其中包含一些点，这些点在 $H_1$ 下的可能性恰好是 $H_0$ 下可能性的 $k$ 倍</title>
+      <link>https://stats.stackexchange.com/questions/660570/non-randomized-np-lemma-variant-that-includes-some-points-for-which-the-likeliho</link>
+      <description><![CDATA[Casella-Berger 中提出的 NP 引理的证明忽略了备选假设下的可能性恰好是零假设下可能性的 $k$ 倍的情况。虽然我们可以考虑使用随机测试来解释这种情况，但我意识到 Casella-Berger 中的 NP 引理已经隐含地包含了这种情况。 
+下面，我概述了我的理解——您能验证一下它是否正确吗？
+NP-Lemma
+考虑测试$H_0: \theta = \theta_0$与$H_1: \theta = \theta_1$，其中对应于$\theta_i$的pdf或pmf是$f(x|\theta_i)$，i=0,1，并且$$L(\theta_i|\textbf{x}) = f(\textbf{x}|\theta_i) = \prod_{j=1}^n f(x_j|\theta_i)$$
+设 $k\ge 0$ 为固定数。
+设 $A = \bigg\{ \textbf{x} \space\space\bigg| \space\space L(\theta_1|\textbf{x})&gt;kL(\theta_0|\textbf{x})\bigg\} $ 并设 $B = \bigg\{ \textbf{x} \space\space\bigg| \space\space L(\theta_1|\textbf{x})&lt;kL(\theta_0|\textbf{x})\bigg\} $
+设 $C = \bigg\{ \textbf{x} \space\space\bigg| \space\space L(\theta_1|\textbf{x})=kL(\theta_0|\textbf{x})\bigg\} $ 
+假设 $C_1$ 和 $C_2$ 为任意个集合，使得 $C = C_1\cup C_2$ 和 $C_1\cap C_2 = \phi$
+考虑使用拒绝域为 $R$ 的检验，该检验满足
+$$
+\begin{equation*} \tag{8.3.1}
+\textbf{x}\in R \space\space\text{ if, }\space\space \textbf{x}\in A\cup C_1
+\\\textbf{x}\in R^C \space\space\text{ if, }\space\space \textbf{x}\in B\cup C_2
+\end{equation*} 
+$$
+and $
+\begin{equation*} \tag{8.3.2}
+\alpha = \mathbb{P}(\textbf{X}\in R)
+\end{equation*}$
+然后，
+这个满足 (8.3.1) 和 (8.3.2) 的测试是 UMP 级别 $\alpha$ 测试。
+草图证明
+基本上，Casella-Berger 中给出的证明仍然成立。
+即
+让具有拒绝域 $R$ 的测试的测试函数定义为
+$$ 
+\ \Phi(\textbf{x}) = \begin{cases} 
+1 &amp; \textbf{x}\in R \\
+0 &amp; \textbf{x}\in R^C \\
+\end{cases}
+\
+$$
+当 $[L(\theta_1|\textbf{x})-kL(\theta_0|\textbf{x})] $ 为正时，$\implies \Phi(\textbf{x}) = 1 $；当 $[L(\theta_1|\textbf{x})-kL(\theta_0|\textbf{x})] $ 为负时，$\Phi(\textbf{x}) = 0 $
+对于任何其他级别，$\implies$ $\alpha$ 检验与相应的检验函数 $\Phi&#39;$ 和幂函数 $\beta&#39;$ 检验，我们有
+$$\int\Phi(\textbf{x})[L(\theta_1|\textbf{x})-kL(\theta_0|\textbf{x})]d\textbf{x} \ge \int\Phi&#39;(\textbf{x})[L(\theta_1|\textbf{x})-kL(\theta_0|\textbf{x})]d\textbf{x}$$
+$$\int [\Phi(\textbf{x})-\Phi&#39;(\textbf{x})][L(\theta_1|\textbf{x})-kL(\theta_0|\textbf{x})]d\textbf{x}\ge 0$$
+$\implies \beta(\theta_1)-\beta&#39;(\theta1) - k(\beta(\theta_0)-\beta&#39;(\theta_0)) \ge 0$
+$\implies \beta(\theta_1) \ge \beta&#39;(\theta_1)$ 因为 $\beta&#39;(\theta_0)\le\alpha$
+编辑
+我认为这是错误的，因为这个事实没有在任何地方明确提及，尽管这个事实似乎在 Karlin-Rubin 定理的证明中发挥了重要作用。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660570/non-randomized-np-lemma-variant-that-includes-some-points-for-which-the-likeliho</guid>
+      <pubDate>Sun, 26 Jan 2025 18:49:33 GMT</pubDate>
+    </item>
     <item>
       <title>如何在 Jamovi 中根据测试数据集的逻辑回归获得预测？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/660563/how-to-get-predictions-based-on-a-logistic-regression-on-your-test-dataset-in-ja</link>
@@ -146,18 +246,6 @@ WORLD_SERIESxBAT_WINxBAT_AVG
       <pubDate>Sat, 25 Jan 2025 12:14:46 GMT</pubDate>
     </item>
     <item>
-      <title>MLE 的正式定义是否是最大化样本数据的联合似然？</title>
-      <link>https://stats.stackexchange.com/questions/660489/is-the-mle-formally-defined-as-maximizing-the-joint-likelihood-of-the-sample-dat</link>
-      <description><![CDATA[我正在尝试了解随机向量序列实现的最大似然估计量 (MLE) 的计算。我目前的理解是，MLE 应该通过最大化从样本数据的联合分布得出的对数似然函数来计算。
-这种理解基于 John Stachurski 书中的一句话（链接在此处：QuantEcon Notes），其中指出：
-
-“最大似然原理告诉我们要最大化由样本联合密度形成的对数似然函数。”
-
-这是否意味着 MLE 始终基于观测值的联合密度（或离散数据的联合概率质量函数）计算？这个原则有什么例外或细微差别吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660489/is-the-mle-formally-defined-as-maximizing-the-joint-likelihood-of-the-sample-dat</guid>
-      <pubDate>Fri, 24 Jan 2025 16:38:45 GMT</pubDate>
-    </item>
-    <item>
       <title>定义“辅助信息”，但不引用辅助统计数据</title>
       <link>https://stats.stackexchange.com/questions/660486/define-ancillary-information-without-referencing-ancillary-statistics</link>
       <description><![CDATA[我正在寻找辅助信息的定义，但该定义本质上不是“辅助统计数据中的信息”。有趣的是，辅助信息的定义似乎很难找到。至少有一篇被广泛引用的辅助统计数据评论甚至没有包含该短语。我不喜欢上述定义，因为它不仅是循环的，而且还让我陷入矛盾。
@@ -217,24 +305,36 @@ ID（截距）0.1747 0.4180
       <pubDate>Fri, 24 Jan 2025 14:45:03 GMT</pubDate>
     </item>
     <item>
-      <title>分离广义加性模型中的相互作用和主效应</title>
-      <link>https://stats.stackexchange.com/questions/660379/separating-interaction-and-main-effects-in-generalized-additive-models</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/660379/separating-interaction-and-main-effects-in-generalized-additive-models</guid>
-      <pubDate>Wed, 22 Jan 2025 15:13:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何用 SE 和 P 值计算每 100,000 个比率之间的差异</title>
-      <link>https://stats.stackexchange.com/questions/660173/how-to-calculate-the-difference-between-2-rates-per-100-000-with-se-and-p-value</link>
-      <description><![CDATA[我有一个数据集，其中包含每年记录的每 100,000 人口年龄调整死亡率及其针对特定疾病的标准误差 (SE)。数据来自 CDC Wonder 数据库。
-我旨在通过计算差异、构建置信区间 (CI) 和确定此差异的 p 值来比较两个特定年份之间的死亡率。
-此外，我旨在通过以下方式计算相对比率变化：
+      <title>选择统计方法来分析前后试验中具有多重共线性的计数资料</title>
+      <link>https://stats.stackexchange.com/questions/660328/choosing-statistical-methods-for-analyzing-count-data-with-multicollinearity-in</link>
+      <description><![CDATA[我正在对数据集进行统计分析，以确定药物的有效性。这是一项有两组的随机试验。我的目的是比较治疗后的发作次数，考虑基线频率。
+这项研究的目的是确定该药物是否能有效降低发作频率。具体来说，目标是比较药物组和对照组之间的发作次数，同时考虑基线频率。
+最初，我进行了双变量分析。我计算了发作前和发作后次数之间的相关性，并得出了差异。对于这些变量，我检查了它们的整体分布和治疗组分布。使用 Shapiro-Wilk 检验，我发现没有一个分布符合正态性假设，这导致我依靠非参数方法（Mann-Whitney U 检验、中位数无效性检验）进行组间比较。我还使用了 Wilcox 检验来检验中位数=0 的假设并得出置信区间。
+由于我只有两组治疗，所以我没有使用 ANOVA 来比较两组的平均值。
+对于建模，我首先使用了 ANCOVA 模型
 $$
-\text{相对变化} = \frac{(\text{第 2 年比率} - \text{第 1 年比率})}{\text{第 2 年比率}}
+\text{post}_{ij} = \beta_0 + \beta_1 \text{pre}_i + \beta_2 \text{group}_i + \epsilon_{ij},
 $$
-这在统计上合适吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660173/how-to-calculate-the-difference-between-2-rates-per-100-000-with-se-and-p-value</guid>
-      <pubDate>Fri, 17 Jan 2025 16:46:06 GMT</pubDate>
+然后我扩展了这个模型以包含“pre”之间的交互项和“group”：
+$$
+\text{post}_{ij} = \beta_0 + \beta_1 \text{pre}_i + \beta_2 \text{group}_i + \beta_3 (\text{pre}_i \cdot \text{group}_i) + \epsilon_{ij}。
+$$
+在两个模型中，残差均不呈正态分布（Shapiro p 值均小于 0.001）。
+给定“post”是一个计数变量，我考虑了泊松回归：
+$$
+\log(\text{post}_{ij}) = \beta_0 + \beta_1 \text{pre}_i + \beta_2 \text{Age}_i + \beta_3 \text{group}_i。
+$$
+但是，强相关性，特别是“前”和“后”之间的相关性，引发了对多重共线性的担忧。
+我的主要问题是：
+
+我采取的步骤（双变量分析、ANCOVA 和 Poisson GLM）是否适合此数据集和研究问题？如果不适合，您会推荐哪些替代方法？
+我应该如何处理 ANCOVA 模型中的非正态残差？转换或替代模型是否更合适？
+考虑到多重共线性以及变量之间存在强相关性的事实，表明它们之间存在线性关系。应用泊松 GLM 有意义吗？
+由于我只有两个测量值（前后），重复测量方差分析是否适用？
+
+我很感激任何指导或建议。谢谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/660328/choosing-statistical-methods-for-analyzing-count-data-with-multicollinearity-in</guid>
+      <pubDate>Tue, 21 Jan 2025 16:51:01 GMT</pubDate>
     </item>
     </channel>
 </rss>
