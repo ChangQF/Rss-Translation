@@ -4,7 +4,141 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Mon, 27 Jan 2025 01:15:31 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 27 Jan 2025 03:19:22 GMT</lastBuildDate>
+    <item>
+      <title>ML-Agents 代理无法在 Unity 中完成简单的“射弹到目标”任务</title>
+      <link>https://stackoverflow.com/questions/79389655/ml-agents-agent-not-converging-for-simple-projectile-to-target-task-in-unity</link>
+      <description><![CDATA[代理在重力作用下向目标发射弹丸。代理只有一个动作 - 射击角度。发射力是恒定的。我还没有改变目标的位置。因此这应该是微不足道的，因为模型只需要学习正确的射击角度。但经过 300000 个训练步骤后，模型仍然射击不稳定。
+代理：
+使用 Unity.MLAgents;
+使用 Unity.MLAgents.Actuators;
+使用 Unity.MLAgents.Sensors;
+使用 UnityEngine;
+
+公共类 ProjectileAgent：代理
+{
+公共 Transform 目标; //带有 2D 碰撞器和“目标”标签的固定目标
+公共 Transform launchPoint; //生成弹丸的位置
+公共 GameObject projectilePrefab; //带有 Rigidbody2D 和 ProjectileCollision 脚本的预制件
+公共 float fixedForce = 500f; // 对射弹施加恒定的力
+
+private bool hasLaunched = false;
+
+public override void OnEpisodeBegin()
+{
+hasLaunched = false;
+RequestDecision(); // 在每个情节开始时请求一个决定
+}
+
+public override void CollectObservations(VectorSensor sensor)
+{
+// 观察从发射点到目标的相对位置 (x,y)
+Vector2 diff = target.position - launchPoint.position;
+sensor.AddObservation(diff.x);
+sensor.AddObservation(diff.y);
+}
+
+public override void OnActionReceived(ActionBuffers action)
+{
+if (!hasLaunched)
+{
+// 一个连续动作 (0..1) 映射到 [0..180] 度
+float angle01 = Mathf.Clamp01(actions.ContinuousActions[0]);
+float angleDegrees = Mathf.Lerp(0f, 180f, angle01);
+
+LaunchProjectile(angleDegrees);
+hasLaunched = true;
+}
+}
+
+private void LaunchProjectile(float angleDegrees)
+{
+GameObject projObj = Instantiate(projectilePrefab, launchPoint.position, Quaternion.identity);
+ProjectileCollision projScript = projObj.GetComponent&lt;ProjectileCollision&gt;();
+projScript.agent = this;
+
+Rigidbody2D rb = projObj.GetComponent&lt;Rigidbody2D&gt;();
+float rad = angleDegrees * Mathf.Deg2Rad;
+Vector2 direction = new Vector2(Mathf.Cos(rad), Mathf.Sin(rad));
+rb.AddForce(direction * fixedForce);
+}
+
+// 射弹击中目标时调用
+public void OnHitTarget()
+{
+AddReward(1.0f);
+EndEpisode();
+}
+
+// 射弹未击中目标时调用
+public void OnMiss(Vector2 projectilePosition)
+{
+float distance = Vector2.Distance(projectilePosition, target.position);
+float maxDistance = 10f; // 根据需要调整
+float vicinity = 1f - (distance / maxDistance);
+vicinity = Mathf.Clamp01(proximity);
+
+// 接近目标时获得部分奖励
+AddReward(proximity * 0.5f);
+
+// 未击中时获得小额惩罚
+AddReward(-0.1f);
+EndEpisode();
+}
+
+// Unity 编辑器中测试的启发式方法（随机角度）
+public override void Heuristic(in ActionBuffers actionOut)
+{
+actionOut.ContinuousActions[0] = Random.value;
+}
+}
+
+Projectile:
+using UnityEngine;
+
+public class ProjectileCollision : MonoBehaviour
+{
+public ProjectileAgent agent;
+
+private void Start()
+{
+// 短暂时间后销毁，以便我们可以记录未击中
+Destroy(gameObject, lifetime);
+}
+
+private void OnCollisionEnter2D(Collision2D collision)
+{
+if (collision.gameObject.CompareTag(&quot;Target&quot;))
+{
+agent.OnHitTarget();
+}
+else
+{
+agent.OnMiss(transform.position);
+}
+Destroy(gameObject);
+}
+}
+
+
+我尝试过的方法
+
+奖励塑造：
+击中目标可获得 +1 奖励，近距离击中可获得部分基于距离的奖励，未击中可获得少量负奖励。
+我将击中奖励提高到 +3，降低了未击中惩罚，等等。
+训练步骤：
+我使用 PPO 运行了 300k+ 步。
+碰撞检查：
+日志确认 OnHitTarget() 和 OnMiss() 在预期时间触发。
+固定力和重力：
+通过硬编码角度，验证箭可以手动到达目标。
+重力已设置，因此物理上可以击中。
+无随机目标：
+目标目前固定在一个位置以保持简单。
+]]></description>
+      <guid>https://stackoverflow.com/questions/79389655/ml-agents-agent-not-converging-for-simple-projectile-to-target-task-in-unity</guid>
+      <pubDate>Mon, 27 Jan 2025 02:47:35 GMT</pubDate>
+    </item>
     <item>
       <title>我的神经网络从头开始拒绝收敛，但在前馈中运行良好</title>
       <link>https://stackoverflow.com/questions/79389036/my-neural-netwok-from-scratch-refuse-to-converge-it-works-fine-in-feed-forward</link>
@@ -234,12 +368,12 @@ llm = genai.GenerativeModel(model_name=&#39;gemini-1.5-flash&#39;,
 tools=[tools])
 
 chat = llm.start_chat()
-response = chat.send_message(&quot;萼片长度 5.1、萼片宽度 3.5、花瓣长度 1.4、花瓣宽度 0.2 的鸢尾花属于什么品种？&quot;)
+response = chat.send_message(&quot;萼片长度 5.1、萼片宽度 3.5、花瓣长度 1.4、花瓣宽度 0.2 的鸢尾花属于哪种花种？&quot;)
 response.text
 
 我收到一条错误消息：
 TypeError：输入类型无效。应为 `genai.FunctionDeclarationType` 的实例。
-但是，收到一个类型为：&lt;class &#39;vertexai.generative_models._generative_models.Tool&#39;&gt; 的对象。
+但是，收到的是一个类型为：&lt;class &#39;vertexai.generative_models._generative_models.Tool&#39;&gt; 的对象。
 对象值：function_declarations {
 ...
 property_ordering：&quot;petal_length&quot;
@@ -253,11 +387,13 @@ property_ordering：&quot;petal_width&quot;
       <pubDate>Sat, 25 Jan 2025 21:07:11 GMT</pubDate>
     </item>
     <item>
-      <title>如何让我的 ML 模型只优化尾部</title>
-      <link>https://stackoverflow.com/questions/79387317/how-can-i-get-my-ml-model-to-only-optimize-the-tails</link>
-      <description><![CDATA[我正在研究一个不平衡的分类模型（5% 少数类），并且只关心输出分布的尾部。我想知道数据中最好的 10% 和最差的 10%。我尝试在 GBM 训练中使用贝叶斯搜索，该搜索使用 ROC AUC 的尾部作为搜索优化器，但还有更好的办法吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79387317/how-can-i-get-my-ml-model-to-only-optimize-the-tails</guid>
-      <pubDate>Sat, 25 Jan 2025 18:50:34 GMT</pubDate>
+      <title>使用预训练模型作为特征提取器，并使用 dbn 进行分类</title>
+      <link>https://stackoverflow.com/questions/79386281/usage-of-pretrained-models-as-feature-extractor-and-dbn-for-clasification</link>
+      <description><![CDATA[是否可以使用 2 个预先训练的模型（例如 mobilevit、nasnetmobile）提取白血病分类的特征，然后连接这些特征并使用 深度信念网络 进行分类？
+如何做到这一点？或者这种方法的性能是否较低？
+如果可能，有人可以分享有关此的示例代码吗？]]></description>
+      <guid>https://stackoverflow.com/questions/79386281/usage-of-pretrained-models-as-feature-extractor-and-dbn-for-clasification</guid>
+      <pubDate>Sat, 25 Jan 2025 06:31:48 GMT</pubDate>
     </item>
     <item>
       <title>InvalidArgumentError：在 Google Colab 上训练 TensorFlow RetinaNet 模型时，流执行器中没有 DNN</title>
@@ -300,7 +436,7 @@ Mlflow.log_metric(f“{run_number}_Loss”, returns, iteration)
 导入 gym_super_mario_bros
 从 gym_super_mario_bros.actions 导入 SIMPLE_MOVEMENT
 从 gym.wrappers 导入 GrayScaleObservation
-从 stable_baselines3.common.vec_env 导入 VecFrameStack、DummyVecEnv
+从 stable_baselines3.common.vec_env 导入 VecFrameStack,DummyVecEnv
 从 matplotlib 导入 pyplot 作为 plt
 
 env = gym_super_mario_bros.make(&#39;SuperMarioBros-v0&#39;,apply_api_compatibility=True,render_mode=&quot;human&quot;)
@@ -315,13 +451,6 @@ state = env.reset()
 我应该如何修复此问题？]]></description>
       <guid>https://stackoverflow.com/questions/76509663/typeerror-joypadspace-reset-got-an-unexpected-keyword-argument-seed-when-i</guid>
       <pubDate>Mon, 19 Jun 2023 19:47:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用 Pytorch Geometric 的超图卷积：RuntimeError：索引 2268264 超出了大小为 2268264 的维度 0 的界限</title>
-      <link>https://stackoverflow.com/questions/69184856/hypergraph-convolution-using-pytorch-geometric-runtimeerror-index-2268264-is-o</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/69184856/hypergraph-convolution-using-pytorch-geometric-runtimeerror-index-2268264-is-o</guid>
-      <pubDate>Tue, 14 Sep 2021 21:48:03 GMT</pubDate>
     </item>
     </channel>
 </rss>
