@@ -4,25 +4,32 @@
     <title>机器学习</title>
     <link>https://www.reddit.com/r/MachineLearning/</link>
     <description>初学者 -> /r/mlquestions 或 /r/learnmachinelearning，AGI -> /r/singularity，职业建议 -> /r/cscareerquestions，数据集 -> r/datasets</description>
-    <lastBuildDate>Mon, 27 Jan 2025 18:22:03 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 27 Jan 2025 21:15:42 GMT</lastBuildDate>
+    <item>
+      <title>[P] 永远不要训练另一个 ML 模型</title>
+      <link>https://www.reddit.com/r/MachineLearning/comments/1ibh8wb/p_never_train_antoher_ml_model/</link>
+      <description><![CDATA[我相信 LLM 将在很大程度上取代专门的机器学习模型。这正是我创建一个简单的开源库来帮助您的原因：  用 5 行代码构建基于 JSON 的管道，用于分类、标记等。 将强大的 LLM 技能集成到您的工作流程中 标准化输出以提供给下游。  安装和设置 通过 PyPI 安装： pip install flashlearn  然后设置您的 LLM 提供程序凭据（如果使用 OpenAI）： export OPENAI_API_KEY=&quot;YOUR_API_KEY&quot;  构建以 JSON 为中心的管道 1) 数据提取和任务定义 下面是使用 IMDB 电影评论进行情绪分析的示例，演示了如何加载预构建的技能： from flashlearn.utils import imdb_reviews_50k from flashlearn.skills import GeneralSkill from flashlearn.skills.toolkit import ClassifyReviewSentiment def main(): # 加载 100 个 IMDB 评论样本 data = imdb_reviews_50k(sample=100) # 加载预构建的“ClassifyReviewSentiment”技能 skill = GeneralSkill.load_skill(ClassifyReviewSentiment) # 将数据集转换为结构化的“任务” task = skill.create_tasks(data)  2) 并行执行 然后，并行处理这些任务： results = skill.run_tasks_in_parallel(tasks)  3) 基于 JSON 的输出存储 所有输出都以干净的 JSON 形式到达，使其易于解析、存储或传递下游： import json with open(&#39;sentiment_results.jsonl&#39;, &#39;w&#39;) as f: for task_id, output in results.items(): input_json = data[int(task_id)] input_json[&#39;result&#39;] = output f.write(json.dumps(input_json) + &#39;\n&#39;)  4) 链接 &amp;多步骤管道 您可以轻松地将结构化输出链接到另一个技能以进行进一步处理： # 链接示例：# next_skill = ...# next_tasks = next_skill.create_tasks([...based on &#39;output&#39;...])# next_results = next_skill.run_tasks_in_parallel(next_tasks) 扩展 FlashLearn 自定义技能 当您需要特定领域的分类或标签时，请从示例数据中定义自定义技能： from flashlearn.skills.learn_skill import LearnSkill learner = LearnSkill(model_name=&quot;gpt-4o-mini&quot;) skill = learner.learn_skill( data, task=&#39;Define categories &quot;satirical&quot;, &quot;quirky&quot;, &quot;荒谬&quot;。&#39; ) task = skill.create_tasks(data)  图像分类示例 通过支持单标签和多标签分类的 ClassificationSkill 动态构造函数指定图像列模态，同样可以很好地处理视觉数据： from flashlearn.skills.classification import ClassificationSkill images = [...] # Base64 编码的图像 skill = ClassificationSkill( model_name=&quot;gpt-4o-mini&quot;, categories=[&quot;cat&quot;, &quot;dog&quot;], max_labels=1, system_prompt=&quot;Classify images.&quot; ) task = skill.create_tasks( images, column_modalities={&quot;image_base64&quot;: &quot;image_base64&quot;} ) results = skill.run_tasks_in_parallel(tasks)  GitHub 和其他资源 有关更多详细信息、代码示例和高级用例，请查看开源存储库： FlashLearn – 完整代码    提交人    /u/No_Information6299   [链接] [评论]]]></description>
+      <guid>https://www.reddit.com/r/MachineLearning/comments/1ibh8wb/p_never_train_antoher_ml_model/</guid>
+      <pubDate>Mon, 27 Jan 2025 19:10:25 GMT</pubDate>
+    </item>
     <item>
       <title>[D] 尝试实现 CarLLAVA</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1ibevf4/d_trying_to_implement_carllava/</link>
-      <description><![CDATA[      早上好/下午好/晚上好。 我是尝试在代码中复制 CarLLaVA 提出的模型，以便在大学进行实验。 我对神经网络的内部结构感到困惑。 如果我没记错的话，对于同时训练部分推理：  LLM 微调 (LoRa)。 LLM 输入查询 MSE 输出标头（航点、路线）。  在推理时，查询将从网络中删除（我猜）。 我正在尝试在 pytorch 中实现它，唯一的事情就是我缺少的是发生的情况是将“可训练部件”连接到与内部火炬图。 有人尝试自己复制它或类似的东西吗？ 我在这个实现中感到迷失。 我也关注了另一个 LMDrive 实现，但他们单独训练视觉编码器，然后将其添加到推理中。 谢谢！  https://preview.redd.it/dom6ou7iokfe1.png?width=1662&amp;format=png&amp;auto=webp&amp;s=7596c1715d44b59fa42eeff2c58ef48fd41493d6 原始文章链接 我的代码   由   提交/u/AlbertV999  [链接] [评论] &lt; /表&gt;]]></description>
+      <description><![CDATA[      早上/下午/晚上好。 我正在尝试在代码中复制 CarLLaVA 提出的模型，以便在大学进行实验。 我对神经网络的内部结构感到困惑。 如果我没记错的话，对于推理部分，同时训练以下内容：  LLM（LoRa）的微调。 向 LLM 输入查询 输出 MSE 标头（航路点、路线）。  并且在推理时，查询会从网络中删除（我假设）。 我正在尝试在 pytorch 中实现它，我唯一能想到的就是将“可训练部分”与火炬的内部图连接起来。 有人试过自己复制它或类似的东西吗？ 我对这个实现感到迷茫。 我还遵循了 LMDrive 的另一种实现，但他们单独训练他们的视觉编码器，然后将其添加到推理中。 谢谢！  https://preview.redd.it/dom6ou7iokfe1.png?width=1662&amp;format=png&amp;auto=webp&amp;s=7596c1715d44b59fa42eeff2c58ef48fd41493d6 将原件包裹起来 我的代码    由   提交  /u/AlbertV999   [链接] [评论] ]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1ibevf4/d_trying_to_implement_carllava/</guid>
       <pubDate>Mon, 27 Jan 2025 17:36:31 GMT</pubDate>
     </item>
     <item>
       <title>[D] 人们如何存储/流式传输 LLM 嵌入？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1ibe0bm/d_what_do_people_do_for_storingstreaming_llm/</link>
-      <description><![CDATA[对于一个学术项目，我想计算每个标记的嵌入，将它们存储在磁盘或内存中，并将它们流式传输以进行快速实验，同时微调模型（比 LLM 小得多）。 有哪些库（db？）、数据结构和最佳实践？一些注意事项：  希望最小化嵌入计算（成本）。 嵌入约为 1k 个浮点数。 句子通常大约有 20-500 个标记。 在模型训练中流式传输预计算嵌入以进行微调。 完整数据集大约有 500k 个短语，大约 4TB。 我的应用程序没有量化模型（因此是 32 位浮点数）。 一些“有意义的”数据集子集可以放入内存（几 GB）。 最终共享数据集以供研究。 开源友好 寻找更标准化与新颖的数据库解决方案（主要是为了长寿）    由    /u/LetsTacoooo  提交  [链接] [评论]]]></description>
+      <description><![CDATA[对于一个学术项目，我想计算每个标记的嵌入，将它们存储在磁盘或内存中，并将它们流式传输以进行快速实验，同时微调模型（比 LLM 小得多）。 有哪些库（db？）、数据结构和最佳实践？一些注意事项：  希望最大限度地减少嵌入计算（成本）。 嵌入是 ~1k 32 位浮点数。 序列通常约为 20-500 个标记。 在模型训练中流式传输预计算嵌入以进行微调。 完整数据集约为 500k 个短语，磁盘上约 4TB（未压缩）。 我的应用程序不存在量化模型。 一些“有意义”的数据集子集可以放入内存（几 GB）。 最终共享数据集以供研究。 开源友好 寻找更标准化与新颖的数据库解决方案（主要是为了长寿）     提交人    /u/LetsTacoooo   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1ibe0bm/d_what_do_people_do_for_storingstreaming_llm/</guid>
       <pubDate>Mon, 27 Jan 2025 17:02:24 GMT</pubDate>
     </item>
     <item>
       <title>[D] FP/OTS 游戏的随机生成地图</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1ib8e5k/d_randomly_generated_maps_for_fpots_games/</link>
-      <description><![CDATA[我对使用随机生成地图的游戏感兴趣。有 Starfield 和 Bethesda 在未来游戏中使用它们。还有其他使用 Voxel 引擎的游戏，例如 Valheim 或 No Man&#39;s Sky。我对 Starfield 类型的随机生成地图感兴趣。目的是使用它们来提高可重玩性，但仍然让游戏感觉逼真。让它感觉手工制作并具有人情味，但要随机化，这样重复运行同一张地图就永远不会被映射，使重复的​​体验与第一次通过地图的体验感觉一样奇妙。 我可以评论哪些游戏作为做得好的例子？有没有关于它的论文？有什么值得一提的吗？就像我想象的那样，这太难了，或者不值得，因为到目前为止很少有游戏这样做。 一个建议：  最简单的方法是手工制作一些大小一致的模块，然后可以随机放置在网格中。如果你觉得自己特别聪明，你可以使用波函数折叠并稍微控制随机性/确保只有可以连接的部分才能连接。  我想问你是否知道任何方向可以让我找到解决方案或尝试解决此问题的例子，无论是在理论还是实践上。 编辑：FP：第一人称/ OTS：过肩 - 解释视频游戏中相机相对于玩家角色的位置    提交人    /u/blitz4   [链接] [评论]]]></description>
+      <description><![CDATA[我对使用随机生成地图的游戏感兴趣。有 Starfield 和 Bethesda 在未来游戏中使用它们。还有其他使用 Voxel 引擎的游戏，例如 Valheim 或 No Man&#39;s Sky。我对 Starfield 类型的随机生成地图感兴趣。目的是使用它们来提高可重玩性，但仍然让游戏感觉逼真。让它感觉手工制作并具有人情味，但要随机化，这样重复运行同一张地图就永远不会被映射，使重复的​​体验与第一次通过地图的体验感觉一样奇妙。 我可以评论哪些游戏作为做得好的例子？有没有关于它的论文？有什么值得一提的吗？就像我想象的那样，这太难了，或者不值得，因为到目前为止很少有游戏这样做。 一个建议：  最简单的方法是手工制作一些大小一致的模块，然后可以随机放置在网格中。如果你觉得自己特别聪明，你可以使用波函数折叠并稍微控制随机性/确保只有可以连接的部分才能连接。  我想问你是否知道任何方向可以让我找到解决方案或尝试解决这个问题的例子，无论是在理论还是实践上。 编辑：FP：第一人称/ OTS：过肩 - 解释视频游戏中相机相对于玩家角色的位置    提交人    /u/blitz4   [链接] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1ib8e5k/d_randomly_generated_maps_for_fpots_games/</guid>
       <pubDate>Mon, 27 Jan 2025 13:01:31 GMT</pubDate>
     </item>
@@ -57,7 +64,7 @@
     <item>
       <title>[D] DeepSeek 为什么开源他们的工作？</title>
       <link>https://www.reddit.com/r/MachineLearning/comments/1ib2vtx/d_why_did_deepseek_opensource_their_work/</link>
-      <description><![CDATA[如果他们的培训效率提高 45 倍，他们本可以主宰 LLM 市场。你认为他们为什么选择开源他们的工作？这对他们的公司有什么净收益？现在美国的大型实验室可以说：“我们将采用他们的优秀想法，并将它们与我们的秘密想法结合起来，我们仍然会领先”    提交人    /u/we_are_mammals   [链接] [评论]]]></description>
+      <description><![CDATA[如果他们的培训效率提高 45 倍，他们本可以主宰 LLM 市场。你认为他们为什么选择开源他们的工作？这对他们的公司有什么好处？现在美国的大型实验室可以说：“我们将采用他们的优秀想法，并将它们与我们的秘密想法结合起来，我们仍然会领先”  编辑： DeepSeek-R1 现在在 LLM Arena 上排名第一（使用 StyleCtrl）！它们与其他 3 个模型共享此排名：Gemini-Exp-1206、4o-latest 和 o1-2024-12-17。    提交人    /u/we_are_mammals   [link] [评论]]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1ib2vtx/d_why_did_deepseek_opensource_their_work/</guid>
       <pubDate>Mon, 27 Jan 2025 07:48:28 GMT</pubDate>
     </item>
@@ -67,13 +74,6 @@
       <description><![CDATA[      我感觉还有很多事情可以做。例如，在给定 400 个 token 输入的情况下，我只能在 10 秒内输出 200 个 token。希望您能提供意见，让我们知道下一步该探索什么。    提交人    /u/themathstudent   [link] [评论] ]]></description>
       <guid>https://www.reddit.com/r/MachineLearning/comments/1ib10gr/p_transformers_inference_optimizations/</guid>
       <pubDate>Mon, 27 Jan 2025 05:40:39 GMT</pubDate>
-    </item>
-    <item>
-      <title>[D] 神经网络和反向传播的详细介绍：构建微梯度</title>
-      <link>https://www.reddit.com/r/MachineLearning/comments/1iaz8r6/d_the_spelledout_intro_to_neural_networks_and/</link>
-      <description><![CDATA[ Youtube 视频 . 字幕 GitHub 存储库  时间戳 00:00:35：micrograd 概述 00:08:08：定义标量值函数 00:12:00：上升超过运行以计算斜率 00:19:00 ：定义值类    提交人    /u/yogimankk   [链接] [评论]]]></description>
-      <guid>https://www.reddit.com/r/MachineLearning/comments/1iaz8r6/d_the_spelledout_intro_to_neural_networks_and/</guid>
-      <pubDate>Mon, 27 Jan 2025 04:00:20 GMT</pubDate>
     </item>
     <item>
       <title>[R][Q] 抱歉，我正在寻找一本包含数学 ML 基础知识的书；它大约有 400 页，我记得有人在这里发过帖子，但我找不到它</title>
