@@ -4,7 +4,142 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 28 Jan 2025 06:23:06 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 28 Jan 2025 09:17:35 GMT</lastBuildDate>
+    <item>
+      <title>使用高斯过程填补缺失的时间序列数据</title>
+      <link>https://stats.stackexchange.com/questions/660657/using-gaussian-process-to-impute-missing-time-series-data</link>
+      <description><![CDATA[使用 R，我模拟了一些月度时间序列数据并随机删除了一些数据点：
+library(ggplot2)
+library(tidyverse)
+library(MASS)
+library(gridExtra)
+
+set.seed(123)
+
+dates &lt;- seq(as.Date(&quot;2014-01-01&quot;), as.Date(&quot;2023-12-31&quot;), by = &quot;month&quot;)
+n &lt;- length(dates)
+
+trend &lt;- seq(10, 30, length.out = n)
+seasonal &lt;- 5 * sin(2 * pi * (1:n) / 12)
+noise &lt;- rnorm(n, 0, 0.5)
+values &lt;- trend + seasonal + noise
+
+df &lt;- data.frame(date = dates, value = values)
+n_remove &lt;- floor(0.3 * (n-2))
+interior_indices &lt;- 2:(n-1)
+remove_indices &lt;- sample(interior_indices, n_remove)
+
+df$type &lt;- &quot;original&quot;
+df$type[remove_indices] &lt;- &quot;removed&quot;
+
+
+我的目标是填补时间序列中缺失的数据点。我有以下想法 - 可以使用高斯过程（通过 RBF 核）来实现吗？
+我希望以这样的方式实现，即当非缺失点之间的空间增加时，插值/估算的不确定性会变得更大。我还想在插值/估算中添加一个概率元素，这以后可能会有用。我在下面写了基本的高斯过程公式：
+
+$$ \begin{bmatrix} y_{observed} \\ y_{interpolated} \end{bmatrix} \sim \mathcal{N}\left(\begin{bmatrix} \mu_{observed} \\ \mu_{interpolated}
+\end{bmatrix}, \begin{bmatrix} K_{11} &amp; K_{12} \\ K_{21} &amp; K_{22}
+\end{bmatrix}\right) $$
+$$ k(x_1, x_2) = \sigma^2 \exp\left(-\frac{(x_1 - x_2)^2}{2l^2}\right)$$
+$$ p(y_{interpolated}|y_{observed}) = \mathcal{N}(\mu_{post}, \Sigma_{post}) $$
+$$ \mu_{post} = K_{12}K_{11}^{-1}y_{observed} $$
+$$\Sigma_{post} = K_{22} - K_{12}K_{11}^{-1}K_{21} $$ $$ y_{sample} \sim
+\mathcal{N}(\mu_{post}, \Sigma_{post}) $$
+
+我首先设置了执行此操作所需的不同函数：
+ kernel &lt;- function(x1, x2, l = 30, sigma = 2) {
+sqdist &lt;- outer(x1, x2, function(x, y) (as.numeric(x - y))^2)
+sigma^2 * exp(-0.5 * sqdist / l^2)
+}
+
+x_obs &lt;- as.numeric(df$date[df$type == &quot;original&quot;])
+y_obs &lt;- df$value[df$type == &quot;original&quot;]
+x_pred &lt;- as.numeric(df$date)
+
+K &lt;- kernel(x_obs, x_obs)
+K_star &lt;- kernel(x_pred, x_obs)
+K_star_star &lt;- kernel(x_pred, x_pred)
+
+K &lt;- K + diag(1e-6, length(x_obs))
+
+K_inv &lt;- solved(K)
+mu_post &lt;- as.vector(K_star %*% K_inv %*% y_obs)
+Sigma_post &lt;- K_star_star - K_star %*% K_inv %*% t(K_star)
+
+然后，我写了采样程序：
+n_samples &lt;- 50
+samples &lt;- t(mvrnorm(n_samples, mu_post, Sigma_post))
+
+ci_data &lt;- data.frame(
+date = df$date,
+mean = mu_post,
+lower = apply(samples, 1, quantile, probs = 0.025),
+upper = apply(samples, 1, quantile, probs = 0.975)
+)
+
+samples_df &lt;- as.data.frame(samples)
+colnames(samples_df) &lt;- paste0(&quot;sample_&quot;, 1:n_samples)
+samples_df$date &lt;- df$date
+samples_long &lt;- tidyr::pivot_longer(samples_df, 
+-date,
+names_to = &quot;sample&quot;, 
+values_to = &quot;value&quot;)
+
+最后我尝试将其可视化：
+
+Cross Validated 的人员：您之前尝试过/听说过有人尝试这样做吗？
+
+注意：如果有人感兴趣，我可以分享 ggplot 可视化 R 代码
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/660657/using-gaussian-process-to-impute-missing-time-series-data</guid>
+      <pubDate>Tue, 28 Jan 2025 08:48:22 GMT</pubDate>
+    </item>
+    <item>
+      <title>绘制箱线图时应该使用模型训练精度还是测试精度？</title>
+      <link>https://stats.stackexchange.com/questions/660656/for-plotting-box-plot-should-one-use-model-training-accuracy-or-test-accuracy</link>
+      <description><![CDATA[我正在处理一个包含 500 个样本的数据集。我将数据集按 80、20 的比例分成训练和测试。使用训练集，我使用网格搜索方法对 SVM、KNN 和决策树分类器进行了超参数调整，并为每个分类器获得了最佳超参数。然后再次使用获得的超参数拟合训练数据集，并通过交叉验证评估分类器的训练准确率。最后使用测试数据集计算模型准确率，并将测试准确率报告为模型准确率。
+现在我想绘制箱线图来表示模型准确率，那么我应该使用训练准确率还是测试数据（交叉验证）？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660656/for-plotting-box-plot-should-one-use-model-training-accuracy-or-test-accuracy</guid>
+      <pubDate>Tue, 28 Jan 2025 08:16:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>SAS 和 Python 之间的 Somers D 对二元结果不匹配吗？</title>
+      <link>https://stats.stackexchange.com/questions/660655/mismatch-of-somers-d-between-sas-and-python-for-binary-outcomes</link>
+      <description><![CDATA[执行摘要：
+
+scipy.stats.somersd(x,y) 将 y 视为独立变量。
+与 SAS 的 PROC LOGISTIC 相比，对于二元变量，如果我切换变量，我只能让它与 Python 匹配。
+在查看二元目标时，是否有令人信服的理由来切换变量，或者我在使用中遗漏了什么？
+
+背景：
+因此，我尝试将 Somers 的 D 用于观察值 x 和 y，y 是 因变量。换句话说：我想知道 x 对 y 的排名如何。我希望我的用法对于两个变量都分组的情况和 y 是二进制变量的基数是一致的。但是，SAS 和 Python 之间的惯例似乎不同。为此，我为自己生成了一些数据。x 和 y 是连续的。还有分组列和二进制目标（由 y 中的非常粗略的分箱制成）
+scipy.stats.somersd 文档指出 somersd(x,y) 将 x 视为独立变量，将 y 视为独立变量。按照该标准计算 Somers 的 D（对于分组变量），我得到的值为 0.36057，我可以通过手动计算进行交叉检查。代码位于此处。
+改为计算二进制情况，我得到 0.23609。如果我切换变量的顺序，我得到 0.51680。
+转到 SAS（并导入相同的数据集），我尝试从 PROC LOGISTIC 获取 Somers 的 D：
+ods output Association=assoc;
+proc logistic data=somersd;
+model y_binarized(event=&#39;1&#39;) = x_group;
+run;
+
+如果我切换因变量和自变量，则会产生与 scipy.stats.somersd 匹配的 0.51680 值。
+实际问题：
+我试图弄清楚特定变量 x 对二元结果 y 的预测效果如何。在我看来，这意味着 y 是 因变量，我应该计算 scipy.stats.somersd(x,y)。但是，SAS 计算与 scipy.stats.somersd(y,x) 匹配。
+在计算二元结果时，是否有令人信服的理由来改变变量的顺序，或者我是否滥用了 SAS 或 Python？
+备份信息：
+我喜欢用代码交流。我的想法（代码）可以在这个 Github 存储库中找到。Readme.md 文件是丹麦语（合作者是丹麦人），但代码是用英语注释的。为一致性而欢呼。
+Python 代码调用 scipy.stats.somersd 并通过手动计算进行交叉检查。
+SAS 代码 从 Github 读取 csv 文件（您可能需要调整代理设置）并运行 PROC LOGISTIC 以获取 Somers 的 D。还有一些 PROC FREQ 的东西我还没有想完。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660655/mismatch-of-somers-d-between-sas-and-python-for-binary-outcomes</guid>
+      <pubDate>Tue, 28 Jan 2025 08:01:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>异常值检测，取 Z 分数的平均值是否合适？</title>
+      <link>https://stats.stackexchange.com/questions/660654/outlier-detection-is-it-appropriate-to-take-the-mean-of-z-scores</link>
+      <description><![CDATA[简单的背景故事，我有几个加密代币想要查看。我想做一些异常检测，并寻找哪些代币可能容易受到欺诈或骗局的影响。
+假设我们有 10 个代币。我将它们放在一个数据框中，每个代币都有股票代码以及价格、流动性和交易量等数字属性。
+假设我计算了每个代币的价格、流动性和交易量的 $Z$ 分数。如果我想评估哪个代币可能是骗局，那么取所有 $Z$ 分数列的平均值在统计上是否合适？（即 $\frac{Z_{price}+Z_{liquidity}+Z_{volume}}{3}$）]]></description>
+      <guid>https://stats.stackexchange.com/questions/660654/outlier-detection-is-it-appropriate-to-take-the-mean-of-z-scores</guid>
+      <pubDate>Tue, 28 Jan 2025 06:38:38 GMT</pubDate>
+    </item>
     <item>
       <title>向使用现有距离矩阵构建的 UMAP 添加新点</title>
       <link>https://stats.stackexchange.com/questions/660652/adding-new-points-to-umap-built-with-existing-matrix-of-distances</link>
@@ -43,25 +178,6 @@ $$H(t) \sim \exp(1) $$
       <pubDate>Tue, 28 Jan 2025 01:17:33 GMT</pubDate>
     </item>
     <item>
-      <title>使用 OLS 证明正交性</title>
-      <link>https://stats.stackexchange.com/questions/660643/proving-orthogonality-using-ols</link>
-      <description><![CDATA[假设您有变量 A，并且想知道它是否与 B、C 和 D 正交。解决这个问题的一种方法是使用普通最小二乘法。对 B、C 和 D 进行回归。然后我们可以进行联合假设检验（例如 F 检验），看看某些联合假设是否被拒绝，以及整体 F 统计量的 p 值是多少。如果所有组合 BC、BD、BCD 等... 联合不显著，我们可以将其用作正交性的证据。
-我的问题是，在这个测试回归中，我们是否需要在 F 检验中应用异方差稳健标准误差？或者如果我们添加序列相关性，我们会使用 NeweyWest 进行推断？我们还需要正态性，或者至少是渐近正态性？
-抱歉，这个问题很简单！非常感谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/660643/proving-orthogonality-using-ols</guid>
-      <pubDate>Mon, 27 Jan 2025 22:57:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>栖息地建模的距离采样</title>
-      <link>https://stats.stackexchange.com/questions/660642/distance-sampling-for-habitat-modeling</link>
-      <description><![CDATA[如果这个问题之前已经得到解决，我很抱歉，但我找不到明确的答案。
-我目前面临着栖息地建模方法的挑战。我的目标是使用 GAM 构建存在-缺失模型，以了解动物的分布情况，这些数据来自沿横断面进行的海上调查。我在调查区域产生了缺失。
-我首先将距离采样方法应用于实际观测以计算检测函数，然后能够通过检测概率对我为栖息地模型生成的缺失进行加权。
-我用距离采样分析拟合的最佳模型涉及截断距离。对于不使用完全相同数据子集的后续栖息地模型，我应该删除所有比截断距离更远的观测值和缺失值，还是可以保留它们并仍然应用检测函数？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660642/distance-sampling-for-habitat-modeling</guid>
-      <pubDate>Mon, 27 Jan 2025 22:45:30 GMT</pubDate>
-    </item>
-    <item>
       <title>人口分布比较</title>
       <link>https://stats.stackexchange.com/questions/660640/comparison-of-population-distributions</link>
       <description><![CDATA[我正在尝试找到最佳统计检验来比较总体分布 A 和 B，并确定它们是否存在显著差异。B 是 A 的一个子总体。我见过 kolmogorov-smirnov 检验和 anderson darling 检验，哪个可能有效？但我不确定 B 的值在 A 中重复这一事实是否会使这变得复杂，因为它是一个子总体。有人告诉我 Mann-Whitney 会更合适，但我不一定想比较平均值。]]></description>
@@ -83,27 +199,6 @@ $$H(t) \sim \exp(1) $$
 这是最小化 MSE 损失函数的解析解。因此，估计系数 $w_2^*$ 和 $w_3^*$ 的绝对值较大，但符号相反。如果我将目标噪声 $\epsilon$ 调大，系数的绝对值会变大，但当我将特征 $x_2$ 和 $x_3$ 之间的噪声调小时，系数也会增大。一种可能的解释是，由于 $x_2$ 和 $x_3$ 高度相关，因此在选择相应的回归系数时具有很大的灵活性，并且我们的解决方案尝试学习目标噪声 $\epsilon$，但由于相关特征之间的差异与目标噪声相比很小，因此我们需要较大的系数来解释特征值的细微变化。但是，我并不完全了解其背后的机制，以及为什么添加相关特征会使我的模型过度拟合]]></description>
       <guid>https://stats.stackexchange.com/questions/660628/why-do-highly-correlated-features-cause-the-corresponding-coefficients-to-be-lar</guid>
       <pubDate>Mon, 27 Jan 2025 18:59:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>$\ell_1$ 惩罚分位数回归的收敛速度为 $\sqrt{\frac{s\log (p \vee n)}{n}}$</title>
-      <link>https://stats.stackexchange.com/questions/660611/rate-of-convergence-of-ell-1-penalized-quantile-regression-is-sqrt-fracs</link>
-      <description><![CDATA[在标准 LASSO 文献中，您经常会遇到 LASSO 估计量以 $\sqrt{\frac{s\log p}{n}}$ 的速率收敛（例如，参见此帖子）。
-一种相关方法是 $\ell_1$ 惩罚分位数回归，这意味着您将 $\ell_1$ 惩罚（如在 Lasso 中）添加到分位数回归损失。这样，你就可以估算给定$X$的$Y$的条件分位数，同时将一些系数缩小为零以用于变量选择或正则化目的。设置如下：
-$$
-\hat{\beta} = \arg \min_{\beta} \sum_{i=1}^n \rho_\tau (y_i - x_i^\top \beta) + \lambda \|\beta\|_1,
-$$
-其中
-
-$\rho_\tau(u) = u(\tau - \mathbb{I}\{u &lt; 0\})$ 是分位数损失，调整残差的权重，
-$\lambda$ 控制惩罚强度，
-$\|\beta\|_1 = \sum_{j=1}^p |\beta_j|$ 是鼓励稀疏性的 $\ell_1$-惩罚。
-
-此方法理论的主要参考文献是 Belloni 和 Chernozhukov (2011) 在《统计年鉴》中。
-在他们的论文中（例如，请参阅摘要、第 2.6 节或定理 2 了解完整结果），他们提到估计量以 $\sqrt{\frac{s\log (p \vee n)}{n}}$ 的速率收敛，其中 $\vee$ 用于表示 $p$ 和 $n$ 中的最大值。
-因此，与标准 LASSO 速率相比，我们现在可以看到对数中有 $p \vee n$。对于许多有趣的制度，即 $p &gt;&gt; n$，这将给出与标准 LASSO 相同的速率。
-有人知道为什么现在 $p$ 和 $n$ 存在最大值吗？任何见解都将不胜感激！]]></description>
-      <guid>https://stats.stackexchange.com/questions/660611/rate-of-convergence-of-ell-1-penalized-quantile-regression-is-sqrt-fracs</guid>
-      <pubDate>Mon, 27 Jan 2025 14:01:25 GMT</pubDate>
     </item>
     <item>
       <title>哪个更好 - AIC 还是 ANOVA？</title>
@@ -228,32 +323,6 @@ X 平方 = 266.48，df = NA，p 值 = 9.999e-05
       <pubDate>Mon, 27 Jan 2025 12:20:54 GMT</pubDate>
     </item>
     <item>
-      <title>如何用非参数检验和自举法比较三个分布？</title>
-      <link>https://stats.stackexchange.com/questions/660591/how-to-compare-three-distributions-with-the-nonparametric-test-and-bootstrapping</link>
-      <description><![CDATA[我正在分析一个包含三种不同相关系数分布的数据集。最初，我使用标准 Kolmogorov-Smirnov (KS) 检验进行成对比较。但是，我意识到由于样本数量巨大，KS 检验返回的 p 值非常小，所以我想通过使用引导来避免这种情况，但我不确定如何做到这一点。鉴于这种情况：
-
-考虑到许多样本，您会推荐哪些方法来比较这三个分布？
-
-我应该如何解释和报告结果，特别是在处理可能导致统计上显着但实际上不显着差异的大样本量时？
-
-我也有点担心我的样本不是完全独立的。有些是从同一只老鼠身上采集的，而另一些是从不同的老鼠身上采集的。但我也不知道该如何解释这一点。
-
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/660591/how-to-compare-three-distributions-with-the-nonparametric-test-and-bootstrapping</guid>
-      <pubDate>Mon, 27 Jan 2025 10:46:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何量化线性回归拟合中的系统误差？</title>
-      <link>https://stats.stackexchange.com/questions/660587/how-to-quantify-the-systematic-error-in-linear-regression-fit</link>
-      <description><![CDATA[当对大小为 $N$ 的数据集 $(x_i,y_i)$ 执行线性回归时，使用线性模型 $y(x)=β_0+β_1 x$，估计系数的协方差矩阵、截距 $\hat{β}_0$ 和斜率 $\hat{β}_1$ 可根据数据集中的方差估计拟合中的“统计误差”。
-随着数据集大小 $N$ 的增加，协方差矩阵的条目通常会缩小，从而导致统计误差更小。然而，这并不一定意味着拟合是合适的，因为残差 $r_i=\hat{y}(x_i)−y_i$​ 可能仍会揭示观测值和预测值 $y_i$ 和 $\hat{y}(x_i)$ 之间的系统偏差。
-基于残差分析，计算预测值 $\hat{y}(x)$ 的“系统误差”的正确数量是多少，这纯粹与线性模型的选择有关？
-它与 $R^2$ 或 $RMSE = \sqrt{\frac{1}{N} \sum_{i=1}^N (\hat{y}(x_i) - y_i)^2}$ 相关吗？
-如能提供任何理论背景或参考资料以深入研究该主题，我将不胜感激。在此先行致谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/660587/how-to-quantify-the-systematic-error-in-linear-regression-fit</guid>
-      <pubDate>Mon, 27 Jan 2025 10:05:30 GMT</pubDate>
-    </item>
-    <item>
       <title>我应该如何将对数刻度分布函数插入到规则网格上？[关闭]</title>
       <link>https://stats.stackexchange.com/questions/660533/how-should-i-interpolate-a-log-scaled-distribution-function-onto-a-regular-grid</link>
       <description><![CDATA[我有一些实验数据，它们遵循某个分布函数。为简单起见，假设为高斯分布。支持是不规则采样的。以下 Python 代码应该大致生成一些有代表性的假数据。
@@ -327,6 +396,16 @@ plt.show()
 如何证明$E[Y\mid S]=S/3$，其中$(X,Y,Z)$是一个三维变量，其密度函数为$f(x,y,z)=(x+2y+3z)/3$，位于$0&lt;x,y,z&lt;1$和$S=X+Y+Z$上？]]></description>
       <guid>https://stats.stackexchange.com/questions/660531/conditional-expectation-when-there-are-no-symmetries</guid>
       <pubDate>Sat, 25 Jan 2025 14:34:11 GMT</pubDate>
+    </item>
+    <item>
+      <title>是否可以汇总 AIC/BIC 值以进行参与者级模型比较？</title>
+      <link>https://stats.stackexchange.com/questions/660262/is-it-possible-to-aggregate-aic-bic-values-for-participant-level-model-compariso</link>
+      <description><![CDATA[我有一个数据集，其中包含来自数百名参与者的情绪时间序列数据，他们每个人都参加了生态瞬时评估 (EMA) 研究。由于每个参与者的事件时间完全不同，我决定使用 R 中的药代动力学建模包 (mrgsolve) 生成的复杂非线性模型分别拟合每个参与者的数据。
+我正在使用 nloptr 根据我已经对这些数据执行的一些混合效应建模得出的初步猜测来推导参数，但这是一个不需要药代动力学方法的更简单的模型。由于呈现的模型数量庞大，手动优化每个模型的参数并不切实际。相反，我使用合理但未优化的参数值运行这些模型，这实际上效果很好，因为每个参与者对事件的情绪反应模式大致相似。
+对于每个模型，我的零假设是数据纯粹由噪声组成。我的替代假设是，药代动力学模型在模拟参与者的情绪反应方面优于噪声模型。到目前为止，药代动力学模型似乎在几乎（但不是所有）情况下都能产生更优的 RSS 和 AIC/BIC 值。
+有没有办法批量测试药代动力学建模方法产生更优的建模结果的假设，表明它所基于的模型优于噪声的零假设？例如，如果 95%（或其他百分比）的药代动力学模型比基于噪声的模型产生更好的拟合效果，这可以用来证明统计意义吗？或者是否有另一种基于指标的方法来测试这个假设，例如比较每个参与者的每个模型之间的 AIC 和 BIC 值，并在所有参与者中汇总这些值？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660262/is-it-possible-to-aggregate-aic-bic-values-for-participant-level-model-compariso</guid>
+      <pubDate>Mon, 20 Jan 2025 08:21:49 GMT</pubDate>
     </item>
     </channel>
 </rss>
