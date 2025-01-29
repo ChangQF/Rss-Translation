@@ -4,7 +4,142 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 29 Jan 2025 18:22:13 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jan 2025 21:15:16 GMT</lastBuildDate>
+    <item>
+      <title>我可以使用稀疏分析来估计捕获样本方差所需的最小样本量吗</title>
+      <link>https://stats.stackexchange.com/questions/660738/can-i-use-rarefaction-analysis-to-estimate-the-minimum-sample-size-needed-to-cap</link>
+      <description><![CDATA[在生态学中，稀疏分析可用于估计发现种群中所有物种所需的最小样本量。我想知道这是否可用于估计捕获种群特定参数方差所需的最小样本量。
+假设我有一个包含 100 个数据点的样本（假设这是种群）。要生成稀疏曲线，我可以将样本量从 1 增加到 100。在每个样本量 n 下，我可以从原始样本中随机生成 10000 个样本（大小 = n），并计算这 10000 个样本的平均方差。然后绘制平均方差与样本量的关系。我的问题是：似乎无论我有什么样的原始样本，覆盖 95% 种群方差所需的样本量总是相同的：大约 16 个样本。这对我来说似乎有点奇怪。
+我的稀疏曲线代码：
+sample_size = data.shape[0]
+
+data_n_variance = [] #初始化列表以存储不同样本大小下该特定参数测量值的平均方差
+
+#为 10000 次引导生成随机种子以实现可重复性
+rng = np.random.RandomState(seed=42)
+seed_list = rng.choice(10000, size=10000, replace=True)
+
+for i in range(1, sample_size+1):
+subsample_i_variance = [] #初始化列表以存储特定样本大小下 10000 个随机生成的子样本的方差
+
+for j in range(10000):
+rng = np.random.RandomState(seed=seed_list[j])
+subsample = rng.choice(data, size=i, replace=False)
+subsample_i_variance.append(np.var(subsample))
+
+data_n_variance.append(sum(subsample_i_variance)/10000)
+
+用于确定最小样本量的代码
+for i in range(1, sample_size+1):
+if data_n_variance[i] &gt; 0.95*data_n_variance[-1]:
+print(i)
+break
+
+我尝试模拟两个不同的原始样本，最小样本量相同
+正态分布：
+data = np.random.normal(loc=100, scale=10, size=100)
+
+双峰分布：
+data1 = np.random.poisson(lam=1, size=60)
+data2 = np.random.normal(loc=1000, scale=100, size=40)
+data = np.concatenate((data1, data2))
+
+我也尝试使用样本方差而不是总体方差（N-1 vs. N）来计算方差，但在这种情况下，稀疏曲线不再是增长曲线（先增加然后稳定）]]></description>
+      <guid>https://stats.stackexchange.com/questions/660738/can-i-use-rarefaction-analysis-to-estimate-the-minimum-sample-size-needed-to-cap</guid>
+      <pubDate>Wed, 29 Jan 2025 20:47:42 GMT</pubDate>
+    </item>
+    <item>
+      <title>在线性回归中，拟合残差与回归量正交</title>
+      <link>https://stats.stackexchange.com/questions/660737/in-linear-regression-are-fitted-residuals-orthogonal-to-regressors</link>
+      <description><![CDATA[我正在研究伍尔德里奇的《计量经济学分析》中的回归问题。回归量被视为随机的。他说，最小二乘估计一致性的一个基本假设是“总体正交性条件”（“假设 OLS.1”），即
+$$
+E(x&#39;u)=0。
+$$
+此处的线性模型为$y = \beta&#39;x + u$，其中$u$是误差项的符号，prime 表示矩阵转置。
+我的问题是，在此模型下，通过最小二乘估计获得的拟合残差$\hat u$是否与回归量$x$不相关，即$E(x&#39;\hat u)=0$。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660737/in-linear-regression-are-fitted-residuals-orthogonal-to-regressors</guid>
+      <pubDate>Wed, 29 Jan 2025 20:13:21 GMT</pubDate>
+    </item>
+    <item>
+      <title>根据列联表计算两种评级方法之间的差异度量</title>
+      <link>https://stats.stackexchange.com/questions/660736/compute-a-measure-of-difference-between-two-rating-methods-from-contingency-tabl</link>
+      <description><![CDATA[四位评分员 A、B、C、D 将 10 条记录分为 3 类 a、b、c；请参阅下面代码中的 tb1。
+这与 Gwet, K. L. (2014) 中的表 2.26 类似。评分员间信度手册：衡量评分员之间一致性程度的权威指南（第 4 版）。马里兰州盖瑟斯堡：高级分析。
+它给出 Fleiss&#39; kappa=0.47。
+在第二个但独立的评分程序中，盲测的相同评分员生成 tb2，其中 a 和 b 被交换。正如预期的那样，它给出了相同的 kappa，即使除了未交换的 c 之外评级不同。
+当我使用 Kwet 的 t 检验时，这两个被认为是相等的，因为 kappa 的值是。这不是我想要的，因为 tb2 不同。
+如何计算来自两个原始表的两种方法之间的这种成对比较的差异度量？
+library(irrCAC)
+if (!exists(&quot;ttest.fleiss&quot;))
+source(&quot;https://www.agreestat.com/software/r/new/paired.ttest.r&quot;)
+
+tb1 = structure(
+list(
+record = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+A = c(&quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;a&quot;, &quot;a&quot;, &quot;c&quot;, &quot;c&quot;, &quot;c&quot;),
+B = c(&quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;a&quot;, &quot;c&quot;, &quot;c&quot;, &quot;c&quot;),
+C = c(&quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;a&quot;, &quot;b&quot;, &quot;a&quot;, &quot;a&quot;, &quot;c&quot;, &quot;c&quot;),
+D = c(&quot;a&quot;, &quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;c&quot;, &quot;a&quot;, &quot;a&quot;, &quot;b&quot;, &quot;b&quot;, &quot;c&quot;)
+),
+class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;),
+row.names = c(NA, -10L)
+)
+
+print(tb1)
+#&gt; 记录 A B C D
+#&gt; 1 1 b b b a
+#&gt; 2 2 b b b b
+#&gt; 3 3 b b b b
+#&gt; 4 4 b b a b
+#&gt; 5 5 b b b c
+#&gt; 6 6 a b a a
+#&gt; 7 7 a a a a
+#&gt; 8 8 c c a b
+#&gt; 9 9 c c c b
+#&gt; 10 10 c c c c
+
+tb2 = 结构（
+列表（
+记录 = c（1、2、3、4、5、6、7、8、9、10），
+A = c（“a”，“a”，“a”，“a”，“a”，“a”，“b”，“b”，“c”，“c”，“c”，“c”），
+B = c（“a”，“a”，“a”，“a”，“a”，“a”，“a”，“a”，“b”，“c”，“c”，“c”），
+C = c（“a”， &quot;a&quot;, &quot;a&quot;, &quot;b&quot;, &quot;a&quot;, &quot;b&quot;, &quot;b&quot;, &quot;b&quot;, &quot;c&quot;, &quot;c&quot;),
+D = c(&quot;b&quot;, &quot;a&quot;, &quot;a&quot;, &quot;a&quot;, &quot;c&quot;, &quot;b&quot;, &quot;b&quot;, &quot;a&quot;, &quot;a&quot;, &quot;c&quot;)
+),
+class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;),
+row.names = c(NA, -10L)
+)
+
+# 不含 &quot;record&quot;列
+
+cat(&quot;____\nTable 1\n&quot;)
+#&gt; ____
+#&gt; 表 1
+fleiss.kappa.raw(tb1[,-1])$est[-8]
+#&gt; coeff.name pa pe coeff.val coeff.se conf.int p.value
+#&gt; 1 Fleiss&#39; Kappa 0.6666667 0.375 0.46667 0.15881 (0.107,0.826) 0.0165266
+
+cat(&quot;____\nTable 2\n&quot;)
+#&gt; ____
+#&gt; 表 2
+fleiss.kappa.raw(tb2[,-1])$est[-8]
+#&gt; coeff.name pa pe coeff.val coeff.se conf.int p.value
+#&gt; 1 Fleiss&#39; Kappa 0.6666667 0.375 0.46667 0.15881 (0.107,0.826) 0.0165266
+
+ttest.fleiss(tb1[,-1], tb2[,-1])
+#&gt; 配对 T 检验用于检验 2 个 Fleiss 一致性系数之间的差异
+#&gt; --------------------------------------------------------------------------------
+#&gt; Fleiss Kappa 系数：（组 1：0.4666667）--（组 2：0.4666667）
+#&gt; 差异的标准误差：0
+#&gt;测试统计量：T= NaN 
+#&gt; P 值：NaN
+
+我注意到这类似于
+比较不同类别的评分者之间的评分者间一致性
+主要区别在于原始帖子提到了“专家”和“非专家”，但我有一个完全配对的设计，在两种情况下都是相同的评分者。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660736/compute-a-measure-of-difference-between-two-rating-methods-from-contingency-tabl</guid>
+      <pubDate>Wed, 29 Jan 2025 18:27:46 GMT</pubDate>
+    </item>
     <item>
       <title>为什么当发现因素很重要时，比较字母没有差异？</title>
       <link>https://stats.stackexchange.com/questions/660735/why-comparison-letters-do-not-differ-when-factor-was-found-significant</link>
@@ -21,24 +156,27 @@ mcp&lt;-emmeans(model,~factor, method=&quot;tukey&quot;,adjustment=&quot;bonferr
 cld(mcp, Letters=&quot;ABCDE&quot;, reversed=TRUE, sort=FALSE)
 
 在两种情况下，mcp&lt;-emmeans 没有显示不同的字母，即使那些根据模型结果，因子是显著的。
-例如，在以下情况下，交互作用是显著的，但这并没有从我运行比较时得到的字母中显现出来。
+例如，在以下情况下，交互作用是显著的，但这并未从我运行比较时得到的字母中显现出来。
+
 模型术语 df1 df2 F.ratio p.value
 因子1 1 18 0.574 0.4584
 因子2 4 72 57.563 &lt;.0001
 因子1：因子2 4 72 2.825 0.0309
-因子1 因子2 emmean SE df lower.CL upper.CL .group
-A 2000 0.582 0.154 72.7 0.275 0.890 b
-B 2000 0.670 0.154 72.7 0.362 0.977 b
-A 2005 0.622 0.154 72.7 0.314 0.929 b
-B 2005 0.437 0.154 72.7 0.129 0.744 b
-A 2010 0.616 0.154 72.7 0.309 0.924 b
-B 2010 0.534 0.154 72.7 0.227 0.842 b
-A 2015 0.966 0.154 72.7 0.659 1.273 b
-B 2015 1.026 0.154 72.7 0.719 1.334 b
-A 2020 1.917 0.154 72.7 1.610 2.224 a
-B 2020 2.556 0.154 72.7 2.249 2.863 a
+
+因子1因子2 emmean SE df lower.CL upper.CL .group
+A 2000 0.582 0.154 72.7 0.275 0.890 b 
+B 2000 0.670 0.154 72.7 0.362 0.977 b 
+A 2005 0.622 0.154 72.7 0.314 0.929 b 
+B 2005 0.437 0.154 72.7 0.129 0.744 b 
+A 2010 0.616 0.154 72.7 0.309 0.924 b 
+B 2010 0.534 0.154 72.7 0.227 0.842 b 
+A 2015 0.966 0.154 72.7 0.659 1.273 b 
+B 2015 1.026 0.154 72.7 0.719 1.334 b 
+A 2020 1.917 0.154 72.7 1.610 2.224 a 
+B 2020 2.556 0.154 72.7 2.249 2.863 a 
+
 你能帮我理解为什么会发生这种情况以及我做错了什么吗？
-提前谢谢！]]></description>
+提前谢谢您！]]></description>
       <guid>https://stats.stackexchange.com/questions/660735/why-comparison-letters-do-not-differ-when-factor-was-found-significant</guid>
       <pubDate>Wed, 29 Jan 2025 18:16:14 GMT</pubDate>
     </item>
@@ -288,131 +426,6 @@ clubSandwich::coef_test(m, vcov = &quot;CR2&quot;, cluster = df$user_id) ##Bell 
 谢谢。]]></description>
       <guid>https://stats.stackexchange.com/questions/660716/build-and-forecast-daily-functional-curves-electricity-supply-in-python</guid>
       <pubDate>Wed, 29 Jan 2025 14:51:20 GMT</pubDate>
-    </item>
-    <item>
-      <title>SEM 中因果关系的作用（示例）</title>
-      <link>https://stats.stackexchange.com/questions/660714/role-of-causality-in-sem-via-an-example</link>
-      <description><![CDATA[我问过一个关于SEM和解释结构系数的先前问题，但我找到了一个更实质性的例子，并决定提出一个新问题来帮助我理解。
-在《结构方程模型：第二门课程》一书中由 Hershberger 等人撰写，讨论了这对模型：
-
-这些是统计上等效的模型，即给出相同的隐含协方差矩阵和拟合指标。在他们的例子中，他们说
-$$ b_{\text{V2V1}} = 0.470, b_{\text{V3V2}} = 0.361 \rightarrow b_{\text{V2V1}}b_{\text{V3V2}} = 0.170 $$
-$$ b_{\text{V1V2}} = 0.522, b_{\text{V2V3}} = 0.433 \rightarrow b_{\text{V1V2}}b_{\text{V2V3}} = 0.226 $$
-换句话说，$V1$ 对 为class=&quot;math-container&quot;&gt;$V3$ 或反之亦然，具体取决于所选的模型。
-我通常认为，“如何绘制箭头”（即断言什么因果关系）的选择应该有实质性理论作为依据。但鉴于此示例，感觉您选择的理论（结合您的数据）现在对一个变量对另一个变量的影响做出了定量预测。如果两个方向都有合理的理论论据，那么人们几乎可以任意选择根据您的研究问题做出的定量论据。
-这是正确的理解吗？我以前真的想将 SEM 中的箭头视为真正的双向箭头，即我无法从中推断出任何因果关系。也许我确实无法从 SEM 中推断出因果关系，但我可以从构建 SEM 模型所用的理论中推断出因果关系？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660714/role-of-causality-in-sem-via-an-example</guid>
-      <pubDate>Wed, 29 Jan 2025 14:00:31 GMT</pubDate>
-    </item>
-    <item>
-      <title>测试回归斜率是否接近零</title>
-      <link>https://stats.stackexchange.com/questions/660713/testing-if-a-regression-slope-is-close-to-zero</link>
-      <description><![CDATA[我正在编写一个程序，希望在其中找到某个信号的本底噪声。为此，我对缓冲区执行线性回归，直到遇到斜率为零，这应该告诉我我的缓冲区已充满本底噪声。
-这意味着我必须能够判断观察到的斜率是否确实为零。但是，标准线性回归程序通常会为您提供测试的 p 值或统计量
-$H_0$：斜率为零
-$H_1$：斜率非零（或单侧替代中的正或负）
-我想要的是实际上相反的测试，我希望能够拒绝零假设“$H_0$：斜率非零”。但这个问题感觉像是不适定的，我不确定如何计算这个测试的 t 统计量。有没有好的方法？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660713/testing-if-a-regression-slope-is-close-to-zero</guid>
-      <pubDate>Wed, 29 Jan 2025 13:44:02 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何用 IPW（WeightIt/weightthem）正确调整混杂因素，并用 adaptedCurves 绘制调整后的生存曲线？</title>
-      <link>https://stats.stackexchange.com/questions/660709/how-to-properly-adjust-for-confounders-with-ipw-weightit-weightthem-and-plot-a</link>
-      <description><![CDATA[我正在估计两组之间的总体生存率 (OS) 差异，同时调整混杂因素。我的工作流程包括：
-
-缺失数据的多重插补。
-使用 weightthem 包进行逆概率加权 (IPW)，方法为 &quot;cbps&quot; （estimand = &quot;ATE&quot;）。
-使用 bal.tab() 和 love.plot()（来自 cobalt 包）检查平衡。
-对加权数据进行 Cox 回归（在每个插补数据集中使用 coxph_weightit()）。
-绘制调整后的生存曲线（使用 adjustedCurves 包，方法为 &quot;iptw_cox&quot;）。
-
-以下是我的代码：
-# 1. 生成 IPW 权重
-w.out_model1 &lt;- weightthem(
-formula_OS, 
-data = df, 
-method = &quot;cbps&quot;, # 例如 &quot;ebal&quot;、&quot;cbps&quot;、&quot;glm&quot; 等。
-estimand = &quot;ATE&quot;,
-criterion = &quot;smd.mean&quot;,
-link = &quot;logit&quot;
-)
-
-# 2. 检查 IPW 前后的平衡
-bal.tab(
-w.out_model1, 
-data = df, 
-s.d.denom = &quot;pooled&quot;, 
-m.threshold = 0.1, 
-v.threshold = 2, 
-imp.fun = &quot;max&quot;, 
-un = TRUE, 
-abs = TRUE,
-binary = &quot;std&quot;
-)
-
-love.plot(
-w.out_model1, 
-stats = c(&quot;mean.diffs&quot;), 
-Thresholds = c(m = 0.1), 
-abs = TRUE, 
-var.order = &quot;alphabetical&quot;,
-grid = TRUE,
-drop.distance = TRUE,
-wrap = 20,
-binary = &quot;std&quot;
-)
-
-# 3. 通过 coxph_weightit 在每个估算数据集上拟合 Cox 模型
-fit.imp.cox &lt;- with(
-df,
-WeightIt::coxph_weightit(
-Surv(OS_from_target_local_treatment, death) ~
-age_binary + sex + bmi_binary + ASA_binary + 
-comorbidities_Major + extrahep_metastases_at_diagnosis_CRLM +
-RAS + BRAF + MMR + Systemic_treatment_prior_local_treatment +
-Metastasis_diameter + Segments_treated_per_session_binned +
-min_distance_gallblad_mm_binned + Margin_size_binary + stage_binary +
-syn_meta_label_binary + Treatment_type_tumor_near_gallbladder
-)
-)
-
-# 4. 来自 Cox 的汇总结果模型
-summary(mice::pool(fit.imp.cox), conf.int = TRUE, exponentiate = TRUE)
-
-# 5. 使用 adaptedCurves 绘制调整后的生存曲线
-adj &lt;- adaptedsurv(
-data = df,
-variable = &quot;Treatment_type_tumor_near_gallbladder&quot;,
-ev_time = &quot;OS_from_target_local_treatment&quot;,
-event = &quot;death&quot;,
-method = &quot;iptw_cox&quot;,
-times = c(12, 36, 60, 96, 120),
-bootstrap = TRUE,
-n_boot = 500,
-n_cores = 10,
-treatment_model = Treatment_type_tumor_near_gallbladder ~
-age_binary + sex + bmi_binary + ASA_binary + 
-comorbidities_Major + extrahep_metastases_at_diagnosis_CRLM +
-RAS + BRAF + MMR + Systemic_treatment_prior_local_treatment +
-Metastasis_diameter + Segments_treated_per_session_binned +
-min_distance_gallblad_mm_binned + Margin_size_binary + stage_binary +
-syn_meta_label_binary,
-weight_method = &quot;cbps&quot;
-)
-
-plot(adj, use_boot = TRUE, risk_table = TRUE, risk_table_stratify = TRUE, 
-censoring_ind = &#39;lines&#39;)
-
-经过此分析，我发现两组之间的 OS 没有统计学上的显著差异。但是，我想确认我的步骤是正确的，并且是 IPW + Cox 建模的最佳实践。此外，我想在调整后的生存曲线上绘制置信区间，但无法让它们出现在 adaptedCurves 生成的图中。
-
-我的整体工作流程（多重插补中的 IPW + 通过 coxph_weightit 的 Cox 模型 + 通过 adaptedCurves 绘图）是否适合估计两组之间的调整生存曲线？
-
-在使用 adaptedCurves 和 IPW 时，如何包含置信区间？我看到 use_boot =TRUE 选项，但置信区间仍未显示在最终图中。是否有不同的参数或已知的解决方法？
-
-
-任何有关最佳实践、替代方法或调试技巧的指导都将不胜感激。提前谢谢您！]]></description>
-      <guid>https://stats.stackexchange.com/questions/660709/how-to-properly-adjust-for-confounders-with-ipw-weightit-weightthem-and-plot-a</guid>
-      <pubDate>Wed, 29 Jan 2025 12:02:36 GMT</pubDate>
     </item>
     </channel>
 </rss>
