@@ -4,7 +4,82 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 28 Jan 2025 21:15:20 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jan 2025 01:14:02 GMT</lastBuildDate>
+    <item>
+      <title>如何使用“tf.data.Dataset.save”将数据集保存在多个分片中</title>
+      <link>https://stackoverflow.com/questions/79395477/how-to-save-a-dataset-in-multiple-shards-using-tf-data-dataset-save</link>
+      <description><![CDATA[如何使用 tf.data.Dataset.save() 将 tf.data.Dataset 保存到多个分片中？我正在使用 tf.data.experimental.make_csv_dataset 从 CSV 读取我的数据集。
+此处的 TF 文档 不是很有用。有一个 shard_func 参数，但给出的示例没有帮助，并且不清楚如何以确定性方式映射到 int。使用随机 int 似乎也不起作用。
+类似问题 此处 中的解决方案为我生成了一个错误
+TypeError：不支持 % 的操作数类型：&#39;collections.OrderedDict&#39; 和 &#39;int&#39;
+单分片（有效）
+以下成功保存到单个分片。
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+
+# gen data
+n=10000
+pd.DataFrame(
+{&#39;label&#39;: np.random.randint(low=0, high=2, size=n),
+&#39;f1&#39;: np.random.random(n),
+&#39;f2&#39;: np.random.random(n),
+&#39;f3&#39;: np.random.random(n),
+&#39;c1&#39;: np.random.randint(n),
+&#39;c2&#39;: np.random.randint(n)}
+).to_csv(&#39;tmp.csv&#39;)
+# 将数据加载到 tf.data.Dataset
+data_ts = tf.data.experimental.make_csv_dataset(
+&#39;tmp.csv&#39;, 1, label_name=&#39;label&#39;, num_epochs=1)
+data_ts.save(&#39;tmp.data&#39;) # 单个分片，有效！
+
+使用 randint 的多个分片（保存单个分片）
+尝试使用随机数保存到多个分片，仍然只保存到单个分片，尽管文件名中有一个随机整数。
+# 尝试使用随机数进行分片。
+def random_shard_function(features, label):
+return np.int64(np.random.randint(10))
+data_ts.save(&#39;tmp2.data&#39;, shard_func=random_shard_function)
+
+
+
+Modulo shard（错误）
+尝试这个解决方案问题。
+def modulo_shard_function(features, label):
+return x &amp; 10
+data_ts.save(&#39;tmp2.data&#39;, shard_func=modulo_shard_function)
+
+TypeError: &amp; 不支持的操作数类型：&#39;collections.OrderedDict&#39; 和 &#39;int&#39;
+调试 - 不知道 shard_fun 如何工作。
+如果我打印出输入，似乎分片函数只运行一次，张量是 SymbolicTensors
+def debug_shard_function(features, label):
+for val in features.items():
+print(f&#39;{val=}&#39;)
+print(f&#39;{label=}&#39;)
+print(f&#39;{type(val[1])}&#39;)
+return np.int64(10)
+data_ts.save(&#39;tmp2.data&#39;, shard_func=debug_shard_function)
+
+输出：
+仍然保存到单个分片
+val=(&#39;&#39;, &lt;tf.Tensor &#39;args_0:0&#39; shape=(None,) dtype=int32&gt;)
+val=(&#39;f1&#39;, &lt;tf.Tensor &#39;args_3:0&#39; shape=(None,) dtype=float32&gt;)
+val=(&#39;f2&#39;, &lt;tf.Tensor &#39;args_4:0&#39; shape=(None,) dtype=float32&gt;)
+val=(&#39;f3&#39;, &lt;tf.Tensor &#39;args_5:0&#39; shape=(None,) dtype=float32&gt;)
+val=(&#39;c1&#39;, &lt;tf.Tensor &#39;args_1:0&#39; shape=(None,) dtype=int32&gt;)
+val=(&#39;c2&#39;, &lt;tf.Tensor &#39;args_2:0&#39; shape=(None,) dtype=int32&gt;)
+label=&lt;tf.Tensor &#39;args_6:0&#39; shape=(None,) dtype=int32&gt;
+&lt;class &#39;tensorflow.python.framework.ops.SymbolicTensor&#39;&gt;
+]]></description>
+      <guid>https://stackoverflow.com/questions/79395477/how-to-save-a-dataset-in-multiple-shards-using-tf-data-dataset-save</guid>
+      <pubDate>Wed, 29 Jan 2025 00:08:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>NumPy Stride 技巧：是否可以将窗口重新添加回原始数组大小的同一位置而无需 for 循环？</title>
+      <link>https://stackoverflow.com/questions/79395423/numpy-stride-tricks-is-it-possible-to-add-the-windows-back-into-the-original-ar</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79395423/numpy-stride-tricks-is-it-possible-to-add-the-windows-back-into-the-original-ar</guid>
+      <pubDate>Tue, 28 Jan 2025 23:28:50 GMT</pubDate>
+    </item>
     <item>
       <title>LSTM AE 预测恒定输出</title>
       <link>https://stackoverflow.com/questions/79395028/lstm-ae-predicts-constant-output</link>
@@ -15,16 +90,18 @@
     <item>
       <title>机器学习模型从物理应用题中提取向量</title>
       <link>https://stackoverflow.com/questions/79394932/machine-learning-model-to-extract-vectors-from-physics-word-problems</link>
-      <description><![CDATA[我目前正在通过一个小项目学习 Keras 和 Tensorflow。目标是从物理应用题中提取向量及其属性，例如量级、方向和类型，以便进一步处理它们。这个项目将通过实施机器学习模型来取代我目前在 spaCy 中使用的基于规则的方法。例如，给定文本：
+      <description><![CDATA[我正在开展一个小项目，从物理应用题中提取向量及其属性，例如量级、方向和类型，以便进一步处理它们。这个项目将通过实施机器学习模型来取代我目前在 spaCy 中使用的基于规则的方法。例如，给定文本：
 “Joe 向北走 2 米，然后向东走 3 米，”
+
 我的目标是提取相应的向量属性：量级、方向和类型。在这种情况下，正确的输出将是：
 2m，北，位移
 3m，东，位移
-但是，提取 3N，北，位移和 2m，东，位移是不正确的，因为 3m 与东方向相关，反之亦然。虽然我们目前的方法适用于较简单的句子（例如上面给出的句子），但句子结构的多变性带来了重大挑战，我相信机器学习可以更好地解决这些挑战。
+
+但是，提取 3N，北，位移和 2m，东，位移是不正确的，因为 3m 与东方向相关，反之亦然。虽然我们目前的方法适用于更简单的句子（例如上面给出的句子），但句子结构的多变性带来了重大挑战，我相信机器学习可以更好地解决这些挑战。
 我在网上看到这个模型可以通过简单的前馈结构和二元分类来完成。但我对训练数据和方法应该如何做感到非常困惑。ChatGPT 建议使用以下结构作为潜在的训练数据。这个结构合法吗？我也不确定如何使用 Keras 访问它。
 这是 chatgpt 生成的 json 文件
-`
 [
+
 {
 &quot;context&quot;: [
 &quot;一辆车以 50 公里的速度向北行驶，而另一辆车向东行驶 30 公里。&quot;
@@ -49,7 +126,7 @@
 },
 {
 &quot;context&quot;: [
-&quot;A飞机以 5 米/秒^2 的速度向上加速，然后以 3 米/秒^2 的速度向西减速。&quot;
+“一架飞机以 5 米/秒^2 的速度向上加速，然后以 3 米/秒^2 的速度向西减速。”
 ],
 &quot;pairs&quot;: [
 {&quot;magnitude&quot;: &quot;5 m/s^2&quot;, &quot;direction&quot;: &quot;upwards&quot;, &quot;label&quot;: 1},
@@ -58,9 +135,8 @@
 {&quot;magnitude&quot;: &quot;3 m/s^2&quot;, &quot;direction&quot;: &quot;upwards&quot;, &quot;label&quot;: 0}
 ]
 }
-
 ]
-`
+
 如何提取这些向量属性并相应地关联它们？]]></description>
       <guid>https://stackoverflow.com/questions/79394932/machine-learning-model-to-extract-vectors-from-physics-word-problems</guid>
       <pubDate>Tue, 28 Jan 2025 19:04:32 GMT</pubDate>
@@ -83,7 +159,7 @@
     <item>
       <title>自定义字母表的文本识别</title>
       <link>https://stackoverflow.com/questions/79394460/text-recogniton-for-custom-alphabet</link>
-      <description><![CDATA[我有一个虚构的字母表，由大约 20 种形状和字母组成，它们类似于希腊字母和西里尔字母。
+      <description><![CDATA[我有一个虚构的字母表，由大约 20 种形状和字母组成，它们与希腊字母和西里尔字母相似。
 它们是作为资产生成的，我为它们每个都制作了 30 x 30 的图像。我想创建一个特殊的图像处理工具来实时翻译它们。
 它们总是打印在黑色多边形上。
 所以我尝试使用通用 opencv2 方法使用黑色多边形进行检测，并且成功了。
@@ -249,20 +325,6 @@ cv2.imwrite(&quot;annotated_image.jpg&quot;, annotated_frame)
 我想在 Spring Boot 上创建一个微服务应用程序，其中一个服务将训练 PyTorch 神经网络模型。我对 Spring Boot、RESTful 和 PyTorch 模型框架有基本的了解。]]></description>
       <guid>https://stackoverflow.com/questions/79391741/new-2025-spring-boot-integration-with-pytorch-model-embedding-a-pre-trained-net</guid>
       <pubDate>Mon, 27 Jan 2025 18:03:04 GMT</pubDate>
-    </item>
-    <item>
-      <title>从图像数据中采样</title>
-      <link>https://stackoverflow.com/questions/79391082/sampling-from-image-data</link>
-      <description><![CDATA[有没有一种方法可以从图像数据集中进行采样，以保持其中的最高方差，同时保持所有可能的异常值和最多的信息？]]></description>
-      <guid>https://stackoverflow.com/questions/79391082/sampling-from-image-data</guid>
-      <pubDate>Mon, 27 Jan 2025 14:10:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>无法获取 SentenceTransformer 模型的度量图</title>
-      <link>https://stackoverflow.com/questions/79388997/unable-to-get-the-metrics-plots-of-sentencetransformer-model</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79388997/unable-to-get-the-metrics-plots-of-sentencetransformer-model</guid>
-      <pubDate>Sun, 26 Jan 2025 17:42:51 GMT</pubDate>
     </item>
     <item>
       <title>使用“bitsandbytes”4 位量化需要最新版本的 bitsandbytes：“pip install -U bitsandbytes”</title>
