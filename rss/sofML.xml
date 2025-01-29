@@ -4,7 +4,121 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 29 Jan 2025 09:17:02 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jan 2025 12:32:15 GMT</lastBuildDate>
+    <item>
+      <title>使用 ML/DL 算法并进行参数调整的最佳房价预测模型</title>
+      <link>https://stackoverflow.com/questions/79396627/best-model-for-home-price-prediction-using-ml-dl-algorithms-with-parameter-tunin</link>
+      <description><![CDATA[我使用以下代码根据其他特征进行价格估算：
+#超参数调整代码
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from kerastuner.tuners import RandomSearch
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+#加载数据集
+#假设df是您的数据框
+X = df.drop([&#39;Price&#39;, &#39;Log_Price&#39;], axis=1) #特征
+y_price = df[&#39;Price&#39;]#目标变量
+y_log_price = df[&#39;Log_Price&#39;]
+y=y_price 
+#将数据拆分为训练和测试集合
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 定义 Keras Tuner 的模型构建函数
+def build_model(hp):
+model = Sequential()
+# 调整层数
+for i in range(hp.Int(&#39;num_layers&#39;, 1, 6)):
+model.add(Dense(
+unit=hp.Int(f&#39;units_{i}&#39;, min_value=32, max_value=256, step=32),
+activation=&#39;relu&#39;
+))
+model.add(Dense(1)) # 输出层
+# 调整学习率
+learning_rate = hp.Choice(&#39;learning_rate&#39;, values=[1e-2, 1e-3, 1e-4])
+model.compile(
+optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+loss=&#39;mse&#39;,
+metrics=[&#39;mae&#39;]
+)
+return model
+
+# 初始化调谐器
+tuner = RandomSearch(
+build_model,
+objective=&#39;val_loss&#39;,
+max_trials=20, # 要尝试的超参数组合数
+executives_per_trial=2, # 每次试验要训练的模型数
+directory=&#39;tuner_results&#39;,
+project_name=&#39;house_price_prediction&#39;
+)
+
+# 执行超参数搜索
+tuner.search(
+X_train, y_train,
+epochs=100,
+batch_size=32,
+validation_split=0.2,
+verbose=1
+)
+
+# 获取最佳模型
+best_model = tuner.get_best_models(num_models=1)[0]
+
+# 评估最佳模型
+y_pred = best_model.predict(X_test)
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+print(f&quot;最佳模型 MAE: {mae}, MSE: {mse}&quot;)
+
+# 打印最佳超参数
+best_hyperparameters = tuner.get_best_hyperparameters()[0]
+print(&quot;最佳超参数:&quot;, best_hyperparameters.values)
+
+
+在这里，在试验中，一个可能是最好的，并将 mae 减少为 3000000；
+如果下一次试验从这个终点开始，它可以提供更好的结果并减少更多的 mae；
+但在下一次试验中，我再次得到 mae 的起点为 10000000 这样的值；
+我该如何处理？
+值得一提的是，我不喜欢 StandardScaler，因为它无法确保数据集的完整性！
+如果有任何想法，当然会很高兴。
+数据特征及其相关性如下：
+价格 1.000000
+大小 0.591717
+房间数 0.462939
+楼层 0.330746
+建筑年龄 -0.113272
+街区 -0.160568
+地区 -0.363924
+
+当我搜索时，有一些解决方案如下：
+
+使用更高级的调谐器，如贝叶斯优化（BayesianOptimization 调谐器）或 Hyperband（Hyperband 调谐器）
+从以前的试验中进行热启动
+使用较小的搜索空间
+
+但我仍然无法减少 mae blow 500在我的情况下可以接受吗？
+基于 ML/DL 方法的特征进行房价估算]]></description>
+      <guid>https://stackoverflow.com/questions/79396627/best-model-for-home-price-prediction-using-ml-dl-algorithms-with-parameter-tunin</guid>
+      <pubDate>Wed, 29 Jan 2025 11:48:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用输入层作为第二个输入层的权重</title>
+      <link>https://stackoverflow.com/questions/79396213/using-an-input-layer-as-a-weight-to-a-second-input-layer</link>
+      <description><![CDATA[我有两个输入结构，其中第二个输入中的每个特征都使用输入 1 的值来计算每个特征。然后，第二个输入层连接到隐藏层，最后连接到单个输出层。因此，假设我在第一个输入中有 A、B、C，在第二个输入中有 G M N O，其中例如 G 被计算为总和（A 到 C），并且 G M N O 连接到隐藏层。如何使用 tensorflow keras 实现这一点？ G M N O 是连接到隐藏层的输入层。
+input_elements = Input(shape=(4,), name=&quot;Elemental_Composition&quot;)
+input_descriptors = Input(shape=(7,), name=&quot;Descriptors&quot;)
+
+combined = concatenate([input_elements, input_descriptors])
+hidden = Dense(64,activation=&quot;relu&quot;)
+output = Dense(1,activation=&quot;linear&quot;)(hidden)
+]]></description>
+      <guid>https://stackoverflow.com/questions/79396213/using-an-input-layer-as-a-weight-to-a-second-input-layer</guid>
+      <pubDate>Wed, 29 Jan 2025 09:17:34 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用“tf.data.Dataset.save”将数据集保存在多个分片中</title>
       <link>https://stackoverflow.com/questions/79395477/how-to-save-a-dataset-in-multiple-shards-using-tf-data-dataset-save</link>
@@ -42,7 +156,7 @@ data_ts.save(&#39;tmp2.data&#39;, shard_func=random_shard_function)
 
 
 
-模分片（错误）
+Modulo shard（错误）
 尝试这个解决方案问题。
 def modulo_shard_function(features, label):
 return x &amp; 10
@@ -164,7 +278,7 @@ label=&lt;tf.Tensor &#39;args_6:0&#39; shape=(None,) dtype=int32&gt;
 它们总是打印在黑色多边形上。
 所以我尝试使用通用 opencv2 方法使用黑色多边形进行检测，并且成功了。
 为了扫描和检测字母，我尝试了 ORB 特征提取和匹配，但没有成功。由于相似的符文形状，它在整个字母中都发现了特征。
-我曾尝试使用 Yolo11 训练物体检测模型，但由于数据量少（我没有打印的示例，我尝试生成具有不同角度的模拟图像），它成本高且表现不佳。
+我曾尝试使用 Yolo11 训练物体检测模型，但由于数据量少（我没有已打印的示例，我尝试生成具有不同角度的模拟图像），它成本高且表现不佳。
 我没有足够的数据来训练 HOG。
 是否有一个简单的 Python 模式匹配算法，可以考虑现实生活中相机的小倾斜平移和滚动，因此仍然可以检测字母？]]></description>
       <guid>https://stackoverflow.com/questions/79394460/text-recogniton-for-custom-alphabet</guid>
@@ -293,26 +407,6 @@ cv2.imwrite(&quot;annotated_image.jpg&quot;, annotated_frame)
       <pubDate>Tue, 28 Jan 2025 12:45:28 GMT</pubDate>
     </item>
     <item>
-      <title>使用巨大且不同尺寸的图像训练 CNN</title>
-      <link>https://stackoverflow.com/questions/79393407/training-a-cnn-with-huge-and-different-dimensions-of-images</link>
-      <description><![CDATA[我有一个包含高维度图像（空表）的数据集，我正尝试将其用于分类目的。根据这些统计数据：
-
-由于维度差异太大，因此无法统一维度，而且这可能会压缩表格的行，从而导致表格的结构发生变化。有什么想法可以处理这种情况吗？我相信这样的维度会消耗大量的计算资源，而我没有这些资源（我最多只有 8gb VRAM）。]]></description>
-      <guid>https://stackoverflow.com/questions/79393407/training-a-cnn-with-huge-and-different-dimensions-of-images</guid>
-      <pubDate>Tue, 28 Jan 2025 10:07:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>人工智能如何连续两次给我错误答案这个简单的问题[关闭]</title>
-      <link>https://stackoverflow.com/questions/79393114/how-ai-give-me-the-wrong-answer-twice-in-a-row-of-this-simple-question</link>
-      <description><![CDATA[早上好，程序员们，今天我出于好奇，尝试在 deep ai.org 上计算二进制到十六进制和八进制数。但每次都给我错误的答案。看：
-
-另外：正确的答案：
-
-看完这个，AI 没那么聪明XD]]></description>
-      <guid>https://stackoverflow.com/questions/79393114/how-ai-give-me-the-wrong-answer-twice-in-a-row-of-this-simple-question</guid>
-      <pubDate>Tue, 28 Jan 2025 08:17:46 GMT</pubDate>
-    </item>
-    <item>
       <title>在 Keras 分类器中获取属性错误</title>
       <link>https://stackoverflow.com/questions/79374019/getting-attribute-error-in-keras-classifier</link>
       <description><![CDATA[]]></description>
@@ -320,21 +414,11 @@ cv2.imwrite(&quot;annotated_image.jpg&quot;, annotated_frame)
       <pubDate>Tue, 21 Jan 2025 10:21:29 GMT</pubDate>
     </item>
     <item>
-      <title>optuna 试验可以被清除/删除吗？（处理随时间推移的政权更迭）</title>
-      <link>https://stackoverflow.com/questions/75939676/can-optuna-trials-be-purged-deleted-dealing-with-regime-changes-over-time</link>
-      <description><![CDATA[背景：我正在建模的 ML 问题会随着时间推移而随着不同的制度而变化 - 因此模型权重和最佳模型超参数会随着时间推移而变化。
-问题：对于给定的 optuna.study，当我调用 study.best_trial.params 时，这可能会将最佳试验标识为过去的试验 - 这代表了对当前制度的最佳参数的过时观点。
-次要问题：当 optuna 在优化过程中对超参数进行采样以进行评估时，它会使用所有试验的结果来概率地告知从何处进行采样。随着制度的变化，较旧的试验在此过程中的相关性降低。
-问题：随着时间的推移，有没有办法清除、删除或忽略较旧的试验？这样上述两个问题就解决了吗？
-反思：
-
-也许我误解了 optuna 的工作原理。我认为获取 best_params 的最佳方法是调用 optuna.study.best_trial.params，它会查看所有历史试验并贪婪地找到具有最佳优化分数的试验并返回用于该运行的参数。
-但也许有另一种方法可以获取过去 N 次试验中的 best_params？
-或者也许我应该只关注从最后一次试验中获取最佳参数 - 这将很好地代表当前情况。我相信我可以使用 study.get_trials()[-1].params 来获得它。
-
-感谢您的任何反馈/建议。]]></description>
-      <guid>https://stackoverflow.com/questions/75939676/can-optuna-trials-be-purged-deleted-dealing-with-regime-changes-over-time</guid>
-      <pubDate>Wed, 05 Apr 2023 12:53:15 GMT</pubDate>
+      <title>无法访问自由变量“fig”，因为它与封闭范围内的值没有关联</title>
+      <link>https://stackoverflow.com/questions/79270292/cannot-access-free-variable-fig-where-it-is-not-associated-with-a-value-in-enc</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79270292/cannot-access-free-variable-fig-where-it-is-not-associated-with-a-value-in-enc</guid>
+      <pubDate>Wed, 11 Dec 2024 02:04:10 GMT</pubDate>
     </item>
     <item>
       <title>Hugging Face 的 Transformers 库中 Trainer 使用的损失函数是什么？</title>

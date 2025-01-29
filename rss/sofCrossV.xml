@@ -4,7 +4,170 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 29 Jan 2025 09:16:55 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 29 Jan 2025 12:32:10 GMT</lastBuildDate>
+    <item>
+      <title>这个散点图显示的是同方差性还是异方差性？</title>
+      <link>https://stats.stackexchange.com/questions/660710/does-this-scatter-plot-show-homoscedasticity-or-heteroscedasticity</link>
+      <description><![CDATA[回归模型的残差和预测值的散点图]]></description>
+      <guid>https://stats.stackexchange.com/questions/660710/does-this-scatter-plot-show-homoscedasticity-or-heteroscedasticity</guid>
+      <pubDate>Wed, 29 Jan 2025 12:26:18 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何用 IPW（WeightIt/weightthem）正确调整混杂因素，并用 adaptedCurves 绘制调整后的生存曲线？</title>
+      <link>https://stats.stackexchange.com/questions/660709/how-to-properly-adjust-for-confounders-with-ipw-weightit-weightthem-and-plot-a</link>
+      <description><![CDATA[我正在估计两组之间的总体生存率 (OS) 差异，同时调整混杂因素。我的工作流程包括：
+
+缺失数据的多重插补。
+使用 weightthem 包进行逆概率加权 (IPW)，方法为 &quot;cbps&quot; （estimand = &quot;ATE&quot;）。
+使用 bal.tab() 和 love.plot()（来自 cobalt 包）检查平衡。
+对加权数据进行 Cox 回归（在每个插补数据集中使用 coxph_weightit()）。
+绘制调整后的生存曲线（使用 adjustedCurves 包，方法为 &quot;iptw_cox&quot;）。
+
+以下是我的代码：
+# 1. 生成 IPW 权重
+w.out_model1 &lt;- weightthem(
+formula_OS, 
+data = df, 
+method = &quot;cbps&quot;, # 例如 &quot;ebal&quot;、&quot;cbps&quot;、&quot;glm&quot; 等。
+estimand = &quot;ATE&quot;,
+criterion = &quot;smd.mean&quot;,
+link = &quot;logit&quot;
+)
+
+# 2. 检查 IPW 前后的平衡
+bal.tab(
+w.out_model1, 
+data = df, 
+s.d.denom = &quot;pooled&quot;, 
+m.threshold = 0.1, 
+v.threshold = 2, 
+imp.fun = &quot;max&quot;, 
+un = TRUE, 
+abs = TRUE,
+binary = &quot;std&quot;
+)
+
+love.plot(
+w.out_model1, 
+stats = c(&quot;mean.diffs&quot;), 
+Thresholds = c(m = 0.1), 
+abs = TRUE, 
+var.order = &quot;alphabetical&quot;,
+grid = TRUE,
+drop.distance = TRUE,
+wrap = 20,
+binary = &quot;std&quot;
+)
+
+# 3. 通过 coxph_weightit 在每个估算数据集上拟合 Cox 模型
+fit.imp.cox &lt;- with(
+df,
+WeightIt::coxph_weightit(
+Surv(OS_from_target_local_treatment, death) ~
+age_binary + sex + bmi_binary + ASA_binary + 
+comorbidities_Major + extrahep_metastases_at_diagnosis_CRLM +
+RAS + BRAF + MMR + Systemic_treatment_prior_local_treatment +
+Metastasis_diameter + Segments_treated_per_session_binned +
+min_distance_gallblad_mm_binned + Margin_size_binary + stage_binary +
+syn_meta_label_binary + Treatment_type_tumor_near_gallbladder
+)
+)
+
+# 4. 来自 Cox 的汇总结果模型
+summary(mice::pool(fit.imp.cox), conf.int = TRUE, exponentiate = TRUE)
+
+# 5. 使用 adaptedCurves 绘制调整后的生存曲线
+adj &lt;- adaptedsurv(
+data = df,
+variable = &quot;Treatment_type_tumor_near_gallbladder&quot;,
+ev_time = &quot;OS_from_target_local_treatment&quot;,
+event = &quot;death&quot;,
+method = &quot;iptw_cox&quot;,
+times = c(12, 36, 60, 96, 120),
+bootstrap = TRUE,
+n_boot = 500,
+n_cores = 10,
+treatment_model = Treatment_type_tumor_near_gallbladder ~
+age_binary + sex + bmi_binary + ASA_binary + 
+comorbidities_Major + extrahep_metastases_at_diagnosis_CRLM +
+RAS + BRAF + MMR + Systemic_treatment_prior_local_treatment +
+Metastasis_diameter + Segments_treated_per_session_binned +
+min_distance_gallblad_mm_binned + Margin_size_binary + stage_binary +
+syn_meta_label_binary,
+weight_method = &quot;cbps&quot;
+)
+
+plot(adj, use_boot = TRUE, risk_table = TRUE, risk_table_stratify = TRUE, 
+censoring_ind = &#39;lines&#39;)
+
+经过此分析，我发现两组之间的 OS 没有统计学上的显著差异。但是，我想确认我的步骤是正确的，并且是 IPW + Cox 建模的最佳实践。此外，我想在调整后的生存曲线上绘制置信区间，但无法让它们出现在 adaptedCurves 生成的图中。
+
+我的整体工作流程（多重插补中的 IPW + 通过 coxph_weightit 的 Cox 模型 + 通过 adaptedCurves 绘图）是否适合估计两组之间的调整生存曲线？
+
+在使用 adaptedCurves 和 IPW 时，如何包含置信区间？我看到 use_boot =TRUE 选项，但置信区间仍未显示在最终图中。是否有不同的参数或已知的解决方法？
+
+
+任何有关最佳实践、替代方法或调试技巧的指导都将不胜感激。提前谢谢您！]]></description>
+      <guid>https://stats.stackexchange.com/questions/660709/how-to-properly-adjust-for-confounders-with-ipw-weightit-weightthem-and-plot-a</guid>
+      <pubDate>Wed, 29 Jan 2025 12:02:36 GMT</pubDate>
+    </item>
+    <item>
+      <title>扩散模型中 ELBO 推导的澄清</title>
+      <link>https://stats.stackexchange.com/questions/660708/clarification-on-the-elbo-derivation-in-diffusion-models</link>
+      <description><![CDATA[我正在阅读一篇关于去噪扩散模型的论文，第 10 页有以下 ELBO 推导。
+$$
+\begin{aligned}
+\log p(\mathbf{x}_0) &amp;= \log \int p(\mathbf{x}_{0:T}) \, d\mathbf{x}_{1:T} \\
+&amp;= \log \int \frac{p(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} | \mathbf{x}_0)} q(\mathbf{x}_{1:T} | \mathbf{x}_0) \, d\mathbf{x}_{1:T} \\
+&amp;= \log \mathbb{E}_{q(\mathbf{x}_{1:T} | \mathbf{x}_0)} \left[ \frac{p(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} | \mathbf{x}_0)} \right] \\
+&amp;\geq \mathbb{E}_{q(\mathbf{x}_{1:T} | \mathbf{x}_0)} \left[ \log \frac{p(\mathbf{x}_{0:T})}{q(\mathbf{x}_{1:T} | \mathbf{x}_0)} \right] \\
+&amp;= \mathbb{E}_{q(\mathbf{x}_{1:T} | \mathbf{x}_0)} \left[ \log \frac{p(\mathbf{x}_T) \prod_{t=1}^{T} p_\theta (\mathbf{x}_{t-1} | \mathbf{x}_t)}{\prod_{t=1}^{T} q(\mathbf{x}_t | \mathbf{x}_{t-1})} \right]
+\end{aligned}
+$$
+我只是想澄清一下几件事。$x_0$ 是随机变量 $X_0$ 的实现吗？如果是，$q(x_{0:T})$ 是否意味着 $x_0$ 是实现，而其余的 $x_{1:T}$ 是随机变量？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660708/clarification-on-the-elbo-derivation-in-diffusion-models</guid>
+      <pubDate>Wed, 29 Jan 2025 11:54:19 GMT</pubDate>
+    </item>
+    <item>
+      <title>ARIMA 预测区间的宽度随时间保持不变的原因是什么？</title>
+      <link>https://stats.stackexchange.com/questions/660707/what-can-be-a-reason-of-width-of-arima-prediction-interval-being-constant-over-t</link>
+      <description><![CDATA[我使用 forecast 包中的 forecast.Arima 来计算我的 SARIMA 模型的预测区间。我无法分享确切的数据，但我可以说它不是完全平稳的，并且模型是 SARIMA(3,0,0)(0,0,1)[12]。
+forecast::forecast(model, h = 12, level = c(0.95), bootstrap = TRUE, npaths = 10^5)
+
+我还看到了其他人的预测结果，据说他们使用相同的模型和数据，但用其他编程语言实现 - 它们是不同的。在我的例子中，预测区间随时间变宽，而在他们的例子中，预测区间的宽度大致固定。
+造成这种差异的潜在原因是什么（除了代码中的拼写错误）？
+
+我尝试设置 bootstrap = FALSE - 结果预测区间非常宽。我知道 bootstrap = TRUE 使用蒙特卡洛模拟来计算区间，我猜 TRUE 使用的是理论区间，但目前我不知道如何得出它们以及它们为什么这么宽（也许这与数据不是静止的事实以及 $\sigma$ 的估计有关？）
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/660707/what-can-be-a-reason-of-width-of-arima-prediction-interval-being-constant-over-t</guid>
+      <pubDate>Wed, 29 Jan 2025 11:22:56 GMT</pubDate>
+    </item>
+    <item>
+      <title>非参数方法检查观测值是否与平均值不同</title>
+      <link>https://stats.stackexchange.com/questions/660705/non-parametric-method-to-check-if-observations-are-different-than-mean</link>
+      <description><![CDATA[我有一个随机变量的独立观测列表，我想检查这个变量的平均值是否与某个固定数字不同。我该怎么做？
+分布不一定是正态的，甚至不是对称的。
+有人建议我使用置换检验，但阅读更多内容后，我明白它是用来比较两个分布，而不是一个分布和一个固定数字。虽然我可以说另一个分布是固定的，但这不会有问题吗，因为方差当然是不同的？我的意思是，我想知道这个测试是否可以发现方差而不是平均值的差异，这不是我想要的。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660705/non-parametric-method-to-check-if-observations-are-different-than-mean</guid>
+      <pubDate>Wed, 29 Jan 2025 10:39:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>从复杂的协方差矩阵生成数据是预期结果的转置</title>
+      <link>https://stats.stackexchange.com/questions/660702/generating-data-from-complex-covariance-matrix-is-transpose-of-expected-result</link>
+      <description><![CDATA[这是我的 Matlab 代码：
+M = 2;
+N = 100000;
+R = [1, 0.5+0.1i; 0.5-0.1i, 1]
+x = randn(M, N);
+L = chol(R, &#39;lower&#39;);
+x = L*x;
+R_est = cov(x.&#39;)
+
+我期望当 N 趋向于无穷大时，R_est 应该趋向于 R。相反，R_est 趋向于转置 (R)。我的理由如下：
+一般来说，如果 $x=N(\mu, \Sigma)$，则 $Lx=N(L\mu, L\Sigma L^H)$。如果 $z=N(0, I)$（多元标准正态分布）且 $LL^H=\Sigma$，则 $Lz=N(0, \Sigma)$。因此，我的代码根据标准正态分布生成数据集 $x$，并采用 $Lx$ 来获取我想要的协方差矩阵。我已在我的代码中确认，$LL^H=\Sigma$。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660702/generating-data-from-complex-covariance-matrix-is-transpose-of-expected-result</guid>
+      <pubDate>Wed, 29 Jan 2025 09:25:26 GMT</pubDate>
+    </item>
     <item>
       <title>维数灾难是否适用于狄利克雷分布？</title>
       <link>https://stats.stackexchange.com/questions/660700/does-the-curse-of-dimensionality-apply-to-the-dirichlet-distribution</link>
@@ -83,7 +246,7 @@ proc print data=assoc;
 运行;
 
 顺便说一句，这与上面代码中计算 scipy.stats.somersd(y,x) 相同（切换变量）
-一些观察结果：
+一些观察：
 
 文档 scipy.stats.somersd 指出 (x,y) 是 y 依赖于 x 的正确顺序。
 模型语句文档 (SAS) 指出 model y = x 表达了相同的意思。
@@ -93,7 +256,7 @@ proc print data=assoc;
       <pubDate>Wed, 29 Jan 2025 07:58:34 GMT</pubDate>
     </item>
     <item>
-      <title>计算聚类数据中的敏感度和特异性的 SE（每人多个测量值）</title>
+      <title>计算聚类数据中的敏感度和特异性的 SE（每个人多个测量值）</title>
       <link>https://stats.stackexchange.com/questions/660695/calculate-se-of-sensitivity-and-specificity-in-clustered-data-multiple-measures</link>
       <description><![CDATA[我正在评估诊断测试的敏感性和特异性。
 我们有一个黄金标准测量方法（O2 饱和度）。每个人的评估分为 5 个级别。其中一些会低于临界值，一些会高于临界值。在每个级别，对于每个人，我们将尝试收集 5 个测量值，这些测量值要么是正数，要么是负数。
@@ -189,87 +352,6 @@ Neg
       <pubDate>Wed, 29 Jan 2025 03:12:53 GMT</pubDate>
     </item>
     <item>
-      <title>比较偏好与 3 个价值观（包括中性）的差异</title>
-      <link>https://stats.stackexchange.com/questions/660691/comparing-differences-in-preference-with-3-values-including-neutral</link>
-      <description><![CDATA[比较包括中性在内的 3 个值的偏好差异
-场景：分析具有 3 个值的偏好数据（例如：您更喜欢哪个：足球、棒球还是没有偏好（即中性）？）
-主要研究问题：
-
-是否大于中性？
-足球比棒球更受欢迎还是反之亦然？
-
-奇怪的是，与连续数据不同，我没有看到很多关于这种情况的强烈建议。
-我的问题是：
-哪种统计数据最适合分析具有 3 个值（例如足球、中性、棒球）的偏好数据？
-如果答案依赖于“弥补”预期值（例如，将响应分为 3 个值（33%，33%，33%），那么您建议使用什么值（或它们的计算）？（注意：我不喜欢 33%，33%，33%，因为不喜欢任何一个与喜欢其中一个的结果不同（参见上述主要研究问题）。
-其他注意事项：
-只是指出它不是因子设计（就像我们比较 2 个成功率，例如球队 1 的胜/负与球队 2 的胜/负），所以我们不能通过“平均”足球和棒球的成功来计算预期值。
-我的数据集中的响应数量可能非常低。在一个例子中，当足球 = 12 和棒球 = 13 时，卡方显着。
-McNemar 检验：Sauro/MeasuringU 推荐此检验。虽然它适用于名义变量，它采用 2x2 形式，并带有成对样本（重复测量）。因此，他的建议似乎适用于其他场景。
-我考虑过的选项：
-选项 A1 - 中性预期 = 观察值
-首先，目测（或置信区间）中性和足球/棒球之间的差异。
-其次，将中性预期值设置为等于观察值。将剩余的预期值分为足球和棒球（50/50 分割）以“删除”中性，但保持样本量。 （例如，见图片）
-
-
-
-偏好
-观察到的
-预期的
-
-
-
-
-足球
-36
-(58/2) =29
-
-
-中立
-42
-42
-
-
-棒球
-22
-(58/2) =29
-
-
-
-一个问题似乎是统计数据本身，因为尝试解释它确实很棘手。就像，“在消除中性反应的影响后，参与者对足球和棒球的偏好不同（或没有不同）。”
-选项 A2。中性与其他以及中性预期 = 观察到
-除了上面的第一步，要么 (A2a) 取足球和棒球中较大的一个，(A2b) 将足球和棒球加在一起，看看它们加起来是否不同于中性，或者 (A2c) 取足球和棒球的平均值，看看该平均值是否不同于中性。一个问题是 A2a、A2b 和 A2c 的可解释性是……它们很难解释和/或需要大量语言来解释。然后使用上面的第二步。因此，可解释性问题与 A1 相同。
-选项 B1 - 置信区间与预期值的重叠[不完整解决方案]
-计算置信区间并与预期值进行比较。与上述问题相同：如何计算对 3 个值有意义的预期值（我认为 33,33,33 不是）。那么预期值是什么？
-选项 B2 - 置信区间与 3 个观察值的重叠
-类似于使用置信区间来目测连续数据之间的差异
-选项 C。您的建议！
-想法、意见、建议？谢谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/660691/comparing-differences-in-preference-with-3-values-including-neutral</guid>
-      <pubDate>Wed, 29 Jan 2025 02:28:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何对具有五个维度的结构进行元分析？</title>
-      <link>https://stats.stackexchange.com/questions/660690/how-can-i-conduct-a-meta-analysis-on-a-construct-with-five-dimensions</link>
-      <description><![CDATA[我想对工作投入的前因、结果和调节因素进行荟萃分析。然而，在搜索数据库时，我注意到一些研究考察了工作投入的五个维度，而另一些研究则将其视为一个单一的构想。是否可以将它们合并为一个工作投入的总体构想？请分享您的反馈并推荐任何可以帮助我的资源]]></description>
-      <guid>https://stats.stackexchange.com/questions/660690/how-can-i-conduct-a-meta-analysis-on-a-construct-with-five-dimensions</guid>
-      <pubDate>Wed, 29 Jan 2025 02:14:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>时间序列贝叶斯回归中的参数协方差</title>
-      <link>https://stats.stackexchange.com/questions/660688/parameter-covariance-in-bayesian-regression-of-time-series</link>
-      <description><![CDATA[我的问题是这样的：给定一组时间序列数据$D = \{t_m, x_m\}$，其中$m$是一个标签，$m=1,2,3,...,n$我有一个模型$f(t,\mathbf{w})$，它根据一组参数生成等效的时间序列。我可以写出 $x_m = f_i(t_m,\mathbf{w}) + \varepsilon_m$，其中 $\varepsilon_m \sim{N}(0,\sigma^2)$ 是一些具有未知 $\sigma$ 的随机噪声。这里，$f_i(t_m,\mathbf{w})$ 是参数 $\mathbf{w}\in\mathbb{R}^k$ 的非线性函数。具体来说，它是具有方程参数 $\mathbf{w}$ 的微分方程组的解。特定模型$f_i$取自合理模型集合${F}$。请注意，我可以对任何一组 $t$ 和参数 $\mathbf{w}$ 评估 $f$、$\nabla_\mathbf{w} f$ 和 $\nabla_\mathbf{w}\nabla_\mathbf{w} f$（我假设 ODE 的初始条件固定）。
-我的方法是定义一个 $L_2$ 损失函数，$Q(t_m,x_m,\mathbf{w}) = \sum_m [x_m - f(t_m,\mathbf{w})]^2$，为此我还可以评估梯度 $\nabla_\mathbf{w} Q$ 和 $\nabla_\mathbf{w}\nabla_\mathbf{w} Q$。然后我使用梯度下降找到一组 $\mathbf{\hat{w}}$ 以最小化 $Q$。
-我想要 1.) 评估我的预测的不确定性 $\mathbf{\hat{w}}$ 和 2.) 计算模型的证据以进行模型比较测试。在第一种情况下，我似乎需要取$-\nabla_\mathbf{w}\nabla_\mathbf{w}\log P(\mathbf{w}|D,\sigma,f_i)$，这需要估计$\sigma$。第二个问题似乎需要评估 $L = P(D|\mathbf{w},\sigma,f)$ 在 $\mathbf{\hat{w}}$ 处的似然函数，并且我可以使用 BIC 进行模型比较，或者直接使用似然函数和 MacKay 的 Occam 因子估计证据（假设 $\mathbf{w}$ 的先验均匀）。
-实际上，找到这些概率密度已被证明具有挑战性，因为大多数参考文献都对 $f$ 的形式做出假设，或者使用共轭先验，假设 $\mathbf{w}$ 是从均值为零的正态分布中抽取的（这在这个问题中绝对不是这种情况）。
-我目前的思维过程是将 $\sigma$ 的无偏估计取为 $\hat{\sigma}^2 = \frac{1}{n-k}\sum_m [x_m - f(t_m,\mathbf{w})]^2$。从这里，我取
-$$P(D|\mathbf{w},\hat{\sigma},f) = \frac{1}{\left(\sqrt{2\pi\hat{\sigma}}\right)^n}\exp[-Q/(2\hat{\sigma}^2)]$$
-这使我能够计算可能性，从而计算 BIC。此时，我可以假设一个统一的先验$P(\mathbf{w}|f_i)$，让我写出$-\nabla_\mathbf{w}\nabla_\mathbf{w}\log P(\mathbf{w}|D,\hat{\sigma},f_i)\approx -\nabla_\mathbf{w}\nabla_\mathbf{w}\log P(D|\mathbf{w},\hat{\sigma},f_i)$，从而得到我的参数的误差线。请注意，这可能是一个错误的假设，因为一些参数$w_j$是固定的，因此$w_j\geq0$或$w_j \in [0,1]$。
-如果您能提供任何建议，告诉我这是否是将贝叶斯方法应用于此类推理问题的正确方法，以及我可能遗漏的任何假设，我将不胜感激。]]></description>
-      <guid>https://stats.stackexchange.com/questions/660688/parameter-covariance-in-bayesian-regression-of-time-series</guid>
-      <pubDate>Wed, 29 Jan 2025 00:32:44 GMT</pubDate>
-    </item>
-    <item>
       <title>等效结构方程模型中结构系数的解释</title>
       <link>https://stats.stackexchange.com/questions/660684/interpretation-of-structure-coefficients-in-equivalent-structural-equation-model</link>
       <description><![CDATA[本文描述了统计等效结构方程模型的问题，其中变量之间的关联（即因果关系的方向）各不相同，但拟合指标相同。作为示例，他们展示了以下两个模型的结构系数：
@@ -281,25 +363,26 @@ $$P(D|\mathbf{w},\hat{\sigma},f) = \frac{1}{\left(\sqrt{2\pi\hat{\sigma}}\right)
       <pubDate>Tue, 28 Jan 2025 21:58:29 GMT</pubDate>
     </item>
     <item>
-      <title>您能“虚拟”出独立变量上的异常值吗？</title>
-      <link>https://stats.stackexchange.com/questions/660667/can-you-dummy-out-an-outlier-on-the-independent-variable</link>
-      <description><![CDATA[我想运行一个回归分析，其中一个回归量有一个异常值。我想知道我是否可以包含一个虚拟变量来排除这个异常值，而不会丢失来自其他回归量的信息，因为另一种选择是删除整个观察值。请考虑以下示例：
-y = [1,2,1,3,1,5,4,4,4,3]
-x1 = [0.1,0.9,0.1,0.7,0.5,0.5,0.3,0.2,0.4,0.3]
-x2 = [10,-105,13,​​15,15,16,13,13,16,13]
-x2 中的第二个观测值显然是一个异常值（由通货膨胀衡量方式的制度变化引起 - 导致数据急剧变化）。估算以下回归是否可以让我避免这个异常值对我感兴趣的系数产生的影响？
-$y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \gamma\times \text{ dummy}\times x_2$
-其中
-如果 x_2 = -105，则 dummy = 1；否则 dummy = 0]]></description>
-      <guid>https://stats.stackexchange.com/questions/660667/can-you-dummy-out-an-outlier-on-the-independent-variable</guid>
-      <pubDate>Tue, 28 Jan 2025 14:10:49 GMT</pubDate>
+      <title>具有 beta geom 分布分位数函数的 CDF</title>
+      <link>https://stats.stackexchange.com/questions/660681/cdf-with-beta-geom-distribution-quantile-function</link>
+      <description><![CDATA[我有一个带 CDF 的 beta 几何 (BG) 分布：
+$$F(x) = \Bigg( 1 - \frac{\text{B}(a,b+x)}{\text{B}(a,b)} \Bigg)
+\quad \quad \quad 
+\text{for } x \geqslant 0,$$
+其中 $\text{B}$ 是 beta 函数。有没有办法在不借助数值方法和求根算法的情况下找到上述分布的分位数。我知道 beta 分布与 F 分布相关，我正在尝试看看我们是否可以找到与 BG 分布的类似关系。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660681/cdf-with-beta-geom-distribution-quantile-function</guid>
+      <pubDate>Tue, 28 Jan 2025 20:03:16 GMT</pubDate>
     </item>
     <item>
-      <title>在 GLMM 中，什么样的随机效应方差才算是“接近零”？</title>
-      <link>https://stats.stackexchange.com/questions/660635/what-qualifies-as-near-zero-random-effect-variance-in-glmm</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/660635/what-qualifies-as-near-zero-random-effect-variance-in-glmm</guid>
-      <pubDate>Mon, 27 Jan 2025 19:51:21 GMT</pubDate>
+      <title>双向方差分析 - 参数估计解释</title>
+      <link>https://stats.stackexchange.com/questions/660677/two-way-anova-parameter-estimates-interpretation</link>
+      <description><![CDATA[双向方差分析中生成的参数估计表：
+
+当我解释参数估计表时，我被引导相信截距是数据的整体总平均值？这是正确的吗？
+但是，我很困惑它与参考类别有什么关系？它们的参数估计值为 0？这是否意味着设计 C 和尺寸小（参考类别）嵌入在截距内？
+我的问题是设计 C 和尺寸小对因变量和整体总平均值的影响怎么会相同？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660677/two-way-anova-parameter-estimates-interpretation</guid>
+      <pubDate>Tue, 28 Jan 2025 19:17:58 GMT</pubDate>
     </item>
     <item>
       <title>$\ell_1$ 惩罚分位数回归的收敛速度为 $\sqrt{\frac{s\log (p \vee n)}{n}}$</title>
@@ -317,104 +400,38 @@ $\|\beta\|_1 = \sum_{j=1}^p |\beta_j|$ 是鼓励稀疏性的 $\ell_1$-惩罚。
 
 此方法理论的主要参考文献是 Belloni 和 Chernozhukov (2011) 在《统计年鉴》中。
 在他们的论文中（例如，请参阅摘要、第 2.6 节或定理 2 了解完整结果），他们提到估计量以 $\sqrt{\frac{s\log (p \vee n)}{n}}$ 的速率收敛，其中 $\vee$ 用于表示 $p$ 和 $n$ 中的最大值。它们甚至可以在一组紧凑的分位数指标上均匀地实现这一结果。
-因此，与标准 LASSO 速率相比，我们现在可以看到对数中有 $p \vee n$。对于许多有趣的制度，即 $p &gt;&gt; n$，这将给出与标准 LASSO 相同的速率。
+因此，与标准 LASSO 速率相比，我们现在可以看到对数中有 $p \vee n$。对于许多有趣的制度，即 $p &gt; n$，这将给出与标准 LASSO 相同的速率。
 有人知道为什么现在 $p$ 和 $n$ 存在最大值吗？任何见解都将不胜感激！]]></description>
       <guid>https://stats.stackexchange.com/questions/660611/rate-of-convergence-of-ell-1-penalized-quantile-regression-is-sqrt-fracs</guid>
       <pubDate>Mon, 27 Jan 2025 14:01:25 GMT</pubDate>
     </item>
     <item>
-      <title>完全循环神经网络Hopfield网络和Elman网络有什么区别？</title>
-      <link>https://stats.stackexchange.com/questions/660560/what-are-the-differences-between-fully-recurrent-neural-networks-hopfield-networ</link>
-      <description><![CDATA[我很难理解这两者的区别。据我所知，FCRN 中的每个隐藏神经元都会影响所有其他神经元和自身，而在 Hopfield 中，它会影响其他神经元但不会影响自身。我无法理解在相同情况下这会带来什么不同，以及不与他人连接如何意味着关联？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660560/what-are-the-differences-between-fully-recurrent-neural-networks-hopfield-networ</guid>
-      <pubDate>Sun, 26 Jan 2025 13:33:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>做微积分和选择偏差</title>
-      <link>https://stats.stackexchange.com/questions/660536/do-calculus-and-selection-bias</link>
-      <description><![CDATA[在这篇论文中，我对选择偏差的分类及其与 Pearl 的do-calculus的联系感到困惑。
-按照论文的符号，让$E$表示二元曝光，D表示二元结果，$L1$表示协变量向量，$S$表示选择。$D^e$表示潜在结果。我们的目标是瞄准真正的 ATE，定义为 $P(D^1=1)-P(D^0=1)$
-他们将第 1 类选择偏差 (SB) 定义为没有内部有效性但具有外部有效性，即
+      <title>预测变量中的随机趋势 (OLS)</title>
+      <link>https://stats.stackexchange.com/questions/660588/stochastic-trend-in-predictors-ols</link>
+      <description><![CDATA[我正在构建一个 OLS 模型。
+据我所知，预测变量中的随机趋势会导致非平稳残差。
+为了解决这个问题（我们希望残差是平稳的），有两种方法可以解决：
 
-$P(D=1|E=1,S=1)-P(D=1|E=0,S=1) \ne P(D^1=1|S=1)-P(D^0=1|S=1)$
-但是，$P(D^1=1|S=1)-P(D^0=1|S=1)=P(D^1=1)-P(D^0=1)$
+引入协整变量
+差分
 
-他们将第 2 类 SB 定义为它不具有外部有效性，但具有内部有效性，即
+首选数字 1，因为差分会从序列中删除对长期预测至关重要的信息。（如果我错了，请纠正我）
+假设我们选择数字 1，并引入另一个与具有随机趋势的预测变量协整的预测变量。
+现在，将考虑随机趋势，残差应该再次平稳。
+现在我的问题/方法：
+我以这两个协整预测器作为输入运行 ECM。
+此 ECM 的输出将在原始系统中再次引入。
+现在：我是否需要删除两个预测因子，只留下 ECM 的输出？
+或者我需要将这三个都包含在系统中，并将其作为 OLS 的输入？
+所以基本上：
+Y = b+ B1*predictor1_stoch_trend + B2*predictor2_cointegrated_w_predictor1 + B3*error_output_ecm + B4*predictor4_linear_trend
 
-$P(D=1|E=1,S=1)-P(D=1|E=0,S=1) = P(D^1=1|S=1)-P(D^0=1|S=1)$
-但是，$P(D^1=1|S=1)-P(D^0=1|S=1) \ne P(D^1=1)-P(D^0=1)$
+或
+Y = b + B3*error_output_ecm + B4*predictor4_linear_trend
 
-他们提供了以下 DAG 并解释说这是类型 1 SB 的示例。
-
-当我在 DAG 上执行 Pearl 的 do-calculus 规则时，我没有得到这个。如果我要将上面的没有 SB 转化为足够的动作语句，我相信对于 $e=1,0$，我需要以下内容：
-
-$p(d|e,s) = p(d|do(e),s)$
-$p(d|do(e),s) = p(d|do(e))$
-
-第一个项目符号是动作/观察（规则 2）。为此，我需要，$D \perp E | S$ 在从 E 中删除所有箭头后出现在 DAG 中。因此这似乎成立（因为它删除了 S 作为对撞机）。
-第二个项目符号是插入/删除（规则 1）。为此，我需要 $D \perp S|E$ 在从 E 中删除所有箭头后出现在 DAG 中 - 在这种情况下，DAG 保持不变（如果存在混淆，则会删除箭头）。无论如何，这仍然有一条从 D 到 L1 再到 S 的后门路径。因此这似乎被违反了。因此，基于这些规则，我认为它最坏的情况是 2 型 SB。
-正如他们在论文中所说，对 L1 进行条件化使我们能够治愈此 DAG 呈现的选择偏差。但是，这似乎解决了问题 2，因为现在我们有 $p(d| do(e),s,l1) = p(d|do(e),l1)$，因为一旦我也以 $L1$ 为条件，上述后门路径就会被阻止。从随机化/可忽略性来看，标准化允许识别。
-除了基于直觉的答案之外，为什么这种 do-calculus 方法不正确？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660536/do-calculus-and-selection-bias</guid>
-      <pubDate>Sat, 25 Jan 2025 18:53:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么生存函数总是随着时间的推移而下降？</title>
-      <link>https://stats.stackexchange.com/questions/660241/why-does-the-survival-function-always-decrease-with-time</link>
-      <description><![CDATA[从数学上讲，可以看出生存函数必须始终随时间减少（无论底层概率分布如何）。
-
-将$F(t)$定义为
-事件发生时间变量$T$的累积分布函数，则生存函数$S(t)$定义为：
-$$S(t) = P(T &gt; t) = 1 - F(t)$$
-
-我们知道$F(t)$是CDF，这意味着它必须是
-非递减的。因此，对于任何 $t_1 &lt; t_2$:
-$$F(t_1) \leq F(t_2)$$
-
-利用 $S(t)$ 和 $F(t)$ 之间的关系：
-$$S(t_1) = 1 - F(t_1)$$ $$S(t_2) = 1 - F(t_2)$$
-
-减法：
-$$S(t_1) - S(t_2) = [1 - F(t_1)] - [1 - F(t_2)] = F(t_2) - F(t_1)$$
-
-由于 $F(t_2) - F(t_1) \geq 0$:
-$$S(t_1) - S(t_2) \geq 0$$
-
-因此:
-$$S(t_1) \geq S(t_2)$$
-
-
-
-我想知道：在某些情况下，我们是否可能认为生存率有时会随着时间的推移而增加？例如，假设在疾病发作时，存活率开始下降，但一旦开始治疗 - 如果治疗成功，那么存活率可以回升至诊断前的水平......但不可避免的是，随着时间的推移，存活率最终会再次下降？
-我试图编写一个模型，其中存活率最初降低，然后增加，然后再次降低：
-$$ S(t) = \exp(-\lambda_1t) + \alpha t^2\exp(-\lambda_2t) $$
-$$ \lambda_1 = \exp(X\beta_1) $$
-$$ \lambda_2 = \exp(X\beta_2) $$
-$$ \alpha = \exp(X\beta_3) $$
-
-当时间开始时（$t=0$），生存率为 1（100%）
-当时间趋于无穷时，生存率趋于 0
-在此期间，生存率可以先增加一段时间，然后再减少
-
-这是修改生存分析以允许减少和增加生存率的可行方法吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660241/why-does-the-survival-function-always-decrease-with-time</guid>
-      <pubDate>Sun, 19 Jan 2025 17:11:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>是否可以预测边际效应曲线的形状？</title>
-      <link>https://stats.stackexchange.com/questions/660166/is-it-possible-to-predict-the-shape-of-a-marginal-effects-curve</link>
-      <description><![CDATA[这是逻辑回归的一般方程：
-$$ P(Y=1|x_1,x_2) = \frac{1}{1 + e^{-(\beta_0 + \beta_1x_1 + \beta_2x_2)}} $$
-要找到边际效应，我们需要对每个预测变量求导。对于 $x_1$:
-$$ \frac{\partial p}{\partial x_1} = \frac{\partial}{\partial x_1}\left(\frac{1}{1 + e^{-(\beta_0 + \beta_1x_1 + \beta_2x_2)}}\right) $$
-$$ \frac{\partial p}{\partial x_1} = \beta_1 \cdot p \cdot (1-p) $$
-对于 $x_2$:
-$$ \frac{\partial p}{\partial x_2} = \beta_2 \cdot p \cdot (1-p) $$
-正如预期的那样，两个变量的边际效应方程具有相同的形式。我尝试为不同的值绘制此方程：
-
-所以这是我的问题：如果我们比较两种相同类型的模型（例如逻辑回归，没有交互作用，没有高阶项），边际效应曲线是否总是具有相同的形状？从理论上讲，我们甚至可以在分析它们之前就知道这种形状会是什么样子吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660166/is-it-possible-to-predict-the-shape-of-a-marginal-effects-curve</guid>
-      <pubDate>Fri, 17 Jan 2025 14:51:46 GMT</pubDate>
+（对于 predictor4，我会从序列中减去线性趋势以使其平稳）]]></description>
+      <guid>https://stats.stackexchange.com/questions/660588/stochastic-trend-in-predictors-ols</guid>
+      <pubDate>Mon, 27 Jan 2025 10:12:42 GMT</pubDate>
     </item>
     </channel>
 </rss>
