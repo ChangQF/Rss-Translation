@@ -4,7 +4,185 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Fri, 31 Jan 2025 01:14:23 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 31 Jan 2025 03:17:59 GMT</lastBuildDate>
+    <item>
+      <title>解析简单门控 RNN 随时间反向传播的解法</title>
+      <link>https://stats.stackexchange.com/questions/660789/analytically-solving-backpropagation-through-time-for-a-simple-gated-rnn</link>
+      <description><![CDATA[考虑以下简单的门控 RNN：
+\begin{aligned}
+c_{t} &amp;= \sigma\bigl(W_{c}\,x_{t} + W_{z}\,z_{t-1}\bigr)
+\\[6pt]
+z_{t} &amp;= c_{t} \,\odot\, z_{t-1} \;\;+\;\; 
+(1 - c_{t}) \,\odot\,\bigl(W_{x}\,x_{t}\bigr)。
+\end{aligned&gt;
+这里，
+$$
+x_{t}\in \mathbb{R}^{n}, \quad
+z_{t}\in \mathbb{R}^{m}, \quad
+c_{t}\in \mathbb{R}^{m}, 
+$$
+和
+$$
+W_{c}\in \mathbb{R}^{m\times n},\, 
+W_{z}\in \mathbb{R}^{m\times m},\,
+W_{x}\in \mathbb{R}^{m\times n}。
+$$
+门$c_{t}=\sigma(\cdot)$是元素级 S 型函数。
+我们让损失为
+$$
+\ell \;=\;\sum_{t=1}^{K}\;\ell_{t}\,\bigl(z_{t}\bigr)
+$$
+因此每个$z_{t}$都对$\ell$有贡献。
+我们试图在给定$\frac{\partial \ell_t}{\partial z_t}$的情况下找到$\frac{\partial \ell}{\partial W_x}$。我们可以从以下公式开始：
+$$
+\frac{\partial \ell}{\partial W_{x}} =
+\sum_{t=1}^{K} \left(\frac{\partial \ell_t}{\partial z_{t}} \cdot
+\frac{\partial z_{t}}{\partial W_{x}} \right)
+$$
+并且我们必须找到$\frac{\partial z_{t}}{\partial W_{x}}$。为了方便起见，我们可以将每个 $z_t$ 视为多个变量的函数 $f$：
+$$
+f(U, z_{\text{prev}}, c_t, x_t) = c_t \odot z_{\text{prev}} + (1 - c_t)\,\odot\,(U \, x_t)
+$$
+然后
+$$
+z_t = f(W_x, z_{t-1}, c_t, x_t)
+$$
+然后我们有
+$$
+\frac{\partial z_t}{\partial W_x} = \underbrace{\Bigl(\frac{\partial f}{\partial U}\Bigr)}_{\text{local}} + 
+\Bigl(\frac{\partial f}{\partial z_{\text{prev}}}\Bigr)
+\frac{d\,z_{t-1}}{d W_x} + 
+\Bigl(\frac{\partial f}{\partial c_t}\Bigr) \frac{\partial c_t}{\partial W_x}
+$$
+其中 $W_x$ 对 $z_t$ 有“局部”或直接影响，以及通过 $z_{t-1}$ 和 $c_t$ 有间接影响。让我们定义
+\begin{align*}
+\varepsilon_t &amp;= \frac{\partial f}{\partial U}(W_x, z_{t-1}, c_t, x_t) \\
+\delta_t &amp;= \frac{\partial \ell}{\partial z_t} 
+\end{align*&gt;
+如何证明以下说法？
+\begin{align*}
+\frac{\partial \ell}{\partial W_{x}} = \sum_{t=1}^{K} \delta_t \varepsilon_t
+\end{align*&gt;
+我可以使用 PyTorch 验证它，但我正在寻找分析证明。]]></description>
+      <guid>https://stats.stackexchange.com/questions/660789/analytically-solving-backpropagation-through-time-for-a-simple-gated-rnn</guid>
+      <pubDate>Fri, 31 Jan 2025 03:12:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用 emmeans() 从 coxph() 估计随时间变化的 HR</title>
+      <link>https://stats.stackexchange.com/questions/660788/using-emmeans-to-estimate-time-varying-hrs-from-coxph</link>
+      <description><![CDATA[emmeans() 非常棒，我使用它进行了很多事后估计。但是，我想知道是否有办法从指定了协变量-时间交互的 coxph() 模型中获得 HR（如果想要努力考虑潜在的非比例风险）。
+我找到了一种估算协变量-协变量交互项的 HR 的方法，但找不到任何关于时间-协变量交互项的方法。
+如能得到任何帮助，我将不胜感激。以下是一些虚拟代码：
+library(survival)
+library(emmeans)
+set.seed(123)
+# 创建数据
+df &lt;- data.frame(time = round(runif(100, min = 1, max = 70)), 
+status = round(runif(100, min = 0, max = 1)),
+drug = round(runif(100, min = 0, max = 1)),
+age40 = round(runif(100, min = 0, max = 1)), 
+stringsAsFactors = FALSE)
+
+# 具有协变量-协变量相互作用的模型
+mod1 &lt;- coxph(Surv(time, status) ~ drug * age40, data = df)
+summary(mod1)
+
+# 估计因子组合的 HR
+emmeans(mod1, ~ drug + age40, type = &quot;unlink&quot;) |&gt; 对(rev = T) |&gt; 摘要(infer = T)
+
+# 具有时间-协变量相互作用的模型
+mod2 &lt;- coxph(Surv(time, status) ~ drug + tt(drug), tt = function(x,t,...) x*t, data = df)
+summary(mod2)
+
+# 估计不同观察时间的 HR？
+emmeans(...
+
+# 这可能吗？
+
+编辑：
+我应该补充一下，如果不使用 emmeans()，还有其他方法吗（除了根据模型方程手动计算 HR）？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660788/using-emmeans-to-estimate-time-varying-hrs-from-coxph</guid>
+      <pubDate>Fri, 31 Jan 2025 02:05:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>组合预测因子是否总能改善 AUC？</title>
+      <link>https://stats.stackexchange.com/questions/660787/does-combining-predictors-always-improve-auc</link>
+      <description><![CDATA[我有两个独立的预测因子，x₁ 和 x₂，以及一个二元结果 y。
+模型 1：使用 x₁ 预测 y
+模型 2：使用 x₂ 预测 y
+模型 3：使用两个预测因子之和 (x₃ = x₁ + x₂) 预测 y
+
+我的预期是，通过将预测因子相加来组合至少会实现两个单独模型的更高 AUC。但是，我发现情况并非总是如此。
+例如：
+当 AUC(x₁) = 0.59 和 AUC(x₂) = 0.59 时，组合模型实现 AUC(x₃) = 0.63（更好）。
+但当 AUC(x₁) = 0.59 且 AUC(x₂) = 0.54 时，组合模型 AUC(x₃) = 0.58，这比单独使用 x₁ 更差。
+
+组合模型的 AUC 低于单个模型之一，这在统计上有效吗？如果是，这背后的原因是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660787/does-combining-predictors-always-improve-auc</guid>
+      <pubDate>Fri, 31 Jan 2025 01:36:54 GMT</pubDate>
+    </item>
+    <item>
+      <title>决定是否在模型中包含约束</title>
+      <link>https://stats.stackexchange.com/questions/660786/deciding-whether-or-not-to-include-constraints-into-a-model</link>
+      <description><![CDATA[我有一个离散随机过程，我认为当前状态$ Y_n $取决于三个最近的状态$ X_{n-1}, X_{n-2}, X_{n-3} $，但具有加权结构，使得较新的状态对结果的影响大于较旧的状态（即$w_1 &gt; w_2 &gt; w_3$）。
+使用逻辑回归对此进行建模是有意义的：
+$$
+P(Y_n = 1 \mid X_{n-1}, X_{n-2}, X_{n-3}) = \sigma\left( b_0 + w_1 X_{n-1} + w_2 X_{n-2} + w_3 X_{n-3} \right),
+$$
+其中：
+
+$ \sigma(z) = \frac{1}{1 + e^{-z}} $ 是逻辑 (S 型) 函数，
+$ b_0 $ 是截距，
+$ w_1, w_2, w_3 $ 是分配给过去状态的权重，决定它们对 $ Y_n $ 的影响，
+
+
+方法 1：无约束
+如果不考虑约束，可以使用 MLE。给定一个包含 $ N $ 个观测值的数据集，似然函数和解决方案为：
+$$
+L(b_0, w_1, w_2, w_3) = \prod_{n=1}^{N} P(Y_n \mid X_{n-1}, X_{n-2}, X_{n-3})^{Y_n} (1 - P(Y_n \mid X_{n-1}, X_{n-2}, X_{n-3}))^{1 - Y_n}。
+$$
+$$
+\ell(b_0, w_1, w_2, w_3) = \sum_{n=1}^{N} \left[ Y_n \log \sigma(z_n) + (1 - Y_n) \log (1 - \sigma(z_n)) \right],
+$$
+$$
+z_n = b_0 + w_1 X_{n-1} + w_2 X_{n-2} + w_3 X_{n-3}。
+$$
+$$
+(b_0^*, w_1^*, w_2^*, w_3^*) = \arg\max_{b_0, w_1, w_2, w_3} \ell(b_0, w_1, w_2, w_3).
+$$
+
+方法 2：带约束
+考虑以下约束：$w_1 &gt; w_2 &gt; w_3$
+现在，我们不再直接估算 $ w_1, w_2, w_3 $，而是引入新参数 $ \beta_1, \beta_2, \beta_3 $，使得：
+$$
+\beta_1 &gt; \beta_2 &gt; \beta_3.
+$$
+$$
+\beta_1 = \alpha_1, \quad \beta_2 = \alpha_1 - e^{\alpha_2}, \quad \beta_3 = \alpha_1 - e^{\alpha_2} - e^{\alpha_3}.
+$$
+这保证：
+$$
+\beta_1 &gt; \beta_2 &gt; \beta_3。
+$$
+$$
+w_i = e^{\beta_i}, \quad i=1,2,3。
+$$
+从这里开始，定义一个类似的似然函数：
+$$
+\ell(b_0, \alpha_1, \alpha_2, \alpha_3) = \sum_{n=1}^{N} \left[ Y_n \log \sigma(z_n) + (1 - Y_n) \log (1 - \sigma(z_n)) \right],
+$$
+$$
+z_n = b_0 + w_1 X_{n-1} + w_2 X_{n-2} + w_3 X_{n-3}。
+$$
+$$
+(b_0^*, \alpha_1^*, \alpha_2^*, \alpha_3^*) = \arg\max_{b_0, \alpha_1, \alpha_2, \alpha_3} \ell(b_0, \alpha_1, \alpha_2, \alpha_3).
+$$
+
+我的问题与以下内容有关：假设我首先对数据使用方法 1（无约束），并发现 $ w1 \ngtr w2 \ngtr w3 $。这是否意味着（不幸的是）数据不支持我关于 $w_1 &gt; w_2 &gt; w_3$ 的假设，我应该停止研究这个模型？或者我应该使用方法 2（带约束）并强制假设 $w_1 &gt; w_2 &gt; w_3$？
+这个问题的统计建模标准做法是什么？]]></description>
+      <guid>https://stats.stackexchange.com/questions/660786/deciding-whether-or-not-to-include-constraints-into-a-model</guid>
+      <pubDate>Fri, 31 Jan 2025 01:30:00 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用 KSG 估计量来计算一个变量的固定值的特定互信息估计？</title>
       <link>https://stats.stackexchange.com/questions/660782/how-can-we-compute-a-specific-mutual-information-estimate-for-a-fixed-value-of-o</link>
@@ -263,20 +441,10 @@ $$
       <title>如果这些变量也包含在随机效应结构中，如何检验固定效应的显著性？</title>
       <link>https://stats.stackexchange.com/questions/660766/how-to-test-for-significance-of-fixed-effects-if-those-variables-are-also-includ</link>
       <description><![CDATA[我对混合效应模型有一个更一般/更实际的问题。我绝对不是这方面的专家，只是注意到一些似乎不对劲的地方。我想知道当固定效应也包含在模型的随机效应结构中时，是否可以测试该效应的显著性？
-我将使用 R 中的 glmmTMB() 举例说明我的问题。假设您有一个模型，其中 Y 是二项分布（0 或 1）响应，X1 和 X2 是固定效应，g 是随机阻断变量。探索了最佳随机效应结构（使用 AIC 和 LRT），发现对于 g 的每个级别，Y~X1 的随机截距和斜率都很重要。最终模型如下所示：final_model&lt;-glmmTMB(Y ~ X1 + X2 + (1+X1|g), family=binomial(link=&quot;logit&quot;), data=dat)
+我将使用 R 中的 glmmTMB() 举例说明我的问题。假设您有一个模型，其中 Y 是二项分布（0 或 1）响应，X1 和 X2 是固定效应，g 是随机阻塞变量。探索了最佳随机效应结构（使用 AIC 和 LRT），发现对于 g 的每个级别，Y~X1 的随机截距和斜率都很重要。最终模型如下所示：final_model&lt;-glmmTMB(Y ~ X1 + X2 + (1+X1|g), family=binomial(link=&quot;logit&quot;), data=dat)
 下一步是获取固定效应的检验统计量和 p 值（换句话说，得出结论，它们是否显著影响响应 Y）。我知道有多种方法可以做到这一点，从不好的（例如，Wald 检验）到更好的（例如，似然比检验），再到最好的（例如，模拟？）。假设您正在使用似然比检验（例如，使用 drop1() 命令）。由于这种方法涉及拟合简化（或嵌套）模型进行比较，这是否会产生一个问题，即其中一个简化模型不包括 X1，但 X1 仍然是随机效应结构的一部分？换句话说，这是否会导致某些简化模型被错误指定？我尝试在 R 中运行此类测试并得到了结果，但我不确定是否应该相信它。如果简化模型确实指定错误，那么您如何测试固定效应的显著性？由于它是随机效应结构的一部分，因此它永远无法从模型中移除。]]></description>
       <guid>https://stats.stackexchange.com/questions/660766/how-to-test-for-significance-of-fixed-effects-if-those-variables-are-also-includ</guid>
       <pubDate>Thu, 30 Jan 2025 16:20:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何降低 80% 右删失生存模型的偏差？</title>
-      <link>https://stats.stackexchange.com/questions/660765/how-to-lower-the-bias-with-80-right-censored-survival-models</link>
-      <description><![CDATA[我对糖尿病患者慢性肾病 (CKD) 与死亡率之间的关联感兴趣，CKD 是暴露因素，死亡是结果。然而，当对每位患者进行 4 年的随访（最长的随访时间）时，80% 的患者在研究结束前还活着，而 5% 的患者被审查，因为他们被作为对照治疗但患上了 CKD。
-我对这个数据集进行了 Cox 回归，风险比 (HR) 约为 11。这个值比预期的要高得多。
-我想确定糖尿病患者慢性肾病 (CKD) 与死亡率之间的关联的风险比。我该如何计算这个，也许不使用 Cox 回归？
-谢谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/660765/how-to-lower-the-bias-with-80-right-censored-survival-models</guid>
-      <pubDate>Thu, 30 Jan 2025 16:15:53 GMT</pubDate>
     </item>
     <item>
       <title>未调整生存率与 IPW 调整生存率的 Kaplan-Meier 估计时限差异</title>
@@ -333,49 +501,12 @@ mutate(across(c(surv, se, ci_lower, ci_upper), ~ round(.x, 2)))
       <pubDate>Thu, 30 Jan 2025 16:15:33 GMT</pubDate>
     </item>
     <item>
-      <title>通过对 K 个独立均匀分布进行抽样并排序，从具有 K 个类别的多项分布中抽样</title>
-      <link>https://stats.stackexchange.com/questions/660761/sampling-from-a-multinomial-distribution-with-k-categories-by-sampling-k-indepen</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/660761/sampling-from-a-multinomial-distribution-with-k-categories-by-sampling-k-indepen</guid>
-      <pubDate>Thu, 30 Jan 2025 15:52:16 GMT</pubDate>
-    </item>
-    <item>
-      <title>组合在概率中的理论应用</title>
-      <link>https://stats.stackexchange.com/questions/660759/theoretical-applications-of-combinants-in-probability</link>
-      <description><![CDATA[我最近在阅读概率论时遇到了组合的概念。维基百科上关于组合的文章提供了基本概述，但并未详细介绍如何在理论（或实践）中应用它。引用的资源是一本名为软多强子动力学的书，据我所知，我无法访问它，但标题暗示与强子有关。
-当我在谷歌上搜索“组合生成函数的应用”时我搜索到了很多关于重组 DNA的结果，但没有任何关于这个函数（al）的信息。
-必须有无数个函数$f$与矩生成函数以$(M_X \circ f) (t)$的形式组合，所以问题不可避免地是：我们为什么要关心这个特定的函数？理论上，给定任何一组有限的所需组合，我会对随机变量学到什么？或者组合生成函数是否经常作为其他形式分析的中间步骤出现？]]></description>
-      <guid>https://stats.stackexchange.com/questions/660759/theoretical-applications-of-combinants-in-probability</guid>
-      <pubDate>Thu, 30 Jan 2025 14:38:30 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么必须估计线性回归模型中的参数值？</title>
       <link>https://stats.stackexchange.com/questions/660750/why-must-the-values-of-the-parameters-in-a-linear-regression-model-be-estimated</link>
       <description><![CDATA[我不明白为什么在线性回归模型中无法找到参数 α 和 β 的真实值。为什么它们总是需要估计？
 我读到它与包含其他变量的误差项有关（$x_2,x_3 ...$），但我并不完全理解。]]></description>
       <guid>https://stats.stackexchange.com/questions/660750/why-must-the-values-of-the-parameters-in-a-linear-regression-model-be-estimated</guid>
       <pubDate>Thu, 30 Jan 2025 04:46:11 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用交叉验证来选择岭回归参数 $k$：如果 $\mathbf x_i$ 和 $y_i$ 的平均值在测试/训练集上可能为非零怎么办？</title>
-      <link>https://stats.stackexchange.com/questions/660749/use-cross-validation-to-select-ridge-regression-parameter-k-what-if-mean-of</link>
-      <description><![CDATA[考虑一个回归模型$$ Y= X\beta+ u.\tag{$\star$} $$
-$Y$是一个长度为$n$的列向量，包含$n$个观测值。
-$X$是一个$n\times p$矩阵，每行对应一个观测值，每列对应一个特征。
-$\beta$是回归系数。
-$u$是一个长度为$n$的列向量，包含误差。
-对于参数为 $k&gt;0$ 的岭回归，$\beta$ 的估计值为 $$\hat\beta= (X^TX +kI)^{-1}X^TY .$$
-我知道正则化参数 $k$ 的选择可以通过交叉验证来选择，例如论文 变量选择与数据增强之间的关系以及预测方法。
-我的问题是，假设我们使用十倍交叉验证，数据集的子集为 $S_1,\cdots, S_{10}$。
-$(\star)$ 的右侧没有均值项 $\mu$ 的原因是数据 $X,Y$ 被标准化为具有零均值。
-但是当应用交叉验证时（例如，使用 $S_{10}$ 进行测试，使用其他数据进行训练），
-则 $\cup_{i=1}^9 S_i$ 中的 $\mathbf x_i$ 和 $y_i$ 的均值可能不为零。
-$S_{10}$ 中的 $\mathbf x_i$ 和 $y_i$ 的平均值也可能为非零。
-那么我们如何才能继续使用公式 $$\hat\beta= (X^TX +kI)^{-1}X^TY$$ 来计算 $\cup_{i=1}^9 S_i$ 上的 $\hat\beta$，以及使用 $$ \sum\nolimits_{(\mathbf x_i, y_i)\in S_{10}} \|y_i- \langle \hat\beta, \mathbf x_i \rangle\|^2 $$
-作为测试集 $S_{10}$ 上的误差？
-我认为均值项 $\mu$ 也应该考虑。]]></description>
-      <guid>https://stats.stackexchange.com/questions/660749/use-cross-validation-to-select-ridge-regression-parameter-k-what-if-mean-of</guid>
-      <pubDate>Thu, 30 Jan 2025 04:05:46 GMT</pubDate>
     </item>
     </channel>
 </rss>
