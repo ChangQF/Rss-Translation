@@ -4,17 +4,125 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 04 Feb 2025 21:15:33 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 05 Feb 2025 01:15:42 GMT</lastBuildDate>
     <item>
-      <title>函数内部或外部的白点和偏差会产生不同的结果</title>
-      <link>https://stackoverflow.com/questions/79412793/diferent-results-for-wheits-and-biases-in-or-out-the-function</link>
+      <title>使用模型蒸馏来优化我的模型</title>
+      <link>https://stackoverflow.com/questions/79413411/struggling-with-optimizing-my-model-using-model-distillation</link>
+      <description><![CDATA[我有一个 NN 模型，用于学习端到端通信系统。它是一个自动编码器，其中编码器充当发射器；它采用 8 位并将其编码为 IQ 值，解码器充当接收器；它采用生成的 IQ 值并将其解码为 8 位。我还有一个通道模型，可以模拟噪声、频率/相位偏移等。
+该模型经过训练，具有非常好的误码率 (BER)，但在进行推理时具有高延迟，因此我需要对其进行优化。我正在尝试遵循 pytorch 的知识提炼教程，但到目前为止，我无法让我的学生有效地学习。
+我认为我的问题在于我的软损失函数不正确。在原始训练循环中，我使用 BinaryCrossEntropy 损失来对抗模型的预测位概率与真实输入位。从文档中可以看出，K.D 似乎包含了一个额外的损失，即采用学生和父母概率的 KL 散度损失。但是，在运行代码时，我的损失并没有改善。
+我感到困惑的是，我的“软损失”应该是什么类型的损失函数，以及它应该获得什么输入类型（logit 或概率）。我尝试了不同的排列（将对数概率输入到 KL Div 中，使用 CrossEntropy 损失而不是 KL，即文档中显示的损失函数），但它们都没有以任何方式提高我的学生模型的性能。
+这大致就是我正在使用的代码。它不是完整的代码；我只展示了父自动编码器和 K.D 循环，但这足以表达我的观点。
+任何帮助都值得感激。
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# 定义编码器
+class Encoder(nn.Module):
+def __init__(self):
+super(Encoder, self).__init__()
+self.fc1 = nn.Linear(8, 16) # 扩展特征空间
+self.relu = nn.ReLU()
+self.fc2 = nn.Linear(16, 10) # 输出 2 个值（IQ 表示）
+
+def forward(self, x):
+x = self.fc1(x)
+x = self.relu(x)
+x = self.fc2(x) # 输出原始 IQ 符号
+return x
+
+# 定义解码器
+class Decoder(nn.Module):
+def __init__(self):
+super(Decoder, self).__init__()
+self.fc1 = nn.Linear(100, 50) # 从 IQ 扩展回来
+self.fc2 = nn.Linear(50, 30)
+self.fc3 = nn.Linear(30, 16)
+self.fc4 = nn.Linear(16, 8) # 输出 8 位恢复序列
+self.relu = nn.ReLU()
+self.sigmoid = nn.Sigmoid() # 确保输出在 (0,1) 范围内
+
+def forward(self, x):
+x = self.fc1(x)
+x = self.relu(x)
+x = self.fc2(x)
+x = self.relu(x)
+x = self.fc3(x)
+x = self.relu(x)
+x = self.fc4(x)
+x = self.sigmoid() # 解释为概率
+return x
+
+# 定义自动编码器 (编码器 -&gt;通道 -&gt; 解码器)
+class Autoencoder(nn.Module):
+def __init__(self, noise_std=0.1):
+super(Autoencoder, self).__init__()
+self.encoder = Encoder()
+self.decoder = Decoder()
+
+def forward(self, x):
+x = self.encoder(x) # 将 8 位编码为 2 个 IQ 符号
+x = self.decoder(x) # 解码回 8 位序列
+return x
+
+ParentModel = Autoencoder(noise_std=0.1)
+
+# 加载预先训练的权重
+load_weights(model, path, optimizer)
+
+def knowledge_distillation(teacher, student, T, epochs, batches, alpha):
+ce_loss = nn.BCELoss()
+kl_loss = nn.KLDivLoss(reduction=&quot;batchmean&quot;)
+optimizer = optim.Adam(student.parameters(), lr = 1e-4)
+
+teacher.eval() # 教师设置为评估模式
+student.train() # 学生设置为训练模式
+
+for epoch in range(epochs):
+input_bits = generate_binary_tensor(8, batches) # 生成 [8, batch] 二进制张量
+
+optimizer.zero_grad()
+
+with torch.no_grad():
+teacher_predictions = teacher(input_bits) # 教师前向传递
+
+student_predictions = student(input_bits) # 学生前向传递
+
+# 计算硬损失
+hard_loss = ce_loss(student_predictions, input_bits)
+
+# 计算软损失（不确定这部分）
+soft_loss = kl_loss(student_predictions, teacher_predictions) * (T**2)
+
+total_loss = alpha*soft_loss + (1-alpha)*hard_loss
+
+total_loss.backward()
+optimizer.step()
+
+# 存储 BER
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79413411/struggling-with-optimizing-my-model-using-model-distillation</guid>
+      <pubDate>Wed, 05 Feb 2025 00:55:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>有没有办法提高我的 CNN 准确性？[关闭]</title>
+      <link>https://stackoverflow.com/questions/79412910/is-there-a-way-to-improve-my-cnns-accuracy</link>
       <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79412793/diferent-results-for-wheits-and-biases-in-or-out-the-function</guid>
+      <guid>https://stackoverflow.com/questions/79412910/is-there-a-way-to-improve-my-cnns-accuracy</guid>
+      <pubDate>Tue, 04 Feb 2025 20:07:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>函数内部和外部的权重和偏差会产生不同的结果</title>
+      <link>https://stackoverflow.com/questions/79412793/diferent-results-for-weights-and-biases-in-or-out-the-function</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79412793/diferent-results-for-weights-and-biases-in-or-out-the-function</guid>
       <pubDate>Tue, 04 Feb 2025 19:13:39 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 python 和 scikit-learn 为特定设备创建机器学习和线性回归模型</title>
-      <link>https://stackoverflow.com/questions/79412575/how-create-machine-learning-and-line-regresion-model-for-specific-device-with-py</link>
+      <title>如何为特定设备创建机器学习和线性回归模型？ [关闭]</title>
+      <link>https://stackoverflow.com/questions/79412575/how-create-machine-learning-and-line-regresion-model-for-specific-device</link>
       <description><![CDATA[我有以下数据源模式：
 在此处输入图片说明
 我将“日期”列编码为三个单独的列：
@@ -25,27 +133,34 @@
 我想预测给定未来的消耗能量（设备 ID 和日期）。能耗是一个日益增长的设备计数器
 我创建了相关矩阵来查看属性之间的相关性，我发现消耗_能耗和设备之间的相关性非常低 (-0.15)。
 以下是模型训练的模型指标：
-&#39;rmse&#39;: np.float64(0.7648236497453013)、&#39;r2_score&#39;: 0.41662485203361777、&#39;coefficients&#39;: array([[-0.59067425, 0.61791617, 0.04103179, 0.00336239]])、&#39;intercept&#39;: array([0.00086466]
-当我仅使用一个 device_id 加载数据时，结果会更好：
-&#39;rmse&#39;: np.float64(0.1045133437744489), &#39;r2_score&#39;: 0.9894746517207146, &#39;coefficients&#39;: array([[0. , 0.99656364, 0.06202053, 0.00616694]]), &#39;intercept&#39;: array([-0.00046585])
-我理解，基于多个设备的数据构建的模型将产生不同的结果...
-我在一个文件中接收了所有设备的数据。当给定的未来是 device_id 时，如何正确构建此模型？
-我应该创建预测方法吗？该方法首先为给定的 device_id 选择数据，然后为该特定设备创建新的数据框，然后构建模型并进行预测？这会耗费时间，我需要根据需求对每个预测进行此计算。如果我想，该如何处理这个问题保存/选择模型并使用它来提供数据？（我的数据有很多设备）
-我不知道是否可以根据具有多个设备的数据构建此模型，并驱动线回归算法将设备 ID 未来视为主要/重要的系数因子。我应该使用不同的 ml 模型吗？
-谢谢
+&#39;rmse&#39;: np.float64(0.7648236497453013), 
+&#39;r2_score&#39;: 0.41662485203361777, 
+&#39;coefficients&#39;: array([[-0.59067425, 0.61791617, 0.04103179, 0.00336239]]), 
+&#39;intercept&#39;: array([0.00086466]
+
+当我仅使用一个 device_id 加载数据时，结果更好：
+&#39;rmse&#39;: np.float64(0.1045133437744489), 
+&#39;r2_score&#39;: 0.9894746517207146, 
+&#39;coefficients&#39;: array([[0. , 0.99656364, 0.06202053, 0.00616694]]), 
+&#39;intercept&#39;: array([-0.00046585])
+
+我理解基于多个设备的数据构建的模型将产生不同的结果...
+我在一个文件中接收包含所有设备的数据。当给定的未来是 device_id 时，如何正确构建此模型？
+我应该创建预测方法，该方法首先为给定的 device_id 选择数据，然后为该特定设备创建新的数据框，然后构建模型并进行预测吗？这会耗费时间，我需要根据需求对每个预测进行计算。如果我想保存/选择模型并使用它来提供数据，该如何处理？（我的数据有很多设备）
+我不知道是否可以基于具有多个设备的数据构建此模型，并驱动线回归算法将设备 ID 未来视为主要/重要系数因子。我应该使用不同的机器学习模型吗？
 我尝试使用 python 和 scikit-learn 为特定设备创建机器学习和线回归模型]]></description>
-      <guid>https://stackoverflow.com/questions/79412575/how-create-machine-learning-and-line-regresion-model-for-specific-device-with-py</guid>
+      <guid>https://stackoverflow.com/questions/79412575/how-create-machine-learning-and-line-regresion-model-for-specific-device</guid>
       <pubDate>Tue, 04 Feb 2025 17:46:48 GMT</pubDate>
     </item>
     <item>
-      <title>实现扩散生成模型进行数据增强，但训练损失值太高</title>
+      <title>实现扩散生成模型进行数据增强，但训练损失值太高 [迁移]</title>
       <link>https://stackoverflow.com/questions/79412455/implementing-a-diffusion-generative-model-for-data-augmentation-but-training-los</link>
       <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79412455/implementing-a-diffusion-generative-model-for-data-augmentation-but-training-los</guid>
       <pubDate>Tue, 04 Feb 2025 16:56:25 GMT</pubDate>
     </item>
     <item>
-      <title>通过计算检查梯度是否会爆炸或消失</title>
+      <title>通过计算检查梯度是否会爆炸或消失[关闭]</title>
       <link>https://stackoverflow.com/questions/79412199/check-through-calculations-whether-the-gradients-will-explode-or-vanish</link>
       <description><![CDATA[我正在复习旧考试题目，偶然发现了这个：
 
@@ -64,11 +179,11 @@ c) 都不是。 (n)
       <pubDate>Tue, 04 Feb 2025 15:26:12 GMT</pubDate>
     </item>
     <item>
-      <title>寻找专业培训项目评论数据集</title>
+      <title>寻求专业培训项目评论数据集 [关闭]</title>
       <link>https://stackoverflow.com/questions/79411761/seeking-dataset-for-reviews-of-professional-training-programs</link>
-      <description><![CDATA[我正在开展一个项目，该项目涉及分析专业培训计划的评论并根据这些评论创建推荐系统。具体来说，我有兴趣找到一个包含各种专业发展课程、培训计划和认证的用户评论的数据集。
-我搜索过 Kaggle 和政府开放数据门户等常见来源，但没有找到我正在寻找的内容。如果有人知道我可以在哪里找到这样的数据集，或者知道我如何使用其他方法来利用现有数据（Coursera / udemy 课程评论），我将非常感谢您的帮助！
-提前谢谢您。]]></description>
+      <description><![CDATA[我正在分析专业培训课程的评论，并根据这些评论创建推荐系统。具体来说，我感兴趣的是找到一个包含各种专业发展课程、培训课程和认证的用户评论的数据集。
+我搜索过 Kaggle 和政府开放数据门户等常见来源，但没有找到我正在寻找的内容。
+我在哪里可以找到这样的数据集？或者我如何使用其他方法来利用现有数据（Coursera / udemy 课程评论）？]]></description>
       <guid>https://stackoverflow.com/questions/79411761/seeking-dataset-for-reviews-of-professional-training-programs</guid>
       <pubDate>Tue, 04 Feb 2025 12:51:33 GMT</pubDate>
     </item>
@@ -93,24 +208,6 @@ Bo Yu (2003): https://dl.acm.org/doi/10.1145/604471.604499
 ]]></description>
       <guid>https://stackoverflow.com/questions/79411692/how-do-you-calculate-the-least-squares-error-and-feature-area-error-for-user-dra</guid>
       <pubDate>Tue, 04 Feb 2025 12:28:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么 2048 游戏的训练对我来说效果不佳？[关闭]</title>
-      <link>https://stackoverflow.com/questions/79411336/why-is-training-for-the-game-2048-not-working-well-for-me</link>
-      <description><![CDATA[因此我开始为游戏 2048 训练神经网络，这里是我的仓库
-
-我尝试使用 DQN 算法，即我的仓库中的 traindqn.py，但分数在 200 到 400 之间随机。
-
-然后我尝试使用进化算法，即我的仓库中的 trainevo.py，分数确实上升了，但似乎稳定在 500 左右。
-在尝试了几次手动超参数调整后，我放弃了 DQN。
-
-至于 evo，我增加了种群规模，以下是两个训练图
-popsize 64，512 episodes evo
-popsize 128，512 episodes evo
-它们差别不大，上升到 500 左右，没有继续前进。
-我预计它至少会超过 600（我测试了一个随机代理，它的平均分数在 500 左右），如果可能的话，还有办法让它更高，比如超参数调整或更改网络结构。]]></description>
-      <guid>https://stackoverflow.com/questions/79411336/why-is-training-for-the-game-2048-not-working-well-for-me</guid>
-      <pubDate>Tue, 04 Feb 2025 10:28:14 GMT</pubDate>
     </item>
     <item>
       <title>huggingface 的图像分割 ONNX 在 ML.Net 中使用时会产生截然不同的结果</title>
@@ -165,7 +262,7 @@ print(&quot;Response is not valid JSON.&quot;)
       <pubDate>Tue, 04 Feb 2025 07:49:43 GMT</pubDate>
     </item>
     <item>
-      <title>以多模态方式训练潜在扩散模型</title>
+      <title>以多模态方式训练潜在扩散模型[关闭]</title>
       <link>https://stackoverflow.com/questions/79410889/training-latent-diffusion-models-in-a-multi-modal-manner</link>
       <description><![CDATA[LDM 论文提到调节块可以包括语义图、文本、图像和表示。是否可以使用图像内容作为模型输入，并通过调节块提供对象类和相应的边界框位置作为训练数据？
 这旨在通过提供调节类和边界框，使模型能够在推理过程中在相关区域中生成指定对象。
@@ -173,104 +270,6 @@ print(&quot;Response is not valid JSON.&quot;)
 我正在尝试通过扩散模型生成异常 X 射线包裹图像。]]></description>
       <guid>https://stackoverflow.com/questions/79410889/training-latent-diffusion-models-in-a-multi-modal-manner</guid>
       <pubDate>Tue, 04 Feb 2025 07:33:59 GMT</pubDate>
-    </item>
-    <item>
-      <title>sklearn 随机森林的不同结果（带种子）</title>
-      <link>https://stackoverflow.com/questions/79410458/different-results-with-seed-for-sklearn-random-forest</link>
-      <description><![CDATA[我正在使用 sklearn 运行随机森林。我正在为随机森林设置种子，以及拆分数据以进行交叉验证。当我连续多次重新运行代码时，它给出了相同的结果。但是，一个月后重新运行相同的代码，我得到了略有不同的特征重要性。在其他一些类似的分析中，准确度指标也不同。数据没有改变。我在 Google Colab 上运行。
-这是我的代码：
-# 配置
-file_path = &#39;/content/drive/My Drive/dataset.csv&#39;
-columns_to_keep = [
-&#39;target_column&#39;, &#39;feature_a&#39;, &#39;feature_b&#39;, &#39;feature_c&#39;, &#39;feature_d&#39;, &#39;feature_e&#39;,
-&#39;feature_f&#39;, &#39;feature_g&#39;, &#39;feature_h&#39;, &#39;feature_i&#39;, &#39;feature_j&#39;, &#39;feature_k&#39;, &#39;feature_l&#39;,
-&#39;feature_m&#39;, &#39;feature_n&#39;, &#39;feature_o&#39;, &#39;feature_p&#39;, &#39;feature_q&#39;, &#39;feature_r&#39;, &#39;feature_s&#39;,
-&#39;feature_t&#39;, &#39;feature_u&#39;, &#39;feature_v&#39;, &#39;feature_w&#39;, &#39;feature_x&#39;, &#39;feature_y&#39;, &#39;feature_z&#39;,
-&#39;feature_aa&#39;, &#39;feature_ab&#39;, &#39;feature_ac&#39;, &#39;feature_ad&#39;, &#39;feature_ae&#39;, &#39;feature_af&#39;, &#39;feature_ag&#39;,
-&#39;feature_ah&#39;, &#39;feature_ai&#39;, &#39;feature_aj&#39;, &#39;feature_ak&#39;, &#39;feature_al&#39;, &#39;feature_am&#39;, &#39;feature_an&#39;
-]
-
-df = pd.read_csv(file_path, usecols=columns_to_keep)
-
-categorical_columns = [&#39;feature_ak&#39;, &#39;feature_al&#39;, &#39;feature_am&#39;, &#39;feature_an&#39;, &#39;feature_ao&#39;]
-one_hot_columns = [&#39;feature_al&#39;, &#39;feature_ak&#39;]
-
-df = df.dropna()
-
-# 对指定列进行独热编码
-le = LabelEncoder()
-for col in one_hot_columns:
-df[col] = le.fit_transform(df[col])
-
-# 将指定列转换为分类
-for col in categorical_columns:
-df[col] = df[col].astype(&#39;category&#39;)
-
-# 拆分为特征和目标
-X = df.drop(columns=[&#39;target_column&#39;])
-y = df[&#39;target_column&#39;]
-
-# 初始化 RandomForestClassifier 模型
-rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
-
-# 初始化 k 倍交叉验证
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
-# 存储结果
-feature_importances_list = []
-all_y_true = []
-all_y_pred = []
-
-# 执行 k 倍交叉验证
-for fold_num, (train_index, test_index) in enumerate(kf.split(X), start=1):
-# 拆分数据
-X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-
-# 训练随机森林模型
-rf_model.fit(X_train, y_train)
-
-# 在测试集上进行预测
-y_pred = rf_model.predict(X_test)
-
-# 收集所有真实和预测标签
-all_y_true.extend(y_test)
-all_y_pred.extend(y_pred)
-
-# 获取此折叠的特征重要性
-feature_importances_list.append(rf_model.feature_importances_)
-
-# 计算并打印此折叠的准确度
-accuracy_fold = accuracy_score(y_test, y_pred)
-print(f&quot;Fold {fold_num} Accuracy: {accuracy_fold:.4f}&quot;)
-
-# 计算所有预测的准确度
-accuracy_cv = accuracy_score(all_y_true, all_y_pred)
-
-# 生成分类报告
-final_report = classes_report(all_y_true, all_y_pred, digits=3)
-
-# 折叠的平均特征重要性
-average_importance = sum(feature_importances_list) / len(feature_importances_list)
-
-# 创建带有特征名称的 DataFrame及其相应的平均重要性
-feature_names = X.columns
-importance_df = pd.DataFrame({
-&#39;Feature&#39;: feature_names,
-&#39;Importance&#39;: average_importance
-}).sort_values(by=&#39;Importance&#39;, accending=False)
-
-# 打印结果
-print(f&quot;具有 k 倍 CV 的随机森林模型的总体准确率：{accuracy_cv:.4f}&quot;)
-
-print(&quot;\n最终分类报告：&quot;)
-print(final_report)
-
-print(&quot;\n随机森林特征重要性（跨倍平均）：&quot;)
-print(importance_df.head(20))
-]]></description>
-      <guid>https://stackoverflow.com/questions/79410458/different-results-with-seed-for-sklearn-random-forest</guid>
-      <pubDate>Tue, 04 Feb 2025 02:34:12 GMT</pubDate>
     </item>
     <item>
       <title>TensorFlow 模型在二元分类中仅预测一个类（猫）</title>
@@ -405,135 +404,6 @@ plt.show()
       <pubDate>Mon, 03 Feb 2025 20:03:37 GMT</pubDate>
     </item>
     <item>
-      <title>我可以使用哪些方法来找出行人轨迹的部分</title>
-      <link>https://stackoverflow.com/questions/79409749/what-are-methods-i-can-use-to-find-out-parts-of-trajectory-that-is-pedestrian-tr</link>
-      <description><![CDATA[我有一个表示手机移动轨迹的数据集，该轨迹由步行和驾车行驶的路段组成。数据包括经度、纬度和时间戳。我需要提取所有步行行驶的子轨迹。有没有现成的解决方案可以解决这个问题？如果没有，我该如何处理这个任务？
-我试图在互联网上寻找现成的解决方案，但没有找到任何有价值的东西。]]></description>
-      <guid>https://stackoverflow.com/questions/79409749/what-are-methods-i-can-use-to-find-out-parts-of-trajectory-that-is-pedestrian-tr</guid>
-      <pubDate>Mon, 03 Feb 2025 18:56:03 GMT</pubDate>
-    </item>
-    <item>
-      <title>scikit-learn 中的 GaussianProcessRegressor 对象：选择固定超参数，无法重现优化内核</title>
-      <link>https://stackoverflow.com/questions/79407078/gaussianprocessregressor-object-in-scikit-learn-select-fixed-hyperparameters-c</link>
-      <description><![CDATA[我试图理解 scikit-learn 中的 GaussianProcessRegressor 对象，可惜没有成功。
-考虑文档中的示例 带有噪声目标的示例，我将其复制到下面以方便使用（略作更改，使用 ConstantKernel 而不是在内核定义中乘以常数）
-import numpy as np
-
-X = np.linspace(start=0, stop=10, num=1_000).reshape(-1, 1)
-y = np.squeeze(X * np.sin(X))
-
-#############
-#############
-noise_std = 0.75
-
-将 matplotlib.pyplot 导入为 plt
-
-plt.plot(X, y, label=r&quot;$f(x) = x \sin(x)$&quot;, linestyle=&quot;dotted&quot;)
-plt.legend()
-plt.xlabel(&quot;$x$&quot;)
-plt.ylabel(&quot;$f(x)$&quot;)
-_ = plt.title(&quot;真正的生成过程&quot;)
-rng = np.random.RandomState(1)
-
-training_indices = rng.choice(np.arange(y.size), size=6, replace=False)
-X_train, y_train = X[training_indices], y[training_indices]
-
-noise_std = 0.75
-y_train_noisy = y_train + rng.normal(loc=0.0, scale=noise_std, size=y_train.shape)
-从 sklearn.gaussian_process 导入 GaussianProcessRegressor
-从 sklearn.gaussian_process.kernels 导入 RBF、WhiteKernel、ConstantKernel
-
-# kernel = 1 * RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2)) + WhiteKernel()
-kernel = ConstantKernel(constant_value=1)*RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e2)) 
-gaussian_process = GaussianProcessRegressor(kernel=kernel, alpha=noise_std**2, n_restarts_optimizer=9)
-
-gaussian_process.fit(X_train, y_train_noisy)
-gaussian_process.kernel_
-mean_prediction, std_prediction = gaussian_process.predict(X, return_std=True)
-plt.plot(X, y, label=r&quot;$f(x) = x \sin(x)$&quot;, linestyle=&quot;dotted&quot;)
-plt.errorbar(
-X_train,
-y_train_noisy,
-noise_std,
-linestyle=&quot;None&quot;,
-color=&quot;tab:blue&quot;,
-marker=&quot;.&quot;,
-markersize=10,
-label=&quot;Observations&quot;,
-)
-plt.plot(X, mean_prediction, label=&quot;Mean prediction&quot;)
-plt.fill_between(
-X.ravel(),
-mean_prediction - 1.96 * std_prediction,
-mean_prediction + 1.96 * std_prediction,
-color=&quot;tab:orange&quot;,
-alpha=0.5,
-label=r&quot;95% 置信区间&quot;,
-)
-plt.legend()
-plt.xlabel(&quot;$x$&quot;)
-plt.ylabel(&quot;$f(x)$&quot;)
-_ = plt.title(&quot;高斯过程回归在嘈杂的数据集上&quot;)
-
-我得到了这些结果
-
-现在，我想使用具有“固定”参数的内核可获得相同的结果（用于与问题无关的其他目的）。
-因此，我得到了上述内核的优化超参数，
-gaussian_process.kernel_.get_params()
-输出
-{&#39;k1&#39;: 4.28**2,
-&#39;k2&#39;: RBF(length_scale=1.1),
-&#39;k1__constant_value&#39;: 18.30421069841903,
-&#39;k1__constant_value_bounds&#39;: (1e-05, 100000.0),
-&#39;k2__length_scale&#39;: 1.1043558649730463,
-&#39;k2__length_scale_bounds&#39;: (0.01, 100.0)}
-
-因此，我修改了之前的内核 &amp;高斯过程定义
-kernel_fixed = ConstantKernel(constant_value=18.30, constant_value_bounds=&#39;fixed&#39;) *RBF(length_scale=1.1043, length_scale_bounds=&#39;fixed&#39;) 
-gaussian_process_fixed = GaussianProcessRegressor(kernel=kernel_fixed, alpha=noise_std**2, n_restarts_optimizer=9)
-gaussian_process_fixed.fit(X,y)
-mean_prediction, std_prediction = gaussian_process_fixed.predict(X, return_std=True)
-
-plt.plot(X, y, label=r&quot;$f(x) = x \sin(x)$&quot;, linestyle=&quot;dotted&quot;)
-plt.errorbar(
-X_train,
-y_train_noisy,
-noise_std,
-linestyle=&quot;None&quot;,
-color=&quot;tab:blue&quot;,
-marker=&quot;.&quot;,
-markersize=10,
-label=&quot;Observations&quot;,
-)
-plt.plot(X, mean_prediction, label=&quot;Mean prediction&quot;)
-plt.fill_between(
-X.ravel(),
-mean_prediction - 1.96 * std_prediction,
-mean_prediction + 1.96 * std_prediction,
-color=&quot;tab:orange&quot;,
-alpha=0.5,
-label=r&quot;95% 置信度interval&quot;,
-)
-plt.legend()
-plt.xlabel(&quot;$x$&quot;)
-plt.ylabel(&quot;$f(x)$&quot;)
-_ = plt.title(&quot;Gaussian process return on a noisy dataset&quot;)
-
-
-但结果非常不同，而内核的参数与我修复的参数非常接近优化的参数
-{&#39;k1&#39;: 4.28**2,
-&#39;k2&#39;: RBF(length_scale=1.1),
-&#39;k1__constant_value&#39;: 18.3,
-&#39;k1__constant_value_bounds&#39;: &#39;fixed&#39;,
-&#39;k2__length_scale&#39;: 1.1043,
-&#39;k2__length_scale_bounds&#39;: &#39;已修复&#39;}
-
-我遗漏了什么？？
-]]></description>
-      <guid>https://stackoverflow.com/questions/79407078/gaussianprocessregressor-object-in-scikit-learn-select-fixed-hyperparameters-c</guid>
-      <pubDate>Sun, 02 Feb 2025 18:17:29 GMT</pubDate>
-    </item>
-    <item>
       <title>使用 sklearn 在 KDE 之前正确缩放数据 [关闭]</title>
       <link>https://stackoverflow.com/questions/79397275/correct-scaling-of-data-before-kde-with-sklearn</link>
       <description><![CDATA[我在地理空间数据上使用 sklearn.neighbors.KernelDensity。我注意到带宽估计方法没有考虑数据的空间范围，只考虑样本和特征的数量。 sklearn 文档或 sklearn 教程似乎没有提到应该缩放数据。
@@ -566,6 +436,21 @@ fig.show()
 ]]></description>
       <guid>https://stackoverflow.com/questions/79397275/correct-scaling-of-data-before-kde-with-sklearn</guid>
       <pubDate>Wed, 29 Jan 2025 15:33:57 GMT</pubDate>
+    </item>
+    <item>
+      <title>训练数据集应如何分布？</title>
+      <link>https://stackoverflow.com/questions/72614571/how-should-a-training-dataset-be-distributed</link>
+      <description><![CDATA[我正在构建一个文本转语音模型。我想知道我的训练数据集是否应该“现实地”分布（即与将要使用的数据分布相同），还是应该均匀分布以确保它在各种句子上都能表现良好。]]></description>
+      <guid>https://stackoverflow.com/questions/72614571/how-should-a-training-dataset-be-distributed</guid>
+      <pubDate>Tue, 14 Jun 2022 09:26:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>银行交易数据集</title>
+      <link>https://stackoverflow.com/questions/56914395/dataset-for-bank-transaction</link>
+      <description><![CDATA[我想使用银行交易数据集制作信用卡和借记卡之间的图表。借记和贷记金额，但没有得到正确的数据集。
+有人能给我提供同样的数据集吗？]]></description>
+      <guid>https://stackoverflow.com/questions/56914395/dataset-for-bank-transaction</guid>
+      <pubDate>Sat, 06 Jul 2019 13:09:23 GMT</pubDate>
     </item>
     </channel>
 </rss>
