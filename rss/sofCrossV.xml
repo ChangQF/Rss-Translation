@@ -4,7 +4,140 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 06 Feb 2025 03:21:06 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 06 Feb 2025 06:24:53 GMT</lastBuildDate>
+    <item>
+      <title>哪一个是正确的 SE，为什么？</title>
+      <link>https://stats.stackexchange.com/questions/661030/which-one-is-the-right-se-and-why</link>
+      <description><![CDATA[我不确定这是否更像是一个 stackoverflow 问题，但我认为这里可能更好，因为我正在尝试了解如何确定正确的答案。
+我创建了一个可重现的小示例：
+library(survey)
+library(broom)
+library(broom.helpers)
+
+mtcars$weights &lt;- rnorm(dim(mtcars)[1],1,0.1)
+
+model &lt;- svyglm(as.formula(&quot;vs ~ wt&quot;),family=quasibinomial(link=&quot;logit&quot;),design=svydesign(ids=~1,weights=~weights,data=mtcars))
+
+假设我想在指数化系数后提取输出表，使用来自 broom 的 tidy 的输出和broom.helpers 中的 tidy_parameters 几乎完全相同，除了 SE（差异很大）之外
+tidy(model,exp=TRUE,conf.int=TRUE)
+
+给出此输出
+
+但是，
+tidy_parameters(model,exp=TRUE,conf.int=TRUE) 
+
+给出此输出
+
+我如何确定哪些是正确的 SE？什么可以解释两个输出之间的 SE 差异（但不能解释任何其他参数）？]]></description>
+      <guid>https://stats.stackexchange.com/questions/661030/which-one-is-the-right-se-and-why</guid>
+      <pubDate>Thu, 06 Feb 2025 05:33:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用距离和方差的遗传算法多目标聚类</title>
+      <link>https://stats.stackexchange.com/questions/661029/genetic-algorithm-multi-objective-clustering-using-distance-and-variance</link>
+      <description><![CDATA[我尝试使用 PyGAD 进行聚类，通过最小化 2d 点的欧几里德距离（vanilla kmeans），同时还希望最小化第三个特征（权重）的聚类间方差。我使用以下代码获得了合理的聚类，但我想知道这是否有意义。欢迎提供任何反馈。我将在下面包含聚类函数。
+def cluster_data(solution, solution_idx):
+global num_cluster, data
+feature_vector_length = data.shape[1] - 1
+cluster_centers = []
+all_clusters_dists = []
+clusters = []
+clusters_sum_dist = []
+
+clusters_sum_var = []
+
+for clust_idx in range(num_clusters):
+cluster_centers.append(solution[feature_vector_length*clust_idx:feature_vector_length*(clust_idx+1)])
+cluster_center_dists = euclidean_distance(data[:,:-1], cluster_centers[clust_idx])
+all_clusters_dists.append(numpy.array(cluster_center_dists))
+
+cluster_centers = numpy.array(cluster_centers)
+all_clusters_dists = numpy.array(all_clusters_dists) 
+cluster_indices = numpy.argmin(all_clusters_dists, axis=0)
+对于 clust_idx 在 range(num_clusters):
+clusters.append(numpy.where(cluster_indices == clust_idx)[0])
+如果 len(clu​​sters[clust_idx]) == 0:
+clusters_sum_dist.append(0)
+否则:
+clusters_sum_dist.append(numpy.sum(all_clusters_dists[clust_idx, clusters[clust_idx]]))
+
+clusters_sum_dist = numpy.array(clusters_sum_dist)
+
+对于 clust_idx 在range(num_clusters):
+if len(clu​​sters[clust_idx]) == 0:
+clusters_sum_var.append(0)
+else:
+cluster_current_data = data[np.where(cluster_indices == clust_idx)[0],-1]
+clusters_sum_var.append(np.std(cluster_current_data))
+clusters_sum_var = np.array(clusters_sum_var)
+
+return clusters_sum_var, cluster_centers, all_clusters_dists, cluster_indices, clusters, clusters_sum_dist
+
+这是适应度函数
+def fitness_func(ga_instance,solution, solution_idx):
+clusters_sum_var,_, _, _, _, clusters_sum_dist = cluster_data(solution, solution_idx)
+
+clusters_sum_var = rescale_linear(clusters_sum_var,clusters_sum_dist.min(),clusters_sum_dist.max())
+
+fitness_1 =1.0 / (np.sum(clusters_sum_var) + 0.00000001)
+
+fitness = 1.0 / (numpy.sum(clusters_sum_dist) + 0.00000001)
+
+返回 fitness,fitness_1
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/661029/genetic-algorithm-multi-objective-clustering-using-distance-and-variance</guid>
+      <pubDate>Thu, 06 Feb 2025 04:16:40 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用引导程序生成预测区间</title>
+      <link>https://stats.stackexchange.com/questions/661026/generating-prediction-intervals-using-bootstrap</link>
+      <description><![CDATA[我有一些数据并拟合线性回归：
+$$ y_i = \beta_0 + \beta_1x_i + \epsilon_i, \quad \epsilon_i \sim N(0, \sigma^2) $$
+我想对新点 $x_{\text{new}}$ 进行预测并记录预测区间。我对以下内容有些困惑。我能想到 3 种不同的方法来做到这一点：
+我已将它们概述如下：
+
+方法 1：没有单独预测区间的引导样本
+使用引导抽样。对于一个新点$x_{\text{new}}$，生成引导样本。对于每个引导样本$b = 1, \ldots, B$:
+
+从我们的原始数据中进行替换抽样，以获得$i = 1, \ldots, n$的$(x_i^{(b)}, y_i^{(b)})$
+拟合新的回归模型以获得估计值$\hat{\beta}_0^{(b)}$和$\hat{\beta}_1^{(b)}$
+
+对于每个引导样本$b$，仅计算点预测：
+$$ \hat{y}_{\text{new}}^{(b)} = \hat{\beta}_0^{(b)} + \hat{\beta}_1^{(b)}x_{\text{new}} $$
+然后根据这些预测的经验分布形成预测区间：
+$$ [\hat{y}_{\text{new},\text{lower}}, \hat{y}_{\text{new},\text{upper}}] = [\text{Percentile}_{2.5}(\{\hat{y}_{\text{new}}^{(b)}\}), \text{Percentile}_{97.5}(\{\hat{y}_{\text{new}}^{(b)}\})] $$
+
+方法 2：具有单独预测区间的引导样本
+对于每个引导样本 $b$，我们计算完整的预测区间：
+$$ \hat{y}_{\text{new}}^{(b)} \pm t_{n-2,\alpha/2}\hat{\sigma}^{(b)}\sqrt{1 + \frac{1}{n} + \frac{(x_{\text{new}} - \bar{x}^{(b)})^2}{\sum(x_i^{(b)} - \bar{x}^{(b)})^2}} $$
+其中：
+
+$\hat{\sigma}^{(b)}$ 是自举样本的残差标准误差 $b$
+$t_{n-2,\alpha/2}$ 是 t 分布的临界值
+$\bar{x}^{(b)}$ 是自举样本中 x 值的平均值 $b$
+
+这为我们提供了 $b = 1, \ldots, B$ 的区间集合 $[L^{(b)}, U^{(b)}]$。最终的预测区间是：
+$$ [\text{百分位数}_{2.5}(\{L^{(b)}\}), \text{百分位数}_{97.5}(\{U^{(b)}\})] $$
+
+方法 3：无引导，使用封闭形式预测区间
+使用经典方法和封闭形式公式：
+$$ \hat{y}_{\text{new}} \pm t_{n-2,\alpha/2}\hat{\sigma}\sqrt{1 + \frac{1}{n} + \frac{(x_{\text{new}} - \bar{x})^2}{\sum(x_i - \bar{x})^2}} $$
+其中：
+
+$\hat{\sigma}$ 是原始模型的残差标准误差
+$\bar{x}$ 是原始 x 值的平均值
+
+
+总结：
+
+方法 1 仅捕获回归系数中的不确定性（$\beta_0$ 和 $\beta_1$）。这将是最小的。
+方法 2 通过引导法考虑了系数不确定性和固有可变性（$\sigma^2$）。这将是最大的
+方法 3 使用基于 t 分布假设的理论公式。这将是中间
+
+在实践中，建议使用方法 2 来获得最现实的预测区间吗？]]></description>
+      <guid>https://stats.stackexchange.com/questions/661026/generating-prediction-intervals-using-bootstrap</guid>
+      <pubDate>Thu, 06 Feb 2025 03:45:25 GMT</pubDate>
+    </item>
     <item>
       <title>安德森吉尔斯模型是否严格模拟事件重复发生的风险或事件之间的时间？</title>
       <link>https://stats.stackexchange.com/questions/661025/does-the-andersen-gills-model-strictly-model-the-hazard-of-an-event-recurring-or</link>
@@ -194,36 +327,6 @@ plt.show()
       <pubDate>Wed, 05 Feb 2025 19:28:46 GMT</pubDate>
     </item>
     <item>
-      <title>多元回归的 R 代码（多种结果）[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/661010/r-code-for-a-multivariate-regression-multiple-outcomes</link>
-      <description><![CDATA[我真的很难找到一个多元回归（多个结果）的 R 代码示例。你能帮我吗？我的问题是我的样本量非常小，但我仍然想运行多元回归。我正在寻找一个逐步的示例来了解如何处理它，从检查假设开始，以及如果假设不成立该怎么做。（我现在已经看到线性被违反了）。]]></description>
-      <guid>https://stats.stackexchange.com/questions/661010/r-code-for-a-multivariate-regression-multiple-outcomes</guid>
-      <pubDate>Wed, 05 Feb 2025 19:10:14 GMT</pubDate>
-    </item>
-    <item>
-      <title>通过计算检查梯度是否会爆炸或消失</title>
-      <link>https://stats.stackexchange.com/questions/661007/check-through-calculations-whether-the-gradients-will-explode-or-vanish</link>
-      <description><![CDATA[我正在复习旧考试题目，偶然发现了这个：
-
-考虑一个常规的 MLP（多层感知器）架构，该架构具有 10 个完全连接的层和 ReLU 激活函数。网络的输入是一个大小为 100 的向量，其中每个维度的均值为零，标准差在整个数据集中等于 1。
-每个隐藏层有 10000 个神经元，权重由均值为零、方差为 0.01 的正态分布初始化。
-
-
-以下哪个选项最有可能？
-a) 梯度将爆炸
-b) 梯度将消失
-c) 都不是。
-
-答案中有：
-a) 正确
-b) 错误
-a) 错误
-我如何证明这些答案？我想我需要计算一些东西，但我不知道从哪里开始。
-输入中的预期值都是零，权重也是如此，因此当一切都为零时很难计算任何东西。]]></description>
-      <guid>https://stats.stackexchange.com/questions/661007/check-through-calculations-whether-the-gradients-will-explode-or-vanish</guid>
-      <pubDate>Wed, 05 Feb 2025 18:19:57 GMT</pubDate>
-    </item>
-    <item>
       <title>平滑的 AIC 选择</title>
       <link>https://stats.stackexchange.com/questions/661003/smooth-aic-selection</link>
       <description><![CDATA[假设我有一组针对相同数据的 $N$ 个模型，索引为 $n\in\{1,\dots,N\}$。
@@ -265,17 +368,6 @@ k 和 n 都很大。如果我使用不同的 k（例如 50k）和 n，则图像�
       <description><![CDATA[]]></description>
       <guid>https://stats.stackexchange.com/questions/660990/regression-when-y-has-been-calculated-from-x</guid>
       <pubDate>Wed, 05 Feb 2025 12:43:17 GMT</pubDate>
-    </item>
-    <item>
-      <title>Benjamini-Hochberg 校正跨子组进行多重检验：适用于所有层内还是跨所有层？</title>
-      <link>https://stats.stackexchange.com/questions/660983/benjamini-hochberg-correction-for-multiple-testing-across-subgroups-apply-withi</link>
-      <description><![CDATA[我正在研究一项研究中单个基因与蛋白质组之间的关联，该研究涉及三个不同亚组（例如年轻人、中年人和老年人）的约 3,000 种蛋白质（因变量）。为了将错误发现率 (FDR) 控制在 5%，应如何应用 Benjamini-Hochberg 程序？
-FDR 校正是否应在每个亚组中单独执行（每组约 3,000 次假设检验）？
-还是应将其应用于所有子组（总共约 9,000 次假设检验）？
-我希望能够解释这些方法背后的理论考虑，以及任何相关参考资料。
-提前致谢！]]></description>
-      <guid>https://stats.stackexchange.com/questions/660983/benjamini-hochberg-correction-for-multiple-testing-across-subgroups-apply-withi</guid>
-      <pubDate>Wed, 05 Feb 2025 10:10:17 GMT</pubDate>
     </item>
     </channel>
 </rss>
