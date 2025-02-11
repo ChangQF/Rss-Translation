@@ -4,7 +4,132 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>来自 stats.stackexchange.com 的最新 30 条</description>
-    <lastBuildDate>Tue, 11 Feb 2025 09:23:30 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 11 Feb 2025 12:33:12 GMT</lastBuildDate>
+    <item>
+      <title>loess() 与自卷式黄土平滑器之间的差异</title>
+      <link>https://stats.stackexchange.com/questions/661221/discrepancy-between-loess-and-roll-your-own-loess-smoother</link>
+      <description><![CDATA[为了更好地理解 R 的 loess() 的作用，我尝试根据 ?loess 上的描述编写自己的 LOESS 函数。它产生的结果与 loess() 获得的结果相似，但不完全相同。如果您能提供任何关于导致这些差异的见解，我将不胜感激。我认为这个问题对于 CV 来说很好，因为我的目标是更好地理解统计程序。
+# 自己动手实现 LOESS 函数
+predict_loess &lt;- function(x_star, x, y, span) {
+if (span &lt; 1) {
+n &lt;- ceiling(length(x) * span)
+cutoff &lt;- sort(abs(x - x_star))[n]
+max_dist &lt;- cutoff
+} else {
+n &lt;- length(x)
+cutoff &lt;- max(abs(x - x_star))
+max_dist &lt;- span * max(abs(x - x_star))
+}
+x_retained &lt;- x[abs(x - x_star) &lt;= cutoff]
+y_retained &lt;- y[abs(x - x_star) &lt;= cutoff]
+weights &lt;- (1 - (abs(x_retained - x_star)/max_dist)^3)^3
+d &lt;- data.frame(x_retained, y_retained, weights)
+mod.lm &lt;- lm(y_retained ~ poly(x_retained, 2), data = d, weights = 1*weights)
+predict(mod.lm, newdata = data.frame(x_retained = x_star))
+}
+
+# 示例 1
+plot(mpg ~ disp, mtcars)
+x_stars &lt;- seq(71, 472, 1)
+
+mod.loess &lt;- loess(mpg ~ disp, mtcars, span = 1/2)
+lines(x = x_stars, y = predict(mod.loess, newdata = data.frame(disp = x_stars)), col = &quot;blue&quot;)
+predictions_loess &lt;- sapply(x_stars, predict_loess, x = mtcars$disp, y = mtcars$mpg, span = 1/2)
+lines(x = x_stars, y = predictions_loess, col = &quot;red&quot;)
+
+
+# 示例 2
+plot(mpg ~ disp, mtcars)
+mod.loess &lt;- loess(mpg ~ disp, mtcars，span = 3/4)
+x_stars &lt;- seq(71, 472, 1)
+lines(x = x_stars，y = predict(mod.loess，newdata = data.frame(disp = x_stars))，col = &quot;blue&quot;)
+predictions_loess &lt;- sapply(x_stars，predict_loess，x = mtcars$disp，y = mtcars$mpg，span = 3/4)
+lines(x = x_stars，y = predictions_loess，col = &quot;red&quot;)
+
+
+# 示例 3
+plot(mpg ~ disp, mtcars)
+mod.loess &lt;- loess(mpg ~ disp, mtcars, span = 2)
+x_stars &lt;- seq(71, 472, 1)
+lines(x = x_stars, y = predict(mod.loess, newdata = data.frame(disp = x_stars)), col = &quot;blue&quot;)
+predictions_loess &lt;- sapply(x_stars, predict_loess, x = mtcars$disp, y = mtcars$mpg, span = 2)
+lines(x = x_stars, y = predictions_loess, col = &quot;红色&quot;)
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/661221/discrepancy-between-loess-and-roll-your-own-loess-smoother</guid>
+      <pubDate>Tue, 11 Feb 2025 12:10:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何从数学上正确计算每个协变量对总模型概率预测的概率加法？</title>
+      <link>https://stats.stackexchange.com/questions/661218/how-to-mathematically-properly-calculate-the-probabilistic-addition-of-each-cova</link>
+      <description><![CDATA[抱歉，事先已注明。
+
+y&#39; (P) = 1 / (1 + exp(-sum(betas times Xs))) 1
+
+我想知道我的每个 x 对 P 贡献了多少 p，以便它们的总和恰好等于 P。
+我的模型的参数是：
+logreg_coefs = (139.8640, 11.3660, 61.3583, 115.9492, 237.9015, 38.8623, -3.5466)
+
+
+假设我有协变量：
+协变量 = (0.5, 0.3, 0.2, 0.1, 0, 0, 1)
+
+如果我将 1 用于各个协变量，我会得到奇怪的数字，例如，对于零协变量值，我得到 p = 1/2（期望得到它零...）。
+我尝试对各个 ps 求和，然后取份额，但我得到的值 &gt; 0，其中我的协变量为零，因此 b*x 给出零。
+稍后更新
+我回想起了通过增加模型的阶数（从仅截距到完全协变量存在）来逐步改进模型的做法。考虑到这一点，我可以重现累积概率计算，并对概率值进行一步减差分。至少我现在看到的是更正确的值，并且具有完美的求和结果。
+python 中的代码执行以下操作：
+logreg_coefs = (139.8640, 11.3660, 61.3583, 115.9492, 237.9015, 38.8623, -3.5466)
+
+exogs = (0, 0.02, 0.03, 0.004, 0.005, 0.006, 1)
+
+exog_ps = []
+
+bx = 0
+
+for x, b in zip(reversed(exogs), reversed(logreg_coefs)):
+bx += b * x
+exog_ps.append(1 / (1 + np.exp(-bx)))
+
+打印(exog_ps)
+
+x_adds_p = []
+
+exog_ps_reversed = list(reversed(exog_ps))
+
+对于 i 在范围(len(exog_ps_reversed)-1)内：
+x_adds_p.append(exog_ps_reversed[i] - exog_ps_reversed[i + 1])
+
+x_adds_p.append(exog_ps[0])
+
+打印(x_adds_p)
+
+打印(sum(x_adds_p))
+
+logreg_prob = 1 / (1 + np.exp(-1 * np.sum(np.array(exogs) * np.array(logreg_coefs))))
+
+打印(logreg_prob)
+
+打印(logreg_prob - sum(x_adds_p))
+
+]]></description>
+      <guid>https://stats.stackexchange.com/questions/661218/how-to-mathematically-properly-calculate-the-probabilistic-addition-of-each-cova</guid>
+      <pubDate>Tue, 11 Feb 2025 09:59:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>当经验分布收敛时，NLL-交叉熵等价性对非IID数据成立吗？</title>
+      <link>https://stats.stackexchange.com/questions/661216/does-the-nll-cross-entropy-equivalence-hold-for-non-iid-data-when-the-empirical</link>
+      <description><![CDATA[在这个先前的问题中，已确定对于 IID 数据，负对数似然 (NLL) 等同于模型与经验分布之间的交叉熵。
+经验分布由以下公式给出：
+$$
+\hat{P}_n(x) = \frac{1}{n}\sum_{i=1}^{n}\delta(x - x_i)
+$$
+当数据为非 IID 时，在某些情况下可以收敛。
+在这种情况下，NLL 和交叉熵之间的等价性是否仍然成立，或者在处理非 IID 数据时是否还有其他考虑因素？
+有任何见解或参考吗将不胜感激。]]></description>
+      <guid>https://stats.stackexchange.com/questions/661216/does-the-nll-cross-entropy-equivalence-hold-for-non-iid-data-when-the-empirical</guid>
+      <pubDate>Tue, 11 Feb 2025 09:32:19 GMT</pubDate>
+    </item>
     <item>
       <title>具有不确定性的泊松过程的中值预期上限</title>
       <link>https://stats.stackexchange.com/questions/661210/median-expected-upper-limit-for-a-poisson-process-with-uncertainties</link>
@@ -63,37 +188,9 @@ if (pvaluefinal &lt; level ) eff &lt;- eff+1
 
 eff/Nsim
 
-结果功效约为 83%。模拟和公式之间 7% 的功效差异是否在预期范围内（假设我的模拟进行了公平比较）？如果不是，是否有其他样本量计算公式可以给出与模拟更一致的结果？]]></description>
+结果功效约为 83%。模拟和公式之间 7% 的功效差异是否在预期范围内（假设我的模拟进行了公平比较）？如果不是，是否有另一个样本量计算公式可以给出与模拟更一致的结果？]]></description>
       <guid>https://stats.stackexchange.com/questions/661209/power-of-logrank-test-through-simulation</guid>
       <pubDate>Tue, 11 Feb 2025 03:26:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>建立人们如何谎报身高的统计模型</title>
-      <link>https://stats.stackexchange.com/questions/661204/making-a-statistical-model-for-how-people-lie-about-their-heights</link>
-      <description><![CDATA[这是我在北美生活时注意到的关于身高的一些社会趋势：
-
-当人们自我声明身高时，错误可以分为两部分：有意识的错误（即故意报告错误的身高）和无意识的错误（即不小心报告错误的身高）
-在许多文化中，人们认为男性身高较高是更好的选择。因此，男性可能更有可能自报比实际身高更高的身高。
-一般来说，身高较高的男性（即超过一定身高）可能通过自报比实际身高更高的身高而一无所获。
-老年人可能更认为虚报身高对他们的益处较小，因此可能更诚实
-我不知道女性是否有类似的理由
-
-假设现在我有一个数据集，其中包含个人的年龄、性别和自报身高（每人 1 行）。 我想建立一个统计模型，尝试纠正自我报告的身高偏差（使用贝叶斯技术），但我不知道如何开始。
-我尝试编写基础知识：
-
-$h_i^r$ = 报告身高
-$h_i^t$ = 真实身高（未观察到）
-$a_i$ = 年龄
-$g_i$ = 性别（0 = 女性，1 = 男性）
-$b_i$ 表示人员的报告偏差$i$。
-
-基本模型现在变成：
-$$h_i^r = h_i^t + b_i$$
-$$b_i = \beta_0 + \beta_1g_i + \beta_2a_i + \beta_3(h_i^t - \mu_h)g_i + \epsilon_i$$
-但我不确定如何将我对自我报告身高偏见的先入为主的观念转化为贝叶斯先验。此外，我不确定如何以有意义的方式定义联合先验。
-有人可以告诉我怎么做吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/661204/making-a-statistical-model-for-how-people-lie-about-their-heights</guid>
-      <pubDate>Mon, 10 Feb 2025 22:51:09 GMT</pubDate>
     </item>
     <item>
       <title>偏回归系数线性模型中的缩放坐标（纬度和经度）</title>
@@ -115,41 +212,12 @@ $$b_i = \beta_0 + \beta_1g_i + \beta_2a_i + \beta_3(h_i^t - \mu_h)g_i + \epsilon
       <title>根据生存函数的对数直观地了解风险函数</title>
       <link>https://stats.stackexchange.com/questions/661201/intuition-for-hazard-function-in-terms-of-logarithm-of-survival-function</link>
       <description><![CDATA[此帖子有助于解释风险函数的直觉。其中，风险函数被解释为
-$$h(t) = - \frac{f(t)}{S(t)},$$
+$$h(t) = \frac{f(t)}{S(t)},$$
 其中 $f(t)$ 是 PDF，$S(t)$ 是生存函数。这导致了身份
 $$h(t) = -\frac{d}{dt} \log (S(t)). $$
 从中获得任何直觉吗？风险函数是假设患者存活到时间 t，则在时间 t 时的瞬时死亡率。令我惊讶的是，它不知何故等于生存函数对数变换的变化率。]]></description>
       <guid>https://stats.stackexchange.com/questions/661201/intuition-for-hazard-function-in-terms-of-logarithm-of-survival-function</guid>
       <pubDate>Mon, 10 Feb 2025 22:12:18 GMT</pubDate>
-    </item>
-    <item>
-      <title>贝叶斯统计，100 页的机器学习书籍</title>
-      <link>https://stats.stackexchange.com/questions/661200/bayesian-statistics-the-100-page-machine-learning-book</link>
-      <description><![CDATA[我对“Andriy Burkov 所著的 100 页机器学习书籍”一书中的贝叶斯统计有疑问。该问题与贝叶斯统计有关。我有一张书中的截图，其中包含相关信息。这本书可以在这里免费找到：http://themlbook.com/wiki/doku.php
-
-关于红线：
-为什么他要用$\frac{1}{N}P(\theta=\hat{\theta}|X=x)$来代替$P(\theta=\hat{\theta})$？他在这里的意思是什么？我不明白的是：当您计算出$P(\theta=\hat{\theta}|X=x_1)$时，对于$x_1$，您只有$P(\theta=\hat{\theta}|X=x)$，而没有其他的？那么，如何将所有 $x&#39;s$ 相加，得到 $\frac{1}{N}P(\theta=\hat{\theta}|X=x)$？
-我看了另一本书，他们是这样做的：计算 $P(\theta=\hat{\theta}|x_1)$，然后他们用这个值计算 $P(\theta=\hat{\theta}|x_1, x_2)$，然后他们用这个值计算 $P(\theta=\hat{\theta}|x_1,x_2,x_3)$。这是他做的，但是用其他符号表示吗？我不明白他平均了什么？
-关于绿色框：
-表达式会与 $\text{arg max}_\theta P(\theta=\hat{\theta}|x_1,x_2,x_3,\ldots,x_N)$ 相同吗？如果不是，这不是更自然的表达式吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/661200/bayesian-statistics-the-100-page-machine-learning-book</guid>
-      <pubDate>Mon, 10 Feb 2025 22:04:55 GMT</pubDate>
-    </item>
-    <item>
-      <title>使用交叉验证和保留集</title>
-      <link>https://stats.stackexchange.com/questions/661198/the-use-of-cross-validation-and-a-hold-out-set</link>
-      <description><![CDATA[我一直在考虑交叉验证和保留集的使用，但我真的不明白随机选择的保留测试集有什么用处。不过，我不得不说，当保留集不是随机进行的，而是用于评估特殊特征（如过时的样本）时，我完全明白它的目的。
-我的观点是，当我使用交叉验证进行建模决策时，我已经解决了过度拟合问题，尽管由于使用所有数据，它可能会对数据集产生一些偏差，但我将通过不刻意减少训练数据来获得预测能力。
-尽管如此，我到处都看到每个人都随机将测试集与训练数据分开。不分离随机测试集并使用：是否不可接受：
-
-用于 EDA 的整个数据集
-用于变量选择的交叉验证
-用于模型选择和超参数优化的嵌套交叉验证
-通过重复交叉验证估计最终模型的误差
-使用整个数据集对模型进行训练，将其投入生产。
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/661198/the-use-of-cross-validation-and-a-hold-out-set</guid>
-      <pubDate>Mon, 10 Feb 2025 21:29:23 GMT</pubDate>
     </item>
     <item>
       <title>您是否知道应用 t-SNE 时具有这种行为的任何数据集？</title>
@@ -162,82 +230,17 @@ $$h(t) = -\frac{d}{dt} \log (S(t)). $$
       <pubDate>Mon, 10 Feb 2025 20:33:58 GMT</pubDate>
     </item>
     <item>
-      <title>使用 Hyperopt Fmin 进行 LightGBM 超参数调整</title>
-      <link>https://stats.stackexchange.com/questions/661191/lightgbm-hyperparameter-tuning-using-hyperopt-fmin</link>
-      <description><![CDATA[我遇到了一个多分类问题。我尝试使用 Hyperopt Fmin 来执行超参数调整。但是，我不知道应该为搜索空间使用什么合适的值，以及我应该如何解决这个问题。我是否先执行随机搜索，然后在该区域周围搜索？每个搜索空间的值应该设置为多少？我的数据集有 6000 行，我有大约 200 个变量（如果执行独热编码则为 400 个）。我的目标变量有 4 个级别
-from sklearn.model_selection import RandomizedSearchCV
-import numpy as np
-from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
-import lightgbm as lgb
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from hyperopt.pyll.base import scope
-
-# 定义 RandomizedSearch 的参数分布
-param_dist = {
-&#39;num_leaves&#39;: range(20, 150),
-&#39;learning_rate&#39;: np.linspace(0.01, 0.3, 10),
-&#39;n_estimators&#39;: range(100, 1000, 100),
-&#39;min_child_weight&#39;: np.linspace(0.01, 10, 10),
-&#39;subsample&#39;: np.linspace(0.5, 1.0, 6),
-&#39;colsample_bytree&#39;: np.linspace(0.5, 1.0, 6),
-&#39;reg_alpha&#39;: np.linspace(0.0, 1.0, 10),
-&#39;reg_lambda&#39;: np.linspace(0.0, 1.0, 10)
-}
-
-# 创建 LightGBM 分类器
-model = lgb.LGBMClassifier(objective=&#39;multiclass&#39;, num_class=len(set(y)))
-
-# 执行 RandomizedSearchCV
-random_search = RandomizedSearchCV(
-estimator=model,
-param_distributions=param_dist,
-n_iter=20, # 采样的参数设置数量
-scoring=&#39;accuracy&#39;,
-cv=3, # 交叉验证拆分策略
-random_state=42,
-n_jobs=-1 # 使用所有可用核心
-)
-
-# 拟合 RandomizedSearchCV
-random_search.fit(X_train, y_train)
-
-# 获取最佳参数
-best_params = random_search.best_params_
-print(&quot;使用 RandomizedSearchCV 找到的最佳超参数：&quot;, best_params)
-
-# 定义最佳参数周围的搜索空间
-search_space = {
-&#39;num_leaves&#39;: scope.int(hp.quniform(&#39;num_leaves&#39;, best_params[&#39;num_leaves&#39;] - 10, best_params[&#39;num_leaves&#39;] + 10, 1)),
-&#39;learning_rate&#39;: hp.uniform(&#39;learning_rate&#39;, best_params[&#39;learning_rate&#39;] * 0.8, best_params[&#39;learning_rate&#39;] * 1.2),
-&#39;n_estimators&#39;：scope.int(hp.quniform(&#39;n_estimators&#39;，best_params[&#39;n_estimators&#39;] - 100，best_params[&#39;n_estimators&#39;] + 100，10))，
-&#39;min_child_weight&#39;：hp.uniform(&#39;min_child_weight&#39;，best_params[&#39;min_child_weight&#39;] * 0.8，best_params[&#39;min_child_weight&#39;] * 1.2)，
-&#39;subsample&#39;：hp.uniform(&#39;subsample&#39;，max(0.5，best_params[&#39;subsample&#39;] * 0.8)，min(1.0，best_params[&#39;subsample&#39;] * 1.2))，
-&#39;colsample_bytree&#39;：hp.uniform(&#39;colsample_bytree&#39;，max(0.5，best_params[&#39;colsample_bytree&#39;] * 0.8)， min(1.0, best_params[&#39;colsample_bytree&#39;] * 1.2)),
-&#39;reg_alpha&#39;: hp.uniform(&#39;reg_alpha&#39;, best_params[&#39;reg_alpha&#39;] * 0.8, best_params[&#39;reg_alpha&#39;] * 1.2),
-&#39;reg_lambda&#39;: hp.uniform(&#39;reg_lambda&#39;, best_params[&#39;reg_lambda&#39;] * 0.8, best_params[&#39;reg_lambda&#39;] * 1.2)
-}
-
-# 定义目标函数
-def objective(params):
-model = lgb.LGBMClassifier(objective=&#39;multiclass&#39;, num_class=len(set(y_train)), **params)
-score = cross_val_score(model, X_train, y_train, cv=3,scoring=&#39;accuracy&#39;).mean()
-return {&#39;loss&#39;: -score, &#39;status&#39;: STATUS_OK}
-
-# 运行优化
-trials = Trials()
-best_hyperparams = fmin(fn=objective,
-space=search_space,
-algo=tpe.suggest,
-max_evals=50, # 根据您的需要调整评估次数
-trials=trials,
-rstate=np.random.default_rng(42))
-
-print(&quot;使用 Hyperopt 找到的最佳超参数：&quot;, best_hyperparams)
-```
-]]></description>
-      <guid>https://stats.stackexchange.com/questions/661191/lightgbm-hyperparameter-tuning-using-hyperopt-fmin</guid>
-      <pubDate>Mon, 10 Feb 2025 19:47:00 GMT</pubDate>
+      <title>具有拉普拉斯先验的拉普拉斯分布的后验</title>
+      <link>https://stats.stackexchange.com/questions/661183/posterior-of-a-laplace-distribution-with-a-laplace-prior</link>
+      <description><![CDATA[我正在练习研究生统计课上的一些概念，并尝试推导平方损失函数 $L(\theta,a)=(\theta-a)^2$ 的贝叶斯规则。我有一个拉普拉斯分布，其位置参数为 $\theta$，单位尺度为（即 $X\sim \text{Laplace}(\theta,1)$），似然值为 $f(x;\theta)=\frac{\exp\{-\sum_{i=1}^n|x_i-\theta|\}}{2^n}$。此外，我有一个拉普拉斯先验，其位置为$\eta$，单位尺度为$\pi_\Theta(\theta)=\frac{\exp\{-|\theta-\eta|\}}{2}$。
+首先，我并不完全确定如何进行此计算，但我已开始推导后验，如下所示：
+$$\pi_{\Theta|X}(\theta|x)\propto\exp\Big\{-\sum_{i=1}^n|x_i-\theta|-|\theta-\eta|\Big\}$$
+但我不知道如何简化我的表达式。如果它们都是正态分布，我就会知道完成平方并用 $\theta$ 来写我的表达式，这样我就能得到另一个正态分布。但是，在这种情况下，我对模数符号感到困惑。我以前没有使用过拉普拉斯分布，所以任何帮助我都会很感激。谢谢！
+编辑：要回答贝叶斯规则的问题，我认为我必须找到一个$a$来最小化
+$$\mathbb{E}[L(\Theta,a)|X=x]\propto\int_{-\infty}^\infty (\theta-a)^2 \exp\Big\{-\sum_{i=1}^n|x_i-\theta|-|\theta-\eta|\Big\}d\theta$$
+但如果没有更多关于我的后验的信息，这会变得很困难。]]></description>
+      <guid>https://stats.stackexchange.com/questions/661183/posterior-of-a-laplace-distribution-with-a-laplace-prior</guid>
+      <pubDate>Mon, 10 Feb 2025 16:30:10 GMT</pubDate>
     </item>
     <item>
       <title>这是最大似然估计的可能替代方法吗？</title>
@@ -249,34 +252,12 @@ print(&quot;使用 Hyperopt 找到的最佳超参数：&quot;, best_hyperparams)
       <pubDate>Mon, 10 Feb 2025 09:32:52 GMT</pubDate>
     </item>
     <item>
-      <title>分层 Cox 模型：为什么重采样数据的 C 指数比明显的 C 指数（tidymodels 和审查的 R 包）更好？</title>
-      <link>https://stats.stackexchange.com/questions/661185/stratified-cox-model-why-is-c-index-on-resampled-data-better-than-apparent-c-in</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/661185/stratified-cox-model-why-is-c-index-on-resampled-data-better-than-apparent-c-in</guid>
-      <pubDate>Mon, 10 Feb 2025 07:53:22 GMT</pubDate>
-    </item>
-    <item>
       <title>如果一个人（非）故意忽略了所有可用数据的 10％，那么最高的准确度是多少？</title>
       <link>https://stats.stackexchange.com/questions/661168/if-one-unintentionally-ignores-10-of-all-available-data-what-is-the-highest</link>
       <description><![CDATA[我不记得当时的场合了，但我相信是一位语言学家提出，如果忽略 10% 或 15% 的数据，那么从人们所关注的 85% 的数据中就永远无法得出任何有意义的结论。
 从统计学的角度来看，这种情况会发生吗？还是取决于人群遵循哪种分布？]]></description>
       <guid>https://stats.stackexchange.com/questions/661168/if-one-unintentionally-ignores-10-of-all-available-data-what-is-the-highest</guid>
       <pubDate>Mon, 10 Feb 2025 05:55:22 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何确定偏斜自举分布的平均值和 95% 置信区间</title>
-      <link>https://stats.stackexchange.com/questions/661165/how-to-determine-the-mean-and-95-confidence-interval-of-a-skewed-bootstrapped-d</link>
-      <description><![CDATA[我已经对我的数据进行了 1000 次（甚至 10,000 次）引导，但这种引导分布是有偏差的，因此真正的组平均值与分布的模式更一致，而不是平均值。
-我如何在保持真实组平均值的同时报告平均值和 CI？我可以报告模式吗？
-以下编辑以通过一个具体示例阐明我的确切方法：
-我使用线性 SVM 在两个变量之间进行解码（来自 EEG 数据）。从 20 个受试者中，我获得了每个条件的解码准确度轨迹。在这里，解码准确度轨迹是每个时间点（例如，从 0 到 1000 毫秒）的准确度百分比。我的目标是测试哪种情况（A 或 B）可以更早地解码。
-统计测试 1：首先，为了测试解码准确度在组级别是否高于偶然性（分别针对条件 A 和 B），我执行基于排列的簇大小推断。简而言之，我通过将每个样本解码准确度输出随机乘以 +1 或 -1 来排列样本标签，以生成零分布（设置为 50% 的概率水平）。然后，确定最早的重要时间点（即开始时间）。
-统计测试 2：然后，为了测试哪种情况（A 或 B）具有更早的开始时间，我通过随机抽样替换对数据集进行了 1000 次引导。这种方法背后的原理是在两个开始时间之间进行强有力的统计比较。我不能直接使用开始时间来对两种情况之间的差异做出强有力的断言，因为它们是奇异值并且不反映底层分布。请参阅 Sassenhagen 和 Draschko，心理生理学。2019；56：e13335。
-因此，我随机抽样 20 次，进行替换，执行上述定义的统计测试，并保存第一个重要时间点。重复此过程 1000 次后，我得到了一个发病时间分布（我计划从中得出平均引导发病时间和置信区间）。
-但是，第二次测试中的发病时间分布不是正态分布，因此引导发病时间的平均值与基于聚类的置换测试的发病时间不匹配。我是否应该在更干净的数据中期待正态分布？如果结果是真实的，我可以报告模式 +/- CI，而不是平均值 +/- CI，以解释数据的偏斜吗？
-我希望这有意义。非常感谢。]]></description>
-      <guid>https://stats.stackexchange.com/questions/661165/how-to-determine-the-mean-and-95-confidence-interval-of-a-skewed-bootstrapped-d</guid>
-      <pubDate>Sun, 09 Feb 2025 21:35:46 GMT</pubDate>
     </item>
     <item>
       <title>估计具有外生状态的状态空间模型</title>
@@ -378,6 +359,34 @@ $$P(Y_{i1}=1, Y_{i2}=0|X_{i1},X_{i2}, Y_{i1}+Y_{i2}=1) = \frac{\exp(\beta^TX_{i1
 我说得对吗？]]></description>
       <guid>https://stats.stackexchange.com/questions/660175/conditional-vs-marginal-probability-likelihood-and-models</guid>
       <pubDate>Fri, 17 Jan 2025 17:36:04 GMT</pubDate>
+    </item>
+    <item>
+      <title>后验最大值总是与边缘最大值相同吗？</title>
+      <link>https://stats.stackexchange.com/questions/599704/is-the-posterior-maximum-always-the-same-as-the-marginals</link>
+      <description><![CDATA[当我看到条件概率、边际和联合分布的图时，它们大多使用高斯分布绘制。我不清楚这是否适用于所有其他分布。例如，在此图像中 
+条件 f(x1|b) 将始终在 f(x1) 的 argmax 处达到峰值，因为联合分布是高斯分布，并且“切片”会为边际分布提供另一个相同的高斯分布（按比例）。但情况总是如此吗？即，当 f(x1) != f(x1|b) 时，它们是否仍共享相同的最大值？或者，换句话说。无论形状如何，最大化后验与最大化边际在结果上是否相同？]]></description>
+      <guid>https://stats.stackexchange.com/questions/599704/is-the-posterior-maximum-always-the-same-as-the-marginals</guid>
+      <pubDate>Wed, 21 Dec 2022 10:12:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>关于评估（OLS）多个（2）种治疗方法的 RCT 的 ATE 的问题</title>
+      <link>https://stats.stackexchange.com/questions/588961/question-on-estimating-ols-the-ate-of-rct-with-multiple-2-treatments</link>
+      <description><![CDATA[已更新：
+我没有足够的积分来评论，所以...
+谢谢 Ben，你确实正确地解释了我的问题。有三个治疗类别：对照组、A 组和 B 组。谢谢你澄清，从
+Y=治疗+协变量来看，A 组和 B 组的系数是相对于对照组的治疗效果。
+另一方面，如果我想测量 A 组相对于 B 组的治疗效果，我该怎么做？
+最后，一种或两种治疗的统计显著性是否意味着对照组（基线）的统计不显著？我猜不是，但如果截距可以通过解释缺失变量的变化而显著，那么我该如何测试对照组是否显著？
+谢谢！
+原文：
+如果有两种治疗方法（对照组，比如说 A 和 B），我想测量 A 相对于对照组的效果，以及 A 相对于 B 的效果，我是否应该运行回归分析：
+Y=INTERCEPT+A，使用治疗 B 子集数据，并且
+Y=INTERCEPT+A，使用对照组子集数据？
+如果是这样，如果我将所有条件都包含在一个回归分析中（Y=INTERCEPT+A+B），系数的解释是什么？
+您可能已经看出来，我对 RCT 评估非常陌生。是否有任何几乎强制性的稳健性检查需要我运行？
+非常感谢！]]></description>
+      <guid>https://stats.stackexchange.com/questions/588961/question-on-estimating-ols-the-ate-of-rct-with-multiple-2-treatments</guid>
+      <pubDate>Fri, 16 Sep 2022 03:25:18 GMT</pubDate>
     </item>
     </channel>
 </rss>
