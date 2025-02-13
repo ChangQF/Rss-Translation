@@ -4,7 +4,121 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Wed, 12 Feb 2025 21:15:37 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 13 Feb 2025 01:16:03 GMT</lastBuildDate>
+    <item>
+      <title>ValueError：X 有 7 个特征，但 ColumnTransformer 需要 13 个特征</title>
+      <link>https://stackoverflow.com/questions/79434756/valueerror-x-has-7-features-but-columntransformer-expects-13-features</link>
+      <description><![CDATA[我有以下代码，我尝试使用泊松回归预测工具的价格。
+# --- 加载和准备数据 ---
+y = train[&#39;PriceToday&#39;]
+X = train.drop(columns=[&#39;PriceToday&#39;])
+
+# 定义非标准类型
+non_standard_types = [&quot;Nar&quot;, &quot;Orch&quot;, &quot;Fru&quot;,&quot;Comp&quot;]
+
+# 为非标准创建标志特征
+X[&quot;Non_Standard_Flag&quot;] = X[&quot;Type_LS&quot;].isin(non_standard_types).astype(int)
+
+# 识别数字和分类列
+num_features = [&quot;AGE&quot;, &quot;POWER&quot;, &quot;Hours&quot;, &quot;Non_Standard_Flag&quot;]
+cat_features = [&quot;BRAND&quot;, &quot;Country&quot;, &quot;Final_Trans&quot;]
+
+# 定义预处理管道
+preprocessor = ColumnTransformer(
+transformers=[
+(&#39;num&#39;, StandardScaler(), num_features),
+(&#39;cat&#39;, OneHotEncoder(handle_unknown=&#39;ignore&#39;), cat_features)
+], remainder=&quot;drop&quot;
+)
+
+# --- 训练/测试拆分 ---
+# 创建权重列
+train[&quot;sample_weight&quot;] = train[&quot;Type_LS&quot;].apply(lambda x: 1 if x == &quot;Standard&quot; else 5)
+
+train[&quot;stratify_group&quot;] = train[&quot;BRAND&quot;].astype(str)
+X_train, X_val, y_train, y_val, train_weights, val_weights = train_test_split(
+X, y, train[&quot;sample_weight&quot;], test_size=0.2, random_state=42, stratify=train[&quot;stratify_group&quot;]
+)
+# 在训练数据上对预处理器进行一次拟合
+X_train_preprocessed = preprocessor.fit_transform(X_train)
+X_val_preprocessed = preprocessor.transform(X_val)
+
+# 定义模型
+models = {
+&quot;Poisson&quot;: PoissonRegressor(alpha=0.01)
+}
+
+# 训练和评估模型
+model_results = {}
+
+for model_name, model in models.items():
+model.fit(X_train_preprocessed, y_train, sample_weight=train_weights)
+
+# 预测
+predictions = model.predict(X_val_preprocessed)
+# 计算指标
+r2 = r2_score(y_val, predictions)
+
+model_results[model_name] = {
+&quot;model&quot;: model,
+&quot;R2&quot;: r2
+}
+
+
+我有一个测试数据，我想将其价格与模型预测的价格进行比较。
+我的测试数据是这样的：
+# 确保新数据具有正确的格式
+new_data = pd.DataFrame({
+&quot;AGE&quot;: [12, 24, 36, 48, 60, 72, 84, 12, 24, 36, 48, 60, 72, 84],
+&quot;Hours&quot;: [500, 1000, 1500, 2000, 2500, 3000, 3500, 500, 1000, 1500, 2000, 2500, 3000, 3500],
+&quot;BRAND&quot;: [&quot;NH&quot;] * 14,
+&quot;POWER&quot;: [150] * 7 + [80] * 7,
+&quot;Final_Trans&quot;: [&quot;Cv&quot;] * 14,
+&quot;Country&quot;: [&quot;DEU&quot;] * 14,
+&quot;Type_LS&quot;: [Nar, Nar, Nar, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST, ST] 
+&quot;Current_Pred&quot;: [105614, 96681, 88504, 81018, 74165, 67892, 62150, 42608, 39728, 37043, 34540, 32206, 30029, 28000]
+})
+``
+
+
+我的代码是：
+new_df = pd.DataFrame(new_data)
+# 创建 &#39;Non_Standard_Flag&#39;
+new_df[&quot;Non_Standard_Flag&quot;] = new_df[&quot;Type_LS&quot;].isin(non_standard_types).astype(int)
+
+# 选择预处理器所需的列
+X_new = new_df[[&#39;AGE&#39;, &#39;POWER&#39;, &#39;Hours&#39;, &#39;Non_Standard_Flag&#39;, &#39;BRAND&#39;, &#39;Country&#39;, &#39;Final_Trans&#39;]]
+
+X_new_preprocessed = preprocessor.transform(X_new) 
+
+# 从训练数据中获取独热编码后的列名
+ohe = preprocessor.named_transformers_[&#39;cat&#39;]
+encoded_cat_columns = ohe.get_feature_names_out(cat_features)
+
+#为数字特征创建列名
+num_columns = num_features
+
+# 合并列名
+all_columns = num_columns + list(encoded_cat_columns)
+
+# 从预处理数据创建 DataFrame
+X_new_preprocessed_df = pd.DataFrame(X_new_preprocessed, columns=all_columns)
+
+# --- 使用泊松模型进行预测 ---
+poisson_model = model_results[&quot;Poisson&quot;][&quot;model&quot;] # 访问经过训练的泊松模型
+predicted_prices = poisson_model.predict(X_new_preprocessed_df)
+
+# 比较并存储结果 ---
+new_df[&#39;Predicted_Price&#39;] = predict_prices
+
+# 计算预测价格与当前价格之间的差额
+new_df[&#39;Price_Difference&#39;] = new_df[&#39;Predicted_Price&#39;] - new_df[&#39;Current_Pred&#39;]
+
+
+但执行此操作后，我收到错误：X 有 7 个特征，但 ColumnTransformer 需要 13 个特征 我有相同数量的列，所以我不明白为什么会出现此错误。任何帮助都将不胜感激。]]></description>
+      <guid>https://stackoverflow.com/questions/79434756/valueerror-x-has-7-features-but-columntransformer-expects-13-features</guid>
+      <pubDate>Wed, 12 Feb 2025 23:51:03 GMT</pubDate>
+    </item>
     <item>
       <title>如何使用嵌入和余弦相似度改进 Excel 文件中的列标题匹配？[关闭]</title>
       <link>https://stackoverflow.com/questions/79433790/how-to-improve-column-header-matching-in-excel-files-using-embeddings-and-cosine</link>
@@ -305,34 +419,6 @@ booster[1]:
       <pubDate>Tue, 11 Feb 2025 12:55:07 GMT</pubDate>
     </item>
     <item>
-      <title>使用机器学习和 NER 自动进行网页抓取以提取产品数据</title>
-      <link>https://stackoverflow.com/questions/79426509/automating-web-scraping-with-machine-learning-and-ner-for-product-data-extractio</link>
-      <description><![CDATA[我目前正在做数据和人工智能实习。我的工作是通过从制造商的网站上检索信息（产品名称、图片、描述、零件编号/SKU、技术规格、数据表等）来构建产品数据库。
-挑战在于有超过 300 家不同的制造商，每家都有自己的网站和结构，这使得传统的网页抓取不切实际且难以维护。为了克服这个问题，我正在考虑使用人工智能和机器学习来使我的抓取代理能够适应每个页面 HTML 结构的变化。
-我已经下载并手动标记了 50 个产品页面。以下是我的数据集：
- # 列 非空 计数 Dtype 
---- ------ -------------- ----- 
-0 text 52 非空对象
-1 product_name 49 非空对象
-2 html_product_name 51 非空对象
-3 image_url 50 非空对象
-4 html_image_url 50 非空对象
-5 description 32 非空对象
-6 html_description 51 非空对象
-7 part_number 35 非空对象
-8 html_part_number 36 非空对象
-9 html_specification 44 非空对象
-10 datasheet_url 40 非空对象
-11 html_datasheet_url 41 非空对象
-12 specifications 2 非空对象
-
-文本列包含产品页面的清理后的 HTML，而其他列则表示目标字段——需要识别和提取的 HTML 的特定部分。
-这个问题看起来与命名实体识别 (NER) 非常相似。我如何训练机器学习模型以成功从原始 HTML 中提取这些字段？最好的方法是什么（例如，微调转换器模型、序列标记或其他方法）？
-提前致谢！]]></description>
-      <guid>https://stackoverflow.com/questions/79426509/automating-web-scraping-with-machine-learning-and-ner-for-product-data-extractio</guid>
-      <pubDate>Mon, 10 Feb 2025 08:46:11 GMT</pubDate>
-    </item>
-    <item>
       <title>为什么我必须将数据从 torch.Size([50]) 解压到 torch.Size([50, 1])</title>
       <link>https://stackoverflow.com/questions/79409149/why-do-i-have-to-unsqueeze-the-data-from-torch-size50-to-torch-size50-1</link>
       <description><![CDATA[我正在学习 FreeCodeCamp 的 PyTorch 深度学习课程，疑问是：
@@ -397,11 +483,13 @@ torchaudio===0.10.2+cu113
       <pubDate>Sun, 20 Feb 2022 11:04:02 GMT</pubDate>
     </item>
     <item>
-      <title>机器学习的数据注释</title>
-      <link>https://stackoverflow.com/questions/61742408/data-annotation-for-machine-learning</link>
-      <description><![CDATA[我将开发一个机器学习模型。我有大量数据集（文本）。我需要总体上更准确的 F1 分数等。我正在使用数据注释工具（Dataturks）。哪种方法适合将数据标记为每个实体单个标签或每个实体多个标签（例如有 5 次 GUI，因此我们必须标记 1 次或 5 次以获得更好的总体分数）。非常感谢您的帮助。]]></description>
-      <guid>https://stackoverflow.com/questions/61742408/data-annotation-for-machine-learning</guid>
-      <pubDate>Tue, 12 May 2020 01:47:23 GMT</pubDate>
+      <title>PyTorch 上带预热功能的 Adam 优化器</title>
+      <link>https://stackoverflow.com/questions/65343377/adam-optimizer-with-warmup-on-pytorch</link>
+      <description><![CDATA[在论文Attention is all you need中，在第 5.3 节中，作者建议线性增加学习率，然后按步数的平方根倒数比例减少。
+
+我们如何使用Adam 优化器？最好不要使用其他软件包。]]></description>
+      <guid>https://stackoverflow.com/questions/65343377/adam-optimizer-with-warmup-on-pytorch</guid>
+      <pubDate>Thu, 17 Dec 2020 15:12:56 GMT</pubDate>
     </item>
     <item>
       <title>错误“无法将字符串转换为浮点数：‘INLAND’”</title>
