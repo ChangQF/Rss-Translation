@@ -4,7 +4,144 @@
     <title>标记为机器学习的活跃问题 - 堆栈内存溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>来自 stackoverflow.com 的最新 30 条</description>
-    <lastBuildDate>Thu, 13 Feb 2025 15:18:40 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 13 Feb 2025 18:23:25 GMT</lastBuildDate>
+    <item>
+      <title>Tensorflow 性能问题</title>
+      <link>https://stackoverflow.com/questions/79437180/tensorflow-perfomance-issue</link>
+      <description><![CDATA[我正在尝试在 TensorFlow 上做一个非常原始的强化学习模型。尽管它相对较小，但单次迭代需要约 6-7 秒。
+ def build_model():
+model = keras.Sequential([
+layer.Input(shape=(400,)),
+layer.Dense(128,activation=&quot;relu&quot;),
+layer.Dense(128,activation=&quot;relu&quot;),
+layer.Dense(3)
+])
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),loss=&quot;huber&quot;)
+return model
+
+class DQNAgent:
+def __init__(self):
+self.model = build_model()
+self.target_model = build_model()
+self.target_model.set_weights(self.model.get_weights())
+
+self.memory = deque(maxlen=1000)
+self.epsilon = 1.0
+self.epsilon_min = 0.01
+self.epsilon_decay = 0.995
+self.gamma = 0.95
+self.batch_size = 32
+
+def choose_action(self, state):
+if np.random.rand() &lt; self.epsilon:
+return random.choice([0, 1, 2])
+q_values = self.model.predict(np.array([state]), verbose=0)
+return np.argmax(q_values[0])
+
+def Remember(self, state, action, reward, next_state, done):
+self.memory.append((state, action, reward, next_state, done))
+
+def Train(self):
+if len(self.memory) &lt; self.batch_size:
+返回
+batch = random.sample(self.memory, self.batch_size)
+states, target = [], []
+
+对于 state, action, reward, next_state, done in batch:
+target = reward
+如果未完成：
+target += self.gamma * np.max(self.target_model.predict(np.array([next_state]), verbose=0))
+
+q_values = self.model.predict(np.array([state]), verbose=0)
+q_values[0][action] = target
+
+states.append(state)
+target.append(q_values[0])
+
+self.model.fit(np.array(states), np.array(targets), epochs=1, verbose=0)
+
+如果 self.epsilon &gt; self.epsilon_min:
+self.epsilon *= self.epsilon_decay
+
+def update_target_model(self):
+self.target_model.set_weights(self.model.get_weights())
+
+在对所有给定的代码进行分析后，我发现 model.predict() 需要这么多时间才能完成：
+分析器结果
+最初我以为我只需要在 GPU 上进行计算，但在浪费了两天时间尝试之后，什么都没有改变。
+它真的需要那么多时间吗，还是我在代码中搞砸了什么？
+GPU：Geforce 2060，
+CPU：Intel Core i7，
+Windows 11，
+Python：3.10
+Tensorflow：2.10
+如果我忘记提供一些重要信息，请告诉我]]></description>
+      <guid>https://stackoverflow.com/questions/79437180/tensorflow-perfomance-issue</guid>
+      <pubDate>Thu, 13 Feb 2025 17:07:09 GMT</pubDate>
+    </item>
+    <item>
+      <title>Tweedie 回归：功率 >=2 '“y 的某些值超出了损失的有效范围”，但 y 值不是</title>
+      <link>https://stackoverflow.com/questions/79437039/tweedie-regression-power-2-some-values-of-y-are-out-of-the-valid-range-o</link>
+      <description><![CDATA[我正在运行 Tweedie 回归，对于幂 &gt;= 2，我收到一个错误，告诉我我的 y 值超出了 HalfTweedieLoss 的范围。我知道这个损失的 y 的有效范围是 &gt;0。我所有的 y 值都是 &gt;0 和 &lt;1，但我仍然收到这个错误。我不明白为什么。
+sklearn 版本 1.3.0
+我删除了所有 y 值 &lt;=0 的行，并使用 describe 进行了仔细检查。我期望回归量能够拟合，并给出一个更好的理由来解释为什么它不拟合，尤其是当我的 y 值都大于 0 的时候。我知道 gamma 对我的数据来说不是一个很好的分布，但我希望尝试 power=3（逆高斯），这也是不可能的。
+power = 0 和 1 都可以正常工作（正态和泊松）。
+这是我的训练 y 数据 (cv_y) 的描述：
+count | 616420.000000 
+mean | 0.955883 
+std | 0.021402 
+min | 0.700465 
+25% | 0.937018 
+50% | 0.954769 
+75% | 0.975716 
+max | 0.990000 
+
+以下是我的代码的重要元素
+glr = TweedieRegressor() # 广义线性回归模型
+X_pipeline = Pipeline([(&quot;preprocessor&quot;,X_transformer),(&quot;model&quot;,glr)])
+estimator = TransformedTargetRegressor(regressor=X_pipeline, transformer=y_transformer)
+family = &quot;Tweedie&quot;
+link = &quot;auto&quot;
+n_splits=5
+tscv = TimeSeriesSplit(gap=20, n_splits=n_splits)
+
+param_grid = {
+&#39;regressor__preprocessor__X_pca__whiten&#39;: [True,False],
+&#39;regressor__model__power&#39;:[0,1,2],
+&#39;regressor__model__alpha&#39;:[0.5],
+&#39;regressor__model__fit_intercept&#39;: [True],
+&#39;regressor__model__link&#39;: [link],
+&#39;regressor__model__solver&#39;: [&#39;newton-cholesky&#39;],
+&#39;regressor__model__max_iter&#39;: [5,10],
+&#39;regressor__model__tol&#39;: [1e-5],
+&#39;regressor__model__verbose&#39;:[1]
+}
+
+gs = GridSearchCV(
+estimator=estimator,
+param_grid=param_grid,
+scoring=scoring,
+n_jobs=-1,
+refit=refit_strategy,
+cv = tscv,
+verbose=3,
+pre_dispatch=10,
+error_score = &#39;raise&#39;
+)
+
+model = gs.fit(cv_X,cv_y)
+
+]]></description>
+      <guid>https://stackoverflow.com/questions/79437039/tweedie-regression-power-2-some-values-of-y-are-out-of-the-valid-range-o</guid>
+      <pubDate>Thu, 13 Feb 2025 16:29:26 GMT</pubDate>
+    </item>
+    <item>
+      <title>在 distiset 中保存到磁盘时出现 Unicode 错误</title>
+      <link>https://stackoverflow.com/questions/79436672/getting-unicode-error-while-saving-to-disk-in-distiset</link>
+      <description><![CDATA[]]></description>
+      <guid>https://stackoverflow.com/questions/79436672/getting-unicode-error-while-saving-to-disk-in-distiset</guid>
+      <pubDate>Thu, 13 Feb 2025 15:04:10 GMT</pubDate>
+    </item>
     <item>
       <title>在 6 A100-80G 上进行 YOLOv9e-seg 训练，并尝试进行尽可能的优化，但在验证阶段之后出现 CUDA 内存不足错误</title>
       <link>https://stackoverflow.com/questions/79436107/yolov9e-seg-training-on-6-a100-80g-and-tried-to-optimize-as-much-as-i-could-but</link>
@@ -193,7 +330,7 @@ X 有 7 个特征，但 ColumnTransformer 需要 13 个特征
       <pubDate>Wed, 12 Feb 2025 16:28:05 GMT</pubDate>
     </item>
     <item>
-      <title>如何使用 dart 提取 MFCC 特征</title>
+      <title>如何使用 dart 提取 MFCC 特征[关闭]</title>
       <link>https://stackoverflow.com/questions/79433652/how-to-extract-mfcc-features-using-dart</link>
       <description><![CDATA[我正在开发一个 Flutter 应用程序，尝试使用机器学习模型来识别谁是说话者，该应用程序将离线运行，输入是 5 秒记录的 MFCC 特征数组，输出是说话者的姓名，数组的大小是 13，有没有办法使用 dart 提取这些特征。]]></description>
       <guid>https://stackoverflow.com/questions/79433652/how-to-extract-mfcc-features-using-dart</guid>
@@ -269,23 +406,6 @@ print(importance)
 ]]></description>
       <guid>https://stackoverflow.com/questions/79433270/real-time-object-tracking-model-from-videos</guid>
       <pubDate>Wed, 12 Feb 2025 13:38:28 GMT</pubDate>
-    </item>
-    <item>
-      <title>Chatgpt 与 AI 代理的角色文件进行聊天 [关闭]</title>
-      <link>https://stackoverflow.com/questions/79432203/chatgpt-chats-to-character-file-for-ai-agents</link>
-      <description><![CDATA[我正在使用 Eliza 框架构建 AI 代理。有没有办法让我利用我的 chatgpt 聊天来创建角色文件或相应地训练代理。]]></description>
-      <guid>https://stackoverflow.com/questions/79432203/chatgpt-chats-to-character-file-for-ai-agents</guid>
-      <pubDate>Wed, 12 Feb 2025 06:57:36 GMT</pubDate>
-    </item>
-    <item>
-      <title>在 Colab 中对大型数据集使用 train_test_split 时 RAM 崩溃</title>
-      <link>https://stackoverflow.com/questions/79430737/ram-crash-when-using-train-test-split-on-large-dataset-in-colab</link>
-      <description><![CDATA[我正在开展一个情绪分析项目，该项目有一个包含 160,000 行嵌入评论的大型数据集。
-当我使用 sklearn.model_selection 中的 train_test_split() 时，Google Colab 中的 RAM 会被完全占用，并且会话会崩溃。
-如何减少 RAM 使用量以防止崩溃？
-是否有任何替代或优化的方法来拆分如此大的数据集？]]></description>
-      <guid>https://stackoverflow.com/questions/79430737/ram-crash-when-using-train-test-split-on-large-dataset-in-colab</guid>
-      <pubDate>Tue, 11 Feb 2025 16:47:15 GMT</pubDate>
     </item>
     <item>
       <title>在 XGBoost 中，CV 的 R 平方比没有 CV 的 R 平方高得多 [关闭]</title>
@@ -465,13 +585,6 @@ torchaudio===0.10.2+cu113
 ]]></description>
       <guid>https://stackoverflow.com/questions/71498324/pytorch-runtimeerror-cuda-out-of-memory-with-a-huge-amount-of-free-memory</guid>
       <pubDate>Wed, 16 Mar 2022 13:53:45 GMT</pubDate>
-    </item>
-    <item>
-      <title>TypeError：编码器要求其输入为统一的字符串或数字。得到 ['int', 'str']</title>
-      <link>https://stackoverflow.com/questions/71193740/typeerror-encoders-require-their-input-to-be-uniformly-strings-or-numbers-got</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/71193740/typeerror-encoders-require-their-input-to-be-uniformly-strings-or-numbers-got</guid>
-      <pubDate>Sun, 20 Feb 2022 11:04:02 GMT</pubDate>
     </item>
     <item>
       <title>PyTorch 上带预热功能的 Adam 优化器</title>
