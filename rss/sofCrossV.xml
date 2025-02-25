@@ -4,7 +4,232 @@
     <title>最近的问题 - 交叉验证</title>
     <link>https://stats.stackexchange.com/questions</link>
     <description>最近的30个来自Stats.stackexchange.com</description>
-    <lastBuildDate>Tue, 25 Feb 2025 12:34:33 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 25 Feb 2025 15:20:29 GMT</lastBuildDate>
+    <item>
+      <title>BAM模型中的低拟合值，导致特殊预测图</title>
+      <link>https://stats.stackexchange.com/questions/661844/low-fitted-values-in-bam-models-causing-peculiar-predict-plots</link>
+      <description><![CDATA[我使用湖上的肥皂smother在动物点的数据集上运行了三种型号，一个季节。
+  mod_aut＆lt;  -  bam（出现〜#daynight +
+                 s（x，y，bs =; so so; so; xt = list（bnd = shap_bnd_ls，nmax = 1000）） +
+                 s（watertemp） +
+                 s（waterdepth） +
+                 s（lunar_day，bs =; cc＆quot;） +
+                 s（hour_of_day，bs =; cc＆quot;） +
+                 S（DISTABS） +
+                 S（DistStinp）+
+                 s（distlpinp）+
+                 S（ABS_MAX_LS）+
+                 s（inpst_max_ls）+
+                 s（inplp_max_ls）+
+                 ＃s（硬度）+
+                 偏移（log（cumulative_count）），
+               data = filter（eel.agg.70，季节==&#39;Autumn&#39;），
+               family =二项式（link =＆quot; logit; quot;），
+               方法=“弗雷姆”
+               离散= true，
+               结= lake_knots，
+               重量=重量）
+ 
+当我尝试从50 x 50个网格单元的数据框架上预测这些模型时，来自春季模型的数据看起来很奇怪
+  lake_pred_aut＆lt;  -  lake_pred_df％＆gt;％ 
+  dplyr :: filter（季==＆quot;秋天＆quot;）％＆gt;％
+  na.omit（）
+
+lake_pred_win＆lt;  -  lake_pred_df％＆gt;％ 
+  dplyr ::过滤器（季节==;冬季＆quot;）％＆gt;％
+  na.omit（）
+
+lake_pred_spr＆lt;  -  lake_pred_df％＆gt;％ 
+  dplyr :: filter（季节==; spring＆quord＆quord＆quord）％＆gt;％
+  na.omit（）
+
+pred_aut＆lt;  -  broom.mixed :: augment（mod_aut，newdata = lake_pred_aut）
+pred_win＆lt;  -  broom.mixed :: augment（mod_win，newdata = lake_pred_win）
+pred_spr＆lt;  -  broom.mixed :: augment（mod_spr，newdata = lake_pred_spr）
+
+logit2prob＆lt;  -  function（logit）{
+  赔率＆lt;  -  exp（logit）
+  prob＆lt;  - 赔率 /（1 +赔率）
+  返回（概率）
+}
+
+pred_aut_transf＆lt;  -  pred_aut％＆gt;％
+  突变（
+    lower = logit2prob（.fitting -1.96 * .se.fit），
+    高= logit2prob（.Fitted + 1.96 * .se.fit），
+    .fittit_prob = logit2prob（.fitting），
+    季节=&#39;秋天&#39;
+  ）
+
+pred_win_transf＆lt;  -  pred_win％＆gt;％
+  突变（
+    lower = logit2prob（.fitting -1.96 * .se.fit），
+    高= logit2prob（.Fitted + 1.96 * .se.fit），
+    .fittit_prob = logit2prob（.fitting），
+    季节=&#39;冬季&#39;
+  ）
+
+pred_spr_transf＆lt;  -  pred_spr％＆gt;％
+  突变（
+    lower = logit2prob（.fitting -1.96 * .se.fit），
+    高= logit2prob（.Fitted + 1.96 * .se.fit），
+    .fittit_prob = logit2prob（.fitting），
+    季节=&#39;春天&#39;
+  ）
+
+pred＆lt;  -  bind_rows（pred_aut_transf，pred_win_transf，pred_spr_transf）
+
+ggplot（） + 
+  geom_tile（data = pred，aes（x = x，y = y，fill = .fitted_prob）） +
+  geom_sf（data = shape_simp，fill = na，color =; black;） +
+  facet_grid（lunar4〜季节） +
+  scale_fill_viridis_c（name =＆quot;
+                       选项=“涡轮”，方向= 1）+
+  them_bw（） +
+  主题（legend.background = element_blank（），） +
+  指南（fill = guide_colourbar（
+    frame.lineWidth = 0.3，
+    ticks.colour =&#39;黑色&#39;，
+    Frame.Colour =&#39;Black&#39;）） +
+  实验室（x =“经度”
+       y =“纬度”
+预测图
+ 
+   
+显然，我那个月的预测值很低，但我不确定为什么。
+  pred％＆gt;％ 
++ group_by（季节）％＆gt;％ 
++摘要（as_tibble（rbind（摘要（.fittit_prob））））））））
+＃a tibble：3×7
+  季节。 `1st qu.`中间的平均值`3rd qu.`最大。
+  ＆lt; fct＆gt;     ＆lt; dbl＆gt;     ＆lt; dbl＆gt;   ＆lt; dbl＆gt;  ＆lt; dbl＆gt;     ＆lt; dbl＆gt; ＆lt; dbl＆gt;
+1秋季1.18e- 9 0.0429 0.138 0.213 0.307 0.992
+2冬季3.04e- 8 0.0695 0.239 0.321 0.535 0.998
+3弹簧1.10E-11 0.000553 0.00195 0.0126 0.00875 0.825
+ 
+A link to my full code and datasets if required can be found 此处。]]></description>
+      <guid>https://stats.stackexchange.com/questions/661844/low-fitted-values-in-bam-models-causing-peculiar-predict-plots</guid>
+      <pubDate>Tue, 25 Feb 2025 14:51:50 GMT</pubDate>
+    </item>
+    <item>
+      <title>COX模型预测中置信区间的差异</title>
+      <link>https://stats.stackexchange.com/questions/661843/differences-in-confidence-intervals-in-cox-model-predictions</link>
+      <description><![CDATA[我正在尝试通过此 vignette 来自生存包装。但是，我注意到相对风险（RR）估计的置信区间（CI）的差异，具体取决于我的计算方式。
+特别是，我在使用时获得不同的顺式：
+
+  type =＆quot; lp;  in  predict&gt; predict（），然后从标准错误（SE）中计算95％CI并指出结果（如在小插图）。
+  type =;风险;  in  predict&gt; predict（），然后直接从se。直接计算95％CI
+
+在第二种情况下，置信区间更窄。
+根据的帮助文件preditd.coxph ，“风险&#39;是 exp（lp）两种产生相同结果的方法。
+有人知道为什么他们有所不同吗？
+事先感谢您的见解！
+ 
+ 库（生存）
+图书馆（dplyr）
+图书馆（TinyPlot）
+
+fit＆lt;  -  coxph（surv（未来，死亡）〜性 * splines :: ns（年龄，df = 3），data = flchain）
+pdata＆lt;  -  Expand.Grid（年龄= 50:99，性= C（“ m＆quot”; f＆quot;））
+
+lp_pred＆lt;  -  broom :: augment（fit，newdata = pdata，type.predict =＆quot; lp; lp; se = true）|＆gt; 
+  突变（
+    type =; lp＆quort
+    conf.low = .fitting -1.96 * .se.fit，
+    conf.high = .Fittit + 1.96 * .se.fit，
+    跨越（c（.fited，conf.low，conf.high），exp）
+  ）
+
+firk_pred＆lt;  -  broom :: augment（
+  fit，newdata = pdata，type.predict =“风险”，se = true
+  ）|＆gt; 
+  突变（
+    类型=“风险”，
+    conf.low = .fitting -1.96 * .se.fit，
+    conf.high = .Fitted + 1.96 * .se.fit
+  ）
+
+pred＆lt;  -  rbind（lp_pred，firk_pred）
+
+和（
+  pread，
+  TinyPlot（
+    x =年龄，y =.。 
+    facet = type，type =＆quord; ribbon＆quord＆quot log =&#39;y y＆quot;
+  ）
+）
+
+ 
+    ]]></description>
+      <guid>https://stats.stackexchange.com/questions/661843/differences-in-confidence-intervals-in-cox-model-predictions</guid>
+      <pubDate>Tue, 25 Feb 2025 14:35:47 GMT</pubDate>
+    </item>
+    <item>
+      <title>用Dharma的Beta GLMM（GLMMTMB）中的残留与预测的剩余与预测的解释</title>
+      <link>https://stats.stackexchange.com/questions/661842/interpretation-of-residual-vs-predicted-in-beta-glmm-glmmtmb-with-dharma</link>
+      <description><![CDATA[    
+嗨，
+我运行了一个beta glmmtmb，其中我的响应变量在0-1之间，因此我使用了beta分布。在我的模型中，我有3个连续的（数字）预测因子和3个随机效应因素，其中一个随机因素具有嵌套结构（1 | A/B）。进行模型验证，我获得了残留与预测的图，它显示了虚线的趋势线，我不知道如何解释这些后拟合结果以及模型是否需要改进以及如何改进。
+任何指导都将不胜感激。
+谢谢。]]></description>
+      <guid>https://stats.stackexchange.com/questions/661842/interpretation-of-residual-vs-predicted-in-beta-glmm-glmmtmb-with-dharma</guid>
+      <pubDate>Tue, 25 Feb 2025 13:53:37 GMT</pubDate>
+    </item>
+    <item>
+      <title>回归您可以在其中观察到回应到错误</title>
+      <link>https://stats.stackexchange.com/questions/661841/regression-where-you-observe-the-response-up-to-an-error</link>
+      <description><![CDATA[考虑一个功能样本 $ x_1，\ ldots，x_n \ in \ Mathcal {x} $ ，以及在其中观察响应的地方，请考虑一个回归问题。已知分布的测量误差。
+例如，一个人可以假设 $ y_i = \ nathcal {n}（\ mu_i，\ sigma_i^2）$  for span class =“ Math -container“&gt; $ i \ in \ {1，\ ldots，n \} $ 。在这里，响应将是实数上的分布而不是单个实数。然后，一个人可以训练模型， $ \ mu_ \ theta（x），\ sigma_ \ theta（x）$ 以最小化分配损失
+ $$ \ sum_ {i = 1}^n d（\ mathcal {n}（\ mu_i，\ sigma_i^2），\ Mathcal {n}（\ mu_ \ theta（x_i \ theta） ），\ sigma_ \ theta（x_i）^2），$$ 
+其中 $ d $ 是统计分歧。
+这是否存在？是否有一种更简单的方法来查看与标准偏差的回归问题？]]></description>
+      <guid>https://stats.stackexchange.com/questions/661841/regression-where-you-observe-the-response-up-to-an-error</guid>
+      <pubDate>Tue, 25 Feb 2025 13:26:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何在荟萃分析中使用元分析计算两个向量的相关性</title>
+      <link>https://stats.stackexchange.com/questions/661840/how-to-calculate-correlation-from-two-vectors-taking-into-account-their-sd-in</link>
+      <description><![CDATA[我有两个平均值及其标准偏差的向量，我知道使用了多少个样品来计算这些偏差：
+  a.mean＆lt;  -  c（-0.593299457935214，1.5398906656498，0.474667240550958，0.197096899999999567 0.411565867000571，-0.182469876232944，0.085036494536958，0.583395241688231）
+B.Mean＆lt; -C（-0.336308780666444，0.383283754321765，1.7076326575267，-1.1439243239297，-0.580.5801648064201919199199191991919919191991919191919199191919191999191999999999999999999999999999999999999999999999999991999999999999999999999999999 0.19131509705761，1.63985775967348，-1.8300037377404，-0.318887381847817）
+A.sd &lt;- c(0.296227270018517, 0.30218840252479, 0.299951334146475, 0.299490096414611,     0.294567337015463, 0.304141284697497, 0.300261796049186，0.300960503557574，0.29733865532513，0.304327076880512）
+B.sd &lt;- c(0.300106720391453, 0.297745788051714, 0.300065678745982, 0.307831487440735,     0.298219552291166, 0.298165738503535, 0.300918028906223，0.300642686972862，0.302108539079301，0.298966114971293）
+A.N＆lt;  -  rep（5000，长度（a.mean））
+B.N＆lt;  -  rep（5000，长度（B.Mean））
+ 
+我如何计算这两个向量的（元）相关性，同时考虑到 a.sd 和 b.sd 向量的不确定性，使用r软件包 metafor ？
+我尝试过：
+ 库（metafor）
+escalc（measure =; cor; cor; m1i = a.mean，m2i = b.Mean，sd1i = a.sd，sd2i = b.sd，n1i = a.n，n2i = b.n）
+ 
+但是，这会返回错误，期望在输入处计算出的相关性，但这不是我的情况 - 我有两个连续数量，我想计算荟萃分析中的相关性。&gt; 
+我还试图通过在b〜a之间进行回归来做到这一点，但这也引发了错误：
+  rma（mods = b〜a，m1i = a.mean，m2i = b.Mean，sd1i = a.sd，sd2i = b.sd，n1i = a.n，n2i = b.n）
+ 
+它要求一定的措施 - 我不想要任何措施，我只想要这两个向量，我还没有找到任何“量度”。那将实现这一目标。
+我看着小插图，没有看到任何似乎与此相关的例子。]]></description>
+      <guid>https://stats.stackexchange.com/questions/661840/how-to-calculate-correlation-from-two-vectors-taking-into-account-their-sd-in</guid>
+      <pubDate>Tue, 25 Feb 2025 13:22:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么跳过嵌入式工作？</title>
+      <link>https://stats.stackexchange.com/questions/661839/why-do-skip-gram-embeddings-work</link>
+      <description><![CDATA[我有一个有关跳过算法的问题。为了使问题有道理，我将描述它。不过，我可能不会完美。我将尝试给出我的书使用的解释。
+创建单词嵌入是一种算法。假设您有一个带有25 000个单词的文字。您可以创建25000个矢量，这是一个热编码，这意味着它们的尺寸为25 000。然后，您查看句子或单词近距离，然后跳过这样的单词：
+可以说，您有一个句子“背包可以包含书籍和铅笔”。您跳过了背包，看周围的单词，然后创建诸如（背包，包含），（背包，书籍），（书籍，背包），（铅笔，书籍）。&gt; 
+您创建这样的神经网络：
+您的输入向量为25000个维层（神经网络），该层产生了尺寸500的矢量，这些矢量又被送达到输出层（也是一个神经网络），该层产生了维度的维度。下一个单词的25000个概率，该向量与25 000个维输入向量有关。我们使用跨凝结训练数据。这意味着，在我们喂食它（Backs，Books）之后，该模型会自我调整，从而使“书籍”的概率;当我们给它一个“背包”一词时，变得更高一点。
+ 我的问题 
+ 为什么我们要说的是，语义上相似的单词像嵌入一样近距离togeher？我的书说，例如“电影”
+和“电影”即使没有出现
+通常在一起，因为他们周围的单词通常是相同的。
+但是我们怎么知道算法不仅会创建两个
+嵌入层中的不同嵌入式，但输出层
+给出这两个不同的向量（嵌入）的值相同的值？我只能看到我们控制了复合函数，而不是第一个函数。 
+ 从我看到的函数g（f（x））来看，如果x和y在语义上接近，我确实看到g（f（x））将接近g（f（y） ），并且使F（x）接近f（y）的算法是很明智的，但是严格来说，我不认为它必须为了优化问题吗？  ]]></description>
+      <guid>https://stats.stackexchange.com/questions/661839/why-do-skip-gram-embeddings-work</guid>
+      <pubDate>Tue, 25 Feb 2025 12:35:19 GMT</pubDate>
+    </item>
     <item>
       <title>最大可能性估计量何时有偏见？</title>
       <link>https://stats.stackexchange.com/questions/661838/when-is-a-maximum-likelihood-estimator-biased</link>
@@ -91,7 +316,7 @@ c（100 *（vcov（res.r）[1,1] -VCOV（res.f）[1,1]） / vcov（res.r）[1,1]
       <pubDate>Tue, 25 Feb 2025 09:59:29 GMT</pubDate>
     </item>
     <item>
-      <title>我可以使用这种幼稚的方法计算稀疏组套索的归一化常数吗？</title>
+      <title>我可以使用这种幼稚的方法计算稀疏组套索的归一化常数吗？ [关闭]</title>
       <link>https://stats.stackexchange.com/questions/661831/can-i-calculate-the-normalising-constant-of-the-sparse-group-lasso-using-this-na</link>
       <description><![CDATA[我正在尝试计算稀疏组套索的归一化常数。我想知道以下（幼稚）方法是否有效，或者计算是否更多地涉及？
 稀疏组拉索的归一化常数由积分给出：
@@ -101,7 +326,7 @@ z（\ lambda_1，\ lambda_2）= \ int _ {\ Mathbb {r}^p}^p} \ exp \ left（ -  \
 我们可以使用拆分处罚
   \ begin {equination}
 \ exp \ left（ -  \ lambda_1 \ sum_ {j} | \ beta_j |  -  \ lambda_2 \ sum_ {g} \ | \ | \ | \ | \ beta_g \ | _2 \ right）= \ prod_ {j} |）\ prod_ {g} \ exp（ -  \ lambda_2 \ | | \ beta_g \ | _2）。
-\ end {equation}  
+\ end {等式}  
 因此，积分可以作为独立积分的产物重写：
   \ begin {equination}
 z（\ lambda_1，\ lambda_2）= \ prod_ {j} \ int _ {\ Mathbb {\ Mathbb {r}}} \ exp（ -  \ lambda_1 | \ beta_j |） r}^{m_g}}} \ exp（ -  \ lambda_2 \ | \ beta_g \ | _2）d \ beta_g。
@@ -139,108 +364,13 @@ z（\ lambda_1，\ lambda_2）= \ prod_ {j} \ int _ {\ Mathbb {\ Mathbb {r}}} \ 
       <pubDate>Tue, 25 Feb 2025 08:24:53 GMT</pubDate>
     </item>
     <item>
-      <title>关于结构断点的问题</title>
+      <title>关于结构断裂点的问题[关闭]</title>
       <link>https://stats.stackexchange.com/questions/661828/question-on-structural-break-points</link>
       <description><![CDATA[你好，我有价格系列。我想确定这些单变量系列的结构断裂点。为此，我的教练建议采用递归回归并使用AR模型。
 如何使用eviews或r？进行此测试
 谢谢。]]></description>
       <guid>https://stats.stackexchange.com/questions/661828/question-on-structural-break-points</guid>
       <pubDate>Tue, 25 Feb 2025 07:58:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>两个参数的分解定理</title>
-      <link>https://stats.stackexchange.com/questions/661825/factorization-theorem-for-two-parameters</link>
-      <description><![CDATA[  $ x \ sim \ Mathcal {n}（\ Mu，\ sigma^2）$  is  is 
-  $$
-\ begin {align*}
-f（x）＆amp; = \ frac {1} {\ sigma \ sqrt {2 \ pi}}} \，\ exp \ left（ -  \ frac {（x- \ mu）^2} {2 \ sigma^sigma^2} \ right）
-＆amp; = \ frac {1} {\ sigma \ sqrt {2 \ pi}}}} \，\ exp \ left（ -  \ frac {x^2-2-2-2-2 \ mu x + \ mu^mu^2} {2 }\正确的） \\
-＆amp; = \ frac {1} {\ sigma \ sqrt {2 \ pi}}} \，\ exp \ left（ -  \ frac {x^2} {2 \ sigma^2} \ sigma^2}  - \ frac {\ mu^2} {2 \ sigma^2} \ right）\\
-＆amp; = \ frac {1} {\ sigma \ sqrt {2 \ pi}}} \，\ exp \ left（ -  \ frac {\ mu^2} {2 \ sigma^sigma^2} \ right）左（\ frac {\ mu} {\ sigma^2} x- \ frac {1} {2 \ sigma^2} x^2 \ right）
-\ end {align*}
-$$  
-和 $ \ Mathbf {x} = x_1，\ ldots，x_n $ 其中 $ x_i \ \ sim \ Mathcal {n}（\ mu，\ sigma^2）$ 是i.i.d.是
-  $$
-f（\ mathbf {x}）= \ left（\ frac {1} {\ sigma \ sqrt {2 \ pi}}} \ right）^n \，\ exp \ lest（ -  \ frac {\ mu^2} { 2 \ sigma^2} \ right）^n \，\ exp \ left（ \ frac {\ mu} {\ sigma^2} \ sum_ {i = 1}^n x_i  -  \ frac {1} {2 \ sigma^2} \ sum_ {i = 1}^n x_i^2 \ right）
-$$  
-通过分解定理， $ \ sum_ {i = 1}^n x_i $  and  $ \ sum_ {i = 1}^n x_i^2 $ 是足够的统计信息。但是，这是 $ \ mu $ $ 的足够统计量，并且是 $ \ sigma^2 $ ？通常，当我们使用分解定理具有多个参数时，我们如何确定哪个足够的统计属性属于哪个参数？我的意思是，只检查一个未知并假设其他人知道吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/661825/factorization-theorem-for-two-parameters</guid>
-      <pubDate>Tue, 25 Feb 2025 06:50:42 GMT</pubDate>
-    </item>
-    <item>
-      <title>在没有Google帐户的情况下提交R期刊[关闭]</title>
-      <link>https://stats.stackexchange.com/questions/661824/submitting-to-the-r-journal-without-a-google-account</link>
-      <description><![CDATA[根据 https://journal.r-project.org/submissions.html 
-提交是通过Google帐户。我不觉得在开放访问期刊上发布的开源软件应该需要一个商业帐户，而作者（和审阅者）成为产品。有没有办法在没有Google帐户的情况下提交论文？]]></description>
-      <guid>https://stats.stackexchange.com/questions/661824/submitting-to-the-r-journal-without-a-google-account</guid>
-      <pubDate>Tue, 25 Feb 2025 05:26:41 GMT</pubDate>
-    </item>
-    <item>
-      <title>零吊泊托分布的MLE的差异</title>
-      <link>https://stats.stackexchange.com/questions/661821/variance-of-mle-of-zero-truncated-poisson-distribution</link>
-      <description><![CDATA[我对零截短的泊松分布的MLE和UMVU感兴趣，它们的差异和成就Cramer Rao Lower Bound Bound Bound Bound Bound Bount。 零截断的泊松分布 Lambert-W函数的条款）
- in  https：//www.jstor.org.org/stable/stable/3001863 得出最大似然估计量的方差，作为第二个衍生物的期望的倒数对数似然函数。 I.e， $ var（\ hat {\ lambda}）= \ frac {-1} {e _ {e _ {\ lambda} \ left（\ frac {\ partial \ ^2 l}部分\ lambda \ ^2} \ right）} $ ，其中 $ l = \ log（p_ \ lambda（x））$ 是零截断的泊松分布的log-likelihoodhiehienhiehienhienhiehienhienhie。
-我的工作如下：
-  $ \ frac {\ partial \ ^2 l} {\ partial \ lambda \ ^2} =  -  \ lesg } \ frac {\ partial \ p_ \ lambda（x）} {\ partial \ lambda} \ right） ^2 + \左（\ frac {1} {p_ \ lambda（x）} \ frac {\ partial \ ^2 p_ \ lambda（x）} ）$  
-对 $ p_ \ lambda（x）$ 在任一方的期望中，对第二项的期望为零（假设互换订单的规律性条件集成和第二个衍生物）；它也遵循得分函数和Fisher信息矩阵的属性。
-我无法证明第一学期的期望是MLE， $ \ hat {\ lambda} $ 的差异。请告知如何进行。
-这个关系一般是正确的吗？]]></description>
-      <guid>https://stats.stackexchange.com/questions/661821/variance-of-mle-of-zero-truncated-poisson-distribution</guid>
-      <pubDate>Tue, 25 Feb 2025 03:47:38 GMT</pubDate>
-    </item>
-    <item>
-      <title>了解纵向研究中的不规则时间间隔：在受试者之间与</title>
-      <link>https://stats.stackexchange.com/questions/661819/understanding-irregular-time-spacing-in-longitudinal-research-within-vs-betwee</link>
-      <description><![CDATA[我正在研究纵向研究，为了更好地理解数据的性质，我开始搜索并遇到了不规则间隔时间序列（即时间无限结构化的纵向数据）的概念。但是，我发现的定义并未明确指定“不规则间隔”是否规定。指的是受试者内的透视图或对象间透视图。
- 示例方案 
-假设我们正在测试药物对治疗疾病的影响。
- 方案1：
-相对于接受药物治疗时，在不同时间点记录了每个患者的血压数据。
-患者1：第17天，第30天，第50天
-患者2：第2天，第17天，第38天
-患者3：第8天，第15天，第63天
-在这种情况下：
-存在主体内部和受试者之间的不规则性：
-内部不规则性：同一患者的测量之间的时间间隔不一致（例如，患者1在第17天→第30天和第30天和第30天→第50天之间的差距有所不同）。
-患者之间的不规则性：一个患者的测量结果之间的时间间隔不同于另一名患者的时间间隔。
- 方案2：
-患者1：第2天，第17天，第25天
-患者2：第17天，第32天，第40天
-患者3：第8天，第23天，第31天
-在这种情况下：
-仅存在患者内的不规则性：每个患者内的时间间隔都有所不同，但是在患者之间，间隔是一致的（例如，所有患者在随后的测量之间的时间差距为15天和8天）。&gt; ）。
- 问题1：两个场景是否符合不规则间隔的时间序列（即时间无结构的纵向数据）？
- 问题2：我可以使用混合效应模型或增长模型分析该数据的轨迹吗？
-我的研究中的其他复杂性
-我的研究类似于场景1，但更复杂：
-每个患者的时间点数量不同，不是由于辍学，而是因为他们的进度有所不同。一些患者迅速改善，需要更少的测量，而另一些患者则逐渐改善，需要进行更多的测量。
-一些患者可能根本无法改善，导致数据收集的其他差异。
- 问题3：如果我的数据同时具有住所和不规则的间距和不平衡的结构，我仍然可以使用相同的纵向模型吗？
-注意：我的研究中有更多的时间点和患者；上述情况只是一个例子。]]></description>
-      <guid>https://stats.stackexchange.com/questions/661819/understanding-irregular-time-spacing-in-longitudinal-research-within-vs-betwee</guid>
-      <pubDate>Tue, 25 Feb 2025 02:02:51 GMT</pubDate>
-    </item>
-    <item>
-      <title>1SE模型在堆叠的弹性净回归中无非零系数，但最小CV-Error模型产生许多非零系数</title>
-      <link>https://stats.stackexchange.com/questions/661814/1se-model-yields-no-non-zero-coefficients-in-stacked-elastic-net-regression-but</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stats.stackexchange.com/questions/661814/1se-model-yields-no-non-zero-coefficients-in-stacked-elastic-net-regression-but</guid>
-      <pubDate>Tue, 25 Feb 2025 00:22:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>高斯在离散数据上的混合物与插值数据点</title>
-      <link>https://stats.stackexchange.com/questions/661757/mixture-of-gaussian-on-discrete-data-with-interpolated-data-points</link>
-      <description><![CDATA[我想使用高斯人的混合物来对恰好具有整数值的一维数据集的分布进行建模，...] 。数据代表受访者将向他们提供的假设服务收取的美元金额。测得的基本信号/变量是连续的 - 例如，没有理由不能提供服务的意愿不能为13.333 ...  - 但是考虑到如何进行调查，测量/数据是通过设计的整数。 。
-但是，由于测量误差，我有大约10-20％的数据点必须用两个连续的势值的中点插值，从而呈浮点值，例如：。 [[0,1]，[7,8]，[8,9]，[7,8]，[0,1]]  =＆gt;  [0.5，7.5，8.5，7.5，0.5] 。基本上，由于我使用的工具中的错误，我无法完全识别其值，但是我能够识别该测量是 a 或 b  ，为了不浪费此数据点，我将值归为（a+b）/2 。
-要生成数据的直方图，每个代表整数值的垃圾箱 - 例如，bin bounds = ...，[2.5,3.5），[3.5,4.5），...  - 我的“平滑”半点值，使每个点对相应的边缘贡献一半：datapoint（ [2,3] 估算为 2.5 ），例如，贡献了权重0.5在直方图中代表2和3的箱中的每个垃圾箱。这个想法是，这个数据点可以同等的概率有助于任何一个垃圾箱，因此我想平均分配贡献。我现在想将高斯人的混合物放在数据上，并在此直方图上覆盖，以定性地查看混合物对数据的拟合程度。
-有一些预期的信号/分布浓度，我想用高斯组件对其进行建模。分析目标是在这种分布上建模高斯混合物，以平衡几个需求的方式：
-
-定量拟合，通过度量（例如，可能性，AIC，BIC等）
-定性拟合，通过凝视并查看是否适合现有行为理论
-
-当我运行EM算法以适合K Gaussians时，我是在原始数据（带有半点值）还是在平滑数据上运行它？每个的优点和缺点是什么？]]></description>
-      <guid>https://stats.stackexchange.com/questions/661757/mixture-of-gaussian-on-discrete-data-with-interpolated-data-points</guid>
-      <pubDate>Sun, 23 Feb 2025 13:52:00 GMT</pubDate>
     </item>
     </channel>
 </rss>
