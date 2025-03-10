@@ -4,100 +4,11 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Mon, 10 Mar 2025 15:22:31 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 10 Mar 2025 18:23:14 GMT</lastBuildDate>
     <item>
       <title>损失的计算梯度W.R.T学习率Pytorch</title>
       <link>https://stackoverflow.com/questions/79498420/computing-gradient-of-loss-w-r-t-learning-rate-pytorch</link>
-      <description><![CDATA[我正在构建一个自定义优化器，该定制优化器从Dirichlet分布中采样学习率，其参数（Alpha）需要在每个反向流中进行更新。我已经想出了如何获得W.R.T.的损失对于这些alpha参数，实际上是∂η/∂α，其中是学习率。
-但是，我需要“连接”由于缺乏更好的单词，这种具有损失的梯度有效地∂l/∂η，因此我可以“链”这些梯度在一起，形成表达：
-∂l/∂η *ηη/∂α=∂l/∂α
-然后，我可以使用此梯度来更新Alpha，因此可以改善分布的采样。问题是我无法弄清楚如何获得∂l/∂η。我尝试使用以下行：
-  grad_learning_rate = torch.autograd.grad（损失，self.lear.learning_rate，grad_outputs = torch.tensor（1.0，device = lose.device），retain_graph = true，wasler_unused = true = true）[0] [0]
- 
-每次前进后损失传递到优化器中。但是返回以下错误消息：
- 差异张量之一似乎在图中没有使用。如果这是所需的行为，则设置allow_unused = true。
- 
-我已经附加了模型：
- 类MLP（nn.module）：
-    def __init __（self，input_size，output_size，设备：torch.device = none）：
-        超级（MLP，self）.__ init __（）
-        self.fc1 = nn.linear（input_size，10，dtype = type = turch.float64）
-        self.relu = nn.relu（）
-
-        ＃在CPU或输入处理单元（XPU）上拟合模型。
-        self.device =设备如果设备不是TORCH.DEVICE（&#39;CPU&#39;）
-        self.to（self.device）
-
-    def向前（self，x）：
-        x = self.fc1（x）
-        返回x
- 
-和优化器：
- 类飞镖（优化器）：
-&#39;&#39;&#39;
-优化器必须在整个培训中都会损失。
-&#39;&#39;&#39;
-def __init __（self，params，beta =（0.9，0.999），
-             alpha_init = 1.0，alpha_lr = 0.0001，eps = 1e-8，weight_decay = 0）： 
-    defaults = dict（beta = beta，eps = eps，weight_decay = weight_decay）
-    super（dart，self）.__ init __（参数，默认）
-    self.alpha_scaler = alpha_init
-    self.alpha_lr = alpha_lr
-    self.learning_rate =无
-    self.alpha_grads =无
-    
-def sample_lr_candidates（self，平均= 1e-3，std = 1e-4，num_samples =（10，1），min_lr = 1e-6，max_lr = 1e-1）：
-    ＃从高斯分布中的样本
-    lr_samples = torch.normal（平均=平均，std = std，size =（num_samples））
-    
-    ＃剪辑值以确保它们在min_lr和max_lr范围内
-    lr_samples = torch.clamp（lr_samples，min = min_lr，max = max_lr）
-    
-    返回lr_samples.to（torch.float64）
-
-DEF步骤（自我，损失）：
-    对于self.param_groups中的组：＃只有一个组。
-        对于组[&#39;params&#39;]中的p：
-            如果没有P.Grad：
-                继续
-
-            DIM =（10，784）如果P.Shape == Torch.Size（[10，784]）ELSE（1，10）
-            
-            state = self.state [p]＃优化类为参数打开“历史记录”。
-            输入= TORCH。
-
-    
-            如果len（state）== 0：＃初始化状态（如果尚未完成）。
-                状态[&#39;step&#39;] = 0
-                state [&#39;lr_candidates&#39;] = self.sample_lr_candidates（num_samples = p. shape）＃.to（&#39;xpu&#39;）
-                state [&#39;alphand&#39;] = torch.ones_like（input，memory_format = torch.preserve_format） * self.alpha_scaler
-            
-            状态[&#39;step&#39;] += 1  
-            
-            ＃启用Autograd以进行Alpha更新
-            state [&#39;alpha&#39;]。需要_grad_（true）
-            
-            ＃来自Dirichlet的示例（警告：可能不支持自动摩擦）
-            samples = torch.distributions.dirichlet（state [&#39;alphand&#39;]）。rsample（）＃.to（&#39;xpu&#39;）＃可区分
-            总计=状态[&#39;alpha
-            grad_samples = torch._dirichlet_grad（样本，状态[&#39;alphas&#39;]，Total）＃del P（样本） / del alpha
-            
-            ＃计算学习率
-            ＃print（samples.shape，state [&#39;lr_candidates&#39;]。形状）
-            self.learning_rate =样本 *状态[&#39;lr_candidates&#39;]＃.to（&#39;xpu&#39;）
-            self.learning_rate.retain_grad（）
-            
-            ＃计算梯度wrt alpha
-            grad_learning_rate = torch.autograd.grad（损失，self.lear.learning_rate，grad_outputs = torch.tensor（1.0，device = lose.device），retain_graph = true）[0]
-            
-            ＃随着梯度下降的更新alpha
-            state [&#39;alphas&#39;] = state [&#39;alphas&#39;]  -  self.alpha_lr * grad_samples * state [&#39;lr_candidates&#39;]＃需要del l/ del n n
-            self.alpha_grads = state [&#39;alpha&#39;]
-
-            ＃应用重量更新
-            ＃print（self.learning_rate.shape，p.grad.shape）
-            p.data.sub_（self.learning_rate.squeeze（） * p.grad）＃.to（&#39;xpu&#39;）
- ]]></description>
+      <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79498420/computing-gradient-of-loss-w-r-t-learning-rate-pytorch</guid>
       <pubDate>Mon, 10 Mar 2025 15:11:02 GMT</pubDate>
     </item>
@@ -171,7 +82,7 @@ print（vc_hard_forest_priority.score（x_test，y_test））＃0.915
 要实现上述步骤，我使用：
 
   fit_transform 缩放“培训数据”，
- 转换携带“培训数据”参数到比例测试“测试数据” 
+ 转换携带“培训数据”参数以“测试数据” 
 
 但是，当我评估“测试数据”时，我如何在Palantir铸造模型中实现这一目标，我看不到评估配置的选项。有谁知道Palantir是否在评估配置中构建功能？携带参数过程会自动发生吗？如果没有，我该怎么做才能实现？
   fit_transform 然后变换在Palantir Foundry模型培训中等效]]></description>
@@ -274,6 +185,44 @@ test_loss，test_mae = model.evaluate（x_test_scaled，y_test，batch_size = le
       <pubDate>Fri, 14 Feb 2025 15:08:45 GMT</pubDate>
     </item>
     <item>
+      <title>为什么拥抱面提供的DeepSeek代码会导致“未知量化类型”错误？</title>
+      <link>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</link>
+      <description><![CDATA[我正在使用huggingface的此代码：
+此代码直接从 deepseek上的huggingface网站页面上的页面
+
+ 来自变形金刚导入管道
+
+消息= [
+{&#39;&#39;：＆quot“ user quot”内容“：;
+这是给出的
+pipe =管道（＆quot&#39;text-generation＆quot; deepseek-ai/deepseek-r1＆quort; trust_remote_code = true）
+管道（消息）
+ 
+
+，但我无法加载模型。当我这样做时，我会得到这个问题：
+
+ file＆quot＆lt; ...＆gt;/site-packages/transformers/quantizers/auto.py&quot;，第97行，in_dict 
+ 提高ValueError（
+
+ValueError：未知量化类型，获得FP8-支持类型为： 
+[&#39;awq&#39;，&#39;bitsandbytes_4bit&#39;，&#39;bitsandbytes_8bit&#39;，&#39;gptq&#39;，&#39;aqlm&#39;，&#39;quanto&#39;，&#39;eetq&#39;，&#39;eetq&#39;， 
+&#39;HQQ&#39;，“压缩张量”，“ fbgemm_fp8&#39;，&#39;torchao&#39;，&#39;bitnet&#39;]
+ 
+
+我尝试了不同的代码：
+ 导入火炬
+generate_text = pipeline（model =; deepSeek-ai/deepSeek-r1; torch_dtype = torch.bfloat16，trust_remote_code = true，device_map =; auto;
+generate_text（消息）
+ 
+这给出以下错误：
+
+raise ValueError( ValueError: Unknown quantization type, got fp8 - supported types are: [&#39;awq&#39;, &#39;bitsandbytes_4bit&#39;, &#39;bitsandbytes_8bit&#39;, &#39;gptq&#39;, &#39;aqlm&#39;, &#39;quanto&#39;, &#39;eetq&#39;, &#39;higgs&#39;, &#39;hqq&#39;, &#39;compressed-tensors&#39;, &#39;fbgemm_fp8&#39;, &#39;torchao&#39;，&#39;bitnet&#39;，&#39;vptq&#39;] 
+
+我该怎么办？]]></description>
+      <guid>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</guid>
+      <pubDate>Sun, 09 Feb 2025 03:05:30 GMT</pubDate>
+    </item>
+    <item>
       <title>无法使用NLTK功能</title>
       <link>https://stackoverflow.com/questions/78862426/unable-to-use-nltk-functions</link>
       <description><![CDATA[]]></description>
@@ -281,7 +230,7 @@ test_loss，test_mae = model.evaluate（x_test_scaled，y_test，batch_size = le
       <pubDate>Mon, 12 Aug 2024 15:17:29 GMT</pubDate>
     </item>
     <item>
-      <title>哪种评估指标适合与数据集不平衡的分类问题？</title>
+      <title>哪种评估指标适合与数据集不平衡的分类问题？ [关闭]</title>
       <link>https://stackoverflow.com/questions/76072393/which-evaluation-metric-will-be-suitable-for-a-classification-problem-with-an-im</link>
       <description><![CDATA[我的X类带有1000个观测值和Y类，具有2000个观测值。我正在尝试确定这里最合适的分类评估指标以及原因。
 
@@ -293,6 +242,34 @@ test_loss，test_mae = model.evaluate（x_test_scaled，y_test，batch_size = le
 我很想坚持选项4，因为它不是一个不平衡的IMO，我们不需要使用精确的回忆曲线。这里有什么合适的？]]></description>
       <guid>https://stackoverflow.com/questions/76072393/which-evaluation-metric-will-be-suitable-for-a-classification-problem-with-an-im</guid>
       <pubDate>Fri, 21 Apr 2023 10:45:10 GMT</pubDate>
+    </item>
+    <item>
+      <title>在线差异更新批处理数据 /颜色频道的有效算法更新</title>
+      <link>https://stackoverflow.com/questions/75545944/efficient-algorithm-for-online-variance-update-over-batched-data-color-channel</link>
+      <description><![CDATA[我有大量的多维数据（图像），并希望计算所有轴（颜色通道）的方差。内存明智，我无法创建一个大数组来计算一个步骤的方差。因此，我需要分批加载数据并以在线方式以某种方式更新当前差异。
+ 玩具示例 
+最后，批处理明智的更新在线应匹配 recript_var 。
+但是，我很难为此找到有效的算法。
+ 导入numpy作为np
+np.random.seed（0）
+＃正确计算方差
+all_data = np.random.randint（0，9，（9，3））＃＆lt;  - 不适合记忆
+recripe_var = all_data.var（axis = 0）
+＃创建批次
+batches = all_data.Reshape（-1，3，3）
+
+在线_var = 0
+批处理批量：
+   batch_var = batch.var（轴= 0）
+   在线_var =？  ＃如何正确更新此
+surstert np.allclose（recript_var，online_var）
+ 
+
+我找到了
+
+如何以有效考虑整个批次的有效方式更新多个新观察的方差？]]></description>
+      <guid>https://stackoverflow.com/questions/75545944/efficient-algorithm-for-online-variance-update-over-batched-data-color-channel</guid>
+      <pubDate>Thu, 23 Feb 2023 14:10:26 GMT</pubDate>
     </item>
     <item>
       <title>如何在XGBoost中的提升回合之间显示错误输出？</title>
@@ -380,143 +357,6 @@ cm_df = pd.dataframe（cm，index = [&#39;0&#39;，&#39;1&#39;]，列= [&#39;0&#
       <pubDate>Fri, 11 Aug 2017 05:46:30 GMT</pubDate>
     </item>
     <item>
-      <title>Sklearn.decomposition.pca的特征向量的简单图</title>
-      <link>https://stackoverflow.com/questions/37976564/simple-plots-of-eigenvectors-for-sklearn-decomposition-pca</link>
-      <description><![CDATA[我正在尝试了解主组件分析的工作方式，并且我正在 sklearn.datasets.load_iris  dataset上对其进行测试。  我了解每个步骤的工作原理（例如，使用 k 选定的尺寸，将数据，协方差，特征分类，对最高特征值进行排序，将原始数据转换为新轴）。）。
-下一步是可视化这些 eigenVectors 在数据集中投射到（在 pc1 vs. pc2 vs. pc2 plot 上，对吗？）。。
-如何在还原尺寸数据集的3D图上绘制[PC1，PC2，PC3]特征向量？
-另外，我是否正确绘制了此2D版本？我不确定为什么我的第一个特征向量的长度较短。  我应该乘以特征值吗？
-
- 这是我为实现这一目标所做的一些研究： 
-我关注的PCA方法来自：
- https://plot.ly/ipython-notebooks/principal-component-analysis/#shortcut--pca-in-scikit-learn （尽管我不想使用 Plotly 我想坚持使用。
-我一直在关注本教程，以绘制特征向量，这似乎很简单： pca for matplotlib 基本示例
-我找到了这个，但是我试图做的事情似乎过于复杂，我不想创建一个 fancyarrowpatch ： 的协方差矩阵
-
- 我试图使我的代码尽可能直接地遵循其他教程： 
- 导入numpy作为NP
-导入大熊猫作为pd
-导入matplotlib.pyplot作为PLT
-来自sklearn.datasets import load_iris
-从sklearn.prepercorsing进口标准标准
-来自Sklearn进口分解
-进口海洋为SNS； sns.set_style（&#39;whitegrid＆quort; {&#39;axes.grid&#39;：false}）
-
-％matplotlib内联
-np.random.seed（0）
-
-＃虹膜数据集
-df_data = pd.dataframe（load_iris（）。数据， 
-                       index = [＆quot; iris_％d＆quot; ％i for i在范围内（load_iris（）。data.shape [0]）]，
-                       列= load_iris（）。feature_names）
-
-se_targets = pd.Series（load_iris（）。目标， 
-                       index = [＆quot; iris_％d＆quot; ％i for i在范围内（load_iris（）。data.shape [0]）]， 
-                       名称=“物种”
-
-＃缩放平均= 0，var = 1
-df_standard = pd.dataframe（standardscaler（）。fit_transform（df_data）， 
-                           index = df_data.index，
-                           列= df_data.columns）
-
-＃用于主要组合分析的Sklearn
-
-＃昏暗
-m = df_standard.shape [1]
-k = 2
-
-＃PCA（我倾向于设置它）
-m_pca = demomposition.pca（n_components = m）
-df_pca = pd.dataframe（m_pca.fit_transform（df_standard）， 
-                列= [＆quot; pc％d＆quot;范围内K的％k（1，m + 1）]）。iloc [：，：k]
-
-
-＃绘制特征向量
-#https：//stackoverflow.com/questions/18299523/basic-example-for-pca-with-matplotlib
-
-＃这是东西很奇怪的地方...
-data = df_standard
-
-mu = data.mean（轴= 0）
-eigenVector，eigenvalues = m_pca.components_，m_pca.explained_variance_ #eigenVectors，eigenvalues，v = np.linalg.svd（data.t，fult_matrices = false）
-Projected_data = df_pca＃np.dot（数据，特征向量）
-
-sigma = Projected_data.std（axis = 0）.mean（）
-
-图，ax = plt.subplots（figsize =（10,10））
-ax.Scatter（Projected_data [＆quot; pc1;]，Projected_data [＆quot; pc2＆quot;]）
-对于轴，zip中的颜色（eigenVectors [：k]，[red&#39;&#39;
-＃开始，end = mu，mu + sigma *轴###导致“ valueerror：太多值无法打开（预期2）”
-
-    ＃所以我尝试过，但我认为这是不对的
-    start，end =（mu）[：k]，（Mu + Sigma * Axis）[：K] 
-    ax.annotate（&#39;&#39;，xy = end，xytext = start，arrowprops = dict（faceColor = color，width = 1.0））
-    
-ax.set_aspect（&#39;quare&#39;）
-plt.show（）
- 
-  &lt;img alt =“在此处输入图像描述” src =“ https://i.sstatic.net.net/t9st0.png”]]></description>
-      <guid>https://stackoverflow.com/questions/37976564/simple-plots-of-eigenvectors-for-sklearn-decomposition-pca</guid>
-      <pubDate>Wed, 22 Jun 2016 19:20:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>Sklearn Lasso回归是否比山脊回归差？</title>
-      <link>https://stackoverflow.com/questions/35714772/sklearn-lasso-regression-is-orders-of-magnitude-worse-than-ridge-regression</link>
-      <description><![CDATA[我目前使用 sklearn.linear_model 模块实现了脊和拉索回归。
-然而，套索回归似乎在同一数据集上差3个数量级！
-我不确定怎么了，因为从数学上讲，这不应该发生。这是我的代码：
-  def ridge_regression（x_train，y_train，x_test，y_test，model_alpha）：
-    clf = linear_model.ridge（model_alpha）
-    clf.fit（x_train，y_train）
-    预测= clf.predict（x_test）
-    损失= np.sum（（预测-y_test）** 2）
-    回报损失
-
-def lasso_regression（x_train，y_train，x_test，y_test，model_alpha）：
-    clf = linear_model.lasso（model_alpha）
-    clf.fit（x_train，y_train）
-    预测= clf.predict（x_test）
-    损失= np.sum（（预测-y_test）** 2）
-    回报损失
-
-
-x_train，x_test，y_train，y_test = cross_validation.train_test_split（x，x，y，test_size = 0.1，randy_state = 0）
-对于alpha，在[0，0.01，0.1，0.5，1，2，5，10，100，1000，10000]中：
-    打印（alpha =&#39; + str（alpha） +;
-    
-对于[1、1.25、1.5、1.75、5、5、10、100、1000、10000、100000、1000000]中的alpha。
-    打印（alpha =&#39; + str（alpha） +;
- 
-这是我的输出：
-  alpha = 0：20575.7121727的拉索损失
-alpha的套索损失= 0.01：19762.8763969
-alpha的套索损失= 0.1：17656.9926418
-alpha的拉索损失= 0.5：15699.2014387
-alpha的拉索损失= 1：15619.9772649
-alpha的拉索损失= 2：15490.0433166
-alpha的拉索损失= 5：15328.4303197
-alpha的拉索损失= 10：15328.4303197
-alpha的拉索损失= 100：15328.4303197
-alpha的套索损失= 1000：15328.4303197
-alpha的拉索损失= 10000：15328.4303197
-Alpha的脊损失= 1：61.6235890425
-alpha = 1.25：61.6360790934
-alpha的脊损失= 1.5：61.6496312133
-alpha = 1.75：61.6636076713
-alpha的脊损失= 2：61.6776331539
-alpha的脊损失= 5：61.8206621527
-Alpha的脊损失= 10：61.9883144732
-alpha的脊损失= 100：63.9106882674
-alpha = 1000：69.3266510866
-alpha = 10000：82.0056669678
-alpha的脊损失= 100000：88.4479064159
-alpha = 1000000：91.7235727543
- 
-任何想法为什么？]]></description>
-      <guid>https://stackoverflow.com/questions/35714772/sklearn-lasso-regression-is-orders-of-magnitude-worse-than-ridge-regression</guid>
-      <pubDate>Tue, 01 Mar 2016 04:36:23 GMT</pubDate>
-    </item>
-    <item>
       <title>TypeError：稀疏基质长度模棱两可；使用RF分类器时使用getnnz（）或Shape [0]？</title>
       <link>https://stackoverflow.com/questions/28314337/typeerror-sparse-matrix-length-is-ambiguous-use-getnnz-or-shape0-while-usi</link>
       <description><![CDATA[我正在学习Scikit学习中的随机森林，例如，我想使用自己的数据集使用随机森林分类器进行文本分类。因此，首先，我用TFIDF对文本进行了介绍，以进行分类：
@@ -526,7 +366,7 @@ classifier.fit（x_train，y_train）
 预测= classifier.predict（x_test）
  
 当我运行分类时，我得到了：
-  typeError：传递了一个稀疏矩阵，但是需要密集的数据。使用X.ToArray（）转换为密集的numpy阵列。
+  typeError：传递了一个稀疏矩阵，但是需要密集的数据。使用X.ToArray（）转换为密集的Numpy数组。
  
 然后，我使用 .toArray（）  x_train ，我得到了以下内容：
   typeError：稀疏矩阵长度是模棱两可的；使用getnnz（）或形状[0]
