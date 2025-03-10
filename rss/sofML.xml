@@ -4,22 +4,109 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Mon, 10 Mar 2025 12:35:53 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 10 Mar 2025 15:22:31 GMT</lastBuildDate>
     <item>
-      <title>错误分类的样本是单独的类[关闭]</title>
-      <link>https://stackoverflow.com/questions/79496368/misclassified-samples-as-a-separate-class</link>
-      <description><![CDATA[我一直在尝试将一组数据分类用于二进制分类。我看到数据的一个子集被错误分类，我删除了该子集，分类器的准确性从88％提高到96％。
-我正在考虑为这些样本创建一个单独的类，然后与多类分类进行分类。这是合适的吗？
-还有其他处理这些样品的方法吗？这些样本现在由二进制分类器随机分配给两个类。至少几次，我将决策树重现。]]></description>
-      <guid>https://stackoverflow.com/questions/79496368/misclassified-samples-as-a-separate-class</guid>
-      <pubDate>Sun, 09 Mar 2025 18:06:59 GMT</pubDate>
+      <title>损失的计算梯度W.R.T学习率Pytorch</title>
+      <link>https://stackoverflow.com/questions/79498420/computing-gradient-of-loss-w-r-t-learning-rate-pytorch</link>
+      <description><![CDATA[我正在构建一个自定义优化器，该定制优化器从Dirichlet分布中采样学习率，其参数（Alpha）需要在每个反向流中进行更新。我已经想出了如何获得W.R.T.的损失对于这些alpha参数，实际上是∂η/∂α，其中是学习率。
+但是，我需要“连接”由于缺乏更好的单词，这种具有损失的梯度有效地∂l/∂η，因此我可以“链”这些梯度在一起，形成表达：
+∂l/∂η *ηη/∂α=∂l/∂α
+然后，我可以使用此梯度来更新Alpha，因此可以改善分布的采样。问题是我无法弄清楚如何获得∂l/∂η。我尝试使用以下行：
+  grad_learning_rate = torch.autograd.grad（损失，self.lear.learning_rate，grad_outputs = torch.tensor（1.0，device = lose.device），retain_graph = true，wasler_unused = true = true）[0] [0]
+ 
+每次前进后损失传递到优化器中。但是返回以下错误消息：
+ 差异张量之一似乎在图中没有使用。如果这是所需的行为，则设置allow_unused = true。
+ 
+我已经附加了模型：
+ 类MLP（nn.module）：
+    def __init __（self，input_size，output_size，设备：torch.device = none）：
+        超级（MLP，self）.__ init __（）
+        self.fc1 = nn.linear（input_size，10，dtype = type = turch.float64）
+        self.relu = nn.relu（）
+
+        ＃在CPU或输入处理单元（XPU）上拟合模型。
+        self.device =设备如果设备不是TORCH.DEVICE（&#39;CPU&#39;）
+        self.to（self.device）
+
+    def向前（self，x）：
+        x = self.fc1（x）
+        返回x
+ 
+和优化器：
+ 类飞镖（优化器）：
+&#39;&#39;&#39;
+优化器必须在整个培训中都会损失。
+&#39;&#39;&#39;
+def __init __（self，params，beta =（0.9，0.999），
+             alpha_init = 1.0，alpha_lr = 0.0001，eps = 1e-8，weight_decay = 0）： 
+    defaults = dict（beta = beta，eps = eps，weight_decay = weight_decay）
+    super（dart，self）.__ init __（参数，默认）
+    self.alpha_scaler = alpha_init
+    self.alpha_lr = alpha_lr
+    self.learning_rate =无
+    self.alpha_grads =无
+    
+def sample_lr_candidates（self，平均= 1e-3，std = 1e-4，num_samples =（10，1），min_lr = 1e-6，max_lr = 1e-1）：
+    ＃从高斯分布中的样本
+    lr_samples = torch.normal（平均=平均，std = std，size =（num_samples））
+    
+    ＃剪辑值以确保它们在min_lr和max_lr范围内
+    lr_samples = torch.clamp（lr_samples，min = min_lr，max = max_lr）
+    
+    返回lr_samples.to（torch.float64）
+
+DEF步骤（自我，损失）：
+    对于self.param_groups中的组：＃只有一个组。
+        对于组[&#39;params&#39;]中的p：
+            如果没有P.Grad：
+                继续
+
+            DIM =（10，784）如果P.Shape == Torch.Size（[10，784]）ELSE（1，10）
+            
+            state = self.state [p]＃优化类为参数打开“历史记录”。
+            输入= TORCH。
+
+    
+            如果len（state）== 0：＃初始化状态（如果尚未完成）。
+                状态[&#39;step&#39;] = 0
+                state [&#39;lr_candidates&#39;] = self.sample_lr_candidates（num_samples = p. shape）＃.to（&#39;xpu&#39;）
+                state [&#39;alphand&#39;] = torch.ones_like（input，memory_format = torch.preserve_format） * self.alpha_scaler
+            
+            状态[&#39;step&#39;] += 1  
+            
+            ＃启用Autograd以进行Alpha更新
+            state [&#39;alpha&#39;]。需要_grad_（true）
+            
+            ＃来自Dirichlet的示例（警告：可能不支持自动摩擦）
+            samples = torch.distributions.dirichlet（state [&#39;alphand&#39;]）。rsample（）＃.to（&#39;xpu&#39;）＃可区分
+            总计=状态[&#39;alpha
+            grad_samples = torch._dirichlet_grad（样本，状态[&#39;alphas&#39;]，Total）＃del P（样本） / del alpha
+            
+            ＃计算学习率
+            ＃print（samples.shape，state [&#39;lr_candidates&#39;]。形状）
+            self.learning_rate =样本 *状态[&#39;lr_candidates&#39;]＃.to（&#39;xpu&#39;）
+            self.learning_rate.retain_grad（）
+            
+            ＃计算梯度wrt alpha
+            grad_learning_rate = torch.autograd.grad（损失，self.lear.learning_rate，grad_outputs = torch.tensor（1.0，device = lose.device），retain_graph = true）[0]
+            
+            ＃随着梯度下降的更新alpha
+            state [&#39;alphas&#39;] = state [&#39;alphas&#39;]  -  self.alpha_lr * grad_samples * state [&#39;lr_candidates&#39;]＃需要del l/ del n n
+            self.alpha_grads = state [&#39;alpha&#39;]
+
+            ＃应用重量更新
+            ＃print（self.learning_rate.shape，p.grad.shape）
+            p.data.sub_（self.learning_rate.squeeze（） * p.grad）＃.to（&#39;xpu&#39;）
+ ]]></description>
+      <guid>https://stackoverflow.com/questions/79498420/computing-gradient-of-loss-w-r-t-learning-rate-pytorch</guid>
+      <pubDate>Mon, 10 Mar 2025 15:11:02 GMT</pubDate>
     </item>
     <item>
-      <title>我在形状对齐中遇到了错误，该如何解决？</title>
-      <link>https://stackoverflow.com/questions/79496192/i-am-having-a-error-with-shape-alignment-how-can-i-solve-this</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79496192/i-am-having-a-error-with-shape-alignment-how-can-i-solve-this</guid>
-      <pubDate>Sun, 09 Mar 2025 16:02:56 GMT</pubDate>
+      <title>离群值检测和去除[封闭]</title>
+      <link>https://stackoverflow.com/questions/79498235/outlier-detection-and-removal</link>
+      <description><![CDATA[ z得分和IQR是两种用于离群检测和删除的方法，当数据分布正常时，使用z得分，并且当数据偏斜时使用IQR。数值列的，我们不能使用图形方法检测正态分布，然后如何进行？]]></description>
+      <guid>https://stackoverflow.com/questions/79498235/outlier-detection-and-removal</guid>
+      <pubDate>Mon, 10 Mar 2025 14:02:04 GMT</pubDate>
     </item>
     <item>
       <title>如何在虚幻引擎5中加入libtorch？ [关闭]</title>
@@ -36,6 +123,157 @@
       <pubDate>Sun, 09 Mar 2025 07:49:34 GMT</pubDate>
     </item>
     <item>
+      <title>为什么投票表决为“努力”的投票表现有所不同？</title>
+      <link>https://stackoverflow.com/questions/79474361/why-votingclassifer-performance-with-voting-set-to-hard-is-different-with-diff</link>
+      <description><![CDATA[我想从Sklearn和不同参数进行比较性能测试投票classifier。我使用了param网格，然后发现一些难以理解的东西。
+我准备了三个分类器
+  gnb = gaussiannb（）＃准确性0.795
+lr = logisticRegress（）＃准确性0.7925
+RFC = RandomforestClassifier（）＃准确性0.94
+
+ 
+然后我做了两个VaitingClassifiers。两者都有有效的设置为“硬”。但是重量不同。该决定是由多数投票做出的，但其准确性是不同的，这是如何可能的？
+  vc_hard_equals = fotingClassifier（estionators = [[
+        （&#39;naivebayes＆quot; gnb）， 
+        （“ LogisticRegression＆quot”，lr）， 
+        （&#39;Randomforest＆quot＆quot; rfc）
+    ]，， 
+    投票=“硬＆quot” 
+    权重=（1，1，1），＃等于权重
+    ）
+vc_hard_forest_priority = fotingClassifier（估算= [[
+        （&#39;naivebayes＆quot; gnb）， 
+        （“ LogisticRegression＆quot”，lr）， 
+        （“ rancomforest”，rfc），]， 
+    投票=“硬＆quot” 
+    权重=（1，1，3），＃更大的随机孔（在这种情况下最好的型号）
+    ）
+
+vc_hard_equals.fit（x_train，y_train）
+vc_hard_forest_priority.fit（x_train，y_train）
+
+print（vc_hard_equals.score（x_test，y_test））＃0.832
+print（vc_hard_forest_priority.score（x_test，y_test））＃0.915
+ ]]></description>
+      <guid>https://stackoverflow.com/questions/79474361/why-votingclassifer-performance-with-voting-set-to-hard-is-different-with-diff</guid>
+      <pubDate>Fri, 28 Feb 2025 02:14:28 GMT</pubDate>
+    </item>
+    <item>
+      <title>在Palantir Foundry模型培训参数（平均，SD）中评估过程是否从“火车数据”到“测试数据”？</title>
+      <link>https://stackoverflow.com/questions/79469004/do-evaluate-process-in-palantir-foundry-model-training-parameters-mean-sd-fro</link>
+      <description><![CDATA[如果我正确理解了该过程，则在机器学习中缩放测试数据时，应使用从培训数据中学到的缩放参数（如平均值和标准偏差）来转换测试数据，而不是测试数据本身。。
+所以正确的步骤是：
+
+将数据分开：将数据集分为培训和测试集。
+缩放训练数据：计算和应用缩放参数（例如平均值，标准偏差）到训练数据。
+将相同的参数应用于测试数据
+
+要实现上述步骤，我使用：
+
+  fit_transform 缩放“培训数据”，
+ 转换携带“培训数据”参数到比例测试“测试数据” 
+
+但是，当我评估“测试数据”时，我如何在Palantir铸造模型中实现这一目标，我看不到评估配置的选项。有谁知道Palantir是否在评估配置中构建功能？携带参数过程会自动发生吗？如果没有，我该怎么做才能实现？
+  fit_transform 然后变换在Palantir Foundry模型培训中等效]]></description>
+      <guid>https://stackoverflow.com/questions/79469004/do-evaluate-process-in-palantir-foundry-model-training-parameters-mean-sd-fro</guid>
+      <pubDate>Wed, 26 Feb 2025 08:32:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>增加自我注意力后，CNN网络的非确定性行为</title>
+      <link>https://stackoverflow.com/questions/79439790/non-deterministic-behavior-of-a-cnn-network-after-adding-self-attention</link>
+      <description><![CDATA[当我添加nlbloclos时，在我的网络（简单CNN）中添加了一个自发层时，网络的结果不再可重现，当我再次训练它时，结果是不同的。但是，当我删除网络中的nlblocks时，它是确定性的。
+这是代码：
+  os.environ [＆quot&#39;cuda_visible_devices;
+os.environ [&#39;tf_cpp_min_log_level&#39;] =&#39;3&#39;
+种子= 42
+os.environ [&#39;tf_deterministic_ops&#39;] =&#39;1&#39;
+tf.config.experiment.enable_op_determinism（）
+
+os.environ [&#39;pythonhashseed&#39;] = str（seed）
+os.environ [&#39;tf_cudnn_deterministic&#39;] =&#39;1&#39; 
+
+随机种子（种子）
+np.random.seed（种子）
+tf.random.set_seed（种子）
+
+tf.keras.backend.set_floatx（&#39;float64&#39;）
+
+
+
+nlblock类（层）：
+    def __init __（self，num_channels，** kwargs）：
+        super（nlblock，self）.__ init __（** kwargs）
+        self.num_channels = num_channels
+        self.theta = conv1d（filters = num_channels，kernel_size = 1，步幅= 1，padding =＆quort; same＆quot;）
+        self.phi = conv1d（filters = num_channels，kernel_size = 1，步幅= 1，padding =＆quort; same＆quot;）
+        self.g = conv1d（filters = num_channels，kernel_size = 1，步幅= 1，padding =; same＆quort;）
+        self.attention_layer =注意（）＃keras注意层
+
+    def呼叫（self，输入）：
+        ＃变换功能图
+        query = self.theta（输入）＃query（q）
+        key = self.phi（输入）＃key（k）
+        value = self.g（输入）＃value（v）
+
+        ＃应用注意力层
+        activation_output = self.attention_layer（[查询，键，值]）
+
+        ＃残差连接
+        返回输入 +注意_Output
+        
+＃定义NL注意的模型
+def build_model（）：
+    优化器= ADAM（Learning_rate = 0.002，beta_1 = 0.89，beta_2 = 0.995）
+
+    输入= tf.keras.input（shape =（num_time_steps，1））＃输入层
+    
+    ＃Conv Block 1
+    x = conv1d（filters = 64，kernel_size = 3，activation =&#39;relu&#39;，padding =&#39;same&#39;）（输入）
+    x = batchnormatorization（）（x）
+    x = nlblock（num__channels = 64）（x）＃nl注意
+    x = maxpooling1d（pool_size = 2）（x）
+
+    ＃Conv 2 2
+    x = conv1d（filters = 32，kernel_size = 3，activation =&#39;relu&#39;，padding =&#39;same&#39;）（x）
+    x = batchnormatorization（）（x）
+    x = nlblock（num__channels = 32）（x）＃nl注意
+    x = maxpooling1d（pool_size = 2）（x）
+    x =辍学（0.1）（x）
+
+    ＃Conv Block 3
+    x = conv1d（filters = 16，kernel_size = 3，activation =&#39;relu&#39;，padding =&#39;same&#39;）（x）
+    x = batchnormatorization（）（x）
+    x = nlblock（num__channels = 16）（x）＃nl注意
+    x = maxpooling1d（pool_size = 2）（x）
+    x =辍学（0.35）（x）
+
+    ＃完全连接的图层
+    x = flatten（）（x）
+    x =密集（40，激活=&#39;relu&#39;）（x）
+    x =辍学（0.35）（x）
+    输出=致密（20）（x）＃回归的输出层
+    
+    ＃编译模型
+    型号= tf.keras.model（输入，输出）
+    model.compile（优化器=优化器，lose = root_mean_squared_error，metrics = [&#39;mean_absolute_error&#39;]）
+    
+    返回模型
+
+model = build_model（）
+
+redy_lr = reducelronplateau（monitor =&#39;val_loss&#39;，因子= 0.6，耐心= 25，min_lr = 1e-6）
+早期_Stopping =早期踩踏（Monitor =&#39;Val_loss&#39;，Patience = 30，Restore_best_weights = true）
+＃步骤5：训练模型
+历史= model.fit（x_train_scaled，y_train，validation_data =（x_val_scaled，y_val），
+                epochs = 180，batch_size = 90，callbacks = [redion_lr，ropand_stopping]，冗长= 0）
+
+test_loss，test_mae = model.evaluate（x_test_scaled，y_test，batch_size = len（x_test_scaled），词= 0）
+ 
+我还使用tf.matmul（）和softmax使用自定义注意块，但没有任何改变。]]></description>
+      <guid>https://stackoverflow.com/questions/79439790/non-deterministic-behavior-of-a-cnn-network-after-adding-self-attention</guid>
+      <pubDate>Fri, 14 Feb 2025 15:08:45 GMT</pubDate>
+    </item>
+    <item>
       <title>无法使用NLTK功能</title>
       <link>https://stackoverflow.com/questions/78862426/unable-to-use-nltk-functions</link>
       <description><![CDATA[]]></description>
@@ -43,92 +281,18 @@
       <pubDate>Mon, 12 Aug 2024 15:17:29 GMT</pubDate>
     </item>
     <item>
-      <title>二进制分类：为什么使用+1/0作为标签， +1/-1甚至 +100/-100之间有什么区别</title>
-      <link>https://stackoverflow.com/questions/74752325/binary-classification-why-use-1-0-as-label-whats-the-difference-between-1-1</link>
-      <description><![CDATA[在二进制分类问题中，我们通常将+1用于正标，为负标签0。  这是为什么？特别是为什么使用0而不是-1作为负面标签？
-使用-1用于负标签，甚至更普遍，我们可以将+100用于正标签，而-100可以用于负标签？？]]></description>
-      <guid>https://stackoverflow.com/questions/74752325/binary-classification-why-use-1-0-as-label-whats-the-difference-between-1-1</guid>
-      <pubDate>Sat, 10 Dec 2022 11:05:01 GMT</pubDate>
-    </item>
-    <item>
-      <title>重新启动运行时，模型负载获得不同的结果</title>
-      <link>https://stackoverflow.com/questions/68116676/model-load-get-different-result-after-restart-runtime</link>
-      <description><![CDATA[我已经使用Google Colab编写了Resnet50型号。训练我的模型后，然后在不重新启动运行时间的情况下保存模型后，将获得相同的结果，但是在重新启动运行时Google Colab并运行 Xtrain，Ytest，Ytest，X_Val，Y_VAL，Y_VAL 然后再次加载模型，我将获得不同的结果。
-这是我的代码：
-  #hyperParameter和回调
-batch_size = 128
-num_epochs = 120
-input_shape =（48、48、1）
-num_classes = 7
+      <title>哪种评估指标适合与数据集不平衡的分类问题？</title>
+      <link>https://stackoverflow.com/questions/76072393/which-evaluation-metric-will-be-suitable-for-a-classification-problem-with-an-im</link>
+      <description><![CDATA[我的X类带有1000个观测值和Y类，具有2000个观测值。我正在尝试确定这里最合适的分类评估指标以及原因。
 
-#compile模型。
-从keras.optimizer进口亚当，sgd
-model = resnet50（input_shape =（48、48、1），类= 7）
-优化器= SGD（Learning_rate = 0.0005）
-model.compile（优化器=优化器，lose =&#39;Sparse_categorical_crossentropy&#39;，metrics = [&#39;准确性&#39;]）
+精确召回曲线。
+ AUC ROC 
+简单的精度度量
+混淆矩阵和分类报告。
 
-model.summary（）
-历史= model.fit（
-    data_generator.flow（Xtrain，ytrain，），
-    step_per_epoch = len（xtrain） / batch_size，
-    epochs = num_epochs， 
-    详细= 1，
-    验证_data =（x_val，y_val））
-
-导入matplotlib.pyplot作为PLT 
-model.save（&#39;fix_model_resnet50editsgd5st.h5&#39;）
-
-#plot图
-准确性=历史[&#39;精确度&#39;]
-val_accuracy =历史[&#39;val_accuracy&#39;]
-损失=历史[&#39;损失&#39;]
-val_loss =历史[&#39;val_loss&#39;]
-num_epochs = range（len（准确性））
-plt.plot（num_epochs，准确性，&#39;r&#39;，label =&#39;triending acc&#39;）
-plt.plot（num_epochs，val_accuracy，&#39;b&#39;，label =&#39;验证acc&#39;）
-plt.title（“训练和验证精度”）
-plt.ylabel（“准确性”）  
-plt.xlabel（&#39;epoch&#39;）
-plt.legend（）
-plt. -figure（）
-plt.plot（num_epochs，损失，&#39;r&#39;，label =“训练损失”）
-plt.plot（num_epochs，val_loss，&#39;b&#39;，label =&#39;验证损失&#39;）
-plt.title（“培训和验证损失”）
-plt.ylabel（“损失”）  
-plt.xlabel（&#39;epoch&#39;）
-plt.legend（）
-plt.show（）
-
-#load模型
-来自keras.models import load_model
-model_load = load_model（&#39;fix_model_resnet50editsgd5st.h5&#39;）
-
-model_load.summary（）
-
-
-testdatamodel = model_load.evaluate（Xtest，ytest） 
-打印（“测试损失” + str（testdatamodel [0]））
-打印（“测试ACC：＆quot” + str（testdatamodel [1]））
-
-traindata = model_load.evaluate（xtrain，ytrain） 
-打印（“测试损失” + str（traindata [0]））
-打印（“测试acc：＆quot” + str（traindata [1]））
-
-valdata = model_load.evaluate（x_val，y_val） 
-打印（“测试损失” + str（valdata [0]））
-打印（“测试acc：＆quot” + str（valdata [1]））
- 
-  - 训练和保存模型后，然后运行加载模型，而无需重新启动运行时Google Colab：
-如您所见
-测试损失：0.9411-精度：0.6514 
-火车损失：0.7796-准确性：0.7091 
-  modelevaluateTestest＆amp;火车 
-在重新启动运行时Colab之后再次运行加载模型：
-测试损失：0.7928-准确性：0.6999 
-火车损失：0.8189-准确性：0.6965 
- 重新启动运行时评估测试和训练 ]]></description>
-      <guid>https://stackoverflow.com/questions/68116676/model-load-get-different-result-after-restart-runtime</guid>
-      <pubDate>Thu, 24 Jun 2021 13:25:12 GMT</pubDate>
+我很想坚持选项4，因为它不是一个不平衡的IMO，我们不需要使用精确的回忆曲线。这里有什么合适的？]]></description>
+      <guid>https://stackoverflow.com/questions/76072393/which-evaluation-metric-will-be-suitable-for-a-classification-problem-with-an-im</guid>
+      <pubDate>Fri, 21 Apr 2023 10:45:10 GMT</pubDate>
     </item>
     <item>
       <title>如何在XGBoost中的提升回合之间显示错误输出？</title>
@@ -155,6 +319,48 @@ valdata = model_load.evaluate（x_val，y_val）
       <pubDate>Thu, 17 Oct 2019 09:52:56 GMT</pubDate>
     </item>
     <item>
+      <title>完美的精确度，召回和F1得分，但预测不好</title>
+      <link>https://stackoverflow.com/questions/53278489/perfect-precision-recall-and-f1-score-yet-bad-prediction</link>
+      <description><![CDATA[使用Scikit-Learn对二进制问题进行分类。获得完美的 classification_report （全1）。但是预测给出 0.36 。怎么可能？
+我熟悉不平衡标签。但是，我认为这里并非如此，因为 f1 和其他得分列以及混乱矩阵表示完美的分数。
+ ＃列出最后19个行进行预测。
+x1，x_pred，y1，y_pred = train_test_split（x，y，test_size = 19， 
+                shuffle = false，Random_state =无）
+
+x_train，x_test，y_train，y_test = train_test_split（x1，y1， 
+         test_size = 0.4，strate = y1，Random_state = 11）
+
+clcv = deciestReeClaleCifier（）
+scorecv = cross_val_score（clcv，x1，y1，cv = stratifiedkfold（n_splits = 4）， 
+                         评分=&#39;f1&#39;）＃平衡精度/召回
+clcv.fit（x1，y1）
+y_predict = clcv.predict（x1）
+cm = Confusion_matrix（y1，y_predict）
+cm_df = pd.dataframe（cm，index = [&#39;0&#39;，&#39;1&#39;]，列= [&#39;0&#39;，&#39;1&#39;]）
+打印（cm_df）
+打印（classification_report（y1，y__predict））
+打印（&#39;预测分数：&#39;，clcv.score（x_pred，y_pred））＃看不见的数据
+ 
+输出：
+ 混乱：
+      0 1
+0 3011 0
+1 0 44
+
+              精确召回F1得分支持
+       错误1.00 1.00 1.00 3011
+        正确1.00 1.00 1.00 44
+
+   Micro AVG 1.00 1.00 1.00 3055
+   宏平均1.00 1.00 1.00 3055
+加权公平1.00 1.00 1.00 3055
+
+预测分数：0.36
+ ]]></description>
+      <guid>https://stackoverflow.com/questions/53278489/perfect-precision-recall-and-f1-score-yet-bad-prediction</guid>
+      <pubDate>Tue, 13 Nov 2018 10:05:57 GMT</pubDate>
+    </item>
+    <item>
       <title>无法获得我的线性回归的准确分数</title>
       <link>https://stackoverflow.com/questions/45627784/unable-to-obtain-accuracy-score-for-my-linear-regression</link>
       <description><![CDATA[我正在基于IMDB数据进行回归模型，以预测IMDB值。在线性回归上，我无法获得准确的得分。
@@ -172,24 +378,6 @@ valdata = model_load.evaluate（x_val，y_val）
 注意： test_y 是pandas dataframe]]></description>
       <guid>https://stackoverflow.com/questions/45627784/unable-to-obtain-accuracy-score-for-my-linear-regression</guid>
       <pubDate>Fri, 11 Aug 2017 05:46:30 GMT</pubDate>
-    </item>
-    <item>
-      <title>决策树与逻辑回归相结合[关闭]</title>
-      <link>https://stackoverflow.com/questions/41692017/decision-trees-combined-with-logistic-regression</link>
-      <description><![CDATA[基本上我的问题与以下论文有关（仅读取节 1. Introwuction ，的开始 3.预测模型结构   3.1决策树特征变换，其他一切都可以跳过））
-  https://pdfs.semanticscholar.org/daf9/ed5dc6c6bad5367d7d7fd8561527da30e9b8dd.pdf.pdf  
-本文表明，与仅使用决策树或线性分类（不是两者）相比，二进制分类可以表现出更好的性能（例如，逻辑回归）。
-简单地说，诀窍是我们有几个决策树（假设2棵树以简单起见，第一棵树带有3个叶子节点和带有2个叶子节点的第二棵树）和一些实现的特征矢量 x ，这是所有决策树的输入 
- so，
-
-如果第一棵树的决定是叶节点1 ，第二个树的决定是叶节点2 ，那么线性分类器将接收二进制字符串 [1 0 0 0 0 0 1]  
-如果第一棵树的决定是叶节点2 ，第二个树的决定是叶节点1 ，则线性分类器将接收二进制字符串 [0 1 0 1 0 1 0]  
-
-等等
-If we used only decision trees (without linear classification), clearly we would have either class 100/ class 010/class 001 for 1st tree and class 10/ class 01 for 2nd tree, but in this scheme the outputs of trees are combined into binary string which is fed to linear classifier.因此，尚不清楚如何训练这些决策树吗？我们拥有的是上述向量 x ，然后单击/无单击，这是线性分类的输出，而不是树
-有什么想法？]]></description>
-      <guid>https://stackoverflow.com/questions/41692017/decision-trees-combined-with-logistic-regression</guid>
-      <pubDate>Tue, 17 Jan 2017 08:16:17 GMT</pubDate>
     </item>
     <item>
       <title>Sklearn.decomposition.pca的特征向量的简单图</title>
@@ -272,13 +460,6 @@ plt.show（）
       <pubDate>Wed, 22 Jun 2016 19:20:15 GMT</pubDate>
     </item>
     <item>
-      <title>逻辑回归和软磁回归之间的差异[封闭]</title>
-      <link>https://stackoverflow.com/questions/36051506/difference-between-logistic-regression-and-softmax-regression</link>
-      <description><![CDATA[我知道逻辑回归是用于二进制分类和用于多类问题的软磁回归。如果我使用相同的数据训练多个逻辑回归模型并将其结果归一化以获取多级分类器而不是使用一个SoftMax模型，将会有任何差异。我认为结果是相同的。我可以说：“所有多级分类器都是二进制分类器的级联结果”。 （神经元网络除外）]]></description>
-      <guid>https://stackoverflow.com/questions/36051506/difference-between-logistic-regression-and-softmax-regression</guid>
-      <pubDate>Thu, 17 Mar 2016 04:08:48 GMT</pubDate>
-    </item>
-    <item>
       <title>Sklearn Lasso回归是否比山脊回归差？</title>
       <link>https://stackoverflow.com/questions/35714772/sklearn-lasso-regression-is-orders-of-magnitude-worse-than-ridge-regression</link>
       <description><![CDATA[我目前使用 sklearn.linear_model 模块实现了脊和拉索回归。
@@ -345,7 +526,7 @@ classifier.fit（x_train，y_train）
 预测= classifier.predict（x_test）
  
 当我运行分类时，我得到了：
-  typeError：传递了一个稀疏矩阵，但是需要密集的数据。使用X.ToArray（）转换为密集的Numpy数组。
+  typeError：传递了一个稀疏矩阵，但是需要密集的数据。使用X.ToArray（）转换为密集的numpy阵列。
  
 然后，我使用 .toArray（）  x_train ，我得到了以下内容：
   typeError：稀疏矩阵长度是模棱两可的；使用getnnz（）或形状[0]
@@ -408,19 +589,6 @@ classifier.fit（a_train，b_train）
  ]]></description>
       <guid>https://stackoverflow.com/questions/28314337/typeerror-sparse-matrix-length-is-ambiguous-use-getnnz-or-shape0-while-usi</guid>
       <pubDate>Wed, 04 Feb 2015 05:48:35 GMT</pubDate>
-    </item>
-    <item>
-      <title>Python中的文本分类 - （基于NLTK句子）[封闭]</title>
-      <link>https://stackoverflow.com/questions/23178275/text-classification-in-python-nltk-sentence-based</link>
-      <description><![CDATA[我需要对文本进行分类，并且我正在使用文本blob python模块来实现它。我可以使用幼稚的贝叶斯分类器/决策树。我担心以下提到的要点。
-
- 我需要分类句子为参数/而不是参数。我正在使用两个分类器，并使用APT数据集​​训练模型。我的问题是我只需要用关键字训练模型吗？或者我可以用所有可能的参数训练数据集和非参数示例句子？从文本分类准确性和检索时间方面，哪种方法是最好的方法？
-
- 由于分类要么是参数/而不是参数，因此哪个分类器将获得确切的结果？这是天真的贝叶斯/决策树/正幼稚的贝叶斯？
-
-]]></description>
-      <guid>https://stackoverflow.com/questions/23178275/text-classification-in-python-nltk-sentence-based</guid>
-      <pubDate>Sun, 20 Apr 2014 04:01:27 GMT</pubDate>
     </item>
     </channel>
 </rss>
