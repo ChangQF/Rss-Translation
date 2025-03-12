@@ -4,9 +4,127 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Wed, 12 Mar 2025 15:19:52 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 12 Mar 2025 18:24:50 GMT</lastBuildDate>
     <item>
-      <title>从不同获取时间处理无效价值的最佳方法</title>
+      <title>vae的logvar层仅返回零</title>
+      <link>https://stackoverflow.com/questions/79504547/logvar-layer-of-a-vae-only-returns-zeros</link>
+      <description><![CDATA[我正在用TFJ构建一个变性自动编码器（VAE）。
+目前，我只使用FashionMnist数据集进行探索和一个简单的模型，如下所示：
+ 输入层（28*28*1）
+扁平
+InterMediate_1（致密50个单位 -  relu）
+平均（密集10个单位-RELU）// logVar（密集10个单位relu）
+采样器（10个单位）
+InterMediate_2（密集50个单位relu）
+重建（密集的784个单位 -  sigmoid）
+重塑（28*28*1）=＆gt;损失= MSE
+ 
+我创建了一个自定义采样层，该层扩展了tf.layers.layer，如下所示。我可以在线找到其他示例，因为我正在使用td.addloss（）将KL损耗函数添加在图层本身中。
+ 类WB_SAMPLING扩展了tf.layers.layer {
+    构造函数（config）{
+        超级（config）;
+        this.kl_weight = config.kl_weight; //与重建损失相比，加权KL_LOSS。如果kl_weiht == 0，重建损失是唯一使用的损失
+        if（this.kl_weight === undefined）{
+            this.kl_weight = 0.0001; // 默认
+        }
+        this.last_mu;
+        this.last_logvar;
+        
+        //添加kl损失 
+        this.addloss（（）=＆gt; {
+            const retour = tf.tidy（（）=＆gt; {
+                令kl_loss;
+                令z_log_var = this.last_logvar;
+                令z_mean = this.last_mu;
+                kl_loss = tf.scalar（1）.add（z_log_var）.sub（z_mean.square（））。sub（z_log_var.exp（））;
+                kl_loss = tf.sum（kl_loss，-1）;
+                kl_loss = kl_loss.mul（tf.scalar（-0.5 * this.kl_weight））;
+                返回（tf.mean（kl_loss））;
+            }）; 
+            返回（retour）;
+
+            
+        }）; // addloss的结尾
+    } //构造函数的结束
+
+    ComputeOutputShape（InputShape）{
+        返回inputshape [0]; //与MU相同的形状
+    }
+
+    致电（输入，培训）{
+        返回tf.tidy（（）=＆gt; {
+            const [Mu，logVar] =输入;
+            
+            //存储MU和LOGVAR值将由KL损耗函数使用
+            this.last_mu = mu; // Zmean
+            this.last_logvar = logvar; // zlogvar
+            
+            const z = tf.tidy（（）=＆gt; {
+                const batch = mu.shape [0];
+                const dim = mu.shape [1];
+                const epsilon = tf.randomnormal（[[batch，dim]）;
+                const Half = tf.scalar（0.5）;
+                const temp = logvar.mul（half）.exp（）。mul（epsilon）;
+                const示例= mu.add（temp）;
+                返回样品；
+            }）;
+            返回z;
+        }）;
+    } //呼叫结束（）
+
+    static get className（）{
+        返回“ wb_smpling”;
+    }
+} // wb_sampling层的结尾
+ 
+该模型效果很好，重建是正确的，但是对我来说似乎很奇怪：logVar层的输出张量仅包含零。
+我在平均 / logVar /样品层中使用或多或少单位（从2到20）尝试了。
+我试图更改kl_weight参数（这使KL损失与重建损失相比）。我什至尝试使用0的kl_weight（这意味着KL损耗被完全忽略，并且模型仅由于重建损失MSE而变化）。
+无论如何，logvar层的输出仅包括零（注意：在训练的开头，有不同的值，但是经过几步训练，只有零保留在输出中）。 
+但是，平均层输出各种值，我注意到当kl_weight＆gt; 0比kl_weight == 0时，KL损耗函数似乎正在工作。
+这可能是正常的吗？也许在logvar层中高于零的输出不会改善任务中的重建？
+您是否在LogVar输出中经历了此类全ZOROS输出？如果没有，您那里有什么价值？您是否知道可能导致问题的原因？]]></description>
+      <guid>https://stackoverflow.com/questions/79504547/logvar-layer-of-a-vae-only-returns-zeros</guid>
+      <pubDate>Wed, 12 Mar 2025 18:20:02 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用Torch.zeros（）时，Pytorch代码会弄乱我的RAM</title>
+      <link>https://stackoverflow.com/questions/79504403/pytorch-code-messes-up-my-ram-when-using-torch-zeros</link>
+      <description><![CDATA[因此，我有一个函数来测量Megabytes中Python分配的RAM：
+ def getram（）：print（psutil.process（os.getPid（））。remone_info（）。rss/1024 ** 2） 
+，我还有：
+设备=＆quot; cuda;  
+我的问题是，以下代码分配了RAM，因此我会发疯。它是否有实际解决方案，还是我必须接受我的命运并切换到C ++？？
+代码：
+  getram（）
+
+def load_dataset（dir，文件名）：
+  dataset = torch.seros（（len（文件名），3,256,256），设备=设备）
+  getram（）
+  对于我，枚举（文件名）中的文件名：
+    f = read_image（f＆quot; {dir}/{fileName}＆quot;）
+    如果3！= f.Shape [0]：打印（文件名）
+    数据集[i] = f.to（设备）
+  getram（）
+  返回数据集
+
+dataset = load_dataset（dataset_dir，dataset_filenames）
+
+getram（）
+ 
+代码打印出以下内容：
+  533.28125
+661.2890625
+678.27734375
+678.27734375
+ 
+您可以看到，一旦我用TORCH.Seros（）创建空张量，它就无缘无故地占用RAM。
+我尝试了gc.collect（），这根本没有帮助。]]></description>
+      <guid>https://stackoverflow.com/questions/79504403/pytorch-code-messes-up-my-ram-when-using-torch-zeros</guid>
+      <pubDate>Wed, 12 Mar 2025 17:21:33 GMT</pubDate>
+    </item>
+    <item>
+      <title>从不同获取时间处理无效值的最佳方法[已关闭]</title>
       <link>https://stackoverflow.com/questions/79503789/best-approach-to-handle-null-values-from-different-acquisition-times</link>
       <description><![CDATA[ i有一个数据框，其中包含各种生命体征（DBP，SBP，MBP，HR（心率），BIS，EXP_SEV，INSP_SEV（INSP_SEV（INSP_SEV）（启发/expired Sevolfane），随着时间的推移收集了多个患者的收集。这些信号的获取时间有所不同，导致不同的间隔：            
  bis每秒收购，因此其空值很少。
@@ -86,102 +204,6 @@
 ]]></description>
       <guid>https://stackoverflow.com/questions/79502209/creating-ml-model-for-water-pressure-prediction</guid>
       <pubDate>Tue, 11 Mar 2025 21:46:49 GMT</pubDate>
-    </item>
-    <item>
-      <title>如何在梯度下降线性回归中减轻高MAE/MSE？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/79501719/how-to-mitigate-high-mae-mse-in-gradient-descent-linear-regression</link>
-      <description><![CDATA[我正在通过从头开始实现机器学习算法。从基础知识开始，我正在研究线性回归。但是，我面临模型性能的问题。鉴于数据集的简单性，我希望该模型可以密切预测输出，旨在MAE/MSE小于1。。
-这是我目前的结果：
-  [[[29.76307389]]＃重量
-MAE：11.860197526386747
-MSE：[320.16732974]
-RMSE：[17.89322022]
- 
-我的问题是：如何减轻高成本功能？这是数据扩展问题（我认为不是）吗？我在代码逻辑中看不到任何缺陷。
-
-我的实现：
- 导入numpy作为NP
-从sklearn.datasets导入make_regression
-来自sklearn.model_selection导入train_test_split
-
-班级体重：
-
-    def __init __（self，n_features：int）：
-        self.lim = 1 / np.sqrt（n_features）
-        self.n_features = n_features
-        self.seed = 42
-        np.random.seed（self.seed）
-
-    def Random_uniform（self）：
-        返回np.random.uniform（-self.lim，self.lim，（self.n_features，1））
-
-班级回归：
-    def __init __（self，n_iter：int，l_rate：float）：
-        self.n_iter = n_iter
-        self.l_rate = l_rate
-        self.w =无
-        self.b = 0
-        self.Error = 0
-
-    def预测（self，x）：
-        返回np.dot（x，self.w） + self.b
-
-    def fit（self，x，y，reg_factor：str = none）：
-        n_samples，n_features = x。形状
-        如果self.w是无：＃持续权重
-            self.w = strige（n_features）.random_rand（）
-        y = np.Reshape（y，（-1，1））＃将数组转换为列向量
-        正则化= self.regularize（）
-
-        对于_范围（self.n_iter）：
-            y_pred = self.predict（x）
-            self.error = y -y__pred
-            grad_w =（-2 * np.dot（x.t，self.error） / n_samples） 
-            grad_b =（-2 * np.sum（self.error）） / n_samples
-            self.w-- = self.l_rate * grad_w＃l_rate *（grad_w +正则化_factor）
-            self.b- = self.l_rate * grad_b＃l_rate * grad_b
-
-
-类线性回归（回归）：
-    def __init __（self，n_iter：int，l_rate：float）：
-        super（）.__ init __（n_iter，l_rate）
-
-    def渐变发达（self，x，y）：
-        super（）。拟合（x，y）
-
-类评估对：
-    def __init __（self，n：int，y，y_pred）：
-        self.n = n
-        self.y = np.Reshape（y，（-1，1））＃实际值
-        self.y_pred = y_pred＃预测值
-
-    Def Mae（自我）：
-        返回np.mean（np.abs（self.y -self.y_pred））
-    Def MSE（自我）：
-        返回总和（np.pow（（（self.y -self.y_pred），2）） / self.n
-    def rmse（self）：
-        返回np.sqrt（sum（np.pow（（（self.y -y -self.y_pred）），2）） / self.n）
-
-x，y = make_regression（n_samples = 1000，n_features = 1，噪声= 15，Random_state = 4）
-
-    x_train，x_test，y_train，y_test = train_test_split（
-        X，Y，test_size = 0.4，Random_State = 42
-    ）
-
-    LR =线性重试（1000，0.01）
-    lr.gradientdescent（x_train，y_train）
-    lr.printweights（）
-    y_pred = lr.predict（x_train）
-
-    mae = essalmetrics（n = x_train.shape [0]，y = y_train，y_pred = y_pred）.mae（）
-    打印（f＆quot; mae：{mae}＆quot;）
-    MSE = essutuationMetrics（n = x_test.shape [0]，y = y_train，y_pred = y_pred）.mse（）
-    打印（MSE：{MSE}＆quot;）
-    rmse = evaluationMetrics（n = x_test.shape [0]，y = y_train，y_pred = y_pred）.rmse（）
-    打印（f＆quot&#39;rmse：{rmse}＆quot;）
- ]]></description>
-      <guid>https://stackoverflow.com/questions/79501719/how-to-mitigate-high-mae-mse-in-gradient-descent-linear-regression</guid>
-      <pubDate>Tue, 11 Mar 2025 18:00:42 GMT</pubDate>
     </item>
     <item>
       <title>如何使用Python SDK将环境变量传递到亚马逊萨吉式制造商的自定义培训脚本？</title>
@@ -266,36 +288,6 @@ GeneratePartialDependedateData（XGB_Class，Train_class）
       <pubDate>Mon, 10 Mar 2025 18:27:01 GMT</pubDate>
     </item>
     <item>
-      <title>Importerror：无法从“火炬”（未知位置）导入“张量”的名称</title>
-      <link>https://stackoverflow.com/questions/79367182/importerror-cannot-import-name-tensor-from-torch-unknown-location</link>
-      <description><![CDATA[我正在尝试从Pytorch导入 ：
- 来自火炬导入张量
- 
-但我一直遇到此错误：
-  Importerror：无法从“火炬”（未知位置）导入名称&#39;tensor&#39;
- 
-我尝试的是：
-
-检查是否已安装了Pytorch（ pip show torch ），我正在使用版本 2.5.1 。。
-重新安装了Pytorch：
-  pip卸载火炬
-PIP安装火炬
- 
-
-测试了python壳中的导入，但错误仍然存​​在。
-
-环境：
-
- Python版本：3.10 
- Pytorch版本：2.5.1 
- OS：Windows 10 
-虚拟环境：是
-
-我该如何解决此问题？]]></description>
-      <guid>https://stackoverflow.com/questions/79367182/importerror-cannot-import-name-tensor-from-torch-unknown-location</guid>
-      <pubDate>Sat, 18 Jan 2025 13:04:35 GMT</pubDate>
-    </item>
-    <item>
       <title>Pycharm调试不使用TensorFlow。我该如何解决？</title>
       <link>https://stackoverflow.com/questions/78241816/pycharm-debug-is-not-working-with-tensorflow-how-do-i-resolve-it</link>
       <description><![CDATA[我已经成功安装了以下内容：
@@ -339,84 +331,23 @@ KeyError：&#39;__包装&#39;
       <pubDate>Sat, 11 May 2019 16:37:28 GMT</pubDate>
     </item>
     <item>
-      <title>Pytorch模型没有训练[关闭]</title>
-      <link>https://stackoverflow.com/questions/45359111/pytorch-model-is-not-training</link>
-      <description><![CDATA[我有一个我无法解决的问题。我正在尝试构建CIFAR -10分类器，但是我每批随机跳跃后我的损失值即使在同一批批次上也无法改善（我什至无法用一批批量过度拟合），所以我想唯一可能的原因是 - 权重是没有更新。 
- 我的模块类 
- 类NET（NN.MODULE）：
-def __init __（自我）：
-    超级（net，self）.__ init __（）
-    self.conv_pool = nn.Sequepential（
-        nn.conv2d（3，64，3，填充= 1），
-        nn.relu（），
-        nn.maxpool2d（2，2），
-        nn.conv2d（64、128、3，填充= 1），
-        nn.relu（），
-        nn.maxpool2d（2，2），
-        nn.conv2d（128，256，3，填充= 1），
-        nn.relu（），
-        nn.maxpool2d（2，2），
-        nn.conv2d（256，512，3，填充= 1），
-        nn.relu（），
-        nn.maxpool2d（2，2），
-        nn.conv2d（512，512，1），
-        nn.relu（），
-        nn.maxpool2d（2，2））
-
-    self.fcnn = nn。
-        nn.linear（512，2048），
-        nn.relu（），
-        nn.linear（2048，2048），
-        nn.relu（），
-        nn.linear（2048，10）
-    ）
-
-def向前（self，x）：
-    x = self.conv_pool（x）
-    X = X.View（-1，512）
-    x = self.fcnn（x）
-    返回x
+      <title>无法获得我的线性回归的准确分数</title>
+      <link>https://stackoverflow.com/questions/45627784/unable-to-obtain-accuracy-score-for-my-linear-regression</link>
+      <description><![CDATA[我正在基于IMDB数据进行回归模型，以预测IMDB值。在线性回归上，我无法获得准确的得分。
+我的代码行：
+ 量表
  
-优化器我正在使用：
-  net = net（）
-标准= nn.Crossentropyloss（）
-优化器= optim.sgd（net.parameters（），lr = 0.001，动量= 0.9）
+错误：
+  valueerror：不支持连续
  
-我的火车功能：
-  def train（）：
-对于范围（5）范围内的时期：＃多次循环数据集循环
-    对于我的范围（0，df_size）：
-        ＃获取数据
-
-        尝试：
-            图像，标签= LoadBatch（DS，I）
-        除了baseexception：
-            继续
-
-        ＃ 裹 
-        输入=变量（图像）
-
-        优化器.zero_grad（）
-
-        输出= NET（输入）
-
-        损失=标准（输出，变量（标签））
-
-        loss.backward（）
-        优化器.step（）
-        ACC =测试（图像，标签）
-        打印（“损失：” + str（lose.data [0]） +“精度％：” + str（acc） +“迭代：” + str（i））
-
-        如果我％40 == 39：
-            TORCH.SAVE（net.state_dict（），“ model_save_cifar”）
-
-    打印（“完成时代” + str（epoch））
+如果我要更改该线以获得R2分数，
+  Metrics.R2_Score（test_y，linear_predicated_rating）
  
-我正在使用 batch_size  = 20， image_size  = 32（cifar-10）
-  loadBatch 功能返回 longtensor  20x3x32x32的元组，用于图像的 longtensor  20x1 for Labels 
-如果您能帮助我或建议可能的解决方案，我会很高兴（我猜是因为NN中的顺序模块，但是我传递给优化器的参数似乎是正确的））]]></description>
-      <guid>https://stackoverflow.com/questions/45359111/pytorch-model-is-not-training</guid>
-      <pubDate>Thu, 27 Jul 2017 19:07:27 GMT</pubDate>
+我能够获得R2而没有任何错误。
+我为什么看到这个？
+注意： test_y 是pandas dataframe]]></description>
+      <guid>https://stackoverflow.com/questions/45627784/unable-to-obtain-accuracy-score-for-my-linear-regression</guid>
+      <pubDate>Fri, 11 Aug 2017 05:46:30 GMT</pubDate>
     </item>
     <item>
       <title>如何在构建图表后更改每个迭代的变量值？</title>
