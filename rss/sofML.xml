@@ -4,9 +4,143 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Sun, 16 Mar 2025 15:16:31 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 16 Mar 2025 18:22:14 GMT</lastBuildDate>
     <item>
-      <title>标题：为什么我的shap值尺寸[sample_num，feature，class]而不是[class，sample_num，功能]？</title>
+      <title>从Python流程启动独立流程的最佳方法是什么？</title>
+      <link>https://stackoverflow.com/questions/79512845/what-would-be-the-best-way-to-launch-a-detached-process-from-a-python-process</link>
+      <description><![CDATA[我有一个fastapi aplication，我想以一种非阻滞方式启动一个带有python脚本的过程：
+  process = subprocess.popen（
+                [python＆quot; my_script.py;]，
+                stdout = subprocess.devnull，
+                stderr = subprocess.devnull，
+                stdin = subprocess.devnull，
+                start_new_session = true＃分离该过程
+）
+ 
+现在，问题是，如果该过程失败，它仍然作为僵尸过程徘徊。只有在我重新启动FastApi恢复过程时，该过程才会真正消失。
+如果我尝试在my_script.py中使用os.fork来确保我与父母分离，那么将创建一个带有新PID的新过程，而原始的过程将保留为僵尸。
+问题是，从系统工程的角度来看，从FastApi Aplication启动/触发Python脚本的最可靠的方法（和生产）是什么，如果存在问题，可以正确死亡？
+我不能使用芹菜，因为我正在尝试训练机器学习模型，这可能需要大量时间和资源，恐怕芹菜工人不适合这一点，但是如果我错了，请纠正我。]]></description>
+      <guid>https://stackoverflow.com/questions/79512845/what-would-be-the-best-way-to-launch-a-detached-process-from-a-python-process</guid>
+      <pubDate>Sun, 16 Mar 2025 16:17:05 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何使用Penzai和Optax进行每个参数的学习率</title>
+      <link>https://stackoverflow.com/questions/79512816/how-to-scale-learning-rates-per-parameter-with-penzai-and-optax</link>
+      <description><![CDATA[我想训练我在 nofollow noreferrer”&gt; penzai 元数据，例如。像这样：
+ 参数（
+    label =&#39;mlp/affine_0/linear.weights&#39;，
+    value =＆lt;名为float32（|功能：784，features_out：128）（包装jax.array）＆gt; ,,
+    元数据= {&#39;Learning_rate&#39;：0.0012755102040816326}，
+）
+ 
+我使用penzai的 statefultrainer 进行培训，并声明这样的优化器：
+  optax.chain（链）（
+    optax.scale_by_adam（），
+    scale_by_metadata_value（&#39;Learning_rate＆quot;），
+    optax.scale_by_learning_rate（0.01），
+）
+ 
+我在哪里定义 scale_by_metadata_value 像这样：
+  def scale_by_metadata_value（metadata_field_name：str）：
+    def init_fn（params）：
+        Learning_rates = jax.tree.map（
+            lambda param：param.metadata [metadata_field_name]，
+            参数，
+            is_leaf =（lambda节点：isInstance（node，pz.parametervalue））
+        ）
+        返回{＆quot; learning_rates＆quot;：learning_rates}
+
+    def Update_fn（更新，状态，参数）：
+        del params
+        更新= jax.tree.map（
+            ＃这是TypeError抛出的地方：
+            Lambda LR，G：lr * g，state [＆quot; learne_rates; quot;]，更新
+        ）
+        返回更新，状态
+
+    返回optax.gradienttransformation（init_fn，update_fn）
+ 
+但是，当我执行训练步骤时，我会得到
+  typeError： *：&#39;jaxlib.xla_extension.arrayimpl&#39;and&#39;parametervalue&#39;
+ 
+我特别令人困惑，因为当我删除 scale_by_metadata_value（&#39;Learning_rate＆quot&#39;&#39;） line时，一切都起作用，尽管optax.scale_by_learning_rate（0.01）与我使用 scal_by_metadataa_value 
+ 实现 scale_by_metadata_value ？ 的正确/最佳方法是什么
+这是一个最小的失败示例（Penzai版本0.2.4）：
+ 导入penzai.toolshed.basic_training
+进口Penzai
+导入Penzai.pz作为PZ
+导入JAX
+导入jax.numpy作为jnp
+导入Optax
+导入numpy作为NP
+
+
+型号= pz.nn.linear（
+    权重= Pz.参数（参数
+        value = pz.nx.wrap（np.ones（（（8，4））），“功能”，“功能”;
+        标签=“线性”
+        metadata = {＆quot; learning_rate＆quot;：0.5}，
+    ），
+    in_axis_names =（“功能”，），
+    out_axis_names =（; quot; features_out＆quort;），，
+）
+
+
+DEF SOFTMAX_CROSS_ENTROPY_LOSS（
+    型号，rng，state，current_input，current_target：pz.nx.NamedArray
+）：
+    Del RNG，州
+    logits：pz.nx.NamedArray =模型（current_input）
+    损失= jnp.sum（
+        optax.losses.softmax_cross_entropy（
+            logits.unwrap（“ features_out＆quot”），
+            current_target.unwrap（“ features_out; quot”），，
+        ）
+    ）
+    返回（损失，无，{＆quot; softmax_cross_entropy_loss＆quot;：lose}）
+
+
+def scale_by_metadata_value（metadata_field_name：str）：
+    def init_fn（params）：
+        Learning_rates = jax.tree.map（
+            lambda param：param.metadata [metadata_field_name]，
+            参数，
+            is_leaf =（lambda节点：isInstance（node，pz.parametervalue）），），
+        ）
+        返回{＆quot; learning_rates＆quot;：learning_rates}
+
+    def Update_fn（更新，状态，参数）：
+        del params
+        更新= jax.tree.map（lambda lr，g：lr * g，state [＆quot; learning_rates＆quort＆quort＆quort＆quort&#39;&#39;，更新）
+        返回更新，状态
+
+    返回optax.gradienttransformation（init_fn，update_fn）
+
+
+培训师= penzai.toolshed.basic_training.statefultrainer.build（
+    root_rng = jax.random.key（2025），
+    模型=模型，
+    Optimizer_Def = optax.chain（
+        optax.scale_by_adam（），
+        scale_by_metadata_value（&#39;Learning_rate＆quot;），
+        optax.scale_by_learning_rate（0.01），
+    ），
+    lose_fn = softmax_cross_entropy_loss，
+    jit = false，
+）
+
+trainer.step（
+    current_input = pz.nx.wrap（np.zeros（8），“功能”，“），
+    current_target = pz.nx.wrap（np.ones（4），;
+）
+＃typeError： *：&#39;jaxlib.xla_extension.arrayimpl&#39;和&#39;parametervalue&#39;
+ ]]></description>
+      <guid>https://stackoverflow.com/questions/79512816/how-to-scale-learning-rates-per-parameter-with-penzai-and-optax</guid>
+      <pubDate>Sun, 16 Mar 2025 15:55:53 GMT</pubDate>
+    </item>
+    <item>
+      <title>标题：为什么我的shap值尺寸[sample_num，feature，class]而不是[class，sample_num，功能]？ [关闭]</title>
       <link>https://stackoverflow.com/questions/79512564/title-why-are-my-shap-values-dimensions-sample-num-feature-class-instead-of</link>
       <description><![CDATA[为什么所有AI都认为塑形值的计算如下？
   x_sample = pd.dataframe（x_train_resampled，columns = x.columns）[：500]  
@@ -22,7 +156,7 @@ shap_values_rf = rumenter_rf.shap_values（x_sample）
       <title>我在哪里可以找到用于培训AI代码质量Asessor的数据集？ [关闭]</title>
       <link>https://stackoverflow.com/questions/79512447/where-do-i-find-datasets-to-train-an-ai-code-quality-asessor</link>
       <description><![CDATA[对于我的大学项目，我的任务是创建和培训AI模型，以审查给定的代码。至少应该说“好”或＆quot“ bad＆quot”，但如果更详细的话，那会更好。
-这是事实：我不允许使用Kaggle或GitHub的任何数据集，因为它们处理了大量处理。老实说，这是最困难的部分。他们鼓励我们使用网络搭配，但这不会给我带来未标记的数据，然后我必须给自己标记自己吗？ （例如好代码，坏代码）
+这是事实：我不允许使用Kaggle或GitHub的任何数据集，因为它们处理了大量处理。老实说，这是最困难的部分。他们鼓励我们使用网络搭配，但这不会给我带来未标记的数据，然后我必须给自己标记？ （例如好代码，坏代码）
 本质上，我的问题是：我在哪里可以找到该项目的数据集（或者请找到一个数据集（如果您知道的话，请找到一个），或者我如何为该项目有效刮擦数据？
 谢谢。]]></description>
       <guid>https://stackoverflow.com/questions/79512447/where-do-i-find-datasets-to-train-an-ai-code-quality-asessor</guid>
@@ -60,65 +194,6 @@ shap_values_rf = rumenter_rf.shap_values（x_sample）
       <pubDate>Fri, 14 Mar 2025 19:56:06 GMT</pubDate>
     </item>
     <item>
-      <title>我应该在此机器学习问题（CNN层）中添加哪些修改？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/79507291/what-modifications-should-i-add-in-this-machine-learning-question-cnn-layer</link>
-      <description><![CDATA[如何接近和解决此练习？
-
-下面您会找到CNN的输入，过滤和结果输出
-层。这些都被绘制为灰度图像，并与
-精确的像素值写出。对于像素的边缘
-输出图像，假定输入图像以外的任何坐标
-为0（零盖）。输出中的某些值丢失。
-使用给定输入计算像素A，B和C的输出值
-和卷积过滤器。
- 在此处输入图像说明 
-像素A，B和C的值是多少
-
-这是我得到的最远的，但是值仍然不正确：
- 导入numpy作为NP
-
-input_image = np.array（[[
-    [0、0、0、0、0、0、0、0、0]，
-    [0，0，1，1，1，0，0，0，0]，
-    [0、3、4、4、4、3、0、0]，
-    [0、1、4、4、4、1、0、0]，
-    [0，0，1，3，4，4，4，4，2]，，
-    [0，0，1，2，3，4，4，3]，
-    [2，4，4，4，4，4，3，3，3]，
-    [1，2，3，2，0，2，2，2]，
-    [0，0，0，0，0，0，0，0，0]
-）））
-
-filter = np.array（[
-    [2，3，0]，
-    [2，2，3]，
-    [0，0，2]
-）））
-
-＃执行卷积的功能
-def卷积（input_image，filter，x，y）：
-    filter_size = filter.shape [0]
-    结果= 0
-    对于我的范围（filter_size）：
-        对于范围内的J（filter_size）：
-            如果x + i＆lt; input_image.shape [0]和y + j＆lt; input_image.shape [1]：
-                结果 + = input_image [x + i，y + j] * filter [i，j]
-    返回结果
-
-＃计算缺失的像素值
-a =卷积（input_image，filter，7，1）
-b =卷积（input_image，filter，5，3）
-c =卷积（input_image，filter，2，1）
-
-打印（f＆quot; a = {a}，b = {b}，c = {c}＆quet;）
- 
-输出：
-a = 13，b = 42，c = 46
-✘像素A的值不正确。]]></description>
-      <guid>https://stackoverflow.com/questions/79507291/what-modifications-should-i-add-in-this-machine-learning-question-cnn-layer</guid>
-      <pubDate>Thu, 13 Mar 2025 18:16:03 GMT</pubDate>
-    </item>
-    <item>
       <title>TPU上的RESNET50计算NAN的准确性和损失，在Google Colab中的CPU上正常工作</title>
       <link>https://stackoverflow.com/questions/79495542/resnet50-on-tpu-calculates-nan-for-accuracy-and-loss-works-fine-on-cpu-in-googl</link>
       <description><![CDATA[我使用Google Colab在V2-8 TPU加速器上培训了RESNET50，我已经用5000张形状（224、224、3）喂了它。我已经对它们进行了规范，没有NAN，没有INF，没有阶级失衡，一切都还好：
@@ -150,72 +225,6 @@ a = 13，b = 42，c = 46
 我尝试在Google Colab中对TPU和CPU进行培训。我希望该模型在没有任何问题的情况下进行培训，包括NAN值损失或准确性，尤其是因为培训在CPU上效果很好。但是，当使用TPU时，我遇到了NAN值的准确性和损失。我还验证了数据很干净，没有NAN，无限或失衡问题，并确保模型编译和培训设置是正确的。]]></description>
       <guid>https://stackoverflow.com/questions/79495542/resnet50-on-tpu-calculates-nan-for-accuracy-and-loss-works-fine-on-cpu-in-googl</guid>
       <pubDate>Sun, 09 Mar 2025 07:07:10 GMT</pubDate>
-    </item>
-    <item>
-      <title>将函数传递到张量流数据集映射方法时的奇怪行为</title>
-      <link>https://stackoverflow.com/questions/72552272/strange-behaviour-when-passing-a-function-into-a-tensorflow-dataset-map-method</link>
-      <description><![CDATA[今天早些时候对我来说这很好，但是当我重新启动笔记本时，它突然开始非常奇怪。
-我有一个TF数据集，该数据集将Numpy文件及其相应的标签作为输入，例如SO  tf.data.dataset.from_tensor_slices（（（Specgram_files，labels，labels））。
-当我使用在ds.take（1）中使用进行1个项目时：print（item）我获得了预期的输出，这是张紧器的元组，其中第一个张量包含numpy文件的名称作为字节字符串，第二个张量张量包含编码的标签。
-然后，我有一个功能，可以使用 np.load（）读取文件，并产生一个numpy数组，然后返回。此函数传递到Map（）方法中，看起来像这样：
-  ds = ds.map（
-lambda文件，标签：元组（[tf.numpy_function（read_npy_file，[file]，[tf.float32]），label]），），），），），
-num_parallel_calls = tf.data.autotune）
- 
-，read_npy_file看起来像这样：
-  def read_npy_file（数据）：
-    ＃“数据”存储numpy二进制文件的文件名，存储特定声音文件的功能
-    ＃作为字节字符串。
-    ＃decode（）在字节字符串上调用以将其从字节字符串解码为常规字符串
-    ＃，以便它可以作为参数传递到np.load（）中
-    data = np.load（data.decode（））
-    返回data.stype（np.float32） 
- 
-您可以看到，映射应创建另一个张量的元组，其中第一个张量是numpy阵列，第二个张量是标签，未触及。这很早就起作用了，但是现在它给出了最奇怪的行为。我将打印语句放在 read_npy_file（）函数中，以查看是否传递了正确的数据。我希望它会传递一个字符串，但是当我调用 print（data&gt; data） read_npy_file（read_npy_file（） ds.take（1）：
-  b&#39;./挑战e_data/log_spectRogram/2603ebb3-3cd3-43cc-98ef-0C128C515863.npy&#39;b&#39;./ challen gea_data/log_spectRogram/fab6a266-e97a-4935-a0c3-4444444426fc5.npy&#39;b&#39;./挑战e_data/log_spectrogr AM/93014682-60A2-45BD-9C9E-7F3C97B83BE9.NPY&#39;B&#39;./挑战A252-6AD3601B92D9.NPY&#39;B&#39;./挑战e_data/log_spectRogram/e757058C-91DE-4381-8181-8184-65F001C95647.NPY&#39;
-
-
-b&#39;./挑战_data/log_spectRogram/38B12689-04BA-422B-A972-5856B05CA868.NPY&#39;
-b&#39;./挑战_data/log_spectRogram/7C9CCCC04-A2D2-4EEC-BAFD-0C97B3658C26.NPY&#39;B&#39;./挑战
-
-
-
-b&#39;./挑战e_data/log_spectRogram/21F6​​060A-9766-4810-BD7C-0437F47CCCB98.NPY&#39;
- 
-我没有修改输出的任何格式。
-这是完整的代码
-  def read_npy_file（数据）：
-    ＃“数据”存储numpy二进制文件的文件名，存储特定声音文件的功能
-    ＃作为字节字符串。
-    ＃decode（）在字节字符串上调用以将其从字节字符串解码为常规字符串
-    ＃，以便它可以作为参数传递到np.load（）中
-    打印（数据）
-    data = np.load（data.decode（））
-    返回data.stype（np.float32）
-
-specgram_ds = tf.data.dataset.from_tensor_slices（（specgram_files，labels））
-
-specgram_ds = specgram_ds.map（
-                    lambda文件，标签：元组（[tf.numpy_function（read_npy_file，[file]，[tf.float32]），label]），），），），），
-                    num_parallel_calls = tf.data.autotune）
-
-num_files = len（train_df）
-num_train = int（0.8 * num_files）
-num_val = int（0.1 * num_files）
-num_test = int（0.1 * num_files）
-
-specgram_ds = specgram_ds.shuffle（buffer_size = 1000）
-specgram_train_ds = specgram_ds.take（num_train）
-specgram_test_ds = specgram_ds.skip（num_train）
-specgram_val_ds = specgram_test_ds.take（num_val）
-specgram_test_ds = specgram_test_ds.skip（num_val）
-
-＃迭代一项以触发映射功能
-对于specgram_ds.take（1）中的项目：
-    经过
- ]]></description>
-      <guid>https://stackoverflow.com/questions/72552272/strange-behaviour-when-passing-a-function-into-a-tensorflow-dataset-map-method</guid>
-      <pubDate>Wed, 08 Jun 2022 21:13:37 GMT</pubDate>
     </item>
     <item>
       <title>Python的联合平均实施</title>
