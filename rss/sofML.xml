@@ -4,7 +4,7 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Sat, 22 Mar 2025 01:18:57 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 22 Mar 2025 03:29:45 GMT</lastBuildDate>
     <item>
       <title>找到回归系数和sarimax的统计显着性</title>
       <link>https://stackoverflow.com/questions/79526168/finding-regression-coefficients-and-statistical-significance-in-sarimax</link>
@@ -290,123 +290,6 @@ class Vivelitiesloss（nn.模块）：
       <pubDate>Thu, 20 Mar 2025 18:53:43 GMT</pubDate>
     </item>
     <item>
-      <title>使用Essentia模型进行音乐标记的问题</title>
-      <link>https://stackoverflow.com/questions/79523823/issues-using-essentia-models-for-music-tagging</link>
-      <description><![CDATA[ 背格： 
-我正在使用一些模型来生成音乐的标签，例如音乐中的流派，情绪和乐器（音频文件）。原始型号在.pb扩展中。这些模型可在 https://essentia.upf.edu/models.html 和我使用的型号at is： ars as：
-
- discogs-effnet-bs64-1 
- genre_discogs400-discogs-effnet-1 
- mtg_jamendo_instrument-discogs-effnet-1 
- mtg_jamendo_moodtheme-discogs-effnet-1 
-
-在相应的JSON文件中给出了模型的输入和输出，这些文件显示了类，输入/输出大小和名称。
-默认.pb模型只需使用内置函数：
- 来自Essentia.Standard Import（
-    单层，
-    TensorFlowPredictefteffnetDiscogs，
-    TensorFlowPredict2d，
-）
-def essentia_feature_extraction（audio_file，sample_rate）：
-    ＃加载音频文件
-    audio = monoloader（fileName = audio_file，采样= 16000，res ampamplequality = 4）（）（）
-
-    ＃嵌入音频功能
-    embeddings = embedding_model（音频）
-
-    result_dict = {}
-    processed_labels = list（MAP（process_labels，genre_labels）））
-    ＃流派预测
-    genre_predictions = genre_model（嵌入）
-    result_dict [＆quot; quot; quot; quot_predictions（genre_predictions，processed_labels）
-    ＃情绪/主题预测
-    mood_predictions = mood_model（嵌入）
-    result_dict [＆quot; quots; quot; quot_predictions（
-        mood_predictions，mood_theme_classes，阈值= 0.05
-    ）
-
-    ＃乐器预测
-    instrument_predictions = instrument_model（嵌入）
-    result_dict [＆quot&#39;instruments＆quort＆quort = filter_predictions（
-        instrument_predictions，instrument_classes
-    ）
-
-    返回result_dict
- 
- 问题： 
-无论我用哪种音频文件作为输入，我都会为情绪和仪器提供相同的输出预测。流派预测现在通常为零（含义“未知类型”。
- 导入libreosa
-导入numpy作为NP
-导入tritonclient.http作为httpclient
-
-def essentia_feature_extraction_triton（audio_file，sample_rate）：
-    尝试：
-        音频，sr = librosa.load（audio_file，sr = 16000，mono = true）
-        音频= audio.astype（np.float32）
-
-        mel_spectrogram = libreosa.feature.melspectrogram（
-            y =音频，sr = 16000，n_fft = 2048，hop_length = 512，n_mels = 128
-        ）
-        mel_spectrogram = libreosa.power_to_db（mel_spectrogram，ref = 1.0）
-
-        如果mel_spectRogram.Shape [1]＆lt; 96：
-            mel_spectrogram = np.pad（
-                mel_spectRogram，（（（0，0），（0，96 -mel_spectRogram.shape [1]）），模式=＆quot;
-            ）
-        elif mel_spectrogram.shape [1]＆gt; 96：
-            mel_spectRogram = mel_spectrogram [：，：96]
-
-        mel_spectRogram = np.expand_dims（mel_spectRogram，axis = 0）.astype（np.float32）
-
-
-        使用httpclient.inferenceserverclient（url = triton_url）作为triton_client：
-            ＃--- effnet Discogs（组合模型）---
-            input_name =＆quot; melspectrogram; quot;
-            genre_output_name =“激活”
-            embedding_output_name =＆quot&#39;embeddings; quot;
-
-            inputs = [httpclient.inferinput（input_name，mel_spectrogram.shape，shape，shape，fp32＆quort&#39;&#39;）]
-            输入[0] .SET_DATA_FROM_NUMPY（MEL_SPECTROGRAM）
-
-            输出= [
-                httpclient.inferrequestedoutput（genre_output_name），
-                httpclient.inferrequestedoutput（embedding_output_name）
-            这是给出的
-
-            结果= triton_client.infer（
-                model_name = effnet_discogs_model_name，inputs =输入，输出=输出
-            ）
-
-            genre_predictions = results.as_numpy（genre_output_name）
-            embeddings = results.as_numpy（empedding_output_name）
-            embeddings = embeddings.astype（np.float32）
-
-            ＃---情绪预测---
-            input_name =＆quot&#39;embeddings;
-            output_name =“激活”
-            inputs = [httpclient.inferinput（input_name，embeddings.shape，shape，fp32＆quort&#39;）]
-            输入[0] .set_data_from_numpy（嵌入）
-
-            outputs = [httpclient.inferrequestedoutput（output_name）]
-            mood_predictions = triton_client.infer（
-                model_name = mood_model_name，inputs =输入，输出=输出
-            ）.AS_NUMPY（output_name）
-
-            ＃---仪器预测---
-            input_name =＆quot&#39;embeddings;
-            output_name =“激活”
-            inputs = [httpclient.inferinput（input_name，embeddings.shape，shape，fp32＆quort&#39;）]
-            输入[0] .set_data_from_numpy（嵌入）
-
-            outputs = [httpclient.inferrequestedoutput（output_name）]
-            instrument_predictions = triton_client.infer（
-                model_name = instrument_model_name，inputs =输入，输出=输出
-            ）.AS_NUMPY（output_name）
- ]]></description>
-      <guid>https://stackoverflow.com/questions/79523823/issues-using-essentia-models-for-music-tagging</guid>
-      <pubDate>Thu, 20 Mar 2025 18:31:24 GMT</pubDate>
-    </item>
-    <item>
       <title>从Edge Export TFJS模型，Express/Node API中获取对象检测结果</title>
       <link>https://stackoverflow.com/questions/79521051/get-object-detection-results-from-edge-export-tfjs-model-bin-dict-in-express</link>
       <description><![CDATA[我已经将我的vertexai模型导出到tfjs as&#39;edge;
@@ -496,7 +379,7 @@ const getToppredictions =（
       归一化图。dispose（）;
       batchedimage.dispose（）;
       if（array.isarray（predivions））{
-        prective.foreach（p =＆gt;（p as tf.tensor）.dispose（））;
+        predictions.forEach(p =&gt; (p as tf.Tensor).dispose());
       } 别的 {
         （作为tf.tensor的预测）.dispose（）;
       }
@@ -571,6 +454,43 @@ lightgbm.basic.lightgbmerror：未知模型格式或模型文件中的子模型�
  ]]></description>
       <guid>https://stackoverflow.com/questions/79477586/how-to-convert-data-ilearner-model-to-model-pkl-in-azure-ml</guid>
       <pubDate>Sat, 01 Mar 2025 12:45:07 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么拥抱面提供的DeepSeek代码会导致“未知量化类型”错误？</title>
+      <link>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</link>
+      <description><![CDATA[我正在使用huggingface的此代码：
+此代码直接从 deepseek上的huggingface网站页面上的页面
+
+ 来自变形金刚导入管道
+
+消息= [
+{&#39;&#39;：＆quot“ user quot”内容“：;
+这是给出的
+pipe =管道（＆quot&#39;text-generation＆quot; deepseek-ai/deepseek-r1＆quort; trust_remote_code = true）
+管道（消息）
+ 
+
+，但我无法加载模型。当我这样做时，我会得到这个问题：
+  file＆quot＆lt; ...＆gt;/site-packages/transformers/quantizers/auto.py＆quot;，第97行，在from_dict
+
+提高价值Error（
+
+ValueError：未知量化类型，获得FP8-支持类型为： 
+[&#39;awq&#39;，&#39;bitsandbytes_4bit&#39;，&#39;bitsandbytes_8bit&#39;，&#39;gptq&#39;，&#39;aqlm&#39;，&#39;quanto&#39;，&#39;eetq&#39;，&#39;eetq&#39;， 
+&#39;HQQ&#39;，“压缩张量”，“ fbgemm_fp8&#39;，&#39;torchao&#39;，&#39;bitnet&#39;]
+ 
+我尝试了不同的代码：
+ 导入火炬
+generate_text = pipeline（model =; deepSeek-ai/deepSeek-r1; torch_dtype = torch.bfloat16，trust_remote_code = true，device_map =; auto;
+generate_text（消息）
+ 
+这给出以下错误：
+
+raise ValueError( ValueError: Unknown quantization type, got fp8 - supported types are: [&#39;awq&#39;, &#39;bitsandbytes_4bit&#39;, &#39;bitsandbytes_8bit&#39;, &#39;gptq&#39;, &#39;aqlm&#39;, &#39;quanto&#39;, &#39;eetq&#39;, &#39;higgs&#39;, &#39;hqq&#39;, &#39;compressed-tensors&#39;, &#39;fbgemm_fp8&#39;, &#39;torchao&#39;，&#39;bitnet&#39;，&#39;vptq&#39;] 
+
+我该怎么办？]]></description>
+      <guid>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</guid>
+      <pubDate>Sun, 09 Feb 2025 03:05:30 GMT</pubDate>
     </item>
     <item>
       <title>Llama2型号在设备MPS上运行时获取WERID符号</title>
