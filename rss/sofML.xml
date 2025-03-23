@@ -4,7 +4,7 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Sun, 23 Mar 2025 09:16:12 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 23 Mar 2025 12:31:37 GMT</lastBuildDate>
     <item>
       <title>Scikit-Learn PCA与自定义PCA实现之间的符号差异</title>
       <link>https://stackoverflow.com/questions/79528591/discrepancy-in-signs-between-scikit-learn-pca-and-custom-pca-implementation</link>
@@ -321,106 +321,6 @@ Importerror：无法从&#39;ragas.metrics.base&#39;（/opt/conda/lib/python3.11/
       <pubDate>Sun, 16 Mar 2025 17:49:25 GMT</pubDate>
     </item>
     <item>
-      <title>Tensorflow模型训练，列表到Numpy阵列转换不均会改变数据形状</title>
-      <link>https://stackoverflow.com/questions/79455291/tensorflow-model-training-list-to-numpy-array-conversion-unevenly-changes-the-s</link>
-      <description><![CDATA[我正在尝试从MRI图像中预测LSDC。对于每个 study_id 都有多个图像。每个 study_id 代表每个患者。我想在5个级别上预测5个条件下的3级严重程度。
-我正在尝试使用 sequence 类创建数据集。
-这是我的 datagenerator 类：
- 类CustomDatagenerator（序列）：
-    def __init __（self，image_dict，num_img，labels_dict = none，batch_size = 8，image_size =（224，224），shuffle = true）：
-       self.image_dict = image_dict
-       self.labels_dict = labels_dict
-       self.batch_size = batch_size
-       self.image_size = image_size
-       self.shuffle =洗牌
-       self.ids = list（image_dict.keys（））
-       self.num_img = num_img
-       self.on_epoch_end（）
-
-    def __len __（自我）：
-       返回int（np.floor（len（self.ids） / self.batch_size））
-
-    def __getItem __（自我，索引）：
-       start = index * self.batch_size
-       end = min（（索引 + 1） * self.batch_size，len（self.ids））
-       batch_ids = self.ids [start：end]
-       batch_images = []
-       batch_labels = []
-
-       对于batch_ids中的ID_：
-           图像= []
-
-           对于self.image_dict.get（id_，[]）中的image_path：
-               dicomdata = pydicom.dcmread（image_path）
-               图像= dicomdata.pixel_array
-               图像= cv2.resize（图像，self.image_size）
-               image = np.expand_dims（图像，axis = -1）
-               image = image.astype（&#39;float32&#39;） / np.max（图像）
-               图像= np.Repeat（图像，3，轴= -1）
-               images.append（图像）
-
-           图像= np.Array（图像）
-
-           如果Len（Images）＆lt; self.num_img：
-               pad_amount = self.num_img- len（图像）
-               padding = [（0，pad_amount）] + [（0，0）] *（len（images.shape） -  1）
-               图像= np.pad（图像，填充，模式=&#39;常数&#39;）
-
-           batch_images.append（图像）
-
-           如果self.labels_dict：
-               label = np.array（self.labels_dict.get（id_），dtype = np.float32）
-               batch_labels.append（标签）
-
-       batch_images = np.stack（batch_images）
-       如果self.labels_dict：
-           batch_labels = np.array（batch_labels，dtype = np.float32）
-           返回batch_images，batch_labels
-
-       返回batch_images
-
-    def on_epoch_end（self）：
-       如果self.shuffle：
-           np.random.shuffle（self.ids）
- 
-我的标签字典如下：
-  i，sid在枚举中（train_df [&#39;study_id&#39;]）：
-        labels_dict [str（sid）] = []
-        对于条件下的骗局：
-            如果train_df.loc [i，con] ==&#39;normal_mild&#39;：
-                labels_dict [str（sid）]。附加（[1，0，0]）
-            elif train_df.loc [i，con] ==&#39;严重&#39;：
-                labels_dict [str（sid）]。附加（[0，0，1]）
-            别的：
-                labels_dict [str（sid）]。附加（[0，1，0]）
-
-       labels_dict [str（sid）] = np.array（labels_dict [str（sid）]，dtype = np.float32）
- 
-我尝试了多种方法将 labels_dict 转换为numpy数组。但是要么在训练时显示形状不匹配错误。或试图查看数据时显示错误。
-这是它显示的错误：
-  -----＆gt; 1 Model.Fit（train_generator，epochs = 2）＃，step_per_epoch = len（train_generator）// 8）
-
-/USR/local/lib/python3.10/dist-packages/keras/src/utils/traceback_utils.py in Error_handler（*args，** kwargs）
-    120＃要获取完整的堆栈跟踪，请致电：
-    121＃`keras.config.disable_traceback_filtering（）`
- - ＆gt; 122从无
-    123最后：
-    124 del filtered_tb
-
-＆lt; ipython-Input-12-Cf42609bddda＆gt;在__getItem __（自我，索引）中
-     47 batch_images = np.stack（batch_images）
-     48如果self.labels_dict：
----＆gt; 49 batch_labels = np.array（batch_labels，dtype = np.float32）
-     50返回batch_images，batch_labels
-     51 
-
-ValueError：设置具有序列的数组元素。 1个维度后，请求的阵列具有不均匀的形状。检测到的形状为（8，） +不均匀部分。
- 
-我尝试使用 np.stack 或 batch_labels = batch_labels.reshape（（（batch_labels.shape.shape [0]，len（presente），3），3））），但显示出不同的错误。我的数据没有任何 nan ，所有 labels_dict 均为Shape （batch_size，num_of_condition，severity_class）。即使我尝试从发电机打印数据。生成器数据形状来自 data_x，data_y = next（iter（train_generator））显示模型输入和输出的数据形状。我无法弄清楚这个问题。]]></description>
-      <guid>https://stackoverflow.com/questions/79455291/tensorflow-model-training-list-to-numpy-array-conversion-unevenly-changes-the-s</guid>
-      <pubDate>Thu, 20 Feb 2025 17:02:54 GMT</pubDate>
-    </item>
-    <item>
       <title>训练数据和标签在掩盖应付填充后没有相同的形状</title>
       <link>https://stackoverflow.com/questions/79175635/training-data-and-labels-dont-have-the-same-shape-after-masking-due-padding</link>
       <description><![CDATA[]]></description>
@@ -446,6 +346,15 @@ DocString：对“项目”的预测，完全解码，损失函数解码和概�
  ]]></description>
       <guid>https://stackoverflow.com/questions/66836846/fastai-predict-on-collaboative-learning-model</guid>
       <pubDate>Sat, 27 Mar 2021 22:49:20 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何将KERAS（H5）文件转换为TFLITE文件？</title>
+      <link>https://stackoverflow.com/questions/53256877/how-to-convert-kerash5-file-to-a-tflite-file</link>
+      <description><![CDATA[我有一个keras（H5）文件。我需要将其转换为tflite？
+我研究了，首先我需要通过H5-&gt; pb-&gt; tflite去
+（因为H5 -Tflite有时会导致某些问题）]]></description>
+      <guid>https://stackoverflow.com/questions/53256877/how-to-convert-kerash5-file-to-a-tflite-file</guid>
+      <pubDate>Mon, 12 Nov 2018 06:25:31 GMT</pubDate>
     </item>
     <item>
       <title>分类因变量与自变量的组合之间的关系</title>
