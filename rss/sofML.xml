@@ -4,7 +4,7 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Sun, 23 Mar 2025 01:25:33 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 23 Mar 2025 03:32:21 GMT</lastBuildDate>
     <item>
       <title>T5雇用员工男高音</title>
       <link>https://stackoverflow.com/questions/79528017/t5-fastai-empty-tensors</link>
@@ -58,127 +58,112 @@ dls = datablock（
       <pubDate>Sat, 22 Mar 2025 17:43:17 GMT</pubDate>
     </item>
     <item>
-      <title>处理回归器神经网络的目标值的正确方法是什么？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/79527427/whats-the-right-way-in-handling-target-values-for-a-regressor-neural-network</link>
-      <description><![CDATA[我目前正在处理特定数据集：
- 品牌模型年egine_size fuel_type传输里程门所有者 
-起亚里约2020 4.2柴油手册289944 3 5 8501 
-雪佛兰Malibu 2012 2.0混合动力自动5356 2 3 12092 
-梅赛德斯GLA 2020 4.2柴油自动231440 4 2 11171 
-奥迪Q5 2023 2.0电动手册160971 2 1 11780 
-大众高尔夫2003 2.6混合半自动286618 3 3 2867 
-Toyota Camry 2007 2.7汽油自动157889 4 4 7242
-...
+      <title>验证准确性和AUC不会增加。请帮助我了解我出错的地方</title>
+      <link>https://stackoverflow.com/questions/79527674/validation-accuracy-and-auc-not-increasing-please-help-me-understand-where-i-we</link>
+      <description><![CDATA[我是目前正在从事此项目的学生。这是我的体系结构代码：
+ ＃加载预训练的InceptionResnetv2
+base_model = inceptionResnetv2（weights =&#39;imagenet&#39;，include_top = false，input_shape =（300，300，3））
 
+＃最初冻结所有层
+对于base_model.layers中的图层：
+    layer.trainable = false  
+
+＃---添加具有多头注意的自定义分类头---
+x = base_model.output
+x = globalaveragepooling2d（）（x）
+x = batchnormatorization（）（x）
+x =辍学（0.3）（x）
+
+＃---实施多头注意机制---
+＃重塑以准备关注功能
+x_reshaped = reshape（（1，x. shape [-1]））（x）
+
+＃实现多头注意（3个主人）
+num_heads = 3
+head_outputs = []
+
+对于我的范围（num_heads）：
+ ＃每个关注头
+    注意=密集（64，activation =&#39;relu&#39;，name = f&#39;attention_proctive_ {i}&#39;）（x_reshape）
+    注意=密集（1，activation =&#39;tanh&#39;，name = f&#39;attention_score_ {i}&#39;）（注意）
+    注意= Flatten（）（注意）
+    注意_weights =激活（&#39;softmax&#39;）（注意）
+    activation_weights = repotevector（x. shape [-1]）（activation_weights）
+    注意_weights = permute（[2，1]）（注意_weights）
+    
+    ＃施加注意力
+    head_output = pulty（）（[x_reshaped，coadivation_weights]）
+    head_output = lambda（lambda x：k.sum（x，axis = 1））（head_output）
+    head_outputs.append（head_output）
+
+＃结合注意力头
+如果num_heads＆gt; 1：
+    context_vector = concatenate（）（head_outputs）
+    ＃项目回到原始维度
+    context_vector =致密（x. shape [-1]，activation =&#39;relu&#39;）（context_vector）
+别的：
+    context_vector = head_outputs [0]
+
+＃---跳过连接---
+＃添加从Globalaverate Pooling After Globalageerpooling到After Pastion之后的Skip Connection
+context_vector = add（）（[context_vector，x]）
+
+＃---带有增强正规化的最终层---
+X = Gaussiannoise（0.02）（Context_Vector）
+x =密集（256，activation =&#39;relu&#39;，kernel_regularizer = tf.keras.regularizers.l2（0.005））（x）
+x = batchnormatorization（）（x）
+x =辍学（0.3）（x）
+x =密集（128，activation =&#39;relu&#39;，kernel_regularizer = tf.keras.regularizers.l2（0.005））（x）
+x = batchnormatorization（）（x）
+x =辍学（0.3）（x）
+
+＃---输出层---
+输出=密集（1，激活=&#39;Sigmoid&#39;）（x）
+
+＃---创建模型---
+model =模型（inputs = base_model.input，outputs =输出）
+
+＃---编译模型---
+＃添加梯度剪辑以防止爆炸梯度
+
+优化器= ADAM（Learning_rate = 0.0001，clipnorm = 1.0）
+model.compile（优化器=优化器，  
+              损失=&#39;binary_crossentropy&#39;，  
+              量表= [&#39;准确性&#39;，&#39;auc&#39;，&#39;precision&#39;，&#39;回忆&#39;]）
+
+＃＃打印模型摘要
+＃print（model.summary（））
+
+＃---增强回调---
+lr_scheduler = reducelronplateau（monitor =&#39;val_loss&#39;，因子= 0.5，耐心= 5，冗长= 1）
+早期_STOP =早期踩踏（Monitor =&#39;Val_loss&#39;，Patience = 10，Restore_best_weights = true，verbose = 1）
+checkpoint = modelCheckpoint（&#39;best_model.h5&#39;，monitor =&#39;val_auc&#39;，mode =&#39;max&#39;， 
+                             save_best_only = true，详细= 1）
+callbacks_list = [LR_SCHEDULER，早期_STOP，检查点]
+
+＃---训练模型---
+历史= model.fit（
+    x_train，y_train， 
+    时代= 70，  
+    验证_data =（x_test，y_test）， 
+    batch_size = 16，  
+    详细= 1， 
+    回调= callbacks_list
+）
  
-我的目标是创建一个神经网络，该网络将根据功能执行回归。
-根据我以前阅读的内容，您通常不需要扩展目标功能。
-但是当我尝试一下时，我的rmse很高：
- 时代631/1000
-25/25━━━━━━━━━━━━━━━━━━━━0S3ms/step 
-损失：4282125.0000  
-MSE：4282125.0000  
-root_mean_squared_error：2069.2246  
-val_loss：4227971.5000  
-val_mse：4227971.5000 
-val_root_mean_squared_error：2056.2031
+这是我的模型体系结构
+数据集概述：1260个彩色图像（铁路轨道缺陷数据集），标记的数据，清洁数据集具有等量的类别（即50％有缺陷和50％的非缺陷）
+图像像素已经已归一化（即在进出数据集之前[0,1]。
+我尝试的是：
 
- 
-然后，我在这里阅读了一些论坛帖子，这表明执行目标缩放可能是有益的，这产生了有希望的结果：
- 时代100/100
-25/25━━━━━━━━━━━━━━━━━━━━0S3ms/step  
-损失：0.0141  
-MSE：0.0141  
-root_mean_squared_error：0.1186  
-val_loss：0.0170  
-val_mse：0.0170  
-val_root_mean_squared_error：0.1305
+我尝试了 lr_scheduler 余弦衰减，不工作
+数据增强略微降低了性能
+调整辍学，学习率和高斯噪声的值，但仍无法正常工作
+微调基本模型中的后来层
 
- 
-但是，在应用 inverse_transform 并再次计算RMSE之后，结果仍然很糟糕：
-  mscale = minmaxscaler（）###我在笔记本中将数据安装到了这个scaleer中。
-                        ###我只是在这里添加它以显示我使用的缩放器。
-
-pred = model_neur.predict（x_train_complete）
-pred_inv_scale = mscale.inverse_transform（pred）
-y_test_split_inv = mscale.inverse_transform（y_train_final）
-print（np.sqrt（mean_squared_error（y_test_split_inv，pred_inv_scale）））））））
-
-250/250━━━━━━━━━━━━━━━━━━━━0S466us/step
-1988.584022180217
-
- 
-对我来说，结果是有意义的，通过以这种方式扩展目标，我会影响预测价值与真实价值之间的距离。在[0,1]的规模上，我知道看到RMSE真的很小。
-我知道，RMSE的解释高度取决于数据，但是我的目标的最小价值是2000，最大的价值为18,000，我觉得2000年的RMSE大约是很糟糕的。。
-是否有适当的方法可以实际执行大型目标功能进行回归？您甚至应该完全缩放它们吗？]]></description>
-      <guid>https://stackoverflow.com/questions/79527427/whats-the-right-way-in-handling-target-values-for-a-regressor-neural-network</guid>
-      <pubDate>Sat, 22 Mar 2025 12:16:06 GMT</pubDate>
-    </item>
-    <item>
-      <title>需要有关KAN模型的帮助[关闭]</title>
-      <link>https://stackoverflow.com/questions/79527265/need-help-about-kan-model</link>
-      <description><![CDATA[获取此错误。我需要更改代码还是火炬版本的问题？
- 描述：0％|          | 0/500 [00：00＆lt;？，？it/s]
-----------------------------------------------------------------------------------------------------------------------------
-Runtimeerr Trackback（最近的最新电话）
-＆lt; ipython-Input-10-2da0ffaf5447＆gt;在＆lt;单元线：0＆gt;（）
-----＆gt; 1火车（）
-
-7帧
-/USR/local/lib/python3.11/dist-packages/torch/functional.py in Einsum（*args）
-    405＃收缩0或1次的路径已经优化
-    406＃或使用opt_einsum禁用了用户
- - ＆gt; 407返回_vf.einsum（方程式，操作数）＃类型：忽略[attr-defined]
-    408 
-    409路径=无
-
-RuntimeError：预期标量型双键，但发现了浮动
- 
-这是火车代码
-  def train（）：
-优化器= lbfgs（model.parameters（），lr = 1，max_iter = 50，history_size = 10，tolerance_grad = 1e-32，tolerance_change = 1e-32，tolerance_ys = 1e-32）
-
-pBar = tqdm（range（step），desc =&#39;description&#39;）
-
-对于_在PBAR中：
-    def closure（）：
-        全局PDE_LOSS，BC_LOSS
-        优化器.zero_grad（）
-        ＃内部损失
-        sol = sol_fun（x_i）
-        sol_d1_fun = lambda x：batch_jacobian（型号，x，create_graph = true）[：，0，：]
-        sol_d1 = sol_d1_fun（x_i）
-        sol_d2 = batch_jacobian（sol_d1_fun，x_i，create_graph = true）[：， ：，：]
-        lap = torch.sum（torch.diagonal（sol_d2，dim1 = 1，dim2 = 2），dim = 1，keepdim = true）
-        source = source_fun（x_i）
-        pde_loss = torch.mean（（lap- source）** 2）
-
-        ＃边界损失
-        ＃bc_true = sol_fun（x_b）
-        bc_true = y_b
-        BC_PRED =模型（x_b）
-        bc_loss = torch.mean（（BC_PRED-BC_TRUE）** 2）
-
-        损失= alpha * pde_loss + bc_loss
-        loss.backward（）
-        回报损失
-
-    如果_％5 == 0和_＆lt; 50：
-        model.update_grid_from_samples（x_i）
-
-    优化器。
-    sol = sol_fun（x_i）
-    损失= alpha * pde_loss + bc_loss
-    pde_losss [_] = pde_loss
-    BC_LOSSS [_] = BC_LOSS
-    ＃l2 = torch.mean（（型号（x_i） -  sol）** 2）
-
-
-    如果_％log == 0：
-        pbar.set_description（; pde损失：％.2e | bc损失：％.2e;％（pde_loss.cpu（）。
- ]]></description>
-      <guid>https://stackoverflow.com/questions/79527265/need-help-about-kan-model</guid>
-      <pubDate>Sat, 22 Mar 2025 10:15:44 GMT</pubDate>
+验证精度在0.91-0.92之间固定，而验证AUC的验证精度并未从0.9624提高。我想知道如何提高其性能]]></description>
+      <guid>https://stackoverflow.com/questions/79527674/validation-accuracy-and-auc-not-increasing-please-help-me-understand-where-i-we</guid>
+      <pubDate>Sat, 22 Mar 2025 15:39:53 GMT</pubDate>
     </item>
     <item>
       <title>Tensorflow模型训练，列表到Numpy阵列转换不均会改变数据形状</title>
@@ -302,7 +287,7 @@ DocString：对“项目”的预测，完全解码，损失函数解码和概�
 我试图在这里遵循一些答案 -    Learn.predict（[NP.Array（[3]）]）
  
 我似乎遇到了一个错误：
-  typeError：列表索引必须是整数或切片，而不是列表
+  typeerror：列表索引必须是整数或切片，而不是列表
  ]]></description>
       <guid>https://stackoverflow.com/questions/66836846/fastai-predict-on-collaboative-learning-model</guid>
       <pubDate>Sat, 27 Mar 2021 22:49:20 GMT</pubDate>
@@ -389,23 +374,29 @@ regr.fit（数据，y，epochs = 200，batch_size = 32）
       <pubDate>Fri, 04 Aug 2017 10:41:25 GMT</pubDate>
     </item>
     <item>
-      <title>使用机器学习识别名称[封闭]</title>
-      <link>https://stackoverflow.com/questions/37876401/recognize-names-using-machine-learning</link>
-      <description><![CDATA[我正在处理一个问题，我不确定机器学习是否会成为理想的候选人。
-我有一个沿着别名的列表位置。这是我计划使用来训练模型的监督数据集。使用此，我想在从大型文本语料库中提取的列表中识别它们。挑战是这些位置是外国名称，因此它们以各种方式拼写。
- 培训数据 
+      <title>训练后如何用分布的时间来替换嵌入层？</title>
+      <link>https://stackoverflow.com/questions/39532572/how-to-replace-an-embedding-layer-with-a-time-distributed-dense-after-training</link>
+      <description><![CDATA[我有以下问题：
 
-名称：澳大利亚（AUS，Australea，Down）
-名称：维也纳（VNA，欧洲珠宝）
+ 我想使用LSTM网络进行文本分类。为了加快训练的速度并使代码更加清楚，我想沿沿 keras.tokenizer 嵌入层以训练我的模型。 
+ 一旦我训练了我的模型 - 我想计算输出W.R.T.的显着性图。输入。为此，我决定将嵌入层替换为 timeDistributedDense 。 
 
- 语料库数据 
- 奥地利 
-南部的国家 
-Oustralea 
-欧洲珠宝
+您知道什么是最好的方法。对于一个简单的模型，我可以简单地使用已知权重的模型来重建模型 - 但我想使其尽可能通用 - 例如替换模型结构的未来并使我的框架尽可能不可知。]]></description>
+      <guid>https://stackoverflow.com/questions/39532572/how-to-replace-an-embedding-layer-with-a-time-distributed-dense-after-training</guid>
+      <pubDate>Fri, 16 Sep 2016 13:21:25 GMT</pubDate>
+    </item>
+    <item>
+      <title>使用Python分类信号图像</title>
+      <link>https://stackoverflow.com/questions/23053365/classify-signal-images-using-python</link>
+      <description><![CDATA[我有以下信号图像，我想根据形状进行分类。哪种算法适合这样做？ I have attached 2-2 images of each class. 
+
+
+
+
+
  ]]></description>
-      <guid>https://stackoverflow.com/questions/37876401/recognize-names-using-machine-learning</guid>
-      <pubDate>Fri, 17 Jun 2016 08:11:53 GMT</pubDate>
+      <guid>https://stackoverflow.com/questions/23053365/classify-signal-images-using-python</guid>
+      <pubDate>Mon, 14 Apr 2014 06:30:28 GMT</pubDate>
     </item>
     </channel>
 </rss>
