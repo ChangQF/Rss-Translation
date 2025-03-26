@@ -4,7 +4,232 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Wed, 26 Mar 2025 03:30:47 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 26 Mar 2025 06:25:40 GMT</lastBuildDate>
+    <item>
+      <title>如何在没有自动差异的神经网络的情况下实施反向传播？</title>
+      <link>https://stackoverflow.com/questions/79535519/how-to-implement-backpropagation-without-auto-differentiation-for-a-feedforward</link>
+      <description><![CDATA[我正在研究一个深度学习任务，该任务需要使用仅使用 numpy （没有Tensorflow，Pytorch或其他自动分辨率工具）实现 feedforward神经网络（FNN）。该网络具有三层（2048、512、10个神经元），使用 relu和SoftMax激活，并用 mini-Batch随机渐变（SGD）进行了优化。
+分配需要手动实施向前传播，反向传播和重量更新，以确保我使用 BackPropagation AlgorithM  确保我正确计算每个层的梯度。。
+但是，我正在努力正确地计算每个层的梯度，尤其是当处理 relu激活的衍生物和 softmax 时。我想确认我的梯度计算和重量更新是正确的。
+ 导入numpy作为NP
+
+def relu（x）：
+    返回np.maximum（0，x）
+
+def relu_derivative（x）：
+    返回（x＆gt; 0）.astype（float）＃relu derivative（1如果x＆gt; 0，else 0）
+
+def softmax（x）：
+    exp_x = np.exp（x -np.max（x，axis = 1，keepdims = true））＃稳定技巧
+    返回exp_x / np.sum（exp_x，axis = 1，keepdims = true）
+
+def cross_entropy_loss（y_pred，y_true）：
+    返回-np.mean（np.sum（y_true * np.log（y_pred + 1e -9），轴= 1））＃防止log（0）
+
+def softmax_cross_entropy_grad（y_pred，y_true）：
+    返回y_pred -y_true＃softmax +跨渗透衍生物
+
+def gradient_check（）：
+    np.random.seed（42）＃确保可重复性
+    
+    ＃假输入（batch_size = 3，input_dim = 5）
+    x = np.random.randn（3，5）
+    w1 = np.random.randn（5，4）
+    b1 = np.zeros（（1，4））
+
+    ＃假式单壁编码标签（batch_size = 3，num_classes = 4）
+    y = np.Array（[[[0，1，0，0]， 
+                  [1，0，0，0]， 
+                  [0，0，1，0]]）
+
+    z1 = np.dot（x，w1） + b1
+    a1 = relu（z1）
+    y_pred = softmax（a1）
+    损失= cross_entropy_loss（y_pred，y）
+
+    dl_da1 = softmax_cross_entropy_grad（y_pred，y）＃渐变W.R.T. SoftMax输出
+    dl_dz1 = dl_da1 * relu_derivative（z1）＃与relu的链条规则
+
+    打印（y_pred（SoftMax输出）：\ n＆quort y_pred）
+    打印（“损失：; quot”损失）
+    打印（&#39;梯度W.R.T. SoftMax输出（DL/DA1）：\ n＆quort; dl_da1）
+    打印（``relu derivative&#39;&#39;之后的渐变（dl/dz1）：\ n＆quort; dl_dz1）
+
+gradient_check（）
+ 
+我仅使用 numpy 并手动计算的反向传播实现了 feedforward神经网络（FNN）。我期望损失会降低和的准确性，但相反，损失波动，准确性保持 low ，有时梯度 爆炸或成为nan 。我怀疑 relu的导数和 softmax +交叉渗透梯度计算的问题，需要验证我的反向传播是否正确。]]></description>
+      <guid>https://stackoverflow.com/questions/79535519/how-to-implement-backpropagation-without-auto-differentiation-for-a-feedforward</guid>
+      <pubDate>Wed, 26 Mar 2025 05:59:43 GMT</pubDate>
+    </item>
+    <item>
+      <title>我使用densenet-169创建了使用组织病理学图像预测结肠癌的模型，我该怎么做才能将F1分数从75％提高。</title>
+      <link>https://stackoverflow.com/questions/79535469/i-used-densenet-169-in-creating-a-model-for-predicting-colon-cancer-using-histop</link>
+      <description><![CDATA[我使用Python在10,000张图像的数据集上使用Densenet169创建了一个模型，以预测结肠癌，两个子文件夹有5000张图像，每张图像5000张图像用于良性和癌组织。训练持续了8小时，训练后的F1分数为0.75，这是不可取的。我试图查看我可以做出的更改以改善指标，但是我没有任何更改的方法，并且需要帮助确定可以在哪里进行更改以提高F1分数。这是我第一次从事这样的事情，我发现没有在线材料进行深度学习可以帮助我解决这个问题
+ 将TensorFlow导入为TF
+来自Tensorflow.keras.applications导入Densenet169
+来自tensorflow.keras.layers导入密集，globalaveration -pooling2d，Randomflip，RandomRotation，辍学
+来自Tensorflow.keras.models导入模型，顺序
+来自Tensorflow.keras.optimizer导入Adam
+从tensorflow.keras.regulinizer导入l2
+来自tensorflow.keras.applications.densenet导入preprocess_input
+来自sklearn.metrics导入混淆_matrix，f1_score
+导入numpy作为NP
+进口海洋作为SNS
+导入matplotlib.pyplot作为PLT
+导入操作系统
+
+＃定义常数
+img_size =（224，224）＃匹配densenet169输入大小
+batch_size = 32
+时代= 15
+data_dir =＆quot; colon_images＆quot;
+class_names = [＆quast; cancyous&#39;&#39;正常＆quot;]
+split_ratio = 0.2
+
+＃直接加载数据集在224x224
+def create_dataset（子集）：
+    返回tf.keras.utils.image_dataset_from_directory（
+        data_dir，
+        验证_split = split_ratio，
+        子集=子集
+        种子= 42，
+        image_size = img_size，＃直接以目标大小加载
+        batch_size = batch_size，
+        label_mode =&#39;binary&#39;
+    ）
+
+train_ds = create_dataset（“训练”）
+val_ds = create_dataset（&#39;验证＆quot;）
+
+＃通过增强进行预处理（仅在培训期间活跃）
+预处理=顺序（[
+    Randomflip（“水平”，“），
+    随机旋转（0.1），
+    tf.keras.layers.lambda（preprocess_input）＃正确归一化
+）））
+
+＃构建模型
+base_model = densenet169（
+    权重=&#39;Imagenet&#39;，
+    include_top = false，
+    input_shape = img_size +（3，）
+）
+
+输入= tf.keras.input（shape = img_size +（3，））
+X =预处理（输入）
+x = base_model（x）
+x = globalaveragepooling2d（）（x）
+x =密集（512，激活=&#39;relu&#39;，kernel_regularizer = l2（0.01））（x）
+x =辍学（0.5）（x）＃正则化
+输出=密集（1，激活=&#39;Sigmoid&#39;）（x）
+模型=模型（输入，输出）
+
+＃阶段1：火车顶层
+base_model.trainable = false
+model.compile（
+    优化器= ADAM（1E-3），
+    损失=&#39;binary_crossentropy&#39;，
+    量表= [&#39;fecycy&#39;，tf.keras.metrics.auc（name =&#39;auc&#39;），
+             tf.keras.metrics.precision（name =&#39;precision&#39;），
+             tf.keras.metrics.Recall（name =&#39;recember&#39;）]
+）
+
+＃用回调监视AUC的火车
+早期_stop = tf.keras.callbacks.earlystopping（
+    Monitor =&#39;Val_auc&#39;，耐心= 3，模式=&#39;max&#39;，详细= 1
+）
+检查点= tf.keras.callbacks.modelcheckpoint（
+    &#39;best_model.h5&#39;，save_best_only = true，monitor =&#39;val_auc&#39;，mode =&#39;max&#39;
+）
+
+历史= model.fit（
+    train_ds，
+    验证_data = val_ds，
+    时代= epochs，
+    回调= [早期_STOP，检查点]
+）
+
+＃阶段2：微调整个模型
+base_model.trainable = true
+model.compile（
+    优化器= ADAM（1E-5），＃非常低的学习率
+    损失=&#39;binary_crossentropy&#39;，
+    量表= [&#39;facer&#39;，tf.keras.metrics.auc（name =&#39;auc&#39;）]
+）
+
+history_fine = model.fit（fit）（
+    train_ds，
+    验证_data = val_ds，
+    时代= epochs，
+    onirome_epoch = history.epoch [-1]，
+    回调= [早期_STOP，检查点]
+）
+
+＃ 评估
+y_pred =（model.predict（val_ds）＆gt; 0.5）.astype（int）
+y_true = np.concatenate（[y for _，y in val_ds]，axis = 0）
+
+打印（f＆quot f1分数：{f1_score（y_true，y_pred）：。3f}＆quot;）
+ ]]></description>
+      <guid>https://stackoverflow.com/questions/79535469/i-used-densenet-169-in-creating-a-model-for-predicting-colon-cancer-using-histop</guid>
+      <pubDate>Wed, 26 Mar 2025 05:27:58 GMT</pubDate>
+    </item>
+    <item>
+      <title>我的加权动态时间扭曲算法中是否存在错误</title>
+      <link>https://stackoverflow.com/questions/79535435/is-there-an-error-in-my-weighted-dynamic-time-warping-algorithm</link>
+      <description><![CDATA[使用平均归一化，并为算法中的输入进行修改的逻辑权重函数。不确定我的代码或我的数据是否弄乱了，使用了两个不同人的步态数据数据集，而我的距离最终是：0.06495056266749273 
+我将以下公式用于WDTW和修改后的逻辑权重函数：
+      def stripfunction（i_j，g，w_max）：#calculates修改后的逻辑权重函数
+  尺寸= len（x）
+  m_c = size // 2
+
+  返回w_max /（1 + np.exp（-g*（i_j -m_c）））
+
+def euclidean_distances（x，y）：
+      返回np.sqrt（np.sum（（（x -y）** 2）））
+
+def witeeddtw（x，y，vector = true）：
+  w_max = 3
+
+  n，m = X.Shape [0]，y.Shape [0]
+  成本= np r.zeros（（（n，m））
+
+  成本[0,0] = euclidean_distances（x [0]，y [0]）
+
+  对于我在范围（1，n）中：
+    成本[i，0] =成本[I-1，0] + Euclidean_distances（x [i]，y [0]）
+
+  对于J范围（1，m）的J：
+    成本[0，j] =成本[0，j-1] + euclidean_distances（x [0]，y [j]）
+
+
+  对于我在范围（1，n）中：
+    对于J范围（1，m）的J：
+      i_j = euclidean_distances（x [i]，y [j]）
+      w =重量函数（I_J，0.4，W_MAX）
+      min_value = min（[成本[I-1，J-1]，成本[I-1，J]，成本[I，J-1]]）
+      成本[i，j] = w * i_j + min_value
+
+    max_dist = w_max *（n + m -2）
+    norm_dist = cop [n-1，m-1] / max_dist
+
+
+  退货成本[N-1，M-1]，NORM_DIST
+
+x_norm =（x -np.mean（x，axis = 0）） /（np.max（x，axis = 0）-np.min（x，axis = 0））
+
+y_norm =（y -np.mean（y，axis = 0）） /（np.max（y，axis = 0）-np.min（y，axis = 0））
+
+
+＃计算WDTW
+距离，归一化=加权dtw（x_norm [：，0]，y_norm [：，0]）
+
+打印（f＆quot&#39;wdtw距离：{demand}＆quot;）
+打印（f＆quot“归一化wdtw距离：{normolized_distance}＆quort”）
+ ]]></description>
+      <guid>https://stackoverflow.com/questions/79535435/is-there-an-error-in-my-weighted-dynamic-time-warping-algorithm</guid>
+      <pubDate>Wed, 26 Mar 2025 04:58:34 GMT</pubDate>
+    </item>
     <item>
       <title>训练量：“包装”和“ group_by_length”相互抵消？</title>
       <link>https://stackoverflow.com/questions/79533473/trainingarguments-do-packing-and-group-by-length-counteract-each-other</link>
@@ -67,17 +292,6 @@
 或者我应该将测试分配在 eval_dataset 中？无论哪种方式，都没有使用其中一个分裂？]]></description>
       <guid>https://stackoverflow.com/questions/79532570/use-of-training-validation-and-test-set-in-huggingface-seq2seqtrainer</guid>
       <pubDate>Tue, 25 Mar 2025 02:22:21 GMT</pubDate>
-    </item>
-    <item>
-      <title>有什么方法可以在使用CV2保持文本的清晰度的同时删除此还原图像的背景噪声？ [关闭]</title>
-      <link>https://stackoverflow.com/questions/79531758/is-there-any-way-to-remove-the-background-noise-of-this-restored-image-while-mai</link>
-      <description><![CDATA[原始图像：
-这是原始图像 
-部分还原图像：
-这是部分修复的图像 
-第一个图像是在通过一些恢复技术运行之前。第二张图像是在修复后。背景噪音很多，字符的一部分缺少。我想从此图像中提取文本。我们可以在保持文本的准确性的同时执行此操作吗？任何帮助都将受到赞赏！]]></description>
-      <guid>https://stackoverflow.com/questions/79531758/is-there-any-way-to-remove-the-background-noise-of-this-restored-image-while-mai</guid>
-      <pubDate>Mon, 24 Mar 2025 17:32:07 GMT</pubDate>
     </item>
     <item>
       <title>Lora Fineted Llama 8b的自定义前往前方法 - 使用Unsploth</title>
@@ -173,13 +387,6 @@ print（data_prompt.format（上下文_，; quord;））
 它只是生成gibberish（在没有此超载的情况下，它的性能绝对是预期的 - 良好的代码生成）。现在的问题是，我可以使用的层次结构的唯一部分是Model.Model，它指向基本Meta Llama上的Casualllama包装器。我有一种不好的感觉，这不是正确的前进，不塞在引擎盖下发生了其他事情。我在这里缺少什么？]]></description>
       <guid>https://stackoverflow.com/questions/79531231/custom-forward-method-for-lora-finetuned-llama-8b-using-unsloth</guid>
       <pubDate>Mon, 24 Mar 2025 13:38:48 GMT</pubDate>
-    </item>
-    <item>
-      <title>当训练模型使用KAFKA和RDL索引4096训练模型时的错误是否超出了尺寸4096的轴0</title>
-      <link>https://stackoverflow.com/questions/79526992/error-when-training-the-model-for-sensor-data-using-kafka-and-rdl-index-4096-is</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79526992/error-when-training-the-model-for-sensor-data-using-kafka-and-rdl-index-4096-is</guid>
-      <pubDate>Sat, 22 Mar 2025 05:30:38 GMT</pubDate>
     </item>
     <item>
       <title>为什么我的代码不导致张量的错误“元素0”不需要毕业，也不需要grad_fn'</title>
@@ -293,7 +500,7 @@ plt.show（）
     <item>
       <title>神经网络精确度低</title>
       <link>https://stackoverflow.com/questions/73780627/neural-network-low-accuracy</link>
-      <description><![CDATA[该模型的精度确实很低。这是我第一次编写神经网络，所以我真的不知道如何使它变得更好
+      <description><![CDATA[该模型的精度确实很低。这是我第一次写神经网络，所以我真的不知道如何使它变得更好
  将TensorFlow导入为TF
 导入matplotlib.pyplot作为PLT
     
@@ -351,155 +558,6 @@ model.fit（x_train，y_train，epochs = 1000，batch_size = 500）
  ]]></description>
       <guid>https://stackoverflow.com/questions/65777704/getting-a-very-low-accuracy-with-neural-network</guid>
       <pubDate>Mon, 18 Jan 2021 15:44:46 GMT</pubDate>
-    </item>
-    <item>
-      <title>神经网络不确定的乳腺癌数据集</title>
-      <link>https://stackoverflow.com/questions/52358505/neural-network-undefitting-breast-cancer-dataset</link>
-      <description><![CDATA[我正在尝试在乳腺癌数据集上创建一个用于二进制分类的神经网络：
-  https://wwwww.kaggle.com/uciml/uciml/uciml/breast-cancer-cancer-wisconsin-data-data-data-data-data-data 
-我的神经网络由3层组成（不包括输入层）：
-
- 第一层：6个带有Tanh激活的神经元。
-
- 第二层：6个带有Tanh激活的神经元。
-
- 最终层：1个神经元，带有Sigmoid激活。
-
-
-不幸的是，我在训练示例中仅获得约44％的精度，在测试示例中的精度约为23％。
-这是我的python代码：
- 导入numpy作为NP
-导入大熊猫作为pd
-导入matplotlib.pyplot作为PLT
-
-data = pd.read_csv（&#39;data.csv; quot;）
-data = data.drop（[&#39;id&#39;]，轴= 1）
-data = data.drop（data.columns [31]，轴= 1）
-data = data.replace（{&#39;m&#39;：1，&#39;b&#39;：0}）
-
-x =数据
-x = x.drop（[&#39;诊断&#39;]，轴= 1）
-x = np.array（x）
-
-x_mean = np.mean（x，axis = 1，keepdims = true）
-x_std = np.std（x，axis = 1，keepdims = true）
-x_n =（x -x_mean） / x_std
-y = np.array（数据[&#39;诊断&#39;]）
-y = y.Reshape（569，1）
-M = 378
-y_train = y [：m，：]
-y_test = y [m：，：]
-
-x_train = x_n [：M，：]
-x_test = x_n [m :，：]
-
-Def Sigmoid（Z）：
-  返回1 /（1 + np.exp（-z））
-
-def dsigmoid（z）：
-  返回np.multiply（z，（1 -z））
-
-def tanh（z）：
-  返回（np.exp（z）-np.exp（-z）） /（np.exp（z） + np.exp（-z））
-
-def dtanh（z）：
-  返回1 -np.square（tanh（z））
-
-def成本（a，y）：
-  m = y.形[0]
-  返回 - （1.0/m） *np.sum（np.dot（y.t，np.log（a）） + np.dot（（（1 -y）.t，np，np.log（1 -a）））
-
-def train（x，y，型号，epocs，a）：
-  W1 =模型[&#39;W1&#39;]
-  W2 =模型[&#39;W2&#39;]
-  W3 =模型[&#39;W3&#39;]
-  
-  B1 =模型[&#39;B1&#39;]
-  B2 =模型[&#39;B2&#39;]
-  B3 =模型[&#39;B3&#39;]
-  
-  费用= []
-  
-  对于我的范围（EPOC）：
-    
-    ＃前传播
-
-    z1 = np.dot（x，w1） + b1
-    a1 = tanh（z1）
-
-    z2 = np.dot（a1，w2） + b2
-    a2 = tanh（z2）
-
-    z3 = np.dot（a2，w3） + b3
-    A3 = Sigmoid（Z3）
-    
-    costs.append（成本（A3，y））
-
-    #back繁殖
-    
-    dz3 = z3 -y
-    d3 = np.multiply（dz3，dsigmoid（z3））
-    dw3 = np.dot（a2.t，d3）
-    db3 = np.sum（d3，axis = 0，keepdims = true）
-
-    d2 = np.multiply（np.dot（d3，w3.t），dtanh（z2））
-    dw2 = np.dot（a1.t，d2）
-    db2 = np.sum（d2，轴= 0，keepdims = true）
-
-    d1 = np.multiply（np.dot（d2，w2.t），dtanh（z1））
-    dw1 = np.dot（x.T，d1）
-    db1 = np.sum（d1，axis = 0，keepdims = true）
-
-    W1  -  =（A / M） * DW1
-    W2- =（A / M） * DW2
-    w3- =（a / m） * dw3
-
-    B1  -  =（A / M） * DB1
-    b2  -  =（a / m） * db2
-    B3  -  =（A / M） * DB3
-    
-  cache = {&#39;w1&#39;：w1，&#39;w2&#39;：w2，&#39;w3&#39;：w3，&#39;b1&#39;：b1&#39;：b1，&#39;b2&#39;：b2，&#39;b3&#39;：b3}
-  返回缓存，成本
-
-np.random.seed（0）
-
-型号= {&#39;w1&#39;：np.random.rand（30，6） * 0.01，&#39;w2&#39;：np.random.rand（6，6） * 0.01，&#39;w3&#39;：np.random.rand（6，1） &#39;b3&#39;：np.random.rand（1，1）}
-
-型号，成本=火车（x_train，y_train，型号，1000，0.1）
-
-plt.plot（[i在范围内（1000）]，费用）
-打印（费用[999]）
-plt.show（）
-
-
-
-def预测（x，y，模型）：
-  W1 =模型[&#39;W1&#39;]
-  W2 =模型[&#39;W2&#39;]
-  W3 =模型[&#39;W3&#39;]
-  
-  B1 =模型[&#39;B1&#39;]
-  B2 =模型[&#39;B2&#39;]
-  B3 =模型[&#39;B3&#39;]
-  
-  z1 = np.dot（x，w1） + b1
-  a1 = tanh（z1）
-
-  z2 = np.dot（a1，w2） + b2
-  a2 = tanh（z2）
-
-  z3 = np.dot（a2，w3） + b3
-  A3 = Sigmoid（Z3）
-  
-  m = a3.形[0]
-  y_predict = np.zeros（（M，1））
-  
-  对于我的范围（m）：
-    y_predict = 1如果a3 [i，0]＆gt; 0.5其他0
-  返回y_predict
- ]]></description>
-      <guid>https://stackoverflow.com/questions/52358505/neural-network-undefitting-breast-cancer-dataset</guid>
-      <pubDate>Sun, 16 Sep 2018 21:24:54 GMT</pubDate>
     </item>
     <item>
       <title>Pytorch中的数据增强</title>
