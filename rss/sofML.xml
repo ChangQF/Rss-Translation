@@ -4,9 +4,131 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Thu, 03 Apr 2025 06:28:23 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 03 Apr 2025 09:19:33 GMT</lastBuildDate>
     <item>
-      <title>如何绕过功夫用视觉变压器扔刀敌人NES ML</title>
+      <title>如何在KERAS子类API中编译和运行模型</title>
+      <link>https://stackoverflow.com/questions/79552254/how-to-compile-and-run-a-model-in-keras-subclassing-api</link>
+      <description><![CDATA[我是子分类API的新手（通常是ML的新手），并且我正在学习使用TensorFlow推荐器库，并一直在浏览文档。我想知道如何运行和查看输入最终模型的单个子模型的输出。
+我已经重新创建了第一个子模型的摘录（我已经编译并适合完整模型，并且运行还可以）。
+我想孤立地运行此userFeaturesModel，以便能够检查其输出的串联数据，以便我可以确定它是否在做应该做什么，形状是什么，并更多地了解它如何输入下一个子模型。 。。
+，但我不确定如何编译和适合此模型，因为当我尝试编译时需要损失函数，但是该模型不仅仅是运行嵌入式，因此没有损失功能？
+很抱歉，如果这是一个愚蠢的问题，但是我花了几天的时间试图解决这个问题，并尝试在堆栈上查看以前的问题并观看了许多教程 - 请有人向我展示运行此模型并产生我可以评论的输出？
+ ＃imports
+导入TensorFlow作为TF
+导入TensorFlow_recommenders作为TFRS
+导入Tensorflow_dataset作为TFD
+导入numpy作为NP
+
+
+＃从TF加载数据集
+评分= tfds.load（&#39;Movielens/100k-Ratings＆quot＆quot; split =&#39;train; quot;）
+电影= tfds.load（&#39;Movielens/100k-Movies＆quot; split =&#39;train;）
+
+
+＃为每个数据集保留所需的功能列
+评分= ratings.map（lambda x：{
+    ＆quot“ movie_title＆quot”：x [x [＆quot&#39;himove_title＆quort;]，，
+    ＆quot“ user_id＆quot”：x [＆quot&#39;user_id＆quort;]，，
+    ＆quot“ user_rating＆quot”：x [＆quot&#39;user_rating＆quort＆quort＆quort＆quot＆quort
+    ＆quot“ timestamp＆quot” x [x [&#39;timestamp＆quort＆quort＆quort＆quort＆quort＆quot&#39;，
+    ＆quot&#39;raw_user_age＆quot＆quot＆quot x [x [＆quort; raw_user_age＆quort＆quort＆quort＆quort&#39;]，，
+}））
+
+电影= movie.map（lambda x：x [＆quot; movie_title;]）
+
+
+＃创建user_ids和movie_titles的数据集
+user_ids = ratings.batch（1000）.map（lambda x：x [&#39;user_id&#39;]）
+movie_titles = movie.batch（1000）
+
+
+＃从上方数据集中找到独特的词汇
+unique_user_ids = np.nique（np.concatenate（list（user_ids）））
+unique_movie_titles = np.nique（np.concatenate（list（movie_titles）））
+
+
+＃创建用于存储和归一化的时间戳阵列
+时间戳= np.concatenate（list（ratings.map）（lambda x：x [x [&#39;timestamp＆quot; quot;]）。
+max_timestamp = timestamps.max（）
+min_timestamp = timestamps.min（）
+timestamp_buckets = np.linspace（min_timestamp，max_timestamp，num = 2000）
+
+
+＃创建用于归一化的User_age数组
+user_age = np.concatenate（list（ratings.map（lambda x：x [x [&#39;raw_user_age＆quet; quet＆quot;]））。
+
+
+＃词汇大小用于嵌入
+user_vocab_size = len（unique_user_ids） + 1
+movie_vocab_size = len（unique_movie_titles） + 1
+timestamp_buckets_size = len（timestamp_buckets） + 1
+
+
+＃设置随机种子
+tf.random.set_seed（42）
+
+＃洗牌和拆分数据80:20
+shuffled_data = ratings.shuffle（100000，种子= 42，reshuffle_each_iteration = false）
+火车= Shuffled_data.take（80000）
+test = Shuffled_data.skip（80000）.take（20000）
+
+＃批次和缓存火车和测试数据集
+cached_train = train.shuffle（80000）.batch（512）.cache（）
+cached_test = test.batch（512）.cache（）
+
+
+＃定义模型
+类UserFeaturesModel（tf.keras.model）：
+  ＃模型构建和属性
+  def __init __（自我）：
+    super（）.__ init __（）
+
+    embedding_dim = 32
+
+    ＃user_id功能嵌入
+    self.user_id_embeddings = tf.keras.sepential（[[
+       tf.keras.layers.stringlookup（vocabulary = unique_user_ids，mask_token = none），
+       tf.keras.layers.embedding（user_vocab_size，embedding_dim）
+    ）））
+
+    ＃Timestamp桶状纤维嵌入
+    self.timestamp_bucket_embeddings = tf.keras.Sequeential（[
+        tf.keras.layers.discretization（timestamp_buckets.tolist（）），
+        tf.keras.layers.embedding（timestamp_buckets_size，embedding_dim）
+    ）））
+
+    ＃Timestamp归一化
+    self.normalized_timestamp = tf.keras.layers.normalization（axis = none）
+    self.normalized_timestamp.Adapt（时间戳）
+
+    ＃年龄归一化
+    self.normalized_user_age = tf.keras.layers.normalization（axis = none）
+    self.normalized_user_age.Adapt（user_age）
+
+
+  ＃模型通话和向前通行证
+  def呼叫（self，输入）：
+    返回tf.concat（[
+        self.user_id_embeddings（输入[&#39;user_id&#39;]），
+        self.timestamp_bucket_embeddings（inputs [&#39;timestamp&#39;]），
+        tf.Reshape（self.normalized_timestamp（输入[&#39;timestamp&#39;]），（ -  1,1）），
+        tf.Reshape（self.normalized_user_age（inputs [&#39;raw_user_age&#39;]），（ -  1,1））
+    ]，轴= 1）
+
+
+＃实例化模型
+模型= UserFeaturesModel（）
+
+
+＃运行型号 - 不确定如何编译，拟合和运行模型并检查输出？
+
+ 
+我真的很感谢任何帮助，因为我试图更好地了解子分类API。]]></description>
+      <guid>https://stackoverflow.com/questions/79552254/how-to-compile-and-run-a-model-in-keras-subclassing-api</guid>
+      <pubDate>Thu, 03 Apr 2025 07:19:39 GMT</pubDate>
+    </item>
+    <item>
+      <title>如何绕过功夫用视觉变压器扔刀敌人NES，ML [封闭​​]</title>
       <link>https://stackoverflow.com/questions/79552023/how-to-bypass-kung-fu-throwing-knife-enemy-nes-with-vision-transformer-ml</link>
       <description><![CDATA[我正在通过训练一个模型来围绕机器学习，该模型希望绕过功夫中的第1阶段。  repo   
  atm，我被敌人扔刀所困在1级。 （到目前为止，关闭战斗还不错，距离是一个问题）
@@ -73,7 +195,7 @@
     <item>
       <title>如何在不进行重新培训的情况下从Yolo模型中删除类？</title>
       <link>https://stackoverflow.com/questions/79551678/how-to-remove-a-class-from-yolo-model-without-retraining</link>
-      <description><![CDATA[我有一个Yolov11型号（Gloves.pt），该模型经过训练以高信任地检测手套和NO_GLOV（精度约为90％）。现在，我想创建一个模型（no_gloves.pt）的变体，该模型仅检测没有手套（&#39;no_gloves＆quot; class; class; class）。
+      <description><![CDATA[我有一个带有两个类[&#39;class_a&#39;，&#39;class_b&#39;]的Yolov11模型，该模型经过训练，可以高信任地检测class_a和class_b（左右的精度约为90％）。现在，我想创建一个仅检测class_b的模型的变体。
 我已经检查过，我介绍了模型的所有属性，但无法删除类检测。唯一的方法是进行重新训练，但我仍然必须在许多时期进行重新训练，因为如果不是指标，则超级。
 是否可以从检测中删除一个类，而无需再培训？]]></description>
       <guid>https://stackoverflow.com/questions/79551678/how-to-remove-a-class-from-yolo-model-without-retraining</guid>
@@ -212,14 +334,6 @@ factor_vars＆lt;  - 名称（火车）[all_factors]
 有什么想法将运行时从7小时下降到不到一个小时的东西？]]></description>
       <guid>https://stackoverflow.com/questions/79550884/how-to-improve-gridsearch-cv-speed</guid>
       <pubDate>Wed, 02 Apr 2025 14:16:19 GMT</pubDate>
-    </item>
-    <item>
-      <title>仅分割图像的特定区域[封闭]</title>
-      <link>https://stackoverflow.com/questions/79550598/segmentation-to-only-a-specific-region-of-an-image</link>
-      <description><![CDATA[我安装了单元格，如何仅将分割应用于图像的特定区域？我的图像来自培养皿，边缘被检测为面具。
-我试图在GUI中找到解决方案，但没有发现]]></description>
-      <guid>https://stackoverflow.com/questions/79550598/segmentation-to-only-a-specific-region-of-an-image</guid>
-      <pubDate>Wed, 02 Apr 2025 12:14:48 GMT</pubDate>
     </item>
     <item>
       <title>液体。 AI模型后端[关闭]</title>
