@@ -4,7 +4,7 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Sun, 06 Apr 2025 09:16:27 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 06 Apr 2025 12:31:44 GMT</lastBuildDate>
     <item>
       <title>检测到重复的GPU：CUDA设备上的等级为0和等级1 40</title>
       <link>https://stackoverflow.com/questions/79557948/duplicate-gpu-detected-rank-0-and-rank-1-both-on-cuda-device-40</link>
@@ -92,6 +92,98 @@ fsdp_model = FSDP( model, sharding_strategy=ShardingStrategy.HYBRID_SHARD, auto_
       <pubDate>Sun, 06 Apr 2025 08:10:36 GMT</pubDate>
     </item>
     <item>
+      <title>CNN模型的问题以预测黑白图像的颜色</title>
+      <link>https://stackoverflow.com/questions/79557643/problem-with-cnn-model-for-prediction-of-color-from-an-black-and-white-image</link>
+      <description><![CDATA[我已经创建了一个CNN模型，该模型作为输入13x13图像刻度刻度实验室L通道。我用12000张图像培训了它，并获得了7个MSE错误。
+要使用该模型，我需要将图像切成13x13的小图像，然后通过网络进行馈送。
+我从原始小图像中将 l通道从一个图像中放在一个像素上，并将其放在一个像素中，以将其放在一个像素上，以供带有颜色的预测图像。之后，我将所有这些预测的像素放在一起并形成预测的图像。
+这是创建这些预测像素的功能：
+  def create_pxl_from_preds（input_image，预测）：
+    prediction_rescaled = torch.mul（预测，128）
+    a，b = prediction_rescaled [0]
+    a = a.detach（）。numpy（）
+    b = b.detach（）。numpy（）
+
+    l_channel = input_image [6，6]
+
+    a_channel = np.full（（1，1），a，dtype = np.float32）
+    b_channel = np.full（（1，1），b，dtype = np.float32）
+    l_channel = np.full（（1，1），l_channel，dtype = np.float32）
+
+    l_channel =（l_channel / 255 * 100）.astype（np.float32）
+    a_channel = a_channel.astype（np.float32）
+    b_channel = b_channel.astype（np.float32）
+
+    image_pred = cv2.merge（[l_channel，a_channel，b_channel]）
+    返回image_pred
+ 
+之后，我有一个函数来构建图像行和一个函数，可以将这些行放在一起并形成整个图像。另外，总有487个图像，也有487行一起
+  def rebuild_image_pxl_row（
+        start_calc：int，
+        end_calc：int，
+        num_sections_per_row = 487，
+） - ＆gt;没有任何：
+    tensor_rows = torch.arange（start_calc，end_calc）
+    list_rows = tensor_rows.tolist（）
+    add_index = 0
+    对于我在list_rows中：
+        idx = i
+
+        image_files = [f in os.listdir（temp_folder_images）如果f.lower（）。endswith（（（&#39;。
+        image_files.sort（key = extract_numbers）
+
+        start_idx = idx * num_sections_per_row
+        start_idx += add_index
+
+        end_idx = start_idx + num_sections_per_row
+        row_sections = image_files [start_idx：end_idx]
+        print（f＆quot&#39;start idx：{start_idx}，end IDX：{end_idx}＆quort;）
+
+        row_images = []
+
+        对于索引，枚举中的section_file（row_sections）：
+            section_path = os.path.join（temp_folder_images，section_file）
+            section_image = cv2.imread（section_path，cv2.imread_grayscale）
+            section_tensor = torch.from_numpy（section_image）.float（）。unsqueeze（0）.unsqueeze（0）
+            pection_pred = conv_model（extract_tensor）
+            section_reconstructed = create_pxl_from_preds（extart_image，section_pred）
+            row_images.append（np.Round（cv2.cvtcolor（extife_reconstructed，cv2.color_lab2bgr）*255.0，0））
+
+        行= np.hstack（row_images）
+        row_path = os.path.join（temp_folder_rows，f＆quot; row_ {idx} .png; quert;）
+        cv2.imwrite（row_path，行）
+        add_index += 1
+        打印（f＆quort&#39;row {idx}重建并保存为{row_path}。
+ 
+  def rebuild_image_pxl（row_ordner，target_height = 487）：
+    row_files = [f in os.listdir（row_ordner）如果f.lower（）。endswith（（（&#39;。png&#39;，&#39;.jpg&#39;，&#39;.jpeg&#39;，&#39;.bmp&#39;））]]]]]]]]]
+    row_files.sort（key = extract_numbers）
+    打印（row_files [：20]）
+
+    row_files = row_files [：target_height]
+
+    all_rows = []
+
+    对于索引，ROW_FILE在枚举中（row_files）：
+        row_path = os.path.join（row_ordner，row_file）
+        row_image = cv2.imread（row_path）
+        all_rows.append（row_image）
+
+    final_image = cv2.vconcat（all_rows）
+    final_image = np.fliplr（final_image）
+    final_image = cv2.Rotate（final_image，cv2.rotate_90_counterclockwise）
+    cv2.imwrite（&#39;image.png; final_image）
+    show_image（&#39;image.png;）
+ 
+我将OpenCV用作图像处理库。
+但是，当我尝试运行程序时，不会发生任何错误，但是预测图像的颜色不正确，甚至不接近原始图像。检测到L通道的边缘和细微差别，因此该数据的复制有效。但是颜色预测并非如此，我认为这是OpenCV和不同颜色空间BGR，RGB和LAB的东西。由于OpenCV将图像打开并保存在BGR色彩空间中，因此我只是将图像值从实验室转换为BGR。
+我需要弄清楚错误在哪里的帮助。
+预测的图像看起来像这样：
+在此处输入图像描述 ]]></description>
+      <guid>https://stackoverflow.com/questions/79557643/problem-with-cnn-model-for-prediction-of-color-from-an-black-and-white-image</guid>
+      <pubDate>Sat, 05 Apr 2025 23:37:53 GMT</pubDate>
+    </item>
+    <item>
       <title>jinaai/jina-embeddings-v3嵌入模型没有注意力输出</title>
       <link>https://stackoverflow.com/questions/79557313/no-attention-output-in-jinaai-jina-embeddings-v3-embedding-model</link>
       <description><![CDATA[当我使用此模型时 -  
@@ -130,9 +222,7 @@ Flash注意力实现不支持Kwargs：output_attentions
     <item>
       <title>使用KERAS自定义数据生成器表现不佳的模型[关闭]</title>
       <link>https://stackoverflow.com/questions/79557177/model-performing-poorly-with-keras-custom-data-generator</link>
-      <description><![CDATA[我正在尝试使用KERAS自定义数据加载器加载我的110 GB数据集。我将音频分为4096个样本的帧，并将其馈送到我的型号，以及具有长度，宽度和高度值的CSV文件。该项目的目的是为模型提供音频，并使用房间冲动响应根据音频估算房间的大小。
-当我在没有数据生成器的一半的总数据集上训练模型时，我的损失降至1.2，而MAE至0.8，但是当我在与数据生成器的完整数据集上训练它时，损失停滞在3.1，MAE在1.3上停滞了1.3，这意味着我的数据生成器有问题，但我似乎无法找到什么。我遵循了一个在线教程，基于我在代码中看不到可能引起问题的任何东西。
-我要求某人友善地审查&lt;a href =“ https://drive.google.com/file/d/1tdvd_ybolbb15xib5xib5xib5gcy4ofnr0dgog/view？usp = sharing？]]></description>
+      <description><![CDATA[]]></description>
       <guid>https://stackoverflow.com/questions/79557177/model-performing-poorly-with-keras-custom-data-generator</guid>
       <pubDate>Sat, 05 Apr 2025 15:30:58 GMT</pubDate>
     </item>
@@ -178,86 +268,6 @@ img = r＆quot d：\ a \ br \ program \ prograpping \ frames_kopo \ kopo0_202502
       <pubDate>Sat, 05 Apr 2025 02:19:32 GMT</pubDate>
     </item>
     <item>
-      <title>使用骰子构建张量流模型来生成反事实[封闭]</title>
-      <link>https://stackoverflow.com/questions/79555811/building-a-tensorflow-model-using-dice-to-generate-counterfactuals</link>
-      <description><![CDATA[我正在使用该数据集生成反事实的骰子软件包进行一个项目： https://archive.ics.uci.edu/dataset/144/statlog+gergers+credit+data  
-我已经使用Sklearn后端工作了，但是我也想看看是否可以使用TF进行。果然，我试图让它起作用，但根本没有任何作用。我想知道是否有人有建立这些模型可以分享任何经验的经验。下面我为工作模型放了代码：
- 导入dice_ml
-导入大熊猫作为pd
-来自dice_ml.utils进口帮助者＃实用程序功能
-从sklearn.com possope导入columntransformer
-从sklearn.semblection incort intim
-来自sklearn.model_selection导入train_test_split
-来自Sklearn.Pipeline Import Pipeline
-从Sklearn.Preprocessing Import StandardardScaler，OneHotenCoder
-
-＃步骤1：加载数据集
-data_url =＆quort; https：//archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german/german.data＆quot; quot;
-列= [状态&#39;&#39; “属性”，“年龄”，“&#39;&#39;
-dataset = pd.read_csv（data_url，delim_whitespace = true，names =列）
-
-
-
-dataset.head（）
-
-target =数据集[&#39;target&#39;]
-train_dataset，test_dataset，y_train，y_test = train_test_split（dataset，target，test_size = 0.2，randy_state = 42，stratefify = target）
-x_train = train_dataset.drop（columns = [&#39;target&#39;]，axis = 1）
-x_test = test_dataset.drop（columns = [&#39;target&#39;]，axis = 1）
-
-d = dice_ml.data（dataFrame = dataset，continule_features = [&#39;duration&#39;，&#39;Creditamount&#39;，&#39;intermentRate&#39;，&#39;soltstentRate&#39;，&#39;reciends&#39;，&#39;age&#39;，&#39;age&#39;，&#39;nocustCredits&#39;，nucliable&#39;]，numlable&#39;]，outcome_name =&#39;target&#39;）
-数值= [&#39;持续时间&#39;，&#39;Creditamount&#39;，&#39;intermantrate&#39;，&#39;soridence&#39;，&#39;age&#39;，&#39;aperecredits&#39;，&#39;numlable&#39;]
-分类= x_train.columns.difference（数值）
-
-packorical_transformer = pipeline（steps = [[
-    （&#39;onehot&#39;，onehotencoder（handle_unknown =&#39;nighore&#39;））
-）））
-
-转换= columntransFormer（
-    变形金刚= [
-        （&#39;cat&#39;，cantorical_transformer，分类）
-    ）））
-
-clf = pipeline（steps = [（&#39;预处理程序&#39;，变换），
-                        （&#39;分类器&#39;，RandomforestClassifier（）））））
-
-型号= clf.fit（x_train，y_train）
-
-
-m = dice_ml.model（model = model，backend =＆quot; sklearn＆quort;）
-
-exp = dice_ml.dice（d，m，method =;随机;）
-
-instance_index = dataset [dataset [&#39;target;] == 2] .index [0]
-query_instance = x_test.loc [[instance_index]]
-cf = exp.generate_counterfactuals（query_instance，total_cfs = 10，desired_range = none，
-                                  desired_class =; quot; quot;
-                                  permitted_range = none，features_to_vary =; all＆quot;）
-
-打印（“在下面的特征重要性”
-打印（“本地”
-imp = exp.local_feature_importance（query_instance，cf_examples_list = cf.cf.cf_examples_list）
-打印（imp.local_importance）
-
-打印（“全球”）
-cobj = exp.global_feature_importance（x_train [0:10]，total_cfs = 10，postthoc_sparsity_param = none）
-打印（Cobj.summary_importance）
-
-
-pd.set_option（&#39;display.max_columns&#39;，无）
-cf.visualize_as_dataframe（show_only_changes = true）
-cf.to_json（）
-
-打印（“在下面调试”
-print（model.predict（x_test [0：5]））
-打印（test_dataset.loc [x_test.index，&#39;target;]）
-
-cf.to_json（）
- ]]></description>
-      <guid>https://stackoverflow.com/questions/79555811/building-a-tensorflow-model-using-dice-to-generate-counterfactuals</guid>
-      <pubDate>Fri, 04 Apr 2025 16:00:33 GMT</pubDate>
-    </item>
-    <item>
       <title>yolov11培训给火炬。</title>
       <link>https://stackoverflow.com/questions/79553429/yolov11-training-gives-torch-outofmemoryerror</link>
       <description><![CDATA[我正在尝试为一组图像训练Yolov11模型，但我遇到了一个问题。该模型正在训练的GPU是GeForce RTX 4070 Super。
@@ -277,6 +287,43 @@ cf.to_json（）
 有人如何解决这个问题吗？]]></description>
       <guid>https://stackoverflow.com/questions/79553429/yolov11-training-gives-torch-outofmemoryerror</guid>
       <pubDate>Thu, 03 Apr 2025 15:54:34 GMT</pubDate>
+    </item>
+    <item>
+      <title>为什么拥抱面提供的DeepSeek代码会导致“未知量化类型”错误？</title>
+      <link>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</link>
+      <description><![CDATA[我正在使用huggingface的此代码：
+此代码直接从 deepseek上的huggingface网站页面上的页面
+
+ 来自变形金刚导入管道
+
+消息= [
+{&#39;&#39;：＆quot“ user quot”内容“：;
+这是给出的
+pipe =管道（＆quot&#39;text-generation＆quot; deepseek-ai/deepseek-r1＆quort; trust_remote_code = true）
+管道（消息）
+ 
+
+，但我无法加载模型。当我这样做时，我会得到这个问题：
+  file＆quot＆lt; ...＆gt;/site-packages/transformers/quantizers/auto.py＆quot;，第97行，在from_dict
+
+提高价值Error（
+
+ValueError：未知量化类型，获得FP8-支持类型为： 
+[&#39;awq&#39;，&#39;bitsandbytes_4bit&#39;，&#39;bitsandbytes_8bit&#39;，&#39;gptq&#39;，&#39;aqlm&#39;，&#39;quanto&#39;，&#39;eetq&#39;，&#39;eetq&#39;， 
+&#39;HQQ&#39;，“压缩张量”，“ fbgemm_fp8&#39;，&#39;torchao&#39;，&#39;bitnet&#39;]
+ 
+我尝试了不同的代码：
+ 导入火炬
+generate_text = pipeline（model =; deepSeek-ai/deepSeek-r1; torch_dtype = torch.bfloat16，trust_remote_code = true，device_map =; auto;
+generate_text（消息）
+ 
+这给出以下错误：
+
+raise ValueError( ValueError: Unknown quantization type, got fp8 - supported types are: [&#39;awq&#39;, &#39;bitsandbytes_4bit&#39;, &#39;bitsandbytes_8bit&#39;, &#39;gptq&#39;, &#39;aqlm&#39;, &#39;quanto&#39;, &#39;eetq&#39;, &#39;higgs&#39;, &#39;hqq&#39;, &#39;compressed-tensors&#39;, &#39;fbgemm_fp8&#39;, &#39;torchao&#39;，&#39;bitnet&#39;，&#39;vptq&#39;] 
+
+我该怎么办？]]></description>
+      <guid>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</guid>
+      <pubDate>Sun, 09 Feb 2025 03:05:30 GMT</pubDate>
     </item>
     <item>
       <title>Infror：导入onnx_cpp2py_export时DLL负载失败：动态链接库（DLL）初始化例程失败</title>
@@ -455,17 +502,6 @@ model.fit（x，y，epochs = 20，batch_size = 32，验证_split = 0.1）
  ]]></description>
       <guid>https://stackoverflow.com/questions/58562089/why-is-imagedatagenerator-performing-poorly</guid>
       <pubDate>Fri, 25 Oct 2019 16:05:15 GMT</pubDate>
-    </item>
-    <item>
-      <title>多个人工神经网络</title>
-      <link>https://stackoverflow.com/questions/45160402/multiple-artificial-neural-networks</link>
-      <description><![CDATA[我正在尝试建立一个多个人工神经网络，如图像（a）：
-  （ source&gt; source ））
-我希望每个网络在自己的域上独立工作。必须为其特定任务构建和培训单个网络。最终决定将根据单个网络的结果做出，通常称为专家网络或代理。
-由于隐私，我无法共享我的数据。
-我尝试使用Python中的TensorFlow设置此设置。它可以实现吗，如果是的，我该怎么办？]]></description>
-      <guid>https://stackoverflow.com/questions/45160402/multiple-artificial-neural-networks</guid>
-      <pubDate>Tue, 18 Jul 2017 07:37:07 GMT</pubDate>
     </item>
     <item>
       <title>如何找到功能对逻辑回归模型的重要性？</title>
