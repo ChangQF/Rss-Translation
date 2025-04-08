@@ -4,7 +4,137 @@
     <title>主动问题标记的机器学习 - 堆栈溢出</title>
     <link>https://stackoverflow.com/questions/tagged/?tagnames=machine-learning&sort=active</link>
     <description>最近的30个来自stackoverflow.com</description>
-    <lastBuildDate>Tue, 08 Apr 2025 06:27:26 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 08 Apr 2025 09:22:00 GMT</lastBuildDate>
+    <item>
+      <title>ML河的决策树的印刷规则</title>
+      <link>https://stackoverflow.com/questions/79561495/printing-rules-from-decision-tree-in-river-ml</link>
+      <description><![CDATA[我正在使用河流ML库，并使用决策树模型。我想从训练有素的树木中打印或提取决策规则。但是，看来图书馆目前没有提供内置方法来执行此操作。
+有人知道一种从河中的树模型手动打印或提取决策规则的方法吗？
+  pipeline = compose.pipeline（
+        self.extract_features（事件=事件），
+        ordinalencoder（），
+        lastClassifier（max_depth = 5，track_error = true，remove_poor_attrs = true）
+    ）
+metric = f1（）
+    self.state.update（{&#39;pipeline&#39;：pipeline，&#39;metric&#39;：metric}）
+
+
+标签= 1如果分类_label其他0
+
+＃检索当前管道组件
+pipeline = self.state.value（）[&#39;pipeline&#39;]
+模型=管道[&#39;lastClassifier&#39;]
+metric = self.state.value（）[&#39;metric&#39;]
+
+＃进行预测并更新度量
+predicted_label = model.predict_one（self.state.value（）[&#39;pipeline&#39;] [&#39;dict&#39;]）
+吨
+
+＃通过新事件更新模型
+model.learn_one（self.state.value（）[&#39;pipeline&#39;] [&#39;dict&#39;]，标签）
+
+＃保存更新的状态
+self.state.update（{&#39;pipeline&#39;：pipeline，&#39;metric&#39;：metric}）
+ ]]></description>
+      <guid>https://stackoverflow.com/questions/79561495/printing-rules-from-decision-tree-in-river-ml</guid>
+      <pubDate>Tue, 08 Apr 2025 07:59:08 GMT</pubDate>
+    </item>
+    <item>
+      <title>图像旋转：使用Pytorch进行角度检测的模型</title>
+      <link>https://stackoverflow.com/questions/79560879/image-rotation-model-for-angle-detection-using-pytorch</link>
+      <description><![CDATA[基本上，我正在尝试创建一个模型，该模型将检测旋转特定图像的角度。另外，我还有一个由1500个文档的数据集，该数据集由上旋转的图像产生
+ 随机。样本（[0，90，-90，180]，2）
+ 
+每个角度的变化
+  random.均匀（-10，10）
+ 
+导致〜4K旋转图像。
+所以我想出了当前的模型来预测所需角度的罪和cos：
+ 类CnnRotAteRegression（nn.Module）：
+    def __init __（自我）：
+        super（cnnrotateregression，self）.__ init __（）
+        self.conv1 = nn.conv2d（3，64，kernel_size = 3）
+        self.conv2 = nn.conv2d（64，128，kernel_size = 3）
+        self.conv3 = nn.conv2d（128，256，kernel_size = 3）
+        self.conv4 = nn.conv2d（256，512，kernel_size = 3）
+        self.conv5 = nn.conv2d（512，512，kernel_size = 3）
+        
+        self.bn1 = nn.batchnorm2d（64）
+        self.bn2 = nn.batchnorm2d（128）
+        self.bn3 = nn.batchnorm2d（256）
+        self.bn4 = nn.batchnorm2d（512）
+        self.bn5 = nn.batchnorm2d（512）
+        
+        self.activation = nn.relu（）
+        self.pool = nn.avgpool2d（kernel_size = 2）
+        self.pool2 = nn.adaptiveavgpool2d（（8,8））
+
+        self.linear_l1 = nn.linear（512*8*8，512）
+        self.linear_l2 = nn.linear（512，256）
+        self.linear_l3 = nn.linear（256，2）＃sin + cos
+
+    def向前（self，x）：
+        x = self.activation（self.pool（self.bn1（self.conv1（x））））
+        x = self.activation（self.pool（self.bn2（self.conv2（x））））
+        x = self.activation（self.pool（self.bn3（self.conv3（x））））
+        x = self.activation（self.pool（self.bn4（self.conv4（x））））
+        x = self.activation（self.pool（self.bn5（self.conv5（x））））
+        
+        x = self.pool2（x）
+        x = x.view（x.Size（0），-1）
+        
+        x = self.activation（self.linear_l1（x））
+        x = self.activation（self.linear_l2（x））
+        x = self.linear_l3（x）
+
+        x = f.normalize（x，p = 2，dim = 1）
+
+        返回x
+ 
+训练零件：
+  model = cnnrotateRegression（）
+模型=型号。
+
+loss_function = nn.mseloss（）
+优化器= Optim.Adam（model.parameters（），LR = 0.001）
+num_of_epochs = 11
+
+
+对于范围（num_of_epochs）的时代：
+    model.train（）
+    Running_loss = 0.0
+    对于图像，在tqdm中的标签（train_loader，desc =＆quot;训练循环”：
+
+        图像，标签=图像。
+
+        angles = Angle_to_sin_cos（标签）
+        norm_angles = f.normalize（角度，p = 2，dim = 1）
+
+        优化器.zero_grad（）
+        输出=模型（图像）
+        损失= lose_function（输出，norm_angles）
+        loss.backward（）
+        优化器.step（）
+
+        running_loss += loss.item（）
+    train_loss = runn_loss / len（train_loader）
+ 
+函数将sin和cos转换为角度，反之亦然：
+  def angle_to_sin_cos（angle）：
+    tensor_angle = Angle.clone（）。distach（）
+    radian = tensor_angle * torch.pi / 180.0
+    返回Torch.Stack（[[Torch.Cos（Radian），Torch.sin（Radian）]，DIM = 1）
+
+DEF SIN_COS_TO_ANGLE（输出）：
+    cos_val，sin_val =输出[：，0]，输出[：，1]
+    Angle_rad = torch.atan2（sin_val，cos_val）
+    Angle_deg = Angle_rad *（180 / Torch.pi）
+    返回angle_deg
+ 
+我的模型在确定范围 +-10度的小角度方面的表现差。您建议改进/增强以实现更好的“小度”。预言？预先感谢您！]]></description>
+      <guid>https://stackoverflow.com/questions/79560879/image-rotation-model-for-angle-detection-using-pytorch</guid>
+      <pubDate>Mon, 07 Apr 2025 22:20:43 GMT</pubDate>
+    </item>
     <item>
       <title>我如何在自定义表情数据集中正确训练或微调通量。1-dev？ [关闭]</title>
       <link>https://stackoverflow.com/questions/79560686/how-do-i-properly-train-or-fine-tune-flux-1-dev-on-a-custom-emoji-dataset</link>
@@ -64,7 +194,7 @@ train。
     <item>
       <title>单词错误率在第一个时期自动语音识别系统后几乎100％[封闭]</title>
       <link>https://stackoverflow.com/questions/79560091/word-error-rate-almost-100-after-first-epoch-automatic-speech-recognition-syste</link>
-      <description><![CDATA[我尝试使用语音脑训练ASR系统。但是，在第一个时期之后，我的单词错误率是疯狂的 - 为99.63％。字面上几乎是100％。这是训练日志的整个行：
+      <description><![CDATA[我尝试使用语音脑训练ASR系统。但是，在第一个时期之后，我的单词错误率是疯狂的 - 为99.63％。实际上几乎是100％。这是训练日志的整个行：
  时期：1，LR：1.00E+00-火车损失：5.15-有效损失：4.42，有效CER 81.95，有效的WER。 99.63
  
 我不确定我是否只是完全搞砸了。我知道在第一个时代之后很难说，但是我的计算机运行速度真的很慢，所以我只是想知道看起来是否错了。
@@ -289,50 +419,6 @@ rf_model.fit（x，y）
       <pubDate>Sun, 06 Apr 2025 20:47:13 GMT</pubDate>
     </item>
     <item>
-      <title>使用KERAS自定义数据生成器表现不佳的模型[关闭]</title>
-      <link>https://stackoverflow.com/questions/79557177/model-performing-poorly-with-keras-custom-data-generator</link>
-      <description><![CDATA[]]></description>
-      <guid>https://stackoverflow.com/questions/79557177/model-performing-poorly-with-keras-custom-data-generator</guid>
-      <pubDate>Sat, 05 Apr 2025 15:30:58 GMT</pubDate>
-    </item>
-    <item>
-      <title>为什么拥抱面提供的DeepSeek代码会导致“未知量化类型”错误？</title>
-      <link>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</link>
-      <description><![CDATA[我正在使用huggingface的此代码：
-此代码直接从 deepseek上的huggingface网站页面上的页面
-
- 来自变形金刚导入管道
-
-消息= [
-{&#39;&#39;：＆quot“ user quot”内容“：;
-这是给出的
-pipe =管道（＆quot&#39;text-generation＆quot; deepseek-ai/deepseek-r1＆quort; trust_remote_code = true）
-管道（消息）
- 
-
-，但我无法加载模型。当我这样做时，我会得到这个问题：
-  file＆quot＆lt; ...＆gt;/site-packages/transformers/quantizers/auto.py＆quot;，第97行，在from_dict
-
-提高价值Error（
-
-ValueError：未知量化类型，获得FP8-支持类型为： 
-[&#39;awq&#39;，&#39;bitsandbytes_4bit&#39;，&#39;bitsandbytes_8bit&#39;，&#39;gptq&#39;，&#39;aqlm&#39;，&#39;quanto&#39;，&#39;eetq&#39;，&#39;eetq&#39;， 
-&#39;HQQ&#39;，“压缩张量”，“ fbgemm_fp8&#39;，&#39;torchao&#39;，&#39;bitnet&#39;]
- 
-我尝试了不同的代码：
- 导入火炬
-generate_text = pipeline（model =; deepSeek-ai/deepSeek-r1; torch_dtype = torch.bfloat16，trust_remote_code = true，device_map =; auto;
-generate_text（消息）
- 
-这给出以下错误：
-
-raise ValueError( ValueError: Unknown quantization type, got fp8 - supported types are: [&#39;awq&#39;, &#39;bitsandbytes_4bit&#39;, &#39;bitsandbytes_8bit&#39;, &#39;gptq&#39;, &#39;aqlm&#39;, &#39;quanto&#39;, &#39;eetq&#39;, &#39;higgs&#39;, &#39;hqq&#39;, &#39;compressed-tensors&#39;, &#39;fbgemm_fp8&#39;, &#39;torchao&#39;，&#39;bitnet&#39;，&#39;vptq&#39;] 
-
-我该怎么办？]]></description>
-      <guid>https://stackoverflow.com/questions/79424312/why-does-huggingface-provided-deepseek-code-result-in-an-unknown-quantization-t</guid>
-      <pubDate>Sun, 09 Feb 2025 03:05:30 GMT</pubDate>
-    </item>
-    <item>
       <title>在Kaggle中使用thundersvm</title>
       <link>https://stackoverflow.com/questions/79243091/using-thundersvm-in-kaggle</link>
       <description><![CDATA[当我想使用！PIP安装Thundersvm 安装thundersvm时，我遇到了此错误：
@@ -382,12 +468,31 @@ sudo sh cuda_9.0.176_384.81_linux-run
       <pubDate>Mon, 02 Dec 2024 06:08:54 GMT</pubDate>
     </item>
     <item>
-      <title>我正在使用RuleFit进行二进制分类；如何解释规则？</title>
-      <link>https://stackoverflow.com/questions/75089762/i-am-using-rulefit-for-binary-classification-how-do-i-interpret-the-rules</link>
-      <description><![CDATA[我正在将规则fit与渐变boostingClassifier一起使用，以生成二进制分类问题的规则（Kaggle上的Health-Dataset）。  当我用rulefit.get_rules（）打印规则时，它显示了规则，类型，COEF，支持和重要性。  但这并未显示哪个类（0或1）是规则的目标。  例如：exang＆lt; = 0.5描述了0或1类？
-摘要：我怎么知道给定规则正在描述哪个目标？]]></description>
-      <guid>https://stackoverflow.com/questions/75089762/i-am-using-rulefit-for-binary-classification-how-do-i-interpret-the-rules</guid>
-      <pubDate>Wed, 11 Jan 2023 22:42:33 GMT</pubDate>
+      <title>tensorboard的add_hparams（）函数无法正常工作</title>
+      <link>https://stackoverflow.com/questions/78857269/add-hparams-function-from-tensorboard-doesnt-work-properly</link>
+      <description><![CDATA[我正在尝试将指标添加到此摘要Writer，但它不起作用。
+我正在使用summarywriter的add_hparams（）函数，其详细信息可以在此处找到： https://pytorch.org/docs/stable/tensorboard.html 。
+我这样做：
+  writer = summaryWriter（f&#39;runs/lstm_experiment_final&#39;）
+
+对于tqdm（range（num_epochs））中的e：
+    tr_loss，tr_f1，tr_precision，tr_recall = triending_loop（型号，train_dataloader，loss_function，优化器，e，writer）
+    val_loss，val_f1，val_precision，val_recall = validation_loop（型号，test_dataloader，loss_function，e，e，writer）
+
+metric_dict = {&#39;损失/火车&#39;：tr_loss，&#39;损失/有效&#39;：val_loss，
+                         &#39;F1/train&#39;：tr_f1，&#39;f1/有效&#39;：val_f1，
+                         “精确/火车”：tr_precision，“精确/有效”：val_precision，
+                         “召回/火车”：tr_recall，&#39;召回/有效&#39;：val_recall}
+writer.add_hparams（best_params，metric_dict，global_step = num_epochs-1）
+writer.close（）    
+ 
+这就是发生的事情。
+ 在此处输入图像说明 
+换句话说，超参数确实在张板上记录，但公制值不是。
+我希望有人已经看到我的问题，并且知道如何解决这个问题。
+预先感谢。]]></description>
+      <guid>https://stackoverflow.com/questions/78857269/add-hparams-function-from-tensorboard-doesnt-work-properly</guid>
+      <pubDate>Sun, 11 Aug 2024 00:21:56 GMT</pubDate>
     </item>
     <item>
       <title>如何获得随机森林算法在自变量上使用的最终方程式来预测因变量？</title>
